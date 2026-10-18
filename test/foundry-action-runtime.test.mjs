@@ -1264,9 +1264,10 @@ test("a lasting area's persistence is validated: rounds, an elevation band, and 
 });
 
 /** A burst whose ground keeps burning; the Scene can hold Regions and the GM runs the turn. */
-function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false, on=["turn.started"], light=null}={}) {
+function lastingAreaFixture(t, {shape="radial", range=60, rounds=10, concentration=false, on=["turn.started"], light=null,
+  affects=null}={}) {
   const fixture = areaFixture(t, {shape, range, persistence: {duration: {unit: "round", value: rounds}, elevation: {bottom: 0, top: 0},
-    concentration, triggers: [{on, action: BURNING}], ...(light ? {light} : {})}});
+    concentration, triggers: [{on, action: BURNING}], ...(light ? {light} : {}), ...(affects ? {affects} : {})}});
   const {scene, game} = fixture;
   scene.regions = [];
   scene.lights = new Map();
@@ -1347,6 +1348,21 @@ test("a lasting area becomes a Region and burns a creature that starts its turn 
   // A creature flying above the burning ground is out of its band.
   targetToken.elevation = 30;
   assert.equal(areaCovers(flag, targetToken), false);
+});
+
+test("a lasting area for enemies only (Spirit Guardians) spares its caster's side", async t => {
+  const {targetActor, targetToken, sourceToken, player, areas, intent, game} = lastingAreaFixture(t, {affects: "enemies"});
+  const declared = await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  const cast = targetActor.system.resources.health.value;
+  Object.assign(sourceToken, {disposition: 1});
+  Object.assign(targetToken, {disposition: 1});
+  await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  assert.equal(targetActor.system.resources.health.value, cast, "an ally starting its turn there is spared");
+  targetToken.disposition = -1;
+  game.combat.turn = 1;
+  await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  assert.equal(targetActor.system.resources.health.value, cast - 4, "an enemy burns");
 });
 
 test("a lasting area that sheds light (Daylight) places it at its center, as sunlight, and takes it away when it ends", async t => {

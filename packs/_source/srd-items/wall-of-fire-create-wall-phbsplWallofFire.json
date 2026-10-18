@@ -40,6 +40,68 @@
         "height": {
           "value": 20,
           "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 10
+          },
+          "concentration": true,
+          "triggers": [
+            {
+              "on": [
+                "area.entered",
+                "turn.ended"
+              ],
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-wall-of-fire-create-wall:lasting",
+                "label": "Wall of Fire",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell"
+                ],
+                "save": {
+                  "ability": "agility",
+                  "dc": {
+                    "valueExpression": {
+                      "type": "add",
+                      "terms": [
+                        {
+                          "type": "constant",
+                          "value": 8
+                        },
+                        {
+                          "type": "proficiency-bonus"
+                        },
+                        {
+                          "type": "spellcasting-modifier"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 5,
+                      "faces": 8
+                    },
+                    "damageType": "fire",
+                    "provenance": "spell-base",
+                    "saveOutcomePolicy": {
+                      "success": "half",
+                      "failure": "full"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
         }
       },
       "save": {
@@ -164,9 +226,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }

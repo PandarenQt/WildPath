@@ -34,7 +34,8 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
         topology: placement.footprint.topology, fields: placement.footprint.fields, shape: String(area.shape),
         size: Number(area.size?.value) || 0, attached, band,
         persistence: { oncePerTurn: persistence.oncePerTurn !== false, concentration: persistence.concentration === true,
-            duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null },
+            duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
+            ...(persistence.affects === "enemies" ? { affects: "enemies" } : {}) },
         createdAt: combat ? { combatId: combat.id, round: combat.round, turn: combat.turn } : null,
         applied: {}
     };
@@ -257,6 +258,12 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const triggers = flag.persistence.triggers.filter(trigger => trigger.on.includes(event));
         if (!triggers.length || !token.actor)
             return [];
+        // An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone.
+        if (flag.persistence.affects === "enemies") {
+            const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
+            if (!caster || (caster.id === token.id) || (caster.disposition === token.disposition))
+                return [];
+        }
         const key = turnKey(game.combat);
         if (flag.persistence.oncePerTurn && key && (flag.applied[token.id] === key))
             return [];

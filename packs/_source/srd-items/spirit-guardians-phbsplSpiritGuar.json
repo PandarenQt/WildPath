@@ -32,6 +32,120 @@
         "size": {
           "value": 15,
           "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 100
+          },
+          "concentration": true,
+          "affects": "enemies",
+          "triggers": [
+            {
+              "on": [
+                "area.entered",
+                "turn.ended"
+              ],
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-spirit-guardians-cast-and-save:lasting",
+                "label": "Spirit Guardians",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell"
+                ],
+                "save": {
+                  "ability": "wits",
+                  "dc": {
+                    "valueExpression": {
+                      "type": "add",
+                      "terms": [
+                        {
+                          "type": "constant",
+                          "value": 8
+                        },
+                        {
+                          "type": "proficiency-bonus"
+                        },
+                        {
+                          "type": "spellcasting-modifier"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 3,
+                      "faces": 8
+                    },
+                    "damageType": "necrotic",
+                    "provenance": "spell-base",
+                    "saveOutcomePolicy": {
+                      "success": "half",
+                      "failure": "full"
+                    }
+                  }
+                ],
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "effect",
+                    "name": "Half Speed",
+                    "img": "icons/magic/movement/abstract-ribbons-red-orange.webp",
+                    "ruleElements": [
+                      {
+                        "schemaVersion": 1,
+                        "id": "half-speed-1",
+                        "type": "Modifier",
+                        "data": {
+                          "domains": [
+                            "resources.movement.max"
+                          ],
+                          "modifierType": "untyped",
+                          "valueExpression": {
+                            "type": "floor",
+                            "value": {
+                              "type": "multiply",
+                              "terms": [
+                                {
+                                  "type": "constant",
+                                  "value": -0.5
+                                },
+                                {
+                                  "type": "add",
+                                  "terms": [
+                                    {
+                                      "type": "context",
+                                      "path": "actorSystem.resources.movement.base"
+                                    },
+                                    {
+                                      "type": "context",
+                                      "path": "actorSystem.resources.movement.bonus"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    ],
+                    "duration": {
+                      "value": 600,
+                      "units": "seconds",
+                      "expiry": "turnStart"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
         }
       },
       "save": {

@@ -11,7 +11,7 @@ interface Effect {uuid: string; flags?: {wildpath?: {areaRegion?: {sceneId: stri
 interface Actor {uuid: string; id: string; createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown[]>}
 export interface AreaToken {
   id: string; uuid: string; name?: string; actor: Actor | null; elevation?: number; depth?: number; level?: string | null;
-  parent: AreaScene; x?: number; y?: number; width?: number; height?: number;
+  parent: AreaScene; x?: number; y?: number; width?: number; height?: number; disposition?: number;
   flags?: {wildpath?: {sunlight?: boolean}};
   toObject?(): Data;
   update?(data: Data): Promise<unknown>;
@@ -38,7 +38,7 @@ export interface AreaFlag {
   topology: string; fields: Field[]; shape: string; size: number; attached: boolean;
   band: {bottom: number | null; top: number | null};
   persistence: {oncePerTurn: boolean; concentration: boolean; duration: {unit: string; value: number} | null; triggers: Trigger[];
-    light?: AreaLight | null};
+    light?: AreaLight | null; affects?: "enemies" | null};
   createdAt: {combatId: string; round: number; turn: number | null} | null;
   applied: Record<string, string>;
   /** The caster's concentration marker, for a concentration area (its uuid). */
@@ -84,7 +84,7 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
   const area = definition.area ?? {};
   const persistence = (area.persistence ?? {}) as {oncePerTurn?: boolean; concentration?: boolean;
     duration?: {unit: string; value: number}; elevation?: {bottom?: number | null; top?: number | null}; triggers?: Trigger[];
-    light?: AreaLight};
+    light?: AreaLight; affects?: string};
   const scene = sourceToken.parent;
   // Bands are authored relative to the floor of the caster's Level; a missing bound is open.
   const floor = Number(scene.levels?.get(String(sourceToken.level))?.elevation?.bottom) || 0;
@@ -99,7 +99,8 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
     topology: placement.footprint.topology, fields: placement.footprint.fields, shape: String(area.shape),
     size: Number(area.size?.value) || 0, attached, band,
     persistence: {oncePerTurn: persistence.oncePerTurn !== false, concentration: persistence.concentration === true,
-      duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null},
+      duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
+      ...(persistence.affects === "enemies" ? {affects: "enemies" as const} : {})},
     createdAt: combat ? {combatId: combat.id, round: combat.round, turn: combat.turn} : null,
     applied: {}
   };
@@ -322,6 +323,11 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   async function apply(region: AreaRegion, flag: AreaFlag, token: AreaToken, event: string) {
     const triggers = flag.persistence.triggers.filter(trigger => trigger.on.includes(event));
     if ( !triggers.length || !token.actor ) return [];
+    // An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone.
+    if ( flag.persistence.affects === "enemies" ) {
+      const caster = flag.sourceTokenId ? token.parent.tokens.get(flag.sourceTokenId) : null;
+      if ( !caster || (caster.id === token.id) || (caster.disposition === token.disposition) ) return [];
+    }
     const key = turnKey(game.combat);
     if ( flag.persistence.oncePerTurn && key && (flag.applied[token.id] === key) ) return [];
     // Recorded before resolving: an effect that moves the creature must not re-enter the same area this turn.

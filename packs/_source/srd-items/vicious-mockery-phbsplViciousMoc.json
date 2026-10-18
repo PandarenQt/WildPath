@@ -92,6 +92,34 @@
           }
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Mocked",
+          "img": "icons/sundries/flags/banner-flag-white.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "vicious-mockery",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attack"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnEnd"
+          },
+          "endsWhen": "attacks",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "label": "Vicious Mockery"
     },
     "ruleElements": []
@@ -108,9 +136,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Mocked\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

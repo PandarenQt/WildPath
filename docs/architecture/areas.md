@@ -169,6 +169,8 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
 - **Triggers.** Each trigger's `action` resolves through the authority, with the caster as source and
   the affected creature as its only target. Saves route to that creature's controller, and the result
   posts its own card. Triggers answer `area.entered`, `area.exited`, `turn.started` or `turn.ended`.
+- **Enemies only (2026-10-18).** `persistence.affects: "enemies"` makes the triggers skip the caster and every
+  creature of its disposition (Spirit Guardians).
 - **Once per turn.** By default a creature is affected by one area at most once per combat turn, even if
   it both enters and starts its turn there. `oncePerTurn: false` turns this off. Outside combat there
   is no limit.

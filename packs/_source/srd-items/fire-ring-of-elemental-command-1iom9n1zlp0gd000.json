@@ -38,7 +38,6 @@
       },
       "conversion": {
         "notes": [
-          "concentration: nothing it sustains was converted",
           "\"damage\" is passive or triggered: not automated",
           "effect: \"Fire Focus\" change system.traits.languages.value (add) not converted"
         ]

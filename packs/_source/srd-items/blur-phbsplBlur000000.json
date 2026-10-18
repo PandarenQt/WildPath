@@ -21,6 +21,39 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Blurred",
+          "img": "icons/magic/control/silhouette-hold-change-blue.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "blur",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -108,10 +141,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }

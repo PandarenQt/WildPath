@@ -58,6 +58,34 @@
           }
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Outlined",
+          "img": "icons/magic/control/silhouette-hold-change-green.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "faerie-fire",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -152,11 +180,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Outlined\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand"
-        ]
+        "notes": []
       }
     }
   }

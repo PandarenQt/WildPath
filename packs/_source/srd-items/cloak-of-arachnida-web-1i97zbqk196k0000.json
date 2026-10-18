@@ -40,6 +40,50 @@
         "size": {
           "value": 20,
           "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 600
+          },
+          "concentration": true,
+          "triggers": [
+            {
+              "on": [
+                "area.entered",
+                "turn.started"
+              ],
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-web:lasting",
+                "label": "Web",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell"
+                ],
+                "save": {
+                  "ability": "agility",
+                  "dc": {
+                    "value": 13
+                  }
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 2,
+                      "faces": 4
+                    },
+                    "damageType": "fire",
+                    "provenance": "spell-base"
+                  }
+                ]
+              }
+            }
+          ]
         }
       },
       "save": {
@@ -92,9 +136,7 @@
         "castBy": "Cloak of Arachnida"
       },
       "conversion": {
-        "notes": [
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }
