@@ -1637,6 +1637,7 @@ export function effectRules(effect, notes=[]) {
   const adjustments = {dr: [], di: [], dv: [], ci: []};
   // Ability score changes, by ability: written as AbilityScore rules once every change is read.
   const scores = {};
+  let hover = false;
   // Bonuses on all four kinds of attack with one value are one Modifier on every attack.
   const attackChanges = changes.filter(change => /^system\.bonuses\.(mwak|rwak|msak|rsak)\.attack$/.test(change.key));
   const everyAttack = (attackChanges.length === 4) && (new Set(attackChanges.map(change => String(change.value))).size === 1);
@@ -1702,11 +1703,19 @@ export function effectRules(effect, notes=[]) {
         ? {type: "context", path: "actorSystem.resources.movement.max"} : (Number.isFinite(number) && (number > 0) ? number : null);
       if ( distance ) rule("GrantMovement", {mode: match[1], distance});
       else unmapped();
+    } else if ( key === "system.attributes.movement.hover" ) {
+      // Fly, Gaseous Form, a Potion of Flying: hovering, on the fly Speed the same effect grants (below).
+      hover = ["true", "1"].includes(String(change.value).trim().toLowerCase());
     } else if ( (match = /^system\.abilities\.(\w+)\.(value|max)$/.exec(key)) && ABILITY_MAP[match[1]] && Number.isFinite(number)
       && ((match[2] === "value") ? ["add", "upgrade", "downgrade", "override"].includes(type) : (type === "upgrade")) ) {
       // A Belt of Giant Strength (upgrade), an Ioun Stone (add, with a downgrade as its cap), a Tome (add, with a raised max).
       (scores[ABILITY_MAP[match[1]]] ??= {})[match[2] === "max" ? "max" : type] = number;
     } else unmapped();
+  }
+  if ( hover ) {
+    const flying = rules.find(entry => (entry.type === "GrantMovement") && (entry.data.mode === "fly"));
+    if ( flying ) flying.data.hover = true;
+    else notes.push(`effect: "${effect.name}" hovers without a fly Speed of its own, not converted`);
   }
   for ( const [ability, entry] of Object.entries(scores) ) {
     // "+2, to a maximum of 20": dnd5e's add with a downgrade (an Ioun Stone) or a raised maximum (a Tome's 30).

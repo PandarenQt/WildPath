@@ -53,7 +53,8 @@
               "type": "GrantMovement",
               "data": {
                 "mode": "fly",
-                "distance": 300
+                "distance": 300,
+                "hover": true
               }
             },
             {
@@ -120,8 +121,7 @@
       "conversion": {
         "notes": [
           "activation: 1 minute is not an action-economy cost",
-          "effect: transformed is not a WildPath condition yet",
-          "effect: \"Cloud Form\" change system.attributes.movement.hover (override) not converted"
+          "effect: transformed is not a WildPath condition yet"
         ]
       }
     }

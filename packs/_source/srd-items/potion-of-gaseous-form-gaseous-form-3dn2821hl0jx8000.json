@@ -50,7 +50,8 @@
               "type": "GrantMovement",
               "data": {
                 "mode": "fly",
-                "distance": 10
+                "distance": 10,
+                "hover": true
               }
             },
             {
@@ -151,7 +152,6 @@
       "conversion": {
         "notes": [
           "effect: transformed is not a WildPath condition yet",
-          "effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
           "effect: \"Gaseous Form\" change img (override) not converted"
         ]
       }
