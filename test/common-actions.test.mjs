@@ -6,7 +6,7 @@ import {actionBarContext} from "../module/helpers/action-bar-context.mjs";
 
 test("every creature's common actions are valid Actions, built fresh from their id", () => {
   assert.deepEqual([...COMMON_ACTION_IDS], ["dash", "disengage", "dodge", "help", "hide", "grapple", "shove", "push", "unarmed", "search",
-    "study", "influence", "opportunity"]);
+    "study", "influence", "utilize", "opportunity"]);
   assert.deepEqual(commonAction({uuid: "Actor.hero"}, "search").system.definition.metadata.test.skills,
     ["insight", "medicine", "perception", "survival"], "2024 Search: the Action, then one of these checks");
   const actor = {uuid: "Actor.hero"};
