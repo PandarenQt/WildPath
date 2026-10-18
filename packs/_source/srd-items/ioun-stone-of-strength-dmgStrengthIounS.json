@@ -10,7 +10,19 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "enhanced-strength-strength-bonus-1",
+        "type": "AbilityScore",
+        "data": {
+          "ability": "might",
+          "mode": "add",
+          "value": 2,
+          "maximum": 20
+        }
+      }
+    ],
     "attunement": "required",
     "armor": ""
   },
@@ -26,10 +38,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Enhanced Strength: Strength Bonus\" change system.abilities.str.value (add) not converted",
-          "effect: \"Enhanced Strength: Strength Bonus\" change system.abilities.str.value (downgrade) not converted"
-        ]
+        "notes": []
       }
     }
   }

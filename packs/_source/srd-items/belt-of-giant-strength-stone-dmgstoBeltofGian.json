@@ -10,7 +10,18 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "stone-giant-strength-1",
+        "type": "AbilityScore",
+        "data": {
+          "ability": "might",
+          "mode": "upgrade",
+          "value": 23
+        }
+      }
+    ],
     "attunement": "required",
     "armor": ""
   },
@@ -26,9 +37,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Stone Giant Strength\" change system.abilities.str.value (upgrade) not converted"
-        ]
+        "notes": []
       }
     }
   }

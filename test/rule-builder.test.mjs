@@ -147,3 +147,14 @@ test("a rule only Advanced can edit survives a form that posts nothing for it, w
   assert.deepEqual(before.ruleElements[0], extra, "rows stay matched by their index");
   assert.equal(before.ruleElements[1].data.maximum, 3);
 });
+
+test("an ability score is a rule row: which ability, how it changes, the score and its maximum", () => {
+  const belt = {id: "belt", type: "AbilityScore", data: {ability: "might", mode: "upgrade", value: 21}};
+  assert.deepEqual(ruleGaps([belt], {abilities}), []);
+  const [row] = rulesToRows([belt], {abilities});
+  assert.deepEqual([row.kind, row.ability, row.scoreMode, row.scoreValue], ["abilityScore", "might", "upgrade", 21]);
+  assert.equal(submit([belt], {}).changed, false);
+  const stone = submit([belt], {0: {ability: "fortitude", scoreMode: "add", scoreValue: "2", scoreMaximum: "20"}});
+  assert.deepEqual(stone.ruleElements[0].data, {ability: "fortitude", mode: "add", value: 2, maximum: 20});
+  assert.equal(defaultRule("abilityScore", "new").type, "AbilityScore");
+});

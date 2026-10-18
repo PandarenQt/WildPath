@@ -310,6 +310,23 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - Hex asks which ability: its six "Hexed" effects become an "Ability" choice that keeps the chosen one
     (a `keepEffect` configuration effect).
   - Live: Player1's QA Caster chose "Hexed Dexterity", and QA Saver got only that effect.
+- **Ability scores (2026-10-19).** dnd5e changes to `abilities.<x>.value` (`add`, `upgrade`, `downgrade`, `override`)
+  become `AbilityScore` rules. An `add` with a `downgrade` (an Ioun Stone's "+2, to at most 20") or a raised `max` (a
+  Tome's 30) is one capped add.
+  - SRD Items automated rose from 696 to 708: the Belts and Potions of Giant Strength, Headband of Intellect, Amulet
+    of Health, Gauntlets of Ogre Power, Ioun Stones and Tomes.
+  - A rolled change (a Shadow's "−1d4 Strength") is a choice of its −1 to −4 effects (below).
+- **One of several effects (2026-10-19).** dnd5e lists an activity's effects as options its user applies. When an
+  activity names more than one, the converted Action asks which ("Effect"). Each option keeps every condition its
+  dnd5e effect brings (Divine Word's "Blinded, Deafened, Stunned").
+  - 38 SRD Actions ask: Blindness/Deafness, Enlarge/Reduce, Bestow Curse, Contagion, Enhance Ability, Protection from
+    Energy, Guidance, Power Word Stun (by the target's hit points), Unarmed Strike's Grapple or Prone, a Shadow's drain.
+    Before, all of them applied at once.
+  - A staged effect (a Gorgon's Restrained, then Petrified) is chosen at its first stage.
+  - shortcut: a Darkmantle's Crush and a Mummy Lord's Whirlwind of Sand pair an effect on themselves with one on
+    their target; the choice offers both, and the creature's own still lands on the target. Upgrade with
+    self-targeted effects.
+  - Live: Player1's QA Caster cast Blindness/Deafness at QA Failer, chose Deafness, and only Deafened was applied.
 - **A follow-up spends no slot (2026-10-19).** An activity dnd5e marks as spending no spell slot
   (`consumption.spellSlot: false`) has no slot choice. Before, 26 SRD follow-ups spent a slot each time:
   - Hunter's Mark's Move Mark and Hex's Curse New Creature;

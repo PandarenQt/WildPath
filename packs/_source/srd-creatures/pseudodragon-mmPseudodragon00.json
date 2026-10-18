@@ -310,6 +310,43 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "configuration": [
+            {
+              "id": "effect-choice",
+              "type": "option",
+              "label": "Effect",
+              "required": true,
+              "options": [
+                {
+                  "id": "effect-option-1",
+                  "label": "Poisoned",
+                  "value": "effect-option-1"
+                },
+                {
+                  "id": "effect-option-2",
+                  "label": "Poisoned (Failure 5+)",
+                  "value": "effect-option-2"
+                }
+              ],
+              "effects": [
+                {
+                  "type": "keepEffect",
+                  "effectIds": [
+                    "effect-1",
+                    "effect-2"
+                  ],
+                  "keep": {
+                    "effect-option-1": [
+                      "effect-1"
+                    ],
+                    "effect-option-2": [
+                      "effect-2"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Sting"
         },
         "ruleElements": []

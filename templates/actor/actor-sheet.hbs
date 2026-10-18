@@ -54,7 +54,8 @@
           <div class="ability-grid">
             {{#each abilities as |ability|}}
               <label class="ability">
-                <span>{{localize ability.label}}</span>
+                <span>{{localize ability.label}}{{#if ability.changed}} <span class="ability-effective"
+                  data-tooltip="WILDPATH.SHEET.AbilityEffective">({{ability.effective}})</span>{{/if}}</span>
                 <input type="number" name="system.abilities.{{ability.key}}.value" value="{{ability.value}}">
                 <span class="ability-rolls">
                   <input type="checkbox" name="system.abilities.{{ability.key}}.saveProficient" {{checked ability.saveProficient}}

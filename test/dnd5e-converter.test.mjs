@@ -764,7 +764,44 @@ test("Hunter's Mark and Hex mark their target: extra damage on the caster's hits
   assert.deepEqual(effects.map(entry => [entry.slug, entry.ruleElements.map(rule => rule.type)]),
     [["hex", ["RollMode", "ExtraDamage"]], ["hex", ["RollMode", "ExtraDamage"]]]);
   const choice = configuration.find(entry => entry.id === "effect-choice");
-  assert.deepEqual([choice.type, choice.options.map(option => option.label), choice.effects[0]],
-    ["option", ["Hexed Strength", "Hexed Dexterity"], {type: "keepEffect", effectIds: ["effect-1", "effect-2"]}]);
+  assert.deepEqual([choice.type, choice.label, choice.options.map(option => option.label), choice.effects[0]],
+    ["option", "Ability", ["Hexed Strength", "Hexed Dexterity"], {type: "keepEffect", effectIds: ["effect-1", "effect-2"],
+      keep: {"effect-option-1": ["effect-1"], "effect-option-2": ["effect-2"]}}]);
   assert.equal(validateActionDefinition(hex.system.definition).ok, true);
+});
+
+test("ability score changes become AbilityScore rules: a Belt's at-least, an Ioun Stone's +2 to 20, a Tome's +2 to 30", async () => {
+  const {effectRules} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const effect = (name, changes) => ({name, changes: changes.map(([key, type, value]) => ({key, type, value}))});
+  const notes = [];
+  const rules = [
+    ...effectRules(effect("Headband", [["system.abilities.int.value", "upgrade", 19]]), notes),
+    ...effectRules(effect("Ioun Stone", [["system.abilities.str.value", "add", 2], ["system.abilities.str.value", "downgrade", 20]]), notes),
+    ...effectRules(effect("Tome", [["system.abilities.wis.value", "add", 2], ["system.abilities.wis.max", "upgrade", 30]]), notes),
+    ...effectRules(effect("Wish", [["system.abilities.str.value", "downgrade", 3]]), notes)];
+  assert.deepEqual(rules.map(rule => [rule.type, rule.data]), [
+    ["AbilityScore", {ability: "intellect", mode: "upgrade", value: 19}],
+    ["AbilityScore", {ability: "might", mode: "add", value: 2, maximum: 20}],
+    ["AbilityScore", {ability: "wits", mode: "add", value: 2, maximum: 30}],
+    ["AbilityScore", {ability: "might", mode: "downgrade", value: 3}]]);
+  assert.deepEqual(notes, []);
+  effectRules(effect("Draining", [["system.abilities.str.value", "add", "-1d4"]]), notes);
+  assert.equal(notes.length, 1, "a rolled change is left by hand");
+});
+
+test("an activity's several dnd5e effects are a choice of one: Blindness or Deafness, never both", () => {
+  const blindness = {_id: "testBlindDeaf001", name: "Blindness/Deafness", type: "spell", img: "systems/dnd5e/icons/spell.webp",
+    effects: [{_id: "blind", name: "Blindness", transfer: false, statuses: ["blinded"], system: {changes: []}},
+      {_id: "deaf", name: "Deafness", transfer: false, statuses: ["deafened"], system: {changes: []}}],
+    system: {source: SRD, identifier: "blindness-deafness", level: 2, preparation: {mode: "prepared"}, properties: ["vocal"],
+      activation: {type: "action"}, range: {units: "ft", value: 120}, target: {affects: {type: "creature", count: 1}, template: {}},
+      activities: {a: activity("save", {save: {ability: ["con"], dc: {calculation: "spellcasting"}},
+        effects: [{_id: "blind", onSave: false}, {_id: "deaf", onSave: false}]})}}};
+  const [item] = convertItem(blindness).items;
+  const {effects, configuration} = item.system.definition;
+  assert.deepEqual(effects.map(entry => entry.conditionId), ["blinded", "deafened"]);
+  const choice = configuration.find(entry => entry.id === "effect-choice");
+  assert.deepEqual([choice.label, choice.options.map(option => option.label)], ["Effect", ["Blindness", "Deafness"]]);
+  assert.deepEqual(choice.effects[0].keep, {"effect-option-1": ["effect-1"], "effect-option-2": ["effect-2"]});
+  assert.equal(validateActionDefinition(item.system.definition).ok, true);
 });

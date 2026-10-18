@@ -197,6 +197,21 @@ export function registerRuleElementTests(quench) {
         assert.include(imported.getResource("ki"),{value:2,max:2},"Created with the granting Item, the pool exists at once");
       });
 
+      it("AbilityScore raises a score while its Item applies, and the creature's own score is never overwritten", async function () {
+        const actor = await fixtures.createActor({name:"belted",system:{abilities:{might:{value:14},fortitude:{value:12}}}});
+        const belt = await fixtures.createItem(actor,{name:"Belt of Giant Strength",type:"feature",system:{ruleElements:[
+          {schemaVersion:1,id:"belt",type:"AbilityScore",data:{ability:"might",mode:"upgrade",value:21}},
+          {schemaVersion:1,id:"stone",type:"AbilityScore",data:{ability:"fortitude",mode:"add",value:2,maximum:20}}]}});
+        assert.deepEqual([actor.system.abilities.might.value,actor.system.abilities.might.base],[21,14],"Strength 21 from the Belt, 14 its own");
+        assert.equal(actor.system.abilities.fortitude.value,14,"+2 from the stone");
+        await actor.update({"system.abilities.fortitude.saveProficient":true});
+        actor.prepareData();
+        assert.deepEqual([actor.toObject(true).system.abilities.might.value,actor.system.abilities.might.value],[14,21],
+          "an update and another preparation keep the stored 14 and apply the Belt once");
+        await belt.delete();
+        assert.deepEqual([actor.system.abilities.might.value,actor.system.abilities.fortitude.value],[14,12],"without the Item, its own scores");
+      });
+
       it("GrantMovement gives a Speed, and movement stores what was spent so every mode counts it", async function () {
         const actor = await fixtures.createActor({name:"speeds"});
         assert.deepEqual({...actor.system.speeds},{walk:30},"Walking Speed is the movement maximum");

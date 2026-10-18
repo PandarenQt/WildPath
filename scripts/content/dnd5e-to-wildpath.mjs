@@ -1087,8 +1087,11 @@ function convertActivity({document, activity, system, spell, level, scales, note
   const references = activity.effects?.length ? activity.effects : (EFFECTS_BY_HAND[identifierOf(document)]
     ? (document.effects ?? []).filter(effect => !effect.transfer).map(effect => ({_id: effect._id})) : []);
   const byHand = EFFECTS_BY_HAND[identifierOf(document)] ?? null;
+  // What each of the activity's dnd5e effects became (one can be several conditions), for the choice below.
+  const groups = [];
   for ( const reference of references ) {
     const effect = (document.effects ?? []).find(entry => entry._id === reference._id);
+    const first = effects.length;
     const statuses = effect?.statuses ?? [];
     const known = statuses.filter(status => CONDITION_MAP[status]);
     const onFailure = definition.save && (reference.onSave === false) ? {saveOutcomePolicy: "failure"} : {};
@@ -1111,6 +1114,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
         ruleElements: rules, ...(duration ? {duration} : {}), ...(hand?.endsWhen ? {endsWhen: hand.endsWhen} : {}), ...onFailure,
         ...(concentration ? {concentration: true} : {})});
     } else if ( effect && !statuses.length ) notes.push(`effect: "${effect.name}" (its own changes) not converted`);
+    if ( effects.length > first ) groups.push({label: effect?.name ?? `Effect ${groups.length + 1}`, ids: effects.slice(first).map(entry => entry.id)});
   }
 
   if ( damage.length ) definition.damage = damage.map(({scaleDice: _scale, ...component}) => component);
@@ -1125,11 +1129,15 @@ function convertActivity({document, activity, system, spell, level, scales, note
   }
   // Such a follow-up continues its spell's concentration rather than starting one (startsConcentration).
   if ( spell && level && (activity.consumption?.spellSlot === false) ) definition.metadata = {...(definition.metadata ?? {}), followUp: true};
-  // Effects of which the caster applies one (Hex's ability): a choice keeping the one chosen.
-  if ( byHand?.chooseOne && (effects.length > 1) ) {
-    definition.configuration = [...(definition.configuration ?? []), {id: "effect-choice", type: "option", label: byHand.chooseOne,
-      required: true, options: effects.map(entry => ({id: entry.id, label: entry.name, value: entry.id})),
-      effects: [{type: "keepEffect", effectIds: effects.map(entry => entry.id)}]}];
+  // dnd5e lists an activity's effects as options its user applies (Blindness or Deafness, one of Hex's abilities, a
+  // Shadow's -1 to -4): a choice keeps one, with every condition it brings.
+  if ( groups.length > 1 ) {
+    const option = index => `effect-option-${index + 1}`;
+    definition.configuration = [...(definition.configuration ?? []), {id: "effect-choice", type: "option",
+      label: byHand?.chooseOne ?? "Effect", required: true,
+      options: groups.map((group, index) => ({id: option(index), label: group.label, value: option(index)})),
+      effects: [{type: "keepEffect", effectIds: effects.map(entry => entry.id),
+        keep: Object.fromEntries(groups.map((group, index) => [option(index), group.ids]))}]}];
   }
   if ( concentration && !effects.length ) notes.push("concentration: nothing it sustains was converted");
   if ( damage.length || healing.length || effects.length || definition.check ) return definition;
@@ -1589,6 +1597,8 @@ export function effectRules(effect, notes=[]) {
   const modifier = (domains, value, predicate=null) => rule("Modifier", {domains, modifierType: "untyped",
     ...(value.type === "constant" ? {value: value.value} : {valueExpression: value})}, predicate);
   const adjustments = {dr: [], di: [], dv: [], ci: []};
+  // Ability score changes, by ability: written as AbilityScore rules once every change is read.
+  const scores = {};
   // Bonuses on all four kinds of attack with one value are one Modifier on every attack.
   const attackChanges = changes.filter(change => /^system\.bonuses\.(mwak|rwak|msak|rsak)\.attack$/.test(change.key));
   const everyAttack = (attackChanges.length === 4) && (new Set(attackChanges.map(change => String(change.value))).size === 1);
@@ -1654,7 +1664,20 @@ export function effectRules(effect, notes=[]) {
         ? {type: "context", path: "actorSystem.resources.movement.max"} : (Number.isFinite(number) && (number > 0) ? number : null);
       if ( distance ) rule("GrantMovement", {mode: match[1], distance});
       else unmapped();
+    } else if ( (match = /^system\.abilities\.(\w+)\.(value|max)$/.exec(key)) && ABILITY_MAP[match[1]] && Number.isFinite(number)
+      && ((match[2] === "value") ? ["add", "upgrade", "downgrade", "override"].includes(type) : (type === "upgrade")) ) {
+      // A Belt of Giant Strength (upgrade), an Ioun Stone (add, with a downgrade as its cap), a Tome (add, with a raised max).
+      (scores[ABILITY_MAP[match[1]]] ??= {})[match[2] === "max" ? "max" : type] = number;
     } else unmapped();
+  }
+  for ( const [ability, entry] of Object.entries(scores) ) {
+    // "+2, to a maximum of 20": dnd5e's add with a downgrade (an Ioun Stone) or a raised maximum (a Tome's 30).
+    const cap = entry.max ?? entry.downgrade ?? null;
+    if ( entry.add != null ) rule("AbilityScore", {ability, mode: "add", value: entry.add, ...(cap != null ? {maximum: cap} : {})});
+    if ( entry.upgrade != null ) rule("AbilityScore", {ability, mode: "upgrade", value: entry.upgrade});
+    if ( (entry.downgrade != null) && (entry.add == null) ) rule("AbilityScore", {ability, mode: "downgrade", value: entry.downgrade});
+    if ( entry.override != null ) rule("AbilityScore", {ability, mode: "override", value: entry.override});
+    if ( (entry.max != null) && (entry.add == null) ) notes.push(`effect: "${effect.name}" raises ${ability}'s maximum only, not converted`);
   }
   if ( adjustments.dr.length ) rule("GrantResistance", {damageTypes: adjustments.dr});
   if ( adjustments.di.length ) rule("GrantImmunity", {damageTypes: adjustments.di});

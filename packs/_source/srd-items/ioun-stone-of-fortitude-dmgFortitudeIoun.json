@@ -10,7 +10,19 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "enhance-fortitude-constitution-bonus-1",
+        "type": "AbilityScore",
+        "data": {
+          "ability": "fortitude",
+          "mode": "add",
+          "value": 2,
+          "maximum": 20
+        }
+      }
+    ],
     "attunement": "required",
     "armor": ""
   },
@@ -26,10 +38,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Enhance Fortitude: Constitution Bonus\" change system.abilities.con.value (add) not converted",
-          "effect: \"Enhance Fortitude: Constitution Bonus\" change system.abilities.con.value (downgrade) not converted"
-        ]
+        "notes": []
       }
     }
   }

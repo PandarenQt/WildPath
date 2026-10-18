@@ -155,6 +155,77 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "effect-choice",
+          "type": "option",
+          "label": "Effect",
+          "required": true,
+          "options": [
+            {
+              "id": "effect-option-1",
+              "label": "Infected (Strength)",
+              "value": "effect-option-1"
+            },
+            {
+              "id": "effect-option-2",
+              "label": "Infected (Dexterity)",
+              "value": "effect-option-2"
+            },
+            {
+              "id": "effect-option-3",
+              "label": "Infected (Constitution)",
+              "value": "effect-option-3"
+            },
+            {
+              "id": "effect-option-4",
+              "label": "Infected (Intelligence)",
+              "value": "effect-option-4"
+            },
+            {
+              "id": "effect-option-5",
+              "label": "Infected (Wisdom)",
+              "value": "effect-option-5"
+            },
+            {
+              "id": "effect-option-6",
+              "label": "Infected (Charisma)",
+              "value": "effect-option-6"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "effect-1",
+                "effect-2",
+                "effect-3",
+                "effect-4",
+                "effect-5",
+                "effect-6"
+              ],
+              "keep": {
+                "effect-option-1": [
+                  "effect-1"
+                ],
+                "effect-option-2": [
+                  "effect-2"
+                ],
+                "effect-option-3": [
+                  "effect-3"
+                ],
+                "effect-option-4": [
+                  "effect-4"
+                ],
+                "effect-option-5": [
+                  "effect-5"
+                ],
+                "effect-option-6": [
+                  "effect-6"
+                ]
+              }
+            }
+          ]
         }
       ],
       "label": "Contagion"

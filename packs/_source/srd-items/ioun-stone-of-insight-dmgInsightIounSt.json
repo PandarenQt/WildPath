@@ -10,7 +10,19 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "enhanced-insight-wisdom-bonus-1",
+        "type": "AbilityScore",
+        "data": {
+          "ability": "wits",
+          "mode": "add",
+          "value": 2,
+          "maximum": 20
+        }
+      }
+    ],
     "attunement": "required",
     "armor": ""
   },
@@ -26,10 +38,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Enhanced Insight: Wisdom Bonus\" change system.abilities.wis.value (add) not converted",
-          "effect: \"Enhanced Insight: Wisdom Bonus\" change system.abilities.wis.value (downgrade) not converted"
-        ]
+        "notes": []
       }
     }
   }

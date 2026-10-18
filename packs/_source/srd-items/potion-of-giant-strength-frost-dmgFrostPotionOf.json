@@ -25,6 +25,37 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Strength of Frost",
+          "img": "icons/consumables/potions/bottle-corked-empty.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "strength-of-frost-1",
+              "type": "AbilityScore",
+              "data": {
+                "ability": "might",
+                "mode": "upgrade",
+                "value": 23
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Potion of Giant Strength (Frost)"
     },
     "ruleElements": [
@@ -56,11 +87,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Strength of Frost\" change system.abilities.str.value (upgrade) not converted",
-          "effect: \"Strength of Frost\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

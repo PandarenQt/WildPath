@@ -378,3 +378,20 @@ test("a keepEffect choice applies only the chosen one of its effects (Hex's abil
   assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
   assert.deepEqual(resolved.configuration.effectiveDefinition.effects.map(entry => entry.id), ["effect-2", "other"]);
 });
+
+test("a keepEffect option keeps its whole group (one dnd5e effect may be several conditions)", async () => {
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const definition = {schemaVersion: 1, id: "action:word", label: "Word", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1},
+    effects: [{id: "effect-1", type: "condition", conditionId: "blinded"}, {id: "effect-2", type: "condition", conditionId: "deafened"},
+      {id: "effect-3", type: "condition", conditionId: "deafened"}],
+    configuration: [{id: "effect-choice", type: "option", label: "Effect", required: true,
+      options: [{id: "effect-option-1", label: "Blinded, Deafened", value: "effect-option-1"},
+        {id: "effect-option-2", label: "Deafened", value: "effect-option-2"}],
+      effects: [{type: "keepEffect", effectIds: ["effect-1", "effect-2", "effect-3"],
+        keep: {"effect-option-1": ["effect-1", "effect-2"], "effect-option-2": ["effect-3"]}}]}]};
+  const resolved = resolveActionConfiguration({definition, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    choices: {"effect-choice": "effect-option-1"}});
+  assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+  assert.deepEqual(resolved.configuration.effectiveDefinition.effects.map(entry => entry.id), ["effect-1", "effect-2"]);
+});

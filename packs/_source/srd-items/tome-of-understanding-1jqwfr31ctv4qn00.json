@@ -27,10 +27,6 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Understanding\" change system.abilities.wis.value (add) not converted",
-          "effect: \"Understanding\" change system.abilities.wis.max (upgrade) not converted",
-          "effect: \"Understanding\" (its own changes) not converted",
           "\"Reset Progress\" is passive or triggered: not automated"
         ]
       },

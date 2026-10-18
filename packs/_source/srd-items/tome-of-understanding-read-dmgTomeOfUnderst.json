@@ -25,6 +25,33 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Understanding",
+          "img": "icons/magic/perception/third-eye-blue-red.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "understanding-1",
+              "type": "AbilityScore",
+              "data": {
+                "ability": "wits",
+                "mode": "add",
+                "value": 2,
+                "maximum": 30
+              }
+            }
+          ]
+        }
+      ],
       "label": "Tome of Understanding (Read)"
     },
     "ruleElements": [
@@ -56,12 +83,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Understanding\" change system.abilities.wis.value (add) not converted",
-          "effect: \"Understanding\" change system.abilities.wis.max (upgrade) not converted",
-          "effect: \"Understanding\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

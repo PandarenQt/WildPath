@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 696 automated, 423 manual, 245 features. Creatures: 375.
+Items: 708 automated, 411 manual, 245 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -50,7 +50,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ammunition of Slaying | equipment24 | Ammunition of Slaying (Ammunition of Slaying) (manual) | "Slaying Save" is passive or triggered: not automated; not automated (enchant): using it spends its cost; its description says the rest |
 | Ammunition, +1, +2, or +3 | equipment24 | Ammunition, +1, +2, or +3 (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Amulet | equipment24 | Amulet (gear) | — |
-| Amulet of Health | equipment24 | Amulet of Health (gear) | effect: "Upgraded Constitution" change system.abilities.con.value (upgrade) not converted |
+| Amulet of Health | equipment24 | Amulet of Health (gear) | — |
 | Amulet of Proof against Detection and Location | equipment24 | Amulet of Proof against Detection and Location (gear) | — |
 | Amulet of the Planes | equipment24 | Amulet of the Planes (gear), Amulet of the Planes (automated) | — |
 | Ancient Black Dragon | actors24 | Ancient Black Dragon (15 items) | Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Magic" (its own changes) not converted; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: cast: Acid Arrow at level 4 is cast at its own level; Spellcasting: effect: "Lingering Acid" (its own changes) not converted; Spellcasting: not automated (summon): using it spends its cost; its description says the rest; Spellcasting: summon: its creature is not among the converted creatures; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: cast: Vitriolic Sphere at level 5 is cast at its own level; Spellcasting: "End of Turn Damage" is passive or triggered: not automated; Cloud of Insects: effect: "Clouded" (its own changes) not converted; Pounce: not automated (utility): using it spends its cost; its description says the rest; Pounce: consumption: attribute 1 not converted |
@@ -159,12 +159,12 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Bell | equipment24 | Bell (gear) | — |
 | Belt of Dwarvenkind | equipment24 | Belt of Dwarvenkind (gear) | — |
 | Belt of Giant Strength | equipment24 | Belt of Giant Strength (gear) | — |
-| Belt of Giant Strength (cloud) | equipment24 | Belt of Giant Strength (cloud) (gear) | effect: "Cloud Giant Strength" change system.abilities.str.value (upgrade) not converted |
-| Belt of Giant Strength (fire) | equipment24 | Belt of Giant Strength (fire) (gear) | effect: "Fire Giant Strength" change system.abilities.str.value (upgrade) not converted |
-| Belt of Giant Strength (frost) | equipment24 | Belt of Giant Strength (frost) (gear) | effect: "Frost Giant Strength" change system.abilities.str.value (upgrade) not converted |
-| Belt of Giant Strength (hill) | equipment24 | Belt of Giant Strength (hill) (gear) | effect: "Hill Giant Strength" change system.abilities.str.value (upgrade) not converted |
-| Belt of Giant Strength (stone) | equipment24 | Belt of Giant Strength (stone) (gear) | effect: "Stone Giant Strength" change system.abilities.str.value (upgrade) not converted |
-| Belt of Giant Strength (storm) | equipment24 | Belt of Giant Strength (storm) (gear) | effect: "Storm Giant Strength" change system.abilities.str.value (upgrade) not converted |
+| Belt of Giant Strength (cloud) | equipment24 | Belt of Giant Strength (cloud) (gear) | — |
+| Belt of Giant Strength (fire) | equipment24 | Belt of Giant Strength (fire) (gear) | — |
+| Belt of Giant Strength (frost) | equipment24 | Belt of Giant Strength (frost) (gear) | — |
+| Belt of Giant Strength (hill) | equipment24 | Belt of Giant Strength (hill) (gear) | — |
+| Belt of Giant Strength (stone) | equipment24 | Belt of Giant Strength (stone) (gear) | — |
+| Belt of Giant Strength (storm) | equipment24 | Belt of Giant Strength (storm) (gear) | — |
 | Berserker | actors24 | Berserker (2 items) | — |
 | Berserker Axe | equipment24 | Berserker Axe (manual) | not automated (enchant): using it spends its cost; its description says the rest; effect: "Berserker HP Increase" change system.attributes.hp.bonuses.level (add) not converted |
 | Bestow Curse | spells24 | Bestow Curse (Curse Ability) (automated), Bestow Curse (Curse Attacks) (automated), Bestow Curse (Curse Actions) (automated), Bestow Curse (Curse Resilience) (automated) | effect: cursed is not a WildPath condition yet; concentration: nothing it sustains was converted; rolled (save); what it does is by hand |
@@ -426,7 +426,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Divine Order: Thaumaturge | classes24 | Divine Order: Thaumaturge (feature) | effect: "Thaumaturge" change system.scale.cleric.cantrips-known.value (add) not converted |
 | Divine Smite | spells24 | Divine Smite (Cast) (automated), Divine Smite (Unholy Creature Damage) (automated) | — |
 | Divine Word | spells24 | Divine Word (automated) | effect: "Blinded, Deafened" (its own changes) not converted; effect: "Deafened" (its own changes) not converted |
-| Djinni | actors24 | Djinni (19 items) | Wishes: not automated (utility): using it spends its cost; its description says the rest; Wishes: effect: "Wish Stress" change system.abilities.str.value (downgrade) not converted; Wishes: effect: "Wish Stress" (its own changes) not converted; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Evil and Good" (its own changes) not converted; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: effect: "Detect Magic" (its own changes) not converted; Spellcasting: effect: "Universal Communication" change system.traits.languages.custom (add) not converted; Spellcasting: effect: "Universal Communication" (its own changes) not converted; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: effect: transformed is not a WildPath condition yet; Spellcasting: effect: "Cloud Form" change system.attributes.movement.hover (override) not converted; Spellcasting: area: 5 * @item.level - 20-ft cube is not supported; the user picks the targets; Spellcasting: effect: "Gaseous Form" change system.attributes.movement.hover (override) not converted; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest |
+| Djinni | actors24 | Djinni (19 items) | Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Evil and Good" (its own changes) not converted; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: effect: "Detect Magic" (its own changes) not converted; Spellcasting: effect: "Universal Communication" change system.traits.languages.custom (add) not converted; Spellcasting: effect: "Universal Communication" (its own changes) not converted; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: effect: transformed is not a WildPath condition yet; Spellcasting: effect: "Cloud Form" change system.attributes.movement.hover (override) not converted; Spellcasting: area: 5 * @item.level - 20-ft cube is not supported; the user picks the targets; Spellcasting: effect: "Gaseous Form" change system.attributes.movement.hover (override) not converted; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest |
 | Dominate Beast | spells24 | Dominate Beast (automated) | — |
 | Dominate Monster | spells24 | Dominate Monster (automated) | — |
 | Dominate Person | spells24 | Dominate Person (automated) | — |
@@ -476,7 +476,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Earthquake | spells24 | Earthquake (Cast) (automated) | concentration: nothing it sustains was converted; rolled (save); what it does is by hand; "End of Turn Fissures" is passive or triggered: not automated; "Collapsing Structure Save" is passive or triggered: not automated |
 | Ebony Fly | equipment24 | Ebony Fly (gear), Ebony Fly (automated) | — |
 | Efficient Quiver | equipment24 | Efficient Quiver (gear) | — |
-| Efreeti | actors24 | Efreeti (15 items) | Wishes: not automated (utility): using it spends its cost; its description says the rest; Wishes: effect: "Wish Stress" change system.abilities.str.value (downgrade) not converted; Wishes: effect: "Wish Stress" (its own changes) not converted; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Magic" (its own changes) not converted; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: effect: transformed is not a WildPath condition yet; Spellcasting: effect: "Gaseous Form" change system.attributes.movement.hover (override) not converted; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest; Spellcasting: effect: "Universal Communication" change system.traits.languages.custom (add) not converted; Spellcasting: effect: "Universal Communication" (its own changes) not converted; Spellcasting: cast: Wall of Fire at level 7 is cast at its own level; Spellcasting: "damage" is passive or triggered: not automated |
+| Efreeti | actors24 | Efreeti (15 items) | Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Magic" (its own changes) not converted; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: effect: transformed is not a WildPath condition yet; Spellcasting: effect: "Gaseous Form" change system.attributes.movement.hover (override) not converted; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest; Spellcasting: effect: "Universal Communication" change system.traits.languages.custom (add) not converted; Spellcasting: effect: "Universal Communication" (its own changes) not converted; Spellcasting: cast: Wall of Fire at level 7 is cast at its own level; Spellcasting: "damage" is passive or triggered: not automated |
 | Efreeti Bottle | equipment24 | Efreeti Bottle (Remove Stopper) (manual) | not automated (utility): using it spends its cost; its description says the rest; "1: Attacks You" is passive or triggered: not automated; "2—9: Obeys Commands" is passive or triggered: not automated; "10: Casts Wish" is passive or triggered: not automated |
 | Eldritch Blast | spells24 | Eldritch Blast (automated) | — |
 | Eldritch Invocations | classes24 | Eldritch Invocations (feature) | — |
@@ -642,7 +642,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Gargoyle | actors24 | Gargoyle (4 items) | — |
 | Gaseous Form | spells24 | Gaseous Form (automated) | effect: transformed is not a WildPath condition yet; effect: "Gaseous Form" change system.attributes.movement.hover (override) not converted; effect: "Gaseous Form" change img (override) not converted |
 | Gate | spells24 | Gate (Small Vertical Portal) (manual), Gate (Large Vertical Portal) (manual), Gate (Small Horizontal Portal) (manual), Gate (Large Horizontal Portal) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted |
-| Gauntlets of Ogre Power | equipment24 | Gauntlets of Ogre Power (gear) | effect: "Ogre Strength" change system.abilities.str.value (upgrade) not converted |
+| Gauntlets of Ogre Power | equipment24 | Gauntlets of Ogre Power (gear) | — |
 | Gaze of Two Minds | classes24 | Gaze of Two Minds (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Geas | spells24 | Geas (automated) | activation: 1 minute is not an action-economy cost |
 | Gelatinous Cube | actors24 | Gelatinous Cube (5 items) | Ooze Cube: "Total Cover" is passive or triggered: not automated; Ooze Cube: "Pull Check" is passive or triggered: not automated; Ooze Cube: "Puller Damage" is passive or triggered: not automated; Transparent: "check" is passive or triggered: not automated; Engulf: effect: coverTotal is not a WildPath condition yet; Engulf: effect: suffocation is not a WildPath condition yet; Engulf: "Escape Check" is passive or triggered: not automated |
@@ -758,7 +758,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Hat of Disguise | equipment24 | Hat of Disguise (gear), Hat of Disguise: Disguise Self (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Disguised" (its own changes) not converted |
 | Hat of Many Spells | equipment24 | Hat of Many Spells (gear), Hat of Many Spells: Enlarge/Reduce (automated), Hat of Many Spells: Faerie Fire (automated), Hat of Many Spells: Fireball (automated), Hat of Many Spells: Invisibility (automated), Hat of Many Spells: Lightning Bolt (automated), Hat of Many Spells: Phantasmal Force (automated), Hat of Many Spells: Polymorph (automated), Hat of Many Spells: Stinking Cloud (manual) | "Unknown Spell Check" is passive or triggered: not automated; effect: "Enlarged" change system.traits.size (add) not converted; effect: "Reduced" change system.rolls.damage.mwak.bonus (subtract) not converted; effect: "Reduced" change system.rolls.damage.rwak.bonus (subtract) not converted; effect: "Reduced" change system.traits.size (subtract) not converted; effect: "Seeing Illusions" (its own changes) not converted; concentration: nothing it sustains was converted; rolled (save); what it does is by hand; "Phantasm Damage" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest; "Start of Turn Save" is passive or triggered: not automated |
 | Hawk | actors24 | Hawk (2 items) | — |
-| Headband of Intellect | equipment24 | Headband of Intellect (gear) | effect: "Intelligent" change system.abilities.int.value (upgrade) not converted |
+| Headband of Intellect | equipment24 | Headband of Intellect (gear) | — |
 | Heal | spells24 | Heal (automated) | — |
 | Healer's Kit | equipment24 | Healer's Kit (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Healing Word | spells24 | Healing Word (automated) | — |
@@ -855,18 +855,18 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Invisible Stalker | actors24 | Invisible Stalker (7 items) | Vortex: "Escape Check" is passive or triggered: not automated; Vortex: activation: turnStart is not an action-economy cost |
 | Ioun Stone | equipment24 | Ioun Stone (gear) | — |
 | Ioun Stone of Absorption | equipment24 | Ioun Stone of Absorption (gear), Ioun Stone of Absorption (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Ioun Stone of Agility | equipment24 | Ioun Stone of Agility (gear) | effect: "Enhanced Agility: Dexterity Bonus" change system.abilities.dex.value (add) not converted; effect: "Enhanced Agility: Dexterity Bonus" change system.abilities.dex.value (downgrade) not converted |
+| Ioun Stone of Agility | equipment24 | Ioun Stone of Agility (gear) | — |
 | Ioun Stone of Awareness | equipment24 | Ioun Stone of Awareness (gear) | effect: "Enhanced Awareness: Initiative and Perception" change system.attributes.init.roll.mode (add) not converted |
-| Ioun Stone of Fortitude | equipment24 | Ioun Stone of Fortitude (gear) | effect: "Enhance Fortitude: Constitution Bonus" change system.abilities.con.value (add) not converted; effect: "Enhance Fortitude: Constitution Bonus" change system.abilities.con.value (downgrade) not converted |
+| Ioun Stone of Fortitude | equipment24 | Ioun Stone of Fortitude (gear) | — |
 | Ioun Stone of Greater Absorption | equipment24 | Ioun Stone of Greater Absorption (gear), Ioun Stone of Greater Absorption (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Ioun Stone of Insight | equipment24 | Ioun Stone of Insight (gear) | effect: "Enhanced Insight: Wisdom Bonus" change system.abilities.wis.value (add) not converted; effect: "Enhanced Insight: Wisdom Bonus" change system.abilities.wis.value (downgrade) not converted |
-| Ioun Stone of Intellect | equipment24 | Ioun Stone of Intellect (gear) | effect: "Enhanced Intellect: Intelligence Bonus" change system.abilities.int.value (add) not converted; effect: "Enhanced Intellect: Intelligence Bonus" change system.abilities.int.value (downgrade) not converted |
-| Ioun Stone of Leadership | equipment24 | Ioun Stone of Leadership (gear) | effect: "Enhanced Leadership: Charisma Bonus" change system.abilities.cha.value (add) not converted; effect: "Enhanced Leadership: Charisma Bonus" change system.abilities.cha.value (downgrade) not converted |
+| Ioun Stone of Insight | equipment24 | Ioun Stone of Insight (gear) | — |
+| Ioun Stone of Intellect | equipment24 | Ioun Stone of Intellect (gear) | — |
+| Ioun Stone of Leadership | equipment24 | Ioun Stone of Leadership (gear) | — |
 | Ioun Stone of Mastery | equipment24 | Ioun Stone of Mastery (gear) | effect: "Enhanced Mastery: Proficiency Bonus" change system.attributes.prof (add) not converted |
 | Ioun Stone of Protection | equipment24 | Ioun Stone of Protection (gear) | — |
 | Ioun Stone of Regeneration | equipment24 | Ioun Stone of Regeneration (gear) | "Regeneration" is passive or triggered: not automated |
 | Ioun Stone of Reserve | equipment24 | Ioun Stone of Reserve (gear), Ioun Stone of Reserve (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted |
-| Ioun Stone of Strength | equipment24 | Ioun Stone of Strength (gear) | effect: "Enhanced Strength: Strength Bonus" change system.abilities.str.value (add) not converted; effect: "Enhanced Strength: Strength Bonus" change system.abilities.str.value (downgrade) not converted |
+| Ioun Stone of Strength | equipment24 | Ioun Stone of Strength (gear) | — |
 | Ioun Stone of Sustenance | equipment24 | Ioun Stone of Sustenance (gear) | — |
 | Iron Bands | equipment24 | Iron Bands (gear), Iron Bands (Throw Bands) (automated) | "Break Check" is passive or triggered: not automated |
 | Iron Flask | equipment24 | Iron Flask (gear), Iron Flask (Attempt to Trap Creature) (automated), Iron Flask (Release Creature) (manual), Iron Flask (Add Trapped Creature) (manual) | rolled (save); what it does is by hand; not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; consumption: itemUses -1 not converted; not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses 1 not converted |
@@ -930,7 +930,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Longstrider | spells24 | Longstrider (automated) | — |
 | Longsword | equipment24 | Longsword (automated), Longsword (Two-Handed) (automated) | — |
 | Luck | origins24 | Luck (feature) | effect: "Luck" change flags.dnd5e.halflingLucky (override) not converted |
-| Luck Blade | equipment24 | Luck Blade: Wish (manual) | "Luck Blade" is passive or triggered: not automated; "Luck" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest; effect: "Wish Stress" change system.abilities.str.value (downgrade) not converted; effect: "Wish Stress" (its own changes) not converted |
+| Luck Blade | equipment24 | Luck Blade: Wish (automated) | "Luck Blade" is passive or triggered: not automated; "Luck" is passive or triggered: not automated |
 | Lute | equipment24 | Lute (gear), Lute (Play a Known Tune) (automated), Lute (Improvise a Song) (automated) | — |
 | Lyre | equipment24 | Lyre (gear), Lyre (Play a Known Tune) (automated), Lyre (Improvise a Song) (automated) | — |
 | Mace | equipment24 | Mace (automated) | — |
@@ -1011,7 +1011,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Modify Memory | spells24 | Modify Memory (automated) | — |
 | Monk | classes24 | Monk (class) | grant: phbmnkUnarmedStr was not converted; grant: phbmnkSelfrestor was not converted |
 | Monk's Focus | classes24 | Monk's Focus (Step of the Wind) (manual), Monk's Focus (Flurry of Blows) (manual), Monk's Focus (Patient Defense) (manual), Monk's Focus (Patient Defense (Focus Point)) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Disengaged" (its own changes) not converted; effect: dodging is not a WildPath condition yet |
-| Moon | equipment24 | Moon: Wish (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Wish Stress" change system.abilities.str.value (downgrade) not converted; effect: "Wish Stress" (its own changes) not converted |
+| Moon | equipment24 | Moon: Wish (automated) | — |
 | Moonbeam | spells24 | Moonbeam (automated), Moonbeam (Move) (automated) | — |
 | Morningstar | equipment24 | Morningstar (automated) | — |
 | Move Earth | spells24 | Move Earth (Initial Cast) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted; "Affect New Area" is passive or triggered: not automated |
@@ -1059,7 +1059,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Oil of Taggit | equipment24 | Oil of Taggit (gear) | "Use Poison" is passive or triggered: not automated |
 | One with Shadows | classes24 | One with Shadows (automated) | — |
 | Oni | actors24 | Oni (11 items) | Shape-Shift: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: cast: Charm Person at level 2 is cast at its own level; Spellcasting: effect: transformed is not a WildPath condition yet; Spellcasting: effect: "Gaseous Form" change system.attributes.movement.hover (override) not converted; Spellcasting: effect: "Gaseous Form" change img (override) not converted |
-| Onyx Dog | equipment24 | Onyx Dog (gear), Onyx Dog (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; effect: "Mastiff Figurine" change system.abilities.int.value (upgrade) not converted; effect: "Mastiff Figurine" change system.traits.languages.value (add) not converted; effect: "Mastiff Figurine" change system.attributes.senses.blindsight (upgrade) not converted |
+| Onyx Dog | equipment24 | Onyx Dog (gear), Onyx Dog (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; effect: "Mastiff Figurine" change system.traits.languages.value (add) not converted; effect: "Mastiff Figurine" change system.attributes.senses.blindsight (upgrade) not converted |
 | Open Hand Technique | classes24 | Open Hand Technique (feature) | "Addle" is passive or triggered: not automated; "Push" is passive or triggered: not automated; "Topple" is passive or triggered: not automated |
 | Orb | equipment24 | Orb (gear) | — |
 | Orc | origins24 | Orc (species) | — |
@@ -1141,12 +1141,12 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Potion of Flying | equipment24 | Potion of Flying (automated) | effect: "Flyer" change system.attributes.movement.hover (override) not converted |
 | Potion of Gaseous Form | equipment24 | Potion of Gaseous Form: Gaseous Form (automated) | effect: transformed is not a WildPath condition yet; effect: "Gaseous Form" change system.attributes.movement.hover (override) not converted; effect: "Gaseous Form" change img (override) not converted |
 | Potion of Giant Strength | equipment24 | Potion of Giant Strength (gear) | — |
-| Potion of Giant Strength (Cloud) | equipment24 | Potion of Giant Strength (Cloud) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Strength of Clouds" change system.abilities.str.value (upgrade) not converted; effect: "Strength of Clouds" (its own changes) not converted |
-| Potion of Giant Strength (Fire) | equipment24 | Potion of Giant Strength (Fire) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Strength of Fire" change system.abilities.str.value (upgrade) not converted; effect: "Strength of Fire" (its own changes) not converted |
-| Potion of Giant Strength (Frost) | equipment24 | Potion of Giant Strength (Frost) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Strength of Frost" change system.abilities.str.value (upgrade) not converted; effect: "Strength of Frost" (its own changes) not converted |
-| Potion of Giant Strength (Hill) | equipment24 | Potion of Giant Strength (Hill) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Strength of Hills" change system.abilities.str.value (upgrade) not converted; effect: "Strength of Hills" (its own changes) not converted |
-| Potion of Giant Strength (Stone) | equipment24 | Potion of Giant Strength (Stone) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Strength of Stone" change system.abilities.str.value (upgrade) not converted; effect: "Strength of Stone" (its own changes) not converted |
-| Potion of Giant Strength (Storm) | equipment24 | Potion of Giant Strength (Storm) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Strength of Storms" change system.abilities.str.value (upgrade) not converted; effect: "Strength of Storms" (its own changes) not converted |
+| Potion of Giant Strength (Cloud) | equipment24 | Potion of Giant Strength (Cloud) (automated) | — |
+| Potion of Giant Strength (Fire) | equipment24 | Potion of Giant Strength (Fire) (automated) | — |
+| Potion of Giant Strength (Frost) | equipment24 | Potion of Giant Strength (Frost) (automated) | — |
+| Potion of Giant Strength (Hill) | equipment24 | Potion of Giant Strength (Hill) (automated) | — |
+| Potion of Giant Strength (Stone) | equipment24 | Potion of Giant Strength (Stone) (automated) | — |
+| Potion of Giant Strength (Storm) | equipment24 | Potion of Giant Strength (Storm) (automated) | — |
 | Potion of Growth | equipment24 | Potion of Growth: Enlarge/Reduce (automated) | effect: "Enlarged" change system.traits.size (add) not converted; effect: "Reduced" change system.rolls.damage.mwak.bonus (subtract) not converted; effect: "Reduced" change system.rolls.damage.rwak.bonus (subtract) not converted; effect: "Reduced" change system.traits.size (subtract) not converted |
 | Potion of Healing | equipment24 | Potion of Healing (automated) | — |
 | Potion of Healing | equipment24 | Potion of Healing (automated) | — |
@@ -1264,7 +1264,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ring of Swimming | equipment24 | Ring of Swimming (gear) | — |
 | Ring of Telekinesis | equipment24 | Ring of Telekinesis (gear), Ring of Telekinesis: Telekinesis (automated) | concentration: nothing it sustains was converted; rolled (save); what it does is by hand |
 | Ring of the Ram | equipment24 | Ring of the Ram (gear), Ring of the Ram (attack) (automated), Ring of the Ram (Break Item) (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Ring of Three Wishes | equipment24 | Ring of Three Wishes (gear), Ring of Three Wishes: Wish (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Wish Stress" change system.abilities.str.value (downgrade) not converted; effect: "Wish Stress" (its own changes) not converted |
+| Ring of Three Wishes | equipment24 | Ring of Three Wishes (gear), Ring of Three Wishes: Wish (automated) | — |
 | Ring of Warmth | equipment24 | Ring of Warmth (gear) | — |
 | Ring of Water Walking | equipment24 | Ring of Water Walking (gear), Ring of Water Walking: Water Walk (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Water Walking" (its own changes) not converted |
 | Ring of X-ray Vision | equipment24 | Ring of X-ray Vision (gear), Ring of X-ray Vision (Gain X-Ray Vision) (manual), Ring of X-ray Vision (save) (automated) | not automated (utility): using it spends its cost; its description says the rest; effect: "X-Ray Vision" (its own changes) not converted; rolled (save); what it does is by hand |
@@ -1339,7 +1339,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Sequester | spells24 | Sequester (automated) | — |
 | Serpent Venom | equipment24 | Serpent Venom (gear) | "Use Poison" is passive or triggered: not automated |
 | Serpentine Owl | equipment24 | Serpentine Owl (gear), Serpentine Owl (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; consumption: itemUses @item.uses.max not converted |
-| Shadow | actors24 | Shadow (7 items) | Draining Swipe: not automated (utility): using it spends its cost; its description says the rest; Draining Swipe: effect: "Hit: STR Score -1" change system.abilities.str.value (add) not converted; Draining Swipe: effect: "Hit: STR Score -1" (its own changes) not converted; Draining Swipe: effect: "Hit: STR Score -2" change system.abilities.str.value (add) not converted; Draining Swipe: effect: "Hit: STR Score -2" (its own changes) not converted; Draining Swipe: effect: "Hit: STR Score -3" change system.abilities.str.value (add) not converted; Draining Swipe: effect: "Hit: STR Score -3" (its own changes) not converted; Draining Swipe: effect: "Hit: STR Score -4" change system.abilities.str.value (add) not converted; Draining Swipe: effect: "Hit: STR Score -4" (its own changes) not converted; Shadow Stealth: not automated (utility): using it spends its cost; its description says the rest; Shadow Stealth: effect: hiding is not a WildPath condition yet |
+| Shadow | actors24 | Shadow (7 items) | Shadow Stealth: not automated (utility): using it spends its cost; its description says the rest; Shadow Stealth: effect: hiding is not a WildPath condition yet |
 | Shambling Mound | actors24 | Shambling Mound (6 items) | Engulf: "Engulfed: Damage" is passive or triggered: not automated; Engulf: not automated (check): using it spends its cost; its description says the rest; Engulf: check: a choice of acr/ath uses acr; Engulf: check: acr/ath DC (@skills.ath.passive) not converted |
 | Shapechange | spells24 | Shapechange (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted |
 | Shatter | spells24 | Shatter (automated) | — |
@@ -1521,7 +1521,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Three Extra Attacks | classes24 | Three Extra Attacks (feature) | — |
 | Three-dragon ante | equipment24 | Three-dragon ante (gear), Three-dragon ante (Catch Cheating) (automated), Three-dragon ante (Play to Win) (automated) | — |
 | Throne | equipment24 | Throne (gear) | "Card Effect" is passive or triggered: not automated |
-| Thunderous Greatclub | equipment24 | Thunderous Greatclub (attack) (automated), Thunderous Greatclub (Clap of Thunder) (automated), Thunderous Greatclub (Earthquake: Save) (automated) | "Earthquake: Fissure" is passive or triggered: not automated; "Earthquake: Concentration Save" is passive or triggered: not automated; "Earthquake: Object Damage" is passive or triggered: not automated; effect: "Thunderous Strength" change system.abilities.str.value (upgrade) not converted |
+| Thunderous Greatclub | equipment24 | Thunderous Greatclub (attack) (automated), Thunderous Greatclub (Clap of Thunder) (automated), Thunderous Greatclub (Earthquake: Save) (automated) | "Earthquake: Fissure" is passive or triggered: not automated; "Earthquake: Concentration Save" is passive or triggered: not automated; "Earthquake: Object Damage" is passive or triggered: not automated |
 | Thunderwave | spells24 | Thunderwave (automated) | — |
 | Tiefling, Abyssal | origins24 | Tiefling, Abyssal (species) | — |
 | Tiefling, Chthonic | origins24 | Tiefling, Chthonic (species) | — |
@@ -1541,8 +1541,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Tiny Hut | spells24 | Tiny Hut (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
 | Tireless | classes24 | Tireless (Temporary Hit Points) (manual) | not automated (heal): using it spends its cost; its description says the rest; healing: temporary Hit Points not converted; "Decrease Exhaustion" is passive or triggered: not automated |
 | Tome of Clear Thought | equipment24 | Tome of Clear Thought (gear), Tome of Clear Thought (Read) (manual) | not automated (utility): using it spends its cost; its description says the rest; "Reset Progress" is passive or triggered: not automated |
-| Tome of Leadership and Influence | equipment24 | Tome of Leadership and Influence (gear), Tome of Leadership and Influence (Read) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Leader" change system.abilities.cha.value (add) not converted; effect: "Leader" change system.abilities.cha.max (upgrade) not converted; effect: "Leader" (its own changes) not converted; "Reset Progress" is passive or triggered: not automated |
-| Tome of Understanding | equipment24 | Tome of Understanding (gear), Tome of Understanding (Read) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Understanding" change system.abilities.wis.value (add) not converted; effect: "Understanding" change system.abilities.wis.max (upgrade) not converted; effect: "Understanding" (its own changes) not converted; "Reset Progress" is passive or triggered: not automated |
+| Tome of Leadership and Influence | equipment24 | Tome of Leadership and Influence (gear), Tome of Leadership and Influence (Read) (automated) | "Reset Progress" is passive or triggered: not automated |
+| Tome of Understanding | equipment24 | Tome of Understanding (gear), Tome of Understanding (Read) (automated) | "Reset Progress" is passive or triggered: not automated |
 | Tongues | spells24 | Tongues (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Universal Communication" change system.traits.languages.custom (add) not converted; effect: "Universal Communication" (its own changes) not converted |
 | Torch | equipment24 | Torch (automated) | consumption: itemUses 1 not converted |
 | Torch | equipment24 | Torch (automated) | consumption: itemUses 1 not converted |
@@ -1676,7 +1676,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Winged Boots | equipment24 | Winged Boots (gear), Winged Boots (automated) | — |
 | Wings of Flying | equipment24 | Wings of Flying (gear), Wings of Flying (automated) | — |
 | Winter Wolf | actors24 | Winter Wolf (4 items) | — |
-| Wish | spells24 | Wish (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Wish Stress" change system.abilities.str.value (downgrade) not converted; effect: "Wish Stress" (its own changes) not converted |
+| Wish | spells24 | Wish (automated) | — |
 | Witch Sight | classes24 | Witch Sight (feature) | effect: "Witch Sight" change system.attributes.senses.truesight (upgrade) not converted |
 | Wizard | classes24 | Wizard (class) | — |
 | Wolf | actors24 | Wolf (2 items) | — |

@@ -491,6 +491,16 @@
       "RecoveryLabel": "Recovers",
       "OncePerTurn": "Once per turn",
       "Hover": "Can hover",
+      "Ability": "Ability",
+      "ScoreModeLabel": "How it changes",
+      "Score": "Score",
+      "ScoreMaximum": "To at most",
+      "ScoreMode": {
+        "upgrade": "is at least",
+        "add": "rises by",
+        "downgrade": "is at most",
+        "override": "becomes"
+      },
       "StartsAt": "Starts at",
       "Full": "full",
       "EmptiesAtTurnStart": "Empties at the start of each turn",
@@ -515,6 +525,7 @@
         "speed": "A Speed",
         "resource": "A resource pool",
         "extraDamage": "Extra damage on a hit",
+        "abilityScore": "An ability score",
         "aura": "An aura"
       },
       "Mode": {
@@ -892,6 +903,7 @@
         "Biography": "Biography"
       },
       "Abilities": "Abilities",
+      "AbilityEffective": "With its gear and effects (the field is the creature's own score)",
       "Resources": "Resources",
       "Conditions": "Conditions",
       "Features": "Features",

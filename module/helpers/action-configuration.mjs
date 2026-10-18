@@ -953,14 +953,15 @@ function normalizeEffectType(type) {
 }
 
 /**
- * Of the effects `effectIds` lists, only the chosen option's (its value, an effect id) is applied; the others are
- * dropped. Hex: one ability's disadvantage out of six.
+ * Of the effects `effectIds` lists, only the chosen option's are applied; the others are dropped. `keep` maps each
+ * option's value to its effects (Blindness/Deafness: one condition each); without it the value is an effect id.
+ * Hex: one ability's disadvantage out of six.
  */
 function applyKeepEffectEffect({definition, effect, selection}) {
   const listed = new Set(normalizeArray(effect.effectIds));
-  const kept = String(selection.value ?? "");
-  definition.effects = normalizeArray(definition.effects).filter(entry => !listed.has(entry.id) || (entry.id === kept));
-  return {ok: true, trace: [appliedTrace(selection, "keep-effect", {kept})], errors: []};
+  const kept = new Set(normalizeArray(effect.keep?.[selection.value] ?? String(selection.value ?? "")));
+  definition.effects = normalizeArray(definition.effects).filter(entry => !listed.has(entry.id) || kept.has(entry.id));
+  return {ok: true, trace: [appliedTrace(selection, "keep-effect", {kept: [...kept]})], errors: []};
 }
 
 function applyAddCostEffect({definition, effect, selection}) {

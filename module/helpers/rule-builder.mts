@@ -16,7 +16,7 @@ export interface RuleOptions {abilities?: readonly string[] | null}
 
 const TYPE_OF_KIND: Record<string, string> = {bonus: "Modifier", rollMode: "RollMode", resistance: "GrantResistance",
   immunity: "GrantImmunity", vulnerability: "GrantVulnerability", conditionImmunity: "ConditionImmunity", reveal: "Reveal",
-  speed: "GrantMovement", resource: "GrantResource", extraDamage: "ExtraDamage", aura: "Aura"};
+  speed: "GrantMovement", resource: "GrantResource", extraDamage: "ExtraDamage", abilityScore: "AbilityScore", aura: "Aura"};
 const KIND_OF_TYPE: Record<string, string> = Object.fromEntries(Object.entries(TYPE_OF_KIND).map(([kind, type]) => [type, kind]));
 
 /** The kinds a row can be; an aura's own rules can be any but another aura. */
@@ -124,6 +124,10 @@ function ruleToRow(rule: Data, abilities: readonly string[]): Data {
     damageType: typeof data.damageType === "string" ? data.damageType : "",
     oncePerTurn: data.once === "turn",
     radius: number(data.radius),
+    ability: typeof data.ability === "string" ? data.ability : "",
+    scoreMode: data.mode ?? "add",
+    scoreValue: number(data.value),
+    scoreMaximum: number(data.maximum) ?? "",
     affects: data.affects ?? "allies",
     rules: kind === "aura" ? (Array.isArray(data.ruleElements) ? data.ruleElements : []).map((nested: Data) => ruleToRow(nested, abilities)) : [],
     while: onlyCondition ? predicate.hasCondition : (named ?? ""),
@@ -148,6 +152,7 @@ const ROW_DATA: Record<string, readonly string[]> = {
   speed: ["mode", "movementMode", "distance", "value", "hover"],
   resource: ["resourceId", "resource", "label", "maximum", "max", "recovery", "current", "emptiesAtTurnStart", "recharge", "regain"],
   extraDamage: ["domains", "domain", "selector", "expression", "valueExpression", "damageType", "once"],
+  abilityScore: ["ability", "mode", "value", "maximum"],
   aura: ["radius", "affects", "ruleElements"]
 };
 
@@ -196,6 +201,7 @@ export function defaultRule(kind: string, id: string): Data {
     case "speed": return rule({mode: "fly", distance: 30});
     case "resource": return rule({resourceId: "points", label: "Points", maximum: 1, recovery: "longRest"});
     case "extraDamage": return rule({domains: ["damage.melee"], expression: {type: "dice", number: 1, faces: 6}, damageType: "fire", once: "turn"});
+    case "abilityScore": return rule({ability: "might", mode: "upgrade", value: 19});
     case "aura": return rule({radius: 10, affects: "allies", ruleElements: [defaultRule("bonus", `${id}-1`)]});
     default: return {schemaVersion: 1, id, type: "Modifier", data: {domains: ["defense.ac"], value: 1, modifierType: "untyped"}};
   }
@@ -315,6 +321,12 @@ function writeRule(stored: Data | undefined, row: Data, model: Data | undefined,
       }
       if ( changed("damageType") ) set("damageType", String(row.damageType ?? "").trim().toLowerCase() || "untyped");
       if ( changed("oncePerTurn") ) set("once", row.oncePerTurn ? "turn" : undefined);
+      break;
+    case "abilityScore":
+      if ( changed("ability") && row.ability ) set("ability", String(row.ability));
+      if ( changed("scoreMode") ) set("mode", ["add", "upgrade", "downgrade", "override"].includes(row.scoreMode) ? row.scoreMode : "add");
+      if ( changed("scoreValue") ) set("value", Math.trunc(number(row.scoreValue) ?? 0));
+      if ( changed("scoreMaximum") ) set("maximum", number(row.scoreMaximum) ?? undefined);
       break;
     case "aura":
       if ( changed("radius") ) set("radius", Math.max(5, number(row.radius) ?? 10));
