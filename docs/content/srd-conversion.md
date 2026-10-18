@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 692 automated, 426 manual, 245 features. Creatures: 375.
+Items: 693 automated, 426 manual, 245 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -1012,7 +1012,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Monk | classes24 | Monk (class) | grant: phbmnkUnarmedStr was not converted; grant: phbmnkSelfrestor was not converted |
 | Monk's Focus | classes24 | Monk's Focus (Step of the Wind) (manual), Monk's Focus (Flurry of Blows) (manual), Monk's Focus (Patient Defense) (manual), Monk's Focus (Patient Defense (Focus Point)) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Disengaged" (its own changes) not converted; effect: dodging is not a WildPath condition yet |
 | Moon | equipment24 | Moon: Wish (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Wish Stress" change system.abilities.str.value (downgrade) not converted; effect: "Wish Stress" (its own changes) not converted |
-| Moonbeam | spells24 | Moonbeam (automated) | — |
+| Moonbeam | spells24 | Moonbeam (automated), Moonbeam (Move) (automated) | — |
 | Morningstar | equipment24 | Morningstar (automated) | — |
 | Move Earth | spells24 | Move Earth (Initial Cast) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted; "Affect New Area" is passive or triggered: not automated |
 | Mule | actors24 | Mule (2 items) | Beast of Burden: effect: "Beast of Burden" change flags.dnd5e.powerfulBuild (override) not converted |

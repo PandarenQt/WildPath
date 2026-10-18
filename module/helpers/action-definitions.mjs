@@ -124,6 +124,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // its source, or pulled toward it (`toward`); only one no bigger than `maxSize` when it has one. `on: "success"`
     // pushes the creatures that succeed on its save instead.
     push: normalizePlainComponent(raw.push),
+    // Moves its creature's lasting area left by the Action `of` (its definition id) up to `distance` feet (areas.md).
+    ...(raw.moveArea ? {moveArea: normalizePlainComponent(raw.moveArea)} : {}),
     ...(raw.stabilize === true ? {stabilize: true} : {}),
     // Pools of the acting creature the Action refills when it is used (Multiattack's attacks, a use given back).
     ...(Array.isArray(raw.restores) && raw.restores.length ? {restores: raw.restores.map(entry => ({
@@ -167,6 +169,10 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   validateTransform(definition.transform, errors);
   validateSummon(definition.summon, errors);
   validatePush(definition.push, errors);
+  if ( definition.moveArea && (!definition.moveArea.of || !(Number(definition.moveArea.distance) > 0)) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "moveArea",
+      "Moving an area names the Action that left it (of) and a positive number of feet."));
+  }
   validatePredicateCandidates(definition, errors);
   validateTargeting(definition, errors);
   validateArea(definition.area, errors);

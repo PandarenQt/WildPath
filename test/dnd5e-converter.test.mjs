@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {checkOf, convertActor, convertItem, describe, formulaExpression, houseText, lastingArea, isSrd2024, scaleTables} from "../scripts/content/dnd5e-to-wildpath.mjs";
+import {checkOf, convertActor, convertItem, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, scaleTables} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 
 // Synthetic documents in dnd5e 6.x's shape (mechanics only), not copies of its compendium.
@@ -721,4 +721,15 @@ test("an area that keeps acting by its 2024 wording becomes a lasting area repea
     .area.persistence.triggers[0].on, ["area.entered", "turn.started"]);
   assert.equal(lastingArea(spell("It burns when a creature enters it or ends its turn there.", {})), null, "no duration (Oil)");
   assert.equal(lastingArea(spell("Each creature in the area makes a save.")), null, "no repeating wording");
+});
+
+test("a lasting area its caster may move gets a Move Action: that action's cost and how far", () => {
+  const moonbeam = {name: "Moonbeam", system: {description: {value: "<p>Until the spell ends, Dim Light fills the Cylinder, and you can take a "
+    + "Magic action on later turns to move the Cylinder up to 60 feet.</p>"}}};
+  const definition = {id: "action:moonbeam", area: {shape: "radial", persistence: {duration: {unit: "round", value: 10}}}};
+  const move = moveAreaDefinition(moonbeam, definition);
+  assert.deepEqual([move.costs.allOf[0].capability, move.moveArea, move.targeting.type], ["action", {of: "action:moonbeam", distance: 60}, "none"]);
+  assert.equal(validateActionDefinition(move).ok, true);
+  assert.equal(moveAreaDefinition(moonbeam, {id: "action:x", area: {shape: "radial"}}), null, "not a lasting area");
+  assert.equal(validateActionDefinition({...move, moveArea: {of: "", distance: 60}}).ok, false);
 });

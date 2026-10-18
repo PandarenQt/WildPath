@@ -1,4 +1,5 @@
-import {createFoundryV14TacticalGridAdapter, gridFieldToFoundryCenterPoint, gridFieldToFoundryOffset} from "./foundry-v14-tactical-grid-adapter.mjs";
+import {createFoundryV14TacticalGridAdapter, foundryOffsetToGridField, gridFieldToFoundryCenterPoint, gridFieldToFoundryOffset}
+  from "./foundry-v14-tactical-grid-adapter.mjs";
 import {createReachFootprint, fieldKey} from "../helpers/grid-footprints.mjs";
 import {AREA_SHAPES} from "../helpers/tactical-areas.mjs";
 import {runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
@@ -18,7 +19,8 @@ export interface AreaToken {
 }
 export interface AreaRegion {
   id: string; flags?: {wildpath?: {area?: AreaFlag}}; parent?: AreaScene | null;
-  update(data: Data): Promise<unknown>;
+  shapes?: Array<{type?: string; offsets?: Data[]}>;
+  update(data: Data, operation?: Data): Promise<unknown>;
   delete(): Promise<unknown>;
 }
 export interface AreaScene {
@@ -167,6 +169,16 @@ function tokenAt(scene: AreaScene, point: {x: number; y: number} | null) {
 
 export function sceneAreas(scene: AreaScene) {
   return [...(scene.regions ?? [])].flatMap(region => region.flags?.wildpath?.area ? [{region, flag: region.flags.wildpath.area}] : []);
+}
+
+/** The lasting area a creature (`actorRef`) left with the Action `of` (its definition id), on `scene`; null when none. */
+export function ownArea(scene: AreaScene, {of, actorRef}: {of: string; actorRef: string}) {
+  return sceneAreas(scene).find(({flag}) => (flag.actionDefinitionId === of) && (flag.sourceActorRef === actorRef)) ?? null;
+}
+
+/** Where a placed area's fields are centered, in canvas coordinates; null with no fields. */
+export function areaFieldsCenter(fields: Field[], scene: AreaScene) {
+  return areaCenter({fields} as AreaFlag, scene);
 }
 
 /**
@@ -398,5 +410,44 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     return sceneAreas(scene).some(({flag}) => answers(flag, AREA_EVENTS.ENTERED) || answers(flag, AREA_EVENTS.EXITED));
   }
 
-  return {create, apply, onTurn, entered, exited, swept, hasCrossingAreas, afterResolution, onEffectDeleted, onRegionDeleted};
+  /**
+   * A placed lasting area now covers `fields` (moved by its caster's Action, or dragged by the GM). They become its
+   * fields, and each creature newly inside it is entered ("when the Cylinder moves into its space"), once per turn.
+   * Its triggers, cast level included, go with it.
+   */
+  async function relocate(region: AreaRegion, fields: Field[], {drawn=false}: {drawn?: boolean}={}) {
+    const flag = region.flags?.wildpath?.area;
+    const scene = region.parent;
+    if ( !flag || flag.attached || !scene ) return [];
+    const before = new Set([...scene.tokens].filter(token => areaCovers(flag, token)).map(token => token.id));
+    const offsets = fields.map(field => toOffset(field, {grid: scene.grid}).offset).filter(Boolean);
+    await region.update({...(drawn ? {} : {shapes: [{type: "grid", offsets}]}), "flags.wildpath.area.fields": fields},
+      {wildpath: {areaMove: true}});
+    const moved = {...flag, fields};
+    const applied = [];
+    for ( const token of [...scene.tokens].filter(token => !before.has(token.id) && areaCovers(moved, token)) ) {
+      if ( answers(moved, AREA_EVENTS.ENTERED) ) applied.push(...await apply(region, moved, token, AREA_EVENTS.ENTERED));
+    }
+    return applied;
+  }
+
+  /** After an Action that moves its caster's lasting area (`options.areaMove`: its Region and new fields). */
+  async function move({options}: {options?: {areaMove?: {sceneId: string; regionId: string; fields: Field[]}}}) {
+    const moving = options?.areaMove;
+    if ( !moving || !isActiveGM() ) return [];
+    const region = [...(game.scenes?.get(moving.sceneId)?.regions ?? [])].find(entry => entry.id === moving.regionId);
+    return region ? relocate(region, moving.fields) : [];
+  }
+
+  /** The GM dragged a lasting area's Region: its fields follow the cells now drawn. */
+  async function onRegionUpdated(region: AreaRegion, changed: Data, operation: {wildpath?: {areaMove?: boolean}} = {}) {
+    if ( !isActiveGM() || operation?.wildpath?.areaMove || !changed?.shapes || !region.parent ) return [];
+    const offsets = region.shapes?.find(shape => shape.type === "grid")?.offsets ?? [];
+    const fields = offsets.map(offset => (foundryOffsetToGridField as (offset: Data, options: Data) => {ok: boolean; field?: Field})(offset,
+      {scene: region.parent}).field).filter((field): field is Field => !!field);
+    return fields.length ? relocate(region, fields, {drawn: true}) : [];
+  }
+
+  return {create, apply, onTurn, entered, exited, swept, hasCrossingAreas, afterResolution, onEffectDeleted, onRegionDeleted,
+    move, onRegionUpdated};
 }

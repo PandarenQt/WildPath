@@ -293,6 +293,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - Live (2026-10-18): QA Caster's Moonbeam at 3rd level hit the Bandit Captain for 10 and left a lasting Moonbeam
     for 10 rounds, with the caster concentrating. At the end of the Captain's turn it saved again and took 8 (2d10), the
     base level's dice, which was the bug. Fixed: the stored repeat is 3d10, and the turn's end rolled 3d10 = 21.
+  - An area its caster can move ("you can take a Magic action on later turns to move the Cylinder up to 60 feet") gets
+    a second Action, "Moonbeam (Move)", costing that action, with `moveArea: {of, distance}` (`moveAreaDefinition`).
+    Only Moonbeam has that wording in the SRD.
   - Something with no duration of its own (a flask of Oil) is not a lasting area.
 - **Effects by hand (2026-10-18).** Three spell effects dnd5e leaves empty get their 2024 rules from a small table
   (`EFFECTS_BY_HAND`):

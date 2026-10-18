@@ -1395,6 +1395,22 @@ test("a lasting area keeps the slot it was cast with: its stored repeat is the c
   assert.deepEqual([trigger.action.damage[0].expression.number, region.flags.wildpath.area.castLevel], [3, 3]);
 });
 
+test("moving a lasting area takes its fields and its cast level along, and a creature it moves onto saves", async t => {
+  const {scene, areas, sourceToken, targetActor, targetToken} = lastingAreaFixture(t, {on: ["area.entered"]});
+  const region = await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: [{x: 9, y: 9}]},
+    definition: {id: "action:burn", label: "Burn", area: {shape: "radial", size: {value: 5, unit: "ft"}, persistence: {
+      duration: {unit: "round", value: 10}, triggers: [{on: ["area.entered"], action: BURNING}]}}},
+    sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {castingLevel: 3}}});
+  const health = targetActor.system.resources.health.value;
+  // Onto the target's own field: it enters the area ("when it moves into its space").
+  const onto = createFoundryV14TacticalGridAdapter({scene}).tokenToFootprint(targetToken).footprint.fields;
+  await areas.move({options: {areaMove: {sceneId: scene.id, regionId: region.id, fields: onto}}});
+  assert.deepEqual(region.flags.wildpath.area.fields, onto, "the area's fields are where it was moved");
+  assert.equal(region.shapes[0].offsets.length, onto.length, "and Foundry draws it there");
+  assert.equal(targetActor.system.resources.health.value, health - 4, "the creature it moved onto takes its damage");
+  assert.equal(region.flags.wildpath.area.persistence.triggers[0].action.id, BURNING.id, "its triggers go with it");
+});
+
 test("a lasting area for enemies only (Spirit Guardians) spares its caster's side", async t => {
   const {targetActor, targetToken, sourceToken, player, areas, intent, game} = lastingAreaFixture(t, {affects: "enemies"});
   const declared = await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});

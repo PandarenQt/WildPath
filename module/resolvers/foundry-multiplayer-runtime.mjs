@@ -14,7 +14,7 @@ import {createFoundryV14ChatCardAdapter} from "../adapters/foundry-v14-chat-card
 import {createFoundryReactionProvider} from "../adapters/foundry-v14-reaction-provider.mjs";
 import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
-import {createFoundryPersistentAreas, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
+import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {allyNearTarget, createFoundryAuras} from "../adapters/foundry-v14-auras.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 import {AUTOMATION_QUERY, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
@@ -126,6 +126,7 @@ export function registerFoundryV14MultiplayerResolution({
       await applyActionTransformation(event, {logger});
       await summons.afterResolution(event);
       await pushes.afterResolution(event);
+      await areas.move(event);
       await masteries.afterResolution(event);
       await endEffectsWhenAttacked(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
     },
@@ -159,6 +160,9 @@ export function registerFoundryV14MultiplayerResolution({
       && (game.users?.activeGM?.id === game.user?.id) ) void effect.delete();
   });
   globalThis.Hooks?.on?.("deleteRegion", region => areas.onRegionDeleted(region));
+  // The GM dragging a lasting area's Region moves the area itself (its fields follow its cells).
+  globalThis.Hooks?.on?.("updateRegion", (region, changed, operation) => void areas.onRegionUpdated(region, changed, operation)
+    .catch(error => logger?.warn?.("Wild Path | A moved area could not update", error)));
   // Items' and effects' automatic triggers: turns and rests reach them from Combat and Actor#rest.
   const automation = createFoundryAutomationDispatcher({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? null,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
@@ -638,6 +642,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   }
   const area = foundryActionArea({action, actor, intent, sourceToken});
   if ( !area.ok ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: area.reason};
+  const areaMove = definition?.moveArea ? foundryAreaMove({definition, actor, intent, sourceToken}) : null;
+  if ( areaMove && !areaMove.ok ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: areaMove.reason};
   const targetActors = {};
   const targetSystems = {};
   // Each target's own grants (GrantResistance / GrantImmunity) shape the damage it takes.
@@ -809,6 +815,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
       ...(concentration ? {concentration: concentration.input} : {}),
       ...(area.persistentArea ? {persistentArea: area.persistentArea} : {}),
+      ...(areaMove ? {areaMove: areaMove.move} : {}),
       ...(controller.actor ? {controller: {actorRef: controller.actor.uuid, actorSystem: controllerSystem}} : {}),
       persistencePort
     },
@@ -1100,6 +1107,28 @@ export async function endEffectsWhenAttacked({state}, {fromUuid}) {
   }
   if ( attacker ) await end(attacker, [...attacker.effects].filter(effect => endsWhen(effect) === "attacks"));
   return ended;
+}
+
+/**
+ * Where an Action that moves its creature's lasting area (`moveArea`, Moonbeam's Magic action) takes it: the area that
+ * creature left with the Action `of`, laid out at the clicked point with its own shape and size, no farther than
+ * `distance` feet from where it is. `{ok, move: {sceneId, regionId, fields}}`.
+ */
+function foundryAreaMove({definition, actor, intent, sourceToken}) {
+  const scene = sourceToken?.parent ?? null;
+  const found = scene ? ownArea(scene, {of: definition.moveArea.of, actorRef: actor.uuid}) : null;
+  if ( !found ) return {ok: false, reason: "There is no area of yours to move."};
+  if ( found.flag.attached ) return {ok: false, reason: "That area moves with its creature."};
+  const placed = foundryAreaFootprint({definition: {area: {shape: found.flag.shape, size: {value: found.flag.size, unit: "ft"}},
+    targeting: {type: "area"}}, sourceToken, points: intent.area?.points ?? []});
+  if ( !placed.ok ) return {ok: false, reason: placed.reason};
+  const from = areaFieldsCenter(found.flag.fields, scene);
+  const to = areaFieldsCenter(placed.footprint.fields, scene);
+  const feet = (from && to) ? scene.grid?.measurePath?.([from, to])?.distance ?? null : null;
+  if ( (feet === null) || (feet > Number(definition.moveArea.distance)) ) {
+    return {ok: false, reason: `The area moves at most ${definition.moveArea.distance} feet.`};
+  }
+  return {ok: true, move: {sceneId: scene.id, regionId: found.region.id, fields: placed.footprint.fields}};
 }
 
 /**

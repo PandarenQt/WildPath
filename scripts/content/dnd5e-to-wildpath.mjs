@@ -332,6 +332,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       flags: {wildpath: {source, conversion: {notes}}}
     });
     items.push(action(id, `${document.name}${suffix}`, definition));
+    // A lasting area its caster can move ("a Magic action ... to move the Cylinder up to 60 feet"): its own Action.
+    const moveArea = moveAreaDefinition(document, definition);
+    if ( moveArea ) items.push(action(stableId(`${id}:move`), `${document.name}${suffix} (Move)`, moveArea));
     // 2024 Versatile: the weapon with both hands is its own Action, rolling its larger die.
     const twoHanded = versatileDefinition({document, system, definition});
     if ( twoHanded ) items.push(action(stableId(`${id}:two-handed`), `${document.name}${suffix} (Two-Handed)`, twoHanded));
@@ -688,6 +691,19 @@ export function lastingArea({document, system, definition}) {
     ...((/\benem(?:y|ies)\b/iu.test(wording[0]) || /designate creatures to be unaffected/iu.test(plainText(document)))
       ? {affects: "enemies"} : {}),
     triggers: [{on: ["area.entered", wording[1].toLowerCase() === "starts" ? "turn.started" : "turn.ended"], action}]}}};
+}
+
+/**
+ * The Action that moves a lasting area its 2024 text lets its caster move ("you can take a Magic action on later turns
+ * to move the Cylinder up to 60 feet", Moonbeam): that action's cost and `moveArea {of, distance}`. Null otherwise.
+ */
+export function moveAreaDefinition(document, definition) {
+  if ( !definition?.area?.persistence ) return null;
+  const wording = /\byou can take an? (Magic|Bonus) action\b[^.]*?\bto move the \w+(?: \w+)? up to (\d+) feet/iu.exec(plainText(document));
+  if ( !wording ) return null;
+  const capability = wording[1].toLowerCase() === "bonus" ? "bonus-action" : "action";
+  return {schemaVersion: 1, id: `${definition.id}:move`, costs: {allOf: [{capability, amount: 1}]}, targeting: {type: "none"},
+    moveArea: {of: definition.id, distance: Number(wording[2])}};
 }
 
 /** A feature's description as plain text, one space between words. */
