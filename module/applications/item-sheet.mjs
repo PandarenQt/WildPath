@@ -426,6 +426,11 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       capabilities: [...Object.values(CONFIG.WILDPATH.ECONOMY_CAPABILITIES), ...Array.from({length: 9}, (_, i) => `spell-slot.${i + 1}`)],
       damageTypes: DAMAGE_TYPES,
       weapons: [...WEAPONS.simple, ...WEAPONS.martial],
+      // The summoned creature's name, when its UUID resolves here.
+      summonName: (() => {
+        try { return foundry.utils.fromUuidSync(values.summon.creature, {strict: false})?.name ?? ""; }
+        catch { return ""; } // text that is not a UUID
+      })(),
       rangeHasDistance: ["touch", "reach", "ranged"].includes(range.type),
       rangeIsRanged: range.type === "ranged",
       targetsMultiple: targets.type === "multiple",
