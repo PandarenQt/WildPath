@@ -128,8 +128,10 @@ test("resource rows set where a pool starts, emptying each turn, Recharge and a 
   assert.deepEqual(result.ruleElements[2].data.regain, {shortRest: 1});
   assert.deepEqual(result.ruleElements[3].predicate, {equals: {path: "attack.allyNearTarget", value: true}});
   assert.deepEqual(ruleGaps([{id: "t", type: "Trigger", data: {}}, {id: "h", type: "GrantMovement", data: {mode: "fly", distance: 30, hover: true}},
-    {id: "s", type: "RollMode", data: {domains: ["check.perception"], mode: "advantage"}}], {abilities}),
-  ["RollMode.domains", "Trigger"], "what the rows cannot rebuild is named (Hover is a speed row's checkbox)");
+    {id: "s", type: "RollMode", data: {domains: ["check.perception"], mode: "advantage"}},
+    {id: "two", type: "RollMode", data: {domains: ["attack", "check"], mode: "advantage"}}], {abilities}),
+  ["RollMode.domains", "Trigger"], "what the rows cannot rebuild is named (Hover is a speed row's checkbox; a skill is a domain)");
+  assert.equal(rulesToRows([{id: "s", type: "Modifier", data: {domains: ["check.stealth"], value: 2}}], {abilities})[0].appliesTo, "check.stealth");
 });
 
 test("a rule only Advanced can edit survives a form that posts nothing for it, wherever it stands (no data loss)", () => {

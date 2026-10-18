@@ -15,6 +15,8 @@ function domainLabel(domain) {
   const key = DOMAIN_KEYS[domain];
   if ( key ) return game.i18n.localize(`WILDPATH.RULES.Domain.${key}`);
   const [kind, ability] = domain.split(".");
+  const skill = CONFIG.WILDPATH.SKILLS?.[ability];
+  if ( skill && (kind === "check") ) return game.i18n.format("WILDPATH.RULES.Domain.checkOf", {ability: game.i18n.localize(skill.label)});
   const name = game.i18n.localize(CONFIG.WILDPATH.ABILITIES[ability]?.label ?? ability);
   return game.i18n.format(kind === "save" ? "WILDPATH.RULES.Domain.saveOf" : "WILDPATH.RULES.Domain.checkOf", {ability: name});
 }

@@ -6,6 +6,7 @@
  * stored list. Rows match stored rules by position; an aura's nested rules are rows of their own.
  */
 import {formatFormula, parseFormula} from "./formula.mjs";
+import {WILDPATH} from "../config.mjs";
 import {DEFAULT_RULE_ELEMENT_REGISTRY, evaluateRuleElement, normalizeRuleElementType, validateRuleElementDefinition}
   from "./rule-elements.mjs";
 
@@ -25,8 +26,10 @@ export const MOVEMENT_MODES = Object.freeze(["walk", "fly", "swim", "climb", "bu
 
 /** What a row of `kind` can apply to, as the engine's statistic domains. */
 export function ruleDomains(kind: string, abilities: readonly string[] = []) {
+  // Skills are CONFIG.WILDPATH's (the same object), so a skill a world adds is offered too.
+  const skills = Object.keys((WILDPATH as {SKILLS?: Record<string, unknown>}).SKILLS ?? {});
   const d20 = ["attack", "attack.melee", "attack.ranged", "attack.weapon", "attack.spell", "save", ...abilities.map(ability => `save.${ability}`),
-    "check", ...abilities.map(ability => `check.${ability}`), "initiative"];
+    "check", ...abilities.map(ability => `check.${ability}`), ...skills.map(skill => `check.${skill}`), "initiative"];
   if ( kind === "rollMode" ) return [...d20, "attacked"];
   if ( kind === "extraDamage" ) return [...DAMAGE_DOMAINS];
   return [...d20, "defense.ac", "resources.health.max", "resources.movement.max", ...DAMAGE_DOMAINS];

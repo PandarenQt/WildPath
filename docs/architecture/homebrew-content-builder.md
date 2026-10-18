@@ -218,14 +218,15 @@ Then (the second round):
 - **An area's height** (a cylinder's or a wall's; negative reaches down).
 - **At least N targets** of a multiple-target Action ("up to three creatures").
 - **Can hover**, on a speed row.
+- **Skill checks** are rule-row domains ("Stealth checks"), from `CONFIG.WILDPATH.SKILLS`.
 - **Summon:** the creature by UUID (its name is shown when it resolves), how many (1-20), rounds (blank: until
   dismissed), and concentration. A creature chosen when cast (`choiceId`) and bonuses by level stay Advanced.
 
-| Fully editable | First run | First fields | Second round (with summon) |
+| Fully editable | First run | First fields | Second round (summon, skills) |
 | --- | --- | --- | --- |
-| SRD Actions | 1,254 / 2,529 | 1,693 / 2,529 | 2,368 / 2,529 |
-| SRD rule lists | 793 / 1,373 | 1,283 / 1,373 | 1,304 / 1,373 |
-| Book Actions (four packages) | 3,055 / 5,689 | 3,996 / 5,689 | 5,398 / 5,689 |
+| SRD Actions | 1,254 / 2,529 | 1,693 / 2,529 | 2,383 / 2,529 |
+| SRD rule lists | 793 / 1,373 | 1,283 / 1,373 | 1,308 / 1,373 |
+| Book Actions (four packages) | 3,055 / 5,689 | 3,996 / 5,689 | 5,423 / 5,689 |
 
 The largest gaps left, all sources:
 - resource maximums that are formulas the row cannot show (106);
@@ -242,6 +243,7 @@ Live (two browsers, 14.369), on world copies of SRD Items:
 - An imported Aboleth's Tentacle showed options 1 (its Multiattack pool) and 2 (the Action), with no "Advanced" line.
   Setting the second row's option to 1 made one way to pay (`allOf`), and nothing else changed.
 - Thunderwave's push showed 10 feet. Setting 15 changed only `push`.
+- Armor of Invulnerability's Stealth rule showed "Stealth checks", and renaming the Item left its rules unchanged.
 - Staff of the Magi: Light's summon showed its creature's UUID, the name "Light", 1 and 600 rounds. Setting 5 rounds
   changed only `summon`.
 
