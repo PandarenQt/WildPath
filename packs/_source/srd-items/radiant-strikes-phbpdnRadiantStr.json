@@ -7,7 +7,29 @@
   "system": {
     "active": true,
     "description": "<p>Your strikes now carry supernatural power. When you hit a target with an attack roll using a Melee weapon or an Unarmed Strike, the target takes an extra 1d8 Radiant damage.</p><section class=\"secret\" id=\"secret-fSg1MH5IBJqfecX2\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which automatically adds the Radiant damage to all Damage Rolls made with your Melee Weapon Attacks and Unarmed Strikes.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "radiant-strikes-1",
+        "type": "ExtraDamage",
+        "predicate": {
+          "tagsAny": [
+            "melee"
+          ]
+        },
+        "data": {
+          "domains": [
+            "damage.weapon"
+          ],
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 8
+          },
+          "damageType": "radiant"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +43,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Radiant Strikes\" change system.bonuses.mwak.damage (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

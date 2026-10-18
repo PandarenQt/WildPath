@@ -278,6 +278,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - Haste ×2, and Slow and Spirit Guardians ×0.5, change the walking Speed, as `movement.walk` multiply already did.
   - ×0 (Power Word Stun, Haste's Lethargy) caps movement at 0, which stops every Speed.
   - shortcut: other multipliers leave fly and swim Speeds alone.
+- **Damage bonuses in dice (2026-10-18)** become `ExtraDamage` on each hit of that kind of attack: Divine Favor's
+  1d4 Radiant, Enlarge's 1d4 (the weapon's own type). Penalties in dice (Reduce's −1d4) and Rage's level-scaled bonus
+  are left to the GM.
 - **Weapon kind (G8).** A weapon's attack carries `attack.weapon`: its base weapon (`longsword`, `light-crossbow`),
   `simple` or `martial`, and its 2024 mastery (`sap`), which weapon training and Weapon Mastery read. 93 SRD weapon
   Actions have one.
