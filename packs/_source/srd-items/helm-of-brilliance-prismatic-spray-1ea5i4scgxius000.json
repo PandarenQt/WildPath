@@ -88,7 +88,7 @@
       "conversion": {
         "notes": [
           "damage 1: a choice of acid/cold/fire/lightning/poison uses acid",
-          "not automated (save): using it spends its cost; its description says the rest"
+          "rolled (save); what it does is by hand"
         ]
       }
     }

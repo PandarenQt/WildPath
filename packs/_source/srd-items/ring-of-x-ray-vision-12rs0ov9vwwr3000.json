@@ -29,7 +29,7 @@
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
           "effect: \"X-Ray Vision\" (its own changes) not converted",
-          "not automated (save): using it spends its cost; its description says the rest"
+          "rolled (save); what it does is by hand"
         ]
       },
       "grants": [

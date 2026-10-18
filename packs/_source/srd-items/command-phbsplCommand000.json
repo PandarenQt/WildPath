@@ -21,6 +21,38 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
       "configuration": [
         {
           "id": "spell-slot",
@@ -96,7 +128,14 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleTargets",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "perLevel": 1
+            }
+          ]
         }
       ],
       "label": "Command"
@@ -116,7 +155,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest"
+          "rolled (save); what it does is by hand"
         ]
       }
     }

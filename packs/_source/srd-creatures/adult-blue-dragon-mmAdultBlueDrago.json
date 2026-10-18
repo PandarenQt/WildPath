@@ -658,6 +658,39 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "subtract",
+                    "terms": [
+                      {
+                        "type": "constant",
+                        "value": 18
+                      },
+                      {
+                        "type": "constant",
+                        "value": 5
+                      }
+                    ]
+                  },
+                  {
+                    "type": "constant",
+                    "value": 2
+                  }
+                ]
+              }
+            }
+          },
           "label": "Scrying"
         },
         "ruleElements": [
@@ -691,9 +724,9 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
               "concentration: nothing it sustains was converted",
+              "rolled (save); what it does is by hand",
               "\"Create Sensor\" is passive or triggered: not automated"
             ]
           }
@@ -1040,8 +1073,8 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",
-          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
+          "Spellcasting: rolled (save); what it does is by hand",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
           "Cloaked Flight: not automated (utility): using it spends its cost; its description says the rest",
           "Tail Swipe: not automated (utility): using it spends its cost; its description says the rest"

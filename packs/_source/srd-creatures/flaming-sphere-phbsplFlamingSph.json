@@ -106,6 +106,24 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 5
+            }
+          },
           "label": "Roll"
         },
         "ruleElements": []
@@ -123,7 +141,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -145,7 +163,7 @@
       "conversion": {
         "notes": [
           "Flames: \"save\" is passive or triggered: not automated",
-          "Roll: not automated (save): using it spends its cost; its description says the rest"
+          "Roll: rolled (save); what it does is by hand"
         ]
       }
     }

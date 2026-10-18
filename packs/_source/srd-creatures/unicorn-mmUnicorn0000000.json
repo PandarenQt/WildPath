@@ -653,7 +653,7 @@
               "not automated (utility): using it spends its cost; its description says the rest",
               "effect: \"Dispelling Evil and Good\" (its own changes) not converted",
               "concentration: nothing it sustains was converted",
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -1279,7 +1279,7 @@
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: effect: \"Indifference\" (its own changes) not converted",
           "Spellcasting: effect: \"Dispelling Evil and Good\" (its own changes) not converted",
-          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: rolled (save); what it does is by hand",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Charging Horn: not automated (utility): using it spends its cost; its description says the rest",
           "Shimmering Shield: healing: temporary Hit Points not converted",

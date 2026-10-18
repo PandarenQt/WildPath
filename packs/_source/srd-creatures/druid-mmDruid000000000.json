@@ -608,6 +608,24 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "presence",
+            "dc": {
+              "value": 13
+            }
+          },
           "label": "Animal Messenger"
         },
         "ruleElements": [
@@ -641,8 +659,8 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: \"Carrying Message\" (its own changes) not converted"
+              "effect: \"Carrying Message\" (its own changes) not converted",
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -874,8 +892,8 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
           "Spellcasting: effect: \"Bestial Communication\" (its own changes) not converted",
-          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Carrying Message\" (its own changes) not converted",
+          "Spellcasting: rolled (save); what it does is by hand",
           "Spellcasting: concentration: nothing it sustains was converted"
         ]
       }

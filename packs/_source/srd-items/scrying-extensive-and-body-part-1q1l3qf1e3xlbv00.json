@@ -16,6 +16,40 @@
       "costs": {
         "allOf": []
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              },
+              {
+                "type": "constant",
+                "value": 5
+              },
+              {
+                "type": "constant",
+                "value": 10
+              }
+            ]
+          }
+        }
+      },
       "configuration": [
         {
           "id": "spell-slot",
@@ -83,10 +117,9 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
           "activation: 10 minute is not an action-economy cost",
           "concentration: nothing it sustains was converted",
-          "activation: 10 minute is not an action-economy cost"
+          "rolled (save); what it does is by hand"
         ]
       }
     }

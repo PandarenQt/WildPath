@@ -25,6 +25,24 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "value": 17
+        }
+      },
       "label": "Cube of Force: Resilient Sphere"
     },
     "ruleElements": [
@@ -65,8 +83,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "effect: \"Enclosed in Sphere\" (its own changes) not converted"
+          "effect: \"Enclosed in Sphere\" (its own changes) not converted",
+          "rolled (save); what it does is by hand"
         ]
       }
     }

@@ -384,6 +384,24 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 20
+            }
+          },
           "label": "Command"
         },
         "ruleElements": []
@@ -403,7 +421,7 @@
           "conversion": {
             "notes": [
               "cast: Command at level 2 is cast at its own level",
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -432,6 +450,24 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 20
+            }
+          },
           "label": "Command"
         },
         "ruleElements": []
@@ -451,7 +487,7 @@
           "conversion": {
             "notes": [
               "cast: Command at level 2 is cast at its own level",
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -920,9 +956,9 @@
       "conversion": {
         "notes": [
           "Commanding Presence: cast: Command at level 2 is cast at its own level",
-          "Commanding Presence: not automated (save): using it spends its cost; its description says the rest",
+          "Commanding Presence: rolled (save); what it does is by hand",
           "Spellcasting: cast: Command at level 2 is cast at its own level",
-          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: rolled (save); what it does is by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",

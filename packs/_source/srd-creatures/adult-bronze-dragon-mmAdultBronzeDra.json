@@ -858,7 +858,7 @@
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
               "concentration: nothing it sustains was converted",
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -1251,7 +1251,7 @@
           "Spellcasting: effect: marked is not a WildPath condition yet",
           "Spellcasting: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
           "Spellcasting: effect: \"Bestial Communication\" (its own changes) not converted",
-          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: rolled (save); what it does is by hand",
           "Spellcasting: effect: \"Water Breathing\" (its own changes) not converted",
           "Guiding Light: cast: Guiding Bolt at level 2 is cast at its own level",
           "Guiding Light: effect: marked is not a WildPath condition yet",

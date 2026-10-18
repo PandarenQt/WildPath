@@ -338,6 +338,31 @@
               ]
             ]
           },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  }
+                ]
+              }
+            }
+          },
           "label": "Bite (Rat or Hybrid Form Only) (save)"
         },
         "ruleElements": []
@@ -355,8 +380,8 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: cursed is not a WildPath condition yet"
+              "effect: cursed is not a WildPath condition yet",
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -586,8 +611,8 @@
       },
       "conversion": {
         "notes": [
-          "Bite (Rat or Hybrid Form Only): not automated (save): using it spends its cost; its description says the rest",
           "Bite (Rat or Hybrid Form Only): effect: cursed is not a WildPath condition yet",
+          "Bite (Rat or Hybrid Form Only): rolled (save); what it does is by hand",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

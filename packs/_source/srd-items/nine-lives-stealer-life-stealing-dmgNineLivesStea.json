@@ -25,6 +25,17 @@
           }
         ]
       },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 15
+        }
+      },
       "label": "Nine Lives Stealer (Life Stealing)"
     },
     "ruleElements": [
@@ -71,7 +82,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest"
+          "rolled (save); what it does is by hand"
         ]
       }
     }

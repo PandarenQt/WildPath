@@ -721,7 +721,7 @@
               "not automated (utility): using it spends its cost; its description says the rest",
               "effect: \"Dispelling Evil and Good\" (its own changes) not converted",
               "concentration: nothing it sustains was converted",
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -1494,7 +1494,7 @@
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: effect: \"Dispelling Evil and Good\" (its own changes) not converted",
-          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: rolled (save); what it does is by hand",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
           "Spellcasting: effect: \"Spell Taxed\" (its own changes) not converted",
           "Divine Aid: cast: Cure Wounds at level 2 is cast at its own level",

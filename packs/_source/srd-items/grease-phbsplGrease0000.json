@@ -21,6 +21,43 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "cube",
+        "size": {
+          "value": 10,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
       "configuration": [
         {
           "id": "spell-slot",
@@ -116,7 +153,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest"
+          "rolled (save); what it does is by hand"
         ]
       }
     }

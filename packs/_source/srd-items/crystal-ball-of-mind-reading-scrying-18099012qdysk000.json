@@ -21,6 +21,39 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "subtract",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 17
+                  },
+                  {
+                    "type": "constant",
+                    "value": 5
+                  }
+                ]
+              },
+              {
+                "type": "constant",
+                "value": 2
+              }
+            ]
+          }
+        }
+      },
       "label": "Crystal Ball of Mind Reading: Scrying"
     },
     "ruleElements": []
@@ -39,9 +72,9 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
           "activation: 10 minute is not an action-economy cost",
           "concentration: nothing it sustains was converted",
+          "rolled (save); what it does is by hand",
           "\"Create Sensor\" is passive or triggered: not automated"
         ]
       }

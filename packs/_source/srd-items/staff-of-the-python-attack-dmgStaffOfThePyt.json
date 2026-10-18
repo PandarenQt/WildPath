@@ -21,6 +21,29 @@
           }
         ]
       },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true,
+        "weapon": {
+          "category": "simple",
+          "base": "quarterstaff",
+          "mastery": "topple"
+        }
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
       "label": "Staff of the Python (attack)"
     },
     "ruleElements": []
@@ -38,7 +61,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (attack): using it spends its cost; its description says the rest"
+          "rolled (attack); what it does is by hand"
         ]
       }
     }

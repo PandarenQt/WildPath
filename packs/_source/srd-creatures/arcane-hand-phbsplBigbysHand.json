@@ -76,6 +76,24 @@
               }
             ]
           },
+          "attack": {
+            "type": "melee",
+            "statistic": "spell",
+            "defenseKey": "ac",
+            "proficient": true
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
           "label": "Clenched Fist"
         },
         "ruleElements": []
@@ -93,8 +111,8 @@
           },
           "conversion": {
             "notes": [
-              "not automated (attack): using it spends its cost; its description says the rest",
-              "damage 1: custom formula \"(2 * @flags.dnd5e.summon.level - 5)d8\" not converted"
+              "damage 1: custom formula \"(2 * @flags.dnd5e.summon.level - 5)d8\" not converted",
+              "rolled (attack); what it does is by hand"
             ]
           }
         }
@@ -123,6 +141,24 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "might",
+            "dc": {
+              "value": 5
+            }
+          },
           "label": "Forceful Hand"
         },
         "ruleElements": []
@@ -140,7 +176,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -169,6 +205,24 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 5
+            }
+          },
           "label": "Grasping Hand (Grapple)"
         },
         "ruleElements": []
@@ -186,7 +240,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -345,10 +399,10 @@
       },
       "conversion": {
         "notes": [
-          "Clenched Fist: not automated (attack): using it spends its cost; its description says the rest",
           "Clenched Fist: damage 1: custom formula \"(2 * @flags.dnd5e.summon.level - 5)d8\" not converted",
-          "Forceful Hand: not automated (save): using it spends its cost; its description says the rest",
-          "Grasping Hand: not automated (save): using it spends its cost; its description says the rest",
+          "Clenched Fist: rolled (attack); what it does is by hand",
+          "Forceful Hand: rolled (save); what it does is by hand",
+          "Grasping Hand: rolled (save); what it does is by hand",
           "Grasping Hand: not automated (damage): using it spends its cost; its description says the rest",
           "Grasping Hand: damage 1: custom formula \"(2 * @flags.dnd5e.summon.level - 6)d6 + @flags.dnd5e.summon.mod\" not converted",
           "Interposing Hand: effect: \"Interposed\" (its own changes) not converted"
