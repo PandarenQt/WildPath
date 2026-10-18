@@ -164,6 +164,17 @@ the others.
   would fail because the caster had already spent their Action that turn. The Rules Inspector names the target of
   an effect it applied.
 
+## Converted content in the Builder (2026-10-18)
+
+- **No data loss on edit.** The sheet saves on every change, and a select whose stored value it lacks posts its first
+  option. Two such losses are fixed:
+  - Area shapes now include Cube and Wall, and keep any other stored shape. Renaming a converted Web no longer turns
+    it into a Sphere.
+  - A check's ability has a blank "the skill's own" option, so renaming a skill-only check (Chain, Manacles) no
+    longer writes an ability into it.
+- **The round trip.** An unchanged form gives back every converted SRD Action exactly (`test/action-builder.test.mjs`).
+  Live: renaming the SRD Web and Chain check kept their definitions.
+
 ## Product Goal
 
 Wild Path should let an ordinary GM create deeply automated homebrew without programming, JSON

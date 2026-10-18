@@ -449,12 +449,15 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
           game.i18n.format("WILDPATH.BUILDER.Slot.Level", {level: i + 1})]))},
         rangeTypes: choices(["", "self", "touch", "reach", "ranged", "sight", "special"], "WILDPATH.BUILDER.Range."),
         targetTypes: choices(["", "self", "single", "multiple", "area", "none"], "WILDPATH.BUILDER.Targets."),
-        areaShapes: choices(["radial", "emanation", "cone", "line"], "WILDPATH.BUILDER.Area."),
+        // Every shape the engine knows, and any other stored one: a select without its value would post its first option.
+        areaShapes: keep(choices(["radial", "emanation", "cone", "line", "cube", "wall"], "WILDPATH.BUILDER.Area."), values.area?.shape),
         rollKinds: choices(["none", "attack", "save", "check"], "WILDPATH.BUILDER.Roll."),
         attackTypes: choices(["melee", "ranged"], "WILDPATH.BUILDER.Roll."),
         statistics: choices(["weapon", "spell"], "WILDPATH.BUILDER.Roll."),
         attackAbilities: {"": "WILDPATH.BUILDER.Roll.Automatic", ...abilities},
-        abilities: keep(abilities, roll.saveAbility || roll.checkAbility),
+        abilities: keep(abilities, roll.saveAbility),
+        // A check may name only its skill, which then uses its own ability.
+        checkAbilities: keep({"": "WILDPATH.BUILDER.Roll.SkillOwn", ...abilities}, roll.checkAbility),
         onSuccess: keep(choices(["half", "none", "full"], "WILDPATH.BUILDER.Roll.Success."), roll.onSuccess),
         provenances: values.damage.reduce((map, row) => keep(map, row.provenance),
           choices(["weapon-base", "spell-base", "additional"], "WILDPATH.BUILDER.Damage.")),

@@ -1060,6 +1060,36 @@ test("two unlinked Tokens of one base Actor each take their own hit, never each 
   assert.equal(second.system.resources.health.value, 24, "the second goblin takes its own 6, not both hits");
 });
 
+test("two unlinked Tokens of one base Actor each make their own save", async t => {
+  const definition = {...fortitudeBlast("agility"), targeting: {type: "multiple", required: true, count: 2}};
+  const {scene, sourceActor, targetActor, targetToken, action, game} = syntheticRuntimeFixture(t, definition, {targetHealth: 30});
+  const secondSource = targetActorSystem(30, 10, {ac: 14});
+  Object.assign(secondSource.resources.health, {base: 30, bonus: 0});
+  const second = withFoundryActorSystem(fakeActor(targetActor.id, {system: secondSource}));
+  second.system.resources.health.max = 30;
+  second.toObject = () => ({system: structuredClone(secondSource)});
+  const secondToken = fakeTokenDocument({id: "second-token", actor: second, scene, offset: {i: 0, j: 1}});
+  Object.assign(second, {uuid: `${secondToken.uuid}.Actor.${second.id}`, isToken: true, token: secondToken, tokens: [secondToken]});
+  scene.tokens.push(secondToken);
+  const resolveFirst = globalThis.fromUuid;
+  globalThis.fromUuid = async ref => (ref === second.uuid ? second : resolveFirst(ref));
+  const built = buildFoundryActionUseIntent({actor: sourceActor, action,
+    game: {user: {targets: new Set([{document: targetToken}, {document: secondToken}])}}});
+  const resolved = await foundryActionIntentToStagedOptions({intent: built.intent, senderUserId: "player-a", game,
+    persistencePort: createTestDocumentPersistenceAdapter()});
+  assert.equal(resolved.ok, true, resolved.reason);
+  const plan = planStagedActionResolution(resolved.options);
+  const answer = (state, natural) => {
+    const request = state.pendingRequests[0];
+    return resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural,
+        total: natural + (request.payload.rollRequest.expected?.modifierTotal ?? 0)}}});
+  };
+  const done = answer(answer(plan.state, 19).state, 2).state;
+  const outcomes = done.results.saveResolution.results.map(entry => [entry.target.tokenId, entry.success]);
+  assert.deepEqual(outcomes, [[targetToken.id, true], ["second-token", false]], "each goblin saves with its own roll");
+});
+
 /** A GM-controlled target whose Token answers "a hit on me" by striking back (authored Trigger RuleElement). */
 function counterattackFixture(t, {decision="use", reactor="target"}={}) {
   const fixture = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
