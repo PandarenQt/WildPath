@@ -59,6 +59,26 @@
           "type": "condition",
           "conditionId": "incapacitated",
           "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Trapped Soul",
+          "img": "icons/containers/kitchenware/vase-clay-painted-brown-white.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "trapped-soul-1",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "movement"
+                ],
+                "maximum": 0
+              }
+            }
+          ],
+          "saveOutcomePolicy": "failure"
         }
       ],
       "configuration": [
@@ -120,9 +140,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Trapped Soul\" change system.attributes.movement.multiplier (override) not converted"
-        ]
+        "notes": []
       }
     }
   }

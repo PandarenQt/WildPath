@@ -668,3 +668,14 @@ test("a save with nothing converted on it still rolls: its consequences are the 
   assert.deepEqual([item.type, item.system.definition.save.ability, item.system.definition.damage ?? []], ["action", "wits", []]);
   assert.ok(item.flags.wildpath.conversion.notes.includes("rolled (save); what it does is by hand"));
 });
+
+test("2024 Speed multipliers: Haste doubles, Slow halves the walking Speed, and 0 stops every Speed", async () => {
+  const {effectRules} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const multiplier = (value, type="multiply") => ({name: "Speed", system: {changes: [{key: "system.attributes.movement.multiplier", value, type}]}});
+  const [hasted] = effectRules(multiplier(2));
+  assert.deepEqual([hasted.type, hasted.data.domains, hasted.data.valueExpression.value.terms[0].value], ["Modifier", ["resources.movement.max"], 1]);
+  assert.equal(effectRules(multiplier(0.5))[0].data.valueExpression.value.terms[0].value, -0.5);
+  const notes = [];
+  assert.deepEqual(effectRules(multiplier(0, "override"), notes).map(rule => [rule.type, rule.data.maximum]), [["ResourceCap", 0]]);
+  assert.deepEqual(notes, []);
+});

@@ -434,6 +434,42 @@
                   "type": "Modifier",
                   "data": {
                     "domains": [
+                      "resources.movement.max"
+                    ],
+                    "modifierType": "untyped",
+                    "valueExpression": {
+                      "type": "floor",
+                      "value": {
+                        "type": "multiply",
+                        "terms": [
+                          {
+                            "type": "constant",
+                            "value": -0.5
+                          },
+                          {
+                            "type": "add",
+                            "terms": [
+                              {
+                                "type": "context",
+                                "path": "actorSystem.resources.movement.base"
+                              },
+                              {
+                                "type": "context",
+                                "path": "actorSystem.resources.movement.bonus"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "slowed-3",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
                       "save.agility"
                     ],
                     "modifierType": "untyped",
@@ -483,9 +519,7 @@
             "castBy": "Slow"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Slowed\" change system.attributes.movement.multiplier (multiply) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -550,9 +584,7 @@
         "challenge": 10
       },
       "conversion": {
-        "notes": [
-          "Slow: effect: \"Slowed\" change system.attributes.movement.multiplier (multiply) not converted"
-        ]
+        "notes": []
       }
     }
   }

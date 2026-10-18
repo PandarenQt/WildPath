@@ -1136,6 +1136,31 @@
               "type": "condition",
               "conditionId": "incapacitated",
               "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Trance State",
+              "img": "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "trance-state-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 0
+                  }
+                }
+              ],
+              "duration": {
+                "value": 28800,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure"
             }
           ],
           "label": "Dream"
@@ -1171,8 +1196,7 @@
           },
           "conversion": {
             "notes": [
-              "activation: 1 minute is not an action-economy cost",
-              "effect: \"Trance State\" change system.attributes.movement.multiplier (override) not converted"
+              "activation: 1 minute is not an action-economy cost"
             ]
           }
         }
@@ -1252,8 +1276,7 @@
           "Spellcasting: save: ? DC (spellcasting) not converted",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
-          "Nightmare Haunting: activation: 1 minute is not an action-economy cost",
-          "Nightmare Haunting: effect: \"Trance State\" change system.attributes.movement.multiplier (override) not converted"
+          "Nightmare Haunting: activation: 1 minute is not an action-economy cost"
         ]
       }
     }

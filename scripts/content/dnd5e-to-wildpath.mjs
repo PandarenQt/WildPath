@@ -1517,8 +1517,13 @@ export function effectRules(effect, notes=[]) {
       rule("ResourceCap", {resources: ["movement"], maximum: Math.max(number, 0)});
     } else if ( (key === "system.attributes.movement.walk") && (type === "add") && value ) {
       modifier(["resources.movement.max"], value);
-    } else if ( (key === "system.attributes.movement.walk") && (type === "multiply") && Number.isFinite(number) ) {
-      // Haste doubles it, Slow halves it: the walking Speed's own maximum times (factor - 1), added.
+    } else if ( (key === "system.attributes.movement.multiplier") && (number === 0) && ["override", "multiply"].includes(type) ) {
+      // Every Speed 0 (Power Word Stun, Haste's Lethargy): movement capped at 0, which caps the other Speeds too.
+      rule("ResourceCap", {resources: ["movement"], maximum: 0});
+    } else if ( ["system.attributes.movement.walk", "system.attributes.movement.multiplier"].includes(key) && (type === "multiply")
+      && Number.isFinite(number) ) {
+      // Haste doubles it, Slow and Spirit Guardians halve it: the walking Speed's own maximum times (factor - 1), added.
+      // shortcut: dnd5e's multiplier scales every Speed; a fly or swim Speed keeps its own here.
       modifier(["resources.movement.max"], {type: "floor", value: {type: "multiply", terms: [{type: "constant", value: number - 1},
         {type: "add", terms: [{type: "context", path: "actorSystem.resources.movement.base"},
           {type: "context", path: "actorSystem.resources.movement.bonus"}]}]}});
