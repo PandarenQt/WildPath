@@ -18,6 +18,15 @@
           }
         ]
       },
+      "targeting": {
+        "type": "self"
+      },
+      "check": {
+        "skill": "acrobatics",
+        "dc": {
+          "value": 15
+        }
+      },
       "label": "Rope (Escape Check)"
     },
     "ruleElements": [
@@ -49,9 +58,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (check): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

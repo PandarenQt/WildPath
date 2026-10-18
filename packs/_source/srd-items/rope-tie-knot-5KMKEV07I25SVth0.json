@@ -22,6 +22,15 @@
           }
         ]
       },
+      "targeting": {
+        "type": "self"
+      },
+      "check": {
+        "skill": "sleight-of-hand",
+        "dc": {
+          "value": 10
+        }
+      },
       "label": "Rope (Tie Knot)"
     },
     "ruleElements": [
@@ -53,9 +62,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (check): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

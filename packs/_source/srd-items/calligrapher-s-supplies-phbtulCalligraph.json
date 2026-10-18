@@ -18,6 +18,15 @@
           }
         ]
       },
+      "targeting": {
+        "type": "self"
+      },
+      "check": {
+        "ability": "agility",
+        "dc": {
+          "value": 15
+        }
+      },
       "label": "Calligrapher's Supplies"
     },
     "ruleElements": []
@@ -34,9 +43,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (check): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

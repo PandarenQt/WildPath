@@ -73,6 +73,15 @@
               }
             ]
           },
+          "targeting": {
+            "type": "self"
+          },
+          "check": {
+            "skill": "insight",
+            "dc": {
+              "value": 14
+            }
+          },
           "label": "Mimicry"
         },
         "ruleElements": []
@@ -89,9 +98,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (check): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -210,9 +217,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Mimicry: not automated (check): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }
