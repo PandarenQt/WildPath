@@ -24,6 +24,13 @@
         "Name": "High ground (Baldur's Gate 3)",
         "Hint": "An optional rule from Baldur's Gate 3. On: an attack from 8 feet or more above its target gets +2 to its attack roll, and one from 8 feet or more below gets -2. Off: height gives no bonus, as in the 2024 rules."
       },
+      "BatchSaves": {
+        "Name": "Several saves at once",
+        "Hint": "When you roll saves for several creatures at once (a Fireball on your monsters): one window to type some and roll the rest, or every save rolled for you. One save is asked for on its own.",
+        "Physical": "One window, with physical dice",
+        "Always": "Always one window",
+        "Never": "Roll them all for me"
+      },
       "InspirationMonsterRerolls": {
         "Name": "GM may reroll monster rolls with players' inspiration",
         "Hint": "On: after a monster's d20 (an attack, a save or a check), the GM is asked whether to reroll it by spending a player character's Heroic Inspiration point. Off: only players spend their points, on their own failed rolls."
@@ -141,6 +148,11 @@
       "Targets": "Targets",
       "TargetRefinement": "Keep these targets",
       "TargetNumber": "Target {number}",
+      "Batch": {
+        "Title": "Saving throws",
+        "Hint": "Type the dice you rolled. Rows left empty are rolled for you.",
+        "RollRest": "Roll the rest"
+      },
       "Roll": {
         "Natural": "Die result ({formula})",
       "NaturalAdvantage": "With advantage: roll two d20s and enter the higher ({formula})",
@@ -152,6 +164,7 @@
         "Default": "Choose",
         "ActionConfiguration": "Choose options",
         "Roll": "Enter your roll",
+        "Save": "{name}'s saving throw",
         "TargetSelection": "Choose targets",
         "TargetRefinement": "Adjust targets",
         "ReactionChoice": "Reaction"

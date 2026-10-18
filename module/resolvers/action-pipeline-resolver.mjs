@@ -1209,6 +1209,8 @@ function createSaveRollStage() {
 function requestPerTargetSaves(state, input, targets) {
   let current = state;
   let save = {...input.save, rollsByTarget: {...(input.save.rollsByTarget ?? {})}};
+  // Every missing save is asked for at once: players roll side by side, and the GM gets the monsters' together.
+  const waiting = [];
   for ( const [index, target] of targets.entries() ) {
     const key = saveTargetKey(target);
     if ( save.rollsByTarget[key] ) continue;
@@ -1218,12 +1220,9 @@ function requestPerTargetSaves(state, input, targets) {
     const rollRequest = accepted
       ? rollRequestFromAcceptedResponse(accepted, () => saveRollRequestForState(current, input, {target, suffix}))
       : saveRollRequestForState(current, input, {target, suffix});
-    if ( !accepted ) return waitResolutionStage({
-      state: updateResolutionState(current, {
-        input: {...input, save},
-        rollRequests: appendRollRequest(current.rollRequests, rollRequest)
-      }),
-      request: createResolutionRequest({
+    if ( !accepted ) {
+      current = updateResolutionState(current, {rollRequests: appendRollRequest(current.rollRequests, rollRequest)});
+      waiting.push(createResolutionRequest({
         id: rollRequest.id,
         resolutionId: current.id,
         stageId: ACTION_PIPELINE_STAGE_IDS.SAVE_ROLL,
@@ -1245,9 +1244,9 @@ function requestPerTargetSaves(state, input, targets) {
           targets: [target],
           targeting: input.targeting ?? null
         }
-      }),
-      reason: "Saving throw result is required before action resolution can continue."
-    });
+      }));
+      continue;
+    }
     const normalized = normalizeRollResponseValue(accepted.response.value, {
       request: rollRequest,
       completedRequestIds: completedRollRequestIds(current)
@@ -1268,6 +1267,11 @@ function requestPerTargetSaves(state, input, targets) {
         semanticType: normalized.result.type, rollRequest, rollResult: normalized.result, roll, targetKey: key}]
     });
   }
+  if ( waiting.length ) return waitResolutionStage({
+    state: updateResolutionState(current, {input: {...input, save}}),
+    requests: waiting,
+    reason: "Saving throw results are required before action resolution can continue."
+  });
   return continueResolutionStage({state: current, data: {saveRollCount: targets.length}});
 }
 

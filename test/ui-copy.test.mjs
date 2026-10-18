@@ -47,6 +47,30 @@ test("the Foundry prompt adapter localizes titles and labels and fills in the fo
   assert.match(shown.content, /Total rolled \(1d8\)/u);
 });
 
+test("the batch window lists each creature's save, and empty rows come back empty", async t => {
+  const strings = {"WILDPATH.PROMPT.Batch.Title": "Saving throws", "WILDPATH.PROMPT.Batch.RollRest": "Roll the rest",
+    "WILDPATH.PROMPT.Roll.Natural": "Die result ({formula})", "WILDPATH.PROMPT.Title.Save": "{name}'s saving throw"};
+  const previous = globalThis.game;
+  globalThis.game = {i18n: {localize: key => strings[key] ?? key,
+    format: (key, data) => (strings[key] ?? key).replace(/\{(\w+)\}/gu, (_, name) => data[name])}};
+  t.after(() => { globalThis.game = previous; });
+  const {createFoundryV14PromptAdapter} = await import("../module/adapters/foundry-v14-prompt-adapter.mjs");
+  const {createD20RollRequest} = await import("../module/helpers/rolls.mjs");
+  const save = (id, name) => ({id, resolutionId: "r", type: "roll", payload: {rollKind: "save", targets: [{id, target: {name}}],
+    rollRequest: createD20RollRequest({id, resolutionId: "r", type: "saving-throw", modifier: 5})}});
+  const shown = [];
+  const adapter = createFoundryV14PromptAdapter({DialogV2: {input: async options => {
+    shown.push(options);
+    return options.ok.label === "Roll the rest" ? {"natural-0": 12, "natural-1": null} : {natural: 7};
+  }}});
+  const rows = await adapter.requestBatch([save("a", "Goblin"), save("b", "Bandit Captain")], {isGM: true});
+  assert.equal(shown[0].window.title, "Saving throws");
+  assert.match(shown[0].content, /Goblin[\s\S]*Die result \(1d20 \+ 5\)[\s\S]*Bandit Captain/u);
+  assert.deepEqual(rows.map(row => row?.natural ?? null), [12, null]);
+  await adapter.request(save("a", "Goblin"), {isGM: true});
+  assert.equal(shown[1].window.title, "Goblin's saving throw", "a lone save prompt names whose save it is");
+});
+
 test("lang/en.json has no duplicate keys (a later one would silently replace the earlier)", async () => {
   const {readFileSync} = await import("node:fs");
   const text = readFileSync("lang/en.json", "utf8");

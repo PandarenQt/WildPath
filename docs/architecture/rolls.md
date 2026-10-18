@@ -67,6 +67,25 @@ providers and passes `dicePolicyRollContext(game)`, whose `providerId` getter is
 `physical` the roller types the dice into the roll prompt (natural d20, or the total for damage and
 healing).
 
+**Several saves at once (2026-10-18).** When one client rolls two or more saves for an Action (the GM's
+monsters in a Fireball), its client setting `wildpath.batchSaves` decides (`answerSaveBatchLocally`):
+- `physical` (the default): one window under physical dice; otherwise each is rolled digitally as before.
+- `always`: one window, whatever the dice.
+- `never`: every save is rolled digitally, even under physical dice.
+
+The window (`requestBatch` on the Foundry prompt port) has a row per creature: its name, a die input, and the
+formula below it. A typed row is taken as rolled (with physical provenance under physical dice), and an empty
+row is rolled digitally ("Roll the rest"). A row the rules reject is asked again on its own. A single save is
+asked for alone. Heroic Inspiration's questions stay one per creature. Other users' saves are separate prompts,
+each titled with its creature's name (`saver`, the only part of the target sent to its roller).
+
+Live (two browsers, 14.369, physical dice):
+- QA Caster's 3rd-level Fireball caught four GM creatures and two of Player1's characters.
+- Player1 got their two saves while the GM's window listed QA Saver, QA Failer, QA Ally and the Bandit Captain.
+- The GM typed 10 and 4 and pressed "Roll the rest". The one card showed six saves (typed 10 → 60 saved, typed
+  4 → 9 failed, two rolled) and 28 fire, halved for each success.
+- With `never`, the GM got no window, and the four monster saves were rolled.
+
 **Total bounds.** `validateRollResult` rejects a total the requested dice cannot produce
 (`simpleFormulaBounds` over the authority's own request formula: `NdF` and integer terms only) for
 total-mode requests and for d20 requests with a known modifier, whoever rolled it. The roll prompt

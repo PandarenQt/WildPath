@@ -22,6 +22,9 @@ export const PROMPT_CONTROL_TYPES = Object.freeze({
 export function createPromptViewModel(request, {state=null, metadata={}}={}) {
   const normalized = clonePromptData(request, "request") ?? {};
   const payload = normalized.payload ?? {};
+  // A save names whose it is: one roller may be asked for several creatures' saves at once.
+  const saver = payload.saver ?? (payload.rollKind === "save"
+    ? (payload.targets?.[0]?.name ?? payload.targets?.[0]?.target?.name ?? null) : null);
   const base = {
     schemaVersion: PROMPT_VIEW_SCHEMA_VERSION,
     id: `prompt-view:${normalized.resolutionId ?? "resolution"}:${normalized.id ?? "request"}`,
@@ -29,7 +32,8 @@ export function createPromptViewModel(request, {state=null, metadata={}}={}) {
     requestId: normalized.id ?? null,
     requestType: normalized.type ?? RESOLUTION_REQUEST_TYPES.CHOICE,
     expectedResponseType: normalized.expectedResponseType ?? null,
-    title: promptTitle(normalized),
+    title: saver ? "WILDPATH.PROMPT.Title.Save" : promptTitle(normalized),
+    ...(saver ? {titleData: {name: saver}} : {}),
     required: requestRequired(normalized),
     chooser: clonePromptData(normalized.chooser ?? null, "chooser"),
     authority: clonePromptData(normalized.authority ?? null, "authority"),

@@ -823,6 +823,10 @@ test("chooser minimization: per-request-type allow-lists send only what the choo
     payload: {rollRequest, state: {secret: true}, dc: 15, defenses: {ac: 12}, targetSystems: {}, label: "Attack roll"}
   }, {expectedChooserUserId: "player-a"});
   assert.deepEqual(Object.keys(sanitized.payload).sort(), ["rollRequest"]);
+  const save = sanitizePendingRequestForTransport({id: "s1", resolutionId: "res", type: "roll",
+    payload: {rollRequest, rollKind: "save", targets: [{id: "g", target: {name: "Goblin"}, defenses: {ac: 12}}], save: {dc: 15}}});
+  assert.deepEqual(Object.keys(save.payload).sort(), ["rollRequest", "saver"], "a save's roller learns only the saver's name");
+  assert.equal(save.payload.saver, "Goblin");
   assert.equal(sanitized.payload.rollRequest.target.defenses, undefined);
   assert.equal(sanitized.metadata.multiplayer.expectedChooserUserId, "player-a");
 

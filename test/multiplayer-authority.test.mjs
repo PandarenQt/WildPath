@@ -386,6 +386,46 @@ test("remote physical d20 rolls flow through RollProvider and resolve like digit
   assert.equal(record.state.rollResults[0].rollResult.provenance.type, ROLL_PROVENANCE_TYPES.PHYSICAL);
 });
 
+test("a burst's saves go out together: the player rolls theirs while the GM types or rolls the monsters' in one window", async () => {
+  const hub = createTestResolutionTransportHub({users: users()});
+  const target = id => ({id, actorId: `actor-${id}`, tokenId: `token-${id}`, name: id, disposition: "enemy"});
+  const batches = [];
+  const window = {id: "batch-window", type: "test", canHandle: () => true,
+    request: async () => ({ok: false, status: "failure", reason: "single prompt not expected"}),
+    async requestBatch(requests) {
+      batches.push({rows: requests.map(request => request.payload.targets[0].target.name),
+        playerAsked: hub.messages.some(message => (message.messageType === MULTIPLAYER_MESSAGE_TYPES.PENDING_REQUEST)
+          && (message.recipientUserId === "player-a"))});
+      return [{natural: 18, total: 18}, null];
+    }};
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), promptPorts: [window],
+    rollProviders: [createTestRollProvider({id: "foundry-digital", result: {natural: 3, total: 3}}), createPhysicalDiceProvider()],
+    rollContext: {providerId: "physical-dice"},
+    actionIntentResolver: () => ({ok: true, options: {
+      actorSystem: actorSystem(), action: {id: "burst", type: "action", name: "Burst", system: {getActivationCost: actionCost}},
+      source: {actorId: "actor-source"}, targets: [target("orc"), target("goblin"), target("goblin-2")],
+      save: {saveKey: "dex", dc: {value: 10}},
+      damage: {saveOutcomePolicy: {success: "half", failure: "full"}, components: [{id: "burst", amount: 10, damageType: "fire"}]}},
+    requestContext: {sourceControllerUserIds: ["player-a"], targetControllerUserIdsByTargetRef: {orc: ["player-a"]}}})});
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "player-a"}), rollProviders: [createTestRollProvider({result: {natural: 15, total: 15}})]});
+  gm.register();
+  player.register();
+  await player.declareActionIntent({intentId: "intent:burst", resolutionId: "resolution:burst", actorRef: "Actor.actor-source",
+    actionRef: "Item.burst", targetRefs: ["orc", "goblin", "goblin-2"]});
+
+  assert.deepEqual(batches, [{rows: ["goblin", "goblin-2"], playerAsked: true}],
+    "one window for the GM's two saves, opened after the player's save went out");
+  const state = gm.getRecord("resolution:burst").state;
+  const outcomes = Object.fromEntries(state.results.saveResolution.results.map(entry => [entry.target.id, entry.success]));
+  assert.deepEqual(outcomes, {orc: true, goblin: true, "goblin-2": false}, "typed 18, the player's 15, a rolled 3");
+  const provenance = Object.fromEntries(state.rollResults.filter(entry => entry.type === "save-roll")
+    .map(entry => [entry.targetKey, entry.rollResult.provenance.type]));
+  assert.equal(provenance["token-goblin"], ROLL_PROVENANCE_TYPES.PHYSICAL, "the typed row keeps the physical dice");
+  assert.notEqual(provenance["token-goblin-2"], ROLL_PROVENANCE_TYPES.PHYSICAL, "the empty row was rolled");
+});
+
 test("duplicate request responses and duplicate action intents do not commit twice", async () => {
   const fixture = attackFixture();
   const {hub, gm, player, transports} = setupClients({
