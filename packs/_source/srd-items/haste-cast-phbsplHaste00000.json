@@ -46,6 +46,42 @@
               "type": "Modifier",
               "data": {
                 "domains": [
+                  "resources.movement.max"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "floor",
+                  "value": {
+                    "type": "multiply",
+                    "terms": [
+                      {
+                        "type": "constant",
+                        "value": 1
+                      },
+                      {
+                        "type": "add",
+                        "terms": [
+                          {
+                            "type": "context",
+                            "path": "actorSystem.resources.movement.base"
+                          },
+                          {
+                            "type": "context",
+                            "path": "actorSystem.resources.movement.bonus"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hasted-2",
+              "type": "Modifier",
+              "data": {
+                "domains": [
                   "defense.ac"
                 ],
                 "modifierType": "untyped",
@@ -54,7 +90,7 @@
             },
             {
               "schemaVersion": 1,
-              "id": "hasted-2",
+              "id": "hasted-3",
               "type": "RollMode",
               "data": {
                 "domains": [
@@ -152,9 +188,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Hasted\" change system.attributes.movement.multiplier (multiply) not converted"
-        ]
+        "notes": []
       }
     }
   }

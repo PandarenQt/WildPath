@@ -851,6 +851,25 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "stunned"
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "No Movement",
+              "img": "icons/svg/anchor.svg",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "no-movement-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 0
+                  }
+                }
+              ]
             }
           ],
           "label": "Power Word Stun"
@@ -885,10 +904,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "effect: \"No Movement\" change system.attributes.movement.multiplier (override) not converted",
-              "effect: \"No Movement\" (its own changes) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -967,9 +983,7 @@
           "Spellcasting: area: @item.level * 5 - 10-ft sphere is not supported; the user picks the targets",
           "Spellcasting: effect: \"Confused\" (its own changes) not converted",
           "Spellcasting: rolled (save); what it does is by hand",
-          "Spellcasting: effect: \"Flight\" change system.attributes.movement.hover (override) not converted",
-          "Spellcasting: effect: \"No Movement\" change system.attributes.movement.multiplier (override) not converted",
-          "Spellcasting: effect: \"No Movement\" (its own changes) not converted"
+          "Spellcasting: effect: \"Flight\" change system.attributes.movement.hover (override) not converted"
         ]
       }
     }

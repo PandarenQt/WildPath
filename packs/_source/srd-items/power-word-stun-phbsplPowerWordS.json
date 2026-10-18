@@ -38,6 +38,25 @@
           "id": "effect-1",
           "type": "condition",
           "conditionId": "stunned"
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "No Movement",
+          "img": "icons/svg/anchor.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "no-movement-1",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "movement"
+                ],
+                "maximum": 0
+              }
+            }
+          ]
         }
       ],
       "configuration": [
@@ -85,10 +104,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"No Movement\" change system.attributes.movement.multiplier (override) not converted",
-          "effect: \"No Movement\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

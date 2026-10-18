@@ -388,6 +388,31 @@
               "type": "condition",
               "conditionId": "incapacitated",
               "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Trance State",
+              "img": "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "trance-state-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 0
+                  }
+                }
+              ],
+              "duration": {
+                "value": 28800,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure"
             }
           ],
           "label": "Dream"
@@ -423,8 +448,7 @@
           },
           "conversion": {
             "notes": [
-              "activation: 1 minute is not an action-economy cost",
-              "effect: \"Trance State\" change system.attributes.movement.multiplier (override) not converted"
+              "activation: 1 minute is not an action-economy cost"
             ]
           }
         }
@@ -494,6 +518,32 @@
               "conditionId": "incapacitated",
               "saveOutcomePolicy": "failure",
               "concentration": true
+            },
+            {
+              "id": "effect-3",
+              "type": "effect",
+              "name": "Hypnotized",
+              "img": "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "hypnotized-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 0
+                  }
+                }
+              ],
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
             }
           ],
           "label": "Hypnotic Pattern"
@@ -528,9 +578,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Hypnotized\" change system.attributes.movement.multiplier (override) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -700,9 +748,7 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Disguised\" (its own changes) not converted",
           "Spellcasting: effect: ethereal is not a WildPath condition yet",
-          "Spellcasting: activation: 1 minute is not an action-economy cost",
-          "Spellcasting: effect: \"Trance State\" change system.attributes.movement.multiplier (override) not converted",
-          "Spellcasting: effect: \"Hypnotized\" change system.attributes.movement.multiplier (override) not converted"
+          "Spellcasting: activation: 1 minute is not an action-economy cost"
         ]
       }
     }

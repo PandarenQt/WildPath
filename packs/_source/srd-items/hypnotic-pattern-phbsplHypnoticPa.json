@@ -72,6 +72,32 @@
           "conditionId": "incapacitated",
           "saveOutcomePolicy": "failure",
           "concentration": true
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Hypnotized",
+          "img": "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hypnotized-1",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "movement"
+                ],
+                "maximum": 0
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
         }
       ],
       "configuration": [
@@ -154,9 +180,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Hypnotized\" change system.attributes.movement.multiplier (override) not converted"
-        ]
+        "notes": []
       }
     }
   }

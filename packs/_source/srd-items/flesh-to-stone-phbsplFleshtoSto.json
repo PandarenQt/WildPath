@@ -60,6 +60,26 @@
           "conditionId": "restrained",
           "saveOutcomePolicy": "failure",
           "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Unable to Move",
+          "img": "icons/magic/life/heart-broken-red.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "unable-to-move-1",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "movement"
+                ],
+                "maximum": 0
+              }
+            }
+          ],
+          "concentration": true
         }
       ],
       "configuration": [
@@ -121,10 +141,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Unable to Move\" change system.attributes.movement.multiplier (override) not converted",
-          "effect: \"Unable to Move\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

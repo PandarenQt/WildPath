@@ -66,6 +66,31 @@
           "type": "condition",
           "conditionId": "incapacitated",
           "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Trance State",
+          "img": "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "trance-state-1",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "movement"
+                ],
+                "maximum": 0
+              }
+            }
+          ],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure"
         }
       ],
       "configuration": [
@@ -135,8 +160,7 @@
       },
       "conversion": {
         "notes": [
-          "activation: 1 minute is not an action-economy cost",
-          "effect: \"Trance State\" change system.attributes.movement.multiplier (override) not converted"
+          "activation: 1 minute is not an action-economy cost"
         ]
       }
     }
