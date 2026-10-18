@@ -167,6 +167,7 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 | Search | The Action, then a Wits check: Insight, Medicine, Perception or Survival (chosen); the GM judges the total |
 | Study | The Action, then an Intellect check: Arcana, History, Investigation, Nature or Religion |
 | Influence | The Action, then a check: Deception, Intimidation, Performance, Persuasion or Animal Handling |
+| Utilize | The Action, spent on an object (a lever, a lock); the card says so (2026-10-19) |
 | Opportunity Attack | A reaction: the creature's first melee attack Action (else its Unarmed Strike), for its Reaction |
 
 - **Built by the authority.** An intent names one as `actionRef: "common:<id>"`. The authority builds the Action
@@ -194,7 +195,10 @@ Help covers the 2024 attack assist; any creature's next attack uses it, not only
 hand. Live (two browsers): Player1's Help on the Bandit Captain, then an Unarmed Strike while Prone, rolled `1d20 + 1`
 (the advantage cancelled Prone's disadvantage) and Distracted ended.
 
-Not yet: Influence, Magic, Ready, Search, Study and Utilize (each is the GM's call or a check with the GM's DC).
+Not yet: Magic (a spell or magic item's own Action already is one) and Ready (the GM's call).
+
+Live (two browsers, 2026-10-19): Player1's QA Fighter used Utilize from the bar; its Action went from 1 to 0 and a
+"Utilize" card was posted.
 
 Live (two browsers):
 - Player1's caster used Dash from the bar: Dashing, and movement from 25 to 55.

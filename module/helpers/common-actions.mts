@@ -67,7 +67,9 @@ const COMMON: Record<string, {name: string; img: string; definition: Data}> = {
   study: {name: "WILDPATH.COMMON.Study", img: "icons/svg/book.svg", definition: {costs: ACTION, ...SELF,
     metadata: {test: {skills: ["arcana", "history", "investigation", "nature", "religion"]}}}},
   influence: {name: "WILDPATH.COMMON.Influence", img: "icons/svg/sound.svg", definition: {costs: ACTION, ...SELF,
-    metadata: {test: {skills: ["deception", "intimidation", "performance", "persuasion", "animal-handling"]}}}}
+    metadata: {test: {skills: ["deception", "intimidation", "performance", "persuasion", "animal-handling"]}}}},
+  // 2024 Utilize: using an object that takes an action (a lever, a door's lock); the card says it was used.
+  utilize: {name: "WILDPATH.COMMON.Utilize", img: "icons/svg/lever.svg", definition: {costs: ACTION, ...SELF}}
 };
 
 export const COMMON_ACTION_IDS = Object.freeze([...Object.keys(COMMON), "opportunity"]);
