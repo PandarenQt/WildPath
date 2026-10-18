@@ -47,7 +47,8 @@
                 "distance": {
                   "type": "context",
                   "path": "actorSystem.resources.movement.max"
-                }
+                },
+                "hover": true
               }
             }
           ],
@@ -89,9 +90,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Flyer\" change system.attributes.movement.hover (override) not converted"
-        ]
+        "notes": []
       }
     }
   }

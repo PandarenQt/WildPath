@@ -744,7 +744,8 @@
                   "type": "GrantMovement",
                   "data": {
                     "mode": "fly",
-                    "distance": 60
+                    "distance": 60,
+                    "hover": true
                   }
                 }
               ],
@@ -788,9 +789,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Flight\" change system.attributes.movement.hover (override) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -982,8 +981,7 @@
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: area: @item.level * 5 - 10-ft sphere is not supported; the user picks the targets",
           "Spellcasting: effect: \"Confused\" (its own changes) not converted",
-          "Spellcasting: rolled (save); what it does is by hand",
-          "Spellcasting: effect: \"Flight\" change system.attributes.movement.hover (override) not converted"
+          "Spellcasting: rolled (save); what it does is by hand"
         ]
       }
     }

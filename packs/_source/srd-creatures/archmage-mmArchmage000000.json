@@ -1007,7 +1007,8 @@
                   "type": "GrantMovement",
                   "data": {
                     "mode": "fly",
-                    "distance": 60
+                    "distance": 60,
+                    "hover": true
                   }
                 }
               ],
@@ -1051,9 +1052,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Flight\" change system.attributes.movement.hover (override) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1594,7 +1593,6 @@
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: rolled (save); what it does is by hand",
           "Spellcasting: effect: \"Disguised\" (its own changes) not converted",
-          "Spellcasting: effect: \"Flight\" change system.attributes.movement.hover (override) not converted",
           "Spellcasting: cast: Lightning Bolt at level 7 is cast at its own level",
           "Spellcasting: cast: Cone of Cold at level 9 is cast at its own level",
           "Spellcasting: activation: 10 minute is not an action-economy cost",

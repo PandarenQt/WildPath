@@ -660,7 +660,8 @@
                   "type": "GrantMovement",
                   "data": {
                     "mode": "fly",
-                    "distance": 10
+                    "distance": 10,
+                    "hover": true
                   }
                 },
                 {
@@ -761,7 +762,6 @@
           "conversion": {
             "notes": [
               "effect: transformed is not a WildPath condition yet",
-              "effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
               "effect: \"Gaseous Form\" change img (override) not converted"
             ]
           }
@@ -989,7 +989,6 @@
           "Spellcasting: area: 20 * @item.level-ft sphere is not supported; the user picks the targets",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: effect: transformed is not a WildPath condition yet",
-          "Spellcasting: effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
           "Spellcasting: rolled (save); what it does is by hand",
           "Misty Step: consumption: itemUses 1 not converted"

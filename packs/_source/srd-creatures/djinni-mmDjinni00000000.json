@@ -569,7 +569,8 @@
                   "type": "GrantMovement",
                   "data": {
                     "mode": "fly",
-                    "distance": 300
+                    "distance": 300,
+                    "hover": true
                   }
                 },
                 {
@@ -636,8 +637,7 @@
           "conversion": {
             "notes": [
               "activation: 1 minute is not an action-economy cost",
-              "effect: transformed is not a WildPath condition yet",
-              "effect: \"Cloud Form\" change system.attributes.movement.hover (override) not converted"
+              "effect: transformed is not a WildPath condition yet"
             ]
           }
         }
@@ -763,7 +763,8 @@
                   "type": "GrantMovement",
                   "data": {
                     "mode": "fly",
-                    "distance": 10
+                    "distance": 10,
+                    "hover": true
                   }
                 },
                 {
@@ -864,7 +865,6 @@
           "conversion": {
             "notes": [
               "effect: transformed is not a WildPath condition yet",
-              "effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
               "effect: \"Gaseous Form\" change img (override) not converted"
             ]
           }
@@ -1474,9 +1474,7 @@
           "Spellcasting: effect: \"Universal Communication\" (its own changes) not converted",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: effect: transformed is not a WildPath condition yet",
-          "Spellcasting: effect: \"Cloud Form\" change system.attributes.movement.hover (override) not converted",
           "Spellcasting: area: 5 * @item.level - 20-ft cube is not supported; the user picks the targets",
-          "Spellcasting: effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest"
         ]

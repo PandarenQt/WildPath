@@ -320,6 +320,10 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - The use dialog's preview shows the chosen type and a table's dice at the creature's own level ("2d10 fire").
   - Live: Player1's QA Fighter (level 6) used the SRD Breath Weapon (Cone) and chose Fire. The preview read "2d10
     fire"; the Bandit Captain failed its save and took 6 fire.
+- **Hovering (2026-10-19).** dnd5e's `movement.hover` goes on the fly Speed the same effect grants: Fly, Gaseous
+  Form, Wind Walk, a Potion of Flying, the Air Ring, and the creatures casting them (16 SRD documents). A hovering
+  flyer knocked Prone does not fall. Live: Player1's QA Caster cast the SRD Fly on itself: "Flight", a fly Speed of 60
+  with hover.
 - **Ability scores (2026-10-19).** dnd5e changes to `abilities.<x>.value` (`add`, `upgrade`, `downgrade`, `override`)
   become `AbilityScore` rules. An `add` with a `downgrade` (an Ioun Stone's "+2, to at most 20") or a raised `max` (a
   Tome's 30) is one capped add.

@@ -46,7 +46,8 @@
               "type": "GrantMovement",
               "data": {
                 "mode": "fly",
-                "distance": 60
+                "distance": 60,
+                "hover": true
               }
             }
           ],
@@ -145,9 +146,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Flight\" change system.attributes.movement.hover (override) not converted"
-        ]
+        "notes": []
       }
     }
   }

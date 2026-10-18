@@ -842,3 +842,14 @@ test("a damage part of several types is a choice when used (Breath Weapon's acid
   assert.equal(item.flags.wildpath.conversion.notes.some(note => /a choice of/.test(note)), false);
   assert.equal(validateActionDefinition(item.system.definition).ok, true);
 });
+
+test("hovering goes on the fly Speed its effect grants (Fly, a Potion of Flying)", async () => {
+  const {effectRules} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const notes = [];
+  const fly = effectRules({name: "Flight", changes: [{key: "system.attributes.movement.fly", type: "upgrade", value: 60},
+    {key: "system.attributes.movement.hover", type: "override", value: true}]}, notes);
+  const potion = effectRules({name: "Flyer", changes: [{key: "system.attributes.movement.hover", type: "override", value: "true"},
+    {key: "system.attributes.movement.fly", type: "upgrade", value: "@attributes.movement.walk"}]}, notes);
+  assert.deepEqual([fly[0].data, potion[0].data.hover], [{mode: "fly", distance: 60, hover: true}, true]);
+  assert.deepEqual(notes, []);
+});

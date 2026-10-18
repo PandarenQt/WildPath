@@ -842,7 +842,8 @@
                   "type": "GrantMovement",
                   "data": {
                     "mode": "fly",
-                    "distance": 60
+                    "distance": 60,
+                    "hover": true
                   }
                 }
               ],
@@ -886,9 +887,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Flight\" change system.attributes.movement.hover (override) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1158,7 +1157,6 @@
           "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: cast: Fireball at level 4 is cast at its own level",
-          "Spellcasting: effect: \"Flight\" change system.attributes.movement.hover (override) not converted",
           "Protective Magic: rolled (save); what it does is by hand"
         ]
       }
