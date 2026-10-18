@@ -127,10 +127,16 @@ function deathSavesView(system) {
   return {successes, failures, successPips: pips(successes), failurePips: pips(failures), stable: successes >= 3, dead: failures >= 3};
 }
 
+/**
+ * Each ability: `value` is its base (what the sheet edits, so a Belt's 21 is never saved as the creature's own),
+ * `effective` the score its rules make it, shown when they differ; the modifier is the effective score's.
+ */
 function normalizeAbilities(abilities={}, labels={}) {
   return Object.entries(abilities ?? {}).map(([key, ability]) => ({
     key,
-    value: Number(ability?.value ?? 0) || 0,
+    value: Number(ability?.base ?? ability?.value ?? 0) || 0,
+    effective: Number(ability?.value ?? 0) || 0,
+    changed: (ability?.base != null) && (Number(ability.base) !== Number(ability.value)),
     modifier: Math.floor(((Number(ability?.value ?? 0) || 0) - 10) / 2),
     saveProficient: ability?.saveProficient === true,
     label: labels[key]?.label ?? labels[key] ?? key

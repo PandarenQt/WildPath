@@ -25,6 +25,37 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Strength of Hills",
+          "img": "icons/consumables/potions/bottle-corked-empty.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "strength-of-hills-1",
+              "type": "AbilityScore",
+              "data": {
+                "ability": "might",
+                "mode": "upgrade",
+                "value": 21
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Potion of Giant Strength (Hill)"
     },
     "ruleElements": [
@@ -56,11 +87,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Strength of Hills\" change system.abilities.str.value (upgrade) not converted",
-          "effect: \"Strength of Hills\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

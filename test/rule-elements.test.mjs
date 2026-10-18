@@ -384,3 +384,20 @@ test("granted resources come from every owner's GrantResource, with level-scaled
     [{id: "ki", label: "Ki", maximum: 4, recovery: "shortRest"}]);
   assert.deepEqual(grantedResourcesFromRuleElements([]), []);
 });
+
+test("AbilityScore: add up to a maximum, at least, at most, or set; in that order", async () => {
+  const {abilityScoreAfter, abilityScoreChangesFromRuleElements} = await import("../module/helpers/rule-elements.mjs");
+  const change = (mode, value, maximum) => ({mode, value, maximum});
+  assert.equal(abilityScoreAfter(14, [change("upgrade", 21)]), 21, "a Belt of Giant Strength");
+  assert.equal(abilityScoreAfter(23, [change("upgrade", 21)]), 23, "already stronger");
+  assert.equal(abilityScoreAfter(19, [change("add", 2, 20)]), 20, "an Ioun Stone: +2, to at most 20");
+  assert.equal(abilityScoreAfter(22, [change("add", 2, 20)]), 22, "a score above the maximum stays");
+  assert.equal(abilityScoreAfter(19, [change("add", 2, 30)]), 21, "a Tome raises the maximum");
+  assert.equal(abilityScoreAfter(14, [change("add", 2, 20), change("upgrade", 19), change("downgrade", 18)]), 18, "add, at least, at most");
+  assert.equal(abilityScoreAfter(16, [change("override", 1)]), 1, "Feeblemind sets it");
+  assert.equal(abilityScoreAfter(12, [change("add", -3)]), 9, "a Shadow's drain lowers it");
+  const owners = [{ruleElements: [{schemaVersion: 1, id: "belt", type: "AbilityScore", data: {ability: "might", mode: "upgrade", value: 21}},
+    {schemaVersion: 1, id: "bad", type: "AbilityScore", data: {ability: "might", mode: "double", value: 2}}]}];
+  assert.deepEqual(abilityScoreChangesFromRuleElements(owners).map(entry => [entry.ability, entry.mode, entry.value]),
+    [["might", "upgrade", 21]], "an unknown mode is refused");
+});

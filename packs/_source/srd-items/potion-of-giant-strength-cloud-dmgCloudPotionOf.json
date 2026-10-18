@@ -25,6 +25,37 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Strength of Clouds",
+          "img": "icons/consumables/potions/bottle-round-corked-blue.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "strength-of-clouds-1",
+              "type": "AbilityScore",
+              "data": {
+                "ability": "might",
+                "mode": "upgrade",
+                "value": 27
+              }
+            }
+          ],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Potion of Giant Strength (Cloud)"
     },
     "ruleElements": [
@@ -56,11 +87,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Strength of Clouds\" change system.abilities.str.value (upgrade) not converted",
-          "effect: \"Strength of Clouds\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

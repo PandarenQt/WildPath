@@ -21,6 +21,32 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Wish Stress",
+          "img": "icons/magic/symbols/star-solid-gold.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "wish-stress-1",
+              "type": "AbilityScore",
+              "data": {
+                "ability": "might",
+                "mode": "downgrade",
+                "value": 3
+              }
+            }
+          ]
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -59,11 +85,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Wish Stress\" change system.abilities.str.value (downgrade) not converted",
-          "effect: \"Wish Stress\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

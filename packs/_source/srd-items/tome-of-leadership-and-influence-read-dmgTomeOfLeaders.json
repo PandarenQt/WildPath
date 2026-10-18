@@ -25,6 +25,33 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Leader",
+          "img": "icons/skills/social/diplomacy-unity-alliance.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "leader-1",
+              "type": "AbilityScore",
+              "data": {
+                "ability": "presence",
+                "mode": "add",
+                "value": 2,
+                "maximum": 30
+              }
+            }
+          ]
+        }
+      ],
       "label": "Tome of Leadership and Influence (Read)"
     },
     "ruleElements": [
@@ -56,12 +83,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Leader\" change system.abilities.cha.value (add) not converted",
-          "effect: \"Leader\" change system.abilities.cha.max (upgrade) not converted",
-          "effect: \"Leader\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

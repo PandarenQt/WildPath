@@ -109,6 +109,61 @@
           ]
         }
       ],
+      "configuration": [
+        {
+          "id": "effect-choice",
+          "type": "option",
+          "label": "Effect",
+          "required": true,
+          "options": [
+            {
+              "id": "effect-option-1",
+              "label": "Nature's Ward: Arid",
+              "value": "effect-option-1"
+            },
+            {
+              "id": "effect-option-2",
+              "label": "Nature's Ward: Polar",
+              "value": "effect-option-2"
+            },
+            {
+              "id": "effect-option-3",
+              "label": "Nature's Ward: Temperate",
+              "value": "effect-option-3"
+            },
+            {
+              "id": "effect-option-4",
+              "label": "Nature's Ward: Tropical",
+              "value": "effect-option-4"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "effect-1",
+                "effect-2",
+                "effect-3",
+                "effect-4"
+              ],
+              "keep": {
+                "effect-option-1": [
+                  "effect-1"
+                ],
+                "effect-option-2": [
+                  "effect-2"
+                ],
+                "effect-option-3": [
+                  "effect-3"
+                ],
+                "effect-option-4": [
+                  "effect-4"
+                ]
+              }
+            }
+          ]
+        }
+      ],
       "label": "Nature's Sanctuary (Spectral Trees and Vines)"
     },
     "ruleElements": []

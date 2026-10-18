@@ -550,6 +550,33 @@ Shield from the sheet: AC 18, and 10 feet less Speed (Might 10 under the armor's
 15. Player1's Mage Armor on themself made it 18, and with Agility 20 Mage Armor's 18 lost to the worn Chain Mail's
 16 (AC 18 with the Shield).
 
+## AbilityScore (2026-10-19)
+
+`{type: "AbilityScore", data: {ability, mode, value, maximum?}}` changes one ability score while it applies. The
+modes apply in this order (`abilityScoreAfter`):
+
+| Mode | Meaning | Example |
+| --- | --- | --- |
+| `add` | `value` added, to at most `maximum` (20 by default); a score already above it stays; a negative value lowers it | Ioun Stone +2 to 20, a Tome +2 to 30, a Shadow's −1 |
+| `upgrade` | at least `value` | Belt of Giant Strength 21, Headband of Intellect 19 |
+| `downgrade` | at most `value` | Wish's stress, Strength 3 |
+| `override` | set to `value` | Feeblemind |
+
+- **On the creature.** The actor's data applies them first in derived data, so hit points, saves, AC, attacks and
+  every modifier read the new score.
+- **Each pass from source.** Each preparation starts each score from its stored value (`ability.base`). A Wild
+  Shape form then replaces it (`ability.formed`), and the rules apply to that, so a rule never applies twice.
+- **On the sheet.** The field shows and edits `base`, and the effective score sits beside the name ("Might (21)").
+  Saving the sheet never stores 21 as the creature's own score. This also fixes saving a transformed creature's
+  sheet, which used to store its form's scores as its own. (Its AC and walking Speed fields still show the form's.)
+- A rule row edits it ("An ability score": which ability, is at least / rises by / is at most / becomes, the score,
+  and for a rise its maximum).
+
+Live (two browsers, 14.369): QA Fighter (Might 16) wore and attuned the SRD Belt of Giant Strength (Hill). Might
+became 21 and their Longsword's attack went from +6 to +8. On Player1's sheet the field still read 16 with "(21)"
+beside it, and toggling the save proficiency saved 16. Quench checks the same on a real Actor, and that removing
+the Item restores the scores.
+
 ## Future Types
 
 When adding a RuleElement type:

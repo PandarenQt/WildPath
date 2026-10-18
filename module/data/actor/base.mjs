@@ -4,6 +4,7 @@ import {computeResourceMax, clampResourceValue, remainingFromSpent, spentFromRem
 import {SPELLCASTING_PROGRESSIONS, deriveClassData, spellSlotPoolId} from "../../helpers/spellcasting.mjs";
 import {formOverrides} from "../../helpers/transformations.mjs";
 import {movementSpeeds} from "../../helpers/movement-modes.mjs";
+import {abilityScoreAfter} from "../../helpers/rule-elements.mjs";
 
 /** Action-economy counters: what is spent is stored, what remains is derived from the (modifiable) maximum. */
 const COUNTED_RESOURCES = Object.freeze(["action", "bonus", "reaction", "movement"]);
@@ -179,6 +180,12 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
       pool.bonus ??= 0;
       pool.modifierBonus = 0;
     }
+    // Each pass starts each score from its stored value (`base`, what the sheet edits): a form and rules change it
+    // later (#applyAbilityScores), never twice.
+    for ( const [key, ability] of Object.entries(this.abilities ?? {}) ) {
+      ability.base = this._source?.abilities?.[key]?.value ?? ability.value;
+      ability.value = ability.base;
+    }
     // A transformation replaces the statistics it lists with its form's; everything else stays the creature's.
     const transformation = this.parent?.transformation;
     const form = transformation ? globalThis.fromUuidSync?.(transformation.policy.formRef) : null;
@@ -187,6 +194,8 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
         foundry.utils.setProperty(this, path, value);
       }
     }
+    // Where rules start: the creature's own score, or its form's.
+    for ( const ability of Object.values(this.abilities ?? {}) ) ability.formed = ability.value;
   }
 
   /* -------------------------------------------- */
@@ -194,6 +203,8 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
   /** @inheritDoc */
   prepareDerivedData() {
     super.prepareDerivedData();
+    // First: hit points, saves, AC and every modifier read the scores.
+    this.#applyAbilityScores();
     this.#deriveClasses();
     this.#applyResourceModifiers();
     this.#finalizeResources();
@@ -203,6 +214,18 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     const grants = (this.parent?.getGrantedMovement?.() ?? []).map(grant => ({...grant,
       distance: Math.min(Math.max((Number(grant.distance) || 0) + speedBonus, 0), this.resourceCaps.movement ?? Infinity)}));
     this.speeds = movementSpeeds(this.resources.movement.max, grants);
+  }
+
+  /* -------------------------------------------- */
+
+  /** Ability scores after the creature's `AbilityScore` rules (a Belt of Giant Strength), from its own or its form's. */
+  #applyAbilityScores() {
+    const changes = this.parent?.getAbilityScoreChanges?.() ?? [];
+    for ( const [key, ability] of Object.entries(this.abilities ?? {}) ) {
+      const own = changes.filter(change => change.ability === key);
+      const start = ability.formed ?? ability.base ?? ability.value;
+      ability.value = own.length ? abilityScoreAfter(start, own) : start;
+    }
   }
 
   /* -------------------------------------------- */

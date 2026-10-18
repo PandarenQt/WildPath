@@ -75,6 +75,15 @@
         <label class="checkbox"><input type="checkbox" name="{{row.name}}.oncePerTurn" {{checked row.oncePerTurn}}>
           {{localize "WILDPATH.RULES.OncePerTurn"}}</label>
       {{/if}}
+      {{#if row.isAbilityScore}}
+        <select name="{{row.name}}.ability" aria-label="{{localize "WILDPATH.RULES.Ability"}}">
+          {{selectOptions ../ctx.abilities selected=row.ability localize=true}}</select>
+        <select name="{{row.name}}.scoreMode" aria-label="{{localize "WILDPATH.RULES.ScoreModeLabel"}}">
+          {{selectOptions ../ctx.scoreModes selected=row.scoreMode localize=true}}</select>
+        <input type="number" name="{{row.name}}.scoreValue" value="{{row.scoreValue}}" step="1" aria-label="{{localize "WILDPATH.RULES.Score"}}">
+        {{#if row.scoreAdds}}<label>{{localize "WILDPATH.RULES.ScoreMaximum"}}
+          <input type="number" name="{{row.name}}.scoreMaximum" value="{{row.scoreMaximum}}" step="1" placeholder="20"></label>{{/if}}
+      {{/if}}
       {{#if row.isAura}}
         <label>{{localize "WILDPATH.RULES.Radius"}}
           <input type="number" name="{{row.name}}.radius" value="{{row.radius}}" min="5" step="5"></label>

@@ -306,6 +306,59 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "effect-choice",
+          "type": "option",
+          "label": "Effect",
+          "required": true,
+          "options": [
+            {
+              "id": "effect-option-1",
+              "label": "Resurrection Sickness (Day 1)",
+              "value": "effect-option-1"
+            },
+            {
+              "id": "effect-option-2",
+              "label": "Resurrection Sickness (Day 2)",
+              "value": "effect-option-2"
+            },
+            {
+              "id": "effect-option-3",
+              "label": "Resurrection Sickness (Day 3)",
+              "value": "effect-option-3"
+            },
+            {
+              "id": "effect-option-4",
+              "label": "Resurrection Sickness (Day 4)",
+              "value": "effect-option-4"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "effect-1",
+                "effect-2",
+                "effect-3",
+                "effect-4"
+              ],
+              "keep": {
+                "effect-option-1": [
+                  "effect-1"
+                ],
+                "effect-option-2": [
+                  "effect-2"
+                ],
+                "effect-option-3": [
+                  "effect-3"
+                ],
+                "effect-option-4": [
+                  "effect-4"
+                ]
+              }
+            }
+          ]
         }
       ],
       "label": "Raise Dead"

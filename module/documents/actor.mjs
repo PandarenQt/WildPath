@@ -1,7 +1,7 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {
   damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, modifiersFromRuleElements,
-  resourceCapsFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements,
+  resourceCapsFromRuleElements, abilityScoreChangesFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements,
   conditionImmunitiesFromRuleElements, opportunityAttackAvoidanceFromRuleElements, extraAttacksFromRuleElements, normalizeRuleElementType,
   armorClassesFromRuleElements
 } from "../helpers/rule-elements.mjs";
@@ -245,6 +245,11 @@ export default class WildPathActor extends Actor {
   /** Ceilings on this creature's resource maxima (`ResourceCap`): `{action: 0, movement: 0, ...}`. */
   getResourceCaps() {
     return resourceCapsFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
+  }
+
+  /** The changes this creature's features, gear and effects make to its ability scores (`AbilityScore`). */
+  getAbilityScoreChanges() {
+    return abilityScoreChangesFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
   }
 
   /** The Speeds this creature's grants give (`GrantMovement`), as `{mode, distance}`. */

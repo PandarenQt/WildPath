@@ -221,6 +221,140 @@
               }
             ]
           },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Hit: STR Score -1",
+              "img": "icons/magic/unholy/hand-claw-fire-blue.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "hit-str-score-1-1",
+                  "type": "AbilityScore",
+                  "data": {
+                    "ability": "might",
+                    "mode": "add",
+                    "value": -1
+                  }
+                }
+              ]
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Hit: STR Score -2",
+              "img": "icons/magic/unholy/hand-claw-fire-blue.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "hit-str-score-2-1",
+                  "type": "AbilityScore",
+                  "data": {
+                    "ability": "might",
+                    "mode": "add",
+                    "value": -2
+                  }
+                }
+              ]
+            },
+            {
+              "id": "effect-3",
+              "type": "effect",
+              "name": "Hit: STR Score -3",
+              "img": "icons/magic/unholy/hand-claw-fire-blue.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "hit-str-score-3-1",
+                  "type": "AbilityScore",
+                  "data": {
+                    "ability": "might",
+                    "mode": "add",
+                    "value": -3
+                  }
+                }
+              ]
+            },
+            {
+              "id": "effect-4",
+              "type": "effect",
+              "name": "Hit: STR Score -4",
+              "img": "icons/magic/unholy/hand-claw-fire-blue.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "hit-str-score-4-1",
+                  "type": "AbilityScore",
+                  "data": {
+                    "ability": "might",
+                    "mode": "add",
+                    "value": -4
+                  }
+                }
+              ]
+            }
+          ],
+          "configuration": [
+            {
+              "id": "effect-choice",
+              "type": "option",
+              "label": "Effect",
+              "required": true,
+              "options": [
+                {
+                  "id": "effect-option-1",
+                  "label": "Hit: STR Score -1",
+                  "value": "effect-option-1"
+                },
+                {
+                  "id": "effect-option-2",
+                  "label": "Hit: STR Score -2",
+                  "value": "effect-option-2"
+                },
+                {
+                  "id": "effect-option-3",
+                  "label": "Hit: STR Score -3",
+                  "value": "effect-option-3"
+                },
+                {
+                  "id": "effect-option-4",
+                  "label": "Hit: STR Score -4",
+                  "value": "effect-option-4"
+                }
+              ],
+              "effects": [
+                {
+                  "type": "keepEffect",
+                  "effectIds": [
+                    "effect-1",
+                    "effect-2",
+                    "effect-3",
+                    "effect-4"
+                  ],
+                  "keep": {
+                    "effect-option-1": [
+                      "effect-1"
+                    ],
+                    "effect-option-2": [
+                      "effect-2"
+                    ],
+                    "effect-option-3": [
+                      "effect-3"
+                    ],
+                    "effect-option-4": [
+                      "effect-4"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Draining Swipe (STR Score -1d4)"
         },
         "ruleElements": []
@@ -237,17 +371,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Hit: STR Score -1\" change system.abilities.str.value (add) not converted",
-              "effect: \"Hit: STR Score -1\" (its own changes) not converted",
-              "effect: \"Hit: STR Score -2\" change system.abilities.str.value (add) not converted",
-              "effect: \"Hit: STR Score -2\" (its own changes) not converted",
-              "effect: \"Hit: STR Score -3\" change system.abilities.str.value (add) not converted",
-              "effect: \"Hit: STR Score -3\" (its own changes) not converted",
-              "effect: \"Hit: STR Score -4\" change system.abilities.str.value (add) not converted",
-              "effect: \"Hit: STR Score -4\" (its own changes) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -429,15 +553,6 @@
       },
       "conversion": {
         "notes": [
-          "Draining Swipe: not automated (utility): using it spends its cost; its description says the rest",
-          "Draining Swipe: effect: \"Hit: STR Score -1\" change system.abilities.str.value (add) not converted",
-          "Draining Swipe: effect: \"Hit: STR Score -1\" (its own changes) not converted",
-          "Draining Swipe: effect: \"Hit: STR Score -2\" change system.abilities.str.value (add) not converted",
-          "Draining Swipe: effect: \"Hit: STR Score -2\" (its own changes) not converted",
-          "Draining Swipe: effect: \"Hit: STR Score -3\" change system.abilities.str.value (add) not converted",
-          "Draining Swipe: effect: \"Hit: STR Score -3\" (its own changes) not converted",
-          "Draining Swipe: effect: \"Hit: STR Score -4\" change system.abilities.str.value (add) not converted",
-          "Draining Swipe: effect: \"Hit: STR Score -4\" (its own changes) not converted",
           "Shadow Stealth: not automated (utility): using it spends its cost; its description says the rest",
           "Shadow Stealth: effect: hiding is not a WildPath condition yet"
         ]

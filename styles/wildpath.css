@@ -458,6 +458,7 @@
 .wildpath-inspiration-reroll { margin-top: 0.25rem; width: 100%; }
 .wildpath.actor-sheet .ability > span:first-child { grid-column: 1 / -1; }
 .wildpath.actor-sheet .ability input[type="checkbox"] { width: auto; min-width: 0; }
+.wildpath.actor-sheet .ability .ability-effective { font-weight: 400; color: var(--wp-accent, inherit); }
 .wildpath.actor-sheet .ability .ability-rolls { display: inline-flex; align-items: center; gap: 0.125rem; overflow: visible; justify-self: end; }
 .wildpath.actor .icon-roll { flex: 0 0 auto; width: 1.5rem; height: 1.5rem; padding: 0; line-height: 1; }
 .wildpath.actor button.skill-name { all: unset; cursor: pointer; flex: 1; }

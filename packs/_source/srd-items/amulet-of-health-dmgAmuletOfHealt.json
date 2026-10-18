@@ -10,7 +10,18 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "upgraded-constitution-1",
+        "type": "AbilityScore",
+        "data": {
+          "ability": "fortitude",
+          "mode": "upgrade",
+          "value": 19
+        }
+      }
+    ],
     "attunement": "required",
     "armor": ""
   },
@@ -26,9 +37,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Upgraded Constitution\" change system.abilities.con.value (upgrade) not converted"
-        ]
+        "notes": []
       }
     }
   }

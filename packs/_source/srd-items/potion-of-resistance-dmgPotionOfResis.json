@@ -263,6 +263,115 @@
           }
         }
       ],
+      "configuration": [
+        {
+          "id": "effect-choice",
+          "type": "option",
+          "label": "Effect",
+          "required": true,
+          "options": [
+            {
+              "id": "effect-option-1",
+              "label": "Acid  Resistance",
+              "value": "effect-option-1"
+            },
+            {
+              "id": "effect-option-2",
+              "label": "Cold Resistance",
+              "value": "effect-option-2"
+            },
+            {
+              "id": "effect-option-3",
+              "label": "Fire Resistance",
+              "value": "effect-option-3"
+            },
+            {
+              "id": "effect-option-4",
+              "label": "Force Resistance",
+              "value": "effect-option-4"
+            },
+            {
+              "id": "effect-option-5",
+              "label": "Lightning Resistance",
+              "value": "effect-option-5"
+            },
+            {
+              "id": "effect-option-6",
+              "label": "Necrotic Resistance",
+              "value": "effect-option-6"
+            },
+            {
+              "id": "effect-option-7",
+              "label": "Poison Resistance",
+              "value": "effect-option-7"
+            },
+            {
+              "id": "effect-option-8",
+              "label": "Psychic Resistance",
+              "value": "effect-option-8"
+            },
+            {
+              "id": "effect-option-9",
+              "label": "Radiant Resistance",
+              "value": "effect-option-9"
+            },
+            {
+              "id": "effect-option-10",
+              "label": "Thunder Resistance",
+              "value": "effect-option-10"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "effect-1",
+                "effect-2",
+                "effect-3",
+                "effect-4",
+                "effect-5",
+                "effect-6",
+                "effect-7",
+                "effect-8",
+                "effect-9",
+                "effect-10"
+              ],
+              "keep": {
+                "effect-option-1": [
+                  "effect-1"
+                ],
+                "effect-option-2": [
+                  "effect-2"
+                ],
+                "effect-option-3": [
+                  "effect-3"
+                ],
+                "effect-option-4": [
+                  "effect-4"
+                ],
+                "effect-option-5": [
+                  "effect-5"
+                ],
+                "effect-option-6": [
+                  "effect-6"
+                ],
+                "effect-option-7": [
+                  "effect-7"
+                ],
+                "effect-option-8": [
+                  "effect-8"
+                ],
+                "effect-option-9": [
+                  "effect-9"
+                ],
+                "effect-option-10": [
+                  "effect-10"
+                ]
+              }
+            }
+          ]
+        }
+      ],
       "label": "Potion of Resistance"
     },
     "ruleElements": [

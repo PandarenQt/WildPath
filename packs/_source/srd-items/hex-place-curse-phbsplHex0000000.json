@@ -407,34 +407,34 @@
           "required": true,
           "options": [
             {
-              "id": "effect-1",
+              "id": "effect-option-1",
               "label": "Hexed Strength",
-              "value": "effect-1"
+              "value": "effect-option-1"
             },
             {
-              "id": "effect-2",
+              "id": "effect-option-2",
               "label": "Hexed Dexterity",
-              "value": "effect-2"
+              "value": "effect-option-2"
             },
             {
-              "id": "effect-3",
+              "id": "effect-option-3",
               "label": "Hexed Constitution",
-              "value": "effect-3"
+              "value": "effect-option-3"
             },
             {
-              "id": "effect-4",
+              "id": "effect-option-4",
               "label": "Hexed Intelligence",
-              "value": "effect-4"
+              "value": "effect-option-4"
             },
             {
-              "id": "effect-5",
+              "id": "effect-option-5",
               "label": "Hexed Wisdom",
-              "value": "effect-5"
+              "value": "effect-option-5"
             },
             {
-              "id": "effect-6",
+              "id": "effect-option-6",
               "label": "Hexed Charisma",
-              "value": "effect-6"
+              "value": "effect-option-6"
             }
           ],
           "effects": [
@@ -447,7 +447,27 @@
                 "effect-4",
                 "effect-5",
                 "effect-6"
-              ]
+              ],
+              "keep": {
+                "effect-option-1": [
+                  "effect-1"
+                ],
+                "effect-option-2": [
+                  "effect-2"
+                ],
+                "effect-option-3": [
+                  "effect-3"
+                ],
+                "effect-option-4": [
+                  "effect-4"
+                ],
+                "effect-option-5": [
+                  "effect-5"
+                ],
+                "effect-option-6": [
+                  "effect-6"
+                ]
+              }
             }
           ]
         }

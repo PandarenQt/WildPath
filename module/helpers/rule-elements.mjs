@@ -17,6 +17,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   GRANT_MOVEMENT: "GrantMovement",
   ROLL_MODE: "RollMode",
   RESOURCE_CAP: "ResourceCap",
+  ABILITY_SCORE: "AbilityScore",
   ROLL_OUTCOME: "RollOutcome",
   EXTRA_DAMAGE: "ExtraDamage",
   AURA: "Aura",
@@ -63,6 +64,7 @@ const TYPE_ALIASES = Object.freeze({
   movement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   rollmode: RULE_ELEMENT_TYPES.ROLL_MODE,
   resourcecap: RULE_ELEMENT_TYPES.RESOURCE_CAP,
+  abilityscore: RULE_ELEMENT_TYPES.ABILITY_SCORE,
   rolloutcome: RULE_ELEMENT_TYPES.ROLL_OUTCOME,
   extradamage: RULE_ELEMENT_TYPES.EXTRA_DAMAGE,
   aura: RULE_ELEMENT_TYPES.AURA,
@@ -104,6 +106,7 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.MODIFIER, modifierRuleElement],
     [RULE_ELEMENT_TYPES.ROLL_MODE, rollModeRuleElement],
     [RULE_ELEMENT_TYPES.RESOURCE_CAP, resourceCapRuleElement],
+    [RULE_ELEMENT_TYPES.ABILITY_SCORE, abilityScoreRuleElement],
     [RULE_ELEMENT_TYPES.ROLL_OUTCOME, rollOutcomeRuleElement],
     [RULE_ELEMENT_TYPES.EXTRA_DAMAGE, extraDamageRuleElement],
     [RULE_ELEMENT_TYPES.AURA, auraRuleElement],
@@ -411,6 +414,34 @@ export function resourceCapsFromRuleElements(owners=[], context={}) {
   return caps;
 }
 
+/** The changes a creature's owners make to its ability scores (`AbilityScore`): `{ability, mode, value, maximum}`. */
+export function abilityScoreChangesFromRuleElements(owners=[], context={}) {
+  return owners.flatMap(({ruleElements=[], source=null}) =>
+    collectRuleElementContributions({ruleElements, context, source}).contributions.abilityScores);
+}
+
+export const ABILITY_SCORE_MODES = Object.freeze(["add", "upgrade", "downgrade", "override"]);
+
+/**
+ * An ability score after its changes, in this order:
+ * - `add` raises it, to at most `maximum` (20 unless the rule says: an Ioun Stone's +2, a Manual's +2 to 22);
+ *   a score already above that maximum stays. A negative add lowers it (a Shadow's Strength drain);
+ * - `upgrade` sets it to at least the value (a Belt of Giant Strength's 21);
+ * - `downgrade` to at most the value;
+ * - `override` sets it outright.
+ */
+export function abilityScoreAfter(base, changes=[]) {
+  let score = Number(base) || 0;
+  const of = mode => changes.filter(change => change.mode === mode);
+  for ( const change of of("add") ) {
+    score = change.value < 0 ? score + change.value : Math.max(score, Math.min(score + change.value, change.maximum ?? 20));
+  }
+  for ( const change of of("upgrade") ) score = Math.max(score, change.value);
+  for ( const change of of("downgrade") ) score = Math.min(score, change.value);
+  for ( const change of of("override") ) score = change.value;
+  return Math.max(score, 0);
+}
+
 /** The Speeds a creature's grants give (`GrantMovement`): `{mode, distance}`, one per grant. */
 export function grantedMovementFromRuleElements(owners=[], context={}) {
   return owners.flatMap(({ruleElements=[], source=null}) =>
@@ -681,6 +712,28 @@ function resourceCapRuleElement(ruleElement, context) {
 }
 
 /**
+ * A change to one ability score while it applies (a Belt of Giant Strength, an Ioun Stone, Feeblemind):
+ * `{ability, mode: "add" | "upgrade" | "downgrade" | "override", value, maximum?}` (abilityScoreAfter).
+ */
+function abilityScoreRuleElement(ruleElement, context) {
+  const data = ruleElement.data;
+  const ability = String(data.ability ?? "").trim();
+  if ( !ability ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "AbilityScore RuleElement requires an ability.");
+  const mode = String(data.mode ?? "add");
+  if ( !ABILITY_SCORE_MODES.includes(mode) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, `AbilityScore mode must be one of ${ABILITY_SCORE_MODES.join(", ")}.`);
+  }
+  const value = evaluateNumeric(data.value ?? 0, context);
+  if ( !value.ok ) return value;
+  const maximum = data.maximum == null ? null : evaluateNumeric(data.maximum, context);
+  if ( maximum && !maximum.ok ) return maximum;
+  return success({
+    abilityScores: [{id: data.id ?? ruleElement.id, ability, mode, value: value.value, maximum: maximum?.value ?? null,
+      source: ruleElementSource(ruleElement), metadata: contributionMetadata(ruleElement, data.metadata)}]
+  });
+}
+
+/**
  * A forced roll outcome: `automatic-failure` on the creature's saves in its domains (`save.might`),
  * `critical-on-hit` on attacks against it (`attacked`), or `evasion` on its saves (damage a success halves: none on a
  * success, half on a failure), each gated by the RuleElement's predicate.
@@ -781,6 +834,7 @@ function emptyContributions() {
     movement: [],
     rollModes: [],
     resourceCaps: [],
+    abilityScores: [],
     rollOutcomes: [],
     extraDamage: [],
     auras: [],
@@ -805,6 +859,7 @@ function mergeContributions(target, source={}) {
   target.movement.push(...(source.movement ?? source.movements ?? []));
   target.rollModes.push(...(source.rollModes ?? []));
   target.resourceCaps.push(...(source.resourceCaps ?? []));
+  target.abilityScores.push(...(source.abilityScores ?? []));
   target.rollOutcomes.push(...(source.rollOutcomes ?? []));
   target.extraDamage.push(...(source.extraDamage ?? []));
   target.auras.push(...(source.auras ?? []));

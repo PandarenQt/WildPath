@@ -10,7 +10,19 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "enhanced-intellect-intelligence-bonus-1",
+        "type": "AbilityScore",
+        "data": {
+          "ability": "intellect",
+          "mode": "add",
+          "value": 2,
+          "maximum": 20
+        }
+      }
+    ],
     "attunement": "required",
     "armor": ""
   },
@@ -26,10 +38,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Enhanced Intellect: Intelligence Bonus\" change system.abilities.int.value (add) not converted",
-          "effect: \"Enhanced Intellect: Intelligence Bonus\" change system.abilities.int.value (downgrade) not converted"
-        ]
+        "notes": []
       }
     }
   }

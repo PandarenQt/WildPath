@@ -317,6 +317,95 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "effect-choice",
+          "type": "option",
+          "label": "Effect",
+          "required": true,
+          "options": [
+            {
+              "id": "effect-option-1",
+              "label": "Level 2: +5 Max HP",
+              "value": "effect-option-1"
+            },
+            {
+              "id": "effect-option-2",
+              "label": "Level 3: +10 Max HP",
+              "value": "effect-option-2"
+            },
+            {
+              "id": "effect-option-3",
+              "label": "Level 4: +15 Max HP",
+              "value": "effect-option-3"
+            },
+            {
+              "id": "effect-option-4",
+              "label": "Level 5: +20 Max HP",
+              "value": "effect-option-4"
+            },
+            {
+              "id": "effect-option-5",
+              "label": "Level 6: +25 Max HP",
+              "value": "effect-option-5"
+            },
+            {
+              "id": "effect-option-6",
+              "label": "Level 7: +30 Max HP",
+              "value": "effect-option-6"
+            },
+            {
+              "id": "effect-option-7",
+              "label": "Level 8: +35 Max HP",
+              "value": "effect-option-7"
+            },
+            {
+              "id": "effect-option-8",
+              "label": "Level 9: +40 Max HP",
+              "value": "effect-option-8"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "effect-1",
+                "effect-2",
+                "effect-3",
+                "effect-4",
+                "effect-5",
+                "effect-6",
+                "effect-7",
+                "effect-8"
+              ],
+              "keep": {
+                "effect-option-1": [
+                  "effect-1"
+                ],
+                "effect-option-2": [
+                  "effect-2"
+                ],
+                "effect-option-3": [
+                  "effect-3"
+                ],
+                "effect-option-4": [
+                  "effect-4"
+                ],
+                "effect-option-5": [
+                  "effect-5"
+                ],
+                "effect-option-6": [
+                  "effect-6"
+                ],
+                "effect-option-7": [
+                  "effect-7"
+                ],
+                "effect-option-8": [
+                  "effect-8"
+                ]
+              }
+            }
+          ]
         }
       ],
       "label": "Aid"
