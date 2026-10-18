@@ -654,7 +654,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const inspirationByTarget = {};
   // Player characters who may pay for a monster's reroll (Heroic Inspiration), found once when first asked.
   let inspirationPayers = null;
-  const payers = () => (inspirationPayers ??= monsterRerollPayers(game));
+  const payers = () => (inspirationPayers ??= monsterRerollPayers(game, sourceToken?.parent ?? null));
   const ambiguousKeys = new Set();
   // The authority, not the client's selection, decides who a "self" or "no target" Action targets.
   const targetingType = definition?.targeting?.type;
@@ -760,7 +760,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   if ( controller.actor ) targetActors[controller.actor.uuid] = controller.actor;
   const ownInspiration = (definition?.attack || definition?.check)
     ? inspirationOffer(actor, actorSystem, game, {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, payers}) : null;
-  // A character paying for a monster's reroll is committed on like a target; its uuid is its key.
+  // A character paying for a reroll is committed on like a target, its uuid its key: the acting creature for its own
+  // roll, or a player character for a monster's.
+  if ( ownInspiration?.own ) targetActors[actor.uuid] ??= actor;
   for ( const payer of inspirationPayers ?? [] ) targetActors[payer.uuid] ??= payer;
   // Reactors on the Scene (Trigger RuleElements on Action events) and the acting creature they may answer.
   const scene = sourceToken?.parent ?? null;
@@ -980,14 +982,17 @@ export function inspirationOffer(roller, rollerSystem, game, {chooser, payers=()
     options} : null;
 }
 
-/** The player characters who may pay for a monster's reroll; none while the GM has turned monster rerolls off. */
-function monsterRerollPayers(game) {
+/**
+ * The player characters who may pay for a monster's reroll: those with a Token on the roll's Scene (the table's), each
+ * once. None while the GM has turned monster rerolls off.
+ */
+export function monsterRerollPayers(game, scene) {
   let allowed = true;
   try { allowed = game?.settings?.get?.("wildpath", "inspirationMonsterRerolls") !== false; }
   catch { allowed = true; } // unregistered (a test game)
-  if ( !allowed ) return [];
-  const actors = typeof game?.actors?.values === "function" ? [...game.actors.values()] : [];
-  return actors.filter(actor => (actor.type === "character") && actor.hasPlayerOwner);
+  if ( !allowed || !scene?.tokens ) return [];
+  const tokens = typeof scene.tokens.values === "function" ? [...scene.tokens.values()] : [...scene.tokens];
+  return [...new Set(tokens.map(token => token.actor).filter(actor => (actor?.type === "character") && actor.hasPlayerOwner))];
 }
 
 /**

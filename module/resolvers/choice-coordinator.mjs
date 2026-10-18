@@ -517,7 +517,9 @@ function evaluateLocalAuthority(request, context) {
   };
   if ( kind === "automatic" || kind === "local" ) return {ok: true, kind, reason: null};
   if ( kind === "gm" ) {
-    const isGM = context.isGM === true || context.currentUser?.isGM === true;
+    // The coordinator passes the current user's id and the user directory (each with `isGM`).
+    const directoryUser = Array.isArray(context.users) ? context.users.find(user => user?.id === context.currentUserId) : null;
+    const isGM = context.isGM === true || context.currentUser?.isGM === true || directoryUser?.isGM === true;
     return isGM
       ? {ok: true, kind, reason: null}
       : {ok: false, kind, reason: "Prompt requires GM authority."};

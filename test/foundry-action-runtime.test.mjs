@@ -411,7 +411,9 @@ async function plannedWithConditions(definition, {attacker=[], target=[], offset
   // The attacker's allies (its disposition), each at an offset and under its own conditions.
   const allyTokens = allies.map(({offset: at, conditions=[]}, index) => fakeTokenDocument({id: `ally-${index}`, scene, offset: at,
     actor: Object.assign(fakeActor(`roll-ally-${index}`, {system: actorSystem()}), {statuses: new Set(conditions)})}));
-  scene.tokens = [sourceToken, targetToken, ...allyTokens];
+  // Others at the table: each has a Token on the Scene, out of the way.
+  const extraTokens = extraActors.map((actor, index) => fakeTokenDocument({id: `extra-${index}`, actor, scene, offset: {i: 6 + index, j: 6}}));
+  scene.tokens = [sourceToken, targetToken, ...allyTokens, ...extraTokens];
   const action = actionItem(definition, sourceActor);
   const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game: fakeGame({actors: [sourceActor, targetActor,
     ...extraActors], scenes: [scene]}), intent: {actorRef: sourceActor.uuid, actionRef: action.uuid,

@@ -101,7 +101,8 @@ Each is small, and each changes every turn at the table.
    - A condition's icon shows its rules and the rounds left.
    - A roll on a card opens its breakdown in place: the Rules Inspector's detail.
 7. **Common actions for every creature**, with no authoring:
-   - the 2024 actions: Dash, Disengage, Dodge, Help, Hide, Influence, Search, Study and Utilize;
+   - the 2024 actions: Dash, Disengage, Dodge, Help, Hide, Influence, Search, Study and Utilize (Search, Study and
+     Influence done 2026-10-18; Utilize and Jump wait);
    - Grapple and Shove, as Unarmed Strike options;
    - Jump.
 8. **A tidier bar**, grouped as BG3 does: common actions, class and feature actions, spells by level, and items.

@@ -289,6 +289,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
     effects on the creature, at most once per turn.
   - Spirit Guardians ("you can designate creatures to be unaffected") spares its caster's side.
   - shortcut: a trigger deals the base level's damage.
+  - Live (2026-10-18): QA Caster's Moonbeam at 3rd level hit the Bandit Captain for 10 and left a lasting Moonbeam
+    for 10 rounds, with the caster concentrating. At the end of the Captain's turn it saved again and took 8 (2d10).
   - Something with no duration of its own (a flask of Oil) is not a lasting area.
 - **Effects by hand (2026-10-18).** Three spell effects dnd5e leaves empty get their 2024 rules from a small table
   (`EFFECTS_BY_HAND`):

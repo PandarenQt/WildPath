@@ -140,7 +140,7 @@ export function registerRepresentativeActionTests(quench) {
         assert.equal(damage.dice?.reduce((count, die) => count + (die.results?.length ?? die.number ?? 1),0),3,
           "a second-level slot adds one die to 2d6");
         assert.equal(target.system.resources.health.value,30 - damage.total);
-        const pools = Object.fromEntries(source.system.pools.map(pool => [pool.id,pool.value]));
+        const pools = Object.fromEntries(source.system.pools.filter(pool => pool.id.startsWith("spell-slot")).map(pool => [pool.id,pool.value]));
         assert.deepEqual(pools,{"spell-slot.1":1,"spell-slot.2":0});
       });
     });

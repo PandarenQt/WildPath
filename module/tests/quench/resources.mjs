@@ -81,7 +81,8 @@ export function registerResourceTests(quench) {
       });
 
       it("persists a custom pool spend at a nonzero array index without changing its neighbor", async function () {
-        const actor = await fixtures.createActor({name:"custom pools",system:{pools:[
+        // A creature with no Heroic Inspiration pool (characters keep one), so only these two pools exist.
+        const actor = await fixtures.createActor({name:"custom pools",type:"npc",system:{pools:[
           {id:"quench-reserve",label:"QA reserve",base:2,value:2,recovery:"none"},
           {id:"quench-focus",label:"QA focus",base:6,bonus:1,value:6,recovery:"shortRest"}
         ]}});

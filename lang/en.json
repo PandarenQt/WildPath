@@ -209,7 +209,11 @@
       "Shove": "Shove: Prone",
       "Push": "Shove: Push",
       "UnarmedStrike": "Unarmed Strike",
-      "OpportunityAttack": "Opportunity Attack"
+      "OpportunityAttack": "Opportunity Attack",
+      "Search": "Search",
+      "Study": "Study",
+      "Influence": "Influence",
+      "ChooseSkill": "{name}: which skill?"
     },
     "SUNLIGHT": {
       "Label": "Sunlight",

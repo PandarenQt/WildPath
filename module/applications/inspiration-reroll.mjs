@@ -8,14 +8,19 @@ import { WILDPATH } from "../config.mjs";
 const globals = () => globalThis;
 const INSPIRATION = WILDPATH.HEROIC_INSPIRATION;
 const points = (actor) => actor.system.pools?.find(pool => pool.id === INSPIRATION.pool)?.value ?? 0;
-/** Who may pay for this roll's reroll here: the character itself (its owner), or, for a monster, the GM's pick. */
+/**
+ * Who may pay for this roll's reroll here: the character itself (its owner), or, for a monster, the GM's pick of the
+ * player characters on the viewed Scene (the table's).
+ */
 function payersFor(actor) {
-    const { game } = globals();
+    const { game, canvas } = globals();
     if (actor.hasPlayerOwner)
         return (actor.isOwner && (points(actor) > 0)) ? [actor] : [];
     if (!game.user?.isGM || (game.settings?.get("wildpath", "inspirationMonsterRerolls") === false))
         return [];
-    return [...(game.actors?.values() ?? [])].filter(entry => (entry.type === "character") && entry.hasPlayerOwner && (points(entry) > 0));
+    const actors = [...(canvas?.scene?.tokens ?? [])].map(token => token.actor);
+    return [...new Set(actors.filter((entry) => !!entry && (entry.type === "character") && !!entry.hasPlayerOwner
+            && (points(entry) > 0)))];
 }
 /** The GM picks whose point pays for a monster's reroll; null when the dialog is closed. */
 async function choosePayer(payers) {
