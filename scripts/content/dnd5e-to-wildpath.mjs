@@ -286,7 +286,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A passive or triggered ability is not something a creature uses on its turn; its feature carries its text.
     const activation = pick(activity, system, "activation").type ?? "";
     if ( ["", "none", "special"].includes(activation) ) {
-      if ( !trait ) allNotes.push(`"${label}" is passive or triggered: not automated`);
+      // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.
+      const marked = (activity.type === "damage") && Object.values(EFFECTS_BY_HAND).some(hand => hand.bonusDamage === label);
+      if ( !trait && !marked ) allNotes.push(`"${label}" is passive or triggered: not automated`);
       continue;
     }
     // Monster spellcasting (G4): a cast activity is its spell, at the activity's cost and uses rather than a slot.
@@ -760,6 +762,11 @@ const SNEAK_ATTACK = Object.freeze({all: [
  * Spell effects dnd5e leaves without changes, given their 2024 rules by hand (by the spell's identifier). Only those
  * the engine expresses exactly; the rest stay the GM's.
  */
+/** A mark's extra damage: 1d6 on each attack its own caster hits it with (`attack.fromAttacker`: marks it bears from them). */
+const markDamage = (slug, damageType) => ({schemaVersion: 1, id: `${slug}-damage`, type: "ExtraDamage",
+  data: {domains: ["attacked"], expression: {type: "dice", number: 1, faces: 6}, damageType},
+  predicate: {equals: {path: `attack.fromAttacker.${slug}`, value: true}}});
+
 const EFFECTS_BY_HAND = Object.freeze({
   // "Any attack roll against an affected creature or object has Advantage if the attacker can see it."
   "faerie-fire": {ruleElements: [{schemaVersion: 1, id: "faerie-fire", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}}]},
@@ -768,7 +775,12 @@ const EFFECTS_BY_HAND = Object.freeze({
   // "It has Disadvantage on the next attack roll it makes before the end of its next turn."
   // shortcut: it lasts until the end of the caster's next turn, not the target's; its next attack ends it either way.
   "vicious-mockery": {endsWhen: "attacks", duration: {value: 1, units: "rounds", expiry: "turnEnd"},
-    ruleElements: [{schemaVersion: 1, id: "vicious-mockery", type: "RollMode", data: {domains: ["attack"], mode: "disadvantage"}}]}
+    ruleElements: [{schemaVersion: 1, id: "vicious-mockery", type: "RollMode", data: {domains: ["attack"], mode: "disadvantage"}}]},
+  // "You deal an extra 1d6 Force damage to the target whenever you hit it with an attack roll." The mark is its own
+  // effect (slug), so only its caster's attacks see it.
+  "hunters-mark": {slug: "hunters-mark", bonusDamage: "Bonus Mark Damage", ruleElements: [markDamage("hunters-mark", "force")]},
+  // Hex: the same, Necrotic, and Disadvantage on checks of one ability the caster chooses (its six effects, one kept).
+  "hex": {slug: "hex", bonusDamage: "Bonus Hex Damage", extraRules: [markDamage("hex", "necrotic")], chooseOne: "Ability"}
 });
 
 /** A dnd5e document's identifier, else its name as a slug. */
@@ -882,7 +894,9 @@ function summonBonus(formula) {
 /** The Action of something used but not automated: its cost, its uses and, for a spell, its slot. */
 function manualDefinition({document, activity, system, spell, level, notes, pool}) {
   const definition = baseDefinition({document, activity, system, spell, notes, pool});
-  if ( spell && level && SLOT_MODES.has(system.preparation?.mode ?? "prepared") ) definition.configuration = slotConfiguration(level, []);
+  if ( spell && level && SLOT_MODES.has(system.preparation?.mode ?? "prepared") && (activity.consumption?.spellSlot !== false) ) {
+    definition.configuration = slotConfiguration(level, []);
+  }
   return definition;
 }
 
@@ -1071,23 +1085,28 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // A spell given its rules by hand whose activity names no effect (Blur's) uses the spell's own effect.
   const references = activity.effects?.length ? activity.effects : (EFFECTS_BY_HAND[identifierOf(document)]
     ? (document.effects ?? []).filter(effect => !effect.transfer).map(effect => ({_id: effect._id})) : []);
+  const byHand = EFFECTS_BY_HAND[identifierOf(document)] ?? null;
   for ( const reference of references ) {
     const effect = (document.effects ?? []).find(entry => entry._id === reference._id);
     const statuses = effect?.statuses ?? [];
     const known = statuses.filter(status => CONDITION_MAP[status]);
     const onFailure = definition.save && (reference.onSave === false) ? {saveOutcomePolicy: "failure"} : {};
-    for ( const status of statuses.filter(status => !CONDITION_MAP[status]) ) notes.push(`effect: ${status} is not a WildPath condition yet`);
+    // A mark given by hand (its slug) is its own status ("marked", "cursed").
+    if ( !byHand?.slug ) for ( const status of statuses.filter(status => !CONDITION_MAP[status]) ) {
+      notes.push(`effect: ${status} is not a WildPath condition yet`);
+    }
     for ( const status of known ) {
       effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId: CONDITION_MAP[status], ...onFailure,
         ...(concentration ? {concentration: true} : {})});
     }
     // Its own changes (Bless, Shield of Faith, Haste) become a custom effect with the rules they map to; an effect dnd5e
     // leaves empty (Faerie Fire's) takes its rules from the 2024 text, by hand.
-    const hand = effect && !(effect.system?.changes ?? effect.changes ?? []).length ? EFFECTS_BY_HAND[identifierOf(document)] : null;
-    const rules = hand?.ruleElements ?? (effect ? effectRules(effect, notes) : []);
+    const hand = effect && !(effect.system?.changes ?? effect.changes ?? []).length ? byHand : null;
+    const rules = [...(hand?.ruleElements ?? (effect ? effectRules(effect, notes) : [])), ...(byHand?.extraRules ?? [])];
     if ( rules.length ) {
       const duration = hand?.duration ?? effectDuration(effect.duration);
-      effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(effect.img ? {img: effect.img} : {}),
+      effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(byHand?.slug ? {slug: byHand.slug} : {}),
+        ...(effect.img ? {img: effect.img} : {}),
         ruleElements: rules, ...(duration ? {duration} : {}), ...(hand?.endsWhen ? {endsWhen: hand.endsWhen} : {}), ...onFailure,
         ...(concentration ? {concentration: true} : {})});
     } else if ( effect && !statuses.length ) notes.push(`effect: "${effect.name}" (its own changes) not converted`);
@@ -1098,8 +1117,16 @@ function convertActivity({document, activity, system, spell, level, scales, note
   if ( effects.length ) definition.effects = effects;
 
   // A spell of level 1 or higher spends a slot of its level or higher; damage dice that scale grow per level above.
-  if ( spell && level && SLOT_MODES.has(system.preparation?.mode ?? "prepared") ) {
+  // A follow-up activity that spends none (Hunter's Mark's Move Mark, Flame Blade's attack) has no slot choice.
+  // shortcut: such a follow-up rolls its base level's dice; upgrade when a follow-up can read its cast's level.
+  if ( spell && level && SLOT_MODES.has(system.preparation?.mode ?? "prepared") && (activity.consumption?.spellSlot !== false) ) {
     definition.configuration = slotConfiguration(level, damage, {healing, perLevel});
+  }
+  // Effects of which the caster applies one (Hex's ability): a choice keeping the one chosen.
+  if ( byHand?.chooseOne && (effects.length > 1) ) {
+    definition.configuration = [...(definition.configuration ?? []), {id: "effect-choice", type: "option", label: byHand.chooseOne,
+      required: true, options: effects.map(entry => ({id: entry.id, label: entry.name, value: entry.id})),
+      effects: [{type: "keepEffect", effectIds: effects.map(entry => entry.id)}]}];
   }
   if ( concentration && !effects.length ) notes.push("concentration: nothing it sustains was converted");
   if ( damage.length || healing.length || effects.length || definition.check ) return definition;

@@ -303,6 +303,18 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - Blur: attacks against you have Disadvantage;
   - Vicious Mockery: Disadvantage on its next attack roll.
   The rest need rules the engine lacks: healing blocked, ongoing damage, no spellcasting.
+- **Marks (2026-10-19).** Hunter's Mark (and the Ranger's Favored Enemy casting it) and Hex mark their target with
+  an effect of their own slug, whose `ExtraDamage` adds 1d6 (Force, Necrotic) to its caster's attack hits
+  (rule-elements.md, "On its target: a mark").
+  - Their "Bonus Mark/Hex Damage" activities are that rule, not Actions.
+  - Hex asks which ability: its six "Hexed" effects become an "Ability" choice that keeps the chosen one
+    (a `keepEffect` configuration effect).
+  - Live: Player1's QA Caster chose "Hexed Dexterity", and QA Saver got only that effect.
+- **A follow-up spends no slot (2026-10-19).** An activity dnd5e marks as spending no spell slot
+  (`consumption.spellSlot: false`) has no slot choice. Before, 26 SRD follow-ups spent a slot each time:
+  - Hunter's Mark's Move Mark and Hex's Curse New Creature;
+  - Flame Blade's attack, Heat Metal's reheat, Dragon's Breath's exhale, Sunbeam's new beam, and more.
+  - shortcut: such a follow-up rolls its base level's dice.
 - **Weapon kind (G8).** A weapon's attack carries `attack.weapon`: its base weapon (`longsword`, `light-crossbow`),
   `simple` or `martial`, and its 2024 mastery (`sap`), which weapon training and Weapon Mastery read. 93 SRD weapon
   Actions have one.

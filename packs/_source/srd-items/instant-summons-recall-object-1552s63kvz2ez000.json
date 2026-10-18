@@ -21,49 +21,6 @@
           }
         ]
       },
-      "configuration": [
-        {
-          "id": "spell-slot",
-          "type": "resource",
-          "label": "Spell slot",
-          "required": true,
-          "cost": {
-            "anyOf": [
-              [
-                {
-                  "capability": "spell-slot.6",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "spell-slot.7",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "spell-slot.8",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "spell-slot.9",
-                  "amount": 1
-                }
-              ]
-            ]
-          },
-          "levelByResourceId": {
-            "spell-slot.6": 6,
-            "spell-slot.7": 7,
-            "spell-slot.8": 8,
-            "spell-slot.9": 9
-          },
-          "effects": []
-        }
-      ],
       "label": "Instant Summons (Recall Object)"
     },
     "ruleElements": [

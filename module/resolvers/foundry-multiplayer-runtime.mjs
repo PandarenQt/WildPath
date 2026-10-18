@@ -755,9 +755,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const attackOutcomes = definition?.attack ? foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) : null;
   const attackBonuses = definition?.attack ? foundryAttackBonuses({targets, targetEntries, game, sourceToken}) : null;
   // Extra damage that depends on this attack (Sneak Attack: Advantage, or an ally beside the target) sees it.
+  // shortcut: a target's own extra damage (Hunter's Mark) counts for an attack on one target; per-target extra
+  // damage for a multi-target attack waits for per-target damage components.
   const statistics = definition?.attack ? actionCombatStatistics(actor, definition, {item: action,
     turn: game.combat?.started ? turnKey(game.combat) : null, context: {attack: {...attackContext(definition.attack.type ?? null, spatial,
-      targetEntries[0], game, sourceToken, actor).attack, rollMode: attackRollMode}}}) : combatStatistics;
+      targetEntries[0], game, sourceToken, actor).attack, rollMode: attackRollMode}},
+    target: targetEntries.length === 1 ? targetEntries[0].actor : null}) : combatStatistics;
   const concentration = foundryConcentrationContext({targetEntries, game, scene: sourceToken?.parent ?? null});
   // Holders of effects a broken concentration ends are committed on too; a key another Actor already owns is
   // ambiguous (copies of one base Actor) and is dropped, so lookups fall through to the holder's uuid.

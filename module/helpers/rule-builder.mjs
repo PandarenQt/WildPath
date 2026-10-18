@@ -24,8 +24,9 @@ export function ruleDomains(kind, abilities = []) {
         "check", ...abilities.map(ability => `check.${ability}`), ...skills.map(skill => `check.${skill}`), "initiative"];
     if (kind === "rollMode")
         return [...d20, "attacked"];
+    // `attacked`: on attacks against its bearer (a mark's extra damage).
     if (kind === "extraDamage")
-        return [...DAMAGE_DOMAINS];
+        return [...DAMAGE_DOMAINS, "attacked"];
     return [...d20, "defense.ac", "resources.health.max", "resources.movement.max", ...DAMAGE_DOMAINS];
 }
 /** Conditions a row's "while" offers besides a condition on its creature, by key ("@magical": against magic). */

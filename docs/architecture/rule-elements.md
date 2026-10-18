@@ -490,6 +490,21 @@ disadvantage".
 - `actor.getExtraDamage(domains, {item, tags})` collects these rules, including the acting Action's own.
   `actionCombatStatistics` adds them for the runtime and for reaction Actions.
 
+**On its target: a mark (2026-10-19).** A rule in the `attacked` domain adds damage to attacks against its bearer.
+- An attack on one target collects the target's own `attacked` and `attacked.<type>` extra damage
+  (`actionCombatStatistics` with `target`), as reactions' attacks do.
+- Its predicates see `attack.fromAttacker`: the statuses of the effects the target bears from this attacker. So
+  Hunter's Mark is an effect with slug `hunters-mark` whose rule is
+  `{domains: ["attacked"], expression: 1d6, damageType: "force"}` with predicate
+  `{equals: {path: "attack.fromAttacker.hunters-mark", value: true}}`. Only its own caster's attacks see it.
+- A save or a damage-only Action does not count: it is attack rolls only.
+- shortcut: an attack on several targets counts no target's mark; upgrade with per-target damage components.
+
+Live (two browsers, 14.369, 2026-10-19):
+- Player1's QA Caster cast the SRD Hunter's Mark on the Bandit Captain.
+- Their Dagger then hit for 2 (1d4) plus 4 (1d6 Force).
+- QA Fighter's Longsword hit the same Captain for 7 (1d8 + 3), with no extra.
+
 Live (two browsers, 14.369): Player1's rogue's dagger with a once-per-turn "+1d6 fire" feature rolled "1d4" and
 "1d6" on its first hit, only "1d4" on its second hit that turn, and "2d4" and "2d6" on a critical in its next
 turn.

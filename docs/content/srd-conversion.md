@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 693 automated, 426 manual, 245 features. Creatures: 375.
+Items: 696 automated, 423 manual, 245 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -564,7 +564,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Fast Hands | classes24 | Fast Hands (Sleight of Hand) (manual), Fast Hands (Thieves' Tools) (manual), Fast Hands (Use an Object) (manual) | not automated (check): using it spends its cost; its description says the rest; check: slt DC (?) not converted; check: dex DC (?) not converted; not automated (utility): using it spends its cost; its description says the rest |
 | Fast Movement | classes24 | Fast Movement (feature) | — |
 | Fates | equipment24 | Fates (gear) | "Card Effect" is passive or triggered: not automated |
-| Favored Enemy | classes24 | Favored Enemy: Hunter's Mark (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: marked is not a WildPath condition yet; concentration: nothing it sustains was converted; "Bonus Mark Damage" is passive or triggered: not automated |
+| Favored Enemy | classes24 | Favored Enemy: Hunter's Mark (automated) | — |
 | Fear | spells24 | Fear (automated) | — |
 | Feather Fall | spells24 | Feather Fall (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Feather Token | equipment24 | Feather Token (gear) | — |
@@ -776,7 +776,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Heroes' Feast | spells24 | Heroes' Feast (Conjure Feast) (manual), Heroes' Feast (Consume Feast) (automated) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost; consumption: itemUses -12 not converted; activation: 1 hour is not an action-economy cost |
 | Heroic Warrior | classes24 | Heroic Warrior (feature) | — |
 | Heroism | spells24 | Heroism (automated) | healing: temporary Hit Points not converted |
-| Hex | spells24 | Hex (Place Curse) (automated), Hex (Curse New Creature) (automated) | effect: cursed is not a WildPath condition yet; "Bonus Hex Damage" is passive or triggered: not automated |
+| Hex | spells24 | Hex (Place Curse) (automated), Hex (Curse New Creature) (automated) | — |
 | Hezrou | actors24 | Hezrou (7 items) | Stench: "save" is passive or triggered: not automated; Leap: not automated (utility): using it spends its cost; its description says the rest |
 | Hidden Pit | equipment24 | Hidden Pit (gear) | "Trigger (1-4)" is passive or triggered: not automated; "Trigger (5-10)" is passive or triggered: not automated; "Trigger (11-16)" is passive or triggered: not automated; "Trigger (17-20)" is passive or triggered: not automated |
 | Hide Armor | equipment24 | Hide Armor (gear) | — |
@@ -807,7 +807,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Hunter | classes24 | Hunter (subclass) | — |
 | Hunter Shark | actors24 | Hunter Shark (3 items) | — |
 | Hunter's Lore | classes24 | Hunter's Lore (feature) | — |
-| Hunter's Mark | spells24 | Hunter's Mark (Mark Creature) (manual), Hunter's Mark (Move Mark) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: marked is not a WildPath condition yet; concentration: nothing it sustains was converted; "Bonus Mark Damage" is passive or triggered: not automated |
+| Hunter's Mark | spells24 | Hunter's Mark (Mark Creature) (automated), Hunter's Mark (Move Mark) (automated) | — |
 | Hunter's Prey | classes24 | Hunter's Prey (feature) | "damage" is passive or triggered: not automated |
 | Hunting Trap | equipment24 | Hunting Trap (Escape) (automated) | "save" is passive or triggered: not automated |
 | Hurl Through Hell | classes24 | Hurl Through Hell (feature) | "Hurl Through Hell" is passive or triggered: not automated; "Regain Use" is passive or triggered: not automated |

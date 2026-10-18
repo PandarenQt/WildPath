@@ -172,10 +172,11 @@ export function attackForcesCritical(target, {type=null, context={}}={}) {
  * any damage adds the creature's damage bonuses. The runtime and reaction Actions share this.
  * @param {object|null} actor
  * @param {object|null} definition
- * @param {{item?: object|null, turn?: string|null, context?: object}} [options] `turn` identifies the current combat turn, for
+ * @param {{item?: object|null, turn?: string|null, context?: object, target?: object|null}} [options] `turn` identifies the current combat turn, for
  *   once-per-turn rules; `context` is what extra damage predicates see of the attack (`attack.rollMode`, `attack.allyNearTarget`).
+ *   `target`, an attack's one target: its own extra damage on attacks against it counts too (Hunter's Mark).
  */
-export function actionCombatStatistics(actor, definition, {item=null, turn=null, context={}}={}) {
+export function actionCombatStatistics(actor, definition, {item=null, turn=null, context={}, target=null}={}) {
   const attackDefinition = definition?.attack ?? null;
   const tags = [...(definition?.tags ?? [])];
   const statistic = attackDefinition ? resolveActorAttackStatistic(actor, attackDefinition, {item, tags}) : null;
@@ -188,10 +189,13 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
   // Extra damage rules ("+1d6 fire on a melee hit"), less any once-per-turn rule already used this turn.
   // Its tags include the weapon's properties (`finesse`), so a predicate can ask for them.
   const extraTags = [attackDefinition?.type, ...tags, statistic?.ability, ...(attackDefinition?.properties ?? [])].filter(Boolean);
-  const extra = (components.length && (typeof actor?.getExtraDamage === "function"))
-    ? actor.getExtraDamage(damageDomains(attackDefinition, tags), {item, tags: extraTags, context})
-      .filter(entry => !((entry.once === "turn") && turn && (actor.flags?.wildpath?.onceUsed?.[onceKey(entry)] === turn)))
-    : [];
+  // The target's own (`attacked`: Hunter's Mark, Hex) count on an attack; its predicates see this attack
+  // (`attack.fromAttacker`: the marks it bears from this attacker).
+  const marked = (components.length && attackDefinition && (typeof target?.getExtraDamage === "function"))
+    ? target.getExtraDamage(["attacked", `attacked.${attackDefinition.type}`], {tags: extraTags, context}) : [];
+  const extra = [...((components.length && (typeof actor?.getExtraDamage === "function"))
+    ? actor.getExtraDamage(damageDomains(attackDefinition, tags), {item, tags: extraTags, context}) : []), ...marked]
+    .filter(entry => !((entry.once === "turn") && turn && (actor.flags?.wildpath?.onceUsed?.[onceKey(entry)] === turn)));
   // Extra damage with no type of its own is the Action's (Sneak Attack deals the weapon's).
   const extraComponents = extra.map(entry => ({id: `extra:${onceKey(entry)}`, expression: entry.expression,
     damageType: entry.damageType ?? components[0]?.damageType ?? "untyped", provenance: "additional",

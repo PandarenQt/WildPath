@@ -89,6 +89,7 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
   const fields = footprintDistance(sourceFootprint as never, (targetFootprint as {footprint: never}).footprint);
   const context = {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * sceneContext.grid.distance <= 5} : {}),
     fromTarget: (conditionsFrom as unknown as (holder: unknown, source: unknown) => Data)(reactor.actor, actor),
+    fromAttacker: (conditionsFrom as unknown as (holder: unknown, source: unknown) => Data)(actor, reactor.actor),
     allyNearTarget: allyNearTarget(reactor as never, target as never, (targetFootprint as {footprint?: Data}).footprint ?? null)},
     ...sunlightContext(reactor as never)};
   const rollMode = definition.attack ? (attackRollMode as unknown as (a: unknown, t: unknown, o: Data) => string)(reactor.actor, actor,
@@ -99,7 +100,7 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
   // and extra damage sees this attack (Sneak Attack on an Opportunity Attack).
   const combat = (globalThis as {game?: {combat?: {id: string; round: number; turn: number | null; started?: boolean} | null}}).game?.combat;
   const statistics = actionCombatStatistics(reactor.actor, definition, {item: reactionItem,
-    turn: combat?.started ? turnKey(combat) : null, context: {attack: {...context.attack, rollMode}}});
+    turn: combat?.started ? turnKey(combat) : null, context: {attack: {...context.attack, rollMode}}, target: actor});
   const targetSystem = foundryActorSystemSnapshot(actor);
   const profile = (actor as {getDamageProfile?(): Data | null}).getDamageProfile?.() ?? null;
   const targetKeys = [actor.id, actor.uuid, `actor:${actor.id}`];
