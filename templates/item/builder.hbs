@@ -283,6 +283,26 @@
   </fieldset>
 
   <fieldset>
+    <legend>{{localize "WILDPATH.BUILDER.Summon.Legend"}}</legend>
+    {{#if b.values.summonReadOnly}}<p class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</p>{{else}}
+    <label>{{localize "WILDPATH.BUILDER.Summon.Creature"}}
+      <input type="text" name="wildpath.builder.summon.creature" value="{{b.values.summon.creature}}"
+             placeholder="Compendium.wildpath.srd-creatures.Actor..."></label>
+    {{#if b.summonName}}<span class="hint">{{b.summonName}}</span>{{/if}}
+    {{#if b.values.summon.creature}}
+    <label>{{localize "WILDPATH.BUILDER.Summon.Count"}}
+      <input type="number" name="wildpath.builder.summon.count" value="{{b.values.summon.count}}" min="1" max="20" step="1"></label>
+    <label>{{localize "WILDPATH.BUILDER.Summon.Rounds"}}
+      <input type="number" name="wildpath.builder.summon.rounds" value="{{b.values.summon.rounds}}" min="1" step="1"
+             placeholder="{{localize "WILDPATH.BUILDER.Summon.UntilDismissed"}}"></label>
+    <label class="checkbox"><input type="checkbox" name="wildpath.builder.summon.concentration" {{checked b.values.summon.concentration}}>
+      {{localize "WILDPATH.BUILDER.Concentration"}}</label>
+    {{/if}}
+    <p class="hint">{{localize "WILDPATH.BUILDER.Summon.Hint"}}</p>
+    {{/if}}
+  </fieldset>
+
+  <fieldset>
     <legend>{{localize "WILDPATH.BUILDER.Push.Legend"}}</legend>
     <label>{{localize "WILDPATH.BUILDER.Push.Distance"}}
       <input type="number" name="wildpath.builder.push.distance" value="{{b.values.push.distance}}" min="0" step="5"></label>

@@ -165,6 +165,10 @@ export function definitionToBuilder(definition: Data | null | undefined, {abilit
       onSuccess: saveSuccessDamage(damage)
     },
     dcReadOnly: dc === null,
+    // The creature it summons (by UUID), how many, for how long; one chosen when cast (`choiceId`) is Advanced only.
+    summon: {creature: d.summon?.actorRef ?? "", count: d.summon?.count ?? 1, rounds: d.summon?.rounds ?? null,
+      concentration: d.summon?.concentration === true},
+    summonReadOnly: Boolean(d.summon?.choiceId),
     // Forced movement on a hit or a failed save (or, `onSuccess`, on a successful one); `toward` pulls.
     push: {distance: d.push?.distance ?? null, toward: d.push?.toward === true, maxSize: d.push?.maxSize ?? "",
       onSuccess: d.push?.on === "success"},
@@ -258,6 +262,24 @@ const WRITERS = {
     });
     const options = [...new Set(rows.map(row => row.option))].sort((a, b) => a - b);
     next.costs = withCostGroups(next.costs, options.map(option => rows.filter(row => row.option === option).map(row => row.base)));
+  },
+
+  summon({next, submitted, model, view}: WriteContext) {
+    if ( view.summonReadOnly ) return;
+    const {value} = fields(submitted, model);
+    const creature = String(value("creature") ?? "").trim();
+    if ( !creature ) {
+      next.summon = null;
+      return;
+    }
+    const summon: Data = {...(next.summon ?? {}), actorRef: creature,
+      count: Math.min(20, Math.max(1, Math.trunc(number(value("count")) ?? 1)))};
+    const rounds = Math.trunc(number(value("rounds")) ?? 0);
+    if ( rounds > 0 ) summon.rounds = rounds;
+    else delete summon.rounds;
+    if ( value("concentration") ) summon.concentration = true;
+    else delete summon.concentration;
+    next.summon = summon;
   },
 
   push({next, submitted, model}: WriteContext) {
@@ -645,7 +667,9 @@ const GAP_SPEC: GapSpec = {
   restores: [{resourceId: true, resource: true, amount: true}],
   range: {type: true, distance, normal: distance, long: distance},
   targeting: {type: true, required: true, count: (count: unknown) => gapIf(typeof count !== "number"), refinementPolicy: {minSelections: true}},
-  push: {distance: true, toward: true, maxSize: true, on: (on: unknown) => gapIf(on !== "success")},
+  push: {distance: true, toward: true, maxSize: true, on: (on: unknown) => gapIf(!["failure", "success"].includes(String(on)))},
+  // `spellLevel` is the cast level its bonuses read when no slot is chosen.
+  summon: {actorRef: true, count: (count: unknown) => gapIf(!Number.isInteger(count)), rounds: true, concentration: true, spellLevel: true},
   area: {shape: (shape: string) => gapIf(!AREA_SHAPES.includes(shape)), size: distance, width: distance, height: distance,
     persistence: {oncePerTurn: true, duration: {value: true, unit: true}, concentration: true,
       triggers: (triggers: unknown[]) => gapIf(Array.isArray(triggers) && (triggers.length > 0))}},

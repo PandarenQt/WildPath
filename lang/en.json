@@ -669,6 +669,14 @@
         "OptionsHint": "Rows with the same option are paid together. The user pays one option.",
         "Alternative": "Add another way to pay"
       },
+      "Summon": {
+        "Legend": "Does it summon a creature?",
+        "Creature": "Creature (UUID)",
+        "Count": "How many",
+        "Rounds": "Rounds",
+        "UntilDismissed": "until dismissed",
+        "Hint": "Paste the creature's UUID: its sheet's header copies it. Leave it empty for no summon."
+      },
       "Push": {
         "Legend": "Does it push or pull?",
         "Distance": "Distance (ft)",

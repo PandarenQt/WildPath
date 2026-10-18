@@ -14,7 +14,7 @@ function asForm(builder) {
   const rows = list => Object.fromEntries(list.map((row, index) => [index, row]));
   return {basics: builder.basics, costs: rows(builder.costs), range: builder.range, targets: builder.targets, area: builder.area,
     roll: builder.roll, slot: builder.slot, damage: rows(builder.damage), healing: rows(builder.healing), effects: rows(builder.effects),
-    restores: rows(builder.restores), push: builder.push};
+    restores: rows(builder.restores), push: builder.push, summon: builder.summon};
 }
 
 /** Submit `changes` (section → fields, or rows by index) over the definition's current builder values. */
@@ -235,7 +235,7 @@ test("the Builder edits Magical, a weapon's kind and mastery, and an effect's co
   const advanced = {...sword, costs: {anyOf: [[{capability: "action", amount: 1}], [{capability: "bonus-action", amount: 1}]]},
     summon: {actorRef: "Actor.x", count: 1}, effects: [{id: "e", type: "effect", name: "Hex", endsWhen: "attacked",
       ruleElements: [{id: "r", type: "ArmorClass", data: {}}]}]};
-  assert.deepEqual(builderGaps(advanced), ["effects.endsWhen", "effects.ruleElements.ArmorClass", "summon"]);
+  assert.deepEqual(builderGaps(advanced), ["effects.endsWhen", "effects.ruleElements.ArmorClass"]);
 });
 
 test("a monster's Multiattack is built in the Builder: ways to pay by option, and the pools it refills", () => {
@@ -283,4 +283,18 @@ test("push or pull, a cylinder's height and \"up to N targets\" are Builder fiel
   assert.equal(changed.definition.area.height, undefined);
   assert.equal(changed.definition.targeting.refinementPolicy, undefined);
   assert.equal(submit(harpoon, {push: {distance: ""}}).definition.push, null, "no distance: no push");
+});
+
+test("a summon's creature, count, rounds and concentration are Builder fields; one chosen when cast stays Advanced", () => {
+  const familiar = {schemaVersion: 1, id: "action:find-familiar", label: "Find Familiar", costs: {allOf: [{capability: "action", amount: 1}]},
+    summon: {actorRef: "Compendium.wildpath.srd-creatures.Actor.owl", count: 1, rounds: 600, spellLevel: 1}};
+  assert.deepEqual(builderGaps(familiar), []);
+  assert.equal(submit(familiar, {}).changed, false);
+  const changed = submit(familiar, {summon: {count: "3", rounds: "", concentration: true}});
+  assert.deepEqual(changed.definition.summon, {actorRef: "Compendium.wildpath.srd-creatures.Actor.owl", count: 3, spellLevel: 1, concentration: true});
+  assert.equal(submit(familiar, {summon: {creature: ""}}).definition.summon, null, "no creature: no summon");
+  const chosen = {...familiar, summon: {choiceId: "form", count: 1}, configuration: [{id: "form", type: "option", options: []}]};
+  assert.equal(definitionToBuilder(chosen).summonReadOnly, true);
+  assert.deepEqual(submit(chosen, {summon: {creature: "x"}}).definition.summon, chosen.summon, "a read-only summon is never written");
+  assert.deepEqual(builderGaps(chosen), ["configuration", "summon.choiceId"]);
 });

@@ -218,16 +218,18 @@ Then (the second round):
 - **An area's height** (a cylinder's or a wall's; negative reaches down).
 - **At least N targets** of a multiple-target Action ("up to three creatures").
 - **Can hover**, on a speed row.
+- **Summon:** the creature by UUID (its name is shown when it resolves), how many (1-20), rounds (blank: until
+  dismissed), and concentration. A creature chosen when cast (`choiceId`) and bonuses by level stay Advanced.
 
-| Fully editable | First run | First fields | Second round |
+| Fully editable | First run | First fields | Second round (with summon) |
 | --- | --- | --- | --- |
-| SRD Actions | 1,254 / 2,529 | 1,693 / 2,529 | 2,283 / 2,529 |
+| SRD Actions | 1,254 / 2,529 | 1,693 / 2,529 | 2,368 / 2,529 |
 | SRD rule lists | 793 / 1,373 | 1,283 / 1,373 | 1,304 / 1,373 |
-| Book Actions (four packages) | 3,055 / 5,689 | 3,996 / 5,689 | 5,262 / 5,689 |
+| Book Actions (four packages) | 3,055 / 5,689 | 3,996 / 5,689 | 5,398 / 5,689 |
 
 The largest gaps left, all sources:
-- `summon` (323);
 - resource maximums that are formulas the row cannot show (106);
+- a summon chosen when cast (`summon.choiceId`, 92);
 - lasting-area triggers (72), a `ResourceCap` effect rule (55), skill-check domains in rule rows (50);
 - non-slot choices (47), bonus amounts it cannot show (46), damage formulas such as cantrip tables (45);
 - more targets with a higher slot (42), `ArmorClass` rules (41).
@@ -240,6 +242,8 @@ Live (two browsers, 14.369), on world copies of SRD Items:
 - An imported Aboleth's Tentacle showed options 1 (its Multiattack pool) and 2 (the Action), with no "Advanced" line.
   Setting the second row's option to 1 made one way to pay (`allOf`), and nothing else changed.
 - Thunderwave's push showed 10 feet. Setting 15 changed only `push`.
+- Staff of the Magi: Light's summon showed its creature's UUID, the name "Light", 1 and 600 rounds. Setting 5 rounds
+  changed only `summon`.
 
 ## Product Goal
 
