@@ -1414,8 +1414,9 @@ function withRerolls(state, rerolls) {
   });
 }
 
+/** Whose roll a save is: by Token first, since unlinked Tokens of one Actor (a pack of goblins) share its id. */
 function saveTargetKey(target) {
-  return String(target?.id ?? target?.actorRef ?? target?.uuid ?? "");
+  return String(target?.tokenId ?? target?.target?.tokenId ?? target?.id ?? target?.actorRef ?? target?.uuid ?? "");
 }
 
 /** Hand each target the save it rolled itself (per-target fan-out); others keep the shared roll. */

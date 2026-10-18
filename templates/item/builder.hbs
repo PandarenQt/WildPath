@@ -139,7 +139,7 @@
     {{/if}}
     {{#if b.rollIsCheck}}
       <label>{{localize "WILDPATH.BUILDER.Roll.CheckAbility"}}
-        <select name="wildpath.builder.roll.checkAbility">{{selectOptions b.choices.abilities selected=b.values.roll.checkAbility localize=true}}</select></label>
+        <select name="wildpath.builder.roll.checkAbility">{{selectOptions b.choices.checkAbilities selected=b.values.roll.checkAbility localize=true}}</select></label>
       <label>{{localize "WILDPATH.BUILDER.Roll.Skill"}}
         <input type="text" name="wildpath.builder.roll.checkSkill" value="{{b.values.roll.checkSkill}}"></label>
     {{/if}}

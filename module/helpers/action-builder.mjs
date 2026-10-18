@@ -328,8 +328,15 @@ const WRITERS = {
                     roll.ability = value("saveAbility") || options.abilities?.[0] || "agility";
             }
             else {
-                if (set("checkAbility"))
-                    roll.ability = value("checkAbility") || options.abilities?.[0] || "might";
+                // Blank: the skill's own ability (a skill-only check keeps no ability).
+                if (set("checkAbility")) {
+                    if (value("checkAbility"))
+                        roll.ability = String(value("checkAbility"));
+                    else if (roll.skill || value("checkSkill"))
+                        delete roll.ability;
+                    else
+                        roll.ability = options.abilities?.[0] || "might";
+                }
                 if (set("checkSkill")) {
                     if (value("checkSkill"))
                         roll.skill = String(value("checkSkill")).trim();

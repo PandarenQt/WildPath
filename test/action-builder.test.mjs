@@ -190,3 +190,29 @@ test("the Proficient checkbox adds or removes the attack's proficiency; attack t
   assert.equal("proficient" in off.attack, false);
   assert.equal(submit(off, {roll: {proficient: true}}).definition.attack.proficient, true);
 });
+
+test("an unchanged form gives back every converted SRD Action exactly", () => {
+  const srd = new URL("../packs/_source/srd-items/", import.meta.url);
+  const definitions = readdirSync(srd).filter(name => name.endsWith(".json")).map(file => [file, JSON.parse(readFileSync(new URL(file, srd), "utf8"))])
+    .filter(([, document]) => document.type === "action").map(([file, document]) => [file, document.system.definition]);
+  assert.ok(definitions.length > 1000);
+  for ( const [file, definition] of definitions ) {
+    const result = builderToDefinition(asForm(definitionToBuilder(definition)), definition);
+    assert.equal(result.changed, false, file);
+  }
+});
+
+test("what the sheet's selects post for a skill-only check and a Cube changes nothing (no data loss)", () => {
+  const chain = {schemaVersion: 1, id: "action:chain-burst", label: "Chain", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "self"}, check: {skill: "athletics", dc: {value: 20}}};
+  // The check's ability select shows its blank "the skill's own" option, which posts "".
+  const burst = submit(chain, {roll: {checkAbility: "", checkSkill: "athletics"}});
+  assert.equal(burst.definition.check.ability, undefined, "no ability written into a skill-only check");
+  const named = {...chain, check: {ability: "might", skill: "athletics", dc: {value: 20}}};
+  assert.equal(submit(named, {roll: {checkAbility: ""}}).definition.check.ability, undefined,
+    "choosing \"the skill's own\" clears a named ability");
+  const web = {schemaVersion: 1, id: "action:web", label: "Web", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "area"}, area: {shape: "cube", size: {value: 20, unit: "ft"}}};
+  const renamed = submit(web, {basics: {label: "Webbing"}, area: {shape: "cube"}});
+  assert.equal(renamed.definition.area.shape, "cube", "renaming a Cube keeps its shape");
+});
