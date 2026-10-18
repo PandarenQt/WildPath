@@ -95,8 +95,9 @@ third creature ended in the same commit (`wildpath.representative-actions`).
   - Ending a marker removes its Region or dismisses its summons.
 - **Incapacitated** uses the same scan. It now also finds spell effects, whose source is the casting Item; it
   used to match only the creature's own refs.
-- shortcut: casting the same spell again from the same follow-up-free Action counts as a new concentration (the
-  old effect ends), which is the 2024 rule; a homebrew Action has no `followUp` mark, so its follow-ups do too.
+- Casting the same spell again is a new concentration: the old effect ends, as in 2024.
+- shortcut: the Builder cannot set `metadata.followUp`, so a homebrew follow-up ends its own spell's concentration;
+  add a Builder checkbox when homebrew follow-ups need it.
 
 Live (two browsers, 14.369): QA Caster's Hunter's Mark was on the Bandit Captain. Casting Hex on QA Saver
 ("Hexed Wisdom") removed the mark from the Captain, and the Saver kept the Hex.
