@@ -319,6 +319,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "followUp": true
+      },
       "configuration": [
         {
           "id": "effect-choice",

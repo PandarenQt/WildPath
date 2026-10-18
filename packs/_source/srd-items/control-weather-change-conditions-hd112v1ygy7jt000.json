@@ -16,6 +16,9 @@
       "costs": {
         "allOf": []
       },
+      "metadata": {
+        "followUp": true
+      },
       "label": "Control Weather (Change Conditions)"
     },
     "ruleElements": []

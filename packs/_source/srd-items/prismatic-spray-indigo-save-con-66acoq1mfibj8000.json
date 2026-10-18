@@ -49,6 +49,9 @@
           }
         }
       },
+      "metadata": {
+        "followUp": true
+      },
       "label": "Prismatic Spray (Indigo Save (Con))"
     },
     "ruleElements": []

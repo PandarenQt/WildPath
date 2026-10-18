@@ -45,6 +45,9 @@
           "provenance": "spell-base"
         }
       ],
+      "metadata": {
+        "followUp": true
+      },
       "label": "Heat Metal (Reheat)"
     },
     "ruleElements": []

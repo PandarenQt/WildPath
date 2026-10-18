@@ -751,6 +751,8 @@ test("Hunter's Mark and Hex mark their target: extra damage on the caster's hits
     effect.ruleElements[0].predicate], ["hunters-mark", true, "ExtraDamage", "force", {equals: {path: "attack.fromAttacker.hunters-mark", value: true}}]);
   assert.equal(mark.system.definition.configuration?.length, 1, "marking spends a slot");
   assert.equal(move.system.definition.configuration, undefined, "moving the mark spends none");
+  assert.deepEqual([mark.system.definition.metadata?.followUp, move.system.definition.metadata?.followUp], [undefined, true],
+    "moving the mark continues its concentration");
   assert.deepEqual(mark.flags.wildpath.conversion.notes, []);
   assert.equal(validateActionDefinition(mark.system.definition).ok, true);
 

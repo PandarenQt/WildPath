@@ -897,6 +897,7 @@ function manualDefinition({document, activity, system, spell, level, notes, pool
   if ( spell && level && SLOT_MODES.has(system.preparation?.mode ?? "prepared") && (activity.consumption?.spellSlot !== false) ) {
     definition.configuration = slotConfiguration(level, []);
   }
+  if ( spell && level && (activity.consumption?.spellSlot === false) ) definition.metadata = {...(definition.metadata ?? {}), followUp: true};
   return definition;
 }
 
@@ -1122,6 +1123,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
   if ( spell && level && SLOT_MODES.has(system.preparation?.mode ?? "prepared") && (activity.consumption?.spellSlot !== false) ) {
     definition.configuration = slotConfiguration(level, damage, {healing, perLevel});
   }
+  // Such a follow-up continues its spell's concentration rather than starting one (startsConcentration).
+  if ( spell && level && (activity.consumption?.spellSlot === false) ) definition.metadata = {...(definition.metadata ?? {}), followUp: true};
   // Effects of which the caster applies one (Hex's ability): a choice keeping the one chosen.
   if ( byHand?.chooseOne && (effects.length > 1) ) {
     definition.configuration = [...(definition.configuration ?? []), {id: "effect-choice", type: "option", label: byHand.chooseOne,

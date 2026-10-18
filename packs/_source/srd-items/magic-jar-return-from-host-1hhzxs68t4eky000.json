@@ -21,6 +21,9 @@
           }
         ]
       },
+      "metadata": {
+        "followUp": true
+      },
       "label": "Magic Jar (Return from Host)"
     },
     "ruleElements": []

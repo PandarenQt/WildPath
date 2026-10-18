@@ -86,8 +86,8 @@ dying rules: further damage or failures change nothing.
 Stunned, Unconscious and Dead are Incapacitated:
 - **No actions.** A `ResourceCap` caps Actions, Bonus Actions and Reactions at 0.
 - **Concentration ends.** The condition's `endsConcentration` makes the active GM end every effect the
-  creature sustains, on any creature, matched by its Actor or Token ref. Its lasting concentration areas
-  end with their marker (`endConcentrationOnIncapacitation`).
+  creature sustains, on any creature (`sustainedEffects`: matched by its Actor or Token ref, or an Item of it).
+  Its lasting concentration areas end with their marker (`endConcentrationOnIncapacitation`).
 - **Disadvantage on initiative.** A `RollMode` on `initiative`. Initiative is an Agility check, so
   `WildPathCombatant` rolls it with the creature's Agility modifier, and with its modes and Modifiers on
   `initiative`, `check` and `check.agility`.

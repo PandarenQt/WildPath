@@ -68,6 +68,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "followUp": true
+      },
       "label": "Hunter's Mark (Move Mark)"
     },
     "ruleElements": []

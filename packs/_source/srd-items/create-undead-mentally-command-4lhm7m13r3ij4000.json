@@ -21,6 +21,9 @@
           }
         ]
       },
+      "metadata": {
+        "followUp": true
+      },
       "label": "Create Undead (Mentally Command)"
     },
     "ruleElements": []

@@ -74,6 +74,9 @@
           }
         }
       ],
+      "metadata": {
+        "followUp": true
+      },
       "label": "Heroes' Feast (Consume Feast)"
     },
     "ruleElements": [

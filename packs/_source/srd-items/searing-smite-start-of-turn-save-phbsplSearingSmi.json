@@ -61,6 +61,9 @@
           "provenance": "spell-base"
         }
       ],
+      "metadata": {
+        "followUp": true
+      },
       "label": "Searing Smite (Start of Turn Save)"
     },
     "ruleElements": []

@@ -53,6 +53,9 @@
           }
         }
       },
+      "metadata": {
+        "followUp": true
+      },
       "label": "Dispel Evil and Good (Dismissal)"
     },
     "ruleElements": []

@@ -83,6 +83,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "followUp": true
+      },
       "label": "Sunbeam (Create New Sunbeam)"
     },
     "ruleElements": []

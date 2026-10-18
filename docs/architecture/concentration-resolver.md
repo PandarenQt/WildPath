@@ -79,6 +79,28 @@ creature (`token:<id>` or uuid). It passes the states and dependents, and regist
 commit. Live: a 100-damage hit (DC 50) broke a caster's concentration, and the Stun it sustained on a
 third creature ended in the same commit (`wildpath.representative-actions`).
 
+## One concentration at a time (2026-10-19)
+
+2024: casting another spell that requires concentration ends the one you have.
+- **What starts one** (`startsConcentration`): an Action with a concentration effect, a lasting concentration
+  area, or a concentration summon.
+  - A converted follow-up of the same spell (`metadata.followUp`, an activity spending no slot: Move Mark, Curse
+    New Creature) continues its concentration instead.
+- **When it ends the old one.**
+  - When such an Action is declared, the authority notes what its creature sustains (`sustainedEffects`):
+    - its spells' effects on any creature (their concentration `sourceRef` names the casting Item);
+    - its areas' and summons' markers (they name its Token).
+  - Once the Action completes, exactly those end (`endEarlierConcentration`, the first `afterCompleted` step), so
+    what the new Action leaves stays. An Action that fails or is cancelled ends nothing.
+  - Ending a marker removes its Region or dismisses its summons.
+- **Incapacitated** uses the same scan. It now also finds spell effects, whose source is the casting Item; it
+  used to match only the creature's own refs.
+- shortcut: casting the same spell again from the same follow-up-free Action counts as a new concentration (the
+  old effect ends), which is the 2024 rule; a homebrew Action has no `followUp` mark, so its follow-ups do too.
+
+Live (two browsers, 14.369): QA Caster's Hunter's Mark was on the Bandit Captain. Casting Hex on QA Saver
+("Hexed Wisdom") removed the mark from the Captain, and the Saver kept the Hex.
+
 ## What It Does Not Do Yet
 
 ConcentrationResolver does not:

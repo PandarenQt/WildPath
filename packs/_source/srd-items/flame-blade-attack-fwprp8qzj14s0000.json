@@ -59,6 +59,9 @@
           "provenance": "spell-base"
         }
       ],
+      "metadata": {
+        "followUp": true
+      },
       "label": "Flame Blade (attack)"
     },
     "ruleElements": []

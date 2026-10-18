@@ -21,6 +21,9 @@
           }
         ]
       },
+      "metadata": {
+        "followUp": true
+      },
       "label": "Dispel Evil and Good (Break Enchantment)"
     },
     "ruleElements": []

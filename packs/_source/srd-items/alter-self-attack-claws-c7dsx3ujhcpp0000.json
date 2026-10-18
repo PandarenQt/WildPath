@@ -57,6 +57,9 @@
           "provenance": "spell-base"
         }
       ],
+      "metadata": {
+        "followUp": true
+      },
       "label": "Alter Self (Attack: Claws)"
     },
     "ruleElements": []
