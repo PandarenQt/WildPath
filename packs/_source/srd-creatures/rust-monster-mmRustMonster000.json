@@ -271,6 +271,38 @@
               ]
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 8
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  },
+                  {
+                    "type": "proficiency-bonus"
+                  }
+                ]
+              }
+            }
+          },
           "label": "Antennae"
         },
         "ruleElements": []
@@ -288,7 +320,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -396,7 +428,7 @@
       "conversion": {
         "notes": [
           "Iron Scent: \"Expend Use\" is passive or triggered: not automated",
-          "Antennae: not automated (save): using it spends its cost; its description says the rest",
+          "Antennae: rolled (save); what it does is by hand",
           "Destroy Metal: not automated (utility): using it spends its cost; its description says the rest",
           "Reflexive Antennae: not automated (utility): using it spends its cost; its description says the rest"
         ]

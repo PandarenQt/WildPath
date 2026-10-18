@@ -1028,9 +1028,14 @@ function convertActivity({document, activity, system, spell, level, scales, note
     definition.configuration = slotConfiguration(level, damage, {healing, perLevel});
   }
   if ( concentration && !effects.length ) notes.push("concentration: nothing it sustains was converted");
-  // An attack or save with nothing converted on it would roll for nothing: such an Action is left out and noted. A
-  // check stands on its own: its success is the point.
-  return (damage.length || healing.length || effects.length || definition.check) ? definition : null;
+  if ( damage.length || healing.length || effects.length || definition.check ) return definition;
+  // An attack or save with nothing converted on it still rolls (Command, Counterspell, a Net): the card shows who
+  // saved or was hit, and the description says what follows.
+  if ( definition.save || definition.attack ) {
+    notes.push(`rolled (${activity.type}); what it does is by hand`);
+    return definition;
+  }
+  return null;
 }
 
 /**

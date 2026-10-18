@@ -503,6 +503,29 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "cube",
+            "size": {
+              "value": 20,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "agility",
+            "dc": {
+              "value": 14
+            }
+          },
           "label": "Faerie Fire"
         },
         "ruleElements": [
@@ -537,9 +560,9 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
               "effect: \"Outlined\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "concentration: nothing it sustains was converted",
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -691,9 +714,9 @@
       },
       "conversion": {
         "notes": [
-          "Magic of the Spider Queen: not automated (save): using it spends its cost; its description says the rest",
           "Magic of the Spider Queen: effect: \"Outlined\" (its own changes) not converted",
-          "Magic of the Spider Queen: concentration: nothing it sustains was converted"
+          "Magic of the Spider Queen: concentration: nothing it sustains was converted",
+          "Magic of the Spider Queen: rolled (save); what it does is by hand"
         ]
       }
     }

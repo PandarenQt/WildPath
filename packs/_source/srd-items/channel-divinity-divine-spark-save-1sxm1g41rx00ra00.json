@@ -22,6 +22,38 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
       "label": "Channel Divinity (Divine Spark: Save)"
     },
     "ruleElements": [
@@ -65,8 +97,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "damage 1: custom formula \"(@scale.channel-divinity-cleric.spark)d8 + @abilities.wis.mod\" not converted"
+          "damage 1: custom formula \"(@scale.channel-divinity-cleric.spark)d8 + @abilities.wis.mod\" not converted",
+          "rolled (save); what it does is by hand"
         ]
       }
     }

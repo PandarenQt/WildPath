@@ -27,7 +27,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
+          "rolled (save); what it does is by hand",
           "not automated (summon): using it spends its cost; its description says the rest",
           "summon: its creature is not among the converted creatures",
           "consumption: itemUses -1 not converted",

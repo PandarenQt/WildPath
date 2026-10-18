@@ -25,6 +25,32 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "line",
+        "size": {
+          "value": 60,
+          "unit": "ft"
+        },
+        "width": {
+          "value": 10,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "might",
+        "dc": {
+          "value": 13
+        }
+      },
+      "push": {
+        "distance": 15
+      },
       "label": "Wind Fan: Gust of Wind"
     },
     "ruleElements": [
@@ -58,8 +84,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "concentration: nothing it sustains was converted"
+          "concentration: nothing it sustains was converted",
+          "rolled (save); what it does is by hand"
         ]
       }
     }

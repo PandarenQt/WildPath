@@ -430,6 +430,29 @@
               ]
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 16
+            }
+          },
           "label": "Dominate Mind"
         },
         "ruleElements": [
@@ -462,7 +485,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -722,7 +745,7 @@
           "Mucus Cloud: \"save\" is passive or triggered: not automated",
           "Mucus Cloud: \"Damage: Outside Water\" is passive or triggered: not automated",
           "Tentacle: \"Escape Check\" is passive or triggered: not automated",
-          "Dominate Mind: not automated (save): using it spends its cost; its description says the rest",
+          "Dominate Mind: rolled (save); what it does is by hand",
           "Lash: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

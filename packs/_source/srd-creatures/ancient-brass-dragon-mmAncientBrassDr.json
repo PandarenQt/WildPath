@@ -941,7 +941,7 @@
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
               "concentration: nothing it sustains was converted",
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -1310,7 +1310,7 @@
           "Spellcasting: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
           "Spellcasting: effect: \"Bestial Communication\" (its own changes) not converted",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: rolled (save); what it does is by hand",
           "Blazing Light: cast: Scorching Ray at level 3 is cast at its own level",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: consumption: attribute 1 not converted",

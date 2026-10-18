@@ -1087,6 +1087,29 @@
               ]
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 15,
+              "unit": "ft"
+            }
+          },
+          "save": {
+            "ability": "presence",
+            "dc": {
+              "value": 23
+            }
+          },
           "label": "Zone of Truth"
         },
         "ruleElements": [
@@ -1120,8 +1143,8 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "effect: \"Cannot Lie\" (its own changes) not converted"
+              "effect: \"Cannot Lie\" (its own changes) not converted",
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -1427,8 +1450,8 @@
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: cast: Ice Storm at level 7 is cast at its own level",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
-          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Cannot Lie\" (its own changes) not converted",
+          "Spellcasting: rolled (save); what it does is by hand",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: consumption: attribute 1 not converted"
         ]

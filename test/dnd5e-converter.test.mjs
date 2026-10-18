@@ -131,9 +131,9 @@ test("what WildPath cannot automate is a manual Action that spends its cost, nam
   assert.equal(manual.type, "action");
   assert.deepEqual(manual.system.definition.costs, {allOf: [{capability: "action", amount: 1}]}, "it still costs an Action");
   assert.equal(manual.system.definition.configuration[0].id, "spell-slot", "and spends its slot");
-  assert.equal(manual.system.definition.save, undefined, "but rolls nothing it cannot resolve");
+  assert.equal(manual.system.definition.save.ability, "wits", "its save is still rolled (2026-10-18); what follows is by hand");
   assert.equal(validateActionDefinition(manual.system.definition).ok, true);
-  assert.match(held.notes[0], /^not automated/);
+  assert.ok(held.notes.includes("rolled (save); what it does is by hand"));
   assert.ok(held.notes.includes("effect: silenced is not a WildPath condition yet"));
 
   const tripped = convertItem(trip);
@@ -659,4 +659,12 @@ test("a check activity is its user's own check: its ability or skill, and its DC
   assert.deepEqual(checkOf({associated: ["ath", "acr"], dc: {formula: "13"}}, {notes}), {skill: "athletics", dc: {value: 13}});
   assert.match(notes[0], /a choice of ath\/acr uses ath/u);
   assert.equal(checkOf({ability: "str", dc: {}}, {notes}), null, "no DC");
+});
+
+test("a save with nothing converted on it still rolls: its consequences are the description's", () => {
+  const command = {...burst, _id: "testCommand00001", name: "Test Command", system: {...burst.system, level: 1,
+    activities: {a: activity("save", {save: {ability: "wis", dc: {calculation: "spellcasting", formula: ""}}, damage: {parts: []}})}}};
+  const [item] = convertItem(command).items;
+  assert.deepEqual([item.type, item.system.definition.save.ability, item.system.definition.damage ?? []], ["action", "wits", []]);
+  assert.ok(item.flags.wildpath.conversion.notes.includes("rolled (save); what it does is by hand"));
 });

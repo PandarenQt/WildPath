@@ -986,6 +986,24 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 14
+            }
+          },
           "label": "Counterspell"
         },
         "ruleElements": [
@@ -1019,7 +1037,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -1138,7 +1156,7 @@
           "Spellcasting: cast: Fireball at level 4 is cast at its own level",
           "Spellcasting: effect: \"Flight\" change system.attributes.movement.hover (override) not converted",
           "Misty Step: not automated (teleport): using it spends its cost; its description says the rest",
-          "Protective Magic: not automated (save): using it spends its cost; its description says the rest"
+          "Protective Magic: rolled (save); what it does is by hand"
         ]
       }
     }

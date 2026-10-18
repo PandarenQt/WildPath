@@ -811,6 +811,24 @@
               ]
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "might",
+            "dc": {
+              "value": 15
+            }
+          },
           "label": "Telekinesis"
         },
         "ruleElements": [
@@ -844,8 +862,8 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted"
+              "concentration: nothing it sustains was converted",
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -968,7 +986,7 @@
           "Spellcasting: effect: transformed is not a WildPath condition yet",
           "Spellcasting: effect: \"Gaseous Form\" change system.attributes.movement.hover (override) not converted",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
-          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: rolled (save); what it does is by hand",
           "Misty Step: consumption: itemUses 1 not converted",
           "Misty Step: not automated (teleport): using it spends its cost; its description says the rest"
         ]

@@ -34,6 +34,7 @@ const RULES = [
   [/summon: its creature is not among the converted/, () => "summon: its creature is not converted"],
   [/summon: a count of/, () => "summon: a count from a formula"],
   [/^not automated \((\w+)\)/, match => `used, not automated: ${match[1]} activity`],
+  [/^rolled \((\w+)\); what it does is by hand/, match => `rolled, consequences by hand: ${match[1]} activity`],
   [/^not automated:/, () => "used, not automated: no activity"],
   [/consumption: (\w+)/, match => `consumption: ${match[1]}`],
   [/custom formula/, () => "custom damage formula"],

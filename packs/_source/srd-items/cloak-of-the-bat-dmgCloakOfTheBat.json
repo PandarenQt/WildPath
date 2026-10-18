@@ -28,8 +28,8 @@
       "conversion": {
         "notes": [
           "\"Grip Edges\" is passive or triggered: not automated",
-          "not automated (save): using it spends its cost; its description says the rest",
-          "concentration: nothing it sustains was converted"
+          "concentration: nothing it sustains was converted",
+          "rolled (save); what it does is by hand"
         ]
       },
       "grants": [

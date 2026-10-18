@@ -377,6 +377,39 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "subtract",
+                    "terms": [
+                      {
+                        "type": "constant",
+                        "value": 11
+                      },
+                      {
+                        "type": "constant",
+                        "value": 5
+                      }
+                    ]
+                  },
+                  {
+                    "type": "constant",
+                    "value": 2
+                  }
+                ]
+              }
+            }
+          },
           "label": "Scrying"
         },
         "ruleElements": [
@@ -410,9 +443,9 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
               "concentration: nothing it sustains was converted",
+              "rolled (save); what it does is by hand",
               "\"Create Sensor\" is passive or triggered: not automated"
             ]
           }
@@ -790,8 +823,8 @@
           "Coven Magic: summon: a creature chosen by Challenge Rating is not converted",
           "Coven Magic: activation: 1 hour is not an action-economy cost",
           "Coven Magic: concentration: nothing it sustains was converted",
-          "Coven Magic: not automated (save): using it spends its cost; its description says the rest",
           "Coven Magic: activation: 10 minute is not an action-economy cost",
+          "Coven Magic: rolled (save); what it does is by hand",
           "Coven Magic: \"Create Sensor\" is passive or triggered: not automated",
           "Vile Appearance: \"save\" is passive or triggered: not automated",
           "Illusory Appearance: not automated (utility): using it spends its cost; its description says the rest",

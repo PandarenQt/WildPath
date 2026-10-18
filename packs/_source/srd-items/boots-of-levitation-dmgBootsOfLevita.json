@@ -27,9 +27,9 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
           "effect: \"Levitating\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
+          "concentration: nothing it sustains was converted",
+          "rolled (save); what it does is by hand"
         ]
       },
       "grants": [

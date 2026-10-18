@@ -744,7 +744,7 @@
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
               "concentration: nothing it sustains was converted",
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -1123,7 +1123,7 @@
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
           "Spellcasting: effect: \"Bestial Communication\" (its own changes) not converted",
-          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: rolled (save); what it does is by hand",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Blazing Light: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",

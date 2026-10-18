@@ -21,6 +21,17 @@
           }
         ]
       },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
       "label": "Wand of Fear (attack)"
     },
     "ruleElements": [
@@ -69,7 +80,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (attack): using it spends its cost; its description says the rest"
+          "rolled (attack); what it does is by hand"
         ]
       }
     }

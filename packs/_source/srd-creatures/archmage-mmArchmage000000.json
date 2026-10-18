@@ -337,6 +337,24 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 17
+            }
+          },
           "label": "Counterspell"
         },
         "ruleElements": [
@@ -370,7 +388,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -560,7 +578,7 @@
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
               "concentration: nothing it sustains was converted",
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -1380,6 +1398,39 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "valueExpression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "subtract",
+                    "terms": [
+                      {
+                        "type": "constant",
+                        "value": 17
+                      },
+                      {
+                        "type": "constant",
+                        "value": 5
+                      }
+                    ]
+                  },
+                  {
+                    "type": "constant",
+                    "value": 2
+                  }
+                ]
+              }
+            }
+          },
           "label": "Scrying"
         },
         "ruleElements": [
@@ -1413,9 +1464,9 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
               "concentration: nothing it sustains was converted",
+              "rolled (save); what it does is by hand",
               "\"Create Sensor\" is passive or triggered: not automated"
             ]
           }
@@ -1534,11 +1585,11 @@
       "conversion": {
         "notes": [
           "Misty Step: not automated (teleport): using it spends its cost; its description says the rest",
-          "Protective Magic: not automated (save): using it spends its cost; its description says the rest",
+          "Protective Magic: rolled (save); what it does is by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",
-          "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
+          "Spellcasting: rolled (save); what it does is by hand",
           "Spellcasting: effect: \"Disguised\" (its own changes) not converted",
           "Spellcasting: effect: \"Flight\" change system.attributes.movement.hover (override) not converted",
           "Spellcasting: cast: Lightning Bolt at level 7 is cast at its own level",

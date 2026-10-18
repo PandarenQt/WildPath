@@ -38,8 +38,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
           "concentration: nothing it sustains was converted",
+          "rolled (save); what it does is by hand",
           "\"End of Turn Fissures\" is passive or triggered: not automated",
           "\"Collapsing Structure Save\" is passive or triggered: not automated",
           "not automated (utility): using it spends its cost; its description says the rest",

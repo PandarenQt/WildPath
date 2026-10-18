@@ -21,6 +21,24 @@
           }
         ]
       },
+      "attack": {
+        "type": "ranged",
+        "statistic": "spell",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
       "label": "Sorcerous Burst"
     },
     "ruleElements": []
@@ -38,8 +56,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (attack): using it spends its cost; its description says the rest",
-          "damage 1: custom formula \"1d8x@mod=8\" not converted"
+          "damage 1: custom formula \"1d8x@mod=8\" not converted",
+          "rolled (attack); what it does is by hand"
         ]
       }
     }

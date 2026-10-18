@@ -25,6 +25,40 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "cone",
+        "size": {
+          "value": 15,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "fortitude"
+              }
+            ]
+          }
+        }
+      },
       "label": "Breath Weapon (Breath Weapon (Cone))"
     },
     "ruleElements": [
@@ -56,8 +90,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "damage 1: custom formula \"@scale.dragonborn.breath\" not converted"
+          "damage 1: custom formula \"@scale.dragonborn.breath\" not converted",
+          "rolled (save); what it does is by hand"
         ]
       }
     }

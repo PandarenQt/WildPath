@@ -590,6 +590,24 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 60,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 17
+            }
+          },
           "label": "Command"
         },
         "ruleElements": []
@@ -608,7 +626,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -768,7 +786,7 @@
           "Misty Escape: \"Paralyzed\" is passive or triggered: not automated",
           "Multiattack (Vampire Form Only): not automated (utility): using it spends its cost; its description says the rest",
           "Grave Strike (Vampire Form Only): \"Escape Check\" is passive or triggered: not automated",
-          "Beguile: not automated (save): using it spends its cost; its description says the rest",
+          "Beguile: rolled (save); what it does is by hand",
           "Deathless Strike: not automated (utility): using it spends its cost; its description says the rest",
           "Vampire Weakness: \"Damage: Running Water\" is passive or triggered: not automated",
           "Vampire Weakness: \"Staked to the Heart\" is passive or triggered: not automated",

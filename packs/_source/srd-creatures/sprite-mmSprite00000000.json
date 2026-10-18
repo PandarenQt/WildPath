@@ -226,6 +226,24 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "presence",
+            "dc": {
+              "value": 10
+            }
+          },
           "label": "Heart Sight"
         },
         "ruleElements": []
@@ -243,7 +261,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -358,7 +376,7 @@
       },
       "conversion": {
         "notes": [
-          "Heart Sight: not automated (save): using it spends its cost; its description says the rest"
+          "Heart Sight: rolled (save); what it does is by hand"
         ]
       }
     }

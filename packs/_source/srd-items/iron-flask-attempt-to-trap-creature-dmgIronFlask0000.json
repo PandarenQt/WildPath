@@ -21,6 +21,18 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "value": 17
+        }
+      },
       "label": "Iron Flask (Attempt to Trap Creature)"
     },
     "ruleElements": []
@@ -38,7 +50,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest"
+          "rolled (save); what it does is by hand"
         ]
       }
     }

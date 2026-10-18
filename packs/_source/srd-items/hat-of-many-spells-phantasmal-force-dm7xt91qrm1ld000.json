@@ -21,6 +21,43 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "cube",
+        "size": {
+          "value": 10,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "intellect",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
       "label": "Hat of Many Spells: Phantasmal Force"
     },
     "ruleElements": []
@@ -39,9 +76,9 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
           "effect: \"Seeing Illusions\" (its own changes) not converted",
           "concentration: nothing it sustains was converted",
+          "rolled (save); what it does is by hand",
           "\"Phantasm Damage\" is passive or triggered: not automated"
         ]
       }

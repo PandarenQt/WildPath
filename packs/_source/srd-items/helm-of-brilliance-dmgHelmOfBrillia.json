@@ -41,7 +41,7 @@
           "\"Diamond Light\" is passive or triggered: not automated",
           "not automated (enchant): using it spends its cost; its description says the rest",
           "damage 1: a choice of acid/cold/fire/lightning/poison uses acid",
-          "not automated (save): using it spends its cost; its description says the rest",
+          "rolled (save); what it does is by hand",
           "concentration: nothing it sustains was converted",
           "\"damage\" is passive or triggered: not automated",
           "\"Explosive Emanation\" is passive or triggered: not automated",

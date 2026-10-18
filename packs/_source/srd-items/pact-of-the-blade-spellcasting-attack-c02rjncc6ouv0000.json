@@ -18,6 +18,18 @@
           }
         ]
       },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
       "label": "Pact of the Blade (Spellcasting Attack)"
     },
     "ruleElements": []
@@ -35,7 +47,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (attack): using it spends its cost; its description says the rest"
+          "rolled (attack); what it does is by hand"
         ]
       }
     }

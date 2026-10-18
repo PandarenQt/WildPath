@@ -16,6 +16,38 @@
       "costs": {
         "allOf": []
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "presence",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
       "configuration": [
         {
           "id": "spell-slot",
@@ -83,10 +115,9 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
           "activation: 1 hour is not an action-economy cost",
           "effect: \"Bound to Service\" (its own changes) not converted",
-          "activation: 1 hour is not an action-economy cost"
+          "rolled (save); what it does is by hand"
         ]
       }
     }

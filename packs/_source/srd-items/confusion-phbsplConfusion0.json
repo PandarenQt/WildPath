@@ -21,6 +21,41 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 90,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "multiple",
+        "required": true,
+        "count": 20,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
       "configuration": [
         {
           "id": "spell-slot",
@@ -95,10 +130,10 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
           "area: @item.level * 5 - 10-ft sphere is not supported; the user picks the targets",
           "effect: \"Confused\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
+          "concentration: nothing it sustains was converted",
+          "rolled (save); what it does is by hand"
         ]
       }
     }

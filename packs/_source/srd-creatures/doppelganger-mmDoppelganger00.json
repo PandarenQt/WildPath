@@ -257,7 +257,7 @@
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
               "concentration: nothing it sustains was converted",
-              "not automated (save): using it spends its cost; its description says the rest"
+              "rolled (save); what it does is by hand"
             ]
           }
         }
@@ -453,7 +453,7 @@
         "notes": [
           "Read Thoughts: not automated (utility): using it spends its cost; its description says the rest",
           "Read Thoughts: concentration: nothing it sustains was converted",
-          "Read Thoughts: not automated (save): using it spends its cost; its description says the rest",
+          "Read Thoughts: rolled (save); what it does is by hand",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

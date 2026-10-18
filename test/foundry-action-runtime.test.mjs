@@ -438,6 +438,15 @@ const fortitudeBlast = ability => ({schemaVersion: 1, id: `action:runtime-${abil
   save: {ability, dc: {value: 13}},
   damage: [{id: "blast", expression: {type: "constant", value: 4}, damageType: "force", provenance: "spell-base"}]});
 
+test("a save or attack with nothing converted on it still rolls, and is ready to commit with nothing to apply", async () => {
+  const {damage: _damage, ...command} = fortitudeBlast("presence");
+  const saving = await plannedWithConditions(command, {saveRoll: {total: 5, natural: 5, die: 5}});
+  assert.deepEqual([saving.state.status, saving.state.results.saveResolution.failures.length], ["ready-to-commit", 1]);
+  const {damage: _strike, ...net} = meleeStrikeDefinition();
+  const attacking = await plannedWithConditions(net, {attackRoll: {total: 25, natural: 20, die: 20}});
+  assert.deepEqual([attacking.state.status, attacking.state.results.attackResolution.hits.length], ["ready-to-commit", 1]);
+});
+
 test("common traits (G5): Magic Resistance is Advantage on saves against spells, Pack Tactics needs an ally by the target", async () => {
   const magicResistance = [{schemaVersion: 1, id: "magic-resistance", type: "RollMode", predicate: {tagsAny: ["magical"]},
     data: {domains: ["save"], mode: "advantage"}}];

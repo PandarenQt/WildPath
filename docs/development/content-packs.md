@@ -269,6 +269,11 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - shortcut: a tool's proficiency bonus is not added yet.
   - The census row fell from 179 to 10; automated SRD Items went from 522 to 607, and the Player's Handbook's from
     400 to 475.
+- **Saves and attacks with nothing else converted (2026-10-18)** still roll: Command, Counterspell, Zone of Truth, a
+  Net. The card shows who saved or was hit, and the description says what follows. They used to be left as a cost
+  with no roll. The note "rolled (save); what it does is by hand" puts them in the census row "rolled, consequences by
+  hand" (374 saves, 45 attacks). Automated SRD Items went from 607 to 690, and the Player's Handbook's from 475 to
+  549.
 - **Weapon kind (G8).** A weapon's attack carries `attack.weapon`: its base weapon (`longsword`, `light-crossbow`),
   `simple` or `martial`, and its 2024 mastery (`sap`), which weapon training and Weapon Mastery read. 93 SRD weapon
   Actions have one.

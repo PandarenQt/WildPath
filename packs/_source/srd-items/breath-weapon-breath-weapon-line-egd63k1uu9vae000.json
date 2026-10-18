@@ -25,6 +25,44 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "line",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        },
+        "width": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "fortitude"
+              }
+            ]
+          }
+        }
+      },
       "label": "Breath Weapon (Breath Weapon (Line))"
     },
     "ruleElements": [
@@ -56,8 +94,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "damage 1: custom formula \"@scale.dragonborn.breath\" not converted"
+          "damage 1: custom formula \"@scale.dragonborn.breath\" not converted",
+          "rolled (save); what it does is by hand"
         ]
       }
     }

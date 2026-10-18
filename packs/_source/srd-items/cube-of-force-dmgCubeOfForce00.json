@@ -31,8 +31,8 @@
           "activation: 1 minute is not an action-economy cost",
           "activation: 10 minute is not an action-economy cost",
           "area: 100 * @item.level - 300-ft cube is not supported; the user picks the targets",
-          "not automated (save): using it spends its cost; its description says the rest",
           "effect: \"Enclosed in Sphere\" (its own changes) not converted",
+          "rolled (save); what it does is by hand",
           "concentration: nothing it sustains was converted"
         ]
       },
