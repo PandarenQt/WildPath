@@ -23,6 +23,8 @@
     <legend>{{localize "WILDPATH.BUILDER.Basics.Legend"}}</legend>
     <label class="checkbox"><input type="checkbox" name="wildpath.builder.basics.spell" {{checked b.values.basics.spell}}>
       {{localize "WILDPATH.BUILDER.Basics.Spell"}}</label>
+    <label class="checkbox"><input type="checkbox" name="wildpath.builder.basics.magical" {{checked b.values.basics.magical}}>
+      {{localize "WILDPATH.BUILDER.Basics.Magical"}}</label>
   </fieldset>
 
   {{#if b.showSlot}}
@@ -132,6 +134,13 @@
         {{localize "WILDPATH.BUILDER.Roll.Finesse"}}</label>
       <label>{{localize "WILDPATH.BUILDER.Roll.Ability"}}
         <select name="wildpath.builder.roll.ability">{{selectOptions b.choices.attackAbilities selected=b.values.roll.ability localize=true}}</select></label>
+      <label>{{localize "WILDPATH.BUILDER.Roll.WeaponCategory"}}
+        <select name="wildpath.builder.roll.weaponCategory">{{selectOptions b.choices.weaponCategories selected=b.values.roll.weaponCategory localize=true}}</select></label>
+      <label>{{localize "WILDPATH.BUILDER.Roll.WeaponBase"}}
+        <input type="text" name="wildpath.builder.roll.weaponBase" value="{{b.values.roll.weaponBase}}" list="{{b.listId}}-weapons"></label>
+      <datalist id="{{b.listId}}-weapons">{{#each b.weapons as |value|}}<option value="{{value}}"></option>{{/each}}</datalist>
+      <label>{{localize "WILDPATH.BUILDER.Roll.Mastery"}}
+        <select name="wildpath.builder.roll.mastery">{{selectOptions b.choices.masteries selected=b.values.roll.mastery localize=true}}</select></label>
     {{/if}}
     {{#if b.rollIsSave}}
       <label>{{localize "WILDPATH.BUILDER.Roll.SaveAbility"}}
@@ -223,6 +232,8 @@
           <select name="wildpath.builder.effects.{{@index}}.expiry" aria-label="{{localize "WILDPATH.BUILDER.Effects.Expiry"}}">
             {{selectOptions ../b.choices.expiry selected=row.expiry localize=true}}</select>
         {{/if}}
+        <label class="checkbox"><input type="checkbox" name="wildpath.builder.effects.{{@index}}.concentration" {{checked row.concentration}}>
+          {{localize "WILDPATH.BUILDER.Concentration"}}</label>
         {{#if ../b.rollIsSave}}
           {{#if row.policyReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
           <label class="checkbox"><input type="checkbox" name="wildpath.builder.effects.{{@index}}.onFailedSave" {{checked row.onFailedSave}}>

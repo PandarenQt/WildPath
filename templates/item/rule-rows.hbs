@@ -2,6 +2,7 @@
   {{#each rows as |row|}}
   <li class="rule-row">
     {{#if row.isOther}}
+      <input type="hidden" name="{{row.name}}.kind" value="other">
       <span class="hint">{{row.type}}: {{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>
     {{else}}
       <select name="{{row.name}}.kind" aria-label="{{localize "WILDPATH.RULES.KindLabel"}}">{{selectOptions ../kinds selected=row.kind localize=true}}</select>
@@ -49,6 +50,20 @@
         {{/if}}
         <select name="{{row.name}}.recovery" aria-label="{{localize "WILDPATH.RULES.RecoveryLabel"}}">
           {{selectOptions ../ctx.recovery selected=row.recovery localize=true}}</select>
+        <label>{{localize "WILDPATH.RULES.StartsAt"}}
+          <input type="number" name="{{row.name}}.current" value="{{row.current}}" min="0" step="1" placeholder="{{localize "WILDPATH.RULES.Full"}}"></label>
+        <label class="checkbox"><input type="checkbox" name="{{row.name}}.emptiesAtTurnStart" {{checked row.emptiesAtTurnStart}}>
+          {{localize "WILDPATH.RULES.EmptiesAtTurnStart"}}</label>
+        <select name="{{row.name}}.recharge" aria-label="{{localize "WILDPATH.RULES.Recharge.Label"}}">
+          {{selectOptions ../ctx.recharge selected=row.recharge valueAttr="value" labelAttr="label"}}</select>
+        {{#if row.regainReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
+        <label>{{localize "WILDPATH.RULES.RegainShort"}}
+          <input type="text" class="formula" name="{{row.name}}.regainShort" value="{{row.regainShort}}" placeholder="1"
+                 {{#if row.errors.regainShort}}aria-invalid="true"{{/if}}></label>
+        <label>{{localize "WILDPATH.RULES.RegainLong"}}
+          <input type="text" class="formula" name="{{row.name}}.regainLong" value="{{row.regainLong}}" placeholder="1d6 + 1"
+                 {{#if row.errors.regainLong}}aria-invalid="true"{{/if}}></label>
+        {{/if}}
       {{/if}}
       {{#if row.isExtraDamage}}
         <input type="text" class="formula" name="{{row.name}}.formula" value="{{row.formula}}" placeholder="1d6"

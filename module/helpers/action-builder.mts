@@ -9,7 +9,7 @@
  */
 import {formatFormula, parseFormula} from "./formula.mjs";
 import {validateActionDefinition} from "./action-definitions.mjs";
-import {rowsToRules, rulesToRows} from "./rule-builder.mjs";
+import {ruleGaps, rowsToRules, rulesToRows} from "./rule-builder.mjs";
 
 type Data = Record<string, any>;
 export interface BuilderError {field: string; key: string; data: Record<string, string>}
@@ -106,7 +106,7 @@ export function definitionToBuilder(definition: Data | null | undefined, {abilit
   const upcast = slot?.scale ? formatFormula({type: "dice", number: slot.scale.dice?.number ?? 1, faces: slot.scale.dice?.faces}) : "";
 
   return {
-    basics: {spell: (d.tags ?? []).includes("spell")},
+    basics: {spell: (d.tags ?? []).includes("spell"), magical: (d.tags ?? []).includes("magical")},
     costs: simpleCosts ? allOf.map(requirement => ({capability: requirement.capability, amount: requirement.amount ?? 1})) : [],
     costsReadOnly: !simpleCosts,
     range: {
@@ -132,6 +132,10 @@ export function definitionToBuilder(definition: Data | null | undefined, {abilit
       finesse: (d.attack?.properties ?? []).includes("finesse"),
       proficient: d.attack?.proficient === true,
       ability: d.attack?.ability ?? "",
+      // A weapon attack's kind (Weapon Mastery needs its base weapon), and its mastery property.
+      weaponCategory: d.attack?.weapon?.category ?? "",
+      weaponBase: d.attack?.weapon?.base ?? "",
+      mastery: d.attack?.weapon?.mastery ?? "",
       saveAbility: d.save?.ability ?? "",
       checkAbility: d.check?.ability ?? "",
       checkSkill: d.check?.skill ?? "",
@@ -155,6 +159,7 @@ export function definitionToBuilder(definition: Data | null | undefined, {abilit
       kind: effect.type === "effect" ? "effect" : (effect.type === "condition" || effect.conditionId ? "condition" : String(effect.type ?? "")),
       conditionId: effect.conditionId ?? "",
       levels: effect.levels ?? 1,
+      concentration: effect.concentration === true,
       onFailedSave: isFailureOnly(effect.saveOutcomePolicy),
       policyReadOnly: (effect.saveOutcomePolicy != null) && !isFailureOnly(effect.saveOutcomePolicy),
       name: effect.name ?? "",
@@ -213,8 +218,8 @@ function readFormula(text: unknown, field: string, errors: BuilderError[], optio
 const WRITERS = {
   basics({next, submitted, model}: WriteContext) {
     const {value} = fields(submitted, model);
-    const tags: string[] = (next.tags ?? []).filter((tag: string) => tag !== "spell");
-    next.tags = value("spell") ? [...tags, "spell"] : tags;
+    const tags: string[] = (next.tags ?? []).filter((tag: string) => !["spell", "magical"].includes(tag));
+    next.tags = [...tags, ...["spell", "magical"].filter(tag => value(tag))];
   },
 
   costs({next, submitted, view}: WriteContext) {
@@ -311,6 +316,16 @@ const WRITERS = {
       if ( changed("ability") ) {
         if ( value("ability") ) attack.ability = value("ability");
         else delete attack.ability;
+      }
+      if ( ["weaponCategory", "weaponBase", "mastery"].some(changed) ) {
+        const weapon: Data = {...(attack.weapon ?? {})};
+        for ( const [field, key] of [["weaponCategory", "category"], ["weaponBase", "base"], ["mastery", "mastery"]] as const ) {
+          const text = String(value(field) ?? "").trim().toLowerCase();
+          if ( text ) weapon[key] = text;
+          else delete weapon[key];
+        }
+        if ( Object.keys(weapon).length ) attack.weapon = weapon;
+        else delete attack.weapon;
       }
       next.attack = attack;
       return;
@@ -437,6 +452,10 @@ const WRITERS = {
       }
       if ( (effect.type === "condition") && changed("conditionId") && row.conditionId ) effect.conditionId = row.conditionId;
       if ( changed("levels") ) effect.levels = Math.max(1, Math.trunc(number(row.levels) ?? 1));
+      if ( changed("concentration") ) {
+        if ( row.concentration ) effect.concentration = true;
+        else delete effect.concentration;
+      }
       if ( changed("onFailedSave") ) {
         if ( row.onFailedSave ) effect.saveOutcomePolicy = "failure";
         else delete effect.saveOutcomePolicy;
@@ -527,6 +546,89 @@ export function builderIssues(definition: Data): BuilderIssue[] {
 }
 
 export {ROW_SECTIONS};
+
+/** The area shapes the Builder offers. */
+export const AREA_SHAPES = Object.freeze(["radial", "emanation", "cone", "line", "cube", "wall"]);
+
+/**
+ * What the Builder can show and write, part by part: `true` for a part it keeps as stored or edits whole, an object
+ * for its own parts, `[spec]` for each row, and a function for the gaps (relative names; "" is the part itself).
+ * A part the spec does not name is a gap.
+ */
+type GapSpec = true | ((value: any, options: BuilderOptions) => string[]) | {[key: string]: GapSpec} | [GapSpec];
+const gapIf = (gap: boolean) => (gap ? [""] : []);
+const distance = {value: true, unit: true} as const;
+const formulaSpec = (value: unknown) => gapIf(formatFormula(value) === null);
+const dcSpec = (dc: unknown) => gapIf(dcText(dc) === null);
+const GAP_SPEC: GapSpec = {
+  schemaVersion: true, id: true, label: true, slug: true, description: true, img: true, metadata: true, policies: true,
+  category: (category: unknown) => gapIf(category !== "action"),
+  // Only "spell" and "magical" have a checkbox.
+  tags: (tags: unknown[]) => (Array.isArray(tags) ? tags : []).filter(tag => !["spell", "magical"].includes(String(tag))).map(tag => `.${tag}`),
+  costs: {allOf: [{capability: true, amount: true, unit: true}]},
+  range: {type: true, distance, normal: distance, long: distance},
+  targeting: {type: true, required: true, count: (count: unknown) => gapIf(typeof count !== "number")},
+  area: {shape: (shape: string) => gapIf(!AREA_SHAPES.includes(shape)), size: distance, width: distance,
+    persistence: {oncePerTurn: true, duration: {value: true, unit: true}, concentration: true,
+      triggers: (triggers: unknown[]) => gapIf(Array.isArray(triggers) && (triggers.length > 0))}},
+  attack: {type: true, statistic: true, defenseKey: true, proficient: true, ability: true, weapon: {category: true, base: true, mastery: true},
+    properties: (properties: unknown[]) => gapIf((properties ?? []).some(property => property !== "finesse"))},
+  save: {ability: true, dc: dcSpec},
+  check: {ability: true, skill: true, dc: dcSpec},
+  damage: [{id: true, expression: formulaSpec, damageType: true, provenance: true, saveOutcomePolicy: true}],
+  healing: [{id: true, expression: formulaSpec, healingType: true}],
+  effects: [{id: true, type: (type: string) => gapIf(!["condition", "effect"].includes(type)), conditionId: true, levels: true, concentration: true,
+    saveOutcomePolicy: (policy: unknown) => gapIf(!isFailureOnly(policy)), name: true, slug: true, img: true,
+    duration: {value: true, units: true, expiry: true},
+    ruleElements: (rules: unknown, {abilities}: BuilderOptions) => ruleGaps(rules, {abilities: abilities ?? null}).map(gap => `.${gap}`)}],
+  // The spell slot choice is checked whole, below.
+  configuration: true
+};
+
+function specGaps(value: unknown, spec: GapSpec, path: string, gaps: Set<string>, options: BuilderOptions) {
+  if ( (value == null) || (spec === true) ) return;
+  if ( typeof spec === "function" ) {
+    for ( const gap of spec(value, options) ) gaps.add(`${path}${gap}`);
+    return;
+  }
+  if ( Array.isArray(spec) ) {
+    for ( const entry of (Array.isArray(value) ? value : []) ) specGaps(entry, spec[0], path, gaps, options);
+    return;
+  }
+  if ( typeof value !== "object" ) {
+    gaps.add(path);
+    return;
+  }
+  for ( const [key, entry] of Object.entries(value as Data) ) {
+    const child = path ? `${path}.${key}` : key;
+    // Nothing stored (null, false, "", an empty list or object: the data model's defaults) is nothing to rebuild.
+    if ( (entry == null) || (entry === false) || (entry === "") || ((typeof entry === "object") && !Object.keys(entry).length) ) continue;
+    if ( !(key in spec) ) gaps.add(child);
+    else specGaps(entry, (spec as Record<string, GapSpec>)[key]!, child, gaps, options);
+  }
+}
+
+/**
+ * What of a stored definition the Builder (and its rule rows) cannot show or edit, as dotted part names
+ * ("costs.anyOf", "attack.weapon", "effects.ruleElements.ArmorClass"). Empty when a homebrewer could rebuild the
+ * whole Action in the Builder; the homebrew census (scripts/content/homebrew-census.mjs) counts these.
+ */
+export function builderGaps(definition: Data | null | undefined, options: BuilderOptions={}) {
+  const d: Data = definition ?? {};
+  const gaps = new Set<string>();
+  specGaps(d, GAP_SPEC, "", gaps, options);
+  const damage: Data[] = Array.isArray(d.damage) ? d.damage : [];
+  if ( d.save && (saveSuccessDamage(damage) === "mixed") ) gaps.add("damage.saveOutcomePolicy");
+  const slot = spellSlotChoice(d.configuration);
+  if ( (d.configuration?.length ?? 0) > (slot ? 1 : 0) ) gaps.add("configuration");
+  if ( slot ) {
+    for ( const effect of (slot.entry.effects ?? []) as Data[] ) if ( effect !== slot.scale ) gaps.add(`configuration.${effect?.type}`);
+    const scale = slot.scale;
+    const first = [damage[0]?.id].filter(Boolean).join();
+    if ( scale && (!scale.dice || (scale.perLevel != null) || ((scale.componentIds ?? []).join() !== first)) ) gaps.add("configuration.upcast");
+  }
+  return [...gaps].sort();
+}
 
 const ACTION = {allOf: [{capability: "action", amount: 1}]};
 const SPELL_DC = {valueExpression: {type: "add", terms: [{type: "constant", value: 8}, {type: "proficiency-bonus"}, {type: "spellcasting-modifier"}]}};

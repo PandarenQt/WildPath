@@ -273,8 +273,14 @@
       "NoPoints": "{name} has no Heroic Inspiration left."
     },
     "MASTERY": {
+      "cleave": "Cleave",
+      "graze": "Graze",
+      "nick": "Nick",
+      "push": "Push",
+      "sap": "Sap",
+      "slow": "Slow",
       "topple": "Topple",
-      "graze": "Graze"
+      "vex": "Vex"
     },
     "LEVELUP": {
       "Button": "Level up {name}",
@@ -483,6 +489,17 @@
       "Maximum": "Maximum",
       "RecoveryLabel": "Recovers",
       "OncePerTurn": "Once per turn",
+      "StartsAt": "Starts at",
+      "Full": "full",
+      "EmptiesAtTurnStart": "Empties at the start of each turn",
+      "RegainShort": "Regains on a short rest",
+      "RegainLong": "Regains on a long rest",
+      "Recharge": {
+        "Label": "Recharge",
+        "None": "No recharge",
+        "From": "Recharge {value}-6",
+        "Six": "Recharge 6"
+      },
       "Radius": "Radius (ft)",
       "AffectsLabel": "Affects",
       "Kind": {
@@ -523,6 +540,11 @@
       "While": {
         "Label": "While",
         "Always": "always",
+        "magical": "against magic",
+        "melee": "with melee attacks",
+        "ranged": "with ranged attacks",
+        "allyNearTarget": "an ally is within 5 feet of the target",
+        "inSunlight": "in sunlight",
         "Custom": "Has a condition set on the Advanced tab."
       },
       "Domain": {
@@ -572,14 +594,32 @@
         "NothingHappens": "it rolls, but deals no damage and applies no effect.",
         "NoRange": "it targets creatures but has no range."
       },
-      "Part": {
+      "Gap": {
         "configuration": "choices",
+        "configuration_upcast": "how it grows with a higher slot",
+        "configuration_scaleTargets": "more targets with a higher slot",
+        "configuration_scaleHealing": "more healing with a higher slot",
         "transform": "transformation",
         "summon": "summon",
+        "push": "push",
+        "moveArea": "moving its area",
         "controllerCosts": "controller cost",
         "stabilize": "stabilizing",
         "ruleElements": "rule elements",
-        "duration": "duration"
+        "duration": "duration",
+        "costs_anyOf": "a choice between costs",
+        "restores": "uses it gives other Actions",
+        "targeting_refinementPolicy": "choosing among targets",
+        "targeting_count": "a target count formula",
+        "area_height": "the area's height",
+        "area_persistence_triggers": "what the lasting area does",
+        "area_persistence_light": "the area's light",
+        "area_persistence_onObject": "casting it on an object",
+        "area_persistence_affects": "whom the lasting area affects",
+        "damage_expression": "a damage formula",
+        "healing_expression": "a healing formula",
+        "damage_saveOutcomePolicy": "different save results per damage row",
+        "effects_endsWhen": "when an effect ends early"
       },
       "Formula": {
         "Empty": "Enter a formula.",
@@ -615,7 +655,8 @@
       },
       "Basics": {
         "Legend": "What is it?",
-        "Spell": "It is a spell"
+        "Spell": "It is a spell",
+        "Magical": "It is magical"
       },
       "Costs": {
         "Legend": "What does it cost to use?",
@@ -675,6 +716,15 @@
         "spell": "A spell",
         "Finesse": "Finesse",
         "Proficient": "Proficient (adds the proficiency bonus)",
+        "WeaponCategory": "Weapon kind",
+        "WeaponBase": "Weapon",
+        "Weapon": {
+          "NotSet": "Not a weapon",
+          "simple": "Simple",
+          "martial": "Martial"
+        },
+        "Mastery": "Mastery",
+        "NoMastery": "None",
         "Ability": "Ability",
         "Automatic": "Automatic",
         "SaveAbility": "Save",

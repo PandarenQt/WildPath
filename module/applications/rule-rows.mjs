@@ -1,4 +1,4 @@
-import {MOVEMENT_MODES, RULE_KINDS, ruleDomains, rulesToRows} from "../helpers/rule-builder.mjs";
+import {MOVEMENT_MODES, RULE_KINDS, WHILE_PREDICATES, ruleDomains, rulesToRows} from "../helpers/rule-builder.mjs";
 
 /** The rule-rows partial, shared by the item sheet, an Action's custom effects and the effect sheet. */
 export const RULE_ROWS_TEMPLATE = "systems/wildpath/templates/item/rule-rows.hbs";
@@ -57,7 +57,8 @@ export function ruleRowsContext(ruleElements, {prefix, field=prefix, list, error
       isExtraDamage: row.kind === "extraDamage", isAura: row.kind === "aura",
       hasAppliesTo: ["bonus", "rollMode", "extraDamage"].includes(row.kind),
       appliesToChoices: domains[row.kind] ?? {},
-      errors: {amount: errorText[`${key}.amount`], maximum: errorText[`${key}.maximum`], formula: errorText[`${key}.formula`]},
+      errors: {amount: errorText[`${key}.amount`], maximum: errorText[`${key}.maximum`], formula: errorText[`${key}.formula`],
+        regainShort: errorText[`${key}.regainShort`], regainLong: errorText[`${key}.regainLong`]},
       rules: row.kind === "aura" ? view(row.rules, `${name}.rules`, `${key}.rules`, at) : []
     };
   });
@@ -72,8 +73,12 @@ export function ruleRowsContext(ruleElements, {prefix, field=prefix, list, error
       movementModes: options(MOVEMENT_MODES, "WILDPATH.RULES.Movement."),
       recovery: options(CONFIG.WILDPATH.RESOURCE_RECOVERY, "WILDPATH.RULES.Recovery."),
       affects: options(["allies", "enemies", "all"], "WILDPATH.RULES.Affects."),
-      conditions: {"": "WILDPATH.RULES.While.Always", ...Object.fromEntries(Object.entries(CONFIG.WILDPATH.CONDITIONS)
-        .map(([key, condition]) => [key, condition.name ?? key]))}
+      conditions: {"": "WILDPATH.RULES.While.Always",
+        ...Object.fromEntries(Object.keys(WHILE_PREDICATES).map(key => [key, `WILDPATH.RULES.While.${key.slice(1)}`])),
+        ...Object.fromEntries(Object.entries(CONFIG.WILDPATH.CONDITIONS).map(([key, condition]) => [key, condition.name ?? key]))},
+      // In this order ("No recharge" first): an object would list its number keys first.
+      recharge: [{value: "", label: game.i18n.localize("WILDPATH.RULES.Recharge.None")}, ...[6, 5, 4, 3, 2].map(value => ({value,
+        label: value === 6 ? game.i18n.localize("WILDPATH.RULES.Recharge.Six") : game.i18n.format("WILDPATH.RULES.Recharge.From", {value})}))]
     }
   };
 }
