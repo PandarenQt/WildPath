@@ -83,7 +83,7 @@ ActionDefinition
 |- effects[]
 |- duration?
 |- configuration[]
-|- transform? / summon? / push? / stabilize   (applied when the Action completes; push: areas.md)
+|- transform? / summon? / push? / moveArea? / stabilize   (applied when the Action completes; push, moveArea: areas.md)
 |- ruleElements[]
 |- policies
 |- metadata

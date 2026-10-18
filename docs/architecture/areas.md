@@ -260,6 +260,22 @@ Live (two browsers, 14.369): Player1 cast the SRD Daylight beside a Kobold Warri
 appeared at the chosen point. The Kobold's Dagger showed 56% with Disadvantage. When the Region was deleted, the light
 went with it, and the Dagger was back to 75%.
 
+### Moving a lasting area (2026-10-18)
+
+- **By its Action.** An Action with `moveArea: {of, distance}` moves its creature's lasting area left by the Action
+  `of` (its definition id), as Moonbeam's Magic action does.
+  - The player places the new spot with the area's own shape and size. The authority refuses one more than `distance`
+    feet from the old center, an attached area (it moves with its creature), or no area at all.
+  - After the Action, the Region's grid cells and `flags.wildpath.area.fields` become the new footprint.
+- **By the GM.** Dragging or redrawing a lasting area's Region (its grid shape changes) rebuilds its fields from the
+  new cells, on the active GM's client.
+- **Either way:** each creature newly inside is entered ("when the Cylinder moves into its space"), once per turn.
+  The triggers go with the area unchanged, so an upcast Moonbeam keeps its 3d10.
+
+Live (two browsers, 14.369): QA Caster's 3rd-level Moonbeam, moved by "Moonbeam (Move)" onto QA Wizard and QA
+Fighter: each saved against 3d10 (the Fighter failed and took 14). A GM update of the Region's cells moved it onto
+three more creatures, and each saved against 3d10.
+
 ## Forced Movement (2026-10-15)
 
 An Action with `push: {distance, toward?, maxSize?, on?}` moves creatures when it completes

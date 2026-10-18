@@ -2,6 +2,7 @@ import {buildFoundryActionUseIntent} from "../resolvers/foundry-multiplayer-runt
 import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
 import {placeFoundryArea, placeFoundrySummons} from "../applications/area-placement.mjs";
 import {areaClickCount} from "../adapters/foundry-v14-area-placement.mjs";
+import {ownArea} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {promptActionConfiguration} from "../adapters/foundry-v14-prompt-adapter.mjs";
 import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-adapter.mjs";
 import {isUnprepared} from "../helpers/spellcasting.mjs";
@@ -106,6 +107,21 @@ export default class WildPathItem extends Item {
         name: this.name});
       if ( choices === null ) return false;
       if ( choices ) built.intent.configuration = {choices};
+    }
+    // Moving its lasting area (Moonbeam's Magic action): the new spot is placed with the area's own shape and size.
+    const moving = definition.ok ? definition.definition?.moveArea : null;
+    if ( moving ) {
+      const sourceToken = this.actor.token ?? this.actor.getActiveTokens?.(false, true)?.[0] ?? null;
+      const found = sourceToken?.parent ? ownArea(sourceToken.parent, {of: moving.of, actorRef: this.actor.uuid}) : null;
+      if ( !found || !globalThis.canvas?.ready ) {
+        globalThis.ui?.notifications?.warn?.(globalThis.game.i18n.localize("WILDPATH.AREA.NothingToMove"));
+        return false;
+      }
+      const area = await placeFoundryArea({sourceToken, definition: {targeting: {type: "area"},
+        area: {shape: found.flag.shape, size: {value: found.flag.size, unit: "ft"}}}});
+      if ( !area ) return false;
+      built.intent.area = area;
+      built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};
     }
     // An area is placed on the canvas first; the authority derives its fields and targets from these clicks.
     if ( definition.ok && (definition.definition?.targeting?.type === "area") ) {

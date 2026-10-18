@@ -167,6 +167,8 @@ export function actionDefinitionField() {
     summon: new ObjectField({nullable: true, initial: null}),
     // Forced movement on a hit or a failed save (areas.md): {distance, toward?, maxSize?, on?}.
     push: new ObjectField({nullable: true, initial: null}),
+    // Moves its creature's lasting area made by another Action (Moonbeam's Magic action): {of, distance}.
+    moveArea: new ObjectField({nullable: true, initial: null}),
     // Makes each dying target stable when the Action completes (dying-and-death.md); a check gates it like an effect.
     stabilize: new BooleanField({required: true, initial: false}),
     // Pools of the acting creature the Action refills when used (Multiattack's attacks): [{resourceId, amount}].

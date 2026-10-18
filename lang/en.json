@@ -162,6 +162,7 @@
       "PlaceRadial": "Click where the area is centered. Press Esc to cancel.",
       "PlaceFromEdge": "Click a corner on your Token's edge, then click the direction. Press Esc to cancel.",
       "NoToken": "Place your Token on the scene to use this area.",
+      "NothingToMove": "There is no area of yours on this scene to move.",
       "NoGrid": "Areas need a square or hex grid.",
       "NoFootprint": "Your Token's position could not be read.",
       "NeedOrigin": "Choose where the area starts.",
