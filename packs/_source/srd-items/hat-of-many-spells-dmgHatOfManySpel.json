@@ -28,8 +28,6 @@
       "conversion": {
         "notes": [
           "\"Unknown Spell Check\" is passive or triggered: not automated",
-          "effect: \"Enlarged\" change system.rolls.damage.mwak.bonus (add) not converted",
-          "effect: \"Enlarged\" change system.rolls.damage.rwak.bonus (add) not converted",
           "effect: \"Enlarged\" change system.traits.size (add) not converted",
           "effect: \"Reduced\" change system.rolls.damage.mwak.bonus (subtract) not converted",
           "effect: \"Reduced\" change system.rolls.damage.rwak.bonus (subtract) not converted",

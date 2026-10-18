@@ -1451,6 +1451,19 @@ export function changeValue(value) {
   return rest ? {type: "subtract", left: {type: "constant", value: 0}, right: rest} : null;
 }
 
+/**
+ * A damage bonus with dice (`1d4[radiant]`, `1d4`) as ExtraDamage data: `{expression, damageType?}`; null for a negative
+ * one (Reduce's `- 1d4`) or one that does not parse.
+ */
+export function extraDamageOf(value) {
+  const text = String(value ?? "").trim();
+  if ( text.startsWith("-") ) return null;
+  const typed = /\[(\w+)\]/u.exec(text)?.[1]?.toLowerCase();
+  const expression = formulaExpression(text.replace(/\[\w+\]/gu, "").replace(/^\+\s*/u, ""));
+  if ( !expression || (expression.type === "constant") ) return null;
+  return {expression, ...(DAMAGE_TYPES.includes(typed) ? {damageType: typed} : {})};
+}
+
 /** An effect's dnd5e duration as a WildPath custom effect's V14 duration, or null when it has none. */
 function effectDuration(duration) {
   const value = Number(duration?.value);
@@ -1490,6 +1503,11 @@ export function effectRules(effect, notes=[]) {
       } else modifier([`attack.${ATTACK_KEYS[match[1]][0]}`], value, {tagsAny: [ATTACK_KEYS[match[1]][1]]});
     } else if ( (match = /^system\.bonuses\.(mwak|rwak|msak|rsak)\.damage$/.exec(key)) && (type === "add") && (value?.type === "constant") ) {
       modifier([`damage.${ATTACK_KEYS[match[1]][0]}`], value, {tagsAny: [ATTACK_KEYS[match[1]][1]]});
+    } else if ( (match = /^system\.(?:bonuses\.(mwak|rwak|msak|rsak)\.damage|rolls\.damage\.(mwak|rwak|msak|rsak)\.bonus)$/.exec(key))
+      && (type === "add") && extraDamageOf(change.value) ) {
+      // Dice on each hit (Divine Favor's 1d4 Radiant, Enlarge's 1d4): extra damage, of its own type or the attack's.
+      const kind = ATTACK_KEYS[match[1] ?? match[2]];
+      rule("ExtraDamage", {domains: [`damage.${kind[0]}`], ...extraDamageOf(change.value)}, {tagsAny: [kind[1]]});
     } else if ( (match = /^system\.bonuses\.abilities\.(save|check)$/.exec(key)) && (type === "add") && value ) {
       modifier([match[1]], value);
     } else if ( (match = /^system\.abilities\.(\w+)\.bonuses\.(save|check)$/.exec(key)) && ABILITY_MAP[match[1]] && (type === "add") && value ) {

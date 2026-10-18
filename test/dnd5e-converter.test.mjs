@@ -679,3 +679,13 @@ test("2024 Speed multipliers: Haste doubles, Slow halves the walking Speed, and 
   assert.deepEqual(effectRules(multiplier(0, "override"), notes).map(rule => [rule.type, rule.data.maximum]), [["ResourceCap", 0]]);
   assert.deepEqual(notes, []);
 });
+
+test("a damage bonus with dice is extra damage on each hit: its own type, or the attack's", async () => {
+  const {effectRules} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const favor = effectRules({name: "Divine Favor", system: {changes: [{key: "system.bonuses.mwak.damage", value: "1d4[radiant]", type: "add"}]}});
+  assert.deepEqual(favor.map(rule => [rule.type, rule.data.domains, rule.data.damageType, rule.predicate]),
+    [["ExtraDamage", ["damage.weapon"], "radiant", {tagsAny: ["melee"]}]]);
+  const notes = [];
+  const reduced = effectRules({name: "Reduced", system: {changes: [{key: "system.bonuses.rwak.damage", value: "- 1d4", type: "add"}]}}, notes);
+  assert.deepEqual([reduced.length, notes.length], [0, 1], "a penalty in dice is left for the GM");
+});

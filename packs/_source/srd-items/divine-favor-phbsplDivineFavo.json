@@ -21,6 +21,69 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Divine Favor",
+          "img": "icons/magic/holy/projectiles-blades-salvo-yellow.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "divine-favor-1",
+              "type": "ExtraDamage",
+              "predicate": {
+                "tagsAny": [
+                  "melee"
+                ]
+              },
+              "data": {
+                "domains": [
+                  "damage.weapon"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                },
+                "damageType": "radiant"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "divine-favor-2",
+              "type": "ExtraDamage",
+              "predicate": {
+                "tagsAny": [
+                  "ranged"
+                ]
+              },
+              "data": {
+                "domains": [
+                  "damage.weapon"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                },
+                "damageType": "radiant"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -115,12 +178,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Divine Favor\" change system.bonuses.mwak.damage (add) not converted",
-          "effect: \"Divine Favor\" change system.bonuses.rwak.damage (add) not converted",
-          "effect: \"Divine Favor\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

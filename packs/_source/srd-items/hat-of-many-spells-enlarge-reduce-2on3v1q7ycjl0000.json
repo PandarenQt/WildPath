@@ -63,6 +63,46 @@
             {
               "schemaVersion": 1,
               "id": "enlarged-1",
+              "type": "ExtraDamage",
+              "predicate": {
+                "tagsAny": [
+                  "melee"
+                ]
+              },
+              "data": {
+                "domains": [
+                  "damage.weapon"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "enlarged-2",
+              "type": "ExtraDamage",
+              "predicate": {
+                "tagsAny": [
+                  "ranged"
+                ]
+              },
+              "data": {
+                "domains": [
+                  "damage.weapon"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "enlarged-3",
               "type": "RollMode",
               "data": {
                 "domains": [
@@ -73,7 +113,7 @@
             },
             {
               "schemaVersion": 1,
-              "id": "enlarged-2",
+              "id": "enlarged-4",
               "type": "RollMode",
               "data": {
                 "domains": [
@@ -147,8 +187,6 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Enlarged\" change system.rolls.damage.mwak.bonus (add) not converted",
-          "effect: \"Enlarged\" change system.rolls.damage.rwak.bonus (add) not converted",
           "effect: \"Enlarged\" change system.traits.size (add) not converted",
           "effect: \"Reduced\" change system.rolls.damage.mwak.bonus (subtract) not converted",
           "effect: \"Reduced\" change system.rolls.damage.rwak.bonus (subtract) not converted",
