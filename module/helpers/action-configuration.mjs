@@ -1078,7 +1078,9 @@ function applyReplaceDamageTypeEffect({definition, effect, selection, selections
     )]
   };
 
-  const matches = matchingDamageComponents(definition.damage, effect);
+  // A lasting area's repeat (Spirit Guardians' turn damage) deals the chosen type too.
+  const matches = [...matchingDamageComponents(definition.damage, effect),
+    ...(definition.area?.persistence?.triggers ?? []).flatMap(trigger => matchingDamageComponents(trigger?.action?.damage ?? [], effect))];
   const trace = [];
   for ( const component of matches ) {
     const before = component.damageType;

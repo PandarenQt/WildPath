@@ -55,6 +55,41 @@
           }
         }
       },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "druid"
+            },
+            "rows": {
+              "3": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "10": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "14": {
+                "type": "dice",
+                "number": 4,
+                "faces": 6
+              }
+            }
+          },
+          "damageType": "necrotic",
+          "provenance": "additional",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
       "label": "Land's Aid (save)"
     },
     "ruleElements": []
@@ -72,9 +107,7 @@
       },
       "conversion": {
         "notes": [
-          "consumption: itemUses 1 not converted",
-          "damage 1: custom formula \"@scale.land.lands-aid\" not converted",
-          "rolled (save); what it does is by hand"
+          "consumption: itemUses 1 not converted"
         ]
       }
     }

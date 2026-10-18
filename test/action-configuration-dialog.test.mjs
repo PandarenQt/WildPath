@@ -28,3 +28,15 @@ test("the preview shows what a choice makes: the slot it spends and the scaled d
   const first = renderConfigurationPreview({definition, actorSystem, choices: {"casting-resource": {resourceId: "spell-slot.1"}}});
   assert.match(first, /2d6 fire/u);
 });
+
+test("the preview shows the chosen damage type and a table's dice at the creature's own level (a Breath Weapon's 2d10 fire)", () => {
+  const breath = {schemaVersion: 1, id: "action:breath", label: "Breath Weapon", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "area"}, area: {shape: "cone", size: {value: 15, unit: "ft"}}, save: {ability: "agility", dc: {value: 13}},
+    damage: [{id: "damage-1", damageType: "acid", expression: {type: "table", key: {type: "character-level"},
+      rows: {0: {type: "dice", number: 1, faces: 10}, 5: {type: "dice", number: 2, faces: 10}}}}],
+    configuration: [{id: "damage-type-1", type: "damage-type", label: "Damage type", required: true, allowedDamageTypes: ["acid", "fire"],
+      effects: [{type: "replaceDamageType", componentIds: ["damage-1"], damageTypeChoiceId: "damage-type-1"}]}]};
+  const html = renderConfigurationPreview({definition: breath, actorSystem: {...actorSystem, details: {level: 6}},
+    choices: {"damage-type-1": "fire"}});
+  assert.match(html, /2d10 fire/u);
+});

@@ -21,7 +21,8 @@ const onlyIndex = rest.indexOf("--only");
 const only = onlyIndex >= 0 ? new Set(rest[onlyIndex + 1].split(",").map(name => name.trim()).filter(Boolean)) : null;
 
 const ITEM_PACKS = ["equipment24", "spells24", "classes24", "feats24", "origins24"];
-const scales = scaleTables(readPack(from, "classes24").filter(document => document.type === "class"));
+// Classes', subclasses', features' and species' scale values (Sneak Attack, Land's Aid, Divine Spark, Breath Weapon).
+const scales = scaleTables(["classes24", "origins24", "feats24"].flatMap(pack => readPack(from, pack)));
 const names = nameIndex([...ITEM_PACKS, "actors24", "content24", "tables24"].flatMap(pack => readPack(from, pack)));
 const wanted = document => isSrd2024(document) && (!only || only.has(document.name));
 // The spells a creature's Spellcasting casts, by id.

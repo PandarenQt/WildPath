@@ -54,6 +54,64 @@
           }
         }
       },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": {
+                  "type": "table",
+                  "key": {
+                    "type": "class-level",
+                    "class": "cleric"
+                  },
+                  "rows": {
+                    "2": 1,
+                    "7": 2,
+                    "13": 3,
+                    "18": 4
+                  }
+                },
+                "faces": 8
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "wits"
+              }
+            ]
+          },
+          "damageType": "necrotic",
+          "provenance": "additional",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "configuration": [
+        {
+          "id": "damage-type-1",
+          "type": "damage-type",
+          "label": "Damage type",
+          "required": true,
+          "allowedDamageTypes": [
+            "necrotic",
+            "radiant"
+          ],
+          "effects": [
+            {
+              "type": "replaceDamageType",
+              "componentIds": [
+                "damage-1"
+              ],
+              "damageTypeChoiceId": "damage-type-1"
+            }
+          ]
+        }
+      ],
       "label": "Channel Divinity (Divine Spark: Save)"
     },
     "ruleElements": [
@@ -96,10 +154,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "damage 1: custom formula \"(@scale.channel-divinity-cleric.spark)d8 + @abilities.wis.mod\" not converted",
-          "rolled (save); what it does is by hand"
-        ]
+        "notes": []
       }
     }
   }

@@ -75,6 +75,27 @@
           "provenance": "additional"
         }
       ],
+      "configuration": [
+        {
+          "id": "damage-type-1",
+          "type": "damage-type",
+          "label": "Damage type",
+          "required": true,
+          "allowedDamageTypes": [
+            "bludgeoning",
+            "force"
+          ],
+          "effects": [
+            {
+              "type": "replaceDamageType",
+              "componentIds": [
+                "damage-1"
+              ],
+              "damageTypeChoiceId": "damage-type-1"
+            }
+          ]
+        }
+      ],
       "label": "Empowered Strikes"
     },
     "ruleElements": []
@@ -91,9 +112,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "damage 1: a choice of bludgeoning/force uses bludgeoning"
-        ]
+        "notes": []
       }
     }
   }

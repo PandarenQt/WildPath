@@ -215,6 +215,30 @@
               "provenance": "additional"
             }
           ],
+          "configuration": [
+            {
+              "id": "damage-type-1",
+              "type": "damage-type",
+              "label": "Damage type",
+              "required": true,
+              "allowedDamageTypes": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "poison"
+              ],
+              "effects": [
+                {
+                  "type": "replaceDamageType",
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "damageTypeChoiceId": "damage-type-1"
+                }
+              ]
+            }
+          ],
           "label": "Claw"
         },
         "ruleElements": []
@@ -231,9 +255,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "damage 1: a choice of acid/cold/fire/lightning/poison uses acid"
-            ]
+            "notes": []
           }
         }
       }
@@ -297,6 +319,30 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "damage-type-1",
+              "type": "damage-type",
+              "label": "Damage type",
+              "required": true,
+              "allowedDamageTypes": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "poison"
+              ],
+              "effects": [
+                {
+                  "type": "replaceDamageType",
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "damageTypeChoiceId": "damage-type-1"
+                }
+              ]
+            }
+          ],
           "label": "Dragon's Breath"
         },
         "ruleElements": [
@@ -329,9 +375,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "damage 1: a choice of acid/cold/fire/lightning/poison uses acid"
-            ]
+            "notes": []
           }
         }
       }
@@ -394,8 +438,6 @@
       },
       "conversion": {
         "notes": [
-          "Claw: damage 1: a choice of acid/cold/fire/lightning/poison uses acid",
-          "Dragon's Breath: damage 1: a choice of acid/cold/fire/lightning/poison uses acid",
           "Leap: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

@@ -73,6 +73,30 @@
       "metadata": {
         "followUp": true
       },
+      "configuration": [
+        {
+          "id": "damage-type-1",
+          "type": "damage-type",
+          "label": "Damage type",
+          "required": true,
+          "allowedDamageTypes": [
+            "acid",
+            "cold",
+            "fire",
+            "lightning",
+            "poison"
+          ],
+          "effects": [
+            {
+              "type": "replaceDamageType",
+              "componentIds": [
+                "damage-1"
+              ],
+              "damageTypeChoiceId": "damage-type-1"
+            }
+          ]
+        }
+      ],
       "label": "Dragon's Breath (Exhale)"
     },
     "ruleElements": []
@@ -90,7 +114,6 @@
       },
       "conversion": {
         "notes": [
-          "damage 1: a choice of acid/cold/fire/lightning/poison uses acid",
           "concentration: nothing it sustains was converted"
         ]
       }

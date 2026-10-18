@@ -140,6 +140,29 @@
               }
             }
           ]
+        },
+        {
+          "id": "damage-type-1",
+          "type": "damage-type",
+          "label": "Damage type",
+          "required": true,
+          "allowedDamageTypes": [
+            "acid",
+            "cold",
+            "fire",
+            "lightning",
+            "poison",
+            "thunder"
+          ],
+          "effects": [
+            {
+              "type": "replaceDamageType",
+              "componentIds": [
+                "damage-1"
+              ],
+              "damageTypeChoiceId": "damage-type-1"
+            }
+          ]
         }
       ],
       "label": "Chromatic Orb"
@@ -158,9 +181,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "damage 1: a choice of acid/cold/fire/lightning/poison/thunder uses acid"
-        ]
+        "notes": []
       }
     }
   }

@@ -2,6 +2,7 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {checkOf, convertActor, convertItem, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, scaleTables} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
+import * as valueExpressions from "../module/helpers/value-expressions.mjs";
 
 // Synthetic documents in dnd5e 6.x's shape (mechanics only), not copies of its compendium.
 const SRD = {license: "CC-BY-4.0", rules: "2024", book: ""};
@@ -803,5 +804,41 @@ test("an activity's several dnd5e effects are a choice of one: Blindness or Deaf
   const choice = configuration.find(entry => entry.id === "effect-choice");
   assert.deepEqual([choice.label, choice.options.map(option => option.label)], ["Effect", ["Blindness", "Deafness"]]);
   assert.deepEqual(choice.effects[0].keep, {"effect-option-1": ["effect-1"], "effect-option-2": ["effect-2"]});
+  assert.equal(validateActionDefinition(item.system.definition).ok, true);
+});
+
+test("scale values of a species, a subclass and a class feature follow the right level (Breath Weapon, Land's Aid, Divine Spark)", () => {
+  const scale = (identifier, kind, rows) => ({x: {type: "ScaleValue", title: identifier, configuration: {identifier, type: kind, scale: rows}}});
+  const scales = scaleTables([
+    {type: "race", name: "Dragonborn", system: {identifier: "dragonborn", advancement: scale("breath", "dice",
+      {0: {number: 1, faces: 10}, 5: {number: 2, faces: 10}})}},
+    {type: "subclass", name: "Circle of the Land", system: {identifier: "land", classIdentifier: "druid", advancement: scale("lands-aid", "dice",
+      {3: {number: 2, faces: 6}})}},
+    {type: "feat", name: "Channel Divinity", system: {identifier: "channel-divinity-cleric", requirements: "Cleric",
+      advancement: scale("spark", "number", {2: {value: 1}, 7: {value: 2}})}}]);
+  assert.deepEqual(formulaExpression("@scale.dragonborn.breath", {scales}).key, {type: "character-level"});
+  assert.deepEqual(formulaExpression("@scale.dragonborn.breath", {scales}).rows[5], {type: "dice", number: 2, faces: 10});
+  assert.deepEqual(formulaExpression("@scale.land.lands-aid", {scales}).key, {type: "class-level", class: "druid"});
+  const spark = formulaExpression("(@scale.channel-divinity-cleric.spark)d8 + @abilities.wis.mod", {scales});
+  assert.notEqual(spark, null, "Divine Spark's dice count by Cleric level");
+  assert.deepEqual(JSON.stringify(spark).includes("\"class\":\"cleric\""), true);
+  assert.deepEqual(Object.keys(scales["dragonborn.breath"]), ["0", "5"], "the level key is not a row");
+  const {selectTableRows, evaluateValueExpression} = valueExpressions;
+  const atCleric = level => ({classLevels: {cleric: level}, actorSystem: {abilities: {wits: {value: 14}}}});
+  assert.deepEqual(selectTableRows(spark, atCleric(7)).terms[0], {type: "dice", number: 2, faces: 8}, "2d8 at Cleric 7");
+  assert.equal(evaluateValueExpression({...spark.terms[0], evaluation: "average"}, atCleric(2)).value, 4.5, "1d8 at Cleric 2");
+});
+
+test("a damage part of several types is a choice when used (Breath Weapon's acid, cold, fire, lightning or poison)", () => {
+  const breath = {_id: "testBreath000001", name: "Breath Weapon", type: "feat", img: "icons/svg/fire.svg", effects: [],
+    system: {source: SRD, identifier: "breath-weapon", activation: {type: "action"}, range: {}, target: {affects: {}, template: {}},
+      activities: {a: activity("save", {save: {ability: ["dex"], dc: {formula: "13"}},
+        damage: {onSave: "half", parts: [{number: 1, denomination: 10, types: ["acid", "cold", "fire"]}]},
+        target: {override: false, template: {type: "cone", size: "15", units: "ft"}, affects: {}}})}}};
+  const [item] = convertItem(breath).items;
+  const choice = item.system.definition.configuration.find(entry => entry.id === "damage-type-1");
+  assert.deepEqual([choice.type, choice.allowedDamageTypes, choice.effects[0]], ["damage-type", ["acid", "cold", "fire"],
+    {type: "replaceDamageType", componentIds: ["damage-1"], damageTypeChoiceId: "damage-type-1"}]);
+  assert.equal(item.flags.wildpath.conversion.notes.some(note => /a choice of/.test(note)), false);
   assert.equal(validateActionDefinition(item.system.definition).ok, true);
 });

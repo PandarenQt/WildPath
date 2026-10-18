@@ -942,7 +942,13 @@ function validateExpressionTerms(terms) {
 }
 
 function validateDiceExpressionShape(expression) {
-  const number = finiteNumber(expression.number ?? expression.count ?? 1);
+  // A count worked out when rolled (Divine Spark's dice by Cleric level, a summon's by cast level) is an expression.
+  const counted = expression.number ?? expression.count;
+  if ( counted && (typeof counted === "object") ) {
+    const shape = validateExpressionShape(counted);
+    if ( !shape.ok ) return shape;
+  }
+  const number = (counted && (typeof counted === "object")) ? 1 : finiteNumber(counted ?? 1);
   const faces = finiteNumber(expression.faces ?? expression.sides);
   if ( number == null || faces == null || number < 0 || faces <= 0 ) {
     return {ok: false, reason: "Dice ValueExpression requires non-negative dice count and positive faces."};
