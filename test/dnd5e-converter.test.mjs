@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {checkOf, convertActor, convertItem, describe, formulaExpression, houseText, isSrd2024, scaleTables} from "../scripts/content/dnd5e-to-wildpath.mjs";
+import {checkOf, convertActor, convertItem, describe, formulaExpression, houseText, lastingArea, isSrd2024, scaleTables} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 
 // Synthetic documents in dnd5e 6.x's shape (mechanics only), not copies of its compendium.
@@ -688,4 +688,37 @@ test("a damage bonus with dice is extra damage on each hit: its own type, or the
   const notes = [];
   const reduced = effectRules({name: "Reduced", system: {changes: [{key: "system.bonuses.rwak.damage", value: "- 1d4", type: "add"}]}}, notes);
   assert.deepEqual([reduced.length, notes.length], [0, 1], "a penalty in dice is left for the GM");
+});
+
+test("spell effects dnd5e leaves empty take their 2024 rules by hand: Blur, even with no effect named", () => {
+  const blur = {_id: "testBlur00000001", name: "Blur", type: "spell", img: "systems/dnd5e/icons/spell.webp",
+    effects: [{_id: "blurred", name: "Blurred", transfer: false, system: {changes: []}, duration: {value: 60, units: "seconds"}}],
+    system: {source: SRD, identifier: "blur", level: 2, preparation: {mode: "prepared"}, properties: ["vocal", "concentration"],
+      activation: {type: "action"}, range: {units: "self"}, target: {affects: {type: "self"}, template: {}},
+      activities: {a: activity("utility", {effects: []})}}};
+  const [item] = convertItem(blur).items;
+  const [effect] = item.system.definition.effects;
+  assert.deepEqual([effect.name, effect.concentration, effect.ruleElements[0].data], ["Blurred", true, {domains: ["attacked"], mode: "disadvantage"}]);
+  assert.deepEqual(item.flags.wildpath.conversion.notes, []);
+});
+
+test("an area that keeps acting by its 2024 wording becomes a lasting area repeating its save on a creature", () => {
+  const definition = {id: "action:moonbeam", label: "Moonbeam", targeting: {type: "area"}, area: {shape: "radial", size: {value: 5, unit: "ft"}},
+    save: {ability: "fortitude", dc: {value: 15}}, damage: [{id: "damage-1", expression: {type: "dice", number: 2, faces: 10},
+      damageType: "radiant", saveOutcomePolicy: {success: "half", failure: "full"}}],
+    effects: [{id: "effect-1", type: "condition", conditionId: "blinded", concentration: true}]};
+  const spell = (text, duration={value: 1, units: "minute"}) => ({document: {name: "Moonbeam", system: {description: {value: text}}},
+    system: {duration, properties: ["concentration"]}, definition});
+  const lasting = lastingArea(spell("<p>A creature also makes this save when it enters the spell's area or ends its turn there.</p>"));
+  const {duration, concentration, triggers: [trigger], affects} = lasting.area.persistence;
+  assert.deepEqual([duration, concentration, trigger.on, affects], [{unit: "round", value: 10}, true, ["area.entered", "turn.ended"], undefined]);
+  assert.deepEqual([trigger.action.save, trigger.action.damage.length, trigger.action.effects[0].concentration, trigger.action.costs],
+    [definition.save, 1, undefined, {allOf: []}], "the same save and damage; the area holds the concentration");
+  assert.equal(validateActionDefinition(lasting).ok, true);
+  const guardians = lastingArea(spell("Whenever an enemy you can see enters the Emanation or ends its turn there, it makes a save."));
+  assert.equal(guardians.area.persistence.affects, "enemies");
+  assert.deepEqual(lastingArea(spell("The first time a creature enters the webs on a turn or starts its turn there, it saves."))
+    .area.persistence.triggers[0].on, ["area.entered", "turn.started"]);
+  assert.equal(lastingArea(spell("It burns when a creature enters it or ends its turn there.", {})), null, "no duration (Oil)");
+  assert.equal(lastingArea(spell("Each creature in the area makes a save.")), null, "no repeating wording");
 });

@@ -314,6 +314,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated") && !note.startsWith("concentration: nothing")),
         ...shedding.notes);
     }
+    // An area that keeps acting while it lasts (Moonbeam, Web, Cloudkill): a lasting area whose trigger repeats it.
+    const lasting = shedding ? null : lastingArea({document, system, definition});
+    if ( lasting ) {
+      definition = lasting;
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("concentration: nothing")));
+    }
     const push = forcedMovement(document, definition);
     if ( push ) definition = {...definition, push};
     const suffix = usable.length > 1 ? ` (${label})` : "";
@@ -656,6 +662,34 @@ function sheddingArea({document, activity, system, definition}) {
     notes: []};
 }
 
+/**
+ * An area that keeps acting while it lasts, by its 2024 wording ("A creature also makes this save when it enters the
+ * spell's area or ends its turn there": Moonbeam, Web, Cloudkill, Wall of Fire): a lasting area whose trigger repeats
+ * the save, damage and effects on a creature that enters it, or starts or ends its turn there. The engine affects a
+ * creature once per turn. Null for an area without that wording, or with nothing to repeat.
+ * shortcut: a trigger deals the base level's damage; an upcast's extra dice apply only when it is cast.
+ */
+export function lastingArea({document, system, definition}) {
+  if ( (definition.targeting?.type !== "area") || !definition.area || definition.area.persistence ) return null;
+  if ( !(definition.damage?.length || definition.effects?.length) ) return null;
+  const wording = /[^.]*\b(?:enters?|moves? into)\b[^.]*?\b(starts|ends) (?:its|their) turn\b/iu.exec(plainText(document));
+  const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
+  // Something with no duration of its own (a flask of Oil) is not a lasting area.
+  if ( !wording || !rounds ) return null;
+  // The repeat is the same save and outcome on one creature; the area itself holds the concentration.
+  const action = {schemaVersion: 1, id: `${definition.id}:lasting`, label: definition.label ?? document.name, costs: {allOf: []},
+    ...(definition.tags ? {tags: definition.tags} : {}), ...(definition.save ? {save: definition.save} : {}),
+    ...(definition.damage?.length ? {damage: definition.damage} : {}),
+    ...(definition.effects?.length ? {effects: definition.effects.map(({concentration: _held, ...effect}) => effect)} : {})};
+  return {...definition, area: {...definition.area, persistence: {duration: {unit: "round", value: rounds},
+    concentration: (system.properties ?? []).includes("concentration"),
+    // "Whenever an enemy you can see enters", or "you can designate creatures to be unaffected" (Spirit Guardians): its
+    // caster's side is spared. shortcut: the designated creatures are always the caster's allies.
+    ...((/\benem(?:y|ies)\b/iu.test(wording[0]) || /designate creatures to be unaffected/iu.test(plainText(document)))
+      ? {affects: "enemies"} : {}),
+    triggers: [{on: ["area.entered", wording[1].toLowerCase() === "starts" ? "turn.started" : "turn.ended"], action}]}}};
+}
+
 /** A feature's description as plain text, one space between words. */
 const plainText = document => String(document.system?.description?.value ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
@@ -705,6 +739,24 @@ const SNEAK_ATTACK = Object.freeze({all: [
   {tagsAny: ["finesse", "ranged"]},
   {any: [{equals: {path: "attack.rollMode", value: "advantage"}}, {all: [{equals: {path: "attack.allyNearTarget", value: true}},
     {not: {equals: {path: "attack.rollMode", value: "disadvantage"}}}]}]}]});
+
+/**
+ * Spell effects dnd5e leaves without changes, given their 2024 rules by hand (by the spell's identifier). Only those
+ * the engine expresses exactly; the rest stay the GM's.
+ */
+const EFFECTS_BY_HAND = Object.freeze({
+  // "Any attack roll against an affected creature or object has Advantage if the attacker can see it."
+  "faerie-fire": {ruleElements: [{schemaVersion: 1, id: "faerie-fire", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}}]},
+  // "Any creature has Disadvantage on attack rolls against you."
+  "blur": {ruleElements: [{schemaVersion: 1, id: "blur", type: "RollMode", data: {domains: ["attacked"], mode: "disadvantage"}}]},
+  // "It has Disadvantage on the next attack roll it makes before the end of its next turn."
+  // shortcut: it lasts until the end of the caster's next turn, not the target's; its next attack ends it either way.
+  "vicious-mockery": {endsWhen: "attacks", duration: {value: 1, units: "rounds", expiry: "turnEnd"},
+    ruleElements: [{schemaVersion: 1, id: "vicious-mockery", type: "RollMode", data: {domains: ["attack"], mode: "disadvantage"}}]}
+});
+
+/** A dnd5e document's identifier, else its name as a slug. */
+const identifierOf = document => document?.system?.identifier || slugify(String(document?.name ?? ""));
 
 /** The 2024 damage types, as a text names them. */
 const DAMAGE_TYPES = Object.freeze(["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison",
@@ -1000,7 +1052,10 @@ function convertActivity({document, activity, system, spell, level, scales, note
 
   const effects = [];
   const concentration = (system.properties ?? []).includes("concentration");
-  for ( const reference of activity.effects ?? [] ) {
+  // A spell given its rules by hand whose activity names no effect (Blur's) uses the spell's own effect.
+  const references = activity.effects?.length ? activity.effects : (EFFECTS_BY_HAND[identifierOf(document)]
+    ? (document.effects ?? []).filter(effect => !effect.transfer).map(effect => ({_id: effect._id})) : []);
+  for ( const reference of references ) {
     const effect = (document.effects ?? []).find(entry => entry._id === reference._id);
     const statuses = effect?.statuses ?? [];
     const known = statuses.filter(status => CONDITION_MAP[status]);
@@ -1010,12 +1065,15 @@ function convertActivity({document, activity, system, spell, level, scales, note
       effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId: CONDITION_MAP[status], ...onFailure,
         ...(concentration ? {concentration: true} : {})});
     }
-    // Its own changes (Bless, Shield of Faith, Haste) become a custom effect with the rules they map to.
-    const rules = effect ? effectRules(effect, notes) : [];
+    // Its own changes (Bless, Shield of Faith, Haste) become a custom effect with the rules they map to; an effect dnd5e
+    // leaves empty (Faerie Fire's) takes its rules from the 2024 text, by hand.
+    const hand = effect && !(effect.system?.changes ?? effect.changes ?? []).length ? EFFECTS_BY_HAND[identifierOf(document)] : null;
+    const rules = hand?.ruleElements ?? (effect ? effectRules(effect, notes) : []);
     if ( rules.length ) {
-      const duration = effectDuration(effect.duration);
+      const duration = hand?.duration ?? effectDuration(effect.duration);
       effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(effect.img ? {img: effect.img} : {}),
-        ruleElements: rules, ...(duration ? {duration} : {}), ...onFailure, ...(concentration ? {concentration: true} : {})});
+        ruleElements: rules, ...(duration ? {duration} : {}), ...(hand?.endsWhen ? {endsWhen: hand.endsWhen} : {}), ...onFailure,
+        ...(concentration ? {concentration: true} : {})});
     } else if ( effect && !statuses.length ) notes.push(`effect: "${effect.name}" (its own changes) not converted`);
   }
 

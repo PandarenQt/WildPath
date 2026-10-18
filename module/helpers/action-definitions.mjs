@@ -697,6 +697,8 @@ function validateAreaPersistence(persistence, errors) {
   if ( duration != null && !((duration.unit === "round") && Number.isInteger(Number(duration.value)) && (Number(duration.value) > 0)) ) {
     fail(".duration", "A lasting area's duration is a positive whole number of rounds.");
   }
+  // Whom its triggers affect: everyone in it (the default), or only its caster's enemies (Spirit Guardians).
+  if ( (persistence.affects != null) && (persistence.affects !== "enemies") ) fail(".affects", "A lasting area affects everyone or \"enemies\".");
   const light = persistence.light;
   if ( (light != null) && (!isPlainObject(light) || ["bright", "dim"].some(key => (light[key] != null)
     && !(Number.isFinite(Number(light[key])) && (Number(light[key]) >= 0)))) ) {

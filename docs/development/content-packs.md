@@ -281,6 +281,21 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Damage bonuses in dice (2026-10-18)** become `ExtraDamage` on each hit of that kind of attack: Divine Favor's
   1d4 Radiant, Enlarge's 1d4 (the weapon's own type). Penalties in dice (Reduce's −1d4) and Rage's level-scaled bonus
   are left to the GM.
+- **Areas that keep acting (2026-10-18)** become lasting areas (`lastingArea`), by their 2024 wording: "a creature
+  also makes this save when it enters the area or ends (starts) its turn there".
+  - Covers Moonbeam, Web, Cloudkill, Wall of Fire, Insect Plague, Incendiary Cloud and Spirit Guardians, and the items
+    that cast them: 26 SRD Actions.
+  - The area lasts the spell's duration and ends with its concentration. Its trigger repeats the save, damage and
+    effects on the creature, at most once per turn.
+  - Spirit Guardians ("you can designate creatures to be unaffected") spares its caster's side.
+  - shortcut: a trigger deals the base level's damage.
+  - Something with no duration of its own (a flask of Oil) is not a lasting area.
+- **Effects by hand (2026-10-18).** Three spell effects dnd5e leaves empty get their 2024 rules from a small table
+  (`EFFECTS_BY_HAND`):
+  - Faerie Fire: attacks against it have Advantage;
+  - Blur: attacks against you have Disadvantage;
+  - Vicious Mockery: Disadvantage on its next attack roll.
+  The rest need rules the engine lacks: healing blocked, ongoing damage, no spellcasting.
 - **Weapon kind (G8).** A weapon's attack carries `attack.weapon`: its base weapon (`longsword`, `light-crossbow`),
   `simple` or `martial`, and its 2024 mastery (`sap`), which weapon training and Weapon Mastery read. 93 SRD weapon
   Actions have one.

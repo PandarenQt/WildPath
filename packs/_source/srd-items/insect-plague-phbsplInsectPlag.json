@@ -36,6 +36,68 @@
         "size": {
           "value": 20,
           "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 100
+          },
+          "concentration": true,
+          "triggers": [
+            {
+              "on": [
+                "area.entered",
+                "turn.ended"
+              ],
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-insect-plague:lasting",
+                "label": "Insect Plague",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell"
+                ],
+                "save": {
+                  "ability": "fortitude",
+                  "dc": {
+                    "valueExpression": {
+                      "type": "add",
+                      "terms": [
+                        {
+                          "type": "constant",
+                          "value": 8
+                        },
+                        {
+                          "type": "proficiency-bonus"
+                        },
+                        {
+                          "type": "spellcasting-modifier"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 4,
+                      "faces": 10
+                    },
+                    "damageType": "piercing",
+                    "provenance": "spell-base",
+                    "saveOutcomePolicy": {
+                      "success": "half",
+                      "failure": "full"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
         }
       },
       "save": {
@@ -153,9 +215,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }

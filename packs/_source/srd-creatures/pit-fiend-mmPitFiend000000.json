@@ -849,6 +849,54 @@
             "height": {
               "value": 20,
               "unit": "ft"
+            },
+            "persistence": {
+              "duration": {
+                "unit": "round",
+                "value": 10
+              },
+              "concentration": true,
+              "triggers": [
+                {
+                  "on": [
+                    "area.entered",
+                    "turn.ended"
+                  ],
+                  "action": {
+                    "schemaVersion": 1,
+                    "id": "action:srd-wall-of-fire-create-wall:lasting",
+                    "label": "Wall of Fire",
+                    "costs": {
+                      "allOf": []
+                    },
+                    "tags": [
+                      "spell"
+                    ],
+                    "save": {
+                      "ability": "agility",
+                      "dc": {
+                        "value": 21
+                      }
+                    },
+                    "damage": [
+                      {
+                        "id": "damage-1",
+                        "expression": {
+                          "type": "dice",
+                          "number": 5,
+                          "faces": 8
+                        },
+                        "damageType": "fire",
+                        "provenance": "spell-base",
+                        "saveOutcomePolicy": {
+                          "success": "half",
+                          "failure": "full"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
             }
           },
           "save": {
@@ -907,7 +955,6 @@
           },
           "conversion": {
             "notes": [
-              "concentration: nothing it sustains was converted",
               "\"damage\" is passive or triggered: not automated"
             ]
           }
@@ -994,7 +1041,6 @@
           "Bite: activation: turnStart is not an action-economy cost",
           "Hellfire Spellcasting: cast: Fireball at level 5 is cast at its own level",
           "Hellfire Spellcasting: cast: Hold Monster at level 7 is cast at its own level",
-          "Hellfire Spellcasting: concentration: nothing it sustains was converted",
           "Hellfire Spellcasting: \"damage\" is passive or triggered: not automated"
         ]
       }
