@@ -203,8 +203,11 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   let sequence = 0;
 
   async function create({options, state}: {options: {persistentArea?: Placement; source?: {tokenId?: string | null}; actor?: unknown};
-    state?: {configuration?: {castingLevel?: number | null; choices?: Array<{id?: string; value?: unknown}>} | null}}) {
-    const placement = options.persistentArea;
+    state?: {configuration?: {castingLevel?: number | null; choices?: Array<{id?: string; value?: unknown}>;
+      effectiveDefinition?: Placement["definition"] | null} | null}}) {
+    // The area as cast: its configured definition, so an upcast's dice stay in its triggers for its whole life.
+    const placement = options.persistentArea && state?.configuration?.effectiveDefinition
+      ? {...options.persistentArea, definition: state.configuration.effectiveDefinition} : options.persistentArea;
     if ( !placement ) return null;
     const token = game.scenes?.get(placement.sceneId)?.tokens.get(placement.sourceTokenId) ?? null;
     if ( !token ) return null;

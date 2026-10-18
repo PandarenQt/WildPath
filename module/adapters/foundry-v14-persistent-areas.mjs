@@ -129,7 +129,9 @@ export function turnKey(combat) {
 export function createFoundryPersistentAreas({ game, coordinator, resolveAction, logger = globalThis.console, fromUuid = null }) {
     let sequence = 0;
     async function create({ options, state }) {
-        const placement = options.persistentArea;
+        // The area as cast: its configured definition, so an upcast's dice stay in its triggers for its whole life.
+        const placement = options.persistentArea && state?.configuration?.effectiveDefinition
+            ? { ...options.persistentArea, definition: state.configuration.effectiveDefinition } : options.persistentArea;
         if (!placement)
             return null;
         const token = game.scenes?.get(placement.sceneId)?.tokens.get(placement.sourceTokenId) ?? null;

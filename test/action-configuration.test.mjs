@@ -343,3 +343,23 @@ test("a higher slot can add healing dice and targets, as it adds damage dice", (
   const base = resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {"spell-slot": {resourceId: "spell-slot.3"}}});
   assert.equal(base.configuration.effectiveDefinition.targeting.count, 1, "the spell's own level adds nothing");
 });
+
+test("a lasting area's repeat grows with the slot too: Moonbeam at 3rd level repeats 3d10", () => {
+  const damage = [{id: "damage-1", expression: {type: "dice", number: 2, faces: 10}, damageType: "radiant"}];
+  const definition = {schemaVersion: 1, id: "action:moonbeam", tags: ["spell"], costs: {allOf: []},
+    targeting: {type: "area"}, area: {shape: "radial", size: {value: 5, unit: "ft"}, persistence: {duration: {unit: "round", value: 10},
+      triggers: [{on: ["area.entered", "turn.ended"], action: {schemaVersion: 1, id: "action:moonbeam:lasting", costs: {allOf: []},
+        save: {ability: "fortitude", dc: {value: 15}}, damage: structuredClone(damage)}}]}},
+    save: {ability: "fortitude", dc: {value: 15}}, damage,
+    configuration: [{id: "spell-slot", type: ACTION_CHOICE_TYPES.RESOURCE, required: true,
+      cost: {anyOf: [[{capability: "spell-slot.3", amount: 1}], [{capability: "spell-slot.5", amount: 1}]]},
+      levelByResourceId: {"spell-slot.3": 3, "spell-slot.5": 5},
+      effects: [{type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 2, componentIds: ["damage-1"], dice: {number: 1, faces: 10}}]}]};
+  const result = resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {"spell-slot": {resourceId: "spell-slot.3"}}});
+  assert.equal(result.ok, true, JSON.stringify(result.errors));
+  const effective = result.configuration.effectiveDefinition;
+  assert.deepEqual(effective.damage[0].expression, {type: "dice", number: 3, faces: 10}, "the cast");
+  assert.deepEqual(effective.area.persistence.triggers[0].action.damage[0].expression, {type: "dice", number: 3, faces: 10}, "and its repeat");
+  assert.deepEqual(definition.area.persistence.triggers[0].action.damage[0].expression, {type: "dice", number: 2, faces: 10},
+    "the stored definition is untouched");
+});

@@ -1014,7 +1014,9 @@ function applyScaleDamageEffect({definition, effect, selection, selectionsById, 
     };
   }
 
-  const matches = matchingDamageComponents(definition[collection] ?? [], effect);
+  // A lasting area's repeat (Moonbeam's turn-end damage) grows with the same slot as the cast itself.
+  const matches = [...matchingDamageComponents(definition[collection] ?? [], effect),
+    ...(definition.area?.persistence?.triggers ?? []).flatMap(trigger => matchingDamageComponents(trigger?.action?.[collection] ?? [], effect))];
   const trace = [];
   for ( const component of matches ) {
     const before = clonePlain(component.expression);
