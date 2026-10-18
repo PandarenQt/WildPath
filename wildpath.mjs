@@ -3,6 +3,7 @@ import {registerFoundryV14ConditionStatuses} from "./module/adapters/foundry-v14
 import {registerTokenRuler} from "./module/applications/token-ruler.mjs";
 import {registerSunlightConfig} from "./module/applications/sunlight-config.mjs";
 import {registerChatCardInteractions} from "./module/adapters/foundry-v14-chat-card-interactions.mjs";
+import {registerInspirationRerolls} from "./module/applications/inspiration-reroll.mjs";
 
 import "./module/tests/quench/index.mjs";
 
@@ -138,6 +139,16 @@ Hooks.once("init", () => {
       physical: "WILDPATH.SETTINGS.DicePolicy.Physical"
     },
     default: "digital"
+  });
+
+  // Heroic Inspiration (BG3, G8): the GM may spend a player character's point to reroll a monster's d20.
+  game.settings.register("wildpath", "inspirationMonsterRerolls", {
+    name: "WILDPATH.SETTINGS.InspirationMonsterRerolls.Name",
+    hint: "WILDPATH.SETTINGS.InspirationMonsterRerolls.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true
   });
 
   // Hit points on level up (G8): the Hit Die's average by default, or rolled.
@@ -289,6 +300,7 @@ function collectionContents(collection) {
 
 Hooks.on("deleteCombat", combat => onCombatEnd(combat));
 registerChatCardInteractions();
+registerInspirationRerolls();
 Hooks.on("moveToken", (document, movement, operation, user) => onFoundryV14MoveToken(document, movement, operation, user));
 Hooks.on("pauseToken", document => onFoundryV14PauseToken(document));
 Hooks.on("stopToken", document => onFoundryV14StopToken(document));

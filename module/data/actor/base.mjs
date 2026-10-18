@@ -42,8 +42,6 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
       // What it is trained with: armor (light, medium, heavy, shield), weapons (simple, martial, or a weapon), tools,
       // and the weapons whose mastery it uses (2024).
       training: new SchemaField({armor: names(), weapons: names(), tools: names(), masteries: names()}),
-      // Heroic Inspiration (2024): one use, to reroll a die it just rolled.
-      heroicInspiration: new BooleanField({required: true, initial: false}),
       defenses: new SchemaField({
         ac: defenseField({initial: null})
       }),

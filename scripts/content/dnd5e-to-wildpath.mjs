@@ -557,6 +557,9 @@ function armorRules(document, notes) {
  * The activities a trait automates (`consumes`: Regeneration's healing, however dnd5e activates it) are not Actions.
  */
 const TRAITS = Object.freeze({
+  // Human Resourceful: a point of Heroic Inspiration on each Long Rest, kept in the character's pool of 4 (BG3, G8).
+  "resourceful": () => ({rules: [{schemaVersion: 1, id: "resourceful", type: "GrantResource",
+    data: {resourceId: "heroic-inspiration", maximum: 0, regain: {longRest: 1}}}], notes: []}),
   // Every spell is magical, and so is an Action tagged `magical` (a magic item's).
   "magic-resistance": () => ({rules: [{schemaVersion: 1, id: "magic-resistance", type: "RollMode",
     predicate: {tagsAny: ["magical"]}, data: {domains: ["save"], mode: "advantage"}}], notes: []}),

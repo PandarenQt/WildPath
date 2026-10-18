@@ -373,7 +373,8 @@ Each track is ranked by how much content it unblocks across all books, and by ho
    - armor and AC formulas (Unarmored Defense, natural armor, Mage Armor);
    - attunement and charges, spells cast from items, and potions and scrolls.
 8. **G8, character progression** (decided 2026-10-15: the maintainer approved the recommended design; skills,
-   training, Heroic Inspiration, Hit Dice (spent on a short rest), class and origin Items, the level-up dialog,
+   training, Heroic Inspiration (BG3's pool of 4 rerolls, 2026-10-18), Hit Dice (spent on a short rest), class and origin
+   Items, the level-up dialog,
    weapon proficiency and armor training, Weapon Mastery, ability score generation and prepared spells are done):
    - classes, subclasses, species, backgrounds and feats, with level-up from dnd5e advancements;
    - skills and tools with proficiency and expertise;

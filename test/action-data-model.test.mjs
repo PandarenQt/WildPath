@@ -25,6 +25,10 @@ class TypeDataModel {
   static defineSchema() {
     return {};
   }
+
+  static migrateData(source) {
+    return source;
+  }
 }
 
 globalThis.foundry = {
@@ -124,4 +128,16 @@ test("WildPathAction keeps legacy cost shortcuts when no definition is authored"
   assert.deepEqual(system.getActivationCost(), {
     allOf: [{capability: "action", amount: 1}]
   });
+});
+
+test("a character keeps Heroic Inspiration as a pool of 4; the old checkbox counts as one point (BG3, G8)", async () => {
+  const {default: WildPathCharacter} = await import("../module/data/actor/character.mjs");
+  const pool = source => source.pools.find(entry => entry.id === "heroic-inspiration");
+  const old = WildPathCharacter.migrateData({heroicInspiration: true, pools: [{id: "hit-die.d10", value: 2}]});
+  assert.deepEqual([pool(old).value, pool(old).base, pool(old).max, "heroicInspiration" in old], [1, 4, 4, false]);
+  assert.equal(pool(WildPathCharacter.migrateData({heroicInspiration: false, pools: []})).value, 0);
+  assert.equal(pool(WildPathCharacter.migrateData({})).value, 0, "a new character starts with the pool");
+  const kept = WildPathCharacter.migrateData({pools: [{id: "heroic-inspiration", base: 4, value: 3}]});
+  assert.deepEqual(kept.pools.map(entry => entry.value), [3], "an existing pool is left alone");
+  assert.equal(WildPathCharacter.migrateData({resources: {}}, {partial: true}).pools, undefined, "a partial update gains no pools");
 });

@@ -395,7 +395,7 @@ async function firstRollRequest(definition, options={}) {
 
 /** The planned resolution of an Action between two conditioned creatures (`attackRoll` answers the attack). */
 async function plannedWithConditions(definition, {attacker=[], target=[], offset={i: 1, j: 0}, targetStatistics={}, attackRoll=null,
-  allies=[], prepareTarget=null, saveRoll=null, sunlit=false}={}) {
+  allies=[], prepareTarget=null, prepareSource=null, extraActors=[], saveRoll=null, sunlit=false}={}) {
   const scene = fakeScene(new FakeSquareGrid(), {id: "scene-roll-modes"});
   if ( sunlit ) scene.flags = {wildpath: {sunlight: true}};
   const sourceActor = withConditions(fakeActor("roll-source", {system: actorSystem(),
@@ -403,6 +403,7 @@ async function plannedWithConditions(definition, {attacker=[], target=[], offset
   const targetActor = withConditions(fakeActor("roll-target", {system: targetActorSystem(20, 20, {ac: 14}),
     statistics: targetStatistics}), ...target);
   prepareTarget?.(targetActor);
+  prepareSource?.(sourceActor);
   const sourceToken = fakeTokenDocument({id: "source", actor: sourceActor, scene, offset: {i: 0, j: 0}});
   const targetToken = fakeTokenDocument({id: "enemy", actor: targetActor, scene, offset});
   sourceActor.tokens = [sourceToken];
@@ -412,8 +413,8 @@ async function plannedWithConditions(definition, {attacker=[], target=[], offset
     actor: Object.assign(fakeActor(`roll-ally-${index}`, {system: actorSystem()}), {statuses: new Set(conditions)})}));
   scene.tokens = [sourceToken, targetToken, ...allyTokens];
   const action = actionItem(definition, sourceActor);
-  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game: fakeGame({actors: [sourceActor, targetActor],
-    scenes: [scene]}), intent: {actorRef: sourceActor.uuid, actionRef: action.uuid,
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game: fakeGame({actors: [sourceActor, targetActor,
+    ...extraActors], scenes: [scene]}), intent: {actorRef: sourceActor.uuid, actionRef: action.uuid,
     targetRefs: [{actorRef: targetActor.uuid, tokenId: targetToken.id, sceneId: scene.id}]}});
   assert.equal(resolved.ok, true, resolved.reason);
   if ( attackRoll ) resolved.options.attack = {...resolved.options.attack, roll: attackRoll};
@@ -486,6 +487,75 @@ test("Legendary Resistance: a failed save succeeds instead, at once or when its 
   const spent = await plannedWithConditions(fortitudeBlast("might"), {target: ["stunned"],
     prepareTarget: actor => { legendary("always")(actor); actor.system.pools[0].value = 0; }});
   assert.equal(spent.state.results.saveResolution.failures.length, 1, "no use left");
+});
+
+test("Heroic Inspiration (BG3): a player character rerolls its own failure with its own point; the GM a monster's roll with a player's", async () => {
+  // A player's character with `value` of its 4 points.
+  const inspired = value => actor => {
+    Object.assign(actor, {type: "character", hasPlayerOwner: true});
+    actor.system.pools = [...(actor.system.pools ?? []), {id: "heroic-inspiration", label: "Heroic Inspiration", base: 4, value, max: 4,
+      recovery: "none"}];
+  };
+  const answer = (state, value) => {
+    const request = state.pendingRequests[0];
+    return resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: request.type === "roll" ? {requestId: request.payload.rollRequest.id, resolutionId: state.id,
+        type: request.payload.rollRequest.type, natural: value, total: value + (request.payload.rollRequest.expected?.modifierTotal ?? 0)}
+        : {choices: {"heroic-inspiration": value}}}});
+  };
+  const miss = {total: 5, natural: 1, die: 1};
+
+  // Its own miss: its controller is asked, the reroll hits, and one point is paid by the attacker.
+  const asked = await plannedWithConditions(meleeStrikeDefinition(), {attackRoll: miss, prepareSource: inspired(2)});
+  const [choice] = asked.state.pendingRequests;
+  assert.deepEqual([choice.type, choice.authority.kind, choice.payload.options.map(option => option.value)],
+    ["choice", "source-controller", ["spend:Actor.roll-source", "keep"]]);
+  const rolling = answer(asked.state, "spend:Actor.roll-source");
+  assert.match(rolling.state.pendingRequests[0].id, /attack-roll:reroll:attack$/u, "a fresh request for the new d20");
+  const rerolled = answer(rolling.state, 18).state;
+  assert.equal(rerolled.results.attackResolution.hits.length, 1);
+  assert.deepEqual(rerolled.mutationPlans.find(plan => plan.payerRef === "Actor.roll-source")?.plan.updates,
+    {"system.pools.0.value": 1}, "one point, paid by the attacker");
+  assert.deepEqual(rerolled.rollResults.map(entry => [entry.type, entry.roll.natural]), [["attack-roll", 18]],
+    "the rerolled d20 is recorded");
+
+  const kept = answer(asked.state, "keep").state;
+  assert.deepEqual([kept.results.attackResolution.hits.length, kept.mutationPlans.some(plan => plan.payerRef)], [0, false]);
+  const hit = await plannedWithConditions(meleeStrikeDefinition(), {attackRoll: {total: 25, natural: 20, die: 20},
+    prepareSource: inspired(2)});
+  assert.equal(hit.state.pendingRequests.length, 0, "a success is not offered to a player");
+  const empty = await plannedWithConditions(meleeStrikeDefinition(), {attackRoll: miss, prepareSource: inspired(0)});
+  assert.deepEqual([empty.state.pendingRequests.length, empty.state.results.attackResolution.misses.length], [0, 1], "no point, no prompt");
+
+  // A monster's hit: the GM may spend a player character's point (the hero is not in the Action) to reroll it.
+  const hero = Object.assign(fakeActor("hero", {system: actorSystem()}), {});
+  inspired(1)(hero);
+  const monster = await plannedWithConditions(meleeStrikeDefinition(), {attackRoll: {total: 25, natural: 20, die: 20},
+    extraActors: [hero]});
+  const [gm] = monster.state.pendingRequests;
+  assert.deepEqual([gm.authority.kind, gm.payload.options.map(option => option.value)], ["gm", ["spend:Actor.hero", "keep"]]);
+  const monsterRerolled = answer(answer(monster.state, "spend:Actor.hero").state, 2).state;
+  assert.equal(monsterRerolled.results.attackResolution.hits.length, 0, "the monster's reroll misses");
+  assert.ok(monsterRerolled.mutationPlans.some(plan => plan.payerRef === "Actor.hero"), "paid by the hero");
+
+  // Its own failed save: the target's controller is asked, the reroll saves, and the target pays.
+  const saving = await plannedWithConditions(fortitudeBlast("might"), {saveRoll: {total: 2, natural: 2, die: 2},
+    prepareTarget: inspired(1)});
+  const [saveChoice] = saving.state.pendingRequests;
+  assert.deepEqual([saveChoice.authority.kind, saveChoice.payload.options[0].value], ["target-controller", "spend:Actor.roll-target"]);
+  const saved = answer(answer(saving.state, "spend:Actor.roll-target").state, 19).state;
+  assert.deepEqual([saved.results.saveResolution.successes.length, saved.mutationPlans.some(plan => plan.payerRef === "Actor.roll-target")],
+    [1, true]);
+
+  // Its own failed check (Hide's kind): rerolled, then the success applies.
+  const sneak = {schemaVersion: 1, id: "action:runtime-sneak", label: "Sneak", costs: {allOf: []}, targeting: {type: "self"},
+    check: {ability: "agility", skill: "stealth", dc: {value: 15}}};
+  const checking = await plannedWithConditions(sneak, {prepareSource: inspired(1)});
+  const failedCheck = answer(checking.state, 2).state;
+  assert.equal(failedCheck.pendingRequests[0]?.type, "choice", "a failed check is offered");
+  const passed = answer(answer(failedCheck, "spend:Actor.roll-source").state, 18).state;
+  assert.deepEqual([passed.results.checkResolution.success, passed.mutationPlans.some(plan => plan.payerRef === "Actor.roll-source")],
+    [true, true]);
 });
 
 test("Evasion: an Agility save that halves takes none on a success and half on a failure, unless the creature is Incapacitated", async () => {
