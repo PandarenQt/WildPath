@@ -1,5 +1,6 @@
 import { areaClickCount, foundryAreaFootprint, foundryAreaTargetTokens, foundryPointInRange } from "../adapters/foundry-v14-area-placement.mjs";
 import { createFoundryV14TacticalGridAdapter } from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
+import { teleportDestination } from "../adapters/foundry-v14-teleport.mjs";
 /** Creatures an area would hit: allies (the caster's own disposition) in amber, the others in red. */
 const ALLY = 0xffaa00;
 const OTHER = 0xff3333;
@@ -65,6 +66,28 @@ export function placeFoundrySummons({ definition, sourceToken, count }) {
         hint: "WILDPATH.SUMMON.Place",
         highlight: (points, cursor) => [...points, cursor].map(field),
         accept: (points, point) => (foundryPointInRange({ definition, sourceToken: sourceToken, point }) ? null : CODE_KEYS.OutOfRange)
+    });
+}
+/**
+ * Choose where a teleport lands (Misty Step): one click on a free field within `distance` feet; the highlight is the
+ * Token's footprint there. The authority checks the point again.
+ * @returns the point, or null when cancelled.
+ */
+export function placeFoundryTeleport({ sourceToken, distance }) {
+    const { canvas } = globalThis;
+    return pickPoints({
+        needed: 1,
+        hint: "WILDPATH.TELEPORT.Place",
+        highlight: (_points, cursor) => {
+            const landing = teleportDestination({ token: sourceToken, point: cursor, distance });
+            const at = landing.ok ? landing.position : canvas.grid.getTopLeftPoint(canvas.grid.getOffset(cursor));
+            return (sourceToken.getOccupiedGridSpaceOffsets?.(at) ?? [canvas.grid.getOffset(cursor)])
+                .map(offset => ({ ...canvas.grid.getTopLeftPoint(offset), ...(landing.ok ? {} : { color: OTHER }) }));
+        },
+        accept: (_points, point) => {
+            const landing = teleportDestination({ token: sourceToken, point, distance });
+            return landing.ok ? null : `WILDPATH.TELEPORT.${landing.code}`;
+        }
     });
 }
 /**

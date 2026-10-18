@@ -276,6 +276,28 @@ Live (two browsers, 14.369): QA Caster's 3rd-level Moonbeam, moved by "Moonbeam 
 Fighter: each saved against 3d10 (the Fighter failed and took 14). A GM update of the Region's cells moved it onto
 three more creatures, and each saved against 3d10.
 
+## Teleport (2026-10-19)
+
+`teleport: {distance}` moves the Action's own creature up to `distance` feet to a space it chooses (Misty Step's 30,
+Dimension Door's 500).
+- **Choosing.** The player clicks where the Token lands (`placeFoundryTeleport`); the highlight is its footprint
+  there, red when the space is refused.
+- **Checked twice.** The client and the authority run the same `teleportDestination`. A destination is refused when:
+  - it is farther than `distance`, center to center;
+  - it is off the Scene;
+  - another Token is on it.
+- **Moving.** Once the Action completes, the active GM moves the Token with V14's Blink (`movementKind: "teleport"`):
+  no movement spent, no path walked, no Opportunity Attack.
+- **Converted:** dnd5e teleport activities with a distance in feet. SRD: Misty Step, Dimension Door, Tree Stride, the
+  Cape of the Mountebank, and the Archmage's, Mage's, Cloud Giant's, Lich's and Spirit Naga's casts. Teleport, Plane
+  Shift and Word of Recall have no distance and stay by hand.
+- shortcut: Dimension Door's willing passenger is moved by hand; Tree Stride's trees are not checked.
+- The Builder edits it ("Does it teleport its user?").
+
+Live (two browsers, 14.369): Player1's QA Caster, beside the Bandit Captain with no movement left, cast the SRD Misty
+Step. A click 35 feet away was refused ("That space is too far"); one 25 feet away moved the Token there. The Bonus
+Action and a 2nd-level slot were spent, movement was untouched, and the Captain was offered no Opportunity Attack.
+
 ## Forced Movement (2026-10-15)
 
 An Action with `push: {distance, toward?, maxSize?, on?}` moves creatures when it completes

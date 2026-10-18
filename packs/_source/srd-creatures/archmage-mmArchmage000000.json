@@ -271,6 +271,12 @@
               }
             ]
           },
+          "targeting": {
+            "type": "self"
+          },
+          "teleport": {
+            "distance": 30
+          },
           "label": "Misty Step"
         },
         "ruleElements": [
@@ -303,9 +309,7 @@
             "castBy": "Misty Step"
           },
           "conversion": {
-            "notes": [
-              "not automated (teleport): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1584,7 +1588,6 @@
       },
       "conversion": {
         "notes": [
-          "Misty Step: not automated (teleport): using it spends its cost; its description says the rest",
           "Protective Magic: rolled (save); what it does is by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",

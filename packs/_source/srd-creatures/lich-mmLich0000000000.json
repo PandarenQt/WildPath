@@ -805,6 +805,12 @@
               }
             ]
           },
+          "targeting": {
+            "type": "self"
+          },
+          "teleport": {
+            "distance": 500
+          },
           "label": "Dimension Door"
         },
         "ruleElements": [
@@ -838,7 +844,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (teleport): using it spends its cost; its description says the rest"
+              "teleport: a creature it brings along is moved by hand"
             ]
           }
         }
@@ -1941,6 +1947,7 @@
           "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Spellcasting: summon: a count of \"1 + @scaling.increase * 2, 1 + @scaling.increase * 2\" is not converted",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
+          "Spellcasting: teleport: a creature it brings along is moved by hand",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Spellcasting: \"Raise Zombie\" is passive or triggered: not automated",
           "Spellcasting: activation: 10 minute is not an action-economy cost",

@@ -159,6 +159,8 @@ export function definitionToBuilder(definition, { abilities = null } = {}) {
         summon: { creature: d.summon?.actorRef ?? "", count: d.summon?.count ?? 1, rounds: d.summon?.rounds ?? null,
             concentration: d.summon?.concentration === true },
         summonReadOnly: Boolean(d.summon?.choiceId),
+        // Teleports its user up to this many feet (Misty Step).
+        teleport: { distance: d.teleport?.distance ?? null },
         // Forced movement on a hit or a failed save (or, `onSuccess`, on a successful one); `toward` pulls.
         push: { distance: d.push?.distance ?? null, toward: d.push?.toward === true, maxSize: d.push?.maxSize ?? "",
             onSuccess: d.push?.on === "success" },
@@ -269,6 +271,10 @@ const WRITERS = {
         else
             delete summon.concentration;
         next.summon = summon;
+    },
+    teleport({ next, submitted, model }) {
+        const distance = number(fields(submitted, model).value("distance"));
+        next.teleport = distance && (distance > 0) ? { ...(next.teleport ?? {}), distance } : null;
     },
     push({ next, submitted, model }) {
         const { value } = fields(submitted, model);
@@ -714,6 +720,7 @@ const GAP_SPEC = {
     range: { type: true, distance, normal: distance, long: distance },
     targeting: { type: true, required: true, count: (count) => gapIf(typeof count !== "number"), refinementPolicy: { minSelections: true } },
     push: { distance: true, toward: true, maxSize: true, on: (on) => gapIf(!["failure", "success"].includes(String(on))) },
+    teleport: { distance: true },
     // `spellLevel` is the cast level its bonuses read when no slot is chosen.
     summon: { actorRef: true, count: (count) => gapIf(!Number.isInteger(count)), rounds: true, concentration: true, spellLevel: true },
     area: { shape: (shape) => gapIf(!AREA_SHAPES.includes(shape)), size: distance, width: distance, height: distance,

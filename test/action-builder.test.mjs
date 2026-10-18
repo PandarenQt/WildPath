@@ -14,7 +14,7 @@ function asForm(builder) {
   const rows = list => Object.fromEntries(list.map((row, index) => [index, row]));
   return {basics: builder.basics, costs: rows(builder.costs), range: builder.range, targets: builder.targets, area: builder.area,
     roll: builder.roll, slot: builder.slot, damage: rows(builder.damage), healing: rows(builder.healing), effects: rows(builder.effects),
-    restores: rows(builder.restores), push: builder.push, summon: builder.summon};
+    restores: rows(builder.restores), push: builder.push, summon: builder.summon, teleport: builder.teleport};
 }
 
 /** Submit `changes` (section → fields, or rows by index) over the definition's current builder values. */

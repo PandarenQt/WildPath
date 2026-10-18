@@ -1,6 +1,6 @@
 import {buildFoundryActionUseIntent} from "../resolvers/foundry-multiplayer-runtime.mjs";
 import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
-import {placeFoundryArea, placeFoundrySummons} from "../applications/area-placement.mjs";
+import {placeFoundryArea, placeFoundrySummons, placeFoundryTeleport} from "../applications/area-placement.mjs";
 import {areaClickCount} from "../adapters/foundry-v14-area-placement.mjs";
 import {ownArea} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {promptActionConfiguration} from "../adapters/foundry-v14-prompt-adapter.mjs";
@@ -134,6 +134,19 @@ export default class WildPathItem extends Item {
         : {points: []};
       if ( !area ) return false;
       built.intent.area = area;
+      built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};
+    }
+    // A teleport lands where its creature's player clicks (Misty Step).
+    const teleport = definition.ok ? definition.definition?.teleport : null;
+    if ( teleport ) {
+      const sourceToken = this.actor.token ?? this.actor.getActiveTokens?.(false, true)?.[0] ?? null;
+      if ( !sourceToken || !globalThis.canvas?.ready || (sourceToken.parent !== globalThis.canvas.scene) ) {
+        globalThis.ui?.notifications?.warn?.(globalThis.game.i18n.localize("WILDPATH.TELEPORT.NoToken"));
+        return false;
+      }
+      const landing = await placeFoundryTeleport({sourceToken, distance: Number(teleport.distance) || 0});
+      if ( !landing ) return false;
+      built.intent.teleport = {point: landing.points[0]};
       built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};
     }
     // A summon's creatures appear where the caster clicks; without a Token on the canvas the authority places them.
