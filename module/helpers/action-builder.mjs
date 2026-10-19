@@ -225,6 +225,9 @@ export function definitionToBuilder(definition, { abilities = null } = {}) {
             levels: Math.abs(effect.levels ?? 1),
             // Ends the condition rather than applying it (Lesser Restoration); Exhaustion loses `levels` levels.
             removes: (effect.levels ?? 1) < 0,
+            // What grapples or restrains has an escape DC (the common Escape action rolls against it).
+            escapes: ["grappled", "restrained"].includes(effect.conditionId),
+            escapeDC: effect.metadata?.escapeDC ?? null,
             concentration: effect.concentration === true,
             onFailedSave: isFailureOnly(effect.saveOutcomePolicy),
             policyReadOnly: (effect.saveOutcomePolicy != null) && !isFailureOnly(effect.saveOutcomePolicy),
@@ -646,6 +649,16 @@ const WRITERS = {
                 else
                     delete effect.concentration;
             }
+            if (changed("escapeDC")) {
+                const dc = number(row.escapeDC);
+                const { escapeDC: _old, ...metadata } = effect.metadata ?? {};
+                if ((dc != null) && (dc > 0))
+                    effect.metadata = { ...metadata, escapeDC: Math.trunc(dc) };
+                else if (Object.keys(metadata).length)
+                    effect.metadata = metadata;
+                else
+                    delete effect.metadata;
+            }
             if (changed("onFailedSave")) {
                 if (row.onFailedSave)
                     effect.saveOutcomePolicy = "failure";
@@ -817,7 +830,7 @@ const GAP_SPEC = {
     healing: [{ id: true, expression: formulaSpec, healingType: true }],
     effects: [{ id: true, type: (type) => gapIf(!["condition", "effect"].includes(type)), conditionId: true, levels: true, concentration: true,
             saveOutcomePolicy: (policy) => gapIf(!isFailureOnly(policy)), name: true, slug: true, img: true,
-            duration: { value: true, units: true, expiry: true },
+            duration: { value: true, units: true, expiry: true }, metadata: { escapeDC: true },
             ruleElements: (rules, { abilities }) => ruleGaps(rules, { abilities: abilities ?? null }).map(gap => `.${gap}`) }],
     // The spell slot choice is checked whole, below.
     configuration: true

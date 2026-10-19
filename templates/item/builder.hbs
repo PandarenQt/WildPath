@@ -258,6 +258,8 @@
             <input type="number" name="wildpath.builder.effects.{{@index}}.levels" value="{{row.levels}}" min="1" step="1"></label>{{/if}}
           <label class="checkbox"><input type="checkbox" name="wildpath.builder.effects.{{@index}}.removes" {{checked row.removes}}>
             {{localize "WILDPATH.BUILDER.Effects.Removes"}}</label>
+          {{#if row.escapes}}<label>{{localize "WILDPATH.BUILDER.Effects.EscapeDC"}}
+            <input type="number" name="wildpath.builder.effects.{{@index}}.escapeDC" value="{{row.escapeDC}}" min="1" step="1"></label>{{/if}}
         {{else}}
           <input type="text" name="wildpath.builder.effects.{{@index}}.name" value="{{row.name}}" aria-label="{{localize "WILDPATH.BUILDER.Effects.Name"}}">
           <label>{{localize "WILDPATH.BUILDER.Effects.Duration"}}
