@@ -35,8 +35,14 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
         const avoidance = mover.actor?.getOpportunityAttackAvoidance?.() ?? { always: false, movementModes: [] };
         const disengaged = (mover.actor?.statuses?.has("disengaged") === true) || avoidance.always;
         for (const token of scene.tokens) {
-            if ((token.id === mover.id) || !token.actor)
+            if (!token.actor)
                 continue;
+            // Its own Action's outcome (2014 Divine Smite: "when you hit"): only its triggers bound to `sourceTokenId: "{self}"`.
+            if (token.id === mover.id) {
+                triggers.push(...tokenReactions(token).map(entry => entry.trigger)
+                    .filter(trigger => trigger.event?.sourceTokenId === token.id));
+                continue;
+            }
             const reactions = tokenReactions(token);
             // Every creature makes Opportunity Attacks (Baldur's Gate 3), unless an Item of its own reacts to movement,
             // even one switched off or set to Never.
@@ -86,6 +92,10 @@ function tokenReactions(token) {
                 tokenId: token.id,
                 action: definition.definition,
                 actionId: definition.definition.id ?? null,
+                // Offered only when its Action's own costs can be paid (a Reaction, or none for a Divine Smite).
+                cost: definition.definition.costs ?? null,
+                // A reaction to its own Action comes after its targets' (a Parry may turn the hit into a miss first).
+                ...((data.match?.sourceTokenId === "{self}") ? { priority: 200 } : {}),
                 predicate: bindSelf(data.triggerPredicate ?? data.eventPredicate ?? null, token.id),
                 ...(policy === "always" ? { metadata: { reactionPolicy: policy } } : {})
             });

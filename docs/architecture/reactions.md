@@ -250,6 +250,16 @@ Live (two browsers, 2026-10-19):
 - The Captain's Scimitar hit QA Caster; Player1 was offered Hellish Rebuke, chose its 3rd-level slot, and the Captain
   failed its save and took 4d10 = 15 fire. Then the Scimitar's 4 damage landed.
 
+- **Its own hit (2014 Divine Smite, 2026-10-19):** a Trigger with `match: {sourceTokenId: "{self}"}` answers its own
+  creature's Action, which is otherwise never offered to its own creature. It acts on the creature that Action hit
+  (`event.targets[0]`), comes after the targets' own reactions (priority 200: a Parry may turn the hit into a miss
+  first), and a critical hit doubles its dice too (`damage.critical` on its child state). A Trigger is now offered only
+  when its Action's own costs can be paid (a Reaction for most; none for a Divine Smite), not always a Reaction.
+
+Live (two browsers, 2026-10-19): Player1's QA Caster hit the Bandit Captain with a Dagger (15 against AC 15). The GM was
+offered Parry first and declined; then Player1 was offered Divine Smite, chose a 3rd-level slot, and the Captain took
+4d8 = 20 radiant and the Dagger's 2. The slot was spent; the Reaction was not.
+
 Shortcuts: a Parry's "while holding a weapon", and Counterspell's 60 feet, sight and hostility, are the reactor's to
 judge (its Ask setting). Falling (Feather Fall) has no window yet; Retaliation's attack is by hand.
 

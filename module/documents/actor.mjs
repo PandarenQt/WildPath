@@ -709,7 +709,8 @@ export default class WildPathActor extends Actor {
     const pools = this.toObject(true).system.pools;
     const grants = new Map(this.getGrantedResources().map(grant => [grant.id, grant]));
     for ( const [index, resource] of this.system.pools.entries() ) {
-      if ( recovers(resource.recovery) ) {
+      // Its grant's recovery when one grants it (a stored pool keeps the recovery it was created with).
+      if ( recovers(grants.get(resource.id)?.recovery ?? resource.recovery) ) {
         pools[index].value = resource.max;
         updates["system.pools"] = pools;
         continue;

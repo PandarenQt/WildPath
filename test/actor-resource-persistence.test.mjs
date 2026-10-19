@@ -159,6 +159,17 @@ test("a long rest also restores what a short rest does, and a short rest does no
   assert.deepEqual(long.calls, [], "a short rest leaves long-rest resources alone");
 });
 
+test("a pool refills by its grant's recovery, not the one it was stored with (2014 Wild Shape: a Short Rest)", async () => {
+  const {actor, source} = fixture({recovery: "longRest"});
+  actor.items = [{id: "wild-shape", type: "action", system: {active: true, ruleElements: [{schemaVersion: 1, id: "target-uses",
+    type: "GrantResource", data: {resourceId: "target", label: "Focus", maximum: 2, recovery: "shortRest"}}]}}];
+  source.system.pools[1].value = 0;
+  actor.system = {...actor.system, pools: actor.system.pools.map(pool => (pool.id === "target" ? {...pool, value: 0} : pool))};
+  await actor.rest("shortRest");
+  assert.equal(source.system.pools[1].value, 9, "its grant says a Short Rest");
+  assert.equal(source.system.pools[2].value, 3, "an ungranted Long Rest pool waits");
+});
+
 test("the Foundry persistence adapter folds pool element paths into one whole-array source write", async () => {
   const source = {system: {pools: [{id: "spell-slot.1", base: 1, value: 1}, {id: "spell-slot.2", base: 1, value: 1}]}};
   const calls = [];

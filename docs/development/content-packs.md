@@ -389,10 +389,15 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Beasts (classes-and-spellcasting.md); its text's rules on what it may do in its form are by hand. A magic item that
   casts a spell keeps the spell's choices except the slot (a Beast, a damage type, one of its effects), and a wand whose
   cast dnd5e gives no charge spends the one its text names ("expend 1 of its charges to cast"): Wands of Polymorph and Web.
-- **Wild Shape (2026-10-19).** The 2024 transform activity becomes a Bonus Action spending a Wild Shape use, with a
-  Form choice of every converted Beast up to its highest profile's CR (CR 1), its profiles as `limits` by druid level
-  (CR 1/4, 1/2, 1; flying from level 8), Temporary Hit Points equal to the druid level, and a "Wild Shape (Revert)"
-  Bonus Action. shortcut: every eligible Beast is offered, not the druid's known forms.
+- **Wild Shape and Divine Smite by the 2014 rules (2026-10-19, the maintainer's choice).** Wild Shape converts to an
+  Action spending one of two uses (regained on a Short Rest), with a Form choice of the converted Beasts up to CR 1,
+  limited by druid level (CR 1/4 with no Fly or Swim Speed, CR 1/2 with no Fly Speed from 4, CR 1 from 8). The Beast's
+  Strength, Dexterity, Constitution, AC and Speed replace the druid's, and its Hit Points come as Temporary Hit Points
+  (it reverts when they are gone, excess damage carrying over); "Wild Shape (Revert)" is a Bonus Action. Divine Smite is
+  no spell and costs no action: a Trigger on its creature's own melee hit (not a spell attack) offers it, a slot of 1st
+  to 4th level (2d8 radiant, 1d8 more a level, 5d8 at most), and its "Undead or Fiend" Action adds 1d8. shortcuts: every
+  eligible Beast is offered, the form lasts until reverted, healing in it heals the druid; the player picks the Undead
+  or Fiend Smite, as converted creatures carry no creature type. Paladin's Smite (2024, a free cast) is text only.
 - **Effects as markers (2026-10-19).** A dnd5e effect with no status and nothing WildPath maps (Alter Self's Aquatic
   Adaptation, Acid Arrow's lingering acid, a dragon's Detect Magic) is no longer dropped. It is a custom effect with
   no rules: its name, icon, duration, save policy and concentration. Its creature shows it, it expires on time, and it

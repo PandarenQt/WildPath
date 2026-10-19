@@ -1,7 +1,7 @@
 {
   "_id": "phbsplDivineSmit",
   "_key": "!items!phbsplDivineSmit",
-  "name": "Divine Smite (Cast)",
+  "name": "Divine Smite",
   "type": "action",
   "img": "icons/skills/melee/strike-flail-destructive-yellow.webp",
   "system": {
@@ -10,22 +10,17 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-divine-smite-cast",
-      "tags": [
-        "spell"
-      ],
+      "tags": [],
       "costs": {
-        "allOf": [
-          {
-            "capability": "bonus-action",
-            "amount": 1
-          }
-        ]
+        "allOf": []
       },
       "range": {
-        "type": "self"
+        "type": "special"
       },
       "targeting": {
-        "type": "self"
+        "type": "single",
+        "required": true,
+        "count": 1
       },
       "damage": [
         {
@@ -70,36 +65,6 @@
                   "capability": "spell-slot.4",
                   "amount": 1
                 }
-              ],
-              [
-                {
-                  "capability": "spell-slot.5",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "spell-slot.6",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "spell-slot.7",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "spell-slot.8",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "spell-slot.9",
-                  "amount": 1
-                }
               ]
             ]
           },
@@ -107,12 +72,7 @@
             "spell-slot.1": 1,
             "spell-slot.2": 2,
             "spell-slot.3": 3,
-            "spell-slot.4": 4,
-            "spell-slot.5": 5,
-            "spell-slot.6": 6,
-            "spell-slot.7": 7,
-            "spell-slot.8": 8,
-            "spell-slot.9": 9
+            "spell-slot.4": 4
           },
           "effects": [
             {
@@ -130,12 +90,29 @@
           ]
         }
       ],
-      "metadata": {
-        "spellLevel": 1
-      },
-      "label": "Divine Smite (Cast)"
+      "label": "Divine Smite"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": [
+              "melee"
+            ],
+            "notTagsAny": [
+              "spell"
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

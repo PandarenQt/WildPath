@@ -13,7 +13,7 @@
       "costs": {
         "allOf": [
           {
-            "capability": "bonus-action",
+            "capability": "action",
             "amount": 1
           },
           {
@@ -327,24 +327,24 @@
         "limits": {
           "class": "druid",
           "rows": {
-            "1": {
+            "2": {
               "cr": 0.25,
-              "fly": false
+              "fly": false,
+              "swim": false
             },
             "4": {
               "cr": 0.5,
-              "fly": false
+              "fly": false,
+              "swim": true
             },
             "8": {
               "cr": 1,
-              "fly": true
+              "fly": true,
+              "swim": true
             }
           }
         },
-        "temporaryHealth": {
-          "type": "class-level",
-          "class": "druid"
-        }
+        "temporaryHealth": "form"
       },
       "label": "Wild Shape"
     },
@@ -357,21 +357,10 @@
           "resourceId": "wild-shape",
           "label": "Wild Shape",
           "maximum": {
-            "type": "table",
-            "key": {
-              "type": "class-level",
-              "class": "druid"
-            },
-            "rows": {
-              "2": 2,
-              "6": 3,
-              "17": 4
-            }
+            "type": "constant",
+            "value": 2
           },
-          "recovery": "longRest",
-          "regain": {
-            "shortRest": 1
-          }
+          "recovery": "shortRest"
         }
       }
     ]

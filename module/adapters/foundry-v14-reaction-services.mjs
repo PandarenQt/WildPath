@@ -94,10 +94,17 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
                 ...(statistics.attack.dice ? { dice: statistics.attack.dice } : {}) } : {}),
             ...(rollMode ? { rollMode } : {}), ...(critical ? { outcomesByTarget: { [target.id]: "critical-on-hit" } } : {})
         } : null,
-        damage: statistics.damage,
+        // Damage added to its own critical hit (2014 Divine Smite) has its dice doubled too.
+        damage: ownCriticalHit(base.sourceEvent, reactor, target) ? { ...(statistics.damage ?? {}), critical: true } : statistics.damage,
         selectedPaymentOptionId: args.candidate.selectedPaymentOption?.id ?? null,
         durability: { targetSystems: Object.fromEntries(targetKeys.map(key => [key, targetSystem])),
             ...(profile ? { adjustmentProfiles: Object.fromEntries(targetKeys.map(key => [key, structuredClone(profile)])) } : {}) } });
+}
+/** Whether `reactor`'s own attack, the event it answers, was a critical hit on `target`. */
+function ownCriticalHit(event, reactor, target) {
+    const data = event;
+    return (data?.source?.tokenId === reactor.id) && (data?.data?.attackResolution?.hits ?? [])
+        .some(hit => (hit.outcome === "criticalHit") && (hit.target?.tokenId === target.id));
 }
 /**
  * Reaction services for movement: the mover and every observer as participants, and a child-state factory
@@ -137,7 +144,7 @@ export function foundryActionReactionServices({ game, scene, token, supplied }) 
     const triggers = (supplied.reactions?.triggers ?? [])
         .filter(trigger => !String(trigger.event?.type ?? "").startsWith("movement."));
     const reactors = [...new Set(triggers.map(trigger => trigger.owner?.tokenId ? scene.tokens.get(trigger.owner.tokenId) : null))]
-        .filter((reactor) => !!reactor && (reactor.id !== token.id));
+        .filter((reactor) => !!reactor);
     if (!reactors.length)
         return null;
     const adapter = createFoundryV14TacticalGridAdapter({ scene });
@@ -145,7 +152,7 @@ export function foundryActionReactionServices({ game, scene, token, supplied }) 
     if (!sceneContext.ok || !("context" in sceneContext))
         return null;
     const grid = sceneContext.context;
-    const participants = [token, ...reactors];
+    const participants = [token, ...reactors.filter(reactor => reactor.id !== token.id)];
     const { actorDocuments, controllers, resourcesByActor } = reactionParticipants(game, participants);
     const services = { ...supplied, targetActors: { ...actorDocuments }, reactions: { ...supplied.reactions, triggers,
             resourcesByActor, actorDocumentsByActor: actorDocuments, controllerUserIdsByActor: controllers,
@@ -153,8 +160,10 @@ export function foundryActionReactionServices({ game, scene, token, supplied }) 
                 const reactor = reactorFor(args.candidate, reactors);
                 const definition = args.candidate.actionDefinition ?? args.candidate.action;
                 const event = (args.baseChildState.sourceEvent ?? args.candidate.event);
+                // A reaction to its own Action (2014 Divine Smite) acts on the creature that Action hit.
                 const target = definition?.targeting?.type === "self" ? reactor
-                    : participants.find(t => t.id === event?.source?.tokenId) ?? null;
+                    : (reactor.id === event?.source?.tokenId) ? scene.tokens.get(String(event?.targets?.[0]?.tokenId ?? "")) ?? null
+                        : participants.find(t => t.id === event?.source?.tokenId) ?? null;
                 if (!target)
                     throw new Error("A reaction's target must be a Token on this Scene.");
                 const targetResult = adapter.tokenToTargetFootprint(target, { disposition: DISPOSITIONS[String(target.disposition ?? 0)] });

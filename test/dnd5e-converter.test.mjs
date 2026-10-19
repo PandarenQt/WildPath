@@ -1125,23 +1125,43 @@ test("a change on a class's scale reads its table: Rage's damage (Strength-based
   assert.deepEqual([move.data.domains, move.data.valueExpression.rows], [["resources.movement.max"], {2: 10, 6: 15}]);
 });
 
-test("Wild Shape: a Beast form within its level's limits, Temporary Hit Points of its druid level, and a Revert", () => {
+test("Wild Shape by the 2014 rules: an Action, a Beast within its druid level's limits, its Hit Points, and a Revert", () => {
   const wildShape = {_id: "testWildShape001", name: "Wild Shape", type: "feat", img: "icons/svg/aura.svg", effects: [],
-    system: {source: SRD, identifier: "wild-shape", type: {value: "class"}, uses: {max: "2", recovery: [{period: "lr", type: "recoverAll"}]},
+    system: {source: SRD, identifier: "wild-shape", type: {value: "class"}, uses: {max: "@scale.druid.wild-shape-uses",
+      recovery: [{period: "lr", type: "recoverAll"}, {period: "sr", type: "formula", formula: "1"}]},
       activities: {a: activity("transform", {activation: {type: "bonus", override: false}, consumption: {targets: [{type: "itemUses", value: "1"}]},
-        transform: {preset: "wildshape", identifier: "druid"}, profiles: [
-          {cr: "0.25", movement: ["fly"], level: {min: null, max: 3}}, {cr: "0.5", movement: ["fly"], level: {min: 4, max: 7}},
-          {cr: "1", movement: [], level: {min: 8, max: null}}]})}}};
+        transform: {preset: "wildshape", identifier: "druid"}, profiles: [{cr: "0.25", movement: ["fly"], level: {min: null, max: 3}}]})}}};
   const beasts = [{uuid: "Compendium.x.Actor.wolf", name: "Wolf", cr: 0.25}, {uuid: "Compendium.x.Actor.bear", name: "Brown Bear", cr: 1},
     {uuid: "Compendium.x.Actor.mammoth", name: "Mammoth", cr: 6}];
   const [shape, revert] = convertItem(wildShape, {beasts}).items;
   const {transform, configuration, costs} = shape.system.definition;
-  assert.deepEqual(costs.allOf.map(cost => cost.capability), ["bonus-action", "wild-shape"]);
+  assert.deepEqual(costs.allOf.map(cost => cost.capability), ["action", "wild-shape"]);
   assert.deepEqual(configuration.find(choice => choice.id === "form").options.map(option => option.label), ["Wolf (CR 0.25)", "Brown Bear (CR 1)"]);
-  assert.deepEqual(transform.limits.rows, {1: {cr: 0.25, fly: false}, 4: {cr: 0.5, fly: false}, 8: {cr: 1, fly: true}});
-  assert.deepEqual(transform.temporaryHealth, {type: "class-level", class: "druid"});
+  assert.deepEqual(transform.limits.rows, {2: {cr: 0.25, fly: false, swim: false}, 4: {cr: 0.5, fly: false, swim: true},
+    8: {cr: 1, fly: true, swim: true}});
+  assert.equal(transform.temporaryHealth, "form");
+  assert.deepEqual(shape.system.ruleElements.find(rule => rule.type === "GrantResource").data,
+    {resourceId: "wild-shape", label: "Wild Shape", maximum: {type: "constant", value: 2}, recovery: "shortRest"});
   assert.equal(validateActionDefinition(shape.system.definition).ok, true);
   assert.deepEqual([revert.name, revert.system.definition.transform], ["Wild Shape (Revert)", {revert: true}]);
+});
+
+test("Divine Smite by the 2014 rules: no action, offered on its own melee hit, a slot up to 4th, 1d8 more against Undead or Fiends", () => {
+  const slotScaling = {mode: "level", formula: ""};
+  const damage = number => ({parts: [{number, denomination: 8, types: ["radiant"], scaling: {mode: "whole", number: 1}}]});
+  const smite = {_id: "testDivineSmite1", name: "Divine Smite", type: "spell", img: "icons/svg/sun.svg", effects: [],
+    system: {source: SRD, identifier: "divine-smite", level: 1, school: "evo", activation: {type: "bonus"},
+      activities: {a: activity("damage", {name: "Cast", activation: {type: "bonus", override: false}, damage: damage(2), consumption: {scaling: {allowed: true}}}),
+        b: activity("damage", {name: "Unholy Creature Damage", activation: {type: "bonus", override: false}, damage: damage(3), consumption: {scaling: {allowed: true}}})}}};
+  const [plain, unholy] = convertItem(smite).items;
+  assert.deepEqual([plain.name, unholy.name], ["Divine Smite", "Divine Smite (Undead or Fiend)"]);
+  const {definition} = plain.system;
+  assert.deepEqual([definition.tags, definition.costs, definition.targeting.type], [[], {allOf: []}, "single"]);
+  assert.deepEqual(Object.values(definition.configuration[0].levelByResourceId), [1, 2, 3, 4], "5d8 at most");
+  assert.deepEqual(plain.system.ruleElements.find(rule => rule.type === "Trigger").data, {kind: "reaction", event: "attack.hit",
+    match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"], notTagsAny: ["spell"]}});
+  assert.equal(unholy.system.definition.damage[0].expression.number, 3);
+  assert.equal(validateActionDefinition(definition).ok, true);
 });
 
 test("Temporary Hit Points are healing of their own type (False Life)", () => {
