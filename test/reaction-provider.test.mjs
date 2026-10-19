@@ -151,3 +151,14 @@ test("a once-a-turn reaction carries its record key and turn, and is not offered
   globalThis.game.combat.turn = 2;
   assert.equal(offered().some(trigger => trigger.owner.tokenId === "guard"), true, "a new turn");
 });
+
+test("a reaction is offered only while its creature has its status (whileStatus: Brutal Strike needs Reckless Attack)", () => {
+  const gated = {...strike(), system: {...strike().system, ruleElements: [{...opportunityTrigger, data: {...opportunityTrigger.data, whileStatus: "reckless"}}]}};
+  const guard = token("guard", -1, [gated]);
+  const scene = {grid: {distance: 5}, tokens: [token("mover", 1), guard]};
+  const offered = () => (createFoundryReactionProvider()({scene, token: scene.tokens[0]}).reactions?.triggers ?? [])
+    .some(trigger => trigger.owner.tokenId === "guard");
+  assert.equal(offered(), false, "not reckless");
+  guard.actor.statuses = new Set(["reckless"]);
+  assert.equal(offered(), true);
+});

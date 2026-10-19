@@ -116,6 +116,8 @@ function tokenReactions(token: TokenLike) {
       // A reaction set to "Never" is not offered; one set to "Always" is used without asking.
       const policy = policyOf(actionItem!);
       if ( policy === "never" ) return [];
+      // Only while its creature has a status (Brutal Strike: Reckless Attack's "reckless").
+      if ( data.whileStatus && !actor.statuses?.has(String(data.whileStatus)) ) return [];
       // Once a turn (Stunning Strike): not offered again this combat turn; its use records it (`metadata.once`).
       const once = (data.once === "turn") ? onceThisTurn(actor, `${item.id}-${String(element.id ?? "trigger")}`) : null;
       if ( once?.used ) return [];

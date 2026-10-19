@@ -284,6 +284,23 @@ Live (two browsers, 2026-10-19, in combat): QA Caster as a level-2 monk hit the 
 (1 Focus Point); the Captain failed (2) and was Stunned through its own turn, which ended at the start of QA Caster's
 next turn. A second hit in the same turn was not offered it, and with no Focus Points left it was not offered at all.
 
+- **A rider on the Action it answers (2026-10-19).** A reaction's definition may carry `rider`; once the reaction is
+  paid for, its `parentDirective` is `{type: "augment", data: rider}`, and the parent's re-evaluation turns it into an
+  input patch (`riderPatch`, at any window):
+  - `forgoDice: {ruleId, dice}`: that many dice of the planned extra damage from that rule (`metadata.ruleId`:
+    "sneak-attack") go unrolled; a component with none left rolls nothing. It is applied once, to the planned component;
+    later planning keeps a component's planned dice.
+  - `damage`: more components, planned the same way (a table of dice by level is its row), of the Action's damage type
+    unless named.
+  - `rollMode`: its attack roll's mode (given up Advantage); `tags`: on its later events; `push`: the creatures it hits
+    are pushed (forced movement reads `input.riderPush`).
+  - Attack-outcome events now carry `extra:<ruleId>` for its planned extra damage and the rider's tags; the declared
+    event's data carries `attackRollMode` and `attackAbility`.
+- **`whileStatus`** (Trigger data): offered only while its creature has that status (Brutal Strike: "reckless").
+- **Reckless Attack** is a free Action; its effect (slug `reckless`) gives Advantage on `attack.might` rolls and on
+  attacks against it, until its next turn. Live: QA Caster's Strength attacks had Advantage, its Agility ones did not,
+  and the Bandit Captain's attacks against it had Advantage.
+
 Shortcuts: a Parry's "while holding a weapon", and Counterspell's 60 feet, sight and hostility, are the reactor's to
 judge (its Ask setting). Falling (Feather Fall) has no window yet; Retaliation's attack is by hand.
 

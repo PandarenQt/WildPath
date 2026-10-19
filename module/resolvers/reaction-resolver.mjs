@@ -47,7 +47,9 @@ export const REACTION_CHOICE_DECISIONS = Object.freeze({
 export const REACTION_PARENT_DIRECTIVES = Object.freeze({
   CONTINUE: "continue",
   CANCEL_PARENT: "cancel-parent",
-  REEVALUATE: "reevaluate"
+  REEVALUATE: "reevaluate",
+  // A rider on the Action it answers (its definition's `rider`): its parent's re-evaluation applies it.
+  AUGMENT: "augment"
 });
 
 export const REACTION_RESOLVER_CODES = Object.freeze({

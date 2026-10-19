@@ -1091,7 +1091,8 @@ test("two unlinked Tokens of one base Actor each make their own save", async t =
 });
 
 /** A GM-controlled target whose Token answers "a hit on me" by striking back (authored Trigger RuleElement). */
-function counterattackFixture(t, {decision="use", reactor="target", event="attack.hit", natural=null, once=false}={}) {
+function counterattackFixture(t, {decision="use", reactor="target", event="attack.hit", natural=null, once=false, rider=null, extra=null,
+  queue=null}={}) {
   const fixture = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
   const {scene, sourceActor, targetActor, targetSource, game} = fixture;
   scene.tokens.get = id => scene.tokens.find(token => token.id === id);
@@ -1112,12 +1113,14 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
     holder = sourceActor;
     const smite = {id: "smite", type: "action", name: "Smite", system: {active: true,
       definition: {schemaVersion: 1, id: "action:smite", label: "Smite", costs: {allOf: []}, range: {type: "special"},
-        targeting: {type: "single", required: true, count: 1},
+        targeting: {type: "single", required: true, count: 1}, ...(rider ? {rider} : {}),
         damage: [{id: "smite", expression: {type: "dice", number: 2, faces: 8}, damageType: "radiant", provenance: "spell-base"}]},
       ruleElements: [{schemaVersion: 1, id: "smite", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
         match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"]}, ...(once ? {once: "turn"} : {})}}]}};
     sourceActor.items = new (class extends Map { [Symbol.iterator]() { return this.values(); } })([...sourceActor.items.entries(), ["smite", smite]]);
     sourceActor.system.resources.reaction = {value: 1, max: 1};
+    // Its own extra damage on this attack (a Sneak Attack).
+    if ( extra ) sourceActor.getExtraDamage = domains => (domains.includes("damage.weapon") ? structuredClone(extra) : []);
   } else holder.items = [{id: "counter", type: "action", name: "Counterattack", system: {active: true,
     definition: {schemaVersion: 1, id: "action:counterattack", label: "Counterattack",
       costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]},
@@ -1159,7 +1162,7 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
       return {decision: "use", candidateId: request.payload.candidates[0].id};
     }]})]} : {}),
     // Its attack, then (its own reaction's) 2d8 or 4d8.
-    rollProviders: [playerRolls(createTestRollProvider({queue: reactor === "source" ? [{natural: natural ?? 18, total: (natural ?? 18) + 4}, {total: 9}] : [],
+    rollProviders: [playerRolls(createTestRollProvider({queue: queue ?? (reactor === "source" ? [{natural: natural ?? 18, total: (natural ?? 18) + 4}, {total: 9}] : []),
       result: {natural: natural ?? 18, total: 22}}))]});
   gm.register();
   player.register();
@@ -1217,6 +1220,21 @@ for ( const critical of [false, true] ) test(`a creature's own Trigger answers i
   const smite = playerRollRequests.find(request => request.definition?.dice?.[0]?.id === "smite:die:0");
   assert.equal(smite?.definition.dice[0].number, critical ? 4 : 2);
   assert.equal(targetActor.system.resources.health.value, 15, "the attack's 6 and the smite's 9 both land");
+});
+
+test("a reaction's rider on the attack it answers (Cunning Strike): a Sneak Attack die forgone, and 1d10 more on its damage roll", async t => {
+  const {targetActor, player, gm, offers, intent, playerRollRequests} = counterattackFixture(t, {reactor: "source",
+    rider: {forgoDice: {ruleId: "sneak-attack", dice: 1}, damage: [{id: "brutal", expression: {type: "dice", number: 1, faces: 10}}]},
+    extra: [{id: "sneak-attack", expression: {type: "dice", number: 3, faces: 6}}],
+    queue: [{natural: 18, total: 22}, {total: 9}, {total: 5}, {total: 4}]});
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(offers.length, 1);
+  const rolled = playerRollRequests.filter(request => request.type === "damage").map(request => request.definition.dice
+    .map(die => `${die.number}d${die.faces}`).join("+"));
+  assert.deepEqual(rolled, ["2d8", "2d6", "1d10"], "the smite; then 3d6 less one, and the rider's 1d10");
+  assert.equal(targetActor.system.resources.health.value, 6, "the smite's 9, the weapon's 6, 5 and 4");
 });
 
 test("a once-a-turn Trigger on its own hit (Stunning Strike) records its use for the combat turn, and is not offered again", async t => {

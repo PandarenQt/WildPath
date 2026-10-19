@@ -26,7 +26,8 @@
         "type": "grant",
         "items": [
           "Compendium.wildpath.srd-items.Item.phbbrbDangerSens",
-          "Compendium.wildpath.srd-items.Item.phbbrbRecklessAt"
+          "Compendium.wildpath.srd-items.Item.phbbrbRecklessAt",
+          "Compendium.wildpath.srd-items.Item.18a07pfv69929000"
         ],
         "optional": false
       },

@@ -45,7 +45,8 @@ export function createFoundryForcedMovement({ game, logger = console, fromUuid }
     const isActiveGM = () => Boolean(game.user?.id) && (game.users?.activeGM?.id === game.user?.id);
     async function afterResolution({ state }) {
         const definition = state?.actionDefinition;
-        const spec = definition?.push;
+        // Its own push, or a reaction's rider's on it (Forceful Blow: the creature its attack hit).
+        const spec = definition?.push ?? (state?.input?.riderPush);
         if (!spec || !state || !isActiveGM())
             return [];
         const source = await fromUuid(String(state.source?.tokenRef ?? ""));
@@ -58,7 +59,7 @@ export function createFoundryForcedMovement({ game, logger = console, fromUuid }
         const largest = spec.maxSize ? (LARGEST[spec.maxSize] ?? Infinity) : Infinity;
         const from = source.getCenterPoint();
         const distanceOf = (token) => Math.hypot(token.getCenterPoint().x - from.x, token.getCenterPoint().y - from.y);
-        const tokens = pushedTargets(state, definition).map(target => scene.tokens.get(String(target?.tokenId ?? "")))
+        const tokens = pushedTargets(state, definition ?? {}).map(target => scene.tokens.get(String(target?.tokenId ?? "")))
             .filter((token) => Boolean(token) && (token !== source)
             && (Math.max(Number(token.width) || 1, Number(token.height) || 1) <= largest))
             // The farthest moves first when pushed, the nearest when pulled, so none blocks another needlessly.

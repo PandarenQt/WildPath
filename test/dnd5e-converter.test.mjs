@@ -1316,3 +1316,14 @@ test("weapon enchantments: Sacred Weapon (no longer passive) and Shillelagh pick
   assert.deepEqual(converted[0].system.definition.configuration.at(-1).optionsFrom, {type: "weapons", melee: true, bases: ["club", "quarterstaff"]});
   assert.equal(validateActionDefinition(converted[0].system.definition).ok, true);
 });
+
+test("Reckless Attack: a free Action whose effect (reckless) gives Advantage on Strength attacks and on attacks against it", () => {
+  const reckless = {_id: "testReckless0001", name: "Reckless Attack", type: "feat", img: "icons/svg/fire.svg",
+    effects: [{_id: "recklessEff00001", name: "Reckless", changes: [], transfer: false, disabled: false}],
+    system: {source: SRD, identifier: "reckless-attack", type: {value: "class"}, uses: {max: "", recovery: []}, activities: {}}};
+  const [, action] = convertItem(reckless).items;
+  const {definition} = action.system;
+  assert.deepEqual([definition.costs, definition.effects[0].slug, definition.effects[0].ruleElements.map(rule => rule.data)],
+    [{allOf: []}, "reckless", [{domains: ["attack.might"], mode: "advantage"}, {domains: ["attacked"], mode: "advantage"}]]);
+  assert.equal(validateActionDefinition(definition).ok, true);
+});
