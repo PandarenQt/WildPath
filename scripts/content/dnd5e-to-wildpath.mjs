@@ -243,6 +243,43 @@ const OWN_HIT = Object.freeze({
 });
 
 /**
+ * 2024 Brutal Strike: while Reckless, its barbarian may give up the Advantage of a Strength attack roll on its turn (one
+ * without Disadvantage); if it hits, the target takes 1d10 more of the weapon's damage type (2d10 from level 17), and
+ * one blow follows: Forceful Blow pushes it 15 feet and lets the barbarian move half its Speed without provoking
+ * Opportunity Attacks; Hamstring Blow lowers its Speed by 15 feet until the start of the barbarian's next turn.
+ * - Brutal Strike answers its own declared attack (`action.declared`, `whileStatus: "reckless"`, a predicate on the
+ *   attack's mode and ability), once a turn; its rider gives up the Advantage, adds the damage and tags the attack.
+ * - Each blow answers a hit so tagged, once a turn between them.
+ * shortcut: Improved Brutal Strike's blows and second blow, and Forceful Blow's "toward the target", are by hand.
+ */
+function brutalStrikeActions(document, img, source, scales) {
+  const declared = {all: [{equals: {path: "event.data.attackRollMode", value: "advantage"}},
+    {equals: {path: "event.data.attackAbility", value: "might"}}]};
+  const extra = formulaExpression("@scale.barbarian.brutal-strike", {scales}) ?? {type: "dice", number: 1, faces: 10};
+  const own = (event, extraMatch={}) => ({kind: "reaction", event, match: {phase: "interrupt", sourceTokenId: "{self}", ...extraMatch}});
+  const make = (suffix, definition, trigger) => {
+    const id = stableId(`${document._id}:${suffix || "strike"}`);
+    const name = `${document.name}${suffix ? ` (${suffix})` : ""}`;
+    return {_id: id, _key: `!items!${id}`, name, type: "action", img,
+      system: {active: true, description: "", definition: {schemaVersion: 1, id: `action:srd-brutal-strike${suffix ? `-${slugify(suffix)}` : ""}`,
+        label: name, costs: {allOf: []}, ...definition}, ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: trigger}]},
+      flags: {wildpath: {source, conversion: {notes: []}}}};
+  };
+  const self = {range: {type: "self"}, targeting: {type: "self"}};
+  return [
+    make("", {...self, rider: {rollMode: "normal", tags: ["brutal-strike"], damage: [{id: "brutal-strike", expression: extra}]}},
+      {...own("action.declared", {notTagsAny: ["spell"]}), whileStatus: "reckless", once: "turn", triggerPredicate: declared}),
+    make("Forceful Blow", {...self, rider: {push: {distance: 15}}, effects: [{...structuredClone(WITHDRAW), name: "Forceful Blow"}]},
+      {...own("attack.hit", {tagsAll: ["brutal-strike"]}), once: "turn", onceKey: "brutal-blow"}),
+    make("Hamstring Blow", {range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+      effects: [{id: "effect-1", type: "effect", name: "Hamstrung", img: "icons/svg/net.svg", duration: {value: 1, units: "rounds", expiry: "turnStart"},
+        ruleElements: [{schemaVersion: 1, id: "hamstrung", type: "Modifier", data: {domains: ["resources.movement.max", "speed"],
+          modifierType: "untyped", value: -15}}]}]},
+    {...own("attack.hit", {tagsAll: ["brutal-strike"]}), once: "turn", onceKey: "brutal-blow"})
+  ];
+}
+
+/**
  * Paladin's Smite (the maintainer's rule): its free cast of Divine Smite (once per Long Rest, no slot) is an option of
  * every Divine Smite's slot choice, as a 1st-level cast. It also lets its paladin cast Divine Smite by the 2014 rules
  * (SRD 5.1): no action, 2d8 radiant and 1d8 more a slot level above 1st, at most 5d8 (a slot above 4th adds nothing, so
@@ -569,6 +606,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // An enchantment of one of its creature's weapons (Magic Weapon, Sacred Weapon): its weapon's attacks change instead.
     const enchant = ENCHANTS[identifierOf(document)] ?? null;
     if ( enchant && (activity.type !== "enchant") ) continue;
+    // Brutal Strike's Actions are its own (brutalStrikeActions), not its dnd5e damage activity.
+    if ( identifierOf(document) === "brutal-strike" ) continue;
     if ( ["", "none", "special"].includes(activation) && !onHit && !enchant ) {
       // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.
       const marked = (activity.type === "damage") && Object.values(EFFECTS_BY_HAND).some(hand => hand.bonusDamage === label);
@@ -725,6 +764,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...((identifierOf(document) === "paladins-smite") ? [PALADINS_SMITE.pool] : [])].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}}}});
     if ( identifierOf(document) === "paladins-smite" ) items.push(...paladinsSmiteActions(document, img, source));
+    if ( identifierOf(document) === "brutal-strike" ) items.push(...brutalStrikeActions(document, img, source, scales));
   }
   // A feature used on its turn that dnd5e leaves without an Action (Action Surge): its Action, paid from its own pool.
   const featureAction = FEATURE_ACTIONS[identifierOf(document)];

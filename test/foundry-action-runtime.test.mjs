@@ -1092,7 +1092,7 @@ test("two unlinked Tokens of one base Actor each make their own save", async t =
 
 /** A GM-controlled target whose Token answers "a hit on me" by striking back (authored Trigger RuleElement). */
 function counterattackFixture(t, {decision="use", reactor="target", event="attack.hit", natural=null, once=false, rider=null, extra=null,
-  queue=null}={}) {
+  queue=null, pick=null, items=null}={}) {
   const fixture = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
   const {scene, sourceActor, targetActor, targetSource, game} = fixture;
   scene.tokens.get = id => scene.tokens.find(token => token.id === id);
@@ -1117,7 +1117,8 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
         damage: [{id: "smite", expression: {type: "dice", number: 2, faces: 8}, damageType: "radiant", provenance: "spell-base"}]},
       ruleElements: [{schemaVersion: 1, id: "smite", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
         match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"]}, ...(once ? {once: "turn"} : {})}}]}};
-    sourceActor.items = new (class extends Map { [Symbol.iterator]() { return this.values(); } })([...sourceActor.items.entries(), ["smite", smite]]);
+    sourceActor.items = new (class extends Map { [Symbol.iterator]() { return this.values(); } })([...sourceActor.items.entries(),
+      ...(items ?? [smite]).map(item => [item.id, item])]);
     sourceActor.system.resources.reaction = {value: 1, max: 1};
     // Its own extra damage on this attack (a Sneak Attack).
     if ( extra ) sourceActor.getExtraDamage = domains => (domains.includes("damage.weapon") ? structuredClone(extra) : []);
@@ -1157,10 +1158,12 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
       senderUserId: envelope.senderUserId, game, persistencePort})});
   const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(),
     activeGMUserId: "gm-a", transport: hub.createEndpoint({userId: "player-a"}),
-    ...(reactor === "source" ? {promptPorts: [createTestPromptAdapter({id: "smite-choice", queue: [request => {
+    // Its own reactions: the first candidate, or the one `pick` names (a Brutal Strike's blow).
+    ...(reactor === "source" ? {promptPorts: [createTestPromptAdapter({id: "smite-choice", queue: Array.from({length: 4}, () => request => {
       offers.push(request);
-      return {decision: "use", candidateId: request.payload.candidates[0].id};
-    }]})]} : {}),
+      const candidates = request.payload.candidates;
+      return {decision: "use", candidateId: (candidates.find(candidate => pick && String(candidate.actionId ?? "").includes(pick)) ?? candidates[0]).id};
+    })})]} : {}),
     // Its attack, then (its own reaction's) 2d8 or 4d8.
     rollProviders: [playerRolls(createTestRollProvider({queue: queue ?? (reactor === "source" ? [{natural: natural ?? 18, total: (natural ?? 18) + 4}, {total: 9}] : []),
       result: {natural: natural ?? 18, total: 22}}))]});
@@ -1235,6 +1238,26 @@ test("a reaction's rider on the attack it answers (Cunning Strike): a Sneak Atta
     .map(die => `${die.number}d${die.faces}`).join("+"));
   assert.deepEqual(rolled, ["2d8", "2d6", "1d10"], "the smite; then 3d6 less one, and the rider's 1d10");
   assert.equal(targetActor.system.resources.health.value, 6, "the smite's 9, the weapon's 6, 5 and 4");
+});
+
+test("Brutal Strike: a reckless Strength attack gives up its Advantage for 1d10 more, and a blow follows the hit", async t => {
+  const fs = await import("node:fs");
+  const pack = name => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(name))}`, "utf8"));
+  const brutal = ["brutal-strike-64ccyd1w6x7hf000", "brutal-strike-forceful-blow", "brutal-strike-hamstring-blow"].map(pack)
+    .map(item => ({id: item._id, type: "action", name: item.name, system: item.system}));
+  const {sourceActor, player, gm, offers, intent, playerRollRequests} = counterattackFixture(t, {reactor: "source", items: brutal,
+    pick: "hamstring", queue: [{natural: 18, total: 22}, {total: 4}]});
+  sourceActor.statuses = new Set(["reckless"]);
+  sourceActor.getRollModes = domains => (domains.includes("attack") ? [{id: "reckless", mode: "advantage"}] : []);
+  sourceActor.system.classes = [{id: "barbarian", level: 9}];
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.deepEqual(offers.map(offer => offer.payload.candidates.map(candidate => candidate.actionId)),
+    [["action:srd-brutal-strike"], ["action:srd-brutal-strike-forceful-blow", "action:srd-brutal-strike-hamstring-blow"]]);
+  assert.equal(playerRollRequests[0].rollMode, "normal", "its Advantage given up");
+  assert.ok(playerRollRequests.some(request => (request.type === "damage") && request.definition.dice.some(die => die.faces === 10)), "1d10 more");
 });
 
 test("a once-a-turn Trigger on its own hit (Stunning Strike) records its use for the combat turn, and is not offered again", async t => {
