@@ -111,3 +111,17 @@ test("Indomitable: a fighter's own failed save may be rerolled with its fighter 
   const monster = {own: false, options: []};
   assert.equal(withIndomitable(monster, fighter, system(1), {}), monster, "never on a monster's GM-chosen reroll");
 });
+
+test("a die an effect lets its creature add (Bardic Inspiration) is offered at its giver's size", async () => {
+  const {withAddedDice} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const bard = {documentName: "Actor", system: {classes: [{id: "bard", level: 5}]}};
+  globalThis.fromUuidSync = uuid => (uuid === "Actor.bard.Item.inspire" ? {documentName: "Item", parent: bard, actor: bard} : null);
+  const inspired = {id: "inspired", name: "Inspired", flags: {wildpath: {conditionEffect: {conditionId: "custom:action:bardic:effect-1",
+    sourceRef: "uuid:Actor.bard.Item.inspire", metadata: {addDie: {faces: {type: "table", key: {type: "class-level", class: "bard"},
+      rows: {1: 6, 5: 8, 10: 10, 15: 12}}}}}}}};
+  const offer = withAddedDice(null, {name: "Fighter", effects: [inspired]}, {}, {chooser: "target-controller", target: {id: "fighter"}});
+  assert.deepEqual(offer.options.map(option => [option.value, option.addDice.faces, option.payment.conditionId]),
+    [["add:inspired", 8, "custom:action:bardic:effect-1"]], "a 5th-level bard's d8");
+  assert.equal(withAddedDice(null, {name: "Fighter", effects: []}, {}, {}), null);
+  delete globalThis.fromUuidSync;
+});
