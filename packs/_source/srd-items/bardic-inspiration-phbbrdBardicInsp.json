@@ -45,6 +45,23 @@
             "value": 3600,
             "units": "seconds",
             "expiry": "turnStart"
+          },
+          "metadata": {
+            "addDie": {
+              "faces": {
+                "type": "table",
+                "key": {
+                  "type": "class-level",
+                  "class": "bard"
+                },
+                "rows": {
+                  "1": 6,
+                  "5": 8,
+                  "10": 10,
+                  "15": 12
+                }
+              }
+            }
           }
         }
       ],

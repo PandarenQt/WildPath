@@ -39,6 +39,7 @@ import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefini
 import {tokenRef} from "../helpers/entity-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {ROLL_AUTHORITY, combineRollModes, d20Chance} from "../helpers/rolls.mjs";
+import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {conditionsFrom, creatureRefs, effectsFrom, revealedTo} from "../helpers/effect-sources.mjs";
 import {customEffectId} from "../helpers/action-definitions.mjs";
 import {isUnprepared} from "../helpers/spellcasting.mjs";
@@ -723,8 +724,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( forced.some(entry => entry.outcome === "evasion") ) evasionByTarget[key] = "evasion";
       const legendary = legendaryResistanceFor(targetActor, systemSnapshots.get(targetActor), game);
       if ( legendary ) legendaryByTarget[key] = legendary;
-      const inspiration = withIndomitable(inspirationOffer(targetActor, systemSnapshots.get(targetActor), game,
-        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers}), targetActor, systemSnapshots.get(targetActor), game);
+      const inspiration = withAddedDice(withIndomitable(inspirationOffer(targetActor, systemSnapshots.get(targetActor), game,
+        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers}), targetActor, systemSnapshots.get(targetActor), game), targetActor, game,
+        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, target});
       if ( inspiration ) inspirationByTarget[key] = inspiration;
     }
     targets.push(target);
@@ -784,7 +786,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   }
   if ( controller.actor ) targetActors[controller.actor.uuid] = controller.actor;
   const ownInspiration = (definition?.attack || definition?.check)
-    ? inspirationOffer(actor, actorSystem, game, {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, payers}) : null;
+    ? withAddedDice(inspirationOffer(actor, actorSystem, game, {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, payers}), actor, game,
+      {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, target: {id: actor.id, actorId: actor.id, actorRef: actor.uuid, uuid: actor.uuid,
+        tokenId: sourceToken?.id ?? null}}) : null;
   // A character paying for a reroll is committed on like a target, its uuid its key: the acting creature for its own
   // roll, or a player character for a monster's.
   if ( ownInspiration?.own ) targetActors[actor.uuid] ??= actor;
@@ -1133,6 +1137,34 @@ export function inspirationOffer(roller, rollerSystem, game, {chooser, payers=()
   });
   return options.length ? {own: false, chooser: ROLL_AUTHORITY.GM, label: format("WILDPATH.INSPIRATION.Monster", {name: roller?.name ?? ""}),
     options} : null;
+}
+
+/**
+ * Dice its effects let a creature add to a failed d20 test (2024 Bardic Inspiration: "roll the Bardic Inspiration die
+ * and add the number rolled"): an option each, added to its own offer (or an offer alone). The die is worked out from
+ * the creature that gave it (a bard's level), and using it ends the effect (`payment`: a condition removal plan).
+ */
+export function withAddedDice(offer, roller, game, {chooser, target}={}) {
+  if ( offer && !offer.own ) return offer;
+  const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
+  const options = [];
+  for ( const effect of roller?.effects ?? [] ) {
+    const flag = effect?.flags?.wildpath?.conditionEffect;
+    const die = flag?.metadata?.addDie;
+    if ( effect.disabled || !die || !flag.conditionId ) continue;
+    const giver = globalThis.fromUuidSync?.(String(flag.sourceRef ?? "").replace(/^uuid:/, ""));
+    const giverActor = giver?.documentName === "Actor" ? giver : giver?.actor ?? giver?.parent ?? null;
+    const faces = evaluateValueExpression(die.faces, {actor: giverActor ?? roller, actorSystem: (giverActor ?? roller)?.system});
+    if ( !faces.ok || !(faces.value > 0) ) continue;
+    options.push({value: `add:${effect.id}`, addDice: {number: 1, faces: faces.value},
+      label: format("WILDPATH.INSPIRATION.AddDie", {name: effect.name, faces: faces.value}),
+      payment: {type: "conditionEffect", conditionId: flag.conditionId, levels: -1, action: "delete", stacking: false,
+        existingEffectId: effect.id, target: clonePlainData(target, "target"), definition: {id: flag.conditionId, custom: true},
+        metadata: {}}});
+  }
+  if ( !options.length ) return offer;
+  return offer ? {...offer, options: [...offer.options, ...options]}
+    : {own: true, chooser, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""}), options};
 }
 
 /**

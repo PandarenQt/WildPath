@@ -352,6 +352,11 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - Lay on Hands: a Bonus Action with a "Points" number chosen when used, spent from its pool and healed
     (`spendAmount`, action-configuration.md); touch, though dnd5e records self. Live: QA Caster with a 25-point copy
     healed QA Fighter for 7 (30 to 37, pool 25 to 18).
+  - Bardic Inspiration: the Inspired effect carries its die (`metadata.addDie.faces`, a table on bard level). When its
+    creature fails a d20 test, its reroll offer has "Add Inspired (d8)" (`withAddedDice`): the die is worked out from the
+    creature that gave it, its roller rolls it and the total grows by it, and the effect ends (a condition removal plan).
+    Live: QA Caster (a d8 copy) inspired QA Fighter; on a failed Grapple save (1, total 0) Player1 added the d8 (4): still
+    a failure at 4, both rolls on the card, Inspired gone.
   - Live (two browsers): QA Fighter (a Champion) used Action Surge with its Action spent (0/1 to 1/2); its Longsword
     attack carried a critical threshold of 19; and a failed Grapple save was offered "Reroll with Indomitable, +6",
     which rolled 1d20 + 5 (its -1 and +6).

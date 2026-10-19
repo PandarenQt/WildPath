@@ -1481,6 +1481,13 @@ function convertActivity({document, activity, system, spell, level, scales, note
 
   if ( damage.length ) definition.damage = damage.map(({scaleDice: _scale, ...component}) => component);
   if ( healing.length ) definition.healing = healing.map(({scaleDice: _scale, ...component}) => component);
+  // Bardic Inspiration: the creature may add the bard's die to a failed d20 test (its size on the bard's level).
+  if ( identifierOf(document) === "bardic-inspiration" ) {
+    const faces = formulaExpression("@scale.bard.inspiration.faces", {scales});
+    if ( faces ) for ( const effect of effects.filter(entry => entry.type === "effect") ) {
+      effect.metadata = {...(effect.metadata ?? {}), addDie: {faces}};
+    }
+  }
   // "At the end of each of its turns, the target repeats the save, ending the spell on itself on a success" (Hold
   // Person): each effect a failed save gives is saved against again then.
   const repeat = definition.save ? repeatSaveTiming(document) : null;

@@ -39,3 +39,29 @@ test("an effect whose save repeats keeps the save it was let in by: its ability 
   const condition = done.state.mutationPlans.find(entry => entry.type === "conditionEffect");
   assert.deepEqual(condition?.metadata?.repeatSave, {timing: "turnEnd", ability: "wits", dc: 14});
 });
+
+test("Bardic Inspiration: a failed save may add the die, which can turn it into a success, and ends the effect", async () => {
+  const save = {schemaVersion: 1, id: "action:trip", label: "Trip", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    save: {ability: "might", dc: {value: 12}}, effects: [{id: "effect-1", type: "condition", conditionId: "prone", saveOutcomePolicy: "failure"}]};
+  const ending = {type: "conditionEffect", conditionId: "custom:inspired", levels: -1, action: "delete", target: {id: "orc", tokenId: "token-orc"}};
+  const offer = {own: true, chooser: "target-controller", label: "x",
+    options: [{value: "add:inspired", addDice: {number: 1, faces: 8}, label: "Add Inspired (d8)", payment: ending}]};
+  let state = planStagedActionResolution({id: "resolution:inspired", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {id: save.id, type: "action", name: save.label, system: {definition: save}}, source: {actorId: "actor-source"},
+    targets: [{id: "orc", actorId: "actor-orc", tokenId: "token-orc", disposition: "enemy"}],
+    save: {inspirationByTarget: {"token-orc": offer}}}).state;
+  const answer = value => {
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: typeof value === "function" ? value(request) : value}}).state;
+    return request;
+  };
+  answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: 8, total: 8}));
+  const choice = answer("add:inspired");
+  assert.equal(choice.type, "choice");
+  const die = answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, total: 5}));
+  assert.equal(die.payload.rollRequest.formula, "1d8");
+  assert.equal(state.results.saveResolution.results[0].success, true, "8 + 5 = 13 against DC 12");
+  assert.ok(state.mutationPlans.some(plan => (plan.type === "conditionEffect") && (plan.conditionId === "custom:inspired")), "the effect ends");
+  assert.equal(state.mutationPlans.some(plan => plan.conditionId === "prone"), false, "and no Prone");
+});

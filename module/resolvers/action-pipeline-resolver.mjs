@@ -934,6 +934,7 @@ function createCheckOutcomeStage() {
         data: {checkResolution}});
       // Heroic Inspiration may reroll it (the creature's own failure, or a monster's check by the GM's choice).
       const reroll = inspirationReroll(state, input, {offer: input.check.inspiration, failed: !checkResolution.success, key: "check",
+        roll: input.check.roll,
         stageId: ACTION_PIPELINE_STAGE_IDS.CHECK_OUTCOME, rollKind: "check",
         makeRollRequest: suffix => checkRollRequestForState(state, input, {suffix})});
       if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
@@ -947,7 +948,7 @@ function createCheckOutcomeStage() {
       const planning = ensureActionPlanningResult(state, rerolled);
       if ( planning.failed ) return planning.failed;
       const actionResult = addResolutionStep(planning.actionResult, {stage: ACTION_RESOLUTION_STAGES.ROLL, events: [], consequences: [],
-        mutationPlans: [reroll.payment], data: {checkResolution}});
+        mutationPlans: [reroll.payment].filter(Boolean), data: {checkResolution}});
       return continueResolutionStage({
         state: withRerolls(stateWithActionResult(state, {input: rerolled, actionResult, results: {checkResolution}}), [reroll]),
         data: {success: checkResolution.success}
@@ -1092,7 +1093,7 @@ function createAttackOutcomeStage() {
       });
       let attackResolution = resolveAttack(attack.roll);
       // Heroic Inspiration may reroll it (a miss of a player's character, or a monster's attack by the GM's choice).
-      const reroll = attackResolution.ok ? inspirationReroll(state, input, {offer: attack.inspiration,
+      const reroll = attackResolution.ok ? inspirationReroll(state, input, {offer: attack.inspiration, roll: attack.roll,
         failed: !attackResolution.hits.length, key: "attack", stageId: ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME, rollKind: "attack",
         makeRollRequest: suffix => attackRollRequestForState(state, input, {suffix})}) : {};
       if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
@@ -1402,7 +1403,41 @@ function legendaryResistanceChoices(state, input, saveResolution) {
  * `{roll, rollRequest, rollResult, payment}` (the payment is the payer's `resourcePayment`), `{wait}` meanwhile,
  * `{fail}` for a bad roll, and `{}` when the roll is kept or nothing is offered.
  */
-function inspirationReroll(state, input, {offer, failed, key, stageId, rollKind, makeRollRequest, targets=[]}) {
+/**
+ * A die added to a failed d20 test (2024 Bardic Inspiration: "roll the Bardic Inspiration die and add the number
+ * rolled"): its roller rolls it, and the test's total grows by it. Paid by the option's `payment` (ending the effect
+ * that gave the die). Returns what inspirationReroll returns.
+ */
+function addedDie(state, input, {option, key, stageId, rollKind, makeRollRequest, targets, original}) {
+  const base = makeRollRequest(`${rollKind}-roll:added:${key}`);
+  const faces = Number(option.addDice.faces) || 6;
+  const number = Number(option.addDice.number) || 1;
+  const rollRequest = createDamageRollRequest({id: base.id, resolutionId: state.id, type: ROLL_TYPES.CUSTOM, formula: `${number}d${faces}`,
+    definition: {dice: [{number, faces}]}, source: base.source, target: base.target, chooser: base.chooser, authority: base.authority,
+    metadata: {...(base.metadata ?? {}), rollKind: `${rollKind}-added-die`}});
+  const accepted = getResolutionResponse(state, {requestId: rollRequest.id, type: RESOLUTION_REQUEST_TYPES.ROLL});
+  if ( !accepted ) return {wait: waitResolutionStage({
+    state: updateResolutionState(state, {input, rollRequests: appendRollRequest(state.rollRequests, rollRequest)}),
+    request: createResolutionRequest({id: rollRequest.id, resolutionId: state.id, stageId, type: RESOLUTION_REQUEST_TYPES.ROLL,
+      expectedResponseType: "roll-result", chooser: rollRequest.chooser, authority: rollRequest.authority,
+      validation: {rollRequestId: rollRequest.id, semanticType: rollRequest.type, requireNatural: false, formula: rollRequest.formula},
+      payload: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: `${rollKind}-added-die`, rollRequest, targets}}),
+    reason: "The added die is required before action resolution can continue."
+  })};
+  const request = rollRequestFromAcceptedResponse(accepted, () => rollRequest);
+  const normalized = normalizeRollResponseValue(accepted.response.value, {request, completedRequestIds: completedRollRequestIds(state)});
+  if ( !normalized.ok ) return {fail: failResolutionStage({state, code: normalized.code, reason: normalized.reason,
+    errors: [{code: normalized.code, reason: normalized.reason, requestId: rollRequest.id}], data: {requestId: rollRequest.id}})};
+  const added = Number(normalized.result.total) || 0;
+  const roll = {...(original ?? {}), total: (Number(original?.total) || 0) + added,
+    modifiers: [...(original?.modifiers ?? []), {id: "added-die", value: added, label: option.label ?? null}]};
+  return {roll, rollRequest: request,
+    rollResult: {requestId: accepted.request.id, type: `${rollKind}-added-die`, semanticType: normalized.result.type, rollRequest: request,
+      rollResult: normalized.result, roll, reroll: true, targetKey: key},
+    payment: option.payment ?? null};
+}
+
+function inspirationReroll(state, input, {offer, failed, key, stageId, rollKind, makeRollRequest, targets=[], roll: original=null}) {
   if ( !offer?.options?.length || (offer.own && !failed) ) return {};
   const choiceId = requestIdFor(state, `heroic-inspiration:${key}`);
   const chosen = getResolutionResponse(state, {requestId: choiceId, type: RESOLUTION_REQUEST_TYPES.CHOICE});
@@ -1427,6 +1462,8 @@ function inspirationReroll(state, input, {offer, failed, key, stageId, rollKind,
   const value = chosen.response?.value;
   const option = offer.options.find(entry => entry.value === (value?.choices?.["heroic-inspiration"] ?? value));
   if ( !option ) return {};
+  // Bardic Inspiration adds a die to the roll instead of rolling it again.
+  if ( option.addDice ) return addedDie(state, input, {option, key, stageId, rollKind, makeRollRequest, targets, original});
   // A reroll may add a bonus (Indomitable: its fighter level).
   const rollRequest = makeRollRequest(`${rollKind}-roll:reroll:${key}`, Number(option.bonus) || 0);
   const accepted = getResolutionResponse(state, {requestId: rollRequest.id, type: RESOLUTION_REQUEST_TYPES.ROLL});
@@ -1522,6 +1559,7 @@ function createSaveOutcomeStage() {
         const target = result.targetContext?.target ?? result.target;
         const key = rollModeTargetKey(result.target);
         const reroll = inspirationReroll(state, input, {offer: input.save.inspirationByTarget?.[key], failed: !result.success, key,
+          roll: result.roll ?? input.save.rollsByTarget?.[saveTargetKey(target)] ?? null,
           stageId: ACTION_PIPELINE_STAGE_IDS.SAVE_OUTCOME, rollKind: "save", targets: [target],
           makeRollRequest: (suffix, bonus=0) => saveRollRequestForState(state, input, {target, suffix, bonus})});
         if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
@@ -1562,7 +1600,7 @@ function createSaveOutcomeStage() {
         // Each use is paid by the creature that succeeded instead, in the Action's transaction; so is each reroll's point.
         mutationPlans: [...legendary.chosen.map(key => ({type: "resourcePayment", resolver: "ResourceResolver",
           plan: input.save.legendaryByTarget[key].plan, payerRef: input.save.legendaryByTarget[key].payerRef})),
-          ...rerolls.map(reroll => reroll.payment)],
+          ...rerolls.map(reroll => reroll.payment).filter(Boolean)],
         data: {saveResolution}
       });
 
