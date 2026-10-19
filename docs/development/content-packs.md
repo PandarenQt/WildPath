@@ -430,6 +430,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Items rose from 843 to 852.
 - **Initiative recharges (2026-10-19):** Persistent Rage, Uncanny Metabolism and Archdruid's Evergreen Wild Shape are
   automatic Triggers on `initiative.rolled` (classes-and-spellcasting.md).
+- **Monk (2026-10-20):** Martial Arts brings its Unarmed Strikes, Flurry of Blows fills a strikes pool, and Open Hand
+  Technique answers a Flurry hit (classes-and-spellcasting.md).
 - **Metamagic (2026-10-19):** its options are features flagged `metamagic`, which a sorcerer's spells offer
   (classes-and-spellcasting.md). Empowered Spell's feature grants its Action. The class lists only what brings its Actions
   with it (`convertedIds`: gear, or a feature with `grants`).

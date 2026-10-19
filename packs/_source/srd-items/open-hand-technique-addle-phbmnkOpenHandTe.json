@@ -1,13 +1,64 @@
 {
   "_id": "phbmnkOpenHandTe",
   "_key": "!items!phbmnkOpenHandTe",
-  "name": "Open Hand Technique",
-  "type": "feature",
+  "name": "Open Hand Technique (Addle)",
+  "type": "action",
   "img": "icons/magic/unholy/strike-hand-glow-pink.webp",
   "system": {
     "active": true,
     "description": "<p>Whenever you hit a creature with an attack granted by your Flurry of Blows, you can impose one of the following effects on that target.</p><p><strong>Addle.</strong> The target can't make Opportunity Attacks until the start of its next turn.</p><p><strong>Push.</strong> The target must succeed on a Strength saving throw or be pushed up to 15 feet away from you.</p><p><strong>Topple.</strong> The target must succeed on a Dexterity saving throw or have the Prone condition.</p><section id=\"secret-4BkgU26V2trst09S\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>The <strong>Addle</strong> activity includes an Active Effect for tracking the addled target.</p><p>The <strong>Topple</strong> activity includes an Active Effect that applies the Prone status.</p></section>",
-    "ruleElements": []
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-open-hand-technique-addle",
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Addled",
+          "slug": "no-opportunity-attacks",
+          "img": "icons/svg/daze.svg",
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnStart"
+          },
+          "ruleElements": []
+        }
+      ],
+      "label": "Open Hand Technique (Addle)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": [
+              "flurry"
+            ],
+            "notTagsAny": [
+              "spell"
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,11 +72,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Addle\" is passive or triggered: not automated",
-          "\"Push\" is passive or triggered: not automated",
-          "\"Topple\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

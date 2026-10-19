@@ -1,0 +1,125 @@
+{
+  "_id": "gm4p6i1u4gak0000",
+  "_key": "!items!gm4p6i1u4gak0000",
+  "name": "Martial Arts (Flurry of Blows Strike)",
+  "type": "action",
+  "img": "icons/skills/melee/maneuver-sword-katana-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-martial-arts-flurry",
+      "label": "Martial Arts (Flurry of Blows Strike)",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "flurry-of-blows",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true,
+        "properties": [
+          "finesse"
+        ]
+      },
+      "damage": [
+        {
+          "id": "unarmed",
+          "expression": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "monk"
+            },
+            "rows": {
+              "1": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "5": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "11": {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              "17": {
+                "type": "dice",
+                "number": 1,
+                "faces": 12
+              }
+            }
+          },
+          "damageType": "bludgeoning",
+          "provenance": "weapon-base"
+        }
+      ],
+      "tags": [
+        "flurry"
+      ]
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "flurry-of-blows-strikes",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "flurry-of-blows",
+          "label": "Flurry of Blows",
+          "maximum": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "monk"
+            },
+            "rows": {
+              "1": 2,
+              "10": 3
+            }
+          },
+          "current": 0,
+          "recovery": "none",
+          "emptiesAtTurnStart": true
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkMartialArt",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}
