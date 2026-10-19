@@ -316,6 +316,14 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   attack: it rolled 1d20 + 5 (no Advantage), hit, dealt 1d8 + 1d10, and Forceful Blow pushed the Bandit Captain 15 ft;
   QA Caster was Disengaged with 15 ft more movement.
 
+- **Cutting Words (2026-10-19):** `attack.hit` with `notSourceTokenId: "{self}"`, so any creature's hit within 60 ft;
+  the bard's reaction targets the attacker. Its rider `attackPenalty: {dice}` is its Bardic Inspiration die, a table by
+  bard level. The child rolls it when it pays (`riderAttackPenalty`, reusing `addedDie`) and sends the total. The
+  parent lowers its attack roll by that much and checks it again against its targets, as a Parry's AC is. shortcut: its
+  use on a damage roll or an ability check, "can see" and hostility are by hand. Live: the Bandit Captain's Scimitar (16)
+  hit QA Caster as a level-10 bard; Player1 used Cutting Words, and the attack missed. A Reaction and a Bardic
+  Inspiration were spent.
+
 Shortcuts: a Parry's "while holding a weapon", and Counterspell's 60 feet, sight and hostility, are the reactor's to
 judge (its Ask setting). Falling (Feather Fall) has no window yet; Retaliation's attack is by hand.
 

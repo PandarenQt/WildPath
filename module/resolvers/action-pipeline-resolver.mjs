@@ -80,6 +80,7 @@ import {
   shouldResolveTargets
 } from "./action-resolver.mjs";
 import {resolveActorResourcePayment, withResourceRestores} from "./resource-resolver.mjs";
+import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
 import {resolveAttackTargets} from "./attack-resolver.mjs";
 import {resolveSaveAgainstDC, resolveSaveTargets} from "./save-resolver.mjs";
@@ -2154,13 +2155,17 @@ function createPaymentStage() {
         }
       });
 
+      // Cutting Words: its die is rolled once it is paid for, and that much comes off the attack it answers.
+      const penalty = riderAttackPenalty(state, input);
+      if ( penalty?.wait ) return penalty.wait;
+      const rider = state.actionDefinition?.rider
+        ? {...clonePlain(state.actionDefinition.rider), ...(penalty ? {attackPenalty: penalty.total} : {})} : null;
       return continueResolutionStage({
         state: stateWithActionResult(state, {
           input,
           actionResult,
           // A reaction with a rider (Cunning Strike) changes the Action it answers once it is paid for.
-          results: {paymentResolution: payment, ...(state.actionDefinition?.rider
-            ? {parentDirective: {type: "augment", data: clonePlain(state.actionDefinition.rider)}} : {})}
+          results: {paymentResolution: payment, ...(rider ? {parentDirective: {type: "augment", data: rider}} : {})}
         }),
         data: {
           paymentPlan: payment.paymentPlan,
@@ -2685,9 +2690,15 @@ function actorSystemForReactionCandidate(candidate, actorSystemsByActor) {
 }
 
 function reevaluateParentAfterReaction({parentState, childState, window, services={}}) {
-  const state = createResolutionState(parentState);
+  let state = createResolutionState(parentState);
   const directive = childState?.results?.parentDirective;
-  if ( directive?.type === "augment" ) return riderPatch(state, directive.data ?? {}, {window, childState});
+  // A rider lowering its attack roll (Cutting Words) is checked again against its targets, as a Parry's AC is.
+  const penalty = Number(directive?.data?.attackPenalty);
+  if ( (directive?.type === "augment") && Number.isFinite(penalty) && penalty && state.input?.attack?.roll ) {
+    const roll = state.input.attack.roll;
+    state = updateResolutionState(state, {input: {...state.input, attack: {...state.input.attack, roll: {...roll,
+      total: (Number(roll.total) || 0) - penalty, modifiers: [...(roll.modifiers ?? []), {id: "attack-penalty", value: -penalty}]}}}});
+  } else if ( directive?.type === "augment" ) return riderPatch(state, directive.data ?? {}, {window, childState});
   if ( window?.timing !== REACTION_WINDOW_TIMINGS.AFTER_OUTCOME && window?.timing !== REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE ) {
     return null;
   }
@@ -2771,6 +2782,31 @@ function reevaluateParentAfterReaction({parentState, childState, window, service
  * - `tags`: on its later events (a blow answering a Brutal Strike's hit);
  * - `push`: the creatures it hits are pushed (Forceful Blow).
  */
+/**
+ * A rider's attack penalty die (Cutting Words: its Bardic Inspiration die, a table by bard level), rolled by its
+ * creature: `{total}`, `{wait}` while it is rolled, or null without one.
+ */
+function riderAttackPenalty(state, input) {
+  const expression = state.actionDefinition?.rider?.attackPenalty?.dice;
+  if ( !expression ) return null;
+  const context = {actorSystem: input.actorSystem ?? null};
+  let dice = expression;
+  if ( dice.type === "table" ) {
+    const key = evaluateValueExpression(dice.key, context);
+    const row = Object.keys(dice.rows ?? {}).map(Number).filter(level => key.ok && (level <= key.value)).sort((a, b) => b - a)[0];
+    dice = (row === undefined) ? null : dice.rows[String(row)] ?? dice.rows[row];
+  }
+  if ( (dice?.type !== "dice") || !(Number(dice.faces) > 0) ) return null;
+  const rolled = addedDie(state, input, {option: {addDice: {number: Number(dice.number) || 1, faces: Number(dice.faces)}, label: state.actionDefinition.label},
+    key: "penalty", stageId: ACTION_PIPELINE_STAGE_IDS.PAYMENT, rollKind: "rider",
+    makeRollRequest: suffix => ({id: requestIdFor(state, suffix), source: state.source ?? input.source ?? null,
+      chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, authority: {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER}, metadata: {}}),
+    targets: [], original: {total: 0}});
+  if ( rolled.wait ) return {wait: rolled.wait};
+  if ( rolled.fail ) return null;
+  return {total: Number(rolled.roll?.total) || 0};
+}
+
 function riderPatch(state, rider, {window, childState}) {
   const input = preparedResolverInput(state);
   const damage = input.damage ?? {};
