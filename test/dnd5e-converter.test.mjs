@@ -1125,6 +1125,25 @@ test("a change on a class's scale reads its table: Rage's damage (Strength-based
   assert.deepEqual([move.data.domains, move.data.valueExpression.rows], [["resources.movement.max"], {2: 10, 6: 15}]);
 });
 
+test("Wild Shape: a Beast form within its level's limits, Temporary Hit Points of its druid level, and a Revert", () => {
+  const wildShape = {_id: "testWildShape001", name: "Wild Shape", type: "feat", img: "icons/svg/aura.svg", effects: [],
+    system: {source: SRD, identifier: "wild-shape", type: {value: "class"}, uses: {max: "2", recovery: [{period: "lr", type: "recoverAll"}]},
+      activities: {a: activity("transform", {activation: {type: "bonus", override: false}, consumption: {targets: [{type: "itemUses", value: "1"}]},
+        transform: {preset: "wildshape", identifier: "druid"}, profiles: [
+          {cr: "0.25", movement: ["fly"], level: {min: null, max: 3}}, {cr: "0.5", movement: ["fly"], level: {min: 4, max: 7}},
+          {cr: "1", movement: [], level: {min: 8, max: null}}]})}}};
+  const beasts = [{uuid: "Compendium.x.Actor.wolf", name: "Wolf", cr: 0.25}, {uuid: "Compendium.x.Actor.bear", name: "Brown Bear", cr: 1},
+    {uuid: "Compendium.x.Actor.mammoth", name: "Mammoth", cr: 6}];
+  const [shape, revert] = convertItem(wildShape, {beasts}).items;
+  const {transform, configuration, costs} = shape.system.definition;
+  assert.deepEqual(costs.allOf.map(cost => cost.capability), ["bonus-action", "wild-shape"]);
+  assert.deepEqual(configuration.find(choice => choice.id === "form").options.map(option => option.label), ["Wolf (CR 0.25)", "Brown Bear (CR 1)"]);
+  assert.deepEqual(transform.limits.rows, {1: {cr: 0.25, fly: false}, 4: {cr: 0.5, fly: false}, 8: {cr: 1, fly: true}});
+  assert.deepEqual(transform.temporaryHealth, {type: "class-level", class: "druid"});
+  assert.equal(validateActionDefinition(shape.system.definition).ok, true);
+  assert.deepEqual([revert.name, revert.system.definition.transform], ["Wild Shape (Revert)", {revert: true}]);
+});
+
 test("Temporary Hit Points are healing of their own type (False Life)", () => {
   const life = {_id: "testFalseLife001", name: "False Life", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
     system: {source: SRD, identifier: "false-life", level: 1, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},

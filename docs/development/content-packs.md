@@ -389,6 +389,10 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Beasts (classes-and-spellcasting.md); its text's rules on what it may do in its form are by hand. A magic item that
   casts a spell keeps the spell's choices except the slot (a Beast, a damage type, one of its effects), and a wand whose
   cast dnd5e gives no charge spends the one its text names ("expend 1 of its charges to cast"): Wands of Polymorph and Web.
+- **Wild Shape (2026-10-19).** The 2024 transform activity becomes a Bonus Action spending a Wild Shape use, with a
+  Form choice of every converted Beast up to its highest profile's CR (CR 1), its profiles as `limits` by druid level
+  (CR 1/4, 1/2, 1; flying from level 8), Temporary Hit Points equal to the druid level, and a "Wild Shape (Revert)"
+  Bonus Action. shortcut: every eligible Beast is offered, not the druid's known forms.
 - **Effects as markers (2026-10-19).** A dnd5e effect with no status and nothing WildPath maps (Alter Self's Aquatic
   Adaptation, Acid Arrow's lingering acid, a dragon's Detect Magic) is no longer dropped. It is a custom effect with
   no rules: its name, icon, duration, save policy and concentration. Its creature shows it, it expires on time, and it
