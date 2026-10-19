@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 859 automated, 289 manual, 237 features. Creatures: 375.
+Items: 863 automated, 289 manual, 234 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -178,7 +178,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Bless | spells24 | Bless (automated) | — |
 | Blessed Healer | classes24 | Blessed Healer (feature) | "heal" is passive or triggered: not automated |
 | Blessed Strikes | classes24 | Blessed Strikes (feature) | — |
-| Blessed Strikes: Divine Strike | classes24 | Blessed Strikes: Divine Strike (feature) | "Necrotic Divine Strike" is passive or triggered: not automated; "Radiant Divine Strike" is passive or triggered: not automated |
+| Blessed Strikes: Divine Strike | classes24 | Blessed Strikes: Divine Strike (Necrotic Divine Strike) (automated), Blessed Strikes: Divine Strike (Radiant Divine Strike) (automated) | — |
 | Blessed Strikes: Potent Spellcasting | classes24 | Blessed Strikes: Potent Spellcasting (feature) | "damage" is passive or triggered: not automated |
 | Blessed Warrior | classes24 | Blessed Warrior (feature) | — |
 | Blight | spells24 | Blight (automated) | — |
@@ -487,7 +487,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Elemental Affinity | classes24 | Elemental Affinity (feature) | "Acid" is passive or triggered: not automated; "Cold" is passive or triggered: not automated; "Fire" is passive or triggered: not automated; "Lightning" is passive or triggered: not automated; "Poison" is passive or triggered: not automated |
 | Elemental Fury | classes24 | Elemental Fury (feature) | — |
 | Elemental Fury: Potent Spellcasting | classes24 | Elemental Fury: Potent Spellcasting (feature) | — |
-| Elemental Fury: Primal Strike | classes24 | Elemental Fury: Primal Strike (feature) | "Primal Strike" is passive or triggered: not automated |
+| Elemental Fury: Primal Strike | classes24 | Elemental Fury: Primal Strike (automated) | — |
 | Elemental Gem | equipment24 | Elemental Gem (Blue Sapphire) (manual), Elemental Gem (Emerald) (manual), Elemental Gem (Red Corundum) (manual), Elemental Gem (Yellow Diamond) (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
 | Elemental Gem (Blue Sapphire) | equipment24 | Elemental Gem (Blue Sapphire) (automated) | — |
 | Elemental Gem (Emerald) | equipment24 | Elemental Gem (Emerald) (automated) | — |
@@ -634,7 +634,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Forgery Kit | equipment24 | Forgery Kit (gear), Forgery Kit (Mimic Handwriting) (automated), Forgery Kit (Duplicate Wax Seal) (automated) | — |
 | Freedom of Movement | spells24 | Freedom of Movement (automated) | effect: "Unrestricted Movement" change system.attributes.movement.ignoredDifficultTerrain (add) not converted |
 | Freezing Sphere | spells24 | Freezing Sphere (Cast and Fire) (automated), Freezing Sphere (Cast and Hold) (manual), Freezing Sphere (Throw Held Globe) (automated) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted; "Freeze Water" is passive or triggered: not automated |
-| Frenzy | classes24 | Frenzy (feature) | "damage" is passive or triggered: not automated |
+| Frenzy | classes24 | Frenzy (feature) | — |
 | Frog | actors24 | Frog (4 items) | — |
 | Frost Brand | equipment24 | Frost Brand (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Frost Giant | actors24 | Frost Giant (5 items) | War Cry: effect: "Attack: Advantage" marks its creature only; its rules are by hand |
@@ -808,7 +808,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Hunter Shark | actors24 | Hunter Shark (3 items) | — |
 | Hunter's Lore | classes24 | Hunter's Lore (feature) | — |
 | Hunter's Mark | spells24 | Hunter's Mark (Mark Creature) (automated), Hunter's Mark (Move Mark) (automated) | — |
-| Hunter's Prey | classes24 | Hunter's Prey (feature) | "damage" is passive or triggered: not automated |
+| Hunter's Prey | classes24 | Hunter's Prey (feature) | — |
 | Hunting Trap | equipment24 | Hunting Trap (Escape) (automated) | "save" is passive or triggered: not automated |
 | Hurl Through Hell | classes24 | Hurl Through Hell (feature) | "Hurl Through Hell" is passive or triggered: not automated; "Regain Use" is passive or triggered: not automated |
 | Hydra | actors24 | Hydra (6 items) | Multiattack: not automated (utility): using it spends its cost; its description says the rest |
@@ -914,7 +914,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Lich | actors24 | Lich (27 items) | Spirit Jar: "Days to Reform" is passive or triggered: not automated; Spellcasting: effect: "Detect Magic" marks its creature only; its rules are by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand; Spellcasting: cast: Fireball at level 5 is cast at its own level; Spellcasting: cast: Lightning Bolt at level 5 is cast at its own level; Spellcasting: teleport: a creature it brings along is moved by hand; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest; Spellcasting: "Raise Zombie" is passive or triggered: not automated; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: "Create Sensor" is passive or triggered: not automated; Protective Magic: rolled (save); what it does is by hand |
 | Life Domain | classes24 | Life Domain (subclass) | — |
 | Life Domain Spells | classes24 | Life Domain Spells (feature) | — |
-| Lifedrinker | classes24 | Lifedrinker (feature) | "damage" is passive or triggered: not automated; "Heal (Largest Hit Die)" is passive or triggered: not automated; "Heal (Smallest Hit Die)" is passive or triggered: not automated |
+| Lifedrinker | classes24 | Lifedrinker (damage) (automated) | "Heal (Largest Hit Die)" is passive or triggered: not automated; "Heal (Smallest Hit Die)" is passive or triggered: not automated |
 | Light | spells24 | Light (automated) | — |
 | Light | actors24 | Light (0 items) | — |
 | Light Crossbow | equipment24 | Light Crossbow (automated) | — |

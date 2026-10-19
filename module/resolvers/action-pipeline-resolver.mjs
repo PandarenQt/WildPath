@@ -2678,10 +2678,11 @@ function attackOutcomeReactionEvent(state) {
     phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
     source: state.actionContext?.source ?? input.source ?? state.source ?? null,
     targets: attackResults.map(result => result.target).filter(Boolean),
-    // Its kind ("melee", "ranged") too, so a reaction can answer one kind (a Parry, a melee attack).
+    // Its kind ("melee", "ranged") too, so a reaction can answer one kind (a Parry, a melee attack), and its statistic
+    // ("weapon", "spell": Divine Strike answers a weapon's hit).
     // Its extra damage's rules too (`extra:sneak-attack`: Cunning Strike), and a rider's tags (`brutal-strike`).
     tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), outcome,
-      state.actionDefinition?.attack?.type ?? input.attack?.type,
+      state.actionDefinition?.attack?.type ?? input.attack?.type, state.actionDefinition?.attack?.statistic ?? input.attack?.statistic,
       ...normalizeArray(input.damage?.extraComponents).map(component => (component.metadata?.ruleId ? `extra:${component.metadata.ruleId}` : null)),
       ...normalizeArray(input.riderTags)].filter(Boolean)),
     data: {

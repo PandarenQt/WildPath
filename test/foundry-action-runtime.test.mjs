@@ -2243,3 +2243,17 @@ test("a reaction to taking damage (Hellish Rebuke) is offered once the damage is
   assert.equal(sourceActor.system.resources.health.value, 17, "the reaction hit the attacker for 3");
   assert.equal(targetActor.system.resources.health.value, 24, "and the Action's own damage still lands");
 });
+
+test("a weapon attack's hit carries the `weapon` tag, so an own-hit reaction on any weapon (Divine Strike) is offered", async t => {
+  const strike = {id: "strike", type: "action", name: "Divine Strike", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:strike", label: "Divine Strike", costs: {allOf: []}, range: {type: "special"},
+      targeting: {type: "single", required: true, count: 1},
+      damage: [{id: "radiant", expression: {type: "constant", value: 4}, damageType: "radiant", provenance: "additional"}]},
+    ruleElements: [{schemaVersion: 1, id: "strike", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["weapon"], notTagsAny: ["spell"]}}}]}};
+  const {player, gm, offers, intent} = counterattackFixture(t, {reactor: "source", items: [strike]});
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(offers.length, 1, "offered on the weapon's hit");
+});

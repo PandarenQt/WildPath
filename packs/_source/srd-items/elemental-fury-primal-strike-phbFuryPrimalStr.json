@@ -2,12 +2,99 @@
   "_id": "phbFuryPrimalStr",
   "_key": "!items!phbFuryPrimalStr",
   "name": "Elemental Fury: Primal Strike",
-  "type": "feature",
+  "type": "action",
   "img": "icons/magic/nature/hand-weapon-wood-bark-brown.webp",
   "system": {
     "active": true,
     "description": "<p>Once on each of your turns when you hit a creature with an attack roll using a weapon or a Beast form's attack in Wild Shape, you can cause the target to take an extra 1d8 cold, fire, lightning, or thunder damage (choose when you hit).</p><section class=\"secret\" id=\"secret-teMMREyPGTtod1kP\"><p><strong>Foundry Note</strong></p><p>This feature's damage will automatically increase when you gain Improved Elemental Fury. If using the activity you will be able to select the damage type when rolling. It will default to your previously chosen damage type.</p></section>",
-    "ruleElements": []
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-elemental-fury-primal-strike-primal-strike",
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "druid"
+            },
+            "rows": {
+              "7": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "15": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              }
+            }
+          },
+          "damageType": "cold",
+          "provenance": "additional"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "damage-type-1",
+          "type": "damage-type",
+          "label": "Damage type",
+          "required": true,
+          "allowedDamageTypes": [
+            "cold",
+            "fire",
+            "lightning",
+            "thunder"
+          ],
+          "effects": [
+            {
+              "type": "replaceDamageType",
+              "componentIds": [
+                "damage-1"
+              ],
+              "damageTypeChoiceId": "damage-type-1"
+            }
+          ]
+        }
+      ],
+      "label": "Elemental Fury: Primal Strike"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": [
+              "weapon"
+            ],
+            "notTagsAny": [
+              "spell"
+            ]
+          },
+          "once": "turn",
+          "onceKey": "primal-strike"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +108,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Primal Strike\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

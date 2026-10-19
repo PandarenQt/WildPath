@@ -322,6 +322,14 @@ while Persistent Rage's use was spent. In a second combat, with Rage at 0 again,
   A Flurry strike hit the Bandit Captain for 1d8. Open Hand offered Addle, Push and Topple, and Player1 chose Topple;
   the Captain saved.
 
+## Extra weapon damage (2026-10-20)
+
+- **Colossus Slayer (Hunter's Prey):** an `ExtraDamage` of 1d8 on `damage.weapon`, once a turn, while
+  `attack.targetDamaged` (a new attack fact: the target is missing Hit Points). shortcut: Horde Breaker is by hand.
+- **Frenzy:** an `ExtraDamage` of its Rage Damage in d6s on `damage.weapon`, once a turn, for a Might attack while
+  `raging` and `reckless`. Rage's effect is now the `raging` status.
+- Divine Strike, Primal Strike and Lifedrinker are own-hit offers (reactions.md).
+
 ## Font of Magic (2026-10-19)
 
 2024 Font of Magic converts to two Actions from its `font-of-magic` pool (Sorcery Points). The sorcerer class grants both.

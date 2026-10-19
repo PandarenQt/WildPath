@@ -1172,6 +1172,12 @@ function foundryAttackOutcomes({definition, targets, targetEntries, spatial, gam
  * (`fromAttacker`, a Vex), whether one of the attacker's allies
  * stands within 5 ft of it (`allyNearTarget`, Pack Tactics), and whether the attacker stands in sunlight (`inSunlight`).
  */
+/** Whether a creature is missing Hit Points (Colossus Slayer). */
+function targetDamaged(actor) {
+  const health = actor?.system?.resources?.health;
+  return Number.isFinite(Number(health?.value)) && (Number(health.value) < Number(health.max));
+}
+
 function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
   const token = entry ? resolveFoundryTargetToken({actor: entry.actor, hint: entry.hint, game,
     preferredSceneId: sourceToken?.parent?.id ?? null}) : null;
@@ -1181,7 +1187,7 @@ function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
   const fields = footprint?.ok && footprint.footprint ? footprintDistance(source, footprint.footprint) : null;
   return {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * spatial.context.gridDistance <= 5} : {}),
     fromTarget: conditionsFrom(attacker, entry?.actor, game), fromAttacker: conditionsFrom(entry?.actor, attacker, game),
-    allyNearTarget: allyNearTarget(sourceToken, token)},
+    allyNearTarget: allyNearTarget(sourceToken, token), targetDamaged: targetDamaged(entry?.actor)},
     ...sunlightContext(sourceToken)};
 }
 

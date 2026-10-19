@@ -331,6 +331,16 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   ended by the next other creature's attack (`endsWhen: "attackedByOther"`). shortcuts: a save outside an Action does not
   end Staggering Blow; Sundering Blows of two barbarians stack.
 
+- **Weapon hit extras (2026-10-20):** an attack's hit event also carries its statistic (`weapon` or `spell`). An own-hit
+  offer can answer any weapon's hit (`tagsAll: ["weapon"]`), melee or ranged, once a turn by its `onceKey`:
+  - Divine Strike: Radiant and Necrotic are an offer each;
+  - Primal Strike: one offer with a damage type choice;
+  - Lifedrinker: one offer with a damage type choice.
+
+  Each deals its own damage to the creature hit, doubled on a critical hit. shortcuts: Lifedrinker answers any
+  weapon, not only its pact weapon, and its Hit Die heal is by hand; an Unarmed Strike counts as a weapon. Live: QA
+  Caster as a level-7 cleric hit the Bandit Captain with a Dagger (3). Both Divine Strikes were offered, and Radiant
+  dealt 1d8 (7).
 - **Cutting Words (2026-10-19):** `attack.hit` with `notSourceTokenId: "{self}"`, so any creature's hit within 60 ft;
   the bard's reaction targets the attacker. Its rider `attackPenalty: {dice}` is its Bardic Inspiration die, a table by
   bard level. The child rolls it when it pays (`riderAttackPenalty`, reusing `addedDie`) and sends the total. The

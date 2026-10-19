@@ -233,7 +233,19 @@ const OFFERED_BY_ENGINE = new Set(["tactical-mind"]);
 // 2024 Open Hand Technique: a hit of a Flurry of Blows strike (tagged `flurry`) offers one of three, each its own offer.
 const openHand = (extra={}) => ({tagsAll: ["flurry"], definition: definition => definition, ...extra});
 
+// A weapon hit's extra damage of a type its creature picks, once a turn: each type an offer (Divine Strike's Radiant
+// or Necrotic) or a type choice (Primal Strike's four), on a hit with any weapon, melee or ranged.
+const weaponHit = onceKey => ({tagsAll: ["weapon"], once: "turn", onceKey, definition: definition => definition});
+
 const OWN_HIT = Object.freeze({
+  // 2024 Blessed Strikes: Divine Strike, 1d8 (2d8 from cleric level 14, its scale).
+  "blessed-strikes-divine-strike/Necrotic Divine Strike": weaponHit("divine-strike"),
+  "blessed-strikes-divine-strike/Radiant Divine Strike": weaponHit("divine-strike"),
+  // 2024 Elemental Fury: Primal Strike, Cold, Fire, Lightning or Thunder.
+  "elemental-fury-primal-strike/Primal Strike": weaponHit("primal-strike"),
+  // Eldritch Invocation Lifedrinker: Necrotic, Psychic or Radiant 1d6. shortcut: any weapon, not only its pact weapon;
+  // its Hit Die heal is by hand.
+  "lifedrinker/": weaponHit("lifedrinker"),
   "open-hand-technique/Addle": openHand({definition: definition => ({...definition, effects: [{id: "effect-1", type: "effect",
     name: "Addled", slug: "no-opportunity-attacks", img: "icons/svg/daze.svg", duration: {value: 1, units: "rounds", expiry: "turnStart"},
     ruleElements: []}]})}),
@@ -298,6 +310,16 @@ function martialArtsActions(document, img, source, scales) {
   return [make("Unarmed Strike", "strike", [{capability: "action", amount: 1}]),
     make("Bonus Unarmed Strike", "bonus", [{capability: "bonus-action", amount: 1}]),
     make("Flurry of Blows Strike", "flurry", [{capability: "flurry-of-blows", amount: 1}], {tags: ["flurry"]}, [structuredClone(FLURRY_POOL)])];
+}
+
+/** A damage activity as once-a-turn extra weapon damage of the weapon's type, under `predicate` (Frenzy, Colossus Slayer). */
+function weaponExtra(activities, scales, label, predicate) {
+  const activity = activities.find(entry => entry.type === "damage");
+  const notes = [];
+  const expression = activity ? partExpression(activity.damage?.parts?.[0], {spell: false, ability: null, scales, notes, label}) : null;
+  if ( !expression ) return null;
+  return {rules: [{schemaVersion: 1, id: slugify(label), type: "ExtraDamage", predicate,
+    data: {domains: ["damage.weapon"], expression, once: "turn"}}], consumes: [activity], notes};
 }
 
 /** Improved Brutal Strike (barbarian level 17): two blows on one Brutal Strike's hit. */
@@ -1148,6 +1170,14 @@ const TRAITS = Object.freeze({
     data: {domains: ["save.agility"], outcome: "evasion"}}], notes: []}),
   // Once per turn, extra damage of the weapon's type to a creature hit with a Finesse or Ranged weapon, if the attack has
   // Advantage, or an ally is within 5 ft of the target and the attack has no Disadvantage.
+  // 2024 Frenzy: while raging and Reckless, the first target hit with a Strength attack on its turn takes its Rage
+  // Damage in d6s more.
+  frenzy: (document, {activities, scales}) => weaponExtra(activities, scales, "Frenzy", {all: [{tagsAll: ["might"]},
+    {hasCondition: "raging"}, {hasCondition: "reckless"}]}),
+  // 2024 Hunter's Prey, as Colossus Slayer: once a turn, 1d8 more to a creature hit with a weapon that is missing Hit
+  // Points. shortcut: Horde Breaker, its other option, is by hand.
+  "hunters-prey": (document, {activities, scales}) => weaponExtra(activities, scales, "Colossus Slayer",
+    {equals: {path: "attack.targetDamaged", value: true}}),
   "sneak-attack": (document, {activities, scales}) => {
     const activity = activities.find(entry => entry.type === "damage");
     const notes = [];
@@ -1339,6 +1369,8 @@ const EFFECTS_BY_HAND = Object.freeze({
   // "You deal an extra 1d6 Force damage to the target whenever you hit it with an attack roll." The mark is its own
   // effect (slug), so only its caster's attacks see it.
   "hunters-mark": {slug: "hunters-mark", bonusDamage: "Bonus Mark Damage", ruleElements: [markDamage("hunters-mark", "force")]},
+  // Rage's effect is the `raging` status (Frenzy reads it).
+  "rage": {slug: "raging"},
   // Hex: the same, Necrotic, and Disadvantage on checks of one ability the caster chooses (its six effects, one kept).
   "hex": {slug: "hex", bonusDamage: "Bonus Hex Damage", extraRules: [markDamage("hex", "necrotic")], chooseOne: "Ability"},
   // Bestow Curse, by activity: "Disadvantage on attack rolls against you" (its caster: the curse's source) ...
