@@ -14,7 +14,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Document | dnd5e pack | WildPath | Not automated |
 | --- | --- | --- | --- |
 | Ability Score Improvement | feats24 | Ability Score Improvement (feature) | — |
-| Abjure Foes | classes24 | Abjure Foes (automated) | consumption: itemUses 1 not converted |
+| Abjure Foes | classes24 | Abjure Foes (automated) | — |
 | Aboleth | actors24 | Aboleth (12 items) | Eldritch Restoration: not automated (utility): using it spends its cost; its description says the rest; Mucus Cloud: "save" is passive or triggered: not automated; Mucus Cloud: "Damage: Outside Water" is passive or triggered: not automated; Tentacle: "Escape Check" is passive or triggered: not automated; Dominate Mind: save: a failure gives charmed (its text); the rest is by hand; Lash: not automated (utility): using it spends its cost; its description says the rest |
 | Acid | equipment24 | Acid (automated) | — |
 | Acid Arrow | spells24 | Acid Arrow (Cast and Attack) (automated), Acid Arrow (Lingering Acid Damage) (automated) | effect: "Lingering Acid" marks its creature only; its rules are by hand |
@@ -366,7 +366,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Cunning Action | classes24 | Cunning Action (Hide) (automated), Cunning Action (Dash) (automated), Cunning Action (Disengage) (automated) | — |
 | Cunning Strike | classes24 | Cunning Strike (feature) | "Poison" is passive or triggered: not automated; "Trip" is passive or triggered: not automated; "Withdraw" is passive or triggered: not automated; "Cunning Sneak Attack" is passive or triggered: not automated |
 | Cure Wounds | spells24 | Cure Wounds (automated) | — |
-| Cutting Words | classes24 | Cutting Words (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses 1 not converted |
+| Cutting Words | classes24 | Cutting Words (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Dagger | equipment24 | Dagger (automated) | — |
 | Dagger of Venom | equipment24 | Dagger of Venom (attack) (automated), Dagger of Venom (Coat Blade with Poison) (manual), Dagger of Venom (Poison Save) (automated) | not automated (enchant): using it spends its cost; its description says the rest |
 | Dancing Light (Medium) | actors24 | Dancing Light (Medium) (0 items) | — |
@@ -723,7 +723,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Great Weapon Fighting | feats24 | Great Weapon Fighting (feature) | — |
 | Greataxe | equipment24 | Greataxe (automated) | — |
 | Greatclub | equipment24 | Greatclub (automated) | — |
-| Greater Divine Intervention | classes24 | Greater Divine Intervention (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses 1 not converted |
+| Greater Divine Intervention | classes24 | Greater Divine Intervention (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Greater Invisibility | spells24 | Greater Invisibility (automated) | — |
 | Greater Restoration | spells24 | Greater Restoration (automated) | — |
 | Greatsword | equipment24 | Greatsword (automated) | — |
@@ -897,7 +897,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Lamp | equipment24 | Lamp (gear), Lamp (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Lamp | equipment24 | Lamp (gear), Lamp (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Lance | equipment24 | Lance (automated) | — |
-| Land's Aid | classes24 | Land's Aid (save) (automated) | consumption: itemUses 1 not converted; "heal" is passive or triggered: not automated |
+| Land's Aid | classes24 | Land's Aid (save) (automated) | "heal" is passive or triggered: not automated |
 | Lantern of Revealing | equipment24 | Lantern of Revealing (gear), Lantern of Revealing (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Lantern, Bullseye | equipment24 | Lantern, Bullseye (gear), Lantern, Bullseye (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Lantern, Hooded | equipment24 | Lantern, Hooded (gear), Lantern, Hooded (manual) | not automated (utility): using it spends its cost; its description says the rest |
@@ -1024,7 +1024,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Nalfeshnee | actors24 | Nalfeshnee (8 items) | Teleport: not automated (utility): using it spends its cost; its description says the rest; Pursuit: not automated (utility): using it spends its cost; its description says the rest |
 | Natural Recovery | classes24 | Natural Recovery (feature) | "Cast Spell" is passive or triggered: not automated; "Recover Spell Slots" is passive or triggered: not automated |
 | Naturally Stealthy | origins24 | Naturally Stealthy (feature) | — |
-| Nature's Sanctuary | classes24 | Nature's Sanctuary (Spectral Trees and Vines) (automated), Nature's Sanctuary (Move) (manual) | consumption: itemUses 1 not converted; effect: coverHalf is not a WildPath condition yet; not automated (utility): using it spends its cost; its description says the rest |
+| Nature's Sanctuary | classes24 | Nature's Sanctuary (Spectral Trees and Vines) (automated), Nature's Sanctuary (Move) (manual) | effect: coverHalf is not a WildPath condition yet; not automated (utility): using it spends its cost; its description says the rest |
 | Nature's Veil | classes24 | Nature's Veil (automated) | — |
 | Nature's Ward | classes24 | Nature's Ward (feature) | effect: "Nature's Ward" condition immunity poison not converted |
 | Navigator's Tools | equipment24 | Navigator's Tools (gear), Navigator's Tools (Plot a Course) (automated), Navigator's Tools (Determine Position by Stargazing) (automated) | — |
@@ -1171,7 +1171,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Powerful Build | origins24 | Powerful Build (feature) | effect: "Powerful Build" change flags.dnd5e.powerfulBuild (override) not converted |
 | Prayer of Healing | spells24 | Prayer of Healing (automated) | activation: 10 minute is not an action-economy cost; effect: "Healed by Prayer" marks its creature only; its rules are by hand |
 | Precise Hunter | classes24 | Precise Hunter (feature) | — |
-| Preserve Life | classes24 | Preserve Life (automated) | consumption: itemUses 1 not converted |
+| Preserve Life | classes24 | Preserve Life (automated) | — |
 | Prestidigitation | spells24 | Prestidigitation (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Priest | actors24 | Priest (11 items) | Divine Aid: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand |
 | Priest Acolyte | actors24 | Priest Acolyte (8 items) | Divine Aid: effect: "Warded" marks its creature only; its rules are by hand; Divine Aid: "Save on Target" is passive or triggered: not automated |
@@ -1324,7 +1324,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Sculpt Spells | classes24 | Sculpt Spells (feature) | — |
 | Sea Hag | actors24 | Sea Hag (12 items) | Coven Magic: not automated (utility): using it spends its cost; its description says the rest; Coven Magic: activation: 1 minute is not an action-economy cost; Coven Magic: not automated (summon): using it spends its cost; its description says the rest; Coven Magic: summon: a creature chosen by Challenge Rating is not converted; Coven Magic: activation: 1 hour is not an action-economy cost; Coven Magic: concentration: nothing it sustains was converted; Coven Magic: activation: 10 minute is not an action-economy cost; Coven Magic: save: a failure marks its creature only; what it does is by hand; Coven Magic: "Create Sensor" is passive or triggered: not automated; Vile Appearance: "save" is passive or triggered: not automated; Illusory Appearance: effect: "Disguised" marks its creature only; its rules are by hand |
 | Seahorse | actors24 | Seahorse (3 items) | Bubble Dash: not automated (utility): using it spends its cost; its description says the rest |
-| Sear Undead | classes24 | Sear Undead (automated) | consumption: itemUses 1 not converted; damage 1: custom formula "(@abilities.wis.mod)d8" not converted |
+| Sear Undead | classes24 | Sear Undead (automated) | damage 1: custom formula "(@abilities.wis.mod)d8" not converted |
 | Searing Smite | spells24 | Searing Smite (Start of Turn Save) (automated), Searing Smite (Damage) (automated) | effect: "Seared" marks its creature only; its rules are by hand |
 | Second Wind | classes24 | Second Wind (automated) | — |
 | Second-Story Work | classes24 | Second-Story Work (feature) | effect: "Second-Story Work" change system.attributes.movement.climb (upgrade) not converted |
@@ -1666,7 +1666,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | White Dragon Wyrmling | actors24 | White Dragon Wyrmling (5 items) | — |
 | Wholeness of Body | classes24 | Wholeness of Body (automated) | — |
 | Wight | actors24 | Wight (6 items) | Life Drain: "Zombie Rises" is passive or triggered: not automated |
-| Wild Companion | classes24 | Wild Companion (Summon with Spell Slot) (manual), Wild Companion (Summon with Wild Shape) (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: a creature chosen by Challenge Rating is not converted; consumption: spellSlots 1 not converted; consumption: itemUses 1 not converted |
+| Wild Companion | classes24 | Wild Companion (Summon with Spell Slot) (manual), Wild Companion (Summon with Wild Shape) (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: a creature chosen by Challenge Rating is not converted; consumption: spellSlots 1 not converted |
 | Wild Resurgence | classes24 | Wild Resurgence (feature) | "Regain Wild Shape" is passive or triggered: not automated; "Regain Spell Slot" is passive or triggered: not automated |
 | Wild Shape | classes24 | Wild Shape (automated), Wild Shape (Revert) (automated) | — |
 | Will-o'-Wisp | actors24 | Will-o'-Wisp (7 items) | Consume Life: "Wisp: Healing" is passive or triggered: not automated |

@@ -15,6 +15,10 @@
           {
             "capability": "action",
             "amount": 1
+          },
+          {
+            "capability": "wild-shape",
+            "amount": 1
           }
         ]
       },
@@ -106,9 +110,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "consumption: itemUses 1 not converted"
-        ]
+        "notes": []
       }
     }
   }

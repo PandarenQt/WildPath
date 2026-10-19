@@ -15,6 +15,10 @@
           {
             "capability": "action",
             "amount": 1
+          },
+          {
+            "capability": "channel-divinity",
+            "amount": 1
           }
         ]
       },
@@ -82,7 +86,6 @@
       },
       "conversion": {
         "notes": [
-          "consumption: itemUses 1 not converted",
           "damage 1: custom formula \"(@abilities.wis.mod)d8\" not converted"
         ]
       }
