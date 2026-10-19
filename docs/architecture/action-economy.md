@@ -38,6 +38,14 @@ Option ids are what a prompt answer names. A single-branch cost numbers its comb
 `payment-1`, `payment-2`, …; an `anyOf` cost qualifies them by branch (`payment-2-1` is the first
 combination of the second alternative), so alternatives never share an id.
 
+## Refused Before Anything Rolls (2026-10-19)
+
+The staged pipeline checks the Action's cost at the start of targeting, with the same payment resolver the payment
+stage uses, and refuses it there (`PAYMENT_UNAVAILABLE`) when its creature cannot pay: its Action spent, or capped at
+0 by Incapacitated or Command's Halt. Before, the attack was rolled and only the payment stage refused it. The payment
+stage still pays at the end. Live: a Halted Bandit Captain's Scimitar was refused with "This creature can't pay what
+this action costs right now."
+
 ## Normal, Alternative, and Restricted Payments
 
 Normal payment is direct capability matching: a resource with `paymentCapabilities: ["action"]`

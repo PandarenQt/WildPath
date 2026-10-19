@@ -58,12 +58,14 @@
         {
           "id": "effect-1",
           "type": "condition",
-          "conditionId": "frightened"
+          "conditionId": "frightened",
+          "saveOutcomePolicy": "failure"
         },
         {
           "id": "effect-2",
           "type": "condition",
-          "conditionId": "incapacitated"
+          "conditionId": "incapacitated",
+          "saveOutcomePolicy": "failure"
         }
       ],
       "label": "Channel Divinity (Turn Undead)"

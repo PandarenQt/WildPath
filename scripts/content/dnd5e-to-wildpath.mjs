@@ -870,8 +870,8 @@ const SNEAK_ATTACK = Object.freeze({all: [
  * the engine expresses exactly; the rest stay the GM's.
  */
 /** A mark's extra damage: 1d6 on each attack its own caster hits it with (`attack.fromAttacker`: marks it bears from them). */
-const markDamage = (slug, damageType) => ({schemaVersion: 1, id: `${slug}-damage`, type: "ExtraDamage",
-  data: {domains: ["attacked"], expression: {type: "dice", number: 1, faces: 6}, damageType},
+const markDamage = (slug, damageType, faces=6) => ({schemaVersion: 1, id: `${slug}-damage`, type: "ExtraDamage",
+  data: {domains: ["attacked"], expression: {type: "dice", number: 1, faces}, damageType},
   predicate: {equals: {path: `attack.fromAttacker.${slug}`, value: true}}});
 
 const EFFECTS_BY_HAND = Object.freeze({
@@ -887,7 +887,37 @@ const EFFECTS_BY_HAND = Object.freeze({
   // effect (slug), so only its caster's attacks see it.
   "hunters-mark": {slug: "hunters-mark", bonusDamage: "Bonus Mark Damage", ruleElements: [markDamage("hunters-mark", "force")]},
   // Hex: the same, Necrotic, and Disadvantage on checks of one ability the caster chooses (its six effects, one kept).
-  "hex": {slug: "hex", bonusDamage: "Bonus Hex Damage", extraRules: [markDamage("hex", "necrotic")], chooseOne: "Ability"}
+  "hex": {slug: "hex", bonusDamage: "Bonus Hex Damage", extraRules: [markDamage("hex", "necrotic")], chooseOne: "Ability"},
+  // Bestow Curse, by activity: "Disadvantage on attack rolls against you" (its caster: the curse's source) ...
+  "bestow-curse/Curse Attacks": {slug: "cursed-attacks", ruleElements: [{schemaVersion: 1, id: "cursed-attacks", type: "RollMode",
+    data: {domains: ["attack"], mode: "disadvantage"}, predicate: {equals: {path: "attack.fromTarget.cursed-attacks", value: true}}}]},
+  // ... and "an extra 1d8 Necrotic damage" when its caster hits it. shortcut: its caster's spells add none; upgrade when
+  // spell damage reads `attacked`-style rules.
+  "bestow-curse/Curse Resilience": {slug: "cursed-resilience", ruleElements: [markDamage("cursed-resilience", "necrotic", 8)]}
+});
+
+/** What an activity's own row in EFFECTS_BY_HAND is (Bestow Curse's Curse Attacks), else its document's. */
+const effectsByHand = (document, activity) => EFFECTS_BY_HAND[`${identifierOf(document)}/${activity?.name}`]
+  ?? EFFECTS_BY_HAND[identifierOf(document)] ?? null;
+
+/** One command until the end of its next turn (2024 Command): its creature's marker, with what it can enforce. */
+const commanded = (name, rules=[]) => ({type: "effect", name: `Commanded: ${name}`, ruleElements: rules,
+  duration: {value: 1, units: "rounds", expiry: "turnEnd"}});
+
+/**
+ * Options an Action's effect is chosen from when it is used, by its 2024 text (Command's five commands). Each option is
+ * one or more effects; a failed save applies the one chosen. shortcut: Approach, Drop and Flee only mark the creature;
+ * where it moves and what it drops are by hand.
+ */
+const CHOICES_BY_HAND = Object.freeze({
+  command: {chooseOne: "Command", options: [
+    {label: "Approach", effects: [commanded("Approach")]},
+    {label: "Drop", effects: [commanded("Drop")]},
+    {label: "Flee", effects: [commanded("Flee")]},
+    {label: "Grovel", effects: [{type: "condition", conditionId: "prone"}]},
+    {label: "Halt", effects: [commanded("Halt", [{schemaVersion: 1, id: "halt", type: "ResourceCap",
+      data: {resources: ["movement", "action", "bonus"], maximum: 0}}])]}
+  ]}
 });
 
 /**
@@ -1297,9 +1327,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
   const effects = [];
   const concentration = (system.properties ?? []).includes("concentration");
   // A spell given its rules by hand whose activity names no effect (Blur's) uses the spell's own effect.
-  const references = activity.effects?.length ? activity.effects : (EFFECTS_BY_HAND[identifierOf(document)]
+  const references = activity.effects?.length ? activity.effects : (effectsByHand(document, activity)
     ? (document.effects ?? []).filter(effect => !effect.transfer).map(effect => ({_id: effect._id})) : []);
-  const byHand = EFFECTS_BY_HAND[identifierOf(document)] ?? null;
+  const byHand = effectsByHand(document, activity);
   // A grapple's or restraint's escape DC, from its Escape Check activity or "(escape DC 13)" in the text.
   const escapeDC = escapeDCOf(document, {creature, saveDC});
   // What each of the activity's dnd5e effects became (one can be several conditions), for the choice below.
@@ -1309,7 +1339,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const first = effects.length;
     const statuses = effect?.statuses ?? [];
     const known = statuses.filter(status => CONDITION_MAP[status]);
-    const onFailure = definition.save && (reference.onSave === false) ? {saveOutcomePolicy: "failure"} : {};
+    // dnd5e applies an effect on a successful save only when it says so (`onSave` defaults to false).
+    const onFailure = definition.save && (reference.onSave !== true) ? {saveOutcomePolicy: "failure"} : {};
     // A mark given by hand (its slug) is its own status ("marked", "cursed").
     if ( !byHand?.slug ) for ( const status of statuses.filter(status => !CONDITION_MAP[status]) ) {
       notes.push(`effect: ${status} is not a WildPath condition yet`);
@@ -1347,6 +1378,14 @@ function convertActivity({document, activity, system, spell, level, scales, note
     }
     if ( effects.length > first ) groups.push({label: effect?.name ?? `Effect ${groups.length + 1}`, ids: effects.slice(first).map(entry => entry.id)});
   }
+  // The effects its text lets its user choose from (Command's five commands), on a failed save.
+  const choices = effects.length ? null : CHOICES_BY_HAND[identifierOf(document)];
+  for ( const option of choices?.options ?? [] ) {
+    const first = effects.length;
+    for ( const effect of option.effects ) effects.push({...structuredClone(effect), id: `effect-${effects.length + 1}`,
+      ...(definition.save ? {saveOutcomePolicy: "failure"} : {}), ...(concentration ? {concentration: true} : {})});
+    groups.push({label: option.label, ids: effects.slice(first).map(entry => entry.id)});
+  }
   // The conditions it ends (Lesser Restoration: one of four, chosen; Heal: three).
   const removal = REMOVALS[identifierOf(document)];
   if ( removal && (!removal.activity || (removal.activity === activity.name)) ) {
@@ -1374,7 +1413,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
   if ( groups.length > 1 ) {
     const option = index => `effect-option-${index + 1}`;
     definition.configuration = [...(definition.configuration ?? []), {id: "effect-choice", type: "option",
-      label: removal?.chooseOne ?? byHand?.chooseOne ?? "Effect", required: true,
+      label: removal?.chooseOne ?? byHand?.chooseOne ?? choices?.chooseOne ?? "Effect", required: true,
       options: groups.map((group, index) => ({id: option(index), label: group.label, value: option(index)})),
       effects: [{type: "keepEffect", effectIds: effects.map(entry => entry.id),
         keep: Object.fromEntries(groups.map((group, index) => [option(index), group.ids]))}]}];

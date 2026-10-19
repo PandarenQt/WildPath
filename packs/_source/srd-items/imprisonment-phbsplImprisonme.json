@@ -82,7 +82,8 @@
         {
           "id": "effect-5",
           "type": "condition",
-          "conditionId": "unconscious"
+          "conditionId": "unconscious",
+          "saveOutcomePolicy": "failure"
         }
       ],
       "configuration": [

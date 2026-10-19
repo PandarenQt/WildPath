@@ -54,7 +54,8 @@
             "value": 60,
             "units": "seconds",
             "expiry": "turnStart"
-          }
+          },
+          "saveOutcomePolicy": "failure"
         }
       ],
       "label": "Cube of Force: Resilient Sphere"

@@ -64,7 +64,8 @@
             "value": 60,
             "units": "seconds",
             "expiry": "turnStart"
-          }
+          },
+          "saveOutcomePolicy": "failure"
         }
       ],
       "configuration": [

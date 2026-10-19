@@ -640,6 +640,18 @@ function createTargetingStage() {
     id: ACTION_PIPELINE_STAGE_IDS.TARGETING,
     run(state) {
       let input = preparedResolverInput(state);
+      // An Action its creature cannot pay for (its Action spent, or capped at 0: Incapacitated, Command's Halt) is refused
+      // before anything is rolled; the payment stage still pays it at the end.
+      const affordable = resolveActorResourcePayment({
+        actorSystem: input.actorSystem,
+        cost: actionActivationCost(input.action, state.actionDefinition),
+        action: state.actionContext?.action ?? null,
+        policies: input.policies ?? {},
+        selectedPaymentOptionId: input.selectedPaymentOptionId ?? null,
+        selectedPaymentPlan: state.configuration?.selectedPaymentPlan ?? input.configuration?.selectedPaymentPlan ?? null
+      });
+      if ( !affordable.ok && input.actorSystem ) return failResolutionStage({state, code: ACTION_RESOLVER_CODES.PAYMENT_UNAVAILABLE,
+        reason: ACTION_RESOLVER_CODES.PAYMENT_UNAVAILABLE, data: {payment: affordable}});
       const accepted = getResolutionResponse(state, {
         requestId: requestIdFor(state, "targets"),
         type: RESOLUTION_REQUEST_TYPES.TARGET_SELECTION

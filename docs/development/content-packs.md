@@ -338,6 +338,15 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Dominate Mind (Charmed). One that lasts (a duration, or concentration) without them marks the creatures that fail:
   Zone of Truth, Confusion, Bestow Curse. SRD saves left wholly by hand fell from 137 to 35 documents, and
   concentration effects not converted from 175 to 122.
+- **Command and Bestow Curse (2026-10-19).** Command's five commands are a choice when it is used (`CHOICES_BY_HAND`):
+  Grovel is Prone; Halt caps movement, Action and Bonus Action at 0 until the end of the caster's next turn; Approach,
+  Drop and Flee mark the creature ("Commanded: Flee"), and what it does is by hand. Bestow Curse's Curse Attacks gives
+  Disadvantage on the creature's attacks against its caster (`attack.fromTarget`), and Curse Resilience 1d8 Necrotic when
+  its caster hits it (as Hunter's Mark); Curse Actions stays a marker. `EFFECTS_BY_HAND` can now be keyed by activity
+  ("bestow-curse/Curse Attacks"). An effect dnd5e does not mark `onSave: true` applies on a failed save only (34 effects
+  had no flag and applied on a success too: Fear Aura, Petrifying Gaze, Befuddlement).
+  Live (two browsers): QA Caster cursed the Bandit Captain (Curse Attacks), which then rolled 2d20kl against the Caster
+  and 1d20 against QA Fighter. Command (Halt) from a 3rd-level slot on the Captain alone: its next attack was refused.
 - **Reactions (2026-10-19).** Shield, Parry (7 SRD creatures, their own +2 to +5 AC), Uncanny Dodge, Counterspell,
   Hellish Rebuke and Storm's Thunder are offered by the engine when they apply (reactions.md); before, they only spent a
   Reaction when used by hand.

@@ -72,6 +72,7 @@
           "id": "effect-3",
           "type": "condition",
           "conditionId": "poisoned",
+          "saveOutcomePolicy": "failure",
           "concentration": true
         }
       ],

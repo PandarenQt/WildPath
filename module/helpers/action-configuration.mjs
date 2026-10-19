@@ -994,8 +994,10 @@ function applyScaleTargetsEffect({definition, effect, selection, selectionsById}
     return {ok: true, trace: [appliedTrace(selection, "target-scaling-noop", {selectedLevel, baseLevel})], errors: []};
   }
   const before = finiteNumber(definition.targeting.count) ?? 1;
+  // 2024: "you can target one additional creature" for each level above: up to that many, as few as before.
+  const refinementPolicy = definition.targeting.refinementPolicy ?? {};
   definition.targeting = {...definition.targeting, type: definition.targeting.type === "single" ? "multiple" : definition.targeting.type,
-    count: before + added};
+    count: before + added, refinementPolicy: {...refinementPolicy, minSelections: refinementPolicy.minSelections ?? before}};
   return {ok: true, trace: [appliedTrace(selection, "scaled-targets", {before, after: before + added, selectedLevel, baseLevel})], errors: []};
 }
 
