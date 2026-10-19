@@ -204,6 +204,10 @@ Not yet: Magic (a spell or magic item's own Action already is one) and Ready (th
 offers Escape only while the creature has one: Grappled before Restrained, then the highest DC. The check uses its
 better skill, and a success ends that condition with a removal row (`levels: -1`).
 - Shortcut: two grapples of the same condition are one condition, so escaping either ends both.
+- What a common action applies names its creature as its source (`definition.source`), as an Item's Action names its
+  Actor. Before (fixed 2026-10-19), a Grapple's Grappled named `common:grapple`, so its creature had disadvantage
+  even on attacks against its grappler. Live: Player1's QA Fighter, grappled by the Bandit Captain, rolled
+  `1d20 + 6` against the Captain and `2d20kl + 6` against QA Ally.
 - Live (two browsers, 2026-10-19): the GM's Bandit Captain grappled Player1's QA Fighter. Its Grappled carried
   `escapeDC: 12` (8 + 2 + 2). Player1's bar then showed Escape; it rolled Athletics, 1d20 + 6 = 14, which ended
   Grappled and spent the Action. Escape then left the bar.

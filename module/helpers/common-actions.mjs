@@ -120,6 +120,9 @@ export function commonAction(actor, id, { localize = (key) => key, bonusShove = 
     const name = localize(entry.name);
     const definition = { schemaVersion: 1, id: `common:${id}`, label: name, ...structuredClone(entry.definition),
         ...((bonusShove && SHOVES.has(id)) ? { costs: structuredClone(BONUS_ACTION) } : {}) };
+    // What it applies came from its creature, as an Item's Action names its Actor: a Grapple's Grappled names its grappler.
+    if (creature.uuid)
+        definition.source = { type: "actor", ref: `uuid:${creature.uuid}`, uuid: creature.uuid };
     if (held) {
         // Whichever of Athletics and Acrobatics is better for it (2024 lets it choose), against that escape DC.
         const bonus = (skill) => resolveActorCheckStatistic(creature, { skill })?.totalModifier ?? -Infinity;

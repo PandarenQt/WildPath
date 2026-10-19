@@ -8,7 +8,7 @@ import {actionDefinitionActivationCost, actionDefinitionFromAction} from "./acti
 import {actorAbilityModifier, actorProficiencyBonus, resolveActorCheckStatistic} from "./combat-statistics.mjs";
 
 type Data = Record<string, unknown>;
-interface CommonActor {items?: Iterable<{type?: string; name?: string; system?: {active?: boolean}}>;
+interface CommonActor {uuid?: string; items?: Iterable<{type?: string; name?: string; system?: {active?: boolean}}>;
   flags?: {wildpath?: {commonPolicies?: Record<string, string>}};
   effects?: Iterable<{disabled?: boolean; system?: {type?: string}; flags?: {wildpath?: {conditionEffect?: {metadata?: {escapeDC?: unknown}}}}}>}
 const definitionOf = actionDefinitionFromAction as (item: unknown) => {ok: boolean; definition?: Data & {attack?: {type?: string}}};
@@ -130,6 +130,8 @@ export function commonAction(actor: unknown, id: string, {localize=(key: string)
   const name = localize(entry.name);
   const definition: Data = {schemaVersion: 1, id: `common:${id}`, label: name, ...structuredClone(entry.definition),
     ...((bonusShove && SHOVES.has(id)) ? {costs: structuredClone(BONUS_ACTION)} : {})};
+  // What it applies came from its creature, as an Item's Action names its Actor: a Grapple's Grappled names its grappler.
+  if ( creature.uuid ) definition.source = {type: "actor", ref: `uuid:${creature.uuid}`, uuid: creature.uuid};
   if ( held ) {
     // Whichever of Athletics and Acrobatics is better for it (2024 lets it choose), against that escape DC.
     const bonus = (skill: string) => (resolveActorCheckStatistic as (actor: unknown, options: Data) => {totalModifier?: number} | null)(
