@@ -118,7 +118,7 @@ const paladinAura = identifier => ({schemaVersion: 1, id: identifier, type: "Aur
     ruleElements: PALADIN_AURAS[identifier]}});
 
 /**
- * Wild Shape by the 2014 rules (SRD 5.1; the maintainer's choice over 2024's), by druid level: a Beast of CR 1/4 with
+ * Wild Shape's transformation by the 2014 rules (SRD 5.1; the maintainer's choice over 2024's), by druid level: a Beast of CR 1/4 with
  * no Fly or Swim Speed, CR 1/2 with no Fly Speed from level 4, CR 1 from level 8. Twice per Short or Long Rest.
  */
 const WILD_SHAPE_2014 = Object.freeze({
@@ -127,8 +127,8 @@ const WILD_SHAPE_2014 = Object.freeze({
 });
 
 /**
- * A transform activity (Wild Shape, 2014 rules): an Action to take a Beast form its user picks, within its druid
- * level's limits. The form's Strength, Dexterity, Constitution, AC and Speed replace its own, and its Hit Points come
+ * A transform activity (Wild Shape: the 2024 Bonus Action, its transformation by the 2014 rules): a Beast form its user
+ * picks, within its druid level's limits. The form's Strength, Dexterity, Constitution, AC and Speed replace its own, and its Hit Points come
  * as Temporary Hit Points: the druid reverts when they are gone, and damage beyond them carries over to its own, as
  * the 2014 text has it. Null without Beasts to choose from, or for another preset.
  * shortcut: every eligible Beast is offered (not only Beasts seen), it lasts until reverted (not half its druid level
@@ -143,32 +143,56 @@ function wildShapeDefinition({document, activity, system, spell, level, notes, p
   const choice = {id: "form", type: "select-one", label: "Form", required: true,
     options: beasts.filter(beast => beast.cr <= highest).map(beast => ({id: beast.uuid, label: `${beast.name} (CR ${beast.cr})`}))};
   const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool});
-  const costs = {...definition.costs, allOf: (definition.costs?.allOf ?? [])
-    .map(cost => (cost.capability === "bonus-action" ? {...cost, capability: "action"} : cost))};
-  return {...definition, costs, range: {type: "self"}, targeting: {type: "self"},
+  return {...definition, range: {type: "self"}, targeting: {type: "self"},
     configuration: [...(definition.configuration ?? []), choice],
     transform: {choiceId: choice.id, limits: {class: owner, rows}, temporaryHealth: "form"}};
 }
 
 /**
- * Divine Smite by the 2014 rules (SRD 5.1; the maintainer's choice over the 2024 spell): no action and no spell. When
- * its creature hits with a melee weapon attack, it may expend a spell slot for 2d8 radiant damage to the creature hit,
- * 1d8 more for each slot level above 1st, at most 5d8 (a slot above 4th adds nothing, so it is not offered). Its
- * second activity ("Unholy Creature") is the one against an Undead or a Fiend: 1d8 more. A critical hit doubles its
- * dice, as part of the attack's damage.
+ * Divine Smite: offered when its creature hits with a melee attack that is not a spell's, on the creature hit. The 2024
+ * spell is a Bonus Action; its second activity ("Unholy Creature") is the one against an Undead or a Fiend, 1d8 more.
+ * Both are tagged `smite`. A critical hit doubles their dice, as part of the attack's damage.
  * shortcut: its player picks the Undead or Fiend one, as converted creatures carry no creature type; upgrade when they do.
  */
-const DIVINE_SMITE_2014 = Object.freeze({event: "attack.hit",
+const SMITE_TRIGGER = Object.freeze({event: "attack.hit",
   match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"], notTagsAny: ["spell"]}});
 
-function divineSmite2014(definition) {
-  const highest = 4;
+/**
+ * Paladin's Smite (the maintainer's rule): its free cast of Divine Smite (once per Long Rest, no slot) is an option of
+ * every Divine Smite's slot choice, as a 1st-level cast. It also lets its paladin cast Divine Smite by the 2014 rules
+ * (SRD 5.1): no action, 2d8 radiant and 1d8 more a slot level above 1st, at most 5d8 (a slot above 4th adds nothing, so
+ * it is not offered), as often as it hits, while it has cast no other spell with a slot this turn. While that one is
+ * offered, the 2024 spell is not (`onlyWithoutOtherSlotSpell`, reactions.md).
+ */
+const PALADINS_SMITE = Object.freeze({resourceId: "paladins-smite",
+  pool: {schemaVersion: 1, id: "paladins-smite-uses", type: "GrantResource",
+    data: {resourceId: "paladins-smite", label: "Paladin's Smite", maximum: 1, recovery: "longRest"}}});
+
+/** Divine Smite's definition on its own hit: the creature hit, its slot choice with Paladin's Smite's free cast. */
+function smiteDefinition(definition, {highest=9}={}) {
   const configuration = (definition.configuration ?? []).map(choice => (!choice.levelByResourceId ? choice : {...choice,
-    cost: {anyOf: (choice.cost?.anyOf ?? []).filter(option => (choice.levelByResourceId[option[0]?.capability] ?? 0) <= highest)},
-    levelByResourceId: Object.fromEntries(Object.entries(choice.levelByResourceId).filter(([, slot]) => slot <= highest))}));
-  const {metadata, ...rest} = definition;
-  return {...rest, tags: (definition.tags ?? []).filter(tag => tag !== "spell"), costs: {allOf: []}, range: {type: "special"},
+    cost: {anyOf: [...(choice.cost?.anyOf ?? []).filter(option => (choice.levelByResourceId[option[0]?.capability] ?? 0) <= highest),
+      [{capability: PALADINS_SMITE.resourceId, amount: 1}]]},
+    levelByResourceId: {...Object.fromEntries(Object.entries(choice.levelByResourceId).filter(([, slot]) => slot <= highest)),
+      [PALADINS_SMITE.resourceId]: 1}}));
+  return {...definition, tags: [...new Set([...(definition.tags ?? []), "smite"])], range: {type: "special"},
     targeting: {type: "single", required: true, count: 1}, configuration};
+}
+
+/** Paladin's Smite's 2014 Divine Smites (and the one against an Undead or a Fiend), as Actions its feature brings. */
+function paladinsSmiteActions(document, img, source) {
+  return [["", 2], [" (Undead or Fiend)", 3]].map(([suffix, dice]) => {
+    const id = stableId(`${document._id}:smite${suffix}`);
+    const damage = [{id: "damage-1", expression: {type: "dice", number: dice, faces: 8}, damageType: "radiant", provenance: "spell-base"}];
+    const definition = smiteDefinition({schemaVersion: 1, id: `action:srd-paladins-smite${suffix ? "-undead-or-fiend" : ""}`,
+      label: `${document.name}${suffix}`, tags: ["spell"], costs: {allOf: []},
+      damage, configuration: slotConfiguration(1, [{id: "damage-1", scaleDice: {number: 1, faces: 8}}]), metadata: {spellLevel: 1}},
+      {highest: 4});
+    return {_id: id, _key: `!items!${id}`, name: `${document.name}${suffix}`, type: "action", img,
+      system: {active: true, description: "", definition, ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger",
+        data: {kind: "reaction", event: SMITE_TRIGGER.event, match: SMITE_TRIGGER.match, onlyWithoutOtherSlotSpell: true}}]},
+      flags: {wildpath: {source, conversion: {notes: []}}}};
+  });
 }
 
 /** dnd5e skill keys as WildPath's skills. */
@@ -549,8 +573,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
           data: {domains: ["defense.ac"], modifierType: "untyped", value: bonusAC}}]}]};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
-    const smite = (identifierOf(document) === "divine-smite") ? DIVINE_SMITE_2014 : null;
-    if ( smite ) definition = divineSmite2014(definition);
+    const smite = (identifierOf(document) === "divine-smite") ? SMITE_TRIGGER : null;
+    if ( smite ) definition = smiteDefinition(definition);
     const named = smite ? (/unholy/i.test(activity.name ?? "") ? " (Undead or Fiend)" : "") : suffix;
     const reacting = action(id, `${document.name}${named}${choices ? title(choices[0]) : ""}`, definition);
     if ( reaction ?? smite ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
@@ -587,8 +611,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     items.push({_id: document._id, _key: `!items!${document._id}`, name: document.name, type: "feature", img,
       system: {active: true, description, ruleElements: [pool?.rule, ...(trait?.rules ?? []),
         // A paladin's aura is what it grants those around it, not what its dnd5e effect gives the paladin alone.
-        ...(PALADIN_AURAS[identifierOf(document)] ? [paladinAura(identifierOf(document))] : passive)].filter(Boolean)},
+        ...(PALADIN_AURAS[identifierOf(document)] ? [paladinAura(identifierOf(document))] : passive),
+        ...((identifierOf(document) === "paladins-smite") ? [PALADINS_SMITE.pool] : [])].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}}}});
+    if ( identifierOf(document) === "paladins-smite" ) items.push(...paladinsSmiteActions(document, img, source));
   }
   // A feature used on its turn that dnd5e leaves without an Action (Action Surge): its Action, paid from its own pool.
   const featureAction = FEATURE_ACTIONS[identifierOf(document)];

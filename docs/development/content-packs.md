@@ -389,15 +389,18 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Beasts (classes-and-spellcasting.md); its text's rules on what it may do in its form are by hand. A magic item that
   casts a spell keeps the spell's choices except the slot (a Beast, a damage type, one of its effects), and a wand whose
   cast dnd5e gives no charge spends the one its text names ("expend 1 of its charges to cast"): Wands of Polymorph and Web.
-- **Wild Shape and Divine Smite by the 2014 rules (2026-10-19, the maintainer's choice).** Wild Shape converts to an
-  Action spending one of two uses (regained on a Short Rest), with a Form choice of the converted Beasts up to CR 1,
-  limited by druid level (CR 1/4 with no Fly or Swim Speed, CR 1/2 with no Fly Speed from 4, CR 1 from 8). The Beast's
-  Strength, Dexterity, Constitution, AC and Speed replace the druid's, and its Hit Points come as Temporary Hit Points
-  (it reverts when they are gone, excess damage carrying over); "Wild Shape (Revert)" is a Bonus Action. Divine Smite is
-  no spell and costs no action: a Trigger on its creature's own melee hit (not a spell attack) offers it, a slot of 1st
-  to 4th level (2d8 radiant, 1d8 more a level, 5d8 at most), and its "Undead or Fiend" Action adds 1d8. shortcuts: every
-  eligible Beast is offered, the form lasts until reverted, healing in it heals the druid; the player picks the Undead
-  or Fiend Smite, as converted creatures carry no creature type. Paladin's Smite (2024, a free cast) is text only.
+- **Wild Shape and Divine Smite (2026-10-19, the maintainer's rules).** Wild Shape stays the 2024 Bonus Action, its
+  transformation by the 2014 rules: two uses regained on a Short Rest, a Form choice of the converted Beasts up to CR 1
+  limited by druid level (CR 1/4 with no Fly or Swim Speed, CR 1/2 with no Fly Speed from 4, CR 1 from 8), the Beast's
+  Strength, Dexterity, Constitution, AC and Speed, and its Hit Points as Temporary Hit Points (it reverts when they are
+  gone, excess damage carrying over); "Wild Shape (Revert)" is a Bonus Action. Divine Smite stays the 2024 spell (a
+  Bonus Action), offered on its creature's own melee hit that is not a spell's, on the creature hit. Paladin's Smite
+  brings two Actions that cast it by the 2014 rules: no action, a slot of 1st to 4th level (2d8 radiant, 1d8 more a
+  level, 5d8 at most), as often as the paladin hits, while it has cast no other spell with a slot this combat turn. While
+  those are offered the 2024 spell is not. Its free cast (once per Long Rest, no slot) is an option in every Divine
+  Smite's slot choice. Each smite has an "Undead or Fiend" Action, 1d8 more. shortcuts: every eligible Beast is offered,
+  the form lasts until reverted, healing in it heals the druid; the player picks the Undead or Fiend Smite, as converted
+  creatures carry no creature type; another slot spell after a smite in the same turn is not refused.
 - **Effects as markers (2026-10-19).** A dnd5e effect with no status and nothing WildPath maps (Alter Self's Aquatic
   Adaptation, Acid Arrow's lingering acid, a dragon's Detect Magic) is no longer dropped. It is a custom effect with
   no rules: its name, icon, duration, save policy and concentration. Its creature shows it, it expires on time, and it

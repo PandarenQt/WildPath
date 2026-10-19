@@ -135,6 +135,7 @@ export function registerFoundryV14MultiplayerResolution({
       await masteries.afterResolution(event);
       await endEffectsWhenAttacked(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsOnTargets(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
+      await recordSlotSpell(event, {game});
     },
     afterCancelled: event => afterCountered(event, {game}),
     logger
@@ -976,6 +977,21 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
       concentrationRef: (spec.concentration && source?.id) ? `token:${source.id}` : null}));
   }
   return transformed;
+}
+
+/**
+ * A spell cast with a slot this combat turn, other than a Divine Smite (tagged `smite`): its creature's
+ * `flags.wildpath.slotSpellTurn` becomes that turn, which Paladin's Smite's 2014 smite reads (reaction provider).
+ * Outside combat nothing is recorded.
+ */
+export async function recordSlotSpell({options, state}={}, {game=globalThis.game}={}) {
+  const tags = state?.actionDefinition?.tags ?? [];
+  const actor = options?.actor ?? null;
+  const turn = game?.combat?.started ? turnKey(game.combat) : null;
+  if ( !turn || (typeof actor?.setFlag !== "function") || !tags.includes("spell") || tags.includes("smite") ) return;
+  const paid = state.results?.paymentResolution?.paymentPlan?.resources ?? [];
+  if ( !paid.some(entry => String(entry?.resourceId ?? "").includes("spell-slot.")) ) return;
+  if ( actor.flags?.wildpath?.slotSpellTurn !== turn ) await actor.setFlag("wildpath", "slotSpellTurn", turn);
 }
 
 /**

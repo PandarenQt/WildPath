@@ -140,3 +140,23 @@ test("Wild Shape's limits (2014): CR, Fly and Swim Speed by druid level", async 
   assert.equal(formBeyondLimits(limits, druid(8), beast("Giant Owl", 0.25, "fly")), null, "flying from level 8");
   assert.equal(formBeyondLimits(null, druid(1), beast("Mammoth", 6)), null, "no limits, no refusal");
 });
+
+test("a spell cast with a slot in combat is recorded for its turn; a smite, a cantrip, or no combat is not", async () => {
+  const {recordSlotSpell} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const game = {combat: {id: "c", round: 1, turn: 2, started: true}};
+  const cast = (tags, resourceId="spell-slot.2") => {
+    const actor = {flags: {}, async setFlag(scope, key, value) { this.flags[scope] = {...this.flags[scope], [key]: value}; }};
+    return {actor, event: {options: {actor}, state: {actionDefinition: {tags},
+      results: {paymentResolution: {paymentPlan: {resources: [{resourceId}]}}}}}};
+  };
+  const fireball = cast(["spell"]);
+  await recordSlotSpell(fireball.event, {game});
+  assert.equal(fireball.actor.flags.wildpath.slotSpellTurn, "c:1:2");
+  for ( const other of [cast(["spell", "smite"]), cast(["spell"], "economy.action")] ) {
+    await recordSlotSpell(other.event, {game});
+    assert.equal(other.actor.flags.wildpath, undefined);
+  }
+  const calm = cast(["spell"]);
+  await recordSlotSpell(calm.event, {game: {combat: null}});
+  assert.equal(calm.actor.flags.wildpath, undefined, "outside combat");
+});

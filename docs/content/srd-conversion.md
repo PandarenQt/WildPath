@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 816 automated, 305 manual, 245 features. Creatures: 375.
+Items: 818 automated, 305 manual, 245 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -1077,7 +1077,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Padded Armor | equipment24 | Padded Armor (gear) | — |
 | Painter's Supplies | equipment24 | Painter's Supplies (gear), Painter's Supplies (automated) | — |
 | Paladin | classes24 | Paladin (class) | — |
-| Paladin's Smite | classes24 | Paladin's Smite (feature) | — |
+| Paladin's Smite | classes24 | Paladin's Smite (feature), Paladin's Smite (automated), Paladin's Smite (Undead or Fiend) (automated) | — |
 | Pale Tincture | equipment24 | Pale Tincture (gear) | "Use Poison" is passive or triggered: not automated |
 | Pan Flute | equipment24 | Pan Flute (gear), Pan Flute (Play a Known Tune) (automated), Pan Flute (Improvise a Song) (automated) | — |
 | Panther | actors24 | Panther (4 items) | — |
