@@ -57,7 +57,25 @@
           "type": "effect",
           "name": "Guiding Bolt",
           "img": "icons/skills/targeting/target-strike-triple-blue.webp",
-          "ruleElements": []
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "marked",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnEnd"
+          },
+          "endsWhen": "attacked"
         }
       ],
       "configuration": [
@@ -170,10 +188,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: marked is not a WildPath condition yet",
-          "effect: \"Guiding Bolt\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

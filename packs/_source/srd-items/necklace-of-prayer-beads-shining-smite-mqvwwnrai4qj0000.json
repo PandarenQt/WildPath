@@ -59,6 +59,17 @@
                   "invisible"
                 ]
               }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "marked",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "mode": "advantage"
+              }
             }
           ],
           "duration": {
@@ -104,9 +115,7 @@
         "castBy": "Necklace of Prayer Beads"
       },
       "conversion": {
-        "notes": [
-          "effect: marked is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }

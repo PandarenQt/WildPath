@@ -567,7 +567,25 @@
               "type": "effect",
               "name": "Guiding Bolt",
               "img": "icons/skills/targeting/target-strike-triple-blue.webp",
-              "ruleElements": []
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "marked",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "attacked"
+                    ],
+                    "mode": "advantage"
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnEnd"
+              },
+              "endsWhen": "attacked"
             }
           ],
           "metadata": {
@@ -591,9 +609,7 @@
           },
           "conversion": {
             "notes": [
-              "cast: Guiding Bolt at level 2 is cast at its own level",
-              "effect: marked is not a WildPath condition yet",
-              "effect: \"Guiding Bolt\" marks its creature only; its rules are by hand"
+              "cast: Guiding Bolt at level 2 is cast at its own level"
             ]
           }
         }
@@ -1328,7 +1344,25 @@
               "type": "effect",
               "name": "Guiding Bolt",
               "img": "icons/skills/targeting/target-strike-triple-blue.webp",
-              "ruleElements": []
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "marked",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "attacked"
+                    ],
+                    "mode": "advantage"
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnEnd"
+              },
+              "endsWhen": "attacked"
             }
           ],
           "metadata": {
@@ -1352,9 +1386,7 @@
           },
           "conversion": {
             "notes": [
-              "cast: Guiding Bolt at level 2 is cast at its own level",
-              "effect: marked is not a WildPath condition yet",
-              "effect: \"Guiding Bolt\" marks its creature only; its rules are by hand"
+              "cast: Guiding Bolt at level 2 is cast at its own level"
             ]
           }
         }
@@ -1604,8 +1636,6 @@
           "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: cast: Guiding Bolt at level 2 is cast at its own level",
-          "Spellcasting: effect: marked is not a WildPath condition yet",
-          "Spellcasting: effect: \"Guiding Bolt\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
@@ -1615,8 +1645,6 @@
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
           "Spellcasting: effect: \"Water Breathing\" marks its creature only; its rules are by hand",
           "Guiding Light: cast: Guiding Bolt at level 2 is cast at its own level",
-          "Guiding Light: effect: marked is not a WildPath condition yet",
-          "Guiding Light: effect: \"Guiding Bolt\" marks its creature only; its rules are by hand",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: consumption: attribute 1 not converted"
         ]

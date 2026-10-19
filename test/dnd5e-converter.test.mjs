@@ -1247,8 +1247,10 @@ test("Stunning Strike: offered once a turn on its own melee hit, 1 Focus Point, 
   const [item] = convertItem(stunning, {names}).items;
   const {definition} = item.system;
   assert.deepEqual(definition.costs.allOf, [{capability: "monk-s-focus", amount: 1}], "no action, a Focus Point");
-  assert.deepEqual(definition.effects, [{id: "effect-1", type: "condition", conditionId: "stunned", saveOutcomePolicy: "failure",
-    duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}}]);
+  assert.deepEqual(definition.effects[0], {id: "effect-1", type: "condition", conditionId: "stunned", saveOutcomePolicy: "failure",
+    duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}});
+  assert.deepEqual([definition.effects[1].saveOutcomePolicy, definition.effects[1].endsWhen, definition.effects[1].ruleElements[0].data],
+    ["success", "attacked", {domains: ["attacked"], mode: "advantage"}], "a success: Advantage on the next attack against it");
   assert.equal(definition.targeting.type, "single");
   const trigger = item.system.ruleElements.find(rule => rule.type === "Trigger").data;
   assert.deepEqual([trigger.event, trigger.match.sourceTokenId, trigger.once], ["attack.hit", "{self}", "turn"]);
@@ -1265,4 +1267,19 @@ test("Jack of All Trades and Remarkable Athlete: dnd5e's flags as WildPath rules
   const [athlete] = convertItem(flagged("athlete", "flags.dnd5e.remarkableAthlete")).items;
   assert.deepEqual(athlete.system.ruleElements[0], {schemaVersion: 1, id: "athlete-1", type: "RollMode",
     data: {domains: ["initiative", "check.athletics"], mode: "advantage"}});
+});
+
+test("dnd5e's marked status: attack rolls against its creature have Advantage; only the next one when its text says so (Guiding Bolt)", () => {
+  const bolt = (text) => ({_id: "testGuidingBolt1", name: "Guiding Bolt", type: "spell", img: "icons/svg/sun.svg",
+    effects: [{_id: "markedEffect0001", name: "Guiding Bolt", statuses: ["marked"], changes: [], transfer: false, disabled: false, duration: {}}],
+    system: {source: SRD, identifier: "guiding-bolt", level: 1, school: "evo", description: {value: text},
+      activities: {a: activity("attack", {attack: {type: {value: "ranged", classification: "spell"}}, effects: [{_id: "markedEffect0001"}],
+        damage: {parts: [{number: 4, denomination: 6, types: ["radiant"]}]}})}}});
+  const next = convertItem(bolt("<p>The next attack roll made against it before the end of your next turn has Advantage.</p>")).items[0];
+  const [effect] = next.system.definition.effects;
+  assert.deepEqual(effect.ruleElements.at(-1).data, {domains: ["attacked"], mode: "advantage"});
+  assert.deepEqual([effect.endsWhen, effect.duration], ["attacked", {value: 1, units: "rounds", expiry: "turnEnd"}]);
+  assert.ok(!next.flags.wildpath.conversion.notes.some(note => note.includes("marked")));
+  const lasting = convertItem(bolt("<p>Attack rolls against it have Advantage.</p>")).items[0].system.definition.effects[0];
+  assert.equal(lasting.endsWhen, undefined, "every attack against it, for as long as it lasts");
 });

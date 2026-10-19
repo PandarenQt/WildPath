@@ -58,6 +58,32 @@
             "units": "rounds",
             "expiry": "sourceTurnStart"
           }
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Stunning Strike",
+          "img": "icons/svg/daze.svg",
+          "saveOutcomePolicy": "success",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "staggered",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnStart"
+          },
+          "endsWhen": "attacked"
         }
       ],
       "configuration": [],

@@ -276,8 +276,9 @@ offered Parry first and declined; then Player1 was offered Divine Smite, chose a
 - **Stunning Strike:** dnd5e leaves it passive; the converter makes it an own-hit reaction (`OWN_HIT`): 1 Focus Point, a
   Constitution save, and on a failure Stunned with `duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}`.
   The effect's V14 duration is `turnStart` started on the monk's Combatant, and the GM removes it once V14 marks it
-  expired, at the start of the monk's next turn. shortcut: any melee hit counts (not only a Monk weapon or an Unarmed
-  Strike), and a success's halved Speed and Advantage are by hand.
+  expired, at the start of the monk's next turn. On a success, the next attack roll against the target before then has
+  Advantage (an effect ending when it is attacked). shortcut: any melee hit counts (not only a Monk weapon or an Unarmed
+  Strike), and a success's halved Speed is by hand.
 
 Live (two browsers, 2026-10-19, in combat): QA Caster as a level-2 monk hit the Bandit Captain and used Stunning Strike
 (1 Focus Point); the Captain failed (2) and was Stunned through its own turn, which ended at the start of QA Caster's
