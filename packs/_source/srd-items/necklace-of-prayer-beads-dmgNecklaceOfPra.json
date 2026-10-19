@@ -28,7 +28,6 @@
       "conversion": {
         "notes": [
           "cast: Cure Wounds at level 2 is cast at its own level",
-          "effect: marked is not a WildPath condition yet",
           "activation: 1 minute is not an action-economy cost",
           "effect: transformed is not a WildPath condition yet"
         ]

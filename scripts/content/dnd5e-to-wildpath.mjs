@@ -161,14 +161,18 @@ const SMITE_TRIGGER = Object.freeze({event: "attack.hit",
  * Features a creature uses when it hits with a melee attack that is not a spell's, which dnd5e leaves passive: offered
  * on that hit, on the creature hit (as Divine Smite is). `once: "turn"`: at most once a turn. Stunning Strike (2024):
  * 1 Focus Point, a Constitution save; on a failure the target has the Stunned condition until the start of the monk's
- * next turn. shortcut: "with a Monk weapon or an Unarmed Strike" is any melee hit, and a success's halved Speed and
- * Advantage are by hand.
+ * next turn; on a success the next attack roll against it before then has Advantage. shortcut: "with a Monk weapon or an
+ * Unarmed Strike" is any melee hit, and a success's halved Speed is by hand (no Speed multiplier yet).
  */
 const OWN_HIT = Object.freeze({
   "stunning-strike": {once: "turn", definition: definition => ({...definition,
     configuration: (definition.configuration ?? []).filter(choice => choice.id !== "effect-choice"),
     effects: [{id: "effect-1", type: "condition", conditionId: "stunned", saveOutcomePolicy: "failure",
-      duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}}]})}
+      duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}},
+    // A success: the next attack roll against it before the monk's next turn has Advantage.
+    {id: "effect-2", type: "effect", name: "Stunning Strike", img: "icons/svg/daze.svg", saveOutcomePolicy: "success",
+      ruleElements: [{schemaVersion: 1, id: "staggered", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}}],
+      duration: {value: 1, units: "rounds", expiry: "turnStart"}, endsWhen: "attacked"}]})}
 });
 
 /**
@@ -1556,7 +1560,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     // dnd5e applies an effect on a successful save only when it says so (`onSave` defaults to false).
     const onFailure = definition.save && (reference.onSave !== true) ? {saveOutcomePolicy: "failure"} : {};
     // A mark given by hand (its slug) is its own status ("marked", "cursed").
-    if ( !byHand?.slug ) for ( const status of statuses.filter(status => !CONDITION_MAP[status]) ) {
+    if ( !byHand?.slug ) for ( const status of statuses.filter(status => !CONDITION_MAP[status] && (status !== "marked")) ) {
       notes.push(`effect: ${status} is not a WildPath condition yet`);
     }
     for ( const status of known ) {
@@ -1576,11 +1580,20 @@ function convertActivity({document, activity, system, spell, level, scales, note
       continue;
     }
     const rules = [...(hand?.ruleElements ?? (effect ? effectRules(effect, notes, {scales}) : [])), ...(byHand?.extraRules ?? [])];
+    // dnd5e's "marked" (Guiding Bolt, Shining Smite): attack rolls against its creature have Advantage; only the next
+    // one when its text says so, and the effect then ends after that attack.
+    const marked = statuses.includes("marked") && !byHand?.slug;
+    if ( marked ) rules.push({schemaVersion: 1, id: "marked", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}});
+    const nextAttack = marked && /\bnext attack roll[^.]*against/i.test(plainText(document));
     if ( rules.length ) {
-      const duration = hand?.duration ?? effectDuration(effect.duration);
+      // "before the end of your next turn": a round, from its caster's turn (V14 starts it on the source's Combatant).
+      const untilNextTurnEnd = nextAttack && /before the end of your next turn/i.test(plainText(document))
+        ? {value: 1, units: "rounds", expiry: "turnEnd"} : null;
+      const duration = hand?.duration ?? effectDuration(effect.duration) ?? untilNextTurnEnd;
       effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(byHand?.slug ? {slug: byHand.slug} : {}),
         ...(effect.img ? {img: effect.img} : {}),
-        ruleElements: rules, ...(duration ? {duration} : {}), ...(hand?.endsWhen ? {endsWhen: hand.endsWhen} : {}), ...onFailure,
+        ruleElements: rules, ...(duration ? {duration} : {}), ...((hand?.endsWhen ?? (nextAttack ? "attacked" : null))
+          ? {endsWhen: hand?.endsWhen ?? "attacked"} : {}), ...onFailure,
         ...(concentration ? {concentration: true} : {})});
     } else if ( effect && !known.length ) {
       // Nothing of it maps (Alter Self, Acid Arrow's lingering acid): it still marks its creature, for its duration and

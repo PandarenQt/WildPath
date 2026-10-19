@@ -405,6 +405,11 @@ equipped. Equipping it (`system.active`) turns its rules on.
   (`feat:<identifier>` or a uuid: Channel Divinity's options, Cutting Words, Land's Aid, Wild Companion, Stunning Strike)
   spends that feature's pool, which that feature grants.
 - **Stunning Strike (2026-10-19)** is offered once a turn on its monk's own melee hit (reactions.md).
+- **"marked": Advantage on attacks against it (2026-10-19).** dnd5e's `marked` status (Guiding Bolt, Shining Smite, and
+  the dragons and items casting them) becomes `RollMode {domains: ["attacked"], mode: "advantage"}` on its effect. When the
+  text gives only "the next attack roll ... against it", the effect ends after that attack (`endsWhen: "attacked"`), and
+  "before the end of your next turn" gives it one round from the caster's turn. Stunning Strike's success uses the same
+  rule. Live: QA Caster's Guiding Bolt hit the Bandit Captain; its Dagger then rolled 2d20kh and the effect ended.
 - **Effects as markers (2026-10-19).** A dnd5e effect with no status and nothing WildPath maps (Alter Self's Aquatic
   Adaptation, Acid Arrow's lingering acid, a dragon's Detect Magic) is no longer dropped. It is a custom effect with
   no rules: its name, icon, duration, save policy and concentration. Its creature shows it, it expires on time, and it
