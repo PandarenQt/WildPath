@@ -332,6 +332,13 @@ equipped. Equipping it (`system.active`) turns its rules on.
   have "Ends it instead". Live (two browsers, 2026-10-19): Player1's QA Caster cast the SRD Lesser Restoration on
   the Poisoned and Blinded QA Fighter and chose Poisoned. Poisoned ended, Blinded stayed, and the Action and a
   2nd-level slot were spent. From 10 ft away it was refused: the spell is a touch spell.
+- **Effects as markers (2026-10-19).** A dnd5e effect with no status and nothing WildPath maps (Alter Self's Aquatic
+  Adaptation, Acid Arrow's lingering acid, a dragon's Detect Magic) is no longer dropped. It is a custom effect with
+  no rules: its name, icon, duration, save policy and concentration. Its creature shows it, it expires on time, and it
+  ends with its caster's concentration; what it does stays by hand (note: "marks its creature only"). SRD "concentration
+  effect not converted" fell from 247 to 175 documents, and 210 SRD effects are markers. SRD automated Items rose from
+  730 to 802, markers included. Live: Player1's QA Caster cast the SRD Alter Self (Aquatic Adaptation), 1 hour, and
+  casting Bless ended it.
 - **Temporary Hit Points (2026-10-19).** A heal activity of dnd5e's `temphp` type is healing of type
   `temporary` (durability-resolution.md): False Life, Heroism, Fiendish Vigor, Tireless, Adrenaline Rush, a
   Potion of Heroism, and the creatures casting them. SRD automated Items rose from 725 to 730. The Builder's healing

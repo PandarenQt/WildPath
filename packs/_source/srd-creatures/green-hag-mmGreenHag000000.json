@@ -819,6 +819,26 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Disguised",
+              "img": "icons/magic/control/silhouette-aura-energy.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Disguise Self"
         },
         "ruleElements": []
@@ -837,8 +857,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Disguised\" (its own changes) not converted"
+              "effect: \"Disguised\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -1108,7 +1127,7 @@
           "Spellcasting: summon: a count of \"4, 1\" is not converted",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: nothing it sustains was converted",
-          "Spellcasting: effect: \"Disguised\" (its own changes) not converted",
+          "Spellcasting: effect: \"Disguised\" marks its creature only; its rules are by hand",
           "Spellcasting: cast: Ray of Sickness at level 3 is cast at its own level"
         ]
       }

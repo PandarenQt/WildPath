@@ -33,11 +33,11 @@
           "cast: Cure Wounds at level 9 is cast at its own level",
           "consumption: itemUses 1 not converted",
           "consumption: itemUses 2 not converted",
-          "effect: \"Protection from Death\" (its own changes) not converted",
-          "effect: \"Detect Magic\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted",
+          "effect: \"Protection from Death\" marks its creature only; its rules are by hand",
+          "effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "consumption: itemUses 3 not converted",
           "activation: 10 minute is not an action-economy cost",
+          "concentration: nothing it sustains was converted",
           "rolled (save); what it does is by hand",
           "\"Create Sensor\" is passive or triggered: not automated"
         ]

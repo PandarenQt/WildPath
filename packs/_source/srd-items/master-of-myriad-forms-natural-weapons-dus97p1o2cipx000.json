@@ -18,6 +18,26 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Natural Weapon",
+          "img": "icons/creatures/abilities/fang-tooth-blood-red.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Master of Myriad Forms (Natural Weapons)"
     },
     "ruleElements": []
@@ -35,8 +55,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Natural Weapon\" (its own changes) not converted"
+          "effect: \"Natural Weapon\" marks its creature only; its rules are by hand"
         ]
       }
     }

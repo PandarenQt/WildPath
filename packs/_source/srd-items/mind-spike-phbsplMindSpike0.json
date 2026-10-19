@@ -69,6 +69,22 @@
           }
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Spiked",
+          "img": "icons/skills/targeting/target-strike-gray.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -170,8 +186,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Spiked\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
+          "effect: \"Spiked\" marks its creature only; its rules are by hand"
         ]
       }
     }

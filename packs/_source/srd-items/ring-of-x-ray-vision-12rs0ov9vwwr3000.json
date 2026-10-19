@@ -27,8 +27,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"X-Ray Vision\" (its own changes) not converted",
+          "effect: \"X-Ray Vision\" marks its creature only; its rules are by hand",
           "rolled (save); what it does is by hand"
         ]
       },

@@ -21,6 +21,32 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Bark-like Skin",
+          "img": "icons/magic/nature/barrier-shield-wood-vines.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -109,9 +135,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "effect: \"Bark-like Skin\" change system.attributes.ac.min (upgrade) not converted",
-          "effect: \"Bark-like Skin\" (its own changes) not converted"
+          "effect: \"Bark-like Skin\" marks its creature only; its rules are by hand"
         ]
       }
     }

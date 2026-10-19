@@ -25,6 +25,26 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Climber",
+          "img": "icons/consumables/potions/vial-cork-empty.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Potion of Climbing"
     },
     "ruleElements": [
@@ -57,8 +77,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Climber\" (its own changes) not converted"
+          "effect: \"Climber\" marks its creature only; its rules are by hand"
         ]
       }
     }

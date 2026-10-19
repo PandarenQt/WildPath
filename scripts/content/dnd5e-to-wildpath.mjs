@@ -1243,7 +1243,14 @@ function convertActivity({document, activity, system, spell, level, scales, note
         ...(effect.img ? {img: effect.img} : {}),
         ruleElements: rules, ...(duration ? {duration} : {}), ...(hand?.endsWhen ? {endsWhen: hand.endsWhen} : {}), ...onFailure,
         ...(concentration ? {concentration: true} : {})});
-    } else if ( effect && !statuses.length ) notes.push(`effect: "${effect.name}" (its own changes) not converted`);
+    } else if ( effect && !statuses.length ) {
+      // Nothing of it maps (Alter Self, Acid Arrow's lingering acid): it still marks its creature, for its duration and
+      // its caster's concentration, and what it does is by hand.
+      const duration = effectDuration(effect.duration);
+      effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(effect.img ? {img: effect.img} : {}),
+        ruleElements: [], ...(duration ? {duration} : {}), ...onFailure, ...(concentration ? {concentration: true} : {})});
+      notes.push(`effect: "${effect.name}" marks its creature only; its rules are by hand`);
+    }
     if ( effects.length > first ) groups.push({label: effect?.name ?? `Effect ${groups.length + 1}`, ids: effects.slice(first).map(entry => entry.id)});
   }
   // The conditions it ends (Lesser Restoration: one of four, chosen; Heal: three).

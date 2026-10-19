@@ -74,6 +74,15 @@
           "provenance": "spell-base"
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Illuminated",
+          "img": "icons/sundries/lights/lantern-iron-lit-yellow.webp",
+          "ruleElements": []
+        }
+      ],
       "label": "Starry Wisp"
     },
     "ruleElements": []
@@ -91,7 +100,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Illuminated\" (its own changes) not converted"
+          "effect: \"Illuminated\" marks its creature only; its rules are by hand"
         ]
       }
     }

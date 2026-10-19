@@ -51,12 +51,36 @@
       "effects": [
         {
           "id": "effect-1",
+          "type": "effect",
+          "name": "Burial",
+          "img": "systems/dnd5e/icons/svg/statuses/burrowing.svg",
+          "ruleElements": [],
+          "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-2",
           "type": "condition",
           "conditionId": "restrained",
           "saveOutcomePolicy": "failure"
         },
         {
-          "id": "effect-2",
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Hedged Prison",
+          "img": "systems/dnd5e/icons/svg/activity/summon.svg",
+          "ruleElements": [],
+          "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-4",
+          "type": "effect",
+          "name": "Minimus Containment",
+          "img": "icons/svg/down.svg",
+          "ruleElements": [],
+          "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-5",
           "type": "condition",
           "conditionId": "unconscious"
         }
@@ -90,13 +114,28 @@
           "options": [
             {
               "id": "effect-option-1",
-              "label": "Chaining",
+              "label": "Burial",
               "value": "effect-option-1"
             },
             {
               "id": "effect-option-2",
-              "label": "Slumber",
+              "label": "Chaining",
               "value": "effect-option-2"
+            },
+            {
+              "id": "effect-option-3",
+              "label": "Hedged Prison",
+              "value": "effect-option-3"
+            },
+            {
+              "id": "effect-option-4",
+              "label": "Minimus Containment",
+              "value": "effect-option-4"
+            },
+            {
+              "id": "effect-option-5",
+              "label": "Slumber",
+              "value": "effect-option-5"
             }
           ],
           "effects": [
@@ -104,7 +143,10 @@
               "type": "keepEffect",
               "effectIds": [
                 "effect-1",
-                "effect-2"
+                "effect-2",
+                "effect-3",
+                "effect-4",
+                "effect-5"
               ],
               "keep": {
                 "effect-option-1": [
@@ -112,6 +154,15 @@
                 ],
                 "effect-option-2": [
                   "effect-2"
+                ],
+                "effect-option-3": [
+                  "effect-3"
+                ],
+                "effect-option-4": [
+                  "effect-4"
+                ],
+                "effect-option-5": [
+                  "effect-5"
                 ]
               }
             }
@@ -136,9 +187,9 @@
       "conversion": {
         "notes": [
           "activation: 1 minute is not an action-economy cost",
-          "effect: \"Burial\" (its own changes) not converted",
-          "effect: \"Hedged Prison\" (its own changes) not converted",
-          "effect: \"Minimus Containment\" (its own changes) not converted"
+          "effect: \"Burial\" marks its creature only; its rules are by hand",
+          "effect: \"Hedged Prison\" marks its creature only; its rules are by hand",
+          "effect: \"Minimus Containment\" marks its creature only; its rules are by hand"
         ]
       }
     }

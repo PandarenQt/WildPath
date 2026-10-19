@@ -21,6 +21,27 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Dimensionally Bound",
+          "img": "icons/magic/control/debuff-chains-shackles-movement-blue.webp",
+          "ruleElements": []
+        }
+      ],
       "label": "Dimensional Shackles (Place Shackles)"
     },
     "ruleElements": []
@@ -38,8 +59,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Dimensionally Bound\" (its own changes) not converted"
+          "effect: \"Dimensionally Bound\" marks its creature only; its rules are by hand"
         ]
       }
     }

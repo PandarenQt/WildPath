@@ -21,6 +21,50 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Duplicate A",
+          "img": "icons/sundries/flags/banner-pink.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Duplicate B",
+          "img": "icons/sundries/flags/banner-green.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Duplicate C",
+          "img": "icons/sundries/flags/banner-blue.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -90,6 +134,50 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "effect-choice",
+          "type": "option",
+          "label": "Effect",
+          "required": true,
+          "options": [
+            {
+              "id": "effect-option-1",
+              "label": "Duplicate A",
+              "value": "effect-option-1"
+            },
+            {
+              "id": "effect-option-2",
+              "label": "Duplicate B",
+              "value": "effect-option-2"
+            },
+            {
+              "id": "effect-option-3",
+              "label": "Duplicate C",
+              "value": "effect-option-3"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "effect-1",
+                "effect-2",
+                "effect-3"
+              ],
+              "keep": {
+                "effect-option-1": [
+                  "effect-1"
+                ],
+                "effect-option-2": [
+                  "effect-2"
+                ],
+                "effect-option-3": [
+                  "effect-3"
+                ]
+              }
+            }
+          ]
         }
       ],
       "label": "Mirror Image"
@@ -109,13 +197,12 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "effect: \"Duplicate A\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
-          "effect: \"Duplicate A\" (its own changes) not converted",
+          "effect: \"Duplicate A\" marks its creature only; its rules are by hand",
           "effect: \"Duplicate B\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
-          "effect: \"Duplicate B\" (its own changes) not converted",
+          "effect: \"Duplicate B\" marks its creature only; its rules are by hand",
           "effect: \"Duplicate C\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
-          "effect: \"Duplicate C\" (its own changes) not converted"
+          "effect: \"Duplicate C\" marks its creature only; its rules are by hand"
         ]
       }
     }

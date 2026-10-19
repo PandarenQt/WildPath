@@ -400,6 +400,20 @@
               "healingType": "temporary"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Attack: Advantage",
+              "img": "icons/magic/sonic/scream-wail-shout-teal.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "War Cry"
         },
         "ruleElements": [
@@ -433,7 +447,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Attack: Advantage\" (its own changes) not converted"
+              "effect: \"Attack: Advantage\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -498,7 +512,7 @@
       },
       "conversion": {
         "notes": [
-          "War Cry: effect: \"Attack: Advantage\" (its own changes) not converted"
+          "War Cry: effect: \"Attack: Advantage\" marks its creature only; its rules are by hand"
         ]
       }
     }

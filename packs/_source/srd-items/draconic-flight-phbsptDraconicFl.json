@@ -22,6 +22,26 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Draconic Flight",
+          "img": "icons/magic/holy/angel-wings-gray.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Draconic Flight"
     },
     "ruleElements": [
@@ -54,8 +74,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Draconic Flight\" (its own changes) not converted"
+          "effect: \"Draconic Flight\" marks its creature only; its rules are by hand"
         ]
       }
     }

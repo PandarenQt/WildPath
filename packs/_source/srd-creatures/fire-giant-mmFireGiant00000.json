@@ -298,6 +298,20 @@
               "provenance": "additional"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Disadv.: Attacks",
+              "img": "icons/weapons/hammers/hammer-double-glowing-yellow.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "push": {
             "distance": 15
           },
@@ -318,7 +332,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Disadv.: Attacks\" (its own changes) not converted"
+              "effect: \"Disadv.: Attacks\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -383,7 +397,7 @@
       },
       "conversion": {
         "notes": [
-          "Hammer Throw: effect: \"Disadv.: Attacks\" (its own changes) not converted"
+          "Hammer Throw: effect: \"Disadv.: Attacks\" marks its creature only; its rules are by hand"
         ]
       }
     }

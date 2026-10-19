@@ -252,6 +252,18 @@
               }
             }
           ]
+        },
+        {
+          "id": "effect-5",
+          "type": "effect",
+          "name": "Spell Taxed",
+          "img": "systems/dnd5e/icons/svg/break-concentration.svg",
+          "ruleElements": [],
+          "duration": {
+            "value": 86400,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
         }
       ],
       "configuration": [
@@ -314,6 +326,11 @@
               "id": "effect-option-4",
               "label": "Resurrection Sickness (Day 4)",
               "value": "effect-option-4"
+            },
+            {
+              "id": "effect-option-5",
+              "label": "Spell Taxed",
+              "value": "effect-option-5"
             }
           ],
           "effects": [
@@ -323,7 +340,8 @@
                 "effect-1",
                 "effect-2",
                 "effect-3",
-                "effect-4"
+                "effect-4",
+                "effect-5"
               ],
               "keep": {
                 "effect-option-1": [
@@ -337,6 +355,9 @@
                 ],
                 "effect-option-4": [
                   "effect-4"
+                ],
+                "effect-option-5": [
+                  "effect-5"
                 ]
               }
             }
@@ -361,7 +382,7 @@
       "conversion": {
         "notes": [
           "activation: 1 hour is not an action-economy cost",
-          "effect: \"Spell Taxed\" (its own changes) not converted"
+          "effect: \"Spell Taxed\" marks its creature only; its rules are by hand"
         ]
       }
     }

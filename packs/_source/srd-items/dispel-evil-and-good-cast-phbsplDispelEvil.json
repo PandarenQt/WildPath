@@ -21,6 +21,27 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Dispelling Evil and Good",
+          "img": "icons/magic/light/orb-hands-humanoid-yellow.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -88,9 +109,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Dispelling Evil and Good\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
+          "effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand"
         ]
       }
     }

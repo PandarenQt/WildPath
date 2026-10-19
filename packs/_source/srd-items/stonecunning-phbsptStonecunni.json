@@ -22,6 +22,26 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Stonecunning",
+          "img": "icons/skills/trades/construction-mason-stonecutter-sculpture.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Stonecunning"
     },
     "ruleElements": [
@@ -53,9 +73,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "effect: \"Stonecunning\" change system.attributes.senses.tremorsense (add) not converted",
-          "effect: \"Stonecunning\" (its own changes) not converted"
+          "effect: \"Stonecunning\" marks its creature only; its rules are by hand"
         ]
       }
     }

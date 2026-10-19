@@ -84,6 +84,20 @@
           },
           "saveOutcomePolicy": "failure",
           "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Indifference",
+          "img": "icons/magic/symbols/question-stone-yellow.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
         }
       ],
       "configuration": [
@@ -155,6 +169,41 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "effect-choice",
+          "type": "option",
+          "label": "Effect",
+          "required": true,
+          "options": [
+            {
+              "id": "effect-option-1",
+              "label": "Calmed",
+              "value": "effect-option-1"
+            },
+            {
+              "id": "effect-option-2",
+              "label": "Indifference",
+              "value": "effect-option-2"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "effect-1",
+                "effect-2"
+              ],
+              "keep": {
+                "effect-option-1": [
+                  "effect-1"
+                ],
+                "effect-option-2": [
+                  "effect-2"
+                ]
+              }
+            }
+          ]
         }
       ],
       "label": "Calm Emotions"
@@ -174,7 +223,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Indifference\" (its own changes) not converted"
+          "effect: \"Indifference\" marks its creature only; its rules are by hand"
         ]
       }
     }

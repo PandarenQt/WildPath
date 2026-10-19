@@ -21,6 +21,26 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Animated Shield",
+          "img": "icons/equipment/shield/heater-steel-segmented-purple.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Animated Shield"
     },
     "ruleElements": []
@@ -38,8 +58,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Animated Shield\" (its own changes) not converted"
+          "effect: \"Animated Shield\" marks its creature only; its rules are by hand"
         ]
       }
     }

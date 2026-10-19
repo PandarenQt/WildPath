@@ -341,6 +341,34 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Detect Magic",
+              "img": "icons/magic/symbols/runes-carved-stone-green.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -359,9 +387,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Detect Magic\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -504,6 +530,35 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "multiple",
+            "required": true,
+            "count": 10,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Water Breathing",
+              "img": "icons/creatures/fish/crab-blue-purple.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 86400,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Water Breathing"
         },
         "ruleElements": []
@@ -522,8 +577,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Water Breathing\" (its own changes) not converted"
+              "effect: \"Water Breathing\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -923,10 +977,10 @@
       },
       "conversion": {
         "notes": [
+          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Water Breathing\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",
-          "Spellcasting: effect: \"Water Breathing\" (its own changes) not converted",
           "Spellcasting: rolled (save); what it does is by hand",
           "Spellcasting: teleport: a creature it brings along is moved by hand",
           "Spellcasting: cast: Hold Person at level 3 is cast at its own level",

@@ -317,6 +317,34 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Detect Evil and Good",
+              "img": "icons/magic/perception/eye-ringed-green.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "label": "Detect Evil and Good"
         },
         "ruleElements": []
@@ -335,9 +363,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Detect Evil and Good\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -821,8 +847,8 @@
       },
       "conversion": {
         "notes": [
+          "Spellcasting: effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Detect Evil and Good\" (its own changes) not converted",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 1 hour is not an action-economy cost",

@@ -74,6 +74,15 @@
           "provenance": "spell-base"
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Shocked",
+          "img": "icons/magic/lightning/bolt-strike-wide-white.webp",
+          "ruleElements": []
+        }
+      ],
       "label": "Shocking Grasp"
     },
     "ruleElements": []
@@ -91,7 +100,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Shocked\" (its own changes) not converted"
+          "effect: \"Shocked\" marks its creature only; its rules are by hand"
         ]
       }
     }

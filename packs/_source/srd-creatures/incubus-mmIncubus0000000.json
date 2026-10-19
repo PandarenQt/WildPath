@@ -269,6 +269,26 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Disguised",
+              "img": "icons/magic/control/silhouette-aura-energy.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Disguise Self"
         },
         "ruleElements": []
@@ -287,8 +307,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Disguised\" (its own changes) not converted"
+              "effect: \"Disguised\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -762,8 +781,8 @@
         "notes": [
           "Succubus Form: \"Shape-Shift: Succubus\" is passive or triggered: not automated",
           "Restless Touch: effect: cursed is not a WildPath condition yet",
+          "Spellcasting: effect: \"Disguised\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Disguised\" (its own changes) not converted",
           "Spellcasting: effect: ethereal is not a WildPath condition yet",
           "Spellcasting: activation: 1 minute is not an action-economy cost"
         ]

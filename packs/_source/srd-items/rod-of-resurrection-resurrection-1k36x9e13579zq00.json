@@ -300,7 +300,7 @@
       "conversion": {
         "notes": [
           "activation: 1 hour is not an action-economy cost",
-          "effect: \"Spell Taxed\" (its own changes) not converted"
+          "effect: \"Spell Taxed\" marks its creature only; its rules are by hand"
         ]
       }
     }

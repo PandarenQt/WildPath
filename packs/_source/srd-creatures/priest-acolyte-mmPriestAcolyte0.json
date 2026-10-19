@@ -608,6 +608,32 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Warded",
+              "img": "icons/skills/social/peace-luck-insult.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Sanctuary"
         },
         "ruleElements": [
@@ -641,8 +667,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Warded\" (its own changes) not converted",
+              "effect: \"Warded\" marks its creature only; its rules are by hand",
               "\"Save on Target\" is passive or triggered: not automated"
             ]
           }
@@ -697,8 +722,7 @@
       },
       "conversion": {
         "notes": [
-          "Divine Aid: not automated (utility): using it spends its cost; its description says the rest",
-          "Divine Aid: effect: \"Warded\" (its own changes) not converted",
+          "Divine Aid: effect: \"Warded\" marks its creature only; its rules are by hand",
           "Divine Aid: \"Save on Target\" is passive or triggered: not automated"
         ]
       }

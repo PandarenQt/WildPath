@@ -22,6 +22,26 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Innate Sorcery",
+          "img": "icons/magic/control/silhouette-hold-change-blue.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Innate Sorcery"
     },
     "ruleElements": [
@@ -54,9 +74,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "effect: \"Innate Sorcery\" change system.bonuses.spell.dc (add) not converted",
-          "effect: \"Innate Sorcery\" (its own changes) not converted"
+          "effect: \"Innate Sorcery\" marks its creature only; its rules are by hand"
         ]
       }
     }

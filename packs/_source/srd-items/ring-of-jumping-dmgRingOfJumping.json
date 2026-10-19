@@ -27,8 +27,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Jump\" (its own changes) not converted"
+          "effect: \"Jump\" marks its creature only; its rules are by hand"
         ]
       },
       "grants": [

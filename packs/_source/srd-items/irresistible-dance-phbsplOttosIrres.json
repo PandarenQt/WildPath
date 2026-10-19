@@ -60,6 +60,14 @@
           "conditionId": "charmed",
           "saveOutcomePolicy": "failure",
           "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Short Dance",
+          "img": "icons/magic/time/clock-analog-gray.webp",
+          "ruleElements": [],
+          "concentration": true
         }
       ],
       "configuration": [
@@ -103,6 +111,41 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "effect-choice",
+          "type": "option",
+          "label": "Effect",
+          "required": true,
+          "options": [
+            {
+              "id": "effect-option-1",
+              "label": "Irresistible Dance",
+              "value": "effect-option-1"
+            },
+            {
+              "id": "effect-option-2",
+              "label": "Short Dance",
+              "value": "effect-option-2"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "effect-1",
+                "effect-2"
+              ],
+              "keep": {
+                "effect-option-1": [
+                  "effect-1"
+                ],
+                "effect-option-2": [
+                  "effect-2"
+                ]
+              }
+            }
+          ]
         }
       ],
       "label": "Irresistible Dance"
@@ -122,7 +165,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Short Dance\" (its own changes) not converted"
+          "effect: \"Short Dance\" marks its creature only; its rules are by hand"
         ]
       }
     }

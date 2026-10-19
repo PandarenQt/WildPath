@@ -74,6 +74,15 @@
           "provenance": "spell-base"
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Reduced Movement",
+          "img": "icons/magic/water/projectile-icecicle-glowing.webp",
+          "ruleElements": []
+        }
+      ],
       "label": "Ray of Frost"
     },
     "ruleElements": []
@@ -92,7 +101,7 @@
       "conversion": {
         "notes": [
           "effect: \"Reduced Movement\" change system.attributes.movement.bonus (add) not converted",
-          "effect: \"Reduced Movement\" (its own changes) not converted"
+          "effect: \"Reduced Movement\" marks its creature only; its rules are by hand"
         ]
       }
     }

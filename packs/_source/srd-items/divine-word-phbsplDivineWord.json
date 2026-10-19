@@ -77,6 +77,31 @@
           "type": "condition",
           "conditionId": "stunned",
           "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-5",
+          "type": "effect",
+          "name": "Blinded, Deafened",
+          "img": "systems/dnd5e/icons/svg/statuses/blinded.svg",
+          "ruleElements": [],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-6",
+          "type": "effect",
+          "name": "Deafened",
+          "img": "systems/dnd5e/icons/svg/statuses/deafened.svg",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
         }
       ],
       "configuration": [
@@ -129,6 +154,16 @@
               "id": "effect-option-2",
               "label": "Blinded, Deafened, Stunned",
               "value": "effect-option-2"
+            },
+            {
+              "id": "effect-option-3",
+              "label": "Blinded, Deafened",
+              "value": "effect-option-3"
+            },
+            {
+              "id": "effect-option-4",
+              "label": "Deafened",
+              "value": "effect-option-4"
             }
           ],
           "effects": [
@@ -138,7 +173,9 @@
                 "effect-1",
                 "effect-2",
                 "effect-3",
-                "effect-4"
+                "effect-4",
+                "effect-5",
+                "effect-6"
               ],
               "keep": {
                 "effect-option-1": [
@@ -148,6 +185,12 @@
                   "effect-2",
                   "effect-3",
                   "effect-4"
+                ],
+                "effect-option-3": [
+                  "effect-5"
+                ],
+                "effect-option-4": [
+                  "effect-6"
                 ]
               }
             }
@@ -171,8 +214,8 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Blinded, Deafened\" (its own changes) not converted",
-          "effect: \"Deafened\" (its own changes) not converted"
+          "effect: \"Blinded, Deafened\" marks its creature only; its rules are by hand",
+          "effect: \"Deafened\" marks its creature only; its rules are by hand"
         ]
       }
     }

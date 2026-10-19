@@ -25,6 +25,26 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Water Breather",
+          "img": "icons/consumables/potions/potion-bottle-corked-labeled-green.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 86400,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Potion of Water Breathing"
     },
     "ruleElements": [
@@ -57,8 +77,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Water Breather\" (its own changes) not converted"
+          "effect: \"Water Breather\" marks its creature only; its rules are by hand"
         ]
       }
     }

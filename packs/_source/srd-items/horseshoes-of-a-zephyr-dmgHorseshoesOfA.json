@@ -21,6 +21,27 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Ignore Difficult Terrain",
+          "img": "icons/tools/smithing/horsehoe-worn-steel-grey.webp",
+          "ruleElements": []
+        }
+      ],
       "label": "Horseshoes of a Zephyr"
     },
     "ruleElements": []
@@ -38,9 +59,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "effect: \"Ignore Difficult Terrain\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted",
-          "effect: \"Ignore Difficult Terrain\" (its own changes) not converted"
+          "effect: \"Ignore Difficult Terrain\" marks its creature only; its rules are by hand"
         ]
       }
     }

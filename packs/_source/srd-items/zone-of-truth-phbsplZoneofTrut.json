@@ -36,6 +36,67 @@
         "size": {
           "value": 15,
           "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 100
+          },
+          "concentration": false,
+          "triggers": [
+            {
+              "on": [
+                "area.entered",
+                "turn.started"
+              ],
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-zone-of-truth:lasting",
+                "label": "Zone of Truth",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell"
+                ],
+                "save": {
+                  "ability": "presence",
+                  "dc": {
+                    "valueExpression": {
+                      "type": "add",
+                      "terms": [
+                        {
+                          "type": "constant",
+                          "value": 8
+                        },
+                        {
+                          "type": "proficiency-bonus"
+                        },
+                        {
+                          "type": "spellcasting-modifier"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "effect",
+                    "name": "Cannot Lie",
+                    "img": "icons/skills/social/wave-halt-stop.webp",
+                    "ruleElements": [],
+                    "duration": {
+                      "value": 600,
+                      "units": "seconds",
+                      "expiry": "turnStart"
+                    },
+                    "saveOutcomePolicy": "failure"
+                  }
+                ]
+              }
+            }
+          ]
         }
       },
       "save": {
@@ -58,6 +119,21 @@
           }
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Cannot Lie",
+          "img": "icons/skills/social/wave-halt-stop.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -146,8 +222,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Cannot Lie\" (its own changes) not converted",
-          "rolled (save); what it does is by hand"
+          "effect: \"Cannot Lie\" marks its creature only; its rules are by hand"
         ]
       }
     }

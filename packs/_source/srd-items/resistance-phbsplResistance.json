@@ -21,6 +21,281 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Acid Protection",
+          "img": "systems/dnd5e/icons/svg/damage/acid.svg",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Bludgeoning Protection",
+          "img": "systems/dnd5e/icons/svg/damage/bludgeoning.svg",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Cold Protection",
+          "img": "systems/dnd5e/icons/svg/damage/cold.svg",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-4",
+          "type": "effect",
+          "name": "Fire Protection",
+          "img": "systems/dnd5e/icons/svg/damage/fire.svg",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-5",
+          "type": "effect",
+          "name": "Lightning Protection",
+          "img": "systems/dnd5e/icons/svg/damage/lightning.svg",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-6",
+          "type": "effect",
+          "name": "Necrotic Protection",
+          "img": "systems/dnd5e/icons/svg/damage/necrotic.svg",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-7",
+          "type": "effect",
+          "name": "Piercing Protection",
+          "img": "systems/dnd5e/icons/svg/damage/piercing.svg",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-8",
+          "type": "effect",
+          "name": "Poison Protection",
+          "img": "systems/dnd5e/icons/svg/damage/poison.svg",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-9",
+          "type": "effect",
+          "name": "Radiant Protection",
+          "img": "systems/dnd5e/icons/svg/damage/radiant.svg",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-10",
+          "type": "effect",
+          "name": "Slashing Protection",
+          "img": "systems/dnd5e/icons/svg/damage/slashing.svg",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        },
+        {
+          "id": "effect-11",
+          "type": "effect",
+          "name": "Thunder Protection",
+          "img": "systems/dnd5e/icons/svg/damage/thunder.svg",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
+      "configuration": [
+        {
+          "id": "effect-choice",
+          "type": "option",
+          "label": "Effect",
+          "required": true,
+          "options": [
+            {
+              "id": "effect-option-1",
+              "label": "Acid Protection",
+              "value": "effect-option-1"
+            },
+            {
+              "id": "effect-option-2",
+              "label": "Bludgeoning Protection",
+              "value": "effect-option-2"
+            },
+            {
+              "id": "effect-option-3",
+              "label": "Cold Protection",
+              "value": "effect-option-3"
+            },
+            {
+              "id": "effect-option-4",
+              "label": "Fire Protection",
+              "value": "effect-option-4"
+            },
+            {
+              "id": "effect-option-5",
+              "label": "Lightning Protection",
+              "value": "effect-option-5"
+            },
+            {
+              "id": "effect-option-6",
+              "label": "Necrotic Protection",
+              "value": "effect-option-6"
+            },
+            {
+              "id": "effect-option-7",
+              "label": "Piercing Protection",
+              "value": "effect-option-7"
+            },
+            {
+              "id": "effect-option-8",
+              "label": "Poison Protection",
+              "value": "effect-option-8"
+            },
+            {
+              "id": "effect-option-9",
+              "label": "Radiant Protection",
+              "value": "effect-option-9"
+            },
+            {
+              "id": "effect-option-10",
+              "label": "Slashing Protection",
+              "value": "effect-option-10"
+            },
+            {
+              "id": "effect-option-11",
+              "label": "Thunder Protection",
+              "value": "effect-option-11"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "effect-1",
+                "effect-2",
+                "effect-3",
+                "effect-4",
+                "effect-5",
+                "effect-6",
+                "effect-7",
+                "effect-8",
+                "effect-9",
+                "effect-10",
+                "effect-11"
+              ],
+              "keep": {
+                "effect-option-1": [
+                  "effect-1"
+                ],
+                "effect-option-2": [
+                  "effect-2"
+                ],
+                "effect-option-3": [
+                  "effect-3"
+                ],
+                "effect-option-4": [
+                  "effect-4"
+                ],
+                "effect-option-5": [
+                  "effect-5"
+                ],
+                "effect-option-6": [
+                  "effect-6"
+                ],
+                "effect-option-7": [
+                  "effect-7"
+                ],
+                "effect-option-8": [
+                  "effect-8"
+                ],
+                "effect-option-9": [
+                  "effect-9"
+                ],
+                "effect-option-10": [
+                  "effect-10"
+                ],
+                "effect-option-11": [
+                  "effect-11"
+                ]
+              }
+            }
+          ]
+        }
+      ],
       "label": "Resistance"
     },
     "ruleElements": []
@@ -38,19 +313,17 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Acid Protection\" (its own changes) not converted",
-          "effect: \"Bludgeoning Protection\" (its own changes) not converted",
-          "effect: \"Cold Protection\" (its own changes) not converted",
-          "effect: \"Fire Protection\" (its own changes) not converted",
-          "effect: \"Lightning Protection\" (its own changes) not converted",
-          "effect: \"Necrotic Protection\" (its own changes) not converted",
-          "effect: \"Piercing Protection\" (its own changes) not converted",
-          "effect: \"Poison Protection\" (its own changes) not converted",
-          "effect: \"Radiant Protection\" (its own changes) not converted",
-          "effect: \"Slashing Protection\" (its own changes) not converted",
-          "effect: \"Thunder Protection\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
+          "effect: \"Acid Protection\" marks its creature only; its rules are by hand",
+          "effect: \"Bludgeoning Protection\" marks its creature only; its rules are by hand",
+          "effect: \"Cold Protection\" marks its creature only; its rules are by hand",
+          "effect: \"Fire Protection\" marks its creature only; its rules are by hand",
+          "effect: \"Lightning Protection\" marks its creature only; its rules are by hand",
+          "effect: \"Necrotic Protection\" marks its creature only; its rules are by hand",
+          "effect: \"Piercing Protection\" marks its creature only; its rules are by hand",
+          "effect: \"Poison Protection\" marks its creature only; its rules are by hand",
+          "effect: \"Radiant Protection\" marks its creature only; its rules are by hand",
+          "effect: \"Slashing Protection\" marks its creature only; its rules are by hand",
+          "effect: \"Thunder Protection\" marks its creature only; its rules are by hand"
         ]
       }
     }

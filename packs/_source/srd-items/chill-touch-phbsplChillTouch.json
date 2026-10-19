@@ -74,6 +74,15 @@
           "provenance": "spell-base"
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Blocked Healing",
+          "img": "icons/magic/life/heart-broken-red.webp",
+          "ruleElements": []
+        }
+      ],
       "label": "Chill Touch"
     },
     "ruleElements": []
@@ -91,7 +100,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Blocked Healing\" (its own changes) not converted"
+          "effect: \"Blocked Healing\" marks its creature only; its rules are by hand"
         ]
       }
     }

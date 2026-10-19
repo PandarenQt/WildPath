@@ -401,6 +401,34 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Detect Evil and Good",
+              "img": "icons/magic/perception/eye-ringed-green.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "label": "Detect Evil and Good"
         },
         "ruleElements": []
@@ -419,9 +447,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Detect Evil and Good\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -550,6 +576,20 @@
               },
               "saveOutcomePolicy": "failure",
               "concentration": true
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Indifference",
+              "img": "icons/magic/symbols/question-stone-yellow.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
             }
           ],
           "label": "Calm Emotions"
@@ -585,7 +625,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Indifference\" (its own changes) not converted"
+              "effect: \"Indifference\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -618,6 +658,27 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Dispelling Evil and Good",
+              "img": "icons/magic/light/orb-hands-humanoid-yellow.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "label": "Dispel Evil and Good"
         },
         "ruleElements": [
@@ -651,10 +712,10 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Dispelling Evil and Good\" (its own changes) not converted",
+              "effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand",
               "concentration: nothing it sustains was converted",
-              "rolled (save); what it does is by hand"
+              "rolled (save); what it does is by hand",
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1343,11 +1404,11 @@
       },
       "conversion": {
         "notes": [
+          "Spellcasting: effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Detect Evil and Good\" (its own changes) not converted",
+          "Spellcasting: effect: \"Indifference\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand",
           "Spellcasting: concentration: nothing it sustains was converted",
-          "Spellcasting: effect: \"Indifference\" (its own changes) not converted",
-          "Spellcasting: effect: \"Dispelling Evil and Good\" (its own changes) not converted",
           "Spellcasting: rolled (save); what it does is by hand",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Charging Horn: not automated (utility): using it spends its cost; its description says the rest"

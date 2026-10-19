@@ -53,6 +53,20 @@
           }
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Enclosed in Sphere",
+          "img": "icons/commodities/gems/gem-amber-insect-orange.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -127,8 +141,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Enclosed in Sphere\" (its own changes) not converted",
-          "rolled (save); what it does is by hand"
+          "effect: \"Enclosed in Sphere\" marks its creature only; its rules are by hand"
         ]
       }
     }

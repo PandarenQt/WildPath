@@ -40,8 +40,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Animated Shield\" (its own changes) not converted"
+          "effect: \"Animated Shield\" marks its creature only; its rules are by hand"
         ]
       },
       "grants": [

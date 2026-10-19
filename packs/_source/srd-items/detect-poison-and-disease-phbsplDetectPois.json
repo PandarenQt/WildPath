@@ -21,6 +21,34 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Detect Poison and Disease",
+          "img": "icons/skills/toxins/poison-bottle-open-fire-purple.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -116,9 +144,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Detect Poison and Disease\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
+          "effect: \"Detect Poison and Disease\" marks its creature only; its rules are by hand"
         ]
       }
     }

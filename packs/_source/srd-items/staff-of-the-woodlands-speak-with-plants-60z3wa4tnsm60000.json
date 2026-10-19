@@ -25,6 +25,33 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Speaking with Plants",
+          "img": "icons/magic/nature/tree-animated-squint.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Staff of the Woodlands: Speak with Plants"
     },
     "ruleElements": [
@@ -65,8 +92,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Speaking with Plants\" (its own changes) not converted"
+          "effect: \"Speaking with Plants\" marks its creature only; its rules are by hand"
         ]
       }
     }

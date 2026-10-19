@@ -25,6 +25,26 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Full of Vitality",
+          "img": "icons/consumables/potions/potion-flask-corled-pink-red.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 86400,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Potion of Vitality"
     },
     "ruleElements": [
@@ -57,8 +77,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Full of Vitality\" (its own changes) not converted"
+          "effect: \"Full of Vitality\" marks its creature only; its rules are by hand"
         ]
       }
     }
