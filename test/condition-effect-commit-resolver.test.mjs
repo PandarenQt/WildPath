@@ -172,3 +172,15 @@ test("an Action's custom effect commits as an ordinary effect with its rules and
   await rollbackConditionEffectMutationPlan(actor, mutation, null, committed);
   assert.equal(actor.effects.length, 0, "rolling the first application back removes the effect it created");
 });
+
+test("a removal planned without seeing the target (Lesser Restoration's noop plan) ends its condition on the live creature", async () => {
+  const actor = actorWithEffects([{id: "effect-poisoned", name: "Poisoned", system: {type: "poisoned", level: null}},
+    {id: "effect-exhaustion", name: "Exhaustion", system: {type: "exhaustion", level: 3}}]);
+  const removal = (conditionId, stacking) => ({type: "conditionEffect", conditionId, levels: -1, action: "noop", stacking,
+    maxLevel: stacking ? 6 : null, definition: {name: conditionId}, duration: null, concentration: null, sourceRef: null, originRef: null,
+    metadata: {}});
+  assert.equal((await commitConditionEffectMutationPlan(actor, removal("poisoned", false))).ok, true);
+  assert.equal((await commitConditionEffectMutationPlan(actor, removal("exhaustion", true))).ok, true);
+  assert.deepEqual(actor.effects.map(effect => [effect.system.type, effect.system.level]), [["exhaustion", 2]], "Poisoned ends; Exhaustion 3 -> 2");
+  assert.equal((await commitConditionEffectMutationPlan(actor, removal("blinded", false))).ok, true, "a condition it lacks: nothing to do");
+});

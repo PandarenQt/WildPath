@@ -335,3 +335,14 @@ test("the Builder edits a damage row's type chosen when used, and \"apply one of
   assert.deepEqual(builderGaps(word), ["configuration"]);
   assert.deepEqual(submit(word, {choices: {effectOne: false}}).definition.configuration, word.configuration, "read-only: kept");
 });
+
+test("a condition row can end its condition instead (Lesser Restoration); Exhaustion loses its levels", () => {
+  const restore = {schemaVersion: 1, id: "action:restore", label: "Restore", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1}, effects: [{id: "effect-1", type: "condition", conditionId: "poisoned", levels: -1}]};
+  assert.deepEqual([definitionToBuilder(restore).effects[0].removes, definitionToBuilder(restore).effects[0].levels], [true, 1]);
+  assert.deepEqual(builderGaps(restore), []);
+  assert.equal(submit(restore, {}).changed, false);
+  assert.equal(submit(restore, {effects: {0: {removes: false}}}).definition.effects[0].levels, 1, "applies it again");
+  const tired = {...restore, effects: [{id: "effect-1", type: "condition", conditionId: "exhaustion", levels: 2}]};
+  assert.equal(submit(tired, {effects: {0: {removes: true}}}).definition.effects[0].levels, -2, "removes two levels");
+});

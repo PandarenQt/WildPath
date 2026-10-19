@@ -320,6 +320,16 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - The use dialog's preview shows the chosen type and a table's dice at the creature's own level ("2d10 fire").
   - Live: Player1's QA Fighter (level 6) used the SRD Breath Weapon (Cone) and chose Fire. The preview read "2d10
     fire"; the Bandit Captain failed its save and took 6 fire.
+- **Ending conditions (2026-10-19).** An effect row with negative `levels` ends its condition on each target instead
+  of applying it (an Exhaustion row of −1 removes one level). Planning cannot see the target's effects, so the plan
+  is a "noop" there; the commit deletes or reduces the condition on the live creature, and does nothing when it lacks
+  it. A small table (`REMOVALS`) gives the 2024 rules dnd5e leaves to the text:
+  - Lesser Restoration: one of Blinded, Deafened, Paralyzed or Poisoned (a choice);
+  - Greater Restoration: one level of Exhaustion, Charmed or Petrified (a choice; curses and reductions by hand);
+  - Heal: Blinded, Deafened and Poisoned; Power Word Heal: Charmed, Frightened, Paralyzed, Poisoned and Stunned;
+  - Protection from Poison and Lay on Hands' Remove Poison: Poisoned.
+  SRD automated Items rose from 719 to 724, with the items and creatures that cast them. The Builder's condition rows
+  have "Ends it instead". Not yet checked live (the browsers were unavailable).
 - **Common actions taken by a feature (2026-10-19).** A utility activity named Dash, Disengage, Dodge or Hide (the
   Rogue's Cunning Action, Conjure Woodland Beings' Disengage) is WildPath's own common action at the activity's cost,
   and an effect named Disengaged, Dashing or Dodging with nothing of its own (the Monk's Patient Defense and Step of

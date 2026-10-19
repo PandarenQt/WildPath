@@ -676,6 +676,38 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "exhaustion",
+              "levels": -1
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "charmed",
+              "levels": -1
+            },
+            {
+              "id": "effect-3",
+              "type": "condition",
+              "conditionId": "petrified",
+              "levels": -1
+            }
+          ],
           "label": "Greater Restoration"
         },
         "ruleElements": [
@@ -708,9 +740,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }

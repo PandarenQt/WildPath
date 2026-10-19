@@ -221,7 +221,9 @@ export function definitionToBuilder(definition, { abilities = null } = {}) {
             id: effect.id ?? "",
             kind: effect.type === "effect" ? "effect" : (effect.type === "condition" || effect.conditionId ? "condition" : String(effect.type ?? "")),
             conditionId: effect.conditionId ?? "",
-            levels: effect.levels ?? 1,
+            levels: Math.abs(effect.levels ?? 1),
+            // Ends the condition rather than applying it (Lesser Restoration); Exhaustion loses `levels` levels.
+            removes: (effect.levels ?? 1) < 0,
             concentration: effect.concentration === true,
             onFailedSave: isFailureOnly(effect.saveOutcomePolicy),
             policyReadOnly: (effect.saveOutcomePolicy != null) && !isFailureOnly(effect.saveOutcomePolicy),
@@ -629,8 +631,11 @@ const WRITERS = {
             }
             if ((effect.type === "condition") && changed("conditionId") && row.conditionId)
                 effect.conditionId = row.conditionId;
-            if (changed("levels"))
-                effect.levels = Math.max(1, Math.trunc(number(row.levels) ?? 1));
+            if (changed("levels") || changed("removes")) {
+                const removes = row.removes !== undefined ? Boolean(row.removes) : (modelRow?.removes ?? false);
+                const count = Math.max(1, Math.trunc(Math.abs(number(row.levels !== undefined ? row.levels : modelRow?.levels) ?? 1)));
+                effect.levels = removes ? -count : count;
+            }
             if (changed("concentration")) {
                 if (row.concentration)
                     effect.concentration = true;

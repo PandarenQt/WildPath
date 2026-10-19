@@ -795,6 +795,19 @@ const EFFECTS_BY_HAND = Object.freeze({
   "hex": {slug: "hex", bonusDamage: "Bonus Hex Damage", extraRules: [markDamage("hex", "necrotic")], chooseOne: "Ability"}
 });
 
+/**
+ * Conditions a spell or feature ends, by its 2024 text (dnd5e leaves them to the description): one removal each
+ * (`levels: -1`, so Exhaustion loses one level). `chooseOne` makes them a choice; `activity` limits it to one activity.
+ */
+const REMOVALS = Object.freeze({
+  "lesser-restoration": {conditions: ["blinded", "deafened", "paralyzed", "poisoned"], chooseOne: "Condition"},
+  "greater-restoration": {conditions: ["exhaustion", "charmed", "petrified"], chooseOne: "Condition"},
+  "heal": {conditions: ["blinded", "deafened", "poisoned"]},
+  "power-word-heal": {conditions: ["charmed", "frightened", "paralyzed", "poisoned", "stunned"]},
+  "protection-from-poison": {conditions: ["poisoned"]},
+  "lay-on-hands": {conditions: ["poisoned"], activity: "Remove Poison"}
+});
+
 /** A dnd5e document's identifier, else its name as a slug. */
 const identifierOf = document => document?.system?.identifier || slugify(String(document?.name ?? ""));
 
@@ -1176,6 +1189,14 @@ function convertActivity({document, activity, system, spell, level, scales, note
     } else if ( effect && !statuses.length ) notes.push(`effect: "${effect.name}" (its own changes) not converted`);
     if ( effects.length > first ) groups.push({label: effect?.name ?? `Effect ${groups.length + 1}`, ids: effects.slice(first).map(entry => entry.id)});
   }
+  // The conditions it ends (Lesser Restoration: one of four, chosen; Heal: three).
+  const removal = REMOVALS[identifierOf(document)];
+  if ( removal && (!removal.activity || (removal.activity === activity.name)) ) {
+    for ( const conditionId of removal.conditions ) {
+      effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId, levels: -1});
+      if ( removal.chooseOne ) groups.push({label: conditionId.charAt(0).toUpperCase() + conditionId.slice(1), ids: [effects.at(-1).id]});
+    }
+  }
 
   if ( damage.length ) definition.damage = damage.map(({scaleDice: _scale, ...component}) => component);
   if ( healing.length ) definition.healing = healing.map(({scaleDice: _scale, ...component}) => component);
@@ -1195,7 +1216,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
   if ( groups.length > 1 ) {
     const option = index => `effect-option-${index + 1}`;
     definition.configuration = [...(definition.configuration ?? []), {id: "effect-choice", type: "option",
-      label: byHand?.chooseOne ?? "Effect", required: true,
+      label: removal?.chooseOne ?? byHand?.chooseOne ?? "Effect", required: true,
       options: groups.map((group, index) => ({id: option(index), label: group.label, value: option(index)})),
       effects: [{type: "keepEffect", effectIds: effects.map(entry => entry.id),
         keep: Object.fromEntries(groups.map((group, index) => [option(index), group.ids]))}]}];

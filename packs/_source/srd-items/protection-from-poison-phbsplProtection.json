@@ -56,6 +56,12 @@
             "units": "seconds",
             "expiry": "turnStart"
           }
+        },
+        {
+          "id": "effect-2",
+          "type": "condition",
+          "conditionId": "poisoned",
+          "levels": -1
         }
       ],
       "configuration": [

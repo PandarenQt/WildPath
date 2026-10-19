@@ -25,6 +25,44 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "blinded",
+          "levels": -1
+        },
+        {
+          "id": "effect-2",
+          "type": "condition",
+          "conditionId": "deafened",
+          "levels": -1
+        },
+        {
+          "id": "effect-3",
+          "type": "condition",
+          "conditionId": "paralyzed",
+          "levels": -1
+        },
+        {
+          "id": "effect-4",
+          "type": "condition",
+          "conditionId": "poisoned",
+          "levels": -1
+        }
+      ],
       "label": "Staff of Healing: Lesser Restoration"
     },
     "ruleElements": [
@@ -73,9 +111,7 @@
         "castBy": "Staff of Healing"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }
