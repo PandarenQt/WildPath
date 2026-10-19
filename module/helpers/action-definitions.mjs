@@ -668,6 +668,10 @@ function validateSummon(summon, errors) {
   const count = summon.count ?? 1;
   if ( !Number.isInteger(count) || (count < 1) || (count > 20) ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION,
     "summon.count", "A summon's count is a whole number from 1 to 20."));
+  // Each creature's own count (Dancing Lights), a whole number or a ValueExpression worked out when cast.
+  if ( (summon.counts != null) && (!Array.isArray(summon.counts) || summon.counts.some(entry => !entry?.actorRef || (entry.count == null))) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "summon.counts", "A summon's counts by creature are [{actorRef, count}]."));
+  }
 }
 
 function validatePush(push, errors) {

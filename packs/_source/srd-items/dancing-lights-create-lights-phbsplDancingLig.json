@@ -21,11 +21,46 @@
           }
         ]
       },
-      "concentration": {
-        "duration": {
-          "value": 1,
-          "units": "minutes"
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
         }
+      },
+      "configuration": [
+        {
+          "id": "summon-creature",
+          "type": "select-one",
+          "label": "Creature",
+          "required": true,
+          "options": [
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbsplTinyDancin",
+              "label": "Dancing Light (Tiny)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbsplMediumDanc",
+              "label": "Dancing Light (Medium)"
+            }
+          ]
+        }
+      ],
+      "summon": {
+        "choiceId": "summon-creature",
+        "count": 1,
+        "counts": [
+          {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplTinyDancin",
+            "count": 4
+          },
+          {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplMediumDanc",
+            "count": 1
+          }
+        ],
+        "rounds": 10,
+        "concentration": true
       },
       "metadata": {
         "spellLevel": 0
@@ -46,11 +81,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest",
-          "summon: a count of \"4, 1\" is not converted",
-          "concentration: its caster concentrates; what it sustains is by hand"
-        ]
+        "notes": []
       }
     }
   }

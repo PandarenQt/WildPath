@@ -69,13 +69,97 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "summon-creature",
+          "type": "select-one",
+          "label": "Creature",
+          "required": true,
+          "options": [
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbhaoAnimatedOb",
+              "label": "Huge Object (costs 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phblaoAnimatedOb",
+              "label": "Large Object (costs 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbmaoAnimatedOb",
+              "label": "Medium Object"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbsaoAnimatedOb",
+              "label": "Small Object"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbtaoAnimatedOb",
+              "label": "Tiny Object"
+            }
+          ]
         }
       ],
-      "concentration": {
-        "duration": {
-          "value": 1,
-          "units": "minutes"
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
         }
+      },
+      "summon": {
+        "choiceId": "summon-creature",
+        "count": 1,
+        "counts": [
+          {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbhaoAnimatedOb",
+            "count": {
+              "type": "divide",
+              "numerator": {
+                "type": "spellcasting-modifier"
+              },
+              "denominator": {
+                "type": "constant",
+                "value": 3
+              },
+              "round": "floor"
+            }
+          },
+          {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phblaoAnimatedOb",
+            "count": {
+              "type": "divide",
+              "numerator": {
+                "type": "spellcasting-modifier"
+              },
+              "denominator": {
+                "type": "constant",
+                "value": 2
+              },
+              "round": "floor"
+            }
+          },
+          {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbmaoAnimatedOb",
+            "count": {
+              "type": "spellcasting-modifier"
+            }
+          },
+          {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsaoAnimatedOb",
+            "count": {
+              "type": "spellcasting-modifier"
+            }
+          },
+          {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbtaoAnimatedOb",
+            "count": {
+              "type": "spellcasting-modifier"
+            }
+          }
+        ],
+        "rounds": 10,
+        "concentration": true,
+        "spellLevel": 5
       },
       "metadata": {
         "spellLevel": 5
@@ -96,11 +180,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest",
-          "summon: a count of \"floor(@attributes.spell.mod / 3), floor(@attributes.spell.mod / 2), @attributes.spell.mod, @attributes.spell.mod, @attributes.spell.mod\" is not converted",
-          "concentration: its caster concentrates; what it sustains is by hand"
-        ]
+        "notes": []
       }
     }
   }

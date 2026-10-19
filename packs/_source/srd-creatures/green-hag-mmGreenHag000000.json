@@ -192,6 +192,132 @@
               }
             ]
           },
+          "configuration": [
+            {
+              "id": "summon-creature",
+              "type": "select-one",
+              "label": "Creature",
+              "required": true,
+              "options": [
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmBaboon00000000",
+                  "label": "Baboon (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmBadger00000000",
+                  "label": "Badger (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmBat00000000000",
+                  "label": "Bat (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmCat00000000000",
+                  "label": "Cat (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmCrab0000000000",
+                  "label": "Crab (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmDeer0000000000",
+                  "label": "Deer (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmEagle000000000",
+                  "label": "Eagle (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmFrog0000000000",
+                  "label": "Frog (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantFireBeetl",
+                  "label": "Giant Fire Beetle (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.dmgGiantFly00000",
+                  "label": "Giant Fly (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.phbmobGiantInsec",
+                  "label": "Giant Insect (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmGoat0000000000",
+                  "label": "Goat (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmHawk0000000000",
+                  "label": "Hawk (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmHyena000000000",
+                  "label": "Hyena (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmJackal00000000",
+                  "label": "Jackal (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmLizard00000000",
+                  "label": "Lizard (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmOctopus0000000",
+                  "label": "Octopus (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmOwl00000000000",
+                  "label": "Owl (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmPiranha0000000",
+                  "label": "Piranha (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmRat00000000000",
+                  "label": "Rat (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmRaven000000000",
+                  "label": "Raven (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmScorpion000000",
+                  "label": "Scorpion (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmSeahorse000000",
+                  "label": "Seahorse (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmSpider00000000",
+                  "label": "Spider (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmVulture0000000",
+                  "label": "Vulture (CR 0)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmWeasel00000000",
+                  "label": "Weasel (CR 0)"
+                }
+              ]
+            }
+          ],
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "choiceId": "summon-creature",
+            "count": 1,
+            "spellLevel": 1
+          },
           "metadata": {
             "spellLevel": 1
           },
@@ -227,11 +353,7 @@
             "castBy": "Coven Magic"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest",
-              "summon: a creature chosen by Challenge Rating is not converted",
-              "activation: 1 hour is not an action-economy cost"
-            ]
+            "notes": []
           }
         }
       }
@@ -807,11 +929,46 @@
               }
             ]
           },
-          "concentration": {
-            "duration": {
-              "value": 1,
-              "units": "minutes"
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
             }
+          },
+          "configuration": [
+            {
+              "id": "summon-creature",
+              "type": "select-one",
+              "label": "Creature",
+              "required": true,
+              "options": [
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.phbsplTinyDancin",
+                  "label": "Dancing Light (Tiny)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.phbsplMediumDanc",
+                  "label": "Dancing Light (Medium)"
+                }
+              ]
+            }
+          ],
+          "summon": {
+            "choiceId": "summon-creature",
+            "count": 1,
+            "counts": [
+              {
+                "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplTinyDancin",
+                "count": 4
+              },
+              {
+                "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplMediumDanc",
+                "count": 1
+              }
+            ],
+            "rounds": 10,
+            "concentration": true
           },
           "metadata": {
             "spellLevel": 0
@@ -834,10 +991,8 @@
           },
           "conversion": {
             "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest",
-              "summon: a count of \"4, 1\" is not converted",
-              "concentration: its caster concentrates; what it sustains is by hand",
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "concentration: nothing it sustains was converted"
             ]
           }
         }
@@ -1193,17 +1348,12 @@
         "notes": [
           "Coven Magic: not automated (utility): using it spends its cost; its description says the rest",
           "Coven Magic: activation: 1 minute is not an action-economy cost",
-          "Coven Magic: not automated (summon): using it spends its cost; its description says the rest",
-          "Coven Magic: summon: a creature chosen by Challenge Rating is not converted",
-          "Coven Magic: activation: 1 hour is not an action-economy cost",
           "Coven Magic: concentration: its caster concentrates; what it sustains is by hand",
           "Coven Magic: activation: 10 minute is not an action-economy cost",
           "Coven Magic: save: a failure marks its creature only; what it does is by hand",
           "Coven Magic: \"Create Sensor\" is passive or triggered: not automated",
-          "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
-          "Spellcasting: summon: a count of \"4, 1\" is not converted",
-          "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: effect: \"Disguised\" marks its creature only; its rules are by hand",
           "Spellcasting: cast: Ray of Sickness at level 3 is cast at its own level"
         ]

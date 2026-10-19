@@ -44,7 +44,7 @@ interface Combat {
 interface SummonActor {uuid: string; name?: string; prototypeToken?: unknown; toObject(): Data; pack?: string | null;
   getTokenDocument(data: Data, options?: {parent?: unknown}): Promise<{toObject(): Data; width?: number; height?: number;
     getOccupiedGridSpaceOffsets?(data?: {x: number; y: number}): Offset[]}>}
-interface CasterActor {uuid: string; createEmbeddedDocuments?(type: string, data: Data[]): Promise<Array<{uuid: string}>>}
+interface CasterActor {uuid: string; system?: unknown; createEmbeddedDocuments?(type: string, data: Data[]): Promise<Array<{uuid: string}>>}
 
 const key = (offset: Offset) => `${offset.i},${offset.j}`;
 const evaluate = evaluateValueExpression as unknown as (expression: unknown, context: Data) => {ok: boolean; value?: number};
@@ -155,7 +155,7 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
   async function afterResolution({options, state}: {options?: {actor?: CasterActor; summonPoints?: Array<{x: number; y: number}>};
     state?: Data}) {
     const definition = state?.actionDefinition as {label?: string; summon?: {actorRef?: string; choiceId?: string; count?: number;
-      rounds?: number; concentration?: boolean; bonuses?: Data; spellLevel?: number};
+      counts?: Array<{actorRef?: string; count?: unknown}>; rounds?: number; concentration?: boolean; bonuses?: Data; spellLevel?: number};
       range?: {normal?: {value?: number}; distance?: {value?: number}} | null} | undefined;
     const spec = definition?.summon;
     const caster = options?.actor;
@@ -195,7 +195,19 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     const allowed = (offset: Offset) => onScene(offset) && foundryPointInRange({definition: definition ?? {}, sourceToken: casterToken as never,
       point: centre(offset)}) && (!collides || [centre(offset), ...footprint(offset).map(cell => scene.grid.getCenterPoint?.(cell)
         ?? scene.grid.getTopLeftPoint(cell))].every(seen));
-    const count = Math.max(1, Math.min(Number(spec.count) || 1, 20));
+    // Its count: the chosen creature's own (`counts`, worked out at the cast level for its caster: Animate Dead's
+    // slot, Animate Objects' spellcasting modifier), else `count`. Below 1, nothing comes.
+    const castLevel = Number((state?.configuration as {castingLevel?: number | null} | undefined)?.castingLevel ?? spec.spellLevel) || 0;
+    const ref = String(spec.actorRef ?? chosen?.value ?? chosen?.optionId ?? "");
+    const byOption = spec.counts?.find(entry => entry.actorRef === ref)?.count;
+    const counted = (byOption == null) ? (Number(spec.count) || 1)
+      : Math.floor(Number((typeof byOption === "object") ? evaluate(atLevel(byOption, castLevel), {actor: caster, actorSystem: caster.system}).value
+        : byOption) || 0);
+    if ( counted < 1 ) {
+      logger.warn(`Wild Path | ${definition?.label ?? "A summon"} summons no creature at this level.`);
+      return [];
+    }
+    const count = Math.min(counted, 20);
     const taken = new Set(occupied);
     const place = (from: Offset, wanted: number) => {
       const found = summonPlacements({start: from, count: wanted, occupied: taken, footprint, allowed,

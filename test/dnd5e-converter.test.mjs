@@ -1372,3 +1372,25 @@ test("Brutal Strike: its own Actions, a reckless Strength attack's rider and two
   assert.equal(hamstring.system.definition.effects[0].ruleElements[0].data.value, -15);
   for ( const item of [strike, forceful, hamstring] ) assert.equal(validateActionDefinition(item.system.definition).ok, true, item.name);
 });
+
+test("summons chosen by Challenge Rating (Find Familiar) and counted by formula (Animate Dead) or by creature (Dancing Lights)", () => {
+  const creatures = {mmSkeleton000000: "Compendium.x.Actor.skeleton", mmZombie00000000: "Compendium.x.Actor.zombie",
+    tinyLight: "Compendium.x.Actor.tiny", mediumLight: "Compendium.x.Actor.medium"};
+  const beasts = [{uuid: "Compendium.x.Actor.owl", name: "Owl", cr: 0}, {uuid: "Compendium.x.Actor.bat", name: "Bat", cr: 0},
+    {uuid: "Compendium.x.Actor.wolf", name: "Wolf", cr: 0.25}];
+  const spell = (id, name, level, summon, profiles) => ({_id: id, name, type: "spell", img: "icons/svg/aura.svg", effects: [],
+    system: {source: SRD, identifier: name.toLowerCase().replace(/ /g, "-"), level, school: "con", activities: {a: activity("summon", {summon, profiles})}}});
+  const [familiar] = convertItem(spell("testFamiliar0001", "Find Familiar", 1, {mode: "cr"},
+    [{count: "1", cr: "0", types: ["beast"], uuid: "x.mmBat"}]), {beasts}).items;
+  assert.deepEqual(familiar.system.definition.configuration.find(choice => choice.id === "summon-creature").options.map(option => option.id),
+    ["Compendium.x.Actor.owl", "Compendium.x.Actor.bat"], "CR 0 Beasts only");
+  const [dead] = convertItem(spell("testAnimateDead1", "Animate Dead", 3, {mode: ""},
+    [{count: "1 + @scaling.increase * 2", uuid: "x.mmSkeleton000000"}, {count: "1 + @scaling.increase * 2", uuid: "x.mmZombie00000000"}]), {creatures}).items;
+  const expression = dead.system.definition.summon.counts.find(entry => entry.actorRef === "Compendium.x.Actor.skeleton").count;
+  assert.equal(valueExpressions.evaluateValueExpression(expression, {castLevel: 5}).value, 5);
+  const [lights] = convertItem(spell("testDancingLigh1", "Dancing Lights", 0, {mode: ""},
+    [{count: "4", uuid: "x.tinyLight"}, {count: "1", uuid: "x.mediumLight"}]), {creatures}).items;
+  assert.deepEqual(lights.system.definition.summon.counts, [{actorRef: "Compendium.x.Actor.tiny", count: 4},
+    {actorRef: "Compendium.x.Actor.medium", count: 1}]);
+  for ( const item of [familiar, dead, lights] ) assert.equal(validateActionDefinition(item.system.definition).ok, true, item.name);
+});
