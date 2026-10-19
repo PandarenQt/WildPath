@@ -72,6 +72,11 @@ export function beastsOf(documents, uuidOf) {
 const REACTIONS = Object.freeze({
   shield: {event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}"}},
   parry: {event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}", tagsAny: ["melee"]}, acFromText: true},
+  // Halving that attack's damage is resistance to all of it, until the attack is over.
+  "uncanny-dodge": {event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}"}, halves: true},
+  // "when you take damage from a creature": that creature is the reaction's target.
+  "hellish-rebuke": {event: "damage.applied", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}},
+  "storms-thunder": {event: "damage.applied", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}},
   counterspell: {event: "action.declared", match: {phase: "interrupt", tagsAny: ["spell"], notSourceTokenId: "{self}"}, counters: true}
 });
 
@@ -418,6 +423,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // until the attack is over.
     const bonusAC = reaction?.acFromText ? (number(activity.roll?.formula)
       ?? number(/\badds (\d+) to its AC against that attack/i.exec(plainText(document))?.[1])) : null;
+    if ( reaction?.halves && !definition.effects?.length ) {
+      definition = {...definition, range: {type: "self"}, targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect",
+        name: document.name, ...(img ? {img} : {}), endsWhen: "attacked", ruleElements: [{schemaVersion: 1, id: "halved",
+          type: "GrantResistance", data: {damageTypes: []}}]}]};
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
+    }
     if ( bonusAC && !definition.effects?.length ) {
       definition = {...definition, range: {type: "self"}, targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect",
         name: document.name, ...(img ? {img} : {}), endsWhen: "attacked", ruleElements: [{schemaVersion: 1, id: "parry", type: "Modifier",

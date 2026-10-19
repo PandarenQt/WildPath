@@ -1091,7 +1091,7 @@ test("two unlinked Tokens of one base Actor each make their own save", async t =
 });
 
 /** A GM-controlled target whose Token answers "a hit on me" by striking back (authored Trigger RuleElement). */
-function counterattackFixture(t, {decision="use", reactor="target"}={}) {
+function counterattackFixture(t, {decision="use", reactor="target", event="attack.hit"}={}) {
   const fixture = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
   const {scene, sourceActor, targetActor, targetSource, game} = fixture;
   scene.tokens.get = id => scene.tokens.find(token => token.id === id);
@@ -1113,7 +1113,7 @@ function counterattackFixture(t, {decision="use", reactor="target"}={}) {
       range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
       attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
       damage: [{id: "riposte", expression: {type: "constant", value: 3}, damageType: "slashing", provenance: "weapon-base"}]},
-    ruleElements: [{schemaVersion: 1, id: "riposte", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+    ruleElements: [{schemaVersion: 1, id: "riposte", type: "Trigger", data: {kind: "reaction", event,
       match: {phase: "interrupt", targetTokenId: "{self}"}}}]}}];
   // Reactions route to active controllers (the GM when none is connected), as Foundry's Users report them.
   for ( const user of game.users.values() ) user.active = user.id !== "player-b";
@@ -2090,4 +2090,14 @@ test("a Blessed attacker rolls 1d20 + 1d4 + its bonus, and a Baned target's save
   assert.equal(attack.expected.modifierTotal, null, "the total is no longer the d20 plus a known modifier");
   const save = await first(fortitudeBlast("might"));
   assert.equal(rollFormulaForRequest(save).formula, "1d20 - 1d4 + 3");
+});
+
+test("a reaction to taking damage (Hellish Rebuke) is offered once the damage is planned, and strikes whoever dealt it", async t => {
+  const {sourceActor, targetActor, player, offers, intent} = counterattackFixture(t, {event: "damage.applied"});
+  const declared = await player.declareActionIntent(intent);
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  assert.equal(offers.length, 1, "offered to the damaged creature's controller");
+  assert.equal(offers[0].payload.candidates[0].event?.type ?? "damage.applied", "damage.applied");
+  assert.equal(sourceActor.system.resources.health.value, 17, "the reaction hit the attacker for 3");
+  assert.equal(targetActor.system.resources.health.value, 24, "and the Action's own damage still lands");
 });

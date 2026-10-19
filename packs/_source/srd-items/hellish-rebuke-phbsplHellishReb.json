@@ -162,7 +162,22 @@
       ],
       "label": "Hellish Rebuke"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "damage.applied",
+          "match": {
+            "phase": "interrupt",
+            "targetTokenId": "{self}",
+            "notSourceTokenId": "{self}"
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

@@ -848,7 +848,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       }))
     },
     // Damage and healing are planned on fresh snapshots of these Actors (a resolution may wait on a prompt).
-    services: {...(reactions?.services ?? {}), targetActors, snapshotActor: foundryActorSystemSnapshot}
+    services: {...(reactions?.services ?? {}), targetActors, snapshotActor: foundryActorSystemSnapshot,
+      damageProfileOf: actor => clonePlainData(actor.getDamageProfile?.() ?? null, "target.damageProfile")}
   };
 }
 

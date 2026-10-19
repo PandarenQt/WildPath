@@ -101,6 +101,7 @@ export const ACTION_PIPELINE_STAGE_IDS = Object.freeze({
   ATTACK_OUTCOME: "action.attack-outcome",
   REACTION_AFTER_ACTION_DECLARED: "action.reaction.after-action-declared",
   REACTION_AFTER_ATTACK_OUTCOME: "action.reaction.after-attack-outcome",
+  REACTION_AFTER_DAMAGE: "action.reaction.after-damage",
   SAVE_ROLL: "action.save-roll",
   SAVE_OUTCOME: "action.save-outcome",
   DAMAGE_ROLL: "action.damage-roll",
@@ -230,7 +231,10 @@ export function createActionResolutionPipeline({reactions=false}={}) {
     createSaveRollStage(),
     createSaveOutcomeStage(),
     createDamageRollStage(),
-    createDamageStage(),
+    createDamageStage()
+  );
+  if ( reactions ) stages.push(createDamageReactionStage());
+  stages.push(
     createHealingRollStage(),
     createHealingStage(),
     createEffectStage(),
@@ -413,6 +417,38 @@ function createAttackOutcomeReactionStage() {
     id: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ATTACK_OUTCOME,
     timing: REACTION_WINDOW_TIMINGS.AFTER_OUTCOME,
     eventSelector: attackOutcomeReactionEvent
+  });
+}
+
+function createDamageReactionStage() {
+  return createActionPipelineReactionStage({
+    id: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_DAMAGE,
+    timing: REACTION_WINDOW_TIMINGS.AFTER_DAMAGE,
+    eventSelector: damageTakenReactionEvent
+  });
+}
+
+/**
+ * `damage.applied`, once the Action's damage is planned: its targets are the creatures that take some (Temporary Hit
+ * Points it takes count), its source the creature dealing it. Null when nobody takes any.
+ */
+function damageTakenReactionEvent(state) {
+  const taken = plan => (Number(plan?.amount) || 0) + Math.max((Number(plan?.temporary?.from) || 0) - (Number(plan?.temporary?.to) || 0), 0);
+  const damaged = (state.mutationPlans ?? []).filter(entry => (entry?.type === "durabilityDamage") && (entry.plan?.ok !== false)
+    && (taken(entry.plan) > 0)).map(entry => entry.target).filter(Boolean);
+  if ( !damaged.length ) return null;
+  const input = preparedResolverInput(state);
+  return createAutomationEvent({
+    id: `event:${state.id}:damage-taken`,
+    type: AUTOMATION_EVENT_TYPES.DAMAGE_APPLIED,
+    phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
+    source: state.actionContext?.source ?? input.source ?? state.source ?? null,
+    targets: damaged,
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? [])]),
+    data: {
+      action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
+      timing: REACTION_WINDOW_TIMINGS.AFTER_DAMAGE
+    }
   });
 }
 
@@ -1618,7 +1654,8 @@ function createDamageStage() {
     run(state, services={}) {
       const input = {
         ...preparedResolverInput(state),
-        durability: preparePlanningDurabilityOptions(state.input?.durability, services.targetActors, services.snapshotActor)
+        durability: preparePlanningDurabilityOptions(state.input?.durability, services.targetActors, services.snapshotActor,
+          services.damageProfileOf)
       };
       if ( !shouldResolveDamage(input.damage) ) return continueResolutionStage({
         state: updateResolutionState(state, {input})
@@ -1700,7 +1737,8 @@ function createHealingStage() {
     run(state, services={}) {
       const input = {
         ...preparedResolverInput(state),
-        durability: preparePlanningDurabilityOptions(state.input?.durability, services.targetActors, services.snapshotActor)
+        durability: preparePlanningDurabilityOptions(state.input?.durability, services.targetActors, services.snapshotActor,
+          services.damageProfileOf)
       };
       if ( !shouldResolveHealing(input.healing) ) return continueResolutionStage({
         state: updateResolutionState(state, {input})
@@ -2352,20 +2390,25 @@ function withDoubledDice(expression) {
 
 /* -------------------------------------------- */
 
-function preparePlanningDurabilityOptions(durability, targetActors, snapshotActor=null) {
+function preparePlanningDurabilityOptions(durability, targetActors, snapshotActor=null, damageProfileOf=null) {
   if ( !durability || !targetActors ) return durability;
   const options = durability === true ? {} : {...durability};
   // Its targets as they are now, not as declared (`snapshotActor`, the runtime's): while it waited on a prompt or a
-  // reaction, another Action may have hurt or healed them, and planning on the old health would undo that.
+  // reaction, another Action may have hurt or healed them, and planning on the old health would undo that. Their
+  // resistances too (`damageProfileOf`): Uncanny Dodge's, taken as a reaction to this very attack.
   if ( options.targetSystems && (typeof snapshotActor === "function") && targetActors && (typeof targetActors === "object")
     && !(targetActors instanceof Map) && !Array.isArray(targetActors) ) {
     const fresh = new Map();
-    return {...options, targetSystems: Object.fromEntries(Object.entries(options.targetSystems).map(([key, system]) => {
+    const profiles = {...(options.adjustmentProfiles ?? {})};
+    const targetSystems = Object.fromEntries(Object.entries(options.targetSystems).map(([key, system]) => {
       const actor = targetActors[key];
       if ( !actor ) return [key, system];
       if ( !fresh.has(actor) ) fresh.set(actor, snapshotActor(actor) ?? system);
+      const profile = (typeof damageProfileOf === "function") ? damageProfileOf(actor) : null;
+      if ( profile ) profiles[key] = profile;
       return [key, fresh.get(actor)];
-    }))};
+    }));
+    return {...options, targetSystems, ...(Object.keys(profiles).length ? {adjustmentProfiles: profiles} : {})};
   }
   if ( options.targetSystems ) return durability;
   return {
