@@ -26,6 +26,8 @@ export const REACTION_WINDOW_TIMINGS = Object.freeze({
   AFTER_ACTION_DECLARED: "after-action-declared",
   AFTER_OUTCOME: "after-outcome",
   BEFORE_DAMAGE: "before-damage",
+  // Once its damage is planned: "when you take damage from a creature" (Hellish Rebuke).
+  AFTER_DAMAGE: "after-damage",
   BEFORE_COMMIT: "before-commit"
 });
 

@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 802 automated, 317 manual, 245 features. Creatures: 375.
+Items: 803 automated, 316 manual, 245 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -1575,7 +1575,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Unarmored Defense | classes24 | Unarmored Defense (feature) | — |
 | Unarmored Defense | classes24 | Unarmored Defense (feature) | — |
 | Unarmored Movement | classes24 | Unarmored Movement (feature) | effect: "Unarmored Movement" change system.attributes.movement.walk (add) not converted |
-| Uncanny Dodge | classes24 | Uncanny Dodge (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Uncanny Dodge | classes24 | Uncanny Dodge (automated) | — |
 | Uncanny Metabolism | classes24 | Uncanny Metabolism (feature) | "Uncanny Metabolism" is passive or triggered: not automated |
 | Unicorn | actors24 | Unicorn (17 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature only; its rules are by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Indifference" marks its creature only; its rules are by hand; Spellcasting: effect: "Dispelling Evil and Good" marks its creature only; its rules are by hand; Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest; Charging Horn: not automated (utility): using it spends its cost; its description says the rest |
 | Universal Solvent | equipment24 | Universal Solvent (gear), Universal Solvent (Apply Glue) (manual) | "Determine Ounces" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest; area: @scaling-ft square is not supported; the user picks the targets |

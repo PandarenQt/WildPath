@@ -237,8 +237,21 @@ Live (two browsers, 2026-10-19):
   its save (6), Fire Bolt did nothing, its Action was spent, and both clients read "Fire Bolt fails. Counterspell stopped
   it." The Mage's Reaction and a Protective Magic use were spent.
 
+- **Uncanny Dodge:** an attack on itself hits; it gains resistance to all damage (`GrantResistance` with no types) until
+  that attack is over, which halves it. The Damage stage reads its targets' resistances as they are then
+  (`services.damageProfileOf`), not as declared, so a reaction's resistance counts.
+- **Hellish Rebuke, Storm's Thunder:** a third window, `action.reaction.after-damage`, opens once an Action's damage is
+  planned. Its `damage.applied` event lists the creatures that take some (Temporary Hit Points included) and the creature
+  dealing it, whom the reaction targets (`match: {targetTokenId: "{self}", notSourceTokenId: "{self}"}`). The reaction
+  resolves before the Action's damage is committed; a slot spell asks its caster for the slot first.
+
+Live (two browsers, 2026-10-19):
+- The Bandit Captain's Scimitar hit QA Fighter for 5; Player1 used Uncanny Dodge and the Fighter lost 2.
+- The Captain's Scimitar hit QA Caster; Player1 was offered Hellish Rebuke, chose its 3rd-level slot, and the Captain
+  failed its save and took 4d10 = 15 fire. Then the Scimitar's 4 damage landed.
+
 Shortcuts: a Parry's "while holding a weapon", and Counterspell's 60 feet, sight and hostility, are the reactor's to
-judge (its Ask setting). Reactions to damage taken (Hellish Rebuke) and to falling (Feather Fall) have no window yet.
+judge (its Ask setting). Falling (Feather Fall) has no window yet; Retaliation's attack is by hand.
 
 ## Current Limits
 
