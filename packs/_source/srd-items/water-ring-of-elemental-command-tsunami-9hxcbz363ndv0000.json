@@ -61,6 +61,12 @@
           }
         }
       ],
+      "concentration": {
+        "duration": {
+          "value": 6,
+          "units": "rounds"
+        }
+      },
       "metadata": {
         "spellLevel": 8
       },
@@ -115,7 +121,7 @@
         "notes": [
           "activation: 1 minute is not an action-economy cost",
           "consumption: itemUses -6 not converted",
-          "concentration: nothing it sustains was converted",
+          "concentration: its caster concentrates; what it sustains is by hand",
           "\"Start of Turn Effects\" is passive or triggered: not automated"
         ]
       }

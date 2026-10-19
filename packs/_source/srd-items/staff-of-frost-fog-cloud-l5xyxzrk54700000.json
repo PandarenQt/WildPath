@@ -25,6 +25,12 @@
           }
         ]
       },
+      "concentration": {
+        "duration": {
+          "value": 1,
+          "units": "hours"
+        }
+      },
       "metadata": {
         "spellLevel": 1
       },
@@ -79,7 +85,7 @@
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
           "area: 20 * @item.level-ft sphere is not supported; the user picks the targets",
-          "concentration: nothing it sustains was converted"
+          "concentration: its caster concentrates; what it sustains is by hand"
         ]
       }
     }

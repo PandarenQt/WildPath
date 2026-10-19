@@ -78,6 +78,12 @@
           "effects": []
         }
       ],
+      "concentration": {
+        "duration": {
+          "value": 1,
+          "units": "minutes"
+        }
+      },
       "metadata": {
         "spellLevel": 4
       },
@@ -99,7 +105,8 @@
       "conversion": {
         "notes": [
           "not automated (save): using it spends its cost; its description says the rest",
-          "save: ? DC (spellcasting) not converted"
+          "save: ? DC (spellcasting) not converted",
+          "concentration: its caster concentrates; what it sustains is by hand"
         ]
       }
     }

@@ -136,6 +136,7 @@ export function registerFoundryV14MultiplayerResolution({
       await endEffectsWhenAttacked(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsOnTargets(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await recordSlotSpell(event, {game});
+      await markCasterConcentration(event, {game});
     },
     afterCancelled: event => afterCountered(event, {game}),
     logger
@@ -164,8 +165,8 @@ export function registerFoundryV14MultiplayerResolution({
   trackTokenEffects();
   // V14 marks an effect expired when its duration runs out; an Action's custom effect (a buff) is then removed.
   globalThis.Hooks?.on?.("updateActiveEffect", (effect, changes) => {
-    if ( (changes?.duration?.expired === true) && effect.flags?.wildpath?.conditionEffect?.definition?.custom
-      && (game.users?.activeGM?.id === game.user?.id) ) void effect.delete();
+    if ( (changes?.duration?.expired === true) && (effect.flags?.wildpath?.conditionEffect?.definition?.custom
+      || effect.flags?.wildpath?.concentrationMarker) && (game.users?.activeGM?.id === game.user?.id) ) void effect.delete();
   });
   globalThis.Hooks?.on?.("deleteRegion", region => areas.onRegionDeleted(region));
   // The GM dragging a lasting area's Region moves the area itself (its fields follow its cells).
@@ -980,6 +981,25 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
 }
 
 /**
+ * A concentration spell that sustains nothing automated (`concentration`, Fog Cloud): a marker on its caster names the
+ * caster's Token as its concentration source, for the spell's duration, so a new concentration, a failed
+ * concentration check or Incapacitated ends it like any concentration.
+ */
+export async function markCasterConcentration({options, state}={}, {game=globalThis.game}={}) {
+  const concentration = state?.actionDefinition?.concentration;
+  const actor = options?.actor ?? null;
+  const tokenId = state?.source?.tokenId ?? null;
+  if ( !concentration || !tokenId || (typeof actor?.createEmbeddedDocuments !== "function") ) return null;
+  const label = state.actionDefinition.label ?? "";
+  const name = game?.i18n?.format?.("WILDPATH.AREA.Concentrating", {area: label}) ?? label;
+  const duration = concentration.duration ? {value: concentration.duration.value, units: concentration.duration.units} : null;
+  const [effect] = await actor.createEmbeddedDocuments("ActiveEffect", [{name, type: "effect", system: {},
+    ...(duration ? {duration} : {}),
+    flags: {wildpath: {concentrationMarker: true, conditionEffect: {concentration: {sourceRef: `token:${tokenId}`}}}}}]) ?? [];
+  return effect ?? null;
+}
+
+/**
  * A spell cast with a slot this combat turn, other than a Divine Smite (tagged `smite`): its creature's
  * `flags.wildpath.slotSpellTurn` becomes that turn, which Paladin's Smite's 2014 smite reads (reaction provider).
  * Outside combat nothing is recorded.
@@ -1067,7 +1087,7 @@ export function sustainedEffects(actor, game=globalThis.game) {
 export function startsConcentration(definition) {
   if ( !definition || definition.metadata?.followUp ) return false;
   return (definition.effects ?? []).some(effect => effect?.concentration) || Boolean(definition.area?.persistence?.concentration)
-    || Boolean(definition.summon?.concentration) || Boolean(definition.transform?.concentration);
+    || Boolean(definition.summon?.concentration) || Boolean(definition.transform?.concentration) || Boolean(definition.concentration);
 }
 
 /** The caster's earlier concentration, as it stood when this Action was declared (`endsConcentration`), ends now. */

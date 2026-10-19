@@ -320,6 +320,12 @@
               }
             ]
           },
+          "concentration": {
+            "duration": {
+              "value": 10,
+              "units": "minutes"
+            }
+          },
           "metadata": {
             "spellLevel": 2
           },
@@ -357,7 +363,7 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted"
+              "concentration: its caster concentrates; what it sustains is by hand"
             ]
           }
         }
@@ -877,7 +883,7 @@
           "Coven Magic: not automated (summon): using it spends its cost; its description says the rest",
           "Coven Magic: summon: a creature chosen by Challenge Rating is not converted",
           "Coven Magic: activation: 1 hour is not an action-economy cost",
-          "Coven Magic: concentration: nothing it sustains was converted",
+          "Coven Magic: concentration: its caster concentrates; what it sustains is by hand",
           "Coven Magic: activation: 10 minute is not an action-economy cost",
           "Coven Magic: save: a failure marks its creature only; what it does is by hand",
           "Coven Magic: \"Create Sensor\" is passive or triggered: not automated",

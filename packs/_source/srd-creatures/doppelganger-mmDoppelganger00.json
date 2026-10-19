@@ -245,6 +245,12 @@
               }
             ]
           },
+          "concentration": {
+            "duration": {
+              "value": 1,
+              "units": "minutes"
+            }
+          },
           "metadata": {
             "spellLevel": 2
           },
@@ -267,7 +273,7 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted",
+              "concentration: its caster concentrates; what it sustains is by hand",
               "save: a failure marks its creature only; what it does is by hand"
             ]
           }
@@ -464,7 +470,7 @@
       "conversion": {
         "notes": [
           "Read Thoughts: not automated (utility): using it spends its cost; its description says the rest",
-          "Read Thoughts: concentration: nothing it sustains was converted",
+          "Read Thoughts: concentration: its caster concentrates; what it sustains is by hand",
           "Read Thoughts: save: a failure marks its creature only; what it does is by hand",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]

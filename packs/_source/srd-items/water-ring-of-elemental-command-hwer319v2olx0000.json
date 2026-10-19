@@ -41,7 +41,7 @@
           "area: 25 + 5 * @item.level-ft cube is not supported; the user picks the targets",
           "activation: 1 minute is not an action-economy cost",
           "consumption: itemUses -6 not converted",
-          "concentration: nothing it sustains was converted",
+          "concentration: its caster concentrates; what it sustains is by hand",
           "\"Start of Turn Effects\" is passive or triggered: not automated",
           "\"Frigid Air\" is passive or triggered: not automated",
           "effect: \"Water Walking\" marks its creature only; its rules are by hand"

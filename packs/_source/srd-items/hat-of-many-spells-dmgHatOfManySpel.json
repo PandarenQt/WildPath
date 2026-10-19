@@ -36,7 +36,7 @@
           "\"Phantasm Damage\" is passive or triggered: not automated",
           "transform: a Beast the caster chooses; what the creature may do in its form is by hand",
           "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: nothing it sustains was converted",
+          "concentration: its caster concentrates; what it sustains is by hand",
           "\"Start of Turn Save\" is passive or triggered: not automated"
         ]
       },

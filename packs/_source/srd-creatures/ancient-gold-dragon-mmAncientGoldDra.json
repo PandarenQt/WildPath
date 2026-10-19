@@ -551,6 +551,12 @@
               }
             ]
           },
+          "concentration": {
+            "duration": {
+              "value": 1,
+              "units": "hours"
+            }
+          },
           "metadata": {
             "spellLevel": 9
           },
@@ -573,7 +579,7 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted"
+              "concentration: its caster concentrates; what it sustains is by hand"
             ]
           }
         }
@@ -1340,7 +1346,7 @@
           "Spellcasting: effect: marked is not a WildPath condition yet",
           "Spellcasting: effect: \"Guiding Bolt\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: cast: Flame Strike at level 6 is cast at its own level",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Cannot Lie\" marks its creature only; its rules are by hand",

@@ -406,3 +406,17 @@ Shortcuts: lasting areas and objects are not targets; Dispel Magic's higher-leve
 
 Live (two browsers, 2026-10-19): QA Caster cursed the Bandit Captain (Curse Attacks, tagged `curse`) and then cast Remove
 Curse on it: the curse ended. It blessed QA Fighter and then cast Dispel Magic on it: Blessed ended.
+
+## Its Caster Concentrates (2026-10-19)
+
+`concentration: {duration?: {value, units}}` is for a concentration spell whose definition sustains nothing automated
+(Fog Cloud, Detect Thoughts, Locate Object). When the Action completes, the GM puts a marker on its caster:
+- It is named "Concentrating: <spell>" and lasts for `duration`, a native V14 duration; it is deleted when it expires.
+- Its concentration source is the caster's Token, like a lasting area's marker (concentration-resolver.md). So a new
+  concentration, a failed concentration check or Incapacitated ends it, and casting it ends the caster's earlier one.
+
+The converter sets it on such a spell's slot-spending activity, with the spell's duration. A follow-up activity
+(spending no slot) continues the first cast's concentration instead. What the spell does is still by hand.
+
+Live (two browsers, 14.369): QA Caster's Bless was on QA Ally. Casting Fog Cloud removed it and gave QA Caster
+"Concentrating: Fog Cloud" (1 hr). Casting Bless again removed the marker.

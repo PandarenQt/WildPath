@@ -1224,3 +1224,15 @@ test("a feature spending another feature's uses spends that feature's pool (Chan
     assert.deepEqual(item.system.ruleElements.filter(rule => rule.type === "GrantResource"), [], "the spent feature grants the pool");
   }
 });
+
+test("a concentration spell that sustains nothing converted has its caster concentrate for its duration (Fog Cloud)", () => {
+  const fog = {_id: "testFogCloud0001", name: "Fog Cloud", type: "spell", img: "icons/svg/cloud.svg", effects: [],
+    system: {source: SRD, identifier: "fog-cloud", level: 1, school: "con", properties: ["vocal", "somatic", "concentration"],
+      duration: {value: "1", units: "hour"}, activities: {a: activity("utility", {duration: {override: false}})}}};
+  const [item] = convertItem(fog).items;
+  assert.deepEqual(item.system.definition.concentration, {duration: {value: 1, units: "hours"}});
+  assert.equal(validateActionDefinition(item.system.definition).ok, true);
+  assert.ok(item.flags.wildpath.conversion.notes.includes("concentration: its caster concentrates; what it sustains is by hand"));
+  const plain = {...fog, _id: "testMinorIllus01", system: {...fog.system, identifier: "minor", properties: ["vocal"]}};
+  assert.equal(convertItem(plain).items[0].system.definition.concentration, undefined, "not a concentration spell");
+});

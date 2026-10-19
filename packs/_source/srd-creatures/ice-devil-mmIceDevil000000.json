@@ -381,6 +381,12 @@
               }
             }
           ],
+          "concentration": {
+            "duration": {
+              "value": 10,
+              "units": "minutes"
+            }
+          },
           "metadata": {
             "spellLevel": 6
           },
@@ -419,7 +425,7 @@
           "conversion": {
             "notes": [
               "cast: Wall of Ice at level 8 is cast at its own level",
-              "concentration: nothing it sustains was converted",
+              "concentration: its caster concentrates; what it sustains is by hand",
               "\"Frigid Air\" is passive or triggered: not automated"
             ]
           }
@@ -618,7 +624,7 @@
       "conversion": {
         "notes": [
           "Ice Wall: cast: Wall of Ice at level 8 is cast at its own level",
-          "Ice Wall: concentration: nothing it sustains was converted",
+          "Ice Wall: concentration: its caster concentrates; what it sustains is by hand",
           "Ice Wall: \"Frigid Air\" is passive or triggered: not automated"
         ]
       }
