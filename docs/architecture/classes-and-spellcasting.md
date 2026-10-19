@@ -268,6 +268,33 @@ counting on the form's AC, and its own Intellect stayed.
 - **Live (two browsers, 14.369):** QA Caster, as wizard 5 and sorcerer 2, had 2 points. Player1 created a level-1 slot
   (points 2 to 0, slot 0 to 1), then spent it for 1 point.
 
+## Metamagic (2026-10-19)
+
+A Metamagic option converts to a feature flagged `flags.wildpath.metamagic` (`quickened`, `twinned`, ...). A creature
+with Sorcery Points and known options gets a "Metamagic" choice on each spell Action when it is read (`withMetamagic`,
+module/helpers/metamagic.mts). Its first option is None. The others are those that apply and that it has the points for:
+
+| Option | Offered when | Effect |
+|---|---|---|
+| Quickened (2) | it costs an Action, and no spell slot was spent this turn | its Action is paid as a Bonus Action |
+| Twinned (1) | its slot adds targets | one more target |
+| Transmuted (1) | it deals acid, cold, fire, lightning, poison or thunder | one option per other type |
+| Distant (1) | ranged or touch | range x2; touch becomes 30 ft |
+| Extended (1) | its effects or concentration have a duration | durations x2 |
+| Heightened (2), Careful (1), Subtle (1) | always | cost only, "by hand" |
+
+- **Seeking Spell** is a reroll on a missed spell attack, beside Heroic Inspiration (`withSeekingSpell`), for 1 point.
+- **Empowered Spell** is an Action of its own (no action, 1 point); its feature brings it (`flags.wildpath.grants`), so
+  the sorcerer's Metamagic choice lists the feature once.
+- **Payments that share a pool:** two payments of one payer from the same pool, both planned before the Action, are
+  committed one after the other (`chainPayments`). Seeking's point comes after Quickened's two, not over them.
+- **shortcuts:** Heightened's target, Careful's creatures and Subtle's components are by hand. Empowered's reroll is by
+  hand. Extended's 24-hour cap and Concentration Advantage are not applied, and neither is Quickened's "no other spell of
+  level 1+ this turn" afterwards.
+- **Live (two browsers, 14.369):** QA Caster, as wizard 5 and sorcerer 3 with 3 points, spent its Action. The action bar
+  kept Fire Bolt usable. Player1 cast a Quickened Fire Bolt, which spent the Bonus Action and 2 points. It missed with a
+  10, Seeking Spell rerolled it to 25, and it hit for 2d10. Points went from 3 to 0.
+
 ## Tactical Mind (2026-10-19)
 
 2024 Tactical Mind (fighter level 2): when the fighter fails an ability check made through an Action (`definition.check`),

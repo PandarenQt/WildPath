@@ -58,6 +58,7 @@ import {
 import {createMultiplayerActionCoordinator} from "./multiplayer-action-coordinator.mjs";
 import {createPhysicalDiceProvider} from "./roll-provider-resolver.mjs";
 import {resolveActorResourcePayment} from "./resource-resolver.mjs";
+import {knownMetamagic, METAMAGIC_POOL} from "../helpers/metamagic.mjs";
 import {createMultiplayerMovementAuthority} from "./multiplayer-movement-authority.mjs";
 import {createFoundryV14ReactionPauseAdapter} from "../adapters/foundry-v14-reaction-pause-adapter.mjs";
 import {foundryMovementIntentToStagedOptions} from "../adapters/foundry-v14-staged-movement-adapter.mjs";
@@ -805,7 +806,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, target: {id: actor.id, actorId: actor.id, actorRef: actor.uuid, uuid: actor.uuid,
         tokenId: sourceToken?.id ?? null}}) : null;
   // A fighter's Tactical Mind joins its own failed checks only.
-  const ownInspiration = definition?.check ? withTacticalMind(ownOffer, actor, actorSystem, game) : ownOffer;
+  const ownInspiration = definition?.check ? withTacticalMind(ownOffer, actor, actorSystem, game)
+    : (definition?.tags?.includes("spell") ? withSeekingSpell(ownOffer, actor, actorSystem, game) : ownOffer);
   // A character paying for a reroll is committed on like a target, its uuid its key: the acting creature for its own
   // roll, or a player character for a monster's.
   if ( ownInspiration?.own ) targetActors[actor.uuid] ??= actor;
@@ -1288,6 +1290,23 @@ export function withTacticalMind(offer, roller, rollerSystem, game) {
   const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
   const option = {value: `tactical-mind:${roller.uuid}`, addDice: {number: 1, faces: 10}, payerRef: roller.uuid, plan: payment.mutationPlan,
     refundOnFail: true, label: format("WILDPATH.INSPIRATION.TacticalMind", {value: pool.value})};
+  return offer ? {...offer, options: [...offer.options, option]}
+    : {own: true, chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""}),
+      options: [option]};
+}
+
+/**
+ * 2024 Seeking Spell: "If you make an attack roll for a spell and miss, you can spend 1 Sorcery Point to reroll the
+ * d20", for a sorcerer who knows it, beside its other rerolls of a missed spell attack.
+ */
+export function withSeekingSpell(offer, roller, rollerSystem, game) {
+  const pool = (rollerSystem?.pools ?? []).find(entry => entry.id === METAMAGIC_POOL);
+  if ( !knownMetamagic(roller).has("seeking") || !(Number(pool?.value) > 0) || (offer && !offer.own) ) return offer;
+  const payment = resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: METAMAGIC_POOL, amount: 1}]}});
+  if ( !payment.ok ) return offer;
+  const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
+  const option = {value: `seeking:${roller.uuid}`, payerRef: roller.uuid, plan: payment.mutationPlan,
+    label: format("WILDPATH.INSPIRATION.SeekingSpell", {value: pool.value})};
   return offer ? {...offer, options: [...offer.options, option]}
     : {own: true, chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""}),
       options: [option]};

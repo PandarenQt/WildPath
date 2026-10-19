@@ -37,7 +37,7 @@ const items = [];
 const actors = [];
 const progressions = [];
 const report = [];
-// What each dnd5e document became here: its gear (which brings its Actions), else all its Items.
+// What each dnd5e document became here: what brings its Actions with it (gear, a feature with grants), else all its Items.
 const convertedIds = new Map();
 for ( const pack of ITEM_PACKS ) {
   for ( const document of readPack(from, pack).filter(wanted) ) {
@@ -45,7 +45,8 @@ for ( const pack of ITEM_PACKS ) {
     const result = convertItem(document, {scales, pack, names, creatures, spells, beasts});
     items.push(...result.items);
     const gear = result.items.filter(item => item.type === "gear");
-    convertedIds.set(document._id, (gear.length ? gear : result.items).map(item => item._id));
+    const granting = result.items.filter(item => item.flags?.wildpath?.grants?.length);
+    convertedIds.set(document._id, (gear.length ? gear : (granting.length ? granting : result.items)).map(item => item._id));
     report.push({pack, name: document.name, converted: result.items.map(item => `${item.name} (${kind(item)})`), notes: result.notes});
   }
 }

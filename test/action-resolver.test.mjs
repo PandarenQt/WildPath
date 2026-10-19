@@ -824,6 +824,19 @@ test("ActionResolver execution commits resource plans and emits payment committe
   assert.equal(result.steps.at(-1).stage, ACTION_RESOLUTION_STAGES.COMPLETE);
 });
 
+test("two payments from one pool, both planned before the Action, spend one after the other", async () => {
+  const {executeActionMutationTransaction} = await import("../module/resolvers/action-resolver.mjs");
+  const calls = [];
+  const actor = {id: "sorc", uuid: "Actor.sorc", name: "Sorc", type: "character", system: actorSystem(1),
+    async update(updates) { calls.push(updates); }};
+  const spend = (amount, extra={}) => ({type: "resourcePayment", resolver: "ResourceResolver", ...extra, plan: {ok: true,
+    updates: {"system.pools.0.value": 3 - amount}, payments: [{resourceId: "font-of-magic", path: "system.pools.0.value", from: 3, to: 3 - amount, amount}]}});
+  const committed = await executeActionMutationTransaction({result: {mutationPlans: [spend(2), spend(1, {payerRef: "Actor.sorc"})], context: {}},
+    actor, targetActors: {"Actor.sorc": actor}});
+  assert.equal(committed.ok, true, JSON.stringify(committed));
+  assert.deepEqual(calls.map(call => call["system.pools.0.value"]), [1, 0], "Quickened's 2, then Seeking's 1, of 3");
+});
+
 test("ActionResolver execution commits payment after an attack miss", async () => {
   const calls = [];
   const actor = {

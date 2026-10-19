@@ -923,6 +923,13 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
       return applySpendAmountEffect({definition, effect, selection});
     case "restore":
       return applyRestoreEffect({definition, effect, selection, selectionsById, context});
+    case "replace-cost":
+      return applyReplaceCostEffect({definition, effect, selection});
+    case "set-range":
+      definition.range = clonePlain(effect.range);
+      return {ok: true, trace: [appliedTrace(selection, "set-range", {range: effect.range})], errors: []};
+    case "scale-duration":
+      return applyScaleDurationEffect({definition, effect, selection});
     case "replace-damage-type":
       return applyReplaceDamageTypeEffect({definition, effect, selection, selectionsById});
     case "keepEffect":
@@ -1036,6 +1043,22 @@ function applyRestoreEffect({definition, effect, selection, selectionsById, cont
   return {ok: true, trace: [appliedTrace(selection, "restore", {resourceId: effect.resourceId, amount})], errors: []};
 }
 
+/** One activation cost paid as another (Quickened Spell: its Action as a Bonus Action): `{type: "replace-cost", from, to}`. */
+function applyReplaceCostEffect({definition, effect, selection}) {
+  const swap = branch => branch.map(cost => ((cost?.capability === effect.from) ? {...cost, capability: effect.to} : cost));
+  definition.costs = definition.costs?.anyOf ? {anyOf: definition.costs.anyOf.map(swap)} : {allOf: swap(definition.costs?.allOf ?? [])};
+  return {ok: true, trace: [appliedTrace(selection, "replace-cost", {from: effect.from, to: effect.to})], errors: []};
+}
+
+/** Its effects and its caster's concentration last `factor` times as long (Extended Spell): `{type: "scale-duration", factor}`. */
+function applyScaleDurationEffect({definition, effect, selection}) {
+  const factor = finiteNumber(effect.factor) ?? 1;
+  const scaled = duration => ((finiteNumber(duration?.value) > 0) ? {...duration, value: duration.value * factor} : duration);
+  definition.effects = normalizeArray(definition.effects).map(entry => (entry?.duration ? {...entry, duration: scaled(entry.duration)} : entry));
+  if ( definition.concentration?.duration ) definition.concentration = {...definition.concentration, duration: scaled(definition.concentration.duration)};
+  return {ok: true, trace: [appliedTrace(selection, "scale-duration", {factor})], errors: []};
+}
+
 /** The casting level a scaling effect reads: its own, or the level its choice (a spell slot) selected. */
 function scalingLevel(effect, selection, selectionsById) {
   const levelChoiceId = effect.levelChoiceId ?? effect.choiceId ?? effect.fromChoice ?? selection.id;
@@ -1127,7 +1150,8 @@ function applyScaleDamageEffect({definition, effect, selection, selectionsById, 
 
 function applyReplaceDamageTypeEffect({definition, effect, selection, selectionsById}) {
   const choiceId = effect.damageTypeChoiceId ?? effect.choiceId ?? effect.fromChoice ?? selection.id;
-  const damageType = selectionsById.get(choiceId)?.damageType
+  // A fixed type (Transmuted Spell's option), else the type its choice selected.
+  const damageType = effect.damageType ?? selectionsById.get(choiceId)?.damageType
     ?? selectionsById.get(choiceId)?.value;
   if ( !isValidDamageType(damageType) ) return {
     ok: false,

@@ -10,6 +10,7 @@ import {
 } from "./rule-elements.mjs";
 import {WILDPATH} from "../config.mjs";
 import {withWeaponMastery} from "./weapon-mastery.mjs";
+import {withMetamagic} from "./metamagic.mjs";
 
 /** When a custom effect ends early: its creature is attacked, attacked by the creature that applied it, or attacks. */
 export const CUSTOM_EFFECT_ENDS_WHEN = Object.freeze(["attacked", "attackedBySource", "attackedByOther", "attacks", "saves"]);
@@ -245,8 +246,8 @@ export function serializeActionDefinition(rawDefinition={}, options={}) {
 
 export function actionDefinitionFromItem(item, options={}) {
   const system = item?.system ?? {};
-  const raw = withOwnWeapons(withWeaponMastery(withExtraAttacks(system.definition ?? system.actionDefinition ?? item?.definition
-    ?? item?.actionDefinition ?? null, item), item?.actor ?? null), item?.actor ?? null);
+  const raw = withMetamagic(withOwnWeapons(withWeaponMastery(withExtraAttacks(system.definition ?? system.actionDefinition ?? item?.definition
+    ?? item?.actionDefinition ?? null, item), item?.actor ?? null), item?.actor ?? null), item?.actor ?? null);
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
   const legacyActivationCost = options.legacyActivationCost

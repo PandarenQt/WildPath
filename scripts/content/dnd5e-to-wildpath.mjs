@@ -659,6 +659,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const items = [];
   const allNotes = [];
   const trait = traitOf(document, {activities, system, spell, level, scales, pool, saveDC, creature});
+  // A Metamagic option (Quickened Spell: "quickened"), which its sorcerer's spells offer (metamagic.mjs).
+  const metamagic = (system.type?.subtype === "metamagic") ? identifierOf(document).replace(/-spell$/, "") : null;
   if ( trait ) allNotes.push(...trait.notes);
   // A spell without activities is still cast: it spends its slot like any other.
   const usable = activities.length ? activities : (spell ? [{type: "manual", activation: {override: false}}] : []);
@@ -681,7 +683,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.
       const marked = (activity.type === "damage") && Object.values(EFFECTS_BY_HAND).some(hand => hand.bonusDamage === label);
       // A feature the engine offers on its own (Tactical Mind, with a failed check) needs no Action.
-      if ( !trait && !marked && !OFFERED_BY_ENGINE.has(identifierOf(document)) ) allNotes.push(`"${label}" is passive or triggered: not automated`);
+      if ( !trait && !marked && !metamagic && !OFFERED_BY_ENGINE.has(identifierOf(document)) ) allNotes.push(`"${label}" is passive or triggered: not automated`);
       continue;
     }
     // Monster spellcasting (G4): a cast activity is its spell, at the activity's cost and uses rather than a slot.
@@ -842,20 +844,22 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         // A paladin's aura is what it grants those around it, not what its dnd5e effect gives the paladin alone.
         ...(PALADIN_AURAS[identifierOf(document)] ? [paladinAura(identifierOf(document))] : passive),
         ...((identifierOf(document) === "paladins-smite") ? [PALADINS_SMITE.pool] : [])].filter(Boolean)},
-      flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}}}});
+      flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(metamagic ? {metamagic} : {})}}});
     if ( identifierOf(document) === "paladins-smite" ) items.push(...paladinsSmiteActions(document, img, source));
     if ( identifierOf(document) === "brutal-strike" ) items.push(...brutalStrikeActions(document, img, source, scales));
     if ( identifierOf(document) === "improved-brutal-strike" ) items.push(...improvedBrutalStrikeActions(document, img, source));
   }
   // A feature used on its turn that dnd5e leaves without an Action (Action Surge): its Action, paid from its own pool.
   const featureAction = FEATURE_ACTIONS[identifierOf(document)];
-  if ( featureAction && (pool?.rule || featureAction.free) && !items.some(item => item.type === "action") ) {
+  if ( featureAction && (pool?.rule || featureAction.free || featureAction.costs) && !items.some(item => item.type === "action") ) {
     const id = stableId(`${document._id}:use`);
     items.push({_id: id, _key: `!items!${id}`, name: document.name, type: "action", img,
       system: {active: true, description, definition: {schemaVersion: 1, id: `action:srd-${slugify(document.name)}`, label: document.name,
-        costs: {allOf: featureAction.free ? [] : [{capability: pool.id, amount: 1}]}, range: {type: "self"}, targeting: {type: "self"},
-        effects: structuredClone(featureAction.effects)}, ruleElements: [pool?.rule].filter(Boolean)},
+        costs: {allOf: featureAction.costs ?? (featureAction.free ? [] : [{capability: pool.id, amount: 1}])}, range: {type: "self"},
+        targeting: {type: "self"}, effects: structuredClone(featureAction.effects ?? [])}, ruleElements: [pool?.rule].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: []}}}});
+    // A chosen Metamagic option (Empowered Spell) brings its Action with it, so its class's choice lists it once.
+    if ( metamagic && (items[0]?.type === "feature") ) items[0].flags.wildpath.grants = [id];
   }
   return {ok: true, items, notes: [...new Set(allNotes)]};
 }
@@ -872,7 +876,9 @@ const FEATURE_ACTIONS = Object.freeze({
   "reckless-attack": {free: true, effects: [{id: "effect-1", type: "effect", name: "Reckless", slug: "reckless",
     duration: {value: 1, units: "rounds", expiry: "turnStart"}, ruleElements: [
       {schemaVersion: 1, id: "reckless-attacks", type: "RollMode", data: {domains: ["attack.might"], mode: "advantage"}},
-      {schemaVersion: 1, id: "reckless-attacked", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}}]}]}
+      {schemaVersion: 1, id: "reckless-attacked", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}}]}]},
+  // 2024 Empowered Spell (no action): spends its Sorcery Point. shortcut: rerolling its damage dice is by hand.
+  "empowered-spell": {costs: [{capability: "font-of-magic", amount: 1}]}
 });
 
 /** Each dnd5e base armor's kind. */
