@@ -846,7 +846,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         return targetControllerKeys(targetActor, hint, game).map(key => [key, owners]);
       }))
     },
-    ...(reactions ? {services: {...reactions.services, targetActors}} : {})
+    // Damage and healing are planned on fresh snapshots of these Actors (a resolution may wait on a prompt).
+    services: {...(reactions?.services ?? {}), targetActors, snapshotActor: foundryActorSystemSnapshot}
   };
 }
 
