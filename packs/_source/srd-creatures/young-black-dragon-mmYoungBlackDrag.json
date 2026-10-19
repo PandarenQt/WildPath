@@ -381,6 +381,20 @@
               "mode": "swim",
               "distance": 40
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "initiative",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "initiative"
+              ],
+              "modifierType": "untyped",
+              "valueExpression": {
+                "type": "proficiency-bonus"
+              }
+            }
           }
         ]
       },

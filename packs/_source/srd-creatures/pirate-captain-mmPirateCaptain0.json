@@ -447,6 +447,40 @@
           }
         }
       }
+    },
+    {
+      "_id": "mmPirateCapttrts",
+      "_key": "!actors.items!mmPirateCaptain0.mmPirateCapttrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "initiative",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "initiative"
+              ],
+              "modifierType": "untyped",
+              "valueExpression": {
+                "type": "proficiency-bonus"
+              }
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
     }
   ],
   "flags": {

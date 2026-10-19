@@ -353,6 +353,20 @@
               "mode": "burrow",
               "distance": 15
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "initiative",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "initiative"
+              ],
+              "modifierType": "untyped",
+              "valueExpression": {
+                "type": "proficiency-bonus"
+              }
+            }
           }
         ]
       },

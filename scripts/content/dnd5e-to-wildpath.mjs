@@ -1401,6 +1401,10 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
   multiattack(items, notes);
 
   const traits = traitRules(system, notes);
+  // Its initiative bonus beyond Agility (2024 stat blocks: proficiency once or twice, "@prof * 2"): an initiative Modifier.
+  const initiative = formulaExpression(system.attributes?.init?.bonus);
+  if ( initiative ) traits.push({schemaVersion: 1, id: "initiative", type: "Modifier",
+    data: {domains: ["initiative"], modifierType: "untyped", valueExpression: initiative}});
   if ( traits.length ) items.push({_id: `${String(actorId).slice(0, 12)}trts`, _key: `!actors.items!${actorId}.${String(actorId).slice(0, 12)}trts`,
     name: "Traits", type: "feature", img: "icons/svg/aura.svg", system: {active: true, description: "", ruleElements: traits},
     flags: {wildpath: {conversion: {notes: []}}}});

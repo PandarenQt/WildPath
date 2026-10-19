@@ -459,6 +459,40 @@
           }
         }
       }
+    },
+    {
+      "_id": "mmGladiator0trts",
+      "_key": "!actors.items!mmGladiator00000.mmGladiator0trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "initiative",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "initiative"
+              ],
+              "modifierType": "untyped",
+              "valueExpression": {
+                "type": "proficiency-bonus"
+              }
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
     }
   ],
   "flags": {
