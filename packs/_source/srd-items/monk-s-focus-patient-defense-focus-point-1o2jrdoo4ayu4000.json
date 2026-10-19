@@ -22,6 +22,63 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "disengaged",
+          "type": "effect",
+          "name": "Disengaged",
+          "slug": "disengaged",
+          "img": "icons/svg/walk.svg",
+          "duration": {
+            "value": 0,
+            "units": "turns",
+            "expiry": "turnEnd"
+          },
+          "ruleElements": []
+        },
+        {
+          "id": "dodging",
+          "type": "effect",
+          "name": "Dodging",
+          "slug": "dodging",
+          "img": "icons/svg/shield.svg",
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnStart"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "dodge-attacked",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "dodge-agility",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.agility"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ]
+        }
+      ],
       "label": "Monk's Focus (Patient Defense (Focus Point))"
     },
     "ruleElements": [
@@ -78,10 +135,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: dodging is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }

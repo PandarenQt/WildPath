@@ -873,6 +873,16 @@ test("an activity that takes a common action is that action at its own cost (Cun
   [{_id: "disengaged", name: "Disengaged", transfer: false, statuses: [], system: {changes: []}}])).items;
   assert.equal(step.system.definition.effects[0].slug, "disengaged", "Step of the Wind's Disengaged is the common one");
   assert.deepEqual(step.flags.wildpath.conversion.notes, []);
+
+  const focus = convertItem({...feature("testMonksFocus01", "Monk's Focus", {a: bonus("Patient Defense (Focus Point)"), b: bonus("Step of the Wind")},
+    [{_id: "dodging", name: "Patient Defense (Focus Point)", transfer: false, statuses: ["dodging"], system: {changes: []}}]),
+  system: {...feature("x", "x", {}).system, identifier: "monks-focus", activities: {a: bonus("Patient Defense (Focus Point)"), b: bonus("Step of the Wind")}}}).items;
+  assert.deepEqual(focus.map(item => item.system.definition.effects.map(effect => effect.slug)), [["disengaged", "dodging"], ["disengaged", "dashing"]],
+    "2024: with a Focus Point, Disengage and Dodge, or Disengage and Dash");
+  assert.deepEqual(focus.map(item => item.flags.wildpath.conversion.notes), [[], []]);
+  const [stealth] = convertItem({...feature("testShadowSteal1", "Shadow Stealth", {a: bonus("Expend Use")}), system: {...feature("x", "x", {}).system,
+    identifier: "shadow-stealth", activities: {a: bonus("Expend Use")}}}).items;
+  assert.deepEqual([stealth.system.definition.check.skill, stealth.system.definition.effects[0].id], ["stealth", "hidden"], "the Hide action");
 });
 
 test("a grapple or restraint keeps its escape DC, from the Escape Check activity or \"escape DC 14\" in its text", () => {

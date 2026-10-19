@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 724 automated, 395 manual, 245 features. Creatures: 375.
+Items: 725 automated, 394 manual, 245 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -1010,7 +1010,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Mithral Armor | equipment24 | Mithral Armor (gear), Mithral Armor (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Modify Memory | spells24 | Modify Memory (automated) | — |
 | Monk | classes24 | Monk (class) | grant: phbmnkUnarmedStr was not converted; grant: phbmnkSelfrestor was not converted |
-| Monk's Focus | classes24 | Monk's Focus (Step of the Wind) (automated), Monk's Focus (Flurry of Blows) (manual), Monk's Focus (Patient Defense) (automated), Monk's Focus (Patient Defense (Focus Point)) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: dodging is not a WildPath condition yet |
+| Monk's Focus | classes24 | Monk's Focus (Step of the Wind) (automated), Monk's Focus (Flurry of Blows) (manual), Monk's Focus (Patient Defense) (automated), Monk's Focus (Patient Defense (Focus Point)) (automated) | not automated (utility): using it spends its cost; its description says the rest |
 | Moon | equipment24 | Moon: Wish (automated) | — |
 | Moonbeam | spells24 | Moonbeam (automated), Moonbeam (Move) (automated) | — |
 | Morningstar | equipment24 | Morningstar (automated) | — |
@@ -1339,7 +1339,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Sequester | spells24 | Sequester (automated) | — |
 | Serpent Venom | equipment24 | Serpent Venom (gear) | "Use Poison" is passive or triggered: not automated |
 | Serpentine Owl | equipment24 | Serpentine Owl (gear), Serpentine Owl (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; consumption: itemUses @item.uses.max not converted |
-| Shadow | actors24 | Shadow (7 items) | Shadow Stealth: not automated (utility): using it spends its cost; its description says the rest; Shadow Stealth: effect: hiding is not a WildPath condition yet |
+| Shadow | actors24 | Shadow (7 items) | — |
 | Shambling Mound | actors24 | Shambling Mound (6 items) | Engulf: "Engulfed: Damage" is passive or triggered: not automated; Engulf: not automated (check): using it spends its cost; its description says the rest; Engulf: check: a choice of acr/ath uses acr; Engulf: check: acr/ath DC (@skills.ath.passive) not converted |
 | Shapechange | spells24 | Shapechange (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted |
 | Shatter | spells24 | Shatter (automated) | — |

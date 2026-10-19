@@ -329,7 +329,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - Heal: Blinded, Deafened and Poisoned; Power Word Heal: Charmed, Frightened, Paralyzed, Poisoned and Stunned;
   - Protection from Poison and Lay on Hands' Remove Poison: Poisoned.
   SRD automated Items rose from 719 to 724, with the items and creatures that cast them. The Builder's condition rows
-  have "Ends it instead". Not yet checked live (the browsers were unavailable).
+  have "Ends it instead". Live (two browsers, 2026-10-19): Player1's QA Caster cast the SRD Lesser Restoration on
+  the Poisoned and Blinded QA Fighter and chose Poisoned. Poisoned ended, Blinded stayed, and the Action and a
+  2nd-level slot were spent. From 10 ft away it was refused: the spell is a touch spell.
 - **Escape DCs (2026-10-19).** A Grappled or Restrained effect row gets `metadata: {escapeDC}`, so the common Escape
   action can be taken against it. The DC comes from the Item's "Escape Check" activity: a number, dnd5e's
   `@skills.ath.passive` (the creature's passive Athletics: 10 + its modifier and proficiency), or an ability's
@@ -338,8 +340,16 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Common actions taken by a feature (2026-10-19).** A utility activity named Dash, Disengage, Dodge or Hide (the
   Rogue's Cunning Action, Conjure Woodland Beings' Disengage) is WildPath's own common action at the activity's cost,
   and an effect named Disengaged, Dashing or Dodging with nothing of its own (the Monk's Patient Defense and Step of
-  the Wind) is that action's effect. SRD automated Items rose from 713 to 719. Not yet checked live (the browsers
-  were unavailable).
+  the Wind) is that action's effect. SRD automated Items rose from 713 to 719. A small table (`COMMON_BY_TEXT`) adds
+  the activities whose 2024 text names the actions: with a Focus Point, Patient Defense is Disengage and Dodge
+  (dnd5e gave only its unmapped Dodging) and Step of the Wind is Disengage and Dash; a Shadow's Shadow Stealth is
+  Hide (725 automated).
+  - Live (two browsers): Player1's QA Fighter used Cunning Action (Dash): Bonus Action spent, Dashing, movement 30 to
+    60. Monk's Focus (Step of the Wind) gave Disengaged and Dashing for the Bonus Action and a Focus Point. Patient
+    Defense (Focus Point) gave Dodging, paid with the Action once the Bonus Action was spent (the WildPath house
+    rule, action-economy.md).
+  - Not yet: Nimble Escape's "Disengage or Hide" (one activity, two common actions to choose from), and Step of
+    the Wind without a Focus Point (Dash as a Bonus Action), which dnd5e has no activity for.
 - **Hovering (2026-10-19).** dnd5e's `movement.hover` goes on the fly Speed the same effect grants: Fly, Gaseous
   Form, Wind Walk, a Potion of Flying, the Air Ring, and the creatures casting them (16 SRD documents). A hovering
   flyer knocked Prone does not fall. Live: Player1's QA Caster cast the SRD Fly on itself: "Flight", a fly Speed of 60

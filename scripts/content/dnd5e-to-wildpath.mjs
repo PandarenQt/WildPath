@@ -909,6 +909,17 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
 /** The 2024 common actions an activity may take by name (Cunning Action's Dash, Disengage or Hide). */
 const COMMON_ACTIVITIES = Object.freeze(["dash", "disengage", "dodge", "hide"]);
 
+/**
+ * Activities that take common actions by their 2024 text rather than their name, by identifier and activity name:
+ * with a Focus Point, Patient Defense is Disengage and Dodge and Step of the Wind is Disengage and Dash (dnd5e gives
+ * one effect of each); a Shadow's Shadow Stealth is the Hide action.
+ */
+const COMMON_BY_TEXT = Object.freeze({
+  "monks-focus/Patient Defense (Focus Point)": ["disengage", "dodge"],
+  "monks-focus/Step of the Wind": ["disengage", "dash"],
+  "shadow-stealth/Expend Use": ["hide"]
+});
+
 /** WildPath's own rules of a common action (Dash's extra Speed, Disengage's effect, Hide's check), without its cost. */
 function commonRules(id) {
   const {id: _id, label: _label, costs: _costs, ...rules} = commonAction({uuid: ""}, id).system.definition;
@@ -920,9 +931,14 @@ function commonRules(id) {
  * action's own rules at the activity's cost. Null for any other activity.
  */
 function commonActivity({document, activity, system, spell, level, pool}) {
+  if ( activity.type !== "utility" ) return null;
   const id = String(activity.name ?? "").split(":").pop().trim().toLowerCase();
-  if ( (activity.type !== "utility") || !COMMON_ACTIVITIES.includes(id) ) return null;
-  return {...manualDefinition({document, activity, system, spell, level, notes: [], pool}), ...commonRules(id)};
+  const ids = COMMON_BY_TEXT[`${identifierOf(document)}/${activity.name}`] ?? (COMMON_ACTIVITIES.includes(id) ? [id] : null);
+  if ( !ids ) return null;
+  // Several at once (Step of the Wind): each one's rules, and all their effects.
+  const rules = ids.map(commonRules);
+  return {...manualDefinition({document, activity, system, spell, level, notes: [], pool}), ...Object.assign({}, ...rules),
+    effects: rules.flatMap(rule => rule.effects ?? [])};
 }
 
 /**
