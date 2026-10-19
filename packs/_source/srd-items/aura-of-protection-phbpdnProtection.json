@@ -10,17 +10,50 @@
     "ruleElements": [
       {
         "schemaVersion": 1,
-        "id": "protected-1",
-        "type": "Modifier",
+        "id": "aura-of-protection",
+        "type": "Aura",
+        "predicate": {
+          "missingCondition": "incapacitated"
+        },
         "data": {
-          "domains": [
-            "save"
-          ],
-          "modifierType": "untyped",
-          "valueExpression": {
-            "type": "ability-modifier",
-            "ability": "presence"
-          }
+          "radius": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "paladin"
+            },
+            "rows": {
+              "1": 10,
+              "18": 30
+            }
+          },
+          "affects": "allies",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "protection",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "save"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "max",
+                  "terms": [
+                    {
+                      "type": "constant",
+                      "value": 1
+                    },
+                    {
+                      "type": "ability-modifier",
+                      "ability": "presence"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
         }
       }
     ]

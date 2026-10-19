@@ -664,9 +664,11 @@ const AURA_AFFECTS = Object.freeze(["allies", "enemies", "all"]);
  * creatures within `radius` feet of its bearer (allies and all include the bearer). The Foundry adapter works out
  * who is inside when a statistic is read.
  */
-function auraRuleElement(ruleElement) {
+function auraRuleElement(ruleElement, context={}) {
   const data = ruleElement.data;
-  const radius = Number(data.radius);
+  // A radius may grow with its bearer (Aura of Protection: 30 feet from Aura Expansion), read as the bearer's.
+  const evaluated = evaluateNumeric(data.radius, context);
+  const radius = evaluated.ok ? Number(evaluated.value) : Number(data.radius);
   const affects = data.affects ?? "allies";
   const ruleElements = Array.isArray(data.ruleElements) ? data.ruleElements : [];
   if ( !(radius > 0) ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "Aura RuleElement requires a radius in feet.");
@@ -678,8 +680,18 @@ function auraRuleElement(ruleElement) {
       return handlerFailure(RULE_ELEMENT_CODES.INVALID, `Aura rule ${index}: unknown RuleElement type ${nested.type}`);
     }
   }
+  // Its bonuses are its bearer's (Aura of Protection: the paladin's Charisma modifier), worked out here, not by whoever
+  // stands in it.
+  const granted = ruleElements.map(nested => {
+    const expression = nested?.data?.valueExpression;
+    if ( (nested?.type !== "Modifier") || !expression ) return clonePlain(nested);
+    const value = evaluateNumeric(expression, context);
+    if ( !value.ok ) return clonePlain(nested);
+    const {valueExpression: _expression, ...rest} = nested.data;
+    return {...clonePlain(nested), data: {...rest, value: value.value}};
+  });
   return success({
-    auras: [{id: data.id ?? ruleElement.id, radius, affects, ruleElements: clonePlain(ruleElements), source: ruleElementSource(ruleElement),
+    auras: [{id: data.id ?? ruleElement.id, radius, affects, ruleElements: granted, source: ruleElementSource(ruleElement),
       metadata: contributionMetadata(ruleElement, data.metadata)}]
   });
 }

@@ -537,6 +537,11 @@ rules to the creatures within `radius` feet of its bearer.
   with the lasting-area coverage test. That covers attacks, AC (including a re-scored attack), saves, checks and
   damage. Nothing is written to the affected creatures, so the bonus is never stale and never shows on a Player's
   sheet.
+- **Its bearer's numbers (2026-10-19).** Its `radius` may be a ValueExpression, and its nested Modifiers'
+  `valueExpression`s are worked out with the bearer's data when its auras are read (`getAuras`), so Aura of Protection
+  adds its paladin's Charisma modifier, not the ally's. A rule `predicate` on the Aura sees the bearer's conditions
+  (`missingCondition: "incapacitated"`).
+- **Condition immunity.** `getConditionImmunities` reads the auras around the creature too (Aura of Courage).
 - **Limits.**
   - Data preparation leaves auras out, so an aura does not change Speed or health maxima.
   - Only Modifier-type rules reach statistics; roll modes from auras are not read yet.

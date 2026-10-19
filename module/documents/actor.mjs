@@ -212,7 +212,9 @@ export default class WildPathActor extends Actor {
 
   /** The conditions this creature's features, gear and effects make it immune to (`ConditionImmunity`). */
   getConditionImmunities() {
-    return conditionImmunitiesFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system,
+    // An aura around it counts too (Aura of Courage: no Frightened while in its paladin's aura).
+    const auras = globalThis.game?.wildpath?.auras?.ownersFor?.(this) ?? [];
+    return conditionImmunitiesFromRuleElements([...grantOwners(this), ...auras], {actor: this, actorSystem: this.system,
       conditions: [...(this.statuses ?? [])]});
   }
 

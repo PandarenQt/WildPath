@@ -7,7 +7,42 @@
   "system": {
     "active": true,
     "description": "<p>You and your allies have Immunity to the Frightened condition while in your Aura of Protection. If a Frightened ally enters the aura, that condition has no effect on that ally while there.</p><section id=\"secret-equ8xnC2DFxkcJAn\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect for tracking who is within your aura but it is not automatically added/removed nor does it remove the Frightened condition.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "aura-of-courage",
+        "type": "Aura",
+        "predicate": {
+          "missingCondition": "incapacitated"
+        },
+        "data": {
+          "radius": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "paladin"
+            },
+            "rows": {
+              "1": 10,
+              "18": 30
+            }
+          },
+          "affects": "allies",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "courage",
+              "type": "ConditionImmunity",
+              "data": {
+                "conditions": [
+                  "frightened"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
