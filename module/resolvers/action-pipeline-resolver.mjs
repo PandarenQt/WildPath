@@ -1517,11 +1517,14 @@ function createSaveOutcomeStage() {
         data: {saveResolution}
       });
 
+      // Counterspell: a failed save cancels the Action whose declaration it reacted to.
+      const countered = (state.actionDefinition?.counters === true) && (saveResolution.failures.length > 0);
       return continueResolutionStage({
         state: withRerolls(stateWithActionResult(state, {
           input,
           actionResult,
-          results: {saveResolution}
+          results: {saveResolution, ...(countered ? {parentDirective: {type: "cancel-parent", code: "COUNTERED",
+            reason: `${state.actionDefinition.label ?? "A reaction"} stopped it.`}} : {})}
         }), rerolls),
         data: {
           successCount: saveResolution.successes.length,
@@ -2493,7 +2496,9 @@ function attackOutcomeReactionEvent(state) {
     phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
     source: state.actionContext?.source ?? input.source ?? state.source ?? null,
     targets: attackResults.map(result => result.target).filter(Boolean),
-    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), outcome]),
+    // Its kind ("melee", "ranged") too, so a reaction can answer one kind (a Parry, a melee attack).
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), outcome,
+      state.actionDefinition?.attack?.type ?? input.attack?.type].filter(Boolean)),
     data: {
       action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
       attackResolution,

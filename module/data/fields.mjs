@@ -175,6 +175,8 @@ export function actionDefinitionField() {
     teleport: new ObjectField({nullable: true, initial: null}),
     // Makes each dying target stable when the Action completes (dying-and-death.md); a check gates it like an effect.
     stabilize: new BooleanField({required: true, initial: false}),
+    // A reaction whose target failing its save cancels the Action that triggered it (Counterspell; reactions.md).
+    counters: new BooleanField({required: true, initial: false}),
     // Pools of the acting creature the Action refills when used (Multiattack's attacks): [{resourceId, amount}].
     restores: objectArrayField(),
     range: new ObjectField({nullable: true, initial: null}),

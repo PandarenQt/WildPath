@@ -60,7 +60,8 @@ export function createMultiplayerActionCoordinator({
   logger=null,
   notify=null,
   publishResult=null,
-  afterCompleted=null
+  afterCompleted=null,
+  afterCancelled=null
 }={}) {
   const localUserId = stringOrNull(userId ?? transport?.userId);
   // Unfinished resolutions stay in `records`; a finished one is kept until it falls out of the bounded
@@ -888,6 +889,14 @@ export function createMultiplayerActionCoordinator({
         await afterCompleted({resolutionId: record.resolutionId, options: record.options, state: record.state});
       } catch (error) {
         (logger ?? console).warn("Wild Path | Post-resolution step failed", error);
+      }
+    }
+    // An Action a reaction stopped (Counterspell): the authority's consequences of that, once.
+    if ( (typeof afterCancelled === "function") && (record.state?.status === RESOLUTION_STATE_STATUS.CANCELLED) ) {
+      try {
+        await afterCancelled({resolutionId: record.resolutionId, options: record.options, state: record.state});
+      } catch (error) {
+        (logger ?? console).warn("Wild Path | Post-cancellation step failed", error);
       }
     }
     const ok = sent.ok && participantSent?.ok !== false;

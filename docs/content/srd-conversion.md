@@ -131,7 +131,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ball Bearings | equipment24 | Ball Bearings (Spill Ball Bearings) (automated), Ball Bearings (Recover Ball Bearings) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost; consumption: itemUses -1 not converted |
 | Balor | actors24 | Balor (9 items) | Death Throes: "save" is passive or triggered: not automated; Fire Aura: activation: turnEnd is not an action-economy cost; Teleport: not automated (utility): using it spends its cost; its description says the rest |
 | Bandit | actors24 | Bandit (2 items) | — |
-| Bandit Captain | actors24 | Bandit Captain (4 items) | Parry: not automated (utility): using it spends its cost; its description says the rest |
+| Bandit Captain | actors24 | Bandit Captain (4 items) | — |
 | Bane | spells24 | Bane (automated) | — |
 | Banishment | spells24 | Banishment (automated) | — |
 | Barbarian | classes24 | Barbarian (class) | grant: phbUnarmedStrike was not converted |
@@ -528,7 +528,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Epic Boon | classes24 | Epic Boon (feature) | — |
 | Epic Boon | classes24 | Epic Boon (feature) | — |
 | Epic Boon | classes24 | Epic Boon (feature) | — |
-| Erinyes | actors24 | Erinyes (9 items) | Parry: not automated (utility): using it spends its cost; its description says the rest |
+| Erinyes | actors24 | Erinyes (9 items) | — |
 | Essence of Ether | equipment24 | Essence of Ether (gear) | "Use Poison" is passive or triggered: not automated |
 | Etherealness | spells24 | Etherealness (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: ethereal is not a WildPath condition yet |
 | Ettercap | actors24 | Ettercap (8 items) | Reel: not automated (utility): using it spends its cost; its description says the rest |
@@ -688,7 +688,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Gift of the Depths | classes24 | Gift of the Depths (automated) | effect: "Water Breathing" marks its creature only; its rules are by hand |
 | Gift of the Protectors | classes24 | Gift of the Protectors (Write Name) (manual), Gift of the Protectors (Erase Name) (manual) | "Protect" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted |
 | Glabrezu | actors24 | Glabrezu (12 items) | Pincer: "Escape Check" is passive or triggered: not automated; Spellcasting: effect: "Detect Magic" marks its creature only; its rules are by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: area: @item.level * 5 - 10-ft sphere is not supported; the user picks the targets; Spellcasting: effect: "Confused" marks its creature only; its rules are by hand |
-| Gladiator | actors24 | Gladiator (6 items) | Parry: not automated (utility): using it spends its cost; its description says the rest |
+| Gladiator | actors24 | Gladiator (6 items) | — |
 | Glaive | equipment24 | Glaive (automated) | — |
 | Glamoured Studded Leather | equipment24 | Glamoured Studded Leather (gear) | — |
 | Glassblower's Tools | equipment24 | Glassblower's Tools (gear), Glassblower's Tools (automated) | — |
@@ -886,7 +886,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Key | equipment24 | Key (gear) | "Card Effect" is passive or triggered: not automated |
 | Killer Whale | actors24 | Killer Whale (3 items) | — |
 | Knight | equipment24 | Knight (gear) | "Card Effect" is passive or triggered: not automated |
-| Knight | actors24 | Knight (4 items) | Parry: not automated (utility): using it spends its cost; its description says the rest |
+| Knight | actors24 | Knight (4 items) | — |
 | Knock | spells24 | Knock (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Kobold Warrior | actors24 | Kobold Warrior (3 items) | — |
 | Kraken | actors24 | Kraken (12 items) | Tentacle: "Escape Check" is passive or triggered: not automated; Swallow: effect: coverTotal is not a WildPath condition yet; Swallow: "Damage: Swallowed" is passive or triggered: not automated; Swallow: "Regurgitate: Save" is passive or triggered: not automated; Storm Bolt: not automated (utility): using it spends its cost; its description says the rest |
@@ -967,7 +967,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Manual of Quickness of Action | equipment24 | Manual of Quickness of Action (gear), Manual of Quickness of Action (Read) (manual) | not automated (utility): using it spends its cost; its description says the rest; "Reset Progress" is passive or triggered: not automated |
 | Map | equipment24 | Map (gear) | — |
 | Marble Elephant | equipment24 | Marble Elephant (gear), Marble Elephant (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
-| Marilith | actors24 | Marilith (10 items) | Constrict: "Escape Check" is passive or triggered: not automated; Teleport: not automated (utility): using it spends its cost; its description says the rest; Parry: not automated (utility): using it spends its cost; its description says the rest |
+| Marilith | actors24 | Marilith (10 items) | Constrict: "Escape Check" is passive or triggered: not automated; Teleport: not automated (utility): using it spends its cost; its description says the rest |
 | Martial Arts | classes24 | Martial Arts (feature) | "Master Simple Weapon" is passive or triggered: not automated; "Master Light Martial Weapon" is passive or triggered: not automated |
 | Marvelous Pigments | equipment24 | Marvelous Pigments (gear), Marvelous Pigments (Determine Number of Pots) (manual), Marvelous Pigments (Paint) (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses 1d3 not converted; activation: 10 minute is not an action-economy cost |
 | Mask of Many Faces | classes24 | Mask of Many Faces (automated) | effect: "Disguised" marks its creature only; its rules are by hand |
@@ -1036,7 +1036,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Night Hag | actors24 | Night Hag (18 items) | Coven Magic: not automated (utility): using it spends its cost; its description says the rest; Coven Magic: activation: 1 minute is not an action-economy cost; Coven Magic: not automated (summon): using it spends its cost; its description says the rest; Coven Magic: summon: a creature chosen by Challenge Rating is not converted; Coven Magic: activation: 1 hour is not an action-economy cost; Coven Magic: concentration: nothing it sustains was converted; Coven Magic: activation: 10 minute is not an action-economy cost; Coven Magic: save: a failure marks its creature only; what it does is by hand; Coven Magic: "Create Sensor" is passive or triggered: not automated; Spellcasting: effect: "Detect Magic" marks its creature only; its rules are by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: ethereal is not a WildPath condition yet; Spellcasting: cast: Magic Missile at level 4 is cast at its own level; Spellcasting: not automated (save): using it spends its cost; its description says the rest; Spellcasting: save: ? DC (spellcasting) not converted; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest; Shape-Shift: not automated (utility): using it spends its cost; its description says the rest; Nightmare Haunting: activation: 1 minute is not an action-economy cost |
 | Nightmare | actors24 | Nightmare (5 items) | Ethereal Stride: not automated (utility): using it spends its cost; its description says the rest |
 | Nine Lives Stealer | equipment24 | Nine Lives Stealer (Life Stealing) (automated) | rolled (save); what it does is by hand; "Nine Lives Stealer" is passive or triggered: not automated |
-| Noble | actors24 | Noble (2 items) | Parry: not automated (utility): using it spends its cost; its description says the rest |
+| Noble | actors24 | Noble (2 items) | — |
 | Nondetection | spells24 | Nondetection (automated) | effect: "Hidden from Divination" marks its creature only; its rules are by hand |
 | Oath of Devotion | classes24 | Oath of Devotion (subclass) | — |
 | Oath of Devotion Spells | classes24 | Oath of Devotion Spells (feature) | — |
@@ -1626,7 +1626,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Warlock | classes24 | Warlock (class) | spellcasting: pact is treated as none |
 | Warrior Infantry | actors24 | Warrior Infantry (3 items) | — |
 | Warrior of the Open Hand | classes24 | Warrior of the Open Hand (subclass) | — |
-| Warrior Veteran | actors24 | Warrior Veteran (5 items) | Parry: not automated (utility): using it spends its cost; its description says the rest |
+| Warrior Veteran | actors24 | Warrior Veteran (5 items) | — |
 | Water (Pint) | equipment24 | Water (Pint) (gear) | "Consume" is passive or triggered: not automated |
 | Water (Pint) | equipment24 | Water (Pint) (gear) | "Consume" is passive or triggered: not automated |
 | Water (Pint) | equipment24 | Water (Pint) (gear) | "Consume" is passive or triggered: not automated |

@@ -370,6 +370,7 @@
               "value": 17
             }
           },
+          "counters": true,
           "label": "Counterspell"
         },
         "ruleElements": [
@@ -385,6 +386,22 @@
                 "value": 3
               },
               "recovery": "longRest"
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "reaction",
+            "type": "Trigger",
+            "data": {
+              "kind": "reaction",
+              "event": "action.declared",
+              "match": {
+                "phase": "interrupt",
+                "tagsAny": [
+                  "spell"
+                ],
+                "notSourceTokenId": "{self}"
+              }
             }
           }
         ]
@@ -479,6 +496,19 @@
                 "value": 3
               },
               "recovery": "longRest"
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "reaction",
+            "type": "Trigger",
+            "data": {
+              "kind": "reaction",
+              "event": "attack.hit",
+              "match": {
+                "phase": "interrupt",
+                "targetTokenId": "{self}"
+              }
             }
           }
         ]

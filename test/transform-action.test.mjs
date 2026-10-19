@@ -60,3 +60,19 @@ test("Polymorph turns each creature that failed its save into the Beast chosen, 
   assert.deepEqual(saved.calls, [], "a save keeps its shape");
   assert.deepEqual(mightier.calls, [], "a Bear (CR 1) is beyond a CR 0 creature");
 });
+
+test("a countered spell wastes the Action that cast it, never its slot, and says what stopped it", async () => {
+  const {afterCountered} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const updates = [];
+  const actor = {name: "Caster", system: {resources: {action: {max: 1, spent: 0}, bonus: {max: 1, spent: 0}}},
+    update: async data => updates.push(data)};
+  const posted = [];
+  globalThis.ChatMessage = {create: async data => posted.push(data)};
+  const state = {warnings: [{code: "COUNTERED", reason: "Counterspell stopped it."}],
+    actionDefinition: {label: "Fireball", costs: {allOf: [{capability: "action", amount: 1}, {capability: "spell-slot.3", amount: 1}]}}};
+  assert.deepEqual(await afterCountered({options: {actor, action: {name: "Fireball"}}, state}, {game: {}}), {"system.resources.action.spent": 1});
+  assert.deepEqual(updates, [{"system.resources.action.spent": 1}], "the Action, not the slot");
+  assert.match(posted[0].content, /Fireball: Counterspell stopped it\./);
+  assert.equal(await afterCountered({options: {actor}, state: {warnings: [{code: "CANCELLED"}]}}, {game: {}}), null, "only a counter");
+  delete globalThis.ChatMessage;
+});

@@ -109,6 +109,10 @@ test("event matcher reports specific mismatch codes", () => {
   assert.equal(matchAutomationEvent({sourceActorId: "other"}, event).code, AUTOMATION_CODES.SOURCE_MISMATCH);
   assert.equal(matchAutomationEvent({targetActorIdsAll: ["defender", "other"]}, event).code, AUTOMATION_CODES.TARGET_MISMATCH);
   assert.equal(matchAutomationEvent({notTagsAny: ["ranged"]}, event).code, AUTOMATION_CODES.TAG_MISMATCH);
+  const own = createAutomationEvent({type: AUTOMATION_EVENT_TYPES.ACTION_DECLARED, phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
+    source: {actorId: "mage", tokenId: "mage-token"}, tags: ["spell"]});
+  assert.equal(matchAutomationEvent({notSourceTokenId: "mage-token"}, own).code, AUTOMATION_CODES.SOURCE_MISMATCH, "not its own spell");
+  assert.equal(matchAutomationEvent({notSourceTokenId: "other-token", tagsAny: ["spell"]}, own).ok, true);
 });
 
 test("reaction windows use reaction resources without committing payment", () => {

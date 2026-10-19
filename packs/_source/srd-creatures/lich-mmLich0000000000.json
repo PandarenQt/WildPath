@@ -1411,9 +1411,27 @@
               "value": 20
             }
           },
+          "counters": true,
           "label": "Counterspell"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "reaction",
+            "type": "Trigger",
+            "data": {
+              "kind": "reaction",
+              "event": "action.declared",
+              "match": {
+                "phase": "interrupt",
+                "tagsAny": [
+                  "spell"
+                ],
+                "notSourceTokenId": "{self}"
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -1488,7 +1506,21 @@
           ],
           "label": "Shield"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "reaction",
+            "type": "Trigger",
+            "data": {
+              "kind": "reaction",
+              "event": "attack.hit",
+              "match": {
+                "phase": "interrupt",
+                "targetTokenId": "{self}"
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {

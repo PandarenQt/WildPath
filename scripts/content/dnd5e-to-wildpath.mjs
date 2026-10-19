@@ -63,6 +63,18 @@ export function beastsOf(documents, uuidOf) {
     .sort((a, b) => (a.cr - b.cr) || a.name.localeCompare(b.name));
 }
 
+/**
+ * Reactions by their 2024 trigger, as a reaction Trigger on their Action: Shield and a Parry when an attack on their
+ * creature hits (the attack is then checked again against its new AC), Counterspell when a creature declares a spell
+ * (a failed save cancels it, `counters`). shortcut: Parry's "melee attack" and Counterspell's 60 feet, sight and
+ * hostility are the reactor's to judge (its Ask setting); upgrade when trigger predicates read distance and disposition.
+ */
+const REACTIONS = Object.freeze({
+  shield: {event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}"}},
+  parry: {event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}", tagsAny: ["melee"]}, acFromText: true},
+  counterspell: {event: "action.declared", match: {phase: "interrupt", tagsAny: ["spell"], notSourceTokenId: "{self}"}, counters: true}
+});
+
 /** dnd5e skill keys as WildPath's skills. */
 const SKILL_MAP = Object.freeze({acr: "acrobatics", ani: "animal-handling", arc: "arcana", ath: "athletics", dec: "deception",
   his: "history", ins: "insight", itm: "intimidation", inv: "investigation", med: "medicine", nat: "nature", prc: "perception",
@@ -399,7 +411,23 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // "Disengage or Hide" (Nimble Escape): this Action is the first, and each other is an Action of its own.
     const choices = (activity.type === "utility") ? COMMON_CHOICES[`${identifierOf(document)}/${activity.name}`] : null;
     const title = common => ` (${common.charAt(0).toUpperCase()}${common.slice(1)})`;
-    items.push(action(id, `${document.name}${suffix}${choices ? title(choices[0]) : ""}`, definition));
+    // A reaction its 2024 text triggers (Shield, Parry, Counterspell): a Trigger on its Action, which the engine offers.
+    const reaction = (activation === "reaction") ? REACTIONS[identifierOf(document)] : null;
+    if ( reaction?.counters ) definition = {...definition, counters: true};
+    // "adds 2 to its AC against that attack" (a Parry; dnd5e keeps the 2 in its activity's roll): that much AC on itself
+    // until the attack is over.
+    const bonusAC = reaction?.acFromText ? (number(activity.roll?.formula)
+      ?? number(/\badds (\d+) to its AC against that attack/i.exec(plainText(document))?.[1])) : null;
+    if ( bonusAC && !definition.effects?.length ) {
+      definition = {...definition, range: {type: "self"}, targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect",
+        name: document.name, ...(img ? {img} : {}), endsWhen: "attacked", ruleElements: [{schemaVersion: 1, id: "parry", type: "Modifier",
+          data: {domains: ["defense.ac"], modifierType: "untyped", value: bonusAC}}]}]};
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
+    }
+    const reacting = action(id, `${document.name}${suffix}${choices ? title(choices[0]) : ""}`, definition);
+    if ( reaction ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
+      data: {kind: "reaction", event: reaction.event, match: reaction.match}});
+    items.push(reacting);
     for ( const other of choices?.slice(1) ?? [] ) items.push(action(stableId(`${id}:${other}`), `${document.name}${suffix}${title(other)}`,
       commonActivity({document, activity, system, spell, level, pool}, [other])));
     // A lasting area its caster can move ("a Magic action ... to move the Cylinder up to 60 feet"): its own Action.
@@ -921,7 +949,9 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   const name = options.creature ? spellDocument.name : `${document.name}: ${spellDocument.name}`;
   return {_id: id, _key: `!items!${id}`, name, type: "action",
     img: kept(spellDocument.img, options.images ?? ["icons/"]) ?? action.img,
-    system: {active: true, description: action.system.description, definition, ruleElements: [itemPool?.rule, pool?.rule].filter(Boolean)},
+    system: {active: true, description: action.system.description, definition, ruleElements: [itemPool?.rule, pool?.rule,
+      // A spell's reaction Trigger (a Mage's Counterspell) comes with it.
+      ...(action.system.ruleElements ?? []).filter(rule => rule.type === "Trigger")].filter(Boolean)},
     flags: {wildpath: {source: {...action.flags.wildpath.source, castBy: document.name}, conversion: {notes: [...notes]}}}};
 }
 

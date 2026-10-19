@@ -129,7 +129,21 @@
       ],
       "label": "Shield"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "targetTokenId": "{self}"
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

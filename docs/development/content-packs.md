@@ -338,6 +338,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Dominate Mind (Charmed). One that lasts (a duration, or concentration) without them marks the creatures that fail:
   Zone of Truth, Confusion, Bestow Curse. SRD saves left wholly by hand fell from 137 to 35 documents, and
   concentration effects not converted from 175 to 122.
+- **Reactions (2026-10-19).** Shield, Parry (7 SRD creatures, their own +2 to +5 AC) and Counterspell are offered by
+  the engine when they apply (reactions.md); before, they only spent a Reaction when used by hand.
 - **Polymorph (2026-10-19).** A failed save transforms the creature into a Beast its caster chooses from the converted
   Beasts (classes-and-spellcasting.md); its text's rules on what it may do in its form are by hand. A magic item that
   casts a spell keeps the spell's choices except the slot (a Beast, a damage type, one of its effects), and a wand whose

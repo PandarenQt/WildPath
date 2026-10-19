@@ -269,7 +269,17 @@ export default class WildPathActor extends Actor {
     const actions = [...(this.items ?? [])].filter(item => (item.type === "action") && (item.system?.active !== false)).map(item => ({
       ruleElements: (item.system?.ruleElements ?? []).filter(rule => normalizeRuleElementType(rule?.type) === "GrantResource"),
       source: documentRuleElementSource(item, "item")}));
-    return grantedResourcesFromRuleElements([...grantOwners(this), ...actions], {actor: this, actorSystem: this.system});
+    // One feature's grant on each of its Actions (Monk's Focus: Flurry of Blows, Patient Defense, Step of the Wind) is
+    // one pool, not three: identical grants (the same rule id for the same pool) count once.
+    const seen = new Set();
+    return grantedResourcesFromRuleElements([...grantOwners(this), ...actions], {actor: this, actorSystem: this.system})
+      .filter(grant => {
+        const key = grant.ruleId ? `${grant.ruleId}:${grant.id}` : null;
+        if ( !key ) return true;
+        if ( seen.has(key) ) return false;
+        seen.add(key);
+        return true;
+      });
   }
 
   /**

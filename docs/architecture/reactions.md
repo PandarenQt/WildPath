@@ -215,6 +215,31 @@ candidate/event/action identities are rejected structurally instead of recursing
   RollProvider/request-response flow
 - duplicate response handling after parent/child completion without duplicate mutation
 
+## Reactions From Content (2026-10-19)
+
+Converted reactions carry a reaction `Trigger` on their own Action, so the engine offers them (`REACTIONS` in the
+converter, by dnd5e identifier):
+- **Shield, Parry:** `attack.hit` with `match: {targetTokenId: "{self}"}`, an attack on the reactor that hits. Parry also
+  needs `tagsAny: ["melee"]`: an attack's hit and miss events now carry the attack's type (`melee`, `ranged`) among their
+  tags. Parry's bonus (dnd5e keeps it in the activity's roll) is an effect on itself, `+N` to `defense.ac`, that ends once
+  that attack is over (`endsWhen: "attacked"`). The attack is then checked again with the new AC.
+- **Counterspell:** `action.declared` with `tagsAny: ["spell"]` and `notSourceTokenId: "{self}"`: another creature's
+  spell, never the reactor's own (without it, Counterspell answered itself). Its Action has `counters: true`: when its
+  target (the caster) fails the save, the child sets `results.parentDirective` to `cancel-parent` (code `COUNTERED`), and
+  the spell is cancelled before anything of it resolves. The coordinator's new `afterCancelled` hook then spends the
+  caster's Action, Bonus Action or Reaction (2024: wasted), never its slot, and posts "Fire Bolt fails. Counterspell
+  stopped it." A creature's Spellcasting that casts these (a Mage's Protective Magic) keeps the spell's Trigger.
+
+Live (two browsers, 2026-10-19):
+- Player1's QA Fighter hit the Bandit Captain (22). The GM was offered Parry and used it: the attack was checked again
+  against AC 17 (15 + 2), still hit, and the Captain's Reaction was spent.
+- Player1's QA Caster cast Fire Bolt with an SRD Mage 20 feet away. The GM was offered Counterspell; the Caster failed
+  its save (6), Fire Bolt did nothing, its Action was spent, and both clients read "Fire Bolt fails. Counterspell stopped
+  it." The Mage's Reaction and a Protective Magic use were spent.
+
+Shortcuts: a Parry's "while holding a weapon", and Counterspell's 60 feet, sight and hostility, are the reactor's to
+judge (its Ask setting). Reactions to damage taken (Hellish Rebuke) and to falling (Feather Fall) have no window yet.
+
 ## Current Limits
 
 Not yet implemented:
