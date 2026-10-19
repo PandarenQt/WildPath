@@ -29,6 +29,14 @@
         "saveProficient": true
       }
     },
+    "skills": {
+      "deception": {
+        "proficiency": 1
+      },
+      "perception": {
+        "proficiency": 1
+      }
+    },
     "defenses": {
       "ac": {
         "value": 17

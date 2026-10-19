@@ -26,6 +26,14 @@
         "value": 10
       }
     },
+    "skills": {
+      "perception": {
+        "proficiency": 2
+      },
+      "stealth": {
+        "proficiency": 2
+      }
+    },
     "defenses": {
       "ac": {
         "value": 12

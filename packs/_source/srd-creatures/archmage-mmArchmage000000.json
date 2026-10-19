@@ -27,6 +27,17 @@
         "value": 16
       }
     },
+    "skills": {
+      "arcana": {
+        "proficiency": 2
+      },
+      "history": {
+        "proficiency": 1
+      },
+      "perception": {
+        "proficiency": 1
+      }
+    },
     "defenses": {
       "ac": {
         "value": 12

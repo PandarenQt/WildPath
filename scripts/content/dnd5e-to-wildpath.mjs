@@ -17,6 +17,11 @@ import {commonAction} from "../../module/helpers/common-actions.mjs";
 
 /** dnd5e ability keys to WildPath's. */
 export const ABILITY_MAP = Object.freeze({str: "might", dex: "agility", con: "fortitude", int: "intellect", wis: "wits", cha: "presence"});
+/** dnd5e skill keys as WildPath's skills. */
+const SKILL_MAP = Object.freeze({acr: "acrobatics", ani: "animal-handling", arc: "arcana", ath: "athletics", dec: "deception",
+  his: "history", ins: "insight", itm: "intimidation", inv: "investigation", med: "medicine", nat: "nature", prc: "perception",
+  prf: "performance", per: "persuasion", rel: "religion", slt: "sleight-of-hand", ste: "stealth", sur: "survival"});
+
 /** dnd5e statuses WildPath has conditions for. */
 const CONDITION_MAP = Object.freeze(Object.fromEntries(["prone", "blinded", "restrained", "stunned", "unconscious", "poisoned",
   "exhaustion", "charmed", "deafened", "frightened", "grappled", "incapacitated", "invisible", "paralyzed", "petrified", "dead"]
@@ -345,7 +350,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
           definition: actionDefinition, notes})].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes}}}
     });
-    items.push(action(id, `${document.name}${suffix}`, definition));
+    // "Disengage or Hide" (Nimble Escape): this Action is the first, and each other is an Action of its own.
+    const choices = (activity.type === "utility") ? COMMON_CHOICES[`${identifierOf(document)}/${activity.name}`] : null;
+    const title = common => ` (${common.charAt(0).toUpperCase()}${common.slice(1)})`;
+    items.push(action(id, `${document.name}${suffix}${choices ? title(choices[0]) : ""}`, definition));
+    for ( const other of choices?.slice(1) ?? [] ) items.push(action(stableId(`${id}:${other}`), `${document.name}${suffix}${title(other)}`,
+      commonActivity({document, activity, system, spell, level, pool}, [other])));
     // A lasting area its caster can move ("a Magic action ... to move the Cylinder up to 60 feet"): its own Action.
     const moveArea = moveAreaDefinition(document, definition);
     if ( moveArea ) items.push(action(stableId(`${id}:move`), `${document.name}${suffix} (Move)`, moveArea));
@@ -917,8 +927,23 @@ const COMMON_ACTIVITIES = Object.freeze(["dash", "disengage", "dodge", "hide"]);
 const COMMON_BY_TEXT = Object.freeze({
   "monks-focus/Patient Defense (Focus Point)": ["disengage", "dodge"],
   "monks-focus/Step of the Wind": ["disengage", "dash"],
-  "shadow-stealth/Expend Use": ["hide"]
+  "shadow-stealth/Expend Use": ["hide"],
+  "hasten/Expend Use": ["dash", "disengage"]
 });
+
+/** Activities that take one common action of several (a goblin's Nimble Escape: Disengage or Hide): an Action each. */
+const COMMON_CHOICES = Object.freeze({
+  "nimble-escape/Expend Use": ["disengage", "hide"],
+  "deathless-agility/Expend Use": ["dash", "disengage"]
+});
+
+/** The common actions a utility activity takes, by its text or its name; null for none. */
+function commonIdsOf(document, activity) {
+  if ( activity.type !== "utility" ) return null;
+  const key = `${identifierOf(document)}/${activity.name}`;
+  const id = String(activity.name ?? "").split(":").pop().trim().toLowerCase();
+  return COMMON_BY_TEXT[key] ?? COMMON_CHOICES[key]?.slice(0, 1) ?? (COMMON_ACTIVITIES.includes(id) ? [id] : null);
+}
 
 /** WildPath's own rules of a common action (Dash's extra Speed, Disengage's effect, Hide's check), without its cost. */
 function commonRules(id) {
@@ -930,10 +955,7 @@ function commonRules(id) {
  * A utility activity that takes a common action ("Dash", "Cunning Action: Disengage" as a Bonus Action): that
  * action's own rules at the activity's cost. Null for any other activity.
  */
-function commonActivity({document, activity, system, spell, level, pool}) {
-  if ( activity.type !== "utility" ) return null;
-  const id = String(activity.name ?? "").split(":").pop().trim().toLowerCase();
-  const ids = COMMON_BY_TEXT[`${identifierOf(document)}/${activity.name}`] ?? (COMMON_ACTIVITIES.includes(id) ? [id] : null);
+function commonActivity({document, activity, system, spell, level, pool}, ids=commonIdsOf(document, activity)) {
   if ( !ids ) return null;
   // Several at once (Step of the Wind): each one's rules, and all their effects.
   const rules = ids.map(commonRules);
@@ -1392,6 +1414,11 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
     system: {
       abilities: Object.fromEntries(Object.entries(ABILITY_MAP).map(([key, ability]) => [ability, {value: score(key),
         ...((number(system.abilities?.[key]?.proficient) ?? 0) >= 1 ? {saveProficient: true} : {})}])),
+      // Its skills: proficient once or twice (expertise); dnd5e's half proficiency is none.
+      skills: Object.fromEntries(Object.entries(SKILL_MAP).flatMap(([key, skill]) => {
+        const level = Math.min(Math.floor(number(system.skills?.[key]?.value) ?? 0), 2);
+        return level > 0 ? [[skill, {proficiency: level}]] : [];
+      })),
       defenses: {ac: {value: armorClass(document, modifier("dex"), notes)}},
       resources: {health: {base: health, value: health}, movement: {base: walk, value: walk}},
       details: {threat: Math.floor(challenge)},

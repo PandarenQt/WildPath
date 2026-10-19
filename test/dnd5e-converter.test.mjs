@@ -883,6 +883,17 @@ test("an activity that takes a common action is that action at its own cost (Cun
   const [stealth] = convertItem({...feature("testShadowSteal1", "Shadow Stealth", {a: bonus("Expend Use")}), system: {...feature("x", "x", {}).system,
     identifier: "shadow-stealth", activities: {a: bonus("Expend Use")}}}).items;
   assert.deepEqual([stealth.system.definition.check.skill, stealth.system.definition.effects[0].id], ["stealth", "hidden"], "the Hide action");
+
+  const nimble = convertItem({...feature("testNimbleEscap1", "Nimble Escape", {a: bonus("Expend Use")}), system: {...feature("x", "x", {}).system,
+    identifier: "nimble-escape", activities: {a: bonus("Expend Use")}}}).items;
+  assert.deepEqual(nimble.map(item => [item.name, item.system.definition.costs.allOf[0].capability, item.system.definition.effects[0].id,
+    item.system.definition.check?.skill ?? null]),
+  [["Nimble Escape (Disengage)", "bonus-action", "disengaged", null], ["Nimble Escape (Hide)", "bonus-action", "hidden", "stealth"]],
+  "Disengage or Hide: an Action each, as a Bonus Action");
+  assert.notEqual(nimble[0]._id, nimble[1]._id);
+  const [hasten] = convertItem({...feature("testHasten000001", "Hasten", {a: bonus("Expend Use")}), system: {...feature("x", "x", {}).system,
+    identifier: "hasten", activities: {a: bonus("Expend Use")}}}).items;
+  assert.deepEqual(hasten.system.definition.effects.map(effect => effect.id), ["dashing", "disengaged"], "Dash and Disengage");
 });
 
 test("a grapple or restraint keeps its escape DC, from the Escape Check activity or \"escape DC 14\" in its text", () => {
@@ -908,6 +919,8 @@ test("a grapple or restraint keeps its escape DC, from the Escape Check activity
   const snake = {_id: "testSnake0000001", name: "Snake", type: "npc", img: "icons/svg/mystery-man.svg", items: [passive], effects: [],
     system: {source: SRD, abilities: {str: {value: 19}}, skills: {ath: {ability: "str", value: 1, bonuses: {passive: ""}}}, details: {cr: 2},
       attributes: {hp: {value: 30, max: 30}, ac: {flat: 12}, movement: {walk: 30}}, traits: {size: "lg"}}};
+  const converted = convertActor({...snake, system: {...snake.system, skills: {...snake.system.skills, ste: {value: 2}, prc: {value: 0.5}}}}).actor;
+  assert.deepEqual(converted.system.skills, {athletics: {proficiency: 1}, stealth: {proficiency: 2}}, "its skills; half proficiency is none");
   const constrict = convertActor(snake).actor.items.find(item => item.name.startsWith("Constrict"));
   assert.deepEqual(constrict.system.definition.effects[0].metadata, {escapeDC: 10 + 4 + 2}, "its passive Athletics");
 });

@@ -25,6 +25,17 @@
         "value": 14
       }
     },
+    "skills": {
+      "deception": {
+        "proficiency": 1
+      },
+      "insight": {
+        "proficiency": 1
+      },
+      "stealth": {
+        "proficiency": 1
+      }
+    },
     "defenses": {
       "ac": {
         "value": 13

@@ -25,6 +25,11 @@
         "value": 8
       }
     },
+    "skills": {
+      "perception": {
+        "proficiency": 1
+      }
+    },
     "defenses": {
       "ac": {
         "value": 15

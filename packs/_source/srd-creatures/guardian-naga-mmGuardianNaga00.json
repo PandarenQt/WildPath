@@ -30,6 +30,17 @@
         "saveProficient": true
       }
     },
+    "skills": {
+      "arcana": {
+        "proficiency": 2
+      },
+      "history": {
+        "proficiency": 2
+      },
+      "religion": {
+        "proficiency": 2
+      }
+    },
     "defenses": {
       "ac": {
         "value": 18

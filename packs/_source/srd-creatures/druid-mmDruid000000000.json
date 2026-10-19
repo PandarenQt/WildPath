@@ -25,6 +25,17 @@
         "value": 11
       }
     },
+    "skills": {
+      "medicine": {
+        "proficiency": 1
+      },
+      "nature": {
+        "proficiency": 1
+      },
+      "perception": {
+        "proficiency": 1
+      }
+    },
     "defenses": {
       "ac": {
         "value": 13

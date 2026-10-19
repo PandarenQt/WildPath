@@ -27,6 +27,17 @@
         "value": 16
       }
     },
+    "skills": {
+      "history": {
+        "proficiency": 1
+      },
+      "perception": {
+        "proficiency": 1
+      },
+      "religion": {
+        "proficiency": 1
+      }
+    },
     "defenses": {
       "ac": {
         "value": 17

@@ -27,6 +27,14 @@
         "value": 8
       }
     },
+    "skills": {
+      "perception": {
+        "proficiency": 2
+      },
+      "stealth": {
+        "proficiency": 2
+      }
+    },
     "defenses": {
       "ac": {
         "value": 13
@@ -229,7 +237,7 @@
     {
       "_id": "mmNimbleEscape00",
       "_key": "!actors.items!mmSabertoothedTi.mmNimbleEscape00",
-      "name": "Nimble Escape",
+      "name": "Nimble Escape (Disengage)",
       "type": "action",
       "img": "icons/skills/movement/ball-spinning-blue.webp",
       "system": {
@@ -246,7 +254,28 @@
               }
             ]
           },
-          "label": "Nimble Escape"
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "disengaged",
+              "type": "effect",
+              "name": "Disengaged",
+              "slug": "disengaged",
+              "img": "icons/svg/walk.svg",
+              "duration": {
+                "value": 0,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "ruleElements": []
+            }
+          ],
+          "label": "Nimble Escape (Disengage)"
         },
         "ruleElements": []
       },
@@ -262,10 +291,69 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: hiding is not a WildPath condition yet"
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "f4fnexdi4wm50000",
+      "_key": "!actors.items!mmSabertoothedTi.f4fnexdi4wm50000",
+      "name": "Nimble Escape (Hide)",
+      "type": "action",
+      "img": "icons/skills/movement/ball-spinning-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The saber-toothed tiger takes the Disengage or Hide action.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-nimble-escape-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
             ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "check": {
+            "ability": "agility",
+            "skill": "stealth",
+            "dc": {
+              "value": 15
+            }
+          },
+          "effects": [
+            {
+              "id": "hidden",
+              "type": "condition",
+              "conditionId": "invisible",
+              "checkOutcomePolicy": "success"
+            }
+          ],
+          "label": "Nimble Escape (Hide)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmNimbleEscape00",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -284,10 +372,7 @@
         "challenge": 2
       },
       "conversion": {
-        "notes": [
-          "Nimble Escape: not automated (utility): using it spends its cost; its description says the rest",
-          "Nimble Escape: effect: hiding is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }

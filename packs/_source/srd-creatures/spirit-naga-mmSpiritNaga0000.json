@@ -29,6 +29,7 @@
         "saveProficient": true
       }
     },
+    "skills": {},
     "defenses": {
       "ac": {
         "value": 17
