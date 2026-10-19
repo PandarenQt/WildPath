@@ -65,7 +65,8 @@
           "img": "icons/skills/melee/sword-damaged-broken-glow-red.webp",
           "ruleElements": [],
           "saveOutcomePolicy": "failure",
-          "concentration": true
+          "concentration": true,
+          "repeatSave": "turnEnd"
         },
         {
           "id": "effect-2",
@@ -102,7 +103,8 @@
             "expiry": "turnStart"
           },
           "saveOutcomePolicy": "failure",
-          "concentration": true
+          "concentration": true,
+          "repeatSave": "turnEnd"
         }
       ],
       "configuration": [

@@ -378,13 +378,15 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "incapacitated",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "repeatSave": "turnEnd"
             },
             {
               "id": "effect-2",
               "type": "condition",
               "conditionId": "paralyzed",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "repeatSave": "turnEnd"
             }
           ],
           "configuration": [

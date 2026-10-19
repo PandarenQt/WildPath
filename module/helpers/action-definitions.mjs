@@ -14,6 +14,12 @@ import {withWeaponMastery} from "./weapon-mastery.mjs";
 /** When a custom effect ends early: its creature is attacked, attacked by the creature that applied it, or attacks. */
 export const CUSTOM_EFFECT_ENDS_WHEN = Object.freeze(["attacked", "attackedBySource", "attacks"]);
 
+/**
+ * When a creature an effect reached repeats the save that let it in (2024: "At the end of each of its turns, the target
+ * repeats the save, ending the spell on itself on a success"): `turnEnd` or `turnStart` of its own turns.
+ */
+export const REPEAT_SAVE_TIMINGS = Object.freeze(["turnEnd", "turnStart"]);
+
 /** V14's ActiveEffect duration units and expiry events (CONST), for a custom effect's native duration. */
 export const CUSTOM_EFFECT_DURATION_UNITS = Object.freeze(["years", "months", "days", "hours", "minutes", "seconds", "rounds", "turns"]);
 export const CUSTOM_EFFECT_EXPIRY_EVENTS = Object.freeze(["combatStart", "roundStart", "turnStart", "combatEnd", "roundEnd", "turnEnd"]);
@@ -476,7 +482,9 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
       metadata: {
         ...(effect.metadata ?? {}),
         actionDefinitionId: definition.id,
-        effectDefinitionId: effect.id
+        effectDefinitionId: effect.id,
+        // Its timing; the Action's save stamps the ability and DC when it resolves (action-pipeline-resolver.mjs).
+        ...(effect.repeatSave ? {repeatSave: {timing: effect.repeatSave}} : {})
       }
     }));
   return mergeResolverRequest({
@@ -797,6 +805,10 @@ function validateHealing(components, errors) {
 function validateEffects(effects, errors, {conditionDefinitions=null, effectDefinitions=null}={}) {
   effects.forEach((effect, index) => {
     const path = `effects.${index}`;
+    if ( (effect.repeatSave != null) && !REPEAT_SAVE_TIMINGS.includes(effect.repeatSave) ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.repeatSave`,
+        `An effect's save is repeated at: ${REPEAT_SAVE_TIMINGS.join(", ")}.`));
+    }
     if ( effect.type === "effect" ) return validateCustomEffect(effect, path, errors);
     if ( effect.type === "condition" ) {
       if ( !effect.conditionId ) {
@@ -1122,6 +1134,7 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
       ruleElements: normalizeArray(effect.ruleElements).map(clonePlain),
       // It ends after the next attack against its creature (Help, Guiding Bolt), else with its duration.
       ...(effect.endsWhen ? {endsWhen: String(effect.endsWhen)} : {})} : {}),
+    ...(effect.repeatSave ? {repeatSave: String(effect.repeatSave)} : {}),
     predicate: clonePlain(effect.predicate ?? null),
     source: clonePlain(effect.source ?? null),
     origin: clonePlain(effect.origin ?? null),

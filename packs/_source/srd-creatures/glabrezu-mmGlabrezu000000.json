@@ -696,7 +696,8 @@
                 "expiry": "turnStart"
               },
               "saveOutcomePolicy": "failure",
-              "concentration": true
+              "concentration": true,
+              "repeatSave": "turnEnd"
             }
           ],
           "label": "Confusion"

@@ -80,6 +80,18 @@ const REACTIONS = Object.freeze({
   counterspell: {event: "action.declared", match: {phase: "interrupt", tagsAny: ["spell"], notSourceTokenId: "{self}"}, counters: true}
 });
 
+/**
+ * When its 2024 text has a creature repeat the save that let its effect in, ending it on a success: `turnEnd` ("repeats
+ * the save at the end of each of its turns"), `turnStart`, or null. "repeats the save at ..." is read first, so a
+ * text naming another start-of-turn event before it (a Pit Fiend's poison) still reads right.
+ */
+function repeatSaveTiming(document) {
+  const text = plainText(document).replace(/&amp;Reference\[(\w+)[^\]]*\]/g, "$1");
+  const found = /repeats? the save at the (end|start) of each of its turns[^.]*\b(?:ending|ends?)\b[^.]*on a success/i.exec(text)
+    ?? /at the (end|start) of each of its turns,? [^.]*repeats? the save[^.]*\b(?:ending|ends?)\b[^.]*on a success/i.exec(text);
+  return found ? (found[1].toLowerCase() === "end" ? "turnEnd" : "turnStart") : null;
+}
+
 /** dnd5e skill keys as WildPath's skills. */
 const SKILL_MAP = Object.freeze({acr: "acrobatics", ani: "animal-handling", arc: "arcana", ath: "athletics", dec: "deception",
   his: "history", ins: "insight", itm: "intimidation", inv: "investigation", med: "medicine", nat: "nature", prc: "perception",
@@ -1397,6 +1409,12 @@ function convertActivity({document, activity, system, spell, level, scales, note
 
   if ( damage.length ) definition.damage = damage.map(({scaleDice: _scale, ...component}) => component);
   if ( healing.length ) definition.healing = healing.map(({scaleDice: _scale, ...component}) => component);
+  // "At the end of each of its turns, the target repeats the save, ending the spell on itself on a success" (Hold
+  // Person): each effect a failed save gives is saved against again then.
+  const repeat = definition.save ? repeatSaveTiming(document) : null;
+  if ( repeat ) for ( const effect of effects ) {
+    if ( (effect.saveOutcomePolicy === "failure") && !((effect.levels ?? 1) < 0) ) effect.repeatSave = repeat;
+  }
   if ( effects.length ) definition.effects = effects;
 
   // A spell of level 1 or higher spends a slot of its level or higher; damage dice that scale grow per level above.

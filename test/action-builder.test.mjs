@@ -347,6 +347,17 @@ test("a Grappled or Restrained row keeps its escape DC (a Tentacle's 14)", () =>
   assert.equal(submit(tentacle, {effects: {0: {escapeDC: null}}}).definition.effects[0].metadata, undefined, "cleared");
 });
 
+test("an effect row's save can be repeated at the end or start of each of its creature's turns (Hold Person)", () => {
+  const hold = {schemaVersion: 1, id: "action:hold", label: "Hold", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1}, save: {ability: "wits", dc: {value: 13}},
+    effects: [{id: "effect-1", type: "condition", conditionId: "paralyzed", saveOutcomePolicy: "failure", repeatSave: "turnEnd"}]};
+  assert.equal(definitionToBuilder(hold).effects[0].repeatSave, "turnEnd");
+  assert.deepEqual(builderGaps(hold), []);
+  assert.equal(submit(hold, {}).changed, false);
+  assert.equal(submit(hold, {effects: {0: {repeatSave: ""}}}).definition.effects[0].repeatSave, undefined);
+  assert.equal(submit(hold, {effects: {0: {repeatSave: "turnStart"}}}).definition.effects[0].repeatSave, "turnStart");
+});
+
 test("a healing row can give Temporary Hit Points instead (False Life)", () => {
   const life = {schemaVersion: 1, id: "action:life", label: "Life", costs: {allOf: [{capability: "action", amount: 1}]},
     targeting: {type: "self"}, healing: [{id: "healing-1", expression: {type: "dice", number: 2, faces: 4}, healingType: "temporary"}]};

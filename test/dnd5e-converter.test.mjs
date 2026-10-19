@@ -1057,6 +1057,16 @@ test("Command's five commands and Bestow Curse's curses: chosen when used, appli
   assert.deepEqual(resilience.ruleElements[0].data.expression, {type: "dice", number: 1, faces: 8});
 });
 
+test("a save its 2024 text repeats at each of the creature's turns marks the effects it gives (Hold Person)", () => {
+  const held = text => convertItem({...hold, _id: "testHoldRepeat01", system: {...hold.system, description: {value: text}}}).items[0]
+    .system.definition.effects[0].repeatSave;
+  assert.equal(held("<p>At the end of each of its turns, the target repeats the save, ending the spell on itself on a success.</p>"), "turnEnd");
+  assert.equal(held("<p>It repeats the save at the start of each of its turns, ending the effect on itself on a success.</p>"), "turnStart");
+  assert.equal(held("<p>It takes 21 Poison damage at the start of each of its turns, and it repeats the save at the end of each of its"
+    + " turns, ending the effect on itself on a success.</p>"), "turnEnd", "a Pit Fiend's: the save is at the end");
+  assert.equal(held("<p>The target repeats the save at the end of each of its turns.</p>"), undefined, "nothing ends on a success");
+});
+
 test("Temporary Hit Points are healing of their own type (False Life)", () => {
   const life = {_id: "testFalseLife001", name: "False Life", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
     system: {source: SRD, identifier: "false-life", level: 1, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},

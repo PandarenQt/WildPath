@@ -240,6 +240,8 @@ export function definitionToBuilder(definition: Data | null | undefined, {abilit
       // What grapples or restrains has an escape DC (the common Escape action rolls against it).
       escapes: ["grappled", "restrained"].includes(effect.conditionId),
       escapeDC: effect.metadata?.escapeDC ?? null,
+      // Its save repeated at the end (or start) of each of its creature's turns, ending it on a success (Hold Person).
+      repeatSave: effect.repeatSave ?? "",
       concentration: effect.concentration === true,
       onFailedSave: isFailureOnly(effect.saveOutcomePolicy),
       policyReadOnly: (effect.saveOutcomePolicy != null) && !isFailureOnly(effect.saveOutcomePolicy),
@@ -610,6 +612,10 @@ const WRITERS = {
         if ( row.concentration ) effect.concentration = true;
         else delete effect.concentration;
       }
+      if ( changed("repeatSave") ) {
+        if ( ["turnEnd", "turnStart"].includes(row.repeatSave) ) effect.repeatSave = row.repeatSave;
+        else delete effect.repeatSave;
+      }
       if ( changed("escapeDC") ) {
         const dc = number(row.escapeDC);
         const {escapeDC: _old, ...metadata} = effect.metadata ?? {};
@@ -781,7 +787,7 @@ const GAP_SPEC: GapSpec = {
   healing: [{id: true, expression: formulaSpec, healingType: true}],
   effects: [{id: true, type: (type: string) => gapIf(!["condition", "effect"].includes(type)), conditionId: true, levels: true, concentration: true,
     saveOutcomePolicy: (policy: unknown) => gapIf(!isFailureOnly(policy)), name: true, slug: true, img: true,
-    duration: {value: true, units: true, expiry: true}, metadata: {escapeDC: true},
+    duration: {value: true, units: true, expiry: true}, metadata: {escapeDC: true}, repeatSave: true,
     ruleElements: (rules: unknown, {abilities}: BuilderOptions) => ruleGaps(rules, {abilities: abilities ?? null}).map(gap => `.${gap}`)}],
   // The spell slot choice is checked whole, below.
   configuration: true
