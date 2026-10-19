@@ -130,6 +130,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Freezing Sphere (Cast and Fire)"
     },
     "ruleElements": [

@@ -170,6 +170,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Ice Storm"
     },
     "ruleElements": []

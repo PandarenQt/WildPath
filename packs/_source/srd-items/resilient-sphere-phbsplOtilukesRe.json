@@ -125,6 +125,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Resilient Sphere"
     },
     "ruleElements": []

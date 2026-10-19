@@ -112,6 +112,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Speak with Plants"
     },
     "ruleElements": []

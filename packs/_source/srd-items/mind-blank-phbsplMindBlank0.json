@@ -97,6 +97,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 8
+      },
       "label": "Mind Blank"
     },
     "ruleElements": []

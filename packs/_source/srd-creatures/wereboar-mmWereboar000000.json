@@ -367,6 +367,21 @@
               }
             }
           },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Cursed",
+              "img": "systems/dnd5e/icons/svg/statuses/cursed.svg",
+              "ruleElements": [],
+              "saveOutcomePolicy": "failure",
+              "metadata": {
+                "tags": [
+                  "curse"
+                ]
+              }
+            }
+          ],
           "label": "Gore  (Boar or Hybrid Form Only) (save)"
         },
         "ruleElements": []
@@ -385,7 +400,7 @@
           "conversion": {
             "notes": [
               "effect: cursed is not a WildPath condition yet",
-              "rolled (save); what it does is by hand"
+              "effect: \"Cursed\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -715,7 +730,7 @@
       "conversion": {
         "notes": [
           "Gore  (Boar or Hybrid Form Only): effect: cursed is not a WildPath condition yet",
-          "Gore  (Boar or Hybrid Form Only): rolled (save); what it does is by hand",
+          "Gore  (Boar or Hybrid Form Only): effect: \"Cursed\" marks its creature only; its rules are by hand",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

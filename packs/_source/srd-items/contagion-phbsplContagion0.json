@@ -228,6 +228,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Contagion"
     },
     "ruleElements": []

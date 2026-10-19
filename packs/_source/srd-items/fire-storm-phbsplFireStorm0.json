@@ -110,6 +110,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 7
+      },
       "label": "Fire Storm"
     },
     "ruleElements": []

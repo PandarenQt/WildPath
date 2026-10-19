@@ -112,6 +112,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Harm"
     },
     "ruleElements": []

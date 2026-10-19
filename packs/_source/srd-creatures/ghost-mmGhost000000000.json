@@ -277,6 +277,29 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Etherealness",
+              "img": "systems/dnd5e/icons/svg/statuses/ethereal.svg",
+              "ruleElements": [],
+              "duration": {
+                "value": 28800,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
+          "metadata": {
+            "spellLevel": 7
+          },
           "label": "Etherealness"
         },
         "ruleElements": []
@@ -295,8 +318,8 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: ethereal is not a WildPath condition yet"
+              "effect: ethereal is not a WildPath condition yet",
+              "effect: \"Etherealness\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -553,8 +576,8 @@
       },
       "conversion": {
         "notes": [
-          "Etherealness: not automated (utility): using it spends its cost; its description says the rest",
-          "Etherealness: effect: ethereal is not a WildPath condition yet"
+          "Etherealness: effect: ethereal is not a WildPath condition yet",
+          "Etherealness: effect: \"Etherealness\" marks its creature only; its rules are by hand"
         ]
       }
     }

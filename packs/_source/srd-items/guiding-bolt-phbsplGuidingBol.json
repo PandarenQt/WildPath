@@ -51,6 +51,15 @@
           "provenance": "spell-base"
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Guiding Bolt",
+          "img": "icons/skills/targeting/target-strike-triple-blue.webp",
+          "ruleElements": []
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -142,6 +151,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Guiding Bolt"
     },
     "ruleElements": []
@@ -159,7 +171,8 @@
       },
       "conversion": {
         "notes": [
-          "effect: marked is not a WildPath condition yet"
+          "effect: marked is not a WildPath condition yet",
+          "effect: \"Guiding Bolt\" marks its creature only; its rules are by hand"
         ]
       }
     }

@@ -289,6 +289,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -335,6 +338,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 2
           },
           "label": "Detect Thoughts"
         },
@@ -385,6 +391,24 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 3
+          },
+          "ends": {
+            "spells": "slot"
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
           "label": "Dispel Magic"
         },
         "ruleElements": []
@@ -403,7 +427,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
             ]
           }
         }
@@ -471,6 +495,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Fireball"
         },
         "ruleElements": []
@@ -538,6 +565,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Invisibility"
         },
         "ruleElements": []
@@ -622,6 +652,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Lightning Bolt"
         },
         "ruleElements": []
@@ -681,6 +714,9 @@
             "count": 1,
             "rounds": 10
           },
+          "metadata": {
+            "spellLevel": 0
+          },
           "label": "Mage Hand"
         },
         "ruleElements": []
@@ -725,6 +761,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Prestidigitation"
         },
@@ -776,6 +815,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 3
           },
           "label": "Animate Dead"
         },
@@ -851,6 +893,9 @@
           "teleport": {
             "distance": 500
           },
+          "metadata": {
+            "spellLevel": 4
+          },
           "label": "Dimension Door"
         },
         "ruleElements": [
@@ -916,6 +961,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 7
           },
           "label": "Plane Shift"
         },
@@ -1020,6 +1068,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 6
+          },
           "label": "Chain Lightning"
         },
         "ruleElements": [
@@ -1127,6 +1178,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 7
+          },
           "label": "Finger of Death"
         },
         "ruleElements": [
@@ -1217,6 +1271,9 @@
               "provenance": "spell-base"
             }
           ],
+          "metadata": {
+            "spellLevel": 9
+          },
           "label": "Power Word Kill"
         },
         "ruleElements": [
@@ -1329,6 +1386,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Scrying"
         },
         "ruleElements": [
@@ -1410,6 +1470,9 @@
             "dc": {
               "value": 20
             }
+          },
+          "metadata": {
+            "spellLevel": 3
           },
           "counters": true,
           "label": "Counterspell"
@@ -1504,6 +1567,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Shield"
         },
         "ruleElements": [
@@ -1741,6 +1807,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Fear"
         },
         "ruleElements": []
@@ -2051,6 +2120,7 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
+          "Spellcasting: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand",
           "Spellcasting: cast: Fireball at level 5 is cast at its own level",
           "Spellcasting: cast: Lightning Bolt at level 5 is cast at its own level",
           "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",

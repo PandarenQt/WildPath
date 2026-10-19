@@ -118,6 +118,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Darkvision"
     },
     "ruleElements": []

@@ -452,6 +452,9 @@
         "temporaryHealth": "form",
         "concentration": true
       },
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Cloak of the Bat: Polymorph"
     },
     "ruleElements": [

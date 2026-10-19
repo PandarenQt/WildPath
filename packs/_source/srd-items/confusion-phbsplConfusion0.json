@@ -130,6 +130,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Confusion"
     },
     "ruleElements": []

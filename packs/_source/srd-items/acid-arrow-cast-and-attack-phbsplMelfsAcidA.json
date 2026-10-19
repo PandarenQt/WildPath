@@ -149,6 +149,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Acid Arrow (Cast and Attack)"
     },
     "ruleElements": []

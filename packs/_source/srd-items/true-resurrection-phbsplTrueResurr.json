@@ -38,6 +38,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 9
+      },
       "label": "True Resurrection"
     },
     "ruleElements": []

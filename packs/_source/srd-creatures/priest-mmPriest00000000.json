@@ -337,6 +337,9 @@
             "count": 1,
             "rounds": 600
           },
+          "metadata": {
+            "spellLevel": 0
+          },
           "label": "Light"
         },
         "ruleElements": []
@@ -420,6 +423,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 0
+          },
           "label": "Thaumaturgy"
         },
         "ruleElements": []
@@ -481,6 +487,9 @@
             "count": 1,
             "rounds": 10,
             "concentration": true,
+            "spellLevel": 2
+          },
+          "metadata": {
             "spellLevel": 2
           },
           "label": "Spiritual Weapon"
@@ -610,6 +619,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Bless"
         },
         "ruleElements": [
@@ -674,6 +686,24 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 3
+          },
+          "ends": {
+            "spells": "slot"
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
           "label": "Dispel Magic"
         },
         "ruleElements": [
@@ -707,7 +737,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
             ]
           }
         }
@@ -771,6 +801,9 @@
               "healingType": "healing"
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Healing Word"
         },
         "ruleElements": [
@@ -928,6 +961,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Lesser Restoration"
         },
         "ruleElements": [
@@ -1013,7 +1049,7 @@
       },
       "conversion": {
         "notes": [
-          "Divine Aid: not automated (utility): using it spends its cost; its description says the rest"
+          "Divine Aid: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
         ]
       }
     }

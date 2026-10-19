@@ -64,6 +64,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Word of Recall (Teleport to Sanctuary)"
     },
     "ruleElements": []

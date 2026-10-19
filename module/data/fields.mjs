@@ -177,6 +177,8 @@ export function actionDefinitionField() {
     stabilize: new BooleanField({required: true, initial: false}),
     // A reaction whose target failing its save cancels the Action that triggered it (Counterspell; reactions.md).
     counters: new BooleanField({required: true, initial: false}),
+    // Effects it ends on its targets: {tags: ["curse"]} (Remove Curse), {spells: "slot"} (Dispel Magic).
+    ends: new ObjectField({nullable: true, initial: null}),
     // Pools of the acting creature the Action refills when used (Multiattack's attacks): [{resourceId, amount}].
     restores: objectArrayField(),
     range: new ObjectField({nullable: true, initial: null}),

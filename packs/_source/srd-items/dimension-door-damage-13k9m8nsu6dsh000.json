@@ -118,6 +118,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Dimension Door (damage)"
     },
     "ruleElements": []

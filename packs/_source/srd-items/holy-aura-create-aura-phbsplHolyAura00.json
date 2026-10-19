@@ -145,6 +145,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 8
+      },
       "label": "Holy Aura (Create Aura)"
     },
     "ruleElements": []

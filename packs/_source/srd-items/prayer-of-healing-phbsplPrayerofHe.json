@@ -135,6 +135,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Prayer of Healing"
     },
     "ruleElements": []

@@ -63,6 +63,9 @@
         "concentration": true,
         "spellLevel": 7
       },
+      "metadata": {
+        "spellLevel": 7
+      },
       "label": "Project Image"
     },
     "ruleElements": []

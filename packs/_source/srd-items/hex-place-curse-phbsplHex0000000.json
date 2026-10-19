@@ -80,7 +80,12 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
         },
         {
           "id": "effect-2",
@@ -128,7 +133,12 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
         },
         {
           "id": "effect-3",
@@ -176,7 +186,12 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
         },
         {
           "id": "effect-4",
@@ -224,7 +239,12 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
         },
         {
           "id": "effect-5",
@@ -272,7 +292,12 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
         },
         {
           "id": "effect-6",
@@ -320,7 +345,12 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
         }
       ],
       "configuration": [
@@ -472,6 +502,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Hex (Place Curse)"
     },
     "ruleElements": []

@@ -65,6 +65,9 @@
           "saveOutcomePolicy": "failure"
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Staff of the Woodlands: Animal Friendship"
     },
     "ruleElements": [

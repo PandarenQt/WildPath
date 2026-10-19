@@ -51,6 +51,9 @@
         "count": 1,
         "rounds": 10
       },
+      "metadata": {
+        "spellLevel": 0
+      },
       "label": "Minor Illusion"
     },
     "ruleElements": []

@@ -205,6 +205,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Zone of Truth"
     },
     "ruleElements": []

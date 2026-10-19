@@ -454,6 +454,9 @@
               "onObject": "on-object"
             }
           },
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Darkness"
         },
         "ruleElements": [
@@ -570,6 +573,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Faerie Fire"
         },
         "ruleElements": [
@@ -714,6 +720,9 @@
               "provenance": "spell-base"
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Web"
         },
         "ruleElements": [

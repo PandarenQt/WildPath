@@ -364,6 +364,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 7
+      },
       "label": "Resurrection (Taxing Cast)"
     },
     "ruleElements": []

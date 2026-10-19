@@ -22,7 +22,8 @@
         ]
       },
       "metadata": {
-        "followUp": true
+        "followUp": true,
+        "spellLevel": 6
       },
       "label": "Magic Jar (Return from Host)"
     },

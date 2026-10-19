@@ -296,6 +296,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 0
+      },
       "label": "Resistance"
     },
     "ruleElements": []

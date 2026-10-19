@@ -330,6 +330,15 @@
               "provenance": "weapon-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Burning",
+              "img": "systems/dnd5e/icons/svg/statuses/burning.svg",
+              "ruleElements": []
+            }
+          ],
           "label": "Burn"
         },
         "ruleElements": []
@@ -347,7 +356,8 @@
           },
           "conversion": {
             "notes": [
-              "effect: burning is not a WildPath condition yet"
+              "effect: burning is not a WildPath condition yet",
+              "effect: \"Burning\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -431,7 +441,8 @@
           "Fire Aura: activation: turnEnd is not an action-economy cost",
           "Fire Form: \"damage\" is passive or triggered: not automated",
           "Water Susceptibility: \"Cold Damage\" is passive or triggered: not automated",
-          "Burn: effect: burning is not a WildPath condition yet"
+          "Burn: effect: burning is not a WildPath condition yet",
+          "Burn: effect: \"Burning\" marks its creature only; its rules are by hand"
         ]
       }
     }

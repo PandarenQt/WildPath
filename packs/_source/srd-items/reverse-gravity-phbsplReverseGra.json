@@ -113,6 +113,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 7
+      },
       "label": "Reverse Gravity"
     },
     "ruleElements": []

@@ -118,6 +118,9 @@
         },
         "spellLevel": 3
       },
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Conjure Animals (summon)"
     },
     "ruleElements": []

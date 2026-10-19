@@ -64,6 +64,9 @@
           }
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Wand of Lightning Bolts: Lightning Bolt"
     },
     "ruleElements": [

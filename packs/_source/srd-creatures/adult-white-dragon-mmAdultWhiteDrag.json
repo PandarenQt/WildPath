@@ -543,6 +543,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Fear"
         },
         "ruleElements": []

@@ -53,6 +53,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Wand of Magic Detection: Detect Magic"
     },
     "ruleElements": [

@@ -98,6 +98,9 @@
       "teleport": {
         "distance": 30
       },
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Misty Step"
     },
     "ruleElements": []

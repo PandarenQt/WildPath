@@ -134,6 +134,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Spike Growth"
     },
     "ruleElements": []

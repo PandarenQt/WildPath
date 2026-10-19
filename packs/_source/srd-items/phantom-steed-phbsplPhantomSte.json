@@ -93,6 +93,9 @@
         "rounds": 600,
         "spellLevel": 3
       },
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Phantom Steed"
     },
     "ruleElements": []

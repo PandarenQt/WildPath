@@ -478,6 +478,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Evil and Good"
         },
         "ruleElements": []
@@ -528,6 +531,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 5
           },
           "label": "Commune"
         },
@@ -595,6 +601,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 8
           },
           "label": "Control Weather"
         },
@@ -685,6 +694,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Dispel Evil and Good"
         },
         "ruleElements": [
@@ -1051,6 +1063,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Raise Dead"
         },
         "ruleElements": [
@@ -1180,6 +1195,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Bless"
         },
         "ruleElements": [
@@ -1244,6 +1262,24 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 3
+          },
+          "ends": {
+            "spells": "slot"
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
           "label": "Dispel Magic"
         },
         "ruleElements": [
@@ -1277,7 +1313,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
             ]
           }
         }
@@ -1341,6 +1377,9 @@
               "healingType": "healing"
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Healing Word"
         },
         "ruleElements": [
@@ -1498,6 +1537,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Lesser Restoration"
         },
         "ruleElements": [
@@ -1593,6 +1635,9 @@
               "healingType": "healing"
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Cure Wounds"
         },
         "ruleElements": [
@@ -1677,6 +1722,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Invisibility"
         },
         "ruleElements": [
@@ -1834,6 +1882,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Lesser Restoration"
         },
         "ruleElements": [
@@ -1898,6 +1949,26 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 3
+          },
+          "ends": {
+            "tags": [
+              "curse"
+            ]
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
           "label": "Remove Curse"
         },
         "ruleElements": [
@@ -1930,9 +2001,7 @@
             "castBy": "Divine Aid"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -2014,7 +2083,7 @@
           "Spellcasting: effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
-          "Divine Aid: not automated (utility): using it spends its cost; its description says the rest"
+          "Divine Aid: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
         ]
       }
     }

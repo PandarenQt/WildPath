@@ -25,6 +25,9 @@
           }
         ]
       },
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Medallion of Thoughts: Detect Thoughts"
     },
     "ruleElements": [

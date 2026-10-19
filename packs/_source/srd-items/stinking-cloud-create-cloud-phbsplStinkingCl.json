@@ -85,6 +85,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Stinking Cloud (Create Cloud)"
     },
     "ruleElements": []

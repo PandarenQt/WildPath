@@ -172,6 +172,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Haste (Cast)"
     },
     "ruleElements": []

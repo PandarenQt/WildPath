@@ -123,6 +123,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 8
+      },
       "label": "Power Word Stun"
     },
     "ruleElements": []

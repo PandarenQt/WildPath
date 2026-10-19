@@ -107,6 +107,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Mass Suggestion"
     },
     "ruleElements": []

@@ -169,6 +169,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Bless"
     },
     "ruleElements": []

@@ -261,6 +261,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -319,6 +322,9 @@
             "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplLight00000",
             "count": 1,
             "rounds": 600
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Light"
         },
@@ -413,6 +419,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Mage Armor"
         },
         "ruleElements": []
@@ -470,6 +479,9 @@
             "count": 1,
             "rounds": 10
           },
+          "metadata": {
+            "spellLevel": 0
+          },
           "label": "Mage Hand"
         },
         "ruleElements": []
@@ -514,6 +526,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Prestidigitation"
         },
@@ -605,6 +620,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Fireball"
         },
         "ruleElements": [
@@ -691,6 +709,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Invisibility"
         },
         "ruleElements": [
@@ -790,6 +811,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Cone of Cold"
         },
         "ruleElements": [
@@ -892,6 +916,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Fly"
         },
         "ruleElements": [
@@ -961,6 +988,9 @@
           },
           "teleport": {
             "distance": 30
+          },
+          "metadata": {
+            "spellLevel": 2
           },
           "label": "Misty Step"
         },
@@ -1043,6 +1073,9 @@
             "dc": {
               "value": 14
             }
+          },
+          "metadata": {
+            "spellLevel": 3
           },
           "counters": true,
           "label": "Counterspell"
@@ -1155,6 +1188,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Shield"
         },
         "ruleElements": [

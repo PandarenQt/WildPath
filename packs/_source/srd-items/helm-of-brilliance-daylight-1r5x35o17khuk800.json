@@ -60,6 +60,9 @@
           "onObject": "on-object"
         }
       },
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Helm of Brilliance: Daylight"
     },
     "ruleElements": []

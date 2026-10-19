@@ -488,6 +488,9 @@
               "repeatSave": "turnEnd"
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Slow"
         },
         "ruleElements": [

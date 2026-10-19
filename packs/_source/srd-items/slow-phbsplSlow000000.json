@@ -200,6 +200,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Slow"
     },
     "ruleElements": []

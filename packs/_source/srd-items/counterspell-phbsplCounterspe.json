@@ -117,6 +117,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "counters": true,
       "label": "Counterspell"
     },

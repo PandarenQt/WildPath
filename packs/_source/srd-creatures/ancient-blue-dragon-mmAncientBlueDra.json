@@ -424,6 +424,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -491,6 +494,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Invisibility"
         },
         "ruleElements": []
@@ -547,6 +553,9 @@
             "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplMageHand00",
             "count": 1,
             "rounds": 10
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Mage Hand"
         },
@@ -644,6 +653,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Shatter"
         },
         "ruleElements": []
@@ -743,6 +755,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Scrying"
         },
         "ruleElements": [
@@ -810,6 +825,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 3
           },
           "label": "Sending"
         },
@@ -893,6 +911,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Invisibility"
         },
         "ruleElements": []
@@ -993,6 +1014,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Shatter"
         },
         "ruleElements": []

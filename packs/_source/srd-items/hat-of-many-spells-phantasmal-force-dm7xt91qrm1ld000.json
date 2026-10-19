@@ -74,6 +74,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Hat of Many Spells: Phantasmal Force"
     },
     "ruleElements": []

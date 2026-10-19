@@ -423,6 +423,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 0
+          },
           "label": "Thaumaturgy"
         },
         "ruleElements": []
@@ -477,6 +480,9 @@
             "count": 1,
             "rounds": 100,
             "concentration": true,
+            "spellLevel": 3
+          },
+          "metadata": {
             "spellLevel": 3
           },
           "label": "Clairvoyance"
@@ -574,6 +580,9 @@
               "healingType": "healing"
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Cure Wounds"
         },
         "ruleElements": [
@@ -697,6 +706,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Flame Strike"
         },
         "ruleElements": [
@@ -805,6 +817,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Geas"
         },
         "ruleElements": [
@@ -898,6 +913,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 6
+          },
           "label": "True Seeing"
         },
         "ruleElements": [

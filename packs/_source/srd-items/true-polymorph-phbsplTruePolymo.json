@@ -90,6 +90,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 9
+      },
       "label": "True Polymorph"
     },
     "ruleElements": []

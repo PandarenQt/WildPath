@@ -43,6 +43,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 9
+      },
       "label": "Gate (Small Horizontal Portal)"
     },
     "ruleElements": []

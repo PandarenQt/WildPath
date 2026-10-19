@@ -170,6 +170,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 9
+      },
       "label": "Imprisonment"
     },
     "ruleElements": []

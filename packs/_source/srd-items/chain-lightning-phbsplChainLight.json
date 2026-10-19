@@ -122,6 +122,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Chain Lightning"
     },
     "ruleElements": []

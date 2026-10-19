@@ -52,6 +52,9 @@
           "healingType": "healing"
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Dragon Orb: Cure Wounds"
     },
     "ruleElements": []

@@ -270,6 +270,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Command"
     },
     "ruleElements": []

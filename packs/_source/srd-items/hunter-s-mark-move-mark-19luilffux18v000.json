@@ -69,7 +69,8 @@
         }
       ],
       "metadata": {
-        "followUp": true
+        "followUp": true,
+        "spellLevel": 1
       },
       "label": "Hunter's Mark (Move Mark)"
     },

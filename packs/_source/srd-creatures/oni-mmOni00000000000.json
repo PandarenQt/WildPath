@@ -497,6 +497,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Charm Person"
         },
         "ruleElements": [
@@ -617,6 +620,9 @@
               },
               "onObject": "on-object"
             }
+          },
+          "metadata": {
+            "spellLevel": 2
           },
           "label": "Darkness"
         },
@@ -791,6 +797,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Gaseous Form"
         },
         "ruleElements": [
@@ -906,6 +915,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Sleep"
         },
         "ruleElements": [
@@ -1002,6 +1014,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Invisibility"
         },
         "ruleElements": []

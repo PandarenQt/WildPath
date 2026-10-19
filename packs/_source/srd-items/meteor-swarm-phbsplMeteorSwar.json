@@ -103,6 +103,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 9
+      },
       "label": "Meteor Swarm"
     },
     "ruleElements": []

@@ -53,6 +53,9 @@
           "repeatSave": "turnEnd"
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Wand of Binding: Hold Monster"
     },
     "ruleElements": [

@@ -104,6 +104,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Death Ward"
     },
     "ruleElements": []

@@ -49,6 +49,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Dragon Orb: Detect Magic"
     },
     "ruleElements": []

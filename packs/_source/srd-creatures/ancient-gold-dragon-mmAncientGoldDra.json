@@ -409,6 +409,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -487,6 +490,18 @@
               "provenance": "spell-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Guiding Bolt",
+              "img": "icons/skills/targeting/target-strike-triple-blue.webp",
+              "ruleElements": []
+            }
+          ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Guiding Bolt"
         },
         "ruleElements": []
@@ -506,7 +521,8 @@
           "conversion": {
             "notes": [
               "cast: Guiding Bolt at level 4 is cast at its own level",
-              "effect: marked is not a WildPath condition yet"
+              "effect: marked is not a WildPath condition yet",
+              "effect: \"Guiding Bolt\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -534,6 +550,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 9
           },
           "label": "Shapechange"
         },
@@ -644,6 +663,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Flame Strike"
         },
         "ruleElements": [
@@ -709,6 +731,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 6
           },
           "label": "Word of Recall"
         },
@@ -862,6 +887,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Zone of Truth"
         },
         "ruleElements": [
@@ -1138,6 +1166,18 @@
               "provenance": "spell-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Guiding Bolt",
+              "img": "icons/skills/targeting/target-strike-triple-blue.webp",
+              "ruleElements": []
+            }
+          ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Guiding Bolt"
         },
         "ruleElements": []
@@ -1157,7 +1197,8 @@
           "conversion": {
             "notes": [
               "cast: Guiding Bolt at level 2 is cast at its own level",
-              "effect: marked is not a WildPath condition yet"
+              "effect: marked is not a WildPath condition yet",
+              "effect: \"Guiding Bolt\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -1297,6 +1338,7 @@
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: cast: Guiding Bolt at level 4 is cast at its own level",
           "Spellcasting: effect: marked is not a WildPath condition yet",
+          "Spellcasting: effect: \"Guiding Bolt\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: cast: Flame Strike at level 6 is cast at its own level",
@@ -1304,6 +1346,7 @@
           "Spellcasting: effect: \"Cannot Lie\" marks its creature only; its rules are by hand",
           "Guiding Light: cast: Guiding Bolt at level 2 is cast at its own level",
           "Guiding Light: effect: marked is not a WildPath condition yet",
+          "Guiding Light: effect: \"Guiding Bolt\" marks its creature only; its rules are by hand",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: consumption: attribute 1 not converted"
         ]

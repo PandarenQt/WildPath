@@ -21,6 +21,23 @@
           }
         ]
       },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Stabilized",
+          "img": "systems/dnd5e/icons/svg/trait-damage-vulnerabilities.svg",
+          "ruleElements": []
+        }
+      ],
+      "metadata": {
+        "spellLevel": 0
+      },
       "label": "Spare the Dying"
     },
     "ruleElements": []
@@ -38,8 +55,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: stable is not a WildPath condition yet"
+          "effect: stable is not a WildPath condition yet",
+          "effect: \"Stabilized\" marks its creature only; its rules are by hand"
         ]
       }
     }

@@ -321,6 +321,9 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 0
+          },
           "label": "Druidcraft"
         },
         "ruleElements": []
@@ -388,6 +391,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Speak with Animals"
         },
         "ruleElements": []
@@ -472,6 +478,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Entangle"
         },
         "ruleElements": [
@@ -571,6 +580,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "push": {
             "distance": 10
           },
@@ -671,6 +683,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Animal Messenger"
         },
         "ruleElements": [
@@ -776,6 +791,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Longstrider"
         },
         "ruleElements": [
@@ -927,6 +945,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Moonbeam"
         },
         "ruleElements": [

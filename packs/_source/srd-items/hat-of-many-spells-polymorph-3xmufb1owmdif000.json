@@ -448,6 +448,9 @@
         "temporaryHealth": "form",
         "concentration": true
       },
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Hat of Many Spells: Polymorph"
     },
     "ruleElements": []

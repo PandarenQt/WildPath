@@ -465,6 +465,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -574,6 +577,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Mind Spike"
         },
         "ruleElements": []
@@ -684,6 +690,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Geas"
         },
         "ruleElements": [
@@ -800,6 +809,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Modify Memory"
         },
         "ruleElements": [
@@ -926,6 +938,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Mind Spike"
         },
         "ruleElements": []

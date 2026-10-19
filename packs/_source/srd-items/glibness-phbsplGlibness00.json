@@ -70,6 +70,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 8
+      },
       "label": "Glibness"
     },
     "ruleElements": []

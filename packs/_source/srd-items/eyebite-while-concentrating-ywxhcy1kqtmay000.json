@@ -77,7 +77,8 @@
         }
       ],
       "metadata": {
-        "followUp": true
+        "followUp": true,
+        "spellLevel": 6
       },
       "configuration": [
         {

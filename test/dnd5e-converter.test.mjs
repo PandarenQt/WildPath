@@ -134,9 +134,9 @@ test("what WildPath cannot automate is a manual Action that spends its cost, nam
   assert.equal(manual.system.definition.configuration[0].id, "spell-slot", "and spends its slot");
   assert.equal(manual.system.definition.save.ability, "wits", "its save is still rolled (2026-10-18); what follows is by hand");
   assert.equal(validateActionDefinition(manual.system.definition).ok, true);
-  assert.ok(held.notes.includes("save: a failure marks its creature only; what it does is by hand"));
+  assert.ok(held.notes.some(note => /"Silenced" marks its creature only/.test(note)));
   assert.deepEqual(manual.system.definition.effects.map(effect => [effect.type, effect.name, effect.saveOutcomePolicy, effect.concentration]),
-    [["effect", "Test Silence", "failure", true]], "a creature that fails is marked while the caster concentrates");
+    [["effect", "Silenced", "failure", true]], "a creature that fails is marked, by its effect's name, while the caster concentrates");
   assert.ok(held.notes.includes("effect: silenced is not a WildPath condition yet"));
 
   const tripped = convertItem(trip);
@@ -1055,6 +1055,14 @@ test("Command's five commands and Bestow Curse's curses: chosen when used, appli
     ["cursed-attacks", {equals: {path: "attack.fromTarget.cursed-attacks", value: true}}, "failure", true],
     "Disadvantage on its attacks against its caster, on a failed save (dnd5e's onSave defaults to false)");
   assert.deepEqual(resilience.ruleElements[0].data.expression, {type: "dice", number: 1, faces: 8});
+  assert.deepEqual([attacks.metadata.tags, resilience.metadata.tags], [["curse"], ["curse"]], "curses, for Remove Curse");
+
+  const remove = spell("testRemoveCurse1", "remove-curse", "Remove Curse", {a: activity("utility")}, [], {level: 3, range: {units: "touch"}});
+  const dispel = spell("testDispelMagic1", "dispel-magic", "Dispel Magic", {a: activity("utility")}, [], {level: 3, range: {value: "120", units: "ft"}});
+  const [removing, dispelling] = [remove, dispel].map(document => convertItem(document).items[0].system.definition);
+  assert.deepEqual([removing.ends, removing.targeting.count, removing.metadata.spellLevel], [{tags: ["curse"]}, 1, 3]);
+  assert.deepEqual([dispelling.ends, dispelling.range.normal.value], [{spells: "slot"}, 120]);
+  assert.equal(validateActionDefinition(dispelling).ok, true);
 });
 
 test("a save its 2024 text repeats at each of the creature's turns marks the effects it gives (Hold Person)", () => {

@@ -503,6 +503,9 @@
         "temporaryHealth": "form",
         "concentration": true
       },
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Polymorph"
     },
     "ruleElements": []

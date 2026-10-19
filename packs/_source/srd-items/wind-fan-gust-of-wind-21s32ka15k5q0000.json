@@ -63,6 +63,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "push": {
         "distance": 15
       },

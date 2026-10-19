@@ -33,6 +33,9 @@
       "targeting": {
         "type": "self"
       },
+      "metadata": {
+        "spellLevel": 0
+      },
       "label": "True Strike (Spellcasting Attack)"
     },
     "ruleElements": []

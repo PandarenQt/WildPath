@@ -25,6 +25,9 @@
           }
         ]
       },
+      "metadata": {
+        "spellLevel": 9
+      },
       "label": "Cubic Gate: Gate"
     },
     "ruleElements": [

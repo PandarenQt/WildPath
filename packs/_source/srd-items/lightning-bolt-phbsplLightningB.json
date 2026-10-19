@@ -151,6 +151,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Lightning Bolt"
     },
     "ruleElements": []

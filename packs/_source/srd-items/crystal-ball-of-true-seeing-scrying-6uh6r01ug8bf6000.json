@@ -80,6 +80,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Crystal Ball of True Seeing: Scrying"
     },
     "ruleElements": []

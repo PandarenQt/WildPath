@@ -197,6 +197,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 9
+      },
       "label": "Foresight"
     },
     "ruleElements": []

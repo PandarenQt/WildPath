@@ -314,6 +314,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Dominate Person"
         },
         "ruleElements": [

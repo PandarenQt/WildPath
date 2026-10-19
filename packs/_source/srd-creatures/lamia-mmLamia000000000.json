@@ -378,6 +378,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Disguise Self"
         },
         "ruleElements": []
@@ -454,6 +457,9 @@
             "choiceId": "summon-creature",
             "count": 1,
             "rounds": 10
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Minor Illusion"
         },
@@ -546,6 +552,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Geas"
         },
         "ruleElements": [
@@ -646,6 +655,9 @@
             "count": 1,
             "rounds": 100,
             "concentration": true,
+            "spellLevel": 3
+          },
+          "metadata": {
             "spellLevel": 3
           },
           "label": "Major Image"
@@ -760,6 +772,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Scrying"
         },
         "ruleElements": [

@@ -381,6 +381,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 6
+          },
           "label": "Wall of Ice"
         },
         "ruleElements": [

@@ -210,6 +210,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Wall of Fire (Create Ring)"
     },
     "ruleElements": []

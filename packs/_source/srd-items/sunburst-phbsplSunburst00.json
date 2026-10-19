@@ -111,6 +111,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 8
+      },
       "label": "Sunburst"
     },
     "ruleElements": []

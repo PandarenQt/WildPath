@@ -530,6 +530,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Evil and Good"
         },
         "ruleElements": []
@@ -580,6 +583,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 5
           },
           "label": "Commune"
         },
@@ -647,6 +653,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 8
           },
           "label": "Control Weather"
         },
@@ -737,6 +746,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Dispel Evil and Good"
         },
         "ruleElements": [
@@ -1099,6 +1111,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 7
+          },
           "label": "Resurrection"
         },
         "ruleElements": [
@@ -1344,6 +1359,9 @@
               "healingType": "healing"
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Cure Wounds"
         },
         "ruleElements": [
@@ -1503,6 +1521,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Lesser Restoration"
         },
         "ruleElements": [
@@ -1567,6 +1588,26 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 3
+          },
+          "ends": {
+            "tags": [
+              "curse"
+            ]
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
           "label": "Remove Curse"
         },
         "ruleElements": [
@@ -1599,9 +1640,7 @@
             "castBy": "Divine Aid"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1718,8 +1757,7 @@
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
           "Spellcasting: effect: \"Spell Taxed\" marks its creature only; its rules are by hand",
-          "Divine Aid: cast: Cure Wounds at level 2 is cast at its own level",
-          "Divine Aid: not automated (utility): using it spends its cost; its description says the rest"
+          "Divine Aid: cast: Cure Wounds at level 2 is cast at its own level"
         ]
       }
     }

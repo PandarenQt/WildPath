@@ -61,6 +61,9 @@
           "healingType": "healing"
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Staff of Healing: Mass Cure Wounds"
     },
     "ruleElements": [

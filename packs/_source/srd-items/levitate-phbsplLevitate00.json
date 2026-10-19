@@ -140,6 +140,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Levitate"
     },
     "ruleElements": []

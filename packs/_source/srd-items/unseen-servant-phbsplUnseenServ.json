@@ -112,6 +112,9 @@
         "rounds": 600,
         "spellLevel": 1
       },
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Unseen Servant"
     },
     "ruleElements": []

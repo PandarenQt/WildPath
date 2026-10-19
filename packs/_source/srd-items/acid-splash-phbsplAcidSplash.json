@@ -97,6 +97,9 @@
           }
         }
       ],
+      "metadata": {
+        "spellLevel": 0
+      },
       "label": "Acid Splash"
     },
     "ruleElements": []

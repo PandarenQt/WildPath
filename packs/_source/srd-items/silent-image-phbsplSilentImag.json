@@ -133,6 +133,9 @@
         "concentration": true,
         "spellLevel": 1
       },
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Silent Image"
     },
     "ruleElements": []

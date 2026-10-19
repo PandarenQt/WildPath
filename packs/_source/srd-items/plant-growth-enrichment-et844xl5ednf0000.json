@@ -80,6 +80,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Plant Growth (Enrichment)"
     },
     "ruleElements": []

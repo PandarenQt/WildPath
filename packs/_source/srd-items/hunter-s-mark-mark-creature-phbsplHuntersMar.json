@@ -150,6 +150,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Hunter's Mark (Mark Creature)"
     },
     "ruleElements": []

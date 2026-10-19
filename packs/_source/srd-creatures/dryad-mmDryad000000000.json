@@ -424,6 +424,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Animal Friendship"
         },
         "ruleElements": []
@@ -503,6 +506,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "metadata": {
+            "spellLevel": 4
+          },
           "label": "Charm Monster"
         },
         "ruleElements": []
@@ -555,6 +561,9 @@
                 }
               ]
             ]
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Druidcraft"
         },
@@ -651,6 +660,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Entangle"
         },
         "ruleElements": [
@@ -761,6 +773,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Pass without Trace"
         },
         "ruleElements": [

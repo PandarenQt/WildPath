@@ -185,6 +185,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Gaseous Form"
     },
     "ruleElements": []

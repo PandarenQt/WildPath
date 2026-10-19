@@ -345,6 +345,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Evil and Good"
         },
         "ruleElements": []
@@ -391,6 +394,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 9
           },
           "label": "Shapechange"
         },
@@ -443,6 +449,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 5
           },
           "label": "Commune"
         },
@@ -808,6 +817,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Raise Dead"
         },
         "ruleElements": [

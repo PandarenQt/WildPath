@@ -158,6 +158,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Shatter"
     },
     "ruleElements": []

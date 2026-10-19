@@ -135,6 +135,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Protection from Poison"
     },
     "ruleElements": []

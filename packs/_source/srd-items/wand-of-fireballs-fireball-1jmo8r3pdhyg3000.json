@@ -64,6 +64,9 @@
           }
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Wand of Fireballs: Fireball"
     },
     "ruleElements": [

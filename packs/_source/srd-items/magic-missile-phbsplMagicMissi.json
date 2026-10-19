@@ -154,6 +154,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Magic Missile"
     },
     "ruleElements": []

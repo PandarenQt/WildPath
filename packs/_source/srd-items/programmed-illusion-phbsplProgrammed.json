@@ -96,6 +96,9 @@
         "count": 1,
         "spellLevel": 6
       },
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Programmed Illusion"
     },
     "ruleElements": []

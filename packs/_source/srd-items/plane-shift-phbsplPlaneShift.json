@@ -57,6 +57,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 7
+      },
       "label": "Plane Shift"
     },
     "ruleElements": []

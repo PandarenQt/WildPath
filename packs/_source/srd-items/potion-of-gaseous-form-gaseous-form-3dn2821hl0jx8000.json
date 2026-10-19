@@ -118,6 +118,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Potion of Gaseous Form: Gaseous Form"
     },
     "ruleElements": [

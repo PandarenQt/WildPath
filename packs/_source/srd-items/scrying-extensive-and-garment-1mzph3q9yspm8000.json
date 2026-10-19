@@ -115,6 +115,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Scrying (Extensive and Garment)"
     },
     "ruleElements": []

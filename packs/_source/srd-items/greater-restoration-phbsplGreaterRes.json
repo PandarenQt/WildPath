@@ -147,6 +147,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Greater Restoration"
     },
     "ruleElements": []

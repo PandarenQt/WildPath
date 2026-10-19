@@ -677,6 +677,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Fireball"
         },
         "ruleElements": [
@@ -772,6 +775,9 @@
               "repeatSave": "turnEnd"
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Hold Monster"
         },
         "ruleElements": [
@@ -930,6 +936,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 4
+          },
           "label": "Wall of Fire"
         },
         "ruleElements": [

@@ -104,6 +104,9 @@
           "provenance": "spell-base"
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Cloak of Arachnida: Web"
     },
     "ruleElements": [

@@ -224,6 +224,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Evil and Good"
         },
         "ruleElements": []
@@ -299,6 +302,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -355,6 +361,9 @@
             "count": 1,
             "rounds": 100,
             "concentration": true,
+            "spellLevel": 3
+          },
+          "metadata": {
             "spellLevel": 3
           },
           "label": "Clairvoyance"

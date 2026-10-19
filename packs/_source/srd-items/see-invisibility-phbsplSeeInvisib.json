@@ -112,6 +112,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "See Invisibility"
     },
     "ruleElements": []

@@ -92,6 +92,9 @@
         "concentration": true,
         "spellLevel": 4
       },
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Arcane Eye"
     },
     "ruleElements": []

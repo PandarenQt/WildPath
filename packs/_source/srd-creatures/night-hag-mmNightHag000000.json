@@ -94,6 +94,9 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Augury"
         },
         "ruleElements": [
@@ -160,6 +163,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 1
           },
           "label": "Find Familiar"
         },
@@ -229,6 +235,9 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Identify"
         },
         "ruleElements": [
@@ -295,6 +304,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 2
           },
           "label": "Locate Object"
         },
@@ -411,6 +423,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Scrying"
         },
         "ruleElements": [
@@ -490,6 +505,9 @@
             "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplUnseenServ",
             "count": 1,
             "rounds": 600,
+            "spellLevel": 1
+          },
+          "metadata": {
             "spellLevel": 1
           },
           "label": "Unseen Servant"
@@ -796,6 +814,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -843,6 +864,29 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Etherealness",
+              "img": "systems/dnd5e/icons/svg/statuses/ethereal.svg",
+              "ruleElements": [],
+              "duration": {
+                "value": 28800,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
+          "metadata": {
+            "spellLevel": 7
+          },
           "label": "Etherealness"
         },
         "ruleElements": []
@@ -861,8 +905,8 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: ethereal is not a WildPath condition yet"
+              "effect: ethereal is not a WildPath condition yet",
+              "effect: \"Etherealness\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -927,6 +971,9 @@
               "provenance": "spell-base"
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Magic Missile"
         },
         "ruleElements": []
@@ -977,6 +1024,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 4
           },
           "label": "Phantasmal Killer"
         },
@@ -1044,6 +1094,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 7
           },
           "label": "Plane Shift"
         },
@@ -1217,6 +1270,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Dream"
         },
         "ruleElements": [
@@ -1336,8 +1392,8 @@
           "Coven Magic: save: a failure marks its creature only; what it does is by hand",
           "Coven Magic: \"Create Sensor\" is passive or triggered: not automated",
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: ethereal is not a WildPath condition yet",
+          "Spellcasting: effect: \"Etherealness\" marks its creature only; its rules are by hand",
           "Spellcasting: cast: Magic Missile at level 4 is cast at its own level",
           "Spellcasting: not automated (save): using it spends its cost; its description says the rest",
           "Spellcasting: save: ? DC (spellcasting) not converted",

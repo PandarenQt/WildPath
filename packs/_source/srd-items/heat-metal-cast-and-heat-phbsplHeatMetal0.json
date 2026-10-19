@@ -129,6 +129,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Heat Metal (Cast and Heat)"
     },
     "ruleElements": []

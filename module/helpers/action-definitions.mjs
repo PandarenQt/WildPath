@@ -137,6 +137,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     ...(raw.stabilize === true ? {stabilize: true} : {}),
     // A reaction whose target failing its save cancels the Action that triggered it (2024 Counterspell).
     ...(raw.counters === true ? {counters: true} : {}),
+    // Effects it ends on its targets: those tagged (`tags`, Remove Curse's "curse") and spells up to a level (`spells`:
+    // a number, or "slot" for the level it is cast at; Dispel Magic).
+    ...(raw.ends ? {ends: normalizePlainComponent(raw.ends)} : {}),
     // Pools of the acting creature the Action refills when it is used (Multiattack's attacks, a use given back).
     ...(Array.isArray(raw.restores) && raw.restores.length ? {restores: raw.restores.map(entry => ({
       resourceId: stringOrNull(entry?.resourceId ?? entry?.resource), amount: finiteNumber(entry?.amount) ?? 1}))} : {}),

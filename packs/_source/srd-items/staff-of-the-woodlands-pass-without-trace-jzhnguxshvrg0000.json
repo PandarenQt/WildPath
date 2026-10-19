@@ -59,6 +59,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Staff of the Woodlands: Pass without Trace"
     },
     "ruleElements": [

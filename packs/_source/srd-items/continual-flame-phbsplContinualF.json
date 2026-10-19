@@ -104,6 +104,9 @@
         "count": 1,
         "spellLevel": 2
       },
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Continual Flame"
     },
     "ruleElements": []

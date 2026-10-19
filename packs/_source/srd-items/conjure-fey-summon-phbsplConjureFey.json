@@ -78,6 +78,9 @@
         "concentration": true,
         "spellLevel": 6
       },
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Conjure Fey (summon)"
     },
     "ruleElements": []

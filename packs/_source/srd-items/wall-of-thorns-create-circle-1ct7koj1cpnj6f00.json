@@ -196,6 +196,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Wall of Thorns (Create Circle)"
     },
     "ruleElements": []

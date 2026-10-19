@@ -65,6 +65,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 9
+      },
       "label": "Mass Heal"
     },
     "ruleElements": []

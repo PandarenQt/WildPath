@@ -146,6 +146,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Charm Person"
     },
     "ruleElements": []

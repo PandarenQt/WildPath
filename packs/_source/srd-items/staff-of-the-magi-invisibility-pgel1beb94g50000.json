@@ -45,6 +45,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Staff of the Magi: Invisibility"
     },
     "ruleElements": [

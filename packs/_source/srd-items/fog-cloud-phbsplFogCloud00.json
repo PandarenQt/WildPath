@@ -99,6 +99,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Fog Cloud"
     },
     "ruleElements": []

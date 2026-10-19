@@ -33,6 +33,9 @@
         "count": 1,
         "rounds": 600
       },
+      "metadata": {
+        "spellLevel": 0
+      },
       "label": "Staff of the Magi: Light"
     },
     "ruleElements": [

@@ -17,7 +17,8 @@
         "allOf": []
       },
       "metadata": {
-        "followUp": true
+        "followUp": true,
+        "spellLevel": 8
       },
       "label": "Control Weather (Change Conditions)"
     },

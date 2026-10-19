@@ -369,6 +369,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -427,6 +430,9 @@
             "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplMageHand00",
             "count": 1,
             "rounds": 10
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Mage Hand"
         },
@@ -503,6 +509,9 @@
             "count": 1,
             "rounds": 10
           },
+          "metadata": {
+            "spellLevel": 0
+          },
           "label": "Minor Illusion"
         },
         "ruleElements": []
@@ -577,6 +586,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Water Breathing"
         },
         "ruleElements": []
@@ -627,6 +639,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 2
           },
           "label": "Detect Thoughts"
         },
@@ -701,6 +716,9 @@
           },
           "teleport": {
             "distance": 500
+          },
+          "metadata": {
+            "spellLevel": 4
           },
           "label": "Dimension Door"
         },
@@ -796,6 +814,9 @@
               "repeatSave": "turnEnd"
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Hold Person"
         },
         "ruleElements": [
@@ -901,6 +922,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Lightning Bolt"
         },
         "ruleElements": [

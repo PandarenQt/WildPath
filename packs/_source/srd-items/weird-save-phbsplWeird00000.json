@@ -105,6 +105,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 9
+      },
       "label": "Weird (save)"
     },
     "ruleElements": []

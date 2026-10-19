@@ -212,6 +212,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Web"
     },
     "ruleElements": []

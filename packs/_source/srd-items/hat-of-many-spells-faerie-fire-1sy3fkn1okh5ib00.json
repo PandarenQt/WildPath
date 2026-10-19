@@ -86,6 +86,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Hat of Many Spells: Faerie Fire"
     },
     "ruleElements": []

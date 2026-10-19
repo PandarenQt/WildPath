@@ -126,6 +126,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Banishment"
     },
     "ruleElements": []

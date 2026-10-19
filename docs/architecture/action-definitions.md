@@ -391,3 +391,18 @@ The current integration still does not:
 Those remain separate milestones. This foundation closes the persistence gap so future slices can
 start from a canonical ActionDefinition instead of requiring callers to hand-assemble every
 mechanical resolver payload.
+
+## Ending Effects On Targets (2026-10-19)
+
+`ends` (optional) names what an Action ends on its targets once it completes (`endEffectsOnTargets`, run by the GM):
+- `{tags: ["curse"]}`: effects whose metadata carries one of the tags (Remove Curse). The converter tags as `curse` what
+  dnd5e's `cursed` status became (Bestow Curse, a lycanthrope's bite) and Hex.
+- `{spells: "slot"}` or a level: spells up to that level (Dispel Magic, the level it is cast at). A spell's effects carry
+  `metadata.spellLevel`, the slot it was cast with (else the spell's own level, from the definition's
+  `metadata.spellLevel`). One above the limit is named in a GM-only chat line: ending it needs the caster's check (DC
+  10 + its level), by hand.
+
+Shortcuts: lasting areas and objects are not targets; Dispel Magic's higher-level check is rolled by hand.
+
+Live (two browsers, 2026-10-19): QA Caster cursed the Bandit Captain (Curse Attacks, tagged `curse`) and then cast Remove
+Curse on it: the curse ended. It blessed QA Fighter and then cast Dispel Magic on it: Blessed ended.

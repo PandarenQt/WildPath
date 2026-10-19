@@ -288,6 +288,9 @@
           "teleport": {
             "distance": 30
           },
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Misty Step"
         },
         "ruleElements": [
@@ -369,6 +372,9 @@
             "dc": {
               "value": 17
             }
+          },
+          "metadata": {
+            "spellLevel": 3
           },
           "counters": true,
           "label": "Counterspell"
@@ -481,6 +487,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Shield"
         },
         "ruleElements": [
@@ -582,6 +591,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -628,6 +640,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 2
           },
           "label": "Detect Thoughts"
         },
@@ -698,6 +713,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Disguise Self"
         },
         "ruleElements": []
@@ -765,6 +783,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Invisibility"
         },
         "ruleElements": []
@@ -821,6 +842,9 @@
             "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplLight00000",
             "count": 1,
             "rounds": 600
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Light"
         },
@@ -915,6 +939,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Mage Armor"
         },
         "ruleElements": []
@@ -972,6 +999,9 @@
             "count": 1,
             "rounds": 10
           },
+          "metadata": {
+            "spellLevel": 0
+          },
           "label": "Mage Hand"
         },
         "ruleElements": []
@@ -1016,6 +1046,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Prestidigitation"
         },
@@ -1106,6 +1139,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Fly"
         },
         "ruleElements": [
@@ -1209,6 +1245,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Lightning Bolt"
         },
         "ruleElements": [
@@ -1310,6 +1349,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Cone of Cold"
         },
         "ruleElements": [
@@ -1423,6 +1465,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 8
+          },
           "label": "Mind Blank"
         },
         "ruleElements": [
@@ -1535,6 +1580,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Scrying"
         },
         "ruleElements": [
@@ -1602,6 +1650,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 7
           },
           "label": "Teleport"
         },

@@ -50,6 +50,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 8
+      },
       "label": "Demiplane"
     },
     "ruleElements": []

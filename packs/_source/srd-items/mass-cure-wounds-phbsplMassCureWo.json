@@ -120,6 +120,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Mass Cure Wounds"
     },
     "ruleElements": []

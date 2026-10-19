@@ -100,6 +100,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Telepathic Bond"
     },
     "ruleElements": []

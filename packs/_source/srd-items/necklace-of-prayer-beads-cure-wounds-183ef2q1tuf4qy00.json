@@ -56,6 +56,9 @@
           "healingType": "healing"
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Necklace of Prayer Beads: Cure Wounds"
     },
     "ruleElements": [

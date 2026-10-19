@@ -85,6 +85,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Create Food and Water"
     },
     "ruleElements": []
