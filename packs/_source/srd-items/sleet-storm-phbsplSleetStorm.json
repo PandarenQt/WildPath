@@ -36,6 +36,60 @@
         "size": {
           "value": 20,
           "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 10
+          },
+          "concentration": true,
+          "triggers": [
+            {
+              "on": [
+                "area.entered",
+                "turn.started"
+              ],
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-sleet-storm:lasting",
+                "label": "Sleet Storm",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell"
+                ],
+                "save": {
+                  "ability": "agility",
+                  "dc": {
+                    "valueExpression": {
+                      "type": "add",
+                      "terms": [
+                        {
+                          "type": "constant",
+                          "value": 8
+                        },
+                        {
+                          "type": "proficiency-bonus"
+                        },
+                        {
+                          "type": "spellcasting-modifier"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "condition",
+                    "conditionId": "prone",
+                    "saveOutcomePolicy": "failure"
+                  }
+                ]
+              }
+            }
+          ]
         }
       },
       "save": {
@@ -122,6 +176,15 @@
           "effects": []
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "prone",
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "label": "Sleet Storm"
     },
     "ruleElements": []
@@ -139,8 +202,7 @@
       },
       "conversion": {
         "notes": [
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand"
+          "save: a failure gives prone (its text); the rest is by hand"
         ]
       }
     }

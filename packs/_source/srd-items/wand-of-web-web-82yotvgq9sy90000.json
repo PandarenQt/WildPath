@@ -18,6 +18,10 @@
           {
             "capability": "action",
             "amount": 1
+          },
+          {
+            "capability": "wand-of-web",
+            "amount": 1
           }
         ]
       },

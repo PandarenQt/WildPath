@@ -2,7 +2,7 @@ import {cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeF
 import {tmpdir} from "node:os";
 import {join, relative, resolve} from "node:path";
 import {compilePack, extractPack} from "@foundryvtt/foundryvtt-cli";
-import {PROGRESSION_TYPES, convertActor, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables, slugify} from "./dnd5e-to-wildpath.mjs";
+import {PROGRESSION_TYPES, beastsOf, convertActor, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables, slugify} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 import {validateActionDefinition} from "../../module/helpers/action-definitions.mjs";
 
@@ -49,7 +49,10 @@ const creatures = Object.fromEntries([
     .map(document => [document._id, `Compendium.wildpath.srd-creatures.Actor.${document._id}`]),
   ...(manifest.packs ?? []).filter(pack => pack.type === "Actor").flatMap(documents).filter(document => document.type === "npc")
     .map(document => [document._id, `Compendium.wildpath-${moduleId}.creatures.Actor.${document._id}`])]);
-const options = {scales, names, licensed: () => true, book: manifest.title, images: ["icons/", `modules/${moduleId}/`], spells, creatures};
+// The Beasts Polymorph may choose: the SRD's and the book's own.
+const beasts = beastsOf([...srdDocuments.filter(isSrd2024), ...(manifest.packs ?? []).filter(pack => pack.type === "Actor").flatMap(documents)],
+  document => creatures[document._id]).filter(beast => beast.uuid);
+const options = {scales, names, licensed: () => true, book: manifest.title, images: ["icons/", `modules/${moduleId}/`], spells, creatures, beasts};
 
 const items = [];
 const actors = [];

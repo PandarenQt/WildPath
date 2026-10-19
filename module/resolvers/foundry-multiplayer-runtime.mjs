@@ -871,7 +871,30 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
     logger?.warn?.("Wild Path | The form an Action named could not be found", formRef);
     return null;
   }
-  return actor.transform(form, {...(spec.takes ? {takes: spec.takes} : {}), ...(spec.keepItemTypes ? {keepItemTypes: spec.keepItemTypes} : {})});
+  const policy = {...(spec.takes ? {takes: spec.takes} : {}), ...(spec.keepItemTypes ? {keepItemTypes: spec.keepItemTypes} : {})};
+  if ( !spec.targets ) return actor.transform(form, policy);
+  // Polymorph: each creature that failed its save takes the form, unless the form's Challenge Rating is above its own
+  // (or its level). It gains the form's Hit Points as Temporary Hit Points, and reverts when they are gone or when its
+  // caster's concentration ends.
+  const source = await fromUuid?.(String(state.source?.tokenRef ?? ""));
+  const scene = source?.parent ?? null;
+  const rank = creature => Number(creature?.system?.details?.level ?? creature?.system?.details?.threat) || 0;
+  const transformed = [];
+  for ( const entry of state.results?.saveResolution?.results ?? [] ) {
+    const target = (entry.ok && (entry.success === false)) ? scene?.tokens?.get?.(String(entry.target?.tokenId ?? ""))?.actor : null;
+    if ( !target?.transform ) continue;
+    if ( rank(form) > Math.max(rank(target), 0) ) {
+      logger?.warn?.(`Wild Path | ${form.name} is beyond ${target.name}'s Challenge Rating or level; it is not transformed.`);
+      globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.format?.("WILDPATH.TRANSFORMATION.TooMighty",
+        {form: form.name, target: target.name}) ?? `${form.name} is beyond ${target.name}.`);
+      continue;
+    }
+    transformed.push(await target.transform(form, {...policy,
+      temporaryHealth: (spec.temporaryHealth === "form") ? (Number(form.system?.resources?.health?.max) || 0) : 0,
+      untilTemporaryHealthLost: spec.temporaryHealth === "form",
+      concentrationRef: (spec.concentration && source?.id) ? `token:${source.id}` : null}));
+  }
+  return transformed;
 }
 
 /**
@@ -916,7 +939,7 @@ export function sustainedEffects(actor, game=globalThis.game) {
 export function startsConcentration(definition) {
   if ( !definition || definition.metadata?.followUp ) return false;
   return (definition.effects ?? []).some(effect => effect?.concentration) || Boolean(definition.area?.persistence?.concentration)
-    || Boolean(definition.summon?.concentration);
+    || Boolean(definition.summon?.concentration) || Boolean(definition.transform?.concentration);
 }
 
 /** The caster's earlier concentration, as it stood when this Action was declared (`endsConcentration`), ends now. */

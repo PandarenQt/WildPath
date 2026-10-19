@@ -223,9 +223,22 @@ the 1×1 Token.
   refused with "A transformed creature can't cast spells.", and its other Action and the same spell after
   reverting went through.
 
+- **On its targets (2026-10-19, 2024 Polymorph).** A `transform` with `targets: true` transforms each creature that
+  failed the Action's save, not its user. The form must not have a Challenge Rating above the creature's own (or its
+  level); otherwise the GM is told and nothing changes. With `temporaryHealth: "form"` the creature gains the form's
+  Hit Points as Temporary Hit Points, and the transformation ends once they are gone (any left vanish when it ends).
+  With `concentration: true` the transformation effect names its caster's Token, so it ends with that concentration
+  (`sustainedEffects`), and casting it starts concentration. Polymorph takes all six abilities, AC and Speed, and keeps
+  none of the creature's own Items.
+  Live (two browsers): Player1's QA Caster used the Wand of Polymorph on the Bandit Captain and chose Brown Bear (CR 1)
+  from 92 SRD Beasts. On a failed save the Captain became 2×2 with Might 17, Wits 13, AC 11, 22 Temporary Hit Points
+  and the Bear's Multiattack, Bite and Claw. Its Temporary Hit Points reaching 0 reverted it; so did the caster's
+  next concentration spell (Bless), which also cleared the Temporary Hit Points left. The wand's charge went 7 to 6.
+
 Not yet:
 
 - A form that keeps spellcasting (2024 Shapechange-style). Every transformation stops it for now.
+- True Polymorph (an object, a creature into an object, permanence) and what a creature may do in its form (speech).
 
 Live (two browsers, 14.369): Player1 turned their Shifter into a Bear, which gave Might 18 and AC 13, and
 used the copied Bite through the GM's authority. The goblin went from 20 to 15, the Action was spent and a

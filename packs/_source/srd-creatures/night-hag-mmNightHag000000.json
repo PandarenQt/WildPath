@@ -396,6 +396,21 @@
               }
             }
           },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Scrying",
+              "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "label": "Scrying"
         },
         "ruleElements": [
@@ -430,8 +445,7 @@
           "conversion": {
             "notes": [
               "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "rolled (save); what it does is by hand",
+              "save: a failure marks its creature only; what it does is by hand",
               "\"Create Sensor\" is passive or triggered: not automated"
             ]
           }
@@ -1319,7 +1333,7 @@
           "Coven Magic: activation: 1 hour is not an action-economy cost",
           "Coven Magic: concentration: nothing it sustains was converted",
           "Coven Magic: activation: 10 minute is not an action-economy cost",
-          "Coven Magic: rolled (save); what it does is by hand",
+          "Coven Magic: save: a failure marks its creature only; what it does is by hand",
           "Coven Magic: \"Create Sensor\" is passive or triggered: not automated",
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",

@@ -134,7 +134,9 @@ test("what WildPath cannot automate is a manual Action that spends its cost, nam
   assert.equal(manual.system.definition.configuration[0].id, "spell-slot", "and spends its slot");
   assert.equal(manual.system.definition.save.ability, "wits", "its save is still rolled (2026-10-18); what follows is by hand");
   assert.equal(validateActionDefinition(manual.system.definition).ok, true);
-  assert.ok(held.notes.includes("rolled (save); what it does is by hand"));
+  assert.ok(held.notes.includes("save: a failure marks its creature only; what it does is by hand"));
+  assert.deepEqual(manual.system.definition.effects.map(effect => [effect.type, effect.name, effect.saveOutcomePolicy, effect.concentration]),
+    [["effect", "Test Silence", "failure", true]], "a creature that fails is marked while the caster concentrates");
   assert.ok(held.notes.includes("effect: silenced is not a WildPath condition yet"));
 
   const tripped = convertItem(trip);
@@ -944,6 +946,53 @@ test("an effect with nothing WildPath maps still marks its creature, for its dur
   assert.ok(spell.flags.wildpath.conversion.notes.some(note => /marks its creature only/.test(note)));
   assert.equal(spell.flags.wildpath.conversion.notes.some(note => /concentration: nothing/.test(note)), false);
   assert.equal(validateActionDefinition(spell.system.definition).ok, true);
+});
+
+test("a save with nothing else converted: the conditions its text gives on a failure, else a marker while it lasts", () => {
+  const spell = (id, name, text, extra={}) => ({_id: id, name, type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
+    system: {source: SRD, identifier: name.toLowerCase().replace(/\W+/g, "-"), level: 1, preparation: {mode: "prepared"}, properties: ["vocal"],
+      activation: {type: "action"}, range: {value: "60", units: "ft"}, target: {affects: {type: "creature", count: 1}, template: {}},
+      description: {value: text}, duration: {value: "", units: "inst"}, ...extra,
+      activities: {a: activity("save", {save: {ability: ["dex"], dc: {calculation: "spellcasting", formula: ""}}})}}});
+  const [grease] = convertItem(spell("testGreaseSpell1", "Grease",
+    "<p>Each creature in its area must succeed on a Dexterity saving throw or have the &amp;Reference[Prone apply=false] condition.</p>")).items;
+  assert.deepEqual(grease.system.definition.effects.map(effect => [effect.conditionId, effect.saveOutcomePolicy]), [["prone", "failure"]]);
+  assert.ok(grease.flags.wildpath.conversion.notes.some(note => /a failure gives prone/.test(note)));
+
+  const [truth] = convertItem(spell("testZoneOfTruth1", "Zone of Truth", "<p>A creature that fails can't lie.</p>",
+    {duration: {value: "10", units: "minute"}})).items;
+  assert.deepEqual(truth.system.definition.effects.map(effect => [effect.type, effect.name, effect.duration, effect.saveOutcomePolicy, effect.ruleElements]),
+    [["effect", "Zone of Truth", {value: 10, units: "minutes"}, "failure", []]]);
+  assert.equal(validateActionDefinition(truth.system.definition).ok, true);
+
+  const [counter] = convertItem(spell("testCounterspel1", "Counterspell", "<p>The creature's spell fails.</p>")).items;
+  assert.equal(counter.system.definition.effects, undefined, "instantaneous: nothing to mark");
+  const [orb] = convertItem(spell("testDragonOrb001", "Orb", "<p>On a failed save, the orb imposes the Charmed condition on you.</p>")).items;
+  assert.equal(orb.system.definition.effects, undefined, "not a condition on its user");
+});
+
+test("Polymorph: a failed save transforms the creature into a Beast its caster chooses; a wand casting it keeps the choice", () => {
+  const polymorph = {_id: "testPolymorph001", name: "Polymorph", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
+    system: {source: SRD, identifier: "polymorph", level: 4, preparation: {mode: "prepared"}, properties: ["vocal", "concentration"],
+      activation: {type: "action"}, range: {value: "60", units: "ft"}, target: {affects: {type: "creature", count: 1}, template: {}},
+      duration: {value: "1", units: "hour"}, activities: {a: activity("save", {save: {ability: ["wis"], dc: {calculation: "spellcasting", formula: ""}}})}}};
+  const beasts = [{uuid: "Compendium.wildpath.srd-creatures.Actor.bear", name: "Brown Bear", cr: 1}];
+  const [spell] = convertItem(polymorph, {beasts}).items;
+  const {transform, configuration} = spell.system.definition;
+  assert.deepEqual([transform.choiceId, transform.targets, transform.temporaryHealth, transform.concentration, transform.keepItemTypes],
+    ["form", true, "form", true, []]);
+  assert.deepEqual(configuration.find(choice => choice.id === "form").options, [{id: beasts[0].uuid, label: "Brown Bear (CR 1)"}]);
+  assert.equal(validateActionDefinition(spell.system.definition).ok, true);
+  assert.equal(convertItem(polymorph).items[0].system.definition.transform, undefined, "no Beasts to choose: a marker instead");
+
+  const wand = {_id: "testWandPolymor1", name: "Wand of Polymorph", type: "wand", img: "icons/svg/wand.svg", effects: [],
+    system: {source: SRD, identifier: "wand-of-polymorph", uses: {max: "7"}, activities: {a: activity("cast", {spell: {uuid: "Compendium.x.testPolymorph001"}})}}};
+  const cast = convertItem(wand, {beasts, spells: {testPolymorph001: polymorph}}).items.find(item => item.type === "action");
+  assert.deepEqual(cast?.system.definition.configuration?.map(choice => choice.id), ["form"], "no slot; its Beast choice stays");
+  const charged = convertItem({...wand, system: {...wand.system, description: {value: "<p>You can expend 1 of its charges to cast Polymorph.</p>"}}},
+    {beasts, spells: {testPolymorph001: polymorph}}).items.find(item => item.type === "action");
+  assert.deepEqual(charged.system.definition.costs.allOf.map(cost => cost.capability), ["action", "wand-of-polymorph"],
+    "its charge, from its text when dnd5e leaves it out");
 });
 
 test("Temporary Hit Points are healing of their own type (False Life)", () => {

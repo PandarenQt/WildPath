@@ -844,7 +844,7 @@
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
               "concentration: nothing it sustains was converted",
-              "rolled (save); what it does is by hand"
+              "save: a failure marks its creature only; what it does is by hand"
             ]
           }
         }
@@ -1068,6 +1068,21 @@
               }
             }
           },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Scrying",
+              "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "label": "Scrying"
         },
         "ruleElements": [
@@ -1102,8 +1117,7 @@
           "conversion": {
             "notes": [
               "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "rolled (save); what it does is by hand",
+              "save: a failure marks its creature only; what it does is by hand",
               "\"Create Sensor\" is passive or triggered: not automated"
             ]
           }
@@ -1533,7 +1547,7 @@
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
           "Spellcasting: effect: \"Bestial Communication\" marks its creature only; its rules are by hand",
-          "Spellcasting: rolled (save); what it does is by hand",
+          "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
           "Spellcasting: effect: \"Water Breathing\" marks its creature only; its rules are by hand",

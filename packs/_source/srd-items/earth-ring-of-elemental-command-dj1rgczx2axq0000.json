@@ -38,11 +38,11 @@
       },
       "conversion": {
         "notes": [
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand",
+          "save: a failure gives prone (its text); the rest is by hand",
           "\"End of Turn Fissures\" is passive or triggered: not automated",
           "\"Collapsing Structure Save\" is passive or triggered: not automated",
           "not automated (utility): using it spends its cost; its description says the rest",
+          "concentration: nothing it sustains was converted",
           "effect: \"Earth Focus\" change system.traits.languages.value (add) not converted",
           "effect: \"Earth Focus\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted"
         ]

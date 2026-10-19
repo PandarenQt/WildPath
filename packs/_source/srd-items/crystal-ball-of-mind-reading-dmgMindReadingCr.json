@@ -28,10 +28,10 @@
       "conversion": {
         "notes": [
           "activation: 10 minute is not an action-economy cost",
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand",
+          "save: a failure marks its creature only; what it does is by hand",
           "\"Create Sensor\" is passive or triggered: not automated",
-          "not automated (utility): using it spends its cost; its description says the rest"
+          "not automated (utility): using it spends its cost; its description says the rest",
+          "concentration: nothing it sustains was converted"
         ]
       },
       "grants": [

@@ -464,6 +464,14 @@
               "value": 16
             }
           },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "charmed",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Dominate Mind"
         },
         "ruleElements": [
@@ -496,7 +504,7 @@
           },
           "conversion": {
             "notes": [
-              "rolled (save); what it does is by hand"
+              "save: a failure gives charmed (its text); the rest is by hand"
             ]
           }
         }
@@ -779,7 +787,7 @@
           "Mucus Cloud: \"save\" is passive or triggered: not automated",
           "Mucus Cloud: \"Damage: Outside Water\" is passive or triggered: not automated",
           "Tentacle: \"Escape Check\" is passive or triggered: not automated",
-          "Dominate Mind: rolled (save); what it does is by hand",
+          "Dominate Mind: save: a failure gives charmed (its text); the rest is by hand",
           "Lash: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

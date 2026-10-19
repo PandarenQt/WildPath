@@ -90,6 +90,9 @@ export default class WildPathActor extends Actor {
   _onUpdate(changed, options, userId) {
     super._onUpdate(changed, options, userId);
     if ( options.wildpath?.healthChange ) floatHealthChange(this, options.wildpath.healthChange, options.wildpath.damageTypes);
+    // 2024 Polymorph ends once its Temporary Hit Points are gone; the client that took them reverts it.
+    if ( (foundry.utils.getProperty(changed, "system.resources.health.temp") === 0) && (userId === game.user.id) && !options.wildpath?.reverting
+      && this.transformation?.policy?.untilTemporaryHealthLost ) void this.revertTransformation();
   }
 
   /* -------------------------------------------- */
@@ -329,11 +332,15 @@ export default class WildPathActor extends Actor {
    * Take a form: the creature uses the form's listed statistics (the physical abilities, Armor Class and
    * speed by default) and gains copies of its features and Actions, while keeping its own features and the
    * Item types it keeps (features and gear by default). Any earlier transformation ends first.
+   * 2024 Polymorph: `temporaryHealth` Temporary Hit Points (the form's Hit Points), the transformation ending once
+   * they are gone (`untilTemporaryHealthLost`), and with its caster's concentration (`concentrationRef`).
    * @param {Actor} form
-   * @param {{takes?: string[], keepItemTypes?: string[]}} [policy]
+   * @param {{takes?: string[], keepItemTypes?: string[], temporaryHealth?: number, untilTemporaryHealthLost?: boolean,
+   *   concentrationRef?: string}} [policy]
    * @returns {Promise<ActiveEffect>}
    */
-  async transform(form, {takes=DEFAULT_FORM_STATISTICS, keepItemTypes=DEFAULT_KEPT_ITEM_TYPES}={}) {
+  async transform(form, {takes=DEFAULT_FORM_STATISTICS, keepItemTypes=DEFAULT_KEPT_ITEM_TYPES, temporaryHealth=0,
+    untilTemporaryHealthLost=false, concentrationRef=null}={}) {
     if ( this.transformation ) await this.revertTransformation();
     // The creature's Tokens take the form's size; each one's own is kept to restore on revert.
     const tokens = tokensOf(this);
@@ -341,8 +348,13 @@ export default class WildPathActor extends Actor {
     const [effect] = await this.createEmbeddedDocuments("ActiveEffect", [{
       name: game.i18n.format("WILDPATH.TRANSFORMATION.Effect", {form: form.name}), type: "effect", system: {}, img: form.img,
       flags: {wildpath: {transformation: {formRef: form.uuid, takes: [...takes], keepItemTypes: [...keepItemTypes],
-        tokenSizes: tokens.map(token => ({uuid: token.uuid, width: token.width, height: token.height}))}}}
+        tokenSizes: tokens.map(token => ({uuid: token.uuid, width: token.width, height: token.height})),
+        ...(untilTemporaryHealthLost ? {untilTemporaryHealthLost: true} : {})},
+      // It ends with its caster's concentration (sustainedEffects), as a lasting area's marker does.
+      ...(concentrationRef ? {conditionEffect: {concentration: {sourceRef: concentrationRef}}} : {})}}
     }]);
+    if ( temporaryHealth > 0 ) await this.update({"system.resources.health.temp":
+      Math.max(Number(this.system.resources?.health?.temp) || 0, temporaryHealth)});
     // A pure resize is a "displace" movement in V14; the movement authority approves it without cost.
     for ( const token of tokens ) {
       if ( (token.width !== size.width) || (token.height !== size.height) ) await token.move([{...size, action: "displace"}]);
@@ -371,6 +383,10 @@ export default class WildPathActor extends Actor {
     const copies = this.items.filter(entry => entry.flags?.wildpath?.transformedBy === effectId).map(entry => entry.id);
     if ( copies.length ) await this.deleteEmbeddedDocuments("Item", copies);
     const effect = deletedEffect ?? this.effects.get(effectId) ?? null;
+    // 2024 Polymorph: Temporary Hit Points left from the form vanish when it ends.
+    if ( effect?.flags?.wildpath?.transformation?.untilTemporaryHealthLost && this.system.resources?.health?.temp ) {
+      await this.update({"system.resources.health.temp": 0}, {wildpath: {reverting: true}});
+    }
     for ( const {uuid, width, height} of effect?.flags?.wildpath?.transformation?.tokenSizes ?? [] ) {
       const token = globalThis.fromUuidSync?.(uuid);
       if ( token && ((token.width !== width) || (token.height !== height)) ) await token.move([{width, height, action: "displace"}]);

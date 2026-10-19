@@ -100,6 +100,21 @@
           "effects": []
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Scrying",
+          "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 10,
+            "units": "minutes"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "label": "Scrying (Extensive and Picture)"
     },
     "ruleElements": []
@@ -118,8 +133,7 @@
       "conversion": {
         "notes": [
           "activation: 10 minute is not an action-economy cost",
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand"
+          "save: a failure marks its creature only; what it does is by hand"
         ]
       }
     }

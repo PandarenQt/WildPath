@@ -103,6 +103,21 @@
           "effects": []
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Telekinesis",
+          "img": "icons/magic/unholy/hand-grasping-green.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 10,
+            "units": "minutes"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "label": "Telekinesis"
     },
     "ruleElements": []
@@ -120,8 +135,7 @@
       },
       "conversion": {
         "notes": [
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand"
+          "save: a failure marks its creature only; what it does is by hand"
         ]
       }
     }

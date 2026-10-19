@@ -356,7 +356,7 @@
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
               "concentration: nothing it sustains was converted",
-              "rolled (save); what it does is by hand"
+              "save: a failure marks its creature only; what it does is by hand"
             ]
           }
         }
@@ -1314,6 +1314,21 @@
               }
             }
           },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Scrying",
+              "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "label": "Scrying"
         },
         "ruleElements": [
@@ -1348,8 +1363,7 @@
           "conversion": {
             "notes": [
               "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "rolled (save); what it does is by hand",
+              "save: a failure marks its creature only; what it does is by hand",
               "\"Create Sensor\" is passive or triggered: not automated"
             ]
           }
@@ -2004,7 +2018,7 @@
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: nothing it sustains was converted",
-          "Spellcasting: rolled (save); what it does is by hand",
+          "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: cast: Fireball at level 5 is cast at its own level",
           "Spellcasting: cast: Lightning Bolt at level 5 is cast at its own level",
           "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
