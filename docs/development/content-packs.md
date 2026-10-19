@@ -410,6 +410,12 @@ equipped. Equipping it (`system.active`) turns its rules on.
   text gives only "the next attack roll ... against it", the effect ends after that attack (`endsWhen: "attacked"`), and
   "before the end of your next turn" gives it one round from the caster's turn. Stunning Strike's success uses the same
   rule. Live: QA Caster's Guiding Bolt hit the Bandit Captain; its Dagger then rolled 2d20kh and the effect ended.
+- **Weapon enchantments (2026-10-19).** dnd5e enchant activities of Magic Weapon (+1/+2/+3 by slot), Sacred Weapon
+  (Charisma on attack rolls, at least +1, paid from Channel Divinity; no longer passive), Pact of the Blade and Shillelagh
+  (Charisma or the spellcasting ability in place of Strength or Dexterity) pick one of the creature's weapons; an effect
+  on it gives that weapon's attacks the rules (action-configuration.md). Their dnd5e "Spellcasting Attack" rider Actions
+  are dropped: the weapon's own attack now uses the ability. shortcuts: the magical property, Sacred Weapon's Radiant
+  option, Pact of the Blade's proficiency and damage types, Shillelagh's larger die; one such effect at a time.
 - **Effects as markers (2026-10-19).** A dnd5e effect with no status and nothing WildPath maps (Alter Self's Aquatic
   Adaptation, Acid Arrow's lingering acid, a dragon's Detect Magic) is no longer dropped. It is a custom effect with
   no rules: its name, icon, duration, save policy and concentration. Its creature shows it, it expires on time, and it

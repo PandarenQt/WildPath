@@ -924,6 +924,9 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
     case "keepEffect":
     case "keep-effect":
       return applyKeepEffectEffect({definition, effect, selection});
+    case "bindChoice":
+    case "bind-choice":
+      return applyBindChoiceEffect({definition, effect, selection});
     default:
       return {ok: true, trace: [appliedTrace(selection, "ignored-unknown-effect", {effectType: effect.type ?? effect.kind ?? null})], errors: []};
   }
@@ -962,6 +965,21 @@ function normalizeEffectType(type) {
  * option's value to its effects (Blindness/Deafness: one condition each); without it the value is an effect id.
  * Hex: one ability's disadvantage out of six.
  */
+/**
+ * A choice's value written into the Action's effects wherever `{{<choice id>}}` stands: a chosen weapon's id into its
+ * rules' predicates (Magic Weapon's `weapon:{{weapon}}`), a slot choice's casting level where the token stands alone
+ * (a number: `{type: "constant", value: "{{spell-slot}}"}`).
+ */
+function applyBindChoiceEffect({definition, effect, selection}) {
+  const token = `{{${effect.token ?? selection.id}}}`;
+  const value = finiteNumber(selection.metadata?.castingLevel) ?? selection.value;
+  const bind = entry => ((typeof entry === "string") ? ((entry === token) ? value : entry.replaceAll(token, String(value)))
+    : Array.isArray(entry) ? entry.map(bind)
+      : (entry && (typeof entry === "object")) ? Object.fromEntries(Object.entries(entry).map(([key, inner]) => [key, bind(inner)])) : entry);
+  definition.effects = bind(normalizeArray(definition.effects));
+  return {ok: true, trace: [appliedTrace(selection, "bind-choice", {token, value})], errors: []};
+}
+
 function applyKeepEffectEffect({definition, effect, selection}) {
   const listed = new Set(normalizeArray(effect.effectIds));
   const kept = new Set(normalizeArray(effect.keep?.[selection.value] ?? String(selection.value ?? "")));

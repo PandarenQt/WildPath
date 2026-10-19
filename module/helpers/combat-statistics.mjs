@@ -96,8 +96,9 @@ export function resolveActorAttackStatistic(actor, attack={}, {item=null, tags=[
     attack.type ? `attack.${attack.type}` : null,
     "attack"
   ]);
-  const statistic = resolveActorStatisticModifier(actor, domains, {item, tags: uniqueStrings([attack.type, ...tags])});
+  // Its ability is among its tags too (Pact of the Blade: Presence in place of Might or Agility).
   const ability = attackAbility(actor, attack, {tags});
+  const statistic = resolveActorStatisticModifier(actor, domains, {item, tags: uniqueStrings([attack.type, ...tags, ability])});
   const abilityModifier = actorAbilityModifier(actor, ability);
   if ( !statistic.known && (abilityModifier == null) ) return null;
   // 2024: the proficiency bonus joins only an attack the creature is proficient with (maintainer decision).
@@ -185,7 +186,10 @@ export function attackForcesCritical(target, {type=null, context={}}={}) {
  */
 export function actionCombatStatistics(actor, definition, {item=null, turn=null, context={}, target=null}={}) {
   const attackDefinition = definition?.attack ?? null;
-  const tags = [...(definition?.tags ?? [])];
+  // A weapon's attack names its weapon (`weapon:<id>`, the gear granting it), so a rule can reach that weapon alone
+  // (Magic Weapon's chosen weapon).
+  const weaponId = (attackDefinition?.weapon && item) ? (item.flags?.wildpath?.grantedBy ?? item.id) : null;
+  const tags = [...(definition?.tags ?? []), ...(weaponId ? [`weapon:${weaponId}`] : [])];
   const statistic = attackDefinition ? resolveActorAttackStatistic(actor, attackDefinition, {item, tags}) : null;
   const components = definition?.damage ?? [];
   const weapon = !statistic?.spell && Number.isFinite(statistic?.abilityModifier)

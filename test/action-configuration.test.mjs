@@ -428,3 +428,31 @@ test("a number chosen when used is spent from a pool and is the amount (Lay on H
   const costs = JSON.stringify(result.configuration.effectiveDefinition.costs);
   assert.ok(costs.includes("lay-on-hands") && costs.includes("7"), costs);
 });
+
+test("an enchantment picks one of its creature's own weapons, and binds it and the slot's level into its effect (Magic Weapon)", async () => {
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const fs = await import("node:fs");
+  const stored = JSON.parse(fs.readFileSync("packs/_source/srd-items/magic-weapon-phbsplMagicWeapo.json", "utf8")).system.definition;
+  const weaponAction = (id, gear, base, type="melee") => ({id, type: "action", name: `${base} attack`, flags: {wildpath: {grantedBy: gear}},
+    system: {definition: {attack: {type, statistic: "weapon", weapon: {base}}}}});
+  const actor = {items: [{id: "sword", type: "gear", name: "Longsword"}, weaponAction("sword-attack", "sword", "longsword"),
+    weaponAction("sword-thrown", "sword", "longsword", "ranged"), {id: "dagger", type: "gear", name: "Dagger"},
+    weaponAction("dagger-attack", "dagger", "dagger"), {id: "fist", type: "action", name: "Unarmed Strike",
+      system: {definition: {attack: {type: "melee", statistic: "weapon"}}}}]};
+  const read = actionDefinitionFromItem({id: "mw", type: "action", name: "Magic Weapon", actor, system: {definition: stored}});
+  assert.equal(read.ok, true, JSON.stringify(read.errors));
+  const choice = read.definition.configuration.find(entry => entry.id === "weapon");
+  assert.deepEqual(choice.options.map(option => [option.value, option.label]), [["sword", "Longsword"], ["dagger", "Dagger"]],
+    "one per weapon, named for it; an Unarmed Strike is no weapon");
+  const actorSystem = {resources: {bonus: {value: 1, max: 1}}, pools: [{id: "spell-slot.4", value: 1, max: 1}]};
+  const resolved = resolveActionConfiguration({definition: read.definition, actorSystem,
+    choices: {"spell-slot": {resourceId: "spell-slot.4"}, weapon: "sword"}});
+  assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+  const [rule] = resolved.configuration.effectiveDefinition.effects[0].ruleElements;
+  assert.deepEqual(rule.predicate, {tagsAny: ["weapon:sword"]});
+  assert.deepEqual(rule.data.valueExpression.key, {type: "constant", value: 4}, "the slot's level, a number");
+  const forged = resolveActionConfiguration({definition: read.definition, actorSystem,
+    choices: {"spell-slot": {resourceId: "spell-slot.4"}, weapon: "someone-elses"}});
+  assert.equal(forged.ok, false, "not one of its weapons");
+});

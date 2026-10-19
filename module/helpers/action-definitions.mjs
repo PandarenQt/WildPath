@@ -243,8 +243,8 @@ export function serializeActionDefinition(rawDefinition={}, options={}) {
 
 export function actionDefinitionFromItem(item, options={}) {
   const system = item?.system ?? {};
-  const raw = withWeaponMastery(withExtraAttacks(system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null,
-    item), item?.actor ?? null);
+  const raw = withOwnWeapons(withWeaponMastery(withExtraAttacks(system.definition ?? system.actionDefinition ?? item?.definition
+    ?? item?.actionDefinition ?? null, item), item?.actor ?? null), item?.actor ?? null);
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
   const legacyActivationCost = options.legacyActivationCost
@@ -286,6 +286,30 @@ export function actionDefinitionFromItem(item, options={}) {
  * Action may instead be paid from that pool, and paying with the Action fills the pool. The stored definition is
  * untouched; this is what the creature can pay now.
  */
+/**
+ * A choice of one of its creature's own weapons (`optionsFrom: {type: "weapons", melee?, bases?}`: Magic Weapon,
+ * Shillelagh): its options are the weapons whose attacks the creature has, by the weapon's own Item id (the gear that
+ * grants the attack, else the attack itself), worked out whenever the Action is read, so a forged id is never one.
+ */
+function withOwnWeapons(raw, actor) {
+  const choices = raw?.configuration;
+  if ( !Array.isArray(choices) || !choices.some(choice => choice?.optionsFrom?.type === "weapons") ) return raw;
+  const items = [...(actor?.items ?? [])];
+  const attacks = items.filter(item => (item.type === "action") && item.system?.definition?.attack?.weapon);
+  return {...raw, configuration: choices.map(choice => {
+    if ( choice?.optionsFrom?.type !== "weapons" ) return choice;
+    const {melee=false, bases=[]} = choice.optionsFrom;
+    const options = new Map();
+    for ( const action of attacks ) {
+      const attack = action.system.definition.attack;
+      if ( (melee && (attack.type !== "melee")) || (bases.length && !bases.includes(attack.weapon.base)) ) continue;
+      const id = action.flags?.wildpath?.grantedBy ?? action.id;
+      if ( !options.has(id) ) options.set(id, {id, value: id, label: items.find(item => item.id === id)?.name ?? action.name});
+    }
+    return {...choice, options: [...options.values()]};
+  })};
+}
+
 function withExtraAttacks(raw, item) {
   const actor = item?.actor ?? null;
   const allOf = raw?.costs?.allOf;

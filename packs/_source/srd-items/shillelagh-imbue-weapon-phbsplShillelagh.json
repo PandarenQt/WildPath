@@ -21,6 +21,192 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "weapon",
+          "type": "select-one",
+          "label": "Weapon",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "weapons",
+            "melee": true,
+            "bases": [
+              "club",
+              "quarterstaff"
+            ]
+          },
+          "effects": [
+            {
+              "type": "bindChoice"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Shillelagh",
+          "img": "icons/magic/nature/root-vine-coiled-crook.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "shillelagh-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "attack"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "max",
+                  "terms": [
+                    {
+                      "type": "constant",
+                      "value": 0
+                    },
+                    {
+                      "type": "subtract",
+                      "left": {
+                        "type": "spellcasting-modifier"
+                      },
+                      "right": {
+                        "type": "ability-modifier",
+                        "ability": "might"
+                      }
+                    }
+                  ]
+                }
+              },
+              "predicate": {
+                "tagsAll": [
+                  "weapon:{{weapon}}",
+                  "might"
+                ]
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "shillelagh-2",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "attack"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "max",
+                  "terms": [
+                    {
+                      "type": "constant",
+                      "value": 0
+                    },
+                    {
+                      "type": "subtract",
+                      "left": {
+                        "type": "spellcasting-modifier"
+                      },
+                      "right": {
+                        "type": "ability-modifier",
+                        "ability": "agility"
+                      }
+                    }
+                  ]
+                }
+              },
+              "predicate": {
+                "tagsAll": [
+                  "weapon:{{weapon}}",
+                  "agility"
+                ]
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "shillelagh-3",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "damage"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "max",
+                  "terms": [
+                    {
+                      "type": "constant",
+                      "value": 0
+                    },
+                    {
+                      "type": "subtract",
+                      "left": {
+                        "type": "spellcasting-modifier"
+                      },
+                      "right": {
+                        "type": "ability-modifier",
+                        "ability": "might"
+                      }
+                    }
+                  ]
+                }
+              },
+              "predicate": {
+                "tagsAll": [
+                  "weapon:{{weapon}}",
+                  "might"
+                ]
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "shillelagh-4",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "damage"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "max",
+                  "terms": [
+                    {
+                      "type": "constant",
+                      "value": 0
+                    },
+                    {
+                      "type": "subtract",
+                      "left": {
+                        "type": "spellcasting-modifier"
+                      },
+                      "right": {
+                        "type": "ability-modifier",
+                        "ability": "agility"
+                      }
+                    }
+                  ]
+                }
+              },
+              "predicate": {
+                "tagsAll": [
+                  "weapon:{{weapon}}",
+                  "agility"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "minutes"
+          }
+        }
+      ],
       "metadata": {
         "spellLevel": 0
       },
@@ -40,9 +226,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }
