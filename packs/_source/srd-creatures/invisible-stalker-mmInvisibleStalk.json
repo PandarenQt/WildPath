@@ -504,6 +504,20 @@
               "distance": 50,
               "hover": true
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "initiative",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "initiative"
+              ],
+              "modifierType": "untyped",
+              "valueExpression": {
+                "type": "proficiency-bonus"
+              }
+            }
           }
         ]
       },

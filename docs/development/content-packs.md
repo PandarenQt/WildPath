@@ -360,6 +360,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Creature skills (2026-10-19).** A creature's dnd5e skills convert to `skills.<skill>.proficiency`: 1 proficient,
   2 expertise (dnd5e's half proficiency is none). Before, every converted creature rolled its skills on its ability
   alone: a Goblin Warrior's Stealth was +2, not +6. All 375 SRD creatures changed.
+- **Creature initiative (2026-10-19).** dnd5e's initiative bonus (`@prof`, `@prof * 2` in 2024 stat blocks) is an
+  `initiative` Modifier on the creature's Traits, kept as a formula on its proficiency. 104 SRD creatures. Live: an
+  SRD Adult Red Dragon's initiative rolled `1d20 + 12` (Agility +0, twice its proficiency of 6).
 - **Hovering (2026-10-19).** dnd5e's `movement.hover` goes on the fly Speed the same effect grants: Fly, Gaseous
   Form, Wind Walk, a Potion of Flying, the Air Ring, and the creatures casting them (16 SRD documents). A hovering
   flyer knocked Prone does not fall. Live: Player1's QA Caster cast the SRD Fly on itself: "Flight", a fly Speed of 60

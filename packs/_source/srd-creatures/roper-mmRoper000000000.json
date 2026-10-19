@@ -416,6 +416,29 @@
               "mode": "climb",
               "distance": 20
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "initiative",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "initiative"
+              ],
+              "modifierType": "untyped",
+              "valueExpression": {
+                "type": "multiply",
+                "terms": [
+                  {
+                    "type": "proficiency-bonus"
+                  },
+                  {
+                    "type": "constant",
+                    "value": 2
+                  }
+                ]
+              }
+            }
           }
         ]
       },

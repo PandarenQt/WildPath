@@ -919,7 +919,11 @@ test("a grapple or restraint keeps its escape DC, from the Escape Check activity
   const snake = {_id: "testSnake0000001", name: "Snake", type: "npc", img: "icons/svg/mystery-man.svg", items: [passive], effects: [],
     system: {source: SRD, abilities: {str: {value: 19}}, skills: {ath: {ability: "str", value: 1, bonuses: {passive: ""}}}, details: {cr: 2},
       attributes: {hp: {value: 30, max: 30}, ac: {flat: 12}, movement: {walk: 30}}, traits: {size: "lg"}}};
-  const converted = convertActor({...snake, system: {...snake.system, skills: {...snake.system.skills, ste: {value: 2}, prc: {value: 0.5}}}}).actor;
+  const converted = convertActor({...snake, system: {...snake.system, skills: {...snake.system.skills, ste: {value: 2}, prc: {value: 0.5}},
+    attributes: {...snake.system.attributes, init: {bonus: "@prof * 2"}}}}).actor;
+  assert.deepEqual(converted.items.find(item => item.name === "Traits").system.ruleElements.find(rule => rule.id === "initiative").data,
+    {domains: ["initiative"], modifierType: "untyped", valueExpression: {type: "multiply", terms: [{type: "proficiency-bonus"}, {type: "constant", value: 2}]}},
+    "2024 Initiative: twice its proficiency, beyond Agility");
   assert.deepEqual(converted.system.skills, {athletics: {proficiency: 1}, stealth: {proficiency: 2}}, "its skills; half proficiency is none");
   const constrict = convertActor(snake).actor.items.find(item => item.name.startsWith("Constrict"));
   assert.deepEqual(constrict.system.definition.effects[0].metadata, {escapeDC: 10 + 4 + 2}, "its passive Athletics");

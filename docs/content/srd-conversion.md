@@ -688,7 +688,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Gift of the Depths | classes24 | Gift of the Depths (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Water Breathing" (its own changes) not converted |
 | Gift of the Protectors | classes24 | Gift of the Protectors (Write Name) (manual), Gift of the Protectors (Erase Name) (manual) | "Protect" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted |
 | Glabrezu | actors24 | Glabrezu (12 items) | Pincer: "Escape Check" is passive or triggered: not automated; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Magic" (its own changes) not converted; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: area: @item.level * 5 - 10-ft sphere is not supported; the user picks the targets; Spellcasting: effect: "Confused" (its own changes) not converted; Spellcasting: rolled (save); what it does is by hand |
-| Gladiator | actors24 | Gladiator (5 items) | Parry: not automated (utility): using it spends its cost; its description says the rest |
+| Gladiator | actors24 | Gladiator (6 items) | Parry: not automated (utility): using it spends its cost; its description says the rest |
 | Glaive | equipment24 | Glaive (automated) | — |
 | Glamoured Studded Leather | equipment24 | Glamoured Studded Leather (gear) | — |
 | Glassblower's Tools | equipment24 | Glassblower's Tools (gear), Glassblower's Tools (automated) | — |
@@ -733,7 +733,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Griffon | actors24 | Griffon (3 items) | Rend: "Escape Check" is passive or triggered: not automated |
 | Grimlock | actors24 | Grimlock (2 items) | — |
 | Guard | actors24 | Guard (2 items) | — |
-| Guard Captain | actors24 | Guard Captain (3 items) | — |
+| Guard Captain | actors24 | Guard Captain (4 items) | — |
 | Guardian Naga | actors24 | Guardian Naga (11 items) | Spellcasting: cast: Cure Wounds at level 6 is cast at its own level; Spellcasting: cast: Flame Strike at level 6 is cast at its own level; Spellcasting: cast: Geas at level 6 is cast at its own level; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Truesight" change system.attributes.senses.truesight (upgrade) not converted; Spellcasting: effect: "Truesight" (its own changes) not converted |
 | Guardian of Faith | spells24 | Guardian of Faith (summon) (automated), Guardian of Faith (save) (automated) | — |
 | Guardian of Faith | actors24 | Guardian of Faith (1 items) | Guarded Area: "save" is passive or triggered: not automated; Guarded Area: "Consume Damage Pool" is passive or triggered: not automated |
@@ -743,7 +743,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Gust of Wind | spells24 | Gust of Wind (automated) | concentration: nothing it sustains was converted; rolled (save); what it does is by hand |
 | Halberd | equipment24 | Halberd (automated) | — |
 | Half Plate Armor | equipment24 | Half Plate Armor (gear) | — |
-| Half-Dragon | actors24 | Half-Dragon (5 items) | Leap: not automated (utility): using it spends its cost; its description says the rest |
+| Half-Dragon | actors24 | Half-Dragon (6 items) | Leap: not automated (utility): using it spends its cost; its description says the rest |
 | Halfling | origins24 | Halfling (species) | — |
 | Halfling Nimbleness | origins24 | Halfling Nimbleness (feature) | effect: "Halfling Nimbleness" change flags.dnd5e.halflingNimbleness (override) not converted |
 | Hallow | spells24 | Hallow (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 24 hour is not an action-economy cost |
@@ -781,12 +781,12 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Hidden Pit | equipment24 | Hidden Pit (gear) | "Trigger (1-4)" is passive or triggered: not automated; "Trigger (5-10)" is passive or triggered: not automated; "Trigger (11-16)" is passive or triggered: not automated; "Trigger (17-20)" is passive or triggered: not automated |
 | Hide Armor | equipment24 | Hide Armor (gear) | — |
 | Hideous Laughter | spells24 | Hideous Laughter (automated) | — |
-| Hill Giant | actors24 | Hill Giant (3 items) | — |
+| Hill Giant | actors24 | Hill Giant (4 items) | — |
 | Hill's Tumble | origins24 | Hill's Tumble (feature) | "Hill's Tumble" is passive or triggered: not automated |
 | Hippogriff | actors24 | Hippogriff (4 items) | — |
 | Hippopotamus | actors24 | Hippopotamus (4 items) | — |
-| Hobgoblin Captain | actors24 | Hobgoblin Captain (4 items) | Aura of Authority: "Expend Use" is passive or triggered: not automated |
-| Hobgoblin Warrior | actors24 | Hobgoblin Warrior (3 items) | — |
+| Hobgoblin Captain | actors24 | Hobgoblin Captain (5 items) | Aura of Authority: "Expend Use" is passive or triggered: not automated |
+| Hobgoblin Warrior | actors24 | Hobgoblin Warrior (4 items) | — |
 | Hold Monster | spells24 | Hold Monster (automated) | — |
 | Hold Person | spells24 | Hold Person (automated) | — |
 | Holy Aura | spells24 | Holy Aura (Create Aura) (automated) | "Fiend/Undead Save" is passive or triggered: not automated |
@@ -982,7 +982,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Maze | spells24 | Maze (manual) | not automated (check): using it spends its cost; its description says the rest |
 | Medallion of Thoughts | equipment24 | Medallion of Thoughts (gear), Medallion of Thoughts: Detect Thoughts (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted; rolled (save); what it does is by hand |
 | Medium Animated Object | actors24 | Medium Animated Object (2 items) | Slam: damage 1: custom formula "(@flags.dnd5e.summon.level - 4)d4 + @mod" not converted; Slam: rolled (attack); what it does is by hand |
-| Medusa | actors24 | Medusa (7 items) | Petrifying Gaze: activation: turnEnd is not an action-economy cost |
+| Medusa | actors24 | Medusa (8 items) | Petrifying Gaze: activation: turnEnd is not an action-economy cost |
 | Meld into Stone | spells24 | Meld into Stone (damage) (automated), Meld into Stone (damage) (automated) | — |
 | Memorize Spell | classes24 | Memorize Spell (feature) | — |
 | Mending | spells24 | Mending (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
@@ -1109,8 +1109,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Pipes of Haunting | equipment24 | Pipes of Haunting (gear), Pipes of Haunting (automated) | — |
 | Pipes of the Sewers | equipment24 | Pipes of the Sewers (gear), Pipes of the Sewers (Call Swarm of Rats) (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: a count of "@scaling" is not converted; "Sway Rats" is passive or triggered: not automated |
 | Piranha | actors24 | Piranha (3 items) | — |
-| Pirate | actors24 | Pirate (3 items) | — |
-| Pirate Captain | actors24 | Pirate Captain (5 items) | — |
+| Pirate | actors24 | Pirate (4 items) | — |
+| Pirate Captain | actors24 | Pirate Captain (6 items) | — |
 | Pistol | equipment24 | Pistol (automated) | — |
 | Pit Fiend | actors24 | Pit Fiend (13 items) | Fear Aura: "save" is passive or triggered: not automated; Bite: "save" is passive or triggered: not automated; Bite: activation: turnStart is not an action-economy cost; Hellfire Spellcasting: cast: Fireball at level 5 is cast at its own level; Hellfire Spellcasting: cast: Hold Monster at level 7 is cast at its own level; Hellfire Spellcasting: "damage" is passive or triggered: not automated |
 | Planar Ally | spells24 | Planar Ally (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
@@ -1205,7 +1205,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Radiant Strikes | classes24 | Radiant Strikes (feature) | — |
 | Rage | classes24 | Rage (automated) | effect: "Rage" change system.bonuses.mwak.damage (add) not converted |
 | Raise Dead | spells24 | Raise Dead (automated) | activation: 1 hour is not an action-economy cost |
-| Rakshasa | actors24 | Rakshasa (14 items) | Cursed Touch: effect: cursed is not a WildPath condition yet; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Magic" (its own changes) not converted; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: rolled (save); what it does is by hand; Spellcasting: effect: "Disguised" (its own changes) not converted; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest |
+| Rakshasa | actors24 | Rakshasa (15 items) | Cursed Touch: effect: cursed is not a WildPath condition yet; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Magic" (its own changes) not converted; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: rolled (save); what it does is by hand; Spellcasting: effect: "Disguised" (its own changes) not converted; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest |
 | Ram, Portable | equipment24 | Ram, Portable (gear) | — |
 | Ranger | classes24 | Ranger (class) | languages are not tracked |
 | Rapier | equipment24 | Rapier (automated) | — |
@@ -1455,7 +1455,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Steam Mephit | actors24 | Steam Mephit (5 items) | Death Burst: "save" is passive or triggered: not automated; Steam Breath: effect: "Slowed: 10 ft." change system.attributes.movement.fly (add) not converted; Steam Breath: effect: "Slowed: 10 ft." change system.attributes.movement.swim (add) not converted; Steam Breath: effect: "Slowed: 10 ft." change system.attributes.movement.burrow (add) not converted; Steam Breath: effect: "Slowed: 10 ft." change system.attributes.movement.climb (add) not converted |
 | Stinking Cloud | spells24 | Stinking Cloud (Create Cloud) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted; "Start of Turn Save" is passive or triggered: not automated |
 | Stirge | actors24 | Stirge (3 items) | Proboscis: activation: turnStart is not an action-economy cost |
-| Stone Giant | actors24 | Stone Giant (4 items) | Deflect Missile: "Save" is passive or triggered: not automated |
+| Stone Giant | actors24 | Stone Giant (5 items) | Deflect Missile: "Save" is passive or triggered: not automated |
 | Stone Golem | actors24 | Stone Golem (7 items) | — |
 | Stone of Controlling Earth Elementals | equipment24 | Stone of Controlling Earth Elementals (gear), Stone of Controlling Earth Elementals (automated) | — |
 | Stone of Good Luck (Luckstone) | equipment24 | Stone of Good Luck (Luckstone) (gear) | — |
@@ -1626,7 +1626,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Warlock | classes24 | Warlock (class) | spellcasting: pact is treated as none |
 | Warrior Infantry | actors24 | Warrior Infantry (3 items) | — |
 | Warrior of the Open Hand | classes24 | Warrior of the Open Hand (subclass) | — |
-| Warrior Veteran | actors24 | Warrior Veteran (4 items) | Parry: not automated (utility): using it spends its cost; its description says the rest |
+| Warrior Veteran | actors24 | Warrior Veteran (5 items) | Parry: not automated (utility): using it spends its cost; its description says the rest |
 | Water (Pint) | equipment24 | Water (Pint) (gear) | "Consume" is passive or triggered: not automated |
 | Water (Pint) | equipment24 | Water (Pint) (gear) | "Consume" is passive or triggered: not automated |
 | Water (Pint) | equipment24 | Water (Pint) (gear) | "Consume" is passive or triggered: not automated |
@@ -1656,11 +1656,11 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Web | spells24 | Web (automated) | — |
 | Weird | spells24 | Weird (save) (automated) | "End of Turn Save" is passive or triggered: not automated |
 | Well of Many Worlds | equipment24 | Well of Many Worlds (gear), Well of Many Worlds (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Werebear | actors24 | Werebear (7 items) | Bite (Bear or Hybrid Form Only): effect: cursed is not a WildPath condition yet; Bite (Bear or Hybrid Form Only): rolled (save); what it does is by hand; Shape-Shift: not automated (utility): using it spends its cost; its description says the rest |
-| Wereboar | actors24 | Wereboar (8 items) | Gore  (Boar or Hybrid Form Only): effect: cursed is not a WildPath condition yet; Gore  (Boar or Hybrid Form Only): rolled (save); what it does is by hand; Shape-Shift: not automated (utility): using it spends its cost; its description says the rest |
+| Werebear | actors24 | Werebear (8 items) | Bite (Bear or Hybrid Form Only): effect: cursed is not a WildPath condition yet; Bite (Bear or Hybrid Form Only): rolled (save); what it does is by hand; Shape-Shift: not automated (utility): using it spends its cost; its description says the rest |
+| Wereboar | actors24 | Wereboar (9 items) | Gore  (Boar or Hybrid Form Only): effect: cursed is not a WildPath condition yet; Gore  (Boar or Hybrid Form Only): rolled (save); what it does is by hand; Shape-Shift: not automated (utility): using it spends its cost; its description says the rest |
 | Wererat | actors24 | Wererat (8 items) | Bite (Rat or Hybrid Form Only): effect: cursed is not a WildPath condition yet; Bite (Rat or Hybrid Form Only): rolled (save); what it does is by hand; Shape-Shift: not automated (utility): using it spends its cost; its description says the rest |
 | Weretiger | actors24 | Weretiger (8 items) | Bite (Tiger or Hybrid Form Only): effect: cursed is not a WildPath condition yet; Bite (Tiger or Hybrid Form Only): rolled (save); what it does is by hand; Shape-Shift: not automated (utility): using it spends its cost; its description says the rest; Prowl (Tiger or Hybrid Form Only): not automated (utility): using it spends its cost; its description says the rest |
-| Werewolf | actors24 | Werewolf (8 items) | Bite (Wolf or Hybrid Form Only): effect: cursed is not a WildPath condition yet; Bite (Wolf or Hybrid Form Only): rolled (save); what it does is by hand |
+| Werewolf | actors24 | Werewolf (9 items) | Bite (Wolf or Hybrid Form Only): effect: cursed is not a WildPath condition yet; Bite (Wolf or Hybrid Form Only): rolled (save); what it does is by hand |
 | Whip | equipment24 | Whip (automated) | — |
 | Whispers of the Grave | classes24 | Whispers of the Grave (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | White Dragon Wyrmling | actors24 | White Dragon Wyrmling (5 items) | — |
