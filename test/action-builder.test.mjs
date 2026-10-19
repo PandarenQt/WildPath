@@ -336,6 +336,16 @@ test("the Builder edits a damage row's type chosen when used, and \"apply one of
   assert.deepEqual(submit(word, {choices: {effectOne: false}}).definition.configuration, word.configuration, "read-only: kept");
 });
 
+test("a healing row can give Temporary Hit Points instead (False Life)", () => {
+  const life = {schemaVersion: 1, id: "action:life", label: "Life", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "self"}, healing: [{id: "healing-1", expression: {type: "dice", number: 2, faces: 4}, healingType: "temporary"}]};
+  assert.equal(definitionToBuilder(life).healing[0].temporary, true);
+  assert.equal(submit(life, {}).changed, false);
+  assert.equal(submit(life, {healing: {0: {temporary: false}}}).definition.healing[0].healingType, "healing");
+  const heal = {...life, healing: [{...life.healing[0], healingType: "healing"}]};
+  assert.equal(submit(heal, {healing: {0: {temporary: true}}}).definition.healing[0].healingType, "temporary");
+});
+
 test("a condition row can end its condition instead (Lesser Restoration); Exhaustion loses its levels", () => {
   const restore = {schemaVersion: 1, id: "action:restore", label: "Restore", costs: {allOf: [{capability: "action", amount: 1}]},
     targeting: {type: "single", required: true, count: 1}, effects: [{id: "effect-1", type: "condition", conditionId: "poisoned", levels: -1}]};

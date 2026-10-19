@@ -22,6 +22,41 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              {
+                "type": "max",
+                "terms": [
+                  {
+                    "type": "constant",
+                    "value": 1
+                  },
+                  {
+                    "type": "ability-modifier",
+                    "ability": "wits"
+                  }
+                ]
+              }
+            ]
+          },
+          "healingType": "temporary"
+        }
+      ],
       "label": "Tireless (Temporary Hit Points)"
     },
     "ruleElements": [
@@ -62,10 +97,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (heal): using it spends its cost; its description says the rest",
-          "healing: temporary Hit Points not converted"
-        ]
+        "notes": []
       }
     }
   }

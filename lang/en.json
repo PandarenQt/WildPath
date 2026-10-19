@@ -806,7 +806,8 @@
       },
       "Healing": {
         "Legend": "What does it heal?",
-        "Add": "Add healing"
+        "Add": "Add healing",
+        "Temporary": "Temporary Hit Points"
       },
       "Effects": {
         "Legend": "What effects does it apply?",
@@ -935,6 +936,8 @@
       },
       "Use": "Use",
       "Health": "HP {value} / {max}",
+      "TempHealth": "+{temp} temp",
+      "TempHealthLabel": "Temporary Hit Points",
       "Move": "Move {distance} ft",
       "Speed": {
         "Swim": "Swim {distance} ft",

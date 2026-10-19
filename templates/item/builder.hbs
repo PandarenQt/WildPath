@@ -232,6 +232,8 @@
         <input type="text" class="formula" name="wildpath.builder.healing.{{@index}}.formula" value="{{row.formula}}" placeholder="2d8 + spellmod"
                aria-label="{{localize "WILDPATH.BUILDER.FormulaLabel"}}" {{#if row.error}}aria-invalid="true" aria-describedby="{{row.errorId}}"{{/if}}>
         {{/if}}
+        <label class="checkbox"><input type="checkbox" name="wildpath.builder.healing.{{@index}}.temporary" {{checked row.temporary}}>
+          {{localize "WILDPATH.BUILDER.Healing.Temporary"}}</label>
         {{#if ../b.editable}}<button type="button" class="icon" data-action="builderRemove" data-section="healing" data-index="{{@index}}"
           data-tooltip="WILDPATH.BUILDER.Remove" aria-label="{{localize "WILDPATH.BUILDER.Remove"}}"><i class="fa-solid fa-trash" inert></i></button>{{/if}}
         {{#if row.error}}<span class="field-error" id="{{row.errorId}}">{{row.error}}</span>{{/if}}

@@ -184,3 +184,24 @@ test("commit adapter treats no-op plans as successful without calling update", a
   assert.equal(await commitActorDurabilityMutationPlan(actor, plan), true);
   assert.equal(actor.called, false);
 });
+
+test("Temporary Hit Points are lost first, never stack, and are rolled back with the damage", async () => {
+  const shielded = actorSystem({resources: {health: {value: 10, max: 20, temp: 5}}});
+  const hit = createActorDamageMutationPlan(shielded, {amount: 8});
+  assert.deepEqual([hit.amount, hit.to, hit.temporary, hit.updates],
+    [3, 7, {path: "system.resources.health.temp", from: 5, to: 0}, {"system.resources.health.temp": 0, "system.resources.health.value": 7}]);
+  const grazed = createActorDamageMutationPlan(shielded, {amount: 3});
+  assert.deepEqual([grazed.amount, grazed.updates], [0, {"system.resources.health.temp": 2}],
+    "all absorbed: no damage reaches health (no failed death save at 0)");
+  assert.equal(createActorDamageMutationPlan(actorSystem(), {amount: 3}).temporary, undefined, "none to lose");
+
+  const gain = healingResult => createActorHealingMutationPlan(shielded, {healingResult});
+  assert.deepEqual(gain({total: 9, byHealingType: {temporary: 9}}).updates, {"system.resources.health.temp": 9}, "False Life: higher replaces");
+  assert.deepEqual(gain({total: 4, byHealingType: {temporary: 4}}).updates, {}, "lower is kept away: they never stack");
+  assert.deepEqual(gain({total: 10, byHealingType: {healing: 4, temporary: 6}}).updates,
+    {"system.resources.health.value": 14, "system.resources.health.temp": 6}, "healing and Temporary Hit Points apart");
+
+  const {createActorUpdateTransactionOperation} = await import("../module/resolvers/resolution-transaction-resolver.mjs");
+  assert.deepEqual(createActorUpdateTransactionOperation({mutationPlan: hit}).rollbackUpdates,
+    {"system.resources.health.value": 10, "system.resources.health.temp": 5});
+});

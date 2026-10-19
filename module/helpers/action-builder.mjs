@@ -215,7 +215,8 @@ export function definitionToBuilder(definition, { abilities = null } = {}) {
         }),
         healing: (Array.isArray(d.healing) ? d.healing : []).map((component) => {
             const formula = formatFormula(component.expression);
-            return { id: component.id ?? "", formula: formula ?? "", formulaReadOnly: formula === null };
+            // Temporary Hit Points (False Life) rather than healing.
+            return { id: component.id ?? "", formula: formula ?? "", formulaReadOnly: formula === null, temporary: component.healingType === "temporary" };
         }),
         effects: (Array.isArray(d.effects) ? d.effects : []).map((effect) => ({
             id: effect.id ?? "",
@@ -606,6 +607,9 @@ const WRITERS = {
                 const expression = readFormula(row.formula, `healing.${index}.formula`, errors, { abilities: options.abilities ?? null });
                 if (expression)
                     component.expression = expression;
+            }
+            if ((row.temporary !== undefined) && (!modelRow || (Boolean(row.temporary) !== modelRow.temporary))) {
+                component.healingType = row.temporary ? "temporary" : "healing";
             }
             return component;
         });

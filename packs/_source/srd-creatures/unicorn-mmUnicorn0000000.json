@@ -995,6 +995,17 @@
             "required": true,
             "count": 1
           },
+          "healing": [
+            {
+              "id": "healing-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 6
+              },
+              "healingType": "temporary"
+            }
+          ],
           "effects": [
             {
               "id": "effect-1",
@@ -1038,9 +1049,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "healing: temporary Hit Points not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1317,8 +1326,7 @@
           "Spellcasting: effect: \"Dispelling Evil and Good\" (its own changes) not converted",
           "Spellcasting: rolled (save); what it does is by hand",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
-          "Charging Horn: not automated (utility): using it spends its cost; its description says the rest",
-          "Shimmering Shield: healing: temporary Hit Points not converted"
+          "Charging Horn: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

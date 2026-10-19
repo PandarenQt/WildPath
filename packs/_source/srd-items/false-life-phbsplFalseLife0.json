@@ -21,6 +21,32 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "dice",
+                "number": 2,
+                "faces": 4
+              },
+              {
+                "type": "constant",
+                "value": 4
+              }
+            ]
+          },
+          "healingType": "temporary"
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -96,7 +122,20 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleHealing",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "componentIds": [
+                "healing-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 4
+              }
+            }
+          ]
         }
       ],
       "label": "False Life"
@@ -115,10 +154,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (heal): using it spends its cost; its description says the rest",
-          "healing: temporary Hit Points not converted"
-        ]
+        "notes": []
       }
     }
   }

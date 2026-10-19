@@ -280,6 +280,8 @@ function rollbackUpdatesForMutationPlan(mutationPlan, updates={}) {
   if ( mutationPlan?.path && Object.hasOwn(updates, mutationPlan.path) ) {
     rollbackUpdates[mutationPlan.path] = mutationPlan.from;
   }
+  const temporary = mutationPlan?.temporary;
+  if ( temporary?.path && Object.hasOwn(updates, temporary.path) ) rollbackUpdates[temporary.path] = temporary.from;
   return rollbackUpdates;
 }
 

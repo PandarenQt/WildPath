@@ -364,6 +364,34 @@
               }
             ]
           },
+          "range": {
+            "type": "special"
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "healing": [
+            {
+              "id": "healing-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 2,
+                    "faces": 10
+                  },
+                  {
+                    "type": "constant",
+                    "value": 5
+                  }
+                ]
+              },
+              "healingType": "temporary"
+            }
+          ],
           "label": "War Cry"
         },
         "ruleElements": [
@@ -397,8 +425,6 @@
           },
           "conversion": {
             "notes": [
-              "not automated (heal): using it spends its cost; its description says the rest",
-              "healing: temporary Hit Points not converted",
               "effect: \"Attack: Advantage\" (its own changes) not converted"
             ]
           }
@@ -450,8 +476,6 @@
       },
       "conversion": {
         "notes": [
-          "War Cry: not automated (heal): using it spends its cost; its description says the rest",
-          "War Cry: healing: temporary Hit Points not converted",
           "War Cry: effect: \"Attack: Advantage\" (its own changes) not converted"
         ]
       }

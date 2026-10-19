@@ -18,6 +18,31 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "constant",
+                "value": 4
+              }
+            ]
+          },
+          "healingType": "temporary"
+        }
+      ],
       "label": "Fiendish Vigor"
     },
     "ruleElements": []
@@ -34,10 +59,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (heal): using it spends its cost; its description says the rest",
-          "healing: temporary Hit Points not converted"
-        ]
+        "notes": []
       }
     }
   }

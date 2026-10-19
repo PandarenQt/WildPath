@@ -10,7 +10,7 @@ const {SchemaField, NumberField, StringField, ArrayField, SetField, BooleanField
  * @param {string} [options.recovery="none"]  Default recovery cadence for this pool.
  * @returns {SchemaField}
  */
-export function resourceField({initial=0, recovery="none", counted=false}={}) {
+export function resourceField({initial=0, recovery="none", counted=false, temporary=false}={}) {
   return new SchemaField({
     base: new NumberField({required: true, integer: true, initial}),
     bonus: new NumberField({required: true, integer: true, initial: 0}),
@@ -20,6 +20,8 @@ export function resourceField({initial=0, recovery="none", counted=false}={}) {
     // `value` is derived as max - spent, so an effect that raises the available count is usable at once, and
     // movement spent in one mode counts against every other (movement-modes.mts).
     ...(counted ? {spent: new NumberField({required: true, integer: true, initial: 0, min: 0})} : {}),
+    // Temporary Hit Points (2024): lost before `value`, never healed, and gone after a Long Rest.
+    ...(temporary ? {temp: new NumberField({required: true, integer: true, initial: 0, min: 0})} : {}),
     recovery: new StringField({required: true, initial: recovery,
       choices: ["turn", "shortRest", "longRest", "none"]})
   });

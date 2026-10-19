@@ -25,6 +25,22 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "constant",
+            "value": 10
+          },
+          "healingType": "temporary"
+        }
+      ],
       "label": "Potion of Heroism"
     },
     "ruleElements": [
@@ -56,10 +72,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (heal): using it spends its cost; its description says the rest",
-          "healing: temporary Hit Points not converted"
-        ]
+        "notes": []
       }
     }
   }

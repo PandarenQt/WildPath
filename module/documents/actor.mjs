@@ -76,11 +76,13 @@ export default class WildPathActor extends Actor {
   async _preUpdate(changes, options, user) {
     const allowed = await super._preUpdate(changes, options, user);
     if ( allowed === false ) return false;
+    const health = this.system?.resources?.health;
     const next = foundry.utils.getProperty(changes, "system.resources.health.value");
-    const current = this.system?.resources?.health?.value;
-    if ( Number.isFinite(next) && Number.isFinite(current) && (next !== current) ) {
-      foundry.utils.setProperty(options, "wildpath.healthChange", next - current);
-    }
+    const nextTemp = foundry.utils.getProperty(changes, "system.resources.health.temp");
+    // Temporary Hit Points lost to damage show with it; gaining them is no healing.
+    const lost = (Number.isFinite(nextTemp) && Number.isFinite(health?.temp)) ? Math.min(nextTemp - health.temp, 0) : 0;
+    const change = ((Number.isFinite(next) && Number.isFinite(health?.value)) ? next - health.value : 0) + lost;
+    if ( change ) foundry.utils.setProperty(options, "wildpath.healthChange", change);
     return allowed;
   }
 
@@ -671,6 +673,8 @@ export default class WildPathActor extends Actor {
     const recovers = value => (value === recovery) || (long && (value === "shortRest"));
     const updates = {};
     if ( long && health && (health.value < health.max) ) updates["system.resources.health.value"] = health.max;
+    // 2024: Temporary Hit Points last until a Long Rest.
+    if ( long && health?.temp ) updates["system.resources.health.temp"] = 0;
     for ( const [id, resource] of Object.entries(this.system.resources) ) {
       if ( recovers(resource.recovery) ) updates[`system.resources.${id}.value`] = resource.max;
     }

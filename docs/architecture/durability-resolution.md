@@ -101,6 +101,21 @@ healing.
 - carries rollback updates from each durability mutation plan
 - carries an optional `DocumentPersistencePort` into each transaction operation
 
+## Temporary Hit Points (2026-10-19)
+
+`system.resources.health.temp` (additive, default 0) holds a creature's Temporary Hit Points (2024):
+- Damage takes them first. `createActorDamageMutationPlan()` plans only what is left against
+  `value`, so the plan's `amount`, `appliedAmount` and `overflow` are the health part. Damage they
+  absorb at 0 health is no failed death save, and massive damage counts only what reaches health. The
+  plan's `temporary: {path, from, to}` records their loss, in `updates`, and rollback restores it.
+- A healing component of `healingType: "temporary"` (False Life, Inspiring Leader, Heroism) heals
+  nothing. They replace the creature's own only when higher, as they never stack;
+  `createActorHealingMutationPlan()` reads them from the result's `byHealingType.temporary`.
+- A Long Rest clears them. The sheet shows them beside health ("+9 temp") with their own input.
+  Floating text counts what they absorb with the damage, and shows nothing when they are gained.
+- Live (two browsers): Player1's QA Caster cast the SRD False Life: 2d4 + 4 = 9 temporary, health
+  unchanged. A Bandit Captain Scimitar hit for 9 took exactly those 9, and health stayed at 4.
+
 ## Direction And Amount Invariants
 
 For finite non-negative resource values and requested amounts (subject to normal JavaScript number

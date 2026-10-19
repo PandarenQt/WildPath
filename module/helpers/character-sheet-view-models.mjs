@@ -148,6 +148,8 @@ function normalizeResources(resources={}, labels={}) {
     key,
     ...resource,
     label: labels[key]?.label ?? labels[key] ?? key,
+    // Health's Temporary Hit Points, edited beside it.
+    hasTemp: resource?.temp !== undefined,
     ratio: resource?.max > 0 ? (Number(resource.value ?? 0) || 0) / resource.max : 0
   }));
 }
@@ -165,6 +167,7 @@ function normalizeResourceSummary(key, resource) {
     key,
     value: Number(resource.value ?? 0) || 0,
     max: Number(resource.max ?? 0) || 0,
+    temp: Number(resource.temp ?? 0) || 0,
     label: key
   };
 }
