@@ -406,6 +406,9 @@ const add = terms => (terms.length === 1 ? terms[0] : {type: "add", terms});
  * - `@item.level` is `castLevel` when given (a spell's level, to work out what a higher slot changes).
  * - `@attributes.spell.dc` is `spellDC` when given (a creature's), else the caster's own spell save DC.
  */
+/** Scale values dnd5e's own formulas name differently from the class's table (Persistent Rage's "@scale.barbarian.rage"). */
+const SCALE_ALIASES = Object.freeze({"barbarian.rage": "barbarian.rages"});
+
 export function formulaExpression(formula, {spell=false, ability=null, scales={}, castLevel=null, challenge=null, spellDC=null}={}) {
   let text = String(formula ?? "").trim();
   if ( !text ) return null;
@@ -417,7 +420,7 @@ export function formulaExpression(formula, {spell=false, ability=null, scales={}
   };
   // A scale value as a table on its level (rows.key), or null when there is none.
   const table = (owner, id, part, count) => {
-    const rows = scales[`${owner}.${id}`];
+    const rows = scales[SCALE_ALIASES[`${owner}.${id}`] ?? `${owner}.${id}`];
     if ( !rows ) return null;
     const row = value => {
       if ( typeof value !== "object" ) return value;
@@ -630,6 +633,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const img = kept(document.img, images) ?? "icons/svg/item-bag.svg";
   const items = [];
   const allNotes = [];
+  const initiativeRules = [];
   const trait = traitOf(document, {activities, system, spell, level, scales, pool, saveDC, creature});
   // A Metamagic option (Quickened Spell: "quickened"), which its sorcerer's spells offer (metamagic.mjs).
   const metamagic = (system.type?.subtype === "metamagic") ? identifierOf(document).replace(/-spell$/, "") : null;
@@ -653,6 +657,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use): used, though dnd5e may leave it passive.
     const trades = tradesPools({document, activity, pool, names, scales});
     if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !trades ) {
+      // A recharge when its creature rolls Initiative (Persistent Rage, Uncanny Metabolism, Archdruid): automatic.
+      const recharge = initiativeTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature,
+        beasts});
+      if ( recharge ) {
+        initiativeRules.push(recharge);
+        continue;
+      }
       // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.
       const marked = (activity.type === "damage") && Object.values(EFFECTS_BY_HAND).some(hand => hand.bonusDamage === label);
       // A feature the engine offers on its own (Tactical Mind, with a failed check) needs no Action.
@@ -814,7 +825,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   // Nothing to use: a passive ability is a feature carrying its text (and any uses its other Actions spend).
   if ( !items.length ) {
     items.push({_id: document._id, _key: `!items!${document._id}`, name: document.name, type: "feature", img,
-      system: {active: true, description, ruleElements: [pool?.rule, ...(trait?.rules ?? []),
+      system: {active: true, description, ruleElements: [pool?.rule, ...(trait?.rules ?? []), ...initiativeRules,
         // A paladin's aura is what it grants those around it, not what its dnd5e effect gives the paladin alone.
         ...(PALADIN_AURAS[identifierOf(document)] ? [paladinAura(identifierOf(document))] : passive),
         ...((identifierOf(document) === "paladins-smite") ? [PALADINS_SMITE.pool] : [])].filter(Boolean)},
@@ -1609,6 +1620,30 @@ function poolOf(uses, {id, label, scales}) {
 
 /** A consumption value that gives back ("-1", "-@scale.barbarian.rage", "0 - @scaling"). */
 const givesBack = value => /^(-|0\s*-)/.test(String(value ?? "").trim());
+
+/**
+ * An activity used when its creature rolls Initiative that gives a pool back (2024 Persistent Rage: all Rage; Uncanny
+ * Metabolism: all Focus Points and a heal; Archdruid: a Wild Shape use) as an automatic Trigger on `initiative.rolled`.
+ * It runs while a pool it gives back is below its maximum and its own uses are not spent. Null otherwise.
+ * shortcut: "you can" is automatic whenever that holds.
+ */
+function initiativeTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature, beasts}) {
+  const targets = activity?.consumption?.targets ?? [];
+  if ( !/initiative/i.test(`${activity?.name ?? ""} ${activity?.activation?.condition ?? ""}`) || !targets.some(target => givesBack(target.value)) ) {
+    return null;
+  }
+  const own = [];
+  const definition = (ACTIVITIES.has(activity.type)
+    ? convertActivity({document, activity, system, spell, level, scales, notes: own, pool, saveDC, spellDC, creature, beasts, names}) : null)
+    ?? manualDefinition({document, activity, system, spell, level, notes: own, pool, names, scales});
+  if ( own.some(note => note.startsWith("consumption:")) || !definition.restores?.length ) return null;
+  notes.push(...own);
+  const predicate = {all: [{any: definition.restores.map(entry => ({poolBelowMax: entry.resourceId}))},
+    ...(definition.costs?.allOf ?? []).map(cost => ({not: {poolEmpty: cost.capability}}))]};
+  return {schemaVersion: 1, id: `initiative-${slugify(activity.name || "recharge")}`, type: "Trigger", data: {kind: "automation",
+    event: "initiative.rolled", predicate, action: {...definition, label: activity.name || document.name, range: {type: "self"},
+      targeting: {type: "self"}}}};
+}
 
 /**
  * Whether an activity trades one pool for another, all of it converted (it spends one and gives another back): Wild

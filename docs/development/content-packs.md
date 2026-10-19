@@ -428,6 +428,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Consumption targets (2026-10-19)** are converted generically: costs on the pool each names, `restores` for what is
   given back, and slot choices by level (classes-and-spellcasting.md, "Trading one pool for another"). SRD automated
   Items rose from 843 to 852.
+- **Initiative recharges (2026-10-19):** Persistent Rage, Uncanny Metabolism and Archdruid's Evergreen Wild Shape are
+  automatic Triggers on `initiative.rolled` (classes-and-spellcasting.md).
 - **Metamagic (2026-10-19):** its options are features flagged `metamagic`, which a sorcerer's spells offer
   (classes-and-spellcasting.md). Empowered Spell's feature grants its Action. The class lists only what brings its Actions
   with it (`convertedIds`: gear, or a feature with `grants`).

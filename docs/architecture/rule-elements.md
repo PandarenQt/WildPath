@@ -118,6 +118,9 @@ Before this, these predicates never matched. Data preparation (resource maxima, 
 A rule on an effect also sees that effect's level as `source.level`, wherever it is read, data preparation
 included. The 2014 Exhaustion table gates each of its rules this way: `{oneOf: {path: "source.level", values: [2, 3, 4]}}`.
 
+**Pools (2026-10-19).** `{poolEmpty: "<id>"}` and `{poolBelowMax: "<id>"}` read a pool of the creature by id (from
+`actorSystem` or `actor.system`). A pool it lacks is neither. Persistent Rage's Trigger uses them.
+
 Invalid or unknown RuleElement types fail explicitly in the collector result. Disabled,
 suppressed, or predicate-failed entries fail closed by contributing nothing while remaining visible
 to rules-inspector tooling.

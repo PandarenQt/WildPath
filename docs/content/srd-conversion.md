@@ -92,7 +92,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Arcane Sword | actors24 | Arcane Sword (1 items) | — |
 | Arcane Vigor | spells24 | Arcane Vigor (Cast) (manual) | not automated (utility): using it spends its cost; its description says the rest; "Expend d6 Hit Dice" is passive or triggered: not automated; "Expend d8 Hit Dice" is passive or triggered: not automated; "Expend d10 Hit Dice" is passive or triggered: not automated; "Expend d12 Hit Dice" is passive or triggered: not automated |
 | Arcanist's Magic Aura | spells24 | Arcanist's Magic Aura (automated) | effect: "Masked" marks its creature only; its rules are by hand |
-| Archdruid | classes24 | Archdruid (feature) | "Nature Magician" is passive or triggered: not automated; "Recharge on Initiative" is passive or triggered: not automated |
+| Archdruid | classes24 | Archdruid (feature) | "Nature Magician" is passive or triggered: not automated |
 | Archelon | actors24 | Archelon (4 items) | — |
 | Archery | feats24 | Archery (feature) | — |
 | Archmage | actors24 | Archmage (21 items) | Protective Magic: rolled (save); what it does is by hand; Spellcasting: effect: "Detect Magic" marks its creature only; its rules are by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: effect: "Disguised" marks its creature only; its rules are by hand; Spellcasting: cast: Lightning Bolt at level 7 is cast at its own level; Spellcasting: cast: Cone of Cold at level 9 is cast at its own level; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: "Create Sensor" is passive or triggered: not automated; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest |
@@ -1098,7 +1098,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Periapt of Health | equipment24 | Periapt of Health (gear), Periapt of Health (automated) | — |
 | Periapt of Proof against Poison | equipment24 | Periapt of Proof against Poison (gear) | — |
 | Periapt of Wound Closure | equipment24 | Periapt of Wound Closure (gear) | — |
-| Persistent Rage | classes24 | Persistent Rage (feature) | "Recharge Rage on Initiative" is passive or triggered: not automated |
+| Persistent Rage | classes24 | Persistent Rage (feature) | — |
 | Phantasmal Force | spells24 | Phantasmal Force (Cast) (automated) | effect: "Seeing Illusions" marks its creature only; its rules are by hand; "Phantasm Damage" is passive or triggered: not automated |
 | Phantasmal Killer | spells24 | Phantasmal Killer (manual) | not automated (save): using it spends its cost; its description says the rest; save: ? DC (spellcasting) not converted; concentration: its caster concentrates; what it sustains is by hand |
 | Phantom Steed | spells24 | Phantom Steed (automated) | — |
@@ -1576,7 +1576,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Unarmored Defense | classes24 | Unarmored Defense (feature) | — |
 | Unarmored Movement | classes24 | Unarmored Movement (feature) | — |
 | Uncanny Dodge | classes24 | Uncanny Dodge (automated) | — |
-| Uncanny Metabolism | classes24 | Uncanny Metabolism (feature) | "Uncanny Metabolism" is passive or triggered: not automated |
+| Uncanny Metabolism | classes24 | Uncanny Metabolism (feature) | — |
 | Unicorn | actors24 | Unicorn (17 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature only; its rules are by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Indifference" marks its creature only; its rules are by hand; Spellcasting: effect: "Dispelling Evil and Good" marks its creature only; its rules are by hand; Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest; Charging Horn: not automated (utility): using it spends its cost; its description says the rest |
 | Universal Solvent | equipment24 | Universal Solvent (gear), Universal Solvent (Apply Glue) (manual) | "Determine Ounces" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest; area: @scaling-ft square is not supported; the user picks the targets |
 | Unseen Servant | spells24 | Unseen Servant (automated) | — |

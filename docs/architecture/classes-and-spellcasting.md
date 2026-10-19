@@ -283,6 +283,23 @@ bookkeeping uses stay notes. Arcane Recovery and Natural Recovery stay manual. L
 with Wild Resurgence and 0 of 2 Wild Shape used Regain Wild Shape twice, each spending a level-1 slot. The third use, with
 Wild Shape full, was refused (`RESOURCE_FULL`).
 
+## Recharges when Initiative is rolled (2026-10-19)
+
+An activity used "when you roll Initiative" that gives a pool back converts to an automatic `Trigger` on its feature
+(`initiativeTrigger`): kind `automation`, event `initiative.rolled`, with an inline Action of its costs and restores.
+Its predicate requires a pool it gives back below its maximum (`poolBelowMax`) and its own uses not spent
+(`not: {poolEmpty}`). It covers:
+- **Persistent Rage:** all Rage, once per Long Rest;
+- **Uncanny Metabolism:** all Focus Points and a heal of Martial Arts die + monk level, once per Long Rest;
+- **Archdruid:** one Wild Shape use.
+
+Persistent Rage's "@scale.barbarian.rage" names the class's `rages` table (`SCALE_ALIASES`).
+
+shortcut: "you can" is automatic whenever the predicate holds.
+
+Live (two browsers, 14.369): QA Caster as a level-15 barbarian with 0 of 5 Rage rolled initiative, and Rage went to 5
+while Persistent Rage's use was spent. In a second combat, with Rage at 0 again, nothing happened.
+
 ## Font of Magic (2026-10-19)
 
 2024 Font of Magic converts to two Actions from its `font-of-magic` pool (Sorcery Points). The sorcerer class grants both.
