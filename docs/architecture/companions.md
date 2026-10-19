@@ -133,3 +133,17 @@ by Player1.
   chooses one through the API.
 - Sheet controls for controllers and controller costs.
 - A companion's movement paid from its controller's.
+
+## Chosen by Challenge Rating, counted by formula (2026-10-19)
+
+- **By Challenge Rating:** a dnd5e summon chosen by Challenge Rating (`mode: "cr"`) converts to the usual creature choice.
+  Its options are every converted Beast of its profile's CR or lower: Find Familiar's CR 0 Beasts, and Pact of the
+  Chain, Investment of the Chain Master and Wild Companion the same way. shortcut: Celestial, Fey and Fiend forms.
+- **Counts:** `summon.counts: [{actorRef, count}]` gives each creature its own count. It is a list because a uuid's dots
+  would be read as nested keys when stored.
+  - A count is a whole number (Dancing Lights: 4 small lights or 1 medium) or a ValueExpression worked out when cast,
+    at the cast level and with its caster's statistics. Animate Dead: 1 + 2 per slot level above 3rd. Animate Objects:
+    its spellcasting modifier, divided for the larger objects.
+  - A count below 1 summons nothing and warns the GM. Without `counts`, `count` is used.
+- **Live (two browsers, 14.369):** Player1's QA Caster cast Find Familiar, chose an Owl from 26 CR 0 Beasts and
+  clicked where it appeared. Dancing Lights with the small lights gave four.

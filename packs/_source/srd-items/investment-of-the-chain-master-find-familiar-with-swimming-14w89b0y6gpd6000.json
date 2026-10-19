@@ -13,6 +13,131 @@
       "costs": {
         "allOf": []
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 10,
+          "unit": "ft"
+        }
+      },
+      "configuration": [
+        {
+          "id": "summon-creature",
+          "type": "select-one",
+          "label": "Creature",
+          "required": true,
+          "options": [
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBaboon00000000",
+              "label": "Baboon (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBadger00000000",
+              "label": "Badger (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBat00000000000",
+              "label": "Bat (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCat00000000000",
+              "label": "Cat (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCrab0000000000",
+              "label": "Crab (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDeer0000000000",
+              "label": "Deer (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmEagle000000000",
+              "label": "Eagle (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmFrog0000000000",
+              "label": "Frog (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantFireBeetl",
+              "label": "Giant Fire Beetle (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.dmgGiantFly00000",
+              "label": "Giant Fly (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbmobGiantInsec",
+              "label": "Giant Insect (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGoat0000000000",
+              "label": "Goat (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHawk0000000000",
+              "label": "Hawk (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHyena000000000",
+              "label": "Hyena (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmJackal00000000",
+              "label": "Jackal (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmLizard00000000",
+              "label": "Lizard (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmOctopus0000000",
+              "label": "Octopus (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmOwl00000000000",
+              "label": "Owl (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPiranha0000000",
+              "label": "Piranha (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmRat00000000000",
+              "label": "Rat (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmRaven000000000",
+              "label": "Raven (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmScorpion000000",
+              "label": "Scorpion (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSeahorse000000",
+              "label": "Seahorse (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSpider00000000",
+              "label": "Spider (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmVulture0000000",
+              "label": "Vulture (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWeasel00000000",
+              "label": "Weasel (CR 0)"
+            }
+          ]
+        }
+      ],
+      "summon": {
+        "choiceId": "summon-creature",
+        "count": 1
+      },
       "label": "Investment of the Chain Master (Find Familiar with Swimming)"
     },
     "ruleElements": []
@@ -29,12 +154,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest",
-          "summon: a creature chosen by Challenge Rating is not converted",
-          "activation: 1 hour is not an action-economy cost",
-          "consumption: attribute 1 not converted"
-        ]
+        "notes": []
       }
     }
   }

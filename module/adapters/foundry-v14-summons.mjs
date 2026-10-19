@@ -143,7 +143,19 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         const allowed = (offset) => onScene(offset) && foundryPointInRange({ definition: definition ?? {}, sourceToken: casterToken,
             point: centre(offset) }) && (!collides || [centre(offset), ...footprint(offset).map(cell => scene.grid.getCenterPoint?.(cell)
                 ?? scene.grid.getTopLeftPoint(cell))].every(seen));
-        const count = Math.max(1, Math.min(Number(spec.count) || 1, 20));
+        // Its count: the chosen creature's own (`counts`, worked out at the cast level for its caster: Animate Dead's
+        // slot, Animate Objects' spellcasting modifier), else `count`. Below 1, nothing comes.
+        const castLevel = Number(state?.configuration?.castingLevel ?? spec.spellLevel) || 0;
+        const ref = String(spec.actorRef ?? chosen?.value ?? chosen?.optionId ?? "");
+        const byOption = spec.counts?.find(entry => entry.actorRef === ref)?.count;
+        const counted = (byOption == null) ? (Number(spec.count) || 1)
+            : Math.floor(Number((typeof byOption === "object") ? evaluate(atLevel(byOption, castLevel), { actor: caster, actorSystem: caster.system }).value
+                : byOption) || 0);
+        if (counted < 1) {
+            logger.warn(`Wild Path | ${definition?.label ?? "A summon"} summons no creature at this level.`);
+            return [];
+        }
+        const count = Math.min(counted, 20);
         const taken = new Set(occupied);
         const place = (from, wanted) => {
             const found = summonPlacements({ start: from, count: wanted, occupied: taken, footprint, allowed,

@@ -630,7 +630,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     let definition = commonActivity({document, activity, system, spell, level, pool}) ?? (ACTIVITIES.has(activity.type)
       ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature, beasts})
-      : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names})
+      : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts})
         : ((activity.type === "teleport") ? teleportDefinition({document, activity, system, spell, level, notes, pool})
           : ((activity.type === "transform") ? wildShapeDefinition({document, activity, system, spell, level, notes, pool, beasts})
             : (enchant ? enchantDefinition({document, activity, system, spell, level, pool, enchant}) : null)))));
@@ -654,8 +654,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     // A concentration spell that sustains nothing converted (Fog Cloud, Detect Thoughts): its caster still concentrates
     // on it, for its duration. What it sustains is by hand.
+    // A cantrip spends no slot, so its later activities (Dancing Lights' Move Lights) are follow-ups of its first.
     if ( spell && (system.properties ?? []).includes("concentration") && !sustainsConcentration(definition)
-      && !definition.metadata?.followUp ) {
+      && !definition.metadata?.followUp && !(!level && (index > 0)) ) {
       const duration = lastingDuration(pick(activity, system, "duration"));
       definition = {...definition, concentration: duration ? {duration} : {}};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("concentration: nothing")),
@@ -1329,21 +1330,34 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
  * rounds) or while it concentrates: its creature, or a choice of its creatures, from `creatures` (dnd5e Actor id to
  * WildPath uuid). Null when it chooses by Challenge Rating, or names a creature not converted.
  */
-function summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names}) {
-  if ( activity.summon?.mode === "cr" ) {
+function summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts=[]}) {
+  // Chosen by Challenge Rating (Find Familiar, Pact of the Chain, Wild Companion): each converted Beast of a profile's
+  // CR or lower. shortcut: a Celestial, Fey or Fiend form (Find Familiar) and other creature types are by hand.
+  const byChallenge = activity.summon?.mode === "cr";
+  const profiles = byChallenge
+    ? [...new Map((activity.profiles ?? []).filter(profile => (profile.types ?? []).includes("beast"))
+      .flatMap(profile => beasts.filter(beast => beast.cr <= (number(profile.cr) ?? 0))
+        .map(beast => [beast.uuid, {profile: {count: profile.count, name: `${beast.name} (CR ${beast.cr})`}, ref: beast.uuid}]))).values()]
+    : (activity.profiles ?? []).map(profile => ({profile, ref: creatures[String(profile.uuid ?? "").split(".").pop()] ?? null}));
+  if ( byChallenge && !profiles.length ) {
     notes.push("summon: a creature chosen by Challenge Rating is not converted");
     return null;
   }
-  const profiles = (activity.profiles ?? []).map(profile => ({profile, ref: creatures[String(profile.uuid ?? "").split(".").pop()] ?? null}));
   if ( !profiles.length || profiles.some(entry => !entry.ref) ) {
     notes.push("summon: its creature is not among the converted creatures");
     return null;
   }
-  const counts = profiles.map(({profile}) => (String(profile.count ?? "").trim() === "" ? 1 : Number(profile.count)));
-  if ( counts.some(count => !Number.isInteger(count) || (count < 1)) || (new Set(counts).size > 1) ) {
+  // Each creature's count: a whole number, or worked out when cast (Animate Dead's 1 + 2 per slot level above 3rd,
+  // Animate Objects' spellcasting modifier); different counts per creature (Dancing Lights: 4 small or 1 medium).
+  const counts = profiles.map(({profile}) => (String(profile.count ?? "").trim() === "" ? 1
+    : (Number.isInteger(Number(profile.count)) ? Number(profile.count) : summonCount(profile.count, level))));
+  if ( counts.some(count => (count === null) || (Number.isInteger(count) && (count < 1))) ) {
     notes.push(`summon: a count of "${profiles.map(({profile}) => profile.count).join(", ")}" is not converted`);
     return null;
   }
+  const uniform = counts.every(count => Number.isInteger(count)) && (new Set(counts).size === 1);
+  // A list, not a map: a uuid's dots would be read as nested keys when stored.
+  const byCreature = uniform ? null : profiles.map(({ref}, index) => ({actorRef: ref, count: counts[index]}));
   const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool});
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
   const concentration = (system.properties ?? []).includes("concentration");
@@ -1359,7 +1373,8 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
     else lost.push(name);
   }
   if ( lost.length ) notes.push(`summon: what it gains with the spell's level (${lost.join(", ")}) is not added`);
-  const timing = {count: counts[0], ...(rounds ? {rounds} : {}), ...(concentration ? {concentration: true} : {}),
+  const timing = {count: uniform ? counts[0] : 1, ...(byCreature ? {counts: byCreature} : {}), ...(rounds ? {rounds} : {}),
+    ...(concentration ? {concentration: true} : {}),
     ...(Object.keys(bonuses).length ? {bonuses} : {}), ...((spell && level) ? {spellLevel: level} : {})};
   if ( profiles.length === 1 ) return {...definition, ...(range ? {range} : {}), summon: {actorRef: profiles[0].ref, ...timing}};
   const choice = {id: "summon-creature", type: "select-one", label: "Creature", required: true,
@@ -1446,6 +1461,18 @@ export function teleportDefinition({document, activity, system, spell, level, no
 }
 
 /** A summon bonus as a ValueExpression of the spell's cast level (`castLevel`): "10 * (@item.level - 4)", "(@item.level - 3)d10". */
+/**
+ * A summon's count worked out when cast: dnd5e's `@scaling.increase` is the slot levels above the spell's own, and
+ * `@attributes.spell.mod` its caster's spellcasting modifier. Null when it does not parse.
+ */
+function summonCount(formula, level) {
+  const text = String(formula).replace(/@scaling\.increase/g, "scalingx").replace(/@attributes\.spell\.mod/g, "spellmodx").trim();
+  const parsed = parseFormula(text, {variables: {
+    scalingx: {type: "subtract", left: {type: "context", path: "castLevel"}, right: {type: "constant", value: Number(level) || 0}},
+    spellmodx: {type: "spellcasting-modifier"}}});
+  return parsed.ok ? parsed.expression : null;
+}
+
 function summonBonus(formula) {
   const text = String(formula).replace(/@item\.level/g, "castlevelx").trim();
   const variables = {castlevelx: {type: "context", path: "castLevel"}};

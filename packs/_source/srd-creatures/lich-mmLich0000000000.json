@@ -822,6 +822,102 @@
               }
             ]
           },
+          "configuration": [
+            {
+              "id": "summon-creature",
+              "type": "select-one",
+              "label": "Creature",
+              "required": true,
+              "options": [
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmSkeleton000000",
+                  "label": "Skeleton (bones)"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.mmZombie00000000",
+                  "label": "Zombie (corpse)"
+                }
+              ]
+            }
+          ],
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 10,
+              "unit": "ft"
+            }
+          },
+          "summon": {
+            "choiceId": "summon-creature",
+            "count": 1,
+            "counts": [
+              {
+                "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmSkeleton000000",
+                "count": {
+                  "type": "add",
+                  "terms": [
+                    {
+                      "type": "constant",
+                      "value": 1
+                    },
+                    {
+                      "type": "multiply",
+                      "terms": [
+                        {
+                          "type": "subtract",
+                          "left": {
+                            "type": "context",
+                            "path": "castLevel"
+                          },
+                          "right": {
+                            "type": "constant",
+                            "value": 3
+                          }
+                        },
+                        {
+                          "type": "constant",
+                          "value": 2
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmZombie00000000",
+                "count": {
+                  "type": "add",
+                  "terms": [
+                    {
+                      "type": "constant",
+                      "value": 1
+                    },
+                    {
+                      "type": "multiply",
+                      "terms": [
+                        {
+                          "type": "subtract",
+                          "left": {
+                            "type": "context",
+                            "path": "castLevel"
+                          },
+                          "right": {
+                            "type": "constant",
+                            "value": 3
+                          }
+                        },
+                        {
+                          "type": "constant",
+                          "value": 2
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ],
+            "spellLevel": 3
+          },
           "metadata": {
             "spellLevel": 3
           },
@@ -857,11 +953,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (summon): using it spends its cost; its description says the rest",
-              "summon: a count of \"1 + @scaling.increase * 2, 1 + @scaling.increase * 2\" is not converted",
-              "activation: 1 minute is not an action-economy cost"
-            ]
+            "notes": []
           }
         }
       }
@@ -2129,9 +2221,6 @@
           "Spellcasting: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand",
           "Spellcasting: cast: Fireball at level 5 is cast at its own level",
           "Spellcasting: cast: Lightning Bolt at level 5 is cast at its own level",
-          "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
-          "Spellcasting: summon: a count of \"1 + @scaling.increase * 2, 1 + @scaling.increase * 2\" is not converted",
-          "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: teleport: a creature it brings along is moved by hand",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Spellcasting: \"Raise Zombie\" is passive or triggered: not automated",

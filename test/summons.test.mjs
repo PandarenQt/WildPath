@@ -110,3 +110,30 @@ test("what a summon gains with the spell's level: Hit Points, AC, and its attack
     ["ExtraDamage", {not: {tagsAny: ["melee", "ranged"]}}, {type: "dice", number: 2, faces: 10}]], "+5 on its attacks, 2d10 on its other damage");
   assert.deepEqual(summonBonusesAt({}, 5), {hp: 0, ac: 0, rules: []});
 });
+
+test("a summon's count from its creature's own formula, at the cast level (Animate Dead), or none below 1", async () => {
+  const {createFoundrySummons} = await import("../module/adapters/foundry-v14-summons.mjs");
+  const tokens = new Map();
+  const scene = {id: "s", tokens: {[Symbol.iterator]: () => tokens.values(), get: id => tokens.get(id)},
+    dimensions: {sceneRect: {contains: (x, y) => (x >= 0) && (y >= 0)}},
+    grid: {getOffset: ({x, y}) => ({i: Math.floor(y / 100), j: Math.floor(x / 100)}), getAdjacentOffsets: square,
+      getTopLeftPoint: ({i, j}) => ({x: j * 100, y: i * 100})},
+    createEmbeddedDocuments: async (type, data) => data.map((entry, i) => { const token = {...entry, id: `t${tokens.size}-${i}`, parent: scene};
+      tokens.set(token.id, token); return token; }),
+    deleteEmbeddedDocuments: async () => {}};
+  const casterToken = {id: "caster", x: 0, y: 0, parent: scene, getOccupiedGridSpaceOffsets: () => [{i: 0, j: 0}]};
+  tokens.set("caster", casterToken);
+  const skeleton = {uuid: "Actor.skeleton", getTokenDocument: async data => ({toObject: () => ({...data})})};
+  const warnings = [];
+  const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, scenes: [scene]}, logger: {warn: message => warnings.push(message)},
+    companions: {setControllers: async () => {}}, fromUuid: uuid => ({"Scene.s.Token.caster": casterToken, "Actor.skeleton": skeleton})[uuid] ?? null});
+  const animateDead = {type: "add", terms: [{type: "constant", value: 1}, {type: "multiply", terms: [{type: "subtract",
+    left: {type: "context", path: "castLevel"}, right: {type: "constant", value: 3}}, {type: "constant", value: 2}]}]};
+  const cast = (castLevel, count) => summons.afterResolution({options: {actor: {uuid: "Actor.caster", system: {}}},
+    state: {source: {tokenRef: "Scene.s.Token.caster"}, configuration: {castingLevel: castLevel},
+      actionDefinition: {label: "Animate Dead", summon: {actorRef: "Actor.skeleton", count: 1, counts: [{actorRef: "Actor.skeleton", count}]}}}});
+  assert.equal((await cast(5, animateDead)).length, 5, "1 + 2 per slot level above 3rd");
+  assert.equal((await cast(3, {type: "constant", value: 0})).length, 0, "none below 1");
+  assert.equal(warnings.length, 1);
+  assert.equal((await cast(1, 4)).length, 4, "a plain number (Dancing Lights' four lights)");
+});
