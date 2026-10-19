@@ -1444,3 +1444,26 @@ test("consumption targets: a pool traded for another is an Action spending one a
   assert.equal(fs.readdirSync("packs/_source/srd-items").some(file => file.startsWith("bag-of-beans-count-beans")), false,
     "a rolled give-back (3d4 beans) is no Action");
 });
+
+test("monk: Martial Arts brings three Unarmed Strikes, Flurry of Blows fills its strikes, Open Hand answers a Flurry hit", async () => {
+  const fs = await import("node:fs");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const feature = read("martial-arts-phbmnkMartialArt");
+  assert.equal(feature.flags.wildpath.grants.length, 3);
+  const flurryStrike = read("martial-arts-flurry-of-blows-strike");
+  const definition = flurryStrike.system.definition;
+  assert.deepEqual([definition.costs.allOf[0].capability, definition.tags, definition.attack.properties],
+    ["flurry-of-blows", ["flurry"], ["finesse"]]);
+  assert.deepEqual(definition.damage[0].expression.rows["5"], {type: "dice", number: 1, faces: 8}, "the Martial Arts die");
+  assert.equal(read("martial-arts-unarmed-strike").system.definition.costs.allOf[0].capability, "action", "Extra Attack pays it");
+  const flurry = read("monk-s-focus-flurry-of-blows").system.definition;
+  assert.deepEqual(flurry.restores.map(entry => entry.resourceId), ["flurry-of-blows"]);
+  const push = read("open-hand-technique-push").system;
+  const topple = read("open-hand-technique-topple").system;
+  assert.deepEqual(push.ruleElements[0].data.match.tagsAll, ["flurry"]);
+  assert.deepEqual([push.definition.push?.distance, push.definition.effects.length], [15, 0]);
+  assert.deepEqual([topple.definition.push, topple.definition.effects.map(effect => effect.conditionId)], [undefined, ["prone"]]);
+  assert.equal(JSON.parse(fs.readFileSync("packs/_source/srd-classes/monk-phbmnkMonk000000.json", "utf8")).system.advancement
+    .some(entry => (entry.items ?? []).some(uuid => uuid.endsWith(flurryStrike._id))), false, "the class grants the feature, which brings it");
+});

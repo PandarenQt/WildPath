@@ -300,6 +300,28 @@ shortcut: "you can" is automatic whenever the predicate holds.
 Live (two browsers, 14.369): QA Caster as a level-15 barbarian with 0 of 5 Rage rolled initiative, and Rage went to 5
 while Persistent Rage's use was spent. In a second combat, with Rage at 0 again, nothing happened.
 
+## Monk: Martial Arts, Flurry of Blows, Open Hand Technique (2026-10-20)
+
+- **Martial Arts** brings three Unarmed Strikes (`flags.wildpath.grants`; the class grants the feature alone). Each is
+  the common Unarmed Strike with the `finesse` property (the better of Might and Agility) and the Martial Arts die (a
+  table by monk level). They differ in cost:
+  - "Unarmed Strike": the Action, payable from Extra Attack;
+  - "Bonus Unarmed Strike": a Bonus Action;
+  - "Flurry of Blows Strike": one use of the `flurry-of-blows` pool, tagged `flurry`.
+- **Flurry of Blows** costs a Bonus Action and 1 Focus Point, and restores that pool: 2 strikes, 3 from monk level 10.
+  The pool starts empty and empties at the start of each turn.
+- **Open Hand Technique:** a hit of a strike tagged `flurry` offers Addle, Push or Topple (`OWN_HIT`), one per hit:
+  - Addle: the `no-opportunity-attacks` status;
+  - Push: a Strength save, or pushed 15 ft;
+  - Topple: a Dexterity save, or Prone.
+- **Converter:** the Barbarian's and Monk's unlicensed Unarmed Strike grants are dropped without a note; every creature
+  has the common Unarmed Strike.
+- **shortcuts:** monk weapons keep their own die and ability. Heightened Focus's Patient Defense and Step of the Wind
+  upgrades are by hand, as is Push's Size limit.
+- **Live (two browsers, 14.369):** QA Caster as monk 5 used Flurry of Blows (Bonus Action, Focus 5 to 4, 2 strikes).
+  A Flurry strike hit the Bandit Captain for 1d8. Open Hand offered Addle, Push and Topple, and Player1 chose Topple;
+  the Captain saved.
+
 ## Font of Magic (2026-10-19)
 
 2024 Font of Magic converts to two Actions from its `font-of-magic` pool (Sorcery Points). The sorcerer class grants both.

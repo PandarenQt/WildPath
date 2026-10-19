@@ -25,7 +25,12 @@
           "\"Master Simple Weapon\" is passive or triggered: not automated",
           "\"Master Light Martial Weapon\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "grants": [
+        "s0t7z4eknmc00000",
+        "29qiel704wwf0000",
+        "gm4p6i1u4gak0000"
+      ]
     }
   }
 }

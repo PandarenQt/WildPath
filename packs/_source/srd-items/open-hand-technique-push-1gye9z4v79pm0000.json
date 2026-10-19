@@ -1,0 +1,89 @@
+{
+  "_id": "1gye9z4v79pm0000",
+  "_key": "!items!1gye9z4v79pm0000",
+  "name": "Open Hand Technique (Push)",
+  "type": "action",
+  "img": "icons/magic/unholy/strike-hand-glow-pink.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Whenever you hit a creature with an attack granted by your Flurry of Blows, you can impose one of the following effects on that target.</p><p><strong>Addle.</strong> The target can't make Opportunity Attacks until the start of its next turn.</p><p><strong>Push.</strong> The target must succeed on a Strength saving throw or be pushed up to 15 feet away from you.</p><p><strong>Topple.</strong> The target must succeed on a Dexterity saving throw or have the Prone condition.</p><section id=\"secret-4BkgU26V2trst09S\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>The <strong>Addle</strong> activity includes an Active Effect for tracking the addled target.</p><p>The <strong>Topple</strong> activity includes an Active Effect that applies the Prone status.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-open-hand-technique-push",
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "might",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "wits"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [],
+      "push": {
+        "distance": 15
+      },
+      "label": "Open Hand Technique (Push)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": [
+              "flurry"
+            ],
+            "notTagsAny": [
+              "spell"
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkOpenHandTe",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

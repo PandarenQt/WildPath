@@ -1,0 +1,98 @@
+{
+  "_id": "29qiel704wwf0000",
+  "_key": "!items!29qiel704wwf0000",
+  "name": "Martial Arts (Bonus Unarmed Strike)",
+  "type": "action",
+  "img": "icons/skills/melee/maneuver-sword-katana-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-martial-arts-bonus",
+      "label": "Martial Arts (Bonus Unarmed Strike)",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true,
+        "properties": [
+          "finesse"
+        ]
+      },
+      "damage": [
+        {
+          "id": "unarmed",
+          "expression": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "monk"
+            },
+            "rows": {
+              "1": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "5": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "11": {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              "17": {
+                "type": "dice",
+                "number": 1,
+                "faces": 12
+              }
+            }
+          },
+          "damageType": "bludgeoning",
+          "provenance": "weapon-base"
+        }
+      ]
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkMartialArt",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

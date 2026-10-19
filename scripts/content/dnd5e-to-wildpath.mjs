@@ -230,7 +230,16 @@ const WITHDRAW = {id: "effect-1", type: "effect", name: "Withdraw", slug: "disen
 /** Features the engine offers itself when they apply (Tactical Mind: withTacticalMind on a failed check). */
 const OFFERED_BY_ENGINE = new Set(["tactical-mind"]);
 
+// 2024 Open Hand Technique: a hit of a Flurry of Blows strike (tagged `flurry`) offers one of three, each its own offer.
+const openHand = (extra={}) => ({tagsAll: ["flurry"], definition: definition => definition, ...extra});
+
 const OWN_HIT = Object.freeze({
+  "open-hand-technique/Addle": openHand({definition: definition => ({...definition, effects: [{id: "effect-1", type: "effect",
+    name: "Addled", slug: "no-opportunity-attacks", img: "icons/svg/daze.svg", duration: {value: 1, units: "rounds", expiry: "turnStart"},
+    ruleElements: []}]})}),
+  // The feature's one text gives both its push and its Prone: Push pushes, Topple knocks Prone.
+  "open-hand-technique/Push": openHand({definition: definition => ({...definition, effects: []})}),
+  "open-hand-technique/Topple": openHand({definition: ({push: _push, ...definition}) => definition}),
   "cunning-strike/Poison": cunning(),
   // Poison's repeated save is in the same text; Prone has none.
   "cunning-strike/Trip": cunning({definition: definition => ({...definition,
@@ -260,6 +269,37 @@ const OWN_HIT = Object.freeze({
  * - Each blow answers a hit so tagged, once a turn between them.
  * shortcut: Forceful Blow's "toward the target" is by hand.
  */
+/**
+ * 2024 Flurry of Blows' strikes: a pool its Flurry fills (2; 3 from monk level 10, Heightened Focus), empty at the start
+ * of each turn.
+ */
+const FLURRY_POOL = Object.freeze({schemaVersion: 1, id: "flurry-of-blows-strikes", type: "GrantResource", data: {
+  resourceId: "flurry-of-blows", label: "Flurry of Blows", maximum: {type: "table", key: {type: "class-level", class: "monk"},
+    rows: {1: 2, 10: 3}}, current: 0, recovery: "none", emptiesAtTurnStart: true}});
+
+/**
+ * 2024 Martial Arts: Unarmed Strikes with the Martial Arts die (a table by monk level) and the better of Strength and
+ * Dexterity (the finesse property). One costs its Action (Extra Attack pays it too), one a Bonus Action, and one a
+ * Flurry of Blows strike, tagged `flurry` (Open Hand Technique answers its hits).
+ * shortcut: monk weapons keep their own die and ability.
+ */
+function martialArtsActions(document, img, source, scales) {
+  const {id: _id, label: _label, costs: _costs, ...unarmed} = commonAction({uuid: ""}, "unarmed").system.definition;
+  const die = formulaExpression("@scale.monk.die", {scales}) ?? {type: "dice", number: 1, faces: 6};
+  const strike = {...unarmed, attack: {...unarmed.attack, properties: ["finesse"]},
+    damage: unarmed.damage.map(component => ({...component, expression: die}))};
+  const make = (suffix, key, costs, extra={}, ruleElements=[]) => {
+    const id = stableId(`${document._id}:${key}`);
+    const name = `${document.name} (${suffix})`;
+    return {_id: id, _key: `!items!${id}`, name, type: "action", img, system: {active: true, description: "", definition: {
+      schemaVersion: 1, id: `action:srd-martial-arts-${key}`, label: name, costs: {allOf: costs}, ...structuredClone(strike), ...extra},
+    ruleElements}, flags: {wildpath: {source, conversion: {notes: []}}}};
+  };
+  return [make("Unarmed Strike", "strike", [{capability: "action", amount: 1}]),
+    make("Bonus Unarmed Strike", "bonus", [{capability: "bonus-action", amount: 1}]),
+    make("Flurry of Blows Strike", "flurry", [{capability: "flurry-of-blows", amount: 1}], {tags: ["flurry"]}, [structuredClone(FLURRY_POOL)])];
+}
+
 /** Improved Brutal Strike (barbarian level 17): two blows on one Brutal Strike's hit. */
 const BLOW_USES = {type: "table", key: {type: "class-level", class: "barbarian"}, rows: {1: 1, 17: 2}};
 
@@ -738,6 +778,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")),
         ...(ending.spells ? ["dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"] : []));
     }
+    // Flurry of Blows: its Bonus Action and Focus Point fill the strikes Martial Arts' Flurry strike spends.
+    const flurry = (identifierOf(document) === "monks-focus") && (activity.name === "Flurry of Blows");
+    if ( flurry ) {
+      definition = {...definition, range: {type: "self"}, targeting: {type: "self"}, restores: [...(definition.restores ?? []),
+        {resourceId: FLURRY_POOL.data.resourceId, amount: 1, amountExpression: structuredClone(FLURRY_POOL.data.maximum)}]};
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
+    }
     const push = forcedMovement(document, definition);
     if ( push ) definition = {...definition, push};
     const suffix = usable.length > 1 ? ` (${label})` : "";
@@ -786,7 +833,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         : {range: {type: "special"}, targeting: {type: "single", required: true, count: 1}}),
       ...(onHit.rider ? {rider: structuredClone(onHit.rider)} : {})};
       // Its effects are its own now, not dnd5e's.
-      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("effect: ") && !note.startsWith("not automated")));
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("effect: ") && !note.startsWith("not automated")
+        && !note.startsWith("save: a failure gives")));
     }
     const named = smite ? (/unholy/i.test(activity.name ?? "") ? " (Undead or Fiend)" : "") : suffix;
     const reacting = action(id, `${document.name}${named}${choices ? title(choices[0]) : ""}`, definition);
@@ -795,6 +843,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( trigger ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
       data: {kind: "reaction", event: trigger.event, match: trigger.match, ...(trigger.once ? {once: trigger.once} : {}),
         ...(trigger.onceKey ? {onceKey: trigger.onceKey} : {}), ...(trigger.uses ? {uses: trigger.uses} : {})}});
+    if ( flurry ) reacting.system.ruleElements.push(structuredClone(FLURRY_POOL));
     items.push(reacting);
     for ( const other of choices?.slice(1) ?? [] ) items.push(action(stableId(`${id}:${other}`), `${document.name}${suffix}${title(other)}`,
       commonActivity({document, activity, system, spell, level, pool}, [other])));
@@ -833,6 +882,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( identifierOf(document) === "paladins-smite" ) items.push(...paladinsSmiteActions(document, img, source));
     if ( identifierOf(document) === "brutal-strike" ) items.push(...brutalStrikeActions(document, img, source, scales));
     if ( identifierOf(document) === "improved-brutal-strike" ) items.push(...improvedBrutalStrikeActions(document, img, source));
+    // Martial Arts brings its Unarmed Strikes with it, so its class grants the feature alone.
+    if ( identifierOf(document) === "martial-arts" ) {
+      const strikes = martialArtsActions(document, img, source, scales);
+      items[0].flags.wildpath.grants = strikes.map(strike => strike._id);
+      items.push(...strikes);
+    }
   }
   // A feature used on its turn that dnd5e leaves without an Action (Action Surge): its Action, paid from its own pool.
   const featureAction = FEATURE_ACTIONS[identifierOf(document)];
@@ -959,7 +1014,9 @@ export function convertProgression(document, {uuidOf=() => [], licensed=isSrd202
   const notes = [];
   const uuids = list => list.flatMap(entry => {
     const found = uuidOf(entry.uuid);
-    if ( !found.length ) notes.push(`grant: ${String(entry.uuid).split(".").pop()} was not converted`);
+    // The Barbarian's and Monk's Unarmed Strike grants are unlicensed; every creature has the common Unarmed Strike.
+    const id = String(entry.uuid).split(".").pop();
+    if ( !found.length && !["phbUnarmedStrike", "phbmnkUnarmedStr"].includes(id) ) notes.push(`grant: ${id} was not converted`);
     return found;
   });
   const advancement = Object.values(system.advancement ?? {}).flatMap(entry => {

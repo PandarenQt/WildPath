@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 852 automated, 290 manual, 238 features. Creatures: 375.
+Items: 859 automated, 289 manual, 237 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -134,7 +134,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Bandit Captain | actors24 | Bandit Captain (4 items) | — |
 | Bane | spells24 | Bane (automated) | — |
 | Banishment | spells24 | Banishment (automated) | — |
-| Barbarian | classes24 | Barbarian (class) | grant: phbUnarmedStrike was not converted |
+| Barbarian | classes24 | Barbarian (class) | — |
 | Barbed Devil | actors24 | Barbed Devil (9 items) | Barbed Hide: activation: turnStart is not an action-economy cost; Claws: "Escape Check" is passive or triggered: not automated |
 | Bard | classes24 | Bard (class) | — |
 | Bardic Inspiration | classes24 | Bardic Inspiration (automated) | effect: "Inspired" marks its creature only; its rules are by hand |
@@ -968,7 +968,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Map | equipment24 | Map (gear) | — |
 | Marble Elephant | equipment24 | Marble Elephant (gear), Marble Elephant (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
 | Marilith | actors24 | Marilith (10 items) | Constrict: "Escape Check" is passive or triggered: not automated; Teleport: not automated (utility): using it spends its cost; its description says the rest |
-| Martial Arts | classes24 | Martial Arts (feature) | "Master Simple Weapon" is passive or triggered: not automated; "Master Light Martial Weapon" is passive or triggered: not automated |
+| Martial Arts | classes24 | Martial Arts (feature), Martial Arts (Unarmed Strike) (automated), Martial Arts (Bonus Unarmed Strike) (automated), Martial Arts (Flurry of Blows Strike) (automated) | "Master Simple Weapon" is passive or triggered: not automated; "Master Light Martial Weapon" is passive or triggered: not automated |
 | Marvelous Pigments | equipment24 | Marvelous Pigments (gear), Marvelous Pigments (Determine Number of Pots) (manual), Marvelous Pigments (Paint) (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses 1d3 not converted; activation: 10 minute is not an action-economy cost |
 | Mask of Many Faces | classes24 | Mask of Many Faces (automated) | effect: "Disguised" marks its creature only; its rules are by hand |
 | Mason's Tools | equipment24 | Mason's Tools (gear), Mason's Tools (automated) | — |
@@ -1009,8 +1009,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Misty Visions | classes24 | Misty Visions (automated) | — |
 | Mithral Armor | equipment24 | Mithral Armor (gear), Mithral Armor (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Modify Memory | spells24 | Modify Memory (automated) | — |
-| Monk | classes24 | Monk (class) | grant: phbmnkUnarmedStr was not converted; grant: phbmnkSelfrestor was not converted |
-| Monk's Focus | classes24 | Monk's Focus (Step of the Wind) (automated), Monk's Focus (Flurry of Blows) (manual), Monk's Focus (Patient Defense) (automated), Monk's Focus (Patient Defense (Focus Point)) (automated) | not automated (utility): using it spends its cost; its description says the rest |
+| Monk | classes24 | Monk (class) | grant: phbmnkSelfrestor was not converted |
+| Monk's Focus | classes24 | Monk's Focus (Step of the Wind) (automated), Monk's Focus (Flurry of Blows) (automated), Monk's Focus (Patient Defense) (automated), Monk's Focus (Patient Defense (Focus Point)) (automated) | — |
 | Moon | equipment24 | Moon: Wish (automated) | — |
 | Moonbeam | spells24 | Moonbeam (automated), Moonbeam (Move) (automated) | — |
 | Morningstar | equipment24 | Morningstar (automated) | — |
@@ -1060,7 +1060,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | One with Shadows | classes24 | One with Shadows (automated) | — |
 | Oni | actors24 | Oni (11 items) | Shape-Shift: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: cast: Charm Person at level 2 is cast at its own level; Spellcasting: effect: transformed is not a WildPath condition yet; Spellcasting: effect: "Gaseous Form" change img (override) not converted |
 | Onyx Dog | equipment24 | Onyx Dog (gear), Onyx Dog (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; effect: "Mastiff Figurine" change system.traits.languages.value (add) not converted; effect: "Mastiff Figurine" change system.attributes.senses.blindsight (upgrade) not converted |
-| Open Hand Technique | classes24 | Open Hand Technique (feature) | "Addle" is passive or triggered: not automated; "Push" is passive or triggered: not automated; "Topple" is passive or triggered: not automated |
+| Open Hand Technique | classes24 | Open Hand Technique (Addle) (automated), Open Hand Technique (Push) (automated), Open Hand Technique (Topple) (automated) | — |
 | Orb | equipment24 | Orb (gear) | — |
 | Orc | origins24 | Orc (species) | — |
 | Otherworldly Leap | classes24 | Otherworldly Leap (automated) | effect: "Jump" marks its creature only; its rules are by hand |
