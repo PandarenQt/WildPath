@@ -254,6 +254,8 @@
             {{selectOptions ../b.choices.conditions selected=row.conditionId localize=true}}</select>
           {{#if row.stacks}}<label>{{localize "WILDPATH.BUILDER.Effects.Levels"}}
             <input type="number" name="wildpath.builder.effects.{{@index}}.levels" value="{{row.levels}}" min="1" step="1"></label>{{/if}}
+          <label class="checkbox"><input type="checkbox" name="wildpath.builder.effects.{{@index}}.removes" {{checked row.removes}}>
+            {{localize "WILDPATH.BUILDER.Effects.Removes"}}</label>
         {{else}}
           <input type="text" name="wildpath.builder.effects.{{@index}}.name" value="{{row.name}}" aria-label="{{localize "WILDPATH.BUILDER.Effects.Name"}}">
           <label>{{localize "WILDPATH.BUILDER.Effects.Duration"}}

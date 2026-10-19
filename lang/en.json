@@ -821,6 +821,7 @@
         "Rules": "While it lasts:",
         "OnFailedSave": "Only on a failed save",
         "ChooseOne": "The user applies one of these, chosen when used",
+        "Removes": "Ends it instead",
         "Add": "Add an effect"
       },
       "Units": {

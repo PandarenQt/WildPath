@@ -874,3 +874,28 @@ test("an activity that takes a common action is that action at its own cost (Cun
   assert.equal(step.system.definition.effects[0].slug, "disengaged", "Step of the Wind's Disengaged is the common one");
   assert.deepEqual(step.flags.wildpath.conversion.notes, []);
 });
+
+test("spells that end conditions: Lesser Restoration's choice of four, Heal's three, Lay on Hands' Remove Poison only", () => {
+  const spell = (id, identifier, name, activities, level=2) => ({_id: id, name, type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
+    system: {source: SRD, identifier, level, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},
+      range: {units: "touch"}, target: {affects: {type: "creature", count: 1}, template: {}}, activities}});
+  const [lesser] = convertItem(spell("testLesserResto1", "lesser-restoration", "Lesser Restoration", {a: activity("utility")})).items;
+  const {effects, configuration} = lesser.system.definition;
+  assert.deepEqual(effects.map(effect => [effect.conditionId, effect.levels]),
+    [["blinded", -1], ["deafened", -1], ["paralyzed", -1], ["poisoned", -1]]);
+  const choice = configuration.find(entry => entry.id === "effect-choice");
+  assert.deepEqual([choice.label, choice.options.map(option => option.label)], ["Condition", ["Blinded", "Deafened", "Paralyzed", "Poisoned"]]);
+  assert.deepEqual(lesser.flags.wildpath.conversion.notes, []);
+  assert.equal(validateActionDefinition(lesser.system.definition).ok, true);
+
+  const [heal] = convertItem(spell("testHealSpell001", "heal", "Heal", {a: activity("heal", {healing: {number: 70, bonus: ""}})}, 6)).items;
+  assert.deepEqual(heal.system.definition.effects.map(effect => effect.conditionId), ["blinded", "deafened", "poisoned"]);
+  assert.equal(heal.system.definition.configuration.some(entry => entry.id === "effect-choice"), false, "Heal ends all three");
+
+  const hands = {_id: "testLayOnHands01", name: "Lay on Hands", type: "feat", img: "icons/svg/heal.svg", effects: [],
+    system: {source: SRD, identifier: "lay-on-hands", activation: {type: "bonus"}, range: {units: "touch"}, target: {affects: {}, template: {}},
+      activities: {a: activity("heal", {healing: {number: 5, bonus: ""}}), b: activity("utility", {_id: "actpoison", name: "Remove Poison"})}}};
+  const [healing, poison] = convertItem(hands).items;
+  assert.equal(healing.system.definition.effects, undefined, "its healing ends nothing");
+  assert.deepEqual(poison.system.definition.effects.map(effect => [effect.conditionId, effect.levels]), [["poisoned", -1]]);
+});
