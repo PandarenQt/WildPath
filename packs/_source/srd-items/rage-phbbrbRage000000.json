@@ -38,6 +38,35 @@
             {
               "schemaVersion": 1,
               "id": "rage-1",
+              "type": "Modifier",
+              "predicate": {
+                "tagsAll": [
+                  "melee",
+                  "might"
+                ]
+              },
+              "data": {
+                "domains": [
+                  "damage.weapon"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "table",
+                  "key": {
+                    "type": "class-level",
+                    "class": "barbarian"
+                  },
+                  "rows": {
+                    "1": 2,
+                    "9": 3,
+                    "16": 4
+                  }
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "rage-2",
               "type": "RollMode",
               "data": {
                 "domains": [
@@ -48,7 +77,7 @@
             },
             {
               "schemaVersion": 1,
-              "id": "rage-2",
+              "id": "rage-3",
               "type": "RollMode",
               "data": {
                 "domains": [
@@ -59,7 +88,7 @@
             },
             {
               "schemaVersion": 1,
-              "id": "rage-3",
+              "id": "rage-4",
               "type": "GrantResistance",
               "data": {
                 "damageTypes": [
@@ -121,9 +150,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Rage\" change system.bonuses.mwak.damage (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

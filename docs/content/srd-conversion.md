@@ -1203,7 +1203,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Quiver | equipment24 | Quiver (gear) | — |
 | Quivering Palm | classes24 | Quivering Palm (End Vibrations) (automated) | "Instill Vibrations" is passive or triggered: not automated |
 | Radiant Strikes | classes24 | Radiant Strikes (feature) | — |
-| Rage | classes24 | Rage (automated) | effect: "Rage" change system.bonuses.mwak.damage (add) not converted |
+| Rage | classes24 | Rage (automated) | — |
 | Raise Dead | spells24 | Raise Dead (automated) | activation: 1 hour is not an action-economy cost |
 | Rakshasa | actors24 | Rakshasa (15 items) | Cursed Touch: effect: cursed is not a WildPath condition yet; Cursed Touch: effect: "Cursed" marks its creature only; its rules are by hand; Spellcasting: effect: "Detect Magic" marks its creature only; its rules are by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: effect: "Disguised" marks its creature only; its rules are by hand; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest |
 | Ram, Portable | equipment24 | Ram, Portable (gear) | — |
@@ -1574,7 +1574,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Unarmed Strike | classes24 | Unarmed Strike (attack) (automated), Unarmed Strike (Grapple/Shove) (automated) | save: a choice of str/dex uses str |
 | Unarmored Defense | classes24 | Unarmored Defense (feature) | — |
 | Unarmored Defense | classes24 | Unarmored Defense (feature) | — |
-| Unarmored Movement | classes24 | Unarmored Movement (feature) | effect: "Unarmored Movement" change system.attributes.movement.walk (add) not converted |
+| Unarmored Movement | classes24 | Unarmored Movement (feature) | — |
 | Uncanny Dodge | classes24 | Uncanny Dodge (automated) | — |
 | Uncanny Metabolism | classes24 | Uncanny Metabolism (feature) | "Uncanny Metabolism" is passive or triggered: not automated |
 | Unicorn | actors24 | Unicorn (17 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature only; its rules are by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Indifference" marks its creature only; its rules are by hand; Spellcasting: effect: "Dispelling Evil and Good" marks its creature only; its rules are by hand; Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest; Charging Horn: not automated (utility): using it spends its cost; its description says the rest |

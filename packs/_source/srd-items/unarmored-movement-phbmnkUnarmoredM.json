@@ -7,7 +7,33 @@
   "system": {
     "active": true,
     "description": "<p>Your speed increases by 10 feet while you aren't wearing armor or wielding a Shield. This bonus increases when you reach certain Monk levels, as shown on the Monk Features table.</p><p><strong>Current Increase:</strong> (by class level)</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "unarmored-movement-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "resources.movement.max"
+          ],
+          "modifierType": "untyped",
+          "valueExpression": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "monk"
+            },
+            "rows": {
+              "2": 10,
+              "6": 15,
+              "10": 20,
+              "14": 25,
+              "18": 30
+            }
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +47,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Unarmored Movement\" change system.attributes.movement.walk (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

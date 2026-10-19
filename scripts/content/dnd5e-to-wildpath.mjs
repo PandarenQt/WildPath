@@ -509,7 +509,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     allNotes.push(...notes);
   }
   // What it gives while it is had (worn, for gear): its passive effects' rules.
-  const passive = (document.effects ?? []).filter(effect => effect.transfer && !effect.disabled).flatMap(effect => effectRules(effect, allNotes));
+  const passive = (document.effects ?? []).filter(effect => effect.transfer && !effect.disabled).flatMap(effect => effectRules(effect, allNotes, {scales}));
   // Equipment is gear its owner equips (G7): armor's AC, and its passive effects. A potion or scroll is only its Actions.
   if ( GEAR_TYPES.has(document.type) && !((document.type === "consumable") && items.length) ) {
     const gearId = items.some(item => item._id === document._id) ? stableId(`${document._id}:gear`) : document._id;
@@ -1441,7 +1441,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
       groups.push({label: effect.name, ids: [effects.at(-1).id]});
       continue;
     }
-    const rules = [...(hand?.ruleElements ?? (effect ? effectRules(effect, notes) : [])), ...(byHand?.extraRules ?? [])];
+    const rules = [...(hand?.ruleElements ?? (effect ? effectRules(effect, notes, {scales}) : [])), ...(byHand?.extraRules ?? [])];
     if ( rules.length ) {
       const duration = hand?.duration ?? effectDuration(effect.duration);
       effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(byHand?.slug ? {slug: byHand.slug} : {}),
@@ -1593,7 +1593,8 @@ export function scaleTables(documents=[]) {
     // Stored sources keep advancements by id; prepared documents as a list.
     for ( const advancement of Object.values(document.system?.advancement ?? {}) ) {
       const kind = advancement.configuration?.type;
-      if ( (advancement.type !== "ScaleValue") || !["number", "dice"].includes(kind) ) continue;
+      // A distance scale (Unarmored Movement's +10 to +30 feet) is its numbers, in feet.
+      if ( (advancement.type !== "ScaleValue") || !["number", "dice", "distance"].includes(kind) ) continue;
       const id = advancement.configuration.identifier || slugify(advancement.title);
       // A number scale is its numbers; a dice scale is {number, faces} (Sneak Attack 1d6 ... 10d6; Martial Arts d6 ... d12).
       const rows = Object.fromEntries(Object.entries(advancement.configuration.scale ?? {})
@@ -1979,10 +1980,10 @@ const DURATION_UNITS = new Set(["years", "months", "days", "hours", "minutes", "
 const EXPIRY_EVENTS = new Set(["combatStart", "roundStart", "turnStart", "combatEnd", "roundEnd", "turnEnd"]);
 
 /** A change's value as a ValueExpression: a dnd5e formula, "+2", or a penalty die ("-1d4" is 0 - 1d4). */
-export function changeValue(value) {
+export function changeValue(value, {scales={}}={}) {
   const text = String(value ?? "").trim().replace(/^\+\s*/, "");
-  if ( !text.startsWith("-") ) return formulaExpression(text);
-  const rest = formulaExpression(text.slice(1).trim());
+  if ( !text.startsWith("-") ) return formulaExpression(text, {scales});
+  const rest = formulaExpression(text.slice(1).trim(), {scales});
   if ( rest?.type === "constant" ) return {type: "constant", value: -rest.value};
   return rest ? {type: "subtract", left: {type: "constant", value: 0}, right: rest} : null;
 }
@@ -2012,7 +2013,7 @@ function effectDuration(duration) {
  * advantage and disadvantage as RollModes, damage adjustments, condition immunities, and Speeds. Each change WildPath
  * has no equivalent for is noted, never approximated.
  */
-export function effectRules(effect, notes=[]) {
+export function effectRules(effect, notes=[], {scales={}}={}) {
   const changes = effect?.system?.changes ?? effect?.changes ?? [];
   const rules = [];
   const base = slugify(effect?.name) || "effect";
@@ -2031,7 +2032,8 @@ export function effectRules(effect, notes=[]) {
   for ( const change of changes ) {
     const key = String(change.key ?? "");
     const type = change.type ?? CHANGE_MODES[change.mode] ?? "add";
-    const value = changeValue(change.value);
+    // A class's scale ("+ @scale.barbarian.rage-damage", "@scale.monk.unarmored-movement") reads its table.
+    const value = changeValue(change.value, {scales});
     const number = Number(change.value);
     const unmapped = () => notes.push(`effect: "${effect.name}" change ${key} (${type}) not converted`);
     let match;
@@ -2040,8 +2042,11 @@ export function effectRules(effect, notes=[]) {
         if ( !everyAttackDone ) modifier(["attack"], value);
         everyAttackDone = true;
       } else modifier([`attack.${ATTACK_KEYS[match[1]][0]}`], value, {tagsAny: [ATTACK_KEYS[match[1]][1]]});
-    } else if ( (match = /^system\.bonuses\.(mwak|rwak|msak|rsak)\.damage$/.exec(key)) && (type === "add") && (value?.type === "constant") ) {
-      modifier([`damage.${ATTACK_KEYS[match[1]][0]}`], value, {tagsAny: [ATTACK_KEYS[match[1]][1]]});
+    } else if ( (match = /^system\.bonuses\.(mwak|rwak|msak|rsak)\.damage$/.exec(key)) && (type === "add") && value
+      && !JSON.stringify(value).includes('"dice"') ) {
+      // A flat bonus, or one on a table (Rage's +2 to +4, on Strength-based attacks only).
+      modifier([`damage.${ATTACK_KEYS[match[1]][0]}`], value, (effect?.name === "Rage") ? {tagsAll: [ATTACK_KEYS[match[1]][1], "might"]}
+        : {tagsAny: [ATTACK_KEYS[match[1]][1]]});
     } else if ( (match = /^system\.(?:bonuses\.(mwak|rwak|msak|rsak)\.damage|rolls\.damage\.(mwak|rwak|msak|rsak)\.bonus)$/.exec(key))
       && (type === "add") && extraDamageOf(change.value) ) {
       // Dice on each hit (Divine Favor's 1d4 Radiant, Enlarge's 1d4): extra damage, of its own type or the attack's.

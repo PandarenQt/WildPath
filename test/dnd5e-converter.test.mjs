@@ -1114,6 +1114,17 @@ test("Action Surge: an Action of its own, paid from its uses, for one more Actio
   assert.equal(validateActionDefinition(action.system.definition).ok, true);
 });
 
+test("a change on a class's scale reads its table: Rage's damage (Strength-based melee), Unarmored Movement", async () => {
+  const {effectRules} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const table = (owner, rows) => Object.defineProperty(rows, "key", {value: {type: "class-level", class: owner}, enumerable: false});
+  const scales = {"barbarian.rage-damage": table("barbarian", {1: 2, 9: 3, 16: 4}), "monk.unarmored-movement": table("monk", {2: 10, 6: 15})};
+  const [rage] = effectRules({name: "Rage", changes: [{key: "system.bonuses.mwak.damage", mode: 2, value: "+ @scale.barbarian.rage-damage"}]}, [], {scales});
+  assert.deepEqual([rage.type, rage.data.valueExpression.rows, rage.predicate], ["Modifier", {1: 2, 9: 3, 16: 4}, {tagsAll: ["melee", "might"]}]);
+  const [move] = effectRules({name: "Unarmored Movement", changes: [{key: "system.attributes.movement.walk", mode: 2,
+    value: "@scale.monk.unarmored-movement"}]}, [], {scales});
+  assert.deepEqual([move.data.domains, move.data.valueExpression.rows], [["resources.movement.max"], {2: 10, 6: 15}]);
+});
+
 test("Temporary Hit Points are healing of their own type (False Life)", () => {
   const life = {_id: "testFalseLife001", name: "False Life", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
     system: {source: SRD, identifier: "false-life", level: 1, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},
