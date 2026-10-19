@@ -425,6 +425,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Blow's "toward the target".
 - **Font of Magic (2026-10-19)** is two automated Actions (classes-and-spellcasting.md), not a manual one with its
   conversions by hand.
+- **Metamagic (2026-10-19):** its options are features flagged `metamagic`, which a sorcerer's spells offer
+  (classes-and-spellcasting.md). Empowered Spell's feature grants its Action. The class lists only what brings its Actions
+  with it (`convertedIds`: gear, or a feature with `grants`).
 - **Effects as markers (2026-10-19).** A dnd5e effect with no status and nothing WildPath maps (Alter Self's Aquatic
   Adaptation, Acid Arrow's lingering acid, a dragon's Detect Magic) is no longer dropped. It is a custom effect with
   no rules: its name, icon, duration, save policy and concentration. Its creature shows it, it expires on time, and it

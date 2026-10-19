@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 842 automated, 291 manual, 242 features. Creatures: 375.
+Items: 843 automated, 291 manual, 242 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -247,7 +247,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Candle | equipment24 | Candle (gear) | "Light" is passive or triggered: not automated |
 | Candle of Invocation | equipment24 | Candle of Invocation (Light Candle (Minutes)) (automated), Candle of Invocation: Gate (manual) | effect: "Lit Candle of Invocation" marks its creature only; its rules are by hand; consumption: itemUses @item.uses.max not converted; not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
 | Cape of the Mountebank | equipment24 | Cape of the Mountebank (gear), Cape of the Mountebank: Dimension Door (automated) | teleport: a creature it brings along is moved by hand |
-| Careful Spell | classes24 | Careful Spell (feature) | "Careful Spell" is passive or triggered: not automated |
+| Careful Spell | classes24 | Careful Spell (feature) | — |
 | Carpenter's Tools | equipment24 | Carpenter's Tools (gear), Carpenter's Tools (automated) | — |
 | Carpet of Flying | equipment24 | Carpet of Flying (gear), Carpet of Flying (Activate (3 by 5 ft.)) (automated), Carpet of Flying (Activate (4 by 6 ft.)) (automated), Carpet of Flying (Activate (5 by 7 ft.)) (automated), Carpet of Flying (Activate (6 by 9 ft.)) (automated) | — |
 | Carpet of Flying (3 by 5 ft.) | actors24 | Carpet of Flying (3 by 5 ft.) (2 items) | — |
@@ -417,7 +417,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dispel Evil and Good | spells24 | Dispel Evil and Good (Cast) (automated), Dispel Evil and Good (Dismissal) (automated), Dispel Evil and Good (Break Enchantment) (manual) | effect: "Dispelling Evil and Good" marks its creature only; its rules are by hand; save: a failure marks its creature only; what it does is by hand; not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted |
 | Dispel Magic | spells24 | Dispel Magic (automated) | dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand |
 | Dissonant Whispers | spells24 | Dissonant Whispers (automated) | — |
-| Distant Spell | classes24 | Distant Spell (feature) | "Distant Spell" is passive or triggered: not automated |
+| Distant Spell | classes24 | Distant Spell (feature) | — |
 | Divination | spells24 | Divination (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Divine Favor | spells24 | Divine Favor (automated) | — |
 | Divine Intervention | classes24 | Divine Intervention (manual) | not automated (utility): using it spends its cost; its description says the rest |
@@ -507,7 +507,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Elven Lineage, Wood Elf | origins24 | Elven Lineage, Wood Elf (feature) | — |
 | Emblem | equipment24 | Emblem (gear) | — |
 | Empowered Evocation | classes24 | Empowered Evocation (feature) | "damage" is passive or triggered: not automated |
-| Empowered Spell | classes24 | Empowered Spell (feature) | "Empowered Spell" is passive or triggered: not automated |
+| Empowered Spell | classes24 | Empowered Spell (feature), Empowered Spell (automated) | — |
 | Empowered Strikes | classes24 | Empowered Strikes (automated) | — |
 | Energy Bow | equipment24 | Energy Bow (attack) (automated), Energy Bow (Arrow of Transport) (manual), Energy Bow (Energy Ladder) (manual), Energy Bow (Energy Bow) (manual) | rolled (attack); what it does is by hand; not automated (utility): using it spends its cost; its description says the rest; "Arrow of Restraint" is passive or triggered: not automated; not automated (enchant): using it spends its cost; its description says the rest |
 | Enhance Ability | spells24 | Enhance Ability (automated) | — |
@@ -544,7 +544,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Expertise | classes24 | Expertise (feature) | — |
 | Expertise | classes24 | Expertise (feature) | — |
 | Explorer's Pack | equipment24 | Explorer's Pack (gear) | — |
-| Extended Spell | classes24 | Extended Spell (feature) | "Extended Spell" is passive or triggered: not automated |
+| Extended Spell | classes24 | Extended Spell (feature) | — |
 | Extra Attack | classes24 | Extra Attack (feature) | — |
 | Extra Attack | classes24 | Extra Attack (feature) | — |
 | Extra Attack | classes24 | Extra Attack (feature) | — |
@@ -765,7 +765,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Heat Metal | spells24 | Heat Metal (Cast and Heat) (automated), Heat Metal (Reheat) (automated) | concentration: its caster concentrates; what it sustains is by hand; concentration: nothing it sustains was converted; "On Damage Save" is passive or triggered: not automated |
 | Heavy Crossbow | equipment24 | Heavy Crossbow (automated) | — |
 | Heightened Focus | classes24 | Heightened Focus (feature) | "Flurry of Blows" is passive or triggered: not automated; "Patient Defense" is passive or triggered: not automated |
-| Heightened Spell | classes24 | Heightened Spell (feature) | "Heightened Spell" is passive or triggered: not automated |
+| Heightened Spell | classes24 | Heightened Spell (feature) | — |
 | Hell Hound | actors24 | Hell Hound (5 items) | — |
 | Hellish Rebuke | spells24 | Hellish Rebuke (automated) | — |
 | Helm of Brilliance | equipment24 | Helm of Brilliance (gear), Helm of Brilliance (Fire Opal Flames) (manual), Helm of Brilliance: Daylight (automated), Helm of Brilliance: Fireball (automated), Helm of Brilliance: Prismatic Spray (automated), Helm of Brilliance: Wall of Fire (automated) | "Diamond Light" is passive or triggered: not automated; not automated (enchant): using it spends its cost; its description says the rest; rolled (save); what it does is by hand; "damage" is passive or triggered: not automated; "Explosive Emanation" is passive or triggered: not automated; armor: of any kind; give it its armor's AC by hand |
@@ -1199,7 +1199,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Quarterstaff | equipment24 | Quarterstaff (automated), Quarterstaff (Two-Handed) (automated) | — |
 | Quarterstaff of the Acrobat | equipment24 | Quarterstaff of the Acrobat (attack) (automated), Quarterstaff of the Acrobat (attack) (Two-Handed) (automated), Quarterstaff of the Acrobat (Attack Deflection) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Quasit | actors24 | Quasit (6 items) | — |
-| Quickened Spell | classes24 | Quickened Spell (feature) | "Quickened Spell" is passive or triggered: not automated |
+| Quickened Spell | classes24 | Quickened Spell (feature) | — |
 | Quiver | equipment24 | Quiver (gear) | — |
 | Quivering Palm | classes24 | Quivering Palm (End Vibrations) (automated) | "Instill Vibrations" is passive or triggered: not automated |
 | Radiant Strikes | classes24 | Radiant Strikes (feature) | — |
@@ -1331,7 +1331,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Secret Chest | spells24 | Secret Chest (Hide Chest) (manual), Secret Chest (Recall Chest) (automated) | not automated (utility): using it spends its cost; its description says the rest |
 | Secret Chest | actors24 | Secret Chest (0 items) | — |
 | See Invisibility | spells24 | See Invisibility (automated) | effect: "See Invisibility" change system.attributes.senses.special (add) not converted; effect: "See Invisibility" marks its creature only; its rules are by hand |
-| Seeking Spell | classes24 | Seeking Spell (feature) | "Seeking Spell" is passive or triggered: not automated |
+| Seeking Spell | classes24 | Seeking Spell (feature) | — |
 | Seeming | spells24 | Seeming (Unwilling Save) (automated), Seeming (Change Appearance) (automated) | save: a failure marks its creature only; what it does is by hand; effect: "Changed Appearance" marks its creature only; its rules are by hand |
 | Sending | spells24 | Sending (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Sending Stones | equipment24 | Sending Stones (gear), Sending Stones: Sending (manual) | not automated (utility): using it spends its cost; its description says the rest |
@@ -1471,7 +1471,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Studded Leather Armor | equipment24 | Studded Leather Armor (gear) | — |
 | Studied Attacks | classes24 | Studied Attacks (feature) | — |
 | Stunning Strike | classes24 | Stunning Strike (automated) | — |
-| Subtle Spell | classes24 | Subtle Spell (feature) | "Subtle Spell" is passive or triggered: not automated |
+| Subtle Spell | classes24 | Subtle Spell (feature) | — |
 | Succubus | actors24 | Succubus (7 items) | Charm: cast: Dominate Person at level 8 is cast at its own level; Shape-Shift: not automated (utility): using it spends its cost; its description says the rest; Multiattack: its other parts (a replacement, an ability it uses) are used by hand |
 | Suggestion | spells24 | Suggestion (automated) | — |
 | Summon Dragon | spells24 | Summon Dragon (automated) | — |
@@ -1551,7 +1551,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Tough | actors24 | Tough (3 items) | — |
 | Tough Boss | actors24 | Tough Boss (5 items) | — |
 | Trance | origins24 | Trance (feature) | — |
-| Transmuted Spell | classes24 | Transmuted Spell (feature) | "Transmuted Spell" is passive or triggered: not automated |
+| Transmuted Spell | classes24 | Transmuted Spell (feature) | — |
 | Transport via Plants | spells24 | Transport via Plants (manual) | not automated (teleport): using it spends its cost; its description says the rest |
 | Treant | actors24 | Treant (6 items) | — |
 | Tree Stride | spells24 | Tree Stride (automated) | concentration: its caster concentrates; what it sustains is by hand |
@@ -1566,7 +1566,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | True Strike | spells24 | True Strike (Enchant Weapon) (manual), True Strike (Spellcasting Attack) (automated), True Strike (Spellcasting Attack) (automated) | not automated (enchant): using it spends its cost; its description says the rest; rolled (attack); what it does is by hand |
 | Truth Serum | equipment24 | Truth Serum (gear) | "Use Poison" is passive or triggered: not automated |
 | Tsunami | spells24 | Tsunami (Create Tsunami) (automated) | activation: 1 minute is not an action-economy cost; consumption: itemUses -6 not converted; concentration: its caster concentrates; what it sustains is by hand; "Start of Turn Effects" is passive or triggered: not automated |
-| Twinned Spell | classes24 | Twinned Spell (feature) | "Twinned Spell" is passive or triggered: not automated |
+| Twinned Spell | classes24 | Twinned Spell (feature) | — |
 | Two Extra Attacks | classes24 | Two Extra Attacks (feature) | — |
 | Two-Weapon Fighting | feats24 | Two-Weapon Fighting (feature) | — |
 | Tyrannosaurus Rex | actors24 | Tyrannosaurus Rex (3 items) | Bite: "Escape Check" is passive or triggered: not automated |

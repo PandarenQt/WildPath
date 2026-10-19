@@ -286,6 +286,13 @@ holds is refused at payment, before anything rolls.
   at payment up to its maximum. Its amount is by default the level its choice selected (`levelChoiceId`: a spent slot's
   level in Sorcery Points). It is refused when the creature lacks the pool or the pool is full.
 
+- **Metamagic's effects (2026-10-19):**
+  - `{type: "replace-cost", from, to}` pays one activation cost as another (Quickened Spell: `action` as `bonus-action`).
+    The action bar keeps an Action usable when such an option of its own could be paid.
+  - `{type: "set-range", range}` sets its range (Distant Spell).
+  - `{type: "scale-duration", factor}` multiplies its effects' and concentration's durations (Extended Spell).
+  - `replace-damage-type` takes a fixed `damageType` too (Transmuted Spell).
+
 ## One of its own weapons, and binding a choice (2026-10-19)
 
 - **`optionsFrom: {type: "weapons", melee?, bases?}`** on a `select-one` choice lists its creature's own weapons whenever

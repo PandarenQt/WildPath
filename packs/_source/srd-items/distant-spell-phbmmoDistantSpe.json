@@ -21,10 +21,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Distant Spell\" is passive or triggered: not automated"
-        ]
-      }
+        "notes": []
+      },
+      "metamagic": "distant"
     }
   }
 }

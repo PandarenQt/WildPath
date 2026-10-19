@@ -223,7 +223,9 @@ function createActionBarEntry({
   const defaultPayment = selectDefaultPaymentOption(discovery.options);
   const selected = Boolean((selectedActionRef && selectedActionRef === ref)
     || (selectedActionId != null && String(selectedActionId) === String(actionData.id)));
-  const enabled = discovery.status === "available";
+  // An option of its own paying another way (Quickened Spell: its Action as a Bonus Action) keeps it usable.
+  const enabled = (discovery.status === "available") || costAlternatives(action, activationCost)
+    .some(alternative => resolvePaymentOptions({cost: alternative, resources, action: actionData, policies}).status === "available");
 
   return {
     id: actionData.id == null ? null : String(actionData.id),
@@ -269,6 +271,16 @@ function normalizeActionRef(action) {
   return normalizeEntityRef(action?.ref)
     ?? (action?.uuid ? normalizeEntityRef({uuid: action.uuid}) : null)
     ?? (action?.id ? itemRef(action.id) : null);
+}
+
+/** Its activation cost as each `replace-cost` effect of its configuration's options would make it. */
+function costAlternatives(action, cost) {
+  if ( typeof action?.system?.getActionDefinition !== "function" ) return [];
+  const read = action.system.getActionDefinition({validate: false});
+  const swaps = (read?.definition?.configuration ?? []).flatMap(choice => choice?.options ?? []).flatMap(option => option?.effects ?? [])
+    .filter(effect => effect?.type === "replace-cost");
+  const swap = (branch, {from, to}) => branch.map(entry => ((entry?.capability === from) ? {...entry, capability: to} : entry));
+  return swaps.map(effect => (cost?.anyOf ? {anyOf: cost.anyOf.map(branch => swap(branch, effect))} : {allOf: swap(cost?.allOf ?? [], effect)}));
 }
 
 function actionActivationCost(action) {

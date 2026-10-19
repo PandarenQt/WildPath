@@ -21,10 +21,12 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Empowered Spell\" is passive or triggered: not automated"
-        ]
-      }
+        "notes": []
+      },
+      "metamagic": "empowered",
+      "grants": [
+        "n34kiuia223a0000"
+      ]
     }
   }
 }

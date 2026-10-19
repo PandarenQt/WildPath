@@ -539,7 +539,8 @@ export async function executeActionMutationTransaction({result, actor, targetAct
       data: {payerRefs: paymentMutationPlans.map(mutationPlan => mutationPlan.payerRef ?? null)}
     };
   }
-  const sourceOperations = paymentMutationPlans.map((mutationPlan, index) => createActorUpdateTransactionOperation({
+  const chained = chainPayments(paymentMutationPlans, payers);
+  const sourceOperations = chained.map((mutationPlan, index) => createActorUpdateTransactionOperation({
     id: `source:${index}:resourcePayment`,
     type: "resourcePayment",
     actorRef: payers[index]?.uuid ?? (payers[index]?.id ? `actor:${payers[index].id}` : null),
@@ -583,6 +584,29 @@ export async function executeActionMutationTransaction({result, actor, targetAct
     reason: transaction.code,
     data: {transaction}
   };
+}
+
+/**
+ * Payments of one payer from the same pool, each planned from what it held before the Action (Quickened Spell's
+ * points, then Seeking Spell's reroll): each spends from what the one before it left, not over it.
+ */
+function chainPayments(paymentMutationPlans, payers) {
+  const left = new Map();
+  return paymentMutationPlans.map((mutationPlan, index) => {
+    const plan = mutationPlan.plan;
+    if ( !plan?.payments?.length ) return mutationPlan;
+    const updates = {...plan.updates};
+    const payments = plan.payments.map(payment => {
+      const key = `${payers[index]?.uuid ?? payers[index]?.id ?? index}:${payment.path}`;
+      if ( !Number.isFinite(payment.from) || !Number.isFinite(payment.to) ) return payment;
+      const from = left.get(key) ?? payment.from;
+      const to = from + (payment.to - payment.from);
+      left.set(key, to);
+      if ( Object.hasOwn(updates, payment.path) ) updates[payment.path] = to;
+      return {...payment, from, to};
+    });
+    return {...mutationPlan, plan: {...plan, updates, payments}};
+  });
 }
 
 /* -------------------------------------------- */
