@@ -206,7 +206,28 @@ function enchantDefinition({document, activity, system, spell, level, pool, ench
  * next turn; on a success its Speed is halved and the next attack roll against it has Advantage until then. shortcut:
  * "with a Monk weapon or an Unarmed Strike" is any melee hit.
  */
+/**
+ * 2024 Cunning Strike: when its Sneak Attack deals damage (an attack whose planned extra damage includes it), one d6 of it
+ * given up for one effect, once a turn among them: Poison (a Constitution save or Poisoned, repeated at the end of each
+ * of its turns) and Trip (an Agility save or Prone), on the creature hit; Withdraw: its rogue moves up to half its Speed
+ * without provoking Opportunity Attacks (Disengaged, and that much more movement this turn).
+ * shortcut: Improved Cunning Strike's second effect, Poison's Poisoner's Kit and 1-minute limit (its repeated save ends
+ * it), and Trip's "Large or smaller" are by hand.
+ */
+const cunning = (extra={}) => ({once: "turn", onceKey: "cunning-strike", tagsAll: ["extra:sneak-attack"],
+  rider: {forgoDice: {ruleId: "sneak-attack", dice: 1}}, definition: definition => definition, ...extra});
+const WITHDRAW = {id: "effect-1", type: "effect", name: "Withdraw", slug: "disengaged", img: "icons/svg/walk.svg",
+  duration: {value: 0, units: "turns", expiry: "turnEnd"}, ruleElements: [{schemaVersion: 1, id: "withdraw", type: "Modifier",
+    data: {domains: ["resources.movement.max"], modifierType: "untyped", valueExpression: {type: "floor", value: {type: "divide",
+      numerator: {type: "add", terms: [{type: "context", path: "actorSystem.resources.movement.base"},
+        {type: "context", path: "actorSystem.resources.movement.bonus"}]}, denominator: {type: "constant", value: 2}}}}}]};
+
 const OWN_HIT = Object.freeze({
+  "cunning-strike/Poison": cunning(),
+  // Poison's repeated save is in the same text; Prone has none.
+  "cunning-strike/Trip": cunning({definition: definition => ({...definition,
+    effects: (definition.effects ?? []).map(({repeatSave, ...effect}) => effect)})}),
+  "cunning-strike/Withdraw": cunning({self: true, definition: definition => ({...definition, effects: [structuredClone(WITHDRAW)]})}),
   "stunning-strike": {once: "turn", definition: definition => ({...definition,
     configuration: (definition.configuration ?? []).filter(choice => choice.id !== "effect-choice"),
     effects: [{id: "effect-1", type: "condition", conditionId: "stunned", saveOutcomePolicy: "failure",
@@ -544,7 +565,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A passive or triggered ability is not something a creature uses on its turn; its feature carries its text.
     const activation = pick(activity, system, "activation").type ?? "";
     // A feature used when its creature hits (Stunning Strike): offered on that hit, though dnd5e leaves it passive.
-    const onHit = OWN_HIT[identifierOf(document)] ?? null;
+    const onHit = OWN_HIT[`${identifierOf(document)}/${activity.name}`] ?? OWN_HIT[identifierOf(document)] ?? null;
     // An enchantment of one of its creature's weapons (Magic Weapon, Sacred Weapon): its weapon's attacks change instead.
     const enchant = ENCHANTS[identifierOf(document)] ?? null;
     if ( enchant && (activity.type !== "enchant") ) continue;
@@ -655,15 +676,19 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const smite = (identifierOf(document) === "divine-smite") ? SMITE_TRIGGER : null;
     if ( smite ) definition = smiteDefinition(definition);
     if ( onHit ) {
-      definition = {...onHit.definition(definition), range: {type: "special"}, targeting: {type: "single", required: true, count: 1}};
+      definition = {...onHit.definition(definition), ...(onHit.self ? {range: {type: "self"}, targeting: {type: "self"}}
+        : {range: {type: "special"}, targeting: {type: "single", required: true, count: 1}}),
+      ...(onHit.rider ? {rider: structuredClone(onHit.rider)} : {})};
       // Its effects are its own now, not dnd5e's.
-      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("effect: ")));
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("effect: ") && !note.startsWith("not automated")));
     }
     const named = smite ? (/unholy/i.test(activity.name ?? "") ? " (Undead or Fiend)" : "") : suffix;
     const reacting = action(id, `${document.name}${named}${choices ? title(choices[0]) : ""}`, definition);
-    const trigger = reaction ?? smite ?? (onHit ? {...SMITE_TRIGGER, once: onHit.once} : null);
+    const trigger = reaction ?? smite ?? (onHit ? {...SMITE_TRIGGER, match: {...SMITE_TRIGGER.match, ...(onHit.tagsAll ? {tagsAll: onHit.tagsAll} : {})},
+      once: onHit.once, onceKey: onHit.onceKey} : null);
     if ( trigger ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
-      data: {kind: "reaction", event: trigger.event, match: trigger.match, ...(trigger.once ? {once: trigger.once} : {})}});
+      data: {kind: "reaction", event: trigger.event, match: trigger.match, ...(trigger.once ? {once: trigger.once} : {}),
+        ...(trigger.onceKey ? {onceKey: trigger.onceKey} : {})}});
     items.push(reacting);
     for ( const other of choices?.slice(1) ?? [] ) items.push(action(stableId(`${id}:${other}`), `${document.name}${suffix}${title(other)}`,
       commonActivity({document, activity, system, spell, level, pool}, [other])));

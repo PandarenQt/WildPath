@@ -1327,3 +1327,30 @@ test("Reckless Attack: a free Action whose effect (reckless) gives Advantage on 
     [{allOf: []}, "reckless", [{domains: ["attack.might"], mode: "advantage"}, {domains: ["attacked"], mode: "advantage"}]]);
   assert.equal(validateActionDefinition(definition).ok, true);
 });
+
+test("Cunning Strike: Poison, Trip and Withdraw, each offered when Sneak Attack is in the hit and paid with one of its d6s", () => {
+  const cunning = {_id: "testCunningStr01", name: "Cunning Strike", type: "feat", img: "icons/svg/dagger.svg",
+    effects: [{_id: "poisonedEffect01", name: "Cunning Strike: Poisoned", statuses: ["poisoned"], changes: [], transfer: false, disabled: false},
+      {_id: "trippedEffect001", name: "Cunning Strike: Tripped", statuses: ["prone"], changes: [], transfer: false, disabled: false}],
+    system: {source: SRD, identifier: "cunning-strike", type: {value: "class"}, uses: {max: "", recovery: []},
+      description: {value: "<p>Poison. The target repeats the save at the end of each of its turns, ending the effect on itself on a success.</p>"},
+      activities: {
+        a: activity("save", {_id: "actpoison", name: "Poison", activation: {type: "", override: false}, effects: [{_id: "poisonedEffect01"}],
+          save: {ability: ["con"], dc: {calculation: "dex", formula: ""}}}),
+        b: activity("save", {_id: "acttrip", name: "Trip", activation: {type: "", override: false}, effects: [{_id: "trippedEffect001"}],
+          save: {ability: ["dex"], dc: {calculation: "dex", formula: ""}}}),
+        c: activity("damage", {_id: "actcunning", name: "Cunning Sneak Attack", activation: {type: "", override: false}}),
+        d: activity("utility", {_id: "actwithdraw", name: "Withdraw", activation: {type: "", override: false}})}}};
+  const items = convertItem(cunning).items.filter(item => item.type === "action");
+  assert.deepEqual(items.map(item => item.name), ["Cunning Strike (Poison)", "Cunning Strike (Trip)", "Cunning Strike (Withdraw)"]);
+  for ( const item of items ) {
+    const trigger = item.system.ruleElements.find(rule => rule.type === "Trigger").data;
+    assert.deepEqual([trigger.match.tagsAll, trigger.once, trigger.onceKey], [["extra:sneak-attack"], "turn", "cunning-strike"]);
+    assert.deepEqual(item.system.definition.rider, {forgoDice: {ruleId: "sneak-attack", dice: 1}});
+    assert.equal(validateActionDefinition(item.system.definition).ok, true, item.name);
+  }
+  const [poison, trip, withdraw] = items.map(item => item.system.definition);
+  assert.deepEqual([poison.effects[0].conditionId, poison.effects[0].repeatSave], ["poisoned", "turnEnd"]);
+  assert.deepEqual([trip.effects[0].conditionId, trip.effects[0].repeatSave], ["prone", undefined], "Prone repeats nothing");
+  assert.deepEqual([withdraw.targeting.type, withdraw.effects[0].slug], ["self", "disengaged"]);
+});

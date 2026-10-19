@@ -47,6 +47,8 @@
         "type": "grant",
         "items": [
           "Compendium.wildpath.srd-items.Item.phbrgeCunningStr",
+          "Compendium.wildpath.srd-items.Item.1rzcrbb15ktvg900",
+          "Compendium.wildpath.srd-items.Item.1s9cd0a6ddmwu000",
           "Compendium.wildpath.srd-items.Item.phbrgeUncannyDod"
         ],
         "optional": false

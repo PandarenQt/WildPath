@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 822 automated, 302 manual, 243 features. Creatures: 375.
+Items: 825 automated, 302 manual, 242 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -364,7 +364,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Cultist | actors24 | Cultist (1 items) | — |
 | Cultist Fanatic | actors24 | Cultist Fanatic (8 items) | — |
 | Cunning Action | classes24 | Cunning Action (Hide) (automated), Cunning Action (Dash) (automated), Cunning Action (Disengage) (automated) | — |
-| Cunning Strike | classes24 | Cunning Strike (feature) | "Poison" is passive or triggered: not automated; "Trip" is passive or triggered: not automated; "Withdraw" is passive or triggered: not automated; "Cunning Sneak Attack" is passive or triggered: not automated |
+| Cunning Strike | classes24 | Cunning Strike (Poison) (automated), Cunning Strike (Trip) (automated), Cunning Strike (Withdraw) (automated) | "Cunning Sneak Attack" is passive or triggered: not automated |
 | Cure Wounds | spells24 | Cure Wounds (automated) | — |
 | Cutting Words | classes24 | Cutting Words (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Dagger | equipment24 | Dagger (automated) | — |

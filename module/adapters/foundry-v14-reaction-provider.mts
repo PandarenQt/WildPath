@@ -119,7 +119,8 @@ function tokenReactions(token: TokenLike) {
       // Only while its creature has a status (Brutal Strike: Reckless Attack's "reckless").
       if ( data.whileStatus && !actor.statuses?.has(String(data.whileStatus)) ) return [];
       // Once a turn (Stunning Strike): not offered again this combat turn; its use records it (`metadata.once`).
-      const once = (data.once === "turn") ? onceThisTurn(actor, `${item.id}-${String(element.id ?? "trigger")}`) : null;
+      // Options sharing a key (`onceKey`: Cunning Strike's three) are one use between them.
+      const once = (data.once === "turn") ? onceThisTurn(actor, String(data.onceKey ?? `${item.id}-${String(element.id ?? "trigger")}`)) : null;
       if ( once?.used ) return [];
       const trigger = reactionTrigger({
         id: `reaction:${token.id}:${item.id}:${String(element.id ?? "trigger")}`,

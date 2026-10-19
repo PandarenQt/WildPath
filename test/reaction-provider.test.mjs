@@ -162,3 +162,18 @@ test("a reaction is offered only while its creature has its status (whileStatus:
   guard.actor.statuses = new Set(["reckless"]);
   assert.equal(offered(), true);
 });
+
+test("options sharing a onceKey (Cunning Strike's three) are one use a turn between them", t => {
+  const option = id => ({...strike(), id, system: {...strike().system, ruleElements: [{...opportunityTrigger, id,
+    data: {...opportunityTrigger.data, once: "turn", onceKey: "cunning-strike"}}]}});
+  const rogue = token("rogue", -1, [option("poison"), option("trip")]);
+  const scene = {grid: {distance: 5}, tokens: [token("mover", 1), rogue]};
+  const previous = globalThis.game;
+  globalThis.game = {combat: {id: "c", round: 2, turn: 0, started: true}};
+  t.after(() => { globalThis.game = previous; });
+  const offered = () => (createFoundryReactionProvider()({scene, token: scene.tokens[0]}).reactions?.triggers ?? [])
+    .filter(trigger => trigger.owner.tokenId === "rogue").map(trigger => trigger.payload.once.key);
+  assert.deepEqual(offered(), ["cunning-strike", "cunning-strike"]);
+  rogue.actor.flags = {wildpath: {onceUsed: {"cunning-strike": "c:2:0"}}};
+  assert.deepEqual(offered(), [], "one used: neither again this turn");
+});
