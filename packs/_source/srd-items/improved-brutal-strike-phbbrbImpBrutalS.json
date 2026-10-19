@@ -21,10 +21,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Staggering Blow\" is passive or triggered: not automated",
-          "\"Sundering Blow\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

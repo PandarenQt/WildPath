@@ -145,7 +145,7 @@ test("a once-a-turn reaction carries its record key and turn, and is not offered
   globalThis.game = {combat: {id: "c", round: 4, turn: 1, started: true}};
   t.after(() => { globalThis.game = previous; });
   const offered = () => createFoundryReactionProvider()({scene, token: scene.tokens[0]}).reactions?.triggers ?? [];
-  assert.deepEqual(offered()[0].payload.once, {key: "strike-opportunity", turn: "c:4:1"});
+  assert.deepEqual(offered()[0].payload.once, {key: "strike-opportunity", turn: "c:4:1", uses: 1});
   guard.actor.flags = {wildpath: {onceUsed: {"strike-opportunity": "c:4:1"}}};
   assert.equal(offered().some(trigger => trigger.owner.tokenId === "guard"), false, "used this turn");
   globalThis.game.combat.turn = 2;
@@ -176,4 +176,14 @@ test("options sharing a onceKey (Cunning Strike's three) are one use a turn betw
   assert.deepEqual(offered(), ["cunning-strike", "cunning-strike"]);
   rogue.actor.flags = {wildpath: {onceUsed: {"cunning-strike": "c:2:0"}}};
   assert.deepEqual(offered(), [], "one used: neither again this turn");
+});
+
+test("a creature that can't make Opportunity Attacks (Staggering Blow) reacts to no movement", () => {
+  const guard = token("guard", -1, [strike(10)]);
+  const scene = {grid: {distance: 5}, tokens: [token("mover", 1), guard]};
+  const reactors = () => (createFoundryReactionProvider()({resolutionKind: "movement", scene, token: scene.tokens[0]}).reactions?.triggers ?? [])
+    .map(trigger => trigger.owner.tokenId);
+  assert.deepEqual(reactors(), ["guard"]);
+  guard.actor.statuses = new Set(["no-opportunity-attacks"]);
+  assert.deepEqual(reactors(), []);
 });

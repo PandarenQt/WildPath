@@ -135,6 +135,7 @@ export function registerFoundryV14MultiplayerResolution({
       await masteries.afterResolution(event);
       await endEffectsWhenAttacked(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsOnTargets(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
+      await endEffectsWhenSaved(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await recordSlotSpell(event, {game});
       await markCasterConcentration(event, {game});
     },
@@ -1136,11 +1137,16 @@ function highGroundOn(game) {
 
 /** Each target's high-ground bonus, keyed by Token like the targets; null when the setting is off or none applies. */
 function foundryAttackBonuses({targets, targetEntries, game, sourceToken}) {
-  if ( !sourceToken || !highGroundOn(game) ) return null;
+  if ( !sourceToken ) return null;
+  const high = highGroundOn(game);
   const bonuses = {};
   targetEntries.forEach((entry, index) => {
-    const token = resolveFoundryTargetToken({actor: entry.actor, hint: entry.hint, game, preferredSceneId: sourceToken.parent?.id ?? null});
-    const bonus = token ? highGroundBonus(sourceToken.elevation, token.elevation) : 0;
+    const token = high ? resolveFoundryTargetToken({actor: entry.actor, hint: entry.hint, game, preferredSceneId: sourceToken.parent?.id ?? null}) : null;
+    // Its own Modifiers on attacks against it (Sundering Blow's +5), seeing which of its effects this attacker gave it
+    // (`from:<status>`: not the barbarian's own attacks).
+    const from = sourceToken.actor ? Object.keys(conditionsFrom(entry.actor, sourceToken.actor, game)).map(id => `from:${id}`) : [];
+    const own = Number(entry.actor?.getStatistic?.("attacked", {tags: from})?.totalModifier) || 0;
+    const bonus = (token ? highGroundBonus(sourceToken.elevation, token.elevation) : 0) + own;
     if ( bonus ) bonuses[targets[index].tokenId ?? targets[index].id] = bonus;
   });
   return Object.keys(bonuses).length ? bonuses : null;
@@ -1377,6 +1383,24 @@ async function foundryActionController({action, actor, intent, sender, game}) {
  * attacked creature's `attacked` effects (Help's Distracted) and those from the attacker (`attackedBySource`, a Vex),
  * and the attacker's own `attacks` effects (a Sap). An effect this Action has just applied to a creature it hit stays.
  */
+/** Effects that end once their creature makes a saving throw (`endsWhen: "saves"`: Staggering Blow), after an Action's save. */
+export async function endEffectsWhenSaved({state}, {fromUuid}) {
+  const saved = (state?.results?.saveResolution?.results ?? []).filter(result => result?.ok !== false)
+    .map(result => String(result?.target?.tokenId ?? "")).filter(Boolean);
+  if ( !saved.length ) return [];
+  const sourceToken = await fromUuid(String(state?.source?.tokenRef ?? ""));
+  const scene = sourceToken?.parent ?? null;
+  const ended = [];
+  for ( const tokenId of new Set(saved) ) {
+    const actor = scene?.tokens?.get(tokenId)?.actor;
+    const effects = [...(actor?.effects ?? [])].filter(effect => effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen === "saves");
+    if ( !effects.length ) continue;
+    await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
+    ended.push(...effects.map(effect => effect.id));
+  }
+  return ended;
+}
+
 export async function endEffectsWhenAttacked({state}, {fromUuid}) {
   const attacked = new Map();
   for ( const result of state?.results?.attackResolution?.results ?? [] ) {
@@ -1401,7 +1425,8 @@ export async function endEffectsWhenAttacked({state}, {fromUuid}) {
     if ( !actor ) continue;
     const fromAttacker = new Set(attacker ? effectsFrom(actor, attacker).map(effect => effect.id) : []);
     await end(actor, [...actor.effects].filter(effect => !(hit && [...(effect.statuses ?? [])].some(status => applied.has(status)))
-      && ((endsWhen(effect) === "attacked") || ((endsWhen(effect) === "attackedBySource") && fromAttacker.has(effect.id)))));
+      && ((endsWhen(effect) === "attacked") || ((endsWhen(effect) === "attackedBySource") && fromAttacker.has(effect.id))
+        || ((endsWhen(effect) === "attackedByOther") && !fromAttacker.has(effect.id)))));
   }
   if ( attacker ) await end(attacker, [...attacker.effects].filter(effect => endsWhen(effect) === "attacks"));
   return ended;

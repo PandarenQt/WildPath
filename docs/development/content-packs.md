@@ -418,10 +418,11 @@ equipped. Equipping it (`system.active`) turns its rules on.
   option, Pact of the Blade's proficiency and damage types, Shillelagh's larger die; one such effect at a time.
 - **Cunning Strike and Reckless Attack (2026-10-19).** Cunning Strike's Poison, Trip and Withdraw are own-hit reactions
   paid with a Sneak Attack die (reactions.md); its "Cunning Sneak Attack" bookkeeping activity stays text. Reckless Attack
-  is a free Action with its "reckless" effect. shortcuts: Improved Cunning Strike, Poison's kit and 1-minute limit,
-  Trip's size limit, and Reckless Attack's "first attack of your turn".
-- **Brutal Strike (2026-10-19)** is its own three Actions (reactions.md), not its dnd5e damage activity. shortcuts:
-  Improved Brutal Strike's blows and second blow, and Forceful Blow's "toward the target".
+  is a free Action with its "reckless" effect. Improved Cunning Strike is its options' `uses` (2 from rogue level 11).
+  shortcuts: Poison's kit and 1-minute limit, Trip's size limit, and Reckless Attack's "first attack of your turn".
+- **Brutal Strike (2026-10-19)** is its own three Actions (reactions.md), not its dnd5e damage activity. Improved
+  Brutal Strike brings Staggering and Sundering Blow, and two blows a hit from level 17 (`uses`). shortcut: Forceful
+  Blow's "toward the target".
 - **Effects as markers (2026-10-19).** A dnd5e effect with no status and nothing WildPath maps (Alter Self's Aquatic
   Adaptation, Acid Arrow's lingering acid, a dragon's Detect Magic) is no longer dropped. It is a custom effect with
   no rules: its name, icon, duration, save policy and concentration. Its creature shows it, it expires on time, and it

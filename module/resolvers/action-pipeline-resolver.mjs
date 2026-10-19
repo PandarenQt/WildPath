@@ -89,6 +89,7 @@ import {planEffectLifecycle} from "./effect-lifecycle-resolver.mjs";
 import {
   REACTION_WINDOW_TIMINGS,
   completeReactionChildResolution,
+  planReactionWindow,
   createReactionWindowStage
 } from "./reaction-resolver.mjs";
 
@@ -393,7 +394,9 @@ export function completeStagedReactionChildResolution({
       ?? reactionOptions.reevaluate
       ?? ((context) => reevaluateParentAfterReaction({...context, services: reactionServices}))
   });
-  const state = result.state ? createResolutionState(result.state) : parent;
+  let state = result.state ? createResolutionState(result.state) : parent;
+  // Its reactor may take another of its options in the same window (Improved Cunning Strike's second effect).
+  if ( result.ok && result.window ) state = siblingReoffer(state, result.window, reactionServices) ?? state;
   return {
     ...result,
     state,
@@ -401,6 +404,38 @@ export function completeStagedReactionChildResolution({
     waiting: state.status === RESOLUTION_STATE_STATUS.PAUSED || state.pendingRequests.length > 0,
     completed: state.status === RESOLUTION_STATE_STATUS.COMPLETED
   };
+}
+
+/** Each reaction window's pipeline stage, by its timing. */
+const REACTION_STAGE_BY_TIMING = Object.freeze({
+  [REACTION_WINDOW_TIMINGS.AFTER_ACTION_DECLARED]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ACTION_DECLARED,
+  [REACTION_WINDOW_TIMINGS.AFTER_OUTCOME]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ATTACK_OUTCOME,
+  [REACTION_WINDOW_TIMINGS.AFTER_DAMAGE]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_DAMAGE
+});
+
+/**
+ * Once a reaction resolves, its window offers again the options of the same reactor that share its once-key, while
+ * that key's `uses` in this window allow (`payload.once.uses`: Improved Cunning Strike's two effects, Improved Brutal
+ * Strike's two blows at level 17). Its stage runs again for the answer. Null when nothing is offered again.
+ */
+function siblingReoffer(state, window, services) {
+  const candidates = window.candidates ?? [];
+  const used = new Map();
+  for ( const candidate of candidates.filter(entry => window.resolvedCandidateIds.includes(entry.id)) ) {
+    const key = candidate.payload?.once?.key;
+    if ( key ) used.set(key, (used.get(key) ?? 0) + 1);
+  }
+  const siblings = candidates.filter(candidate => !window.handledCandidateIds.includes(candidate.id) && used.has(candidate.payload?.once?.key)
+    && (used.get(candidate.payload.once.key) < (Number(candidate.payload.once.uses) || 1)));
+  const stageId = REACTION_STAGE_BY_TIMING[window.timing];
+  if ( !siblings.length || !stageId ) return null;
+  const discovery = actionReactionDiscoveryOptions({state, services, event: window.event, timing: window.timing});
+  if ( !discovery ) return null;
+  const planned = planReactionWindow({parentState: state, windowId: window.id, event: window.event, timing: window.timing, stageId,
+    ...discovery, handledCandidateIds: candidates.filter(candidate => !siblings.includes(candidate)).map(candidate => candidate.id)});
+  if ( !planned.waiting ) return null;
+  return updateResolutionState(planned.state, {currentStageId: stageId,
+    completedStageIds: planned.state.completedStageIds.filter(id => id !== stageId)});
 }
 
 /* -------------------------------------------- */

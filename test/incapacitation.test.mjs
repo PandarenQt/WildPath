@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import {WILDPATH} from "../module/config.mjs";
 import {d20FormulaWith} from "../module/helpers/rolls.mjs";
 import {rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
-import {endConcentrationOnIncapacitation, endEarlierConcentration, markCasterConcentration, startsConcentration, sustainedEffects}
+import {endConcentrationOnIncapacitation, endEarlierConcentration, endEffectsWhenSaved, markCasterConcentration, startsConcentration,
+  sustainedEffects}
   from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 
 test("initiative rolls 2d20 with advantage or disadvantage and adds its Modifiers", () => {
@@ -83,4 +84,15 @@ test("a concentration spell sustaining nothing automated (Fog Cloud) marks its c
   assert.equal(await markCasterConcentration({options: {actor}, state: {actionDefinition: {label: "Bless"}, source: {tokenId: "t"}}}, {game}), null,
     "nothing for an Action without it");
   assert.equal(created.length, 1);
+});
+
+test("an effect that ends when its creature saves (Staggering Blow) ends after an Action's save on it", async () => {
+  const deleted = [];
+  const staggered = {id: "staggered", flags: {wildpath: {conditionEffect: {definition: {endsWhen: "saves"}}}}};
+  const other = {id: "other", flags: {wildpath: {conditionEffect: {definition: {}}}}};
+  const actor = {effects: [staggered, other], async deleteEmbeddedDocuments(type, ids) { deleted.push(...ids); }};
+  const scene = {tokens: {get: id => (id === "orc-token" ? {actor} : null)}};
+  const state = {source: {tokenRef: "Scene.s.Token.caster"}, results: {saveResolution: {results: [{ok: true, success: true, target: {tokenId: "orc-token"}}]}}};
+  assert.deepEqual(await endEffectsWhenSaved({state}, {fromUuid: async () => ({parent: scene})}), ["staggered"]);
+  assert.deepEqual(deleted, ["staggered"]);
 });

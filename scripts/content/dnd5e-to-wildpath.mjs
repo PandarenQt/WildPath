@@ -214,10 +214,12 @@ function enchantDefinition({document, activity, system, spell, level, pool, ench
  * given up for one effect, once a turn among them: Poison (a Constitution save or Poisoned, repeated at the end of each
  * of its turns) and Trip (an Agility save or Prone), on the creature hit; Withdraw: its rogue moves up to half its Speed
  * without provoking Opportunity Attacks (Disengaged, and that much more movement this turn).
- * shortcut: Improved Cunning Strike's second effect, Poison's Poisoner's Kit and 1-minute limit (its repeated save ends
- * it), and Trip's "Large or smaller" are by hand.
+ * shortcut: Poison's Poisoner's Kit and 1-minute limit (its repeated save ends it), and Trip's "Large or smaller" are
+ * by hand.
  */
-const cunning = (extra={}) => ({once: "turn", onceKey: "cunning-strike", tagsAll: ["extra:sneak-attack"],
+// Improved Cunning Strike (rogue level 11): two of them on one Sneak Attack, each with its own die.
+const CUNNING_USES = {type: "table", key: {type: "class-level", class: "rogue"}, rows: {1: 1, 11: 2}};
+const cunning = (extra={}) => ({once: "turn", onceKey: "cunning-strike", uses: CUNNING_USES, tagsAll: ["extra:sneak-attack"],
   rider: {forgoDice: {ruleId: "sneak-attack", dice: 1}}, definition: definition => definition, ...extra});
 const WITHDRAW = {id: "effect-1", type: "effect", name: "Withdraw", slug: "disengaged", img: "icons/svg/walk.svg",
   duration: {value: 0, units: "turns", expiry: "turnEnd"}, ruleElements: [{schemaVersion: 1, id: "withdraw", type: "Modifier",
@@ -256,32 +258,64 @@ const OWN_HIT = Object.freeze({
  * - Brutal Strike answers its own declared attack (`action.declared`, `whileStatus: "reckless"`, a predicate on the
  *   attack's mode and ability), once a turn; its rider gives up the Advantage, adds the damage and tags the attack.
  * - Each blow answers a hit so tagged, once a turn between them.
- * shortcut: Improved Brutal Strike's blows and second blow, and Forceful Blow's "toward the target", are by hand.
+ * shortcut: Forceful Blow's "toward the target" is by hand.
  */
+/** Improved Brutal Strike (barbarian level 17): two blows on one Brutal Strike's hit. */
+const BLOW_USES = {type: "table", key: {type: "class-level", class: "barbarian"}, rows: {1: 1, 17: 2}};
+
+/** One of Brutal Strike's own Actions: no cost, its reaction Trigger, named "<feature> (<suffix>)". */
+function brutalAction(document, img, source, suffix, definition, trigger) {
+  const id = stableId(`${document._id}:${suffix || "strike"}`);
+  const name = `${document.name}${suffix ? ` (${suffix})` : ""}`;
+  return {_id: id, _key: `!items!${id}`, name, type: "action", img,
+    system: {active: true, description: "", definition: {schemaVersion: 1, id: `action:srd-brutal-strike${suffix ? `-${slugify(suffix)}` : ""}`,
+      label: name, costs: {allOf: []}, ...definition}, ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: trigger}]},
+    flags: {wildpath: {source, conversion: {notes: []}}}};
+}
+
+/**
+ * 2024 Improved Brutal Strike: two more blows, answering a Brutal Strike's hit like the others (one a turn between them),
+ * on the creature hit and until the start of the barbarian's next turn.
+ * - Staggering Blow: Disadvantage on its next saving throw, and it can't make Opportunity Attacks.
+ * - Sundering Blow: the next attack roll another creature makes against it has +5.
+ * shortcut: a save outside an Action (a repeated save, Concentration) does not end Staggering Blow.
+ */
+function improvedBrutalStrikeActions(document, img, source) {
+  const hit = {kind: "reaction", event: "attack.hit", match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["brutal-strike"]},
+    once: "turn", onceKey: "brutal-blow", uses: BLOW_USES};
+  const onTarget = {range: {type: "special"}, targeting: {type: "single", required: true, count: 1}};
+  const untilNextTurn = {value: 1, units: "rounds", expiry: "turnStart"};
+  const named = {...document, name: "Brutal Strike"};
+  return [
+    brutalAction(named, img, source, "Staggering Blow", {...onTarget, effects: [
+      {id: "effect-1", type: "effect", name: "Staggered", img: "icons/svg/daze.svg", duration: untilNextTurn, endsWhen: "saves",
+        ruleElements: [{schemaVersion: 1, id: "staggered", type: "RollMode", data: {domains: ["save"], mode: "disadvantage"}}]},
+      {id: "effect-2", type: "effect", name: "Staggered (no Opportunity Attacks)", slug: "no-opportunity-attacks", img: "icons/svg/daze.svg",
+        duration: untilNextTurn, ruleElements: []}]}, hit),
+    brutalAction(named, img, source, "Sundering Blow", {...onTarget, effects: [
+      {id: "effect-1", type: "effect", name: "Sundered", slug: "sundered", img: "icons/svg/sword.svg", duration: untilNextTurn,
+        endsWhen: "attackedByOther", ruleElements: [{schemaVersion: 1, id: "sundered", type: "Modifier",
+          data: {domains: ["attacked"], modifierType: "untyped", value: 5}, predicate: {not: {tagsAny: ["from:sundered"]}}}]}]}, hit)
+  ];
+}
+
 function brutalStrikeActions(document, img, source, scales) {
   const declared = {all: [{equals: {path: "event.data.attackRollMode", value: "advantage"}},
     {equals: {path: "event.data.attackAbility", value: "might"}}]};
   const extra = formulaExpression("@scale.barbarian.brutal-strike", {scales}) ?? {type: "dice", number: 1, faces: 10};
   const own = (event, extraMatch={}) => ({kind: "reaction", event, match: {phase: "interrupt", sourceTokenId: "{self}", ...extraMatch}});
-  const make = (suffix, definition, trigger) => {
-    const id = stableId(`${document._id}:${suffix || "strike"}`);
-    const name = `${document.name}${suffix ? ` (${suffix})` : ""}`;
-    return {_id: id, _key: `!items!${id}`, name, type: "action", img,
-      system: {active: true, description: "", definition: {schemaVersion: 1, id: `action:srd-brutal-strike${suffix ? `-${slugify(suffix)}` : ""}`,
-        label: name, costs: {allOf: []}, ...definition}, ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: trigger}]},
-      flags: {wildpath: {source, conversion: {notes: []}}}};
-  };
+  const make = (suffix, definition, trigger) => brutalAction(document, img, source, suffix, definition, trigger);
   const self = {range: {type: "self"}, targeting: {type: "self"}};
   return [
     make("", {...self, rider: {rollMode: "normal", tags: ["brutal-strike"], damage: [{id: "brutal-strike", expression: extra}]}},
       {...own("action.declared", {notTagsAny: ["spell"]}), whileStatus: "reckless", once: "turn", triggerPredicate: declared}),
     make("Forceful Blow", {...self, rider: {push: {distance: 15}}, effects: [{...structuredClone(WITHDRAW), name: "Forceful Blow"}]},
-      {...own("attack.hit", {tagsAll: ["brutal-strike"]}), once: "turn", onceKey: "brutal-blow"}),
+      {...own("attack.hit", {tagsAll: ["brutal-strike"]}), once: "turn", onceKey: "brutal-blow", uses: BLOW_USES}),
     make("Hamstring Blow", {range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
       effects: [{id: "effect-1", type: "effect", name: "Hamstrung", img: "icons/svg/net.svg", duration: {value: 1, units: "rounds", expiry: "turnStart"},
         ruleElements: [{schemaVersion: 1, id: "hamstrung", type: "Modifier", data: {domains: ["resources.movement.max", "speed"],
           modifierType: "untyped", value: -15}}]}]},
-    {...own("attack.hit", {tagsAll: ["brutal-strike"]}), once: "turn", onceKey: "brutal-blow"})
+    {...own("attack.hit", {tagsAll: ["brutal-strike"]}), once: "turn", onceKey: "brutal-blow", uses: BLOW_USES})
   ];
 }
 
@@ -613,7 +647,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const enchant = ENCHANTS[identifierOf(document)] ?? null;
     if ( enchant && (activity.type !== "enchant") ) continue;
     // Brutal Strike's Actions are its own (brutalStrikeActions), not its dnd5e damage activity.
-    if ( identifierOf(document) === "brutal-strike" ) continue;
+    if ( ["brutal-strike", "improved-brutal-strike"].includes(identifierOf(document)) ) continue;
     if ( ["", "none", "special"].includes(activation) && !onHit && !enchant ) {
       // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.
       const marked = (activity.type === "damage") && Object.values(EFFECTS_BY_HAND).some(hand => hand.bonusDamage === label);
@@ -740,10 +774,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const named = smite ? (/unholy/i.test(activity.name ?? "") ? " (Undead or Fiend)" : "") : suffix;
     const reacting = action(id, `${document.name}${named}${choices ? title(choices[0]) : ""}`, definition);
     const trigger = reaction ?? smite ?? (onHit ? {...SMITE_TRIGGER, match: {...SMITE_TRIGGER.match, ...(onHit.tagsAll ? {tagsAll: onHit.tagsAll} : {})},
-      once: onHit.once, onceKey: onHit.onceKey} : null);
+      once: onHit.once, onceKey: onHit.onceKey, uses: onHit.uses} : null);
     if ( trigger ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
       data: {kind: "reaction", event: trigger.event, match: trigger.match, ...(trigger.once ? {once: trigger.once} : {}),
-        ...(trigger.onceKey ? {onceKey: trigger.onceKey} : {})}});
+        ...(trigger.onceKey ? {onceKey: trigger.onceKey} : {}), ...(trigger.uses ? {uses: trigger.uses} : {})}});
     items.push(reacting);
     for ( const other of choices?.slice(1) ?? [] ) items.push(action(stableId(`${id}:${other}`), `${document.name}${suffix}${title(other)}`,
       commonActivity({document, activity, system, spell, level, pool}, [other])));
@@ -781,6 +815,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}}}});
     if ( identifierOf(document) === "paladins-smite" ) items.push(...paladinsSmiteActions(document, img, source));
     if ( identifierOf(document) === "brutal-strike" ) items.push(...brutalStrikeActions(document, img, source, scales));
+    if ( identifierOf(document) === "improved-brutal-strike" ) items.push(...improvedBrutalStrikeActions(document, img, source));
   }
   // A feature used on its turn that dnd5e leaves without an Action (Action Surge): its Action, paid from its own pool.
   const featureAction = FEATURE_ACTIONS[identifierOf(document)];

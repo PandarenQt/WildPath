@@ -316,6 +316,21 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   attack: it rolled 1d20 + 5 (no Advantage), hit, dealt 1d8 + 1d10, and Forceful Blow pushed the Bandit Captain 15 ft;
   QA Caster was Disengaged with 15 ft more movement.
 
+- **Several options in one window (2026-10-19).** A once-a-turn Trigger's `uses` (a number, or a ValueExpression such as
+  a table by class level; default 1) is how many options sharing its `onceKey` its creature may take in one reaction
+  window. Once one resolves, the window offers that reactor's remaining siblings again (`siblingReoffer`), until `uses`
+  are spent. Improved Cunning Strike: `uses` 2 from rogue level 11; Improved Brutal Strike: 2 blows from barbarian
+  level 17. An own-hit reaction without damage (Trip) resolves on a critical hit too: only a reaction with its own
+  damage rolls it as critical. Live: QA Caster as a level-11 rogue critically hit the Paralyzed Bandit Captain with a
+  Dagger, chose Trip (it fell Prone), was offered the rest again, chose Withdraw, and Sneak Attack rolled 8d6, not 12d6.
+- **Improved Brutal Strike (2026-10-19):** two more blows answering a Brutal Strike's hit, on the creature hit until the
+  barbarian's next turn. Staggering Blow: Disadvantage on its next saving throw (`endsWhen: "saves"`, ended after an
+  Action's save by `endEffectsWhenSaved`) and the `no-opportunity-attacks` status, under which the provider offers it
+  no movement reaction or Opportunity Attack. Sundering Blow: a Modifier on `attacked` of +5 whose predicate excludes
+  attacks tagged `from:sundered` (the barbarian's own), added to attacks against it through `foundryAttackBonuses`, and
+  ended by the next other creature's attack (`endsWhen: "attackedByOther"`). shortcuts: a save outside an Action does not
+  end Staggering Blow; Sundering Blows of two barbarians stack.
+
 - **Cutting Words (2026-10-19):** `attack.hit` with `notSourceTokenId: "{self}"`, so any creature's hit within 60 ft;
   the bard's reaction targets the attacker. Its rider `attackPenalty: {dice}` is its Bardic Inspiration die, a table by
   bard level. The child rolls it when it pays (`riderAttackPenalty`, reusing `addedDie`) and sends the total. The

@@ -97,7 +97,8 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
             ...(rollMode ? { rollMode } : {}), ...(critical ? { outcomesByTarget: { [target.id]: "critical-on-hit" } } : {})
         } : null,
         // Damage added to its own critical hit (2014 Divine Smite) has its dice doubled too.
-        damage: ownCriticalHit(base.sourceEvent, reactor, target) ? { ...(statistics.damage ?? {}), critical: true } : statistics.damage,
+        damage: ((definition.damage?.length ?? 0) && ownCriticalHit(base.sourceEvent, reactor, target))
+            ? { ...(statistics.damage ?? {}), critical: true } : statistics.damage,
         selectedPaymentOptionId: args.candidate.selectedPaymentOption?.id ?? null,
         durability: { targetSystems: Object.fromEntries(targetKeys.map(key => [key, targetSystem])),
             ...(profile ? { adjustmentProfiles: Object.fromEntries(targetKeys.map(key => [key, structuredClone(profile)])) } : {}) } });

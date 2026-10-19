@@ -1,0 +1,110 @@
+{
+  "_id": "ukl88pozohy70000",
+  "_key": "!items!ukl88pozohy70000",
+  "name": "Brutal Strike (Sundering Blow)",
+  "type": "action",
+  "img": "icons/skills/melee/strike-axe-blood-red.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-brutal-strike-sundering-blow",
+      "label": "Brutal Strike (Sundering Blow)",
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Sundered",
+          "slug": "sundered",
+          "img": "icons/svg/sword.svg",
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnStart"
+          },
+          "endsWhen": "attackedByOther",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "sundered",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "modifierType": "untyped",
+                "value": 5
+              },
+              "predicate": {
+                "not": {
+                  "tagsAny": [
+                    "from:sundered"
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": [
+              "brutal-strike"
+            ]
+          },
+          "once": "turn",
+          "onceKey": "brutal-blow",
+          "uses": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "barbarian"
+            },
+            "rows": {
+              "1": 1,
+              "17": 2
+            }
+          }
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbImpBrutalS",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}
