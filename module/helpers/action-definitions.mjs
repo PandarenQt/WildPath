@@ -140,6 +140,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // Effects it ends on its targets: those tagged (`tags`, Remove Curse's "curse") and spells up to a level (`spells`:
     // a number, or "slot" for the level it is cast at; Dispel Magic).
     ...(raw.ends ? {ends: normalizePlainComponent(raw.ends)} : {}),
+    // A reaction's changes to the Action it answers (reactions.md): {forgoDice, damage, rollMode, tags, push}.
+    ...(raw.rider ? {rider: normalizePlainComponent(raw.rider)} : {}),
     // Its caster concentrates on it for `duration` (a native duration), though nothing it sustains is automated (Fog
     // Cloud, Detect Thoughts): a marker on the caster, which a new concentration, damage or Incapacitated ends.
     ...(raw.concentration ? {concentration: normalizePlainComponent(raw.concentration)} : {}),
@@ -535,6 +537,10 @@ function damageComponentForResolver({component, index, runtimeComponents, evalua
   const amount = finiteNumber(overlay.amount ?? overlay.total ?? overlay.value)
     ?? evaluateComponentExpression(expression, evaluationContext);
   const dice = overlay.dice ?? diceFromExpression(expression);
+  // Every die of it given up (a rider's forgone Sneak Attack d6s, on its planned component): nothing to roll.
+  if ( dice && (Number(dice.number) === 0) ) return {id: component.id, amount: 0, dice: null, damageType: component.damageType,
+    provenance: component.provenance, source: component.source, tags: component.tags,
+    metadata: {...(component.metadata ?? {}), actionDefinitionComponent: {id: component.id, index}}};
   return {
     id: component.id,
     amount,

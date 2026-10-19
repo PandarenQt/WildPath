@@ -703,12 +703,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   }
   // A feature used on its turn that dnd5e leaves without an Action (Action Surge): its Action, paid from its own pool.
   const featureAction = FEATURE_ACTIONS[identifierOf(document)];
-  if ( featureAction && pool?.rule && !items.some(item => item.type === "action") ) {
+  if ( featureAction && (pool?.rule || featureAction.free) && !items.some(item => item.type === "action") ) {
     const id = stableId(`${document._id}:use`);
     items.push({_id: id, _key: `!items!${id}`, name: document.name, type: "action", img,
       system: {active: true, description, definition: {schemaVersion: 1, id: `action:srd-${slugify(document.name)}`, label: document.name,
-        costs: {allOf: [{capability: pool.id, amount: 1}]}, range: {type: "self"}, targeting: {type: "self"},
-        effects: structuredClone(featureAction.effects)}, ruleElements: [pool.rule]},
+        costs: {allOf: featureAction.free ? [] : [{capability: pool.id, amount: 1}]}, range: {type: "self"}, targeting: {type: "self"},
+        effects: structuredClone(featureAction.effects)}, ruleElements: [pool?.rule].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: []}}}});
   }
   return {ok: true, items, notes: [...new Set(allNotes)]};
@@ -720,7 +720,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
  */
 const FEATURE_ACTIONS = Object.freeze({
   "action-surge": {effects: [{id: "effect-1", type: "effect", name: "Action Surge", duration: {value: 0, units: "turns", expiry: "turnEnd"},
-    ruleElements: [{schemaVersion: 1, id: "action-surge", type: "Modifier", data: {domains: ["resources.action.max"], modifierType: "untyped", value: 1}}]}]}
+    ruleElements: [{schemaVersion: 1, id: "action-surge", type: "Modifier", data: {domains: ["resources.action.max"], modifierType: "untyped", value: 1}}]}]},
+  // 2024 Reckless Attack (free): Advantage on its Strength attack rolls this turn, and attack rolls against it have
+  // Advantage until its next turn; its "reckless" status gates Brutal Strike. shortcut: "your first attack" is not enforced.
+  "reckless-attack": {free: true, effects: [{id: "effect-1", type: "effect", name: "Reckless", slug: "reckless",
+    duration: {value: 1, units: "rounds", expiry: "turnStart"}, ruleElements: [
+      {schemaVersion: 1, id: "reckless-attacks", type: "RollMode", data: {domains: ["attack.might"], mode: "advantage"}},
+      {schemaVersion: 1, id: "reckless-attacked", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}}]}]}
 });
 
 /** Each dnd5e base armor's kind. */

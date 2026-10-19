@@ -208,8 +208,9 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
     ? actor.getExtraDamage(damageDomains(attackDefinition, tags), {item, tags: extraTags, context}) : []), ...marked]
     .filter(entry => !((entry.once === "turn") && turn && (actor.flags?.wildpath?.onceUsed?.[onceKey(entry)] === turn)));
   // Extra damage with no type of its own is the Action's (Sneak Attack deals the weapon's).
+  // Each names its rule (`metadata.ruleId`: "sneak-attack"), which a reaction's rider can give dice of up (Cunning Strike).
   const extraComponents = extra.map(entry => ({id: `extra:${onceKey(entry)}`, expression: entry.expression,
-    damageType: entry.damageType ?? components[0]?.damageType ?? "untyped", provenance: "additional",
+    damageType: entry.damageType ?? components[0]?.damageType ?? "untyped", provenance: "additional", metadata: {ruleId: entry.id},
     ...(((entry.once === "turn") && turn) ? {once: {key: onceKey(entry), turn}} : {})}));
   return {
     defenseKey: attackDefinition ? (attackDefinition.defenseKey ?? "ac") : null,

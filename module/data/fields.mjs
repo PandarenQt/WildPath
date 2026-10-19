@@ -181,6 +181,8 @@ export function actionDefinitionField() {
     ends: new ObjectField({nullable: true, initial: null}),
     // Its caster concentrates on it, though nothing it sustains is automated (Fog Cloud): {duration?: {value, units}}.
     concentration: new ObjectField({nullable: true, initial: null}),
+    // A reaction's changes to the Action it answers (Cunning Strike, Brutal Strike): {forgoDice, damage, rollMode, tags, push}.
+    rider: new ObjectField({nullable: true, initial: null}),
     // Pools of the acting creature the Action refills when used (Multiattack's attacks): [{resourceId, amount}].
     restores: objectArrayField(),
     range: new ObjectField({nullable: true, initial: null}),

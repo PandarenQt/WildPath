@@ -67,7 +67,8 @@ export function createFoundryForcedMovement({game, logger=console, fromUuid}: {g
 
   async function afterResolution({state}: {state?: Data}) {
     const definition = state?.actionDefinition as {push?: PushSpec; save?: unknown; attack?: unknown} | undefined;
-    const spec = definition?.push;
+    // Its own push, or a reaction's rider's on it (Forceful Blow: the creature its attack hit).
+    const spec = definition?.push ?? ((state?.input as {riderPush?: PushSpec} | undefined)?.riderPush);
     if ( !spec || !state || !isActiveGM() ) return [];
     const source = await fromUuid(String((state.source as Data | undefined)?.tokenRef ?? "")) as PushToken | null;
     const scene = source?.parent ?? null;
@@ -79,7 +80,7 @@ export function createFoundryForcedMovement({game, logger=console, fromUuid}: {g
     const largest = spec.maxSize ? (LARGEST[spec.maxSize] ?? Infinity) : Infinity;
     const from = source.getCenterPoint();
     const distanceOf = (token: PushToken) => Math.hypot(token.getCenterPoint().x - from.x, token.getCenterPoint().y - from.y);
-    const tokens = pushedTargets(state, definition).map(target => scene.tokens.get(String(target?.tokenId ?? "")))
+    const tokens = pushedTargets(state, definition ?? {}).map(target => scene.tokens.get(String(target?.tokenId ?? "")))
       .filter((token): token is PushToken => Boolean(token) && (token !== source)
         && (Math.max(Number(token!.width) || 1, Number(token!.height) || 1) <= largest))
       // The farthest moves first when pushed, the nearest when pulled, so none blocks another needlessly.

@@ -2153,7 +2153,9 @@ function createPaymentStage() {
         state: stateWithActionResult(state, {
           input,
           actionResult,
-          results: {paymentResolution: payment}
+          // A reaction with a rider (Cunning Strike) changes the Action it answers once it is paid for.
+          results: {paymentResolution: payment, ...(state.actionDefinition?.rider
+            ? {parentDirective: {type: "augment", data: clonePlain(state.actionDefinition.rider)}} : {})}
         }),
         data: {
           paymentPlan: payment.paymentPlan,
@@ -2602,6 +2604,9 @@ function actionDeclaredReactionEvent(state) {
     data: {
       action,
       actionDefinitionId: state.actionDefinition?.id ?? null,
+      // Its attack roll's mode and ability, before it is rolled (Brutal Strike: an Advantage on a Strength attack).
+      attackRollMode: input.attack?.rollMode ?? null,
+      attackAbility: input.attack?.statistic?.ability ?? null,
       timing: REACTION_WINDOW_TIMINGS.AFTER_ACTION_DECLARED
     }
   });
@@ -2625,8 +2630,11 @@ function attackOutcomeReactionEvent(state) {
     source: state.actionContext?.source ?? input.source ?? state.source ?? null,
     targets: attackResults.map(result => result.target).filter(Boolean),
     // Its kind ("melee", "ranged") too, so a reaction can answer one kind (a Parry, a melee attack).
+    // Its extra damage's rules too (`extra:sneak-attack`: Cunning Strike), and a rider's tags (`brutal-strike`).
     tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), outcome,
-      state.actionDefinition?.attack?.type ?? input.attack?.type].filter(Boolean)),
+      state.actionDefinition?.attack?.type ?? input.attack?.type,
+      ...normalizeArray(input.damage?.extraComponents).map(component => (component.metadata?.ruleId ? `extra:${component.metadata.ruleId}` : null)),
+      ...normalizeArray(input.riderTags)].filter(Boolean)),
     data: {
       action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
       attackResolution,
@@ -2673,6 +2681,8 @@ function actorSystemForReactionCandidate(candidate, actorSystemsByActor) {
 
 function reevaluateParentAfterReaction({parentState, childState, window, services={}}) {
   const state = createResolutionState(parentState);
+  const directive = childState?.results?.parentDirective;
+  if ( directive?.type === "augment" ) return riderPatch(state, directive.data ?? {}, {window, childState});
   if ( window?.timing !== REACTION_WINDOW_TIMINGS.AFTER_OUTCOME && window?.timing !== REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE ) {
     return null;
   }
@@ -2745,6 +2755,47 @@ function reevaluateParentAfterReaction({parentState, childState, window, service
       attackResolution: after,
       ...(actionResult ? {actionResult} : {})
     }
+  };
+}
+
+/**
+ * A reaction's rider on the Action it answered (Cunning Strike, Brutal Strike), as a patch to its input:
+ * - `forgoDice: {ruleId, dice}`: that many dice of its extra damage from that rule go unrolled (Sneak Attack's d6s);
+ * - `damage`: more damage, of the Action's own type unless it names one (Brutal Strike's 1d10);
+ * - `rollMode`: its attack roll's mode (Brutal Strike gives up Advantage);
+ * - `tags`: on its later events (a blow answering a Brutal Strike's hit);
+ * - `push`: the creatures it hits are pushed (Forceful Blow).
+ */
+function riderPatch(state, rider, {window, childState}) {
+  const input = preparedResolverInput(state);
+  const damage = input.damage ?? {};
+  const forgo = rider.forgoDice ?? null;
+  // Its damage is already planned as components (`damage.components`): the forgone rule's dice, and the rider's own,
+  // planned the same way (a table of dice by level is its row).
+  const lessDice = component => ((forgo?.ruleId && (component?.metadata?.ruleId === forgo.ruleId) && component.dice)
+    ? {...component, dice: {...component.dice, number: Math.max((Number(component.dice.number) || 0) - (Number(forgo.dice) || 0), 0)}}
+    : component);
+  const type = state.actionDefinition?.damage?.[0]?.damageType ?? "untyped";
+  const riderDefinitions = normalizeArray(rider.damage).map((component, index) => ({...clonePlain(component),
+    id: component.id ?? `rider:${childState?.id ?? "rider"}:${index}`, damageType: component.damageType ?? type, provenance: "additional"}));
+  const added = riderDefinitions.length ? (actionDefinitionToResolverInput({schemaVersion: 1, id: "rider", damage: riderDefinitions},
+    {actorSystem: input.actorSystem ?? null}).damage?.components ?? []) : [];
+  // Planned once here: later planning keeps a component's planned dice, and the rider's definitions keep its own.
+  const components = [...normalizeArray(damage.components).map(lessDice), ...added];
+  const extras = normalizeArray(damage.extraComponents);
+  return {
+    ok: true,
+    type: "rider",
+    reactionWindowId: window?.id ?? null,
+    childResolutionId: childState?.id ?? null,
+    inputPatch: {
+      ...((forgo || added.length) ? {damage: {...damage, ...(damage.components ? {components} : {}),
+        extraComponents: [...extras, ...riderDefinitions]}} : {}),
+      ...((rider.rollMode && input.attack) ? {attack: {...input.attack, rollMode: rider.rollMode}} : {}),
+      ...(rider.tags?.length ? {riderTags: uniqueStrings([...(input.riderTags ?? []), ...rider.tags])} : {}),
+      ...(rider.push ? {riderPush: clonePlain(rider.push)} : {})
+    },
+    results: {}
   };
 }
 

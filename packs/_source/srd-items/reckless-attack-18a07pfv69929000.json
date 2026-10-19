@@ -1,0 +1,79 @@
+{
+  "_id": "18a07pfv69929000",
+  "_key": "!items!18a07pfv69929000",
+  "name": "Reckless Attack",
+  "type": "action",
+  "img": "icons/skills/melee/blade-tips-triple-bent-white.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can throw aside all concern for defense to attack with increased ferocity. When you make your first attack roll on your turn, you can decide to attack recklessly. Doing so gives you Advantage on attack rolls using Strength until the start of your next turn, but attack rolls against you have Advantage during that time.</p><section id=\"secret-W7MI2ZVKsMQcSW6d\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect for tracking whether you are reckless or not but it does not automate Advantage on your attacks or attacks against you.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-reckless-attack",
+      "label": "Reckless Attack",
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Reckless",
+          "slug": "reckless",
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnStart"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "reckless-attacks",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attack.might"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "reckless-attacked",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbRecklessAt",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}
