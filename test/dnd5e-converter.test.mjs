@@ -1030,6 +1030,33 @@ test("reactions by their 2024 trigger: Shield and Parry when hit, Counterspell w
     match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}}, "damage to it, from another creature");
 });
 
+test("Command's five commands and Bestow Curse's curses: chosen when used, applied on a failed save", () => {
+  const spell = (id, identifier, name, activities, effects=[], extra={}) => ({_id: id, name, type: "spell", img: "systems/dnd5e/icons/spell.webp", effects,
+    system: {source: SRD, identifier, level: 1, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},
+      range: {value: "60", units: "ft"}, target: {affects: {type: "creature", count: 1}, template: {}}, duration: {value: "", units: "inst"},
+      activities, ...extra}});
+  const save = (data={}) => activity("save", {save: {ability: ["wis"], dc: {calculation: "spellcasting", formula: ""}}, ...data});
+  const [command] = convertItem(spell("testCommandSpel1", "command", "Command", {a: save()})).items;
+  const {effects, configuration} = command.system.definition;
+  assert.deepEqual(configuration.find(choice => choice.id === "effect-choice").options.map(option => option.label),
+    ["Approach", "Drop", "Flee", "Grovel", "Halt"]);
+  assert.deepEqual(effects.find(effect => effect.conditionId).conditionId, "prone", "Grovel: Prone");
+  assert.deepEqual(effects.at(-1).ruleElements[0].data, {resources: ["movement", "action", "bonus"], maximum: 0}, "Halt");
+  assert.ok(effects.every(effect => effect.saveOutcomePolicy === "failure"));
+  assert.equal(validateActionDefinition(command.system.definition).ok, true);
+
+  const cursed = name => ({_id: name, name, transfer: false, statuses: ["cursed"], system: {changes: []}});
+  const curse = spell("testBestowCurse1", "bestow-curse", "Bestow Curse", {
+    a: save({_id: "actattacks", name: "Curse Attacks", effects: [{_id: "attacks"}]}),
+    b: save({_id: "actresilien", name: "Curse Resilience", effects: [{_id: "resilience"}]})}, [cursed("attacks"), cursed("resilience")],
+  {properties: ["vocal", "concentration"], level: 3, duration: {value: "1", units: "minute"}});
+  const [attacks, resilience] = convertItem(curse).items.map(item => item.system.definition.effects[0]);
+  assert.deepEqual([attacks.slug, attacks.ruleElements[0].predicate, attacks.saveOutcomePolicy, attacks.concentration],
+    ["cursed-attacks", {equals: {path: "attack.fromTarget.cursed-attacks", value: true}}, "failure", true],
+    "Disadvantage on its attacks against its caster, on a failed save (dnd5e's onSave defaults to false)");
+  assert.deepEqual(resilience.ruleElements[0].data.expression, {type: "dice", number: 1, faces: 8});
+});
+
 test("Temporary Hit Points are healing of their own type (False Life)", () => {
   const life = {_id: "testFalseLife001", name: "False Life", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
     system: {source: SRD, identifier: "false-life", level: 1, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},

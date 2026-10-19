@@ -1143,6 +1143,140 @@
               "value": 17
             }
           },
+          "effects": [
+            {
+              "type": "effect",
+              "name": "Commanded: Approach",
+              "ruleElements": [],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnEnd"
+              },
+              "id": "effect-1",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "type": "effect",
+              "name": "Commanded: Drop",
+              "ruleElements": [],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnEnd"
+              },
+              "id": "effect-2",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "type": "effect",
+              "name": "Commanded: Flee",
+              "ruleElements": [],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnEnd"
+              },
+              "id": "effect-3",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "type": "condition",
+              "conditionId": "prone",
+              "id": "effect-4",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "type": "effect",
+              "name": "Commanded: Halt",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "halt",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement",
+                      "action",
+                      "bonus"
+                    ],
+                    "maximum": 0
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnEnd"
+              },
+              "id": "effect-5",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
+          "configuration": [
+            {
+              "id": "effect-choice",
+              "type": "option",
+              "label": "Command",
+              "required": true,
+              "options": [
+                {
+                  "id": "effect-option-1",
+                  "label": "Approach",
+                  "value": "effect-option-1"
+                },
+                {
+                  "id": "effect-option-2",
+                  "label": "Drop",
+                  "value": "effect-option-2"
+                },
+                {
+                  "id": "effect-option-3",
+                  "label": "Flee",
+                  "value": "effect-option-3"
+                },
+                {
+                  "id": "effect-option-4",
+                  "label": "Grovel",
+                  "value": "effect-option-4"
+                },
+                {
+                  "id": "effect-option-5",
+                  "label": "Halt",
+                  "value": "effect-option-5"
+                }
+              ],
+              "effects": [
+                {
+                  "type": "keepEffect",
+                  "effectIds": [
+                    "effect-1",
+                    "effect-2",
+                    "effect-3",
+                    "effect-4",
+                    "effect-5"
+                  ],
+                  "keep": {
+                    "effect-option-1": [
+                      "effect-1"
+                    ],
+                    "effect-option-2": [
+                      "effect-2"
+                    ],
+                    "effect-option-3": [
+                      "effect-3"
+                    ],
+                    "effect-option-4": [
+                      "effect-4"
+                    ],
+                    "effect-option-5": [
+                      "effect-5"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Command"
         },
         "ruleElements": []
@@ -1161,8 +1295,7 @@
           },
           "conversion": {
             "notes": [
-              "cast: Command at level 2 is cast at its own level",
-              "rolled (save); what it does is by hand"
+              "cast: Command at level 2 is cast at its own level"
             ]
           }
         }
@@ -1426,7 +1559,6 @@
           "Spellcasting: cast: Insect Plague at level 7 is cast at its own level",
           "Glare: not automated (utility): using it spends its cost; its description says the rest",
           "Dread Command: cast: Command at level 2 is cast at its own level",
-          "Dread Command: rolled (save); what it does is by hand",
           "Necrotic Strike: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

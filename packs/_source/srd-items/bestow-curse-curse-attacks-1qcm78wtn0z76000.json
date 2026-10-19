@@ -53,6 +53,41 @@
           }
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Cursed Attacks",
+          "slug": "cursed-attacks",
+          "img": "icons/skills/melee/sword-damaged-broken-purple.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "cursed-attacks",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attack"
+                ],
+                "mode": "disadvantage"
+              },
+              "predicate": {
+                "equals": {
+                  "path": "attack.fromTarget.cursed-attacks",
+                  "value": true
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -117,21 +152,6 @@
           "effects": []
         }
       ],
-      "effects": [
-        {
-          "id": "effect-1",
-          "type": "effect",
-          "name": "Bestow Curse",
-          "img": "icons/magic/unholy/hands-praying-fire-green.webp",
-          "ruleElements": [],
-          "duration": {
-            "value": 1,
-            "units": "minutes"
-          },
-          "saveOutcomePolicy": "failure",
-          "concentration": true
-        }
-      ],
       "label": "Bestow Curse (Curse Attacks)"
     },
     "ruleElements": []
@@ -148,10 +168,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: cursed is not a WildPath condition yet",
-          "save: a failure marks its creature only; what it does is by hand"
-        ]
+        "notes": []
       }
     }
   }

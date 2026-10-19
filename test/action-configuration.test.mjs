@@ -340,6 +340,8 @@ test("a higher slot can add healing dice and targets, as it adds damage dice", (
   assert.deepEqual(result.configuration.effectiveDefinition.healing[0].expression, {type: "dice", number: 6, faces: 8});
   assert.deepEqual(result.configuration.effectiveDefinition.targeting.type, "multiple");
   assert.equal(result.configuration.effectiveDefinition.targeting.count, 3);
+  assert.equal(result.configuration.effectiveDefinition.targeting.refinementPolicy.minSelections, 1,
+    "up to three: \"you can target one additional creature\", so one is still enough");
   const base = resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {"spell-slot": {resourceId: "spell-slot.3"}}});
   assert.equal(base.configuration.effectiveDefinition.targeting.count, 1, "the spell's own level adds nothing");
 });

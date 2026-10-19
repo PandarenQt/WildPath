@@ -265,3 +265,8 @@ This foundation does not build the finished HUD, spell sheet, or homebrew builde
 not roll dice, derive attack bonuses, derive save DCs from full actor statistics, reserve
 resources, open reaction windows, or implement target-aware resistance warnings. Those remain
 separate slices over the same resolved configuration and resolver contracts.
+
+## Upcast Targets Are "Up To" (2026-10-19)
+
+`scaleTargets` raises `targeting.count` and keeps `refinementPolicy.minSelections` at the base count: 2024's "you can
+target one additional creature" is optional. Before, Command from a 3rd-level slot needed exactly three targets.

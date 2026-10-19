@@ -69,6 +69,46 @@
           }
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Cursed Resilience",
+          "slug": "cursed-resilience",
+          "img": "icons/skills/wounds/bone-broken-marrow-red.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "cursed-resilience-damage",
+              "type": "ExtraDamage",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 8
+                },
+                "damageType": "necrotic"
+              },
+              "predicate": {
+                "equals": {
+                  "path": "attack.fromAttacker.cursed-resilience",
+                  "value": true
+                }
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -162,10 +202,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: cursed is not a WildPath condition yet",
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }

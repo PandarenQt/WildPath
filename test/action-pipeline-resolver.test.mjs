@@ -898,3 +898,14 @@ test("a reaction that counters (Counterspell): its target's failed save asks the
     {type: "cancel-parent", code: "COUNTERED", reason: "Counterspell stopped it."});
   assert.equal(cast("resolution:resisted", 18).state.results.parentDirective, undefined);
 });
+
+test("an Action its creature cannot pay for is refused before anything is rolled (Command's Halt, Incapacitated)", () => {
+  const strike = {schemaVersion: 1, id: "action:strike", label: "Strike", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"}]};
+  const plan = planStagedActionResolution({id: "resolution:halted", actorSystem: actorSystem(0), action: definitionAction(strike),
+    source: {actorId: "actor-source"}, targets: [target("orc")]});
+  assert.equal(plan.state.status, RESOLUTION_STATE_STATUS.FAILED);
+  assert.equal(plan.state.errors.at(-1).code, "PAYMENT_UNAVAILABLE");
+  assert.deepEqual(plan.state.pendingRequests, [], "no attack roll was asked for");
+});

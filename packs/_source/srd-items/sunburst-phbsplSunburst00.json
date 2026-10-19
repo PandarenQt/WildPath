@@ -78,7 +78,8 @@
         {
           "id": "effect-1",
           "type": "condition",
-          "conditionId": "blinded"
+          "conditionId": "blinded",
+          "saveOutcomePolicy": "failure"
         }
       ],
       "configuration": [

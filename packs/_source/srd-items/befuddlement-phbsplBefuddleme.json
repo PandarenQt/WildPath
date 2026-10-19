@@ -75,7 +75,8 @@
           "type": "effect",
           "name": "Befuddled",
           "img": "icons/skills/trades/academics-investigation-puzzles.webp",
-          "ruleElements": []
+          "ruleElements": [],
+          "saveOutcomePolicy": "failure"
         }
       ],
       "configuration": [
