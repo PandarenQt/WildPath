@@ -356,7 +356,8 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "frightened",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "repeatSave": "turnEnd"
             }
           ],
           "label": "Roar (First Roar: Save)"
@@ -455,7 +456,8 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "paralyzed",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "repeatSave": "turnEnd"
             }
           ],
           "label": "Roar (Second Roar: Save)"
@@ -570,7 +572,8 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "prone",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "repeatSave": "turnEnd"
             }
           ],
           "label": "Roar (Third Roar: Save)"

@@ -980,7 +980,8 @@
                 "units": "seconds",
                 "expiry": "turnStart"
               },
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "repeatSave": "turnEnd"
             }
           ],
           "label": "Weakening Breath"

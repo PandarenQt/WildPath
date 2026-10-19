@@ -244,6 +244,16 @@ leaving its reach (6 damage, reaction spent, movement finished), with no injecte
 browsers: the same guard attacked a player's native move before its first step
 ([movement-paths.md](movement-paths.md#before-step-reactions-in-native-drags)).
 
+**Repeated saves (2026-10-19).** An Action's effect row may say `repeatSave: "turnEnd"` (or `"turnStart"`): 2024's "At
+the end of each of its turns, the target repeats the save, ending the spell on itself on a success". When the Action
+applies it, the effect stores the save it repeats (`flags.wildpath.conditionEffect.metadata.repeatSave`: its timing,
+ability and the DC it resolved to). At that boundary of the creature's own turns, the automation dispatcher has it roll
+that save again as an authority Action (one per Action and source: `repeatSaveGroups`), and a success deletes every
+effect that save let in. The converter reads the 2024 wording (Hold Person, Hold Monster, Blindness/Deafness, Slow,
+Confusion, a dragon's Paralyzing Breath: 18 SRD Actions); the Builder's effect rows have "Save again". Live (two
+browsers): Player1's QA Caster held the Bandit Captain (Paralyzed, DC 14); at the end of the Captain's turn in combat it
+saved again, 17, and Paralyzed ended.
+
 **Automatic triggers.** A `Trigger` of kind `automation` (the default) on a creature's active Item or
 enabled non-condition effect runs without asking anyone. The general automation dispatcher
 (`module/adapters/foundry-v14-automation-dispatcher.mts`, `game.wildpath.automation`) runs it when its event

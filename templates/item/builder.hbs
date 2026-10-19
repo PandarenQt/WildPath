@@ -276,6 +276,12 @@
           <label class="checkbox"><input type="checkbox" name="wildpath.builder.effects.{{@index}}.onFailedSave" {{checked row.onFailedSave}}>
             {{localize "WILDPATH.BUILDER.Effects.OnFailedSave"}}</label>
           {{/if}}
+          <label>{{localize "WILDPATH.BUILDER.Effects.RepeatSave"}}
+            <select name="wildpath.builder.effects.{{@index}}.repeatSave">
+              <option value="" {{#unless row.repeatSave}}selected{{/unless}}>{{localize "WILDPATH.BUILDER.Effects.RepeatNever"}}</option>
+              <option value="turnEnd" {{#if (eq row.repeatSave "turnEnd")}}selected{{/if}}>{{localize "WILDPATH.BUILDER.Effects.RepeatTurnEnd"}}</option>
+              <option value="turnStart" {{#if (eq row.repeatSave "turnStart")}}selected{{/if}}>{{localize "WILDPATH.BUILDER.Effects.RepeatTurnStart"}}</option>
+            </select></label>
         {{/if}}
         {{#if ../b.editable}}<button type="button" class="icon" data-action="builderRemove" data-section="effects" data-index="{{@index}}"
           data-tooltip="WILDPATH.BUILDER.Remove" aria-label="{{localize "WILDPATH.BUILDER.Remove"}}"><i class="fa-solid fa-trash" inert></i></button>{{/if}}

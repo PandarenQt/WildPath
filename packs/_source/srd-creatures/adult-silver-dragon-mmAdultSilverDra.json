@@ -428,13 +428,15 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "incapacitated",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "repeatSave": "turnEnd"
             },
             {
               "id": "effect-2",
               "type": "condition",
               "conditionId": "paralyzed",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "repeatSave": "turnEnd"
             }
           ],
           "configuration": [
@@ -617,7 +619,8 @@
               "type": "condition",
               "conditionId": "paralyzed",
               "saveOutcomePolicy": "failure",
-              "concentration": true
+              "concentration": true,
+              "repeatSave": "turnEnd"
             }
           ],
           "label": "Hold Monster"
@@ -1078,7 +1081,8 @@
               "type": "condition",
               "conditionId": "paralyzed",
               "saveOutcomePolicy": "failure",
-              "concentration": true
+              "concentration": true,
+              "repeatSave": "turnEnd"
             }
           ],
           "label": "Hold Monster"

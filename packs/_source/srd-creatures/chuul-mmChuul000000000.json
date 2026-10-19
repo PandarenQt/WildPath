@@ -247,13 +247,15 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "paralyzed",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "repeatSave": "turnEnd"
             },
             {
               "id": "effect-2",
               "type": "condition",
               "conditionId": "poisoned",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "repeatSave": "turnEnd"
             }
           ],
           "label": "Paralyzing Tentacles"

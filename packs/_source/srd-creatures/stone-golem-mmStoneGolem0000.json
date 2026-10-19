@@ -484,7 +484,8 @@
                 "expiry": "turnStart"
               },
               "saveOutcomePolicy": "failure",
-              "concentration": true
+              "concentration": true,
+              "repeatSave": "turnEnd"
             }
           ],
           "label": "Slow"

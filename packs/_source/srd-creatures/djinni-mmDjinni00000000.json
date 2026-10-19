@@ -1251,7 +1251,8 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "restrained",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "repeatSave": "turnEnd"
             }
           ],
           "label": "Create Whirlwind (Save)"

@@ -51,6 +51,33 @@ export async function runAuthorityAction({coordinator, resolveAction, senderUser
   return (hosted.ok || terminal) ? await finished : hosted.state ?? {status: "failed"};
 }
 
+/** The turn boundary each repeated save waits for. */
+const REPEAT_SAVE_EVENTS: Record<string, string> = {"turn.ended": "turnEnd", "turn.started": "turnStart"};
+
+interface RepeatSaveEffect {id: string; name?: string; disabled?: boolean;
+  flags?: {wildpath?: {conditionEffect?: {sourceRef?: string | null; metadata?: Data}}}}
+
+/**
+ * The saves a creature repeats at this turn boundary (2024 Hold Person: "At the end of each of its turns, the target
+ * repeats the save, ending the spell on itself on a success"): one per Action and source, with every effect that
+ * save ends. Each effect stored its save (`metadata.repeatSave`: timing, ability, DC) when it was applied.
+ */
+export function repeatSaveGroups(effects: Iterable<RepeatSaveEffect>, eventType: string) {
+  const timing = REPEAT_SAVE_EVENTS[eventType];
+  const groups = new Map<string, {key: string; name: string; ability: string; dc: number; effectIds: string[]}>();
+  if ( !timing ) return [];
+  for ( const effect of effects ) {
+    const flag = effect.flags?.wildpath?.conditionEffect;
+    const repeat = flag?.metadata?.repeatSave as {timing?: string; ability?: string; dc?: number} | undefined;
+    if ( effect.disabled || (repeat?.timing !== timing) || !repeat.ability || !Number.isFinite(Number(repeat.dc)) ) continue;
+    const key = `${String(flag?.metadata?.actionDefinitionId ?? effect.id)}|${String(flag?.sourceRef ?? "")}`;
+    const group = groups.get(key) ?? {key, name: String(effect.name ?? ""), ability: repeat.ability, dc: Number(repeat.dc), effectIds: []};
+    group.effectIds.push(effect.id);
+    groups.set(key, group);
+  }
+  return [...groups.values()];
+}
+
 /**
  * An Actor's automatic triggers that answer `event`: `Trigger` RuleElements of kind `automation` (the default) on
  * its active Items and enabled effects. Condition effects answer through their own lifecycle and are skipped. The
@@ -104,6 +131,21 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
         resolutionId: `${id}:${sequence}`, definition, label, actorRef: actor.uuid,
         source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, target: self});
       if ( state ) states.push(state);
+    }
+    // Repeated saves: the creature rolls each again as its own Action; a success ends what that save let in.
+    for ( const group of repeatSaveGroups((actor.effects ?? []) as Iterable<RepeatSaveEffect>, type) ) {
+      const definition = {schemaVersion: 1, id: `action:repeat-save:${group.key}`, label: group.name, costs: {allOf: []},
+        save: {ability: group.ability, dc: {value: group.dc}}};
+      const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
+        resolutionId: `repeat-save:${actor.id}:${sequence}:${group.key}`, definition, label: group.name, actorRef: actor.uuid,
+        source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, target: self}) as
+        {results?: {saveResolution?: {successes?: unknown[]}}} | null;
+      if ( state ) states.push(state);
+      if ( state?.results?.saveResolution?.successes?.length ) {
+        const present = group.effectIds.filter(effectId => (actor as {effects?: {get?(id: string): unknown}}).effects?.get?.(effectId));
+        if ( present.length ) await (actor as {deleteEmbeddedDocuments?(type: string, ids: string[]): Promise<unknown>})
+          .deleteEmbeddedDocuments?.("ActiveEffect", present);
+      }
     }
     return states;
   }

@@ -1824,6 +1824,18 @@ function createHealingStage() {
   });
 }
 
+/**
+ * Effects whose save is repeated (Hold Person) carry the save they repeat: its ability and the DC it resolved to, so the
+ * creature rolls the same save at the end of each of its turns (foundry-v14-automation-dispatcher.mts).
+ */
+function withRepeatSaves(effects, save, saveResolution) {
+  const ability = save?.ability ?? save?.saveKey ?? null;
+  const dc = finiteNumber(save?.dc?.value ?? saveResolution?.results?.[0]?.dc?.value);
+  if ( !effects?.conditions?.some(entry => entry?.metadata?.repeatSave) || !ability || (dc == null) ) return effects;
+  return {...effects, conditions: effects.conditions.map(entry => (entry?.metadata?.repeatSave
+    ? {...entry, metadata: {...entry.metadata, repeatSave: {...entry.metadata.repeatSave, ability, dc}}} : entry))};
+}
+
 function createEffectStage() {
   return createResolutionPipelineStage({
     id: ACTION_PIPELINE_STAGE_IDS.EFFECTS,
@@ -1838,7 +1850,7 @@ function createEffectStage() {
       let {actionResult} = planning;
 
       const effectResolution = resolveActionEffects({
-        effects: input.effects,
+        effects: withRepeatSaves(input.effects, input.save, state.results?.saveResolution ?? null),
         targetResolution: state.results?.targetResolution ?? null,
         attackResolution: state.results?.attackResolution ?? null,
         saveResolution: state.results?.saveResolution ?? null,

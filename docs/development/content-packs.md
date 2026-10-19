@@ -338,6 +338,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Dominate Mind (Charmed). One that lasts (a duration, or concentration) without them marks the creatures that fail:
   Zone of Truth, Confusion, Bestow Curse. SRD saves left wholly by hand fell from 137 to 35 documents, and
   concentration effects not converted from 175 to 122.
+- **Repeated saves (2026-10-19).** An effect its text lets the creature save against at the end (or start) of each of
+  its turns carries `repeatSave` (rule-elements.md): 18 SRD Actions, Hold Person and Paralyzing Breath among them.
 - **Command and Bestow Curse (2026-10-19).** Command's five commands are a choice when it is used (`CHOICES_BY_HAND`):
   Grovel is Prone; Halt caps movement, Action and Bonus Action at 0 until the end of the caster's next turn; Approach,
   Drop and Flee mark the creature ("Commanded: Flee"), and what it does is by hand. Bestow Curse's Curse Attacks gives

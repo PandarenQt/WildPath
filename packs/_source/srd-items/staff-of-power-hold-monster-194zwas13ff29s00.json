@@ -63,7 +63,8 @@
           "type": "condition",
           "conditionId": "paralyzed",
           "saveOutcomePolicy": "failure",
-          "concentration": true
+          "concentration": true,
+          "repeatSave": "turnEnd"
         }
       ],
       "label": "Staff of Power: Hold Monster"

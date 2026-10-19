@@ -46,7 +46,8 @@
           "id": "effect-1",
           "type": "condition",
           "conditionId": "frightened",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "repeatSave": "turnEnd"
         }
       ],
       "label": "Mace of Terror (Wave of Terror)"

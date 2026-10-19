@@ -824,6 +824,10 @@
         "OnFailedSave": "Only on a failed save",
         "ChooseOne": "The user applies one of these, chosen when used",
         "Removes": "Ends it instead",
+        "RepeatSave": "Save again",
+        "RepeatNever": "Never",
+        "RepeatTurnEnd": "At the end of each of its turns",
+        "RepeatTurnStart": "At the start of each of its turns",
         "EscapeDC": "Escape DC",
         "Add": "Add an effect"
       },

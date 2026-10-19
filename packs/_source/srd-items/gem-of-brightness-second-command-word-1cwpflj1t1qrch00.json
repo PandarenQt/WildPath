@@ -48,7 +48,8 @@
           "id": "effect-1",
           "type": "condition",
           "conditionId": "blinded",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "repeatSave": "turnEnd"
         }
       ],
       "label": "Gem of Brightness (Second Command Word)"
