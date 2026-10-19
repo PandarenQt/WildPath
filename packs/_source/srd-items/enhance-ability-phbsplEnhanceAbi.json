@@ -300,6 +300,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Enhance Ability"
     },
     "ruleElements": []

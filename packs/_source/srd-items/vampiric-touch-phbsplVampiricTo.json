@@ -122,6 +122,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Vampiric Touch"
     },
     "ruleElements": []

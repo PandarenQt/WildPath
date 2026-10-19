@@ -21,6 +21,21 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Ethereal",
+          "img": "systems/dnd5e/icons/svg/statuses/ethereal.svg",
+          "ruleElements": []
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -85,6 +100,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Blink"
     },
     "ruleElements": []
@@ -102,8 +120,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: ethereal is not a WildPath condition yet"
+          "effect: ethereal is not a WildPath condition yet",
+          "effect: \"Ethereal\" marks its creature only; its rules are by hand"
         ]
       }
     }

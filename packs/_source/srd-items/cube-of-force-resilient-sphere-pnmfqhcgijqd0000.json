@@ -58,6 +58,9 @@
           "saveOutcomePolicy": "failure"
         }
       ],
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Cube of Force: Resilient Sphere"
     },
     "ruleElements": [

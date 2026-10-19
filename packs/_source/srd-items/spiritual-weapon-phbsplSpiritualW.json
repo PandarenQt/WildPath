@@ -106,6 +106,9 @@
         "concentration": true,
         "spellLevel": 2
       },
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Spiritual Weapon"
     },
     "ruleElements": []

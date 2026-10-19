@@ -48,6 +48,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Helm of Telepathy: Suggestion"
     },
     "ruleElements": []

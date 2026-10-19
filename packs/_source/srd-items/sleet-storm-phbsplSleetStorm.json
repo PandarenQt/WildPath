@@ -185,6 +185,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Sleet Storm"
     },
     "ruleElements": []

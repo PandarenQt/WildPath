@@ -58,7 +58,8 @@
         }
       ],
       "metadata": {
-        "followUp": true
+        "followUp": true,
+        "spellLevel": 2
       },
       "label": "Alter Self (Attack: Claws)"
     },

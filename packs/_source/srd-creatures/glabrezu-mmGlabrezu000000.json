@@ -463,6 +463,9 @@
               "onObject": "on-object"
             }
           },
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Darkness"
         },
         "ruleElements": []
@@ -544,6 +547,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -599,6 +605,24 @@
               ]
             ]
           },
+          "metadata": {
+            "spellLevel": 3
+          },
+          "ends": {
+            "spells": "slot"
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
           "label": "Dispel Magic"
         },
         "ruleElements": []
@@ -617,7 +641,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
             ]
           }
         }
@@ -700,6 +724,9 @@
               "repeatSave": "turnEnd"
             }
           ],
+          "metadata": {
+            "spellLevel": 4
+          },
           "label": "Confusion"
         },
         "ruleElements": [
@@ -817,6 +844,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Fly"
         },
         "ruleElements": [
@@ -968,6 +998,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 8
+          },
           "label": "Power Word Stun"
         },
         "ruleElements": [
@@ -1088,7 +1121,7 @@
         "notes": [
           "Pincer: \"Escape Check\" is passive or triggered: not automated",
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand",
           "Spellcasting: area: @item.level * 5 - 10-ft sphere is not supported; the user picks the targets",
           "Spellcasting: effect: \"Confused\" marks its creature only; its rules are by hand"
         ]

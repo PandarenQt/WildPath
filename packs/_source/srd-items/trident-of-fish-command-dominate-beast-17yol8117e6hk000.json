@@ -52,6 +52,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Trident of Fish Command: Dominate Beast"
     },
     "ruleElements": [

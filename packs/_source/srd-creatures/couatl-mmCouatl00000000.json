@@ -317,6 +317,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Evil and Good"
         },
         "ruleElements": []
@@ -392,6 +395,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -438,6 +444,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 2
           },
           "label": "Detect Thoughts"
         },
@@ -487,6 +496,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 9
           },
           "label": "Shapechange"
         },
@@ -539,6 +551,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 3
           },
           "label": "Create Food and Water"
         },
@@ -669,6 +684,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Dream"
         },
         "ruleElements": [
@@ -813,6 +831,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Greater Restoration"
         },
         "ruleElements": [
@@ -925,6 +946,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Scrying"
         },
         "ruleElements": [
@@ -1025,6 +1049,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Sleep"
         },
         "ruleElements": [

@@ -143,6 +143,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Dream"
     },
     "ruleElements": []

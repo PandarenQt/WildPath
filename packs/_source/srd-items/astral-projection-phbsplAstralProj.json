@@ -60,6 +60,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 9
+      },
       "label": "Astral Projection"
     },
     "ruleElements": []

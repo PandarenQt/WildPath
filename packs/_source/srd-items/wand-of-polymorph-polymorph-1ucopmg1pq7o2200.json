@@ -438,6 +438,9 @@
         "temporaryHealth": "form",
         "concentration": true
       },
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Wand of Polymorph: Polymorph"
     },
     "ruleElements": [

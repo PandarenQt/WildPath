@@ -55,6 +55,9 @@
           "provenance": "spell-base"
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Circlet of Blasting: Scorching Ray"
     },
     "ruleElements": [

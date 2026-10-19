@@ -64,6 +64,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Move Earth (Initial Cast)"
     },
     "ruleElements": []

@@ -43,6 +43,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 9
+      },
       "label": "Prismatic Wall (Create Wall)"
     },
     "ruleElements": []

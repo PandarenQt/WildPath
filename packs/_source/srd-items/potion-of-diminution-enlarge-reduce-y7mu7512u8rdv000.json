@@ -210,6 +210,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Potion of Diminution: Enlarge/Reduce"
     },
     "ruleElements": [

@@ -85,7 +85,12 @@
             "expiry": "turnStart"
           },
           "saveOutcomePolicy": "failure",
-          "concentration": true
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
         }
       ],
       "configuration": [
@@ -152,6 +157,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Bestow Curse (Curse Attacks)"
     },
     "ruleElements": []

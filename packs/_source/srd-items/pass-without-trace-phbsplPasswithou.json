@@ -126,6 +126,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Pass without Trace"
     },
     "ruleElements": []

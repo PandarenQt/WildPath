@@ -52,6 +52,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Crystal Ball of Telepathy: Suggestion"
     },
     "ruleElements": [

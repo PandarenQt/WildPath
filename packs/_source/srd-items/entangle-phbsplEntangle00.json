@@ -145,6 +145,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Entangle"
     },
     "ruleElements": []

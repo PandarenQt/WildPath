@@ -68,6 +68,9 @@
           "saveOutcomePolicy": "failure"
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Silver Raven: Animal Messenger"
     },
     "ruleElements": [

@@ -74,6 +74,9 @@
           "provenance": "spell-base"
         }
       ],
+      "metadata": {
+        "spellLevel": 0
+      },
       "label": "Produce Flame (Hurl Fire)"
     },
     "ruleElements": []

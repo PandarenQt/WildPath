@@ -130,6 +130,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Fly"
     },
     "ruleElements": []

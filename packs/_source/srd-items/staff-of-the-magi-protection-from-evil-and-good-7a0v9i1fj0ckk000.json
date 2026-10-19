@@ -48,6 +48,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Staff of the Magi: Protection from Evil and Good"
     },
     "ruleElements": [

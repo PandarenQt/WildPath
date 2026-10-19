@@ -108,6 +108,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 8
+      },
       "label": "Tsunami (Create Tsunami)"
     },
     "ruleElements": [

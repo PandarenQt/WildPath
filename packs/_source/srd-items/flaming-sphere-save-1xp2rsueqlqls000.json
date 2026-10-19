@@ -153,6 +153,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Flaming Sphere (save)"
     },
     "ruleElements": []

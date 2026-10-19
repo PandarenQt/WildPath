@@ -160,6 +160,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Inflict Wounds"
     },
     "ruleElements": []

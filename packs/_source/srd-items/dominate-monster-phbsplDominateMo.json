@@ -91,6 +91,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 8
+      },
       "label": "Dominate Monster"
     },
     "ruleElements": []

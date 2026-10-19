@@ -16,6 +16,9 @@
       "costs": {
         "allOf": []
       },
+      "metadata": {
+        "spellLevel": 0
+      },
       "label": "Mending"
     },
     "ruleElements": []

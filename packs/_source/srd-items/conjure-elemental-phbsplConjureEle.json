@@ -109,6 +109,9 @@
         "concentration": true,
         "spellLevel": 5
       },
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Conjure Elemental"
     },
     "ruleElements": []

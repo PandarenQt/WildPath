@@ -416,6 +416,21 @@
               }
             }
           },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Cursed",
+              "img": "systems/dnd5e/icons/svg/statuses/cursed.svg",
+              "ruleElements": [],
+              "saveOutcomePolicy": "failure",
+              "metadata": {
+                "tags": [
+                  "curse"
+                ]
+              }
+            }
+          ],
           "label": "Bite (Wolf or Hybrid Form Only) (save)"
         },
         "ruleElements": []
@@ -434,7 +449,7 @@
           "conversion": {
             "notes": [
               "effect: cursed is not a WildPath condition yet",
-              "rolled (save); what it does is by hand"
+              "effect: \"Cursed\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -695,7 +710,7 @@
       "conversion": {
         "notes": [
           "Bite (Wolf or Hybrid Form Only): effect: cursed is not a WildPath condition yet",
-          "Bite (Wolf or Hybrid Form Only): rolled (save); what it does is by hand"
+          "Bite (Wolf or Hybrid Form Only): effect: \"Cursed\" marks its creature only; its rules are by hand"
         ]
       }
     }

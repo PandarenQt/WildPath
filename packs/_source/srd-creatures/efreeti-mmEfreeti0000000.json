@@ -182,6 +182,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 9
+          },
           "label": "Wish"
         },
         "ruleElements": [
@@ -503,6 +506,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -549,6 +555,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Elementalism"
         },
@@ -694,6 +703,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Gaseous Form"
         },
         "ruleElements": [
@@ -781,6 +793,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Invisibility"
         },
         "ruleElements": [
@@ -881,6 +896,9 @@
             "concentration": true,
             "spellLevel": 3
           },
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Major Image"
         },
         "ruleElements": [
@@ -944,6 +962,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 7
           },
           "label": "Plane Shift"
         },
@@ -1037,6 +1058,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Tongues"
         },
         "ruleElements": [
@@ -1195,6 +1219,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 4
+          },
           "label": "Wall of Fire"
         },
         "ruleElements": [

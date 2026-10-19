@@ -97,6 +97,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 9
+      },
       "label": "Power Word Heal"
     },
     "ruleElements": []

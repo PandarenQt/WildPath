@@ -64,6 +64,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Conjure Fey (Teleport and Attack)"
     },
     "ruleElements": []

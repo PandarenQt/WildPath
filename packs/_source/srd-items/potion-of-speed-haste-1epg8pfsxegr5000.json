@@ -112,6 +112,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Potion of Speed: Haste"
     },
     "ruleElements": [

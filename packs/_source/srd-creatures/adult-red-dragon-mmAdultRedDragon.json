@@ -544,6 +544,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Command"
         },
         "ruleElements": []
@@ -743,6 +746,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Command"
         },
         "ruleElements": []
@@ -818,6 +824,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -908,6 +917,9 @@
               "provenance": "spell-base"
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Scorching Ray"
         },
         "ruleElements": []
@@ -996,6 +1008,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Fireball"
         },
         "ruleElements": [
@@ -1103,6 +1118,9 @@
               "provenance": "spell-base"
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Scorching Ray"
         },
         "ruleElements": []

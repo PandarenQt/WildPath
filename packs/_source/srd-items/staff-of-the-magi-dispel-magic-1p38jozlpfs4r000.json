@@ -25,6 +25,24 @@
           }
         ]
       },
+      "metadata": {
+        "spellLevel": 3
+      },
+      "ends": {
+        "spells": "slot"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
       "label": "Staff of the Magi: Dispel Magic"
     },
     "ruleElements": [
@@ -74,7 +92,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
+          "dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
         ]
       }
     }

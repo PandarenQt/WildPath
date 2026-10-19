@@ -197,6 +197,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Control Water (Create Whirlpool)"
     },
     "ruleElements": []

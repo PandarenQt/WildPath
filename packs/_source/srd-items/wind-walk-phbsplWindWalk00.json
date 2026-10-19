@@ -121,6 +121,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Wind Walk"
     },
     "ruleElements": []

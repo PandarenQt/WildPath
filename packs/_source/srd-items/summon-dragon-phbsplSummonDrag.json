@@ -117,6 +117,9 @@
         },
         "spellLevel": 5
       },
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Summon Dragon"
     },
     "ruleElements": []

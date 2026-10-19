@@ -57,6 +57,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 7
+      },
       "label": "Teleport"
     },
     "ruleElements": []

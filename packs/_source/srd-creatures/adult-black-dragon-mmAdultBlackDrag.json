@@ -452,6 +452,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -527,6 +530,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Fear"
         },
         "ruleElements": []
@@ -629,6 +635,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Acid Arrow"
         },
         "ruleElements": []
@@ -680,6 +689,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 3
           },
           "label": "Speak with Dead"
         },
@@ -801,6 +813,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "metadata": {
+            "spellLevel": 4
+          },
           "label": "Vitriolic Sphere"
         },
         "ruleElements": [
@@ -984,6 +999,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Fear"
         },
         "ruleElements": []

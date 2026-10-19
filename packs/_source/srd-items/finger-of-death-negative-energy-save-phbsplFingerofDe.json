@@ -114,6 +114,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 7
+      },
       "label": "Finger of Death (Negative Energy Save)"
     },
     "ruleElements": []

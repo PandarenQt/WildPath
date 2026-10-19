@@ -119,6 +119,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Invisibility"
     },
     "ruleElements": []

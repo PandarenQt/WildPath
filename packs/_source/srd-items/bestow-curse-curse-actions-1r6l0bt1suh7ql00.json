@@ -53,6 +53,27 @@
           }
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Cursed Actions",
+          "img": "icons/magic/control/debuff-chains-shackles-movement-blue.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -117,21 +138,9 @@
           "effects": []
         }
       ],
-      "effects": [
-        {
-          "id": "effect-1",
-          "type": "effect",
-          "name": "Bestow Curse",
-          "img": "icons/magic/unholy/hands-praying-fire-green.webp",
-          "ruleElements": [],
-          "duration": {
-            "value": 1,
-            "units": "minutes"
-          },
-          "saveOutcomePolicy": "failure",
-          "concentration": true
-        }
-      ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Bestow Curse (Curse Actions)"
     },
     "ruleElements": []
@@ -150,7 +159,7 @@
       "conversion": {
         "notes": [
           "effect: cursed is not a WildPath condition yet",
-          "save: a failure marks its creature only; what it does is by hand"
+          "effect: \"Cursed Actions\" marks its creature only; its rules are by hand"
         ]
       }
     }

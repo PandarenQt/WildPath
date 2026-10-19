@@ -408,6 +408,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Aid"
     },
     "ruleElements": []

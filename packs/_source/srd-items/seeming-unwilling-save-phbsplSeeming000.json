@@ -117,6 +117,9 @@
           "saveOutcomePolicy": "failure"
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Seeming (Unwilling Save)"
     },
     "ruleElements": []

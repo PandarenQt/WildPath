@@ -81,6 +81,9 @@
         "concentration": true,
         "spellLevel": 5
       },
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Mislead"
     },
     "ruleElements": []

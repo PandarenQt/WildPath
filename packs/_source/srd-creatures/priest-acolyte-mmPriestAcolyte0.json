@@ -254,6 +254,9 @@
             "count": 1,
             "rounds": 600
           },
+          "metadata": {
+            "spellLevel": 0
+          },
           "label": "Light"
         },
         "ruleElements": []
@@ -337,6 +340,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 0
+          },
           "label": "Thaumaturgy"
         },
         "ruleElements": []
@@ -449,6 +455,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Bless"
         },
         "ruleElements": [
@@ -544,6 +553,9 @@
               "healingType": "healing"
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Healing Word"
         },
         "ruleElements": [
@@ -634,6 +646,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Sanctuary"
         },
         "ruleElements": [

@@ -106,7 +106,12 @@
             "expiry": "turnStart"
           },
           "saveOutcomePolicy": "failure",
-          "concentration": true
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
         }
       ],
       "configuration": [
@@ -186,6 +191,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Bestow Curse (Curse Resilience)"
     },
     "ruleElements": []

@@ -583,6 +583,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -659,6 +662,9 @@
             "choiceId": "summon-creature",
             "count": 1,
             "rounds": 10
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Minor Illusion"
         },
@@ -748,6 +754,9 @@
               "provenance": "spell-base"
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Scorching Ray"
         },
         "ruleElements": []
@@ -794,6 +803,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 9
           },
           "label": "Shapechange"
         },
@@ -863,6 +875,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Speak with Animals"
         },
         "ruleElements": []
@@ -914,6 +929,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 8
           },
           "label": "Control Weather"
         },
@@ -982,6 +1000,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 2
           },
           "label": "Detect Thoughts"
         },
@@ -1094,6 +1115,9 @@
               "provenance": "spell-base"
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Scorching Ray"
         },
         "ruleElements": []

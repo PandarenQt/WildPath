@@ -139,6 +139,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Detect Thoughts (Probe Deeper)"
     },
     "ruleElements": []

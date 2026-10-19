@@ -61,6 +61,9 @@
           "provenance": "spell-base"
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Staff of Power: Magic Missile"
     },
     "ruleElements": [

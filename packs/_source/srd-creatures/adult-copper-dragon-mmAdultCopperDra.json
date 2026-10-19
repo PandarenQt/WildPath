@@ -426,6 +426,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -535,6 +538,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Mind Spike"
         },
         "ruleElements": []
@@ -613,6 +619,9 @@
             "count": 1,
             "rounds": 10
           },
+          "metadata": {
+            "spellLevel": 0
+          },
           "label": "Minor Illusion"
         },
         "ruleElements": []
@@ -657,6 +666,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 9
           },
           "label": "Shapechange"
         },
@@ -788,6 +800,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Greater Restoration"
         },
         "ruleElements": [
@@ -886,6 +901,9 @@
             "count": 1,
             "rounds": 100,
             "concentration": true,
+            "spellLevel": 3
+          },
+          "metadata": {
             "spellLevel": 3
           },
           "label": "Major Image"
@@ -1089,6 +1107,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Mind Spike"
         },
         "ruleElements": []

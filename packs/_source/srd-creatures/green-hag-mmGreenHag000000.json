@@ -122,6 +122,9 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Augury"
         },
         "ruleElements": [
@@ -188,6 +191,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 1
           },
           "label": "Find Familiar"
         },
@@ -257,6 +263,9 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Identify"
         },
         "ruleElements": [
@@ -323,6 +332,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 2
           },
           "label": "Locate Object"
         },
@@ -439,6 +451,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Scrying"
         },
         "ruleElements": [
@@ -518,6 +533,9 @@
             "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplUnseenServ",
             "count": 1,
             "rounds": 600,
+            "spellLevel": 1
+          },
+          "metadata": {
             "spellLevel": 1
           },
           "label": "Unseen Servant"
@@ -783,6 +801,9 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 0
+          },
           "label": "Dancing Lights"
         },
         "ruleElements": []
@@ -853,6 +874,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Disguise Self"
         },
         "ruleElements": []
@@ -920,6 +944,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Invisibility"
         },
         "ruleElements": []
@@ -994,6 +1021,9 @@
             "choiceId": "summon-creature",
             "count": 1,
             "rounds": 10
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Minor Illusion"
         },
@@ -1078,6 +1108,9 @@
               "conditionId": "poisoned"
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Ray of Sickness"
         },
         "ruleElements": []

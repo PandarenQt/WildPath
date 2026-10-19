@@ -65,6 +65,9 @@
         "concentration": true,
         "spellLevel": 5
       },
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Staff of the Magi: Conjure Elemental"
     },
     "ruleElements": [

@@ -120,6 +120,9 @@
           "saveOutcomePolicy": "failure"
         }
       ],
+      "metadata": {
+        "spellLevel": 0
+      },
       "label": "Vicious Mockery"
     },
     "ruleElements": []

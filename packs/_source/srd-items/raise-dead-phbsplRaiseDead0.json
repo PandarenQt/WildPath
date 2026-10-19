@@ -361,6 +361,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Raise Dead"
     },
     "ruleElements": []

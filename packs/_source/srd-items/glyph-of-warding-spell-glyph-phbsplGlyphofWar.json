@@ -80,6 +80,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Glyph of Warding (Spell Glyph)"
     },
     "ruleElements": []

@@ -27,6 +27,9 @@
       "teleport": {
         "distance": 500
       },
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Cape of the Mountebank: Dimension Door"
     },
     "ruleElements": [

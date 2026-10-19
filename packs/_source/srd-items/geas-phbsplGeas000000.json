@@ -135,6 +135,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Geas"
     },
     "ruleElements": []

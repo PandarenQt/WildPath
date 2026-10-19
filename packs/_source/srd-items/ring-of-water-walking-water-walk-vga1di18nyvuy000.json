@@ -50,6 +50,9 @@
           }
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Ring of Water Walking: Water Walk"
     },
     "ruleElements": []

@@ -67,6 +67,9 @@
           "levels": -1
         }
       ],
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Rod of Resurrection: Heal"
     },
     "ruleElements": [

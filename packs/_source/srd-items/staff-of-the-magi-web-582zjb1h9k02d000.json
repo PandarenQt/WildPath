@@ -132,6 +132,9 @@
           "provenance": "spell-base"
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Staff of the Magi: Web"
     },
     "ruleElements": [

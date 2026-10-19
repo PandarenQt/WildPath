@@ -25,6 +25,9 @@
           }
         ]
       },
+      "metadata": {
+        "spellLevel": 7
+      },
       "label": "Cubic Gate: Plane Shift"
     },
     "ruleElements": [

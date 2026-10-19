@@ -133,6 +133,7 @@ export function registerFoundryV14MultiplayerResolution({
       await teleports.afterResolution(event);
       await masteries.afterResolution(event);
       await endEffectsWhenAttacked(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
+      await endEffectsOnTargets(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
     },
     afterCancelled: event => afterCountered(event, {game}),
     logger
@@ -851,6 +852,45 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     services: {...(reactions?.services ?? {}), targetActors, snapshotActor: foundryActorSystemSnapshot,
       damageProfileOf: actor => clonePlainData(actor.getDamageProfile?.() ?? null, "target.damageProfile")}
   };
+}
+
+/**
+ * What an Action with `ends` ends on its targets once it completes (Remove Curse: effects tagged "curse"; Dispel Magic:
+ * spells up to the level it was cast at). A spell above that level is named in a chat line, as its ending needs the
+ * caster's check (DC 10 + its level). Returns the ids it deleted, by target.
+ * shortcut: that check is rolled by hand; a lasting area or an object is not a target. Upgrade with a check stage per spell.
+ */
+export async function endEffectsOnTargets({state}={}, {fromUuid=globalThis.fromUuid, game=globalThis.game}={}) {
+  const ends = state?.actionDefinition?.ends;
+  if ( !ends ) return {};
+  const tags = new Set(ends.tags ?? []);
+  const limit = ends.spells === "slot" ? Number(state.configuration?.castingLevel ?? state.actionDefinition?.metadata?.spellLevel)
+    : Number(ends.spells);
+  const source = await fromUuid?.(String(state.source?.tokenRef ?? ""));
+  const scene = source?.parent ?? null;
+  const ended = {};
+  const beyond = [];
+  const targets = state.targets?.length ? state.targets
+    : (state.results?.targetResolution?.targetContexts ?? []).map(context => context?.target?.target ?? context?.target);
+  for ( const target of targets ) {
+    const actor = scene?.tokens?.get?.(String(target?.tokenId ?? ""))?.actor;
+    if ( !actor?.effects ) continue;
+    const ids = [];
+    for ( const effect of actor.effects ) {
+      const metadata = effect.flags?.wildpath?.conditionEffect?.metadata ?? {};
+      const level = Number(metadata.spellLevel);
+      if ( (metadata.tags ?? []).some(tag => tags.has(tag)) ) ids.push(effect.id);
+      else if ( Number.isFinite(limit) && Number.isFinite(level) ) {
+        if ( level <= limit ) ids.push(effect.id);
+        else beyond.push(`${effect.name} (${level})`);
+      }
+    }
+    if ( ids.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", ids);
+    ended[actor.uuid] = ids;
+  }
+  if ( beyond.length ) await globalThis.ChatMessage?.create?.({content: `<p>${game?.i18n?.format?.("WILDPATH.NOTIFY.DispelBeyond",
+    {spells: beyond.join(", ")}) ?? beyond.join(", ")}</p>`, whisper: game?.users?.filter?.(user => user.isGM)?.map?.(user => user.id) ?? []});
+  return ended;
 }
 
 /** The Action, Bonus Action or Reaction each economy capability spends (a counted resource stores what was spent). */

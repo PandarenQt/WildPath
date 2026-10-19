@@ -116,6 +116,9 @@
         },
         "spellLevel": 2
       },
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Flaming Sphere (summon)"
     },
     "ruleElements": []

@@ -108,6 +108,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Meld into Stone (damage)"
     },
     "ruleElements": []

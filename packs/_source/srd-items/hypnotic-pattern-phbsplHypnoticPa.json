@@ -164,6 +164,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Hypnotic Pattern"
     },
     "ruleElements": []

@@ -76,3 +76,24 @@ test("a countered spell wastes the Action that cast it, never its slot, and says
   assert.equal(await afterCountered({options: {actor}, state: {warnings: [{code: "CANCELLED"}]}}, {game: {}}), null, "only a counter");
   delete globalThis.ChatMessage;
 });
+
+test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its targets once it completes", async () => {
+  const {endEffectsOnTargets} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const effect = (id, metadata) => ({id, name: id, flags: {wildpath: {conditionEffect: {metadata}}}});
+  const deleted = [];
+  const actor = {uuid: "Actor.orc", effects: [effect("bless", {spellLevel: 1}), effect("haste", {spellLevel: 3}), effect("fly", {spellLevel: 4}),
+    effect("curse", {spellLevel: 3, tags: ["curse"]}), effect("prone", {})], deleteEmbeddedDocuments: async (type, ids) => deleted.push(...ids)};
+  const scene = {tokens: {get: id => (id === "orc" ? {actor} : null)}};
+  const posted = [];
+  globalThis.ChatMessage = {create: async data => posted.push(data)};
+  const state = (ends, castingLevel=3) => ({actionDefinition: {ends}, configuration: {castingLevel}, source: {tokenRef: "Scene.s.Token.caster"},
+    targets: [{tokenId: "orc"}]});
+  const fromUuid = async () => ({parent: scene});
+  await endEffectsOnTargets({state: state({spells: "slot"})}, {fromUuid, game: {}});
+  assert.deepEqual(deleted, ["bless", "haste", "curse"], "spells up to the slot's level; a spell's curse is a spell too");
+  assert.match(posted[0].content, /fly \(4\)/, "above it: named for the caster's check");
+  deleted.length = 0;
+  await endEffectsOnTargets({state: state({tags: ["curse"]})}, {fromUuid, game: {}});
+  assert.deepEqual(deleted, ["curse"], "Remove Curse: only curses");
+  delete globalThis.ChatMessage;
+});

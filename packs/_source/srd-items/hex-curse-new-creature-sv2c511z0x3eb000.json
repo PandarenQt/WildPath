@@ -76,7 +76,12 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
         },
         {
           "id": "effect-2",
@@ -124,7 +129,12 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
         },
         {
           "id": "effect-3",
@@ -172,7 +182,12 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
         },
         {
           "id": "effect-4",
@@ -220,7 +235,12 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
         },
         {
           "id": "effect-5",
@@ -268,7 +288,12 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
         },
         {
           "id": "effect-6",
@@ -316,11 +341,17 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "metadata": {
+            "tags": [
+              "curse"
+            ]
+          }
         }
       ],
       "metadata": {
-        "followUp": true
+        "followUp": true,
+        "spellLevel": 1
       },
       "configuration": [
         {

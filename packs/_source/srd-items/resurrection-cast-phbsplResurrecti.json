@@ -343,6 +343,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 7
+      },
       "label": "Resurrection (Cast)"
     },
     "ruleElements": []

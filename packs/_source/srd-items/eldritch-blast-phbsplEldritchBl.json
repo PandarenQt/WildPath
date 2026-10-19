@@ -51,6 +51,9 @@
           "provenance": "spell-base"
         }
       ],
+      "metadata": {
+        "spellLevel": 0
+      },
       "label": "Eldritch Blast"
     },
     "ruleElements": []

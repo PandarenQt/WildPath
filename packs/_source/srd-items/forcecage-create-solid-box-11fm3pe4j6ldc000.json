@@ -57,6 +57,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 7
+      },
       "label": "Forcecage (Create Solid Box)"
     },
     "ruleElements": []

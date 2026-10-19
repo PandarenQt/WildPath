@@ -124,6 +124,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Beacon of Hope"
     },
     "ruleElements": []

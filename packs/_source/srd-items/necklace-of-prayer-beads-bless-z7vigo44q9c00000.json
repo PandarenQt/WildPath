@@ -88,6 +88,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Necklace of Prayer Beads: Bless"
     },
     "ruleElements": [

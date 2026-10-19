@@ -142,6 +142,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Wind Wall (Create Single Wall)"
     },
     "ruleElements": []

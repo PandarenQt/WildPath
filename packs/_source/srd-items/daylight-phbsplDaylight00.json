@@ -122,6 +122,9 @@
           "onObject": "on-object"
         }
       },
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Daylight"
     },
     "ruleElements": []

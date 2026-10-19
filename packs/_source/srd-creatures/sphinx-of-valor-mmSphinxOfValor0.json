@@ -663,6 +663,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Evil and Good"
         },
         "ruleElements": []
@@ -748,6 +751,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 0
+          },
           "label": "Thaumaturgy"
         },
         "ruleElements": []
@@ -825,6 +831,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": [
@@ -891,6 +900,24 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 3
+          },
+          "ends": {
+            "spells": "slot"
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
           "label": "Dispel Magic"
         },
         "ruleElements": [
@@ -924,7 +951,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
             ]
           }
         }
@@ -1035,6 +1062,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Greater Restoration"
         },
         "ruleElements": [
@@ -1098,6 +1128,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 6
           },
           "label": "Heroes' Feast"
         },
@@ -1253,6 +1286,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Zone of Truth"
         },
         "ruleElements": [
@@ -1525,6 +1561,7 @@
         "notes": [
           "Spellcasting: effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand",
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
+          "Spellcasting: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: consumption: itemUses -12 not converted",

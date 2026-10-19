@@ -114,6 +114,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Water Breathing"
     },
     "ruleElements": []

@@ -67,6 +67,9 @@
           "repeatSave": "turnEnd"
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Staff of Power: Hold Monster"
     },
     "ruleElements": [

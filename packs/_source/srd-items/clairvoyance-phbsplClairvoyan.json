@@ -87,6 +87,9 @@
         "concentration": true,
         "spellLevel": 3
       },
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Clairvoyance"
     },
     "ruleElements": []

@@ -84,6 +84,9 @@
       "teleport": {
         "distance": 500
       },
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Dimension Door (teleport)"
     },
     "ruleElements": []

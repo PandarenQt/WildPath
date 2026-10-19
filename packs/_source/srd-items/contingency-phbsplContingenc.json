@@ -59,6 +59,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Contingency"
     },
     "ruleElements": []

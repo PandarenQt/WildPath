@@ -433,6 +433,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -479,6 +482,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 1
           },
           "label": "Identify"
         },
@@ -539,6 +545,9 @@
             "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbsplMageHand00",
             "count": 1,
             "rounds": 10
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Mage Hand"
         },
@@ -615,6 +624,9 @@
             "count": 1,
             "rounds": 10
           },
+          "metadata": {
+            "spellLevel": 0
+          },
           "label": "Minor Illusion"
         },
         "ruleElements": []
@@ -659,6 +671,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Prestidigitation"
         },
@@ -711,6 +726,24 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 3
+          },
+          "ends": {
+            "spells": "slot"
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
           "label": "Dispel Magic"
         },
         "ruleElements": [
@@ -744,7 +777,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
             ]
           }
         }
@@ -776,6 +809,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 5
           },
           "label": "Legend Lore"
         },
@@ -844,6 +880,9 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Locate Object"
         },
         "ruleElements": [
@@ -911,6 +950,9 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 7
+          },
           "label": "Plane Shift"
         },
         "ruleElements": [
@@ -977,6 +1019,26 @@
               }
             ]
           },
+          "metadata": {
+            "spellLevel": 3
+          },
+          "ends": {
+            "tags": [
+              "curse"
+            ]
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
           "label": "Remove Curse"
         },
         "ruleElements": [
@@ -1009,9 +1071,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1069,6 +1129,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Tongues"
         },
         "ruleElements": [
@@ -1343,6 +1406,7 @@
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
+          "Spellcasting: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",

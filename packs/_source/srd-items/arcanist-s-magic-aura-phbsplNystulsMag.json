@@ -118,6 +118,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Arcanist's Magic Aura"
     },
     "ruleElements": []

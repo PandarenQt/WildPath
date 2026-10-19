@@ -165,6 +165,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Warding Bond"
     },
     "ruleElements": []

@@ -76,6 +76,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Favored Enemy: Hunter's Mark"
     },
     "ruleElements": [

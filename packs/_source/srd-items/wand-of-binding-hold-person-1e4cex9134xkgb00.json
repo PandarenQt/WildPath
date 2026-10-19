@@ -53,6 +53,9 @@
           "repeatSave": "turnEnd"
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Wand of Binding: Hold Person"
     },
     "ruleElements": [

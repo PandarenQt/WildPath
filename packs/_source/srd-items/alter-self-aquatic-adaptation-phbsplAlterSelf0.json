@@ -113,6 +113,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Alter Self (Aquatic Adaptation)"
     },
     "ruleElements": []

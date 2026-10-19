@@ -47,6 +47,9 @@
           }
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Ring of Jumping: Jump"
     },
     "ruleElements": []

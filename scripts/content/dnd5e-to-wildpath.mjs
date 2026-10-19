@@ -92,6 +92,12 @@ function repeatSaveTiming(document) {
   return found ? (found[1].toLowerCase() === "end" ? "turnEnd" : "turnStart") : null;
 }
 
+/** What a spell ends on its target, by identifier: curses (effects tagged "curse"), or spells up to its own level. */
+const ENDS = Object.freeze({
+  "remove-curse": {tags: ["curse"]},
+  "dispel-magic": {spells: "slot"}
+});
+
 /** dnd5e skill keys as WildPath's skills. */
 const SKILL_MAP = Object.freeze({acr: "acrobatics", ani: "animal-handling", arc: "arcana", ath: "athletics", dec: "deception",
   his: "history", ins: "insight", itm: "intimidation", inv: "investigation", med: "medicine", nat: "nature", prc: "perception",
@@ -413,6 +419,17 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( lasting ) {
       definition = lasting;
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("concentration: nothing")));
+    }
+    // A spell's level, for what ends spells by level (Dispel Magic); a slot cast at a higher one says so when used.
+    if ( spell && Number.isFinite(Number(level)) ) definition = {...definition, metadata: {...(definition.metadata ?? {}), spellLevel: Number(level)}};
+    // What it ends on its target (Remove Curse: curses; Dispel Magic: spells up to its level).
+    const ending = ENDS[identifierOf(document)];
+    if ( ending ) {
+      const range = definition.range ?? rangeOf({activity, system, document, attack: null});
+      definition = {...definition, ends: structuredClone(ending), targeting: definition.targeting ?? {type: "single", required: true, count: 1},
+        ...(range ? {range} : {})};
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")),
+        ...(ending.spells ? ["dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"] : []));
     }
     const push = forcedMovement(document, definition);
     if ( push ) definition = {...definition, push};
@@ -1380,13 +1397,17 @@ function convertActivity({document, activity, system, spell, level, scales, note
         ...(effect.img ? {img: effect.img} : {}),
         ruleElements: rules, ...(duration ? {duration} : {}), ...(hand?.endsWhen ? {endsWhen: hand.endsWhen} : {}), ...onFailure,
         ...(concentration ? {concentration: true} : {})});
-    } else if ( effect && !statuses.length ) {
+    } else if ( effect && !known.length ) {
       // Nothing of it maps (Alter Self, Acid Arrow's lingering acid): it still marks its creature, for its duration and
       // its caster's concentration, and what it does is by hand.
       const duration = effectDuration(effect.duration);
       effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(effect.img ? {img: effect.img} : {}),
         ruleElements: [], ...(duration ? {duration} : {}), ...onFailure, ...(concentration ? {concentration: true} : {})});
       notes.push(`effect: "${effect.name}" marks its creature only; its rules are by hand`);
+    }
+    // dnd5e's "cursed" status (Bestow Curse, Hex) tags what it became, so Remove Curse ends it.
+    if ( statuses.includes("cursed") || (identifierOf(document) === "hex") ) for ( const entry of effects.slice(first) ) {
+      entry.metadata = {...(entry.metadata ?? {}), tags: [...new Set([...(entry.metadata?.tags ?? []), "curse"])]};
     }
     if ( effects.length > first ) groups.push({label: effect?.name ?? `Effect ${groups.length + 1}`, ids: effects.slice(first).map(entry => entry.id)});
   }

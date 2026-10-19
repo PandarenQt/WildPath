@@ -85,6 +85,9 @@
         "concentration": true,
         "spellLevel": 5
       },
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Arcane Hand"
     },
     "ruleElements": []

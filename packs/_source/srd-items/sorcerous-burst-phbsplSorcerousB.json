@@ -39,6 +39,9 @@
         "required": true,
         "count": 1
       },
+      "metadata": {
+        "spellLevel": 0
+      },
       "label": "Sorcerous Burst"
     },
     "ruleElements": []

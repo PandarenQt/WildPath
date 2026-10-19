@@ -312,6 +312,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Sleep"
         },
         "ruleElements": [

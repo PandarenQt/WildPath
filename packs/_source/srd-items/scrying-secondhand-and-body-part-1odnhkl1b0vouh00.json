@@ -125,6 +125,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Scrying (Secondhand and Body Part)"
     },
     "ruleElements": []

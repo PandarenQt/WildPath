@@ -127,6 +127,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Detect Magic"
     },
     "ruleElements": []

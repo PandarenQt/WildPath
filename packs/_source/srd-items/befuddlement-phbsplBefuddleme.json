@@ -108,6 +108,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 8
+      },
       "label": "Befuddlement"
     },
     "ruleElements": []

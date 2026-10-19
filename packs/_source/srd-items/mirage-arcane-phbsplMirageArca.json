@@ -52,6 +52,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 7
+      },
       "label": "Mirage Arcane"
     },
     "ruleElements": []

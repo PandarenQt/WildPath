@@ -32,6 +32,9 @@
         "concentration": true,
         "spellLevel": 3
       },
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Potion of Clairvoyance: Clairvoyance"
     },
     "ruleElements": [

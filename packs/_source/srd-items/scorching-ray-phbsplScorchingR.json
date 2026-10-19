@@ -122,6 +122,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Scorching Ray"
     },
     "ruleElements": []

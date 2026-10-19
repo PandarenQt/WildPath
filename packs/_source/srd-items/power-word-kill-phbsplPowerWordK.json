@@ -67,6 +67,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 9
+      },
       "label": "Power Word Kill"
     },
     "ruleElements": []

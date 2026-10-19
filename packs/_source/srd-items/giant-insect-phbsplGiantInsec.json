@@ -78,6 +78,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Giant Insect"
     },
     "ruleElements": []

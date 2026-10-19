@@ -139,6 +139,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Spider Climb"
     },
     "ruleElements": []

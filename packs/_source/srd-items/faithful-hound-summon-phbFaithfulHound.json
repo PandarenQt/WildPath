@@ -91,6 +91,9 @@
         "rounds": 4800,
         "spellLevel": 4
       },
+      "metadata": {
+        "spellLevel": 4
+      },
       "label": "Faithful Hound (summon)"
     },
     "ruleElements": []

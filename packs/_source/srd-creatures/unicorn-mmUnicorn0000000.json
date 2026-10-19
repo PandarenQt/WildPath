@@ -429,6 +429,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Detect Evil and Good"
         },
         "ruleElements": []
@@ -475,6 +478,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 0
           },
           "label": "Druidcraft"
         },
@@ -629,6 +635,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Calm Emotions"
         },
         "ruleElements": [
@@ -716,6 +725,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Dispel Evil and Good"
         },
         "ruleElements": [
@@ -817,6 +829,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Entangle"
         },
         "ruleElements": [
@@ -915,6 +930,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Pass without Trace"
         },
         "ruleElements": [
@@ -978,6 +996,9 @@
                 "amount": 1
               }
             ]
+          },
+          "metadata": {
+            "spellLevel": 6
           },
           "label": "Word of Recall"
         },
@@ -1211,6 +1232,9 @@
               "healingType": "healing"
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Cure Wounds"
         },
         "ruleElements": [
@@ -1368,6 +1392,9 @@
               ]
             }
           ],
+          "metadata": {
+            "spellLevel": 2
+          },
           "label": "Lesser Restoration"
         },
         "ruleElements": [

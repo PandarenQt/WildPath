@@ -64,6 +64,9 @@
           }
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Fire Ring of Elemental Command: Fireball"
     },
     "ruleElements": [

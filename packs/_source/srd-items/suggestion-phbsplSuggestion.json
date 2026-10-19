@@ -133,6 +133,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Suggestion"
     },
     "ruleElements": []

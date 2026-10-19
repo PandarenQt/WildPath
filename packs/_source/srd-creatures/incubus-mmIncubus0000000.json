@@ -159,6 +159,20 @@
               "provenance": "weapon-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Cursed",
+              "img": "systems/dnd5e/icons/svg/statuses/cursed.svg",
+              "ruleElements": [],
+              "metadata": {
+                "tags": [
+                  "curse"
+                ]
+              }
+            }
+          ],
           "label": "Restless Touch"
         },
         "ruleElements": []
@@ -176,7 +190,8 @@
           },
           "conversion": {
             "notes": [
-              "effect: cursed is not a WildPath condition yet"
+              "effect: cursed is not a WildPath condition yet",
+              "effect: \"Cursed\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -289,6 +304,9 @@
               }
             }
           ],
+          "metadata": {
+            "spellLevel": 1
+          },
           "label": "Disguise Self"
         },
         "ruleElements": []
@@ -336,6 +354,29 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Etherealness",
+              "img": "systems/dnd5e/icons/svg/statuses/ethereal.svg",
+              "ruleElements": [],
+              "duration": {
+                "value": 28800,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
+          "metadata": {
+            "spellLevel": 7
+          },
           "label": "Etherealness"
         },
         "ruleElements": []
@@ -354,8 +395,8 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: ethereal is not a WildPath condition yet"
+              "effect: ethereal is not a WildPath condition yet",
+              "effect: \"Etherealness\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -451,6 +492,9 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "metadata": {
+            "spellLevel": 5
+          },
           "label": "Dream"
         },
         "ruleElements": [
@@ -582,6 +626,9 @@
               "concentration": true
             }
           ],
+          "metadata": {
+            "spellLevel": 3
+          },
           "label": "Hypnotic Pattern"
         },
         "ruleElements": [
@@ -781,9 +828,10 @@
         "notes": [
           "Succubus Form: \"Shape-Shift: Succubus\" is passive or triggered: not automated",
           "Restless Touch: effect: cursed is not a WildPath condition yet",
+          "Restless Touch: effect: \"Cursed\" marks its creature only; its rules are by hand",
           "Spellcasting: effect: \"Disguised\" marks its creature only; its rules are by hand",
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: ethereal is not a WildPath condition yet",
+          "Spellcasting: effect: \"Etherealness\" marks its creature only; its rules are by hand",
           "Spellcasting: activation: 1 minute is not an action-economy cost"
         ]
       }

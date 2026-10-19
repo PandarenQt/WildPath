@@ -16,6 +16,21 @@
       "costs": {
         "allOf": []
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Catatonic",
+          "img": "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
+          "ruleElements": []
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -59,6 +74,9 @@
           "effects": []
         }
       ],
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Magic Jar (Cast and Transfer Soul)"
     },
     "ruleElements": []
@@ -76,10 +94,9 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "activation: 1 minute is not an action-economy cost",
           "effect: silenced is not a WildPath condition yet",
-          "activation: 1 minute is not an action-economy cost"
+          "effect: \"Catatonic\" marks its creature only; its rules are by hand"
         ]
       }
     }

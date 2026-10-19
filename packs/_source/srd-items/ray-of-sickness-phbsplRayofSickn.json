@@ -149,6 +149,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Ray of Sickness"
     },
     "ruleElements": []

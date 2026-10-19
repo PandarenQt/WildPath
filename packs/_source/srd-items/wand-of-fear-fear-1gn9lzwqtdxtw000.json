@@ -53,6 +53,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 3
+      },
       "label": "Wand of Fear: Fear"
     },
     "ruleElements": [

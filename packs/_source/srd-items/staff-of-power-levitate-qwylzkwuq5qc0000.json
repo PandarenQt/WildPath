@@ -73,6 +73,9 @@
           "concentration": true
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Staff of Power: Levitate"
     },
     "ruleElements": [

@@ -165,6 +165,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Chromatic Orb"
     },
     "ruleElements": []

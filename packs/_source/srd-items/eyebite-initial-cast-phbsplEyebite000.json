@@ -163,6 +163,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Eyebite (Initial Cast)"
     },
     "ruleElements": []

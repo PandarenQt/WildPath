@@ -180,6 +180,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 2
+      },
       "label": "Mirror Image"
     },
     "ruleElements": []

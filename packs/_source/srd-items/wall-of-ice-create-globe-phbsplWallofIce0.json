@@ -130,6 +130,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 6
+      },
       "label": "Wall of Ice (Create Globe)"
     },
     "ruleElements": []

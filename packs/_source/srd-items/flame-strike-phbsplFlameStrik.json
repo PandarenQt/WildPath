@@ -167,6 +167,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 5
+      },
       "label": "Flame Strike"
     },
     "ruleElements": []
