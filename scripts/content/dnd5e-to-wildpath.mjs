@@ -158,6 +158,48 @@ const SMITE_TRIGGER = Object.freeze({event: "attack.hit",
   match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"], notTagsAny: ["spell"]}});
 
 /**
+ * Enchantments of one of its creature's own weapons (dnd5e enchant activities): when used it picks the weapon (a
+ * `weapons` choice), and an effect on the creature gives that weapon's attacks (`weapon:{{weapon}}`) these rules, for
+ * its duration.
+ * - Magic Weapon (2024): +1 to attack and damage rolls, +2 from a 3rd-level slot, +3 from a 6th.
+ * - Sacred Weapon: its Charisma modifier (at least +1) on attack rolls, for 10 minutes, paid from Channel Divinity.
+ * - Pact of the Blade: its Charisma in place of Strength or Dexterity on attack and damage rolls, until used again.
+ * - Shillelagh: a club or quarterstaff uses its spellcasting ability in place of Strength.
+ * shortcut: Magic Weapon's weapon becoming magical, Sacred Weapon's Radiant option and "when you take the Attack action",
+ * Pact of the Blade's proficiency and damage types, and Shillelagh's larger die and Force damage are by hand; one such
+ * effect is held at a time.
+ */
+const swap = (value, domain) => ["might", "agility"].map(ability => ({type: "Modifier", data: {domains: [domain], modifierType: "untyped",
+  valueExpression: {type: "max", terms: [{type: "constant", value: 0}, {type: "subtract", left: value,
+    right: {type: "ability-modifier", ability}}]}}, predicate: {tagsAll: ["weapon:{{weapon}}", ability]}}));
+const ENCHANTS = Object.freeze({
+  "magic-weapon": {bySlot: true, rules: ["attack", "damage"].map(domain => ({type: "Modifier", data: {domains: [domain],
+    modifierType: "untyped", valueExpression: {type: "table", key: {type: "constant", value: "{{spell-slot}}"}, rows: {2: 1, 3: 2, 6: 3}}},
+    predicate: {tagsAny: ["weapon:{{weapon}}"]}}))},
+  "sacred-weapon": {rules: [{type: "Modifier", data: {domains: ["attack"], modifierType: "untyped", valueExpression: {type: "max",
+    terms: [{type: "constant", value: 1}, {type: "ability-modifier", ability: "presence"}]}}, predicate: {tagsAny: ["weapon:{{weapon}}"]}}]},
+  "pact-of-the-blade": {melee: true, rules: ["attack", "damage"].flatMap(domain => swap({type: "ability-modifier", ability: "presence"}, domain))},
+  shillelagh: {melee: true, bases: ["club", "quarterstaff"],
+    rules: ["attack", "damage"].flatMap(domain => swap({type: "spellcasting-modifier"}, domain))}
+});
+
+/** An enchantment's Action: its cost (and slot), a choice of its creature's weapon, and the effect on it. */
+function enchantDefinition({document, activity, system, spell, level, pool, enchant}) {
+  const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool});
+  const choice = {id: "weapon", type: "select-one", label: "Weapon", required: true, options: [],
+    optionsFrom: {type: "weapons", ...(enchant.melee ? {melee: true} : {}), ...(enchant.bases ? {bases: enchant.bases} : {})},
+    effects: [{type: "bindChoice"}]};
+  const configuration = (definition.configuration ?? []).map(entry => ((enchant.bySlot && entry.levelByResourceId)
+    ? {...entry, effects: [...(entry.effects ?? []), {type: "bindChoice"}]} : entry));
+  const duration = lastingDuration(pick(activity, system, "duration")) ?? lastingDuration(activity.duration);
+  const concentration = (system.properties ?? []).includes("concentration");
+  return {...definition, range: {type: "self"}, targeting: {type: "self"}, configuration: [...configuration, choice],
+    effects: [{id: "effect-1", type: "effect", name: document.name, ...(document.img ? {img: document.img} : {}),
+      ruleElements: enchant.rules.map((rule, index) => ({schemaVersion: 1, id: `${identifierOf(document)}-${index + 1}`, ...structuredClone(rule)})),
+      ...(duration ? {duration} : {}), ...(concentration ? {concentration: true} : {})}]};
+}
+
+/**
  * Features a creature uses when it hits with a melee attack that is not a spell's, which dnd5e leaves passive: offered
  * on that hit, on the creature hit (as Divine Smite is). `once: "turn"`: at most once a turn. Stunning Strike (2024):
  * 1 Focus Point, a Constitution save; on a failure the target has the Stunned condition until the start of the monk's
@@ -503,7 +545,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const activation = pick(activity, system, "activation").type ?? "";
     // A feature used when its creature hits (Stunning Strike): offered on that hit, though dnd5e leaves it passive.
     const onHit = OWN_HIT[identifierOf(document)] ?? null;
-    if ( ["", "none", "special"].includes(activation) && !onHit ) {
+    // An enchantment of one of its creature's weapons (Magic Weapon, Sacred Weapon): its weapon's attacks change instead.
+    const enchant = ENCHANTS[identifierOf(document)] ?? null;
+    if ( enchant && (activity.type !== "enchant") ) continue;
+    if ( ["", "none", "special"].includes(activation) && !onHit && !enchant ) {
       // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.
       const marked = (activity.type === "damage") && Object.values(EFFECTS_BY_HAND).some(hand => hand.bonusDamage === label);
       if ( !trait && !marked ) allNotes.push(`"${label}" is passive or triggered: not automated`);
@@ -523,7 +568,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature, beasts})
       : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names})
         : ((activity.type === "teleport") ? teleportDefinition({document, activity, system, spell, level, notes, pool})
-          : ((activity.type === "transform") ? wildShapeDefinition({document, activity, system, spell, level, notes, pool, beasts}) : null))));
+          : ((activity.type === "transform") ? wildShapeDefinition({document, activity, system, spell, level, notes, pool, beasts})
+            : (enchant ? enchantDefinition({document, activity, system, spell, level, pool, enchant}) : null)))));
     if ( !definition ) {
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type})`}: using it spends its cost; its description says the rest`);

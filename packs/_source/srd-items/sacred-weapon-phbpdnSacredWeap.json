@@ -2,11 +2,90 @@
   "_id": "phbpdnSacredWeap",
   "_key": "!items!phbpdnSacredWeap",
   "name": "Sacred Weapon",
-  "type": "feature",
+  "type": "action",
   "img": "icons/skills/melee/strike-weapons-orange.webp",
   "system": {
     "active": true,
     "description": "<p>When you take the Attack action, you can expend one use of your Channel Divinity to imbue one Melee weapon that you are holding with positive energy. For 10 minutes or until you use this feature again, you add your Charisma modifier to attack rolls you make with that weapon (minimum bonus of +1), and each time you hit with it, you cause it to deal its normal damage type or Radiant damage.</p><p>The weapon also emits Bright Light in a 20-foot radius and Dim Light 20 feet beyond that.</p><p>You can end this effect early (no action required). This effect also ends if you aren't carrying the weapon.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-sacred-weapon",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "channel-divinity",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "weapon",
+          "type": "select-one",
+          "label": "Weapon",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "weapons"
+          },
+          "effects": [
+            {
+              "type": "bindChoice"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Sacred Weapon",
+          "img": "icons/skills/melee/strike-weapons-orange.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "sacred-weapon-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "attack"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "max",
+                  "terms": [
+                    {
+                      "type": "constant",
+                      "value": 1
+                    },
+                    {
+                      "type": "ability-modifier",
+                      "ability": "presence"
+                    }
+                  ]
+                }
+              },
+              "predicate": {
+                "tagsAny": [
+                  "weapon:{{weapon}}"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 10,
+            "units": "minutes"
+          }
+        }
+      ],
+      "label": "Sacred Weapon"
+    },
     "ruleElements": []
   },
   "flags": {
@@ -21,9 +100,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"enchant\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

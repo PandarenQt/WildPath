@@ -1293,3 +1293,26 @@ test("dnd5e's marked status: attack rolls against its creature have Advantage; o
   const lasting = convertItem(bolt("<p>Attack rolls against it have Advantage.</p>")).items[0].system.definition.effects[0];
   assert.equal(lasting.endsWhen, undefined, "every attack against it, for as long as it lasts");
 });
+
+test("weapon enchantments: Sacred Weapon (no longer passive) and Shillelagh pick a weapon; a rider attack is not an Action", () => {
+  const names = nameIndex([{_id: "phbpdnChannelDiv", name: "Channel Divinity", type: "feat", system: {identifier: "channel-divinity-paladin"}}]);
+  const sacred = {_id: "testSacredWeap01", name: "Sacred Weapon", type: "feat", img: "icons/svg/sun.svg", effects: [],
+    system: {source: SRD, identifier: "sacred-weapon", type: {value: "class"}, uses: {max: "", recovery: []},
+      activities: {a: activity("enchant", {activation: {type: "special", override: false},
+        consumption: {targets: [{type: "itemUses", value: "1", target: "feat:channel-divinity-paladin"}]},
+        duration: {units: "minute", value: "10", override: false}})}}};
+  const [item] = convertItem(sacred, {names}).items;
+  const {definition} = item.system;
+  assert.deepEqual(definition.costs.allOf.map(cost => cost.capability), ["channel-divinity"]);
+  assert.deepEqual(definition.configuration.map(choice => [choice.id, choice.optionsFrom]), [["weapon", {type: "weapons"}]]);
+  assert.deepEqual([definition.effects[0].duration, definition.effects[0].ruleElements[0].predicate],
+    [{value: 10, units: "minutes"}, {tagsAny: ["weapon:{{weapon}}"]}]);
+  const shillelagh = {_id: "testShillelagh01", name: "Shillelagh", type: "spell", img: "icons/svg/oak.svg", effects: [],
+    system: {source: SRD, identifier: "shillelagh", level: 0, school: "trs", duration: {value: "1", units: "minute"},
+      activities: {a: activity("enchant", {name: "Imbue Weapon", activation: {type: "bonus", override: false}}),
+        b: activity("attack", {name: "Spellcasting Attack", attack: {type: {value: "melee", classification: "weapon"}}})}}};
+  const converted = convertItem(shillelagh).items;
+  assert.equal(converted.length, 1, "its Spellcasting Attack is the weapon's own, now");
+  assert.deepEqual(converted[0].system.definition.configuration.at(-1).optionsFrom, {type: "weapons", melee: true, bases: ["club", "quarterstaff"]});
+  assert.equal(validateActionDefinition(converted[0].system.definition).ok, true);
+});

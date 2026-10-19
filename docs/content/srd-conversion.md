@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 819 automated, 305 manual, 244 features. Creatures: 375.
+Items: 821 automated, 302 manual, 243 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -946,7 +946,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Magic Jar | spells24 | Magic Jar (Cast and Transfer Soul) (automated), Magic Jar (Possess Humanoid) (automated), Magic Jar (Return from Host) (manual) | activation: 1 minute is not an action-economy cost; effect: silenced is not a WildPath condition yet; effect: "Catatonic" marks its creature only; its rules are by hand; not automated (utility): using it spends its cost; its description says the rest |
 | Magic Missile | spells24 | Magic Missile (automated) | — |
 | Magic Mouth | spells24 | Magic Mouth (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
-| Magic Weapon | spells24 | Magic Weapon (manual) | not automated (enchant): using it spends its cost; its description says the rest |
+| Magic Weapon | spells24 | Magic Weapon (automated) | — |
 | Magical Berries | spells24 | Magical Berries (automated) | — |
 | Magical Cunning | classes24 | Magical Cunning (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost; consumption: attribute -(ceil(@spells.pact.max / 2)) not converted |
 | Magical Discoveries | classes24 | Magical Discoveries (feature) | — |
@@ -1071,7 +1071,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Owl | actors24 | Owl (3 items) | — |
 | Owlbear | actors24 | Owlbear (3 items) | — |
 | Pact Magic | classes24 | Pact Magic (feature) | — |
-| Pact of the Blade | classes24 | Pact of the Blade (Forge Pact Weapon) (manual), Pact of the Blade (Spellcasting Attack) (automated) | not automated (enchant): using it spends its cost; its description says the rest; rolled (attack); what it does is by hand |
+| Pact of the Blade | classes24 | Pact of the Blade (Forge Pact Weapon) (automated) | — |
 | Pact of the Chain | classes24 | Pact of the Chain (Find Familiar) (manual), Pact of the Chain (Find Familiar (Expanded Options)) (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: a creature chosen by Challenge Rating is not converted; consumption: attribute 1 not converted; summon: its creature is not among the converted creatures |
 | Pact of the Tome | classes24 | Pact of the Tome (feature) | — |
 | Padded Armor | equipment24 | Padded Armor (gear) | — |
@@ -1302,7 +1302,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Saber-Toothed Tiger | actors24 | Saber-Toothed Tiger (5 items) | — |
 | Sack | equipment24 | Sack (gear) | — |
 | Sacred Flame | spells24 | Sacred Flame (automated) | — |
-| Sacred Weapon | classes24 | Sacred Weapon (feature) | "enchant" is passive or triggered: not automated |
+| Sacred Weapon | classes24 | Sacred Weapon (automated) | — |
 | Sage | equipment24 | Sage (gear) | "Card Effect" is passive or triggered: not automated |
 | Sage | origins24 | Sage (background) | languages are not tracked |
 | Sahuagin Warrior | actors24 | Sahuagin Warrior (7 items) | Aquatic Charge: not automated (utility): using it spends its cost; its description says the rest |
@@ -1351,7 +1351,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Shield of Missile Attraction | equipment24 | Shield of Missile Attraction (gear) | — |
 | Shield of the Cavalier | equipment24 | Shield of the Cavalier (gear), Shield of the Cavalier (Forceful Bash) (automated), Shield of the Cavalier (Protective Field) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Shield, +1, +2, or +3 | equipment24 | Shield, +1, +2, or +3 (gear), Shield, +1, +2, or +3 (manual) | not automated (enchant): using it spends its cost; its description says the rest; armor: of any kind; give it its armor's AC by hand |
-| Shillelagh | spells24 | Shillelagh (Imbue Weapon) (manual), Shillelagh (Spellcasting Attack) (automated) | not automated (enchant): using it spends its cost; its description says the rest; rolled (attack); what it does is by hand |
+| Shillelagh | spells24 | Shillelagh (Imbue Weapon) (automated) | — |
 | Shining Smite | spells24 | Shining Smite (automated) | — |
 | Shocking Grasp | spells24 | Shocking Grasp (automated) | effect: "Shocked" marks its creature only; its rules are by hand |
 | Shortbow | equipment24 | Shortbow (automated) | — |

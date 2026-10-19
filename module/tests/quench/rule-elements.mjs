@@ -224,6 +224,22 @@ export function registerRuleElementTests(quench) {
         assert.deepEqual({...actor.system.speeds},{walk:30},"An inactive grant gives no Speed");
       });
 
+      it("a rule naming one weapon (Magic Weapon's weapon:<id>) reaches that weapon's attacks only", async function () {
+        const actor = await fixtures.createActor({name:"enchanted"});
+        const attack = (name,base) => ({name,type:"action",system:{definition:{schemaVersion:1,id:`action:${base}`,label:name,
+          costs:{allOf:[]},targeting:{type:"single",required:true,count:1},range:{type:"reach",distance:{value:5,unit:"ft"}},
+          attack:{type:"melee",statistic:"weapon",defenseKey:"ac",weapon:{base}},
+          damage:[{id:"d",expression:{type:"dice",number:1,faces:8},damageType:"slashing",provenance:"weapon-base"}]}}});
+        const [sword,dagger] = await actor.createEmbeddedDocuments("Item",[attack("Longsword","longsword"),attack("Dagger","dagger")]);
+        const {actionCombatStatistics} = await import("/systems/wildpath/module/helpers/combat-statistics.mjs");
+        const bonus = item => actionCombatStatistics(actor,item.system.definition,{item}).attack.modifierTotal;
+        const [plainSword,plainDagger] = [bonus(sword),bonus(dagger)];
+        await fixtures.createEffect(actor,{system:{ruleElements:[{schemaVersion:1,id:"magic-weapon",type:"Modifier",
+          data:{domains:["attack"],modifierType:"untyped",value:2},predicate:{tagsAny:[`weapon:${sword.id}`]}}]}});
+        assert.equal(bonus(sword),plainSword + 2,"the chosen weapon");
+        assert.equal(bonus(dagger),plainDagger,"and not another");
+      });
+
       it("Speed factors multiply every Speed (Haste, Slow) or one mode's, after its bonuses", async function () {
         const actor = await fixtures.createActor({name:"speed factors"});
         const factor = (id,domain,value) => ({schemaVersion:1,id,type:"Modifier",data:{domains:[domain],modifierType:"untyped",value}});

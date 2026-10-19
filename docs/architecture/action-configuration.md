@@ -277,3 +277,20 @@ A configuration effect `{type: "spendAmount", resourceId, componentIds, collecti
 that many of the pool to the Action's cost and makes each listed healing (or damage) component that amount (times
 `per`). 2024 Lay on Hands: "restore a number of Hit Points equal to the points spent". Spending more than the pool
 holds is refused at payment, before anything rolls.
+
+## One of its own weapons, and binding a choice (2026-10-19)
+
+- **`optionsFrom: {type: "weapons", melee?, bases?}`** on a `select-one` choice lists its creature's own weapons whenever
+  the Action is read (`withOwnWeapons` in `actionDefinitionFromItem`). That is the attack Actions with `attack.weapon`,
+  one per weapon, keyed by the gear that grants the attack (else the attack itself). `melee` and `bases` narrow it
+  (Shillelagh: a club or quarterstaff). The client's prompt and the authority read the same options, so an id that is
+  not one of its weapons is refused.
+- **`bindChoice`** (a choice's effect) writes the choice's value into the Action's effects wherever `{{<choice id>}}`
+  stands: the weapon's id into a rule's predicate (`weapon:{{weapon}}`), or a slot choice's casting level where the token
+  stands alone, as a number (`{type: "constant", value: "{{spell-slot}}"}`).
+
+Weapon enchantments use both (content-packs.md): Magic Weapon, Sacred Weapon, Pact of the Blade and Shillelagh. A
+weapon's attack carries `weapon:<id>` and its ability among its tags (rule-elements.md).
+
+Live (two browsers, 14.369): Player1's QA Caster cast Magic Weapon at 3rd level on its Longsword. The Longsword's attack
+went from +3 to +5 and its damage gained +2; the Dagger stayed at +3.

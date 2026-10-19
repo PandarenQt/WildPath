@@ -257,3 +257,15 @@ test("Hunter's Mark: the target's mark adds its caster's extra damage on that ca
   assert.equal(actionCombatStatistics(ranger, fireBolt, {target: wolf, context: {attack: {fromAttacker: {"hunters-mark": true}}}})
     .damage?.extraComponents?.length ?? 0, 0, "only an attack roll");
 });
+
+test("a weapon's attack names its weapon and ability among its tags, so a rule can reach that weapon alone", async () => {
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const seen = [];
+  const actor = {system: {abilities: {might: {value: 16}, agility: {value: 12}}, proficiencyBonus: 2},
+    getStatistic: (domains, {tags=[]}={}) => { seen.push(tags); return {totalModifier: 0}; }};
+  const definition = {attack: {type: "melee", statistic: "weapon", weapon: {base: "longsword"}},
+    damage: [{id: "d", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"}]};
+  actionCombatStatistics(actor, definition, {item: {id: "sword-attack", flags: {wildpath: {grantedBy: "sword"}}}});
+  assert.ok(seen.every(tags => tags.includes("weapon:sword")), JSON.stringify(seen));
+  assert.ok(seen[0].includes("might"), "the attack roll's tags carry its ability");
+});

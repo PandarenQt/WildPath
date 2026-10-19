@@ -363,6 +363,11 @@ domain `check.unproficient` (`resolveActorCheckStatistic`, every check). 2024 Ja
 "advantage"}`. Live (GM browser): QA Caster's Acrobatics (unproficient, Proficiency Bonus 3) went from +0 to +1, and its
 Initiative and Athletics got Advantage.
 
+**A weapon and its ability in an attack's tags (2026-10-19).** A weapon's attack carries `weapon:<id>` (the gear granting
+it, else the attack) and the ability it uses (`might`, `agility`, ...) among its tags, for its attack, damage and extra
+damage rules. A predicate `{tagsAny: ["weapon:<id>"]}` reaches that weapon alone (Magic Weapon), and `{tagsAll:
+["weapon:<id>", "might"]}` its Strength-based attacks (Pact of the Blade's Charisma swap: `max(0, Pres - Might)`).
+
 **A minimum d20 (2026-10-19, Reliable Talent).** `RollOutcome {domains: ["check.proficient"], outcome: "minimum-natural",
 threshold: 10}`: a check with its skill's proficiency reads `check.proficient`, and `resolveActorCheckStatistic` returns the
 highest such threshold as `naturalMinimum`.
