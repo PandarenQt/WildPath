@@ -164,7 +164,10 @@
             {
               "id": "effect-1",
               "type": "condition",
-              "conditionId": "grappled"
+              "conditionId": "grappled",
+              "metadata": {
+                "escapeDC": 11
+              }
             }
           ],
           "label": "Bite (attack)"

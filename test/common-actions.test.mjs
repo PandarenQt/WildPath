@@ -6,11 +6,11 @@ import {actionBarContext} from "../module/helpers/action-bar-context.mjs";
 
 test("every creature's common actions are valid Actions, built fresh from their id", () => {
   assert.deepEqual([...COMMON_ACTION_IDS], ["dash", "disengage", "dodge", "help", "hide", "grapple", "shove", "push", "unarmed", "search",
-    "study", "influence", "utilize", "opportunity"]);
+    "study", "influence", "escape", "utilize", "opportunity"]);
   assert.deepEqual(commonAction({uuid: "Actor.hero"}, "search").system.definition.metadata.test.skills,
     ["insight", "medicine", "perception", "survival"], "2024 Search: the Action, then one of these checks");
   const actor = {uuid: "Actor.hero"};
-  for ( const id of COMMON_ACTION_IDS ) {
+  for ( const id of COMMON_ACTION_IDS.filter(id => id !== "escape") ) {
     const action = commonAction(actor, id, {localize: key => key.split(".").pop()});
     assert.equal(validateActionDefinition(action.system.definition).ok, true, id);
     assert.deepEqual([action.uuid, action.type, action.actor], [`common:${id}`, "action", actor]);
@@ -48,7 +48,8 @@ test("with Extra Attack, the Unarmed Strike's cost on the bar includes its pool"
 test("the action bar lists the common actions last, in their own group", () => {
   const actor = {name: "Hero", items: [], effects: [], system: {resources: {action: {value: 1, max: 1}, bonus: {value: 1, max: 1},
     reaction: {value: 1, max: 1}, movement: {value: 30, max: 30}}, pools: []}};
-  const common = COMMON_ACTION_IDS.map(id => commonAction(actor, id, {localize: key => key.split(".").pop()}));
+  const common = COMMON_ACTION_IDS.map(id => commonAction(actor, id, {localize: key => key.split(".").pop()})).filter(Boolean);
+  assert.equal(common.some(action => action.uuid === "common:escape"), false, "nothing to escape, no Escape");
   const groups = actionBarContext({actor, common}).groups;
   assert.equal(groups.at(-1).id, "common");
   assert.deepEqual(groups.at(-1).actions.map(action => [action.label, action.enabled]).slice(0, 3),
@@ -60,6 +61,28 @@ test("the action bar lists the common actions last, in their own group", () => {
   const spent = actionBarContext({actor, common}).groups.at(-1).actions;
   assert.deepEqual(spent.slice(0, 2).map(action => action.enabled), [false, false], "a spent Action greys them out");
   assert.equal(spent.at(-1).enabled, true, "the Reaction is still there");
+});
+
+test("Escape: only while grappled or restrained with an escape DC, its better of Athletics and Acrobatics against it", () => {
+  const held = (type, escapeDC, disabled=false) => ({disabled, system: {type}, flags: {wildpath: {conditionEffect: {metadata: {escapeDC}}}}});
+  const creature = effects => ({uuid: "Actor.hero", items: [], effects, system: {abilities: {might: {value: 10}, agility: {value: 16}},
+    skills: {}, details: {level: 1}}});
+  assert.equal(commonAction(creature([]), "escape"), null);
+  assert.equal(commonAction(creature([held("grappled", 13, true), held("prone", 15)]), "escape"), null, "disabled, or nothing escapable");
+  assert.equal(commonAction(creature([{system: {type: "grappled"}}]), "escape"), null, "a Grappled with no escape DC (Grapple's own is kept)");
+
+  const escape = commonAction(creature([held("restrained", 12), held("grappled", 13), held("grappled", 15)]), "escape").system.definition;
+  assert.equal(validateActionDefinition(escape).ok, true);
+  assert.deepEqual([escape.check, escape.effects[0].conditionId, escape.effects[0].levels, escape.effects[0].checkOutcomePolicy],
+    [{skill: "acrobatics", dc: {value: 15}}, "grappled", -1, "success"], "Agility 16 beats Might 10; the hardest grapple first");
+  const strong = creature([held("restrained", 14)]);
+  strong.system.abilities.might.value = 18;
+  assert.deepEqual(commonAction(strong, "escape").system.definition.check, {skill: "athletics", dc: {value: 14}});
+  assert.equal(commonAction(strong, "escape").system.definition.effects[0].conditionId, "restrained");
+
+  const grappler = {uuid: "Actor.ogre", items: [], system: {abilities: {might: {value: 19}}, details: {level: 5}}};
+  assert.deepEqual(commonAction(grappler, "grapple").system.definition.effects[0].metadata, {escapeDC: 8 + 4 + 3},
+    "the grappler's escape DC: 8 + Might modifier + Proficiency Bonus");
 });
 
 test("Help: the next attack on an enemy beside you has Advantage, and its effect ends once it is attacked", async () => {

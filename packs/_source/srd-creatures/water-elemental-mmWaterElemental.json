@@ -331,13 +331,19 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "grappled",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "metadata": {
+                "escapeDC": 14
+              }
             },
             {
               "id": "effect-2",
               "type": "condition",
               "conditionId": "restrained",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "metadata": {
+                "escapeDC": 14
+              }
             }
           ],
           "label": "Whelm (Save)"
