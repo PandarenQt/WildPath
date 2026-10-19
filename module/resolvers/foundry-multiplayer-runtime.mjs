@@ -723,8 +723,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( forced.some(entry => entry.outcome === "evasion") ) evasionByTarget[key] = "evasion";
       const legendary = legendaryResistanceFor(targetActor, systemSnapshots.get(targetActor), game);
       if ( legendary ) legendaryByTarget[key] = legendary;
-      const inspiration = inspirationOffer(targetActor, systemSnapshots.get(targetActor), game,
-        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers});
+      const inspiration = withIndomitable(inspirationOffer(targetActor, systemSnapshots.get(targetActor), game,
+        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers}), targetActor, systemSnapshots.get(targetActor), game);
       if ( inspiration ) inspirationByTarget[key] = inspiration;
     }
     targets.push(target);
@@ -1136,6 +1136,25 @@ export function inspirationOffer(roller, rollerSystem, game, {chooser, payers=()
 }
 
 /**
+ * 2024 Indomitable: "If you fail a saving throw, you can reroll it with a bonus equal to your Fighter level", once per use
+ * of its pool. Added to the creature's own reroll offer (beside Heroic Inspiration), or its offer alone.
+ */
+export function withIndomitable(offer, roller, rollerSystem, game) {
+  const pool = (rollerSystem?.pools ?? []).find(entry => entry.id === "indomitable");
+  if ( !(Number(pool?.value) > 0) || (offer && !offer.own) ) return offer;
+  const payment = resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: "indomitable", amount: 1}]}});
+  if ( !payment.ok ) return offer;
+  const level = (rollerSystem?.classes ?? []).filter(entry => (entry?.id ?? entry?.identifier) === "fighter")
+    .reduce((sum, entry) => sum + (Number(entry.level ?? entry.levels) || 0), 0);
+  const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
+  const option = {value: `indomitable:${roller.uuid}`, payerRef: roller.uuid, plan: payment.mutationPlan, bonus: level,
+    label: format("WILDPATH.INSPIRATION.Indomitable", {bonus: level, value: pool.value})};
+  return offer ? {...offer, options: [...offer.options, option]}
+    : {own: true, chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, label: format("WILDPATH.INSPIRATION.OwnSave", {name: roller?.name ?? ""}),
+      options: [option]};
+}
+
+/**
  * The player characters who may pay for a monster's reroll: those with a Token on the roll's Scene (the table's), each
  * once. None while the GM has turned monster rerolls off.
  */
@@ -1327,8 +1346,10 @@ function foundryConcentrationContext({targetEntries=[], game=globalThis.game, sc
     const sourceRef = refs.find(ref => sustained.has(ref));
     if ( !sourceRef ) continue;
     // Its concentration save adds its Fortitude save bonus (ability modifier and Modifiers).
+    // Its Advantage or Disadvantage on it too: on Fortitude saves, and on Concentration (War Caster, Eldritch Mind).
     const state = {concentrating: true, actorId: actor.id ?? null, actorRef: actor.uuid ?? null, sourceRef,
-      saveBonus: resolveActorSaveStatistic(actor, "fortitude")?.totalModifier ?? null};
+      saveBonus: resolveActorSaveStatistic(actor, "fortitude")?.totalModifier ?? null,
+      rollMode: combineRollModes(actor.getRollModes?.(["save", "save.fortitude", "concentration"]) ?? [])};
     for ( const key of refs ) states[key] = state;
     for ( const {holder, effect} of sustained.get(sourceRef) ) {
       usedHolders.add(holder);

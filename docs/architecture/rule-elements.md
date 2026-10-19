@@ -350,6 +350,10 @@ Modifiers").
   Live (two browsers): Player1's Fireball at a creature with Evasion took nothing on a save, and 15 of 31 on a
   failure.
 
+**Critical range (2026-10-19).** `RollOutcome {domains: ["attack.weapon"], outcome: "critical-range", threshold: 19}`:
+its creature's attacks in those domains score a Critical Hit on a d20 of the threshold or more (Improved Critical).
+`actionCombatStatistics` puts the lowest one into the attack's `policy.criticalHitThreshold`.
+
 **Identical grants count once (2026-10-19).** Grants of one pool add up, except identical ones: the same rule id for
 the same pool. A feature converted into several Actions puts its pool's grant on each (Monk's Focus on Flurry of Blows,
 Patient Defense and Step of the Wind; a Mage's Protective Magic on Counterspell and Shield), and those used to triple or

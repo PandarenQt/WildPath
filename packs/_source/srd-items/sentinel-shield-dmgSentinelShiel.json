@@ -22,6 +22,17 @@
           "modifierType": "untyped",
           "value": 2
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "initiative-advantage-1",
+        "type": "RollMode",
+        "data": {
+          "domains": [
+            "initiative"
+          ],
+          "mode": "advantage"
+        }
       }
     ],
     "attunement": "",
@@ -39,9 +50,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Initiative Advantage\" change system.attributes.init.roll.mode (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

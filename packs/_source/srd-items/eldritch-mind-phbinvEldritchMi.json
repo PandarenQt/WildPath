@@ -7,7 +7,19 @@
   "system": {
     "active": true,
     "description": "<p>You have Advantage on Constitution saving throws that you make to maintain Concentration.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "eldritch-mind-1",
+        "type": "RollMode",
+        "data": {
+          "domains": [
+            "concentration"
+          ],
+          "mode": "advantage"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +33,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Eldritch Mind\" change system.attributes.concentration.roll.mode (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

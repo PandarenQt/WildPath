@@ -1088,6 +1088,32 @@ test("a paladin's auras are auras: Protection to saves, Courage and Devotion to 
   assert.deepEqual(courage.system.ruleElements[0].data.ruleElements[0].data, {conditions: ["frightened"]});
 });
 
+test("class features' dnd5e changes: a critical range, Advantage on Initiative and Concentration, Hit Points", async () => {
+  const {effectRules} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const rules = changes => effectRules({name: "Feature", changes}).map(rule => [rule.type, rule.data]);
+  assert.deepEqual(rules([{key: "flags.dnd5e.weaponCriticalThreshold", mode: 3, value: "19"}]),
+    [["RollOutcome", {domains: ["attack.weapon"], outcome: "critical-range", threshold: 19}]], "Improved Critical");
+  assert.deepEqual(rules([{key: "system.attributes.init.roll.mode", mode: 2, value: "1"}]), [["RollMode", {domains: ["initiative"], mode: "advantage"}]]);
+  assert.deepEqual(rules([{key: "system.attributes.concentration.roll.mode", mode: 2, value: "1"}]),
+    [["RollMode", {domains: ["concentration"], mode: "advantage"}]], "Eldritch Mind");
+  assert.deepEqual(rules([{key: "system.attributes.hp.bonuses.overall", mode: 2, value: "@classes.sorcerer.levels"}])[0][1].domains,
+    ["resources.health.max"], "Draconic Resilience");
+  assert.deepEqual(rules([{key: "system.attributes.hp.bonuses.level", mode: 2, value: "2"}])[0][1].valueExpression,
+    {type: "multiply", terms: [{type: "constant", value: 2}, {type: "character-level"}]}, "2 per level");
+});
+
+test("Action Surge: an Action of its own, paid from its uses, for one more Action this turn", () => {
+  const surge = {_id: "testActionSurge1", name: "Action Surge", type: "feat", img: "icons/svg/aura.svg", effects: [],
+    system: {source: SRD, identifier: "action-surge", type: {value: "class"}, uses: {max: "1", recovery: [{period: "sr", type: "recoverAll"}]},
+      activities: {a: activity("utility", {activation: {type: "special", override: false}})}}};
+  const items = convertItem(surge).items;
+  const action = items.find(item => item.type === "action");
+  assert.deepEqual(action.system.definition.costs, {allOf: [{capability: "action-surge", amount: 1}]}, "no Action of its own");
+  assert.deepEqual(action.system.definition.effects[0].ruleElements[0].data, {domains: ["resources.action.max"], modifierType: "untyped", value: 1});
+  assert.deepEqual(action.system.definition.effects[0].duration, {value: 0, units: "turns", expiry: "turnEnd"});
+  assert.equal(validateActionDefinition(action.system.definition).ok, true);
+});
+
 test("Temporary Hit Points are healing of their own type (False Life)", () => {
   const life = {_id: "testFalseLife001", name: "False Life", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
     system: {source: SRD, identifier: "false-life", level: 1, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},

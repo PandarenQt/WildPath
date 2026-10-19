@@ -7,7 +7,19 @@
   "system": {
     "active": true,
     "description": "<p>Your instincts are so honed that you have Advantage on Initiative rolls.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "feral-instinct-1",
+        "type": "RollMode",
+        "data": {
+          "domains": [
+            "initiative"
+          ],
+          "mode": "advantage"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +33,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Feral Instinct\" change system.attributes.init.roll.mode (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

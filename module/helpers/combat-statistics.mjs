@@ -161,6 +161,13 @@ export function attackRollMode(attacker, target, {type=null, item=null, ability=
 }
 
 /** Whether every hit on `target` is a critical hit (`critical-on-hit`: Paralyzed or Unconscious, within 5 ft). */
+/** `{policy: {criticalHitThreshold}}` when a rule widens the attacker's critical range for this attack, else nothing. */
+function criticalRange(actor, attackDefinition, tags) {
+  const ranges = (actor?.getRollOutcomes?.(["attack", `attack.${attackDefinition?.statistic ?? "weapon"}`], {context: {tags}}) ?? [])
+    .filter(outcome => outcome.outcome === "critical-range").map(outcome => Number(outcome.threshold)).filter(Number.isFinite);
+  return ranges.length ? {policy: {criticalHitThreshold: Math.min(...ranges)}} : {};
+}
+
 export function attackForcesCritical(target, {type=null, context={}}={}) {
   return (target?.getRollOutcomes?.(["attacked", `attacked.${type}`], {context}) ?? [])
     .some(outcome => outcome.outcome === "critical-on-hit");
@@ -207,6 +214,8 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
     attack: statistic ? {
       statistic,
       modifierTotal: statistic.totalModifier,
+      // Its own critical range (Improved Critical: 19-20), the lowest that applies.
+      ...criticalRange(actor, attackDefinition, extraTags),
       ...(statistic.dice?.length ? {dice: statistic.dice} : {}),
       modifiers: [{id: `statistic:${statistic.domain}`, value: statistic.totalModifier, source: statistic.source}]
     } : null

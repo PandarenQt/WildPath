@@ -746,6 +746,7 @@ function normalizeConcentrationState(state, target) {
     ability: state.ability ?? concentration.ability ?? null,
     saveKey: state.saveKey ?? concentration.saveKey ?? null,
     saveBonus: finiteNumber(state.saveBonus ?? concentration.saveBonus),
+    rollMode: state.rollMode ?? concentration.rollMode ?? null,
     metadata: clonePlain(state.metadata ?? concentration.metadata ?? {}) ?? {}
   };
 }
@@ -768,6 +769,7 @@ function createConcentrationCheckRequest({index, target, state, damageResult, da
     saveKey: state.saveKey ?? policy.saveKey,
     ability: state.ability ?? policy.ability,
     saveBonus: state.saveBonus ?? null,
+    rollMode: state.rollMode ?? null,
     damageResult: clonePlain(damageResult),
     metadata: {
       ...(clonePlain(metadata) ?? {}),
