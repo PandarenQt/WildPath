@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 843 automated, 291 manual, 242 features. Creatures: 375.
+Items: 852 automated, 290 manual, 238 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -127,8 +127,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Bag of Holding | equipment24 | Bag of Holding (gear) | — |
 | Bagpipes | equipment24 | Bagpipes (gear), Bagpipes (Play a Known Tune) (automated), Bagpipes (Improvise a Song) (automated) | — |
 | Balance | equipment24 | Balance (gear) | "Card Effect" is passive or triggered: not automated |
-| Ball Bearings | equipment24 | Ball Bearings (Spill Ball Bearings) (automated), Ball Bearings (Recover Ball Bearings) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost; consumption: itemUses -1 not converted |
-| Ball Bearings | equipment24 | Ball Bearings (Spill Ball Bearings) (automated), Ball Bearings (Recover Ball Bearings) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost; consumption: itemUses -1 not converted |
+| Ball Bearings | equipment24 | Ball Bearings (Spill Ball Bearings) (automated), Ball Bearings (Recover Ball Bearings) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
+| Ball Bearings | equipment24 | Ball Bearings (Spill Ball Bearings) (automated), Ball Bearings (Recover Ball Bearings) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
 | Balor | actors24 | Balor (9 items) | Death Throes: "save" is passive or triggered: not automated; Fire Aura: activation: turnEnd is not an action-economy cost; Teleport: not automated (utility): using it spends its cost; its description says the rest |
 | Bandit | actors24 | Bandit (2 items) | — |
 | Bandit Captain | actors24 | Bandit Captain (4 items) | — |
@@ -443,7 +443,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dragon Scale Mail | equipment24 | Dragon Scale Mail (gear) | "Select Dragon Type" is passive or triggered: not automated |
 | Dragon Slayer | equipment24 | Dragon Slayer (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Dragon Turtle | actors24 | Dragon Turtle (6 items) | — |
-| Dragon Wings | classes24 | Dragon Wings (Dragon Wings) (automated) | "Restore Use" is passive or triggered: not automated |
+| Dragon Wings | classes24 | Dragon Wings (Dragon Wings) (automated), Dragon Wings (Restore Use) (automated) | — |
 | Dragon's Breath | spells24 | Dragon's Breath (Cast) (manual), Dragon's Breath (Exhale) (automated) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; concentration: nothing it sustains was converted |
 | Dragonborn | origins24 | Dragonborn (species) | — |
 | Dragonchess | equipment24 | Dragonchess (gear), Dragonchess (Catch Cheating) (automated), Dragonchess (Play to Win) (automated) | — |
@@ -625,7 +625,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Foe Slayer | classes24 | Foe Slayer (feature) | "Improved Hunter's Mark Damage" is passive or triggered: not automated |
 | Fog Cloud | spells24 | Fog Cloud (manual) | not automated (utility): using it spends its cost; its description says the rest; area: 20 * @item.level-ft sphere is not supported; the user picks the targets; concentration: its caster concentrates; what it sustains is by hand |
 | Folding Boat | equipment24 | Folding Boat (gear) | — |
-| Font of Inspiration | classes24 | Font of Inspiration (feature) | "Recharge with Spell Slot" is passive or triggered: not automated |
+| Font of Inspiration | classes24 | Font of Inspiration (automated) | — |
 | Font of Magic | classes24 | Font of Magic (Regain Spell Slot) (automated), Font of Magic (Regain Sorcery Points) (automated) | — |
 | Fool | equipment24 | Fool (gear) | "Card Effect" is passive or triggered: not automated |
 | Forbiddance | spells24 | Forbiddance (Create Ward) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost; "Damage Forbidden Creature" is passive or triggered: not automated |
@@ -686,7 +686,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Giant Wolf Spider | actors24 | Giant Wolf Spider (3 items) | — |
 | Gibbering Mouther | actors24 | Gibbering Mouther (5 items) | Aberrant Ground: "Place Emanation" is passive or triggered: not automated; Gibbering: "save" is passive or triggered: not automated; Gibbering: "Roll d8" is passive or triggered: not automated |
 | Gift of the Depths | classes24 | Gift of the Depths (automated) | effect: "Water Breathing" marks its creature only; its rules are by hand |
-| Gift of the Protectors | classes24 | Gift of the Protectors (Write Name) (manual), Gift of the Protectors (Erase Name) (manual) | "Protect" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted |
+| Gift of the Protectors | classes24 | Gift of the Protectors (Write Name) (manual), Gift of the Protectors (Erase Name) (manual) | "Protect" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest |
 | Glabrezu | actors24 | Glabrezu (12 items) | Pincer: "Escape Check" is passive or triggered: not automated; Spellcasting: effect: "Detect Magic" marks its creature only; its rules are by hand; Spellcasting: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand; Spellcasting: area: @item.level * 5 - 10-ft sphere is not supported; the user picks the targets; Spellcasting: effect: "Confused" marks its creature only; its rules are by hand |
 | Gladiator | actors24 | Gladiator (6 items) | — |
 | Glaive | equipment24 | Glaive (automated) | — |
@@ -791,7 +791,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Hold Person | spells24 | Hold Person (automated) | — |
 | Holy Aura | spells24 | Holy Aura (Create Aura) (automated) | "Fiend/Undead Save" is passive or triggered: not automated |
 | Holy Avenger | equipment24 | Holy Avenger (manual) | not automated (enchant): using it spends its cost; its description says the rest |
-| Holy Nimbus | classes24 | Holy Nimbus (Holy Nimbus) (automated) | "Regain Use" is passive or triggered: not automated |
+| Holy Nimbus | classes24 | Holy Nimbus (Holy Nimbus) (automated), Holy Nimbus (Regain Use) (automated) | — |
 | Holy Symbol (Varies) | equipment24 | Holy Symbol (Varies) (gear) | — |
 | Holy Water | equipment24 | Holy Water (automated) | — |
 | Holy Water | equipment24 | Holy Water (automated) | — |
@@ -848,7 +848,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Instant Fortress | equipment24 | Instant Fortress (gear), Instant Fortress (Grow Tower) (manual), Instant Fortress (Open Fortress Door) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Instant Summons | spells24 | Instant Summons (Inscribe Mark) (manual), Instant Summons (Recall Object) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost; consumption: itemUses -1 not converted |
 | Instinctive Pounce | classes24 | Instinctive Pounce (feature) | — |
-| Intimidating Presence | classes24 | Intimidating Presence (save) (automated) | "Recharge with Rage" is passive or triggered: not automated |
+| Intimidating Presence | classes24 | Intimidating Presence (save) (automated), Intimidating Presence (Recharge with Rage) (automated) | — |
 | Investment of the Chain Master | classes24 | Investment of the Chain Master (Find Familiar with Flight) (automated), Investment of the Chain Master (Find Familiar with Swimming) (automated), Investment of the Chain Master (Invest with Resistance) (automated) | — |
 | Invisibility | spells24 | Invisibility (automated) | — |
 | Invisible Sensor | actors24 | Invisible Sensor (0 items) | — |
@@ -1089,7 +1089,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Pass without Trace | spells24 | Pass without Trace (automated) | — |
 | Passwall | spells24 | Passwall (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Path of the Berserker | classes24 | Path of the Berserker (subclass) | — |
-| Pearl of Power | equipment24 | Pearl of Power (gear), Pearl of Power (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: spellSlots -1 not converted |
+| Pearl of Power | equipment24 | Pearl of Power (gear), Pearl of Power (automated) | — |
 | Peerless Skill | classes24 | Peerless Skill (feature) | "utility" is passive or triggered: not automated |
 | Pegasus | actors24 | Pegasus (2 items) | — |
 | Perfect Focus | classes24 | Perfect Focus (feature) | — |
@@ -1386,8 +1386,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Soldier | origins24 | Soldier (background) | languages are not tracked |
 | Sorcerer | classes24 | Sorcerer (class) | — |
 | Sorcerous Burst | spells24 | Sorcerous Burst (automated) | damage 1: custom formula "1d8x@mod=8" not converted; rolled (attack); what it does is by hand |
-| Sorcerous Restoration | classes24 | Sorcerous Restoration (feature) | "Restore Sorcery Points" is passive or triggered: not automated |
-| Sorcery Incarnate | classes24 | Sorcery Incarnate (feature) | "Restore Innate Sorcery" is passive or triggered: not automated |
+| Sorcerous Restoration | classes24 | Sorcerous Restoration (automated) | — |
+| Sorcery Incarnate | classes24 | Sorcery Incarnate (automated) | — |
 | Sovereign Glue | equipment24 | Sovereign Glue (gear), Sovereign Glue (Apply Glue) (manual) | "Determine Ounces" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest; area: @scaling-ft square is not supported; the user picks the targets |
 | Spare the Dying | spells24 | Spare the Dying (automated) | effect: stable is not a WildPath condition yet; effect: "Stabilized" marks its creature only; its rules are by hand |
 | Speak with Animals | spells24 | Speak with Animals (automated) | effect: "Bestial Communication" change system.traits.languages.custom (add) not converted; effect: "Bestial Communication" marks its creature only; its rules are by hand |
@@ -1667,7 +1667,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Wholeness of Body | classes24 | Wholeness of Body (automated) | — |
 | Wight | actors24 | Wight (6 items) | Life Drain: "Zombie Rises" is passive or triggered: not automated |
 | Wild Companion | classes24 | Wild Companion (Summon with Spell Slot) (automated), Wild Companion (Summon with Wild Shape) (automated) | — |
-| Wild Resurgence | classes24 | Wild Resurgence (feature) | "Regain Wild Shape" is passive or triggered: not automated; "Regain Spell Slot" is passive or triggered: not automated |
+| Wild Resurgence | classes24 | Wild Resurgence (Regain Wild Shape) (automated), Wild Resurgence (Regain Spell Slot) (automated) | — |
 | Wild Shape | classes24 | Wild Shape (automated), Wild Shape (Revert) (automated) | — |
 | Will-o'-Wisp | actors24 | Will-o'-Wisp (7 items) | Consume Life: "Wisp: Healing" is passive or triggered: not automated |
 | Wind Fan | equipment24 | Wind Fan (gear), Wind Fan: Gust of Wind (automated) | save: a failure marks its creature only; what it does is by hand |

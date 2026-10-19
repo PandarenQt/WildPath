@@ -260,34 +260,6 @@ const OWN_HIT = Object.freeze({
  * - Each blow answers a hit so tagged, once a turn between them.
  * shortcut: Forceful Blow's "toward the target" is by hand.
  */
-/** 2024 Creating Spell Slots: each slot level's cost in Sorcery Points. */
-const SLOT_COSTS = Object.freeze({1: 2, 2: 3, 3: 5, 4: 6, 5: 7});
-
-/**
- * 2024 Font of Magic's two conversions, from its pool (`font-of-magic`):
- * - Regain Spell Slot (a Bonus Action): a slot level, each costing its points and giving back one slot of that level.
- * - Regain Sorcery Points (no action): a spent slot of any level, giving back that many points.
- * Either is refused when what it gives back is full or missing (a slot level its sorcerer has none of: the table's
- * minimum Sorcerer level, single-class). shortcut: a created slot stays within the slot maximum and does not vanish
- * on a Long Rest; multiclass slot levels follow the slot pools.
- */
-function fontOfMagicDefinition(activity, pool) {
-  const base = {schemaVersion: 1, id: `action:srd-font-of-magic-${slugify(activity.name ?? "")}`, range: {type: "self"}, targeting: {type: "self"}};
-  if ( activity.name === "Regain Spell Slot" ) return {...base, costs: {allOf: [{capability: "bonus-action", amount: 1}]},
-    configuration: [{id: "slot-level", type: "select-one", label: "Spell slot", required: true,
-      options: Object.entries(SLOT_COSTS).map(([level, cost]) => ({id: `level-${level}`, label: `Level ${level} (${cost} Sorcery Points)`,
-        value: Number(level), effects: [{type: "add-cost", cost: {allOf: [{capability: pool.id, amount: cost}]}},
-          {type: "restore", resourceId: `spell-slot.${level}`, amount: 1}]}))}]};
-  if ( activity.name === "Regain Sorcery Points" ) {
-    const levels = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    return {...base, costs: {allOf: []}, configuration: [{id: "slot", type: "resource", label: "Spell slot", required: true,
-      cost: {anyOf: levels.map(level => [{capability: `spell-slot.${level}`, amount: 1}])},
-      levelByResourceId: Object.fromEntries(levels.map(level => [`spell-slot.${level}`, level])),
-      effects: [{type: "restore", resourceId: pool.id, levelChoiceId: "slot"}]}]};
-  }
-  return null;
-}
-
 /** Improved Brutal Strike (barbarian level 17): two blows on one Brutal Strike's hit. */
 const BLOW_USES = {type: "table", key: {type: "class-level", class: "barbarian"}, rows: {1: 1, 17: 2}};
 
@@ -678,8 +650,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( enchant && (activity.type !== "enchant") ) continue;
     // Brutal Strike's Actions are its own (brutalStrikeActions), not its dnd5e damage activity.
     if ( ["brutal-strike", "improved-brutal-strike"].includes(identifierOf(document)) ) continue;
-    const font = (identifierOf(document) === "font-of-magic") && pool;
-    if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !font ) {
+    // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use): used, though dnd5e may leave it passive.
+    const trades = tradesPools({document, activity, pool, names, scales});
+    if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !trades ) {
       // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.
       const marked = (activity.type === "damage") && Object.values(EFFECTS_BY_HAND).some(hand => hand.bonusDamage === label);
       // A feature the engine offers on its own (Tactical Mind, with a failed check) needs no Action.
@@ -696,9 +669,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         continue;
       }
     }
-    let definition = (font ? fontOfMagicDefinition(activity, pool) : null)
+    let definition = ((trades && (activity.type === "utility")) ? {...manualDefinition({document, activity, system, spell, level, notes,
+      pool, names, scales}), range: {type: "self"}, targeting: {type: "self"}} : null)
       ?? commonActivity({document, activity, system, spell, level, pool}) ?? (ACTIVITIES.has(activity.type)
-      ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature, beasts})
+      ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature, beasts, names})
       : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts})
         : ((activity.type === "teleport") ? teleportDefinition({document, activity, system, spell, level, notes, pool})
           : ((activity.type === "transform") ? wildShapeDefinition({document, activity, system, spell, level, notes, pool, beasts})
@@ -706,7 +680,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( !definition ) {
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type})`}: using it spends its cost; its description says the rest`);
-      definition = manualDefinition({document, activity, system, spell, level, notes, pool});
+      definition = manualDefinition({document, activity, system, spell, level, notes, pool, names, scales});
     }
     // A spell that fills its area with light (2024 Daylight's sunlight) is a lasting area shedding it.
     const shedding = spell ? sheddingArea({document, activity, system, definition}) : null;
@@ -1383,7 +1357,8 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   const charge = (activity.consumption?.targets ?? []).length ? null
     : /\bexpend (\d+) (?:of its )?charges?\b[^.]*\bcast\b/i.exec(plainText(document));
   const paying = charge ? {...activity, consumption: {...activity.consumption, targets: [{type: "itemUses", value: charge[1]}]}} : activity;
-  const base = baseDefinition({document, activity: paying, system, spell: false, notes, pool: itemPool});
+  const base = baseDefinition({document, activity: paying, system, spell: false, notes, pool: itemPool, names: options.names ?? {},
+    scales: options.scales ?? {}});
   const definition = {...action.system.definition, id: `${base.id}-${slugify(spellDocument.name)}`,
     label: options.creature ? spellDocument.name : `${document.name}: ${spellDocument.name}`,
     tags: [...new Set([...(action.system.definition.tags ?? []), "spell"])], costs: base.costs};
@@ -1565,8 +1540,8 @@ function summonBonus(formula) {
 }
 
 /** The Action of something used but not automated: its cost, its uses and, for a spell, its slot. */
-function manualDefinition({document, activity, system, spell, level, notes, pool}) {
-  const definition = baseDefinition({document, activity, system, spell, notes, pool});
+function manualDefinition({document, activity, system, spell, level, notes, pool, names={}, scales={}}) {
+  const definition = baseDefinition({document, activity, system, spell, notes, pool, names, scales});
   if ( spell && level && SLOT_MODES.has(system.preparation?.mode ?? "prepared") && (activity.consumption?.spellSlot !== false) ) {
     definition.configuration = slotConfiguration(level, []);
   }
@@ -1632,8 +1607,119 @@ function poolOf(uses, {id, label, scales}) {
       ...(Object.keys(regain).length ? {regain} : {})}}};
 }
 
+/** A consumption value that gives back ("-1", "-@scale.barbarian.rage", "0 - @scaling"). */
+const givesBack = value => /^(-|0\s*-)/.test(String(value ?? "").trim());
+
+/**
+ * Whether an activity trades one pool for another, all of it converted (it spends one and gives another back): Wild
+ * Resurgence, Font of Magic, Font of Inspiration's and Holy Nimbus' recharges. Not one used when its creature rolls
+ * Initiative, nor a pact slot's (Hurl Through Hell).
+ */
+function tradesPools({document, activity, pool, names, scales}) {
+  const targets = activity?.consumption?.targets ?? [];
+  if ( /initiative/i.test(`${activity?.name ?? ""} ${activity?.activation?.condition ?? ""}`)
+    || !targets.some(target => givesBack(target.value)) || !targets.some(target => !givesBack(target.value)) ) return false;
+  const notes = [];
+  consumptionDefinition({costs: {allOf: []}}, {document, activity, notes, pool, names, scales});
+  return !notes.length;
+}
+
+/**
+ * The pool a dnd5e consumption target names: its item's own (no target), else another feature's, by its name; without
+ * the names (a converter path that has none), the item's pool.
+ */
+function targetPoolId(target, pool, names) {
+  if ( !target.target ) return pool?.id ?? null;
+  const name = names[target.target] ?? names[String(target.target).split(".").pop()];
+  return name ? slugify(name) : (pool?.id ?? null);
+}
+
+/**
+ * Its consumption targets (dnd5e), on the definition:
+ * - what it spends: a cost on the pool each names (its own, or another feature's: Dragon Wings' Sorcery Points);
+ * - what it gives back: `restores`, refused while full, a formula worked out when used (`amountExpression`);
+ * - a spell slot it spends: a slot choice from that level up (scaling with it: Regain Sorcery Points' points);
+ * - a spell slot it gives back by level: a choice of level, each costing its points (Font of Magic's 2/3/5/6/7).
+ */
+function consumptionDefinition(definition, {document, activity, notes, pool, names, scales}) {
+  const targets = activity.consumption?.targets ?? [];
+  const scaling = activity.consumption?.scaling ?? {};
+  const byLevel = scaling.allowed ? targets.find(target => (target.type === "spellSlots") && (target.scaling?.mode === "level")) : null;
+  // A spell's own uses given back are its bookkeeping (Tsunami's rounds), not a pool its caster refills.
+  const spell = document.type === "spell";
+  const restores = [];
+  const slotLevels = [];
+  const scaled = [];
+  const note = target => notes.push(`consumption: ${target.type} ${target.value ?? ""} not converted`.trim());
+  const poolOfTarget = target => ((target.type === "itemUses") ? targetPoolId(target, pool, names)
+    : ((target.type === "activityUses") ? activityPool({document, activity})?.id ?? null : null));
+  for ( const target of targets ) {
+    if ( target === byLevel ) continue;
+    const text = String(target.value ?? "").trim();
+    // An amount chosen when used (Ioun Stone of Reserve's "by level"), or rolled (Bag of Beans' 3d4), stays by hand.
+    if ( givesBack(text) && ((scaling.allowed && (target.scaling?.mode === "amount") && !text.includes("@scaling"))
+      || /\dd\d/i.test(text) || spell) ) {
+      note(target);
+      continue;
+    }
+    if ( text.includes("@scaling") ) {
+      if ( byLevel && poolOfTarget(target) ) scaled.push({target, id: poolOfTarget(target), text});
+      else note(target);
+      continue;
+    }
+    const amount = (text === "") ? 1 : number(text);
+    if ( target.type === "spellSlots" ) {
+      const slot = number(target.target) || 1;
+      if ( amount > 0 ) slotLevels.push(slot);
+      else if ( amount < 0 ) restores.push({resourceId: `spell-slot.${slot}`, amount: -amount, refuseWhenFull: true});
+      else note(target);
+      continue;
+    }
+    const id = poolOfTarget(target);
+    // A formula given back (Persistent Rage's "-@scale.barbarian.rage"): worked out for its creature when used.
+    const expression = ((amount == null) && text.startsWith("-")) ? formulaExpression(text.slice(1), {scales}) : null;
+    if ( !id || !(amount || expression) ) note(target);
+    else if ( amount > 0 ) definition.costs.allOf.push({capability: id, amount});
+    else restores.push({resourceId: id, amount: expression ? 1 : -amount, ...(expression ? {amountExpression: expression} : {}),
+      refuseWhenFull: true});
+  }
+  const lowest = byLevel ? (number(byLevel.target) || 1) : null;
+  const highest = byLevel ? Math.min(number(scaling.max) ?? 9, 9) : 9;
+  if ( byLevel && (number(byLevel.value) < 0) ) {
+    // A slot given back by level: each level an option, costing what its scaled targets say at that level.
+    if ( number(scaling.max) == null ) {
+      note(byLevel);
+      return definition;
+    }
+    const options = [];
+    for ( let level = lowest; level <= highest; level++ ) {
+      const costs = scaled.map(({target, id, text}) => ({target, id, amount: evaluateValueExpression(formulaExpression(
+        text.replaceAll("@scaling", String(level - lowest + 1)), {scales}), {}).value}));
+      const label = costs.map(({target, amount}) => `${amount} ${target.target ? (names[target.target] ?? names[String(target.target)
+        .split(".").pop()] ?? "") : document.name}`).join(", ");
+      options.push({id: `level-${level}`, label: `Level ${level}${label ? ` (${label})` : ""}`, value: level, effects: [
+        ...costs.filter(cost => cost.amount > 0).map(cost => ({type: "add-cost", cost: {allOf: [{capability: cost.id, amount: cost.amount}]}})),
+        {type: "restore", resourceId: `spell-slot.${level}`, amount: 1}]});
+    }
+    definition.configuration = [...(definition.configuration ?? []), {id: "slot-level", type: "select-one", label: "Spell slot",
+      required: true, options}];
+  } else if ( byLevel || slotLevels.length ) {
+    // A slot spent: that level or higher. Its level is what a scaled target gives back (Regain Sorcery Points: the
+    // slot's level in points).
+    const from = byLevel ? lowest : Math.min(...slotLevels);
+    const levels = Array.from({length: highest - from + 1}, (_, offset) => from + offset);
+    const effects = scaled.flatMap(({target, id, text}) => ((/^(0\s*-|-)\s*@scaling$/.test(text) && (from === 1))
+      ? [{type: "restore", resourceId: id, levelChoiceId: "slot"}] : (note(target), [])));
+    definition.configuration = [...(definition.configuration ?? []), {id: "slot", type: "resource", label: "Spell slot", required: true,
+      cost: {anyOf: levels.map(level => [{capability: `spell-slot.${level}`, amount: 1}])},
+      levelByResourceId: Object.fromEntries(levels.map(level => [`spell-slot.${level}`, level])), ...(effects.length ? {effects} : {})}];
+  } else for ( const {target} of scaled ) note(target);
+  if ( restores.length ) definition.restores = restores;
+  return definition;
+}
+
 /** An Action's identity and costs: its activation in the action economy and the uses it spends. */
-function baseDefinition({document, activity, system, spell, notes, pool}) {
+function baseDefinition({document, activity, system, spell, notes, pool, names={}, scales={}}) {
   const activation = pick(activity, system, "activation");
   // A magic item's Action is magical (Magic Resistance); a spell is magical without saying so.
   const tags = [...(spell ? ["spell"] : []), ...((system.properties ?? []).includes("mgc") ? ["magical"] : [])];
@@ -1645,16 +1731,7 @@ function baseDefinition({document, activity, system, spell, notes, pool}) {
     definition.costs = {allOf: []};
     if ( activation.type ) notes.push(`activation: ${activation.value ?? ""} ${activation.type} is not an action-economy cost`.replace(/\s+/g, " "));
   }
-  for ( const target of activity.consumption?.targets ?? [] ) {
-    const amount = target.value === "" || target.value == null ? 1 : number(target.value);
-    // A negative consumption gives a use back; that is not a cost.
-    if ( (target.type === "itemUses") && pool && (amount > 0) ) definition.costs.allOf.push({capability: pool.id, amount});
-    else if ( (target.type === "activityUses") && activityPool({document, activity}) && (amount > 0) ) {
-      definition.costs.allOf.push({capability: activityPool({document, activity}).id, amount});
-    }
-    else notes.push(`consumption: ${target.type} ${target.value ?? ""} not converted`.trim());
-  }
-  return definition;
+  return consumptionDefinition(definition, {document, activity, notes, pool, names, scales});
 }
 
 /**
@@ -1688,8 +1765,9 @@ export function weaponOf(document) {
   return {category, ...(base ? {base} : {}), ...(document.system?.mastery ? {mastery: document.system.mastery} : {})};
 }
 
-function convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC=null, creature=null, beasts=[]}) {
-  const definition = baseDefinition({document, activity, system, spell, notes, pool});
+function convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC=null, creature=null, beasts=[],
+  names={}}) {
+  const definition = baseDefinition({document, activity, system, spell, notes, pool, names, scales});
 
   const attackData = activity.type === "attack" ? activity.attack ?? {} : null;
   const attack = attackData ? {type: attackData.type?.value || (document.system?.range?.long ? "ranged" : "melee"),

@@ -1,0 +1,69 @@
+{
+  "_id": "1yhh5661p9dup600",
+  "_key": "!items!1yhh5661p9dup600",
+  "name": "Intimidating Presence (Recharge with Rage)",
+  "type": "action",
+  "img": "icons/creatures/magical/construct-iron-stomping-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Bonus Action, you can strike terror into others with your menacing presence and primal power. When you do so, each creature of your choice in a 30-foot Emanation originating from you must make a Wisdom saving throw (DC 8 plus your Strength modifier and Proficiency Bonus). On a failed save, a creature has the Frightened condition for 1 minute. At the end of each of the Frightened creature's turns, the creature repeats the save, ending the effect on itself on a success.</p><p>Once you use this feature, you can't use it again until you finish a Long Rest unless you expend a use of your Rage (no action required) to restore your use of it.</p><section class=\"secret\" id=\"secret-vRQdGrtACAbxH4Tm\"><p><strong>Foundry Note</strong></p><p>The <strong>Save</strong> activity includes an Active Effect which adds the Frightened condition.</p><p>The <strong>Recharge</strong> activity consumes a use of Rage and recharges your use of Intimidating Presence.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-intimidating-presence-recharge-with-rage",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "rage",
+            "amount": 1
+          }
+        ]
+      },
+      "restores": [
+        {
+          "resourceId": "intimidating-presence",
+          "amount": 1,
+          "refuseWhenFull": true
+        }
+      ],
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "label": "Intimidating Presence (Recharge with Rage)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "intimidating-presence-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "intimidating-presence",
+          "label": "Intimidating Presence",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbIntimidati",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

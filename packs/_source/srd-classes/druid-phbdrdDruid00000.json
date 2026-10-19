@@ -37,7 +37,8 @@
         "title": "Class Features",
         "type": "grant",
         "items": [
-          "Compendium.wildpath.srd-items.Item.phbdrdWildResurg"
+          "Compendium.wildpath.srd-items.Item.phbdrdWildResurg",
+          "Compendium.wildpath.srd-items.Item.ioonfu2p71060000"
         ],
         "optional": false
       },

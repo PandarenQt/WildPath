@@ -144,6 +144,12 @@ back. Multiattack uses it: it costs the Action and restores its "Multiattack" po
 A payment never refills a pool it drew from. Extra Attack depends on this: an attack paid from its pool must not
 refill it (rule-elements.md, "Extra Attack").
 
+Two optional fields (2026-10-19):
+- `refuseWhenFull: true` refuses the Action (`RESOURCE_FULL`, at payment) while that pool is full. Dragon Wings'
+  Restore Use is refused when its use is already there.
+- `amountExpression` is a ValueExpression worked out for the payer, in place of `amount`. Sorcerous Restoration gives
+  back half its sorcerer level.
+
 ## Up to N targets (2026-10-14)
 
 A required `count` means exactly that many targets, unless `targeting.refinementPolicy.minSelections` says

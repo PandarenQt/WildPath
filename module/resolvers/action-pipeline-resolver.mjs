@@ -2156,6 +2156,10 @@ function createPaymentStage() {
 
       // The pools the Action refills (Multiattack) join its payment.
       payment.mutationPlan = withResourceRestores(input.actorSystem, payment.mutationPlan, state.actionDefinition?.restores ?? []);
+      if ( !payment.mutationPlan?.ok ) {
+        return failActionPlanningStage({state, input, actionResult, stage: ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT,
+          code: ACTION_RESOLVER_CODES.PAYMENT_UNAVAILABLE, reason: payment.mutationPlan?.code ?? "RESOURCE_FULL", data: {payment}});
+      }
 
       const paymentRequiredEvent = createActionLifecycleEvent(actionContext, {
         type: AUTOMATION_EVENT_TYPES.PAYMENT_REQUIRED,

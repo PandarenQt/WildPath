@@ -1,0 +1,141 @@
+{
+  "_id": "phbdrdWildResurg",
+  "_key": "!items!phbdrdWildResurg",
+  "name": "Wild Resurgence (Regain Wild Shape)",
+  "type": "action",
+  "img": "icons/magic/life/cross-worn-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Once on each of your turns, if you have no uses of Wild Shape left, you can give yourself one use by expending a spell slot (no action required).</p><p>In addition, you can expend one use of Wild Shape (no action required) to give yourself a level 1 spell slot, but you can't do so again until you finish a Long Rest.</p><section class=\"secret\" id=\"secret-b0eq9t1Lkei4tN53\"><p><strong>Foundry Note</strong></p><p>The <strong>Regain Wild Shape</strong> activity consumes a spell slot and grants you another use of Wild Shape.</p><p>The <strong>Regain Spell Slot</strong> activity will consume a use of Wild Shape and grant you a level 1 spell slot.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-wild-resurgence-regain-wild-shape",
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.1",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.2",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.3",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.1": 1,
+            "spell-slot.2": 2,
+            "spell-slot.3": 3,
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          }
+        }
+      ],
+      "restores": [
+        {
+          "resourceId": "wild-shape",
+          "amount": 1,
+          "refuseWhenFull": true
+        }
+      ],
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "label": "Wild Resurgence (Regain Wild Shape)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "wild-resurgence-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "wild-resurgence",
+          "label": "Wild Resurgence",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbdrdWildResurg",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

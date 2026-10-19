@@ -1,0 +1,113 @@
+{
+  "_id": "2hf004jww94g0000",
+  "_key": "!items!2hf004jww94g0000",
+  "name": "Holy Nimbus (Regain Use)",
+  "type": "action",
+  "img": "icons/magic/light/explosion-star-glow-blue-purple.webp",
+  "system": {
+    "active": true,
+    "description": "<p>As a Bonus Action, you can imbue your Aura of Protection with holy power, granting the benefits below for 10 minutes or until you end them (no action required). Once you use this feature, you can't use it again until you finish a Long Rest. You can also restore your use of it by expending a level 5 spell slot (no action required).</p><p><strong>Holy Ward.</strong> You have Advantage on any saving throw you are forced to make by a Fiend or an Undead.</p><p><strong>Radiant Damage.</strong> Whenever an enemy starts its turn in the aura, that creature takes Radiant damage equal to your Charisma modifier plus your Proficiency Bonus.</p><p><strong>Sunlight.</strong> The aura is filled with Bright Light that is sunlight.</p><section id=\"secret-WendmZ2xiuj3cSwE\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect for tracking your Holy Nimbus but it does not automate the Advantage on Saving Throws.</p><p>The <strong>Holy Nimbus</strong> activity includes a damage roll.</p><p>The <strong>Regain Use</strong> activity will consume a 5th level spell slot and restore a use of this feature.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-holy-nimbus-regain-use",
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          }
+        }
+      ],
+      "restores": [
+        {
+          "resourceId": "holy-nimbus",
+          "amount": 1,
+          "refuseWhenFull": true
+        }
+      ],
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "label": "Holy Nimbus (Regain Use)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "holy-nimbus-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "holy-nimbus",
+          "label": "Holy Nimbus",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbpdnHolyNimbus",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

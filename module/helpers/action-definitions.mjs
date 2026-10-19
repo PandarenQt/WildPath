@@ -147,8 +147,12 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // Cloud, Detect Thoughts): a marker on the caster, which a new concentration, damage or Incapacitated ends.
     ...(raw.concentration ? {concentration: normalizePlainComponent(raw.concentration)} : {}),
     // Pools of the acting creature the Action refills when it is used (Multiattack's attacks, a use given back).
+    // `amountExpression`: an amount worked out for its creature (Sorcerous Restoration's half its sorcerer level);
+    // `refuseWhenFull`: the Action is refused while that pool is full (Dragon Wings' Restore Use).
     ...(Array.isArray(raw.restores) && raw.restores.length ? {restores: raw.restores.map(entry => ({
-      resourceId: stringOrNull(entry?.resourceId ?? entry?.resource), amount: finiteNumber(entry?.amount) ?? 1}))} : {}),
+      resourceId: stringOrNull(entry?.resourceId ?? entry?.resource), amount: finiteNumber(entry?.amount) ?? 1,
+      ...(entry?.amountExpression ? {amountExpression: clonePlain(entry.amountExpression)} : {}),
+      ...(entry?.refuseWhenFull === true ? {refuseWhenFull: true} : {})}))} : {}),
     configuration: normalizeArray(raw.configuration ?? raw.configurations).map(clonePlain),
     ruleElements: normalizeArray(raw.ruleElements).map(clonePlain),
     policies: clonePlain(raw.policies ?? raw.resolutionPolicies ?? {}) ?? {},

@@ -10,12 +10,6 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-font-of-magic-regain-sorcery-points",
-      "range": {
-        "type": "self"
-      },
-      "targeting": {
-        "type": "self"
-      },
       "costs": {
         "allOf": []
       },
@@ -103,6 +97,12 @@
           ]
         }
       ],
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
       "label": "Font of Magic (Regain Sorcery Points)"
     },
     "ruleElements": [
