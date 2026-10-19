@@ -461,6 +461,12 @@ Builder -> structured definition -> save -> reopen -> Builder
 without losing meaning. The domain schema remains the source of truth; UI state must not become the
 canonical mechanics model.
 
+## Escape DC (2026-10-19)
+
+A Grappled or Restrained condition row has an "Escape DC" field (`effects[].metadata.escapeDC`), which the common
+Escape action rolls against. SRD fully editable Actions rose from 2,329 to 2,363. Live: the SRD Rope of
+Entanglement's row showed 15, and saving 12 changed its definition.
+
 ## Duplicate, Compendium, Import, and Export
 
 The finished product should support:
