@@ -29,6 +29,20 @@
         "saveProficient": true
       }
     },
+    "skills": {
+      "arcana": {
+        "proficiency": 1
+      },
+      "athletics": {
+        "proficiency": 1
+      },
+      "history": {
+        "proficiency": 1
+      },
+      "perception": {
+        "proficiency": 1
+      }
+    },
     "defenses": {
       "ac": {
         "value": 16

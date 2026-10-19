@@ -29,6 +29,17 @@
         "value": 18
       }
     },
+    "skills": {
+      "arcana": {
+        "proficiency": 1
+      },
+      "perception": {
+        "proficiency": 1
+      },
+      "religion": {
+        "proficiency": 2
+      }
+    },
     "defenses": {
       "ac": {
         "value": 17

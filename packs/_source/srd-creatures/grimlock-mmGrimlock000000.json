@@ -25,6 +25,17 @@
         "value": 6
       }
     },
+    "skills": {
+      "athletics": {
+        "proficiency": 1
+      },
+      "perception": {
+        "proficiency": 2
+      },
+      "stealth": {
+        "proficiency": 2
+      }
+    },
     "defenses": {
       "ac": {
         "value": 11

@@ -283,7 +283,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Circlet of Blasting | equipment24 | Circlet of Blasting (gear), Circlet of Blasting: Scorching Ray (automated) | — |
 | Clairvoyance | spells24 | Clairvoyance (automated) | — |
 | Clawed Gauntlet | equipment24 | Clawed Gauntlet (automated) | — |
-| Clay Golem | actors24 | Clay Golem (9 items) | Berserk: "Berserk Check" is passive or triggered: not automated; Hasten: not automated (utility): using it spends its cost; its description says the rest |
+| Clay Golem | actors24 | Clay Golem (9 items) | Berserk: "Berserk Check" is passive or triggered: not automated |
 | Cleric | classes24 | Cleric (class) | — |
 | Climber's Kit | equipment24 | Climber's Kit (gear) | — |
 | Cloak of Arachnida | equipment24 | Cloak of Arachnida (gear), Cloak of Arachnida: Web (automated) | — |
@@ -706,9 +706,9 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Gnomish Lineage, Rock | origins24 | Gnomish Lineage, Rock (feature) | — |
 | Goat | actors24 | Goat (3 items) | — |
 | Goat of Traveling | actors24 | Goat of Traveling (1 items) | — |
-| Goblin Boss | actors24 | Goblin Boss (7 items) | Nimble Escape: not automated (utility): using it spends its cost; its description says the rest; Nimble Escape: effect: hiding is not a WildPath condition yet; Redirect Attack: not automated (utility): using it spends its cost; its description says the rest |
-| Goblin Minion | actors24 | Goblin Minion (2 items) | Nimble Escape: not automated (utility): using it spends its cost; its description says the rest; Nimble Escape: effect: hiding is not a WildPath condition yet |
-| Goblin Warrior | actors24 | Goblin Warrior (5 items) | Nimble Escape: not automated (utility): using it spends its cost; its description says the rest; Nimble Escape: effect: hiding is not a WildPath condition yet |
+| Goblin Boss | actors24 | Goblin Boss (8 items) | Redirect Attack: not automated (utility): using it spends its cost; its description says the rest |
+| Goblin Minion | actors24 | Goblin Minion (3 items) | — |
+| Goblin Warrior | actors24 | Goblin Warrior (6 items) | — |
 | Goggles of Night | equipment24 | Goggles of Night (gear) | effect: "Goggles On" change system.attributes.senses.darkvision (add) not converted |
 | Gold Dragon Wyrmling | actors24 | Gold Dragon Wyrmling (6 items) | — |
 | Golden Lions | equipment24 | Golden Lions (gear), Golden Lions (Use First Lion) (manual), Golden Lions (Use Second Lion) (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
@@ -1080,7 +1080,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Paladin's Smite | classes24 | Paladin's Smite (feature) | — |
 | Pale Tincture | equipment24 | Pale Tincture (gear) | "Use Poison" is passive or triggered: not automated |
 | Pan Flute | equipment24 | Pan Flute (gear), Pan Flute (Play a Known Tune) (automated), Pan Flute (Improvise a Song) (automated) | — |
-| Panther | actors24 | Panther (3 items) | Nimble Escape: not automated (utility): using it spends its cost; its description says the rest; Nimble Escape: effect: hiding is not a WildPath condition yet |
+| Panther | actors24 | Panther (4 items) | — |
 | Paper | equipment24 | Paper (gear) | — |
 | Paper | equipment24 | Paper (gear) | — |
 | Parchment | equipment24 | Parchment (gear) | — |
@@ -1299,7 +1299,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ruin | equipment24 | Ruin (gear) | "Card Effect" is passive or triggered: not automated |
 | Rust Bag of Tricks | equipment24 | Rust Bag of Tricks (gear), Rust Bag of Tricks (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
 | Rust Monster | actors24 | Rust Monster (6 items) | Iron Scent: "Expend Use" is passive or triggered: not automated; Antennae: rolled (save); what it does is by hand; Destroy Metal: not automated (utility): using it spends its cost; its description says the rest; Reflexive Antennae: not automated (utility): using it spends its cost; its description says the rest |
-| Saber-Toothed Tiger | actors24 | Saber-Toothed Tiger (4 items) | Nimble Escape: not automated (utility): using it spends its cost; its description says the rest; Nimble Escape: effect: hiding is not a WildPath condition yet |
+| Saber-Toothed Tiger | actors24 | Saber-Toothed Tiger (5 items) | — |
 | Sack | equipment24 | Sack (gear) | — |
 | Sacred Flame | spells24 | Sacred Flame (automated) | — |
 | Sacred Weapon | classes24 | Sacred Weapon (feature) | "enchant" is passive or triggered: not automated |
@@ -1526,7 +1526,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Tiefling, Abyssal | origins24 | Tiefling, Abyssal (species) | — |
 | Tiefling, Chthonic | origins24 | Tiefling, Chthonic (species) | — |
 | Tiefling, Infernal | origins24 | Tiefling, Infernal (species) | — |
-| Tiger | actors24 | Tiger (2 items) | Nimble Escape: not automated (utility): using it spends its cost; its description says the rest; Nimble Escape: effect: hiding is not a WildPath condition yet |
+| Tiger | actors24 | Tiger (3 items) | — |
 | Time Stop | spells24 | Time Stop (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility): using it spends its cost; its description says the rest |
@@ -1583,8 +1583,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Unseen Servant | actors24 | Unseen Servant (0 items) | — |
 | Use Magic Device | classes24 | Use Magic Device (feature) | effect: "Attunement Bonus" change system.attributes.attunement.max (add) not converted |
 | Vampire | actors24 | Vampire (13 items) | Misty Escape: "Paralyzed" is passive or triggered: not automated; Multiattack (Vampire Form Only): not automated (utility): using it spends its cost; its description says the rest; Grave Strike (Vampire Form Only): "Escape Check" is passive or triggered: not automated; Beguile: rolled (save); what it does is by hand; Deathless Strike: not automated (utility): using it spends its cost; its description says the rest; Vampire Weakness: "Damage: Running Water" is passive or triggered: not automated; Vampire Weakness: "Staked to the Heart" is passive or triggered: not automated; Vampire Weakness: "Damage: Sunlight" is passive or triggered: not automated |
-| Vampire Familiar | actors24 | Vampire Familiar (5 items) | Deathless Agility: not automated (utility): using it spends its cost; its description says the rest |
-| Vampire Spawn | actors24 | Vampire Spawn (7 items) | Claw: "Escape Check" is passive or triggered: not automated; Deathless Agility: not automated (utility): using it spends its cost; its description says the rest; Vampire Weakness: "Damage: Running Water" is passive or triggered: not automated; Vampire Weakness: "Staked to the Heart" is passive or triggered: not automated; Vampire Weakness: "Damage: Sunlight" is passive or triggered: not automated |
+| Vampire Familiar | actors24 | Vampire Familiar (6 items) | — |
+| Vampire Spawn | actors24 | Vampire Spawn (8 items) | Claw: "Escape Check" is passive or triggered: not automated; Vampire Weakness: "Damage: Running Water" is passive or triggered: not automated; Vampire Weakness: "Staked to the Heart" is passive or triggered: not automated; Vampire Weakness: "Damage: Sunlight" is passive or triggered: not automated |
 | Vampiric Touch | spells24 | Vampiric Touch (automated) | concentration: nothing it sustains was converted |
 | Venomous Snake | actors24 | Venomous Snake (2 items) | — |
 | Versatile | origins24 | Versatile (feature) | — |

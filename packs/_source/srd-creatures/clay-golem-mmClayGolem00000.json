@@ -25,6 +25,7 @@
         "value": 1
       }
     },
+    "skills": {},
     "defenses": {
       "ac": {
         "value": 14
@@ -411,6 +412,65 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "dashing",
+              "type": "effect",
+              "name": "Dashing",
+              "slug": "dashing",
+              "img": "icons/svg/wingfoot.svg",
+              "duration": {
+                "value": 0,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "dash",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "resources.movement.max"
+                    ],
+                    "modifierType": "untyped",
+                    "valueExpression": {
+                      "type": "add",
+                      "terms": [
+                        {
+                          "type": "context",
+                          "path": "actorSystem.resources.movement.base"
+                        },
+                        {
+                          "type": "context",
+                          "path": "actorSystem.resources.movement.bonus"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "disengaged",
+              "type": "effect",
+              "name": "Disengaged",
+              "slug": "disengaged",
+              "img": "icons/svg/walk.svg",
+              "duration": {
+                "value": 0,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "ruleElements": []
+            }
+          ],
           "label": "Hasten"
         },
         "ruleElements": [
@@ -443,9 +503,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -524,8 +582,7 @@
       },
       "conversion": {
         "notes": [
-          "Berserk: \"Berserk Check\" is passive or triggered: not automated",
-          "Hasten: not automated (utility): using it spends its cost; its description says the rest"
+          "Berserk: \"Berserk Check\" is passive or triggered: not automated"
         ]
       }
     }

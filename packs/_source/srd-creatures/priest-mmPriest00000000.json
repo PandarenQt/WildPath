@@ -25,6 +25,17 @@
         "value": 13
       }
     },
+    "skills": {
+      "medicine": {
+        "proficiency": 2
+      },
+      "perception": {
+        "proficiency": 1
+      },
+      "religion": {
+        "proficiency": 2
+      }
+    },
     "defenses": {
       "ac": {
         "value": 13

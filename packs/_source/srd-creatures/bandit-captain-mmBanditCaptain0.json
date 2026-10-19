@@ -28,6 +28,14 @@
         "value": 14
       }
     },
+    "skills": {
+      "athletics": {
+        "proficiency": 1
+      },
+      "deception": {
+        "proficiency": 1
+      }
+    },
     "defenses": {
       "ac": {
         "value": 15

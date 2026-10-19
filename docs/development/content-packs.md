@@ -352,8 +352,14 @@ equipped. Equipping it (`system.active`) turns its rules on.
     60. Monk's Focus (Step of the Wind) gave Disengaged and Dashing for the Bonus Action and a Focus Point. Patient
     Defense (Focus Point) gave Dodging, paid with the Action once the Bonus Action was spent (the WildPath house
     rule, action-economy.md).
-  - Not yet: Nimble Escape's "Disengage or Hide" (one activity, two common actions to choose from), and Step of
-    the Wind without a Focus Point (Dash as a Bonus Action), which dnd5e has no activity for.
+  - A Clay Golem's Hasten is Dash and Disengage. One that takes one action of several is an Action each
+    (`COMMON_CHOICES`): Nimble Escape (goblins, Panther, Tiger, Saber-Toothed Tiger) is "Nimble Escape (Disengage)"
+    and "Nimble Escape (Hide)"; a Vampire Familiar's Deathless Agility is Dash or Disengage. Live: an SRD Goblin
+    Warrior used both as Bonus Actions, Hide at 1d20 + 6.
+  - Not yet: Step of the Wind without a Focus Point (Dash as a Bonus Action), which dnd5e has no activity for.
+- **Creature skills (2026-10-19).** A creature's dnd5e skills convert to `skills.<skill>.proficiency`: 1 proficient,
+  2 expertise (dnd5e's half proficiency is none). Before, every converted creature rolled its skills on its ability
+  alone: a Goblin Warrior's Stealth was +2, not +6. All 375 SRD creatures changed.
 - **Hovering (2026-10-19).** dnd5e's `movement.hover` goes on the fly Speed the same effect grants: Fly, Gaseous
   Form, Wind Walk, a Potion of Flying, the Air Ring, and the creatures casting them (16 SRD documents). A hovering
   flyer knocked Prone does not fall. Live: Player1's QA Caster cast the SRD Fly on itself: "Flight", a fly Speed of 60

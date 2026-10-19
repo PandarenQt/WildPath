@@ -29,6 +29,14 @@
         "value": 15
       }
     },
+    "skills": {
+      "athletics": {
+        "proficiency": 2
+      },
+      "performance": {
+        "proficiency": 1
+      }
+    },
     "defenses": {
       "ac": {
         "value": 16

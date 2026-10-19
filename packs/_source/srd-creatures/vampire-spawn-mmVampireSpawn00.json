@@ -27,6 +27,14 @@
         "value": 12
       }
     },
+    "skills": {
+      "perception": {
+        "proficiency": 1
+      },
+      "stealth": {
+        "proficiency": 1
+      }
+    },
     "defenses": {
       "ac": {
         "value": 16
@@ -361,7 +369,7 @@
     {
       "_id": "mmDeathlessAgili",
       "_key": "!actors.items!mmVampireSpawn00.mmDeathlessAgili",
-      "name": "Deathless Agility",
+      "name": "Deathless Agility (Dash)",
       "type": "action",
       "img": "icons/skills/movement/figure-running-gray.webp",
       "system": {
@@ -378,7 +386,53 @@
               }
             ]
           },
-          "label": "Deathless Agility"
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "dashing",
+              "type": "effect",
+              "name": "Dashing",
+              "slug": "dashing",
+              "img": "icons/svg/wingfoot.svg",
+              "duration": {
+                "value": 0,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "dash",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "resources.movement.max"
+                    ],
+                    "modifierType": "untyped",
+                    "valueExpression": {
+                      "type": "add",
+                      "terms": [
+                        {
+                          "type": "context",
+                          "path": "actorSystem.resources.movement.base"
+                        },
+                        {
+                          "type": "context",
+                          "path": "actorSystem.resources.movement.bonus"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "label": "Deathless Agility (Dash)"
         },
         "ruleElements": []
       },
@@ -394,9 +448,69 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "2aydhbib5uzf0000",
+      "_key": "!actors.items!mmVampireSpawn00.2aydhbib5uzf0000",
+      "name": "Deathless Agility (Disengage)",
+      "type": "action",
+      "img": "icons/skills/movement/figure-running-gray.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The vampire spawn takes the Dash or Disengage action.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-deathless-agility-expend-use",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
             ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "disengaged",
+              "type": "effect",
+              "name": "Disengaged",
+              "slug": "disengaged",
+              "img": "icons/svg/walk.svg",
+              "duration": {
+                "value": 0,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "ruleElements": []
+            }
+          ],
+          "label": "Deathless Agility (Disengage)"
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmDeathlessAgili",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024"
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -479,7 +593,6 @@
       "conversion": {
         "notes": [
           "Claw: \"Escape Check\" is passive or triggered: not automated",
-          "Deathless Agility: not automated (utility): using it spends its cost; its description says the rest",
           "Vampire Weakness: \"Damage: Running Water\" is passive or triggered: not automated",
           "Vampire Weakness: \"Staked to the Heart\" is passive or triggered: not automated",
           "Vampire Weakness: \"Damage: Sunlight\" is passive or triggered: not automated"
