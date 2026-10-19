@@ -307,6 +307,15 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   half its Speed more this turn). Live: QA Caster as a level-5 rogue hit the Bandit Captain with a Dagger; it chose Trip,
   the Captain saved (15), and its damage rolled 1d4 and 2d6, not 3d6.
 
+- **Brutal Strike (2026-10-19):** its feature brings three Actions. Brutal Strike answers its barbarian's own declared
+  attack (`action.declared`, `whileStatus: "reckless"`, a predicate requiring `attackRollMode` "advantage" and
+  `attackAbility` "might"), once a turn; its rider rolls the attack without Advantage, adds 1d10 (2d10 from level 17) of
+  the weapon's type, and tags it `brutal-strike`. Forceful Blow (a rider push of 15 ft, and a Disengaged half-Speed self
+  effect) and Hamstring Blow (-15 ft Speed on the target until the barbarian's next turn) answer that tagged hit, once a
+  turn between them. Live: QA Caster as a level-9 barbarian used Reckless Attack, then Brutal Strike on a Longsword
+  attack: it rolled 1d20 + 5 (no Advantage), hit, dealt 1d8 + 1d10, and Forceful Blow pushed the Bandit Captain 15 ft;
+  QA Caster was Disengaged with 15 ft more movement.
+
 Shortcuts: a Parry's "while holding a weapon", and Counterspell's 60 feet, sight and hostility, are the reactor's to
 judge (its Ask setting). Falling (Feather Fall) has no window yet; Retaliation's attack is by hand.
 

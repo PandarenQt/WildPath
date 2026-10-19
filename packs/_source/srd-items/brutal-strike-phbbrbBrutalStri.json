@@ -21,9 +21,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Brutal Strike\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 825 automated, 302 manual, 242 features. Creatures: 375.
+Items: 828 automated, 302 manual, 242 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -227,7 +227,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Brooch of Shielding | equipment24 | Brooch of Shielding (gear) | — |
 | Broom of Flying | equipment24 | Broom of Flying (gear), Broom of Flying (Activate Broom) (automated), Broom of Flying (Send Alone or Recall) (manual) | effect: flying is not a WildPath condition yet; not automated (utility): using it spends its cost; its description says the rest |
 | Brown Bear | actors24 | Brown Bear (4 items) | — |
-| Brutal Strike | classes24 | Brutal Strike (feature) | "Brutal Strike" is passive or triggered: not automated |
+| Brutal Strike | classes24 | Brutal Strike (feature), Brutal Strike (automated), Brutal Strike (Forceful Blow) (automated), Brutal Strike (Hamstring Blow) (automated) | — |
 | Bucket | equipment24 | Bucket (gear) | — |
 | Bugbear Stalker | actors24 | Bugbear Stalker (5 items) | Quick Grapple: "Escape Check" is passive or triggered: not automated |
 | Bugbear Warrior | actors24 | Bugbear Warrior (3 items) | Grab: "Escape Check" is passive or triggered: not automated |

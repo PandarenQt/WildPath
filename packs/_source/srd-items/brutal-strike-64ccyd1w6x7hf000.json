@@ -1,0 +1,107 @@
+{
+  "_id": "64ccyd1w6x7hf000",
+  "_key": "!items!64ccyd1w6x7hf000",
+  "name": "Brutal Strike",
+  "type": "action",
+  "img": "icons/skills/melee/strike-axe-blood-red.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-brutal-strike",
+      "label": "Brutal Strike",
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "rider": {
+        "rollMode": "normal",
+        "tags": [
+          "brutal-strike"
+        ],
+        "damage": [
+          {
+            "id": "brutal-strike",
+            "expression": {
+              "type": "table",
+              "key": {
+                "type": "class-level",
+                "class": "barbarian"
+              },
+              "rows": {
+                "9": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 10
+                },
+                "17": {
+                  "type": "dice",
+                  "number": 2,
+                  "faces": 10
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "action.declared",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "notTagsAny": [
+              "spell"
+            ]
+          },
+          "whileStatus": "reckless",
+          "once": "turn",
+          "triggerPredicate": {
+            "all": [
+              {
+                "equals": {
+                  "path": "event.data.attackRollMode",
+                  "value": "advantage"
+                }
+              },
+              {
+                "equals": {
+                  "path": "event.data.attackAbility",
+                  "value": "might"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbBrutalStri",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1354,3 +1354,21 @@ test("Cunning Strike: Poison, Trip and Withdraw, each offered when Sneak Attack 
   assert.deepEqual([trip.effects[0].conditionId, trip.effects[0].repeatSave], ["prone", undefined], "Prone repeats nothing");
   assert.deepEqual([withdraw.targeting.type, withdraw.effects[0].slug], ["self", "disengaged"]);
 });
+
+test("Brutal Strike: its own Actions, a reckless Strength attack's rider and two blows", () => {
+  const brutal = {_id: "testBrutalStrk01", name: "Brutal Strike", type: "feat", img: "icons/svg/fire.svg", effects: [],
+    system: {source: SRD, identifier: "brutal-strike", type: {value: "class"}, uses: {max: "", recovery: []},
+      activities: {a: activity("damage", {activation: {type: "special", override: false}})}}};
+  const items = convertItem(brutal, {scales: {barbarian: {"brutal-strike": {type: "dice", values: {9: {number: 1, faces: 10}, 17: {number: 2, faces: 10}}}}}}).items;
+  assert.deepEqual(items.map(item => [item.type, item.name]), [["feature", "Brutal Strike"], ["action", "Brutal Strike"],
+    ["action", "Brutal Strike (Forceful Blow)"], ["action", "Brutal Strike (Hamstring Blow)"]]);
+  const [, strike, forceful, hamstring] = items;
+  const trigger = strike.system.ruleElements[0].data;
+  assert.deepEqual([trigger.event, trigger.whileStatus, trigger.once], ["action.declared", "reckless", "turn"]);
+  assert.deepEqual([strike.system.definition.rider.rollMode, strike.system.definition.rider.tags], ["normal", ["brutal-strike"]]);
+  assert.deepEqual(forceful.system.definition.rider.push, {distance: 15});
+  assert.deepEqual([forceful.system.ruleElements[0].data.onceKey, hamstring.system.ruleElements[0].data.match.tagsAll],
+    ["brutal-blow", ["brutal-strike"]]);
+  assert.equal(hamstring.system.definition.effects[0].ruleElements[0].data.value, -15);
+  for ( const item of [strike, forceful, hamstring] ) assert.equal(validateActionDefinition(item.system.definition).ok, true, item.name);
+});

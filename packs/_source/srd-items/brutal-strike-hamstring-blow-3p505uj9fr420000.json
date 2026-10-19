@@ -1,0 +1,91 @@
+{
+  "_id": "3p505uj9fr420000",
+  "_key": "!items!3p505uj9fr420000",
+  "name": "Brutal Strike (Hamstring Blow)",
+  "type": "action",
+  "img": "icons/skills/melee/strike-axe-blood-red.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-brutal-strike-hamstring-blow",
+      "label": "Brutal Strike (Hamstring Blow)",
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Hamstrung",
+          "img": "icons/svg/net.svg",
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnStart"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "hamstrung",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "resources.movement.max",
+                  "speed"
+                ],
+                "modifierType": "untyped",
+                "value": -15
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": [
+              "brutal-strike"
+            ]
+          },
+          "once": "turn",
+          "onceKey": "brutal-blow"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrbBrutalStri",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}
