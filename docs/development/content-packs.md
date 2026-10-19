@@ -349,6 +349,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
     this turn.
   - Indomitable: a fighter's own failed save may be rerolled with a bonus of its fighter level, from its pool, offered
     with Heroic Inspiration (`withIndomitable`); a reroll option may carry a `bonus`.
+  - Lay on Hands: a Bonus Action with a "Points" number chosen when used, spent from its pool and healed
+    (`spendAmount`, action-configuration.md); touch, though dnd5e records self. Live: QA Caster with a 25-point copy
+    healed QA Fighter for 7 (30 to 37, pool 25 to 18).
   - Live (two browsers): QA Fighter (a Champion) used Action Surge with its Action spent (0/1 to 1/2); its Longsword
     attack carried a critical threshold of 19; and a failed Grapple save was offered "Reroll with Indomitable, +6",
     which rolled 1d20 + 5 (its -1 and +6).

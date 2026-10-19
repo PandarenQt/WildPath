@@ -414,3 +414,17 @@ test("a chosen damage type reaches a lasting area's repeat too (Spirit Guardians
   const effective = resolved.configuration.effectiveDefinition;
   assert.deepEqual([effective.damage[0].damageType, effective.area.persistence.triggers[0].action.damage[0].damageType], ["necrotic", "necrotic"]);
 });
+
+test("a number chosen when used is spent from a pool and is the amount (Lay on Hands)", () => {
+  const definition = {schemaVersion: 1, id: "action:lay-on-hands", costs: {allOf: [{capability: "bonus-action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1}, healing: [{id: "healing-1", expression: {type: "constant", value: 1}, healingType: "healing"}],
+    configuration: [{id: "points", type: ACTION_CHOICE_TYPES.NUMBER, label: "Points", required: true, min: 1,
+      effects: [{type: "spendAmount", resourceId: "lay-on-hands", componentIds: ["healing-1"]}]}]};
+  const system = actorSystem();
+  const result = resolveActionConfiguration({definition, actorSystem: {...system, pools: [...(system.pools ?? []),
+    {id: "lay-on-hands", value: 25, max: 25}]}, choices: {points: 7}});
+  assert.equal(result.ok, true, JSON.stringify(result.errors));
+  assert.deepEqual(result.configuration.effectiveDefinition.healing[0].expression, {type: "constant", value: 7});
+  const costs = JSON.stringify(result.configuration.effectiveDefinition.costs);
+  assert.ok(costs.includes("lay-on-hands") && costs.includes("7"), costs);
+});

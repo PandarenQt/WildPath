@@ -15,13 +15,49 @@
           {
             "capability": "bonus-action",
             "amount": 1
-          },
-          {
-            "capability": "lay-on-hands",
-            "amount": 1
           }
         ]
       },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "constant",
+            "value": 1
+          },
+          "healingType": "healing"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "points",
+          "type": "number",
+          "label": "Points",
+          "required": true,
+          "min": 1,
+          "effects": [
+            {
+              "type": "spendAmount",
+              "resourceId": "lay-on-hands",
+              "componentIds": [
+                "healing-1"
+              ]
+            }
+          ]
+        }
+      ],
       "label": "Lay on Hands (heal)"
     },
     "ruleElements": [
@@ -62,10 +98,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (heal): using it spends its cost; its description says the rest",
-          "healing: custom formula \"@scaling\" not converted"
-        ]
+        "notes": []
       }
     }
   }

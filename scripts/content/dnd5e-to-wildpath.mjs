@@ -441,6 +441,17 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     // A spell's level, for what ends spells by level (Dispel Magic); a slot cast at a higher one says so when used.
     if ( spell && Number.isFinite(Number(level)) ) definition = {...definition, metadata: {...(definition.metadata ?? {}), spellLevel: Number(level)}};
+    // Lay on Hands: "restore a number of Hit Points equal to the points spent", chosen when used, from its pool.
+    if ( (identifierOf(document) === "lay-on-hands") && (activity.type === "heal") && pool ) {
+      definition = {...definition, costs: {allOf: (definition.costs?.allOf ?? []).filter(cost => cost.capability !== pool.id)},
+        targeting: definition.targeting ?? {type: "single", required: true, count: 1},
+        // "touch a creature" (dnd5e records its range as self).
+        range: {type: "touch", distance: {value: 5, unit: "ft"}},
+        healing: [{id: "healing-1", expression: {type: "constant", value: 1}, healingType: "healing"}],
+        configuration: [...(definition.configuration ?? []), {id: "points", type: "number", label: "Points", required: true, min: 1,
+          effects: [{type: "spendAmount", resourceId: pool.id, componentIds: ["healing-1"]}]}]};
+      notes.splice(0, notes.length, ...notes.filter(note => !/not automated|custom formula/.test(note)));
+    }
     // What it ends on its target (Remove Curse: curses; Dispel Magic: spells up to its level).
     const ending = ENDS[identifierOf(document)];
     if ( ending ) {

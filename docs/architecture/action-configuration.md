@@ -270,3 +270,10 @@ separate slices over the same resolved configuration and resolver contracts.
 
 `scaleTargets` raises `targeting.count` and keeps `refinementPolicy.minSelections` at the base count: 2024's "you can
 target one additional creature" is optional. Before, Command from a 3rd-level slot needed exactly three targets.
+
+## Spending A Chosen Amount (2026-10-19)
+
+A configuration effect `{type: "spendAmount", resourceId, componentIds, collection?, per?}` on a `number` choice adds
+that many of the pool to the Action's cost and makes each listed healing (or damage) component that amount (times
+`per`). 2024 Lay on Hands: "restore a number of Hit Points equal to the points spent". Spending more than the pool
+holds is refused at payment, before anything rolls.
