@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 837 automated, 293 manual, 242 features. Creatures: 375.
+Items: 838 automated, 292 manual, 242 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -366,7 +366,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Cunning Action | classes24 | Cunning Action (Hide) (automated), Cunning Action (Dash) (automated), Cunning Action (Disengage) (automated) | — |
 | Cunning Strike | classes24 | Cunning Strike (Poison) (automated), Cunning Strike (Trip) (automated), Cunning Strike (Withdraw) (automated) | "Cunning Sneak Attack" is passive or triggered: not automated |
 | Cure Wounds | spells24 | Cure Wounds (automated) | — |
-| Cutting Words | classes24 | Cutting Words (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Cutting Words | classes24 | Cutting Words (automated) | — |
 | Dagger | equipment24 | Dagger (automated) | — |
 | Dagger of Venom | equipment24 | Dagger of Venom (attack) (automated), Dagger of Venom (Coat Blade with Poison) (manual), Dagger of Venom (Poison Save) (automated) | not automated (enchant): using it spends its cost; its description says the rest |
 | Dancing Light (Medium) | actors24 | Dancing Light (Medium) (0 items) | — |

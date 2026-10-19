@@ -1359,7 +1359,7 @@ test("Brutal Strike: its own Actions, a reckless Strength attack's rider and two
   const brutal = {_id: "testBrutalStrk01", name: "Brutal Strike", type: "feat", img: "icons/svg/fire.svg", effects: [],
     system: {source: SRD, identifier: "brutal-strike", type: {value: "class"}, uses: {max: "", recovery: []},
       activities: {a: activity("damage", {activation: {type: "special", override: false}})}}};
-  const items = convertItem(brutal, {scales: {barbarian: {"brutal-strike": {type: "dice", values: {9: {number: 1, faces: 10}, 17: {number: 2, faces: 10}}}}}}).items;
+  const items = convertItem(brutal, {scales: {"barbarian.brutal-strike": {9: {number: 1, faces: 10}, 17: {number: 2, faces: 10}}}}).items;
   assert.deepEqual(items.map(item => [item.type, item.name]), [["feature", "Brutal Strike"], ["action", "Brutal Strike"],
     ["action", "Brutal Strike (Forceful Blow)"], ["action", "Brutal Strike (Hamstring Blow)"]]);
   const [, strike, forceful, hamstring] = items;
@@ -1393,4 +1393,16 @@ test("summons chosen by Challenge Rating (Find Familiar) and counted by formula 
   assert.deepEqual(lights.system.definition.summon.counts, [{actorRef: "Compendium.x.Actor.tiny", count: 4},
     {actorRef: "Compendium.x.Actor.medium", count: 1}]);
   for ( const item of [familiar, dead, lights] ) assert.equal(validateActionDefinition(item.system.definition).ok, true, item.name);
+});
+
+test("Cutting Words: a reaction to another creature's hit within 60 ft, its Bardic Inspiration die taken off that attack roll", () => {
+  const words = {_id: "testCuttingWord1", name: "Cutting Words", type: "feat", img: "icons/svg/sound.svg", effects: [],
+    system: {source: SRD, identifier: "cutting-words", type: {value: "class"}, uses: {max: "", recovery: []},
+      activities: {a: activity("utility", {name: "Cut with Words", activation: {type: "reaction", override: false},
+        range: {value: "60", units: "ft", override: false}, roll: {formula: "@scale.bard.inspiration"}})}}};
+  const [item] = convertItem(words, {scales: {"bard.inspiration": {1: {number: 1, faces: 6}, 5: {number: 1, faces: 8}}}}).items;
+  const {definition} = item.system;
+  assert.deepEqual(item.system.ruleElements[0].data.match, {phase: "interrupt", notSourceTokenId: "{self}"});
+  assert.deepEqual([definition.range.normal.value, definition.targeting.type, definition.rider.attackPenalty.dice.type], [60, "single", "table"]);
+  assert.equal(validateActionDefinition(definition).ok, true);
 });

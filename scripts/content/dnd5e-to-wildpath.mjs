@@ -77,7 +77,10 @@ const REACTIONS = Object.freeze({
   // "when you take damage from a creature": that creature is the reaction's target.
   "hellish-rebuke": {event: "damage.applied", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}},
   "storms-thunder": {event: "damage.applied", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}},
-  counterspell: {event: "action.declared", match: {phase: "interrupt", tagsAny: ["spell"], notSourceTokenId: "{self}"}, counters: true}
+  counterspell: {event: "action.declared", match: {phase: "interrupt", tagsAny: ["spell"], notSourceTokenId: "{self}"}, counters: true},
+  // Another creature's attack hits: its die (Bardic Inspiration's) is subtracted from that attack roll, which is then
+  // checked again. shortcut: its use on a damage roll or an ability check, "can see" and hostility are by hand.
+  "cutting-words": {event: "attack.hit", match: {phase: "interrupt", notSourceTokenId: "{self}"}, attackPenalty: true}
 });
 
 /**
@@ -701,6 +704,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A reaction its 2024 text triggers (Shield, Parry, Counterspell): a Trigger on its Action, which the engine offers.
     const reaction = (activation === "reaction") ? REACTIONS[identifierOf(document)] : null;
     if ( reaction?.counters ) definition = {...definition, counters: true};
+    // Cutting Words: on the attacker within its range, rolling its die (`@scale.bard.inspiration`) off that attack roll.
+    const penaltyDie = reaction?.attackPenalty ? formulaExpression(String(activity.roll?.formula ?? ""), {scales}) : null;
+    if ( penaltyDie ) {
+      const range = rangeOf({activity, system, document, attack: null});
+      definition = {...definition, ...(range ? {range} : {}), targeting: {type: "single", required: true, count: 1},
+        rider: {attackPenalty: {dice: penaltyDie}}};
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
+    }
     // "adds 2 to its AC against that attack" (a Parry; dnd5e keeps the 2 in its activity's roll): that much AC on itself
     // until the attack is over.
     const bonusAC = reaction?.acFromText ? (number(activity.roll?.formula)

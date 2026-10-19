@@ -1092,7 +1092,7 @@ test("two unlinked Tokens of one base Actor each make their own save", async t =
 
 /** A GM-controlled target whose Token answers "a hit on me" by striking back (authored Trigger RuleElement). */
 function counterattackFixture(t, {decision="use", reactor="target", event="attack.hit", natural=null, once=false, rider=null, extra=null,
-  queue=null, pick=null, items=null}={}) {
+  queue=null, pick=null, items=null, holderItems=null, gmQueue=null}={}) {
   const fixture = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
   const {scene, sourceActor, targetActor, targetSource, game} = fixture;
   scene.tokens.get = id => scene.tokens.find(token => token.id === id);
@@ -1122,7 +1122,8 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
     sourceActor.system.resources.reaction = {value: 1, max: 1};
     // Its own extra damage on this attack (a Sneak Attack).
     if ( extra ) sourceActor.getExtraDamage = domains => (domains.includes("damage.weapon") ? structuredClone(extra) : []);
-  } else holder.items = [{id: "counter", type: "action", name: "Counterattack", system: {active: true,
+  } else if ( holderItems ) holder.items = holderItems;
+  else holder.items = [{id: "counter", type: "action", name: "Counterattack", system: {active: true,
     definition: {schemaVersion: 1, id: "action:counterattack", label: "Counterattack",
       costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]},
       range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
@@ -1145,7 +1146,7 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
   const gmRollRequests = [];
   const playerRollRequests = [];
   const playerRolls = provider => ({...provider, execute: request => { playerRollRequests.push(request); return provider.execute(request); }});
-  const gmProvider = createTestRollProvider({result: {natural: 15, total: 15}});
+  const gmProvider = createTestRollProvider({result: {natural: 15, total: 15}, ...(gmQueue ? {queue: gmQueue} : {})});
   const gmRolls = {...gmProvider, execute: request => { gmRollRequests.push(request); return gmProvider.execute(request); }};
   const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
     transport: hub.createEndpoint({userId: "gm-a"}), publishResult: post => { posts.push(post); },
@@ -1258,6 +1259,23 @@ test("Brutal Strike: a reckless Strength attack gives up its Advantage for 1d10 
     [["action:srd-brutal-strike"], ["action:srd-brutal-strike-forceful-blow", "action:srd-brutal-strike-hamstring-blow"]]);
   assert.equal(playerRollRequests[0].rollMode, "normal", "its Advantage given up");
   assert.ok(playerRollRequests.some(request => (request.type === "damage") && request.definition.dice.some(die => die.faces === 10)), "1d10 more");
+});
+
+test("Cutting Words: a bard's die comes off another creature's hit, which is checked again and misses", async t => {
+  const fs = await import("node:fs");
+  const words = JSON.parse(fs.readFileSync("packs/_source/srd-items/cutting-words-phbbrdCuttingWor.json", "utf8"));
+  const {targetActor, holder, gm, player, offers, intent} = counterattackFixture(t, {reactor: "bystander",
+    holderItems: [{id: words._id, type: "action", name: words.name, system: words.system}], gmQueue: [{total: 10}]});
+  holder.system.classes = [{id: "bard", level: 10}];
+  holder.system.pools = [{id: "bardic-inspiration", value: 2, max: 2}];
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(offers.length, 1, "offered to the bard");
+  assert.equal(record.state.results.attackResolution.hits.length, 0, "22 less a d10 of 10: 12 against AC 14");
+  assert.equal(targetActor.system.resources.health.value, 30, "no damage");
+  assert.equal(holder.system.resources.reaction.value, 0);
+  assert.equal(holder.system.pools.find(pool => pool.id === "bardic-inspiration").value, 1);
 });
 
 test("a once-a-turn Trigger on its own hit (Stunning Strike) records its use for the combat turn, and is not offered again", async t => {

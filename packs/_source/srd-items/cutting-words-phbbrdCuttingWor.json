@@ -22,9 +22,68 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "rider": {
+        "attackPenalty": {
+          "dice": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "bard"
+            },
+            "rows": {
+              "1": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "5": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "10": {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              "15": {
+                "type": "dice",
+                "number": 1,
+                "faces": 12
+              }
+            }
+          }
+        }
+      },
       "label": "Cutting Words"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "notSourceTokenId": "{self}"
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -38,9 +97,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }
