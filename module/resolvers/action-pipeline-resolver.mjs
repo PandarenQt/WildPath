@@ -2406,7 +2406,9 @@ function attackResolvedAsOnlyMisses(state) {
 function componentRollRequestForState(state, input, {kind, rollType, requestId, index, values}) {
   const component = values.components[index];
   // 2024: a critical hit rolls the attack's damage dice twice (flat modifiers once).
-  const critical = (kind === "damage") && (state.results?.attackResolution?.hits ?? []).some(hit => hit.outcome === "criticalHit");
+  // A reaction's damage added to its creature's own critical hit (2014 Divine Smite) is marked `damage.critical`.
+  const critical = (kind === "damage") && ((state.results?.attackResolution?.hits ?? []).some(hit => hit.outcome === "criticalHit")
+    || (input.damage?.critical === true));
   const rolled = !critical ? component : {...component,
     ...(component.dice ? {dice: {...component.dice, number: (Number(component.dice.number) || 1) * 2}} : {}),
     ...(component.expression ? {expression: withDoubledDice(component.expression)} : {})};

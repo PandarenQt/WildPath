@@ -118,23 +118,57 @@ const paladinAura = identifier => ({schemaVersion: 1, id: identifier, type: "Aur
     ruleElements: PALADIN_AURAS[identifier]}});
 
 /**
- * A transform activity (2024 Wild Shape): its creature takes a Beast form its user picks, within the CR (and Fly
- * Speed) its profiles allow by class level, with Temporary Hit Points equal to that class's level. Null without
- * Beasts to choose from, or for another preset. shortcut: every eligible Beast is offered, not four known forms.
+ * Wild Shape by the 2014 rules (SRD 5.1; the maintainer's choice over 2024's), by druid level: a Beast of CR 1/4 with
+ * no Fly or Swim Speed, CR 1/2 with no Fly Speed from level 4, CR 1 from level 8. Twice per Short or Long Rest.
+ */
+const WILD_SHAPE_2014 = Object.freeze({
+  limits: {2: {cr: 0.25, fly: false, swim: false}, 4: {cr: 0.5, fly: false, swim: true}, 8: {cr: 1, fly: true, swim: true}},
+  uses: {max: "2", recovery: [{period: "sr", type: "recoverAll"}]}
+});
+
+/**
+ * A transform activity (Wild Shape, 2014 rules): an Action to take a Beast form its user picks, within its druid
+ * level's limits. The form's Strength, Dexterity, Constitution, AC and Speed replace its own, and its Hit Points come
+ * as Temporary Hit Points: the druid reverts when they are gone, and damage beyond them carries over to its own, as
+ * the 2014 text has it. Null without Beasts to choose from, or for another preset.
+ * shortcut: every eligible Beast is offered (not only Beasts seen), it lasts until reverted (not half its druid level
+ * in hours), and healing in the form heals the druid's own Hit Points; upgrade with a form Hit Point pool.
  */
 function wildShapeDefinition({document, activity, system, spell, level, notes, pool, beasts=[]}) {
   const settings = activity.transform ?? activity.settings ?? {};
   if ( (settings.preset !== "wildshape") || !beasts.length ) return null;
   const owner = settings.identifier || "druid";
-  const profiles = activity.profiles ?? [];
-  const highest = Math.max(...profiles.map(profile => number(profile.cr) ?? 0), 0);
-  const rows = Object.fromEntries(profiles.map(profile => [String(profile.level?.min ?? 1),
-    {cr: number(profile.cr) ?? 0, fly: !(profile.movement ?? []).includes("fly")}]));
+  const rows = WILD_SHAPE_2014.limits;
+  const highest = Math.max(...Object.values(rows).map(row => row.cr));
   const choice = {id: "form", type: "select-one", label: "Form", required: true,
     options: beasts.filter(beast => beast.cr <= highest).map(beast => ({id: beast.uuid, label: `${beast.name} (CR ${beast.cr})`}))};
   const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool});
-  return {...definition, range: {type: "self"}, targeting: {type: "self"}, configuration: [...(definition.configuration ?? []), choice],
-    transform: {choiceId: choice.id, limits: {class: owner, rows}, temporaryHealth: {type: "class-level", class: owner}}};
+  const costs = {...definition.costs, allOf: (definition.costs?.allOf ?? [])
+    .map(cost => (cost.capability === "bonus-action" ? {...cost, capability: "action"} : cost))};
+  return {...definition, costs, range: {type: "self"}, targeting: {type: "self"},
+    configuration: [...(definition.configuration ?? []), choice],
+    transform: {choiceId: choice.id, limits: {class: owner, rows}, temporaryHealth: "form"}};
+}
+
+/**
+ * Divine Smite by the 2014 rules (SRD 5.1; the maintainer's choice over the 2024 spell): no action and no spell. When
+ * its creature hits with a melee weapon attack, it may expend a spell slot for 2d8 radiant damage to the creature hit,
+ * 1d8 more for each slot level above 1st, at most 5d8 (a slot above 4th adds nothing, so it is not offered). Its
+ * second activity ("Unholy Creature") is the one against an Undead or a Fiend: 1d8 more. A critical hit doubles its
+ * dice, as part of the attack's damage.
+ * shortcut: its player picks the Undead or Fiend one, as converted creatures carry no creature type; upgrade when they do.
+ */
+const DIVINE_SMITE_2014 = Object.freeze({event: "attack.hit",
+  match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"], notTagsAny: ["spell"]}});
+
+function divineSmite2014(definition) {
+  const highest = 4;
+  const configuration = (definition.configuration ?? []).map(choice => (!choice.levelByResourceId ? choice : {...choice,
+    cost: {anyOf: (choice.cost?.anyOf ?? []).filter(option => (choice.levelByResourceId[option[0]?.capability] ?? 0) <= highest)},
+    levelByResourceId: Object.fromEntries(Object.entries(choice.levelByResourceId).filter(([, slot]) => slot <= highest))}));
+  const {metadata, ...rest} = definition;
+  return {...rest, tags: (definition.tags ?? []).filter(tag => tag !== "spell"), costs: {allOf: []}, range: {type: "special"},
+    targeting: {type: "single", required: true, count: 1}, configuration};
 }
 
 /** dnd5e skill keys as WildPath's skills. */
@@ -515,9 +549,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
           data: {domains: ["defense.ac"], modifierType: "untyped", value: bonusAC}}]}]};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
-    const reacting = action(id, `${document.name}${suffix}${choices ? title(choices[0]) : ""}`, definition);
-    if ( reaction ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
-      data: {kind: "reaction", event: reaction.event, match: reaction.match}});
+    const smite = (identifierOf(document) === "divine-smite") ? DIVINE_SMITE_2014 : null;
+    if ( smite ) definition = divineSmite2014(definition);
+    const named = smite ? (/unholy/i.test(activity.name ?? "") ? " (Undead or Fiend)" : "") : suffix;
+    const reacting = action(id, `${document.name}${named}${choices ? title(choices[0]) : ""}`, definition);
+    if ( reaction ?? smite ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
+      data: {kind: "reaction", event: (reaction ?? smite).event, match: (reaction ?? smite).match}});
     items.push(reacting);
     for ( const other of choices?.slice(1) ?? [] ) items.push(action(stableId(`${id}:${other}`), `${document.name}${suffix}${title(other)}`,
       commonActivity({document, activity, system, spell, level, pool}, [other])));
@@ -1244,7 +1281,8 @@ function manualDefinition({document, activity, system, spell, level, notes, pool
 
 /** An item's limited uses as a resource pool its Actions spend, with the dnd5e recovery. */
 function usesPool({document, scales}) {
-  return poolOf(document.system?.uses, {id: slugify(document.name), label: document.name, scales});
+  const uses = (identifierOf(document) === "wild-shape") ? WILD_SHAPE_2014.uses : document.system?.uses;
+  return poolOf(uses, {id: slugify(document.name), label: document.name, scales});
 }
 
 /** An activity's own uses ("3/Day each" spells, a once-a-day option) as a pool of its own (G4). */

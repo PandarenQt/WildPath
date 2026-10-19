@@ -949,11 +949,10 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
   }
   const policy = {...(spec.takes ? {takes: spec.takes} : {}), ...(spec.keepItemTypes ? {keepItemTypes: spec.keepItemTypes} : {})};
   if ( !spec.targets ) {
-    // 2024 Wild Shape: Temporary Hit Points equal to its druid level (`temporaryHealth`, a ValueExpression for its creature).
-    // Its form's limits were checked when it was used.
-    const temporary = (spec.temporaryHealth && (typeof spec.temporaryHealth === "object"))
-      ? evaluateValueExpression(spec.temporaryHealth, {actor, actorSystem: actor.system}) : null;
-    return actor.transform(form, {...policy, ...(temporary?.ok && (temporary.value > 0) ? {temporaryHealth: temporary.value} : {})});
+    // 2014 Wild Shape: the form's Hit Points as Temporary Hit Points, reverting once they are gone (its limits were
+    // checked when it was used).
+    return actor.transform(form, {...policy, ...((spec.temporaryHealth === "form")
+      ? {temporaryHealth: Number(form.system?.resources?.health?.max) || 0, untilTemporaryHealthLost: true} : {})});
   }
   // Polymorph: each creature that failed its save takes the form, unless the form's Challenge Rating is above its own
   // (or its level). It gains the form's Hit Points as Temporary Hit Points, and reverts when they are gone or when its
@@ -990,8 +989,9 @@ function chosenFormRef(spec, choices) {
 }
 
 /**
- * Why a form is beyond its creature's limits, or null (2024 Wild Shape: CR 1/4 and no Fly Speed until druid level 4,
- * CR 1/2 until 8, then CR 1 and flying). `limits`: `{class, rows: {level: {cr, fly}}}`; the row for its class level.
+ * Why a form is beyond its creature's limits, or null (2014 Wild Shape: CR 1/4 and no Fly or Swim Speed until druid
+ * level 4, CR 1/2 and no Fly Speed until 8, then CR 1). `limits`: `{class, rows: {level: {cr, fly, swim}}}`; the row for
+ * its class level. A row without `swim` allows swimming.
  */
 export function formBeyondLimits(limits, actor, form) {
   if ( !limits?.rows ) return null;
@@ -1002,9 +1002,10 @@ export function formBeyondLimits(limits, actor, form) {
   if ( !row ) return `${name}: no form yet at ${limits.class} level ${level}.`;
   const challenge = Number(form?.flags?.wildpath?.source?.challenge ?? form?.system?.details?.threat ?? 0);
   if ( challenge > Number(row.cr) ) return `${name} (CR ${challenge}) is beyond CR ${row.cr} at ${limits.class} level ${level}.`;
-  const flies = [...(form?.items ?? [])].some(item => (item.system?.ruleElements ?? [])
-    .some(rule => (rule.type === "GrantMovement") && (rule.data?.mode === "fly")));
-  if ( flies && !row.fly ) return `${name} has a Fly Speed, not allowed at ${limits.class} level ${level}.`;
+  const moves = mode => [...(form?.items ?? [])].some(item => (item.system?.ruleElements ?? [])
+    .some(rule => (rule.type === "GrantMovement") && (rule.data?.mode === mode)));
+  if ( !row.fly && moves("fly") ) return `${name} has a Fly Speed, not allowed at ${limits.class} level ${level}.`;
+  if ( (row.swim === false) && moves("swim") ) return `${name} has a Swim Speed, not allowed at ${limits.class} level ${level}.`;
   return null;
 }
 

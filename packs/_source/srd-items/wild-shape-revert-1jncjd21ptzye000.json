@@ -38,21 +38,10 @@
           "resourceId": "wild-shape",
           "label": "Wild Shape",
           "maximum": {
-            "type": "table",
-            "key": {
-              "type": "class-level",
-              "class": "druid"
-            },
-            "rows": {
-              "2": 2,
-              "6": 3,
-              "17": 4
-            }
+            "type": "constant",
+            "value": 2
           },
-          "recovery": "longRest",
-          "regain": {
-            "shortRest": 1
-          }
+          "recovery": "shortRest"
         }
       }
     ]

@@ -1091,7 +1091,7 @@ test("two unlinked Tokens of one base Actor each make their own save", async t =
 });
 
 /** A GM-controlled target whose Token answers "a hit on me" by striking back (authored Trigger RuleElement). */
-function counterattackFixture(t, {decision="use", reactor="target", event="attack.hit"}={}) {
+function counterattackFixture(t, {decision="use", reactor="target", event="attack.hit", natural=null}={}) {
   const fixture = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
   const {scene, sourceActor, targetActor, targetSource, game} = fixture;
   scene.tokens.get = id => scene.tokens.find(token => token.id === id);
@@ -1107,7 +1107,18 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
     Object.assign(holder, {uuid: `${token.uuid}.Actor.bystander`, isToken: true, token, tokens: [token]});
     scene.tokens.push(token);
   }
-  holder.items = [{id: "counter", type: "action", name: "Counterattack", system: {active: true,
+  // Its own hit (a 2014 Divine Smite): no cost, damage to the creature hit, kept beside its attack.
+  if ( reactor === "source" ) {
+    holder = sourceActor;
+    const smite = {id: "smite", type: "action", name: "Smite", system: {active: true,
+      definition: {schemaVersion: 1, id: "action:smite", label: "Smite", costs: {allOf: []}, range: {type: "special"},
+        targeting: {type: "single", required: true, count: 1},
+        damage: [{id: "smite", expression: {type: "dice", number: 2, faces: 8}, damageType: "radiant", provenance: "spell-base"}]},
+      ruleElements: [{schemaVersion: 1, id: "smite", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+        match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"]}}}]}};
+    sourceActor.items = new (class extends Map { [Symbol.iterator]() { return this.values(); } })([...sourceActor.items.entries(), ["smite", smite]]);
+    sourceActor.system.resources.reaction = {value: 1, max: 1};
+  } else holder.items = [{id: "counter", type: "action", name: "Counterattack", system: {active: true,
     definition: {schemaVersion: 1, id: "action:counterattack", label: "Counterattack",
       costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]},
       range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
@@ -1128,6 +1139,8 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
   const posts = [];
   // The GM rolls the counterattack; its requests are kept for their roll mode.
   const gmRollRequests = [];
+  const playerRollRequests = [];
+  const playerRolls = provider => ({...provider, execute: request => { playerRollRequests.push(request); return provider.execute(request); }});
   const gmProvider = createTestRollProvider({result: {natural: 15, total: 15}});
   const gmRolls = {...gmProvider, execute: request => { gmRollRequests.push(request); return gmProvider.execute(request); }};
   const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
@@ -1141,10 +1154,16 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
       senderUserId: envelope.senderUserId, game, persistencePort})});
   const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(),
     activeGMUserId: "gm-a", transport: hub.createEndpoint({userId: "player-a"}),
-    rollProviders: [createTestRollProvider({result: {natural: 18, total: 22}})]});
+    ...(reactor === "source" ? {promptPorts: [createTestPromptAdapter({id: "smite-choice", queue: [request => {
+      offers.push(request);
+      return {decision: "use", candidateId: request.payload.candidates[0].id};
+    }]})]} : {}),
+    // Its attack, then (its own reaction's) 2d8 or 4d8.
+    rollProviders: [playerRolls(createTestRollProvider({queue: reactor === "source" ? [{natural: natural ?? 18, total: (natural ?? 18) + 4}, {total: 9}] : [],
+      result: {natural: natural ?? 18, total: 22}}))]});
   gm.register();
   player.register();
-  return {...fixture, gm, player, offers, holder, posts, gmRollRequests};
+  return {...fixture, gm, player, offers, holder, posts, gmRollRequests, playerRollRequests};
 }
 
 for ( const decision of ["use", "decline"] ) test(`a counterattack Trigger on the target's Token is offered after the hit and ${decision === "use" ? "strikes the attacker" : "can be declined"}`, async t => {
@@ -1184,6 +1203,20 @@ test("a counterattack Trigger on a bystander's Token ignores an attack on someon
   assert.equal(offers.length, 0, "{self} is the bystander's own Token, not the target's");
   assert.equal(holder.system.resources.reaction.value, 1);
   assert.equal(targetActor.system.resources.health.value, 24);
+});
+
+for ( const critical of [false, true] ) test(`a creature's own Trigger answers its own hit (2014 Divine Smite): no Reaction spent, the creature hit takes it${critical ? ", dice doubled on a critical hit" : ""}`, async t => {
+  const {sourceActor, targetActor, player, gm, offers, intent, playerRollRequests} = counterattackFixture(t, {reactor: "source",
+    natural: critical ? 20 : null});
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.ok(record, JSON.stringify(gm.errors).slice(0, 2000));
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors));
+  assert.equal(offers.length, 1, "offered to the attacker's own controller");
+  assert.equal(sourceActor.system.resources.reaction.value, 1, "no Reaction spent");
+  const smite = playerRollRequests.find(request => request.definition?.dice?.[0]?.id === "smite:die:0");
+  assert.equal(smite?.definition.dice[0].number, critical ? 4 : 2);
+  assert.equal(targetActor.system.resources.health.value, 15, "the attack's 6 and the smite's 9 both land");
 });
 
 /** A 5-ft radial burst, 6 damage, cast from (0,0) at range 30 ft. A bystander stands at (5,0). */
