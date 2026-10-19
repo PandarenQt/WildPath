@@ -36,6 +36,60 @@
         "size": {
           "value": 10,
           "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 10
+          },
+          "concentration": false,
+          "triggers": [
+            {
+              "on": [
+                "area.entered",
+                "turn.ended"
+              ],
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-grease:lasting",
+                "label": "Grease",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell"
+                ],
+                "save": {
+                  "ability": "agility",
+                  "dc": {
+                    "valueExpression": {
+                      "type": "add",
+                      "terms": [
+                        {
+                          "type": "constant",
+                          "value": 8
+                        },
+                        {
+                          "type": "proficiency-bonus"
+                        },
+                        {
+                          "type": "spellcasting-modifier"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "condition",
+                    "conditionId": "prone",
+                    "saveOutcomePolicy": "failure"
+                  }
+                ]
+              }
+            }
+          ]
         }
       },
       "save": {
@@ -58,6 +112,14 @@
           }
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "prone",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "label": "Oil of Slipperiness: Grease"
     },
     "ruleElements": [
@@ -91,7 +153,7 @@
       },
       "conversion": {
         "notes": [
-          "rolled (save); what it does is by hand"
+          "save: a failure gives prone (its text); the rest is by hand"
         ]
       }
     }

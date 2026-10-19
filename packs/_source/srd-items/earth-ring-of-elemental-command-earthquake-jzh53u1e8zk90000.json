@@ -52,6 +52,15 @@
           "value": 18
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "prone",
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "label": "Earth Ring of Elemental Command: Earthquake"
     },
     "ruleElements": [
@@ -101,8 +110,7 @@
       },
       "conversion": {
         "notes": [
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand",
+          "save: a failure gives prone (its text); the rest is by hand",
           "\"End of Turn Fissures\" is passive or triggered: not automated",
           "\"Collapsing Structure Save\" is passive or triggered: not automated"
         ]

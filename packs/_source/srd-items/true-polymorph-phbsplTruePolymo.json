@@ -75,6 +75,21 @@
           "effects": []
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "True Polymorph",
+          "img": "icons/creatures/slimes/slime-giant-face-eyes.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 1,
+            "units": "hours"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "label": "True Polymorph"
     },
     "ruleElements": []
@@ -92,8 +107,7 @@
       },
       "conversion": {
         "notes": [
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand"
+          "save: a failure marks its creature only; what it does is by hand"
         ]
       }
     }

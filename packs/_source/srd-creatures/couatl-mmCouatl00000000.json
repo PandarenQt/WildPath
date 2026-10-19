@@ -459,7 +459,7 @@
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
               "concentration: nothing it sustains was converted",
-              "rolled (save); what it does is by hand"
+              "save: a failure marks its creature only; what it does is by hand"
             ]
           }
         }
@@ -767,6 +767,52 @@
               "levels": -1
             }
           ],
+          "configuration": [
+            {
+              "id": "effect-choice",
+              "type": "option",
+              "label": "Condition",
+              "required": true,
+              "options": [
+                {
+                  "id": "effect-option-1",
+                  "label": "Exhaustion",
+                  "value": "effect-option-1"
+                },
+                {
+                  "id": "effect-option-2",
+                  "label": "Charmed",
+                  "value": "effect-option-2"
+                },
+                {
+                  "id": "effect-option-3",
+                  "label": "Petrified",
+                  "value": "effect-option-3"
+                }
+              ],
+              "effects": [
+                {
+                  "type": "keepEffect",
+                  "effectIds": [
+                    "effect-1",
+                    "effect-2",
+                    "effect-3"
+                  ],
+                  "keep": {
+                    "effect-option-1": [
+                      "effect-1"
+                    ],
+                    "effect-option-2": [
+                      "effect-2"
+                    ],
+                    "effect-option-3": [
+                      "effect-3"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Greater Restoration"
         },
         "ruleElements": [
@@ -864,6 +910,21 @@
               }
             }
           },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Scrying",
+              "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "label": "Scrying"
         },
         "ruleElements": [
@@ -898,8 +959,7 @@
           "conversion": {
             "notes": [
               "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "rolled (save); what it does is by hand",
+              "save: a failure marks its creature only; what it does is by hand",
               "\"Create Sensor\" is passive or triggered: not automated"
             ]
           }
@@ -1074,7 +1134,7 @@
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: nothing it sustains was converted",
-          "Spellcasting: rolled (save); what it does is by hand",
+          "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated"

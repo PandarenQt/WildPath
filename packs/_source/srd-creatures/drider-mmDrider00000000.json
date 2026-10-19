@@ -415,6 +415,14 @@
               }
             ]
           },
+          "configuration": [
+            {
+              "id": "on-object",
+              "type": "boolean",
+              "label": "Cast on an object (the Token at its center)",
+              "required": false
+            }
+          ],
           "targeting": {
             "type": "area"
           },

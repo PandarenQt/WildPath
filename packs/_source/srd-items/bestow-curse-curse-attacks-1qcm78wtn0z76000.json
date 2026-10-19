@@ -117,6 +117,21 @@
           "effects": []
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Bestow Curse",
+          "img": "icons/magic/unholy/hands-praying-fire-green.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 1,
+            "units": "minutes"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "label": "Bestow Curse (Curse Attacks)"
     },
     "ruleElements": []
@@ -135,8 +150,7 @@
       "conversion": {
         "notes": [
           "effect: cursed is not a WildPath condition yet",
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand"
+          "save: a failure marks its creature only; what it does is by hand"
         ]
       }
     }

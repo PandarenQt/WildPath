@@ -821,6 +821,21 @@
               }
             }
           },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Scrying",
+              "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "label": "Scrying"
         },
         "ruleElements": [
@@ -855,8 +870,7 @@
           "conversion": {
             "notes": [
               "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "rolled (save); what it does is by hand",
+              "save: a failure marks its creature only; what it does is by hand",
               "\"Create Sensor\" is passive or triggered: not automated"
             ]
           }
@@ -1198,7 +1212,7 @@
           "Spellcasting: cast: Scorching Ray at level 3 is cast at its own level",
           "Spellcasting: cast: Fireball at level 6 is cast at its own level",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
           "Commanding Presence: cast: Command at level 2 is cast at its own level",
           "Commanding Presence: rolled (save); what it does is by hand",

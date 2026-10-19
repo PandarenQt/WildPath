@@ -1,6 +1,6 @@
 import {mkdirSync, rmSync, writeFileSync} from "node:fs";
 import {join} from "node:path";
-import {PROGRESSION_TYPES, convertActor, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables, slugify} from "./dnd5e-to-wildpath.mjs";
+import {PROGRESSION_TYPES, beastsOf, convertActor, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables, slugify} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 
 /**
@@ -30,6 +30,8 @@ const spells = Object.fromEntries(readPack(from, "spells24").map(document => [do
 // The creatures a summon brings, by dnd5e id: the SRD's own, in this system's creature pack.
 const creatures = Object.fromEntries(readPack(from, "actors24").filter(document => isSrd2024(document) && (document.type === "npc"))
   .map(document => [document._id, `Compendium.wildpath.srd-creatures.Actor.${document._id}`]));
+// The Beasts Polymorph may choose.
+const beasts = beastsOf(readPack(from, "actors24").filter(isSrd2024), document => creatures[document._id]);
 
 const items = [];
 const actors = [];
@@ -40,7 +42,7 @@ const convertedIds = new Map();
 for ( const pack of ITEM_PACKS ) {
   for ( const document of readPack(from, pack).filter(wanted) ) {
     if ( !["spell", "weapon", "feat", "equipment", "consumable", "tool", "loot", "container"].includes(document.type) ) continue;
-    const result = convertItem(document, {scales, pack, names, creatures, spells});
+    const result = convertItem(document, {scales, pack, names, creatures, spells, beasts});
     items.push(...result.items);
     const gear = result.items.filter(item => item.type === "gear");
     convertedIds.set(document._id, (gear.length ? gear : result.items).map(item => item._id));
@@ -59,7 +61,7 @@ for ( const pack of ITEM_PACKS ) {
   }
 }
 for ( const document of readPack(from, "actors24").filter(wanted) ) {
-  const result = convertActor(document, {scales, pack: "actors24", names, spells, creatures});
+  const result = convertActor(document, {scales, pack: "actors24", names, spells, creatures, beasts});
   if ( !result.ok ) continue;
   actors.push(result.actor);
   report.push({pack: "actors24", name: document.name, converted: [`${result.actor.name} (${result.actor.items.length} items)`], notes: result.notes});

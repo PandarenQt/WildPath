@@ -98,6 +98,21 @@
           "effects": []
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Reverse Gravity",
+          "img": "icons/magic/control/sihouette-hold-beam-green.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 1,
+            "units": "minutes"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "label": "Reverse Gravity"
     },
     "ruleElements": []
@@ -115,8 +130,7 @@
       },
       "conversion": {
         "notes": [
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand"
+          "save: a failure marks its creature only; what it does is by hand"
         ]
       }
     }

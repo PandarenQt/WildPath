@@ -17,6 +17,52 @@ import {commonAction} from "../../module/helpers/common-actions.mjs";
 
 /** dnd5e ability keys to WildPath's. */
 export const ABILITY_MAP = Object.freeze({str: "might", dex: "agility", con: "fortitude", int: "intellect", wis: "wits", cha: "presence"});
+/**
+ * The conditions an Item's 2024 text gives on a failed save: "On a failed save, a creature has the Prone condition",
+ * "Failure: The target has the Charmed condition", "must succeed on a Dexterity saving throw or have the Restrained
+ * condition". Not one put on its user ("on you").
+ */
+function failedSaveConditions(document) {
+  const found = new Set();
+  const text = plainText(document).replace(/&amp;Reference\[(\w+)[^\]]*\]/g, "$1");
+  for ( const sentence of text.split(/(?<=[.!?])\s+/) ) {
+    if ( !/on a failed save|failure:|saving throw,? or (?:have|has)\b/i.test(sentence) || /\bon you\b/i.test(sentence) ) continue;
+    for ( const [, name] of sentence.matchAll(/\b(?:has|have) the (\w+) condition/gi) ) {
+      if ( CONDITION_MAP[name.toLowerCase()] ) found.add(CONDITION_MAP[name.toLowerCase()]);
+    }
+  }
+  return [...found];
+}
+
+/** dnd5e's duration units, as WildPath's. */
+const LASTING_UNITS = Object.freeze({turn: "turns", round: "rounds", minute: "minutes", hour: "hours", day: "days", month: "months",
+  year: "years"});
+
+/** How long a spell or feature lasts ("1 minute"), or null when it is instantaneous, permanent or special. */
+function lastingDuration(duration) {
+  const value = number(duration?.value);
+  const units = LASTING_UNITS[duration?.units];
+  return (units && (value > 0)) ? {value, units} : null;
+}
+
+/**
+ * Spells whose failed save transforms the creature (2024 Polymorph): every statistic of the Beast's stat block (its
+ * abilities, AC and Speed), none of its own Items, and the Beast's Hit Points as Temporary Hit Points, until they are
+ * gone. Its caster chooses the Beast; the authority refuses one above the creature's Challenge Rating or level.
+ */
+const TRANSFORM_ON_FAILURE = Object.freeze({
+  polymorph: {takes: ["abilities.might.value", "abilities.agility.value", "abilities.fortitude.value", "abilities.intellect.value",
+    "abilities.wits.value", "abilities.presence.value", "defenses.ac.value", "resources.movement.base"], keepItemTypes: [],
+  temporaryHealth: "form"}
+});
+
+/** The Beasts a transformation may choose from, by their dnd5e creature documents: `{uuid, name, cr}`, weakest first. */
+export function beastsOf(documents, uuidOf) {
+  return documents.filter(document => (document.type === "npc") && (document.system?.details?.type?.value === "beast"))
+    .map(document => ({uuid: uuidOf(document), name: document.name, cr: number(document.system?.details?.cr) ?? 0}))
+    .sort((a, b) => (a.cr - b.cr) || a.name.localeCompare(b.name));
+}
+
 /** dnd5e skill keys as WildPath's skills. */
 const SKILL_MAP = Object.freeze({acr: "acrobatics", ani: "animal-handling", arc: "arcana", ath: "athletics", dec: "deception",
   his: "history", ins: "insight", itm: "intimidation", inv: "investigation", med: "medicine", nat: "nature", prc: "perception",
@@ -274,7 +320,7 @@ export function upgradeLegacy(document) {
  * @returns {{ok: true, items: object[], notes: string[]} | {ok: false, reason: string}}
  */
 export function convertItem(document, {scales={}, pack=null, saveDC=null, spellDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2",
-  images=["icons/"], spells={}, creatures={}}={}) {
+  images=["icons/"], spells={}, creatures={}, beasts=[]}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   document = upgradeLegacy(document);
   const system = document.system ?? {};
@@ -310,7 +356,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Monster spellcasting (G4): a cast activity is its spell, at the activity's cost and uses rather than a slot.
     if ( activity.type === "cast" ) {
       const cast = castSpell({document, activity, system, notes, pool, options: {scales, pack, saveDC, names, creature, book, images, spells,
-        creatures}});
+        creatures, beasts}});
       if ( cast ) {
         items.push(cast);
         allNotes.push(...notes);
@@ -318,7 +364,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       }
     }
     let definition = commonActivity({document, activity, system, spell, level, pool}) ?? (ACTIVITIES.has(activity.type)
-      ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature})
+      ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature, beasts})
       : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names})
         : ((activity.type === "teleport") ? teleportDefinition({document, activity, system, spell, level, notes, pool}) : null)));
     if ( !definition ) {
@@ -853,11 +899,18 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   const action = converted.items?.find(item => item.type === "action");
   if ( !action ) return null;
   // A wand's charges (the item's uses) or the activity's own uses pay for it.
-  const base = baseDefinition({document, activity, system, spell: false, notes, pool: itemPool});
+  // dnd5e leaves some wands' charge out of their cast activity (Wand of Polymorph); its text gives it ("expend 1 charge to cast").
+  const charge = (activity.consumption?.targets ?? []).length ? null
+    : /\bexpend (\d+) (?:of its )?charges?\b[^.]*\bcast\b/i.exec(plainText(document));
+  const paying = charge ? {...activity, consumption: {...activity.consumption, targets: [{type: "itemUses", value: charge[1]}]}} : activity;
+  const base = baseDefinition({document, activity: paying, system, spell: false, notes, pool: itemPool});
   const definition = {...action.system.definition, id: `${base.id}-${slugify(spellDocument.name)}`,
     label: options.creature ? spellDocument.name : `${document.name}: ${spellDocument.name}`,
     tags: [...new Set([...(action.system.definition.tags ?? []), "spell"])], costs: base.costs};
-  delete definition.configuration;
+  // Cast without a slot; its other choices stay (Polymorph's Beast, a damage type, one of its effects).
+  const choices = (definition.configuration ?? []).filter(choice => choice.id !== "spell-slot");
+  if ( choices.length ) definition.configuration = choices;
+  else delete definition.configuration;
   if ( definition.attack && casting ) definition.attack = {...definition.attack, ability: casting};
   const castLevel = Number(activity.spell?.level);
   if ( castLevel > (Number(spellDocument.system?.level) || 0) ) notes.push(`cast: ${spellDocument.name} at level ${castLevel} is cast at its own level`);
@@ -1108,7 +1161,7 @@ export function weaponOf(document) {
   return {category, ...(base ? {base} : {}), ...(document.system?.mastery ? {mastery: document.system.mastery} : {})};
 }
 
-function convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC=null, creature=null}) {
+function convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC=null, creature=null, beasts=[]}) {
   const definition = baseDefinition({document, activity, system, spell, notes, pool});
 
   const attackData = activity.type === "attack" ? activity.attack ?? {} : null;
@@ -1285,6 +1338,32 @@ function convertActivity({document, activity, system, spell, level, scales, note
       effects: [{type: "keepEffect", effectIds: effects.map(entry => entry.id),
         keep: Object.fromEntries(groups.map((group, index) => [option(index), group.ids]))}]}];
   }
+  // 2024 Polymorph: a creature that fails takes the form of a Beast its caster chooses (the converted Beasts).
+  const transform = TRANSFORM_ON_FAILURE[identifierOf(document)];
+  if ( transform && definition.save && beasts.length && !effects.length ) {
+    const choice = {id: "form", type: "select-one", label: "Beast", required: true,
+      options: beasts.map(beast => ({id: beast.uuid, label: `${beast.name} (CR ${beast.cr})`}))};
+    definition.configuration = [...(definition.configuration ?? []), choice];
+    definition.transform = {choiceId: choice.id, targets: true, ...transform, ...(concentration ? {concentration: true} : {})};
+    notes.push("transform: a Beast the caster chooses; what the creature may do in its form is by hand");
+    return definition;
+  }
+  // A save with nothing else converted (Grease, Zone of Truth): the conditions its 2024 text gives on a failure, else a
+  // marker on the creatures that fail it, for as long as it lasts. What else it does is by hand.
+  if ( definition.save && !damage.length && !healing.length && !effects.length && !definition.check ) {
+    const conditions = failedSaveConditions(document);
+    for ( const conditionId of conditions ) effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId,
+      saveOutcomePolicy: "failure", ...(concentration ? {concentration: true} : {})});
+    const lasting = conditions.length ? null : lastingDuration(pick(activity, system, "duration"));
+    if ( lasting || (!conditions.length && concentration) ) effects.push({id: "effect-1", type: "effect", name: document.name,
+      ...(document.img ? {img: document.img} : {}), ruleElements: [], ...(lasting ? {duration: lasting} : {}), saveOutcomePolicy: "failure",
+      ...(concentration ? {concentration: true} : {})});
+    if ( effects.length ) {
+      definition.effects = effects;
+      notes.push(conditions.length ? `save: a failure gives ${conditions.join(", ")} (its text); the rest is by hand`
+        : "save: a failure marks its creature only; what it does is by hand");
+    }
+  }
   if ( concentration && !effects.length ) notes.push("concentration: nothing it sustains was converted");
   if ( damage.length || healing.length || effects.length || definition.check ) return definition;
   // An attack or save with nothing converted on it still rolls (Command, Counterspell, a Net): the card shows who
@@ -1364,7 +1443,7 @@ export const proficiencyForChallenge = challenge => Math.max(2, Math.floor((Math
  * @returns {{ok: true, actor: object, notes: string[]} | {ok: false, reason: string}}
  */
 export function convertActor(document, {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2", images=["icons/"], spells={},
-  creatures={}}={}) {
+  creatures={}, beasts=[]}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   if ( document.type !== "npc" ) return {ok: false, reason: `a ${document.type} is not converted`};
   const system = document.system ?? {};
@@ -1391,7 +1470,7 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
   for ( const item of document.items ?? [] ) {
     // dnd5e's cached copy of a spell a cast activity casts: the cast activity converts it.
     if ( (item.type === "equipment") || item.flags?.dnd5e?.cachedFor ) continue;
-    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images, spells, creatures});
+    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images, spells, creatures, beasts});
     if ( !result.ok ) {
       notes.push(`${item.name}: ${result.reason}`);
       continue;

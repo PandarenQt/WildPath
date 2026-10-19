@@ -91,6 +91,15 @@
           "effects": []
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "prone",
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "label": "Earthquake (Cast)"
     },
     "ruleElements": []
@@ -108,8 +117,7 @@
       },
       "conversion": {
         "notes": [
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand"
+          "save: a failure gives prone (its text); the rest is by hand"
         ]
       }
     }

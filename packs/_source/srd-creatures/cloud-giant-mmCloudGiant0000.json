@@ -863,6 +863,21 @@
               "value": 15
             }
           },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Telekinesis",
+              "img": "icons/magic/unholy/hand-grasping-green.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "label": "Telekinesis"
         },
         "ruleElements": [
@@ -896,8 +911,7 @@
           },
           "conversion": {
             "notes": [
-              "concentration: nothing it sustains was converted",
-              "rolled (save); what it does is by hand"
+              "save: a failure marks its creature only; what it does is by hand"
             ]
           }
         }
@@ -1038,7 +1052,7 @@
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: effect: transformed is not a WildPath condition yet",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
-          "Spellcasting: rolled (save); what it does is by hand",
+          "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Misty Step: consumption: itemUses 1 not converted"
         ]
       }

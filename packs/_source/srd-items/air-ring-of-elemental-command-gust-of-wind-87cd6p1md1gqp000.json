@@ -48,6 +48,21 @@
           "value": 18
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Gust of Wind",
+          "img": "icons/magic/air/air-wave-gust-blue.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 1,
+            "units": "minutes"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "push": {
         "distance": 15
       },
@@ -100,8 +115,7 @@
       },
       "conversion": {
         "notes": [
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand"
+          "save: a failure marks its creature only; what it does is by hand"
         ]
       }
     }

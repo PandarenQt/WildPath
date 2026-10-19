@@ -56,6 +56,17 @@
       "metadata": {
         "followUp": true
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Dispel Evil and Good",
+          "img": "icons/magic/holy/yin-yang-balance-symbol.webp",
+          "ruleElements": [],
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "label": "Dispel Evil and Good (Dismissal)"
     },
     "ruleElements": []
@@ -73,8 +84,7 @@
       },
       "conversion": {
         "notes": [
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand"
+          "save: a failure marks its creature only; what it does is by hand"
         ]
       }
     }

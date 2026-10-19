@@ -590,6 +590,24 @@
               "unit": "ft"
             }
           },
+          "configuration": [
+            {
+              "id": "summon-creature",
+              "type": "select-one",
+              "label": "Creature",
+              "required": true,
+              "options": [
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.phbiluObject0000",
+                  "label": "Image"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.phbiluSensory000",
+                  "label": "Sound"
+                }
+              ]
+            }
+          ],
           "summon": {
             "choiceId": "summon-creature",
             "count": 1,
@@ -724,6 +742,52 @@
               "levels": -1
             }
           ],
+          "configuration": [
+            {
+              "id": "effect-choice",
+              "type": "option",
+              "label": "Condition",
+              "required": true,
+              "options": [
+                {
+                  "id": "effect-option-1",
+                  "label": "Exhaustion",
+                  "value": "effect-option-1"
+                },
+                {
+                  "id": "effect-option-2",
+                  "label": "Charmed",
+                  "value": "effect-option-2"
+                },
+                {
+                  "id": "effect-option-3",
+                  "label": "Petrified",
+                  "value": "effect-option-3"
+                }
+              ],
+              "effects": [
+                {
+                  "type": "keepEffect",
+                  "effectIds": [
+                    "effect-1",
+                    "effect-2",
+                    "effect-3"
+                  ],
+                  "keep": {
+                    "effect-option-1": [
+                      "effect-1"
+                    ],
+                    "effect-option-2": [
+                      "effect-2"
+                    ],
+                    "effect-option-3": [
+                      "effect-3"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Greater Restoration"
         },
         "ruleElements": [
@@ -788,6 +852,28 @@
               }
             ]
           },
+          "configuration": [
+            {
+              "id": "summon-creature",
+              "type": "select-one",
+              "label": "Creature",
+              "required": true,
+              "options": [
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.dmgIllusoryCreat",
+                  "label": "Illusory Creature"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.phbiluObject0000",
+                  "label": "Illusory Object"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.phbiluSensory000",
+                  "label": "Illusory Phenomenon"
+                }
+              ]
+            }
+          ],
           "range": {
             "type": "ranged",
             "normal": {

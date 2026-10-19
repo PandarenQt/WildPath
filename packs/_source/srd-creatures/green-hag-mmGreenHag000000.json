@@ -424,6 +424,21 @@
               }
             }
           },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Scrying",
+              "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 10,
+                "units": "minutes"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "label": "Scrying"
         },
         "ruleElements": [
@@ -458,8 +473,7 @@
           "conversion": {
             "notes": [
               "activation: 10 minute is not an action-economy cost",
-              "concentration: nothing it sustains was converted",
-              "rolled (save); what it does is by hand",
+              "save: a failure marks its creature only; what it does is by hand",
               "\"Create Sensor\" is passive or triggered: not automated"
             ]
           }
@@ -958,6 +972,24 @@
               "unit": "ft"
             }
           },
+          "configuration": [
+            {
+              "id": "summon-creature",
+              "type": "select-one",
+              "label": "Creature",
+              "required": true,
+              "options": [
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.phbiluObject0000",
+                  "label": "Image"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.phbiluSensory000",
+                  "label": "Sound"
+                }
+              ]
+            }
+          ],
           "summon": {
             "choiceId": "summon-creature",
             "count": 1,
@@ -1121,7 +1153,7 @@
           "Coven Magic: activation: 1 hour is not an action-economy cost",
           "Coven Magic: concentration: nothing it sustains was converted",
           "Coven Magic: activation: 10 minute is not an action-economy cost",
-          "Coven Magic: rolled (save); what it does is by hand",
+          "Coven Magic: save: a failure marks its creature only; what it does is by hand",
           "Coven Magic: \"Create Sensor\" is passive or triggered: not automated",
           "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Spellcasting: summon: a count of \"4, 1\" is not converted",

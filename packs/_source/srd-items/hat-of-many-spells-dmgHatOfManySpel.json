@@ -34,9 +34,9 @@
           "effect: \"Reduced\" change system.traits.size (subtract) not converted",
           "effect: \"Seeing Illusions\" marks its creature only; its rules are by hand",
           "\"Phantasm Damage\" is passive or triggered: not automated",
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand",
+          "transform: a Beast the caster chooses; what the creature may do in its form is by hand",
           "not automated (utility): using it spends its cost; its description says the rest",
+          "concentration: nothing it sustains was converted",
           "\"Start of Turn Save\" is passive or triggered: not automated"
         ]
       },

@@ -52,8 +52,8 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
+          "save: a failure marks its creature only; what it does is by hand",
           "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand",
           "effect: \"Air Focus\" change system.traits.languages.value (add) not converted"
         ]
       },

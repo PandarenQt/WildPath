@@ -41,3 +41,22 @@ test("a fixed form keeps its policy, a revert Action returns the creature, and a
     {fromUuid: async () => null, logger: {warn() {}}});
   assert.deepEqual(actor.calls, [["transform", "Bear", {keepItemTypes: ["feature"]}], ["revert"]]);
 });
+
+test("Polymorph turns each creature that failed its save into the Beast chosen, with the Beast's Hit Points as Temporary", async () => {
+  const definition = {...WILD_SHAPE, transform: {choiceId: "form", targets: true, keepItemTypes: [], temporaryHealth: "form", concentration: true}};
+  const {configuration} = resolveActionConfiguration({actionDefinition: definition, responses: {form: "Actor.bear"}});
+  const creature = (level, threat) => ({...shifter(), system: {details: {level, threat}}});
+  const [failed, saved, mightier] = [creature(5), creature(5), creature(undefined, 0)];
+  const tokens = new Map([["failed", {actor: failed}], ["saved", {actor: saved}], ["weak", {actor: mightier}]]);
+  const caster = {id: "caster", parent: {tokens}};
+  const bear = {name: "Bear", system: {details: {threat: 1}, resources: {health: {max: 34}}}};
+  const results = [{ok: true, success: false, target: {tokenId: "failed"}}, {ok: true, success: true, target: {tokenId: "saved"}},
+    {ok: true, success: false, target: {tokenId: "weak"}}];
+  await applyActionTransformation({options: {actor: shifter()}, state: {actionDefinition: definition, configuration,
+    source: {tokenRef: "Scene.s.Token.caster"}, results: {saveResolution: {results}}}},
+  {fromUuid: async uuid => (uuid === "Actor.bear" ? bear : (uuid === "Scene.s.Token.caster" ? caster : null)), logger: {warn() {}}});
+  assert.deepEqual(failed.calls, [["transform", "Bear", {keepItemTypes: [], temporaryHealth: 34, untilTemporaryHealthLost: true,
+    concentrationRef: "token:caster"}]]);
+  assert.deepEqual(saved.calls, [], "a save keeps its shape");
+  assert.deepEqual(mightier.calls, [], "a Bear (CR 1) is beyond a CR 0 creature");
+});

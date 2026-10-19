@@ -332,6 +332,16 @@ equipped. Equipping it (`system.active`) turns its rules on.
   have "Ends it instead". Live (two browsers, 2026-10-19): Player1's QA Caster cast the SRD Lesser Restoration on
   the Poisoned and Blinded QA Fighter and chose Poisoned. Poisoned ended, Blinded stayed, and the Action and a
   2nd-level slot were spent. From 10 ft away it was refused: the spell is a touch spell.
+- **Saves with nothing else converted (2026-10-19).** The conditions their 2024 text gives on a failure ("On a failed
+  save, a creature has the Prone condition", "Failure: The target has the Charmed condition", "must succeed on a Dexterity
+  saving throw or have the Restrained condition") apply on a failure: Grease, Sleet Storm, Earthquake (Prone),
+  Dominate Mind (Charmed). One that lasts (a duration, or concentration) without them marks the creatures that fail:
+  Zone of Truth, Confusion, Bestow Curse. SRD saves left wholly by hand fell from 137 to 35 documents, and
+  concentration effects not converted from 175 to 122.
+- **Polymorph (2026-10-19).** A failed save transforms the creature into a Beast its caster chooses from the converted
+  Beasts (classes-and-spellcasting.md); its text's rules on what it may do in its form are by hand. A magic item that
+  casts a spell keeps the spell's choices except the slot (a Beast, a damage type, one of its effects), and a wand whose
+  cast dnd5e gives no charge spends the one its text names ("expend 1 of its charges to cast"): Wands of Polymorph and Web.
 - **Effects as markers (2026-10-19).** A dnd5e effect with no status and nothing WildPath maps (Alter Self's Aquatic
   Adaptation, Acid Arrow's lingering acid, a dragon's Detect Magic) is no longer dropped. It is a custom effect with
   no rules: its name, icon, duration, save policy and concentration. Its creature shows it, it expires on time, and it

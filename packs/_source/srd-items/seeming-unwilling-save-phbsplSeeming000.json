@@ -103,6 +103,20 @@
           "effects": []
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Seeming",
+          "img": "icons/equipment/head/mask-wooden-feathered-blue.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 8,
+            "units": "hours"
+          },
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "label": "Seeming (Unwilling Save)"
     },
     "ruleElements": []
@@ -120,7 +134,7 @@
       },
       "conversion": {
         "notes": [
-          "rolled (save); what it does is by hand"
+          "save: a failure marks its creature only; what it does is by hand"
         ]
       }
     }

@@ -480,6 +480,24 @@
               "unit": "ft"
             }
           },
+          "configuration": [
+            {
+              "id": "summon-creature",
+              "type": "select-one",
+              "label": "Creature",
+              "required": true,
+              "options": [
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.phbiluObject0000",
+                  "label": "Image"
+                },
+                {
+                  "id": "Compendium.wildpath.srd-creatures.Actor.phbiluSensory000",
+                  "label": "Sound"
+                }
+              ]
+            }
+          ],
           "summon": {
             "choiceId": "summon-creature",
             "count": 1,
@@ -645,7 +663,7 @@
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
               "concentration: nothing it sustains was converted",
-              "rolled (save); what it does is by hand"
+              "save: a failure marks its creature only; what it does is by hand"
             ]
           }
         }
@@ -981,7 +999,7 @@
           "Spellcasting: effect: \"Water Breathing\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: nothing it sustains was converted",
-          "Spellcasting: rolled (save); what it does is by hand",
+          "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: teleport: a creature it brings along is moved by hand",
           "Spellcasting: cast: Hold Person at level 3 is cast at its own level",
           "Spellcasting: cast: Lightning Bolt at level 4 is cast at its own level"

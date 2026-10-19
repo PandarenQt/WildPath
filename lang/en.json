@@ -962,7 +962,8 @@
       "SrdClasses": "SRD 5.2: Classes and Origins"
     },
     "TRANSFORMATION": {
-      "Effect": "Transformed: {form}"
+      "Effect": "Transformed: {form}",
+      "TooMighty": "{form} is beyond {target}'s Challenge Rating or level: no transformation."
     },
     "SPELLCASTING": {
       "SlotPool": "Level {level} spell slots"

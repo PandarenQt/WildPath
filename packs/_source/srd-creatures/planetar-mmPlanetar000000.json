@@ -719,9 +719,9 @@
           "conversion": {
             "notes": [
               "effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand",
-              "concentration: nothing it sustains was converted",
-              "rolled (save); what it does is by hand",
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "save: a failure marks its creature only; what it does is by hand",
+              "not automated (utility): using it spends its cost; its description says the rest",
+              "concentration: nothing it sustains was converted"
             ]
           }
         }
@@ -991,6 +991,61 @@
                     ],
                     "modifierType": "untyped",
                     "value": -1
+                  }
+                }
+              ]
+            }
+          ],
+          "configuration": [
+            {
+              "id": "effect-choice",
+              "type": "option",
+              "label": "Effect",
+              "required": true,
+              "options": [
+                {
+                  "id": "effect-option-1",
+                  "label": "Resurrection Sickness (Day 1)",
+                  "value": "effect-option-1"
+                },
+                {
+                  "id": "effect-option-2",
+                  "label": "Resurrection Sickness (Day 2)",
+                  "value": "effect-option-2"
+                },
+                {
+                  "id": "effect-option-3",
+                  "label": "Resurrection Sickness (Day 3)",
+                  "value": "effect-option-3"
+                },
+                {
+                  "id": "effect-option-4",
+                  "label": "Resurrection Sickness (Day 4)",
+                  "value": "effect-option-4"
+                }
+              ],
+              "effects": [
+                {
+                  "type": "keepEffect",
+                  "effectIds": [
+                    "effect-1",
+                    "effect-2",
+                    "effect-3",
+                    "effect-4"
+                  ],
+                  "keep": {
+                    "effect-option-1": [
+                      "effect-1"
+                    ],
+                    "effect-option-2": [
+                      "effect-2"
+                    ],
+                    "effect-option-3": [
+                      "effect-3"
+                    ],
+                    "effect-option-4": [
+                      "effect-4"
+                    ]
                   }
                 }
               ]
@@ -1388,6 +1443,61 @@
               "levels": -1
             }
           ],
+          "configuration": [
+            {
+              "id": "effect-choice",
+              "type": "option",
+              "label": "Condition",
+              "required": true,
+              "options": [
+                {
+                  "id": "effect-option-1",
+                  "label": "Blinded",
+                  "value": "effect-option-1"
+                },
+                {
+                  "id": "effect-option-2",
+                  "label": "Deafened",
+                  "value": "effect-option-2"
+                },
+                {
+                  "id": "effect-option-3",
+                  "label": "Paralyzed",
+                  "value": "effect-option-3"
+                },
+                {
+                  "id": "effect-option-4",
+                  "label": "Poisoned",
+                  "value": "effect-option-4"
+                }
+              ],
+              "effects": [
+                {
+                  "type": "keepEffect",
+                  "effectIds": [
+                    "effect-1",
+                    "effect-2",
+                    "effect-3",
+                    "effect-4"
+                  ],
+                  "keep": {
+                    "effect-option-1": [
+                      "effect-1"
+                    ],
+                    "effect-option-2": [
+                      "effect-2"
+                    ],
+                    "effect-option-3": [
+                      "effect-3"
+                    ],
+                    "effect-option-4": [
+                      "effect-4"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Lesser Restoration"
         },
         "ruleElements": [
@@ -1669,6 +1779,61 @@
               "levels": -1
             }
           ],
+          "configuration": [
+            {
+              "id": "effect-choice",
+              "type": "option",
+              "label": "Condition",
+              "required": true,
+              "options": [
+                {
+                  "id": "effect-option-1",
+                  "label": "Blinded",
+                  "value": "effect-option-1"
+                },
+                {
+                  "id": "effect-option-2",
+                  "label": "Deafened",
+                  "value": "effect-option-2"
+                },
+                {
+                  "id": "effect-option-3",
+                  "label": "Paralyzed",
+                  "value": "effect-option-3"
+                },
+                {
+                  "id": "effect-option-4",
+                  "label": "Poisoned",
+                  "value": "effect-option-4"
+                }
+              ],
+              "effects": [
+                {
+                  "type": "keepEffect",
+                  "effectIds": [
+                    "effect-1",
+                    "effect-2",
+                    "effect-3",
+                    "effect-4"
+                  ],
+                  "keep": {
+                    "effect-option-1": [
+                      "effect-1"
+                    ],
+                    "effect-option-2": [
+                      "effect-2"
+                    ],
+                    "effect-option-3": [
+                      "effect-3"
+                    ],
+                    "effect-option-4": [
+                      "effect-4"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Lesser Restoration"
         },
         "ruleElements": [
@@ -1847,7 +2012,7 @@
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand",
-          "Spellcasting: rolled (save); what it does is by hand",
+          "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
           "Divine Aid: not automated (utility): using it spends its cost; its description says the rest"
         ]

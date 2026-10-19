@@ -25,6 +25,32 @@
           }
         ]
       },
+      "configuration": [
+        {
+          "id": "summon-creature",
+          "type": "select-one",
+          "label": "Creature",
+          "required": true,
+          "options": [
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbsplConjuredEl",
+              "label": "Conjured Air Elemental"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbConjuredEarth",
+              "label": "Conjured Earth Elemental"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbConjuredFireE",
+              "label": "Conjured Fire Elemental"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbConjuredWater",
+              "label": "Conjured Water Elemental"
+            }
+          ]
+        }
+      ],
       "range": {
         "type": "ranged",
         "normal": {
