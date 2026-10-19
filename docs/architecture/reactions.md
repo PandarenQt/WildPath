@@ -301,6 +301,12 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   attacks against it, until its next turn. Live: QA Caster's Strength attacks had Advantage, its Agility ones did not,
   and the Bandit Captain's attacks against it had Advantage.
 
+- **Cunning Strike (2026-10-19):** three own-hit reactions (Poison, Trip, Withdraw) matching `extra:sneak-attack` (the
+  hit's planned Sneak Attack), each with `rider: {forgoDice: {ruleId: "sneak-attack", dice: 1}}`, once a turn between them
+  (`onceKey: "cunning-strike"`). Poison and Trip are saves on the creature hit; Withdraw is a self effect (Disengaged, and
+  half its Speed more this turn). Live: QA Caster as a level-5 rogue hit the Bandit Captain with a Dagger; it chose Trip,
+  the Captain saved (15), and its damage rolled 1d4 and 2d6, not 3d6.
+
 Shortcuts: a Parry's "while holding a weapon", and Counterspell's 60 feet, sight and hostility, are the reactor's to
 judge (its Ask setting). Falling (Feather Fall) has no window yet; Retaliation's attack is by hand.
 

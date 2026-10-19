@@ -1,0 +1,102 @@
+{
+  "_id": "phbrgeCunningStr",
+  "_key": "!items!phbrgeCunningStr",
+  "name": "Cunning Strike (Poison)",
+  "type": "action",
+  "img": "icons/skills/melee/blade-tip-acid-poison-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You've developed cunning ways to use your Sneak Attack. When you deal Sneak Attack damage, you can add one of the following Cunning Strike effects. Each effect has a die cost, which is the number of Sneak Attack damage dice you must forgo to add the effect. You remove the die before rolling, and the effect occurs immediately after the attack's damage is dealt. For example, if you add the Poison effect, remove 1d6 from the Sneak Attack's damage before rolling.</p><p>If a Cunning Strike effect requires a saving throw, the DC equals 8 plus your Dexterity modifier and Proficiency Bonus.</p><p><strong>Poison (Cost: 1d6).</strong> You add a toxin to your strike, forcing the target to make a Constitution saving throw. On a failed save, the target has the Poisoned condition for 1 minute. At the end of each of its turns, the Poisoned target repeats the save, ending the effect on itself on a success.</p><p>To use this effect, you must have a Poisoner's Kit on your person.</p><p><strong>Trip (Cost: 1d6).</strong> If the target is Large or smaller, it must succeed on a Dexterity saving throw or have the Prone condition.</p><p><strong>Withdraw (Cost: 1d6).</strong> Immediately after the attack, you move up to half your Speed without provoking Opportunity Attacks.</p><section class=\"secret\" id=\"secret-kCs7nMVrTvJRlkCy\"><p><strong>Foundry Note</strong></p><p>After using Cunning Strike effects use the <strong>Cunning Sneak Attack</strong> activity on this feature. It will prompt you to select how many dice you expended on effects and deduct them from your Sneak Attack roll automatically.</p><p>You can select the damage type in the damage roll dialog.</p><p>The <strong>Poison</strong> activity includes an Active Effect that applies the Poisoned condition.</p><p>The <strong>Trip</strong> activity includes an Active Effect that applies the Prone condition or you can use the inline condition above.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cunning-strike-poison",
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "ability-modifier",
+                "ability": "agility"
+              }
+            ]
+          }
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "poisoned",
+          "saveOutcomePolicy": "failure",
+          "repeatSave": "turnEnd"
+        }
+      ],
+      "rider": {
+        "forgoDice": {
+          "ruleId": "sneak-attack",
+          "dice": 1
+        }
+      },
+      "label": "Cunning Strike (Poison)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": [
+              "extra:sneak-attack"
+            ],
+            "notTagsAny": [
+              "spell"
+            ]
+          },
+          "once": "turn",
+          "onceKey": "cunning-strike"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgeCunningStr",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}
