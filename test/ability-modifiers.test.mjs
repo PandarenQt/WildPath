@@ -48,3 +48,15 @@ test("weapon proficiency follows weapon training (G8); without training, the att
   assert.equal(attackProficient(trained(["martial"]), {...longsword, proficient: false}), false, "unticked stays unticked");
   assert.equal(attackProficient(trained(["simple"]), {proficient: true}), true, "not a weapon: a spell attack");
 });
+
+test("a skill check without its proficiency also reads check.unproficient (Jack of All Trades); a proficient one or a plain ability check does not", () => {
+  const read = [];
+  const bard = {system: {abilities: {presence: {value: 14}}, skills: {performance: {proficiency: 1}}, proficiencyBonus: 2},
+    getStatistic: domains => { read.push(domains); return {totalModifier: domains.includes("check.unproficient") ? 1 : 0}; }};
+  assert.equal(resolveActorCheckStatistic(bard, {skill: "persuasion"}).totalModifier, 3, "unproficient: +1 from Jack of All Trades");
+  assert.ok(read.at(-1).includes("check.unproficient"));
+  resolveActorCheckStatistic(bard, {ability: "presence", skill: "performance"});
+  assert.ok(!read.at(-1).includes("check.unproficient"), "proficient");
+  resolveActorCheckStatistic(bard, {ability: "presence"});
+  assert.ok(!read.at(-1).includes("check.unproficient"), "no skill");
+});

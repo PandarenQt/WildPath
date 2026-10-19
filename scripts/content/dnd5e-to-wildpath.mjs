@@ -2210,6 +2210,13 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
     } else if ( (key === "system.attributes.concentration.roll.mode") && number ) {
       // Eldritch Mind: Advantage on saves to keep Concentration.
       rule("RollMode", {domains: ["concentration"], mode: number > 0 ? "advantage" : "disadvantage"});
+    } else if ( key === "flags.dnd5e.jackOfAllTrades" ) {
+      // 2024 Jack of All Trades: half the Proficiency Bonus (round down) on a skill check without that skill's proficiency.
+      modifier(["check.unproficient"], {type: "floor", value: {type: "divide", numerator: {type: "proficiency-bonus"},
+        denominator: {type: "constant", value: 2}}});
+    } else if ( key === "flags.dnd5e.remarkableAthlete" ) {
+      // 2024 Remarkable Athlete: Advantage on Initiative rolls and Strength (Athletics) checks.
+      rule("RollMode", {domains: ["initiative", "check.athletics"], mode: "advantage"});
     } else if ( (key === "flags.dnd5e.weaponCriticalThreshold") && ["downgrade", "override"].includes(type) && Number.isInteger(number) ) {
       // Improved Critical (19), Superior Critical (18): its weapon attacks score a Critical Hit on that d20 or more.
       rule("RollOutcome", {domains: ["attack.weapon"], outcome: "critical-range", threshold: number});
