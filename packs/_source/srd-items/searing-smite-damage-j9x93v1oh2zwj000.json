@@ -39,6 +39,20 @@
           "provenance": "spell-base"
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Seared",
+          "img": "icons/magic/fire/flame-burning-skull-orange.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -147,7 +161,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Seared\" (its own changes) not converted"
+          "effect: \"Seared\" marks its creature only; its rules are by hand"
         ]
       }
     }

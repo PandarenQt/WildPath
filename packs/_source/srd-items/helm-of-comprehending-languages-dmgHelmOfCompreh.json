@@ -27,9 +27,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "effect: \"Comprehension\" change system.traits.languages.value (add) not converted",
-          "effect: \"Comprehension\" (its own changes) not converted"
+          "effect: \"Comprehension\" marks its creature only; its rules are by hand"
         ]
       },
       "grants": [

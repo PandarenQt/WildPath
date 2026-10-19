@@ -21,6 +21,35 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "multiple",
+        "required": true,
+        "count": 10,
+        "refinementPolicy": {
+          "minSelections": 1
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Water Walking",
+          "img": "icons/creatures/amphibians/frog-water-teal.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -102,8 +131,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Water Walking\" (its own changes) not converted"
+          "effect: \"Water Walking\" marks its creature only; its rules are by hand"
         ]
       }
     }

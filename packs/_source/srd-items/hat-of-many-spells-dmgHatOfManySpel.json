@@ -32,10 +32,10 @@
           "effect: \"Reduced\" change system.rolls.damage.mwak.bonus (subtract) not converted",
           "effect: \"Reduced\" change system.rolls.damage.rwak.bonus (subtract) not converted",
           "effect: \"Reduced\" change system.traits.size (subtract) not converted",
-          "effect: \"Seeing Illusions\" (its own changes) not converted",
+          "effect: \"Seeing Illusions\" marks its creature only; its rules are by hand",
+          "\"Phantasm Damage\" is passive or triggered: not automated",
           "concentration: nothing it sustains was converted",
           "rolled (save); what it does is by hand",
-          "\"Phantasm Damage\" is passive or triggered: not automated",
           "not automated (utility): using it spends its cost; its description says the rest",
           "\"Start of Turn Save\" is passive or triggered: not automated"
         ]

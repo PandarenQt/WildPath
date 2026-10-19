@@ -22,6 +22,26 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Antitoxin",
+          "img": "icons/consumables/potions/bottle-round-corked-pink.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Antitoxin"
     },
     "ruleElements": [
@@ -54,8 +74,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Antitoxin\" (its own changes) not converted"
+          "effect: \"Antitoxin\" marks its creature only; its rules are by hand"
         ]
       }
     }

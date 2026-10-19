@@ -25,6 +25,32 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 10,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Feather Token: Fan",
+          "img": "icons/magic/air/air-wave-gust-blue.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Feather Token (Fan)"
     },
     "ruleElements": [
@@ -57,8 +83,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Feather Token: Fan\" (its own changes) not converted"
+          "effect: \"Feather Token: Fan\" marks its creature only; its rules are by hand"
         ]
       }
     }

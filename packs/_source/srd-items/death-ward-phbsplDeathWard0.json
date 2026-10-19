@@ -21,6 +21,32 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Protection from Death",
+          "img": "icons/magic/death/skull-horned-worn-fire-blue.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -95,8 +121,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Protection from Death\" (its own changes) not converted"
+          "effect: \"Protection from Death\" marks its creature only; its rules are by hand"
         ]
       }
     }

@@ -48,6 +48,21 @@
           }
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Bound to Service",
+          "img": "icons/magic/control/debuff-chains-shackles-movement-blue.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 86400,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -116,8 +131,7 @@
       "conversion": {
         "notes": [
           "activation: 1 hour is not an action-economy cost",
-          "effect: \"Bound to Service\" (its own changes) not converted",
-          "rolled (save); what it does is by hand"
+          "effect: \"Bound to Service\" marks its creature only; its rules are by hand"
         ]
       }
     }

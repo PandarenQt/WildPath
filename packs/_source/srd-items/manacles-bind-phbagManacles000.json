@@ -31,6 +31,15 @@
           "value": 13
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Manacled",
+          "img": "icons/sundries/survival/cuffs-shackles-steel.webp",
+          "ruleElements": []
+        }
+      ],
       "label": "Manacles (Bind)"
     },
     "ruleElements": [
@@ -63,7 +72,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Manacled\" (its own changes) not converted"
+          "effect: \"Manacled\" marks its creature only; its rules are by hand"
         ]
       }
     }

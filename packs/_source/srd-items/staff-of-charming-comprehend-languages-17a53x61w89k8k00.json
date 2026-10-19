@@ -25,6 +25,26 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Comprehension",
+          "img": "icons/sundries/books/book-open-purple.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Staff of Charming: Comprehend Languages"
     },
     "ruleElements": [
@@ -74,9 +94,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "effect: \"Comprehension\" change system.traits.languages.value (add) not converted",
-          "effect: \"Comprehension\" (its own changes) not converted"
+          "effect: \"Comprehension\" marks its creature only; its rules are by hand"
         ]
       }
     }

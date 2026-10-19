@@ -929,6 +929,23 @@ test("a grapple or restraint keeps its escape DC, from the Escape Check activity
   assert.deepEqual(constrict.system.definition.effects[0].metadata, {escapeDC: 10 + 4 + 2}, "its passive Athletics");
 });
 
+test("an effect with nothing WildPath maps still marks its creature, for its duration and concentration (Alter Self)", () => {
+  const alter = {_id: "testAlterSelf001", name: "Alter Self", type: "spell", img: "systems/dnd5e/icons/spell.webp",
+    effects: [{_id: "altered", name: "Aquatic Adaptation", img: "icons/svg/water.svg", transfer: false, statuses: [], duration: {value: 1, units: "hours"},
+      system: {changes: [{key: "system.traits.languages.custom", mode: 2, value: "Aquan"}]}}],
+    system: {source: SRD, identifier: "alter-self", level: 2, preparation: {mode: "prepared"}, properties: ["vocal", "concentration"],
+      activation: {type: "action"}, range: {units: "self"}, target: {affects: {type: "self"}, template: {}},
+      activities: {a: activity("utility", {effects: [{_id: "altered"}]})}}};
+  const [spell] = convertItem(alter).items;
+  const [marker] = spell.system.definition.effects;
+  assert.deepEqual([marker.type, marker.name, marker.img, marker.ruleElements, marker.concentration], ["effect", "Aquatic Adaptation",
+    "icons/svg/water.svg", [], true]);
+  assert.ok(marker.duration, "its own duration");
+  assert.ok(spell.flags.wildpath.conversion.notes.some(note => /marks its creature only/.test(note)));
+  assert.equal(spell.flags.wildpath.conversion.notes.some(note => /concentration: nothing/.test(note)), false);
+  assert.equal(validateActionDefinition(spell.system.definition).ok, true);
+});
+
 test("Temporary Hit Points are healing of their own type (False Life)", () => {
   const life = {_id: "testFalseLife001", name: "False Life", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
     system: {source: SRD, identifier: "false-life", level: 1, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},

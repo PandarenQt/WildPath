@@ -502,6 +502,34 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Detect Evil and Good",
+              "img": "icons/magic/perception/eye-ringed-green.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "label": "Detect Evil and Good"
         },
         "ruleElements": []
@@ -520,9 +548,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Detect Evil and Good\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -690,6 +716,27 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Dispelling Evil and Good",
+              "img": "icons/magic/light/orb-hands-humanoid-yellow.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "label": "Dispel Evil and Good"
         },
         "ruleElements": [
@@ -723,10 +770,10 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Dispelling Evil and Good\" (its own changes) not converted",
+              "effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand",
               "concentration: nothing it sustains was converted",
-              "rolled (save); what it does is by hand"
+              "rolled (save); what it does is by hand",
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1031,7 +1078,7 @@
           "conversion": {
             "notes": [
               "activation: 1 hour is not an action-economy cost",
-              "effect: \"Spell Taxed\" (its own changes) not converted"
+              "effect: \"Spell Taxed\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -1552,15 +1599,15 @@
       },
       "conversion": {
         "notes": [
+          "Spellcasting: effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Detect Evil and Good\" (its own changes) not converted",
-          "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: effect: \"Dispelling Evil and Good\" (its own changes) not converted",
+          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand",
           "Spellcasting: rolled (save); what it does is by hand",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
-          "Spellcasting: effect: \"Spell Taxed\" (its own changes) not converted",
+          "Spellcasting: effect: \"Spell Taxed\" marks its creature only; its rules are by hand",
           "Divine Aid: cast: Cure Wounds at level 2 is cast at its own level",
           "Divine Aid: not automated (utility): using it spends its cost; its description says the rest"
         ]

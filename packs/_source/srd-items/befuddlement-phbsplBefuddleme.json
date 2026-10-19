@@ -69,6 +69,15 @@
           }
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Befuddled",
+          "img": "icons/skills/trades/academics-investigation-puzzles.webp",
+          "ruleElements": []
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -115,7 +124,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Befuddled\" (its own changes) not converted"
+          "effect: \"Befuddled\" marks its creature only; its rules are by hand"
         ]
       }
     }

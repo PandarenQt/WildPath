@@ -359,6 +359,50 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Duplicate A",
+              "img": "icons/sundries/flags/banner-pink.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Duplicate B",
+              "img": "icons/sundries/flags/banner-green.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            },
+            {
+              "id": "effect-3",
+              "type": "effect",
+              "name": "Duplicate C",
+              "img": "icons/sundries/flags/banner-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Mirror Image"
         },
         "ruleElements": [
@@ -392,13 +436,12 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
               "effect: \"Duplicate A\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
-              "effect: \"Duplicate A\" (its own changes) not converted",
+              "effect: \"Duplicate A\" marks its creature only; its rules are by hand",
               "effect: \"Duplicate B\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
-              "effect: \"Duplicate B\" (its own changes) not converted",
+              "effect: \"Duplicate B\" marks its creature only; its rules are by hand",
               "effect: \"Duplicate C\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
-              "effect: \"Duplicate C\" (its own changes) not converted"
+              "effect: \"Duplicate C\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -531,13 +574,12 @@
       "conversion": {
         "notes": [
           "Attach: \"Detach Attempt\" is passive or triggered: not automated",
-          "Phantasms: not automated (utility): using it spends its cost; its description says the rest",
           "Phantasms: effect: \"Duplicate A\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
-          "Phantasms: effect: \"Duplicate A\" (its own changes) not converted",
+          "Phantasms: effect: \"Duplicate A\" marks its creature only; its rules are by hand",
           "Phantasms: effect: \"Duplicate B\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
-          "Phantasms: effect: \"Duplicate B\" (its own changes) not converted",
+          "Phantasms: effect: \"Duplicate B\" marks its creature only; its rules are by hand",
           "Phantasms: effect: \"Duplicate C\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
-          "Phantasms: effect: \"Duplicate C\" (its own changes) not converted"
+          "Phantasms: effect: \"Duplicate C\" marks its creature only; its rules are by hand"
         ]
       }
     }

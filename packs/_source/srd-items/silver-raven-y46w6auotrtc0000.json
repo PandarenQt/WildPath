@@ -30,8 +30,7 @@
           "not automated (summon): using it spends its cost; its description says the rest",
           "summon: its creature is not among the converted creatures",
           "consumption: itemUses @item.uses.max not converted",
-          "effect: \"Carrying Message\" (its own changes) not converted",
-          "rolled (save); what it does is by hand"
+          "effect: \"Carrying Message\" marks its creature only; its rules are by hand"
         ]
       },
       "grants": [

@@ -53,6 +53,21 @@
           }
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Carrying Message",
+          "img": "icons/sundries/documents/envelope-sealed-red-brown.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 86400,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -141,8 +156,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Carrying Message\" (its own changes) not converted",
-          "rolled (save); what it does is by hand"
+          "effect: \"Carrying Message\" marks its creature only; its rules are by hand"
         ]
       }
     }

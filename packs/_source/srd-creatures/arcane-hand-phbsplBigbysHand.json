@@ -360,6 +360,55 @@
                 "units": "turns",
                 "expiry": "turnStart"
               }
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Interposed",
+              "img": "icons/magic/earth/barrier-stone-explosion-debris.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
+          "configuration": [
+            {
+              "id": "effect-choice",
+              "type": "option",
+              "label": "Effect",
+              "required": true,
+              "options": [
+                {
+                  "id": "effect-option-1",
+                  "label": "Half Cover",
+                  "value": "effect-option-1"
+                },
+                {
+                  "id": "effect-option-2",
+                  "label": "Interposed",
+                  "value": "effect-option-2"
+                }
+              ],
+              "effects": [
+                {
+                  "type": "keepEffect",
+                  "effectIds": [
+                    "effect-1",
+                    "effect-2"
+                  ],
+                  "keep": {
+                    "effect-option-1": [
+                      "effect-1"
+                    ],
+                    "effect-option-2": [
+                      "effect-2"
+                    ]
+                  }
+                }
+              ]
             }
           ],
           "label": "Interposing Hand"
@@ -379,7 +428,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Interposed\" (its own changes) not converted"
+              "effect: \"Interposed\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -406,7 +455,7 @@
           "Grasping Hand: rolled (save); what it does is by hand",
           "Grasping Hand: not automated (damage): using it spends its cost; its description says the rest",
           "Grasping Hand: damage 1: custom formula \"(2 * @flags.dnd5e.summon.level - 6)d6 + @flags.dnd5e.summon.mod\" not converted",
-          "Interposing Hand: effect: \"Interposed\" (its own changes) not converted"
+          "Interposing Hand: effect: \"Interposed\" marks its creature only; its rules are by hand"
         ]
       }
     }

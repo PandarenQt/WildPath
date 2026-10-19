@@ -518,6 +518,34 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Detect Magic",
+              "img": "icons/magic/symbols/runes-carved-stone-green.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -536,9 +564,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Detect Magic\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -911,6 +937,53 @@
             "size": {
               "value": 15,
               "unit": "ft"
+            },
+            "persistence": {
+              "duration": {
+                "unit": "round",
+                "value": 100
+              },
+              "concentration": false,
+              "triggers": [
+                {
+                  "on": [
+                    "area.entered",
+                    "turn.started"
+                  ],
+                  "action": {
+                    "schemaVersion": 1,
+                    "id": "action:srd-zone-of-truth:lasting",
+                    "label": "Zone of Truth",
+                    "costs": {
+                      "allOf": []
+                    },
+                    "tags": [
+                      "spell"
+                    ],
+                    "save": {
+                      "ability": "presence",
+                      "dc": {
+                        "value": 19
+                      }
+                    },
+                    "effects": [
+                      {
+                        "id": "effect-1",
+                        "type": "effect",
+                        "name": "Cannot Lie",
+                        "img": "icons/skills/social/wave-halt-stop.webp",
+                        "ruleElements": [],
+                        "duration": {
+                          "value": 600,
+                          "units": "seconds",
+                          "expiry": "turnStart"
+                        },
+                        "saveOutcomePolicy": "failure"
+                      }
+                    ]
+                  }
+                }
+              ]
             }
           },
           "save": {
@@ -919,6 +992,21 @@
               "value": 19
             }
           },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Cannot Lie",
+              "img": "icons/skills/social/wave-halt-stop.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Zone of Truth"
         },
         "ruleElements": []
@@ -937,8 +1025,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Cannot Lie\" (its own changes) not converted",
-              "rolled (save); what it does is by hand"
+              "effect: \"Cannot Lie\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -1240,13 +1327,12 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
-          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: \"Shard Explosion\" is passive or triggered: not automated",
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: cast: Ice Storm at level 5 is cast at its own level",
-          "Spellcasting: effect: \"Cannot Lie\" (its own changes) not converted",
-          "Spellcasting: rolled (save); what it does is by hand",
+          "Spellcasting: effect: \"Cannot Lie\" marks its creature only; its rules are by hand",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: consumption: attribute 1 not converted"
         ]

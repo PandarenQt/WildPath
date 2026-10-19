@@ -437,6 +437,34 @@
               ]
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Detect Magic",
+              "img": "icons/magic/symbols/runes-carved-stone-green.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -455,9 +483,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Detect Magic\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -532,6 +558,22 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Spiked",
+              "img": "icons/skills/targeting/target-strike-gray.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "label": "Mind Spike"
         },
         "ruleElements": []
@@ -551,8 +593,7 @@
           "conversion": {
             "notes": [
               "cast: Mind Spike at level 5 is cast at its own level",
-              "effect: \"Spiked\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Spiked\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -869,6 +910,22 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Spiked",
+              "img": "icons/skills/targeting/target-strike-gray.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure",
+              "concentration": true
+            }
+          ],
           "label": "Mind Spike"
         },
         "ruleElements": []
@@ -888,8 +945,7 @@
           "conversion": {
             "notes": [
               "cast: Mind Spike at level 3 is cast at its own level",
-              "effect: \"Spiked\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Spiked\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -954,6 +1010,21 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Damaged: −2 AC",
+              "img": "icons/skills/melee/shield-damaged-broken-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Noxious Miasma"
         },
         "ruleElements": []
@@ -972,7 +1043,7 @@
           "conversion": {
             "notes": [
               "effect: \"Damaged: −2 AC\" change system.armor.value (add) not converted",
-              "effect: \"Damaged: −2 AC\" (its own changes) not converted"
+              "effect: \"Damaged: −2 AC\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -1141,17 +1212,14 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
-          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: cast: Mind Spike at level 5 is cast at its own level",
-          "Spellcasting: effect: \"Spiked\" (its own changes) not converted",
+          "Spellcasting: effect: \"Spiked\" marks its creature only; its rules are by hand",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Mind Invasion: cast: Mind Spike at level 3 is cast at its own level",
-          "Mind Invasion: effect: \"Spiked\" (its own changes) not converted",
-          "Mind Invasion: concentration: nothing it sustains was converted",
+          "Mind Invasion: effect: \"Spiked\" marks its creature only; its rules are by hand",
           "Noxious Miasma: effect: \"Damaged: −2 AC\" change system.armor.value (add) not converted",
-          "Noxious Miasma: effect: \"Damaged: −2 AC\" (its own changes) not converted",
+          "Noxious Miasma: effect: \"Damaged: −2 AC\" marks its creature only; its rules are by hand",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: consumption: attribute 1 not converted"
         ]

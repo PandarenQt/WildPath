@@ -53,6 +53,22 @@
           }
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Levitating",
+          "img": "icons/magic/control/silhouette-hold-change-blue.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "label": "Boots of Levitation: Levitate"
     },
     "ruleElements": []
@@ -71,9 +87,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Levitating\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand"
+          "effect: \"Levitating\" marks its creature only; its rules are by hand"
         ]
       }
     }

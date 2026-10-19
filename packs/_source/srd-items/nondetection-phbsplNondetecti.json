@@ -21,6 +21,32 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Hidden from Divination",
+          "img": "icons/magic/perception/mask-stone-eyes-orange.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -102,8 +128,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Hidden from Divination\" (its own changes) not converted"
+          "effect: \"Hidden from Divination\" marks its creature only; its rules are by hand"
         ]
       }
     }

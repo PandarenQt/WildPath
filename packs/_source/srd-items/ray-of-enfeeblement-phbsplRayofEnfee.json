@@ -57,6 +57,15 @@
         {
           "id": "effect-1",
           "type": "effect",
+          "name": "Brief Enfeeblement",
+          "img": "icons/skills/melee/sword-damaged-broken-glow-red.webp",
+          "ruleElements": [],
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
           "name": "Enervated",
           "img": "icons/skills/wounds/blood-cells-disease-green.webp",
           "ruleElements": [
@@ -161,6 +170,41 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "effect-choice",
+          "type": "option",
+          "label": "Effect",
+          "required": true,
+          "options": [
+            {
+              "id": "effect-option-1",
+              "label": "Brief Enfeeblement",
+              "value": "effect-option-1"
+            },
+            {
+              "id": "effect-option-2",
+              "label": "Enervated",
+              "value": "effect-option-2"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "effect-1",
+                "effect-2"
+              ],
+              "keep": {
+                "effect-option-1": [
+                  "effect-1"
+                ],
+                "effect-option-2": [
+                  "effect-2"
+                ]
+              }
+            }
+          ]
         }
       ],
       "label": "Ray of Enfeeblement"
@@ -180,7 +224,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Brief Enfeeblement\" (its own changes) not converted",
+          "effect: \"Brief Enfeeblement\" marks its creature only; its rules are by hand",
           "effect: \"Enervated\" change system.bonuses.mwak.damage (add) not converted",
           "effect: \"Enervated\" change system.bonuses.rwak.damage (add) not converted",
           "effect: \"Enervated\" change system.bonuses.msak.damage (add) not converted",

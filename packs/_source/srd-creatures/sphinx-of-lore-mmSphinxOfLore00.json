@@ -405,6 +405,34 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Detect Magic",
+              "img": "icons/magic/symbols/runes-carved-stone-green.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -423,9 +451,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Detect Magic\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -999,6 +1025,32 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Universal Communication",
+              "img": "icons/environment/settlement/pyramid.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Tongues"
         },
         "ruleElements": [
@@ -1032,9 +1084,8 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
               "effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
-              "effect: \"Universal Communication\" (its own changes) not converted"
+              "effect: \"Universal Communication\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -1271,14 +1322,14 @@
       },
       "conversion": {
         "notes": [
+          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
-          "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
+          "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
-          "Spellcasting: effect: \"Universal Communication\" (its own changes) not converted",
+          "Spellcasting: effect: \"Universal Communication\" marks its creature only; its rules are by hand",
           "Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest",
           "Weight of Years: \"Years Older\" is passive or triggered: not automated"
         ]

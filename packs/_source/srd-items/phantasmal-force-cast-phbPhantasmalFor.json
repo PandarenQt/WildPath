@@ -58,6 +58,22 @@
           }
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Seeing Illusions",
+          "img": "icons/magic/control/hypnosis-mesmerism-eye.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -146,9 +162,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Seeing Illusions\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand"
+          "effect: \"Seeing Illusions\" marks its creature only; its rules are by hand"
         ]
       }
     }

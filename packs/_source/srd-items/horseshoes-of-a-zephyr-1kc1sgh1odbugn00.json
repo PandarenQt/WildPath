@@ -27,9 +27,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "effect: \"Ignore Difficult Terrain\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted",
-          "effect: \"Ignore Difficult Terrain\" (its own changes) not converted"
+          "effect: \"Ignore Difficult Terrain\" marks its creature only; its rules are by hand"
         ]
       },
       "grants": [

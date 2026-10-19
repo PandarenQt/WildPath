@@ -295,6 +295,20 @@
               "provenance": "weapon-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Next Attack: Disadv.",
+              "img": "modules/dnd-players-handbook/assets/icons/items/morningstar.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Morningstar"
         },
         "ruleElements": []
@@ -312,7 +326,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Next Attack: Disadv.\" (its own changes) not converted"
+              "effect: \"Next Attack: Disadv.\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -414,7 +428,7 @@
       },
       "conversion": {
         "notes": [
-          "Morningstar: effect: \"Next Attack: Disadv.\" (its own changes) not converted"
+          "Morningstar: effect: \"Next Attack: Disadv.\" marks its creature only; its rules are by hand"
         ]
       }
     }

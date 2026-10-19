@@ -44,7 +44,7 @@
           "concentration: nothing it sustains was converted",
           "\"Start of Turn Effects\" is passive or triggered: not automated",
           "\"Frigid Air\" is passive or triggered: not automated",
-          "effect: \"Water Walking\" (its own changes) not converted"
+          "effect: \"Water Walking\" marks its creature only; its rules are by hand"
         ]
       },
       "grants": [

@@ -25,6 +25,26 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Seeing",
+          "img": "icons/commodities/gems/gem-rough-rose-teal.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Gem of Seeing"
     },
     "ruleElements": [
@@ -64,9 +84,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "effect: \"Seeing\" change system.attributes.senses.trueseight (upgrade) not converted",
-          "effect: \"Seeing\" (its own changes) not converted"
+          "effect: \"Seeing\" marks its creature only; its rules are by hand"
         ]
       }
     }

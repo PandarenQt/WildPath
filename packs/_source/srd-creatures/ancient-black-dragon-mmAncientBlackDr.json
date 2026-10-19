@@ -424,6 +424,34 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Detect Magic",
+              "img": "icons/magic/symbols/runes-carved-stone-green.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -442,9 +470,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Detect Magic\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -589,6 +615,20 @@
               "provenance": "spell-base"
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Lingering Acid",
+              "img": "icons/magic/acid/dissolve-arm-flesh.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Acid Arrow"
         },
         "ruleElements": []
@@ -608,7 +648,7 @@
           "conversion": {
             "notes": [
               "cast: Acid Arrow at level 4 is cast at its own level",
-              "effect: \"Lingering Acid\" (its own changes) not converted"
+              "effect: \"Lingering Acid\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -815,6 +855,21 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Lingering Acid",
+              "img": "icons/magic/acid/dissolve-drip-droplet-smoke.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Vitriolic Sphere"
         },
         "ruleElements": [
@@ -849,7 +904,7 @@
           "conversion": {
             "notes": [
               "cast: Vitriolic Sphere at level 5 is cast at its own level",
-              "effect: \"Lingering Acid\" (its own changes) not converted",
+              "effect: \"Lingering Acid\" marks its creature only; its rules are by hand",
               "\"End of Turn Damage\" is passive or triggered: not automated"
             ]
           }
@@ -910,6 +965,21 @@
               }
             }
           ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Clouded",
+              "img": "icons/creatures/invertebrates/fly-wasp-mosquito-green.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              },
+              "saveOutcomePolicy": "failure"
+            }
+          ],
           "label": "Cloud of Insects"
         },
         "ruleElements": []
@@ -927,7 +997,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Clouded\" (its own changes) not converted"
+              "effect: \"Clouded\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -1159,17 +1229,16 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
-          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: cast: Acid Arrow at level 4 is cast at its own level",
-          "Spellcasting: effect: \"Lingering Acid\" (its own changes) not converted",
+          "Spellcasting: effect: \"Lingering Acid\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Spellcasting: summon: its creature is not among the converted creatures",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: cast: Vitriolic Sphere at level 5 is cast at its own level",
           "Spellcasting: \"End of Turn Damage\" is passive or triggered: not automated",
-          "Cloud of Insects: effect: \"Clouded\" (its own changes) not converted",
+          "Cloud of Insects: effect: \"Clouded\" marks its creature only; its rules are by hand",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: consumption: attribute 1 not converted"
         ]

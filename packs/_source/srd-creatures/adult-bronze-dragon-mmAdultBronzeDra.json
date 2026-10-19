@@ -510,6 +510,34 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Detect Magic",
+              "img": "icons/magic/symbols/runes-carved-stone-green.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
           "label": "Detect Magic"
         },
         "ruleElements": []
@@ -528,9 +556,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Detect Magic\" (its own changes) not converted",
-              "concentration: nothing it sustains was converted"
+              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -698,6 +724,26 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Bestial Communication",
+              "img": "icons/creatures/mammals/dog-husky-white-blue.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Speak with Animals"
         },
         "ruleElements": []
@@ -716,9 +762,8 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
               "effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
-              "effect: \"Bestial Communication\" (its own changes) not converted"
+              "effect: \"Bestial Communication\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -902,6 +947,35 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 30,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "multiple",
+            "required": true,
+            "count": 10,
+            "refinementPolicy": {
+              "minSelections": 1
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Water Breathing",
+              "img": "icons/creatures/fish/crab-blue-purple.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 86400,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "Water Breathing"
         },
         "ruleElements": [
@@ -935,8 +1009,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: \"Water Breathing\" (its own changes) not converted"
+              "effect: \"Water Breathing\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -1278,15 +1351,15 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Detect Magic\" (its own changes) not converted",
-          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: cast: Guiding Bolt at level 2 is cast at its own level",
           "Spellcasting: effect: marked is not a WildPath condition yet",
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
-          "Spellcasting: effect: \"Bestial Communication\" (its own changes) not converted",
+          "Spellcasting: effect: \"Bestial Communication\" marks its creature only; its rules are by hand",
           "Spellcasting: rolled (save); what it does is by hand",
-          "Spellcasting: effect: \"Water Breathing\" (its own changes) not converted",
+          "Spellcasting: effect: \"Water Breathing\" marks its creature only; its rules are by hand",
           "Guiding Light: cast: Guiding Bolt at level 2 is cast at its own level",
           "Guiding Light: effect: marked is not a WildPath condition yet",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",

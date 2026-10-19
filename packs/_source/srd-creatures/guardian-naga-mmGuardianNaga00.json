@@ -872,6 +872,32 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Truesight",
+              "img": "icons/magic/perception/eye-slit-orange.webp",
+              "ruleElements": [],
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
           "label": "True Seeing"
         },
         "ruleElements": [
@@ -905,9 +931,8 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
               "effect: \"Truesight\" change system.attributes.senses.truesight (upgrade) not converted",
-              "effect: \"Truesight\" (its own changes) not converted"
+              "effect: \"Truesight\" marks its creature only; its rules are by hand"
             ]
           }
         }
@@ -993,9 +1018,8 @@
           "Spellcasting: cast: Flame Strike at level 6 is cast at its own level",
           "Spellcasting: cast: Geas at level 6 is cast at its own level",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Truesight\" change system.attributes.senses.truesight (upgrade) not converted",
-          "Spellcasting: effect: \"Truesight\" (its own changes) not converted"
+          "Spellcasting: effect: \"Truesight\" marks its creature only; its rules are by hand"
         ]
       }
     }

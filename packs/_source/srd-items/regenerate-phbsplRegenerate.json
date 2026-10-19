@@ -48,6 +48,20 @@
           "healingType": "healing"
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Regenerating",
+          "img": "icons/magic/life/cross-yellow-green.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -115,7 +129,7 @@
       "conversion": {
         "notes": [
           "activation: 1 minute is not an action-economy cost",
-          "effect: \"Regenerating\" (its own changes) not converted"
+          "effect: \"Regenerating\" marks its creature only; its rules are by hand"
         ]
       }
     }

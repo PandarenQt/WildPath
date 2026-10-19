@@ -27,9 +27,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Detect Magic\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
+          "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
         ]
       },
       "grants": [

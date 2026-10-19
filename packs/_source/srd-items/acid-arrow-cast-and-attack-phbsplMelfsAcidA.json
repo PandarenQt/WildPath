@@ -51,6 +51,20 @@
           "provenance": "spell-base"
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Lingering Acid",
+          "img": "icons/magic/acid/dissolve-arm-flesh.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -152,7 +166,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Lingering Acid\" (its own changes) not converted"
+          "effect: \"Lingering Acid\" marks its creature only; its rules are by hand"
         ]
       }
     }

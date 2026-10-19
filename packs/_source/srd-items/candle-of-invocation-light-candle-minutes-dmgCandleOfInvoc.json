@@ -25,6 +25,26 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Lit Candle of Invocation",
+          "img": "icons/sundries/lights/candles-lit-red-evil.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Candle of Invocation (Light Candle (Minutes))"
     },
     "ruleElements": [
@@ -57,8 +77,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Lit Candle of Invocation\" (its own changes) not converted"
+          "effect: \"Lit Candle of Invocation\" marks its creature only; its rules are by hand"
         ]
       }
     }

@@ -21,6 +21,26 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "X-Ray Vision",
+          "img": "icons/magic/perception/orb-crystal-ball-scrying-blue.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Ring of X-ray Vision (Gain X-Ray Vision)"
     },
     "ruleElements": []
@@ -38,8 +58,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"X-Ray Vision\" (its own changes) not converted"
+          "effect: \"X-Ray Vision\" marks its creature only; its rules are by hand"
         ]
       }
     }

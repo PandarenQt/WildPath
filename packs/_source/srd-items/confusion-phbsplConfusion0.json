@@ -56,6 +56,22 @@
           }
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Confused",
+          "img": "icons/magic/symbols/question-stone-yellow.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -131,9 +147,7 @@
       "conversion": {
         "notes": [
           "area: @item.level * 5 - 10-ft sphere is not supported; the user picks the targets",
-          "effect: \"Confused\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted",
-          "rolled (save); what it does is by hand"
+          "effect: \"Confused\" marks its creature only; its rules are by hand"
         ]
       }
     }

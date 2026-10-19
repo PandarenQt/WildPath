@@ -22,6 +22,32 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Inspired",
+          "img": "icons/magic/light/hand-sparks-smoke-green.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "label": "Bardic Inspiration"
     },
     "ruleElements": [
@@ -63,8 +89,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Inspired\" (its own changes) not converted"
+          "effect: \"Inspired\" marks its creature only; its rules are by hand"
         ]
       }
     }

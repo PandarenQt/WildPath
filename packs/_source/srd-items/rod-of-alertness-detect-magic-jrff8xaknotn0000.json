@@ -21,6 +21,34 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Detect Magic",
+          "img": "icons/magic/symbols/runes-carved-stone-green.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
       "label": "Rod of Alertness: Detect Magic"
     },
     "ruleElements": [
@@ -54,9 +82,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Detect Magic\" (its own changes) not converted",
-          "concentration: nothing it sustains was converted"
+          "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
         ]
       }
     }

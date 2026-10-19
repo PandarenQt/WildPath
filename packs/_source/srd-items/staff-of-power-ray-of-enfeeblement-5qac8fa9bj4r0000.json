@@ -61,6 +61,15 @@
         {
           "id": "effect-1",
           "type": "effect",
+          "name": "Brief Enfeeblement",
+          "img": "icons/skills/melee/sword-damaged-broken-glow-red.webp",
+          "ruleElements": [],
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
           "name": "Enervated",
           "img": "icons/skills/wounds/blood-cells-disease-green.webp",
           "ruleElements": [
@@ -145,7 +154,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Brief Enfeeblement\" (its own changes) not converted",
+          "effect: \"Brief Enfeeblement\" marks its creature only; its rules are by hand",
           "effect: \"Enervated\" change system.bonuses.mwak.damage (add) not converted",
           "effect: \"Enervated\" change system.bonuses.rwak.damage (add) not converted",
           "effect: \"Enervated\" change system.bonuses.msak.damage (add) not converted",

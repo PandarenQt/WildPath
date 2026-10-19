@@ -16,6 +16,44 @@
       "costs": {
         "allOf": []
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Antipathy",
+          "img": "icons/magic/control/modfiy-luck-fortune-red.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 864000,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Sympathy",
+          "img": "icons/magic/control/modfiy-luck-fortune-gray.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 864000,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -43,6 +81,41 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "effect-choice",
+          "type": "option",
+          "label": "Effect",
+          "required": true,
+          "options": [
+            {
+              "id": "effect-option-1",
+              "label": "Antipathy",
+              "value": "effect-option-1"
+            },
+            {
+              "id": "effect-option-2",
+              "label": "Sympathy",
+              "value": "effect-option-2"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "effect-1",
+                "effect-2"
+              ],
+              "keep": {
+                "effect-option-1": [
+                  "effect-1"
+                ],
+                "effect-option-2": [
+                  "effect-2"
+                ]
+              }
+            }
+          ]
         }
       ],
       "label": "Antipathy/Sympathy (Cast)"
@@ -62,11 +135,9 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "activation: 1 hour is not an action-economy cost",
-          "effect: \"Antipathy\" (its own changes) not converted",
-          "effect: \"Sympathy\" (its own changes) not converted",
-          "activation: 1 hour is not an action-economy cost"
+          "effect: \"Antipathy\" marks its creature only; its rules are by hand",
+          "effect: \"Sympathy\" marks its creature only; its rules are by hand"
         ]
       }
     }

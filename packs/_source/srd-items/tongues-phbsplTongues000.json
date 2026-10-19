@@ -21,6 +21,32 @@
           }
         ]
       },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Universal Communication",
+          "img": "icons/environment/settlement/pyramid.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -102,9 +128,8 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
           "effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
-          "effect: \"Universal Communication\" (its own changes) not converted"
+          "effect: \"Universal Communication\" marks its creature only; its rules are by hand"
         ]
       }
     }

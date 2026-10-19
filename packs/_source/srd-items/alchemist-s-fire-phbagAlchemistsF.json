@@ -71,6 +71,16 @@
           }
         }
       ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Burning.",
+          "img": "icons/consumables/potions/bottle-round-label-cork-yellow.webp",
+          "ruleElements": [],
+          "saveOutcomePolicy": "failure"
+        }
+      ],
       "label": "Alchemist's Fire"
     },
     "ruleElements": [
@@ -103,7 +113,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Burning.\" (its own changes) not converted"
+          "effect: \"Burning.\" marks its creature only; its rules are by hand"
         ]
       }
     }
