@@ -169,3 +169,17 @@ test("spent reactions are rejected as unavailable reaction windows", () => {
   assert.equal(result.windows.length, 0);
   assert.equal(result.rejected.find(rejection => rejection.triggerId === "shield").code, AUTOMATION_CODES.REACTION_UNAVAILABLE);
 });
+
+test("Persistent Rage: its Trigger answers initiative while Rage is spent and its own use is left", async () => {
+  const fs = await import("node:fs");
+  const {automationTriggers} = await import("../module/adapters/foundry-v14-automation-dispatcher.mjs");
+  const feature = JSON.parse(fs.readFileSync("packs/_source/srd-items/persistent-rage-phbbrbPersistent.json", "utf8"));
+  const actorWith = (rage, own) => ({id: "barb", items: [{id: feature._id, type: "feature", name: feature.name, system: feature.system}],
+    effects: [], system: {pools: [{id: "rage", value: rage, max: 5}, {id: "persistent-rage", value: own, max: 1}]}});
+  const event = {type: "initiative.rolled"};
+  const [trigger] = automationTriggers(actorWith(0, 1), event);
+  assert.ok(trigger, "offered with Rage spent");
+  assert.deepEqual(trigger.definition.restores.map(entry => entry.resourceId), ["rage"]);
+  assert.equal(automationTriggers(actorWith(5, 1), event).length, 0, "Rage full");
+  assert.equal(automationTriggers(actorWith(0, 0), event).length, 0, "already used this Long Rest");
+});

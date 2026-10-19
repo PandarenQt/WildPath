@@ -32,3 +32,12 @@ test("shared Predicate evaluator rejects arbitrary functions and unknown keys", 
   assert.equal(unknownResult.code, PREDICATE_CODES.INVALID);
 });
 
+
+test("pool predicates: empty, and below its maximum, by id; a pool the creature lacks is neither", () => {
+  const actor = {system: {pools: [{id: "rage", value: 1, max: 3}, {id: "persistent-rage", value: 0, max: 1}]}};
+  assert.equal(evaluatePredicate({poolBelowMax: "rage"}, {actor}).ok, true);
+  assert.equal(evaluatePredicate({poolEmpty: "persistent-rage"}, {actor}).ok, true);
+  assert.equal(evaluatePredicate({poolEmpty: "rage"}, {actor}).ok, false);
+  assert.equal(evaluatePredicate({poolBelowMax: "missing"}, {actor}).ok, false);
+  assert.equal(evaluatePredicate({poolBelowMax: "rage"}, {actorSystem: {pools: [{id: "rage", value: 3, max: 3}]}}).ok, false);
+});

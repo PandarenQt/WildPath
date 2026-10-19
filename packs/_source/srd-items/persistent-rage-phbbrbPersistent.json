@@ -21,6 +21,71 @@
           },
           "recovery": "longRest"
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "initiative-recharge-rage-on-initiative",
+        "type": "Trigger",
+        "data": {
+          "kind": "automation",
+          "event": "initiative.rolled",
+          "predicate": {
+            "all": [
+              {
+                "any": [
+                  {
+                    "poolBelowMax": "rage"
+                  }
+                ]
+              },
+              {
+                "not": {
+                  "poolEmpty": "persistent-rage"
+                }
+              }
+            ]
+          },
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-persistent-rage-recharge-rage-on-initiative",
+            "costs": {
+              "allOf": [
+                {
+                  "capability": "persistent-rage",
+                  "amount": 1
+                }
+              ]
+            },
+            "restores": [
+              {
+                "resourceId": "rage",
+                "amount": 1,
+                "amountExpression": {
+                  "type": "table",
+                  "key": {
+                    "type": "class-level",
+                    "class": "barbarian"
+                  },
+                  "rows": {
+                    "1": 2,
+                    "3": 3,
+                    "6": 4,
+                    "12": 5,
+                    "17": 6
+                  }
+                },
+                "refuseWhenFull": true
+              }
+            ],
+            "label": "Recharge Rage on Initiative",
+            "range": {
+              "type": "self"
+            },
+            "targeting": {
+              "type": "self"
+            }
+          }
+        }
       }
     ]
   },
@@ -36,9 +101,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Recharge Rage on Initiative\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

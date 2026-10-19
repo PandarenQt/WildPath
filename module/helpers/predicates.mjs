@@ -22,7 +22,9 @@ const PREDICATE_KEYS = new Set([
   "hasCondition",
   "missingCondition",
   "equals",
-  "oneOf"
+  "oneOf",
+  "poolEmpty",
+  "poolBelowMax"
 ]);
 
 /* -------------------------------------------- */
@@ -59,7 +61,8 @@ export function evaluatePredicate(predicate, context={}) {
     evaluateTags(predicate, context),
     evaluateConditions(predicate, context),
     evaluateEquals(predicate, context),
-    evaluateOneOf(predicate, context)
+    evaluateOneOf(predicate, context),
+    evaluatePools(predicate, context)
   ];
   return tests.find(result => !result.ok) ?? pass();
 }
@@ -128,6 +131,24 @@ function evaluateOneOf(predicate, context) {
   }
   const value = resolvePath(context, predicate.oneOf.path);
   return predicate.oneOf.values?.includes(value) ? pass() : fail(`${predicate.oneOf.path} was not in allowed values`);
+}
+
+/**
+ * A pool of its creature, by id (`poolEmpty: "wild-shape"`, `poolBelowMax: "rage"`): Persistent Rage regains Rage when
+ * it rolls Initiative only while some is spent. A pool it lacks is neither.
+ */
+function evaluatePools(predicate, context) {
+  const pools = context.actorSystem?.pools ?? context.actor?.system?.pools ?? [];
+  const pool = id => (Array.isArray(pools) ? pools : []).find(entry => entry?.id === id) ?? null;
+  if ( predicate.poolEmpty != null ) {
+    const found = pool(predicate.poolEmpty);
+    if ( !found || (Number(found.value) || 0) > 0 ) return fail(`pool ${predicate.poolEmpty} is not empty`);
+  }
+  if ( predicate.poolBelowMax != null ) {
+    const found = pool(predicate.poolBelowMax);
+    if ( !found || ((Number(found.value) || 0) >= (Number(found.max) || 0)) ) return fail(`pool ${predicate.poolBelowMax} is not below its maximum`);
+  }
+  return pass();
 }
 
 function resolvePath(object, path) {

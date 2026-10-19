@@ -21,6 +21,105 @@
           },
           "recovery": "longRest"
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "initiative-uncanny-metabolism",
+        "type": "Trigger",
+        "data": {
+          "kind": "automation",
+          "event": "initiative.rolled",
+          "predicate": {
+            "all": [
+              {
+                "any": [
+                  {
+                    "poolBelowMax": "monk-s-focus"
+                  }
+                ]
+              },
+              {
+                "not": {
+                  "poolEmpty": "uncanny-metabolism"
+                }
+              }
+            ]
+          },
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-uncanny-metabolism-uncanny-metabolism",
+            "costs": {
+              "allOf": [
+                {
+                  "capability": "uncanny-metabolism",
+                  "amount": 1
+                }
+              ]
+            },
+            "restores": [
+              {
+                "resourceId": "monk-s-focus",
+                "amount": 1,
+                "amountExpression": {
+                  "type": "class-level",
+                  "class": "monk"
+                },
+                "refuseWhenFull": true
+              }
+            ],
+            "range": {
+              "type": "self"
+            },
+            "targeting": {
+              "type": "self"
+            },
+            "healing": [
+              {
+                "id": "healing-1",
+                "expression": {
+                  "type": "add",
+                  "terms": [
+                    {
+                      "type": "table",
+                      "key": {
+                        "type": "class-level",
+                        "class": "monk"
+                      },
+                      "rows": {
+                        "1": {
+                          "type": "dice",
+                          "number": 1,
+                          "faces": 6
+                        },
+                        "5": {
+                          "type": "dice",
+                          "number": 1,
+                          "faces": 8
+                        },
+                        "11": {
+                          "type": "dice",
+                          "number": 1,
+                          "faces": 10
+                        },
+                        "17": {
+                          "type": "dice",
+                          "number": 1,
+                          "faces": 12
+                        }
+                      }
+                    },
+                    {
+                      "type": "class-level",
+                      "class": "monk"
+                    }
+                  ]
+                },
+                "healingType": "healing"
+              }
+            ],
+            "label": "Uncanny Metabolism"
+          }
+        }
       }
     ]
   },
@@ -36,9 +135,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Uncanny Metabolism\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

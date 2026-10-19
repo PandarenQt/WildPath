@@ -21,6 +21,47 @@
           },
           "recovery": "longRest"
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "initiative-recharge-on-initiative",
+        "type": "Trigger",
+        "data": {
+          "kind": "automation",
+          "event": "initiative.rolled",
+          "predicate": {
+            "all": [
+              {
+                "any": [
+                  {
+                    "poolBelowMax": "wild-shape"
+                  }
+                ]
+              }
+            ]
+          },
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-archdruid-recharge-on-initiative",
+            "costs": {
+              "allOf": []
+            },
+            "restores": [
+              {
+                "resourceId": "wild-shape",
+                "amount": 1,
+                "refuseWhenFull": true
+              }
+            ],
+            "label": "Recharge on Initiative",
+            "range": {
+              "type": "self"
+            },
+            "targeting": {
+              "type": "self"
+            }
+          }
+        }
       }
     ]
   },
@@ -37,8 +78,7 @@
       },
       "conversion": {
         "notes": [
-          "\"Nature Magician\" is passive or triggered: not automated",
-          "\"Recharge on Initiative\" is passive or triggered: not automated"
+          "\"Nature Magician\" is passive or triggered: not automated"
         ]
       }
     }
