@@ -912,6 +912,16 @@ test("a grapple or restraint keeps its escape DC, from the Escape Check activity
   assert.deepEqual(constrict.system.definition.effects[0].metadata, {escapeDC: 10 + 4 + 2}, "its passive Athletics");
 });
 
+test("Temporary Hit Points are healing of their own type (False Life)", () => {
+  const life = {_id: "testFalseLife001", name: "False Life", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
+    system: {source: SRD, identifier: "false-life", level: 1, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},
+      range: {units: "self"}, target: {affects: {type: "self"}, template: {}},
+      activities: {a: activity("heal", {healing: {number: 2, denomination: 4, bonus: "4", types: ["temphp"]}})}}};
+  const [spell] = convertItem(life).items;
+  assert.deepEqual(spell.system.definition.healing.map(row => row.healingType), ["temporary"]);
+  assert.equal(spell.flags.wildpath.conversion.notes.some(note => /temporary/i.test(note)), false);
+});
+
 test("spells that end conditions: Lesser Restoration's choice of four, Heal's three, Lay on Hands' Remove Poison only", () => {
   const spell = (id, identifier, name, activities, level=2) => ({_id: id, name, type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
     system: {source: SRD, identifier, level, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},

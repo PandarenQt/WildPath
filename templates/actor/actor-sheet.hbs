@@ -9,6 +9,7 @@
         <span class="actor-pill">{{localize typeLabel}}</span>
         {{#if header.health}}
           <span>{{localize "WILDPATH.SHEET.Health" value=header.health.value max=header.health.max}}</span>
+          {{#if header.health.temp}}<span>{{localize "WILDPATH.SHEET.TempHealth" temp=header.health.temp}}</span>{{/if}}
         {{/if}}
         {{#if header.movement}}
           <span>{{localize "WILDPATH.SHEET.Move" distance=header.movement.value}}</span>
@@ -92,6 +93,14 @@
                          title="{{localize "WILDPATH.SHEET.Base"}}">
                 </span>
               </label>
+              {{#if resource.hasTemp}}
+              <label class="resource">
+                <span class="label">{{localize "WILDPATH.SHEET.TempHealthLabel"}}</span>
+                <span class="resource-values">
+                  <input type="number" name="system.resources.{{resource.key}}.temp" value="{{resource.temp}}" min="0">
+                </span>
+              </label>
+              {{/if}}
             {{/each}}
             {{#each pools as |pool|}}
               <label class="resource pool">

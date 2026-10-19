@@ -332,6 +332,10 @@ equipped. Equipping it (`system.active`) turns its rules on.
   have "Ends it instead". Live (two browsers, 2026-10-19): Player1's QA Caster cast the SRD Lesser Restoration on
   the Poisoned and Blinded QA Fighter and chose Poisoned. Poisoned ended, Blinded stayed, and the Action and a
   2nd-level slot were spent. From 10 ft away it was refused: the spell is a touch spell.
+- **Temporary Hit Points (2026-10-19).** A heal activity of dnd5e's `temphp` type is healing of type
+  `temporary` (durability-resolution.md): False Life, Heroism, Fiendish Vigor, Tireless, Adrenaline Rush, a
+  Potion of Heroism, and the creatures casting them. SRD automated Items rose from 725 to 730. The Builder's healing
+  rows have "Temporary Hit Points".
 - **Escape DCs (2026-10-19).** A Grappled or Restrained effect row gets `metadata: {escapeDC}`, so the common Escape
   action can be taken against it. The DC comes from the Item's "Escape Check" activity: a number, dnd5e's
   `@skills.ath.passive` (the creature's passive Athletics: 10 + its modifier and proficiency), or an ability's

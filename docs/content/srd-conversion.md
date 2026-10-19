@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 725 automated, 394 manual, 245 features. Creatures: 375.
+Items: 730 automated, 389 manual, 245 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -25,7 +25,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Activate Folding Boat | equipment24 | Activate Folding Boat (gear), Activate Folding Boat (1st and 2nd Command) (manual), Activate Folding Boat (3rd Command) (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; not automated (utility): using it spends its cost; its description says the rest |
 | Adamantine Armor | equipment24 | Adamantine Armor (gear) | "Adamantine Armor" is passive or triggered: not automated |
 | Additional Fighting Style | classes24 | Additional Fighting Style (feature) | — |
-| Adrenaline Rush | origins24 | Adrenaline Rush (manual) | not automated (heal): using it spends its cost; its description says the rest; healing: temporary Hit Points not converted |
+| Adrenaline Rush | origins24 | Adrenaline Rush (automated) | — |
 | Adult Black Dragon | actors24 | Adult Black Dragon (14 items) | Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Magic" (its own changes) not converted; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: cast: Acid Arrow at level 3 is cast at its own level; Spellcasting: effect: "Lingering Acid" (its own changes) not converted; Spellcasting: "End of Turn Damage" is passive or triggered: not automated; Cloud of Insects: effect: "Concentration Disadvantage" (its own changes) not converted; Pounce: not automated (utility): using it spends its cost; its description says the rest; Pounce: consumption: attribute 1 not converted |
 | Adult Blue Dragon | actors24 | Adult Blue Dragon (14 items) | Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Magic" (its own changes) not converted; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: rolled (save); what it does is by hand; Spellcasting: "Create Sensor" is passive or triggered: not automated; Cloaked Flight: not automated (utility): using it spends its cost; its description says the rest; Tail Swipe: not automated (utility): using it spends its cost; its description says the rest |
 | Adult Brass Dragon | actors24 | Adult Brass Dragon (16 items) | Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Magic" (its own changes) not converted; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: effect: "Bestial Communication" change system.traits.languages.custom (add) not converted; Spellcasting: effect: "Bestial Communication" (its own changes) not converted; Spellcasting: rolled (save); what it does is by hand; Spellcasting: activation: 10 minute is not an action-economy cost; Blazing Light: not automated (utility): using it spends its cost; its description says the rest; Pounce: not automated (utility): using it spends its cost; its description says the rest; Pounce: consumption: attribute 1 not converted; Scorching Sands: effect: "Failure: 1/2 Speed" change system.attributes.movement.swim (multiply) not converted; Scorching Sands: effect: "Failure: 1/2 Speed" change system.attributes.movement.fly (multiply) not converted; Scorching Sands: effect: "Failure: 1/2 Speed" change system.attributes.movement.climb (multiply) not converted; Scorching Sands: effect: "Failure: 1/2 Speed" change system.attributes.movement.burrow (multiply) not converted; Multiattack: its other parts (a replacement, an ability it uses) are used by hand |
@@ -560,7 +560,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Faithful Hound | actors24 | Faithful Hound (1 items) | Bite: "save" is passive or triggered: not automated |
 | Faithful Steed | classes24 | Faithful Steed (feature) | — |
 | Falling Net | equipment24 | Falling Net (gear), Falling Net (Escape Check (1-4)) (automated), Falling Net (Escape Check (5-10)) (automated), Falling Net (Escape Check (11-16)) (automated), Falling Net (Escape Check (17-20)) (automated), Falling Net (Set Trap) (automated) | "Trigger (1-4)" is passive or triggered: not automated; "Trigger (5-10)" is passive or triggered: not automated; "Trigger (11-16)" is passive or triggered: not automated; "Trigger (17-20)" is passive or triggered: not automated; activation: 10 minute is not an action-economy cost |
-| False Life | spells24 | False Life (manual) | not automated (heal): using it spends its cost; its description says the rest; healing: temporary Hit Points not converted |
+| False Life | spells24 | False Life (automated) | — |
 | Fast Hands | classes24 | Fast Hands (Sleight of Hand) (manual), Fast Hands (Thieves' Tools) (manual), Fast Hands (Use an Object) (manual) | not automated (check): using it spends its cost; its description says the rest; check: slt DC (?) not converted; check: dex DC (?) not converted; not automated (utility): using it spends its cost; its description says the rest |
 | Fast Movement | classes24 | Fast Movement (feature) | — |
 | Fates | equipment24 | Fates (gear) | "Card Effect" is passive or triggered: not automated |
@@ -585,7 +585,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Fiendish Legacy, Chthonic | origins24 | Fiendish Legacy, Chthonic (feature) | — |
 | Fiendish Legacy, Infernal | origins24 | Fiendish Legacy, Infernal (feature) | — |
 | Fiendish Resilience | classes24 | Fiendish Resilience (feature) | — |
-| Fiendish Vigor | classes24 | Fiendish Vigor (manual) | not automated (heal): using it spends its cost; its description says the rest; healing: temporary Hit Points not converted |
+| Fiendish Vigor | classes24 | Fiendish Vigor (automated) | — |
 | Fighter | classes24 | Fighter (class) | — |
 | Fighting Style | classes24 | Fighting Style (feature) | — |
 | Fighting Style | classes24 | Fighting Style (feature) | — |
@@ -637,7 +637,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Frenzy | classes24 | Frenzy (feature) | "damage" is passive or triggered: not automated |
 | Frog | actors24 | Frog (4 items) | — |
 | Frost Brand | equipment24 | Frost Brand (manual) | not automated (enchant): using it spends its cost; its description says the rest |
-| Frost Giant | actors24 | Frost Giant (5 items) | War Cry: not automated (heal): using it spends its cost; its description says the rest; War Cry: healing: temporary Hit Points not converted; War Cry: effect: "Attack: Advantage" (its own changes) not converted |
+| Frost Giant | actors24 | Frost Giant (5 items) | War Cry: effect: "Attack: Advantage" (its own changes) not converted |
 | Frost's Chill | origins24 | Frost's Chill (feature) | "Chill" is passive or triggered: not automated |
 | Gargoyle | actors24 | Gargoyle (4 items) | — |
 | Gaseous Form | spells24 | Gaseous Form (automated) | effect: transformed is not a WildPath condition yet; effect: "Gaseous Form" change img (override) not converted |
@@ -775,7 +775,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Herbalism Kit | equipment24 | Herbalism Kit (gear), Herbalism Kit (automated) | — |
 | Heroes' Feast | spells24 | Heroes' Feast (Conjure Feast) (manual), Heroes' Feast (Consume Feast) (automated) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost; consumption: itemUses -12 not converted; activation: 1 hour is not an action-economy cost |
 | Heroic Warrior | classes24 | Heroic Warrior (feature) | — |
-| Heroism | spells24 | Heroism (automated) | healing: temporary Hit Points not converted |
+| Heroism | spells24 | Heroism (automated) | — |
 | Hex | spells24 | Hex (Place Curse) (automated), Hex (Curse New Creature) (automated) | — |
 | Hezrou | actors24 | Hezrou (7 items) | Stench: "save" is passive or triggered: not automated; Leap: not automated (utility): using it spends its cost; its description says the rest |
 | Hidden Pit | equipment24 | Hidden Pit (gear) | "Trigger (1-4)" is passive or triggered: not automated; "Trigger (5-10)" is passive or triggered: not automated; "Trigger (11-16)" is passive or triggered: not automated; "Trigger (17-20)" is passive or triggered: not automated |
@@ -1153,7 +1153,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Potion of Healing (Greater) | equipment24 | Potion of Healing (Greater) (automated) | — |
 | Potion of Healing (Superior) | equipment24 | Potion of Healing (Superior) (automated) | — |
 | Potion of Healing (Supreme) | equipment24 | Potion of Healing (Supreme) (automated) | — |
-| Potion of Heroism | equipment24 | Potion of Heroism (manual) | not automated (heal): using it spends its cost; its description says the rest; healing: temporary Hit Points not converted |
+| Potion of Heroism | equipment24 | Potion of Heroism (automated) | — |
 | Potion of Invisibility | equipment24 | Potion of Invisibility (automated) | — |
 | Potion of Invulnerability | equipment24 | Potion of Invulnerability (automated) | — |
 | Potion of Longevity | equipment24 | Potion of Longevity (manual) | not automated (utility): using it spends its cost; its description says the rest |
@@ -1539,7 +1539,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Tinker's Tools | equipment24 | Tinker's Tools (gear), Tinker's Tools (automated) | — |
 | Tiny Animated Object | actors24 | Tiny Animated Object (2 items) | Slam: damage 1: custom formula "(@flags.dnd5e.summon.level - 4)d4 + @mod" not converted; Slam: rolled (attack); what it does is by hand |
 | Tiny Hut | spells24 | Tiny Hut (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
-| Tireless | classes24 | Tireless (Temporary Hit Points) (manual) | not automated (heal): using it spends its cost; its description says the rest; healing: temporary Hit Points not converted; "Decrease Exhaustion" is passive or triggered: not automated |
+| Tireless | classes24 | Tireless (Temporary Hit Points) (automated) | "Decrease Exhaustion" is passive or triggered: not automated |
 | Tome of Clear Thought | equipment24 | Tome of Clear Thought (gear), Tome of Clear Thought (Read) (manual) | not automated (utility): using it spends its cost; its description says the rest; "Reset Progress" is passive or triggered: not automated |
 | Tome of Leadership and Influence | equipment24 | Tome of Leadership and Influence (gear), Tome of Leadership and Influence (Read) (automated) | "Reset Progress" is passive or triggered: not automated |
 | Tome of Understanding | equipment24 | Tome of Understanding (gear), Tome of Understanding (Read) (automated) | "Reset Progress" is passive or triggered: not automated |
@@ -1577,7 +1577,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Unarmored Movement | classes24 | Unarmored Movement (feature) | effect: "Unarmored Movement" change system.attributes.movement.walk (add) not converted |
 | Uncanny Dodge | classes24 | Uncanny Dodge (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Uncanny Metabolism | classes24 | Uncanny Metabolism (feature) | "Uncanny Metabolism" is passive or triggered: not automated |
-| Unicorn | actors24 | Unicorn (17 items) | Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Evil and Good" (its own changes) not converted; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: effect: "Indifference" (its own changes) not converted; Spellcasting: effect: "Dispelling Evil and Good" (its own changes) not converted; Spellcasting: rolled (save); what it does is by hand; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest; Charging Horn: not automated (utility): using it spends its cost; its description says the rest; Shimmering Shield: healing: temporary Hit Points not converted |
+| Unicorn | actors24 | Unicorn (17 items) | Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Evil and Good" (its own changes) not converted; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: effect: "Indifference" (its own changes) not converted; Spellcasting: effect: "Dispelling Evil and Good" (its own changes) not converted; Spellcasting: rolled (save); what it does is by hand; Spellcasting: not automated (teleport): using it spends its cost; its description says the rest; Charging Horn: not automated (utility): using it spends its cost; its description says the rest |
 | Universal Solvent | equipment24 | Universal Solvent (gear), Universal Solvent (Apply Glue) (manual) | "Determine Ounces" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest; area: @scaling-ft square is not supported; the user picks the targets |
 | Unseen Servant | spells24 | Unseen Servant (automated) | — |
 | Unseen Servant | actors24 | Unseen Servant (0 items) | — |

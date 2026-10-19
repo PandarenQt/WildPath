@@ -22,9 +22,14 @@ export function createActorDamageMutationPlan(actorSystem, {
   target=null,
   metadata={}
 }={}) {
-  return createActorDurabilityMutationPlan(actorSystem, {
+  // Temporary Hit Points are lost first (2024): only what is left reaches the resource, so damage they absorb at 0
+  // health is no failed death save. `temporary` records their loss.
+  const total = amount ?? damageResult?.total;
+  const temp = temporaryOf(actorSystem, resourceId);
+  const absorbed = Math.min(temp, normalizeAmount(total) ?? 0);
+  const plan = createActorDurabilityMutationPlan(actorSystem, {
     type: DURABILITY_CHANGE_TYPES.DAMAGE,
-    amount: amount ?? damageResult?.total,
+    amount: absorbed ? normalizeAmount(total) - absorbed : total,
     resourceId,
     source,
     target: target ?? damageResult?.target ?? null,
@@ -33,6 +38,7 @@ export function createActorDamageMutationPlan(actorSystem, {
       ...metadata
     }
   });
+  return absorbed ? withTemporary(plan, resourceId, temp, temp - absorbed) : plan;
 }
 
 /* -------------------------------------------- */
@@ -45,9 +51,13 @@ export function createActorHealingMutationPlan(actorSystem, {
   target=null,
   metadata={}
 }={}) {
-  return createActorDurabilityMutationPlan(actorSystem, {
+  // Temporary Hit Points (`healingType: "temporary"`, False Life) heal nothing; they replace the creature's own only
+  // when higher, as they never stack (2024).
+  const temporary = Math.max(Number(healingResult?.byHealingType?.temporary) || 0, 0);
+  const total = amount ?? healingResult?.total;
+  const plan = createActorDurabilityMutationPlan(actorSystem, {
     type: DURABILITY_CHANGE_TYPES.HEALING,
-    amount: amount ?? healingResult?.total,
+    amount: temporary ? Math.max((normalizeAmount(total) ?? 0) - temporary, 0) : total,
     resourceId,
     source,
     target: target ?? healingResult?.target ?? null,
@@ -56,6 +66,20 @@ export function createActorHealingMutationPlan(actorSystem, {
       ...metadata
     }
   });
+  const temp = temporaryOf(actorSystem, resourceId);
+  return (temporary > temp) ? withTemporary(plan, resourceId, temp, temporary) : plan;
+}
+
+/** A built-in resource's Temporary Hit Points (`health.temp`), 0 without any. */
+function temporaryOf(actorSystem, resourceId) {
+  return Math.max(Number(actorSystem?.resources?.[resourceId]?.temp) || 0, 0);
+}
+
+/** The plan, also setting the resource's Temporary Hit Points from `from` to `to` (rolled back with it). */
+function withTemporary(plan, resourceId, from, to) {
+  if ( !plan.ok ) return plan;
+  const path = `system.resources.${resourceId}.temp`;
+  return {...plan, temporary: {path, from, to}, updates: {...plan.updates, [path]: to}};
 }
 
 /* -------------------------------------------- */

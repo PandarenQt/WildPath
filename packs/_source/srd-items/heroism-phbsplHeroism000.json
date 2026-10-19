@@ -33,6 +33,15 @@
         "required": true,
         "count": 1
       },
+      "healing": [
+        {
+          "id": "healing-1",
+          "expression": {
+            "type": "spellcasting-modifier"
+          },
+          "healingType": "temporary"
+        }
+      ],
       "effects": [
         {
           "id": "effect-1",
@@ -160,9 +169,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "healing: temporary Hit Points not converted"
-        ]
+        "notes": []
       }
     }
   }

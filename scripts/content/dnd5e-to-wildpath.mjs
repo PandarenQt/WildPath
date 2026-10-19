@@ -1173,8 +1173,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
   if ( activity.type === "heal" && activity.healing ) {
     const expression = partExpression(activity.healing, {spell, ability: null, scales, notes, label: "healing"});
     const scale = scaledDice(activity.healing, {spell, level});
-    if ( (activity.healing.types ?? []).includes("temphp") ) notes.push("healing: temporary Hit Points not converted");
-    else if ( expression ) healing.push({id: "healing-1", expression, healingType: "healing", ...(scale ? {scaleDice: scale} : {})});
+    // Temporary Hit Points (False Life, Inspiring Leader) are their own healing type.
+    const healingType = (activity.healing.types ?? []).includes("temphp") ? "temporary" : "healing";
+    if ( expression ) healing.push({id: "healing-1", expression, healingType, ...(scale ? {scaleDice: scale} : {})});
   }
 
   const effects = [];

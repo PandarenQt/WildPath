@@ -47,7 +47,7 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
         ac: defenseField({initial: null})
       }),
       resources: new SchemaField({
-        health: resourceField({initial: 10, recovery: "none"}),
+        health: resourceField({initial: 10, recovery: "none", temporary: true}),
         action: resourceField({initial: 1, recovery: "turn", counted: true}),
         bonus: resourceField({initial: 1, recovery: "turn", counted: true}),
         reaction: resourceField({initial: 1, recovery: "turn", counted: true}),
