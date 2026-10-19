@@ -875,6 +875,33 @@ test("an activity that takes a common action is that action at its own cost (Cun
   assert.deepEqual(step.flags.wildpath.conversion.notes, []);
 });
 
+test("a grapple or restraint keeps its escape DC, from the Escape Check activity or \"escape DC 14\" in its text", () => {
+  const grappled = {_id: "grappled", name: "Grappled", transfer: false, statuses: ["grappled"], system: {changes: []}};
+  const restrained = {_id: "restrained", name: "Restrained", transfer: false, statuses: ["restrained"], system: {changes: []}};
+  const strike = (id, name, effects, activities, text) => ({_id: id, name, type: "weapon", img: "icons/svg/net.svg", effects,
+    system: {source: SRD, description: {value: text}, properties: [], range: {}, damage: {base: {number: 1, denomination: 6, types: ["bludgeoning"], bonus: ""}},
+      activities}});
+  const attack = effect => activity("attack", {range: {value: "5", units: "ft", override: false}, effects: [{_id: effect}],
+    attack: {ability: "", bonus: "", type: {value: "melee", classification: "weapon"}}, damage: {includeBase: true, parts: []}});
+  const [tentacle] = convertItem(strike("testTentacle0001", "Tentacle", [grappled], {a: attack("grappled")},
+    "<p>The target has the Grappled condition (escape DC 14).</p>")).items;
+  assert.deepEqual(tentacle.system.definition.effects.map(effect => [effect.conditionId, effect.metadata]), [["grappled", {escapeDC: 14}]]);
+
+  const [net] = convertItem(strike("testNetEscape001", "Net", [restrained], {a: attack("restrained"),
+    b: activity("check", {_id: "actescape", name: "Escape Check", check: {ability: "str", dc: {formula: "10"}}})}, "<p>Escape DC 99 is not it.</p>")).items;
+  assert.deepEqual(net.system.definition.effects[0].metadata, {escapeDC: 10}, "its Escape Check's DC, before the text");
+  assert.equal(validateActionDefinition(net.system.definition).ok, true);
+
+  const passive = strike("testConstrict001", "Constrict", [grappled], {a: attack("grappled"), b: activity("check", {_id: "actescape",
+    name: "Escape Check", check: {ability: "", dc: {calculation: "", formula: "@skills.ath.passive"}}})},
+    "<p>It has the &amp;Reference[Grappled apply=false] condition (escape DC [[lookup @skills.ath.passive]]).</p>");
+  const snake = {_id: "testSnake0000001", name: "Snake", type: "npc", img: "icons/svg/mystery-man.svg", items: [passive], effects: [],
+    system: {source: SRD, abilities: {str: {value: 19}}, skills: {ath: {ability: "str", value: 1, bonuses: {passive: ""}}}, details: {cr: 2},
+      attributes: {hp: {value: 30, max: 30}, ac: {flat: 12}, movement: {walk: 30}}, traits: {size: "lg"}}};
+  const constrict = convertActor(snake).actor.items.find(item => item.name.startsWith("Constrict"));
+  assert.deepEqual(constrict.system.definition.effects[0].metadata, {escapeDC: 10 + 4 + 2}, "its passive Athletics");
+});
+
 test("spells that end conditions: Lesser Restoration's choice of four, Heal's three, Lay on Hands' Remove Poison only", () => {
   const spell = (id, identifier, name, activities, level=2) => ({_id: id, name, type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
     system: {source: SRD, identifier, level, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},

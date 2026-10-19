@@ -49,7 +49,8 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
             bonusShove = globals.game.settings?.get("wildpath", "bonusActionShove") === true;
         }
         catch (_error) { }
-        return COMMON_ACTION_IDS.map(id => commonAction(actor, id, { localize, bonusShove }));
+        // Escape is offered only while the creature has something to escape.
+        return COMMON_ACTION_IDS.map(id => commonAction(actor, id, { localize, bonusShove })).filter(action => action !== null);
     }
     /** The odds of each attack and save Action against the user's targets, as far as this user may see them. */
     #odds(actor, common) {

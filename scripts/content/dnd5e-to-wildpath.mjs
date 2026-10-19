@@ -925,6 +925,21 @@ function commonActivity({document, activity, system, spell, level, pool}) {
   return {...manualDefinition({document, activity, system, spell, level, notes: [], pool}), ...commonRules(id)};
 }
 
+/**
+ * The escape DC of what an Item grapples or restrains with: its "Escape Check" activity's DC (a number, a creature's
+ * passive Athletics `@skills.ath.passive`, or 8 + proficiency + an ability's modifier), else "escape DC 13" in its text.
+ */
+function escapeDCOf(document, {creature=null, saveDC=null}={}) {
+  const check = Object.values(document.system?.activities ?? {}).find(activity => (activity.type === "check") && /escape/i.test(activity.name ?? ""));
+  const dc = check?.check?.dc ?? {};
+  const passive = /^@skills\.(\w+)\.passive$/.exec(String(dc.formula ?? "").trim());
+  const written = number(dc.formula) ?? (passive ? creature?.passive?.(passive[1]) : null)
+    ?? (dc.calculation ? saveDC?.(dc.calculation)?.value : null);
+  if ( Number.isFinite(written) ) return written;
+  const text = /\bescape DC (\d+)/i.exec(plainText(document));
+  return text ? Number(text[1]) : null;
+}
+
 /** Effects named as a common action's own (Step of the Wind's "Disengaged"): that action's effect. */
 const COMMON_EFFECTS = Object.freeze({Disengaged: "disengage", Dashing: "dash", Dodging: "dodge"});
 
@@ -1152,6 +1167,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
   const references = activity.effects?.length ? activity.effects : (EFFECTS_BY_HAND[identifierOf(document)]
     ? (document.effects ?? []).filter(effect => !effect.transfer).map(effect => ({_id: effect._id})) : []);
   const byHand = EFFECTS_BY_HAND[identifierOf(document)] ?? null;
+  // A grapple's or restraint's escape DC, from its Escape Check activity or "(escape DC 13)" in the text.
+  const escapeDC = escapeDCOf(document, {creature, saveDC});
   // What each of the activity's dnd5e effects became (one can be several conditions), for the choice below.
   const groups = [];
   for ( const reference of references ) {
@@ -1165,8 +1182,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
       notes.push(`effect: ${status} is not a WildPath condition yet`);
     }
     for ( const status of known ) {
+      const escapes = (escapeDC != null) && ["grappled", "restrained"].includes(CONDITION_MAP[status]);
       effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId: CONDITION_MAP[status], ...onFailure,
-        ...(concentration ? {concentration: true} : {})});
+        ...(concentration ? {concentration: true} : {}), ...(escapes ? {metadata: {escapeDC}} : {})});
     }
     // Its own changes (Bless, Shield of Faith, Haste) become a custom effect with the rules they map to; an effect dnd5e
     // leaves empty (Faerie Fire's) takes its rules from the 2024 text, by hand.
@@ -1313,7 +1331,12 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
   const actorId = document._id;
   // What a stat block's text reads from its creature: its name, numbers and its own items' names.
   const casting = system.attributes?.spellcasting;
-  const creature = {name: document.name, modifier, proficiency, saveDC, challenge,
+  // dnd5e's passive skill: 10 + its ability modifier, its proficiency (half, once or twice), and its passive bonus.
+  const passive = key => {
+    const skill = system.skills?.[key] ?? {};
+    return 10 + modifier(skill.ability || "str") + Math.floor(proficiency * (number(skill.value) ?? 0)) + (number(skill.bonuses?.passive) ?? 0);
+  };
+  const creature = {name: document.name, modifier, proficiency, saveDC, challenge, passive,
     spellDC: ABILITY_MAP[casting] ? 8 + proficiency + modifier(casting) : null, castingAbility: ABILITY_MAP[casting] ?? null,
     legendaryResistances: number(system.resources?.legres?.max) ?? 0,
     itemNames: Object.fromEntries((document.items ?? []).map(item => [item._id, item.name]))};

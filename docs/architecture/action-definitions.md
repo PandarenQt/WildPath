@@ -168,6 +168,7 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 | Study | The Action, then an Intellect check: Arcana, History, Investigation, Nature or Religion |
 | Influence | The Action, then a check: Deception, Intimidation, Performance, Persuasion or Animal Handling |
 | Utilize | The Action, spent on an object (a lever, a lock); the card says so (2026-10-19) |
+| Escape | Only while Grappled or Restrained with an escape DC: the better of Athletics and Acrobatics against it; a success ends that condition (2026-10-19) |
 | Opportunity Attack | A reaction: the creature's first melee attack Action (else its Unarmed Strike), for its Reaction |
 
 - **Built by the authority.** An intent names one as `actionRef: "common:<id>"`. The authority builds the Action
@@ -196,6 +197,14 @@ hand. Live (two browsers): Player1's Help on the Bandit Captain, then an Unarmed
 (the advantage cancelled Prone's disadvantage) and Distracted ended.
 
 Not yet: Magic (a spell or magic item's own Action already is one) and Ready (the GM's call).
+
+**Escape (2026-10-19).** A Grappled or Restrained condition keeps its escape DC in
+`flags.wildpath.conditionEffect.metadata.escapeDC`, from the effect row's `metadata`. A Grapple stores the grappler's
+8 + Might modifier + Proficiency Bonus; converted monsters and items store their own (content-packs.md). The bar
+offers Escape only while the creature has one: Grappled before Restrained, then the highest DC. The check uses its
+better skill, and a success ends that condition with a removal row (`levels: -1`).
+- Shortcut: two grapples of the same condition are one condition, so escaping either ends both.
+- Not yet checked live (the browsers were unavailable).
 
 Live (two browsers, 2026-10-19): Player1's QA Fighter used Utilize from the bar; its Action went from 1 to 0 and a
 "Utilize" card was posted.

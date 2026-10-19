@@ -262,7 +262,10 @@
             {
               "id": "effect-1",
               "type": "condition",
-              "conditionId": "grappled"
+              "conditionId": "grappled",
+              "metadata": {
+                "escapeDC": 14
+              }
             }
           ],
           "label": "Grave Strike (Vampire Form Only) (attack)"

@@ -5,10 +5,12 @@
  * and no creature carries copies.
  */
 import {actionDefinitionActivationCost, actionDefinitionFromAction} from "./action-definitions.mjs";
+import {actorAbilityModifier, actorProficiencyBonus, resolveActorCheckStatistic} from "./combat-statistics.mjs";
 
 type Data = Record<string, unknown>;
 interface CommonActor {items?: Iterable<{type?: string; name?: string; system?: {active?: boolean}}>;
-  flags?: {wildpath?: {commonPolicies?: Record<string, string>}}}
+  flags?: {wildpath?: {commonPolicies?: Record<string, string>}};
+  effects?: Iterable<{disabled?: boolean; system?: {type?: string}; flags?: {wildpath?: {conditionEffect?: {metadata?: {escapeDC?: unknown}}}}}>}
 const definitionOf = actionDefinitionFromAction as (item: unknown) => {ok: boolean; definition?: Data & {attack?: {type?: string}}};
 const costOf = actionDefinitionActivationCost as (definition: Data) => Data;
 
@@ -68,6 +70,11 @@ const COMMON: Record<string, {name: string; img: string; definition: Data}> = {
     metadata: {test: {skills: ["arcana", "history", "investigation", "nature", "religion"]}}}},
   influence: {name: "WILDPATH.COMMON.Influence", img: "icons/svg/sound.svg", definition: {costs: ACTION, ...SELF,
     metadata: {test: {skills: ["deception", "intimidation", "performance", "persuasion", "animal-handling"]}}}},
+  // 2024 escape: the creature's Athletics or Acrobatics check against the escape DC of what grapples or restrains it;
+  // a success ends that condition. Offered only while it has one with an escape DC (commonAction).
+  escape: {name: "WILDPATH.COMMON.Escape", img: "icons/svg/net.svg", definition: {costs: ACTION, ...SELF,
+    check: {skill: "athletics", dc: {value: 10}},
+    effects: [{id: "escaped", type: "condition", conditionId: "grappled", levels: -1, checkOutcomePolicy: "success"}]}},
   // 2024 Utilize: using an object that takes an action (a lever, a door's lock); the card says it was used.
   utilize: {name: "WILDPATH.COMMON.Utilize", img: "icons/svg/lever.svg", definition: {costs: ACTION, ...SELF}}
 };
@@ -83,6 +90,15 @@ function opportunityDefinition(actor: CommonActor) {
     && (definitionOf(item).definition?.attack?.type === "melee"));
   const definition = weapon ? definitionOf(weapon).definition! : {schemaVersion: 1, id: "common:unarmed", ...structuredClone(COMMON.unarmed!.definition)};
   return {weapon: weapon?.name ?? null, definition: {...definition, costs: {allOf: [{capability: "reaction", amount: 1}]}}};
+}
+
+/** What the creature can escape: its Grappled (else Restrained) condition with the highest escape DC, or null. */
+function escapable(actor: CommonActor) {
+  const held = [...(actor.effects ?? [])].filter(effect => !effect.disabled)
+    .map(effect => ({conditionId: effect.system?.type ?? "", dc: Number(effect.flags?.wildpath?.conditionEffect?.metadata?.escapeDC)}))
+    .filter(entry => ["grappled", "restrained"].includes(entry.conditionId) && Number.isFinite(entry.dc))
+    .sort((a, b) => ((a.conditionId === "grappled") ? 0 : 1) - ((b.conditionId === "grappled") ? 0 : 1) || (b.dc - a.dc));
+  return held[0] ?? null;
 }
 
 /** An Action ref naming a common action, `common:<id>`; its id, or null. */
@@ -109,9 +125,26 @@ export function commonAction(actor: unknown, id: string, {localize=(key: string)
   }
   const entry = COMMON[id];
   if ( !entry ) return null;
+  const held = (id === "escape") ? escapable(creature) : null;
+  if ( (id === "escape") && !held ) return null;
   const name = localize(entry.name);
-  const definition = {schemaVersion: 1, id: `common:${id}`, label: name, ...structuredClone(entry.definition),
+  const definition: Data = {schemaVersion: 1, id: `common:${id}`, label: name, ...structuredClone(entry.definition),
     ...((bonusShove && SHOVES.has(id)) ? {costs: structuredClone(BONUS_ACTION)} : {})};
+  if ( held ) {
+    // Whichever of Athletics and Acrobatics is better for it (2024 lets it choose), against that escape DC.
+    const bonus = (skill: string) => (resolveActorCheckStatistic as (actor: unknown, options: Data) => {totalModifier?: number} | null)(
+      creature, {skill})?.totalModifier ?? -Infinity;
+    definition.check = {skill: bonus("acrobatics") > bonus("athletics") ? "acrobatics" : "athletics", dc: {value: held.dc}};
+    (definition.effects as Data[])[0]!.conditionId = held.conditionId;
+  }
+  // A grapple's escape DC is the grappler's own: 8 + Might modifier + Proficiency Bonus (2024), kept on its Grappled.
+  if ( id === "grapple" ) {
+    const might = (actorAbilityModifier as (actor: unknown, ability: string) => number | null)(creature, "might");
+    const proficiency = (actorProficiencyBonus as (actor: unknown) => number)(creature);
+    if ( Number.isFinite(might) && Number.isFinite(proficiency) ) {
+      (definition.effects as Data[])[0]!.metadata = {escapeDC: 8 + Number(might) + Number(proficiency)};
+    }
+  }
   const action = {id: `common-${id}`, uuid: `common:${id}`, type: "action", name, img: entry.img, flags, activationCost: {},
     system: {active: true, definition}, actor};
   // What it costs, as the action bar reads it (an Item's data model would give `getActivationCost()`): as its creature

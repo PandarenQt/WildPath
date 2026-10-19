@@ -198,12 +198,18 @@
             {
               "id": "effect-1",
               "type": "condition",
-              "conditionId": "grappled"
+              "conditionId": "grappled",
+              "metadata": {
+                "escapeDC": 17
+              }
             },
             {
               "id": "effect-2",
               "type": "condition",
-              "conditionId": "restrained"
+              "conditionId": "restrained",
+              "metadata": {
+                "escapeDC": 17
+              }
             }
           ],
           "label": "Bite (attack)"

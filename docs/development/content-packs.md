@@ -330,6 +330,11 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - Protection from Poison and Lay on Hands' Remove Poison: Poisoned.
   SRD automated Items rose from 719 to 724, with the items and creatures that cast them. The Builder's condition rows
   have "Ends it instead". Not yet checked live (the browsers were unavailable).
+- **Escape DCs (2026-10-19).** A Grappled or Restrained effect row gets `metadata: {escapeDC}`, so the common Escape
+  action can be taken against it. The DC comes from the Item's "Escape Check" activity: a number, dnd5e's
+  `@skills.ath.passive` (the creature's passive Athletics: 10 + its modifier and proficiency), or an ability's
+  8 + proficiency + modifier. Without that activity, "escape DC 13" in its text is used. In the SRD: 38 creatures
+  and the Rope of Entanglement. The DCs are dnd5e's data, not checked against the printed stat blocks.
 - **Common actions taken by a feature (2026-10-19).** A utility activity named Dash, Disengage, Dodge or Hide (the
   Rogue's Cunning Action, Conjure Woodland Beings' Disengage) is WildPath's own common action at the activity's cost,
   and an effect named Disengaged, Dashing or Dodging with nothing of its own (the Monk's Patient Defense and Step of
