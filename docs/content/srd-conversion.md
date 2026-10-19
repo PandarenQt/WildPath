@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 814 automated, 306 manual, 245 features. Creatures: 375.
+Items: 816 automated, 305 manual, 245 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -1668,7 +1668,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Wight | actors24 | Wight (6 items) | Life Drain: "Zombie Rises" is passive or triggered: not automated |
 | Wild Companion | classes24 | Wild Companion (Summon with Spell Slot) (manual), Wild Companion (Summon with Wild Shape) (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: a creature chosen by Challenge Rating is not converted; consumption: spellSlots 1 not converted; consumption: itemUses 1 not converted |
 | Wild Resurgence | classes24 | Wild Resurgence (feature) | "Regain Wild Shape" is passive or triggered: not automated; "Regain Spell Slot" is passive or triggered: not automated |
-| Wild Shape | classes24 | Wild Shape (manual) | not automated (transform): using it spends its cost; its description says the rest |
+| Wild Shape | classes24 | Wild Shape (automated), Wild Shape (Revert) (automated) | — |
 | Will-o'-Wisp | actors24 | Will-o'-Wisp (7 items) | Consume Life: "Wisp: Healing" is passive or triggered: not automated |
 | Wind Fan | equipment24 | Wind Fan (gear), Wind Fan: Gust of Wind (automated) | save: a failure marks its creature only; what it does is by hand |
 | Wind Walk | spells24 | Wind Walk (automated) | activation: 1 minute is not an action-economy cost; effect: transformed is not a WildPath condition yet |

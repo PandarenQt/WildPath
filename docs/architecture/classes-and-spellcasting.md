@@ -223,6 +223,15 @@ the 1×1 Token.
   refused with "A transformed creature can't cast spells.", and its other Action and the same spell after
   reverting went through.
 
+- **Within its level's limits (2026-10-19, 2024 Wild Shape).** `limits: {class, rows: {level: {cr, fly}}}` caps the
+  form by that class's level: the row at or below it gives the highest Challenge Rating and whether a Fly Speed (a
+  `GrantMovement` fly rule on the form) is allowed. A form beyond them is refused when the Action is used, before
+  anything is paid (`formBeyondLimits`). `temporaryHealth` as a ValueExpression (`{type: "class-level", class:
+  "druid"}`) grants that many Temporary Hit Points; they stay after reverting, as the 2024 text ends them nowhere.
+  Live (two browsers, 14.369): Player1's level-2 druid picked a Brown Bear (CR 1) and was told "Brown Bear (CR 1) is
+  beyond CR 0.25 at druid level 2." with its Bonus Action and Wild Shape use unspent; a Wolf took, with 2 Temporary
+  Hit Points and one use spent, and Wild Shape (Revert) returned it.
+
 - **On its targets (2026-10-19, 2024 Polymorph).** A `transform` with `targets: true` transforms each creature that
   failed the Action's save, not its user. The form must not have a Challenge Rating above the creature's own (or its
   level); otherwise the GM is told and nothing changes. With `temporaryHealth: "form"` the creature gains the form's

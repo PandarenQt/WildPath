@@ -661,6 +661,13 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     distance: Number(definition.teleport.distance) || 0}) : null;
   if ( landing && !landing.ok ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
     reason: game.i18n?.localize?.(`WILDPATH.TELEPORT.${landing.code}`) ?? landing.code};
+  // A Wild Shape form beyond its druid's level is refused before anything is paid.
+  if ( definition?.transform?.limits ) {
+    const formRef = chosenFormRef(definition.transform, intent.configuration?.choices);
+    const form = formRef ? await globalThis.fromUuid?.(formRef) : null;
+    const refusal = form ? formBeyondLimits(definition.transform.limits, actor, form) : null;
+    if ( refusal ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: refusal};
+  }
   const targetActors = {};
   const targetSystems = {};
   // Each target's own grants (GrantResistance / GrantImmunity) shape the damage it takes.
@@ -934,18 +941,20 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
   const actor = options?.actor ?? null;
   if ( !spec || (typeof actor?.transform !== "function") ) return null;
   if ( spec.revert ) return actor.revertTransformation();
-  // A resolved configuration lists its selections; each names its choice and the option chosen.
-  const choices = state.configuration?.choices;
-  const chosen = !spec.choiceId ? null : Array.isArray(choices) ? choices.find(entry => entry?.id === spec.choiceId)
-    : choices?.[spec.choiceId];
-  const formRef = spec.formRef ?? (typeof chosen === "string" ? chosen : chosen?.value ?? chosen?.optionId ?? null);
+  const formRef = chosenFormRef(spec, state.configuration?.choices);
   const form = formRef ? await fromUuid?.(formRef) : null;
   if ( !form ) {
     logger?.warn?.("Wild Path | The form an Action named could not be found", formRef);
     return null;
   }
   const policy = {...(spec.takes ? {takes: spec.takes} : {}), ...(spec.keepItemTypes ? {keepItemTypes: spec.keepItemTypes} : {})};
-  if ( !spec.targets ) return actor.transform(form, policy);
+  if ( !spec.targets ) {
+    // 2024 Wild Shape: Temporary Hit Points equal to its druid level (`temporaryHealth`, a ValueExpression for its creature).
+    // Its form's limits were checked when it was used.
+    const temporary = (spec.temporaryHealth && (typeof spec.temporaryHealth === "object"))
+      ? evaluateValueExpression(spec.temporaryHealth, {actor, actorSystem: actor.system}) : null;
+    return actor.transform(form, {...policy, ...(temporary?.ok && (temporary.value > 0) ? {temporaryHealth: temporary.value} : {})});
+  }
   // Polymorph: each creature that failed its save takes the form, unless the form's Challenge Rating is above its own
   // (or its level). It gains the form's Hit Points as Temporary Hit Points, and reverts when they are gone or when its
   // caster's concentration ends.
@@ -968,6 +977,35 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
       concentrationRef: (spec.concentration && source?.id) ? `token:${source.id}` : null}));
   }
   return transformed;
+}
+
+/**
+ * The form a transform names: fixed, or its configuration choice's option (a resolved configuration lists selections,
+ * each naming its choice; a used one maps choice ids to the option).
+ */
+function chosenFormRef(spec, choices) {
+  const chosen = !spec.choiceId ? null : Array.isArray(choices) ? choices.find(entry => entry?.id === spec.choiceId)
+    : choices?.[spec.choiceId];
+  return spec.formRef ?? (typeof chosen === "string" ? chosen : chosen?.value ?? chosen?.optionId ?? null);
+}
+
+/**
+ * Why a form is beyond its creature's limits, or null (2024 Wild Shape: CR 1/4 and no Fly Speed until druid level 4,
+ * CR 1/2 until 8, then CR 1 and flying). `limits`: `{class, rows: {level: {cr, fly}}}`; the row for its class level.
+ */
+export function formBeyondLimits(limits, actor, form) {
+  if ( !limits?.rows ) return null;
+  const level = (actor?.system?.classes ?? []).filter(entry => (entry?.id ?? entry?.identifier) === limits.class)
+    .reduce((sum, entry) => sum + (Number(entry.level ?? entry.levels) || 0), 0);
+  const row = Object.entries(limits.rows).filter(([at]) => Number(at) <= level).sort((a, b) => Number(b[0]) - Number(a[0]))[0]?.[1];
+  const name = form?.name ?? "";
+  if ( !row ) return `${name}: no form yet at ${limits.class} level ${level}.`;
+  const challenge = Number(form?.flags?.wildpath?.source?.challenge ?? form?.system?.details?.threat ?? 0);
+  if ( challenge > Number(row.cr) ) return `${name} (CR ${challenge}) is beyond CR ${row.cr} at ${limits.class} level ${level}.`;
+  const flies = [...(form?.items ?? [])].some(item => (item.system?.ruleElements ?? [])
+    .some(rule => (rule.type === "GrantMovement") && (rule.data?.mode === "fly")));
+  if ( flies && !row.fly ) return `${name} has a Fly Speed, not allowed at ${limits.class} level ${level}.`;
+  return null;
 }
 
 /**

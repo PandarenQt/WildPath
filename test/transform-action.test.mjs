@@ -125,3 +125,16 @@ test("a die an effect lets its creature add (Bardic Inspiration) is offered at i
   assert.equal(withAddedDice(null, {name: "Fighter", effects: []}, {}, {}), null);
   delete globalThis.fromUuidSync;
 });
+
+test("Wild Shape's limits: CR and Fly Speed by druid level", async () => {
+  const {formBeyondLimits} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const limits = {class: "druid", rows: {1: {cr: 0.25, fly: false}, 4: {cr: 0.5, fly: false}, 8: {cr: 1, fly: true}}};
+  const druid = level => ({system: {classes: [{id: "druid", level}]}});
+  const beast = (name, challenge, fly=false) => ({name, flags: {wildpath: {source: {challenge}}},
+    items: fly ? [{system: {ruleElements: [{type: "GrantMovement", data: {mode: "fly", distance: 60}}]}}] : []});
+  assert.equal(formBeyondLimits(limits, druid(2), beast("Wolf", 0.25)), null);
+  assert.match(formBeyondLimits(limits, druid(2), beast("Brown Bear", 1)), /beyond CR 0.25/);
+  assert.match(formBeyondLimits(limits, druid(5), beast("Giant Owl", 0.25, true)), /Fly Speed/);
+  assert.equal(formBeyondLimits(limits, druid(8), beast("Giant Owl", 0.25, true)), null, "flying from level 8");
+  assert.equal(formBeyondLimits(null, druid(1), beast("Mammoth", 6)), null, "no limits, no refusal");
+});

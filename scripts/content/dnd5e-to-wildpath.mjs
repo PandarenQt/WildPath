@@ -117,6 +117,26 @@ const paladinAura = identifier => ({schemaVersion: 1, id: identifier, type: "Aur
   data: {radius: {type: "table", key: {type: "class-level", class: "paladin"}, rows: {1: 10, 18: 30}}, affects: "allies",
     ruleElements: PALADIN_AURAS[identifier]}});
 
+/**
+ * A transform activity (2024 Wild Shape): its creature takes a Beast form its user picks, within the CR (and Fly
+ * Speed) its profiles allow by class level, with Temporary Hit Points equal to that class's level. Null without
+ * Beasts to choose from, or for another preset. shortcut: every eligible Beast is offered, not four known forms.
+ */
+function wildShapeDefinition({document, activity, system, spell, level, notes, pool, beasts=[]}) {
+  const settings = activity.transform ?? activity.settings ?? {};
+  if ( (settings.preset !== "wildshape") || !beasts.length ) return null;
+  const owner = settings.identifier || "druid";
+  const profiles = activity.profiles ?? [];
+  const highest = Math.max(...profiles.map(profile => number(profile.cr) ?? 0), 0);
+  const rows = Object.fromEntries(profiles.map(profile => [String(profile.level?.min ?? 1),
+    {cr: number(profile.cr) ?? 0, fly: !(profile.movement ?? []).includes("fly")}]));
+  const choice = {id: "form", type: "select-one", label: "Form", required: true,
+    options: beasts.filter(beast => beast.cr <= highest).map(beast => ({id: beast.uuid, label: `${beast.name} (CR ${beast.cr})`}))};
+  const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool});
+  return {...definition, range: {type: "self"}, targeting: {type: "self"}, configuration: [...(definition.configuration ?? []), choice],
+    transform: {choiceId: choice.id, limits: {class: owner, rows}, temporaryHealth: {type: "class-level", class: owner}}};
+}
+
 /** dnd5e skill keys as WildPath's skills. */
 const SKILL_MAP = Object.freeze({acr: "acrobatics", ani: "animal-handling", arc: "arcana", ath: "athletics", dec: "deception",
   his: "history", ins: "insight", itm: "intimidation", inv: "investigation", med: "medicine", nat: "nature", prc: "perception",
@@ -420,7 +440,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     let definition = commonActivity({document, activity, system, spell, level, pool}) ?? (ACTIVITIES.has(activity.type)
       ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature, beasts})
       : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names})
-        : ((activity.type === "teleport") ? teleportDefinition({document, activity, system, spell, level, notes, pool}) : null)));
+        : ((activity.type === "teleport") ? teleportDefinition({document, activity, system, spell, level, notes, pool})
+          : ((activity.type === "transform") ? wildShapeDefinition({document, activity, system, spell, level, notes, pool, beasts}) : null))));
     if ( !definition ) {
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type})`}: using it spends its cost; its description says the rest`);
@@ -503,6 +524,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A lasting area its caster can move ("a Magic action ... to move the Cylinder up to 60 feet"): its own Action.
     const moveArea = moveAreaDefinition(document, definition);
     if ( moveArea ) items.push(action(stableId(`${id}:move`), `${document.name}${suffix} (Move)`, moveArea));
+    // Wild Shape's "leave the form early as a Bonus Action": its own Action.
+    if ( definition.transform?.limits ) items.push(action(stableId(`${id}:revert`), `${document.name}${suffix} (Revert)`,
+      {schemaVersion: 1, id: `${definition.id}-revert`, costs: {allOf: [{capability: "bonus-action", amount: 1}]},
+        range: {type: "self"}, targeting: {type: "self"}, transform: {revert: true}}));
     // 2024 Versatile: the weapon with both hands is its own Action, rolling its larger die.
     const twoHanded = versatileDefinition({document, system, definition});
     if ( twoHanded ) items.push(action(stableId(`${id}:two-handed`), `${document.name}${suffix} (Two-Handed)`, twoHanded));
