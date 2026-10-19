@@ -7,7 +7,20 @@
   "system": {
     "active": true,
     "description": "<p>Thanks to your athleticism, you have Advantage on Initiative rolls and Strength (Athletics) checks.</p><p>In addition, immediately after you score a Critical Hit, you can move up to half your Speed without provoking Opportunity Attacks.</p><section class=\"secret\" id=\"secret-uyi38uA0t76MZ3Ae\"><p><strong>Foundry Note</strong></p><p>This feature automatically grants Advantage on Initiative rolls.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "remarkable-athlete-1",
+        "type": "RollMode",
+        "data": {
+          "domains": [
+            "initiative",
+            "check.athletics"
+          ],
+          "mode": "advantage"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +34,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Remarkable Athlete\" change flags.dnd5e.remarkableAthlete (override) not converted"
-        ]
+        "notes": []
       }
     }
   }

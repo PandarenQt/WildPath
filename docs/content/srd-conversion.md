@@ -874,7 +874,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Iron Horn of Valhalla | equipment24 | Iron Horn of Valhalla (gear), Iron Horn of Valhalla (automated) | — |
 | Irresistible Dance | spells24 | Irresistible Dance (automated) | effect: "Short Dance" marks its creature only; its rules are by hand |
 | Ivory Goats | equipment24 | Ivory Goats (gear), Ivory Goats (Goat of Terror) (manual), Ivory Goats (Goat of Traveling) (automated), Ivory Goats (Revert or Recall Goat of Traveling) (automated), Ivory Goats (Goat of Travail) (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
-| Jack of All Trades | classes24 | Jack of All Trades (feature) | effect: "Jack of All Trades" change flags.dnd5e.jackOfAllTrades (override) not converted |
+| Jack of All Trades | classes24 | Jack of All Trades (feature) | — |
 | Jackal | actors24 | Jackal (1 items) | — |
 | Javelin | equipment24 | Javelin (automated) | — |
 | Javelin of Lightning | equipment24 | Javelin of Lightning (attack) (automated), Javelin of Lightning (Lightning Bolt) (automated) | — |
@@ -1230,7 +1230,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Relentless Rage | classes24 | Relentless Rage (feature) | "save" is passive or triggered: not automated; "heal" is passive or triggered: not automated |
 | Reliable Talent | classes24 | Reliable Talent (feature) | effect: "Reliable Talent" change flags.dnd5e.reliableTalent (override) not converted |
 | Reliquary | equipment24 | Reliquary (gear) | — |
-| Remarkable Athlete | classes24 | Remarkable Athlete (feature) | effect: "Remarkable Athlete" change flags.dnd5e.remarkableAthlete (override) not converted |
+| Remarkable Athlete | classes24 | Remarkable Athlete (feature) | — |
 | Remorhaz | actors24 | Remorhaz (4 items) | Bite: "Escape Check" is passive or triggered: not automated; Swallow: effect: coverTotal is not a WildPath condition yet; Swallow: "Damage: Swallowed" is passive or triggered: not automated; Swallow: "Regurgitate: Save" is passive or triggered: not automated |
 | Remove Curse | spells24 | Remove Curse (automated) | — |
 | Repelling Blast | classes24 | Repelling Blast (feature) | "Make Repelling" is passive or triggered: not automated |

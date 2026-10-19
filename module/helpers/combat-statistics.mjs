@@ -278,9 +278,11 @@ export function resolveActorSaveStatistic(actor, ability=null) {
  */
 export function resolveActorCheckStatistic(actor, {ability=null, skill=null}={}) {
   const used = ability ?? WILDPATH.SKILLS?.[skill]?.ability ?? null;
-  const check = withAbilityModifier(resolveActorStatisticModifier(actor, [skill ? `check.${skill}` : null,
-    used ? `check.${used}` : null, "check"].filter(Boolean), {tags: [used, skill].filter(Boolean)}), actor, used);
   const level = Math.min(Number(actor?.system?.skills?.[skill]?.proficiency) || 0, 2);
+  // A skill check without its proficiency also reads `check.unproficient` (Jack of All Trades: half the Proficiency Bonus).
+  const check = withAbilityModifier(resolveActorStatisticModifier(actor, [skill ? `check.${skill}` : null,
+    used ? `check.${used}` : null, (skill && !level) ? "check.unproficient" : null, "check"].filter(Boolean),
+  {tags: [used, skill].filter(Boolean)}), actor, used);
   if ( !check || !level ) return check;
   const proficiency = actorProficiencyBonus(actor) * level;
   return {...check, totalModifier: check.totalModifier + proficiency, proficiency};

@@ -1254,3 +1254,15 @@ test("Stunning Strike: offered once a turn on its own melee hit, 1 Focus Point, 
   assert.deepEqual([trigger.event, trigger.match.sourceTokenId, trigger.once], ["attack.hit", "{self}", "turn"]);
   assert.equal(validateActionDefinition(definition).ok, true);
 });
+
+test("Jack of All Trades and Remarkable Athlete: dnd5e's flags as WildPath rules", () => {
+  const flagged = (id, key) => ({_id: id, name: id, type: "feat", img: "icons/svg/sun.svg", system: {source: SRD, identifier: id, type: {value: "class"},
+    activities: {}}, effects: [{_id: `${id}eff`, name: id, transfer: true, disabled: false, changes: [{key, mode: 5, value: "1"}]}]});
+  const [jack] = convertItem(flagged("jack", "flags.dnd5e.jackOfAllTrades")).items;
+  assert.deepEqual(jack.system.ruleElements[0].data.domains, ["check.unproficient"]);
+  assert.deepEqual(valueExpressions.evaluateValueExpression(jack.system.ruleElements[0].data.valueExpression,
+    {actorSystem: {proficiencyBonus: 3}}).value, 1, "half of 3, rounded down");
+  const [athlete] = convertItem(flagged("athlete", "flags.dnd5e.remarkableAthlete")).items;
+  assert.deepEqual(athlete.system.ruleElements[0], {schemaVersion: 1, id: "athlete-1", type: "RollMode",
+    data: {domains: ["initiative", "check.athletics"], mode: "advantage"}});
+});

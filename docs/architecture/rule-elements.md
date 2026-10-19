@@ -350,6 +350,12 @@ Modifiers").
   Live (two browsers): Player1's Fireball at a creature with Evasion took nothing on a save, and 15 of 31 on a
   failure.
 
+**Unproficient skill checks (2026-10-19).** A skill check its creature lacks the skill's proficiency for also reads the
+domain `check.unproficient` (`resolveActorCheckStatistic`, every check). 2024 Jack of All Trades is a Modifier there,
+`floor(proficiency-bonus / 2)`. Remarkable Athlete is `RollMode {domains: ["initiative", "check.athletics"], mode:
+"advantage"}`. Live (GM browser): QA Caster's Acrobatics (unproficient, Proficiency Bonus 3) went from +0 to +1, and its
+Initiative and Athletics got Advantage. Reliable Talent (a d20 of 9 or lower counts as 10) is not automated yet.
+
 **Critical range (2026-10-19).** `RollOutcome {domains: ["attack.weapon"], outcome: "critical-range", threshold: 19}`:
 its creature's attacks in those domains score a Critical Hit on a d20 of the threshold or more (Improved Critical).
 `actionCombatStatistics` puts the lowest one into the attack's `policy.criticalHitThreshold`.
