@@ -278,6 +278,14 @@ that many of the pool to the Action's cost and makes each listed healing (or dam
 `per`). 2024 Lay on Hands: "restore a number of Hit Points equal to the points spent". Spending more than the pool
 holds is refused at payment, before anything rolls.
 
+## An option's own effects, and restoring a pool (2026-10-19)
+
+- **An option's `effects`.** An option of a `select-one` choice may carry its own effects, applied after its choice's
+  when it is chosen (Font of Magic: each slot level adds its cost in Sorcery Points and restores that slot).
+- **`{type: "restore", resourceId, amount?}`** adds a pool of the acting creature to the Action's `restores`, refilled
+  at payment up to its maximum. Its amount is by default the level its choice selected (`levelChoiceId`: a spent slot's
+  level in Sorcery Points). It is refused when the creature lacks the pool or the pool is full.
+
 ## One of its own weapons, and binding a choice (2026-10-19)
 
 - **`optionsFrom: {type: "weapons", melee?, bases?}`** on a `select-one` choice lists its creature's own weapons whenever

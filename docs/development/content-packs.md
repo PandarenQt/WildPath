@@ -423,6 +423,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Brutal Strike (2026-10-19)** is its own three Actions (reactions.md), not its dnd5e damage activity. Improved
   Brutal Strike brings Staggering and Sundering Blow, and two blows a hit from level 17 (`uses`). shortcut: Forceful
   Blow's "toward the target".
+- **Font of Magic (2026-10-19)** is two automated Actions (classes-and-spellcasting.md), not a manual one with its
+  conversions by hand.
 - **Effects as markers (2026-10-19).** A dnd5e effect with no status and nothing WildPath maps (Alter Self's Aquatic
   Adaptation, Acid Arrow's lingering acid, a dragon's Detect Magic) is no longer dropped. It is a custom effect with
   no rules: its name, icon, duration, save policy and concentration. Its creature shows it, it expires on time, and it

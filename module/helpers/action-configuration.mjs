@@ -199,7 +199,7 @@ export function resolveActionConfiguration({
   const applied = applySelectionsToDefinition({
     baseDefinition: discovery.actionDefinition,
     selections,
-    context
+    context: {...context, actorSystem}
   });
   if ( applied.errors.length ) return configurationFailure({
     code: applied.errors[0].code,
@@ -433,7 +433,9 @@ function normalizeChoiceOptions(options) {
       label: stringOrDefault(option.label ?? option.name ?? option.value, labelFromId(option.id ?? option.slug ?? `option:${index}`)),
       value: clonePlain(option.value ?? option.id ?? option.slug),
       source: clonePlain(option.source ?? null),
-      metadata: clonePlain(option.metadata ?? {}) ?? {}
+      metadata: clonePlain(option.metadata ?? {}) ?? {},
+      // Its own effects, applied after its choice's when it is chosen (Font of Magic: each slot level's cost and slot).
+      ...(option.effects ? {effects: normalizeArray(option.effects).map(clonePlain)} : {})
     };
   });
 }
@@ -891,7 +893,7 @@ function applySelectionsToDefinition({baseDefinition, selections, context}) {
       }));
     }
 
-    for ( const effect of normalizeArray(selection.choiceDefinition?.effects) ) {
+    for ( const effect of [...normalizeArray(selection.choiceDefinition?.effects), ...normalizeArray(selection.option?.effects)] ) {
       const result = applyConfigurationEffect({
         definition,
         effect,
@@ -919,6 +921,8 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
       return applyScaleTargetsEffect({definition, effect, selection, selectionsById});
     case "spend-amount":
       return applySpendAmountEffect({definition, effect, selection});
+    case "restore":
+      return applyRestoreEffect({definition, effect, selection, selectionsById, context});
     case "replace-damage-type":
       return applyReplaceDamageTypeEffect({definition, effect, selection, selectionsById});
     case "keepEffect":
@@ -1016,6 +1020,20 @@ function applySpendAmountEffect({definition, effect, selection}) {
   definition[collection] = (definition[collection] ?? []).map(component => ((!ids.size || ids.has(component.id))
     ? {...component, expression: {type: "constant", value}} : component));
   return {ok: true, trace: [appliedTrace(selection, "spent-amount", {amount, value})], errors: []};
+}
+
+/**
+ * A pool of its creature the Action refills when used (`restores`): `{type: "restore", resourceId, amount?}`, its amount
+ * by default the level its choice selected (Font of Magic: a spent slot's level in Sorcery Points). Refused when its
+ * creature lacks the pool or it is full (Font of Magic: a slot level it has none of).
+ */
+function applyRestoreEffect({definition, effect, selection, selectionsById, context}) {
+  const amount = Math.trunc(finiteNumber(effect.amount) ?? scalingLevel(effect, selection, selectionsById) ?? 1);
+  const pool = (context?.actorSystem?.pools ?? []).find(entry => entry.id === effect.resourceId);
+  if ( context?.actorSystem && (!pool || ((Number(pool.value) || 0) >= (Number(pool.max) || 0))) ) return {ok: false, trace: [],
+    errors: [choiceError(ACTION_CONFIGURATION_CODES.RESOURCE_UNAVAILABLE, selection.id, `${effect.resourceId} is missing or full.`)]};
+  definition.restores = [...(definition.restores ?? []), {resourceId: effect.resourceId, amount}];
+  return {ok: true, trace: [appliedTrace(selection, "restore", {resourceId: effect.resourceId, amount})], errors: []};
 }
 
 /** The casting level a scaling effect reads: its own, or the level its choice (a spell slot) selected. */

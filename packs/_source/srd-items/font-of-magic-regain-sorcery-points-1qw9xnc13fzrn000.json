@@ -1,0 +1,165 @@
+{
+  "_id": "1qw9xnc13fzrn000",
+  "_key": "!items!1qw9xnc13fzrn000",
+  "name": "Font of Magic (Regain Sorcery Points)",
+  "type": "action",
+  "img": "icons/magic/light/hand-sparks-glow-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You can tap into the wellspring of magic within yourself. This wellspring is represented by Sorcery Points, which allow you to create a variety of magical effects.</p><p>You have 2 Sorcery Points, and you gain more as you reach higher levels, as shown in the Sorcery Points column of the Sorcerer Features table. You can't have more Sorcery Points than the number shown in the table for your level. You regain all expended Sorcery Points when you finish a Long Rest.</p><p>You can use your Sorcery Points to fuel the options below, along with other features, such as Metamagic, that use those points.</p><p><strong>Converting Spell Slots to Sorcery Points.</strong> You can expend a spell slot to gain a number of Sorcery Points equal to the slot's level (no action required).</p><p><strong>Creating Spell Slots.</strong> As a Bonus Action, you can transform unexpended Sorcery Points into one spell slot. The Creating Spell Slots table shows the cost of creating a spell slot of a given level, and it lists the minimum Sorcerer level you must be to create a slot. You can create a spell slot no higher than level 5.</p><p>Any spell slot you create with this feature vanishes when you finish a Long Rest.</p><table><caption>Creating Spell Slots</caption><thead><tr><td>Spell Slot Level</td><td>Sorcery Point Cost</td><td>Min. Sorcerer Level</td></tr></thead><tbody><tr><td>1</td><td>2</td><td>2</td></tr><tr><td>2</td><td>3</td><td>3</td></tr><tr><td>3</td><td>5</td><td>5</td></tr><tr><td>4</td><td>6</td><td>7</td></tr><tr><td>5</td><td>7</td><td>9</td></tr></tbody></table><section class=\"secret\" id=\"secret-Q72pdf6OJGSybxFV\"><p><strong>Foundry Note</strong></p><p>The <strong>Regain Spell Slot</strong> activity will convert your Sorcery Points into spell slots.</p><p>The <strong>Regain Sorcery Points</strong> activity will convert your chosen spell slot into Sorcery Points.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-font-of-magic-regain-sorcery-points",
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.1",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.2",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.3",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.1": 1,
+            "spell-slot.2": 2,
+            "spell-slot.3": 3,
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          },
+          "effects": [
+            {
+              "type": "restore",
+              "resourceId": "font-of-magic",
+              "levelChoiceId": "slot"
+            }
+          ]
+        }
+      ],
+      "label": "Font of Magic (Regain Sorcery Points)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "font-of-magic-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "font-of-magic",
+          "label": "Font of Magic",
+          "maximum": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "sorcerer"
+            },
+            "rows": {
+              "2": 2,
+              "3": 3,
+              "4": 4,
+              "5": 5,
+              "6": 6,
+              "7": 7,
+              "8": 8,
+              "9": 9,
+              "10": 10,
+              "11": 11,
+              "12": 12,
+              "13": 13,
+              "14": 14,
+              "15": 15,
+              "16": 16,
+              "17": 17,
+              "18": 18,
+              "19": 19,
+              "20": 20
+            }
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbscrFontOfMagi",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

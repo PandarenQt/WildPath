@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 840 automated, 292 manual, 242 features. Creatures: 375.
+Items: 842 automated, 291 manual, 242 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -626,7 +626,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Fog Cloud | spells24 | Fog Cloud (manual) | not automated (utility): using it spends its cost; its description says the rest; area: 20 * @item.level-ft sphere is not supported; the user picks the targets; concentration: its caster concentrates; what it sustains is by hand |
 | Folding Boat | equipment24 | Folding Boat (gear) | — |
 | Font of Inspiration | classes24 | Font of Inspiration (feature) | "Recharge with Spell Slot" is passive or triggered: not automated |
-| Font of Magic | classes24 | Font of Magic (Regain Spell Slot) (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses 1 + @scaling + floor(@scaling / 3) not converted; consumption: spellSlots -1 not converted; "Regain Sorcery Points" is passive or triggered: not automated |
+| Font of Magic | classes24 | Font of Magic (Regain Spell Slot) (automated), Font of Magic (Regain Sorcery Points) (automated) | — |
 | Fool | equipment24 | Fool (gear) | "Card Effect" is passive or triggered: not automated |
 | Forbiddance | spells24 | Forbiddance (Create Ward) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost; "Damage Forbidden Creature" is passive or triggered: not automated |
 | Forcecage | spells24 | Forcecage (Create Cage) (manual), Forcecage (Create Solid Box) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |

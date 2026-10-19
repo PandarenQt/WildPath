@@ -260,6 +260,34 @@ const OWN_HIT = Object.freeze({
  * - Each blow answers a hit so tagged, once a turn between them.
  * shortcut: Forceful Blow's "toward the target" is by hand.
  */
+/** 2024 Creating Spell Slots: each slot level's cost in Sorcery Points. */
+const SLOT_COSTS = Object.freeze({1: 2, 2: 3, 3: 5, 4: 6, 5: 7});
+
+/**
+ * 2024 Font of Magic's two conversions, from its pool (`font-of-magic`):
+ * - Regain Spell Slot (a Bonus Action): a slot level, each costing its points and giving back one slot of that level.
+ * - Regain Sorcery Points (no action): a spent slot of any level, giving back that many points.
+ * Either is refused when what it gives back is full or missing (a slot level its sorcerer has none of: the table's
+ * minimum Sorcerer level, single-class). shortcut: a created slot stays within the slot maximum and does not vanish
+ * on a Long Rest; multiclass slot levels follow the slot pools.
+ */
+function fontOfMagicDefinition(activity, pool) {
+  const base = {schemaVersion: 1, id: `action:srd-font-of-magic-${slugify(activity.name ?? "")}`, range: {type: "self"}, targeting: {type: "self"}};
+  if ( activity.name === "Regain Spell Slot" ) return {...base, costs: {allOf: [{capability: "bonus-action", amount: 1}]},
+    configuration: [{id: "slot-level", type: "select-one", label: "Spell slot", required: true,
+      options: Object.entries(SLOT_COSTS).map(([level, cost]) => ({id: `level-${level}`, label: `Level ${level} (${cost} Sorcery Points)`,
+        value: Number(level), effects: [{type: "add-cost", cost: {allOf: [{capability: pool.id, amount: cost}]}},
+          {type: "restore", resourceId: `spell-slot.${level}`, amount: 1}]}))}]};
+  if ( activity.name === "Regain Sorcery Points" ) {
+    const levels = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    return {...base, costs: {allOf: []}, configuration: [{id: "slot", type: "resource", label: "Spell slot", required: true,
+      cost: {anyOf: levels.map(level => [{capability: `spell-slot.${level}`, amount: 1}])},
+      levelByResourceId: Object.fromEntries(levels.map(level => [`spell-slot.${level}`, level])),
+      effects: [{type: "restore", resourceId: pool.id, levelChoiceId: "slot"}]}]};
+  }
+  return null;
+}
+
 /** Improved Brutal Strike (barbarian level 17): two blows on one Brutal Strike's hit. */
 const BLOW_USES = {type: "table", key: {type: "class-level", class: "barbarian"}, rows: {1: 1, 17: 2}};
 
@@ -648,7 +676,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( enchant && (activity.type !== "enchant") ) continue;
     // Brutal Strike's Actions are its own (brutalStrikeActions), not its dnd5e damage activity.
     if ( ["brutal-strike", "improved-brutal-strike"].includes(identifierOf(document)) ) continue;
-    if ( ["", "none", "special"].includes(activation) && !onHit && !enchant ) {
+    const font = (identifierOf(document) === "font-of-magic") && pool;
+    if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !font ) {
       // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.
       const marked = (activity.type === "damage") && Object.values(EFFECTS_BY_HAND).some(hand => hand.bonusDamage === label);
       // A feature the engine offers on its own (Tactical Mind, with a failed check) needs no Action.
@@ -665,7 +694,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         continue;
       }
     }
-    let definition = commonActivity({document, activity, system, spell, level, pool}) ?? (ACTIVITIES.has(activity.type)
+    let definition = (font ? fontOfMagicDefinition(activity, pool) : null)
+      ?? commonActivity({document, activity, system, spell, level, pool}) ?? (ACTIVITIES.has(activity.type)
       ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature, beasts})
       : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts})
         : ((activity.type === "teleport") ? teleportDefinition({document, activity, system, spell, level, notes, pool})
