@@ -1426,3 +1426,21 @@ test("Improved Brutal Strike: Staggering and Sundering Blows answer a Brutal Str
   assert.deepEqual([sundered.endsWhen, sundered.ruleElements[0].data.value, sundered.ruleElements[0].predicate],
     ["attackedByOther", 5, {not: {tagsAny: ["from:sundered"]}}]);
 });
+
+test("consumption targets: a pool traded for another is an Action spending one and restoring the other (2024 recoveries)", async () => {
+  const fs = await import("node:fs");
+  const read = file => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}.json`, "utf8"));
+  const shape = file => { const {costs, restores, configuration} = read(file).system.definition;
+    return {costs: costs.allOf.map(cost => cost.capability), restores: (restores ?? []).map(entry => entry.resourceId),
+      choices: (configuration ?? []).map(choice => choice.id)}; };
+  assert.deepEqual(shape("dragon-wings-restore-use-mc17dmye4h5e0000"), {costs: ["font-of-magic"], restores: ["dragon-wings"], choices: []},
+    "3 Sorcery Points, not 3 of its own uses");
+  assert.deepEqual(shape("intimidating-presence-recharge-with-rage-1yhh5661p9dup600"), {costs: ["rage"], restores: ["intimidating-presence"], choices: []});
+  assert.deepEqual(shape("wild-resurgence-regain-wild-shape-phbdrdWildResurg"), {costs: [], restores: ["wild-shape"], choices: ["slot"]});
+  assert.deepEqual(shape("wild-resurgence-regain-spell-slot-ioonfu2p71060000"), {costs: ["wild-resurgence", "wild-shape"],
+    restores: ["spell-slot.1"], choices: []});
+  assert.ok(read("sacred-weapon-phbpdnSacredWeap").system.definition.costs.allOf.some(cost => cost.capability === "channel-divinity"),
+    "a converter path without names still charges its feature's pool");
+  assert.equal(fs.readdirSync("packs/_source/srd-items").some(file => file.startsWith("bag-of-beans-count-beans")), false,
+    "a rolled give-back (3d4 beans) is no Action");
+});

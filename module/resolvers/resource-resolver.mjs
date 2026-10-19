@@ -8,6 +8,7 @@ import {
 
 import {createFoundryV14ActorPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
 import {remainingMovement} from "../helpers/movement-modes.mjs";
+import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 
 export const RESOURCE_RESOLUTION_CODES = Object.freeze({
   OK: "OK",
@@ -174,7 +175,9 @@ export function createActorResourceMutationPlan(actorSystem, paymentPlan) {
 
 /**
  * Add to a payment's mutation plan the pools the Action refills (`restores`: Multiattack's attacks, a use given
- * back), each up to its maximum, after what the payment itself spends. A pool the creature lacks is skipped.
+ * back), each up to its maximum, after what the payment itself spends. A pool the creature lacks is skipped. A restore
+ * with `refuseWhenFull` makes the plan fail (`RESOURCE_FULL`) while its pool is full; `amountExpression` is its amount
+ * worked out for the creature.
  */
 export function withResourceRestores(actorSystem, mutationPlan, restores=[]) {
   if ( !mutationPlan?.ok || !restores.length ) return mutationPlan;
@@ -182,7 +185,7 @@ export function withResourceRestores(actorSystem, mutationPlan, restores=[]) {
   // Each restore is recorded with what the pool held before, so the transaction can roll it back.
   const payments = (mutationPlan.payments ?? []).map(payment => ({...payment}));
   const restored = [];
-  for ( const {resourceId, amount} of restores ) {
+  for ( const {resourceId, amount: fixed, amountExpression, refuseWhenFull} of restores ) {
     const index = (actorSystem?.pools ?? []).findIndex(pool => pool.id === resourceId);
     if ( index < 0 ) continue;
     const pool = actorSystem.pools[index];
@@ -190,6 +193,11 @@ export function withResourceRestores(actorSystem, mutationPlan, restores=[]) {
     // A payment never refills a pool it drew from (an Extra Attack paid from its own pool).
     if ( payments.some(payment => (payment.path === path) && ((Number(payment.from) || 0) > (Number(payment.to) || 0))) ) continue;
     const from = Number(updates[path] ?? pool.value ?? 0) || 0;
+    if ( refuseWhenFull && (from >= (Number(pool.max ?? 0) || 0)) ) {
+      return {...mutationPlan, ok: false, code: "RESOURCE_FULL", reason: `${resourceId} is full`};
+    }
+    const amount = amountExpression
+      ? Math.max(Math.trunc(Number(evaluateValueExpression(amountExpression, {actorSystem}).value) || 0), 0) : fixed;
     updates[path] = Math.min(from + amount, Number(pool.max ?? 0) || 0);
     const paid = payments.find(payment => payment.path === path);
     if ( paid ) paid.to = updates[path];

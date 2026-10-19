@@ -33,7 +33,8 @@
         "title": "Subclass Features",
         "type": "grant",
         "items": [
-          "Compendium.wildpath.srd-items.Item.phbscrDragonWing"
+          "Compendium.wildpath.srd-items.Item.phbscrDragonWing",
+          "Compendium.wildpath.srd-items.Item.mc17dmye4h5e0000"
         ],
         "optional": false
       },

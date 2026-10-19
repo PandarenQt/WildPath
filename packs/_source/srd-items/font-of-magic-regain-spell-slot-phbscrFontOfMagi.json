@@ -10,12 +10,6 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-font-of-magic-regain-spell-slot",
-      "range": {
-        "type": "self"
-      },
-      "targeting": {
-        "type": "self"
-      },
       "costs": {
         "allOf": [
           {
@@ -33,7 +27,7 @@
           "options": [
             {
               "id": "level-1",
-              "label": "Level 1 (2 Sorcery Points)",
+              "label": "Level 1 (2 Font of Magic)",
               "value": 1,
               "effects": [
                 {
@@ -56,7 +50,7 @@
             },
             {
               "id": "level-2",
-              "label": "Level 2 (3 Sorcery Points)",
+              "label": "Level 2 (3 Font of Magic)",
               "value": 2,
               "effects": [
                 {
@@ -79,7 +73,7 @@
             },
             {
               "id": "level-3",
-              "label": "Level 3 (5 Sorcery Points)",
+              "label": "Level 3 (5 Font of Magic)",
               "value": 3,
               "effects": [
                 {
@@ -102,7 +96,7 @@
             },
             {
               "id": "level-4",
-              "label": "Level 4 (6 Sorcery Points)",
+              "label": "Level 4 (6 Font of Magic)",
               "value": 4,
               "effects": [
                 {
@@ -125,7 +119,7 @@
             },
             {
               "id": "level-5",
-              "label": "Level 5 (7 Sorcery Points)",
+              "label": "Level 5 (7 Font of Magic)",
               "value": 5,
               "effects": [
                 {
@@ -149,6 +143,12 @@
           ]
         }
       ],
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
       "label": "Font of Magic (Regain Spell Slot)"
     },
     "ruleElements": [

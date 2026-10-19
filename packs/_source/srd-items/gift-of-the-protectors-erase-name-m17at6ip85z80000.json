@@ -18,6 +18,13 @@
           }
         ]
       },
+      "restores": [
+        {
+          "resourceId": "gift-of-the-protectors",
+          "amount": 1,
+          "refuseWhenFull": true
+        }
+      ],
       "label": "Gift of the Protectors (Erase Name)"
     },
     "ruleElements": [
@@ -59,9 +66,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "consumption: itemUses -1 not converted",
-          "consumption: itemUses -1 not converted"
+          "not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

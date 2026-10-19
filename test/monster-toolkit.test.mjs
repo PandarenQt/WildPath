@@ -17,6 +17,18 @@ test("an Action's restores refill the acting creature's pools up to their maximu
   assert.equal(withResourceRestores(actorSystem, paid, []), paid);
 });
 
+test("a restore refused while its pool is full, and one worked out for its creature (Sorcerous Restoration)", () => {
+  const actorSystem = {classes: [{id: "sorcerer", level: 7}], pools: [{id: "font-of-magic", value: 1, max: 7}, {id: "dragon-wings", value: 1, max: 1}]};
+  const paid = {ok: true, updates: {}, payments: []};
+  assert.equal(withResourceRestores(actorSystem, paid, [{resourceId: "dragon-wings", amount: 1, refuseWhenFull: true}]).ok, false);
+  const plan = withResourceRestores(actorSystem, paid, [{resourceId: "font-of-magic", amount: 1, refuseWhenFull: true,
+    amountExpression: {type: "divide", numerator: {type: "class-level", class: "sorcerer"}, denominator: {type: "constant", value: 2}, round: "floor"}}]);
+  assert.deepEqual(plan.updates, {"system.pools.0.value": 4}, "1 + floor(7 / 2)");
+  const normalized = normalizeActionDefinition({schemaVersion: 1, id: "a", restores: [{resourceId: "x", amount: 1, refuseWhenFull: true,
+    amountExpression: {type: "constant", value: 2}}]});
+  assert.deepEqual(normalized.restores, [{resourceId: "x", amount: 1, amountExpression: {type: "constant", value: 2}, refuseWhenFull: true}]);
+});
+
 test("a granted pool can start empty, empty at the start of each turn, and Recharge on a d6", () => {
   const granted = grantedResourcesFromRuleElements([{ruleElements: [
     {type: "GrantResource", data: {resourceId: "multiattack", maximum: 3, current: 0, emptiesAtTurnStart: true}},

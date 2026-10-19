@@ -1,12 +1,42 @@
 {
-  "_id": "phbdrdWildResurg",
-  "_key": "!items!phbdrdWildResurg",
-  "name": "Wild Resurgence",
-  "type": "feature",
+  "_id": "ioonfu2p71060000",
+  "_key": "!items!ioonfu2p71060000",
+  "name": "Wild Resurgence (Regain Spell Slot)",
+  "type": "action",
   "img": "icons/magic/life/cross-worn-green.webp",
   "system": {
     "active": true,
     "description": "<p>Once on each of your turns, if you have no uses of Wild Shape left, you can give yourself one use by expending a spell slot (no action required).</p><p>In addition, you can expend one use of Wild Shape (no action required) to give yourself a level 1 spell slot, but you can't do so again until you finish a Long Rest.</p><section class=\"secret\" id=\"secret-b0eq9t1Lkei4tN53\"><p><strong>Foundry Note</strong></p><p>The <strong>Regain Wild Shape</strong> activity consumes a spell slot and grants you another use of Wild Shape.</p><p>The <strong>Regain Spell Slot</strong> activity will consume a use of Wild Shape and grant you a level 1 spell slot.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-wild-resurgence-regain-spell-slot",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "wild-resurgence",
+            "amount": 1
+          },
+          {
+            "capability": "wild-shape",
+            "amount": 1
+          }
+        ]
+      },
+      "restores": [
+        {
+          "resourceId": "spell-slot.1",
+          "amount": 1,
+          "refuseWhenFull": true
+        }
+      ],
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "label": "Wild Resurgence (Regain Spell Slot)"
+    },
     "ruleElements": [
       {
         "schemaVersion": 1,
@@ -36,10 +66,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Regain Wild Shape\" is passive or triggered: not automated",
-          "\"Regain Spell Slot\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

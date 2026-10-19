@@ -425,6 +425,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Blow's "toward the target".
 - **Font of Magic (2026-10-19)** is two automated Actions (classes-and-spellcasting.md), not a manual one with its
   conversions by hand.
+- **Consumption targets (2026-10-19)** are converted generically: costs on the pool each names, `restores` for what is
+  given back, and slot choices by level (classes-and-spellcasting.md, "Trading one pool for another"). SRD automated
+  Items rose from 843 to 852.
 - **Metamagic (2026-10-19):** its options are features flagged `metamagic`, which a sorcerer's spells offer
   (classes-and-spellcasting.md). Empowered Spell's feature grants its Action. The class lists only what brings its Actions
   with it (`convertedIds`: gear, or a feature with `grants`).

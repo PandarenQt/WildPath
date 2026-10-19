@@ -255,11 +255,40 @@ used the copied Bite through the GM's authority. The goblin went from 20 to 15, 
 card posted. Reverting restored Might 8 and removed the Bite. In Quench, the creature's own +1 AC feat kept
 counting on the form's AC, and its own Intellect stayed.
 
+## Trading one pool for another (2026-10-19)
+
+The converter reads dnd5e's consumption targets generically (`consumptionDefinition`):
+- **What it spends** is a cost on the pool each target names: the item's own, or another feature's by its name. Dragon
+  Wings' Restore Use costs 3 Sorcery Points, not 3 of its own uses.
+- **What it gives back** becomes `restores`, refused while full. A formula is worked out for the creature
+  (`amountExpression`).
+- **A spell slot it spends** is a slot choice from that level up. A target scaled with it gives back the slot's level
+  (Regain Sorcery Points).
+- **A spell slot it gives back by level** is a choice of level, each option costing what its scaled targets say at that
+  level. Font of Magic's 2/3/5/6/7 comes from dnd5e's own formula, which replaces the hand-written table.
+
+An activity that trades one pool for another, all of it converted, is an Action even though dnd5e leaves it passive.
+This covers:
+- Font of Inspiration's Recharge with Spell Slot;
+- Wild Resurgence, both ways;
+- Recharge with Rage;
+- Restore Use for Dragon Wings and Holy Nimbus;
+- Sorcery Incarnate;
+- Sorcerous Restoration;
+- Pearl of Power;
+- Font of Magic.
+
+Pact-slot targets, rolled give-backs (Bag of Beans), amounts chosen when used (Ioun Stone of Reserve) and a spell's own
+bookkeeping uses stay notes. Arcane Recovery and Natural Recovery stay manual. Live (two browsers, 14.369): QA Caster
+with Wild Resurgence and 0 of 2 Wild Shape used Regain Wild Shape twice, each spending a level-1 slot. The third use, with
+Wild Shape full, was refused (`RESOURCE_FULL`).
+
 ## Font of Magic (2026-10-19)
 
 2024 Font of Magic converts to two Actions from its `font-of-magic` pool (Sorcery Points). The sorcerer class grants both.
 - **Regain Spell Slot** (a Bonus Action): a slot level from 1 to 5. Each option costs its points (2, 3, 5, 6, 7) and
-  restores one slot of that level (action-configuration.md: an option's effects, `restore`).
+  restores one slot of that level (action-configuration.md: an option's effects, `restore`). It is converted generically
+  since 2026-10-19 (above).
 - **Regain Sorcery Points** (no action): spends a slot of any level and restores that many points.
 - **Refusal:** either is refused when what it restores is full or missing. A slot level a sorcerer has no slots of is
   refused, which matches the table's minimum Sorcerer level for a single-class sorcerer.

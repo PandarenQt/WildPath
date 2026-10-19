@@ -2,11 +2,109 @@
   "_id": "phbbrdFontOfInsp",
   "_key": "!items!phbbrdFontOfInsp",
   "name": "Font of Inspiration",
-  "type": "feature",
+  "type": "action",
   "img": "icons/magic/light/hand-sparks-glow-yellow.webp",
   "system": {
     "active": true,
     "description": "<p>You now regain all your expended uses of Bardic Inspiration when you finish a Short or Long Rest.</p><p>In addition, you can expend a spell slot (no action required) to regain one expended use of Bardic Inspiration.</p><section class=\"secret\" id=\"secret-KgQeVfHTLTrKK1s0\"><p><strong>Foundry Note</strong></p><p>You must update the Bardic Inspiration feature on your sheet to refresh on Short Rest as it defaults to Long rest.</p><p>The <strong>Recharge with Spell Slot</strong> activity will expend a spell slot and grant another use of Bardic Inspiration.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-font-of-inspiration-recharge-with-spell-slot",
+      "costs": {
+        "allOf": []
+      },
+      "configuration": [
+        {
+          "id": "slot",
+          "type": "resource",
+          "label": "Spell slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.1",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.2",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.3",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.4",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "levelByResourceId": {
+            "spell-slot.1": 1,
+            "spell-slot.2": 2,
+            "spell-slot.3": 3,
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9
+          }
+        }
+      ],
+      "restores": [
+        {
+          "resourceId": "bardic-inspiration",
+          "amount": 1,
+          "refuseWhenFull": true
+        }
+      ],
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "label": "Font of Inspiration"
+    },
     "ruleElements": []
   },
   "flags": {
@@ -21,9 +119,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Recharge with Spell Slot\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

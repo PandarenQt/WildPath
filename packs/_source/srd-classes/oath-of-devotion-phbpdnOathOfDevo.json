@@ -42,7 +42,8 @@
         "title": "Subclass Features",
         "type": "grant",
         "items": [
-          "Compendium.wildpath.srd-items.Item.phbpdnHolyNimbus"
+          "Compendium.wildpath.srd-items.Item.phbpdnHolyNimbus",
+          "Compendium.wildpath.srd-items.Item.2hf004jww94g0000"
         ],
         "optional": false
       },
