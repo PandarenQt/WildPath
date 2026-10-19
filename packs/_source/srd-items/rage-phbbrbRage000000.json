@@ -33,6 +33,7 @@
           "id": "effect-1",
           "type": "effect",
           "name": "Rage",
+          "slug": "raging",
           "img": "icons/creatures/abilities/mouth-teeth-human.webp",
           "ruleElements": [
             {

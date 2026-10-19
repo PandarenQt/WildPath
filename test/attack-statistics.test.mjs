@@ -269,3 +269,24 @@ test("a weapon's attack names its weapon and ability among its tags, so a rule c
   assert.ok(seen.every(tags => tags.includes("weapon:sword")), JSON.stringify(seen));
   assert.ok(seen[0].includes("might"), "the attack roll's tags carry its ability");
 });
+
+test("Colossus Slayer and Frenzy (SRD): extra weapon damage when the target is missing Hit Points, or while raging and Reckless", async () => {
+  const fs = await import("node:fs");
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const rules = file => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}.json`, "utf8")).system.ruleElements;
+  const actorWith = (file, statuses=[]) => {
+    const actor = Object.assign(Object.create(WildPathActor.prototype), {id: "hero", uuid: "Actor.hero", effects: [], statuses: new Set(statuses),
+      flags: {}, system: {classes: [{id: "barbarian", level: 9}]}, items: [{id: "f", uuid: "Actor.hero.Item.f", type: "feature",
+        system: {active: true, modifiers: [], ruleElements: rules(file)}}]});
+    actor.allApplicableEffects = () => [];
+    return actor;
+  };
+  const axe = {attack: {type: "melee", statistic: "weapon", ability: "might"},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 12}, damageType: "slashing", provenance: "weapon-base"}]};
+  const extra = (actor, attack) => actionCombatStatistics(actor, axe, {context: {attack}}).damage?.extraComponents ?? [];
+  const slayer = actorWith("hunter-s-prey-phbrgrHuntersPre");
+  assert.deepEqual(extra(slayer, {targetDamaged: true}).map(entry => [entry.damageType, entry.expression.faces]), [["slashing", 8]]);
+  assert.equal(extra(slayer, {targetDamaged: false}).length, 0, "an unhurt target");
+  assert.equal(extra(actorWith("frenzy-phbbrbFrenzy0000", ["raging", "reckless"]), {}).length, 1);
+  assert.equal(extra(actorWith("frenzy-phbbrbFrenzy0000", ["raging"]), {}).length, 0, "not Reckless");
+});

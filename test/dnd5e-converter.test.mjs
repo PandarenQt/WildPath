@@ -1467,3 +1467,16 @@ test("monk: Martial Arts brings three Unarmed Strikes, Flurry of Blows fills its
   assert.equal(JSON.parse(fs.readFileSync("packs/_source/srd-classes/monk-phbmnkMonk000000.json", "utf8")).system.advancement
     .some(entry => (entry.items ?? []).some(uuid => uuid.endsWith(flurryStrike._id))), false, "the class grants the feature, which brings it");
 });
+
+test("weapon hit extras: Divine Strike's two types, Primal Strike's choice and Lifedrinker answer any weapon hit, once a turn", async () => {
+  const fs = await import("node:fs");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8")).system;
+  for ( const [prefix, key] of [["blessed-strikes-divine-strike-radiant", "divine-strike"], ["blessed-strikes-divine-strike-necrotic", "divine-strike"],
+    ["elemental-fury-primal-strike", "primal-strike"], ["lifedrinker-damage", "lifedrinker"]] ) {
+    const {data} = read(prefix).ruleElements.find(rule => rule.type === "Trigger");
+    assert.deepEqual([data.match.tagsAll, data.once, data.onceKey], [["weapon"], "turn", key], prefix);
+  }
+  assert.deepEqual(read("elemental-fury-primal-strike").definition.configuration[0].allowedDamageTypes, ["cold", "fire", "lightning", "thunder"]);
+  assert.deepEqual(read("rage-phbbrbRage000000").definition.effects.map(effect => effect.slug), ["raging"]);
+});

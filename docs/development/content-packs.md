@@ -432,6 +432,10 @@ equipped. Equipping it (`system.active`) turns its rules on.
   automatic Triggers on `initiative.rolled` (classes-and-spellcasting.md).
 - **Monk (2026-10-20):** Martial Arts brings its Unarmed Strikes, Flurry of Blows fills a strikes pool, and Open Hand
   Technique answers a Flurry hit (classes-and-spellcasting.md).
+- **Weapon hit extras (2026-10-20):**
+  - Divine Strike, Primal Strike and Lifedrinker are own-hit offers on any weapon hit.
+  - Colossus Slayer and Frenzy are `ExtraDamage` traits.
+  - Rage's effect has the `raging` slug.
 - **Metamagic (2026-10-19):** its options are features flagged `metamagic`, which a sorcerer's spells offer
   (classes-and-spellcasting.md). Empowered Spell's feature grants its Action. The class lists only what brings its Actions
   with it (`convertedIds`: gear, or a feature with `grants`).

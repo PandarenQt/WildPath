@@ -1,0 +1,92 @@
+{
+  "_id": "phbDivineStrike0",
+  "_key": "!items!phbDivineStrike0",
+  "name": "Blessed Strikes: Divine Strike (Necrotic Divine Strike)",
+  "type": "action",
+  "img": "icons/magic/holy/prayer-hands-glowing-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Once on each of your turns when you hit a creature with an attack roll using a weapon, you can cause the target to take an extra 1d8 Necrotic or Radiant damage (your choice).</p><section id=\"secret-iZHQe1DZBrtcFZCk\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature's damage will automatically increase when you gain Improved Blessed Strikes.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-blessed-strikes-divine-strike-necrotic-divine-strike",
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "cleric"
+            },
+            "rows": {
+              "7": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "14": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              }
+            }
+          },
+          "damageType": "necrotic",
+          "provenance": "additional"
+        }
+      ],
+      "label": "Blessed Strikes: Divine Strike (Necrotic Divine Strike)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": [
+              "weapon"
+            ],
+            "notTagsAny": [
+              "spell"
+            ]
+          },
+          "once": "turn",
+          "onceKey": "divine-strike"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbDivineStrike0",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}
