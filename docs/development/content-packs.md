@@ -320,6 +320,11 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - The use dialog's preview shows the chosen type and a table's dice at the creature's own level ("2d10 fire").
   - Live: Player1's QA Fighter (level 6) used the SRD Breath Weapon (Cone) and chose Fire. The preview read "2d10
     fire"; the Bandit Captain failed its save and took 6 fire.
+- **Common actions taken by a feature (2026-10-19).** A utility activity named Dash, Disengage, Dodge or Hide (the
+  Rogue's Cunning Action, Conjure Woodland Beings' Disengage) is WildPath's own common action at the activity's cost,
+  and an effect named Disengaged, Dashing or Dodging with nothing of its own (the Monk's Patient Defense and Step of
+  the Wind) is that action's effect. SRD automated Items rose from 713 to 719. Not yet checked live (the browsers
+  were unavailable).
 - **Hovering (2026-10-19).** dnd5e's `movement.hover` goes on the fly Speed the same effect grants: Fly, Gaseous
   Form, Wind Walk, a Potion of Flying, the Air Ring, and the creatures casting them (16 SRD documents). A hovering
   flyer knocked Prone does not fall. Live: Player1's QA Caster cast the SRD Fly on itself: "Flight", a fly Speed of 60

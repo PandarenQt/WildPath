@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 713 automated, 406 manual, 245 features. Creatures: 375.
+Items: 719 automated, 400 manual, 245 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -321,7 +321,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Conjure Elemental | spells24 | Conjure Elemental (automated) | summon: what it gains with the spell's level (saveDamage) is not added |
 | Conjure Fey | spells24 | Conjure Fey (summon) (automated), Conjure Fey (Teleport and Attack) (manual) | summon: what it gains with the spell's level (attackDamage) is not added; not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted |
 | Conjure Minor Elementals | spells24 | Conjure Minor Elementals (Cast) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted; "Bonus Attack Damage" is passive or triggered: not automated |
-| Conjure Woodland Beings | spells24 | Conjure Woodland Beings (Cast) (automated), Conjure Woodland Beings (Disengage) (manual) | "Emanation Save" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted |
+| Conjure Woodland Beings | spells24 | Conjure Woodland Beings (Cast) (automated), Conjure Woodland Beings (Disengage) (automated) | "Emanation Save" is passive or triggered: not automated |
 | Conjured Air Elemental | actors24 | Conjured Air Elemental (1 items) | Air Element: "Initial Save" is passive or triggered: not automated; Air Element: "Save while Restrained" is passive or triggered: not automated |
 | Conjured Animals | actors24 | Conjured Animals (1 items) | Pack Damage: "save" is passive or triggered: not automated |
 | Conjured Earth Elemental | actors24 | Conjured Earth Elemental (1 items) | Earth Element: "Initial Save" is passive or triggered: not automated; Earth Element: "Save while Restrained" is passive or triggered: not automated |
@@ -363,7 +363,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Cubic Gate | equipment24 | Cubic Gate (gear), Cubic Gate: Gate (manual), Cubic Gate: Plane Shift (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted; not automated (teleport): using it spends its cost; its description says the rest |
 | Cultist | actors24 | Cultist (1 items) | — |
 | Cultist Fanatic | actors24 | Cultist Fanatic (8 items) | Spellcasting: rolled (save); what it does is by hand |
-| Cunning Action | classes24 | Cunning Action (Hide) (manual), Cunning Action (Dash) (manual), Cunning Action (Disengage) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: hiding is not a WildPath condition yet |
+| Cunning Action | classes24 | Cunning Action (Hide) (automated), Cunning Action (Dash) (automated), Cunning Action (Disengage) (automated) | — |
 | Cunning Strike | classes24 | Cunning Strike (feature) | "Poison" is passive or triggered: not automated; "Trip" is passive or triggered: not automated; "Withdraw" is passive or triggered: not automated; "Cunning Sneak Attack" is passive or triggered: not automated |
 | Cure Wounds | spells24 | Cure Wounds (automated) | — |
 | Cutting Words | classes24 | Cutting Words (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses 1 not converted |
@@ -1010,7 +1010,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Mithral Armor | equipment24 | Mithral Armor (gear), Mithral Armor (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Modify Memory | spells24 | Modify Memory (automated) | — |
 | Monk | classes24 | Monk (class) | grant: phbmnkUnarmedStr was not converted; grant: phbmnkSelfrestor was not converted |
-| Monk's Focus | classes24 | Monk's Focus (Step of the Wind) (manual), Monk's Focus (Flurry of Blows) (manual), Monk's Focus (Patient Defense) (manual), Monk's Focus (Patient Defense (Focus Point)) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: "Disengaged" (its own changes) not converted; effect: dodging is not a WildPath condition yet |
+| Monk's Focus | classes24 | Monk's Focus (Step of the Wind) (automated), Monk's Focus (Flurry of Blows) (manual), Monk's Focus (Patient Defense) (automated), Monk's Focus (Patient Defense (Focus Point)) (manual) | not automated (utility): using it spends its cost; its description says the rest; effect: dodging is not a WildPath condition yet |
 | Moon | equipment24 | Moon: Wish (automated) | — |
 | Moonbeam | spells24 | Moonbeam (automated), Moonbeam (Move) (automated) | — |
 | Morningstar | equipment24 | Morningstar (automated) | — |

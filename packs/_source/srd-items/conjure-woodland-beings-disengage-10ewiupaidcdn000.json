@@ -24,6 +24,27 @@
       "metadata": {
         "followUp": true
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "disengaged",
+          "type": "effect",
+          "name": "Disengaged",
+          "slug": "disengaged",
+          "img": "icons/svg/walk.svg",
+          "duration": {
+            "value": 0,
+            "units": "turns",
+            "expiry": "turnEnd"
+          },
+          "ruleElements": []
+        }
+      ],
       "label": "Conjure Woodland Beings (Disengage)"
     },
     "ruleElements": []
@@ -40,10 +61,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: nothing it sustains was converted"
-        ]
+        "notes": []
       }
     }
   }
