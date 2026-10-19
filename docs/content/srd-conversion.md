@@ -1499,7 +1499,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Sword of Wounding | equipment24 | Sword of Wounding (feature) | "Sword of Wounding" is passive or triggered: not automated; "Sword of Wounding Save" is passive or triggered: not automated |
 | Symbol | spells24 | Symbol (Inscribe Glyph) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost; "Death" is passive or triggered: not automated; "Discord" is passive or triggered: not automated; "Fear" is passive or triggered: not automated; "Pain" is passive or triggered: not automated; "Sleep" is passive or triggered: not automated; "Stunning" is passive or triggered: not automated |
 | Tactical Master | classes24 | Tactical Master (feature) | effect: "Tactial Master" change system.traits.weaponProf.mastery.bonus (add) not converted |
-| Tactical Mind | classes24 | Tactical Mind (feature) | "Expend Second Wind" is passive or triggered: not automated |
+| Tactical Mind | classes24 | Tactical Mind (feature) | — |
 | Tactical Shift | classes24 | Tactical Shift (feature) | — |
 | Talisman of Pure Good | equipment24 | Talisman of Pure Good (gear), Talisman of Pure Good (Pure Rebuke) (automated) | "Fiend and Undead Damage" is passive or triggered: not automated |
 | Talisman of the Sphere | equipment24 | Talisman of the Sphere (gear) | — |

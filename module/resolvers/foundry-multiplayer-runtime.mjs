@@ -799,10 +799,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     }
   }
   if ( controller.actor ) targetActors[controller.actor.uuid] = controller.actor;
-  const ownInspiration = (definition?.attack || definition?.check)
+  const ownOffer = (definition?.attack || definition?.check)
     ? withAddedDice(inspirationOffer(actor, actorSystem, game, {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, payers}), actor, game,
       {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, target: {id: actor.id, actorId: actor.id, actorRef: actor.uuid, uuid: actor.uuid,
         tokenId: sourceToken?.id ?? null}}) : null;
+  // A fighter's Tactical Mind joins its own failed checks only.
+  const ownInspiration = definition?.check ? withTacticalMind(ownOffer, actor, actorSystem, game) : ownOffer;
   // A character paying for a reroll is committed on like a target, its uuid its key: the acting creature for its own
   // roll, or a player character for a monster's.
   if ( ownInspiration?.own ) targetActors[actor.uuid] ??= actor;
@@ -1263,6 +1265,25 @@ export function withIndomitable(offer, roller, rollerSystem, game) {
     label: format("WILDPATH.INSPIRATION.Indomitable", {bonus: level, value: pool.value})};
   return offer ? {...offer, options: [...offer.options, option]}
     : {own: true, chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, label: format("WILDPATH.INSPIRATION.OwnSave", {name: roller?.name ?? ""}),
+      options: [option]};
+}
+
+/**
+ * 2024 Tactical Mind (fighter level 2): when it fails an ability check, it may expend a use of Second Wind to roll 1d10
+ * and add it; if the check still fails, the use is not expended (`refundOnFail`).
+ */
+export function withTacticalMind(offer, roller, rollerSystem, game) {
+  const pool = (rollerSystem?.pools ?? []).find(entry => entry.id === "second-wind");
+  const level = (rollerSystem?.classes ?? []).filter(entry => (entry?.id ?? entry?.identifier) === "fighter")
+    .reduce((sum, entry) => sum + (Number(entry.level ?? entry.levels) || 0), 0);
+  if ( (level < 2) || !(Number(pool?.value) > 0) || (offer && !offer.own) ) return offer;
+  const payment = resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: "second-wind", amount: 1}]}});
+  if ( !payment.ok ) return offer;
+  const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
+  const option = {value: `tactical-mind:${roller.uuid}`, addDice: {number: 1, faces: 10}, payerRef: roller.uuid, plan: payment.mutationPlan,
+    refundOnFail: true, label: format("WILDPATH.INSPIRATION.TacticalMind", {value: pool.value})};
+  return offer ? {...offer, options: [...offer.options, option]}
+    : {own: true, chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""}),
       options: [option]};
 }
 

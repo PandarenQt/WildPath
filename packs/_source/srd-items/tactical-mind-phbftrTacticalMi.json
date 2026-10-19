@@ -21,9 +21,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Expend Second Wind\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

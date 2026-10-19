@@ -947,8 +947,9 @@ function createCheckOutcomeStage() {
       // The point is paid in the Action's own transaction, like its costs.
       const planning = ensureActionPlanningResult(state, rerolled);
       if ( planning.failed ) return planning.failed;
+      const kept = reroll.refundOnFail && !checkResolution.success;
       const actionResult = addResolutionStep(planning.actionResult, {stage: ACTION_RESOLUTION_STAGES.ROLL, events: [], consequences: [],
-        mutationPlans: [reroll.payment].filter(Boolean), data: {checkResolution}});
+        mutationPlans: kept ? [] : [reroll.payment].filter(Boolean), data: {checkResolution}});
       return continueResolutionStage({
         state: withRerolls(stateWithActionResult(state, {input: rerolled, actionResult, results: {checkResolution}}), [reroll]),
         data: {success: checkResolution.success}
@@ -1431,10 +1432,14 @@ function addedDie(state, input, {option, key, stageId, rollKind, makeRollRequest
   const added = Number(normalized.result.total) || 0;
   const roll = {...(original ?? {}), total: (Number(original?.total) || 0) + added,
     modifiers: [...(original?.modifiers ?? []), {id: "added-die", value: added, label: option.label ?? null}]};
+  // Paid by ending the effect that gave the die (Bardic Inspiration), or from a pool (Tactical Mind's Second Wind), which
+  // it keeps when the test still fails (`refundOnFail`).
   return {roll, rollRequest: request,
     rollResult: {requestId: accepted.request.id, type: `${rollKind}-added-die`, semanticType: normalized.result.type, rollRequest: request,
       rollResult: normalized.result, roll, reroll: true, targetKey: key},
-    payment: option.payment ?? null};
+    payment: option.payment ?? (option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef}
+      : null),
+    refundOnFail: option.refundOnFail === true};
 }
 
 function inspirationReroll(state, input, {offer, failed, key, stageId, rollKind, makeRollRequest, targets=[], roll: original=null}) {
