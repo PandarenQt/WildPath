@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 838 automated, 292 manual, 242 features. Creatures: 375.
+Items: 840 automated, 292 manual, 242 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -827,7 +827,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Imp | actors24 | Imp (5 items) | — |
 | Imprisonment | spells24 | Imprisonment (automated) | activation: 1 minute is not an action-economy cost; effect: "Burial" marks its creature only; its rules are by hand; effect: "Hedged Prison" marks its creature only; its rules are by hand; effect: "Minimus Containment" marks its creature only; its rules are by hand |
 | Improved Blessed Strikes | classes24 | Improved Blessed Strikes (feature) | "Potent Spellcasting: Heal" is passive or triggered: not automated |
-| Improved Brutal Strike | classes24 | Improved Brutal Strike (feature) | "Staggering Blow" is passive or triggered: not automated; "Sundering Blow" is passive or triggered: not automated |
+| Improved Brutal Strike | classes24 | Improved Brutal Strike (feature), Brutal Strike (Staggering Blow) (automated), Brutal Strike (Sundering Blow) (automated) | — |
 | Improved Brutal Strike (2) | classes24 | Improved Brutal Strike (2) (feature) | — |
 | Improved Critical | classes24 | Improved Critical (feature) | — |
 | Improved Cunning Strike | classes24 | Improved Cunning Strike (feature) | — |

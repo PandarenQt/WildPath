@@ -1278,6 +1278,41 @@ test("Cutting Words: a bard's die comes off another creature's hit, which is che
   assert.equal(holder.system.pools.find(pool => pool.id === "bardic-inspiration").value, 1);
 });
 
+test("two options sharing a once-key with uses 2 (Improved Cunning Strike) are both taken on one hit, one after the other", async t => {
+  const previous = globalThis.game;
+  globalThis.game = {combat: {id: "c", round: 1, turn: 0, started: true}};
+  t.after(() => { globalThis.game = previous; });
+  const option = (id, value) => ({id, type: "action", name: id, system: {active: true,
+    definition: {schemaVersion: 1, id: `action:${id}`, label: id, costs: {allOf: []}, range: {type: "special"},
+      targeting: {type: "single", required: true, count: 1},
+      damage: [{id, expression: {type: "constant", value}, damageType: "poison", provenance: "spell-base"}]},
+    ruleElements: [{schemaVersion: 1, id, type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", sourceTokenId: "{self}"}, once: "turn", onceKey: "cunning", uses: 2}}]}});
+  const {targetActor, player, gm, offers, intent} = counterattackFixture(t, {reactor: "source",
+    items: [option("poison", 2), option("trip", 3)], queue: [{natural: 18, total: 22}]});
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.deepEqual(offers.map(offer => offer.payload.candidates.map(candidate => candidate.actionId)),
+    [["action:poison", "action:trip"], ["action:trip"]], "the other offered again after the first");
+  assert.equal(targetActor.system.resources.health.value, 30 - 6 - 2 - 3);
+});
+
+test("on a critical hit, its own reaction without damage (Trip) still resolves", async t => {
+  const trip = {id: "trip", type: "action", name: "Trip", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:trip", label: "Trip", costs: {allOf: []}, range: {type: "special"},
+      targeting: {type: "single", required: true, count: 1}, effects: [{id: "prone", type: "condition", conditionId: "prone"}]},
+    ruleElements: [{schemaVersion: 1, id: "trip", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", sourceTokenId: "{self}"}}}]}};
+  const {player, gm, offers, intent} = counterattackFixture(t, {reactor: "source", items: [trip], natural: 20,
+    queue: [{natural: 20, total: 24}]});
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(offers.length, 1);
+  assert.equal((record.state.results.reactions ?? []).some(entry => entry.childFailed), false, "the child did not fail");
+});
+
 test("a once-a-turn Trigger on its own hit (Stunning Strike) records its use for the combat turn, and is not offered again", async t => {
   const previous = globalThis.game;
   globalThis.game = {combat: {id: "c", round: 1, turn: 0, started: true}};

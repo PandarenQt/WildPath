@@ -137,7 +137,9 @@
         "title": "Class Features",
         "type": "grant",
         "items": [
-          "Compendium.wildpath.srd-items.Item.phbbrbImpBrutalS"
+          "Compendium.wildpath.srd-items.Item.phbbrbImpBrutalS",
+          "Compendium.wildpath.srd-items.Item.z9s7dfrjxj8d0000",
+          "Compendium.wildpath.srd-items.Item.ukl88pozohy70000"
         ],
         "optional": false
       },

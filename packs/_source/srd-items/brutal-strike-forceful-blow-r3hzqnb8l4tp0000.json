@@ -92,7 +92,18 @@
             ]
           },
           "once": "turn",
-          "onceKey": "brutal-blow"
+          "onceKey": "brutal-blow",
+          "uses": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "barbarian"
+            },
+            "rows": {
+              "1": 1,
+              "17": 2
+            }
+          }
         }
       }
     ]

@@ -78,7 +78,18 @@
             ]
           },
           "once": "turn",
-          "onceKey": "cunning-strike"
+          "onceKey": "cunning-strike",
+          "uses": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "rogue"
+            },
+            "rows": {
+              "1": 1,
+              "11": 2
+            }
+          }
         }
       }
     ]

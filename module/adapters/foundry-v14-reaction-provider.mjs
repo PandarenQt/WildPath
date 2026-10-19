@@ -2,6 +2,7 @@ import { actionDefinitionFromAction } from "../helpers/action-definitions.mjs";
 import { createReactionTrigger, reactionPolicyOf } from "../helpers/automation-events.mjs";
 import { commonAction } from "../helpers/common-actions.mjs";
 import { turnKey } from "./foundry-v14-persistent-areas.mjs";
+import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
 const MOVEMENT_EVENT = "movement.transition-proposed";
 // The JS builders are untyped; these are the only places their shapes are asserted.
 const reactionTrigger = createReactionTrigger;
@@ -43,10 +44,12 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
                 triggers.push(...ownActionReactions(token).map(entry => entry.trigger));
                 continue;
             }
-            const reactions = tokenReactions(token);
+            // A creature that can't make Opportunity Attacks (Staggering Blow) reacts to no movement.
+            const staggered = token.actor.statuses?.has("no-opportunity-attacks") === true;
+            const reactions = tokenReactions(token).filter(entry => !(staggered && (entry.event === MOVEMENT_EVENT)));
             // Every creature makes Opportunity Attacks (Baldur's Gate 3), unless an Item of its own reacts to movement,
             // even one switched off or set to Never.
-            if (!disengaged && !ownsMovementReaction(token))
+            if (!disengaged && !staggered && !ownsMovementReaction(token))
                 reactions.push(...opportunityAttack(token, avoidance.movementModes));
             triggers.push(...reactions.map(entry => entry.trigger));
             const watching = reactions.filter(entry => entry.event === MOVEMENT_EVENT);
@@ -106,7 +109,8 @@ function tokenReactions(token) {
                 ...((data.match?.sourceTokenId === "{self}") ? { priority: 200 } : {}),
                 predicate: bindSelf(data.triggerPredicate ?? data.eventPredicate ?? null, token.id),
                 ...(policy === "always" ? { metadata: { reactionPolicy: policy } } : {}),
-                ...(once ? { payload: { once: { key: once.key, turn: once.turn } } } : {})
+                // `uses`: how many of the options sharing its key its creature may take in one window (Improved Cunning Strike: 2).
+                ...(once ? { payload: { once: { key: once.key, turn: once.turn, uses: usesOf(data.uses, actor) } } } : {})
             });
             return [{ trigger, event, definition: definition.definition, data }];
         });
@@ -137,6 +141,15 @@ function onceThisTurn(actor, id) {
     const turn = combat?.started ? turnKey(combat) : null;
     const key = id.replace(/\./g, "_");
     return { key, turn, used: (turn !== null) && (actor.flags?.wildpath?.onceUsed?.[key] === turn) };
+}
+/** A Trigger's `uses`, a number or a ValueExpression for its creature (a table by class level), at least 1. */
+function usesOf(uses, actor) {
+    if (uses == null)
+        return 1;
+    const value = (typeof uses === "object")
+        ? evaluateValueExpression(uses, { actor, actorSystem: actor.system }).value
+        : Number(uses);
+    return Math.max(Math.trunc(Number(value) || 1), 1);
 }
 /** Whether any Item of `token`'s creature has a reaction to movement, active or not. */
 function ownsMovementReaction(token) {

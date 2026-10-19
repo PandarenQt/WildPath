@@ -1346,6 +1346,7 @@ test("Cunning Strike: Poison, Trip and Withdraw, each offered when Sneak Attack 
   for ( const item of items ) {
     const trigger = item.system.ruleElements.find(rule => rule.type === "Trigger").data;
     assert.deepEqual([trigger.match.tagsAll, trigger.once, trigger.onceKey], [["extra:sneak-attack"], "turn", "cunning-strike"]);
+    assert.deepEqual(trigger.uses.rows, {1: 1, 11: 2}, "two at rogue level 11");
     assert.deepEqual(item.system.definition.rider, {forgoDice: {ruleId: "sneak-attack", dice: 1}});
     assert.equal(validateActionDefinition(item.system.definition).ok, true, item.name);
   }
@@ -1405,4 +1406,23 @@ test("Cutting Words: a reaction to another creature's hit within 60 ft, its Bard
   assert.deepEqual(item.system.ruleElements[0].data.match, {phase: "interrupt", notSourceTokenId: "{self}"});
   assert.deepEqual([definition.range.normal.value, definition.targeting.type, definition.rider.attackPenalty.dice.type], [60, "single", "table"]);
   assert.equal(validateActionDefinition(definition).ok, true);
+});
+
+test("Improved Brutal Strike: Staggering and Sundering Blows answer a Brutal Strike's hit, one a turn with the others", () => {
+  const improved = {_id: "testImpBrutal001", name: "Improved Brutal Strike", type: "feat", img: "icons/svg/fire.svg", effects: [],
+    system: {source: SRD, identifier: "improved-brutal-strike", type: {value: "class"}, uses: {max: "", recovery: []},
+      activities: {a: activity("utility", {name: "Sundering Blow", activation: {type: "", override: false}})}}};
+  const items = convertItem(improved).items.filter(item => item.type === "action");
+  assert.deepEqual(items.map(item => item.name), ["Brutal Strike (Staggering Blow)", "Brutal Strike (Sundering Blow)"]);
+  const [staggering, sundering] = items;
+  for ( const item of items ) {
+    assert.deepEqual([item.system.ruleElements[0].data.match.tagsAll, item.system.ruleElements[0].data.onceKey], [["brutal-strike"], "brutal-blow"]);
+    assert.deepEqual(item.system.ruleElements[0].data.uses.rows, {1: 1, 17: 2}, "two blows at barbarian level 17");
+    assert.equal(validateActionDefinition(item.system.definition).ok, true, item.name);
+  }
+  assert.deepEqual(staggering.system.definition.effects.map(effect => [effect.endsWhen ?? null, effect.slug ?? null]),
+    [["saves", null], [null, "no-opportunity-attacks"]]);
+  const [sundered] = sundering.system.definition.effects;
+  assert.deepEqual([sundered.endsWhen, sundered.ruleElements[0].data.value, sundered.ruleElements[0].predicate],
+    ["attackedByOther", 5, {not: {tagsAny: ["from:sundered"]}}]);
 });

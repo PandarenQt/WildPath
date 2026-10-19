@@ -119,8 +119,9 @@ debuff with its own rules.
 - **Ending when attacked (2026-10-15).** `endsWhen: "attacked"` ends it once an attack against its creature has
   resolved, hit or miss, so it counts for that one attack ("the next attack roll against it has Advantage": Help,
   Guiding Bolt). The authority deletes it after the Action completes (`endEffectsWhenAttacked`).
-  `"attackedBySource"` ends it only when the creature that applied it attacks its creature (Vex), and `"attacks"`
-  when its own creature makes an attack roll (Sap). An effect the same attack has just applied to a creature it hit
+  `"attackedBySource"` ends it only when the creature that applied it attacks its creature (Vex), `"attackedByOther"`
+  when any other creature does (Sundering Blow), `"attacks"` when its own creature makes an attack roll (Sap), and
+  `"saves"` once its creature makes a saving throw in an Action (Staggering Blow, 2026-10-19). An effect the same attack has just applied to a creature it hit
   stays (2026-10-15).
 - **Validation.** A custom effect needs a name, rules the engine knows, a slug that isn't a built-in condition,
   and V14 duration units. **Effects by reference (`type: "ref"`) are refused**: they used to validate and then be
