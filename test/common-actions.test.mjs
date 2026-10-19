@@ -85,6 +85,18 @@ test("Escape: only while grappled or restrained with an escape DC, its better of
     "the grappler's escape DC: 8 + Might modifier + Proficiency Bonus");
 });
 
+test("what a common action applies names its creature as the source, so a Grapple's Grappled knows its grappler", async () => {
+  const {planConditionEffect} = await import("../module/resolvers/effect-resolver.mjs");
+  const {conditionsFrom} = await import("../module/helpers/effect-sources.mjs");
+  const captain = {uuid: "Scene.s.Token.cap.Actor.bandit", id: "bandit", items: [], system: {abilities: {might: {value: 14}}, details: {level: 1}}};
+  const grapple = commonAction(captain, "grapple").system.definition;
+  const plan = planConditionEffect({conditionId: "grappled", actor: {effects: []}, source: grapple.source});
+  assert.equal(plan.plan?.sourceRef ?? plan.sourceRef, "uuid:Scene.s.Token.cap.Actor.bandit");
+  const held = {effects: [{statuses: ["grappled"], flags: {wildpath: {conditionEffect: {sourceRef: "uuid:Scene.s.Token.cap.Actor.bandit"}}}}]};
+  assert.deepEqual(conditionsFrom(held, captain, {scenes: []}), {grappled: true}, "attacks on its grappler have no disadvantage");
+  assert.equal(commonAction({uuid: ""}, "grapple").system.definition.source, undefined, "no creature, no source (converted content)");
+});
+
 test("Help: the next attack on an enemy beside you has Advantage, and its effect ends once it is attacked", async () => {
   const help = commonAction({}, "help").system.definition;
   assert.equal(validateActionDefinition(help).ok, true);
