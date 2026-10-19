@@ -271,6 +271,7 @@
       "OwnSave": "{name}'s save failed. Reroll it?",
       "OwnTest": "{name}'s roll failed. Add a die or reroll it?",
       "AddDie": "Add {name} (d{faces})",
+      "TacticalMind": "Tactical Mind: add 1d10 (Second Wind, {value} left; kept if it still fails)",
       "Indomitable": "Reroll with Indomitable, +{bonus} ({value} left)",
       "Monster": "Reroll {name}'s roll with a player character's Heroic Inspiration?",
       "Reroll": "Reroll (Heroic Inspiration)",

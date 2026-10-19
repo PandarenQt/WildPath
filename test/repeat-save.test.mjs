@@ -65,3 +65,35 @@ test("Bardic Inspiration: a failed save may add the die, which can turn it into 
   assert.ok(state.mutationPlans.some(plan => (plan.type === "conditionEffect") && (plan.conditionId === "custom:inspired")), "the effect ends");
   assert.equal(state.mutationPlans.some(plan => plan.conditionId === "prone"), false, "and no Prone");
 });
+
+test("Tactical Mind: a failed check may add 1d10 from Second Wind, spent only when the check then succeeds", async () => {
+  const {withTacticalMind} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const fighter = level => ({pools: [{id: "second-wind", value: 2, max: 2}], classes: [{id: "fighter", level}], resources: {}});
+  const roller = {uuid: "Actor.fighter", name: "Fighter"};
+  assert.equal(withTacticalMind(null, roller, fighter(1), null), null, "fighter level 2");
+  assert.equal(withTacticalMind(null, roller, {...fighter(2), pools: [{id: "second-wind", value: 0, max: 2}]}, null), null, "a use left");
+  const offer = withTacticalMind(null, roller, fighter(2), null);
+  assert.deepEqual([offer.options[0].addDice, offer.options[0].refundOnFail], [{number: 1, faces: 10}, true]);
+  const definition = {schemaVersion: 1, id: "action:climb", label: "Climb", costs: {allOf: []}, targeting: {type: "self"},
+    check: {skill: "athletics", ability: "might", dc: {value: 15}}};
+  const run = die => {
+    let state = planStagedActionResolution({id: `resolution:tactical-${die}`, actorSystem: fighter(2),
+      action: {id: definition.id, type: "action", name: definition.label, system: {definition}}, source: {actorId: "actor-fighter"},
+      check: {modifier: 2, inspiration: offer}}).state;
+    const answer = value => {
+      const request = state.pendingRequests[0];
+      state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+        value: typeof value === "function" ? value(request) : value}}).state;
+    };
+    answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, die: 8}));
+    answer(offer.options[0].value);
+    answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, total: die}));
+    return state;
+  };
+  const succeeded = run(6);
+  assert.equal(succeeded.results.checkResolution.success, true, "10 + 6 = 16 against DC 15");
+  assert.ok(succeeded.mutationPlans.some(plan => (plan.type === "resourcePayment") && (plan.payerRef === "Actor.fighter")), "the use is spent");
+  const failed = run(2);
+  assert.equal(failed.results.checkResolution.success, false, "10 + 2 = 12");
+  assert.equal(failed.mutationPlans.some(plan => plan.payerRef === "Actor.fighter"), false, "the use is kept");
+});

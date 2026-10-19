@@ -254,3 +254,13 @@ Live (two browsers, 14.369): Player1 turned their Shifter into a Bear, which gav
 used the copied Bite through the GM's authority. The goblin went from 20 to 15, the Action was spent and a
 card posted. Reverting restored Might 8 and removed the Bite. In Quench, the creature's own +1 AC feat kept
 counting on the form's AC, and its own Intellect stayed.
+
+## Tactical Mind (2026-10-19)
+
+2024 Tactical Mind (fighter level 2): when the fighter fails an ability check made through an Action (`definition.check`),
+its own offer adds "Tactical Mind: add 1d10" (`withTacticalMind`, beside Heroic Inspiration and Bardic Inspiration).
+- **Paying:** it is paid from its Second Wind pool, and the use is kept when the check still fails (`refundOnFail`: the
+  check stage leaves the payment out).
+- **shortcut:** a check rolled from the sheet gets no offer.
+- **Live (two browsers, 14.369, physical dice):** QA Caster as a level-2 fighter failed Hide (DC 15) with a 5. A 1d10 of 9
+  still failed, and Second Wind stayed at 2. A 1d10 of 10 succeeded, and Second Wind went to 1.

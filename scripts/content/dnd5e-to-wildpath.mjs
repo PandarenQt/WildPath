@@ -222,6 +222,9 @@ const WITHDRAW = {id: "effect-1", type: "effect", name: "Withdraw", slug: "disen
       numerator: {type: "add", terms: [{type: "context", path: "actorSystem.resources.movement.base"},
         {type: "context", path: "actorSystem.resources.movement.bonus"}]}, denominator: {type: "constant", value: 2}}}}}]};
 
+/** Features the engine offers itself when they apply (Tactical Mind: withTacticalMind on a failed check). */
+const OFFERED_BY_ENGINE = new Set(["tactical-mind"]);
+
 const OWN_HIT = Object.freeze({
   "cunning-strike/Poison": cunning(),
   // Poison's repeated save is in the same text; Prone has none.
@@ -611,7 +614,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( ["", "none", "special"].includes(activation) && !onHit && !enchant ) {
       // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.
       const marked = (activity.type === "damage") && Object.values(EFFECTS_BY_HAND).some(hand => hand.bonusDamage === label);
-      if ( !trait && !marked ) allNotes.push(`"${label}" is passive or triggered: not automated`);
+      // A feature the engine offers on its own (Tactical Mind, with a failed check) needs no Action.
+      if ( !trait && !marked && !OFFERED_BY_ENGINE.has(identifierOf(document)) ) allNotes.push(`"${label}" is passive or triggered: not automated`);
       continue;
     }
     // Monster spellcasting (G4): a cast activity is its spell, at the activity's cost and uses rather than a slot.
