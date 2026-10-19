@@ -1,6 +1,7 @@
 import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
 import {createReactionTrigger, reactionPolicyOf} from "../helpers/automation-events.mjs";
 import {commonAction} from "../helpers/common-actions.mjs";
+import {turnKey} from "./foundry-v14-persistent-areas.mjs";
 
 type Data = Record<string, unknown>;
 
@@ -16,6 +17,7 @@ interface ActorLike {
   readonly uuid: string;
   readonly items?: Iterable<ItemLike>;
   readonly statuses?: Set<string>;
+  readonly flags?: {wildpath?: {slotSpellTurn?: string | null}};
   getOpportunityAttackAvoidance?(): {always: boolean; movementModes: string[]};
 }
 
@@ -76,8 +78,7 @@ export function createFoundryReactionProvider({resolve = defaultResolve} = {}) {
       if ( !token.actor ) continue;
       // Its own Action's outcome (2014 Divine Smite: "when you hit"): only its triggers bound to `sourceTokenId: "{self}"`.
       if ( token.id === mover.id ) {
-        triggers.push(...tokenReactions(token).map(entry => entry.trigger)
-          .filter(trigger => (trigger.event as Data | undefined)?.sourceTokenId === token.id));
+        triggers.push(...ownActionReactions(token).map(entry => entry.trigger));
         continue;
       }
       const reactions = tokenReactions(token);
@@ -130,9 +131,25 @@ function tokenReactions(token: TokenLike) {
         predicate: bindSelf(data.triggerPredicate ?? data.eventPredicate ?? null, token.id),
         ...(policy === "always" ? {metadata: {reactionPolicy: policy}} : {})
       });
-      return [{trigger, event, definition: definition.definition}];
+      return [{trigger, event, definition: definition.definition, data}];
     });
   });
+}
+
+/**
+ * `token`'s reactions to its own Action (`sourceTokenId: "{self}"`). One marked `onlyWithoutOtherSlotSpell` (Paladin's
+ * Smite's 2014 Divine Smite) is offered only while its creature has cast no spell with a slot this combat turn other
+ * than a `smite` (`flags.wildpath.slotSpellTurn`, recordSlotSpell); while it is, its creature's other `smite` reactions
+ * (the 2024 spell) are not.
+ */
+function ownActionReactions(token: TokenLike) {
+  const own = tokenReactions(token).filter(entry => (entry.trigger.event as Data | undefined)?.sourceTokenId === token.id);
+  const combat = (globalThis as {game?: {combat?: {id: string; round: number; turn: number | null; started?: boolean} | null}}).game?.combat;
+  const turn = combat?.started ? turnKey(combat as never) : null;
+  const casting = (turn !== null) && (token.actor?.flags?.wildpath?.slotSpellTurn === turn);
+  const free = own.filter(entry => entry.data.onlyWithoutOtherSlotSpell === true);
+  if ( casting || !free.length ) return own.filter(entry => !free.includes(entry));
+  return own.filter(entry => free.includes(entry) || !((entry.definition.tags as string[] | undefined) ?? []).includes("smite"));
 }
 
 /** Whether any Item of `token`'s creature has a reaction to movement, active or not. */
@@ -160,7 +177,7 @@ function opportunityAttack(token: TokenLike, avoidedModes: readonly string[] = [
       {not: {oneOf: {path: "event.data.movementMode", values: [...avoidedModes]}}}]} : OPPORTUNITY_PREDICATE, token.id),
     ...(policy === "always" ? {metadata: {reactionPolicy: policy}} : {})
   });
-  return [{trigger, event: MOVEMENT_EVENT, definition: definition.definition}];
+  return [{trigger, event: MOVEMENT_EVENT, definition: definition.definition, data: {} as Data}];
 }
 
 /** Reach in grid fields from the reaction Action's reach range (5 ft by default). */

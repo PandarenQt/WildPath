@@ -254,7 +254,16 @@ Live (two browsers, 2026-10-19):
   creature's Action, which is otherwise never offered to its own creature. It acts on the creature that Action hit
   (`event.targets[0]`), comes after the targets' own reactions (priority 200: a Parry may turn the hit into a miss
   first), and a critical hit doubles its dice too (`damage.critical` on its child state). A Trigger is now offered only
-  when its Action's own costs can be paid (a Reaction for most; none for a Divine Smite), not always a Reaction.
+  when its Action's own costs can be paid (a Reaction for most; a Bonus Action for the 2024 Divine Smite; none for
+  Paladin's Smite's), not always a Reaction.
+- **Only without another slot spell (Paladin's Smite):** an own-hit Trigger with `onlyWithoutOtherSlotSpell: true` is
+  offered only while its creature has cast no spell with a slot this combat turn other than one tagged `smite`
+  (`recordSlotSpell` keeps the turn in `flags.wildpath.slotSpellTurn`; outside combat there is no turn, so nothing
+  blocks it). While it is offered, its creature's other `smite` reactions (the 2024 spell) are not.
+
+Live (two browsers, 2026-10-19, in combat): QA Caster with Paladin's Smite hit the Bandit Captain and was offered only
+Paladin's Smite; Player1 spent its free cast for 2d8 = 13, no slot and no Bonus Action. It then cast Cure Wounds with a
+3rd-level slot; its next hit offered the 2024 Divine Smite, which took the Bonus Action and the slot for 4d8 = 14.
 
 Live (two browsers, 2026-10-19): Player1's QA Caster hit the Bandit Captain with a Dagger (15 against AC 15). The GM was
 offered Parry first and declined; then Player1 was offered Divine Smite, chose a 3rd-level slot, and the Captain took

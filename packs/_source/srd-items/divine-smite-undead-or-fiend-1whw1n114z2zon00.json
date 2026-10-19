@@ -10,9 +10,17 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-divine-smite-unholy-creature-damage",
-      "tags": [],
+      "tags": [
+        "spell",
+        "smite"
+      ],
       "costs": {
-        "allOf": []
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          }
+        ]
       },
       "range": {
         "type": "special"
@@ -65,6 +73,42 @@
                   "capability": "spell-slot.4",
                   "amount": 1
                 }
+              ],
+              [
+                {
+                  "capability": "spell-slot.5",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.6",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.7",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.8",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "spell-slot.9",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "paladins-smite",
+                  "amount": 1
+                }
               ]
             ]
           },
@@ -72,7 +116,13 @@
             "spell-slot.1": 1,
             "spell-slot.2": 2,
             "spell-slot.3": 3,
-            "spell-slot.4": 4
+            "spell-slot.4": 4,
+            "spell-slot.5": 5,
+            "spell-slot.6": 6,
+            "spell-slot.7": 7,
+            "spell-slot.8": 8,
+            "spell-slot.9": 9,
+            "paladins-smite": 1
           },
           "effects": [
             {
@@ -90,6 +140,9 @@
           ]
         }
       ],
+      "metadata": {
+        "spellLevel": 1
+      },
       "label": "Divine Smite (Undead or Fiend)"
     },
     "ruleElements": [

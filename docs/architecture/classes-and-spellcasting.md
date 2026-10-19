@@ -223,14 +223,14 @@ the 1×1 Token.
   refused with "A transformed creature can't cast spells.", and its other Action and the same spell after
   reverting went through.
 
-- **Within its level's limits (2026-10-19, 2014 Wild Shape by the maintainer's choice).** `limits: {class, rows:
+- **Within its level's limits (2026-10-19, Wild Shape's transformation by the 2014 rules, the maintainer's choice).** `limits: {class, rows:
   {level: {cr, fly, swim}}}` caps the form by that class's level: the row at or below it gives the highest Challenge
   Rating and whether a Fly or Swim Speed (a `GrantMovement` rule on the form) is allowed; a row without `swim` allows it.
   A form beyond them is refused when the Action is used, before anything is paid (`formBeyondLimits`). With
   `temporaryHealth: "form"` the creature gains the form's Hit Points as Temporary Hit Points and reverts once they are
   gone; damage beyond them reaches its own Hit Points, which is the 2014 carry-over. Reverting clears what is left.
   Live (two browsers, 14.369): Player1's level-2 druid was refused a Constrictor Snake ("has a Swim Speed, not allowed at
-  druid level 2") with its Action and use unspent; a Wolf took its Action and a use, gave 11 Temporary Hit Points and
+  druid level 2") with nothing spent; a Wolf (then an Action; Wild Shape is a Bonus Action again since) took a use, gave 11 Temporary Hit Points and
   Might 14 while its Intellect 16 stayed, a Short Rest refilled both uses, and Wild Shape (Revert) restored Might 10.
 
 - **On its targets (2026-10-19, 2024 Polymorph).** A `transform` with `targets: true` transforms each creature that

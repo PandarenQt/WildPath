@@ -1125,7 +1125,7 @@ test("a change on a class's scale reads its table: Rage's damage (Strength-based
   assert.deepEqual([move.data.domains, move.data.valueExpression.rows], [["resources.movement.max"], {2: 10, 6: 15}]);
 });
 
-test("Wild Shape by the 2014 rules: an Action, a Beast within its druid level's limits, its Hit Points, and a Revert", () => {
+test("Wild Shape: a Bonus Action, its transformation by the 2014 rules (limits, the Beast's Hit Points), and a Revert", () => {
   const wildShape = {_id: "testWildShape001", name: "Wild Shape", type: "feat", img: "icons/svg/aura.svg", effects: [],
     system: {source: SRD, identifier: "wild-shape", type: {value: "class"}, uses: {max: "@scale.druid.wild-shape-uses",
       recovery: [{period: "lr", type: "recoverAll"}, {period: "sr", type: "formula", formula: "1"}]},
@@ -1135,7 +1135,7 @@ test("Wild Shape by the 2014 rules: an Action, a Beast within its druid level's 
     {uuid: "Compendium.x.Actor.mammoth", name: "Mammoth", cr: 6}];
   const [shape, revert] = convertItem(wildShape, {beasts}).items;
   const {transform, configuration, costs} = shape.system.definition;
-  assert.deepEqual(costs.allOf.map(cost => cost.capability), ["action", "wild-shape"]);
+  assert.deepEqual(costs.allOf.map(cost => cost.capability), ["bonus-action", "wild-shape"]);
   assert.deepEqual(configuration.find(choice => choice.id === "form").options.map(option => option.label), ["Wolf (CR 0.25)", "Brown Bear (CR 1)"]);
   assert.deepEqual(transform.limits.rows, {2: {cr: 0.25, fly: false, swim: false}, 4: {cr: 0.5, fly: false, swim: true},
     8: {cr: 1, fly: true, swim: true}});
@@ -1146,8 +1146,7 @@ test("Wild Shape by the 2014 rules: an Action, a Beast within its druid level's 
   assert.deepEqual([revert.name, revert.system.definition.transform], ["Wild Shape (Revert)", {revert: true}]);
 });
 
-test("Divine Smite by the 2014 rules: no action, offered on its own melee hit, a slot up to 4th, 1d8 more against Undead or Fiends", () => {
-  const slotScaling = {mode: "level", formula: ""};
+test("Divine Smite: the 2024 spell on its own melee hit; Paladin's Smite brings the 2014 one and its free cast", () => {
   const damage = number => ({parts: [{number, denomination: 8, types: ["radiant"], scaling: {mode: "whole", number: 1}}]});
   const smite = {_id: "testDivineSmite1", name: "Divine Smite", type: "spell", img: "icons/svg/sun.svg", effects: [],
     system: {source: SRD, identifier: "divine-smite", level: 1, school: "evo", activation: {type: "bonus"},
@@ -1156,12 +1155,25 @@ test("Divine Smite by the 2014 rules: no action, offered on its own melee hit, a
   const [plain, unholy] = convertItem(smite).items;
   assert.deepEqual([plain.name, unholy.name], ["Divine Smite", "Divine Smite (Undead or Fiend)"]);
   const {definition} = plain.system;
-  assert.deepEqual([definition.tags, definition.costs, definition.targeting.type], [[], {allOf: []}, "single"]);
-  assert.deepEqual(Object.values(definition.configuration[0].levelByResourceId), [1, 2, 3, 4], "5d8 at most");
+  assert.deepEqual([definition.tags, definition.costs.allOf.map(cost => cost.capability), definition.targeting.type],
+    [["spell", "smite"], ["bonus-action"], "single"]);
+  assert.deepEqual(Object.keys(definition.configuration[0].levelByResourceId).slice(-2), ["spell-slot.9", "paladins-smite"]);
   assert.deepEqual(plain.system.ruleElements.find(rule => rule.type === "Trigger").data, {kind: "reaction", event: "attack.hit",
     match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"], notTagsAny: ["spell"]}});
   assert.equal(unholy.system.definition.damage[0].expression.number, 3);
   assert.equal(validateActionDefinition(definition).ok, true);
+
+  const feature = {_id: "testPaladinSmite", name: "Paladin's Smite", type: "feat", img: "icons/svg/sun.svg", effects: [],
+    system: {source: SRD, identifier: "paladins-smite", type: {value: "class"}, activities: {}}};
+  const [text, free, freeUnholy] = convertItem(feature).items;
+  assert.deepEqual(text.system.ruleElements.map(rule => rule.data), [{resourceId: "paladins-smite", label: "Paladin's Smite",
+    maximum: 1, recovery: "longRest"}], "its free cast, once per Long Rest");
+  assert.deepEqual([free.name, freeUnholy.name], ["Paladin's Smite", "Paladin's Smite (Undead or Fiend)"]);
+  assert.deepEqual([free.system.definition.costs, free.system.definition.tags], [{allOf: []}, ["spell", "smite"]]);
+  assert.deepEqual(Object.values(free.system.definition.configuration[0].levelByResourceId), [1, 2, 3, 4, 1], "5d8 at most");
+  assert.equal(free.system.ruleElements[0].data.onlyWithoutOtherSlotSpell, true);
+  assert.equal(freeUnholy.system.definition.damage[0].expression.number, 3);
+  assert.equal(validateActionDefinition(free.system.definition).ok, true);
 });
 
 test("Temporary Hit Points are healing of their own type (False Life)", () => {

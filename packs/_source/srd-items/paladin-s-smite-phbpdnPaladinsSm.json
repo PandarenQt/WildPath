@@ -7,7 +7,19 @@
   "system": {
     "active": true,
     "description": "<p>You always have the Divine Smite spell prepared. In addition, you can cast it without expending a spell slot, but you must finish a Long Rest before you can cast it in this way again.</p><section id=\"secret-47mDL7wHB8aQP7SD\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>When you reach this level the Divine Smite spell is added to your spells as Always Prepared and with a free use.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "paladins-smite-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "paladins-smite",
+          "label": "Paladin's Smite",
+          "maximum": 1,
+          "recovery": "longRest"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
