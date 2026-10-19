@@ -15,6 +15,10 @@
           {
             "capability": "reaction",
             "amount": 1
+          },
+          {
+            "capability": "bardic-inspiration",
+            "amount": 1
           }
         ]
       },
@@ -35,9 +39,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "consumption: itemUses 1 not converted",
-          "consumption: itemUses 1 not converted"
+          "not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

@@ -459,7 +459,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const activities = Object.values(system.activities ?? {}).sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
   const spell = document.type === "spell";
   const level = number(system.level) ?? 0;
-  const pool = usesPool({document, scales});
+  const pool = usesPool({document, scales}) ?? spentPool(activities, names);
   const description = houseText(document, describe(document, {names, creature}));
   const source = {system: "dnd5e", pack, id: document._id, type: document.type, book,
     license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024",
@@ -618,7 +618,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   }
   // A feature used on its turn that dnd5e leaves without an Action (Action Surge): its Action, paid from its own pool.
   const featureAction = FEATURE_ACTIONS[identifierOf(document)];
-  if ( featureAction && pool && !items.some(item => item.type === "action") ) {
+  if ( featureAction && pool?.rule && !items.some(item => item.type === "action") ) {
     const id = stableId(`${document._id}:use`);
     items.push({_id: id, _key: `!items!${id}`, name: document.name, type: "action", img,
       system: {active: true, description, definition: {schemaVersion: 1, id: `action:srd-${slugify(document.name)}`, label: document.name,
@@ -1303,6 +1303,18 @@ function manualDefinition({document, activity, system, spell, level, notes, pool
   }
   if ( spell && level && (activity.consumption?.spellSlot === false) ) definition.metadata = {...(definition.metadata ?? {}), followUp: true};
   return definition;
+}
+
+/**
+ * The pool of another feature whose uses its activities spend, for a feature without uses of its own (Channel
+ * Divinity's options, Cutting Words' Bardic Inspiration, Land's Aid's Wild Shape): `{id}`, named as that feature's own
+ * pool is (its name), with no rule, as that feature grants it. dnd5e names it `feat:<identifier>` or by uuid.
+ */
+function spentPool(activities, names) {
+  const target = activities.flatMap(activity => activity.consumption?.targets ?? [])
+    .find(entry => (entry.type === "itemUses") && entry.target)?.target;
+  const name = target ? (names[target] ?? names[String(target).split(".").pop()]) : null;
+  return name ? {id: slugify(name), notes: [], rule: null} : null;
 }
 
 /** An item's limited uses as a resource pool its Actions spend, with the dnd5e recovery. */
@@ -2402,6 +2414,8 @@ export function nameIndex(documents=[]) {
     if ( Array.isArray(value) ) return value.forEach(visit);
     if ( !value || (typeof value !== "object") ) return;
     if ( (typeof value._id === "string") && (typeof value.name === "string") ) names[value._id] = value.name;
+    // dnd5e's "feat:channel-divinity-cleric": a consumption target by identifier.
+    if ( value.type && value.system?.identifier && (typeof value.name === "string") ) names[`${value.type}:${value.system.identifier}`] = value.name;
     for ( const key of ["items", "pages", "results", "effects"] ) if ( value[key] ) visit(value[key]);
   };
   visit(documents);

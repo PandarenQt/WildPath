@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {checkOf, convertActor, convertItem, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, scaleTables} from "../scripts/content/dnd5e-to-wildpath.mjs";
+import {checkOf, convertActor, convertItem, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex, scaleTables} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import * as valueExpressions from "../module/helpers/value-expressions.mjs";
 
@@ -1209,4 +1209,18 @@ test("spells that end conditions: Lesser Restoration's choice of four, Heal's th
   const [healing, poison] = convertItem(hands).items;
   assert.equal(healing.system.definition.effects, undefined, "its healing ends nothing");
   assert.deepEqual(poison.system.definition.effects.map(effect => [effect.conditionId, effect.levels]), [["poisoned", -1]]);
+});
+
+test("a feature spending another feature's uses spends that feature's pool (Channel Divinity's options, Land's Aid's Wild Shape)", () => {
+  const names = nameIndex([{_id: "phbclcChannelDiv", name: "Channel Divinity", type: "feat", system: {identifier: "channel-divinity-cleric"}},
+    {_id: "phbdrdWildShape0", name: "Wild Shape", type: "feat", system: {identifier: "wild-shape"}}]);
+  const spending = (id, target) => ({_id: id, name: id, type: "feat", img: "icons/svg/sun.svg", effects: [],
+    system: {source: SRD, identifier: id, type: {value: "class"}, uses: {max: "", recovery: []},
+      activities: {a: activity("heal", {activation: {type: "action", override: false}, consumption: {targets: [{type: "itemUses", value: "1", target}]},
+        healing: {number: 1, denomination: 6, types: ["healing"]}})}}});
+  for ( const [target, pool] of [["feat:channel-divinity-cleric", "channel-divinity"], ["Compendium.dnd5e.classes24.Item.phbdrdWildShape0", "wild-shape"]] ) {
+    const [item] = convertItem(spending("preserve", target), {names}).items;
+    assert.deepEqual(item.system.definition.costs.allOf.map(cost => cost.capability), ["action", pool]);
+    assert.deepEqual(item.system.ruleElements.filter(rule => rule.type === "GrantResource"), [], "the spent feature grants the pool");
+  }
 });
