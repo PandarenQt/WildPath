@@ -1075,6 +1075,19 @@ test("a save its 2024 text repeats at each of the creature's turns marks the eff
   assert.equal(held("<p>The target repeats the save at the end of each of its turns.</p>"), undefined, "nothing ends on a success");
 });
 
+test("a paladin's auras are auras: Protection to saves, Courage and Devotion to conditions, for allies in range", () => {
+  const feature = (id, identifier, name, effects=[]) => ({_id: id, name, type: "feat", img: "icons/svg/aura.svg", effects,
+    system: {source: SRD, identifier, type: {value: "class"}, activities: {}}});
+  const [protection] = convertItem(feature("testAuraProtect1", "aura-of-protection", "Aura of Protection", [{_id: "p", name: "Protected",
+    transfer: true, statuses: [], changes: [{key: "system.bonuses.abilities.save", mode: 2, value: "@abilities.cha.mod"}]}])).items;
+  const [aura] = protection.system.ruleElements;
+  assert.deepEqual([aura.type, aura.data.affects, aura.data.radius.rows, aura.predicate], ["Aura", "allies", {1: 10, 18: 30},
+    {missingCondition: "incapacitated"}]);
+  assert.equal(protection.system.ruleElements.length, 1, "not its dnd5e effect, which gave the paladin alone the bonus");
+  const [courage] = convertItem(feature("testAuraCourage1", "aura-of-courage", "Aura of Courage")).items;
+  assert.deepEqual(courage.system.ruleElements[0].data.ruleElements[0].data, {conditions: ["frightened"]});
+});
+
 test("Temporary Hit Points are healing of their own type (False Life)", () => {
   const life = {_id: "testFalseLife001", name: "False Life", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
     system: {source: SRD, identifier: "false-life", level: 1, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},

@@ -401,3 +401,20 @@ test("AbilityScore: add up to a maximum, at least, at most, or set; in that orde
   assert.deepEqual(abilityScoreChangesFromRuleElements(owners).map(entry => [entry.ability, entry.mode, entry.value]),
     [["might", "upgrade", 21]], "an unknown mode is refused");
 });
+
+test("an aura's radius and bonuses are its bearer's: a paladin's Aura of Protection (Charisma, 30 feet at level 18)", async () => {
+  const {aurasFromRuleElements, validateRuleElementDefinition} = await import("../module/helpers/rule-elements.mjs");
+  const aura = {schemaVersion: 1, id: "aura-of-protection", type: "Aura", predicate: {missingCondition: "incapacitated"},
+    data: {radius: {type: "table", key: {type: "class-level", class: "paladin"}, rows: {1: 10, 18: 30}}, affects: "allies",
+      ruleElements: [{schemaVersion: 1, id: "protection", type: "Modifier", data: {domains: ["save"], modifierType: "untyped",
+        valueExpression: {type: "max", terms: [{type: "constant", value: 1}, {type: "ability-modifier", ability: "presence"}]}}}]}};
+  assert.equal(validateRuleElementDefinition(aura).ok, true);
+  const paladin = (level, presence, conditions=[]) => aurasFromRuleElements([{ruleElements: [aura], source: null}],
+    {actorSystem: {abilities: {presence: {value: presence}}, classes: [{id: "paladin", levels: level}]}, conditions});
+  const [low] = paladin(6, 16);
+  assert.deepEqual([low.radius, low.ruleElements[0].data.value, low.ruleElements[0].data.valueExpression], [10, 3, undefined],
+    "+3 from the paladin's Charisma, not the creature's in it");
+  assert.equal(paladin(18, 8)[0].radius, 30, "Aura Expansion");
+  assert.equal(paladin(18, 8)[0].ruleElements[0].data.value, 1, "at least +1");
+  assert.deepEqual(paladin(6, 16, ["incapacitated"]), [], "inactive while its paladin is Incapacitated");
+});

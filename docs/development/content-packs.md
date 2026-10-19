@@ -338,6 +338,11 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Dominate Mind (Charmed). One that lasts (a duration, or concentration) without them marks the creatures that fail:
   Zone of Truth, Confusion, Bestow Curse. SRD saves left wholly by hand fell from 137 to 35 documents, and
   concentration effects not converted from 175 to 122.
+- **Paladin auras (2026-10-19).** Aura of Protection, Courage and Devotion convert to `Aura` rules for the paladin and
+  allies within 10 feet (30 at paladin level 18, Aura Expansion), inactive while it is Incapacitated: saves + its
+  Charisma modifier (at least +1), immunity to Frightened, to Charmed. Before, Aura of Protection gave the paladin alone
+  the bonus and the other two nothing. Live: an ally with Presence 16 and the aura stood 5 feet from QA Fighter, whose
+  Grapple save against the Bandit Captain rolled 1d20 + 9 (its +6 and the aura's +3).
 - **Dispel Magic, Remove Curse, curse tags (2026-10-19).** They end effects on their target (`ends`,
   action-definitions.md); every spell's definition carries its level (`metadata.spellLevel`). An effect whose only
   statuses WildPath lacks (dnd5e's `cursed`, `silenced`) is now a marker named after it rather than nothing; one that

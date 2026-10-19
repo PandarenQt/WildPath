@@ -7,7 +7,42 @@
   "system": {
     "active": true,
     "description": "<p>You and your allies have Immunity to the Charmed condition while in your Aura of Protection. If a Charmed ally enters the aura, that condition has no effect on that ally while there.</p><section id=\"secret-FUisOAkgNW9r118u\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect for tracking characters impacted by your aura but does not automate the effects.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "aura-of-devotion",
+        "type": "Aura",
+        "predicate": {
+          "missingCondition": "incapacitated"
+        },
+        "data": {
+          "radius": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "paladin"
+            },
+            "rows": {
+              "1": 10,
+              "18": 30
+            }
+          },
+          "affects": "allies",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "devotion",
+              "type": "ConditionImmunity",
+              "data": {
+                "conditions": [
+                  "charmed"
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

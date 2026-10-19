@@ -98,6 +98,25 @@ const ENDS = Object.freeze({
   "dispel-magic": {spells: "slot"}
 });
 
+/**
+ * A paladin's auras (2024): what "you and your allies" in the paladin's 10-foot Emanation (30 feet from Aura Expansion,
+ * paladin level 18) get, inactive while the paladin has the Incapacitated condition. Aura of Protection adds its
+ * Charisma modifier to saves (at least +1); Courage and Devotion give immunity to Frightened and Charmed.
+ * shortcut: a Frightened or Charmed ally entering keeps that condition; upgrade when an aura can suppress one.
+ */
+const PALADIN_AURAS = Object.freeze({
+  "aura-of-protection": [{schemaVersion: 1, id: "protection", type: "Modifier", data: {domains: ["save"], modifierType: "untyped",
+    valueExpression: {type: "max", terms: [{type: "constant", value: 1}, {type: "ability-modifier", ability: "presence"}]}}}],
+  "aura-of-courage": [{schemaVersion: 1, id: "courage", type: "ConditionImmunity", data: {conditions: ["frightened"]}}],
+  "aura-of-devotion": [{schemaVersion: 1, id: "devotion", type: "ConditionImmunity", data: {conditions: ["charmed"]}}]
+});
+
+/** A paladin aura's Aura rule. */
+const paladinAura = identifier => ({schemaVersion: 1, id: identifier, type: "Aura",
+  predicate: {missingCondition: "incapacitated"},
+  data: {radius: {type: "table", key: {type: "class-level", class: "paladin"}, rows: {1: 10, 18: 30}}, affects: "allies",
+    ruleElements: PALADIN_AURAS[identifier]}});
+
 /** dnd5e skill keys as WildPath's skills. */
 const SKILL_MAP = Object.freeze({acr: "acrobatics", ani: "animal-handling", arc: "arcana", ath: "athletics", dec: "deception",
   his: "history", ins: "insight", itm: "intimidation", inv: "investigation", med: "medicine", nat: "nature", prc: "perception",
@@ -493,7 +512,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   // Nothing to use: a passive ability is a feature carrying its text (and any uses its other Actions spend).
   if ( !items.length ) {
     items.push({_id: document._id, _key: `!items!${document._id}`, name: document.name, type: "feature", img,
-      system: {active: true, description, ruleElements: [pool?.rule, ...(trait?.rules ?? []), ...passive].filter(Boolean)},
+      system: {active: true, description, ruleElements: [pool?.rule, ...(trait?.rules ?? []),
+        // A paladin's aura is what it grants those around it, not what its dnd5e effect gives the paladin alone.
+        ...(PALADIN_AURAS[identifierOf(document)] ? [paladinAura(identifierOf(document))] : passive)].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}}}});
   }
   return {ok: true, items, notes: [...new Set(allNotes)]};
