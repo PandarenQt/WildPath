@@ -30,7 +30,7 @@
       },
       "effects": [
         {
-          "id": "effect-1",
+          "id": "disengaged",
           "type": "effect",
           "name": "Disengaged",
           "slug": "disengaged",
@@ -41,6 +41,44 @@
             "expiry": "turnEnd"
           },
           "ruleElements": []
+        },
+        {
+          "id": "dashing",
+          "type": "effect",
+          "name": "Dashing",
+          "slug": "dashing",
+          "img": "icons/svg/wingfoot.svg",
+          "duration": {
+            "value": 0,
+            "units": "turns",
+            "expiry": "turnEnd"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "dash",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "resources.movement.max"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "add",
+                  "terms": [
+                    {
+                      "type": "context",
+                      "path": "actorSystem.resources.movement.base"
+                    },
+                    {
+                      "type": "context",
+                      "path": "actorSystem.resources.movement.bonus"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
         }
       ],
       "label": "Monk's Focus (Step of the Wind)"

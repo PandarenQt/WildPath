@@ -204,7 +204,9 @@ Not yet: Magic (a spell or magic item's own Action already is one) and Ready (th
 offers Escape only while the creature has one: Grappled before Restrained, then the highest DC. The check uses its
 better skill, and a success ends that condition with a removal row (`levels: -1`).
 - Shortcut: two grapples of the same condition are one condition, so escaping either ends both.
-- Not yet checked live (the browsers were unavailable).
+- Live (two browsers, 2026-10-19): the GM's Bandit Captain grappled Player1's QA Fighter. Its Grappled carried
+  `escapeDC: 12` (8 + 2 + 2). Player1's bar then showed Escape; it rolled Athletics, 1d20 + 6 = 14, which ended
+  Grappled and spent the Action. Escape then left the bar.
 
 Live (two browsers, 2026-10-19): Player1's QA Fighter used Utilize from the bar; its Action went from 1 to 0 and a
 "Utilize" card was posted.

@@ -441,6 +441,27 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "check": {
+            "ability": "agility",
+            "skill": "stealth",
+            "dc": {
+              "value": 15
+            }
+          },
+          "effects": [
+            {
+              "id": "hidden",
+              "type": "condition",
+              "conditionId": "invisible",
+              "checkOutcomePolicy": "success"
+            }
+          ],
           "label": "Shadow Stealth"
         },
         "ruleElements": []
@@ -457,10 +478,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "effect: hiding is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -552,10 +570,7 @@
         "challenge": 0.5
       },
       "conversion": {
-        "notes": [
-          "Shadow Stealth: not automated (utility): using it spends its cost; its description says the rest",
-          "Shadow Stealth: effect: hiding is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }
