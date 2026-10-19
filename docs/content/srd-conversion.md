@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 818 automated, 305 manual, 245 features. Creatures: 375.
+Items: 819 automated, 305 manual, 244 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -1470,7 +1470,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Stroke of Luck | classes24 | Stroke of Luck (feature) | "Stroke of Luck" is passive or triggered: not automated |
 | Studded Leather Armor | equipment24 | Studded Leather Armor (gear) | — |
 | Studied Attacks | classes24 | Studied Attacks (feature) | — |
-| Stunning Strike | classes24 | Stunning Strike (feature) | "save" is passive or triggered: not automated |
+| Stunning Strike | classes24 | Stunning Strike (automated) | effect: "Slowed" marks its creature only; its rules are by hand |
 | Subtle Spell | classes24 | Subtle Spell (feature) | "Subtle Spell" is passive or triggered: not automated |
 | Succubus | actors24 | Succubus (7 items) | Charm: cast: Dominate Person at level 8 is cast at its own level; Shape-Shift: not automated (utility): using it spends its cost; its description says the rest; Multiattack: its other parts (a replacement, an ability it uses) are used by hand |
 | Suggestion | spells24 | Suggestion (automated) | — |

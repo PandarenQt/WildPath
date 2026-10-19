@@ -84,6 +84,10 @@ function tokenReactions(token) {
             const policy = policyOf(actionItem);
             if (policy === "never")
                 return [];
+            // Once a turn (Stunning Strike): not offered again this combat turn; its use records it (`metadata.once`).
+            const once = (data.once === "turn") ? onceThisTurn(actor, `${item.id}-${String(element.id ?? "trigger")}`) : null;
+            if (once?.used)
+                return [];
             const trigger = reactionTrigger({
                 id: `reaction:${token.id}:${item.id}:${String(element.id ?? "trigger")}`,
                 event,
@@ -97,7 +101,8 @@ function tokenReactions(token) {
                 // A reaction to its own Action comes after its targets' (a Parry may turn the hit into a miss first).
                 ...((data.match?.sourceTokenId === "{self}") ? { priority: 200 } : {}),
                 predicate: bindSelf(data.triggerPredicate ?? data.eventPredicate ?? null, token.id),
-                ...(policy === "always" ? { metadata: { reactionPolicy: policy } } : {})
+                ...(policy === "always" ? { metadata: { reactionPolicy: policy } } : {}),
+                ...(once ? { payload: { once: { key: once.key, turn: once.turn } } } : {})
             });
             return [{ trigger, event, definition: definition.definition, data }];
         });
@@ -118,6 +123,16 @@ function ownActionReactions(token) {
     if (casting || !free.length)
         return own.filter(entry => !free.includes(entry));
     return own.filter(entry => free.includes(entry) || !(entry.definition.tags ?? []).includes("smite"));
+}
+/**
+ * A once-a-turn reaction's record key and the combat turn, and whether it was used this turn
+ * (`flags.wildpath.onceUsed.<key>`, as a once-a-turn ExtraDamage). Outside combat it is never used up.
+ */
+function onceThisTurn(actor, id) {
+    const combat = globalThis.game?.combat;
+    const turn = combat?.started ? turnKey(combat) : null;
+    const key = id.replace(/\./g, "_");
+    return { key, turn, used: (turn !== null) && (actor.flags?.wildpath?.onceUsed?.[key] === turn) };
 }
 /** Whether any Item of `token`'s creature has a reaction to movement, active or not. */
 function ownsMovementReaction(token) {

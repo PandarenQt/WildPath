@@ -105,9 +105,11 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
   const profile = (actor as {getDamageProfile?(): Data | null}).getDamageProfile?.() ?? null;
   const targetKeys = [actor.id, actor.uuid, `actor:${actor.id}`];
   const base = args.baseChildState;
+  // A once-a-turn reaction (Stunning Strike) records its use when it pays (`metadata.once`).
+  const once = (args.candidate as {payload?: {once?: Data}}).payload?.once;
   return createActionResolutionState({id: base.id, parentId: base.parentId, relationship: base.relationship,
     sourceEvent: base.sourceEvent, depth: base.depth, maxDepth: base.maxDepth, ancestry: base.ancestry,
-    triggerIdentities: base.triggerIdentities, metadata: base.metadata,
+    triggerIdentities: base.triggerIdentities, metadata: once ? {...(base.metadata ?? {}), once} : base.metadata,
     actorSystem: foundryActorSystemSnapshot(reactor.actor),
     action: {id: definition.id, type: "action", name: definition.label, system: {definition}},
     source: {actorId: reactor.actor.id, actorRef: reactor.actor.uuid, tokenId: reactor.id, tokenRef: reactor.uuid},

@@ -2141,7 +2141,7 @@ function createPaymentStage() {
           resolver: "ResourceResolver",
           plan: controllerPayment.mutationPlan,
           payerRef: input.controller.actorRef
-        }] : [])],
+        }] : []), ...oncePerTurnPlans(state.metadata?.once)],
         data: {
           paymentPlan: payment.paymentPlan,
           discovery: payment.discovery,
@@ -2429,6 +2429,13 @@ function componentRollRequestForState(state, input, {kind, rollType, requestId, 
     authority: values.authority ?? {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
     metadata: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: kind, componentId: component.id ?? null}
   });
+}
+
+/** A once-a-turn reaction (Stunning Strike) records its use on its creature for this turn, with its payment. */
+function oncePerTurnPlans(once) {
+  if ( !once?.key || !once?.turn ) return [];
+  const path = `flags.wildpath.onceUsed.${once.key}`;
+  return [{type: "sourceUpdate", resolver: "ActionPipeline", updates: {[path]: once.turn}, rollbackUpdates: {[path]: null}}];
 }
 
 /**

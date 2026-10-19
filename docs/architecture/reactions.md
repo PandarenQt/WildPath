@@ -269,6 +269,20 @@ Live (two browsers, 2026-10-19): Player1's QA Caster hit the Bandit Captain with
 offered Parry first and declined; then Player1 was offered Divine Smite, chose a 3rd-level slot, and the Captain took
 4d8 = 20 radiant and the Dagger's 2. The slot was spent; the Reaction was not.
 
+- **Once a turn (Stunning Strike, 2026-10-19):** a Trigger with `once: "turn"` is not offered again in the same combat
+  turn once used. The provider passes its record key and the turn on the trigger's `payload.once`; the reaction's child
+  state carries it as `metadata.once`, and the child's payment writes `flags.wildpath.onceUsed.<key>` on its creature (as
+  a once-a-turn ExtraDamage does). Outside combat it is never used up.
+- **Stunning Strike:** dnd5e leaves it passive; the converter makes it an own-hit reaction (`OWN_HIT`): 1 Focus Point, a
+  Constitution save, and on a failure Stunned with `duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}`.
+  The effect's V14 duration is `turnStart` started on the monk's Combatant, and the GM removes it once V14 marks it
+  expired, at the start of the monk's next turn. shortcut: any melee hit counts (not only a Monk weapon or an Unarmed
+  Strike), and a success's halved Speed and Advantage are by hand.
+
+Live (two browsers, 2026-10-19, in combat): QA Caster as a level-2 monk hit the Bandit Captain and used Stunning Strike
+(1 Focus Point); the Captain failed (2) and was Stunned through its own turn, which ended at the start of QA Caster's
+next turn. A second hit in the same turn was not offered it, and with no Focus Points left it was not offered at all.
+
 Shortcuts: a Parry's "while holding a weapon", and Counterspell's 60 feet, sight and hostility, are the reactor's to
 judge (its Ask setting). Falling (Feather Fall) has no window yet; Retaliation's attack is by hand.
 

@@ -252,7 +252,7 @@ function conditionEffectUpdates(plan, level) {
 
 function lifecycleUpdates(plan, level) {
   return {
-    ...(plan.duration ? {duration: clonePlain(plan.duration)} : {}),
+    ...(plan.duration ? nativeDuration(plan) : {}),
     ...(plan.originRef ? {origin: plan.originRef} : {}),
     ...(shouldPersistLifecycleMetadata(plan) ? {
       "flags.wildpath.conditionEffect": {
@@ -266,6 +266,19 @@ function lifecycleUpdates(plan, level) {
       }
     } : {})
   };
+}
+
+/**
+ * The V14 duration shown on the effect. The lifecycle ends a condition by its flag's duration, whose expiry may name
+ * whose turn ("sourceTurnStart": until the start of the source's next turn, Stunning Strike); V14 knows only
+ * `turnStart`/`turnEnd`, started on that creature's Combatant.
+ */
+function nativeDuration(plan) {
+  const duration = clonePlain(plan.duration);
+  const named = /^(source|target)Turn(Start|End)$/.exec(String(duration.expiry ?? ""));
+  if ( !named ) return {duration};
+  const combatant = (named[1] === "source") ? sourceCombatant(plan.source) : null;
+  return {duration: {...duration, expiry: `turn${named[2]}`}, ...(combatant ? {start: {combatant: combatant.id}} : {})};
 }
 
 function shouldPersistLifecycleMetadata(plan) {

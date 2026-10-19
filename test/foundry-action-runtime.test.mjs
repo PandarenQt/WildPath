@@ -1091,7 +1091,7 @@ test("two unlinked Tokens of one base Actor each make their own save", async t =
 });
 
 /** A GM-controlled target whose Token answers "a hit on me" by striking back (authored Trigger RuleElement). */
-function counterattackFixture(t, {decision="use", reactor="target", event="attack.hit", natural=null}={}) {
+function counterattackFixture(t, {decision="use", reactor="target", event="attack.hit", natural=null, once=false}={}) {
   const fixture = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
   const {scene, sourceActor, targetActor, targetSource, game} = fixture;
   scene.tokens.get = id => scene.tokens.find(token => token.id === id);
@@ -1115,7 +1115,7 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
         targeting: {type: "single", required: true, count: 1},
         damage: [{id: "smite", expression: {type: "dice", number: 2, faces: 8}, damageType: "radiant", provenance: "spell-base"}]},
       ruleElements: [{schemaVersion: 1, id: "smite", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
-        match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"]}}}]}};
+        match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"]}, ...(once ? {once: "turn"} : {})}}]}};
     sourceActor.items = new (class extends Map { [Symbol.iterator]() { return this.values(); } })([...sourceActor.items.entries(), ["smite", smite]]);
     sourceActor.system.resources.reaction = {value: 1, max: 1};
   } else holder.items = [{id: "counter", type: "action", name: "Counterattack", system: {active: true,
@@ -1217,6 +1217,21 @@ for ( const critical of [false, true] ) test(`a creature's own Trigger answers i
   const smite = playerRollRequests.find(request => request.definition?.dice?.[0]?.id === "smite:die:0");
   assert.equal(smite?.definition.dice[0].number, critical ? 4 : 2);
   assert.equal(targetActor.system.resources.health.value, 15, "the attack's 6 and the smite's 9 both land");
+});
+
+test("a once-a-turn Trigger on its own hit (Stunning Strike) records its use for the combat turn, and is not offered again", async t => {
+  const previous = globalThis.game;
+  globalThis.game = {combat: {id: "c", round: 1, turn: 0, started: true}};
+  t.after(() => { globalThis.game = previous; });
+  const {sourceActor, gm, player, offers, intent, game} = counterattackFixture(t, {reactor: "source", once: true});
+  const declared = await player.declareActionIntent(intent);
+  assert.equal(gm.getRecord(declared.resolutionId).state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.equal(offers.length, 1);
+  assert.deepEqual(sourceActor.flags?.wildpath?.onceUsed, {"smite-smite": "c:1:0"}, "its use is recorded for this turn");
+  const services = game.wildpath.reactionServices({scene: game.scenes.contents?.[0] ?? [...game.scenes.values()][0],
+    token: sourceActor.token});
+  assert.equal((services.reactions?.triggers ?? []).some(trigger => trigger.owner.tokenId === sourceActor.token.id), false,
+    "not offered again this turn");
 });
 
 /** A 5-ft radial burst, 6 damage, cast from (0,0) at range 30 ft. A bystander stands at (5,0). */

@@ -401,6 +401,10 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Smite's slot choice. Each smite has an "Undead or Fiend" Action, 1d8 more. shortcuts: every eligible Beast is offered,
   the form lasts until reverted, healing in it heals the druid; the player picks the Undead or Fiend Smite, as converted
   creatures carry no creature type; another slot spell after a smite in the same turn is not refused.
+- **Spending another feature's uses (2026-10-19).** A feature without uses of its own whose activity spends another's
+  (`feat:<identifier>` or a uuid: Channel Divinity's options, Cutting Words, Land's Aid, Wild Companion, Stunning Strike)
+  spends that feature's pool, which that feature grants.
+- **Stunning Strike (2026-10-19)** is offered once a turn on its monk's own melee hit (reactions.md).
 - **Effects as markers (2026-10-19).** A dnd5e effect with no status and nothing WildPath maps (Alter Self's Aquatic
   Adaptation, Acid Arrow's lingering acid, a dragon's Detect Magic) is no longer dropped. It is a custom effect with
   no rules: its name, icon, duration, save policy and concentration. Its creature shows it, it expires on time, and it

@@ -158,6 +158,20 @@ const SMITE_TRIGGER = Object.freeze({event: "attack.hit",
   match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"], notTagsAny: ["spell"]}});
 
 /**
+ * Features a creature uses when it hits with a melee attack that is not a spell's, which dnd5e leaves passive: offered
+ * on that hit, on the creature hit (as Divine Smite is). `once: "turn"`: at most once a turn. Stunning Strike (2024):
+ * 1 Focus Point, a Constitution save; on a failure the target has the Stunned condition until the start of the monk's
+ * next turn. shortcut: "with a Monk weapon or an Unarmed Strike" is any melee hit, and a success's halved Speed and
+ * Advantage are by hand.
+ */
+const OWN_HIT = Object.freeze({
+  "stunning-strike": {once: "turn", definition: definition => ({...definition,
+    configuration: (definition.configuration ?? []).filter(choice => choice.id !== "effect-choice"),
+    effects: [{id: "effect-1", type: "condition", conditionId: "stunned", saveOutcomePolicy: "failure",
+      duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}}]})}
+});
+
+/**
  * Paladin's Smite (the maintainer's rule): its free cast of Divine Smite (once per Long Rest, no slot) is an option of
  * every Divine Smite's slot choice, as a 1st-level cast. It also lets its paladin cast Divine Smite by the 2014 rules
  * (SRD 5.1): no action, 2d8 radiant and 1d8 more a slot level above 1st, at most 5d8 (a slot above 4th adds nothing, so
@@ -479,7 +493,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( trait?.consumes?.includes(activity) ) continue;
     // A passive or triggered ability is not something a creature uses on its turn; its feature carries its text.
     const activation = pick(activity, system, "activation").type ?? "";
-    if ( ["", "none", "special"].includes(activation) ) {
+    // A feature used when its creature hits (Stunning Strike): offered on that hit, though dnd5e leaves it passive.
+    const onHit = OWN_HIT[identifierOf(document)] ?? null;
+    if ( ["", "none", "special"].includes(activation) && !onHit ) {
       // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.
       const marked = (activity.type === "damage") && Object.values(EFFECTS_BY_HAND).some(hand => hand.bonusDamage === label);
       if ( !trait && !marked ) allNotes.push(`"${label}" is passive or triggered: not automated`);
@@ -584,10 +600,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     const smite = (identifierOf(document) === "divine-smite") ? SMITE_TRIGGER : null;
     if ( smite ) definition = smiteDefinition(definition);
+    if ( onHit ) definition = {...onHit.definition(definition), range: {type: "special"}, targeting: {type: "single", required: true, count: 1}};
     const named = smite ? (/unholy/i.test(activity.name ?? "") ? " (Undead or Fiend)" : "") : suffix;
     const reacting = action(id, `${document.name}${named}${choices ? title(choices[0]) : ""}`, definition);
-    if ( reaction ?? smite ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
-      data: {kind: "reaction", event: (reaction ?? smite).event, match: (reaction ?? smite).match}});
+    const trigger = reaction ?? smite ?? (onHit ? {...SMITE_TRIGGER, once: onHit.once} : null);
+    if ( trigger ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
+      data: {kind: "reaction", event: trigger.event, match: trigger.match, ...(trigger.once ? {once: trigger.once} : {})}});
     items.push(reacting);
     for ( const other of choices?.slice(1) ?? [] ) items.push(action(stableId(`${id}:${other}`), `${document.name}${suffix}${title(other)}`,
       commonActivity({document, activity, system, spell, level, pool}, [other])));
