@@ -340,7 +340,7 @@ export function validateRollResult(result, {
     && data.natural != null
     && requestData?.expected?.modifierTotal != null
   ) {
-    const expectedTotal = data.natural + (finiteNumber(requestData.expected.modifierTotal) ?? 0);
+    const expectedTotal = countedNatural(data.natural, requestData.expected) + (finiteNumber(requestData.expected.modifierTotal) ?? 0);
     if ( data.total !== expectedTotal ) {
       return validationFailure(
         ROLL_CODES.INVALID_MANUAL_RESULT,
@@ -392,7 +392,7 @@ export function createRollResultFromManualInput({request, input, provider=null, 
   const suppliedTotal = finiteNumber(supplied.total ?? supplied.value ?? supplied.amount);
   const total = suppliedTotal
     ?? (expectedMode === ROLL_INPUT_MODES.NATURAL && natural != null
-      ? natural + (finiteNumber(requestData.expected.modifierTotal) ?? rollModifierTotal(requestData))
+      ? countedNatural(natural, requestData.expected) + (finiteNumber(requestData.expected.modifierTotal) ?? rollModifierTotal(requestData))
       : null);
   const result = normalizeRollResult({
     request: requestData,
@@ -447,13 +447,14 @@ export function createRollResultFromManualInput({request, input, provider=null, 
 export function simpleFormulaBounds(formula) {
   const text = String(formula ?? "").replace(/\s+/gu, "");
   // Dice may keep their highest or lowest (advantage: 2d20kh), which keeps one die unless a count is given.
-  if ( !text || !/^[+-]?(\d+d\d+(k[hl]\d*)?|\d+)([+-](\d+d\d+(k[hl]\d*)?|\d+))*$/iu.test(text) ) return null;
+  // A die may count as at least a minimum (`1d20min10`, Reliable Talent).
+  if ( !text || !/^[+-]?(\d+d\d+(min\d+)?(k[hl]\d*)?|\d+)([+-](\d+d\d+(min\d+)?(k[hl]\d*)?|\d+))*$/iu.test(text) ) return null;
   let min = 0;
   let max = 0;
-  for ( const [, sign, number, faces, keep, kept, constant] of text.matchAll(/([+-]?)(?:(\d+)d(\d+)(k[hl](\d*))?|(\d+))/giu) ) {
+  for ( const [, sign, number, faces, floor, keep, kept, constant] of text.matchAll(/([+-]?)(?:(\d+)d(\d+)(?:min(\d+))?(k[hl](\d*))?|(\d+))/giu) ) {
     const direction = sign === "-" ? -1 : 1;
     const count = keep ? (Number(kept) || 1) : Number(number);
-    const low = constant != null ? Number(constant) : count;
+    const low = constant != null ? Number(constant) : count * Math.min(Math.max(Number(floor) || 1, 1), Number(faces));
     const high = constant != null ? Number(constant) : count * Number(faces);
     min += direction > 0 ? low : -high;
     max += direction > 0 ? high : -low;
@@ -594,6 +595,8 @@ function normalizeRollExpected(expected, type=null) {
     manualInputMode: stringOrDefault(data.manualInputMode ?? data.inputMode, d20 ? ROLL_INPUT_MODES.NATURAL : ROLL_INPUT_MODES.TOTAL),
     validateTotalFromNatural: data.validateTotalFromNatural ?? d20,
     modifierTotal: finiteNumber(data.modifierTotal ?? data.modifier) ?? null,
+    // A d20 below it counts as it (Reliable Talent: 10); `natural` stays the die as rolled.
+    ...(finiteInteger(data.naturalMinimum) > 1 ? {naturalMinimum: finiteInteger(data.naturalMinimum)} : {}),
     staleAfterStageId: stringOrNull(data.staleAfterStageId),
     metadata: clonePlainData(data.metadata ?? {}, "expected.metadata") ?? {}
   };
@@ -609,7 +612,7 @@ function normalizeRollResult(raw={}, {skipSerializableClone=false}={}) {
     ?? naturalFromDice(dice, request?.expected?.primaryDieFaces);
   const total = finiteNumber(source.total ?? source.value ?? source.amount ?? resultData.total)
     ?? (request?.expected?.manualInputMode === ROLL_INPUT_MODES.NATURAL && natural != null
-      ? natural + (finiteNumber(request.expected.modifierTotal) ?? rollModifierTotal(request))
+      ? countedNatural(natural, request.expected) + (finiteNumber(request.expected.modifierTotal) ?? rollModifierTotal(request))
       : null);
 
   return {
@@ -904,11 +907,20 @@ export function d20Chance({modifier=0, target, rollMode=ROLL_MODES.NORMAL, natur
  * @param {{rollMode?: string, modifier?: number}} [options]
  * @returns {string}
  */
-export function d20FormulaWith(formula, {rollMode=ROLL_MODES.NORMAL, modifier=0}={}) {
-  const dice = {[ROLL_MODES.ADVANTAGE]: "2d20kh", [ROLL_MODES.DISADVANTAGE]: "2d20kl"}[normalizeRollMode(rollMode)];
+export function d20FormulaWith(formula, {rollMode=ROLL_MODES.NORMAL, modifier=0, naturalMinimum=null}={}) {
+  // A minimum (Reliable Talent: `min10`) goes on the d20 itself, before keeping the higher or lower one.
+  const floor = (Number(naturalMinimum) > 1) ? `min${Math.trunc(naturalMinimum)}` : "";
+  const dice = {[ROLL_MODES.ADVANTAGE]: `2d20${floor}kh`, [ROLL_MODES.DISADVANTAGE]: `2d20${floor}kl`}[normalizeRollMode(rollMode)]
+    ?? (floor ? `1d20${floor}` : null);
   const rolled = dice ? String(formula).replace(/\b1?d20\b/, dice) : String(formula);
   if ( !modifier ) return rolled;
   return `${rolled} ${modifier < 0 ? "-" : "+"} ${Math.abs(modifier)}`;
+}
+
+/** The d20 as it counts: at least the request's minimum (Reliable Talent), the die itself otherwise. */
+function countedNatural(natural, expected) {
+  const minimum = finiteInteger(expected?.naturalMinimum);
+  return (minimum > 1) ? Math.max(natural, minimum) : natural;
 }
 
 function formulaForDieTerm(die, rollMode) {
@@ -916,8 +928,9 @@ function formulaForDieTerm(die, rollMode) {
   // A bonus die (Bless 1d4) is added, or subtracted (Bane); advantage applies to the d20 alone.
   if ( die.purpose === "bonus" ) return `${die.sign < 0 ? "-" : ""}${die.number}d${die.faces}`;
   const isD20 = die.faces === 20 && die.number === 1;
-  if ( isD20 && rollMode === ROLL_MODES.ADVANTAGE ) return "2d20kh";
-  if ( isD20 && rollMode === ROLL_MODES.DISADVANTAGE ) return "2d20kl";
+  // Its modifiers (Reliable Talent's `min10`) stay on both dice.
+  if ( isD20 && rollMode === ROLL_MODES.ADVANTAGE ) return `2d20${die.modifiers.join("")}kh`;
+  if ( isD20 && rollMode === ROLL_MODES.DISADVANTAGE ) return `2d20${die.modifiers.join("")}kl`;
   return `${die.number}d${die.faces}${die.modifiers.join("")}`;
 }
 

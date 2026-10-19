@@ -756,17 +756,22 @@ function rollOutcomeRuleElement(ruleElement) {
   const data = ruleElement.data;
   const domains = normalizeStrings(data.domains ?? data.domain);
   // `critical-range`: its attacks score a Critical Hit on a d20 of `threshold` or more (Improved Critical: 19).
-  if ( !["automatic-failure", "critical-on-hit", "evasion", "critical-range"].includes(data.outcome) ) {
+  // `minimum-natural`: a d20 below `threshold` counts as it (Reliable Talent: 10, on checks with a proficiency).
+  if ( !["automatic-failure", "critical-on-hit", "evasion", "critical-range", "minimum-natural"].includes(data.outcome) ) {
     return handlerFailure(RULE_ELEMENT_CODES.INVALID,
-      "RollOutcome RuleElement outcome must be automatic-failure, critical-on-hit, evasion or critical-range.");
+      "RollOutcome RuleElement outcome must be automatic-failure, critical-on-hit, evasion, critical-range or minimum-natural.");
   }
   if ( !domains.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement requires domains.");
   const threshold = Number(data.threshold);
   if ( (data.outcome === "critical-range") && !(Number.isInteger(threshold) && (threshold >= 2) && (threshold <= 20)) ) {
     return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A critical-range RollOutcome needs a threshold from 2 to 20.");
   }
+  if ( (data.outcome === "minimum-natural") && !(Number.isInteger(threshold) && (threshold >= 1) && (threshold <= 20)) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A minimum-natural RollOutcome needs a threshold from 1 to 20.");
+  }
+  const thresholded = ["critical-range", "minimum-natural"].includes(data.outcome);
   return success({
-    rollOutcomes: [{id: data.id ?? ruleElement.id, outcome: data.outcome, domains, ...(data.outcome === "critical-range" ? {threshold} : {}),
+    rollOutcomes: [{id: data.id ?? ruleElement.id, outcome: data.outcome, domains, ...(thresholded ? {threshold} : {}),
       source: ruleElementSource(ruleElement),
       metadata: contributionMetadata(ruleElement, data.metadata)}]
   });

@@ -1272,6 +1272,8 @@ test("Jack of All Trades and Remarkable Athlete: dnd5e's flags as WildPath rules
   assert.deepEqual(jack.system.ruleElements[0].data.domains, ["check.unproficient"]);
   assert.deepEqual(valueExpressions.evaluateValueExpression(jack.system.ruleElements[0].data.valueExpression,
     {actorSystem: {proficiencyBonus: 3}}).value, 1, "half of 3, rounded down");
+  const [talent] = convertItem(flagged("talent", "flags.dnd5e.reliableTalent")).items;
+  assert.deepEqual(talent.system.ruleElements[0].data, {domains: ["check.proficient"], outcome: "minimum-natural", threshold: 10});
   const [athlete] = convertItem(flagged("athlete", "flags.dnd5e.remarkableAthlete")).items;
   assert.deepEqual(athlete.system.ruleElements[0], {schemaVersion: 1, id: "athlete-1", type: "RollMode",
     data: {domains: ["initiative", "check.athletics"], mode: "advantage"}});

@@ -285,7 +285,10 @@ export function resolveActorCheckStatistic(actor, {ability=null, skill=null}={})
   {tags: [used, skill].filter(Boolean)}), actor, used);
   if ( !check || !level ) return check;
   const proficiency = actorProficiencyBonus(actor) * level;
-  return {...check, totalModifier: check.totalModifier + proficiency, proficiency};
+  // A check with its proficiency reads `check.proficient` minimums (Reliable Talent: a d20 of 9 or lower counts as 10).
+  const naturalMinimum = Math.max(0, ...(actor?.getRollOutcomes?.(["check.proficient"]) ?? [])
+    .filter(outcome => outcome.outcome === "minimum-natural").map(outcome => Number(outcome.threshold) || 0));
+  return {...check, totalModifier: check.totalModifier + proficiency, proficiency, ...(naturalMinimum > 1 ? {naturalMinimum} : {})};
 }
 
 function withAbilityModifier(statistic, actor, ability) {

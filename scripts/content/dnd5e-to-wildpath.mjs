@@ -2235,6 +2235,9 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
       // 2024 Jack of All Trades: half the Proficiency Bonus (round down) on a skill check without that skill's proficiency.
       modifier(["check.unproficient"], {type: "floor", value: {type: "divide", numerator: {type: "proficiency-bonus"},
         denominator: {type: "constant", value: 2}}});
+    } else if ( key === "flags.dnd5e.reliableTalent" ) {
+      // 2024 Reliable Talent: on a check with a skill proficiency, a d20 of 9 or lower counts as 10.
+      rule("RollOutcome", {domains: ["check.proficient"], outcome: "minimum-natural", threshold: 10});
     } else if ( key === "flags.dnd5e.remarkableAthlete" ) {
       // 2024 Remarkable Athlete: Advantage on Initiative rolls and Strength (Athletics) checks.
       rule("RollMode", {domains: ["initiative", "check.athletics"], mode: "advantage"});
