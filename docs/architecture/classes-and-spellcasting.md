@@ -255,6 +255,19 @@ used the copied Bite through the GM's authority. The goblin went from 20 to 15, 
 card posted. Reverting restored Might 8 and removed the Bite. In Quench, the creature's own +1 AC feat kept
 counting on the form's AC, and its own Intellect stayed.
 
+## Font of Magic (2026-10-19)
+
+2024 Font of Magic converts to two Actions from its `font-of-magic` pool (Sorcery Points). The sorcerer class grants both.
+- **Regain Spell Slot** (a Bonus Action): a slot level from 1 to 5. Each option costs its points (2, 3, 5, 6, 7) and
+  restores one slot of that level (action-configuration.md: an option's effects, `restore`).
+- **Regain Sorcery Points** (no action): spends a slot of any level and restores that many points.
+- **Refusal:** either is refused when what it restores is full or missing. A slot level a sorcerer has no slots of is
+  refused, which matches the table's minimum Sorcerer level for a single-class sorcerer.
+- **shortcuts:** a created slot stays within the slot maximum and does not vanish on a Long Rest; multiclass slot levels
+  follow the slot pools.
+- **Live (two browsers, 14.369):** QA Caster, as wizard 5 and sorcerer 2, had 2 points. Player1 created a level-1 slot
+  (points 2 to 0, slot 0 to 1), then spent it for 1 point.
+
 ## Tactical Mind (2026-10-19)
 
 2024 Tactical Mind (fighter level 2): when the fighter fails an ability check made through an Action (`definition.check`),

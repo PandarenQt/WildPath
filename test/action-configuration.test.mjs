@@ -456,3 +456,25 @@ test("an enchantment picks one of its creature's own weapons, and binds it and t
     choices: {"spell-slot": {resourceId: "spell-slot.4"}, weapon: "someone-elses"}});
   assert.equal(forged.ok, false, "not one of its weapons");
 });
+
+test("Font of Magic: a slot level's own effects cost its points and give back its slot; a full or missing slot is refused", async () => {
+  const fs = await import("node:fs");
+  const read = file => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}.json`, "utf8")).system.definition;
+  const create = read("font-of-magic-regain-spell-slot-phbscrFontOfMagi");
+  const convert = read("font-of-magic-regain-sorcery-points-1qw9xnc13fzrn000");
+  const system = (slot2, points=5) => ({resources: {bonus: {value: 1, max: 1}},
+    pools: [{id: "font-of-magic", value: points, max: 5}, {id: "spell-slot.2", value: slot2, max: 3}, {id: "spell-slot.3", value: 2, max: 2}]});
+  const made = resolveActionConfiguration({definition: create, actorSystem: system(1), choices: {"slot-level": "level-2"}});
+  assert.equal(made.ok, true, JSON.stringify(made.errors));
+  assert.deepEqual(made.configuration.effectiveDefinition.restores, [{resourceId: "spell-slot.2", amount: 1}]);
+  const costs = made.configuration.effectiveDefinition.costs.allOf.map(cost => [cost.capability, cost.amount]);
+  assert.deepEqual(costs, [["bonus-action", 1], ["font-of-magic", 3]]);
+  assert.equal(resolveActionConfiguration({definition: create, actorSystem: system(3), choices: {"slot-level": "level-2"}}).ok, false, "slots full");
+  assert.equal(resolveActionConfiguration({definition: create, actorSystem: system(1), choices: {"slot-level": "level-4"}}).ok, false, "no level-4 slots");
+  const converted = resolveActionConfiguration({definition: convert, actorSystem: system(1, 1),
+    choices: {slot: {resourceId: "spell-slot.3"}}});
+  assert.equal(converted.ok, true, JSON.stringify(converted.errors));
+  assert.deepEqual(converted.configuration.effectiveDefinition.restores, [{resourceId: "font-of-magic", amount: 3}], "a level-3 slot gives 3 points");
+  assert.equal(resolveActionConfiguration({definition: convert, actorSystem: system(1), choices: {slot: {resourceId: "spell-slot.3"}}}).ok, false,
+    "points full");
+});
