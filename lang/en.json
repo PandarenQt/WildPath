@@ -824,6 +824,7 @@
         "OnFailedSave": "Only on a failed save",
         "ChooseOne": "The user applies one of these, chosen when used",
         "Removes": "Ends it instead",
+        "EscapeDC": "Escape DC",
         "Add": "Add an effect"
       },
       "Units": {

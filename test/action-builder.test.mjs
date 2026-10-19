@@ -336,6 +336,17 @@ test("the Builder edits a damage row's type chosen when used, and \"apply one of
   assert.deepEqual(submit(word, {choices: {effectOne: false}}).definition.configuration, word.configuration, "read-only: kept");
 });
 
+test("a Grappled or Restrained row keeps its escape DC (a Tentacle's 14)", () => {
+  const tentacle = {schemaVersion: 1, id: "action:tentacle", label: "Tentacle", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1},
+    effects: [{id: "effect-1", type: "condition", conditionId: "grappled", metadata: {escapeDC: 14}}]};
+  assert.deepEqual([definitionToBuilder(tentacle).effects[0].escapes, definitionToBuilder(tentacle).effects[0].escapeDC], [true, 14]);
+  assert.deepEqual(builderGaps(tentacle), []);
+  assert.equal(submit(tentacle, {}).changed, false);
+  assert.deepEqual(submit(tentacle, {effects: {0: {escapeDC: 16}}}).definition.effects[0].metadata, {escapeDC: 16});
+  assert.equal(submit(tentacle, {effects: {0: {escapeDC: null}}}).definition.effects[0].metadata, undefined, "cleared");
+});
+
 test("a healing row can give Temporary Hit Points instead (False Life)", () => {
   const life = {schemaVersion: 1, id: "action:life", label: "Life", costs: {allOf: [{capability: "action", amount: 1}]},
     targeting: {type: "self"}, healing: [{id: "healing-1", expression: {type: "dice", number: 2, faces: 4}, healingType: "temporary"}]};
