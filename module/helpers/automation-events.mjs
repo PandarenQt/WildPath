@@ -321,6 +321,10 @@ export function matchAutomationEvent(match, event) {
   if ( match.sourceTokenId && match.sourceTokenId !== event.source?.tokenId ) {
     return fail(AUTOMATION_CODES.SOURCE_MISMATCH);
   }
+  // Not its own Action (a Counterspell does not answer its caster's own spells, nor itself).
+  if ( match.notSourceTokenId && (match.notSourceTokenId === event.source?.tokenId) ) {
+    return fail(AUTOMATION_CODES.SOURCE_MISMATCH);
+  }
   if ( match.targetActorId && !targetActorIds(event).has(match.targetActorId) ) {
     return fail(AUTOMATION_CODES.TARGET_MISMATCH);
   }

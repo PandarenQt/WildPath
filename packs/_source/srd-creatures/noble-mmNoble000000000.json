@@ -163,9 +163,55 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Parry",
+              "img": "icons/skills/melee/swords-parry-block-blue.webp",
+              "endsWhen": "attacked",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "parry",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "defense.ac"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 2
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Parry"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "reaction",
+            "type": "Trigger",
+            "data": {
+              "kind": "reaction",
+              "event": "attack.hit",
+              "match": {
+                "phase": "interrupt",
+                "targetTokenId": "{self}",
+                "tagsAny": [
+                  "melee"
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -179,9 +225,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -200,9 +244,7 @@
         "challenge": 0.125
       },
       "conversion": {
-        "notes": [
-          "Parry: not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

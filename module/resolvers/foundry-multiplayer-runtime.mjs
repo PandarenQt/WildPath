@@ -134,6 +134,7 @@ export function registerFoundryV14MultiplayerResolution({
       await masteries.afterResolution(event);
       await endEffectsWhenAttacked(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
     },
+    afterCancelled: event => afterCountered(event, {game}),
     logger
   });
   const registration = coordinator.register();
@@ -849,6 +850,33 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     // Damage and healing are planned on fresh snapshots of these Actors (a resolution may wait on a prompt).
     services: {...(reactions?.services ?? {}), targetActors, snapshotActor: foundryActorSystemSnapshot}
   };
+}
+
+/** The Action, Bonus Action or Reaction each economy capability spends (a counted resource stores what was spent). */
+const WASTED_RESOURCES = Object.freeze({"action": "action", "bonus-action": "bonus", "reaction": "reaction"});
+
+/**
+ * An Action a reaction countered (2024 Counterspell): "the action, Bonus Action, or Reaction used to cast it is
+ * wasted", but a spell slot is not expended. Its creature spends those, and a public line says what stopped it.
+ * Returns the resources spent, or null for any other cancellation.
+ */
+export async function afterCountered({options, state}={}, {game=globalThis.game}={}) {
+  const countered = [...(state?.warnings ?? [])].reverse().find(warning => warning?.code === "COUNTERED");
+  const actor = options?.actor ?? null;
+  if ( !countered || !actor?.update ) return null;
+  const updates = {};
+  for ( const cost of state.actionDefinition?.costs?.allOf ?? [] ) {
+    const key = WASTED_RESOURCES[cost?.capability];
+    const resource = key ? actor.system?.resources?.[key] : null;
+    if ( !resource || !Number.isFinite(Number(resource.spent)) ) continue;
+    updates[`system.resources.${key}.spent`] = Math.min(Number(resource.max) || 0, Number(resource.spent) + (Number(cost.amount) || 1));
+  }
+  if ( Object.keys(updates).length ) await actor.update(updates);
+  const name = options?.action?.name ?? state.actionDefinition?.label ?? "";
+  await globalThis.ChatMessage?.create?.({speaker: {alias: actor.name},
+    content: `<p>${game?.i18n?.format?.("WILDPATH.NOTIFY.Countered", {action: name, reason: countered.reason ?? ""})
+      ?? `${name}: ${countered.reason ?? ""}`}</p>`});
+  return updates;
 }
 
 /**

@@ -882,3 +882,19 @@ test("extra damage is its own roll, doubled on a critical, and a hit records its
   const missed = answer(strike("resolution:sneak-miss"), {total: 3, die: 3}).next;
   assert.equal(missed.state.mutationPlans.some(entry => entry.type === "sourceUpdate"), false, "a miss uses nothing");
 });
+
+test("a reaction that counters (Counterspell): its target's failed save asks the parent to be cancelled; a success does not", () => {
+  const counterspell = {schemaVersion: 1, id: "action:counterspell", label: "Counterspell", costs: {allOf: []}, counters: true,
+    targeting: {type: "single", required: true, count: 1}, save: {ability: "fortitude", dc: {value: 15}}};
+  const cast = (id, natural) => {
+    const plan = planStagedActionResolution({id, actorSystem: actorSystem(1), action: definitionAction(counterspell),
+      source: {actorId: "actor-source"}, targets: [target("caster")]});
+    const request = plan.state.pendingRequests[0];
+    return resumeStagedActionResolution({state: plan.state, response: {resolutionId: plan.state.id, requestId: request.id,
+      type: RESOLUTION_REQUEST_TYPES.ROLL, value: {requestId: request.payload.rollRequest.id, resolutionId: plan.state.id,
+        type: request.payload.rollRequest.type, natural, total: natural}}});
+  };
+  assert.deepEqual(cast("resolution:countered", 4).state.results.parentDirective,
+    {type: "cancel-parent", code: "COUNTERED", reason: "Counterspell stopped it."});
+  assert.equal(cast("resolution:resisted", 18).state.results.parentDirective, undefined);
+});

@@ -129,6 +129,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // Teleports its own creature up to `distance` feet to a space it chooses (Misty Step, Dimension Door).
     ...(raw.teleport ? {teleport: normalizePlainComponent(raw.teleport)} : {}),
     ...(raw.stabilize === true ? {stabilize: true} : {}),
+    // A reaction whose target failing its save cancels the Action that triggered it (2024 Counterspell).
+    ...(raw.counters === true ? {counters: true} : {}),
     // Pools of the acting creature the Action refills when it is used (Multiattack's attacks, a use given back).
     ...(Array.isArray(raw.restores) && raw.restores.length ? {restores: raw.restores.map(entry => ({
       resourceId: stringOrNull(entry?.resourceId ?? entry?.resource), amount: finiteNumber(entry?.amount) ?? 1}))} : {}),

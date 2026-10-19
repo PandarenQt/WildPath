@@ -503,6 +503,8 @@ function grantResourceRuleElement(ruleElement, context) {
   return success({
     resources: [{
       id: String(id),
+      // The grant's own rule id: one feature's grant copied onto each of its Actions counts once (getGrantedResources).
+      ruleId: ruleElement.id ?? null,
       label: data.label ?? String(id),
       current: Math.max(current.value, 0),
       maximum: Math.max(maximum.value, 0),

@@ -995,6 +995,30 @@ test("Polymorph: a failed save transforms the creature into a Beast its caster c
     "its charge, from its text when dnd5e leaves it out");
 });
 
+test("reactions by their 2024 trigger: Shield and Parry when hit, Counterspell when a spell is declared", () => {
+  const reactionSpell = (id, identifier, name, activities, extra={}) => ({_id: id, name, type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
+    system: {source: SRD, identifier, level: 3, preparation: {mode: "prepared"}, properties: ["somatic"], activation: {type: "reaction"},
+      range: {value: "60", units: "ft"}, target: {affects: {type: "creature", count: 1}, template: {}}, activities, ...extra}});
+  const reacts = item => item.system.ruleElements.find(rule => rule.type === "Trigger")?.data;
+  const [counter] = convertItem(reactionSpell("testCounterspl01", "counterspell", "Counterspell",
+    {a: activity("save", {activation: {type: "reaction", override: false}, save: {ability: ["con"], dc: {calculation: "spellcasting", formula: ""}}})})).items;
+  assert.deepEqual(reacts(counter), {kind: "reaction", event: "action.declared",
+    match: {phase: "interrupt", tagsAny: ["spell"], notSourceTokenId: "{self}"}}, "another creature's spell, never its own");
+  assert.equal(counter.system.definition.counters, true);
+  assert.equal(validateActionDefinition(counter.system.definition).ok, true);
+
+  const parry = {_id: "testParry0000001", name: "Parry", type: "feat", img: "icons/svg/sword.svg", effects: [],
+    system: {source: SRD, identifier: "parry", activation: {type: "reaction"}, range: {}, target: {affects: {}, template: {}},
+      description: {value: "<p>It adds [[lookup @roll.formula]] to its AC against that attack.</p>"},
+      activities: {a: activity("utility", {activation: {type: "reaction", override: false}, roll: {formula: "3"}})}}};
+  const [guard] = convertItem(parry).items;
+  assert.deepEqual(reacts(guard).match, {phase: "interrupt", targetTokenId: "{self}", tagsAny: ["melee"]}, "a melee attack on itself");
+  assert.deepEqual([guard.system.definition.targeting, guard.system.definition.effects[0].endsWhen,
+    guard.system.definition.effects[0].ruleElements[0].data], [{type: "self"}, "attacked",
+    {domains: ["defense.ac"], modifierType: "untyped", value: 3}], "+3 AC on itself until that attack is over");
+  assert.equal(validateActionDefinition(guard.system.definition).ok, true);
+});
+
 test("Temporary Hit Points are healing of their own type (False Life)", () => {
   const life = {_id: "testFalseLife001", name: "False Life", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
     system: {source: SRD, identifier: "false-life", level: 1, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},
