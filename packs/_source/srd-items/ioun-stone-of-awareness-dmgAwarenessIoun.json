@@ -10,7 +10,19 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "enhanced-awareness-initiative-and-perception-1",
+        "type": "RollMode",
+        "data": {
+          "domains": [
+            "initiative"
+          ],
+          "mode": "advantage"
+        }
+      }
+    ],
     "attunement": "required",
     "armor": ""
   },
@@ -26,9 +38,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Enhanced Awareness: Initiative and Perception\" change system.attributes.init.roll.mode (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

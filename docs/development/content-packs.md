@@ -338,6 +338,20 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Dominate Mind (Charmed). One that lasts (a duration, or concentration) without them marks the creatures that fail:
   Zone of Truth, Confusion, Bestow Curse. SRD saves left wholly by hand fell from 137 to 35 documents, and
   concentration effects not converted from 175 to 122.
+- **Class features (2026-10-19).**
+  - Improved and Superior Critical: a `RollOutcome` `critical-range` (threshold 19, 18) on weapon attacks, read into the
+    attack's `criticalHitThreshold` (rule-elements.md).
+  - Advantage on Initiative (Feral Instinct, an Ioun Stone of Awareness) and on Concentration saves (Eldritch Mind):
+    RollModes on `initiative` and `concentration`. A Concentration save now rolls with the creature's Advantage or
+    Disadvantage on `save`, `save.fortitude` and `concentration`; before, it had none.
+  - Draconic Resilience and Dwarven Toughness: Hit Points on `resources.health.max` (overall, or per level).
+  - Action Surge (`FEATURE_ACTIONS`): an Action of its own, paid from its uses with no Action, giving one more Action
+    this turn.
+  - Indomitable: a fighter's own failed save may be rerolled with a bonus of its fighter level, from its pool, offered
+    with Heroic Inspiration (`withIndomitable`); a reroll option may carry a `bonus`.
+  - Live (two browsers): QA Fighter (a Champion) used Action Surge with its Action spent (0/1 to 1/2); its Longsword
+    attack carried a critical threshold of 19; and a failed Grapple save was offered "Reroll with Indomitable, +6",
+    which rolled 1d20 + 5 (its -1 and +6).
 - **Paladin auras (2026-10-19).** Aura of Protection, Courage and Devotion convert to `Aura` rules for the paladin and
   allies within 10 feet (30 at paladin level 18, Aura Expansion), inactive while it is Incapacitated: saves + its
   Charisma modifier (at least +1), immunity to Frightened, to Charmed. Before, Aura of Protection gave the paladin alone

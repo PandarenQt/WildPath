@@ -418,3 +418,15 @@ test("an aura's radius and bonuses are its bearer's: a paladin's Aura of Protect
   assert.equal(paladin(18, 8)[0].ruleElements[0].data.value, 1, "at least +1");
   assert.deepEqual(paladin(6, 16, ["incapacitated"]), [], "inactive while its paladin is Incapacitated");
 });
+
+test("a critical range (Improved Critical): a RollOutcome with a threshold, read as the attack's policy", async () => {
+  const {validateRuleElementDefinition, rollOutcomesFromRuleElements} = await import("../module/helpers/rule-elements.mjs");
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const rule = {schemaVersion: 1, id: "improved-critical", type: "RollOutcome", data: {domains: ["attack.weapon"], outcome: "critical-range", threshold: 19}};
+  assert.equal(validateRuleElementDefinition(rule).ok, true);
+  const actor = {system: {abilities: {might: {value: 16}}}, getRollOutcomes: domains => rollOutcomesFromRuleElements([{ruleElements: [rule]}], {domains})};
+  const sword = {attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"}]};
+  assert.deepEqual(actionCombatStatistics(actor, sword).attack.policy, {criticalHitThreshold: 19});
+  assert.equal(actionCombatStatistics(actor, {...sword, attack: {...sword.attack, statistic: "spell"}}).attack?.policy, undefined, "weapons only");
+});

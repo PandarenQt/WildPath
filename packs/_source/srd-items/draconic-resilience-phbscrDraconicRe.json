@@ -32,6 +32,21 @@
             ]
           }
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "draconic-resilience-hp-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "resources.health.max"
+          ],
+          "modifierType": "untyped",
+          "valueExpression": {
+            "type": "class-level",
+            "class": "sorcerer"
+          }
+        }
       }
     ]
   },
@@ -47,9 +62,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Draconic Resilience: HP\" change system.attributes.hp.bonuses.overall (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

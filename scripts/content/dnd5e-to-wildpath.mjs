@@ -517,8 +517,27 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...(PALADIN_AURAS[identifierOf(document)] ? [paladinAura(identifierOf(document))] : passive)].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}}}});
   }
+  // A feature used on its turn that dnd5e leaves without an Action (Action Surge): its Action, paid from its own pool.
+  const featureAction = FEATURE_ACTIONS[identifierOf(document)];
+  if ( featureAction && pool && !items.some(item => item.type === "action") ) {
+    const id = stableId(`${document._id}:use`);
+    items.push({_id: id, _key: `!items!${id}`, name: document.name, type: "action", img,
+      system: {active: true, description, definition: {schemaVersion: 1, id: `action:srd-${slugify(document.name)}`, label: document.name,
+        costs: {allOf: [{capability: pool.id, amount: 1}]}, range: {type: "self"}, targeting: {type: "self"},
+        effects: structuredClone(featureAction.effects)}, ruleElements: [pool.rule]},
+      flags: {wildpath: {source, conversion: {notes: []}}}});
+  }
   return {ok: true, items, notes: [...new Set(allNotes)]};
 }
+
+/**
+ * Features dnd5e gives no usable activity that are used on their creature's turn, as an Action of their own (2024 Action
+ * Surge: "you can take one additional action", no Action itself: one more Action this turn).
+ */
+const FEATURE_ACTIONS = Object.freeze({
+  "action-surge": {effects: [{id: "effect-1", type: "effect", name: "Action Surge", duration: {value: 0, units: "turns", expiry: "turnEnd"},
+    ruleElements: [{schemaVersion: 1, id: "action-surge", type: "Modifier", data: {domains: ["resources.action.max"], modifierType: "untyped", value: 1}}]}]}
+});
 
 /** Each dnd5e base armor's kind. */
 const ARMOR_KINDS = Object.freeze({padded: "light", leather: "light", studded: "light", hide: "medium", chainshirt: "medium",
@@ -2028,6 +2047,21 @@ export function effectRules(effect, notes=[]) {
         ...UNARMORED_AC[change.value].slice(1).map(ability => ({type: "ability-modifier", ability}))]}});
     } else if ( (key === "system.attributes.init.bonus") && (type === "add") && value ) {
       modifier(["initiative"], value);
+    } else if ( (key === "system.attributes.init.roll.mode") && number ) {
+      // Feral Instinct, an Ioun Stone of Awareness: Advantage on Initiative.
+      rule("RollMode", {domains: ["initiative"], mode: number > 0 ? "advantage" : "disadvantage"});
+    } else if ( (key === "system.attributes.concentration.roll.mode") && number ) {
+      // Eldritch Mind: Advantage on saves to keep Concentration.
+      rule("RollMode", {domains: ["concentration"], mode: number > 0 ? "advantage" : "disadvantage"});
+    } else if ( (key === "flags.dnd5e.weaponCriticalThreshold") && ["downgrade", "override"].includes(type) && Number.isInteger(number) ) {
+      // Improved Critical (19), Superior Critical (18): its weapon attacks score a Critical Hit on that d20 or more.
+      rule("RollOutcome", {domains: ["attack.weapon"], outcome: "critical-range", threshold: number});
+    } else if ( (key === "system.attributes.hp.bonuses.overall") && (type === "add") && value ) {
+      // Draconic Resilience: Hit Points, one per sorcerer level.
+      modifier(["resources.health.max"], value);
+    } else if ( (key === "system.attributes.hp.bonuses.level") && (type === "add") && value ) {
+      // Tough, Dwarven Toughness: that much per character level.
+      modifier(["resources.health.max"], {type: "multiply", terms: [value, {type: "character-level"}]});
     } else if ( (key === "system.attributes.hp.tempmax") && (type === "add") && value ) {
       modifier(["resources.health.max"], value);
     } else if ( (match = /^system\.traits\.(dr|di|dv|ci)\.value$/.exec(key)) && (type === "add") ) {

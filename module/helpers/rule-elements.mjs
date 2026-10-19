@@ -755,12 +755,19 @@ function abilityScoreRuleElement(ruleElement, context) {
 function rollOutcomeRuleElement(ruleElement) {
   const data = ruleElement.data;
   const domains = normalizeStrings(data.domains ?? data.domain);
-  if ( !["automatic-failure", "critical-on-hit", "evasion"].includes(data.outcome) ) {
-    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement outcome must be automatic-failure, critical-on-hit or evasion.");
+  // `critical-range`: its attacks score a Critical Hit on a d20 of `threshold` or more (Improved Critical: 19).
+  if ( !["automatic-failure", "critical-on-hit", "evasion", "critical-range"].includes(data.outcome) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID,
+      "RollOutcome RuleElement outcome must be automatic-failure, critical-on-hit, evasion or critical-range.");
   }
   if ( !domains.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement requires domains.");
+  const threshold = Number(data.threshold);
+  if ( (data.outcome === "critical-range") && !(Number.isInteger(threshold) && (threshold >= 2) && (threshold <= 20)) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A critical-range RollOutcome needs a threshold from 2 to 20.");
+  }
   return success({
-    rollOutcomes: [{id: data.id ?? ruleElement.id, outcome: data.outcome, domains, source: ruleElementSource(ruleElement),
+    rollOutcomes: [{id: data.id ?? ruleElement.id, outcome: data.outcome, domains, ...(data.outcome === "critical-range" ? {threshold} : {}),
+      source: ruleElementSource(ruleElement),
       metadata: contributionMetadata(ruleElement, data.metadata)}]
   });
 }

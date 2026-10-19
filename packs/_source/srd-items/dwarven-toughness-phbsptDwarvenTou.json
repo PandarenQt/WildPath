@@ -7,7 +7,31 @@
   "system": {
     "active": true,
     "description": "<p>Your Hit Point maximum increases by 1, and it increases by 1 again whenever you gain a level.</p><section class=\"secret\" id=\"secret-FK9DFLudP5EzEss9\"><p><strong>Foundry Note</strong></p><p>The Hit Point maximum increase is handled automatically each level.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "dwarven-toughness-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "resources.health.max"
+          ],
+          "modifierType": "untyped",
+          "valueExpression": {
+            "type": "multiply",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 1
+              },
+              {
+                "type": "character-level"
+              }
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +45,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Dwarven Toughness\" change system.attributes.hp.bonuses.level (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

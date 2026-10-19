@@ -7,7 +7,20 @@
   "system": {
     "active": true,
     "description": "<p>Your attack rolls with weapons and Unarmed Strikes can now score a Critical Hit on a roll of 18–20 on the d20.</p><section id=\"secret-zQkYyojU3VNzw6kH\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature automatically increases the Critical Hit threshold to 18.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "superior-critical-1",
+        "type": "RollOutcome",
+        "data": {
+          "domains": [
+            "attack.weapon"
+          ],
+          "outcome": "critical-range",
+          "threshold": 18
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +34,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Superior Critical\" change flags.dnd5e.weaponCriticalThreshold (downgrade) not converted"
-        ]
+        "notes": []
       }
     }
   }

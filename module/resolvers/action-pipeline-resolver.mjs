@@ -1427,7 +1427,8 @@ function inspirationReroll(state, input, {offer, failed, key, stageId, rollKind,
   const value = chosen.response?.value;
   const option = offer.options.find(entry => entry.value === (value?.choices?.["heroic-inspiration"] ?? value));
   if ( !option ) return {};
-  const rollRequest = makeRollRequest(`${rollKind}-roll:reroll:${key}`);
+  // A reroll may add a bonus (Indomitable: its fighter level).
+  const rollRequest = makeRollRequest(`${rollKind}-roll:reroll:${key}`, Number(option.bonus) || 0);
   const accepted = getResolutionResponse(state, {requestId: rollRequest.id, type: RESOLUTION_REQUEST_TYPES.ROLL});
   if ( !accepted ) return {wait: waitResolutionStage({
     state: updateResolutionState(state, {input, rollRequests: appendRollRequest(state.rollRequests, rollRequest)}),
@@ -1522,7 +1523,7 @@ function createSaveOutcomeStage() {
         const key = rollModeTargetKey(result.target);
         const reroll = inspirationReroll(state, input, {offer: input.save.inspirationByTarget?.[key], failed: !result.success, key,
           stageId: ACTION_PIPELINE_STAGE_IDS.SAVE_OUTCOME, rollKind: "save", targets: [target],
-          makeRollRequest: suffix => saveRollRequestForState(state, input, {target, suffix})});
+          makeRollRequest: (suffix, bonus=0) => saveRollRequestForState(state, input, {target, suffix, bonus})});
         if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
         if ( reroll.roll ) rerolls.push({...reroll, rollKey: saveTargetKey(target)});
       }
@@ -2011,6 +2012,7 @@ function concentrationRollRequest(state, check, requestId) {
     type: ROLL_TYPES.SAVING_THROW,
     modifier: bonus ?? 0,
     modifiers: bonus == null ? [] : [{id: "save-modifier", value: bonus}],
+    ...(check.rollMode ? {rollMode: check.rollMode} : {}),
     source: check.target,
     target: state.source ?? null,
     chooser: ROLL_AUTHORITY.TARGET_CONTROLLER,
@@ -3029,12 +3031,13 @@ function checkRollRequestForState(state, input, {suffix="check-roll"}={}) {
   });
 }
 
-function saveRollRequestForState(state, input, {target=null, suffix="save-roll"}={}) {
+function saveRollRequestForState(state, input, {target=null, suffix="save-roll", bonus=0}={}) {
   const save = input.save ?? {};
   // Each target adds its own save bonus, which the runtime keys by Token.
   const targetBonus = save.modifiersByTarget?.[rollModeTargetKey(target ?? firstRollTarget(input))];
-  const modifier = Number.isFinite(targetBonus) ? {known: true, value: targetBonus}
+  const known = Number.isFinite(targetBonus) ? {known: true, value: targetBonus}
     : rollModifierInfo(save, ["saveBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]);
+  const modifier = bonus ? {known: known.known, value: (Number(known.value) || 0) + bonus} : known;
   return createD20RollRequest({
     id: requestIdFor(state, suffix),
     resolutionId: state.id,

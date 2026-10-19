@@ -97,3 +97,17 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   assert.deepEqual(deleted, ["curse"], "Remove Curse: only curses");
   delete globalThis.ChatMessage;
 });
+
+test("Indomitable: a fighter's own failed save may be rerolled with its fighter level, from its pool", async () => {
+  const {withIndomitable} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const fighter = {uuid: "Actor.fighter", name: "Fighter"};
+  const system = uses => ({resources: {}, pools: [{id: "indomitable", value: uses, max: 1}], classes: [{id: "fighter", level: 9}]});
+  const alone = withIndomitable(null, fighter, system(1), {});
+  assert.deepEqual([alone.own, alone.options.map(option => [option.value, option.bonus])], [true, [["indomitable:Actor.fighter", 9]]]);
+  const inspired = {own: true, chooser: "target-controller", label: "x", options: [{value: "spend:Actor.fighter"}]};
+  assert.deepEqual(withIndomitable(inspired, fighter, system(1), {}).options.map(option => option.value),
+    ["spend:Actor.fighter", "indomitable:Actor.fighter"], "beside Heroic Inspiration");
+  assert.equal(withIndomitable(null, fighter, system(0), {}), null, "none left");
+  const monster = {own: false, options: []};
+  assert.equal(withIndomitable(monster, fighter, system(1), {}), monster, "never on a monster's GM-chosen reroll");
+});

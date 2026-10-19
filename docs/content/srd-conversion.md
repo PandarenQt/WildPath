@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 812 automated, 307 manual, 245 features. Creatures: 375.
+Items: 813 automated, 307 manual, 245 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -21,7 +21,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Acid Splash | spells24 | Acid Splash (automated) | — |
 | Acolyte | origins24 | Acolyte (background) | languages are not tracked |
 | Acrobatic Movement | classes24 | Acrobatic Movement (feature) | — |
-| Action Surge | classes24 | Action Surge (feature) | "utility" is passive or triggered: not automated |
+| Action Surge | classes24 | Action Surge (feature), Action Surge (automated) | "utility" is passive or triggered: not automated |
 | Activate Folding Boat | equipment24 | Activate Folding Boat (gear), Activate Folding Boat (1st and 2nd Command) (manual), Activate Folding Boat (3rd Command) (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; not automated (utility): using it spends its cost; its description says the rest |
 | Adamantine Armor | equipment24 | Adamantine Armor (gear) | "Adamantine Armor" is passive or triggered: not automated |
 | Additional Fighting Style | classes24 | Additional Fighting Style (feature) | — |
@@ -166,7 +166,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Belt of Giant Strength (stone) | equipment24 | Belt of Giant Strength (stone) (gear) | — |
 | Belt of Giant Strength (storm) | equipment24 | Belt of Giant Strength (storm) (gear) | — |
 | Berserker | actors24 | Berserker (2 items) | — |
-| Berserker Axe | equipment24 | Berserker Axe (manual) | not automated (enchant): using it spends its cost; its description says the rest; effect: "Berserker HP Increase" change system.attributes.hp.bonuses.level (add) not converted |
+| Berserker Axe | equipment24 | Berserker Axe (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Bestow Curse | spells24 | Bestow Curse (Curse Ability) (automated), Bestow Curse (Curse Attacks) (automated), Bestow Curse (Curse Actions) (automated), Bestow Curse (Curse Resilience) (automated) | effect: cursed is not a WildPath condition yet; effect: "Cursed Actions" marks its creature only; its rules are by hand |
 | Black Bear | actors24 | Black Bear (3 items) | — |
 | Black Dragon Wyrmling | actors24 | Black Dragon Wyrmling (5 items) | — |
@@ -433,7 +433,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Donjon | equipment24 | Donjon (gear) | "Card Effect" is passive or triggered: not automated |
 | Doppelganger | actors24 | Doppelganger (6 items) | Read Thoughts: not automated (utility): using it spends its cost; its description says the rest; Read Thoughts: concentration: nothing it sustains was converted; Read Thoughts: save: a failure marks its creature only; what it does is by hand; Shape-Shift: not automated (utility): using it spends its cost; its description says the rest |
 | Draconic Flight | origins24 | Draconic Flight (automated) | effect: "Draconic Flight" marks its creature only; its rules are by hand |
-| Draconic Resilience | classes24 | Draconic Resilience (feature) | effect: "Draconic Resilience: HP" change system.attributes.hp.bonuses.overall (add) not converted |
+| Draconic Resilience | classes24 | Draconic Resilience (feature) | — |
 | Draconic Sorcery | classes24 | Draconic Sorcery (subclass) | — |
 | Draconic Spells | classes24 | Draconic Spells (feature) | — |
 | Draconic Spirit | actors24 | Draconic Spirit (5 items) | Shared Resistances: "Share Acid Resistance" is passive or triggered: not automated; Shared Resistances: "Share Cold Resistance" is passive or triggered: not automated; Shared Resistances: "Share Fire Resistance" is passive or triggered: not automated; Shared Resistances: "Share Lightning Resistance" is passive or triggered: not automated; Shared Resistances: "Share Poison Resistance" is passive or triggered: not automated; Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand |
@@ -469,7 +469,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dwarven Plate | equipment24 | Dwarven Plate (gear), Dwarven Plate (Reduce Unwilling Movement) (manual) | "Dwarven Plate" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest |
 | Dwarven Resilience | origins24 | Dwarven Resilience (feature) | — |
 | Dwarven Thrower | equipment24 | Dwarven Thrower (Attack) (automated), Dwarven Thrower (Attack) (Two-Handed) (automated), Dwarven Thrower (Throw) (automated), Dwarven Thrower (Throw) (Two-Handed) (automated) | — |
-| Dwarven Toughness | origins24 | Dwarven Toughness (feature) | effect: "Dwarven Toughness" change system.attributes.hp.bonuses.level (add) not converted |
+| Dwarven Toughness | origins24 | Dwarven Toughness (feature) | — |
 | Eagle | actors24 | Eagle (2 items) | — |
 | Earth Elemental | actors24 | Earth Elemental (6 items) | — |
 | Earth Ring of Elemental Command | equipment24 | Earth Ring of Elemental Command (gear), Earth Ring of Elemental Command (Elemental Compulsion) (automated), Earth Ring of Elemental Command: Earthquake (automated), Earth Ring of Elemental Command: Stone Shape (manual), Earth Ring of Elemental Command: Stoneskin (automated), Earth Ring of Elemental Command: Wall of Stone (manual) | save: a failure gives prone (its text); the rest is by hand; "End of Turn Fissures" is passive or triggered: not automated; "Collapsing Structure Save" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted; effect: "Earth Focus" change system.traits.languages.value (add) not converted; effect: "Earth Focus" change system.attributes.movement.ignoredDifficultTerrain (add) not converted |
@@ -481,7 +481,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Eldritch Blast | spells24 | Eldritch Blast (automated) | — |
 | Eldritch Invocations | classes24 | Eldritch Invocations (feature) | — |
 | Eldritch Master | classes24 | Eldritch Master (feature) | "Eldritch Master" is passive or triggered: not automated |
-| Eldritch Mind | classes24 | Eldritch Mind (feature) | effect: "Eldritch Mind" change system.attributes.concentration.roll.mode (add) not converted |
+| Eldritch Mind | classes24 | Eldritch Mind (feature) | — |
 | Eldritch Smite | classes24 | Eldritch Smite (feature) | "Smite" is passive or triggered: not automated |
 | Eldritch Spear | classes24 | Eldritch Spear (feature) | "Increase Range" is passive or triggered: not automated |
 | Elemental Affinity | classes24 | Elemental Affinity (feature) | "Acid" is passive or triggered: not automated; "Cold" is passive or triggered: not automated; "Fire" is passive or triggered: not automated; "Lightning" is passive or triggered: not automated; "Poison" is passive or triggered: not automated |
@@ -574,7 +574,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Feather Token (Swan Boat) | equipment24 | Feather Token (Swan Boat) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Feather Token (Tree) | equipment24 | Feather Token (Tree) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Feather Token (Whip) | equipment24 | Feather Token (Whip) (automated) | — |
-| Feral Instinct | classes24 | Feral Instinct (feature) | effect: "Feral Instinct" change system.attributes.init.roll.mode (add) not converted |
+| Feral Instinct | classes24 | Feral Instinct (feature) | — |
 | Feral Senses | classes24 | Feral Senses (feature) | effect: "Feral Senses" change system.attributes.senses.blindsight (upgrade) not converted |
 | Fey Ancestry | origins24 | Fey Ancestry (feature) | — |
 | Fey Steed | actors24 | Fey Steed (3 items) | Fey Step: not automated (utility): using it spends its cost; its description says the rest |
@@ -829,7 +829,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Improved Blessed Strikes | classes24 | Improved Blessed Strikes (feature) | "Potent Spellcasting: Heal" is passive or triggered: not automated |
 | Improved Brutal Strike | classes24 | Improved Brutal Strike (feature) | "Staggering Blow" is passive or triggered: not automated; "Sundering Blow" is passive or triggered: not automated |
 | Improved Brutal Strike (2) | classes24 | Improved Brutal Strike (2) (feature) | — |
-| Improved Critical | classes24 | Improved Critical (feature) | effect: "Improved Critical" change flags.dnd5e.weaponCriticalThreshold (downgrade) not converted |
+| Improved Critical | classes24 | Improved Critical (feature) | — |
 | Improved Cunning Strike | classes24 | Improved Cunning Strike (feature) | — |
 | Improved Elemental Fury | classes24 | Improved Elemental Fury (feature) | — |
 | Incendiary Cloud | spells24 | Incendiary Cloud (Create Cloud) (automated) | "Per Turn Save" is passive or triggered: not automated |
@@ -856,7 +856,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ioun Stone | equipment24 | Ioun Stone (gear) | — |
 | Ioun Stone of Absorption | equipment24 | Ioun Stone of Absorption (gear), Ioun Stone of Absorption (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Ioun Stone of Agility | equipment24 | Ioun Stone of Agility (gear) | — |
-| Ioun Stone of Awareness | equipment24 | Ioun Stone of Awareness (gear) | effect: "Enhanced Awareness: Initiative and Perception" change system.attributes.init.roll.mode (add) not converted |
+| Ioun Stone of Awareness | equipment24 | Ioun Stone of Awareness (gear) | — |
 | Ioun Stone of Fortitude | equipment24 | Ioun Stone of Fortitude (gear) | — |
 | Ioun Stone of Greater Absorption | equipment24 | Ioun Stone of Greater Absorption (gear), Ioun Stone of Greater Absorption (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Ioun Stone of Insight | equipment24 | Ioun Stone of Insight (gear) | — |
@@ -1335,7 +1335,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Seeming | spells24 | Seeming (Unwilling Save) (automated), Seeming (Change Appearance) (automated) | save: a failure marks its creature only; what it does is by hand; effect: "Changed Appearance" marks its creature only; its rules are by hand |
 | Sending | spells24 | Sending (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Sending Stones | equipment24 | Sending Stones (gear), Sending Stones: Sending (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Sentinel Shield | equipment24 | Sentinel Shield (gear) | effect: "Initiative Advantage" change system.attributes.init.roll.mode (add) not converted |
+| Sentinel Shield | equipment24 | Sentinel Shield (gear) | — |
 | Sequester | spells24 | Sequester (automated) | — |
 | Serpent Venom | equipment24 | Serpent Venom (gear) | "Use Poison" is passive or triggered: not automated |
 | Serpentine Owl | equipment24 | Serpentine Owl (gear), Serpentine Owl (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; consumption: itemUses @item.uses.max not converted |
@@ -1479,7 +1479,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Sun Blade | equipment24 | Sun Blade (automated), Sun Blade (Two-Handed) (automated) | — |
 | Sunbeam | spells24 | Sunbeam (Initial Cast) (automated), Sunbeam (Create New Sunbeam) (automated) | — |
 | Sunburst | spells24 | Sunburst (automated) | — |
-| Superior Critical | classes24 | Superior Critical (feature) | effect: "Superior Critical" change flags.dnd5e.weaponCriticalThreshold (downgrade) not converted |
+| Superior Critical | classes24 | Superior Critical (feature) | — |
 | Superior Defense | classes24 | Superior Defense (feature) | "utility" is passive or triggered: not automated |
 | Superior Hunter's Defense | classes24 | Superior Hunter's Defense (automated) | — |
 | Superior Hunter's Prey | classes24 | Superior Hunter's Prey (feature) | "damage" is passive or triggered: not automated |
@@ -1649,7 +1649,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Weapon Mastery | classes24 | Weapon Mastery (feature) | — |
 | Weapon Mastery | classes24 | Weapon Mastery (feature) | — |
 | Weapon Mastery | classes24 | Weapon Mastery (feature) | — |
-| Weapon of Warning | equipment24 | Weapon of Warning (manual) | not automated (enchant): using it spends its cost; its description says the rest; effect: "Supernatural Readiness: Initiative Advantage" change system.attributes.init.roll.mode (add) not converted |
+| Weapon of Warning | equipment24 | Weapon of Warning (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Weapon, +1, +2, or +3 | equipment24 | Weapon, +1, +2, or +3 (feature) | "Weapon, +1, +2, or +3" is passive or triggered: not automated |
 | Weasel | actors24 | Weasel (2 items) | — |
 | Weaver's Tools | equipment24 | Weaver's Tools (gear), Weaver's Tools (automated) | — |
