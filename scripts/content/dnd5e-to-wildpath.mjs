@@ -13,6 +13,7 @@
 
 import {parseFormula} from "../../module/helpers/formula.mjs";
 import {evaluateValueExpression} from "../../module/helpers/value-expressions.mjs";
+import {commonAction} from "../../module/helpers/common-actions.mjs";
 
 /** dnd5e ability keys to WildPath's. */
 export const ABILITY_MAP = Object.freeze({str: "might", dex: "agility", con: "fortitude", int: "intellect", wis: "wits", cha: "presence"});
@@ -311,10 +312,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         continue;
       }
     }
-    let definition = ACTIVITIES.has(activity.type)
+    let definition = commonActivity({document, activity, system, spell, level, pool}) ?? (ACTIVITIES.has(activity.type)
       ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature})
       : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names})
-        : ((activity.type === "teleport") ? teleportDefinition({document, activity, system, spell, level, notes, pool}) : null));
+        : ((activity.type === "teleport") ? teleportDefinition({document, activity, system, spell, level, notes, pool}) : null)));
     if ( !definition ) {
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type})`}: using it spends its cost; its description says the rest`);
@@ -892,6 +893,28 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
     summon: {choiceId: choice.id, ...timing}};
 }
 
+/** The 2024 common actions an activity may take by name (Cunning Action's Dash, Disengage or Hide). */
+const COMMON_ACTIVITIES = Object.freeze(["dash", "disengage", "dodge", "hide"]);
+
+/** WildPath's own rules of a common action (Dash's extra Speed, Disengage's effect, Hide's check), without its cost. */
+function commonRules(id) {
+  const {id: _id, label: _label, costs: _costs, ...rules} = commonAction({uuid: ""}, id).system.definition;
+  return rules;
+}
+
+/**
+ * A utility activity that takes a common action ("Dash", "Cunning Action: Disengage" as a Bonus Action): that
+ * action's own rules at the activity's cost. Null for any other activity.
+ */
+function commonActivity({document, activity, system, spell, level, pool}) {
+  const id = String(activity.name ?? "").split(":").pop().trim().toLowerCase();
+  if ( (activity.type !== "utility") || !COMMON_ACTIVITIES.includes(id) ) return null;
+  return {...manualDefinition({document, activity, system, spell, level, notes: [], pool}), ...commonRules(id)};
+}
+
+/** Effects named as a common action's own (Step of the Wind's "Disengaged"): that action's effect. */
+const COMMON_EFFECTS = Object.freeze({Disengaged: "disengage", Dashing: "dash", Dodging: "dodge"});
+
 /**
  * A teleport of its own creature to a space within a distance (Misty Step's 30 feet, Dimension Door's 500): its cost
  * and `teleport: {distance}`. Null for one with no distance in feet (Teleport, Plane Shift), which stays by hand.
@@ -1135,6 +1158,14 @@ function convertActivity({document, activity, system, spell, level, scales, note
     // Its own changes (Bless, Shield of Faith, Haste) become a custom effect with the rules they map to; an effect dnd5e
     // leaves empty (Faerie Fire's) takes its rules from the 2024 text, by hand.
     const hand = effect && !(effect.system?.changes ?? effect.changes ?? []).length ? byHand : null;
+    // An effect named as a common action's (Step of the Wind's Disengaged) is that action's own.
+    const common = effect && !hand && !(effect.system?.changes ?? effect.changes ?? []).length ? COMMON_EFFECTS[effect.name] : null;
+    if ( common ) {
+      effects.push({...commonRules(common).effects[0], id: `effect-${effects.length + 1}`, ...onFailure,
+        ...(concentration ? {concentration: true} : {})});
+      groups.push({label: effect.name, ids: [effects.at(-1).id]});
+      continue;
+    }
     const rules = [...(hand?.ruleElements ?? (effect ? effectRules(effect, notes) : [])), ...(byHand?.extraRules ?? [])];
     if ( rules.length ) {
       const duration = hand?.duration ?? effectDuration(effect.duration);

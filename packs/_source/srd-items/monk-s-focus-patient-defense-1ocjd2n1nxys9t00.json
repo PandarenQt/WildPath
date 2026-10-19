@@ -18,6 +18,27 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Disengaged",
+          "slug": "disengaged",
+          "img": "icons/svg/walk.svg",
+          "duration": {
+            "value": 0,
+            "units": "turns",
+            "expiry": "turnEnd"
+          },
+          "ruleElements": []
+        }
+      ],
       "label": "Monk's Focus (Patient Defense)"
     },
     "ruleElements": [
@@ -74,10 +95,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "effect: \"Disengaged\" (its own changes) not converted"
-        ]
+        "notes": []
       }
     }
   }

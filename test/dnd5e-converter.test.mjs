@@ -853,3 +853,24 @@ test("hovering goes on the fly Speed its effect grants (Fly, a Potion of Flying)
   assert.deepEqual([fly[0].data, potion[0].data.hover], [{mode: "fly", distance: 60, hover: true}, true]);
   assert.deepEqual(notes, []);
 });
+
+test("an activity that takes a common action is that action at its own cost (Cunning Action); a \"Disengaged\" effect is Disengage's", () => {
+  const feature = (id, name, activities, effects=[]) => ({_id: id, name, type: "feat", img: "icons/svg/walk.svg", effects,
+    system: {source: SRD, identifier: name.toLowerCase().replace(/\W+/g, "-"), activation: {type: "bonus"}, range: {},
+      target: {affects: {}, template: {}}, activities}});
+  const bonus = name => activity("utility", {_id: `act${name}`, name, activation: {type: "bonus", override: false}});
+  const items = convertItem(feature("testCunningAct01", "Cunning Action", {a: bonus("Dash"), b: bonus("Disengage"), c: bonus("Hide")})).items;
+  const [dash, disengage, hide] = items.map(item => item.system.definition);
+  assert.deepEqual(items.map(item => item.system.definition.costs.allOf[0].capability), ["bonus-action", "bonus-action", "bonus-action"]);
+  assert.equal(dash.effects[0].slug, "dashing");
+  assert.equal(disengage.effects[0].slug, "disengaged");
+  assert.deepEqual(hide.check, {ability: "agility", skill: "stealth", dc: {value: 15}});
+  assert.deepEqual(items.map(item => item.flags.wildpath.conversion.notes), [[], [], []]);
+  for ( const definition of [dash, disengage, hide] ) assert.equal(validateActionDefinition(definition).ok, true);
+
+  const [step] = convertItem(feature("testStepOfWind01", "Step of the Wind", {a: activity("utility", {name: "Step of the Wind",
+    activation: {type: "bonus", override: false}, effects: [{_id: "disengaged"}]})},
+  [{_id: "disengaged", name: "Disengaged", transfer: false, statuses: [], system: {changes: []}}])).items;
+  assert.equal(step.system.definition.effects[0].slug, "disengaged", "Step of the Wind's Disengaged is the common one");
+  assert.deepEqual(step.flags.wildpath.conversion.notes, []);
+});
