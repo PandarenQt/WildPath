@@ -161,8 +161,8 @@ const SMITE_TRIGGER = Object.freeze({event: "attack.hit",
  * Features a creature uses when it hits with a melee attack that is not a spell's, which dnd5e leaves passive: offered
  * on that hit, on the creature hit (as Divine Smite is). `once: "turn"`: at most once a turn. Stunning Strike (2024):
  * 1 Focus Point, a Constitution save; on a failure the target has the Stunned condition until the start of the monk's
- * next turn; on a success the next attack roll against it before then has Advantage. shortcut: "with a Monk weapon or an
- * Unarmed Strike" is any melee hit, and a success's halved Speed is by hand (no Speed multiplier yet).
+ * next turn; on a success its Speed is halved and the next attack roll against it has Advantage until then. shortcut:
+ * "with a Monk weapon or an Unarmed Strike" is any melee hit.
  */
 const OWN_HIT = Object.freeze({
   "stunning-strike": {once: "turn", definition: definition => ({...definition,
@@ -172,7 +172,11 @@ const OWN_HIT = Object.freeze({
     // A success: the next attack roll against it before the monk's next turn has Advantage.
     {id: "effect-2", type: "effect", name: "Stunning Strike", img: "icons/svg/daze.svg", saveOutcomePolicy: "success",
       ruleElements: [{schemaVersion: 1, id: "staggered", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}}],
-      duration: {value: 1, units: "rounds", expiry: "turnStart"}, endsWhen: "attacked"}]})}
+      duration: {value: 1, units: "rounds", expiry: "turnStart"}, endsWhen: "attacked"},
+    // and its Speed is halved until then.
+    {id: "effect-3", type: "effect", name: "Slowed", img: "icons/svg/daze.svg", saveOutcomePolicy: "success",
+      ruleElements: [{schemaVersion: 1, id: "slowed", type: "Modifier", data: {domains: ["speed.multiplier"], modifierType: "untyped", value: 0.5}}],
+      duration: {value: 1, units: "rounds", expiry: "turnStart"}}]})}
 });
 
 /**
@@ -604,7 +608,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     const smite = (identifierOf(document) === "divine-smite") ? SMITE_TRIGGER : null;
     if ( smite ) definition = smiteDefinition(definition);
-    if ( onHit ) definition = {...onHit.definition(definition), range: {type: "special"}, targeting: {type: "single", required: true, count: 1}};
+    if ( onHit ) {
+      definition = {...onHit.definition(definition), range: {type: "special"}, targeting: {type: "single", required: true, count: 1}};
+      // Its effects are its own now, not dnd5e's.
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("effect: ")));
+    }
     const named = smite ? (/unholy/i.test(activity.name ?? "") ? " (Undead or Fiend)" : "") : suffix;
     const reacting = action(id, `${document.name}${named}${choices ? title(choices[0]) : ""}`, definition);
     const trigger = reaction ?? smite ?? (onHit ? {...SMITE_TRIGGER, once: onHit.once} : null);
@@ -2251,13 +2259,17 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
     } else if ( (key === "system.attributes.movement.multiplier") && (number === 0) && ["override", "multiply"].includes(type) ) {
       // Every Speed 0 (Power Word Stun, Haste's Lethargy): movement capped at 0, which caps the other Speeds too.
       rule("ResourceCap", {resources: ["movement"], maximum: 0});
-    } else if ( ["system.attributes.movement.walk", "system.attributes.movement.multiplier"].includes(key) && (type === "multiply")
+    } else if ( (match = /^system\.attributes\.movement\.(multiplier|walk|fly|swim|climb|burrow)$/.exec(key)) && (type === "multiply")
       && Number.isFinite(number) ) {
-      // Haste doubles it, Slow and Spirit Guardians halve it: the walking Speed's own maximum times (factor - 1), added.
-      // shortcut: dnd5e's multiplier scales every Speed; a fly or swim Speed keeps its own here.
-      modifier(["resources.movement.max"], {type: "floor", value: {type: "multiply", terms: [{type: "constant", value: number - 1},
-        {type: "add", terms: [{type: "context", path: "actorSystem.resources.movement.base"},
-          {type: "context", path: "actorSystem.resources.movement.bonus"}]}]}});
+      // Haste doubles a Speed, Slow and Spirit Guardians halve it: a factor on every Speed (dnd5e's multiplier) or one mode's.
+      modifier([(match[1] === "multiplier") ? "speed.multiplier" : `speed.${match[1]}.multiplier`], {type: "constant", value: number});
+    } else if ( (match = /^system\.attributes\.movement\.(fly|swim|climb|burrow)$/.exec(key)) && (type === "add") && (number < 0) ) {
+      // Ray of Frost's -10 ft on each Speed.
+      modifier([`speed.${match[1]}`], {type: "constant", value: number});
+    } else if ( (match = /^system\.attributes\.movement\.(fly|swim|climb|burrow)$/.exec(key)) && ["override", "downgrade"].includes(type)
+      && (number === 0) ) {
+      // A mode's Speed set to 0 (Caltrops, Freezing Burst): a factor of 0 on it.
+      modifier([`speed.${match[1]}.multiplier`], {type: "constant", value: 0});
     } else if ( (match = /^system\.attributes\.movement\.(fly|swim|climb|burrow)$/.exec(key)) && ["upgrade", "override", "add"].includes(type) ) {
       const distance = /^@attributes\.movement\.walk$/.test(String(change.value).trim())
         ? {type: "context", path: "actorSystem.resources.movement.max"} : (Number.isFinite(number) && (number > 0) ? number : null);

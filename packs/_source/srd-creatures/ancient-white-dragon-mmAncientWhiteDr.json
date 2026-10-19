@@ -456,6 +456,54 @@
                     ],
                     "maximum": 0
                   }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "0-ft-speed-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.burrow.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "0-ft-speed-3",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.climb.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "0-ft-speed-4",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.fly.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "0-ft-speed-5",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.swim.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0
+                  }
                 }
               ],
               "duration": {
@@ -482,12 +530,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: \"0 ft. Speed\" change system.attributes.movement.burrow (override) not converted",
-              "effect: \"0 ft. Speed\" change system.attributes.movement.climb (override) not converted",
-              "effect: \"0 ft. Speed\" change system.attributes.movement.fly (override) not converted",
-              "effect: \"0 ft. Speed\" change system.attributes.movement.swim (override) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -730,10 +773,6 @@
       },
       "conversion": {
         "notes": [
-          "Freezing Burst: effect: \"0 ft. Speed\" change system.attributes.movement.burrow (override) not converted",
-          "Freezing Burst: effect: \"0 ft. Speed\" change system.attributes.movement.climb (override) not converted",
-          "Freezing Burst: effect: \"0 ft. Speed\" change system.attributes.movement.fly (override) not converted",
-          "Freezing Burst: effect: \"0 ft. Speed\" change system.attributes.movement.swim (override) not converted",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: consumption: attribute 1 not converted"
         ]

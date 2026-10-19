@@ -224,6 +224,19 @@ export function registerRuleElementTests(quench) {
         assert.deepEqual({...actor.system.speeds},{walk:30},"An inactive grant gives no Speed");
       });
 
+      it("Speed factors multiply every Speed (Haste, Slow) or one mode's, after its bonuses", async function () {
+        const actor = await fixtures.createActor({name:"speed factors"});
+        const factor = (id,domain,value) => ({schemaVersion:1,id,type:"Modifier",data:{domains:[domain],modifierType:"untyped",value}});
+        await fixtures.createItem(actor,{system:{ruleElements:[{schemaVersion:1,id:"wings",type:"GrantMovement",data:{mode:"fly",distance:60}}]}});
+        const haste = await fixtures.createEffect(actor,{system:{ruleElements:[factor("haste","speed.multiplier",2)]}});
+        assert.deepEqual({...actor.system.speeds},{walk:60,fly:120},"Haste doubles every Speed");
+        const slow = await fixtures.createEffect(actor,{system:{ruleElements:[factor("slow","speed.multiplier",0.5)]}});
+        assert.deepEqual({...actor.system.speeds},{walk:30,fly:60},"and Slow halves them again");
+        await haste.delete(); await slow.delete();
+        await fixtures.createEffect(actor,{system:{ruleElements:[factor("carpet","speed.fly.multiplier",0.5)]}});
+        assert.deepEqual({...actor.system.speeds},{walk:30,fly:30},"a factor on one mode leaves the others");
+      });
+
       it("persisted RuleElement enabled and suppressed flags control contribution", async function () {
         const actor = await fixtures.createActor({name:"RuleElement flags"});
         let rule = modifierRule({id:"quench-rule-flags",enabled:false});

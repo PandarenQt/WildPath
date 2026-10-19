@@ -28,12 +28,6 @@
       "conversion": {
         "notes": [
           "effect: flying is not a WildPath condition yet",
-          "effect: \"Riding Broom (Low Weight)\" change system.attributes.movement.swim (override) not converted",
-          "effect: \"Riding Broom (Low Weight)\" change system.attributes.movement.burrow (override) not converted",
-          "effect: \"Riding Broom (Low Weight)\" change system.attributes.movement.climb (override) not converted",
-          "effect: \"Riding Broom (High Weight)\" change system.attributes.movement.swim (override) not converted",
-          "effect: \"Riding Broom (High Weight)\" change system.attributes.movement.burrow (override) not converted",
-          "effect: \"Riding Broom (High Weight)\" change system.attributes.movement.climb (override) not converted",
           "not automated (utility): using it spends its cost; its description says the rest"
         ]
       },

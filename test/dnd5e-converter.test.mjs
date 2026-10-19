@@ -672,12 +672,18 @@ test("a save with nothing converted on it still rolls: its consequences are the 
   assert.ok(item.flags.wildpath.conversion.notes.includes("rolled (save); what it does is by hand"));
 });
 
-test("2024 Speed multipliers: Haste doubles, Slow halves the walking Speed, and 0 stops every Speed", async () => {
+test("2024 Speed multipliers: Haste doubles, Slow halves every Speed or one mode's, and 0 stops every Speed", async () => {
   const {effectRules} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
-  const multiplier = (value, type="multiply") => ({name: "Speed", system: {changes: [{key: "system.attributes.movement.multiplier", value, type}]}});
+  const multiplier = (value, type="multiply", key="system.attributes.movement.multiplier") => ({name: "Speed",
+    system: {changes: [{key, value, type}]}});
   const [hasted] = effectRules(multiplier(2));
-  assert.deepEqual([hasted.type, hasted.data.domains, hasted.data.valueExpression.value.terms[0].value], ["Modifier", ["resources.movement.max"], 1]);
-  assert.equal(effectRules(multiplier(0.5))[0].data.valueExpression.value.terms[0].value, -0.5);
+  assert.deepEqual([hasted.type, hasted.data.domains, hasted.data.value], ["Modifier", ["speed.multiplier"], 2]);
+  assert.deepEqual(effectRules(multiplier(0.5, "multiply", "system.attributes.movement.fly"))[0].data,
+    {domains: ["speed.fly.multiplier"], modifierType: "untyped", value: 0.5});
+  assert.deepEqual(effectRules(multiplier(-10, "add", "system.attributes.movement.swim"))[0].data,
+    {domains: ["speed.swim"], modifierType: "untyped", value: -10}, "Ray of Frost on a swimming Speed");
+  assert.deepEqual(effectRules(multiplier(0, "override", "system.attributes.movement.climb"))[0].data.domains, ["speed.climb.multiplier"],
+    "a mode set to 0 (Caltrops)");
   const notes = [];
   assert.deepEqual(effectRules(multiplier(0, "override"), notes).map(rule => [rule.type, rule.data.maximum]), [["ResourceCap", 0]]);
   assert.deepEqual(notes, []);
@@ -1251,6 +1257,8 @@ test("Stunning Strike: offered once a turn on its own melee hit, 1 Focus Point, 
     duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}});
   assert.deepEqual([definition.effects[1].saveOutcomePolicy, definition.effects[1].endsWhen, definition.effects[1].ruleElements[0].data],
     ["success", "attacked", {domains: ["attacked"], mode: "advantage"}], "a success: Advantage on the next attack against it");
+  assert.deepEqual([definition.effects[2].saveOutcomePolicy, definition.effects[2].ruleElements[0].data.domains,
+    definition.effects[2].ruleElements[0].data.value], ["success", ["speed.multiplier"], 0.5], "and its Speed halved");
   assert.equal(definition.targeting.type, "single");
   const trigger = item.system.ruleElements.find(rule => rule.type === "Trigger").data;
   assert.deepEqual([trigger.event, trigger.match.sourceTokenId, trigger.once], ["attack.hit", "{self}", "turn"]);

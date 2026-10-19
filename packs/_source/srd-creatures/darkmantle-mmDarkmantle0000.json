@@ -130,6 +130,18 @@
                     ],
                     "maximum": 0
                   }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "self-attack-adv-0-speed-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.fly.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0
+                  }
                 }
               ]
             }
@@ -188,8 +200,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: suffocation is not a WildPath condition yet",
-              "effect: \"Self: Attack Adv./0 Speed\" change system.attributes.movement.fly (override) not converted"
+              "effect: suffocation is not a WildPath condition yet"
             ]
           }
         }
@@ -366,7 +377,6 @@
       "conversion": {
         "notes": [
           "Crush: effect: suffocation is not a WildPath condition yet",
-          "Crush: effect: \"Self: Attack Adv./0 Speed\" change system.attributes.movement.fly (override) not converted",
           "Darkness Aura: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

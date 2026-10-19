@@ -350,6 +350,13 @@ Modifiers").
   Live (two browsers): Player1's Fireball at a creature with Evasion took nothing on a save, and 15 of 31 on a
   failure.
 
+**Speed factors (2026-10-19).** Modifiers on `speed.multiplier` (every Speed) and `speed.<mode>.multiplier` (`walk`, `fly`,
+`swim`, `climb`, `burrow`) are factors, multiplied together (Haste 2, Slow 0.5; two halvings quarter a Speed), applied
+after the Speed's bonuses (`speed`, and a mode's own `speed.<mode>`: Ray of Frost's -10) and before a movement cap. Only
+Modifiers naming a factor domain count; a wildcard `all` bonus does not. The converter maps dnd5e's movement multiplier
+and per-mode multiplies there, a mode set to 0 (Caltrops) to a factor of 0, and Stunning Strike's success halves Speed.
+Live: Haste on QA Fighter took its walking Speed from 30 to 60; Quench checks Haste, Slow and a fly-only factor.
+
 **Unproficient skill checks (2026-10-19).** A skill check its creature lacks the skill's proficiency for also reads the
 domain `check.unproficient` (`resolveActorCheckStatistic`, every check). 2024 Jack of All Trades is a Modifier there,
 `floor(proficiency-bonus / 2)`. Remarkable Athlete is `RollMode {domains: ["initiative", "check.athletics"], mode:

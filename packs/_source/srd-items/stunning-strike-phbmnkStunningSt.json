@@ -84,6 +84,32 @@
             "expiry": "turnStart"
           },
           "endsWhen": "attacked"
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Slowed",
+          "img": "icons/svg/daze.svg",
+          "saveOutcomePolicy": "success",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "slowed",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "speed.multiplier"
+                ],
+                "modifierType": "untyped",
+                "value": 0.5
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnStart"
+          }
         }
       ],
       "configuration": [],
@@ -124,9 +150,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Slowed\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

@@ -349,6 +349,18 @@
                     ],
                     "maximum": 20
                   }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "toad-form-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.swim.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0
+                  }
                 }
               ]
             }
@@ -415,9 +427,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Toad Form\" change system.attributes.movement.swim (override) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -575,9 +585,7 @@
         "challenge": 1
       },
       "conversion": {
-        "notes": [
-          "Shape-Shift: effect: \"Toad Form\" change system.attributes.movement.swim (override) not converted"
-        ]
+        "notes": []
       }
     }
   }
