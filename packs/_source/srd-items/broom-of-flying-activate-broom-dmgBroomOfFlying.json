@@ -53,6 +53,42 @@
                 ],
                 "maximum": 0
               }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "riding-broom-low-weight-3",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "speed.swim.multiplier"
+                ],
+                "modifierType": "untyped",
+                "value": 0
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "riding-broom-low-weight-4",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "speed.burrow.multiplier"
+                ],
+                "modifierType": "untyped",
+                "value": 0
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "riding-broom-low-weight-5",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "speed.climb.multiplier"
+                ],
+                "modifierType": "untyped",
+                "value": 0
+              }
             }
           ]
         },
@@ -80,6 +116,42 @@
                   "movement"
                 ],
                 "maximum": 0
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "riding-broom-high-weight-3",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "speed.swim.multiplier"
+                ],
+                "modifierType": "untyped",
+                "value": 0
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "riding-broom-high-weight-4",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "speed.burrow.multiplier"
+                ],
+                "modifierType": "untyped",
+                "value": 0
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "riding-broom-high-weight-5",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "speed.climb.multiplier"
+                ],
+                "modifierType": "untyped",
+                "value": 0
               }
             }
           ]
@@ -140,13 +212,7 @@
       "conversion": {
         "notes": [
           "effect: flying is not a WildPath condition yet",
-          "effect: \"Riding Broom (Low Weight)\" change system.attributes.movement.swim (override) not converted",
-          "effect: \"Riding Broom (Low Weight)\" change system.attributes.movement.burrow (override) not converted",
-          "effect: \"Riding Broom (Low Weight)\" change system.attributes.movement.climb (override) not converted",
-          "effect: flying is not a WildPath condition yet",
-          "effect: \"Riding Broom (High Weight)\" change system.attributes.movement.swim (override) not converted",
-          "effect: \"Riding Broom (High Weight)\" change system.attributes.movement.burrow (override) not converted",
-          "effect: \"Riding Broom (High Weight)\" change system.attributes.movement.climb (override) not converted"
+          "effect: flying is not a WildPath condition yet"
         ]
       }
     }

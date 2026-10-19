@@ -302,6 +302,18 @@
                     ],
                     "maximum": 20
                   }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "rat-form-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.fly.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0
+                  }
                 }
               ]
             },
@@ -353,6 +365,18 @@
                 {
                   "schemaVersion": 1,
                   "id": "spider-form-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.fly.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "spider-form-3",
                   "type": "GrantMovement",
                   "data": {
                     "mode": "climb",
@@ -424,10 +448,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Rat Form\" change system.attributes.movement.fly (override) not converted",
-              "effect: \"Spider Form\" change system.attributes.movement.fly (override) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -506,10 +527,7 @@
         "challenge": 1
       },
       "conversion": {
-        "notes": [
-          "Shape-Shift: effect: \"Rat Form\" change system.attributes.movement.fly (override) not converted",
-          "Shape-Shift: effect: \"Spider Form\" change system.attributes.movement.fly (override) not converted"
-        ]
+        "notes": []
       }
     }
   }

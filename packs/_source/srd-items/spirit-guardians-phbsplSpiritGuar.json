@@ -105,34 +105,10 @@
                         "type": "Modifier",
                         "data": {
                           "domains": [
-                            "resources.movement.max"
+                            "speed.multiplier"
                           ],
                           "modifierType": "untyped",
-                          "valueExpression": {
-                            "type": "floor",
-                            "value": {
-                              "type": "multiply",
-                              "terms": [
-                                {
-                                  "type": "constant",
-                                  "value": -0.5
-                                },
-                                {
-                                  "type": "add",
-                                  "terms": [
-                                    {
-                                      "type": "context",
-                                      "path": "actorSystem.resources.movement.base"
-                                    },
-                                    {
-                                      "type": "context",
-                                      "path": "actorSystem.resources.movement.bonus"
-                                    }
-                                  ]
-                                }
-                              ]
-                            }
-                          }
+                          "value": 0.5
                         }
                       }
                     ],
@@ -197,34 +173,10 @@
               "type": "Modifier",
               "data": {
                 "domains": [
-                  "resources.movement.max"
+                  "speed.multiplier"
                 ],
                 "modifierType": "untyped",
-                "valueExpression": {
-                  "type": "floor",
-                  "value": {
-                    "type": "multiply",
-                    "terms": [
-                      {
-                        "type": "constant",
-                        "value": -0.5
-                      },
-                      {
-                        "type": "add",
-                        "terms": [
-                          {
-                            "type": "context",
-                            "path": "actorSystem.resources.movement.base"
-                          },
-                          {
-                            "type": "context",
-                            "path": "actorSystem.resources.movement.bonus"
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                }
+                "value": 0.5
               }
             }
           ],

@@ -77,6 +77,54 @@
                 ],
                 "maximum": 0
               }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "slowed-2",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "speed.fly.multiplier"
+                ],
+                "modifierType": "untyped",
+                "value": 0
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "slowed-3",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "speed.swim.multiplier"
+                ],
+                "modifierType": "untyped",
+                "value": 0
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "slowed-4",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "speed.climb.multiplier"
+                ],
+                "modifierType": "untyped",
+                "value": 0
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "slowed-5",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "speed.burrow.multiplier"
+                ],
+                "modifierType": "untyped",
+                "value": 0
+              }
             }
           ],
           "duration": {
@@ -118,12 +166,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Slowed\" change system.attributes.movement.fly (override) not converted",
-          "effect: \"Slowed\" change system.attributes.movement.swim (override) not converted",
-          "effect: \"Slowed\" change system.attributes.movement.climb (override) not converted",
-          "effect: \"Slowed\" change system.attributes.movement.burrow (override) not converted"
-        ]
+        "notes": []
       }
     }
   }

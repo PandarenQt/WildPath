@@ -208,11 +208,14 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     this.#deriveClasses();
     this.#applyResourceModifiers();
     this.#finalizeResources();
-    // Walking Speed is the movement maximum; other Speeds come from grants (GrantMovement), and Modifiers on
-    // `speed` (Exhaustion) and a movement cap (Speed 0) reach them too.
-    const speedBonus = this.parent?.getStatistic?.("speed")?.totalModifier ?? 0;
-    const grants = (this.parent?.getGrantedMovement?.() ?? []).map(grant => ({...grant,
-      distance: Math.min(Math.max((Number(grant.distance) || 0) + speedBonus, 0), this.resourceCaps.movement ?? Infinity)}));
+    // Walking Speed is the movement maximum; other Speeds come from grants (GrantMovement). Modifiers on `speed`
+    // (Exhaustion) or the mode's own (`speed.fly`: Ray of Frost), then its factors, and a movement cap (Speed 0) reach them.
+    const grants = (this.parent?.getGrantedMovement?.() ?? []).map(grant => {
+      const mode = grant.mode ?? "walk";
+      const bonus = this.parent?.getStatistic?.(["speed", `speed.${mode}`])?.totalModifier ?? 0;
+      return {...grant, distance: Math.min(Math.max(Math.floor(((Number(grant.distance) || 0) + bonus) * this.#speedFactor(mode)), 0),
+        this.resourceCaps.movement ?? Infinity)};
+    });
     this.speeds = movementSpeeds(this.resources.movement.max, grants);
   }
 
@@ -276,7 +279,9 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
   #finalizeResources() {
     this.resourceCaps = this.parent?.getResourceCaps?.() ?? {};
     for ( const [id, resource] of Object.entries(this.resources) ) {
-      resource.max = Math.min(computeResourceMax(resource, resource.modifierBonus), this.resourceCaps[id] ?? Infinity);
+      // Walking Speed (the movement maximum) times its factors (Haste, Slow).
+      const factor = (id === "movement") ? this.#speedFactor("walk") : 1;
+      resource.max = Math.min(Math.floor(computeResourceMax(resource, resource.modifierBonus) * factor), this.resourceCaps[id] ?? Infinity);
       resource.value = COUNTED_RESOURCES.includes(id) ? remainingFromSpent(resource.max, resource.spent)
         : clampResourceValue(resource.value, resource.max);
     }
@@ -284,6 +289,18 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
       pool.max = computeResourceMax(pool, pool.modifierBonus);
       pool.value = clampResourceValue(pool.value, pool.max);
     }
+  }
+
+  /**
+   * A Speed's factor: the product of the Modifiers on `speed.multiplier` (every Speed) and `speed.<mode>.multiplier`
+   * (Haste 2, Slow 0.5; two halvings quarter it), 1 with none.
+   */
+  #speedFactor(mode) {
+    const domains = ["speed.multiplier", `speed.${mode}.multiplier`];
+    // Only Modifiers naming a factor: a wildcard (`all`) bonus is not one.
+    const applied = (this.parent?.getStatistic?.(domains)?.applied ?? [])
+      .filter(modifier => [...(modifier.domains ?? [])].some(domain => domains.includes(domain)));
+    return applied.reduce((product, modifier) => product * (Number.isFinite(Number(modifier.value)) ? Number(modifier.value) : 1), 1);
   }
 
   /* -------------------------------------------- */

@@ -277,6 +277,54 @@
                     "modifierType": "untyped",
                     "value": -10
                   }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "slowed-10-ft-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.fly"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -10
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "slowed-10-ft-3",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.swim"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -10
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "slowed-10-ft-4",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.burrow"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -10
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "slowed-10-ft-5",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.climb"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -10
+                  }
                 }
               ],
               "duration": {
@@ -319,12 +367,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Slowed: 10 ft.\" change system.attributes.movement.fly (add) not converted",
-              "effect: \"Slowed: 10 ft.\" change system.attributes.movement.swim (add) not converted",
-              "effect: \"Slowed: 10 ft.\" change system.attributes.movement.burrow (add) not converted",
-              "effect: \"Slowed: 10 ft.\" change system.attributes.movement.climb (add) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -395,11 +438,7 @@
       },
       "conversion": {
         "notes": [
-          "Death Burst: \"save\" is passive or triggered: not automated",
-          "Steam Breath: effect: \"Slowed: 10 ft.\" change system.attributes.movement.fly (add) not converted",
-          "Steam Breath: effect: \"Slowed: 10 ft.\" change system.attributes.movement.swim (add) not converted",
-          "Steam Breath: effect: \"Slowed: 10 ft.\" change system.attributes.movement.burrow (add) not converted",
-          "Steam Breath: effect: \"Slowed: 10 ft.\" change system.attributes.movement.climb (add) not converted"
+          "Death Burst: \"save\" is passive or triggered: not automated"
         ]
       }
     }

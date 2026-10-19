@@ -1087,34 +1087,58 @@
                   "type": "Modifier",
                   "data": {
                     "domains": [
-                      "resources.movement.max"
+                      "speed.walk.multiplier"
                     ],
                     "modifierType": "untyped",
-                    "valueExpression": {
-                      "type": "floor",
-                      "value": {
-                        "type": "multiply",
-                        "terms": [
-                          {
-                            "type": "constant",
-                            "value": -0.5
-                          },
-                          {
-                            "type": "add",
-                            "terms": [
-                              {
-                                "type": "context",
-                                "path": "actorSystem.resources.movement.base"
-                              },
-                              {
-                                "type": "context",
-                                "path": "actorSystem.resources.movement.bonus"
-                              }
-                            ]
-                          }
-                        ]
-                      }
-                    }
+                    "value": 0.5
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "failure-1-2-speed-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.swim.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0.5
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "failure-1-2-speed-3",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.fly.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0.5
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "failure-1-2-speed-4",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.climb.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0.5
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "failure-1-2-speed-5",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.burrow.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0.5
                   }
                 }
               ],
@@ -1137,12 +1161,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Failure: 1/2 Speed\" change system.attributes.movement.swim (multiply) not converted",
-              "effect: \"Failure: 1/2 Speed\" change system.attributes.movement.fly (multiply) not converted",
-              "effect: \"Failure: 1/2 Speed\" change system.attributes.movement.climb (multiply) not converted",
-              "effect: \"Failure: 1/2 Speed\" change system.attributes.movement.burrow (multiply) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1266,10 +1285,6 @@
           "Blazing Light: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",
           "Pounce: consumption: attribute 1 not converted",
-          "Scorching Sands: effect: \"Failure: 1/2 Speed\" change system.attributes.movement.swim (multiply) not converted",
-          "Scorching Sands: effect: \"Failure: 1/2 Speed\" change system.attributes.movement.fly (multiply) not converted",
-          "Scorching Sands: effect: \"Failure: 1/2 Speed\" change system.attributes.movement.climb (multiply) not converted",
-          "Scorching Sands: effect: \"Failure: 1/2 Speed\" change system.attributes.movement.burrow (multiply) not converted",
           "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }

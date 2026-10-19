@@ -17,34 +17,58 @@
         "type": "Modifier",
         "data": {
           "domains": [
-            "resources.movement.max"
+            "speed.walk.multiplier"
           ],
           "modifierType": "untyped",
-          "valueExpression": {
-            "type": "floor",
-            "value": {
-              "type": "multiply",
-              "terms": [
-                {
-                  "type": "constant",
-                  "value": 1
-                },
-                {
-                  "type": "add",
-                  "terms": [
-                    {
-                      "type": "context",
-                      "path": "actorSystem.resources.movement.base"
-                    },
-                    {
-                      "type": "context",
-                      "path": "actorSystem.resources.movement.bonus"
-                    }
-                  ]
-                }
-              ]
-            }
-          }
+          "value": 2
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "boots-of-speed-active-2",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "speed.fly.multiplier"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "boots-of-speed-active-3",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "speed.climb.multiplier"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "boots-of-speed-active-4",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "speed.burrow.multiplier"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "boots-of-speed-active-5",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "speed.swim.multiplier"
+          ],
+          "modifierType": "untyped",
+          "value": 2
         }
       }
     ],
@@ -63,12 +87,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Boots of Speed Active\" change system.attributes.movement.fly (multiply) not converted",
-          "effect: \"Boots of Speed Active\" change system.attributes.movement.climb (multiply) not converted",
-          "effect: \"Boots of Speed Active\" change system.attributes.movement.burrow (multiply) not converted",
-          "effect: \"Boots of Speed Active\" change system.attributes.movement.swim (multiply) not converted"
-        ]
+        "notes": []
       },
       "grants": [
         "dmgBootsOfSpeed0"

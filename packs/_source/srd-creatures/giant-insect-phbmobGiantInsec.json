@@ -339,6 +339,54 @@
                     ],
                     "maximum": 0
                   }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "webbed-2",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.burrow.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "webbed-3",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.climb.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "webbed-4",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.fly.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "webbed-5",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.swim.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0
+                  }
                 }
               ],
               "duration": {
@@ -364,12 +412,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Webbed\" change system.attributes.movement.burrow (downgrade) not converted",
-              "effect: \"Webbed\" change system.attributes.movement.climb (downgrade) not converted",
-              "effect: \"Webbed\" change system.attributes.movement.fly (downgrade) not converted",
-              "effect: \"Webbed\" change system.attributes.movement.swim (downgrade) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -456,10 +499,6 @@
       },
       "conversion": {
         "notes": [
-          "Web Bolt (Spider Only): effect: \"Webbed\" change system.attributes.movement.burrow (downgrade) not converted",
-          "Web Bolt (Spider Only): effect: \"Webbed\" change system.attributes.movement.climb (downgrade) not converted",
-          "Web Bolt (Spider Only): effect: \"Webbed\" change system.attributes.movement.fly (downgrade) not converted",
-          "Web Bolt (Spider Only): effect: \"Webbed\" change system.attributes.movement.swim (downgrade) not converted",
           "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
         ]
       }
