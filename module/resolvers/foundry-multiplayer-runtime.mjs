@@ -567,6 +567,7 @@ function actionCheckInput(actor, {ability=null, skill=null}={}, sourceToken=null
   const used = ability ?? WILDPATH.SKILLS?.[skill]?.ability ?? null;
   const domains = ["check", used ? `check.${used}` : null, skill ? `check.${skill}` : null].filter(Boolean);
   return {...(bonus ? {modifier: bonus.totalModifier} : {}), ...(bonus?.dice?.length ? {dice: bonus.dice} : {}),
+    ...(bonus?.naturalMinimum ? {naturalMinimum: bonus.naturalMinimum} : {}),
     rollMode: combineRollModes(actor.getRollModes?.(domains, {context: {check: {ability, skill}, ...sunlightContext(sourceToken)}}) ?? [])};
 }
 

@@ -361,7 +361,17 @@ Live: Haste on QA Fighter took its walking Speed from 30 to 60; Quench checks Ha
 domain `check.unproficient` (`resolveActorCheckStatistic`, every check). 2024 Jack of All Trades is a Modifier there,
 `floor(proficiency-bonus / 2)`. Remarkable Athlete is `RollMode {domains: ["initiative", "check.athletics"], mode:
 "advantage"}`. Live (GM browser): QA Caster's Acrobatics (unproficient, Proficiency Bonus 3) went from +0 to +1, and its
-Initiative and Athletics got Advantage. Reliable Talent (a d20 of 9 or lower counts as 10) is not automated yet.
+Initiative and Athletics got Advantage.
+
+**A minimum d20 (2026-10-19, Reliable Talent).** `RollOutcome {domains: ["check.proficient"], outcome: "minimum-natural",
+threshold: 10}`: a check with its skill's proficiency reads `check.proficient`, and `resolveActorCheckStatistic` returns the
+highest such threshold as `naturalMinimum`.
+- **The roll:** an Action's check request puts `min10` on its d20 (kept with Advantage: `2d20min10kh`) and
+  `expected.naturalMinimum`. The sheet's roll uses the same formula (`d20FormulaWith`).
+- **Typed dice:** a typed natural below the minimum counts as it, so its total is `max(natural, 10) + modifier`. The
+  natural stays the die as rolled. The formula's bounds know `min`.
+- **Live (two browsers, 14.369):** QA Caster with Reliable Talent and Stealth proficiency rolled Stealth six times from
+  its sheet (`1d20min10 + 3`, never below 13). With physical dice, Player1's Hide took a typed 2 as 10: 13, failing DC 15.
 
 **Critical range (2026-10-19).** `RollOutcome {domains: ["attack.weapon"], outcome: "critical-range", threshold: 19}`:
 its creature's attacks in those domains score a Critical Hit on a d20 of the threshold or more (Improved Critical).

@@ -742,6 +742,19 @@ test("an Action's own check is rolled by its controller, and its outcome picks t
   assert.equal(types.some(type => /effect/i.test(type)), true, "failure: the failure's effect");
 });
 
+test("an Action's check with a minimum d20 (Reliable Talent) rolls min10, and a typed 3 at +2 succeeds against DC 12", () => {
+  const definition = {schemaVersion: 1, id: "action:sneak", label: "Sneak", costs: {allOf: []}, targeting: {type: "self"},
+    check: {skill: "stealth", ability: "agility", dc: {value: 12}}};
+  const waiting = planStagedActionResolution({id: "resolution:reliable", actorSystem: actorSystem(1), action: definitionAction(definition),
+    source: {actorId: "actor-source"}, check: {modifier: 2, naturalMinimum: 10}});
+  const request = waiting.state.pendingRequests[0];
+  assert.equal(request.payload.rollRequest.definition.dice[0].modifiers[0], "min10");
+  assert.equal(request.payload.rollRequest.expected.naturalMinimum, 10);
+  const rolled = resumeStagedActionResolution({state: waiting.state,
+    response: {resolutionId: waiting.state.id, requestId: request.id, type: RESOLUTION_REQUEST_TYPES.ROLL, value: {die: 3}}});
+  assert.equal(rolled.state.results.checkResolution.success, true, "3 counts as 10: 12");
+});
+
 test("a concentration save adds the concentrating creature's save bonus, so 8 + 3 keeps a DC 11", () => {
   const waiting = planStagedActionResolution({
     id: "resolution:concentration-bonus",

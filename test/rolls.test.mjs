@@ -9,6 +9,8 @@ import {
   ROLL_TYPES,
   cloneRollData,
   createD20RollRequest,
+  createRollResultFromManualInput,
+  d20FormulaWith,
   createDamageRollRequest,
   createRollResult,
   rollFormulaForRequest,
@@ -415,4 +417,21 @@ test("a total-mode roll prompt carries the same bounds the authority enforces", 
   const control = createPromptViewModel({id: "d", resolutionId: "r", type: "roll", payload: {rollRequest: damage}}).controls[0];
   assert.equal(control.type, "roll-total");
   assert.deepEqual([control.min, control.max], [2, 12]);
+});
+
+test("a minimum d20 (Reliable Talent): min10 on the die, with Advantage too; a typed natural below it counts as 10", () => {
+  const request = (rollMode="normal") => createD20RollRequest({id: "roll:check", resolutionId: "resolution:check", type: ROLL_TYPES.SKILL_CHECK,
+    modifier: 7, rollMode, definition: {dice: [{id: "d20", number: 1, faces: 20, purpose: "d20", modifiers: ["min10"]}]},
+    expected: {naturalMinimum: 10}});
+  assert.equal(rollFormulaForRequest(request()).formula, "1d20min10 + 7");
+  assert.equal(rollFormulaForRequest(request(ROLL_MODES.ADVANTAGE)).formula, "2d20min10kh + 7");
+  assert.deepEqual([simpleFormulaBounds("2d20min10kh + 7").min, simpleFormulaBounds("2d20min10kh + 7").max], [17, 27]);
+  const typed = createRollResultFromManualInput({request: request(), input: {natural: 3}});
+  assert.equal(typed.ok, true, JSON.stringify(typed));
+  assert.deepEqual([typed.result.natural, typed.result.total], [3, 17], "the die as rolled; the total from 10");
+  assert.equal(validateRollResult({...typed.result, total: 10}, {request: request()}).ok, false, "not the raw natural plus the bonus");
+  assert.equal(validateRollResult({...typed.result, total: 17}, {request: request()}).ok, true);
+  assert.equal(d20FormulaWith("1d20", {modifier: 5, naturalMinimum: 10}), "1d20min10 + 5", "a sheet roll");
+  assert.equal(d20FormulaWith("1d20", {rollMode: ROLL_MODES.DISADVANTAGE, naturalMinimum: 10}), "2d20min10kl");
+  assert.equal(d20FormulaWith("1d20 + 1d4", {modifier: 2}), "1d20 + 1d4 + 2", "no minimum: unchanged");
 });

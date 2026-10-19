@@ -60,3 +60,11 @@ test("a skill check without its proficiency also reads check.unproficient (Jack 
   resolveActorCheckStatistic(bard, {ability: "presence"});
   assert.ok(!read.at(-1).includes("check.unproficient"), "no skill");
 });
+
+test("a proficient skill check carries its minimum d20 (Reliable Talent); an unproficient one does not", () => {
+  const rogue = {system: {abilities: {agility: {value: 16}}, skills: {stealth: {proficiency: 1}}, proficiencyBonus: 3},
+    getStatistic: () => ({totalModifier: 0}),
+    getRollOutcomes: domains => (domains.includes("check.proficient") ? [{outcome: "minimum-natural", threshold: 10}] : [])};
+  assert.equal(resolveActorCheckStatistic(rogue, {skill: "stealth"}).naturalMinimum, 10);
+  assert.equal(resolveActorCheckStatistic(rogue, {skill: "acrobatics"}).naturalMinimum, undefined);
+});

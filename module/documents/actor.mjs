@@ -641,7 +641,8 @@ export default class WildPathActor extends Actor {
     const rollMode = combineRollModes(this.getRollModes(domains, {context: save ? {} : {check: {ability: used, skill}}}));
     const bonus = (statistic?.dice ?? []).filter(die => (Number(die?.number) > 0) && (Number(die?.faces) > 0))
       .map(die => `${die.sign < 0 ? "-" : "+"} ${die.number}d${die.faces}`);
-    const formula = d20FormulaWith(["1d20", ...bonus].join(" "), {rollMode, modifier: statistic?.totalModifier ?? 0});
+    const formula = d20FormulaWith(["1d20", ...bonus].join(" "), {rollMode, modifier: statistic?.totalModifier ?? 0,
+      naturalMinimum: statistic?.naturalMinimum ?? null});
     const abilityLabel = game.i18n.localize(ABILITIES[used]?.label ?? used);
     const label = save ? game.i18n.format("WILDPATH.ROLL.Save", {ability: abilityLabel})
       : skill ? game.i18n.format("WILDPATH.ROLL.Skill", {skill: game.i18n.localize(SKILLS[skill]?.label ?? skill), ability: abilityLabel})

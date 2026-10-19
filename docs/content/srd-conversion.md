@@ -1228,7 +1228,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Relentless Endurance | origins24 | Relentless Endurance (feature) | "Relentlessly Endure" is passive or triggered: not automated |
 | Relentless Hunter | classes24 | Relentless Hunter (feature) | — |
 | Relentless Rage | classes24 | Relentless Rage (feature) | "save" is passive or triggered: not automated; "heal" is passive or triggered: not automated |
-| Reliable Talent | classes24 | Reliable Talent (feature) | effect: "Reliable Talent" change flags.dnd5e.reliableTalent (override) not converted |
+| Reliable Talent | classes24 | Reliable Talent (feature) | — |
 | Reliquary | equipment24 | Reliquary (gear) | — |
 | Remarkable Athlete | classes24 | Remarkable Athlete (feature) | — |
 | Remorhaz | actors24 | Remorhaz (4 items) | Bite: "Escape Check" is passive or triggered: not automated; Swallow: effect: coverTotal is not a WildPath condition yet; Swallow: "Damage: Swallowed" is passive or triggered: not automated; Swallow: "Regurgitate: Save" is passive or triggered: not automated |

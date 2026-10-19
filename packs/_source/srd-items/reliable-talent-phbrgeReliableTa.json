@@ -7,7 +7,20 @@
   "system": {
     "active": true,
     "description": "<p>Whenever you make an ability check that uses one of your skill or tool proficiencies, you can treat a d20 roll of 9 or lower as a 10.</p><section class=\"secret\" id=\"secret-FOATC0HOce35kD20\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which automates the minimum roll of 10 on your skill and tool proficiencies.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reliable-talent-1",
+        "type": "RollOutcome",
+        "data": {
+          "domains": [
+            "check.proficient"
+          ],
+          "outcome": "minimum-natural",
+          "threshold": 10
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +34,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Reliable Talent\" change flags.dnd5e.reliableTalent (override) not converted"
-        ]
+        "notes": []
       }
     }
   }

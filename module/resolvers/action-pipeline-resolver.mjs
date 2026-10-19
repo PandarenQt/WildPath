@@ -3059,6 +3059,11 @@ function attackRollRequestForState(state, input, {suffix="attack-roll"}={}) {
 function checkRollRequestForState(state, input, {suffix="check-roll"}={}) {
   const check = input.check ?? {};
   const modifier = rollModifierInfo(check, ["checkBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]);
+  const bonus = bonusDiceRequest(check.dice, modifier);
+  // Reliable Talent: the d20 counts as at least its minimum (`min10` on the die; a typed natural is raised to it).
+  const minimum = (Number(check.naturalMinimum) > 1) ? Math.trunc(check.naturalMinimum) : null;
+  const dice = minimum ? (bonus.definition?.dice ?? [{id: "d20", number: 1, faces: 20, purpose: "d20"}])
+    .map(die => ((die.purpose === "d20") ? {...die, modifiers: [`min${minimum}`]} : die)) : null;
   return createD20RollRequest({
     id: requestIdFor(state, suffix),
     resolutionId: state.id,
@@ -3071,8 +3076,9 @@ function checkRollRequestForState(state, input, {suffix="check-roll"}={}) {
     chooser: check.chooser ?? ROLL_AUTHORITY.SOURCE_CONTROLLER,
     authority: check.authority ?? {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
     modifiers: modifier.known ? [{id: "check-modifier", value: modifier.value}] : [],
-    expected: {validateTotalFromNatural: modifier.known, modifierTotal: modifier.known ? modifier.value : null},
-    ...bonusDiceRequest(check.dice, modifier),
+    ...(bonus.definition || dice ? {definition: {dice: dice ?? bonus.definition.dice}} : {}),
+    expected: {validateTotalFromNatural: modifier.known, modifierTotal: modifier.known ? modifier.value : null, ...(bonus.expected ?? {}),
+      ...(minimum ? {naturalMinimum: minimum} : {})},
     metadata: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: "check", ability: check.ability ?? null,
       skill: check.skill ?? null}
   });
