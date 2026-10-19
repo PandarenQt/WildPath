@@ -140,6 +140,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // Effects it ends on its targets: those tagged (`tags`, Remove Curse's "curse") and spells up to a level (`spells`:
     // a number, or "slot" for the level it is cast at; Dispel Magic).
     ...(raw.ends ? {ends: normalizePlainComponent(raw.ends)} : {}),
+    // Its caster concentrates on it for `duration` (a native duration), though nothing it sustains is automated (Fog
+    // Cloud, Detect Thoughts): a marker on the caster, which a new concentration, damage or Incapacitated ends.
+    ...(raw.concentration ? {concentration: normalizePlainComponent(raw.concentration)} : {}),
     // Pools of the acting creature the Action refills when it is used (Multiattack's attacks, a use given back).
     ...(Array.isArray(raw.restores) && raw.restores.length ? {restores: raw.restores.map(entry => ({
       resourceId: stringOrNull(entry?.resourceId ?? entry?.resource), amount: finiteNumber(entry?.amount) ?? 1}))} : {}),
@@ -180,6 +183,10 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
     }
   });
   validateTransform(definition.transform, errors);
+  const concentrationUnits = definition.concentration?.duration?.units;
+  if ( concentrationUnits && !CUSTOM_EFFECT_DURATION_UNITS.includes(concentrationUnits) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "concentration.duration.units", `Unknown duration unit: ${concentrationUnits}`));
+  }
   validateSummon(definition.summon, errors);
   validatePush(definition.push, errors);
   if ( definition.teleport && !(Number(definition.teleport.distance) > 0) ) {

@@ -25,6 +25,12 @@
           }
         ]
       },
+      "concentration": {
+        "duration": {
+          "value": 10,
+          "units": "minutes"
+        }
+      },
       "metadata": {
         "spellLevel": 4
       },
@@ -69,7 +75,8 @@
       "conversion": {
         "notes": [
           "not automated (summon): using it spends its cost; its description says the rest",
-          "summon: its creature is not among the converted creatures"
+          "summon: its creature is not among the converted creatures",
+          "concentration: its caster concentrates; what it sustains is by hand"
         ]
       }
     }

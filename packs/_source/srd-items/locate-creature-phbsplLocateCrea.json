@@ -78,6 +78,12 @@
           "effects": []
         }
       ],
+      "concentration": {
+        "duration": {
+          "value": 1,
+          "units": "hours"
+        }
+      },
       "metadata": {
         "spellLevel": 4
       },
@@ -99,7 +105,7 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: nothing it sustains was converted"
+          "concentration: its caster concentrates; what it sustains is by hand"
         ]
       }
     }

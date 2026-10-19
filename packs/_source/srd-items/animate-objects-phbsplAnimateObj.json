@@ -71,6 +71,12 @@
           "effects": []
         }
       ],
+      "concentration": {
+        "duration": {
+          "value": 1,
+          "units": "minutes"
+        }
+      },
       "metadata": {
         "spellLevel": 5
       },
@@ -92,7 +98,8 @@
       "conversion": {
         "notes": [
           "not automated (summon): using it spends its cost; its description says the rest",
-          "summon: a count of \"floor(@attributes.spell.mod / 3), floor(@attributes.spell.mod / 2), @attributes.spell.mod, @attributes.spell.mod, @attributes.spell.mod\" is not converted"
+          "summon: a count of \"floor(@attributes.spell.mod / 3), floor(@attributes.spell.mod / 2), @attributes.spell.mod, @attributes.spell.mod, @attributes.spell.mod\" is not converted",
+          "concentration: its caster concentrates; what it sustains is by hand"
         ]
       }
     }

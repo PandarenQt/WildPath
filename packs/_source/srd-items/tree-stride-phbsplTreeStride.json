@@ -77,6 +77,12 @@
       "teleport": {
         "distance": 500
       },
+      "concentration": {
+        "duration": {
+          "value": 1,
+          "units": "minutes"
+        }
+      },
       "metadata": {
         "spellLevel": 5
       },
@@ -96,7 +102,9 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "concentration: its caster concentrates; what it sustains is by hand"
+        ]
       }
     }
   }

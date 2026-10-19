@@ -518,6 +518,15 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       definition = lasting;
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("concentration: nothing")));
     }
+    // A concentration spell that sustains nothing converted (Fog Cloud, Detect Thoughts): its caster still concentrates
+    // on it, for its duration. What it sustains is by hand.
+    if ( spell && (system.properties ?? []).includes("concentration") && !sustainsConcentration(definition)
+      && !definition.metadata?.followUp ) {
+      const duration = lastingDuration(pick(activity, system, "duration"));
+      definition = {...definition, concentration: duration ? {duration} : {}};
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("concentration: nothing")),
+        "concentration: its caster concentrates; what it sustains is by hand");
+    }
     // A spell's level, for what ends spells by level (Dispel Magic); a slot cast at a higher one says so when used.
     if ( spell && Number.isFinite(Number(level)) ) definition = {...definition, metadata: {...(definition.metadata ?? {}), spellLevel: Number(level)}};
     // Lay on Hands: "restore a number of Hit Points equal to the points spent", chosen when used, from its pool.
@@ -1315,6 +1324,12 @@ function spentPool(activities, names) {
     .find(entry => (entry.type === "itemUses") && entry.target)?.target;
   const name = target ? (names[target] ?? names[String(target).split(".").pop()]) : null;
   return name ? {id: slugify(name), notes: [], rule: null} : null;
+}
+
+/** Whether a converted definition sustains something on concentration (an effect, a lasting area, a summon, a form). */
+function sustainsConcentration(definition) {
+  return (definition.effects ?? []).some(effect => effect?.concentration) || Boolean(definition.area?.persistence?.concentration)
+    || Boolean(definition.summon?.concentration) || Boolean(definition.transform?.concentration);
 }
 
 /** An item's limited uses as a resource pool its Actions spend, with the dnd5e recovery. */

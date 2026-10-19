@@ -127,6 +127,12 @@
           ]
         }
       ],
+      "concentration": {
+        "duration": {
+          "value": 10,
+          "units": "minutes"
+        }
+      },
       "metadata": {
         "spellLevel": 3
       },
@@ -147,7 +153,7 @@
       },
       "conversion": {
         "notes": [
-          "concentration: nothing it sustains was converted"
+          "concentration: its caster concentrates; what it sustains is by hand"
         ]
       }
     }

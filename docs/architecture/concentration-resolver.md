@@ -83,7 +83,8 @@ third creature ended in the same commit (`wildpath.representative-actions`).
 
 2024: casting another spell that requires concentration ends the one you have.
 - **What starts one** (`startsConcentration`): an Action with a concentration effect, a lasting concentration
-  area, or a concentration summon.
+  area, a concentration summon, or `concentration` (a spell sustaining nothing automated: a marker on its caster,
+  action-definitions.md).
   - A converted follow-up of the same spell (`metadata.followUp`, an activity spending no slot: Move Mark, Curse
     New Creature) continues its concentration instead.
 - **When it ends the old one.**

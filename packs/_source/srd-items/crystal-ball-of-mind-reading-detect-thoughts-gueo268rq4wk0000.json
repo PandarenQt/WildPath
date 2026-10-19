@@ -21,6 +21,12 @@
           }
         ]
       },
+      "concentration": {
+        "duration": {
+          "value": 1,
+          "units": "minutes"
+        }
+      },
       "metadata": {
         "spellLevel": 2
       },
@@ -43,7 +49,7 @@
       "conversion": {
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: nothing it sustains was converted",
+          "concentration: its caster concentrates; what it sustains is by hand",
           "save: a failure marks its creature only; what it does is by hand"
         ]
       }

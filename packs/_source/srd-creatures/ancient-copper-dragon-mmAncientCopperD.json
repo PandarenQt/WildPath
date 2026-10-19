@@ -667,6 +667,12 @@
               }
             ]
           },
+          "concentration": {
+            "duration": {
+              "value": 1,
+              "units": "hours"
+            }
+          },
           "metadata": {
             "spellLevel": 9
           },
@@ -689,7 +695,7 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted"
+              "concentration: its caster concentrates; what it sustains is by hand"
             ]
           }
         }
@@ -1494,7 +1500,7 @@
           "Spellcasting: cast: Mind Spike at level 5 is cast at its own level",
           "Spellcasting: effect: \"Spiked\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Mind Jolt: cast: Mind Spike at level 4 is cast at its own level",
           "Mind Jolt: effect: \"Spiked\" marks its creature only; its rules are by hand",
           "Pounce: not automated (utility): using it spends its cost; its description says the rest",

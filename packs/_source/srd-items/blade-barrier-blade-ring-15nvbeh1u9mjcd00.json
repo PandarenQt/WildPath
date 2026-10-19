@@ -128,6 +128,12 @@
           ]
         }
       ],
+      "concentration": {
+        "duration": {
+          "value": 10,
+          "units": "minutes"
+        }
+      },
       "metadata": {
         "spellLevel": 6
       },
@@ -149,7 +155,7 @@
       "conversion": {
         "notes": [
           "area: 30-ft ring is not supported; the user picks the targets",
-          "concentration: nothing it sustains was converted"
+          "concentration: its caster concentrates; what it sustains is by hand"
         ]
       }
     }

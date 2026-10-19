@@ -179,6 +179,8 @@ export function actionDefinitionField() {
     counters: new BooleanField({required: true, initial: false}),
     // Effects it ends on its targets: {tags: ["curse"]} (Remove Curse), {spells: "slot"} (Dispel Magic).
     ends: new ObjectField({nullable: true, initial: null}),
+    // Its caster concentrates on it, though nothing it sustains is automated (Fog Cloud): {duration?: {value, units}}.
+    concentration: new ObjectField({nullable: true, initial: null}),
     // Pools of the acting creature the Action refills when used (Multiattack's attacks): [{resourceId, amount}].
     restores: objectArrayField(),
     range: new ObjectField({nullable: true, initial: null}),

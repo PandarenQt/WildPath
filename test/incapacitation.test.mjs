@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {WILDPATH} from "../module/config.mjs";
 import {d20FormulaWith} from "../module/helpers/rolls.mjs";
 import {rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
-import {endConcentrationOnIncapacitation, endEarlierConcentration, startsConcentration, sustainedEffects}
+import {endConcentrationOnIncapacitation, endEarlierConcentration, markCasterConcentration, startsConcentration, sustainedEffects}
   from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 
 test("initiative rolls 2d20 with advantage or disadvantage and adds its Modifiers", () => {
@@ -51,6 +51,7 @@ test("a new concentration ends the caster's earlier one, as it stood when declar
   assert.equal(startsConcentration({area: {persistence: {concentration: true}}}), true, "a lasting concentration area");
   assert.equal(startsConcentration({summon: {actorRef: "x", concentration: true}}), true, "a concentration summon");
   assert.equal(startsConcentration({...mark, metadata: {followUp: true}}), false, "Move Mark continues the spell");
+  assert.equal(startsConcentration({concentration: {}}), true, "a spell its caster concentrates on, sustaining nothing automated");
   assert.equal(startsConcentration({effects: [{id: "prone", type: "condition"}]}), false);
 
   const caster = holder("caster", [sustained("moonbeam-marker", "token:caster-token")]);
@@ -68,4 +69,18 @@ test("a new concentration ends the caster's earlier one, as it stood when declar
     {fromUuid: async uuid => documents[uuid] ?? null});
   assert.deepEqual(ended.sort(), ["Effect.bane", "Effect.moonbeam-marker"], "what it sustained, not what this Action made");
   assert.deepEqual(deleted.sort(), ["Effect.bane", "Effect.moonbeam-marker"]);
+});
+
+test("a concentration spell sustaining nothing automated (Fog Cloud) marks its caster for its duration", async () => {
+  const created = [];
+  const actor = {async createEmbeddedDocuments(type, data) { created.push({type, data}); return data; }};
+  const state = {actionDefinition: {label: "Fog Cloud", concentration: {duration: {value: 1, units: "hours"}}}, source: {tokenId: "caster-token"}};
+  const game = {i18n: {format: (key, data) => `${key}:${data.area}`}};
+  await markCasterConcentration({options: {actor}, state}, {game});
+  assert.deepEqual(created, [{type: "ActiveEffect", data: [{name: "WILDPATH.AREA.Concentrating:Fog Cloud", type: "effect", system: {},
+    duration: {value: 1, units: "hours"}, flags: {wildpath: {concentrationMarker: true,
+      conditionEffect: {concentration: {sourceRef: "token:caster-token"}}}}}]}]);
+  assert.equal(await markCasterConcentration({options: {actor}, state: {actionDefinition: {label: "Bless"}, source: {tokenId: "t"}}}, {game}), null,
+    "nothing for an Action without it");
+  assert.equal(created.length, 1);
 });

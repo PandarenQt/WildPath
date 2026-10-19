@@ -339,6 +339,12 @@
               }
             ]
           },
+          "concentration": {
+            "duration": {
+              "value": 1,
+              "units": "minutes"
+            }
+          },
           "metadata": {
             "spellLevel": 2
           },
@@ -361,7 +367,7 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted",
+              "concentration: its caster concentrates; what it sustains is by hand",
               "save: a failure marks its creature only; what it does is by hand"
             ]
           }
@@ -2118,7 +2124,7 @@
           "Spirit Jar: \"Days to Reform\" is passive or triggered: not automated",
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand",
           "Spellcasting: cast: Fireball at level 5 is cast at its own level",

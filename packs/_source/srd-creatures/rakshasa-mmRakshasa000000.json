@@ -502,6 +502,12 @@
               }
             ]
           },
+          "concentration": {
+            "duration": {
+              "value": 1,
+              "units": "minutes"
+            }
+          },
           "metadata": {
             "spellLevel": 2
           },
@@ -524,7 +530,7 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted",
+              "concentration: its caster concentrates; what it sustains is by hand",
               "save: a failure marks its creature only; what it does is by hand"
             ]
           }
@@ -1156,7 +1162,7 @@
           "Cursed Touch: effect: \"Cursed\" marks its creature only; its rules are by hand",
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: effect: \"Disguised\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest"

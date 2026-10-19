@@ -395,6 +395,12 @@
               }
             ]
           },
+          "concentration": {
+            "duration": {
+              "value": 1,
+              "units": "hours"
+            }
+          },
           "metadata": {
             "spellLevel": 9
           },
@@ -417,7 +423,7 @@
           "conversion": {
             "notes": [
               "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted"
+              "concentration: its caster concentrates; what it sustains is by hand"
             ]
           }
         }
@@ -916,7 +922,7 @@
         "notes": [
           "Spellcasting: effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: concentration: nothing it sustains was converted",
+          "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
           "Divine Aid: not SRD 5.2 (CC-BY-4.0)"

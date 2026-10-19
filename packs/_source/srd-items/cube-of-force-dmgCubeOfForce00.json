@@ -32,7 +32,7 @@
           "activation: 10 minute is not an action-economy cost",
           "area: 100 * @item.level - 300-ft cube is not supported; the user picks the targets",
           "effect: \"Enclosed in Sphere\" marks its creature only; its rules are by hand",
-          "concentration: nothing it sustains was converted"
+          "concentration: its caster concentrates; what it sustains is by hand"
         ]
       },
       "grants": [
