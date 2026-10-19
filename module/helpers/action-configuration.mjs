@@ -917,6 +917,8 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
       return applyScaleDamageEffect({definition, effect, selection, selectionsById, context, collection: "healing"});
     case "scale-targets":
       return applyScaleTargetsEffect({definition, effect, selection, selectionsById});
+    case "spend-amount":
+      return applySpendAmountEffect({definition, effect, selection});
     case "replace-damage-type":
       return applyReplaceDamageTypeEffect({definition, effect, selection, selectionsById});
     case "keepEffect":
@@ -942,6 +944,9 @@ function normalizeEffectType(type) {
     case "scaleTargets":
     case "scale-targets":
       return "scale-targets";
+    case "spendAmount":
+    case "spend-amount":
+      return "spend-amount";
     case "replaceDamageType":
     case "setDamageType":
     case "replace-damage-type":
@@ -975,6 +980,24 @@ function applyAddCostEffect({definition, effect, selection}) {
     trace: [appliedTrace(selection, "added-cost", {requirements})],
     errors: []
   };
+}
+
+/**
+ * A number chosen when used is spent from a pool and is the amount (2024 Lay on Hands: "restore a number of Hit Points
+ * equal to the points spent"): `{type: "spendAmount", resourceId, componentIds, collection: "healing"}`. Each listed
+ * healing (or damage) component becomes that many, times `per`; spending more than the pool holds fails at payment.
+ */
+function applySpendAmountEffect({definition, effect, selection}) {
+  const amount = Math.trunc(finiteNumber(selection.value) ?? 0);
+  if ( !(amount > 0) || !effect.resourceId ) return {ok: true, trace: [appliedTrace(selection, "spend-amount-noop", {amount})], errors: []};
+  appendCostRequirements(definition, activationCostRequirements({allOf: [{capability: effect.resourceId, amount}]}), {
+    source: selection.source, choiceId: selection.id});
+  const collection = effect.collection === "damage" ? "damage" : "healing";
+  const ids = new Set(effect.componentIds ?? []);
+  const value = amount * (finiteNumber(effect.per) ?? 1);
+  definition[collection] = (definition[collection] ?? []).map(component => ((!ids.size || ids.has(component.id))
+    ? {...component, expression: {type: "constant", value}} : component));
+  return {ok: true, trace: [appliedTrace(selection, "spent-amount", {amount, value})], errors: []};
 }
 
 /** The casting level a scaling effect reads: its own, or the level its choice (a spell slot) selected. */

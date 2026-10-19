@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 813 automated, 307 manual, 245 features. Creatures: 375.
+Items: 814 automated, 306 manual, 245 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -903,7 +903,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Lantern, Hooded | equipment24 | Lantern, Hooded (gear), Lantern, Hooded (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Large Animated Object | actors24 | Large Animated Object (2 items) | Slam: damage 1: custom formula "(@flags.dnd5e.summon.level - 3)d6 + @mod + @flags.dnd5e.summon.mod" not converted; Slam: rolled (attack); what it does is by hand |
 | Large Form | origins24 | Large Form (automated) | — |
-| Lay on Hands | classes24 | Lay on Hands (heal) (manual), Lay on Hands (Remove Poison) (automated) | not automated (heal): using it spends its cost; its description says the rest; healing: custom formula "@scaling" not converted |
+| Lay on Hands | classes24 | Lay on Hands (heal) (automated), Lay on Hands (Remove Poison) (automated) | — |
 | Leather Armor | equipment24 | Leather Armor (gear) | — |
 | Leatherworker's Tools | equipment24 | Leatherworker's Tools (gear), Leatherworker's Tools (automated) | — |
 | Legend Lore | spells24 | Legend Lore (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
