@@ -1615,7 +1615,7 @@ function createDamageStage() {
     run(state, services={}) {
       const input = {
         ...preparedResolverInput(state),
-        durability: preparePlanningDurabilityOptions(state.input?.durability, services.targetActors)
+        durability: preparePlanningDurabilityOptions(state.input?.durability, services.targetActors, services.snapshotActor)
       };
       if ( !shouldResolveDamage(input.damage) ) return continueResolutionStage({
         state: updateResolutionState(state, {input})
@@ -1697,7 +1697,7 @@ function createHealingStage() {
     run(state, services={}) {
       const input = {
         ...preparedResolverInput(state),
-        durability: preparePlanningDurabilityOptions(state.input?.durability, services.targetActors)
+        durability: preparePlanningDurabilityOptions(state.input?.durability, services.targetActors, services.snapshotActor)
       };
       if ( !shouldResolveHealing(input.healing) ) return continueResolutionStage({
         state: updateResolutionState(state, {input})
@@ -2349,9 +2349,21 @@ function withDoubledDice(expression) {
 
 /* -------------------------------------------- */
 
-function preparePlanningDurabilityOptions(durability, targetActors) {
+function preparePlanningDurabilityOptions(durability, targetActors, snapshotActor=null) {
   if ( !durability || !targetActors ) return durability;
   const options = durability === true ? {} : {...durability};
+  // Its targets as they are now, not as declared (`snapshotActor`, the runtime's): while it waited on a prompt or a
+  // reaction, another Action may have hurt or healed them, and planning on the old health would undo that.
+  if ( options.targetSystems && (typeof snapshotActor === "function") && targetActors && (typeof targetActors === "object")
+    && !(targetActors instanceof Map) && !Array.isArray(targetActors) ) {
+    const fresh = new Map();
+    return {...options, targetSystems: Object.fromEntries(Object.entries(options.targetSystems).map(([key, system]) => {
+      const actor = targetActors[key];
+      if ( !actor ) return [key, system];
+      if ( !fresh.has(actor) ) fresh.set(actor, snapshotActor(actor) ?? system);
+      return [key, fresh.get(actor)];
+    }))};
+  }
   if ( options.targetSystems ) return durability;
   return {
     ...options,

@@ -71,6 +71,14 @@ resource projection rejects the intent with the target reference before a
 staged state is created. Damage and Healing both consume this explicit durability lookup; the
 generic fallback for callers with plain `system`/`actorSystem` inputs is unchanged.
 
+The Damage and Healing stages re-snapshot those targets when they plan (2026-10-19): the runtime
+gives the pipeline `services.snapshotActor` (the same helper), and each `durability.targetSystems`
+entry whose key names a live `targetActors` document is replaced by its fresh snapshot. A
+resolution that waited on a prompt or a reaction therefore plans on the health its targets have
+then. Before, four attacks paused on the GM's questions each planned on the health declared at the
+start, and each commit undid the one before. Live: four queued Bandit Captain hits on QA Caster
+(30 health, 9 temporary) took it to 30 + 4, 26, 19 and 12, in order.
+
 When an authoritative stage fails and its runner returns only a code, the existing multiplayer
 error envelope includes the first recorded string reason, limited to 1,024 characters, for the
 initiating Player. This projection does not include the state or arbitrary error data; full stage

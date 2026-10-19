@@ -842,6 +842,21 @@ test("a rolled formula's flat part rolls with its dice, and healing dice are rol
   assert.equal(healed.state.mutationPlans.find(entry => entry.type === "durabilityHealing")?.plan?.to, 14);
 });
 
+test("damage and healing are planned on the targets as they are when they apply, not as declared", () => {
+  const ally = {id: "actor-ally", now: {resources: {health: {value: 20, max: 30, temp: 0}}}};
+  const services = {targetActors: {"actor:actor-ally": ally}, snapshotActor: actor => actor.now};
+  const cure = planStagedActionResolution({id: "resolution:cure-later", actorSystem: actorSystem(1), source: {actorId: "actor-source"},
+    action: definitionAction({schemaVersion: 1, id: "action:cure", label: "Cure", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+      healing: [{id: "cure", healingType: "healing", expression: {type: "dice", number: 1, faces: 8}}]}),
+    targets: [target("ally", {disposition: "friendly"})], services,
+    durability: {targetSystems: {"actor:actor-ally": {resources: {health: {value: 3, max: 30}}}}}});
+  const request = cure.state.pendingRequests[0];
+  const healed = resumeStagedActionResolution({state: cure.state, services, response: {resolutionId: cure.state.id, requestId: request.id,
+    type: RESOLUTION_REQUEST_TYPES.ROLL, value: {total: 5}}});
+  const plan = healed.state.mutationPlans.find(entry => entry.type === "durabilityHealing")?.plan;
+  assert.deepEqual([plan.from, plan.to], [20, 25], "healed while it waited: 20 + 5, not the declared 3 + 5");
+});
+
 test("extra damage is its own roll, doubled on a critical, and a hit records its once-per-turn use while a miss does not", () => {
   const definition = {schemaVersion: 1, id: "action:dagger", label: "Dagger", costs: {allOf: []},
     targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
