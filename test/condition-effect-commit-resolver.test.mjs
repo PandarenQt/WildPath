@@ -108,6 +108,17 @@ test("condition effect commit adapter rolls stacking updates back to the previou
   assert.equal(actor.effects[0].duration, null);
 });
 
+test("a condition lasting until its source's next turn (Stunning Strike) shows V14's turnStart; the lifecycle keeps whose turn", async () => {
+  const actor = actorWithEffects([{id: "stunned", name: "Stunned", system: {type: "stunned"}}]);
+  const plan = {type: "conditionEffect", conditionId: "stunned", levels: 1, action: "update", definition: {name: "Stunned"},
+    duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}, concentration: null, sourceRef: "token:monk", originRef: null,
+    metadata: {}};
+  const commit = await commitConditionEffectMutationPlan(actor, plan);
+  assert.equal(commit.ok, true);
+  assert.deepEqual(actor.effects[0].duration, {value: 1, units: "rounds", expiry: "turnStart"});
+  assert.equal(actor.effects[0].flags.wildpath.conditionEffect.duration.expiry, "sourceTurnStart");
+});
+
 test("condition effect commit adapter restores deleted condition snapshots", async () => {
   const actor = actorWithEffects([{
     id: "effect-prone",

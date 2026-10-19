@@ -136,3 +136,18 @@ test("its own hit: Paladin's Smite's 2014 smite while no other slot spell was ca
   globalThis.game.combat.round = 3;
   assert.deepEqual(offered(), ["action:paladins-smite"], "a new turn");
 });
+
+test("a once-a-turn reaction carries its record key and turn, and is not offered once used this turn", t => {
+  const strikeOnce = {...strike(), system: {...strike().system, ruleElements: [{...opportunityTrigger, data: {...opportunityTrigger.data, once: "turn"}}]}};
+  const guard = token("guard", -1, [strikeOnce]);
+  const scene = {grid: {distance: 5}, tokens: [token("mover", 1), guard]};
+  const previous = globalThis.game;
+  globalThis.game = {combat: {id: "c", round: 4, turn: 1, started: true}};
+  t.after(() => { globalThis.game = previous; });
+  const offered = () => createFoundryReactionProvider()({scene, token: scene.tokens[0]}).reactions?.triggers ?? [];
+  assert.deepEqual(offered()[0].payload.once, {key: "strike-opportunity", turn: "c:4:1"});
+  guard.actor.flags = {wildpath: {onceUsed: {"strike-opportunity": "c:4:1"}}};
+  assert.equal(offered().some(trigger => trigger.owner.tokenId === "guard"), false, "used this turn");
+  globalThis.game.combat.turn = 2;
+  assert.equal(offered().some(trigger => trigger.owner.tokenId === "guard"), true, "a new turn");
+});

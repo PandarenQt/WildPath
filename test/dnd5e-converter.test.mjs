@@ -1236,3 +1236,21 @@ test("a concentration spell that sustains nothing converted has its caster conce
   const plain = {...fog, _id: "testMinorIllus01", system: {...fog.system, identifier: "minor", properties: ["vocal"]}};
   assert.equal(convertItem(plain).items[0].system.definition.concentration, undefined, "not a concentration spell");
 });
+
+test("Stunning Strike: offered once a turn on its own melee hit, 1 Focus Point, Stunned on a failed save until the monk's next turn", () => {
+  const names = nameIndex([{_id: "phbmnkMonksFocus", name: "Monk's Focus", type: "feat", system: {identifier: "monks-focus"}}]);
+  const stunning = {_id: "testStunningStr1", name: "Stunning Strike", type: "feat", img: "icons/svg/daze.svg", effects: [],
+    system: {source: SRD, identifier: "stunning-strike", type: {value: "class"}, uses: {max: "", recovery: []},
+      activities: {a: activity("save", {activation: {type: "", override: false},
+        consumption: {targets: [{type: "itemUses", value: "1", target: "Compendium.dnd5e.classes24.Item.phbmnkMonksFocus"}]},
+        save: {ability: ["con"], dc: {calculation: "wis", formula: ""}}})}}};
+  const [item] = convertItem(stunning, {names}).items;
+  const {definition} = item.system;
+  assert.deepEqual(definition.costs.allOf, [{capability: "monk-s-focus", amount: 1}], "no action, a Focus Point");
+  assert.deepEqual(definition.effects, [{id: "effect-1", type: "condition", conditionId: "stunned", saveOutcomePolicy: "failure",
+    duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}}]);
+  assert.equal(definition.targeting.type, "single");
+  const trigger = item.system.ruleElements.find(rule => rule.type === "Trigger").data;
+  assert.deepEqual([trigger.event, trigger.match.sourceTokenId, trigger.once], ["attack.hit", "{self}", "turn"]);
+  assert.equal(validateActionDefinition(definition).ok, true);
+});

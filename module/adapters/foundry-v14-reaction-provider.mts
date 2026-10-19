@@ -17,7 +17,7 @@ interface ActorLike {
   readonly uuid: string;
   readonly items?: Iterable<ItemLike>;
   readonly statuses?: Set<string>;
-  readonly flags?: {wildpath?: {slotSpellTurn?: string | null}};
+  readonly flags?: {wildpath?: {slotSpellTurn?: string | null; onceUsed?: Record<string, string | null>}};
   getOpportunityAttackAvoidance?(): {always: boolean; movementModes: string[]};
 }
 
@@ -116,6 +116,9 @@ function tokenReactions(token: TokenLike) {
       // A reaction set to "Never" is not offered; one set to "Always" is used without asking.
       const policy = policyOf(actionItem!);
       if ( policy === "never" ) return [];
+      // Once a turn (Stunning Strike): not offered again this combat turn; its use records it (`metadata.once`).
+      const once = (data.once === "turn") ? onceThisTurn(actor, `${item.id}-${String(element.id ?? "trigger")}`) : null;
+      if ( once?.used ) return [];
       const trigger = reactionTrigger({
         id: `reaction:${token.id}:${item.id}:${String(element.id ?? "trigger")}`,
         event,
@@ -129,7 +132,8 @@ function tokenReactions(token: TokenLike) {
         // A reaction to its own Action comes after its targets' (a Parry may turn the hit into a miss first).
         ...(((data.match as Data | undefined)?.sourceTokenId === "{self}") ? {priority: 200} : {}),
         predicate: bindSelf(data.triggerPredicate ?? data.eventPredicate ?? null, token.id),
-        ...(policy === "always" ? {metadata: {reactionPolicy: policy}} : {})
+        ...(policy === "always" ? {metadata: {reactionPolicy: policy}} : {}),
+        ...(once ? {payload: {once: {key: once.key, turn: once.turn}}} : {})
       });
       return [{trigger, event, definition: definition.definition, data}];
     });
@@ -150,6 +154,17 @@ function ownActionReactions(token: TokenLike) {
   const free = own.filter(entry => entry.data.onlyWithoutOtherSlotSpell === true);
   if ( casting || !free.length ) return own.filter(entry => !free.includes(entry));
   return own.filter(entry => free.includes(entry) || !((entry.definition.tags as string[] | undefined) ?? []).includes("smite"));
+}
+
+/**
+ * A once-a-turn reaction's record key and the combat turn, and whether it was used this turn
+ * (`flags.wildpath.onceUsed.<key>`, as a once-a-turn ExtraDamage). Outside combat it is never used up.
+ */
+function onceThisTurn(actor: ActorLike, id: string) {
+  const combat = (globalThis as {game?: {combat?: {id: string; round: number; turn: number | null; started?: boolean} | null}}).game?.combat;
+  const turn = combat?.started ? turnKey(combat as never) : null;
+  const key = id.replace(/\./g, "_");
+  return {key, turn, used: (turn !== null) && (actor.flags?.wildpath?.onceUsed?.[key] === turn)};
 }
 
 /** Whether any Item of `token`'s creature has a reaction to movement, active or not. */
