@@ -497,7 +497,8 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
 
 - **Rerolls (2026-10-20):** `testOffer.reroll` offers a plain reroll of the d20. Disciplined Survivor's is a save, for 1
   Focus Point (its activity's pool). Halfling Luck's names no pool (free) and `natural: 1`: it is offered only when the
-  d20 shows a 1 (`inspirationReroll` filters by natural). shortcut: like every test offer, only when the roll failed.
+  d20 shows a 1 (`inspirationReroll` filters by natural). A reroll may carry its own `rollMode` and `bonus`
+  (rolls.md). shortcut: like every test offer, only when the roll failed.
 
 An attack's added die is kept when the attack still misses (`refundOnFail`), as a check's is. shortcut: offered only on
 a failed roll. Live (two browsers, 14.369): QA Caster as a level-10 bard with Peerless Skill missed with Dagger attacks

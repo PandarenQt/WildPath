@@ -154,11 +154,16 @@ function onceKey(entry) {
  * `attacked.<type>`), combined so any of each cancel. `context` is what their predicates see:
  * `{attack: {type, adjacent, fromTarget}}`.
  */
-export function attackRollMode(attacker, target, {type=null, item=null, ability=null, context={}}={}) {
-  return combineRollModes([
+export function attackRollMode(attacker, target, options={}) {
+  return combineRollModes(attackRollModeSources(attacker, target, options));
+}
+
+/** Each source of an attack's Advantage or Disadvantage, the attacker's and the target's, before they combine. */
+export function attackRollModeSources(attacker, target, {type=null, item=null, ability=null, context={}}={}) {
+  return [
     ...(attacker?.getRollModes?.(["attack", `attack.${type}`, ...(ability ? [`attack.${ability}`] : [])], {item, context}) ?? []),
     ...(target?.getRollModes?.(["attacked", `attacked.${type}`], {context}) ?? [])
-  ]);
+  ];
 }
 
 /** Whether every hit on `target` is a critical hit (`critical-on-hit`: Paralyzed or Unconscious, within 5 ft). */

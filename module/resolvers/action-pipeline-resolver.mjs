@@ -1021,7 +1021,7 @@ function createCheckOutcomeStage() {
       const reroll = inspirationReroll(state, input, {offer: input.check.inspiration, failed: !checkResolution.success, key: "check",
         roll: input.check.roll,
         stageId: ACTION_PIPELINE_STAGE_IDS.CHECK_OUTCOME, rollKind: "check",
-        makeRollRequest: suffix => checkRollRequestForState(state, input, {suffix})});
+        makeRollRequest: (suffix, bonus=0, rollMode=null) => checkRollRequestForState(state, input, {suffix, bonus, rollMode})});
       if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
       if ( !reroll.roll ) return continueResolutionStage({
         state: updateResolutionState(state, {input, results: {...state.results, checkResolution}}),
@@ -1181,7 +1181,7 @@ function createAttackOutcomeStage() {
       // Heroic Inspiration may reroll it (a miss of a player's character, or a monster's attack by the GM's choice).
       const reroll = attackResolution.ok ? inspirationReroll(state, input, {offer: attack.inspiration, roll: attack.roll,
         failed: !attackResolution.hits.length, key: "attack", stageId: ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME, rollKind: "attack",
-        makeRollRequest: suffix => attackRollRequestForState(state, input, {suffix})}) : {};
+        makeRollRequest: (suffix, bonus=0, rollMode=null) => attackRollRequestForState(state, input, {suffix, bonus, rollMode})}) : {};
       if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
       if ( reroll.roll ) {
         input = {...input, attack: {...attack, roll: reroll.roll}};
@@ -3083,7 +3083,8 @@ function riderPatch(state, rider, {window, childState}) {
     inputPatch: {
       ...((forgo || added.length) ? {damage: {...damage, ...(damage.components ? {components} : {}),
         extraComponents: [...extras, ...riderDefinitions]}} : {}),
-      ...((rider.rollMode && input.attack) ? {attack: {...input.attack, rollMode: rider.rollMode}} : {}),
+      // Its mode replaces the attack's, sources and all (Brutal Strike forgoes Advantage).
+      ...((rider.rollMode && input.attack) ? {attack: {...input.attack, rollMode: rider.rollMode, rollModeSources: [rider.rollMode]}} : {}),
       ...(rider.tags?.length ? {riderTags: uniqueStrings([...(input.riderTags ?? []), ...rider.tags])} : {}),
       ...(rider.push ? {riderPush: clonePlain(rider.push)} : {}),
       // Stone's Endurance: its roll comes off the damage its own creature takes (the reactor's Token), no one else's.
@@ -3379,9 +3380,23 @@ function bonusDiceRequest(dice, modifier) {
   expected: {validateTotalFromNatural: modifier.known, modifierTotal: null}};
 }
 
-function attackRollRequestForState(state, input, {suffix="attack-roll"}={}) {
+/**
+ * A roll's mode: its own, or with a reroll's `extra` mode (Countercharm's Advantage) as one more source, cancelling
+ * source for source against the sources it was rolled with (`rollModeSources`).
+ */
+function rerollMode(roll, own, extra=null) {
+  if ( !extra ) return own;
+  return combineRollModes([...(roll.rollModeSources ?? [own].filter(Boolean)), extra]);
+}
+
+/** A roll's modifier with a reroll's own `bonus` (Indomitable) added. */
+function withRerollBonus(known, bonus) {
+  return bonus ? {known: known.known, value: (Number(known.value) || 0) + bonus} : known;
+}
+
+function attackRollRequestForState(state, input, {suffix="attack-roll", bonus: rerollBonus=0, rollMode=null}={}) {
   const attack = input.attack ?? {};
-  const modifier = rollModifierInfo(attack, ["attackBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]);
+  const modifier = withRerollBonus(rollModifierInfo(attack, ["attackBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]), rerollBonus);
   const bonus = bonusDiceRequest(attack.dice, modifier);
   return createD20RollRequest({
     id: requestIdFor(state, suffix),
@@ -3389,13 +3404,13 @@ function attackRollRequestForState(state, input, {suffix="attack-roll"}={}) {
     type: ROLL_TYPES.ATTACK,
     modifier: modifier.value,
     formula: attack.formula ?? attack.rollFormula ?? null,
-    rollMode: attack.rollMode ?? attack.advantageState ?? attack.roll?.mode,
+    rollMode: rerollMode(attack, attack.rollMode ?? attack.advantageState ?? attack.roll?.mode, rollMode),
     visibility: attack.visibility ?? input.context?.messageMode,
     source: state.source ?? input.source ?? null,
     target: firstRollTarget(input),
     chooser: attack.chooser ?? ROLL_AUTHORITY.SOURCE_CONTROLLER,
     authority: attack.authority ?? {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
-    modifiers: attack.modifiers ?? (modifier.known ? [{id: "attack-modifier", value: modifier.value}] : []),
+    modifiers: (attack.modifiers && !rerollBonus) ? attack.modifiers : (modifier.known ? [{id: "attack-modifier", value: modifier.value}] : []),
     expected: {
       validateTotalFromNatural: modifier.known,
       modifierTotal: modifier.known ? modifier.value : null
@@ -3411,9 +3426,9 @@ function attackRollRequestForState(state, input, {suffix="attack-roll"}={}) {
   });
 }
 
-function checkRollRequestForState(state, input, {suffix="check-roll"}={}) {
+function checkRollRequestForState(state, input, {suffix="check-roll", bonus: rerollBonus=0, rollMode=null}={}) {
   const check = input.check ?? {};
-  const modifier = rollModifierInfo(check, ["checkBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]);
+  const modifier = withRerollBonus(rollModifierInfo(check, ["checkBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]), rerollBonus);
   const bonus = bonusDiceRequest(check.dice, modifier);
   // Reliable Talent: the d20 counts as at least its minimum (`min10` on the die; a typed natural is raised to it).
   const minimum = (Number(check.naturalMinimum) > 1) ? Math.trunc(check.naturalMinimum) : null;
@@ -3424,7 +3439,7 @@ function checkRollRequestForState(state, input, {suffix="check-roll"}={}) {
     resolutionId: state.id,
     type: check.skill ? ROLL_TYPES.SKILL_CHECK : ROLL_TYPES.ABILITY_CHECK,
     modifier: modifier.value,
-    rollMode: check.rollMode,
+    rollMode: rerollMode(check, check.rollMode, rollMode),
     visibility: check.visibility ?? input.context?.messageMode,
     dc: check.dc ?? null,
     source: state.source ?? input.source ?? null,
