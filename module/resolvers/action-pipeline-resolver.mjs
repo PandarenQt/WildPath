@@ -1673,6 +1673,14 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
   if ( !option ) return {};
   // Bardic Inspiration adds a die to the roll instead of rolling it again.
   if ( option.addDice ) return addedDie(state, input, {option, key, stageId, rollKind, makeRollRequest, targets, original});
+  // Flash of Genius adds a number to the roll (`addFlat`): its natural stays, so it is no critical.
+  if ( Number.isFinite(Number(option.addFlat)) && (option.addFlat != null) ) {
+    const added = Number(option.addFlat);
+    const roll = {...(original ?? {}), total: (Number(original?.total) || 0) + added,
+      modifiers: [...(original?.modifiers ?? []), {id: "added", value: added, label: option.label ?? null}]};
+    return {roll, rollResult: {requestId: null, type: `${rollKind}-added`, roll, reroll: true, targetKey: key},
+      payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null};
+  }
   // Stroke of Luck turns the d20 into a 20 (`setNatural`): a natural 20, so an attack's is a critical hit.
   if ( Number(option.setNatural) > 0 ) {
     const natural = Number(option.setNatural);

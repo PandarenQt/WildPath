@@ -73,7 +73,10 @@
         "count": 1,
         "rounds": 10,
         "concentration": true,
-        "spellLevel": 7
+        "spellLevel": 7,
+        "match": {
+          "attacks": true
+        }
       },
       "metadata": {
         "spellLevel": 7

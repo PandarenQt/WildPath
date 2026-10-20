@@ -137,3 +137,23 @@ test("a summon's count from its creature's own formula, at the cast level (Anima
   assert.equal(warnings.length, 1);
   assert.equal((await cast(1, 4)).length, 4, "a plain number (Dancing Lights' four lights)");
 });
+
+test("an artificer's summon: its bonuses from its summoner, its attacks its summoner's, its creature by level", async () => {
+  const {summonBonusesAt, matchedAttack} = await import("../module/adapters/foundry-v14-summons.mjs");
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const artificer = level => ({system: {abilities: {intellect: {value: 16}}, classes: [{id: "artificer", name: "artificer", level}],
+    details: {level}, spellcasting: {ability: "intellect"}}});
+  const hp = {type: "add", terms: [{type: "ability-modifier", ability: "intellect"}, {type: "multiply", terms: [{type: "constant", value: 5},
+    {type: "class-level", class: "artificer"}]}]};
+  const caster = artificer(5);
+  assert.equal(summonBonusesAt({hp}, 0, {actor: caster, actorSystem: caster.system}).hp, 28, "Intelligence +3 and 5 per artificer level");
+  const defender = {system: {details: {level: 1}}};
+  assert.ok(matchedAttack(caster, defender).length <= 1);
+  const definition = {schemaVersion: 1, id: "action:steel", label: "Steel Defender", costs: {allOf: []}, targeting: {type: "self"},
+    summon: {choiceId: "summon-creature", count: 1},
+    configuration: [{id: "summon-creature", type: "select-one", label: "Creature", required: true, options: [
+      {id: "improved", label: "Improved", level: {min: 15, class: "artificer"}}, {id: "steel", label: "Steel", level: {min: 3, max: 14, class: "artificer"}}]}]};
+  const options = level => actionDefinitionFromItem({type: "action", actor: artificer(level), system: {definition}}).definition
+    .configuration[0].options.map(option => option.id);
+  assert.deepEqual([options(2), options(5), options(15)], [[], ["steel"], ["improved"]]);
+});
