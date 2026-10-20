@@ -25,7 +25,7 @@ import {createFoundrySummons} from "../adapters/foundry-v14-summons.mjs";
 import {createFoundryForcedMovement} from "../adapters/foundry-v14-forced-movement.mjs";
 import {createFoundryFalling} from "../adapters/foundry-v14-falling.mjs";
 import {createFoundryTurnDamage} from "../adapters/foundry-v14-turn-damage.mjs";
-import {onGround, perceives} from "../helpers/senses.mjs";
+import {attackSight} from "../adapters/foundry-v14-senses.mjs";
 import {COVER_BONUS, coverBetween, foundrySightCollision} from "../adapters/foundry-v14-cover.mjs";
 
 /**
@@ -1282,9 +1282,8 @@ function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
     ? createFoundryV14TacticalGridAdapter({scene: token.parent}).tokenToFootprint(token) : null;
   const fields = footprint?.ok && footprint.footprint ? footprintDistance(source, footprint.footprint) : null;
   const distance = Number.isFinite(fields) ? fields * spatial.context.gridDistance : null;
-  // Whether each perceives the other despite Blinded and Invisible (senses): `seesTarget`, `seenByTarget`.
-  const sight = (attacker && entry?.actor) ? {seesTarget: perceives(attacker, entry.actor, {distance, grounded: onGround(token)}),
-    seenByTarget: perceives(entry.actor, attacker, {distance, grounded: onGround(sourceToken)})} : {};
+  const sight = (attacker && entry?.actor) ? attackSight({attacker, target: entry.actor, attackerToken: sourceToken, targetToken: token,
+    distance}) : {};
   return {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * spatial.context.gridDistance <= 5} : {}), ...sight,
     fromTarget: conditionsFrom(attacker, entry?.actor, game), fromAttacker: conditionsFrom(entry?.actor, attacker, game),
     allyNearTarget: allyNearTarget(sourceToken, token), targetDamaged: targetDamaged(entry?.actor)},

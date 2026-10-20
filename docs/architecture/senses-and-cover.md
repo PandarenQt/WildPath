@@ -28,10 +28,35 @@ The Homebrew Builder's rule rows have "A sense" (a sense and its range) for writ
 - **Blinded fix.** Foundry's vision now honours WildPath's Blinded condition: `CONFIG.specialStatusEffects.BLIND` is
   `blinded`; it used to read Foundry's own `blind` id and ignored WildPath's.
 
-**The rules.** An attack's context carries `attack.seesTarget` and `attack.seenByTarget`, from `perceives`:
+**The rules.** An attack's context carries `attack.seesTarget` and `attack.seenByTarget` (`attackSight`,
+`adapters/foundry-v14-senses.mts`), from `perceives` and the light each stands in:
 - A Blinded creature perceives only by Blindsight within range, or by Tremorsense a creature on the ground.
 - An Invisible creature is perceived by Truesight, Blindsight or Tremorsense within range.
 - Blinded's and Invisible's Advantage and Disadvantage apply only while the other creature does not perceive them.
+
+**Light (2026-10-20).** `lightAt(token)` (`adapters/foundry-v14-sunlight.mts`) is `light`, `dark` or
+`magicalDarkness`:
+- **Viewed Scene:** Foundry's own darkness and light sources decide (`testInsideDarkness`, `testInsideLight`, with
+  walls, elevation and global illumination). Any darkness source counts as magical Darkness.
+- **Elsewhere:** a negative light's radius is magical Darkness; global illumination or a light's radius is light; the
+  rest is dark.
+- A Scene without Token vision is all light.
+
+`obscured` (`helpers/senses.mts`) applies the 2024 rules:
+- Darkness hides a creature from one without Darkvision, Devil's Sight or Truesight reaching it.
+- Magical Darkness hides it from one without Devil's Sight or Truesight, and a creature inside magical Darkness sees
+  nothing beyond it without them.
+- Blindsight, and Tremorsense on a creature on the ground, ignore light.
+
+Every creature has two unseen rules (`UNSEEN`, `documents/actor.mjs`): Disadvantage attacking a target that only light
+hides (`attack.targetHidden`), Advantage attacking one that only light keeps from seeing it (`attack.attackerHidden`).
+Blinded and Invisible keep their own, so an Invisible creature in Darkness is one source, not two.
+
+Live (two browsers, 14.369), Dagger from QA Caster in torchlight at the Bandit Captain:
+- **Captain in a darkness light, 15 ft radius, covering both:** with Darkvision it rolled 1d20 (neither sees the
+  other, so they cancel); with Devil's Sight 2d20kh (only the Captain is blind).
+- **Darkness only on the Captain:** the same, because a creature inside magical Darkness can't see out.
+- Darkness gave no Total Cover.
 
 **Conversion.**
 - **Creatures:** `senses.ranges`.

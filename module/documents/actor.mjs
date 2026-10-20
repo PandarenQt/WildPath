@@ -912,7 +912,8 @@ function tokensOf(actor) {
 
 /**
  * Grants count from active features and gear (those a transformation keeps) and enabled effects. Armor worn without
- * its training adds Disadvantage on Might and Agility attack rolls, saves and checks (2024).
+ * its training adds Disadvantage on Might and Agility attack rolls, saves and checks (2024). Every creature has the
+ * unseen rules (UNSEEN).
  */
 function grantOwners(actor) {
   const transformation = actor.transformation;
@@ -923,8 +924,21 @@ function grantOwners(actor) {
   const effects = [...(actor.allApplicableEffects?.() ?? actor.effects)].filter(effect => !effect.disabled && !effect.isSuppressed)
     .map(effect => ({ruleElements: effect.system?.ruleElements ?? [], source: documentRuleElementSource(effect, "effect")}));
   const hindering = untrained.find(item => item.system.armor !== "shield");
-  return [...items, ...effects, ...(hindering ? [{ruleElements: [UNTRAINED_ARMOR], source: documentRuleElementSource(hindering, "item")}] : [])];
+  return [...items, ...effects, ...(hindering ? [{ruleElements: [UNTRAINED_ARMOR], source: documentRuleElementSource(hindering, "item")}] : []),
+    {ruleElements: UNSEEN, source: {type: "rule", uuid: null, id: "unseen", name: "Unseen"}}];
 }
+
+/**
+ * 2024 Unseen Attackers and Targets, where light hides a creature (darkness, magical Darkness: `attack.targetHidden`,
+ * `attack.attackerHidden`, adapters/foundry-v14-senses.mts): Disadvantage attacking a target it can't see, Advantage
+ * attacking one that can't see it. Blinded and Invisible give their own (config.mjs).
+ */
+const UNSEEN = Object.freeze([
+  Object.freeze({schemaVersion: 1, id: "unseen.target", type: "RollMode", data: {mode: "disadvantage", domains: ["attack"]},
+    predicate: {equals: {path: "attack.targetHidden", value: true}}}),
+  Object.freeze({schemaVersion: 1, id: "unseen.attacker", type: "RollMode", data: {mode: "advantage", domains: ["attack"]},
+    predicate: {equals: {path: "attack.attackerHidden", value: true}}})
+]);
 
 /** 2024: armor worn without training gives Disadvantage on D20 Tests with Might or Agility. */
 const UNTRAINED_ARMOR = Object.freeze({schemaVersion: 1, id: "untrained-armor", type: "RollMode", data: {mode: "disadvantage",
