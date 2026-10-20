@@ -173,6 +173,8 @@ export function actionDefinitionField() {
     moveArea: new ObjectField({nullable: true, initial: null}),
     // Teleports its own creature up to `distance` feet to a space it chooses (Misty Step): {distance}.
     teleport: new ObjectField({nullable: true, initial: null}),
+    // Enchants one of its creature's Items (an infusion; inventory.md): {choiceId, key, limit?, effects}.
+    enchant: new ObjectField({nullable: true, initial: null}),
     // Makes each dying target stable when the Action completes (dying-and-death.md); a check gates it like an effect.
     stabilize: new BooleanField({required: true, initial: false}),
     // A reaction whose target failing its save cancels the Action that triggered it (Counterspell; reactions.md).

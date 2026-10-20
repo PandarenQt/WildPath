@@ -59,6 +59,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       toggleEffect: WildPathActorSheet.#onToggleEffect,
       toggleEquipped: WildPathActorSheet.#onToggleEquipped,
       toggleAttuned: WildPathActorSheet.#onToggleAttuned,
+      endEnchantment: WildPathActorSheet.#onEndEnchantment,
       levelUp: WildPathActorSheet.#onLevelUp,
       abilityScores: WildPathActorSheet.#onAbilityScores,
       togglePrepared: WildPathActorSheet.#onTogglePrepared,
@@ -114,6 +115,9 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       granted: [...named(key, (this.actor.system.training?.[key] ?? []).filter(name => !(own.training?.[key] ?? []).includes(name))),
         ...grants(key)].join(", ")}));
     context.typeLabel = CONFIG.Actor.typeLabels?.[this.actor.type] ?? this.actor.type;
+    // An Item's enchantments (an Artificer's infusions), each of which can be ended.
+    for ( const row of context.gearItems ?? [] ) row.enchantments = [...(this.actor.items.get(row.id)?.effects ?? [])]
+      .filter(effect => effect.flags?.wildpath?.enchantment).map(effect => ({id: effect.id, name: effect.name}));
     // A Diviner's foretelling rolls not yet used (Portent).
     context.portent = portentFeature(this.actor) ? portentDice(this.actor).map(die => die.value).join(", ") : "";
     // A "Level up" button per class while the character is below level 20 (G8).
@@ -169,6 +173,11 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
   async _onDropItem(event, item) {
     const moved = item.parent?.uuid === this.actor.uuid;
     const created = await super._onDropItem(event, item);
+    // An enchanted Item (an infusion) handed over from another creature this user owns moves, not copies: two copies
+    // would both count against its creator's limit.
+    const from = item.parent;
+    if ( created && !moved && (from?.documentName === "Actor") && from.isOwner
+      && [...(item.effects ?? [])].some(effect => effect.flags?.wildpath?.enchantment) ) await item.delete();
     if ( created && !moved && LEVELLED.has(created.type) ) {
       await levelUp(this.actor, created, {level: created.type === "class" ? (Number(created.system.levels) || 1) : 0});
     }
@@ -321,6 +330,12 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
   }
 
   /** 2024: a creature is attuned to at most three magic items at once. */
+  /** End one of an Item's enchantments (an infusion): only its own rules go. */
+  static async #onEndEnchantment(event, target) {
+    const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
+    await item?.effects?.get(target.dataset.effectId)?.delete();
+  }
+
   static async #onToggleAttuned(event, target) {
     const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
     if ( !item ) return;

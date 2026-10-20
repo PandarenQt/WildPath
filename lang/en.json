@@ -1002,6 +1002,7 @@
       "Attuned": "Attuned",
       "NotAttuned": "Not attuned",
       "AttunementHint": "This magic item gives its benefits only while you are attuned to it (and, for gear, while it is equipped).",
+      "EndEnchantment": "End this enchantment",
       "AttuneLimit": "You can be attuned to at most three magic items. End an attunement first.",
       "Quantity": "Quantity",
       "Weight": "{weight} lb. each",

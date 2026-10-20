@@ -141,3 +141,37 @@ future UI:
 - containment edges
 - internal weight per space
 - actor weight trace when an actor context is supplied
+
+## Item enchantments (2026-10-20)
+
+An Action with `enchant` puts an effect on one of its creature's Items: an Artificer's infusions, from Tasha's, through
+the local book module.
+- **Choosing the Item.** Its configuration has a `gear` choice (`optionsFrom: {type: "gear", kinds}`). It lists the
+  creature's weapons (gear granting an attack, or a weapon that is its own attack Action, as an SRD Dagger is), armor,
+  Shields, or any of these.
+- **The effect.** The active GM creates it on that Item once the Action completes
+  (`adapters/foundry-v14-enchantments.mts`).
+  - It is `transfer: true`, so whoever holds the Item has its rules. A copy given to another creature keeps them.
+  - It counts only while the Item does: equipped, and attuned when it needs it (`WildPathActiveEffect#isSuppressed`).
+  - `{{host}}` in its rules becomes that Item's id when they are read (`hostedRules`). A weapon's bonus is therefore
+    `weapon:{{host}}`, that weapon's attacks alone.
+- **Level and limit.**
+  - Its creature's class level picks the effect: Enhanced Weapon is +1, and +2 from artificer level 10.
+  - `flags.wildpath.enchantment {key, creatorRef, at}` names its creator. A new one with the same key replaces the
+    Item's.
+  - Past `limit` (Infuse Item's infused-items table), the creator's oldest end, wherever their Items now are.
+- **On the sheet.** An inventory row lists the Item's enchantments, each with an End control. An enchanted Item dropped
+  from another creature its user owns is moved, not copied.
+- **Converter** (`itemEnchantDefinition`):
+  - A dnd5e enchant activity's `system.magicalBonus` becomes an attack and damage Modifier on `weapon:{{host}}`, and
+    `system.armor.magicalBonus` becomes AC.
+  - "+2 when you reach 10th level" sets the level ranges.
+  - The Item whose uses it spends (Infuse Item) is its limit and key.
+  - shortcut: riders (Radiant Weapon's reaction), the new name and attunement are by hand.
+
+Live (two browsers, 14.369):
+- QA Caster used the converted Enhanced Weapon on its Dagger: attack +2 → +3, damage +0 → +1. Its Longsword was
+  unchanged.
+- A copy given to QA Fighter kept the +1.
+- With no Artificer levels (a limit of 1), infusing the Longsword ended both Dagger infusions.
+- An effect on the unequipped Shield gave nothing (AC 10); equipped, AC was 13 (Shield +2, effect +1).

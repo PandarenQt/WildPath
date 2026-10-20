@@ -258,6 +258,60 @@ const ENCHANTS = Object.freeze({
     rules: ["attack", "damage"].flatMap(domain => swap({type: "spellcasting-modifier"}, domain))}
 });
 
+/** The class whose level an enchantment of this kind reads (Tasha's infusions: "when you reach 10th level in this class"). */
+const SUBTYPE_CLASS = Object.freeze({artificerInfusion: "artificer"});
+
+/**
+ * What a dnd5e enchantment changes on its Item, as rules for whoever holds it: a weapon's magical bonus on attack and
+ * damage rolls with that weapon (`weapon:{{host}}`, bound to the Item: hostedRules), armor's or a Shield's on AC.
+ * Its name, description, properties and attunement are left out.
+ */
+function enchantmentRules(effect) {
+  const id = slugify(effect.name);
+  return (effect.changes ?? effect.system?.changes ?? []).flatMap(change => {
+    const value = number(change.value);
+    if ( !value || (change.type !== "add") ) return [];
+    if ( change.key === "system.magicalBonus" ) return ["attack", "damage"].map(domain => ({schemaVersion: 1, id: `${id}-${domain}`,
+      type: "Modifier", data: {domains: [domain], modifierType: "untyped", value}, predicate: {tagsAny: ["weapon:{{host}}"]}}));
+    if ( change.key === "system.armor.magicalBonus" ) return [{schemaVersion: 1, id: `${id}-ac`, type: "Modifier",
+      data: {domains: ["defense.ac"], modifierType: "untyped", value}}];
+    return [];
+  });
+}
+
+/**
+ * An enchantment of one of its creature's Items (Tasha's infusions): when used its creature picks one of its own Items of
+ * the kinds it suits (`gear` choice), and that Item gets the effect for its creature's level. "The bonus increases to +2
+ * when you reach 10th level in this class": its "+2" effect from that level, the other below it. The Item whose uses it
+ * spends (Infuse Item) is its limit and key: past it, the oldest ends (adapters/foundry-v14-enchantments).
+ * shortcut: its riders (Radiant Weapon's reaction), the Item's new name and attunement are by hand. Null when nothing it
+ * changes is a rule.
+ */
+function itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf={}, scales={}}) {
+  const sources = (activity.effects ?? []).map(ref => (document.effects ?? []).find(effect => effect._id === ref._id)).filter(Boolean);
+  const effects = sources.map(effect => ({name: effect.name, ...(effect.img ? {img: effect.img} : {}), ruleElements: enchantmentRules(effect)}))
+    .filter(effect => effect.ruleElements.length);
+  if ( !effects.length ) return null;
+  const raised = /increases to \+(\d+) when you reach (\d+)(?:st|nd|rd|th) level/i.exec(plainText(document));
+  const levelClass = SUBTYPE_CLASS[system.type?.subtype] ?? null;
+  if ( raised && (effects.length > 1) ) for ( const effect of effects ) {
+    const at = Number(raised[2]);
+    effect.level = {...(/\+\d+$/.test(effect.name) ? {min: at} : {max: at - 1}), ...(levelClass ? {class: levelClass} : {})};
+    effect.name = effect.name.replace(/\s*\+\d+$/, "");
+  }
+  // What it suits: a weapon (`restrictions.type`), armor and Shields (its AC bonus), else any Item.
+  const kinds = (activity.restrictions?.type === "weapon") ? ["weapon"]
+    : effects.some(effect => effect.ruleElements.some(rule => rule.data.domains.includes("defense.ac"))) ? ["armor", "shield"] : [];
+  const limited = (activity.consumption?.targets ?? []).find(target => (target.type === "itemUses") && target.target);
+  const limitId = limited ? String(limited.target).split(".").pop() : null;
+  const limit = (limitId && usesOf[limitId]) ? formulaExpression(String(usesOf[limitId]), {scales}) : null;
+  const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool, scales});
+  return {...definition, range: {type: "self"}, targeting: {type: "self"},
+    configuration: [...(definition.configuration ?? []), {id: "item", type: "select-one", label: "Item", required: true, options: [],
+      optionsFrom: {type: "gear", kinds}}],
+    enchant: {choiceId: "item", key: limitId ?? identifierOf(document), ...(limit ? {limit} : {}), effects}};
+}
+
 /** An enchantment's Action: its cost (and slot), a choice of its creature's weapon, and the effect on it. */
 function enchantDefinition({document, activity, system, spell, level, pool, enchant}) {
   const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool});
@@ -928,7 +982,7 @@ export function upgradeLegacy(document) {
  * @returns {{ok: true, items: object[], notes: string[]} | {ok: false, reason: string}}
  */
 export function convertItem(document, {scales={}, pack=null, saveDC=null, spellDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2",
-  images=["icons/"], spells={}, creatures={}, beasts=[]}={}) {
+  images=["icons/"], spells={}, creatures={}, beasts=[], usesOf={}}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   document = upgradeLegacy(document);
   const system = document.system ?? {};
@@ -1017,7 +1071,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts})
         : ((activity.type === "teleport") ? teleportDefinition({document, activity, system, spell, level, notes, pool})
           : ((activity.type === "transform") ? wildShapeDefinition({document, activity, system, spell, level, notes, pool, beasts})
-            : (enchant ? enchantDefinition({document, activity, system, spell, level, pool, enchant}) : null)))));
+            : (enchant ? enchantDefinition({document, activity, system, spell, level, pool, enchant})
+              : ((activity.type === "enchant") ? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales})
+                : null))))));
     if ( !definition ) {
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type})`}: using it spends its cost; its description says the rest`);
@@ -1217,8 +1273,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Its training is its flag (`flags.wildpath.training`), no longer a note.
     if ( trainingKeys(document).length ) allNotes.splice(0, allNotes.length, ...allNotes.filter(note => !/traits\.(armorProf|weaponProf|languages)/.test(note)));
     items.push({_id: document._id, _key: `!items!${document._id}`, name: document.name, type: "feature", img,
-      // Portent's dnd5e use count is no pool: its dice are (portentDice).
-      system: {active: true, description, ruleElements: [(identifierOf(document) === "portent") ? null : pool?.rule,
+      // Portent's and Infuse Item's dnd5e use counts are no pool: its dice are (portentDice), and its limit is the
+      // enchantments' (itemEnchantDefinition).
+      system: {active: true, description, ruleElements: [["portent", "infuse-item"].includes(identifierOf(document)) ? null : pool?.rule,
         ...(trait?.rules ?? []), ...initiativeRules,
         // A paladin's aura is what it grants those around it, not what its dnd5e effect gives the paladin alone.
         ...(PALADIN_AURAS[identifierOf(document)] ? [paladinAura(identifierOf(document))] : passive),

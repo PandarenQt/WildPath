@@ -139,6 +139,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     ...(raw.moveArea ? {moveArea: normalizePlainComponent(raw.moveArea)} : {}),
     // Teleports its own creature up to `distance` feet to a space it chooses (Misty Step, Dimension Door).
     ...(raw.teleport ? {teleport: normalizePlainComponent(raw.teleport)} : {}),
+    // Enchants one of its creature's Items (an Artificer's infusion: inventory.md): the Item its `choiceId` choice picked
+    // gets the effect whose `level` range holds its creature's class level; at most `limit` with its `key` at once.
+    ...(raw.enchant ? {enchant: normalizePlainComponent(raw.enchant)} : {}),
     ...(raw.stabilize === true ? {stabilize: true} : {}),
     // A reaction whose target failing its save cancels the Action that triggered it (2024 Counterspell).
     ...(raw.counters === true ? {counters: true} : {}),
@@ -202,6 +205,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "concentration.duration.units", `Unknown duration unit: ${concentrationUnits}`));
   }
   validateSummon(definition.summon, errors);
+  validateEnchant(definition.enchant, errors);
   validatePush(definition.push, errors);
   if ( definition.teleport && !(Number(definition.teleport.distance) > 0) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "teleport.distance", "A teleport goes a positive number of feet."));
@@ -307,10 +311,11 @@ export function actionDefinitionFromItem(item, options={}) {
  */
 function withOwnWeapons(raw, actor) {
   const choices = raw?.configuration;
-  if ( !Array.isArray(choices) || !choices.some(choice => choice?.optionsFrom?.type === "weapons") ) return raw;
+  if ( !Array.isArray(choices) || !choices.some(choice => ["weapons", "gear"].includes(choice?.optionsFrom?.type)) ) return raw;
   const items = [...(actor?.items ?? [])];
   const attacks = items.filter(item => (item.type === "action") && item.system?.definition?.attack?.weapon);
   return {...raw, configuration: choices.map(choice => {
+    if ( choice?.optionsFrom?.type === "gear" ) return {...choice, options: ownGear(items, attacks, choice.optionsFrom.kinds)};
     if ( choice?.optionsFrom?.type !== "weapons" ) return choice;
     const {melee=false, bases=[]} = choice.optionsFrom;
     const options = new Map();
@@ -322,6 +327,22 @@ function withOwnWeapons(raw, actor) {
     }
     return {...choice, options: [...options.values()]};
   })};
+}
+
+/**
+ * Its creature's Items of the given kinds, by Item id: what an Item enchantment (an infusion) may pick. `weapon`: each
+ * weapon, as its attack names it (`weapon:<id>`: the gear granting the attack, else the attack's own Action, as an SRD
+ * Dagger is); `armor`; `shield`; none: any of its gear and weapons.
+ */
+function ownGear(items, attacks, kinds=[]) {
+  const weapons = new Map();
+  for ( const action of attacks ) {
+    const id = action.flags?.wildpath?.grantedBy ?? action.id;
+    if ( !weapons.has(id) ) weapons.set(id, items.find(item => item.id === id) ?? action);
+  }
+  const kindOf = item => (weapons.has(item.id) ? "weapon" : (item.system?.armor === "shield") ? "shield" : item.system?.armor ? "armor" : "other");
+  return [...new Set([...weapons.values(), ...items.filter(item => item.type === "gear")])]
+    .filter(item => !kinds?.length || kinds.includes(kindOf(item))).map(item => ({id: item.id, value: item.id, label: item.name}));
 }
 
 /**
@@ -691,6 +712,15 @@ function validateTransform(transform, errors) {
     && transform.choiceId, transform.revert === true].filter(Boolean);
   if ( named.length !== 1 ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "transform",
     "A transform names exactly one of formRef, choiceId or revert."));
+}
+
+function validateEnchant(enchant, errors) {
+  if ( !enchant ) return;
+  if ( (typeof enchant.choiceId !== "string") || !enchant.choiceId ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION,
+    "enchant.choiceId", "An enchantment names the choice that picks its Item."));
+  if ( !Array.isArray(enchant.effects) || !enchant.effects.length || enchant.effects.some(effect => !Array.isArray(effect?.ruleElements)) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "enchant.effects", "An enchantment has effects, each with its rules."));
+  }
 }
 
 function validateSummon(summon, errors) {

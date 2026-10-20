@@ -52,7 +52,11 @@ const creatures = Object.fromEntries([
 // The Beasts Polymorph may choose: the SRD's and the book's own.
 const beasts = beastsOf([...srdDocuments.filter(isSrd2024), ...(manifest.packs ?? []).filter(pack => pack.type === "Actor").flatMap(documents)],
   document => creatures[document._id]).filter(beast => beast.uuid);
-const options = {scales, names, licensed: () => true, book: manifest.title, images: ["icons/", `modules/${moduleId}/`], spells, creatures, beasts};
+// Each document's uses by id (a formula): an enchantment's limit is the uses of the Item it spends (Infuse Item).
+const usesOf = Object.fromEntries(all.filter(document => (typeof document.system?.uses?.max === "string") && document.system.uses.max)
+  .map(document => [document._id, document.system.uses.max]));
+const options = {scales, names, licensed: () => true, book: manifest.title, images: ["icons/", `modules/${moduleId}/`], spells, creatures, beasts,
+  usesOf};
 
 const items = [];
 const actors = [];
