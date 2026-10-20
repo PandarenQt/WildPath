@@ -2,7 +2,7 @@
  * The level-up dialog (G8, BG3-style): one form for what a class level (with its subclass's), a species or a
  * background asks; what it grants is added without asking. The rules are helpers/level-up.mts.
  */
-import {hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, poolOptions, sourceGate} from "../helpers/level-up.mjs";
+import {choiceOptions, hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, poolOptions, sourceGate} from "../helpers/level-up.mjs";
 import type {AdvancementEntry, LevelStep} from "../helpers/level-up.mjs";
 import {hitDiePoolId} from "../helpers/spellcasting.mjs";
 import {actorAbilityModifier} from "../helpers/combat-statistics.mjs";
@@ -17,7 +17,7 @@ export interface LevelItem {id: string; name: string; type: string; system: Prog
 export interface LevelActor {
   name: string; system: Data & {abilities?: Record<string, {value?: number}>; skills?: Record<string, {proficiency?: number}>;
     training?: Record<string, string[]>; resources: {health: {base: number; value: number}}};
-  items: {filter(fn: (item: LevelItem) => boolean): LevelItem[]};
+  items: {filter(fn: (item: LevelItem) => boolean): LevelItem[]; get?(id: string): {update(data: Data): Promise<unknown>} | undefined};
   toObject(source?: boolean): {system: {pools: Array<{id: string; value: number}>}};
   update(data: Data): Promise<unknown>;
   recordsSettled?(): Promise<void>;
@@ -94,10 +94,14 @@ function stepHtml(step: LevelStep, index: number, actor: LevelActor, view: View)
         : `<div class="level-up-option">${escape(nameOf(uuid))}</div>`)).join("")}</fieldset>`;
     }
     case "choice": {
-      const items = entry.items ?? [];
-      if ( !items.length || !entry.count ) return "";
-      return `<fieldset data-count="${entry.count}">${legend}<p class="hint">${format("WILDPATH.LEVELUP.Choose", {count: entry.count})}</p>
-        ${items.map(uuid => checkbox(name, uuid, nameOf(uuid))).join("")}</fieldset>`;
+      // Not what it already has; one it has may be replaced where the class allows it (Fighting Style, Invocations).
+      const {options, owned} = choiceOptions(entry.items ?? [], actor.items.filter(() => true) as unknown as Parameters<typeof choiceOptions>[1]);
+      const replace = (entry.replacement && owned.length) ? `<label>${localize("WILDPATH.LEVELUP.Replace")} <select name="${name}.replace" data-replace>
+        <option value="">${localize("WILDPATH.LEVELUP.ReplaceNone")}</option>${owned.map(item => `<option value="${escape(item.id)}">${
+          escape(item.name)}</option>`).join("")}</select></label>` : "";
+      if ( !options.length || (!entry.count && !replace) ) return "";
+      return `<fieldset data-count="${entry.count ?? 0}">${legend}<p class="hint">${format("WILDPATH.LEVELUP.Choose", {count: entry.count ?? 0})}</p>
+        ${replace}${options.map(uuid => checkbox(name, uuid, nameOf(uuid))).join("")}</fieldset>`;
     }
     case "trait": {
       const skills = Object.keys(globals().CONFIG.WILDPATH.SKILLS);
@@ -143,11 +147,16 @@ function watchForm(form: HTMLFormElement, ok: HTMLButtonElement | null) {
     let valid = true;
     const given = new Set([...form.querySelectorAll<HTMLElement>("[data-key]")].map(element => element.dataset.key)
       .concat([...form.querySelectorAll<HTMLInputElement>("input[type=checkbox]:checked:not([data-needs])")].map(box => box.value)));
-    const blocked = (box: HTMLInputElement) => !!box.dataset.needs && !given.has(box.dataset.needs);
+    // One option is picked once: a Fighting Style in its own step or in a subclass's other one.
+    const chosen = (box: HTMLInputElement) => [...form.querySelectorAll<HTMLInputElement>("input[type=checkbox]:checked")]
+      .some(other => (other !== box) && (other.value === box.value) && (other.name !== box.name));
+    const blocked = (box: HTMLInputElement) => (!!box.dataset.needs && !given.has(box.dataset.needs)) || (!box.checked && chosen(box));
     for ( const group of form.querySelectorAll<HTMLElement>("[data-count]") ) {
       const boxes = [...group.querySelectorAll<HTMLInputElement>(":scope > label > input[type=checkbox]")];
       for ( const box of boxes ) if ( blocked(box) ) box.checked = false;
-      const wanted = Math.min(Number(group.dataset.count) || 0, boxes.filter(box => !blocked(box)).length);
+      // Replacing one it has picks one more in its place.
+      const replacing = group.querySelector<HTMLSelectElement>(":scope > label > select[data-replace]")?.value ? 1 : 0;
+      const wanted = Math.min((Number(group.dataset.count) || 0) + replacing, boxes.filter(box => !blocked(box)).length);
       const checked = boxes.filter(box => box.checked).length;
       for ( const box of boxes ) box.disabled = blocked(box) || (!box.checked && (checked >= wanted));
       valid &&= checked === wanted;
@@ -256,10 +265,15 @@ async function apply(actor: LevelActor, item: LevelItem, {level, steps, form, fi
   const abilities = Object.fromEntries(Object.entries(actor.system.abilities ?? {}).map(([key, ability]) => [key, {value: Number(ability.value) || 10}]));
   let size: string | null = null;
   let subclass: string | null = null;
+  const replaced: Array<{id: string; by: string[]}> = [];
   for ( const [index, {kind, entry, source}] of steps.entries() ) {
     const name = `s${index}`;
     if ( kind === "grant" ) uuids.push(...(entry.optional ? picked(name) : (entry.items ?? [])));
-    else if ( kind === "choice" ) uuids.push(...picked(name));
+    else if ( kind === "choice" ) {
+      uuids.push(...picked(name));
+      const old = picked(`${name}.replace`)[0];
+      if ( old ) replaced.push({id: old, by: picked(name)});
+    }
     else if ( kind === "trait" ) {
       const owner = (source as LevelItem | undefined) ?? item;
       traits.set(owner, [...(traits.get(owner) ?? []), ...(entry.grants ?? []), ...(entry.choices ?? []).flatMap((_choice, at) => picked(`${name}.${at}`))]);
@@ -316,6 +330,9 @@ async function apply(actor: LevelActor, item: LevelItem, {level, steps, form, fi
   await actor.update(updates);
   if ( footprint ) await Promise.all(actor.getActiveTokens(false, true).map(token => token.update({width: footprint, height: footprint})));
   await addItems(actor, uuids, item);
+  // What it replaced stays, inactive, as its history: its rules, training and Actions stop (it can be switched back).
+  for ( const {id, by} of replaced ) await actor.items.get?.(id)?.update({"system.active": false,
+    "flags.wildpath.replaced": {atLevel: level, by}});
   if ( subclass ) {
     const [created] = await addItems(actor, [subclass], item);
     if ( created ) await levelUp(actor, created, {level, confirm: false});

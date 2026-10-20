@@ -709,6 +709,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     reason: `${actor.name} was Commanded to flee: only Dash or Disengage.`
   };
   // A magic item's Action (a wand's spell) needs its item equipped and, when it needs attunement, attuned (2024).
+  // An Action it replaced (inactive: an Invocation, a Maneuver) is not used.
+  if ( !authorityAction && (action.system?.active === false) ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: game.i18n?.format?.("WILDPATH.LEVELUP.Replaced", {name: action.name ?? ""}) ?? `${action.name} was replaced.`};
   const grantedBy = action.flags?.wildpath?.grantedBy ? actor.items?.get?.(action.flags.wildpath.grantedBy) : null;
   if ( !authorityAction && grantedBy && ((grantedBy.system?.active === false) || (grantedBy.system?.attunement === "required")) ) return {
     ok: false,

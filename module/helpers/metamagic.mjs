@@ -25,7 +25,9 @@ export function durationSeconds(duration) {
 const ORDER = Object.freeze(["quickened", "twinned", "transmuted", "distant", "extended", "heightened", "careful", "subtle"]);
 /** The Metamagic options its creature knows. */
 export function knownMetamagic(actor) {
-    return new Set([...(actor?.items ?? [])].map((item) => item?.flags?.wildpath?.metamagic).filter(Boolean));
+    // An option it replaced (inactive) is no longer known.
+    return new Set([...(actor?.items ?? [])].filter((item) => item?.system?.active !== false)
+        .map((item) => item?.flags?.wildpath?.metamagic).filter(Boolean));
 }
 /** A spell Action's definition with a "Metamagic" choice, for a creature that knows options and has Sorcery Points. */
 export function withMetamagic(raw, actor) {
