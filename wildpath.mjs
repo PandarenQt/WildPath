@@ -1,6 +1,7 @@
 import {WILDPATH} from "./module/config.mjs";
 import {registerFoundryV14ConditionStatuses} from "./module/adapters/foundry-v14-status-effects-adapter.mjs";
 import {registerBlindsight, registerDarknessSight} from "./module/adapters/foundry-v14-senses.mjs";
+import {registerLanguages} from "./module/applications/languages.mjs";
 import {registerTokenRuler} from "./module/applications/token-ruler.mjs";
 import {registerSunlightConfig} from "./module/applications/sunlight-config.mjs";
 import {registerChatCardInteractions} from "./module/adapters/foundry-v14-chat-card-interactions.mjs";
@@ -61,6 +62,8 @@ Hooks.once("init", () => {
   CONFIG.specialStatusEffects.BLIND = "blinded";
   registerBlindsight(CONFIG, foundry);
   registerDarknessSight(CONFIG);
+  // Language text: tagged passages read plainly or in their script, by reader (applications/languages.mts).
+  registerLanguages();
 
   // Actor data models
   CONFIG.Actor.dataModels = {

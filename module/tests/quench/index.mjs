@@ -11,6 +11,7 @@ import {registerMultiplayerDisclosureTests} from "./multiplayer-disclosure.mjs";
 import {registerActionResultTests} from "./action-results.mjs";
 import {registerRepresentativeActionTests} from "./representative-actions.mjs";
 import {registerAreaTests} from "./areas.mjs";
+import {registerLanguageTests} from "./languages.mjs";
 
 Hooks.on("quenchReady", quench => {
   registerRuntimeSmokeTests(quench);
@@ -25,4 +26,5 @@ Hooks.on("quenchReady", quench => {
   registerActionResultTests(quench);
   registerRepresentativeActionTests(quench);
   registerAreaTests(quench);
+  registerLanguageTests(quench);
 });

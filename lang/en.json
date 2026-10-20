@@ -123,7 +123,10 @@
       "beasts": "Beasts",
       "Ranged": "{language} {range} ft.",
       "Spoken": "spoken",
-      "Bond": "bonded"
+      "Bond": "bonded",
+      "Tag": "Language",
+      "Fonts": "Fonts for languages",
+      "FontsHint": "A font for a language its reader doesn't know, instead of its script, as language=font pairs (dwarvish=Dethek; elvish=Tengwar Annatar). Add the font files first, under Additional Fonts."
     },
     "COVER": {
       "half": "Half cover",
