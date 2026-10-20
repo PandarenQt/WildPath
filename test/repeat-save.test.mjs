@@ -114,3 +114,16 @@ test("test offers (SRD): Peerless Skill's Bardic Inspiration die on a check or a
   const lucky = withTestOffers(null, roller, {...system, pools: [{id: "dark-one-s-own-luck", value: 1, max: 2}]}, null, "save");
   assert.deepEqual(lucky.options.map(option => option.addDice.faces), [10]);
 });
+
+test("zeroHpFor (SRD Relentless Rage): while raging, DC 10 + 5 a use spent, 2x its barbarian level, a use paid", async () => {
+  const fs = await import("node:fs");
+  const {zeroHpFor} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const item = JSON.parse(fs.readFileSync("packs/_source/srd-items/relentless-rage-phbbrbRelentless.json", "utf8"));
+  const barbarian = (statuses, value) => ({uuid: "Actor.barb", statuses: new Set(statuses),
+    items: [{id: item._id, name: item.name, system: item.system}]});
+  const system = value => ({classes: [{id: "barbarian", level: 11}], resources: {}, pools: [{id: "relentless-rage", value, max: 20}]});
+  assert.equal(zeroHpFor(barbarian([], 20), system(20)), null, "not raging");
+  const first = zeroHpFor(barbarian(["raging"]), system(20));
+  assert.deepEqual([first.mode, first.dc, first.hitPoints, first.payment.payerRef], ["save", 10, 22, "Actor.barb"]);
+  assert.equal(zeroHpFor(barbarian(["raging"]), system(18)).dc, 20, "two uses spent");
+});

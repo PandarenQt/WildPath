@@ -80,6 +80,7 @@ import {
   shouldResolveTargets
 } from "./action-resolver.mjs";
 import {resolveActorResourcePayment, withResourceRestores} from "./resource-resolver.mjs";
+import {createActorHealingMutationPlan} from "./durability-resolver.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
 import {resolveAttackTargets} from "./attack-resolver.mjs";
@@ -1777,7 +1778,7 @@ function createDamageStage() {
         });
       }
 
-      const durabilityResolution = resolveDamageDurability({
+      let durabilityResolution = resolveDamageDurability({
         damage: input.damage,
         durability: input.durability,
         damageResolution,
@@ -1795,14 +1796,20 @@ function createDamageStage() {
         });
       }
 
+      // A creature it would drop to 0 Hit Points may stay up (Relentless Endurance, Relentless Rage, Undead Fortitude),
+      // and dropping one may reward its source (Dark One's Blessing).
+      const zero = zeroHpOutcomes(state, input, durabilityResolution);
+      if ( zero.wait || zero.fail ) return zero.wait ?? zero.fail;
+      durabilityResolution = zero.durabilityResolution;
       actionResult = addResolutionStep(actionResult, {
         stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
         consequences: [{
           type: "damageResolved",
           damageResolution,
-          ...(durabilityResolution ? {durabilityResolution} : {})
+          ...(durabilityResolution ? {durabilityResolution} : {}),
+          ...(zero.records.length ? {zeroHp: zero.records} : {})
         }],
-        mutationPlans: [...(durabilityResolution?.mutationPlans ?? []), ...onceUsePlans(input.damage, damageResolution)],
+        mutationPlans: [...(durabilityResolution?.mutationPlans ?? []), ...zero.plans, ...onceUsePlans(input.damage, damageResolution)],
         data: {
           damageResolution,
           ...(durabilityResolution ? {durabilityResolution} : {})
@@ -1810,10 +1817,11 @@ function createDamageStage() {
       });
 
       return continueResolutionStage({
-        state: stateWithActionResult(state, {
-          input,
+        state: stateWithActionResult(zero.state, {
+          input: {...input, ...(zero.rolled ? {zeroHpRolled: zero.rolled} : {})},
           actionResult,
-          results: {damageResolution, ...(durabilityResolution ? {damageDurabilityResolution: durabilityResolution} : {})}
+          results: {damageResolution, ...(durabilityResolution ? {damageDurabilityResolution: durabilityResolution} : {}),
+            ...(zero.records.length ? {zeroHp: zero.records} : {})}
         }),
         data: {
           resultCount: damageResolution.results.length,
@@ -2080,6 +2088,117 @@ function createConcentrationStage() {
         data: {checkCount: planningChecks.checkRequests.length, endedEffects: mutationPlans.length}
       });
     }
+  });
+}
+
+/**
+ * A creature the damage would drop to 0 Hit Points from above, not by massive damage, with a rule keeping it up
+ * (`durability.zeroHpByTarget`, worked out by the runtime): `set` keeps it at its hit points for a use (Relentless
+ * Endurance); `save` asks its controller for a save, as concentration does, so the dice policy prompts or rolls it (DC:
+ * its own, or `dcPlusDamage` + the damage: Undead Fortitude, which radiant damage or a critical hit bars). A use it pays
+ * is paid on every attempt (Relentless Rage's DC rises). A creature still at 0 and hostile to the source gives it its
+ * reward (`durability.onReduce`: Dark One's Blessing's Temporary Hit Points), once.
+ * @returns {{durabilityResolution, plans, records, state, rolled}|{wait}|{fail}}
+ */
+function zeroHpOutcomes(state, input, durabilityResolution) {
+  const byTarget = input.durability?.zeroHpByTarget ?? {};
+  const onReduce = input.durability?.onReduce ?? null;
+  const entries = durabilityResolution?.mutationPlans ?? [];
+  const none = {durabilityResolution, plans: [], records: [], state, rolled: null};
+  if ( !entries.length || (!Object.keys(byTarget).length && !onReduce) ) return none;
+  const critical = new Set((state.results?.attackResolution?.hits ?? []).filter(hit => hit.outcome === "criticalHit")
+    .map(hit => rollModeTargetKey(hit.target)));
+  const rolled = {...(input.zeroHpRolled ?? {})};
+  let current = state;
+  const plans = [];
+  const records = [];
+  let rewarded = false;
+  const mutationPlans = [];
+  for ( const entry of entries ) {
+    const plan = entry.plan;
+    if ( (entry.type !== "durabilityDamage") || !plan || !(plan.from > 0) || (plan.to !== 0)
+      || ((Number(plan.overflow) || 0) >= (Number(plan.max) || 0)) ) {
+      mutationPlans.push(entry);
+      continue;
+    }
+    const key = rollModeTargetKey(entry.target);
+    const rule = byTarget[key];
+    const byType = plan.metadata?.damageResult?.byDamageType ?? {};
+    const barred = (rule?.notOn ?? []).some(reason => ((reason === "critical") ? critical.has(key) : (Number(byType[reason]) > 0)));
+    let kept = false;
+    if ( rule && !barred ) {
+      if ( rule.mode === "save" ) {
+        if ( !rolled[key] ) {
+          const requestId = requestIdFor(current, `zero-hp:${key}`);
+          const accepted = getResolutionResponse(current, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
+          const rollRequest = accepted?.request?.payload?.rollRequest ?? zeroHpRollRequest(current, entry.target, rule, requestId);
+          if ( !accepted ) return {wait: waitResolutionStage({
+            state: updateResolutionState(current, {input: {...input, zeroHpRolled: rolled},
+              rollRequests: appendRollRequest(current.rollRequests, rollRequest)}),
+            request: createResolutionRequest({id: rollRequest.id, resolutionId: current.id, stageId: ACTION_PIPELINE_STAGE_IDS.DAMAGE,
+              type: RESOLUTION_REQUEST_TYPES.ROLL, expectedResponseType: "roll-result", chooser: rollRequest.chooser,
+              authority: rollRequest.authority, validation: {rollRequestId: rollRequest.id, semanticType: rollRequest.type,
+                requireNatural: rollRequest.expected.requireNatural, formula: rollFormulaForRequest(rollRequest).formula ?? null},
+              payload: {actionDefinitionId: current.actionDefinition?.id ?? null, rollKind: "zero-hp", rollRequest, targets: [entry.target]}}),
+            reason: `${rule.name}: a save is required before the damage is applied.`})};
+          const normalized = normalizeRollResponseValue(accepted.response.value, {request: rollRequest,
+            completedRequestIds: completedRollRequestIds(current)});
+          if ( !normalized.ok ) return {fail: failResolutionStage({state: current, code: normalized.code, reason: normalized.reason,
+            errors: [{code: normalized.code, reason: normalized.reason, requestId}], data: {requestId, rollRequest}})};
+          rolled[key] = {total: normalized.result.total, natural: normalized.result.natural};
+          current = updateResolutionState(current, {rollRequests: appendRollRequest(current.rollRequests, rollRequest),
+            rollResults: [...current.rollResults, {requestId: accepted.request.id, type: "zero-hp-roll", semanticType: normalized.result.type,
+              rollRequest, rollResult: normalized.result, roll: rollResultToResolverRoll(normalized.result), targetKey: key}]});
+        }
+        const dc = rule.dc ?? ((Number(rule.dcPlusDamage) || 0) + (Number(plan.amount) || 0));
+        kept = Number(rolled[key].total) >= dc;
+        records.push({targetKey: key, target: clonePlain(entry.target), name: rule.name, dc, total: rolled[key].total, kept,
+          hitPoints: kept ? rule.hitPoints : 0});
+      } else {
+        kept = true;
+        records.push({targetKey: key, target: clonePlain(entry.target), name: rule.name, kept, hitPoints: rule.hitPoints});
+      }
+      if ( rule.payment ) plans.push({type: "resourcePayment", resolver: "ResourceResolver", plan: rule.payment.plan,
+        payerRef: rule.payment.payerRef});
+    }
+    if ( kept ) {
+      const to = Math.min(rule.hitPoints, Number(plan.max) || rule.hitPoints);
+      mutationPlans.push({...entry, plan: {...plan, to, updates: {...plan.updates, [plan.path]: to}}});
+      continue;
+    }
+    mutationPlans.push(entry);
+    if ( onReduce && !rewarded && (!onReduce.hostileOnly || (onReduce.hostileKeys ?? []).includes(key)) ) {
+      rewarded = true;
+      const amount = Number(onReduce.temporaryHitPoints) || 0;
+      const reward = createActorHealingMutationPlan(input.actorSystem ?? {}, {healingResult: {total: amount,
+        byHealingType: {temporary: amount}}, target: input.source ?? null});
+      if ( reward?.ok ) {
+        plans.push({type: "durabilityHealing", resolver: "DurabilityResolver", targetRef: onReduce.sourceRef,
+          target: clonePlain(input.source ?? null), plan: reward});
+        records.push({targetKey: key, name: onReduce.name, temporaryHitPoints: amount});
+      }
+    }
+  }
+  return {durabilityResolution: {...durabilityResolution, mutationPlans}, plans, records, state: current,
+    rolled: Object.keys(rolled).length ? rolled : null};
+}
+
+/** The save a creature makes to stay up at 0 Hit Points (Relentless Rage, Undead Fortitude), asked of its controller. */
+function zeroHpRollRequest(state, target, rule, requestId) {
+  const bonus = Number.isFinite(rule.saveBonus) ? rule.saveBonus : null;
+  return createD20RollRequest({
+    id: requestId,
+    resolutionId: state.id,
+    type: ROLL_TYPES.SAVING_THROW,
+    modifier: bonus ?? 0,
+    modifiers: bonus == null ? [] : [{id: "save-modifier", value: bonus}],
+    ...(rule.rollMode ? {rollMode: rule.rollMode} : {}),
+    source: target,
+    target: state.source ?? null,
+    chooser: ROLL_AUTHORITY.TARGET_CONTROLLER,
+    authority: {kind: ROLL_AUTHORITY.TARGET_CONTROLLER},
+    expected: {validateTotalFromNatural: bonus != null, modifierTotal: bonus},
+    metadata: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: "zero-hp", ability: rule.ability}
   });
 }
 

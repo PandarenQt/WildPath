@@ -83,6 +83,7 @@
         "SaveSuccess": "Saved",
         "SaveFailure": "Failed save",
         "LegendaryResistance": "Legendary Resistance",
+        "StaysUp": "{name}: stays up",
         "Immune": "Immune",
         "CheckSuccess": "Check succeeded",
         "CheckFailure": "Check failed"

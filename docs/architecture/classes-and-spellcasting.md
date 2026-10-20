@@ -352,6 +352,21 @@ Wounds rolled "2d8 + 2d8 + 7": its Intelligence +3, plus 2 + 2. Sacred Flame on 
 With Empowered Evocation, Fire Bolt rolled "2d10 + 3" (Intelligence 16). After Elemental Affinity (Fire), with Presence
 14, QA Caster had fire Resistance and Fire Bolt rolled "2d10 + 5".
 
+## Dropping to 0 Hit Points (2026-10-20)
+
+Relentless Endurance, Relentless Rage, Undead Fortitude (zombies) and Dark One's Blessing (rule-elements.md, "Dropping
+to 0 Hit Points").
+
+Live (two browsers, 14.369):
+- **Relentless Endurance:** QA Caster at 3 HP took a 7 from the Bandit Captain's Scimitar and stayed at 1 HP, its use
+  spent. The next hit dropped it.
+- **Relentless Rage:** with physical dice, QA Caster as a raging level-11 barbarian took 11 force at 10 HP. Player1 was
+  prompted "Die result (1d20)", entered 14 against DC 10, and QA Caster stayed up with a Relentless Rage use spent.
+- **Undead Fortitude:** a Zombie at 3 HP took 11 force with digital dice. Saves of 8, 6 and 4 dropped it; a 16 against
+  DC 16 kept it at 1 HP ("Undead Fortitude: stays up").
+- **Dark One's Blessing:** QA Caster as a level-5 warlock dropped the hostile Captain with Fire Bolt and gained 5
+  Temporary Hit Points.
+
 ## Dice on a failed d20 test (2026-10-20)
 
 A feature flagged `flags.wildpath.testOffer: {pool, faces, tests, refundOnFail?}` adds its die to its creature's own

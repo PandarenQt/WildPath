@@ -381,7 +381,8 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
       healing: current.results?.healingResolution ?? null,
       effects: current.results?.effectResolution ?? null,
       payment: current.results?.paymentResolution?.paymentPlan ?? null,
-      ...(current.results?.movementOutcome ? {movement: current.results.movementOutcome} : {})
+      ...(current.results?.movementOutcome ? {movement: current.results.movementOutcome} : {}),
+      ...(current.results?.zeroHp?.length ? {zeroHp: current.results.zeroHp} : {})
     },
     committedMutations: sanitizeCommittedMutations(transaction),
     trace: (current.trace ?? []).map(entry => ({
@@ -463,7 +464,11 @@ function projectPublicResolutionResult(data) {
       save: projectContestOutcome(data.outcomes?.save, ["success", "critical", "outcome"], ["succeededInstead"]),
       // The acting creature's own check: whether it succeeded, never its DC or margin.
       check: data.outcomes?.check ? {success: data.outcomes.check.success === true} : null,
-      movement: projectMovementOutcome(data.outcomes?.movement)
+      movement: projectMovementOutcome(data.outcomes?.movement),
+      // Who stayed up at 0 Hit Points and by what (Relentless Endurance): never its DC or roll.
+      ...(normalizeArray(data.outcomes?.zeroHp).some(entry => entry?.kept === true) ? {zeroHp: normalizeArray(data.outcomes.zeroHp)
+        .filter(entry => (entry?.kept === true) && entry.target)
+        .map(entry => ({target: projectEntityRefForDisclosure(entry.target), name: stringOrNull(entry.name), kept: true}))} : {})
     },
     rolls: normalizeArray(data.rolls)
       .filter(entry => entry?.visibility === "public")

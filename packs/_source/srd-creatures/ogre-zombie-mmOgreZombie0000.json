@@ -65,7 +65,29 @@
       "system": {
         "active": true,
         "description": "<p class=\"feature\">If damage reduces the ogre zombie to 0 Hit Points, it makes a Constitution saving throw (DC 5 plus the damage taken) unless the damage is Radiant or from a Critical Hit. On a successful save, the ogre zombie drops to 1 Hit Point instead.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "zero-hp",
+            "type": "Trigger",
+            "data": {
+              "kind": "zero-hp",
+              "event": "health.zero",
+              "zeroHp": {
+                "mode": "save",
+                "ability": "fortitude",
+                "dc": {
+                  "plusDamage": 5
+                },
+                "hitPoints": 1,
+                "notOn": [
+                  "radiant",
+                  "critical"
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {

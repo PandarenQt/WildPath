@@ -699,6 +699,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const evasionByTarget = {};
   const legendaryByTarget = {};
   const inspirationByTarget = {};
+  // What keeps each target up at 0 Hit Points, and which are hostile to this creature (Dark One's Blessing).
+  const zeroHpByTarget = {};
+  const hostileKeys = [];
   // Player characters who may pay for a monster's reroll (Heroic Inspiration), found once when first asked.
   let inspirationPayers = null;
   const payers = () => (inspirationPayers ??= monsterRerollPayers(game, sourceToken?.parent ?? null));
@@ -753,6 +756,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, target}), targetActor, systemSnapshots.get(targetActor), game, "save",
         {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER});
       if ( inspiration ) inspirationByTarget[key] = inspiration;
+    }
+    if ( definition?.damage?.length ) {
+      const key = target.tokenId ?? target.id;
+      const zero = zeroHpFor(targetActor, systemSnapshots.get(targetActor));
+      if ( zero ) zeroHpByTarget[key] = zero;
+      if ( hostileTo(sourceToken, targetTokenFor(targetActor, hint, game)) ) hostileKeys.push(key);
     }
     targets.push(target);
     const keys = uniqueStrings([targetActor.uuid, targetActor.id, `actor:${targetActor.id}`, targetRef,
@@ -826,6 +835,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // A character paying for a reroll is committed on like a target, its uuid its key: the acting creature for its own
   // roll, or a player character for a monster's.
   if ( ownInspiration?.own ) targetActors[actor.uuid] ??= actor;
+  // Its own reward for dropping a creature (Dark One's Blessing) is committed on it, its uuid its key.
+  const onReduce = definition?.damage?.length ? reducedToZeroFor(actor, actorSystem) : null;
+  if ( onReduce ) targetActors[actor.uuid] ??= actor;
   for ( const payer of inspirationPayers ?? [] ) targetActors[payer.uuid] ??= payer;
   // Reactors on the Scene (Trigger RuleElements on Action events) and the acting creature they may answer.
   const scene = sourceToken?.parent ?? null;
@@ -869,7 +881,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         .map(point => ({x: Number(point?.x), y: Number(point?.y)}))
         .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y))} : {}),
       // Rules consume plain effective snapshots; commit retains the exact live (possibly synthetic) Actors.
-      durability: {targetSystems, ...(Object.keys(targetProfiles).length ? {adjustmentProfiles: targetProfiles} : {})},
+      durability: {targetSystems, ...(Object.keys(targetProfiles).length ? {adjustmentProfiles: targetProfiles} : {}),
+        ...(Object.keys(zeroHpByTarget).length ? {zeroHpByTarget} : {}),
+        ...(onReduce ? {onReduce: {...onReduce, hostileKeys}} : {})},
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
       ...(concentration ? {concentration: concentration.input} : {}),
       ...(area.persistentArea ? {persistentArea: area.persistentArea} : {}),
@@ -1315,6 +1329,58 @@ export function withTacticalMind(offer, roller, rollerSystem, game) {
   return offer ? {...offer, options: [...offer.options, option]}
     : {own: true, chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""}),
       options: [option]};
+}
+
+/**
+ * What keeps a creature up when damage would drop it to 0 Hit Points: its feature's `health.zero` Trigger (Relentless
+ * Endurance, Relentless Rage, Undead Fortitude), worked out for it now (hit points, the DC from its uses, its save bonus
+ * and roll mode, and the use it pays). Null when it has none that applies.
+ */
+export function zeroHpFor(actor, actorSystem) {
+  for ( const item of actor?.items ?? [] ) {
+    if ( item?.system?.active === false ) continue;
+    for ( const rule of item?.system?.ruleElements ?? [] ) {
+      const spec = ((rule?.type === "Trigger") && (rule.data?.event === "health.zero")) ? rule.data.zeroHp : null;
+      if ( !spec || (spec.whileStatus && !actor.statuses?.has?.(spec.whileStatus)) ) continue;
+      const poolId = spec.pool ?? spec.dc?.usesPool ?? null;
+      const payment = poolId ? resolveActorResourcePayment({actorSystem, cost: {allOf: [{capability: poolId, amount: 1}]}}) : null;
+      if ( payment && !payment.ok ) continue;
+      const pool = (actorSystem?.pools ?? []).find(entry => entry.id === poolId);
+      const value = expression => ((typeof expression === "object") ? Number(evaluateValueExpression(expression, {actor, actorSystem}).value)
+        : Number(expression));
+      const ability = spec.ability ?? null;
+      const rollMode = ability ? combineRollModes(actor.getRollModes?.(["save", `save.${ability}`], {}) ?? []) : null;
+      return {name: item.name ?? "", mode: (spec.mode === "save") ? "save" : "set", hitPoints: Math.max(Math.trunc(value(spec.hitPoints ?? 1) || 1), 1),
+        ...(ability ? {ability, saveBonus: resolveActorSaveStatistic(actor, ability)?.totalModifier ?? 0,
+          ...((rollMode && (rollMode !== "normal")) ? {rollMode} : {})} : {}),
+        ...((spec.dc?.base != null) ? {dc: Number(spec.dc.base)
+          + ((Number(spec.dc.perUse) || 0) * Math.max((Number(pool?.max) || 0) - (Number(pool?.value) || 0), 0))} : {}),
+        ...((spec.dc?.plusDamage != null) ? {dcPlusDamage: Number(spec.dc.plusDamage)} : {}),
+        ...(spec.notOn?.length ? {notOn: [...spec.notOn]} : {}),
+        ...(payment ? {payment: {plan: payment.mutationPlan, payerRef: actor.uuid}} : {})};
+    }
+  }
+  return null;
+}
+
+/** Its reward for reducing a creature to 0 Hit Points (Dark One's Blessing: Temporary Hit Points), or null. */
+function reducedToZeroFor(actor, actorSystem) {
+  for ( const item of actor?.items ?? [] ) {
+    if ( item?.system?.active === false ) continue;
+    const rule = (item?.system?.ruleElements ?? []).find(entry => (entry?.type === "Trigger") && (entry.data?.event === "health.reduced"));
+    if ( !rule ) continue;
+    const amount = Math.trunc(Number(evaluateValueExpression(rule.data.temporaryHitPoints, {actor, actorSystem}).value) || 0);
+    if ( amount > 0 ) return {name: item.name ?? "", temporaryHitPoints: amount, hostileOnly: rule.data.hostileOnly === true,
+      sourceRef: actor.uuid};
+  }
+  return null;
+}
+
+/** Whether two Tokens stand on opposite sides (one friendly, the other hostile or secret). */
+function hostileTo(sourceToken, targetToken) {
+  const source = Number(sourceToken?.document?.disposition ?? sourceToken?.disposition);
+  const target = Number(targetToken?.document?.disposition ?? targetToken?.disposition);
+  return Number.isFinite(source) && Number.isFinite(target) && ((source * target) < 0);
 }
 
 /**

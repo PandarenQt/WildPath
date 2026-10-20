@@ -10,6 +10,7 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
     saveSuccess: "WILDPATH.CHAT.Outcome.SaveSuccess",
     saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure",
     legendaryResistance: "WILDPATH.CHAT.Outcome.LegendaryResistance",
+    staysUp: "WILDPATH.CHAT.Outcome.StaysUp",
     immune: "WILDPATH.CHAT.Outcome.Immune",
     checkSuccess: "WILDPATH.CHAT.Outcome.CheckSuccess",
     checkFailure: "WILDPATH.CHAT.Outcome.CheckFailure"
@@ -25,12 +26,14 @@ export function createResolutionCardViewModel(result) {
         targets: (result.targets ?? []).map(target => {
             const attackEntry = attack.find(entry => sameTarget(entry.target, target));
             const saveEntry = save.find(entry => sameTarget(entry.target, target));
+            const kept = (result.outcomes?.zeroHp ?? []).find(entry => sameTarget(entry.target, target));
             const name = textOrNull(target.name);
             return {
                 name,
                 uuid: name ? textOrNull(target.uuid ?? target.actorRef) : null,
                 attack: attackEntry ? attackOutcome(attackEntry) : null,
-                save: saveEntry ? saveOutcome(saveEntry) : null
+                save: saveEntry ? saveOutcome(saveEntry) : null,
+                ...(kept ? { staysUp: { label: CHAT_OUTCOME_KEYS.staysUp, name: textOrNull(kept.name) ?? "" } } : {})
             };
         }),
         rolls: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.foundryRoll] : [])),
