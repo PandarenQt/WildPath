@@ -34,7 +34,36 @@
           "type": "effect",
           "name": "Innate Sorcery",
           "img": "icons/magic/control/silhouette-hold-change-blue.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "innate-sorcery-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "dc.spell"
+                ],
+                "modifierType": "untyped",
+                "value": 1
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "innate-sorcery-attacks",
+              "type": "RollMode",
+              "predicate": {
+                "tagsAny": [
+                  "spell"
+                ]
+              },
+              "data": {
+                "domains": [
+                  "attack"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
@@ -73,10 +102,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Innate Sorcery\" change system.bonuses.spell.dc (add) not converted",
-          "effect: \"Innate Sorcery\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

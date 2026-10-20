@@ -577,14 +577,16 @@ function notifyMultiplayerMovementFailure(event={}, {logger=globalThis.console}=
  * lookup and is never reachable from a socket intent.
  */
 /** The acting creature's own check: its bonus, and its advantage or disadvantage on the same domains. */
-function actionCheckInput(actor, {ability=null, skill=null}={}, sourceToken=null) {
+function actionCheckInput(actor, {ability=null, skill=null, escapes=null}={}, sourceToken=null) {
   const bonus = resolveActorCheckStatistic(actor, {ability, skill});
   // A skill check uses its skill's ability unless it names another (`check.might` reaches an Athletics check).
   const used = ability ?? WILDPATH.SKILLS?.[skill]?.ability ?? null;
   const domains = ["check", used ? `check.${used}` : null, skill ? `check.${skill}` : null].filter(Boolean);
   return {...(bonus ? {modifier: bonus.totalModifier} : {}), ...(bonus?.dice?.length ? {dice: bonus.dice} : {}),
     ...(bonus?.naturalMinimum ? {naturalMinimum: bonus.naturalMinimum} : {}),
-    rollMode: combineRollModes(actor.getRollModes?.(domains, {context: {check: {ability, skill}, ...sunlightContext(sourceToken)}}) ?? [])};
+    // What it escapes (Powerful Build: Advantage to end Grappled).
+    rollMode: combineRollModes(actor.getRollModes?.(domains, {context: {check: {ability, skill, ...(escapes ? {escapes} : {})},
+      ...sunlightContext(sourceToken)}}) ?? [])};
 }
 
 export async function foundryActionIntentToStagedOptions({intent={}, senderUserId=null, game=globalThis.game, persistencePort=null,
@@ -719,6 +721,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const payers = () => (inspirationPayers ??= monsterRerollPayers(game, sourceToken?.parent ?? null));
   // Allies paying for a target's reroll (Countercharm), committed on like targets.
   const allyPayers = [];
+  const spellDcBonus = (definition?.save && definition.tags?.includes("spell"))
+    ? (Number(actor.getStatistic?.("dc.spell", {item: action, tags: definition.tags ?? []})?.totalModifier) || 0) : 0;
   const ambiguousKeys = new Set();
   // The authority, not the client's selection, decides who a "self" or "no target" Action targets.
   const targetingType = definition?.targeting?.type;
@@ -885,6 +889,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {}),
         ...(attackBonuses ? {bonusByTarget: attackBonuses} : {})}} : {}),
       ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes, modifiersByTarget: saveModifiers,
+        // Its creature's bonus to its spells' save DC (Innate Sorcery's +1, a Robe of the Archmagi's +2: `dc.spell`).
+        ...(spellDcBonus ? {dcBonus: spellDcBonus} : {}),
         ...(Object.keys(saveDice).length ? {diceByTarget: saveDice} : {}),
         ...(Object.keys(legendaryByTarget).length ? {legendaryByTarget} : {}),
         ...(Object.keys(inspirationByTarget).length ? {inspirationByTarget} : {}),
@@ -1165,8 +1171,9 @@ export async function endEarlierConcentration({options}={}, {fromUuid=globalThis
 function foundryAttackRollMode({actor, action, definition, targetEntries, spatial, game, sourceToken}) {
   const type = definition.attack.type ?? null;
   const target = targetEntries[0] ?? null;
+  // Its rules see the Action's tags (Innate Sorcery: Advantage on spell attacks).
   return attackRollMode(actor, target?.actor, {type, item: action, ability: attackAbility(actor, definition.attack),
-    context: attackContext(type, spatial, target, game, sourceToken, actor)});
+    context: {...attackContext(type, spatial, target, game, sourceToken, actor), tags: definition.tags ?? []}});
 }
 
 /**
@@ -1379,8 +1386,16 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
     const spec = item?.flags?.wildpath?.testOffer;
     // One with a range is offered to its allies too (withAllyTestOffers).
     if ( !spec?.tests?.includes(test) || spec.range || (item.system?.active === false) ) continue;
-    const payment = resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: spec.pool, amount: 1}]}});
+    // A free one (Halfling Luck) names no pool.
+    const payment = spec.pool ? resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: spec.pool, amount: 1}]}})
+      : {ok: true, mutationPlan: null};
     if ( !payment.ok ) continue;
+    // A plain reroll (Disciplined Survivor; Halfling Luck, only on a natural 1: `natural`).
+    if ( spec.reroll ) {
+      options.push({value: `test-offer:${item.id}`, payerRef: roller.uuid, ...(payment.mutationPlan ? {plan: payment.mutationPlan} : {}),
+        ...(Number(spec.natural) > 0 ? {natural: Number(spec.natural)} : {}), label: format("WILDPATH.INSPIRATION.RerollWith", {name: item.name ?? ""})});
+      continue;
+    }
     // Stroke of Luck: the roll becomes a 20 (`setNatural`), with no die of its own.
     if ( Number(spec.setNatural) > 0 ) {
       options.push({value: `test-offer:${item.id}`, setNatural: Number(spec.setNatural), payerRef: roller.uuid, plan: payment.mutationPlan,

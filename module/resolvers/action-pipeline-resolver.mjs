@@ -1480,7 +1480,11 @@ function addedDie(state, input, {option, key, stageId, rollKind, makeRollRequest
     refundOnFail: option.refundOnFail === true};
 }
 
-function inspirationReroll(state, input, {offer, failed, key, stageId, rollKind, makeRollRequest, targets=[], roll: original=null}) {
+function inspirationReroll(state, input, {offer: offered, failed, key, stageId, rollKind, makeRollRequest, targets=[], roll: original=null}) {
+  // An option only for one natural (Halfling Luck's 1) is offered only when the d20 shows it.
+  const natural = Number(original?.natural ?? original?.die) || 0;
+  const offer = offered ? {...offered, options: (offered.options ?? []).filter(option => !(Number(option.natural) > 0)
+    || (Number(option.natural) === natural))} : offered;
   if ( !offer?.options?.length || (offer.own && !failed) ) return {};
   const choiceId = requestIdFor(state, `heroic-inspiration:${key}`);
   const chosen = getResolutionResponse(state, {requestId: choiceId, type: RESOLUTION_REQUEST_TYPES.CHOICE});
@@ -1544,7 +1548,7 @@ function inspirationReroll(state, input, {offer, failed, key, stageId, rollKind,
   return {roll, rollRequest: request,
     rollResult: {requestId: accepted.request.id, type: `${rollKind}-roll`, semanticType: normalized.result.type, rollRequest: request,
       rollResult: normalized.result, roll, reroll: true, targetKey: key},
-    payment: {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef}};
+    payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null};
 }
 
 /** A resolved stage's state with its Heroic Inspiration rerolls' rolls recorded (only once the stage continues). */

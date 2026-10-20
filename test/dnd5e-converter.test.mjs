@@ -1575,3 +1575,19 @@ test("reactions: Retaliation's common attack, Countercharm's ally reroll, Stone'
   assert.deepEqual([indomitable.type, indomitable.system.ruleElements.map(rule => rule.data.resourceId)], ["feature", ["indomitable"]],
     "no Action that does nothing; its pool stays for the engine's reroll");
 });
+
+test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerful Build", async () => {
+  const fs = await import("node:fs");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  assert.deepEqual(read("alert-phbft").system.ruleElements.map(rule => [rule.data.domains, rule.data.valueExpression]),
+    [[["initiative"], {type: "proficiency-bonus"}]]);
+  const innate = read("innate-sorcery-").system.definition.effects[0].ruleElements;
+  assert.deepEqual(innate.map(rule => [rule.type, rule.data.domains, rule.predicate ?? null]),
+    [["Modifier", ["dc.spell"], null], ["RollMode", ["attack"], {tagsAny: ["spell"]}]]);
+  const survivor = read("disciplined-survivor-").flags.wildpath;
+  assert.deepEqual([survivor.testOffer, survivor.training.length], [{tests: ["save"], reroll: true, pool: "monk-s-focus"}, 6]);
+  assert.deepEqual(read("luck-phbspt").flags.wildpath.testOffer, {tests: ["check", "save", "attack"], reroll: true, natural: 1});
+  const build = read("powerful-build-").system.ruleElements[0];
+  assert.deepEqual([build.type, build.data.domains, build.predicate], ["RollMode", ["check"], {equals: {path: "check.escapes", value: "grappled"}}]);
+});

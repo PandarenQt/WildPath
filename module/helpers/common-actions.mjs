@@ -126,7 +126,8 @@ export function commonAction(actor, id, { localize = (key) => key, bonusShove = 
     if (held) {
         // Whichever of Athletics and Acrobatics is better for it (2024 lets it choose), against that escape DC.
         const bonus = (skill) => resolveActorCheckStatistic(creature, { skill })?.totalModifier ?? -Infinity;
-        definition.check = { skill: bonus("acrobatics") > bonus("athletics") ? "acrobatics" : "athletics", dc: { value: held.dc } };
+        definition.check = { skill: bonus("acrobatics") > bonus("athletics") ? "acrobatics" : "athletics", dc: { value: held.dc },
+            escapes: held.conditionId };
         definition.effects[0].conditionId = held.conditionId;
     }
     // A grapple's escape DC is the grappler's own: 8 + Might modifier + Proficiency Bonus (2024), kept on its Grappled.

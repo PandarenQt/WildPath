@@ -396,6 +396,25 @@ calligrapher's tools (shown "from its features"; its own skills stayed untrained
 level-1 Rogue offered Expertise only once Stealth and Perception were picked in the same dialog; both became Expertise
 (proficiency 2) on the Rogue, and deleting it removed them.
 
+## Small rules (2026-10-20)
+
+- **Alert:** `flags.dnd5e.initiativeAlert` is a Modifier on `initiative` of the Proficiency Bonus. shortcut: swapping
+  Initiative with an ally is by hand.
+- **Innate Sorcery:** its effect's +1 (`system.bonuses.spell.dc`) is a Modifier on `dc.spell`: the runtime adds its
+  creature's `dc.spell` to the save DC of each spell it uses (`save.dcBonus`). Its Advantage on spell attack rolls is a
+  RollMode added by hand (`tagsAny: ["spell"]`); an attack's roll mode now sees the Action's tags. shortcuts: any spell,
+  not only Sorcerer spells; the odds on the action bar leave out the DC bonus. A Robe of the Archmagi's +2 uses the same.
+- **Disciplined Survivor:** proficiency in every save, as training keys on the feature (`saves:*`, derived while it is
+  there), and a reroll of a failed save for 1 Focus Point (test offers above).
+- **Luck (halfling):** a free reroll of a natural 1 (test offers above).
+- **Powerful Build:** Advantage on a check to end Grappled: the escape action's check names what it escapes
+  (`check.escapes`), which a predicate reads. shortcut: carrying capacity is not tracked.
+
+Live (two browsers, 14.369): QA Caster with Alert went from +0 to +2 Initiative, and with Disciplined Survivor had all
+six saves proficient. Using Innate Sorcery, its Fire Bolt rolled 2d20kh, and as a Sorcerer 5 its Hold Person had DC 12
+(8 + 3 + 0, plus 1). With Powerful Build, an Acrobatics check escaping Grappled had Advantage; escaping Restrained, or an
+ordinary one, did not.
+
 ## Tireless (2026-10-20)
 
 Tireless' "Decrease Exhaustion" is a `rest.completed` Trigger on its Item (`restTrigger`): a Short Rest
@@ -442,6 +461,10 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   natural 20, so an attack's is a critical hit; its use is spent (1 per Short Rest). shortcut: the card still shows the
   d20 as rolled. Live: QA Caster's Dagger missed with a 3; Stroke of Luck made it a critical hit (2d4), and the use was
   spent.
+
+- **Rerolls (2026-10-20):** `testOffer.reroll` offers a plain reroll of the d20. Disciplined Survivor's is a save, for 1
+  Focus Point (its activity's pool). Halfling Luck's names no pool (free) and `natural: 1`: it is offered only when the
+  d20 shows a 1 (`inspirationReroll` filters by natural). shortcut: like every test offer, only when the roll failed.
 
 An attack's added die is kept when the attack still misses (`refundOnFail`), as a check's is. shortcut: offered only on
 a failed roll. Live (two browsers, 14.369): QA Caster as a level-10 bard with Peerless Skill missed with Dagger attacks
