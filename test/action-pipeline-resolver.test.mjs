@@ -922,3 +922,42 @@ test("an Action its creature cannot pay for is refused before anything is rolled
   assert.equal(plan.state.errors.at(-1).code, "PAYMENT_UNAVAILABLE");
   assert.deepEqual(plan.state.pendingRequests, [], "no attack roll was asked for");
 });
+
+test("drop to 0: Relentless Endurance keeps 1 HP for a use; a save keeps it up (or not); radiant bars Undead Fortitude; massive damage kills", () => {
+  const blast = (damageType, amount) => ({schemaVersion: 1, id: `action:blast-${damageType}-${amount}`, label: "Blast", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1},
+    damage: [{id: "blast", expression: {type: "constant", value: amount}, damageType}]});
+  const run = (definition, zeroHp, extra={}) => planStagedActionResolution({id: `resolution:${definition.id}:${zeroHp?.mode ?? "none"}`,
+    actorSystem: actorSystem(1), action: definitionAction(definition), source: {actorId: "actor-source"},
+    targets: [target("orc")], durability: {targetSystems: {"actor:actor-orc": {resources: {health: {value: 3, max: 30}}}},
+      ...(zeroHp ? {zeroHpByTarget: {"token-orc": zeroHp}} : {}), ...extra}});
+  const health = state => state.mutationPlans.find(entry => entry.type === "durabilityDamage")?.plan.to;
+  const payment = {plan: {ok: true, updates: {"system.pools.0.value": 0}, payments: []}, payerRef: "Actor.orc"};
+  const endurance = run(blast("slashing", 10), {name: "Relentless Endurance", mode: "set", hitPoints: 1, payment});
+  assert.equal(health(endurance.state), 1);
+  assert.ok(endurance.state.mutationPlans.some(entry => (entry.type === "resourcePayment") && (entry.payerRef === "Actor.orc")), "its use is paid");
+  assert.equal(health(run(blast("slashing", 40), {name: "Relentless Endurance", mode: "set", hitPoints: 1, payment}).state), 0, "massive damage");
+
+  const fortitude = {name: "Undead Fortitude", mode: "save", ability: "fortitude", saveBonus: 3, dcPlusDamage: 5, hitPoints: 1, notOn: ["radiant", "critical"]};
+  const asked = run(blast("slashing", 10), fortitude);
+  assert.equal(asked.state.pendingRequests[0].payload.rollKind, "zero-hp");
+  const answer = total => resumeStagedActionResolution({state: asked.state, response: {resolutionId: asked.state.id,
+    requestId: asked.state.pendingRequests[0].id, type: RESOLUTION_REQUEST_TYPES.ROLL, value: {total, die: total - 3}}});
+  assert.equal(health(answer(15).state), 1, "15 against DC 5 + 10");
+  assert.equal(health(answer(14).state), 0);
+  const radiant = run(blast("radiant", 10), fortitude);
+  assert.deepEqual([radiant.state.pendingRequests.length, health(radiant.state)], [0, 0], "radiant damage bars it");
+});
+
+test("drop to 0: Dark One's Blessing gives its source Temporary Hit Points for a hostile creature dropped", () => {
+  const definition = {schemaVersion: 1, id: "action:blast", label: "Blast", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    damage: [{id: "blast", expression: {type: "constant", value: 10}, damageType: "force"}]};
+  const run = hostileKeys => planStagedActionResolution({id: `resolution:blessing-${hostileKeys.length}`,
+    actorSystem: actorSystem(1, {resources: {health: {value: 10, max: 10, temp: 0}}}),
+    action: definitionAction(definition), source: {actorId: "actor-source"}, targets: [target("orc")],
+    durability: {targetSystems: {"actor:actor-orc": {resources: {health: {value: 3, max: 30}}}},
+      onReduce: {name: "Dark One's Blessing", temporaryHitPoints: 7, hostileOnly: true, hostileKeys, sourceRef: "Actor.source"}}});
+  const reward = state => state.mutationPlans.find(entry => (entry.type === "durabilityHealing") && (entry.targetRef === "Actor.source"));
+  assert.ok(reward(run(["token-orc"]).state), "a hostile creature dropped");
+  assert.equal(reward(run([]).state), undefined, "not an ally");
+});

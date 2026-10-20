@@ -21,6 +21,38 @@
           },
           "recovery": "shortRest"
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "zero-hp",
+        "type": "Trigger",
+        "data": {
+          "kind": "zero-hp",
+          "event": "health.zero",
+          "zeroHp": {
+            "mode": "save",
+            "ability": "fortitude",
+            "dc": {
+              "base": 10,
+              "perUse": 5,
+              "usesPool": "relentless-rage"
+            },
+            "whileStatus": "raging",
+            "hitPoints": {
+              "type": "multiply",
+              "terms": [
+                {
+                  "type": "constant",
+                  "value": 2
+                },
+                {
+                  "type": "class-level",
+                  "class": "barbarian"
+                }
+              ]
+            }
+          }
+        }
       }
     ]
   },
@@ -36,10 +68,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"save\" is passive or triggered: not automated",
-          "\"heal\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

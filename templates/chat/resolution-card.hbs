@@ -23,6 +23,7 @@
       <span class="target-outcomes">
         {{#if attack}}<span class="outcome {{attack.tone}}">{{localize attack.label}}</span>{{/if}}
         {{#if save}}<span class="outcome {{save.tone}}">{{localize save.label}}</span>{{/if}}
+        {{#if staysUp}}<span class="outcome success">{{localize staysUp.label name=staysUp.name}}</span>{{/if}}
       </span>
     </li>
     {{/each}}

@@ -21,6 +21,20 @@
           },
           "recovery": "longRest"
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "zero-hp",
+        "type": "Trigger",
+        "data": {
+          "kind": "zero-hp",
+          "event": "health.zero",
+          "zeroHp": {
+            "mode": "set",
+            "hitPoints": 1,
+            "pool": "relentless-endurance"
+          }
+        }
       }
     ]
   },
@@ -36,9 +50,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Relentlessly Endure\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

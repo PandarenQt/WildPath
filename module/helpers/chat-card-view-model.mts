@@ -36,6 +36,7 @@ export interface PublicResolutionResult {
     readonly attack?: {readonly results?: readonly ContestEntry[]} | null;
     readonly save?: {readonly results?: readonly ContestEntry[]} | null;
     readonly check?: {readonly success?: boolean} | null;
+    readonly zeroHp?: readonly {readonly target?: PublicRef | null; readonly name?: string | null}[];
   };
   readonly rolls?: readonly PublicRoll[];
 }
@@ -47,6 +48,7 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
   saveSuccess: "WILDPATH.CHAT.Outcome.SaveSuccess",
   saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure",
   legendaryResistance: "WILDPATH.CHAT.Outcome.LegendaryResistance",
+  staysUp: "WILDPATH.CHAT.Outcome.StaysUp",
   immune: "WILDPATH.CHAT.Outcome.Immune",
   checkSuccess: "WILDPATH.CHAT.Outcome.CheckSuccess",
   checkFailure: "WILDPATH.CHAT.Outcome.CheckFailure"
@@ -64,6 +66,8 @@ export interface ResolutionCardTarget {
   readonly uuid: string | null;
   readonly attack: CardOutcome | null;
   readonly save: CardOutcome | null;
+  /** What kept it up at 0 Hit Points (Relentless Endurance), by name. */
+  readonly staysUp?: {readonly label: string; readonly name: string} | null;
 }
 
 export interface ResolutionCardView {
@@ -88,12 +92,14 @@ export function createResolutionCardViewModel(result: PublicResolutionResult): R
     targets: (result.targets ?? []).map(target => {
       const attackEntry = attack.find(entry => sameTarget(entry.target, target));
       const saveEntry = save.find(entry => sameTarget(entry.target, target));
+      const kept = (result.outcomes?.zeroHp ?? []).find(entry => sameTarget(entry.target, target));
       const name = textOrNull(target.name);
       return {
         name,
         uuid: name ? textOrNull(target.uuid ?? target.actorRef) : null,
         attack: attackEntry ? attackOutcome(attackEntry) : null,
-        save: saveEntry ? saveOutcome(saveEntry) : null
+        save: saveEntry ? saveOutcome(saveEntry) : null,
+        ...(kept ? {staysUp: {label: CHAT_OUTCOME_KEYS.staysUp, name: textOrNull(kept.name) ?? ""}} : {})
       };
     }),
     rolls: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.foundryRoll] : [])),

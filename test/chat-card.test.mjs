@@ -191,3 +191,13 @@ test("damage floats with its types, in the colour of the first", async () => {
     delete globalThis.canvas; delete globalThis.CONST; delete globalThis.game;
   }
 });
+
+test("a creature kept up at 0 Hit Points shows by what (Relentless Endurance), never the DC or roll", async () => {
+  const {projectResolutionResultForDisclosure} = await import("../module/helpers/multiplayer-authority.mjs");
+  const {createResolutionCardViewModel} = await import("../module/helpers/chat-card-view-model.mjs");
+  const orc = {id: "orc", actorRef: "Actor.orc", name: "Orc"};
+  const projected = projectResolutionResultForDisclosure({resolutionId: "r", targets: [orc],
+    outcomes: {zeroHp: [{target: orc, name: "Relentless Rage", kept: true, dc: 15, total: 17}]}}, "broadcast-safe");
+  assert.deepEqual(projected.outcomes.zeroHp, [{target: {id: "orc", actorRef: "Actor.orc", name: "Orc"}, name: "Relentless Rage", kept: true}]);
+  assert.deepEqual(createResolutionCardViewModel(projected).targets[0].staysUp, {label: "WILDPATH.CHAT.Outcome.StaysUp", name: "Relentless Rage"});
+});

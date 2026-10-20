@@ -381,6 +381,12 @@ function elementalAffinityAction(document, img, source) {
   ruleElements: []}, flags: {wildpath: {source, conversion: {notes: []}}}};
 }
 
+/** A drop-to-0 rule (`health.zero`) on its feature, standing for its activities (their saves and heals). */
+function zeroHpTrait(activities, zeroHp) {
+  return {rules: [{schemaVersion: 1, id: "zero-hp", type: "Trigger", data: {kind: "zero-hp", event: "health.zero", zeroHp}}],
+    consumes: [...activities], notes: []};
+}
+
 /** A damage activity as once-a-turn extra weapon damage of the weapon's type, under `predicate` (Frenzy, Colossus Slayer). */
 function weaponExtra(activities, scales, label, predicate) {
   const activity = activities.find(entry => entry.type === "damage");
@@ -1302,6 +1308,22 @@ const TRAITS = Object.freeze({
           terms: [{type: "constant", value: 5}, {type: "ability-modifier", ability: "fortitude"}]}}]}}}],
     consumes: [activity], notes: []};
   },
+  // What keeps a creature up when damage would drop it to 0 Hit Points (`Trigger`, `event: "health.zero"`, read by the
+  // runtime): 2024 Relentless Endurance (1 HP, once per Long Rest), Relentless Rage (while raging, a DC 10 Constitution
+  // save, +5 each use until a rest: 2x its barbarian level), Undead Fortitude (a Constitution save, DC 5 + the damage
+  // taken, not against radiant damage or a critical hit: 1 HP).
+  "relentless-endurance": (document, {activities, pool}) => zeroHpTrait(activities, {mode: "set", hitPoints: 1, pool: pool?.id}),
+  "relentless-rage": (document, {activities, pool}) => zeroHpTrait(activities, {mode: "save", ability: "fortitude",
+    dc: {base: 10, perUse: 5, usesPool: pool?.id}, whileStatus: "raging",
+    hitPoints: {type: "multiply", terms: [{type: "constant", value: 2}, {type: "class-level", class: "barbarian"}]}}),
+  "undead-fortitude": (document, {activities}) => zeroHpTrait(activities, {mode: "save", ability: "fortitude", dc: {plusDamage: 5},
+    hitPoints: 1, notOn: ["radiant", "critical"]}),
+  // 2024 Dark One's Blessing: when it reduces a hostile creature to 0 Hit Points, Temporary Hit Points of its Charisma
+  // modifier + its warlock level (`event: "health.reduced"`).
+  "dark-ones-blessing": (document, {activities}) => ({rules: [{schemaVersion: 1, id: "dark-ones-blessing", type: "Trigger",
+    data: {kind: "zero-hp", event: "health.reduced", hostileOnly: true, temporaryHitPoints: {type: "max", terms: [{type: "constant", value: 1},
+      {type: "add", terms: [{type: "ability-modifier", ability: "presence"}, {type: "class-level", class: "warlock"}]}]}}}],
+  consumes: activities.filter(entry => entry.type === "heal"), notes: []}),
   "sneak-attack": (document, {activities, scales}) => {
     const activity = activities.find(entry => entry.type === "damage");
     const notes = [];

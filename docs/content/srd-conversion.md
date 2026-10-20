@@ -375,7 +375,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dancing Sword | equipment24 | Dancing Sword (Activate Sword: Stength) (automated), Dancing Sword (Activate Sword: Dexterity) (automated) | "Dancing Sword" is passive or triggered: not automated; summon: what it gains with the spell's level (attackDamage) is not added |
 | Dancing Sword | actors24 | Dancing Sword (6 items) | — |
 | Danger Sense | classes24 | Danger Sense (feature) | — |
-| Dark One's Blessing | classes24 | Dark One's Blessing (feature) | "heal" is passive or triggered: not automated |
+| Dark One's Blessing | classes24 | Dark One's Blessing (feature) | — |
 | Dark One's Own Luck | classes24 | Dark One's Own Luck (feature) | — |
 | Darkmantle | actors24 | Darkmantle (4 items) | Crush: effect: suffocation is not a WildPath condition yet; Darkness Aura: not automated (utility): using it spends its cost; its description says the rest |
 | Darkness | spells24 | Darkness (automated) | — |
@@ -1225,9 +1225,9 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Reef Shark | actors24 | Reef Shark (4 items) | — |
 | Regenerate | spells24 | Regenerate (automated) | activation: 1 minute is not an action-economy cost; effect: "Regenerating" marks its creature only; its rules are by hand |
 | Reincarnate | spells24 | Reincarnate (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 hour is not an action-economy cost |
-| Relentless Endurance | origins24 | Relentless Endurance (feature) | "Relentlessly Endure" is passive or triggered: not automated |
+| Relentless Endurance | origins24 | Relentless Endurance (feature) | — |
 | Relentless Hunter | classes24 | Relentless Hunter (feature) | — |
-| Relentless Rage | classes24 | Relentless Rage (feature) | "save" is passive or triggered: not automated; "heal" is passive or triggered: not automated |
+| Relentless Rage | classes24 | Relentless Rage (feature) | — |
 | Reliable Talent | classes24 | Reliable Talent (feature) | — |
 | Reliquary | equipment24 | Reliquary (gear) | — |
 | Remarkable Athlete | classes24 | Remarkable Athlete (feature) | — |

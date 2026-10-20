@@ -124,6 +124,28 @@ values see beside `tags` and `conditions`. The runtime passes `castLevel`, the l
 out from the intent's choices. Disciple of Life uses it: `{type: "add", terms: [2, {type: "context", path: "castLevel"}]}`
 while `castLevel` is 1 to 9.
 
+**Dropping to 0 Hit Points (2026-10-20).** A `Trigger` with `kind: "zero-hp"` marks what happens then; the runtime
+reads it, and no dispatcher runs it.
+- **`event: "health.zero"`** (its own creature): `zeroHp: {mode: "set"|"save", hitPoints, pool?, ability?, dc?, whileStatus?,
+  notOn?}`.
+  - `set` keeps it at `hitPoints` for a use of `pool` (Relentless Endurance).
+  - `save` asks for a save of `ability` against `dc`:
+    - `{base, perUse, usesPool}` is base + perUse × the uses spent (Relentless Rage);
+    - `{plusDamage}` is that + the damage (Undead Fortitude).
+  - `notOn` lists damage types, or `critical`, that bar it.
+- **`event: "health.reduced"`** (the source): `temporaryHitPoints` (a ValueExpression), `hostileOnly` (Dark One's Blessing).
+
+**How it runs:**
+- **The runtime** works these out per target (`durability.zeroHpByTarget`: hit points, DC, save bonus, roll mode, the
+  use's payment) and for the source (`durability.onReduce`, with the targets hostile to it by Token disposition).
+- **The damage stage** checks each target the damage would take from above 0 to 0, unless massive damage kills it.
+  - It keeps the target up, asking for the save as concentration does. The world's dice policy decides: a physical
+    (manual) policy prompts the target's controller, a digital one rolls.
+  - A use is paid on every attempt.
+  - A hostile creature still at 0 gives the source its Temporary Hit Points, once.
+  - The card shows "<feature>: stays up", never the DC or roll.
+- **shortcuts:** damage outside an Action (falling, a lasting area's repeat) is not checked; "you can" is automatic.
+
 **Bloodied (2026-10-20).** `{bloodied: true}` holds while its creature has half its Hit Points or fewer (2024 Bloodied).
 
 **Pools (2026-10-19).** `{poolEmpty: "<id>"}` and `{poolBelowMax: "<id>"}` read a pool of the creature by id (from
