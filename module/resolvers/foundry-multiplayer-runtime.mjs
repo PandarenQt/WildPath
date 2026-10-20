@@ -1597,6 +1597,8 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
     for ( const item of bearer?.items ?? [] ) {
       const spec = item?.flags?.wildpath?.testOffer;
       if ( !spec?.range || !spec.tests?.includes(test) || (item.system?.active === false) ) continue;
+      // One for its allies only (Bountiful Luck: "an ally you can see"), not its own rolls.
+      if ( spec.others && (token.id === saverToken.id) ) continue;
       // Countercharm answers only saves against its conditions; Flash of Genius any check or save.
       if ( spec.against && !spec.against.some(condition => conditions.has(condition)) ) continue;
       const distance = allyDistance(saverToken, token);
@@ -1613,6 +1615,8 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
         {actor: bearer, actorSystem: system}).value) || 0) : 0;
       options.push({value: `ally-offer:${bearer.uuid}:${item.id}`, payerRef: bearer.uuid, plan: payment.mutationPlan,
         ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), ...(spec.addAbility ? {addFlat: added} : {}),
+        // Only when the d20 shows this number (Bountiful Luck's 1).
+        ...(Number(spec.natural) > 0 ? {natural: Number(spec.natural)} : {}),
         label: format(spec.addAbility ? "WILDPATH.INSPIRATION.AllyAdd" : "WILDPATH.INSPIRATION.AllyReroll", {name: bearer.name ?? "",
           feature: item.name ?? "", value: added})});
     }
