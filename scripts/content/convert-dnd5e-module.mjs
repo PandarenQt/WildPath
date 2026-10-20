@@ -1,10 +1,10 @@
-import {cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync} from "node:fs";
+import {cpSync, existsSync, mkdtempSync, readFileSync, rmSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {join, relative, resolve} from "node:path";
-import {compilePack, extractPack} from "@foundryvtt/foundryvtt-cli";
-import {PROGRESSION_TYPES, beastsOf, convertActor, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables, slugify} from "./dnd5e-to-wildpath.mjs";
+import {extractPack} from "@foundryvtt/foundryvtt-cli";
+import {PROGRESSION_TYPES, beastsOf, convertActor, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
-import {validateActionDefinition} from "../../module/helpers/action-definitions.mjs";
+import {writeLocalModule} from "./local-module.mjs";
 
 /**
  * Convert a dnd5e content module the maintainer owns (a Player's Handbook, a Monster Manual) into a local WildPath
@@ -98,37 +98,13 @@ for ( const pack of manifest.packs ?? [] ) {
   }
 }
 
-// Every Action must be valid and every id unique before anything is written.
-const actions = [...items, ...actors.flatMap(actor => actor.items)].filter(item => item.type === "action");
-const invalid = actions.filter(item => !validateActionDefinition(item.system.definition).ok).map(item => item.name);
-// Ids are unique within each pack (a spell and the creature it summons may share one across the two).
-const duplicates = [items, actors, progressions].flatMap(list => list.map(document => document._id).filter((id, index, ids) => ids.indexOf(id) !== index));
-if ( invalid.length || duplicates.length ) throw new Error(`Not written. Invalid Actions: ${invalid.join(", ") || "none"}; duplicate ids: ${duplicates.join(", ") || "none"}`);
-
-// The package: its manifest and its two packs, compiled from JSON sources written in the work folder.
-rmSync(target, {recursive: true, force: true});
-mkdirSync(target, {recursive: true});
-const packs = [["items", "Item", items, `${manifest.title}: Spells, Equipment and Features`], ["creatures", "Actor", actors, `${manifest.title}: Creatures`],
-  ["classes", "Item", progressions, `${manifest.title}: Classes and Origins`]]
-  .filter(([, , list]) => list.length);
-for ( const [name, , list] of packs ) {
-  const folder = join(work, "out", name);
-  mkdirSync(folder, {recursive: true});
-  for ( const document of list ) writeFileSync(join(folder, `${slugify(document.name)}-${document._id}.json`), JSON.stringify(document));
-  await compilePack(folder, join(target, "packs", name), {log: false});
-}
-writeFileSync(join(target, "module.json"), `${JSON.stringify({
-  id: `wildpath-${moduleId}`,
-  title: `WildPath: ${manifest.title}`,
+// The package: its manifest, its packs and its notes (local-module.mjs: validated, then swapped in).
+await writeLocalModule({target, id: `wildpath-${moduleId}`, title: `WildPath: ${manifest.title}`,
   description: `${manifest.title}, converted on this computer for the WildPath system. For personal use only: do not share or publish it.`,
   version: manifest.version ?? "1.0.0",
-  compatibility: {minimum: "14", verified: "14.369"},
-  relationships: {systems: [{id: "wildpath", type: "system"}]},
-  packs: packs.map(([name, type, , label]) => ({name, label, path: `packs/${name}`, type, system: "wildpath",
-    ownership: {PLAYER: "OBSERVER", ASSISTANT: "OWNER"}})),
-  flags: {wildpath: {convertedFrom: moduleId, sourceVersion: manifest.version ?? null}}
-}, null, 2)}\n`);
-writeFileSync(join(target, "conversion-notes.json"), JSON.stringify(Object.fromEntries(notes.filter(([, list]) => list.length)), null, 2));
+  packs: [["items", "Item", items, `${manifest.title}: Spells, Equipment and Features`], ["creatures", "Actor", actors, `${manifest.title}: Creatures`],
+    ["classes", "Item", progressions, `${manifest.title}: Classes and Origins`]],
+  flags: {convertedFrom: moduleId, sourceVersion: manifest.version ?? null}, notes});
 rmSync(work, {recursive: true, force: true});
 const kinds = items.reduce((total, item) => {
   const kind = ["feature", "gear"].includes(item.type) ? item.type : (item.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")) ? "manual" : "automated");

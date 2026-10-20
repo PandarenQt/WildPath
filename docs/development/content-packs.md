@@ -600,6 +600,31 @@ to rules:
 A dice value ("1d4", "-1d4") becomes a dice Modifier rolled with the d20 ([rolls.md](../architecture/rolls.md)).
 Every other change is noted, never approximated.
 
+## Books on paper as local modules (2026-10-20)
+
+A book the maintainer owns only on paper becomes a local module too. Maintainer (2026-10-20): "make modules for bought
+content including what i have in paper".
+- **Its sources.** They are WildPath documents, authored on this computer in
+  `<Foundry Data>/wildpath-sources/<book>/`, outside this repository:
+  - `book.json`: `{title, version?, rules?, thirdParty?}`;
+  - `items/`, `creatures/` and `classes/`: one JSON file each.
+- **Building it.** `node scripts/content/build-local-module.mjs <book>` writes `<Foundry Data>/modules/wildpath-<book>`.
+  - Each document gets a stable id from its name.
+  - Its source is that book: `system: "wildpath-paper"`, its rules, an identifier from its name, and `thirdParty` for
+    a third-party book. The source gates read it.
+  - It is never committed or shared.
+- **Writing a package** is shared with the book converter (`local-module.mjs`):
+  - Every Action is validated first and ids must be unique, or nothing is written.
+  - The new package is built beside the old one and swapped in. The old one is renamed aside first, which fails
+    without changing anything while Foundry holds its packs open.
+- **Enabling it.** Return to the setup screen and launch the world so Foundry finds the module, then enable it in
+  the world.
+- **First module, Xanathar's**, with three feats:
+  - Infernal Constitution: Tiefling; resistance to cold and poison.
+  - Squat Nimbleness: walking speed +5; its "Dwarf or a Small species" is shown as text.
+  - Bountiful Luck: Halfling; an ally's natural 1 on a check or save within 30 ft may be rerolled for its Reaction,
+    never its own roll (`testOffer.others`, `natural`).
+
 ## Source gating (2026-10-20)
 
 The level-up dialog offers feats and subclasses only from the sources the world allows. There are five world settings,

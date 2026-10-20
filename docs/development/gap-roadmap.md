@@ -155,6 +155,64 @@ Maintainer decision (2026-10-14): B1 comes before G3, starting with:
 
 Forced movement and elevation join G6, which becomes "space": areas, elevation and forced movement.
 
+## Non-core mechanics: the inventory against WildPath (2026-10-20)
+
+The maintainer's inventory of non-core mechanics (O01–O62, UA U01–U10, homebrew H01–H07), matched against what
+WildPath does.
+
+**Supported now** (this batch, 2026-10-20):
+
+| Item | What |
+| --- | --- |
+| Portent (PHB Diviner) | Dice after a Long Rest; used after the roll, by the maintainer's ruling. |
+| O10, U01–U10, H01–H07: source eligibility | World settings per source (`sourceGate`). |
+| O08, O09: replacement | Fighting Style, Invocations and infusions at level-up; the replaced Item stays as history. |
+| O10, O25–O27: prerequisites | Feats and class options (`prerequisitesOf`, `unmetPrerequisites`). |
+| Cross-class feats | Eldritch Adept, Fighting Initiate, Metamagic Adept. |
+| O14, O15, O16: damage for another creature | Interception, Cloud Rune, Protective Bond; Deflect Attacks and Energy. |
+| O01, O02, O04: the Artificer (Tasha's) | Infusions (`enchant`), Infuse Item's limit, Flash of Genius. |
+| O05, O17: Steel Defender, Homunculus, Eldritch Cannon | Summoned by level and limited; the Defender and Homunculus are commanded. |
+
+**Supported already:**
+- reversible grants;
+- companions and summons;
+- legendary and lair actions;
+- attunement and charges;
+- disposition auras;
+- transformations (O20, partly).
+
+**Later:**
+- Classes and subclasses:
+  - O03 Revised Artificer and O06 Cartographer: Eberron / Forge of the Artificer, a paper book.
+  - O07, O11 Echo Knight, O12 Chronurgy, O13, O30–O32.
+- Feature content:
+  - O18: partly done, through Metamagic.
+  - O19: tables and tokens.
+  - O29: familiar feats.
+- Circle spells, O21–O24: concentration has a single holder.
+- Character packages: O25–O27 and O33–O38 content, O39 sidekicks, O40, O41.
+- Campaign and adventure systems: O42–O62 (Bastions, piety, stress, vehicles, mythic phases and the others).
+- Optional 2014 class features (O08 content): replacement is ready, but there is no 2014 class to attach them to
+  (2014 SRD 5.1 classes would be a separate decision).
+
+**Paper books** become local modules (`build-local-module.mjs`, content-packs.md). The maintainer owns:
+- Xanathar's (first module: three feats);
+- Monsters of the Multiverse;
+- Fizban's and Bigby's;
+- Eberron / Forge of the Artificer;
+- Heroes of Faerûn and Adventures in Faerûn;
+- Arcana Unleashed and Arcana Unleashed Deadfall;
+- The Book of Many Things;
+- Mythic Odysseys of Theros;
+- Vecna: Eve of Ruin;
+- the Sword Coast Adventurer's Guide;
+- Tal'Dorei Reborn;
+- Guildmasters' Guide to Ravnica;
+- Strixhaven;
+- Explorer's Guide to Wildemount;
+- Van Richten's Guide to Ravenloft;
+- Humblewood (third-party).
+
 ## Progress
 
 - **G1 (2026-10-14).** Done:

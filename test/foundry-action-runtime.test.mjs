@@ -2472,3 +2472,19 @@ test("Flash of Genius in an Action: a failed save gets the inventor's Intelligen
   assert.equal(answered.results.saveResolution.successes.length, 1, "10 + 4 = 14 saves against DC 13");
   assert.ok(answered.mutationPlans.some(plan => plan.payerRef === inventor.uuid), "the inventor pays");
 });
+
+test("Bountiful Luck: an ally's natural 1 only, never its own roll", async t => {
+  const {withAllyTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {scene, targetToken, targetActor} = syntheticRuntimeFixture(t);
+  const luck = {id: "bl", name: "Bountiful Luck", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["check", "save"],
+    pool: "reaction", range: 30, natural: 1, others: true}}}};
+  const halfling = withFoundryActorSystem(fakeActor("halfling", {system: {...targetActorSystem(), resources: {reaction: {value: 1, max: 1}}}}));
+  halfling.items = [luck];
+  scene.tokens.push(fakeTokenDocument({id: "halfling-token", actor: halfling, scene, offset: {i: 1, j: 2}, disposition: targetToken.disposition}));
+  const offer = withAllyTestOffers(null, targetToken, {effects: []}, {}, "save", {chooser: "target-controller"});
+  assert.deepEqual(offer.options.map(option => [option.payerRef, option.natural]), [["Actor.halfling", 1]]);
+  targetActor.items = [luck];
+  targetActor.system.resources.reaction = {value: 1, max: 1};
+  assert.equal(withAllyTestOffers(null, targetToken, {effects: []}, {}, "save", {chooser: "target-controller"}).options.length, 1,
+    "its own Bountiful Luck is not offered on its own roll");
+});
