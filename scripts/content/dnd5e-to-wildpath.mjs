@@ -3081,8 +3081,10 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
       else unmapped();
     } else if ( (match = /^system\.attributes\.senses\.(?:ranges\.)?(\w+)$/.exec(key)) && SENSE_KEYS[match[1]]
       && ["upgrade", "override", "add"].includes(type) && (number > 0) ) {
-      // Darkvision, Devil's Sight, Feral Senses, Witch Sight, True Seeing, Stonecunning's Tremorsense.
-      rule("GrantSense", {sense: SENSE_KEYS[match[1]], range: number});
+      // Darkvision, Feral Senses, Witch Sight, True Seeing, Stonecunning's Tremorsense; Devil's Sight (dnd5e's
+      // Darkvision) is its own sense, which sees through magical Darkness.
+      const sense = (/devil.?s sight/i.test(String(effect.name ?? "")) && (SENSE_KEYS[match[1]] === "darkvision")) ? "devilsSight" : SENSE_KEYS[match[1]];
+      rule("GrantSense", {sense, range: number});
     } else if ( key === "system.attributes.movement.hover" ) {
       // Fly, Gaseous Form, a Potion of Flying: hovering, on the fly Speed the same effect grants (below).
       hover = ["true", "1"].includes(String(change.value).trim().toLowerCase());

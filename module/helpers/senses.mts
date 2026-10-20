@@ -1,10 +1,11 @@
 /**
- * A creature's senses (2024): Darkvision, Blindsight, Tremorsense and Truesight, each with a range in feet, from its
+ * A creature's senses (2024): Darkvision, Blindsight, Tremorsense, Truesight and Devil's Sight (it sees normally in
+ * magical and nonmagical Darkness), each with a range in feet, from its
  * grants (`GrantSense` RuleElements on its species, features, gear and effects). Its Token's vision follows them
  * (documents/token.mjs), and the rules read them: Truesight sees the Invisible, Blindsight sees without sight.
  */
 
-export const SENSES = Object.freeze(["darkvision", "blindsight", "tremorsense", "truesight"] as const);
+export const SENSES = Object.freeze(["darkvision", "blindsight", "tremorsense", "truesight", "devilsSight"] as const);
 export type Sense = typeof SENSES[number];
 export type Senses = Record<Sense, number>;
 
