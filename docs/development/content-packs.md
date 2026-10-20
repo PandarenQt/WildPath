@@ -439,6 +439,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Spell tags (2026-10-20):** every spell (and every creature's spell) is tagged `cantrip`, `school:<name>` and
   `damage:<type>`; that touched 646 pack files, tags only. Potent Spellcasting, Empowered Evocation and Disciple of Life
   are traits, and Elemental Affinity brings its choosing Action (classes-and-spellcasting.md).
+- **Training (2026-10-20):** Divine Order: Protector and Primal Order: Warden carry `flags.wildpath.training`, added to
+  their creature when the Item is (classes-and-spellcasting.md).
 - **Tireless (2026-10-20):** its Short Rest Exhaustion is a `rest.completed` Trigger. An Item with Actions now carries its
   automatic triggers on its first Action.
 - **Eldritch Blast invocations (2026-10-20):** Eldritch Blast is tagged `eldritch-blast`; Agonizing Blast and

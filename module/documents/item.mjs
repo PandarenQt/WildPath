@@ -7,6 +7,7 @@ import {promptActionConfiguration} from "../adapters/foundry-v14-prompt-adapter.
 import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-adapter.mjs";
 import {isUnprepared} from "../helpers/spellcasting.mjs";
 import {resolveActorCheckStatistic} from "../helpers/combat-statistics.mjs";
+import {traitUpdates} from "../helpers/level-up.mjs";
 
 /** Which of `skills` the creature checks (Search, Study, Influence), each with its bonus; null when closed. */
 async function chooseTestSkill(actor, skills, name) {
@@ -37,7 +38,19 @@ export default class WildPathItem extends Item {
     if ( userId !== game.user.id ) return;
     void this.actor?.ensureGrantedPools?.();
     void this.#addGrantedActions();
+    void this.#addTraining();
     if ( CLASS_TYPES.has(this.type) ) void this.actor?.syncClassRecords?.();
+  }
+
+  /**
+   * The training a feature gives its creature (`flags.wildpath.training`: Divine Order: Protector's `armor:heavy`,
+   * `weapons:martial`), added as a level-up trait step adds it. shortcut: removing the Item keeps the training.
+   */
+  async #addTraining() {
+    const keys = this.flags?.wildpath?.training;
+    if ( !this.actor || !Array.isArray(keys) || !keys.length ) return;
+    const updates = traitUpdates(keys, this.actor.system);
+    if ( Object.keys(updates).length ) await this.actor.update(updates);
   }
 
   /** The Actions an item brought with it go with it. */

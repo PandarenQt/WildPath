@@ -422,7 +422,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Divine Favor | spells24 | Divine Favor (automated) | — |
 | Divine Intervention | classes24 | Divine Intervention (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Divine Order | classes24 | Divine Order (feature) | — |
-| Divine Order: Protector | classes24 | Divine Order: Protector (feature) | effect: "Divine Order: Protector" change system.traits.weaponProf.value (add) not converted; effect: "Divine Order: Protector" change system.traits.armorProf.value (add) not converted |
+| Divine Order: Protector | classes24 | Divine Order: Protector (feature) | — |
 | Divine Order: Thaumaturge | classes24 | Divine Order: Thaumaturge (feature) | effect: "Thaumaturge" change system.scale.cleric.cantrips-known.value (add) not converted |
 | Divine Smite | spells24 | Divine Smite (automated), Divine Smite (Undead or Fiend) (automated) | — |
 | Divine Word | spells24 | Divine Word (automated) | effect: "Blinded, Deafened" marks its creature only; its rules are by hand; effect: "Deafened" marks its creature only; its rules are by hand |
@@ -1180,7 +1180,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Primal Knowledge | classes24 | Primal Knowledge (feature) | — |
 | Primal Order | classes24 | Primal Order (feature) | — |
 | Primal Order: Magician | classes24 | Primal Order: Magician (feature) | effect: "Magician" change system.scale.druid.cantrips-known.value (add) not converted |
-| Primal Order: Warden | classes24 | Primal Order: Warden (feature) | effect: "Primal Order: Warden" change system.traits.armorProf.value (add) not converted; effect: "Primal Order: Warden" change system.traits.weaponProf.value (add) not converted |
+| Primal Order: Warden | classes24 | Primal Order: Warden (feature) | — |
 | Prismatic Spray | spells24 | Prismatic Spray (Cast) (automated), Prismatic Spray (Indigo Save (Con)) (automated), Prismatic Spray (Violet Save (Wis)) (automated) | rolled (save); what it does is by hand |
 | Prismatic Wall | spells24 | Prismatic Wall (Create Wall) (manual), Prismatic Wall (Create Globe) (manual) | not automated (utility): using it spends its cost; its description says the rest; "Blinding Save" is passive or triggered: not automated; "Traversal Save" is passive or triggered: not automated |
 | Private Sanctum | spells24 | Private Sanctum (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost; area: 100 * @item.level - 300-ft cube is not supported; the user picks the targets |

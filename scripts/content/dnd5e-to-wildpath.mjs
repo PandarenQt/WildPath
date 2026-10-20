@@ -1005,13 +1005,15 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   }
   // Nothing to use: a passive ability is a feature carrying its text (and any uses its other Actions spend).
   if ( !items.length ) {
+    // Its training is its flag (`flags.wildpath.training`), no longer a note.
+    if ( trainingKeys(document).length ) allNotes.splice(0, allNotes.length, ...allNotes.filter(note => !/traits\.(armorProf|weaponProf)/.test(note)));
     items.push({_id: document._id, _key: `!items!${document._id}`, name: document.name, type: "feature", img,
       system: {active: true, description, ruleElements: [pool?.rule, ...(trait?.rules ?? []), ...initiativeRules,
         // A paladin's aura is what it grants those around it, not what its dnd5e effect gives the paladin alone.
         ...(PALADIN_AURAS[identifierOf(document)] ? [paladinAura(identifierOf(document))] : passive),
         ...((identifierOf(document) === "paladins-smite") ? [PALADINS_SMITE.pool] : [])].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(metamagic ? {metamagic} : {}),
-        ...(testOffer ? {testOffer} : {})}}});
+        ...(testOffer ? {testOffer} : {}), ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {})}}});
     if ( identifierOf(document) === "paladins-smite" ) items.push(...paladinsSmiteActions(document, img, source));
     if ( identifierOf(document) === "brutal-strike" ) items.push(...brutalStrikeActions(document, img, source, scales));
     if ( identifierOf(document) === "improved-brutal-strike" ) items.push(...improvedBrutalStrikeActions(document, img, source));
@@ -1114,6 +1116,20 @@ export function preparedTable(system) {
   if ( !scale ) return [];
   let value = 0;
   return Array.from({length: 20}, (_, index) => (value = Number(scale[index + 1]?.value ?? value) || value));
+}
+
+/**
+ * The armor and weapon training a feature's passive effects give (2024 Divine Order: Protector's martial weapons and
+ * heavy armor), as trait keys its creature gains when the Item is added (`flags.wildpath.training`).
+ */
+function trainingKeys(document) {
+  const changes = (document.effects ?? []).filter(effect => effect.transfer && !effect.disabled)
+    .flatMap(effect => effect.changes ?? effect.system?.changes ?? []);
+  return [...new Set(changes.flatMap(change => {
+    const kind = {"system.traits.armorProf.value": "armor", "system.traits.weaponProf.value": "weapon"}[change.key];
+    if ( !kind || (change.type !== "add") ) return [];
+    return String(change.value ?? "").split(/[,;]/).map(entry => entry.trim()).filter(Boolean).map(value => traitKey(`${kind}:${value}`));
+  }).filter(Boolean))];
 }
 
 /** dnd5e's progression Item types and WildPath's (G8). */
