@@ -47,7 +47,8 @@
           "id": "effect-1",
           "type": "condition",
           "conditionId": "prone",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "maxSize": "large"
         }
       ],
       "rider": {
@@ -75,6 +76,17 @@
             "notTagsAny": [
               "spell"
             ]
+          },
+          "triggerPredicate": {
+            "not": {
+              "oneOf": {
+                "path": "event.data.targetSize",
+                "values": [
+                  "huge",
+                  "gargantuan"
+                ]
+              }
+            }
           },
           "once": "turn",
           "onceKey": "cunning-strike",

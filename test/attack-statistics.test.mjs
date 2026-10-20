@@ -333,5 +333,5 @@ test("cantrip invocations (SRD, house rule): Agonizing Blast adds Charisma to ev
   assert.equal(actionCombatStatistics(actor, pack("fireball-").system.definition).damage, null, "not a leveled spell");
   const repelling = pack("repelling-blast-").system;
   const match = repelling.ruleElements.find(rule => rule.type === "Trigger").data.match;
-  assert.deepEqual([match.tagsAll, match.notTagsAny, repelling.definition.rider], [["cantrip"], undefined, {push: {distance: 10}}]);
+  assert.deepEqual([match.tagsAll, match.notTagsAny, repelling.definition.rider], [["cantrip"], undefined, {push: {distance: 10, maxSize: "large"}}]);
 });

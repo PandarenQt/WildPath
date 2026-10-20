@@ -23,6 +23,7 @@ const PREDICATE_KEYS = new Set([
   "missingCondition",
   "equals",
   "oneOf",
+  "atMost",
   "poolEmpty",
   "poolBelowMax",
   "bloodied"
@@ -63,6 +64,7 @@ export function evaluatePredicate(predicate, context={}) {
     evaluateConditions(predicate, context),
     evaluateEquals(predicate, context),
     evaluateOneOf(predicate, context),
+    evaluateAtMost(predicate, context),
     evaluatePools(predicate, context),
     evaluateBloodied(predicate, context)
   ];
@@ -124,6 +126,17 @@ function evaluateEquals(predicate, context) {
   }
   const value = resolvePath(context, predicate.equals.path);
   return value === predicate.equals.value ? pass() : fail(`${predicate.equals.path} did not equal ${predicate.equals.value}`);
+}
+
+/** `atMost: {path, value}`: the number at `path` is at most `value` (Retaliation: the damager within 5 ft). */
+function evaluateAtMost(predicate, context) {
+  if ( !("atMost" in predicate) ) return pass();
+  if ( !isPlainObject(predicate.atMost) || !("path" in predicate.atMost) || !Number.isFinite(Number(predicate.atMost.value)) ) {
+    return invalid("Predicate 'atMost' must include a path and a numeric value.");
+  }
+  const value = resolvePath(context, predicate.atMost.path);
+  return (Number.isFinite(value) && (value <= Number(predicate.atMost.value))) ? pass()
+    : fail(`${predicate.atMost.path} was not at most ${predicate.atMost.value}`);
 }
 
 function evaluateOneOf(predicate, context) {

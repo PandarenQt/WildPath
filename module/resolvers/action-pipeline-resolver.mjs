@@ -484,6 +484,7 @@ function damageTakenReactionEvent(state) {
     tags: uniqueStrings([...(state.actionContext?.action?.tags ?? [])]),
     data: {
       action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
+      ...targetRelations(input, damaged),
       timing: REACTION_WINDOW_TIMINGS.AFTER_DAMAGE
     }
   });
@@ -2485,6 +2486,28 @@ function sourceFootprintFromInput(input) {
     ?? null;
 }
 
+/**
+ * Its targets' sizes and distances from its source in feet, by Token id (`relations.<tokenId>`: Retaliation's "within 5
+ * feet of you"), and the first target's size (`targetSize`: Eldritch Smite's "Huge or smaller"). Empty without a grid.
+ */
+function targetRelations(input, targets) {
+  const source = sourceFootprintFromInput(input);
+  const gridDistance = gridDistanceFromInput(input);
+  const relations = {};
+  for ( const target of targets ) {
+    const key = target?.tokenId ?? target?.id;
+    if ( !key ) continue;
+    const refs = targetLookupRefs(target);
+    const entry = targetFootprintEntries(input).find(candidate => targetLookupRefs(candidate?.target ?? candidate)
+      .some(ref => refs.includes(ref)) || ((candidate?.id != null) && (candidate.id === target?.id)));
+    const footprint = targetFootprintForContext(input, {target});
+    relations[key] = {size: entry?.size ?? null,
+      distance: (source && footprint && gridDistance) ? footprintDistance(source, footprint) * gridDistance : null};
+  }
+  const first = targets[0] ? relations[targets[0].tokenId ?? targets[0].id] : null;
+  return Object.keys(relations).length ? {relations, targetSize: first?.size ?? null} : {};
+}
+
 function targetFootprintForContext(input, targetContext) {
   const target = targetContext?.target ?? targetContext;
   const refs = targetLookupRefs(target);
@@ -2831,6 +2854,7 @@ function attackOutcomeReactionEvent(state) {
       attackTotal: first?.roll?.total ?? null,
       defense: first?.defense ?? null,
       defenseValue: first?.defense?.value ?? null,
+      ...targetRelations(input, attackResults.map(result => result.target).filter(Boolean)),
       timing: REACTION_WINDOW_TIMINGS.AFTER_OUTCOME
     }
   });

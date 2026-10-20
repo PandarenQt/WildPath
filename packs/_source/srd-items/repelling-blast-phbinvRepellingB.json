@@ -23,7 +23,8 @@
       },
       "rider": {
         "push": {
-          "distance": 10
+          "distance": 10,
+          "maxSize": "large"
         }
       },
       "label": "Repelling Blast"
@@ -42,6 +43,17 @@
             "tagsAll": [
               "cantrip"
             ]
+          },
+          "triggerPredicate": {
+            "not": {
+              "oneOf": {
+                "path": "event.data.targetSize",
+                "values": [
+                  "huge",
+                  "gargantuan"
+                ]
+              }
+            }
           }
         }
       }

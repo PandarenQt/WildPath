@@ -252,3 +252,17 @@ test("concentration check prompt view model can hide physical-entry commands", (
   assert.equal(model.checks[0].physicalCommand, null);
   assert.equal(model.checks[0].command.mode, "digital");
 });
+
+test("an Action whose required slot choice can't be paid (no slot left) is greyed, saying what ran out", () => {
+  const spell = {id: "bolt", name: "Bolt", activationCost: {allOf: [{capability: "action", amount: 1}]}, system: {definition: {
+    schemaVersion: 1, id: "action:bolt", label: "Bolt", costs: {allOf: [{capability: "action", amount: 1}]},
+    configuration: [{id: "spell-slot", type: "resource", label: "Spell slot", required: true,
+      cost: {anyOf: [[{capability: "spell-slot.1", amount: 1}]]}, levelByResourceId: {"spell-slot.1": 1}}]}}};
+  const bar = slots => createActionBarViewModel({actor: {id: "actor-a", name: "Rook"},
+    actorSystem: {...actorSystem(), pools: [{id: "spell-slot.1", label: "1st-level slot", value: slots, max: 2}]}, actions: [spell]})
+    .actions.find(action => action.id === "bolt");
+  assert.equal(bar(1).enabled, true);
+  const spent = bar(0);
+  assert.equal(spent.enabled, false);
+  assert.ok(spent.payment.failures.some(failure => failure.resourceId === "spell-slot.1" && failure.code === "INSUFFICIENT_RESOURCE"));
+});

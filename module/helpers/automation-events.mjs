@@ -5,6 +5,7 @@ import {
   parseEntityRef
 } from "./entity-refs.mjs";
 import {evaluatePredicate} from "./predicates.mjs";
+import {discoverActionConfigurationChoices} from "./action-configuration.mjs";
 
 export const AUTOMATION_EVENT_PHASES = Object.freeze({
   BEFORE: "before",
@@ -282,6 +283,12 @@ export function collectReactionWindows({
       });
       continue;
     }
+    // Nor one whose required resource choice (Eldritch Smite's Pact Magic slot, Shield's spell slot) it can't pay.
+    const unpaid = unpaidRequiredChoice(dispatch.reaction?.action, resources, policies);
+    if ( unpaid ) {
+      rejected.push({...dispatch, ok: false, code: AUTOMATION_CODES.REACTION_UNAVAILABLE, payment: unpaid});
+      continue;
+    }
 
     windows.push({
       id: `reaction-window:${dispatch.triggerId}:${dispatch.eventId ?? "event"}`,
@@ -307,6 +314,19 @@ export function collectReactionWindows({
     windows: windows.sort(compareReactionWindows),
     rejected
   };
+}
+
+/**
+ * The payment of an Action's first required resource choice that `resources` can't pay (no slot left), else null.
+ * Only an active choice counts (one switched on by another choice, or by a predicate, is the user's to make).
+ */
+export function unpaidRequiredChoice(definition, resources, policies={}) {
+  if ( !definition?.configuration?.length ) return null;
+  const discovery = discoverActionConfigurationChoices({definition, resources, policies});
+  if ( !discovery.ok ) return null;
+  const request = discovery.requests.find(entry => (entry.type === "resource") && entry.required
+    && (entry.payment?.status !== "available"));
+  return request ? clonePlain(request.payment) : null;
 }
 
 /* -------------------------------------------- */

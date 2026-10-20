@@ -1544,7 +1544,7 @@ test("on-hit features: Devious Strikes, Eldritch Smite (a Pact Magic slot), Hurl
   assert.deepEqual([trigger(smite).match.tagsAll, trigger(smite).once], [["weapon"], "turn"]);
   const actorSystem = {resources: {action: {value: 1, max: 1}, bonus: {value: 1, max: 1}, reaction: {value: 1, max: 1}},
     classes: [{id: "warlock", level: 5, spellcasting: {progression: "pact"}}], pools: [{id: "spell-slot.pact", value: 2, max: 2}]};
-  const preview = createResolvedActionPreview({definition: smite.definition, actorSystem, choices: {"spell-slot": {resourceId: "spell-slot.pact"}}});
+  const preview = createResolvedActionPreview({definition: smite.definition, actorSystem, choices: {"spell-slot": {resourceId: "spell-slot.pact"}, prone: "prone"}});
   assert.equal(preview.preview.damage.components[0].formula, "4d8", "(1 + pact level 3)d8");
   const hurl = read("hurl-through-hell-hurl");
   assert.deepEqual([trigger(hurl).match.tagsAll, trigger(hurl).once, hurl.definition.costs.allOf[0].capability,
@@ -1590,4 +1590,21 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   assert.deepEqual(read("luck-phbspt").flags.wildpath.testOffer, {tests: ["check", "save", "attack"], reroll: true, natural: 1});
   const build = read("powerful-build-").system.ruleElements[0];
   assert.deepEqual([build.type, build.data.domains, build.predicate], ["RollMode", ["check"], {equals: {path: "check.escapes", value: "grappled"}}]);
+});
+
+test("size and range limits on offers: Hill's Tumble, Trip and Repelling Blast Large or smaller; Retaliation within 5 ft", async () => {
+  const fs = await import("node:fs");
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8")).system;
+  const predicate = prefix => read(prefix).ruleElements.find(rule => rule.type === "Trigger").data.triggerPredicate;
+  const sized = (prefix, size) => evaluatePredicate(predicate(prefix), {event: {data: {targetSize: size}}}).ok;
+  for ( const prefix of ["hill-s-tumble", "cunning-strike-trip", "repelling-blast"] ) {
+    assert.deepEqual([sized(prefix, "large"), sized(prefix, "huge"), sized(prefix, undefined)], [true, false, true], prefix);
+  }
+  assert.equal(read("cunning-strike-trip").definition.effects[0].maxSize, "large");
+  assert.equal(read("eldritch-smite-").definition.effects[0].maxSize, "huge");
+  const near = distance => evaluatePredicate(predicate("retaliation-").atMost ? {atMost: {...predicate("retaliation-").atMost,
+    path: "event.data.relations.me.distance"}} : null, {event: {data: {relations: {me: {distance}}}}}).ok;
+  assert.deepEqual([near(5), near(10)], [true, false]);
 });

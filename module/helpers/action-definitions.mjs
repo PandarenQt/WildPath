@@ -686,11 +686,14 @@ function validateSummon(summon, errors) {
   }
 }
 
+/** The creature sizes, smallest first: a `maxSize` names one. */
+export const CREATURE_SIZE_ORDER = Object.freeze(["tiny", "small", "medium", "large", "huge", "gargantuan"]);
+
 function validatePush(push, errors) {
   if ( !push ) return;
   if ( !(Number(push.distance) > 0) ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.distance",
     "A push moves its creature a positive number of feet."));
-  if ( (push.maxSize != null) && !["tiny", "small", "medium", "large", "huge", "gargantuan"].includes(push.maxSize) ) {
+  if ( (push.maxSize != null) && !CREATURE_SIZE_ORDER.includes(push.maxSize) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.maxSize", `Unknown creature size: ${push.maxSize}`));
   }
   if ( (push.on != null) && !["failure", "success"].includes(push.on) ) {
@@ -862,6 +865,9 @@ function validateHealing(components, errors) {
 function validateEffects(effects, errors, {conditionDefinitions=null, effectDefinitions=null}={}) {
   effects.forEach((effect, index) => {
     const path = `effects.${index}`;
+    if ( (effect.maxSize != null) && !CREATURE_SIZE_ORDER.includes(effect.maxSize) ) {
+      errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.maxSize`, `Unknown creature size: ${effect.maxSize}`));
+    }
     if ( (effect.repeatSave != null) && !REPEAT_SAVE_TIMINGS.includes(effect.repeatSave) ) {
       errors.push(error(ACTION_DEFINITION_CODES.INVALID_EFFECT, `${path}.repeatSave`,
         `An effect's save is repeated at: ${REPEAT_SAVE_TIMINGS.join(", ")}.`));
@@ -1192,6 +1198,8 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
       // It ends after the next attack against its creature (Help, Guiding Bolt), else with its duration.
       ...(effect.endsWhen ? {endsWhen: String(effect.endsWhen)} : {})} : {}),
     ...(effect.repeatSave ? {repeatSave: String(effect.repeatSave)} : {}),
+    // Only on a creature no bigger than this (Eldritch Smite's Prone: Huge or smaller).
+    ...(effect.maxSize ? {maxSize: String(effect.maxSize)} : {}),
     predicate: clonePlain(effect.predicate ?? null),
     source: clonePlain(effect.source ?? null),
     origin: clonePlain(effect.origin ?? null),

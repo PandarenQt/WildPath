@@ -221,3 +221,19 @@ test("its creature's spell save DC bonus (Innate Sorcery's `dc.spell`) adds to t
     targets: [{id: "hero", actorId: "actor-hero", tokenId: "token-hero", disposition: "enemy"}], save: {dcBonus: 1}}).state;
   assert.equal(state.pendingRequests[0].payload.rollRequest.dc?.value ?? state.pendingRequests[0].payload.rollRequest.dc, 14);
 });
+
+test("an effect with a maxSize skips a bigger creature (Eldritch Smite's Prone: Huge or smaller); Prone is the warlock's choice", async () => {
+  const fs = await import("node:fs");
+  const {resolveActionEffects} = await import("../module/resolvers/action-resolver.mjs");
+  const prone = [{id: "effect-1", type: "condition", conditionId: "prone", maxSize: "huge"}];
+  const targetsOf = size => ({targetContexts: [{target: {id: "t", tokenId: "t"}, size, selected: true}]});
+  const planned = size => resolveActionEffects({effects: prone, targetResolution: targetsOf(size), actionContext: {source: {}}}).mutationPlans.length;
+  assert.deepEqual([planned("huge"), planned("gargantuan"), planned(null)], [1, 0, 1]);
+  const {createResolvedActionPreview} = await import("../module/helpers/action-configuration.mjs");
+  const smite = JSON.parse(fs.readFileSync("packs/_source/srd-items/eldritch-smite-phbinvEldritchSm.json", "utf8")).system.definition;
+  const actorSystem = {resources: {action: {value: 1, max: 1}, reaction: {value: 1, max: 1}},
+    classes: [{id: "warlock", level: 5, spellcasting: {progression: "pact"}}], pools: [{id: "spell-slot.pact", value: 2, max: 2}]};
+  const effects = choices => createResolvedActionPreview({definition: smite, actorSystem, choices: {"spell-slot": {resourceId: "spell-slot.pact"},
+    ...choices}}).configuration.effectiveDefinition.effects.map(effect => effect.conditionId);
+  assert.deepEqual([effects({prone: "prone"}), effects({prone: "standing"})], [["prone"], []], "Prone, or not: the warlock's choice");
+});
