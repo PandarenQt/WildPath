@@ -372,13 +372,15 @@ Tireless' "Decrease Exhaustion" is a `rest.completed` Trigger on its Item (`rest
 Tireless and 2 Exhaustion took a Short Rest from Player1's client and had 1. This was the first live run of
 `rest.completed`.
 
-## Eldritch Blast invocations (2026-10-20)
+## Cantrip invocations, and the cantrip house rule (2026-10-20)
 
-Eldritch Blast is tagged `eldritch-blast`.
-- **Agonizing Blast:** its Charisma modifier on `damage.spell` for `eldritch-blast`.
-- **Repelling Blast:** an offer on its hit that pushes the creature 10 ft (reactions.md).
+**House rule (the maintainer's):** a feature that changes a chosen cantrip applies to all of its creature's cantrips.
+It matches the `cantrip` tag, never one spell.
+- **Agonizing Blast:** its Charisma modifier on `damage.spell` for `cantrip`.
+- **Repelling Blast:** an offer on any cantrip's attack hit that pushes the creature 10 ft (reactions.md).
 
-shortcut: Eldritch Blast only, where 2024 lets the warlock choose a cantrip; Eldritch Spear (range) stays by hand.
+Eldritch Spear (range) stays by hand. Live (two browsers, 14.369): QA Caster's Fire Bolt with Agonizing Blast rolled
+"2d10 + 3" (Presence 16), and Repelling Blast was offered on its hit.
 
 ## Dropping to 0 Hit Points (2026-10-20)
 

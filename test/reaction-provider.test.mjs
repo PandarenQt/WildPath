@@ -117,7 +117,7 @@ test("2024: being pushed or teleported out of reach provokes no Opportunity Atta
   assert.equal(evaluatePredicate(trigger.predicate, leaving("teleport")).ok, false, "teleported out");
 });
 
-test("its own hit: Paladin's Smite's 2014 smite while no other slot spell was cast this turn, else the 2024 spell", t => {
+test("its own hit: Paladin's Smite's 2014 smite beside the 2024 spell while no other slot spell was cast this turn", t => {
   const smite = (id, free) => ({id, type: "action", system: {active: true, definition: {schemaVersion: 1, id: `action:${id}`, label: id,
     tags: ["spell", "smite"], costs: {allOf: free ? [] : [{capability: "bonus-action", amount: 1}]}, range: {type: "special"},
     targeting: {type: "single", required: true, count: 1}, damage: [{id: "d", expression: {type: "constant", value: 1}, damageType: "radiant"}]},
@@ -130,11 +130,11 @@ test("its own hit: Paladin's Smite's 2014 smite while no other slot spell was ca
   t.after(() => { globalThis.game = previous; });
   const offered = () => createFoundryReactionProvider()({scene, token: paladin}).reactions.triggers
     .filter(trigger => trigger.owner.tokenId === "paladin").map(trigger => trigger.reaction.actionId);
-  assert.deepEqual(offered(), ["action:paladins-smite"], "no other slot spell this turn: the free one only");
+  assert.deepEqual(offered(), ["action:paladins-smite", "action:divine-smite"], "no other slot spell this turn: both, as options");
   paladin.actor.flags = {wildpath: {slotSpellTurn: "c:2:0"}};
   assert.deepEqual(offered(), ["action:divine-smite"], "after another slot spell: the 2024 spell");
   globalThis.game.combat.round = 3;
-  assert.deepEqual(offered(), ["action:paladins-smite"], "a new turn");
+  assert.deepEqual(offered(), ["action:paladins-smite", "action:divine-smite"], "a new turn");
 });
 
 test("a once-a-turn reaction carries its record key and turn, and is not offered once used this turn", t => {

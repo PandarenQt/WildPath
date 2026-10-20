@@ -40,7 +40,7 @@
             "phase": "interrupt",
             "sourceTokenId": "{self}",
             "tagsAll": [
-              "eldritch-blast"
+              "cantrip"
             ]
           }
         }

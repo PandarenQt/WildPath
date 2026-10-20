@@ -285,10 +285,10 @@ const OWN_HIT = Object.freeze({
   // Eldritch Invocation Lifedrinker: Necrotic, Psychic or Radiant 1d6. shortcut: any weapon, not only its pact weapon;
   // its Hit Die heal is by hand.
   "lifedrinker/": weaponHit("lifedrinker"),
-  // Eldritch Invocation Repelling Blast: an Eldritch Blast hit may push its creature 10 feet away. shortcut: Eldritch
-  // Blast only (2024: a chosen attack cantrip), and its "Large or smaller" is by hand.
-  // The push rides on the Eldritch Blast it answers (`rider.push`, as Forceful Blow's): the creature that blast hit.
-  "repelling-blast/Make Repelling": {tagsAll: ["eldritch-blast"], spell: true, rider: {push: {distance: 10}}, definition: definition => definition},
+  // Eldritch Invocation Repelling Blast: a cantrip's attack hit may push its creature 10 feet away (house rule: a
+  // feature changing a chosen cantrip changes every cantrip). The push rides on the attack it answers (`rider.push`, as
+  // Forceful Blow's). shortcut: "Large or smaller" is by hand.
+  "repelling-blast/Make Repelling": {tagsAll: ["cantrip"], spell: true, rider: {push: {distance: 10}}, definition: definition => definition},
   "open-hand-technique/Addle": openHand({definition: definition => ({...definition, effects: [{id: "effect-1", type: "effect",
     name: "Addled", slug: "no-opportunity-attacks", img: "icons/svg/daze.svg", duration: {value: 1, units: "rounds", expiry: "turnStart"},
     ruleElements: []}]})}),
@@ -466,8 +466,8 @@ function brutalStrikeActions(document, img, source, scales) {
  * Paladin's Smite (the maintainer's rule): its free cast of Divine Smite (once per Long Rest, no slot) is an option of
  * every Divine Smite's slot choice, as a 1st-level cast. It also lets its paladin cast Divine Smite by the 2014 rules
  * (SRD 5.1): no action, 2d8 radiant and 1d8 more a slot level above 1st, at most 5d8 (a slot above 4th adds nothing, so
- * it is not offered), as often as it hits, while it has cast no other spell with a slot this turn. While that one is
- * offered, the 2024 spell is not (`onlyWithoutOtherSlotSpell`, reactions.md).
+ * it is not offered), as often as it hits, while it has cast no other spell with a slot this turn
+ * (`onlyWithoutOtherSlotSpell`, reactions.md). The 2024 spell is offered beside it: both are options.
  */
 const PALADINS_SMITE = Object.freeze({resourceId: "paladins-smite",
   pool: {schemaVersion: 1, id: "paladins-smite-uses", type: "GrantResource",
@@ -884,8 +884,6 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A spell's tags say what it is, for rules on spell damage: a cantrip, its school (`school:evocation`: Empowered
     // Evocation) and each damage type it deals (`damage:fire`: Elemental Affinity).
     if ( spell ) definition = {...definition, tags: [...new Set([...(definition.tags ?? []), ...(Number(level) === 0 ? ["cantrip"] : []),
-      // Eldritch Blast by name, for its invocations (Agonizing Blast, Repelling Blast).
-      ...((identifierOf(document) === "eldritch-blast") ? ["eldritch-blast"] : []),
       ...(SCHOOLS[system.school] ? [`school:${SCHOOLS[system.school]}`] : []),
       ...(definition.damage ?? []).map(component => component.damageType).filter(Boolean).map(type => `damage:${type}`)])]};
     // Lay on Hands: "restore a number of Hit Points equal to the points spent", chosen when used, from its pool.
@@ -1317,9 +1315,9 @@ const TRAITS = Object.freeze({
   // its class's.
   "blessed-strikes-potent-spellcasting": (document, {activities}) => spellDamageBonus(activities, "wits", {tagsAll: ["cantrip"]}),
   "elemental-fury-potent-spellcasting": (document, {activities}) => spellDamageBonus(activities, "wits", {tagsAll: ["cantrip"]}),
-  // Eldritch Invocation Agonizing Blast: its Charisma modifier on Eldritch Blast's damage. shortcut: Eldritch Blast only
-  // (2024: a chosen damaging cantrip).
-  "agonizing-blast": (document, {activities}) => spellDamageBonus(activities, "presence", {tagsAll: ["eldritch-blast"]}),
+  // Eldritch Invocation Agonizing Blast: its Charisma modifier on every cantrip's damage (house rule: a feature changing
+  // a chosen cantrip changes every cantrip).
+  "agonizing-blast": (document, {activities}) => spellDamageBonus(activities, "presence", {tagsAll: ["cantrip"]}),
   // 2024 Empowered Evocation: its Intelligence modifier on one damage roll of an evocation spell.
   "empowered-evocation": (document, {activities}) => spellDamageBonus(activities, "intellect", {tagsAll: ["school:evocation"]}),
   // 2024 Disciple of Life: a spell cast with a slot heals 2 + the slot's level more.

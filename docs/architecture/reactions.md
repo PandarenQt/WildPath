@@ -259,7 +259,8 @@ Live (two browsers, 2026-10-19):
 - **Only without another slot spell (Paladin's Smite):** an own-hit Trigger with `onlyWithoutOtherSlotSpell: true` is
   offered only while its creature has cast no spell with a slot this combat turn other than one tagged `smite`
   (`recordSlotSpell` keeps the turn in `flags.wildpath.slotSpellTurn`; outside combat there is no turn, so nothing
-  blocks it). While it is offered, its creature's other `smite` reactions (the 2024 spell) are not.
+  blocks it). Its creature's other `smite` reactions (the 2024 spell) are offered beside it, as options (2026-10-20,
+  the maintainer's choice).
 
 Live (two browsers, 2026-10-19, in combat): QA Caster with Paladin's Smite hit the Bandit Captain and was offered only
 Paladin's Smite; Player1 spent its free cast for 2d8 = 13, no slot and no Bonus Action. It then cast Cure Wounds with a
@@ -332,9 +333,8 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   end Staggering Blow; Sundering Blows of two barbarians stack.
 
 - **Repelling Blast (2026-10-20):** an own-hit offer marked `spell` drops the `notTagsAny: ["spell"]` of its match, so it
-  answers a spell's hit. It answers Eldritch Blast, which is tagged `eldritch-blast`, and its rider pushes the creature
-  hit 10 ft (`rider.push`, as Forceful Blow's). shortcut: Eldritch Blast only (2024: a chosen attack cantrip); "Large or
-  smaller" is by hand. Live: QA Caster's Eldritch Blast hit the Bandit Captain for 1d10 + 3 (Agonizing Blast), and
+  answers a spell's hit. It answers any cantrip (`tagsAll: ["cantrip"]`, the cantrip house rule), and its rider pushes
+  the creature hit 10 ft (`rider.push`, as Forceful Blow's). shortcut: "Large or smaller" is by hand. Live: QA Caster's Eldritch Blast hit the Bandit Captain for 1d10 + 3 (Agonizing Blast), and
   Repelling Blast pushed it 10 ft away.
 - **Weapon hit extras (2026-10-20):** an attack's hit event also carries its statistic (`weapon` or `spell`). An own-hit
   offer can answer any weapon's hit (`tagsAll: ["weapon"]`), melee or ranged, once a turn by its `onceKey`:

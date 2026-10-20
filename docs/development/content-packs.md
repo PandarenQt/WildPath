@@ -443,8 +443,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
   their creature when the Item is (classes-and-spellcasting.md).
 - **Tireless (2026-10-20):** its Short Rest Exhaustion is a `rest.completed` Trigger. An Item with Actions now carries its
   automatic triggers on its first Action.
-- **Eldritch Blast invocations (2026-10-20):** Eldritch Blast is tagged `eldritch-blast`; Agonizing Blast and
-  Repelling Blast read it (classes-and-spellcasting.md).
+- **Cantrip invocations (2026-10-20):** Agonizing Blast and Repelling Blast apply to every cantrip (the cantrip house
+  rule, classes-and-spellcasting.md). Paladin's Smite and the Divine Smite spell are both offered on a hit
+  (reactions.md).
 - **Dropping to 0 (2026-10-20):** Relentless Endurance, Relentless Rage, Undead Fortitude (Zombie, Ogre Zombie) and Dark
   One's Blessing carry `zero-hp` Triggers (rule-elements.md).
 - **Test offers (2026-10-20):** Peerless Skill, Dark One's Own Luck and Stroke of Luck (`setNatural: 20`) carry `flags.wildpath.testOffer`, which the engine
