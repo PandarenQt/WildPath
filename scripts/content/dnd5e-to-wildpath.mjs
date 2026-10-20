@@ -151,6 +151,22 @@ function repeatSaveTiming(document) {
   return found ? (found[1].toLowerCase() === "end" ? "turnEnd" : "turnStart") : null;
 }
 
+/**
+ * Reactions an effect gives the creatures it is on, by "<feature>/<effect name>" (reaction-provider effectReactionItems).
+ * Tasha's Protective Bond: when a creature with Emboldening Bond's effect is about to take damage, another bonded
+ * creature within 30 feet of it may use its Reaction to teleport beside it and take all the damage instead; only while
+ * the cleric who bonded them has Protective Bond (`giverItem`). shortcut: Expansive Bond's 60 feet and resistance are
+ * not applied; upgrade with a range from the giver's features.
+ */
+const EFFECT_REACTIONS = Object.freeze({
+  "emboldening-bond/Bonded": [{schemaVersion: 1, id: "protective-bond", type: "Trigger", data: {kind: "reaction",
+    event: "damage.applied", match: {phase: "before", notSourceTokenId: "{self}"}, giverItem: "protective-bond",
+    triggerPredicate: {all: [{equals: {path: "targetEffects.bonded", value: true}}, {atMost: {path: "toTarget.{self}.distance", value: 30}},
+      {not: {equals: {path: "toTarget.{self}.self", value: true}}}]},
+    action: {schemaVersion: 1, id: "action:protective-bond", label: "Protective Bond", costs: {allOf: [{capability: "reaction", amount: 1}]},
+      range: {type: "self"}, targeting: {type: "self"}, rider: {redirectDamage: {to: "self"}, protects: "target", teleportNextTo: true}}}}]
+});
+
 /** What a spell ends on its target, by identifier: curses (effects tagged "curse"), or spells up to its own level. */
 const ENDS = Object.freeze({
   "remove-curse": {tags: ["curse"]},
@@ -2447,7 +2463,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
       groups.push({label: effect.name, ids: [effects.at(-1).id]});
       continue;
     }
-    const rules = [...(hand?.ruleElements ?? (effect ? effectRules(effect, notes, {scales}) : [])), ...(byHand?.extraRules ?? [])];
+    const rules = [...(hand?.ruleElements ?? (effect ? effectRules(effect, notes, {scales}) : [])), ...(byHand?.extraRules ?? []),
+      ...structuredClone(EFFECT_REACTIONS[`${identifierOf(document)}/${effect?.name}`] ?? [])];
     // dnd5e's "marked" (Guiding Bolt, Shining Smite): attack rolls against its creature have Advantage; only the next
     // one when its text says so, and the effect then ends after that attack.
     const marked = statuses.includes("marked") && !byHand?.slug;

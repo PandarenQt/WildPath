@@ -2404,3 +2404,36 @@ test("damage reactions for another creature: Interception reduces an ally's dama
   assert.deepEqual([moved.targetActor.system.resources.health.value, decoy.system.resources.health.value], [30, 14],
     "the target takes nothing; the decoy takes the 6");
 });
+
+test("Protective Bond: a reaction an effect gives (Bonded), offered while its giver has the feature; it takes the damage", async t => {
+  const {action} = {action: {schemaVersion: 1, id: "action:protective-bond", label: "Protective Bond",
+    costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]}, range: {type: "self"}, targeting: {type: "self"},
+    rider: {redirectDamage: {to: "self"}, protects: "target", teleportNextTo: true}}};
+  const trigger = {schemaVersion: 1, id: "protective-bond", type: "Trigger", data: {kind: "reaction", event: "damage.applied",
+    match: {phase: "before", notSourceTokenId: "{self}"}, giverItem: "protective-bond", action,
+    triggerPredicate: {all: [{equals: {path: "targetEffects.bonded", value: true}}, {atMost: {path: "toTarget.{self}.distance", value: 30}},
+      {not: {equals: {path: "toTarget.{self}.self", value: true}}}]}}};
+  const cleric = {uuid: "Actor.cleric", items: [{system: {active: true}, flags: {wildpath: {source: {identifier: "protective-bond"}}}}]};
+  const previous = globalThis.fromUuidSync;
+  globalThis.fromUuidSync = uuid => (uuid === cleric.uuid ? cleric : null);
+  t.after(() => { if ( previous === undefined ) delete globalThis.fromUuidSync; else globalThis.fromUuidSync = previous; });
+  const bonded = {id: "bonded", name: "Bonded", system: {ruleElements: [trigger]}, flags: {wildpath: {conditionEffect: {sourceRef: cleric.uuid}}}};
+  const fixture = counterattackFixture(t, {reactor: "bystander", holderItems: []});
+  fixture.holder.effects = [bonded];
+  fixture.targetActor.effects = [...(fixture.targetActor.effects ?? []), {id: "bonded-too", name: "Bonded", system: {ruleElements: []}}];
+  const declared = await fixture.player.declareActionIntent(fixture.intent);
+  const record = fixture.gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(fixture.offers.length, 1, "offered to the other bonded creature");
+  assert.deepEqual([fixture.targetActor.system.resources.health.value, fixture.holder.system.resources.health.value], [30, 14],
+    "it takes the 6 instead");
+  assert.deepEqual(record.state.input.riderTeleport, {tokenId: "bystander-token", nextTo: "target-token"}, "and teleports beside it");
+
+  // Its cleric without Protective Bond: no reaction.
+  cleric.items = [];
+  const plain = counterattackFixture(t, {reactor: "bystander", holderItems: []});
+  plain.holder.effects = [bonded];
+  plain.targetActor.effects = [{id: "bonded-too", name: "Bonded", system: {ruleElements: []}}];
+  await plain.player.declareActionIntent(plain.intent);
+  assert.equal(plain.offers.length, 0);
+});

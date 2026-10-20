@@ -3362,6 +3362,9 @@ function riderPatch(state, rider, {window, childState}) {
       ...((rider.rollMode && input.attack) ? {attack: {...input.attack, rollMode: rider.rollMode, rollModeSources: [rider.rollMode]}} : {}),
       ...(rider.tags?.length ? {riderTags: uniqueStrings([...(input.riderTags ?? []), ...rider.tags])} : {}),
       ...(rider.push ? {riderPush: clonePlain(rider.push)} : {}),
+      // Protective Bond: its creature teleports beside the creature it protects (adapters/foundry-v14-teleport).
+      ...((rider.teleportNextTo && childState?.source?.tokenId && protectedTokenId(childState))
+        ? {riderTeleport: {tokenId: childState.source.tokenId, nextTo: protectedTokenId(childState)}} : {}),
       ...(durability !== input.durability ? {durability} : {})
     },
     results: {}

@@ -20,11 +20,50 @@ export function teleportDestination({ token, point, distance }) {
         return { ok: false, code: "Occupied" };
     return { ok: true, position: { x: position.x, y: position.y } };
 }
-/** After an Action that teleports its creature (`options.teleport`: its Token and where it lands), on the active GM. */
+/**
+ * The free space within 5 feet of `nextTo` nearest `token` (Protective Bond: "teleport to an unoccupied space within 5
+ * feet of the first creature"): the fields around the spaces `nextTo` occupies, or null when none is free.
+ */
+export function spaceBeside(token, nextTo) {
+    const scene = token.parent;
+    if (!scene)
+        return null;
+    const occupied = nextTo.getOccupiedGridSpaceOffsets?.() ?? [];
+    const taken = new Set(occupied.map(key));
+    const around = new Map();
+    for (const { i, j } of occupied)
+        for (const di of [-1, 0, 1])
+            for (const dj of [-1, 0, 1]) {
+                const offset = { i: i + di, j: j + dj };
+                if (!taken.has(key(offset)))
+                    around.set(key(offset), offset);
+            }
+    const from = token.getCenterPoint();
+    const landings = [...around.values()].map(offset => teleportDestination({ token, point: scene.grid.getTopLeftPoint(offset), distance: Infinity }))
+        .flatMap(result => (result.ok ? [result.position] : []));
+    const far = (point) => scene.grid.measurePath([from, token.getCenterPoint(point)]).distance;
+    return landings.sort((a, b) => far(a) - far(b))[0] ?? null;
+}
+/**
+ * After an Action that teleports its creature (`options.teleport`: its Token and where it lands), or a reaction's rider
+ * that moves its creature beside the one it protects (`state.input.riderTeleport`), on the active GM.
+ */
 export function createFoundryTeleports({ game }) {
-    async function afterResolution({ options }) {
+    async function afterResolution({ options, state }) {
+        if (!game.user?.id || (game.users?.activeGM?.id !== game.user.id))
+            return null;
+        const beside = state?.input?.riderTeleport;
+        if (beside) {
+            const scene = [...(game.scenes ?? [])].find(each => each.tokens.get?.(beside.tokenId));
+            const mover = scene?.tokens.get?.(beside.tokenId);
+            const protectedToken = scene?.tokens.get?.(beside.nextTo);
+            const point = (mover && protectedToken) ? spaceBeside(mover, protectedToken) : null;
+            if (mover && point)
+                await mover.update(point, { movement: { [mover.id]: { waypoints: [{ ...point, action: "blink" }], showRuler: false } },
+                    wildpath: { movementKind: "teleport" } });
+        }
         const teleport = options?.teleport;
-        if (!teleport || !game.user?.id || (game.users?.activeGM?.id !== game.user.id))
+        if (!teleport)
             return null;
         const token = game.scenes?.get(teleport.sceneId)?.tokens.get?.(teleport.tokenId);
         if (!token)
