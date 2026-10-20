@@ -253,7 +253,9 @@ const SELF_EFFECTS = Object.freeze({
  */
 const TEST_OFFERS = Object.freeze({
   "peerless-skill": {tests: ["check", "attack"], refundOnFail: true},
-  "dark-ones-own-luck": {tests: ["check", "save"]}
+  "dark-ones-own-luck": {tests: ["check", "save"]},
+  // 2024 Stroke of Luck: a failed D20 Test becomes a 20, once per Short Rest.
+  "stroke-of-luck": {tests: ["check", "save", "attack"], setNatural: 20}
 });
 
 /** The die of a test offer: "1d10", or a scale's die ("@scale.bard.inspiration") as its faces. */
@@ -814,8 +816,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       const offered = TEST_OFFERS[identifierOf(document)];
       const faces = offered ? testOfferFaces(activity.roll?.formula, scales) : null;
       const offerPool = offered ? targetPoolId(activity.consumption?.targets?.[0] ?? {}, pool, names) : null;
-      if ( faces && offerPool ) {
-        testOffer = {...offered, pool: offerPool, faces};
+      if ( (faces || offered?.setNatural) && offerPool ) {
+        testOffer = {...offered, pool: offerPool, ...(faces ? {faces} : {})};
         continue;
       }
       // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.

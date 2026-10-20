@@ -1396,8 +1396,15 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
     const spec = item?.flags?.wildpath?.testOffer;
     if ( !spec?.tests?.includes(test) || (item.system?.active === false) ) continue;
     const payment = resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: spec.pool, amount: 1}]}});
+    if ( !payment.ok ) continue;
+    // Stroke of Luck: the roll becomes a 20 (`setNatural`), with no die of its own.
+    if ( Number(spec.setNatural) > 0 ) {
+      options.push({value: `test-offer:${item.id}`, setNatural: Number(spec.setNatural), payerRef: roller.uuid, plan: payment.mutationPlan,
+        label: format("WILDPATH.INSPIRATION.SetNatural", {name: item.name ?? "", natural: Number(spec.setNatural)})});
+      continue;
+    }
     const faces = evaluateValueExpression(spec.faces, {actor: roller, actorSystem: rollerSystem});
-    if ( !payment.ok || !faces.ok || !(faces.value > 0) ) continue;
+    if ( !faces.ok || !(faces.value > 0) ) continue;
     options.push({value: `test-offer:${item.id}`, addDice: {number: 1, faces: faces.value}, payerRef: roller.uuid, plan: payment.mutationPlan,
       ...(spec.refundOnFail ? {refundOnFail: true} : {}), label: format("WILDPATH.INSPIRATION.AddDie", {name: item.name ?? "", faces: faces.value})});
   }

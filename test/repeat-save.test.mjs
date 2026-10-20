@@ -127,3 +127,29 @@ test("zeroHpFor (SRD Relentless Rage): while raging, DC 10 + 5 a use spent, 2x i
   assert.deepEqual([first.mode, first.dc, first.hitPoints, first.payment.payerRef], ["save", 10, 22, "Actor.barb"]);
   assert.equal(zeroHpFor(barbarian(["raging"]), system(18)).dc, 20, "two uses spent");
 });
+
+test("Stroke of Luck (SRD): a missed attack becomes a natural 20, a critical hit, for its use", async () => {
+  const fs = await import("node:fs");
+  const {withTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const item = JSON.parse(fs.readFileSync("packs/_source/srd-items/stroke-of-luck-phbrgeStrokeOfLu.json", "utf8"));
+  const system = {resources: {}, pools: [{id: "stroke-of-luck", value: 1, max: 1}]};
+  const offer = withTestOffers(null, {uuid: "Actor.rogue", name: "Rogue", items: [{id: item._id, name: item.name, flags: item.flags,
+    system: item.system}]}, system, null, "attack");
+  assert.equal(offer.options[0].setNatural, 20);
+  const definition = {schemaVersion: 1, id: "action:stab", label: "Stab", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    attack: {type: "melee", statistic: "weapon", defenseKey: "ac"}};
+  let state = planStagedActionResolution({id: "resolution:luck", actorSystem: system, action: {id: definition.id, type: "action",
+    name: definition.label, system: {definition}}, source: {actorId: "actor-rogue"},
+    targeting: {required: true, candidates: [{id: "orc", target: {id: "orc", actorId: "actor-orc", tokenId: "token-orc", disposition: "enemy",
+      defenses: {ac: {value: 15}}}, actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]},
+    attack: {modifierTotal: 2, inspiration: offer}}).state;
+  const answer = value => {
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: typeof value === "function" ? value(request) : value}}).state;
+  };
+  answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, die: 3}));
+  answer(offer.options[0].value);
+  assert.equal(state.results.attackResolution.hits[0]?.outcome, "criticalHit", JSON.stringify(state.errors ?? []).slice(0, 300));
+  assert.ok(state.mutationPlans.some(plan => (plan.type === "resourcePayment") && (plan.payerRef === "Actor.rogue")), "its use is spent");
+});

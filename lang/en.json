@@ -274,6 +274,7 @@
       "AddDie": "Add {name} (d{faces})",
       "TacticalMind": "Tactical Mind: add 1d10 (Second Wind, {value} left; kept if it still fails)",
       "SeekingSpell": "Seeking Spell: reroll the d20 (1 Sorcery Point, {value} left)",
+      "SetNatural": "{name}: turn it into a {natural}",
       "Indomitable": "Reroll with Indomitable, +{bonus} ({value} left)",
       "Monster": "Reroll {name}'s roll with a player character's Heroic Inspiration?",
       "Reroll": "Reroll (Heroic Inspiration)",

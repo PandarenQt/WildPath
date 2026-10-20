@@ -36,9 +36,16 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Stroke of Luck\" is passive or triggered: not automated"
-        ]
+        "notes": []
+      },
+      "testOffer": {
+        "tests": [
+          "check",
+          "save",
+          "attack"
+        ],
+        "setNatural": 20,
+        "pool": "stroke-of-luck"
       }
     }
   }
