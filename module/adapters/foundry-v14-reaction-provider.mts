@@ -107,7 +107,10 @@ export function createFoundryReactionProvider({resolve = defaultResolve} = {}) {
         context: {hostile: isHostile(token, mover)}
       });
     }
-    return triggers.length ? {reactions: {triggers, context: ({event}: {event?: Data}) => ({toSource: relationsToSource(scene, event)})},
+    // Each reactor's relation to the event's source (`toSource`), and to the first creature it damages or targets
+    // (`toTarget`, that creature itself as `self`: Interception, Cloud Rune).
+    return triggers.length ? {reactions: {triggers, context: ({event}: {event?: Data}) => ({toSource: relationsToSource(scene, event),
+      toTarget: relationsToSource(scene, {source: {tokenId: ((event?.targets as Data[] | undefined)?.[0]?.tokenId ?? null)}}, {includeSource: true})})},
       ...(observers.length ? {movement: {observers}} : {})} : {};
   };
 }
@@ -245,13 +248,14 @@ function reachFields(definition: Data, scene: SceneLike) {
  * Invisible, light: attackSight) and a wall blocking sight doesn't hide it entirely (Total Cover). Nothing for an event
  * without a source Token on the Scene, so a predicate reading it fails (no "creature you can see").
  */
-export function relationsToSource(scene: SceneLike, event: Data | undefined): Record<string, {hostile: boolean;
-  distance: number | null; sees: boolean}> {
+export function relationsToSource(scene: SceneLike, event: Data | undefined, {includeSource=false}: {includeSource?: boolean} = {}):
+  Record<string, {hostile: boolean; distance: number | null; sees: boolean; self?: boolean}> {
   const sourceId = ((event?.source as Data | undefined)?.tokenId ?? event?.tokenId) as string | undefined;
   const tokens = [...(scene.tokens ?? [])];
   const source = sourceId ? tokens.find(token => token.id === sourceId) : null;
-  const relations = {};
+  const relations: Record<string, {hostile: boolean; distance: number | null; sees: boolean; self?: boolean}> = {};
   if ( !source?.actor ) return relations;
+  if ( includeSource ) relations[source.id] = {hostile: false, distance: 0, sees: true, self: true};
   const grid = createFoundryV14TacticalGridAdapter({scene: scene as never}) as {tokenToFootprint(token: unknown): {ok: boolean; footprint?: unknown}};
   const footprintOf = (token: TokenLike) => { const result = grid.tokenToFootprint(token); return result.ok ? result.footprint : null; };
   const from = footprintOf(source);

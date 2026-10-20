@@ -66,6 +66,8 @@ export function planDamageDurabilityMutations({
   const failures = [];
   const skipped = [];
   const adjustedDamageResults = [];
+  // One working snapshot per creature: a second result on it (damage redirected to it) builds on the first.
+  const working = new Map();
   for ( const damageResult of damageResolution.results ?? [] ) {
     if ( damageResult.code === DAMAGE_RESOLVER_CODES.TARGET_SKIPPED ) {
       skipped.push(clonePlain(damageResult));
@@ -103,7 +105,8 @@ export function planDamageDurabilityMutations({
       continue;
     }
 
-    const planningSystem = clonePlain(actorSystem);
+    const planningSystem = working.get(actorSystem) ?? clonePlain(actorSystem);
+    working.set(actorSystem, planningSystem);
     const mutationPlan = createActorDamageMutationPlan(planningSystem, {
       damageResult: adjusted.damageResult,
       resourceId,

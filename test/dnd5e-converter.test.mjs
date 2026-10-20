@@ -1583,6 +1583,11 @@ test("reactions: Retaliation's common attack, Countercharm's ally reroll, Stone'
   assert.deepEqual([trigger(stone).event, trigger(stone).match.targetTokenId, stone.system.definition.healing,
     stone.system.definition.rider.reduceDamage.dice.faces], ["damage.applied", "{self}", undefined, 12]);
   assert.equal(trigger(stone).match.phase, "before", "before its damage is planned, from anything");
+  // Deflect Attacks: a hit with bludgeoning, piercing or slashing damage, reduced by 1d10 + Dex + monk level (no longer a heal).
+  const deflect = read("deflect-attacks-reduce-");
+  assert.deepEqual([trigger(deflect).match.tagsAll, trigger(deflect).match.tagsAny.length, deflect.system.definition.healing,
+    deflect.system.definition.rider.reduceDamage.dice.faces], [["hit"], 3, undefined, 10]);
+  assert.equal(trigger(read("deflect-energy-reduce-")).match.tagsAny, undefined, "Deflect Energy: any damage type");
   assert.equal(validateActionDefinition(stone.system.definition).ok, true);
   const indomitable = read("indomitable-phbftr");
   assert.deepEqual([indomitable.type, indomitable.system.ruleElements.map(rule => rule.data.resourceId)], ["feature", ["indomitable"]],
@@ -1664,10 +1669,12 @@ test("languages convert: a background's choices and a creature's own, with its f
 
 test("the Diviner's Portent carries its dice by wizard level; nothing to use, no note", () => {
   const portent = convertItem({_id: "testPortent00001", name: "Portent", type: "feat",
-    system: {identifier: "portent", description: {value: "<p>Roll two d20s.</p>"}, activities: {}, source: {license: "test"}}},
+    system: {identifier: "portent", description: {value: "<p>Roll two d20s.</p>"}, activities: {}, source: {license: "test"},
+      uses: {max: "1", spent: 0, recovery: [{period: "lr", type: "recoverAll"}]}}},
   {licensed: () => true, book: "PHB"});
   const [feature] = portent.items;
   assert.equal(feature.type, "feature");
   assert.deepEqual(feature.flags.wildpath.portentDice, {type: "table", key: {type: "class-level", class: "wizard"}, rows: {1: 2, 14: 3}});
   assert.deepEqual(feature.flags.wildpath.conversion.notes, []);
+  assert.deepEqual(feature.system.ruleElements, [], "its dnd5e use count is no pool");
 });

@@ -24,38 +24,48 @@
       "targeting": {
         "type": "self"
       },
-      "healing": [
-        {
-          "id": "healing-1",
-          "expression": {
+      "rider": {
+        "reduceDamage": {
+          "dice": {
+            "type": "dice",
+            "number": 1,
+            "faces": 10
+          },
+          "bonus": {
             "type": "add",
             "terms": [
               {
-                "type": "dice",
-                "number": 1,
-                "faces": 10
+                "type": "ability-modifier",
+                "ability": "agility"
               },
               {
-                "type": "add",
-                "terms": [
-                  {
-                    "type": "ability-modifier",
-                    "ability": "agility"
-                  },
-                  {
-                    "type": "class-level",
-                    "class": "monk"
-                  }
-                ]
+                "type": "class-level",
+                "class": "monk"
               }
             ]
-          },
-          "healingType": "healing"
+          }
         }
-      ],
+      },
       "label": "Deflect Energy (Reduce)"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "damage.applied",
+          "match": {
+            "phase": "before",
+            "targetTokenId": "{self}",
+            "tagsAll": [
+              "hit"
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

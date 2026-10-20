@@ -518,16 +518,21 @@ function damageComingReactionEvent(state) {
     actionContext: {action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
       source: state.actionContext?.source ?? input.source ?? state.source ?? null, targets: input.targets ?? []}
   });
-  const damaged = (damageResolution?.results ?? []).filter(result => result.ok && ((Number(result.total) || 0) > 0))
-    .map(result => result.target).filter(Boolean);
+  const dealt = (damageResolution?.results ?? []).filter(result => result.ok && ((Number(result.total) || 0) > 0));
+  const damaged = dealt.map(result => result.target).filter(Boolean);
   if ( !damaged.length ) return null;
+  // What a reaction may ask of it: an attack roll's hit (`hit`: Deflect Attacks, Interception), and its damage types
+  // (`damage:<type>`: Deflect Attacks' bludgeoning, piercing or slashing).
+  const types = dealt.flatMap(result => Object.entries(result.byDamageType ?? {}).filter(([, amount]) => Number(amount) > 0)
+    .map(([type]) => `damage:${type}`));
   return createAutomationEvent({
     id: `event:${state.id}:damage-coming`,
     type: AUTOMATION_EVENT_TYPES.DAMAGE_APPLIED,
     phase: AUTOMATION_EVENT_PHASES.BEFORE,
     source: state.actionContext?.source ?? input.source ?? state.source ?? null,
     targets: damaged,
-    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? [])]),
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), ...(state.results?.attackResolution?.hits?.length ? ["hit"] : []),
+      ...types]),
     data: {
       action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
       ...targetRelations(input, damaged),
@@ -2035,13 +2040,14 @@ function createDamageStage() {
       const {actionContext} = planning;
       let {actionResult} = planning;
 
-      const damageResolution = resolveActionDamage({
+      // A reaction may have moved a creature's damage to another (Cloud Rune, Protective Bond).
+      const damageResolution = redirectedDamage(resolveActionDamage({
         damage: input.damage,
         targetResolution: state.results?.targetResolution ?? null,
         attackResolution: state.results?.attackResolution ?? null,
         saveResolution: state.results?.saveResolution ?? null,
         actionContext
-      });
+      }), input.durability?.redirectsByTarget);
       if ( !damageResolution.ok ) {
         return failActionPlanningStage({
           state,
@@ -2514,7 +2520,7 @@ function concentrationRollRequest(state, check, requestId) {
 function createPaymentStage() {
   return createResolutionPipelineStage({
     id: ACTION_PIPELINE_STAGE_IDS.PAYMENT,
-    run(state) {
+    run(state, services={}) {
       const input = preparedResolverInput(state);
       const planning = ensureActionPlanningResult(state, input);
       if ( planning.failed ) return planning.failed;
@@ -2613,9 +2619,13 @@ function createPaymentStage() {
       // Cutting Words on a damage roll: its die comes off that roll.
       const damagePenalty = riderRoll(state, input, state.actionDefinition?.rider?.damagePenalty, "damage-penalty");
       if ( damagePenalty?.wait ) return damagePenalty.wait;
+      // Cloud Rune, Protective Bond: the creature that takes the damage instead, its creature's pick when there are several.
+      const redirect = redirectChoice(state, services, state.actionDefinition?.rider?.redirectDamage);
+      if ( redirect?.wait ) return redirect.wait;
       const rider = state.actionDefinition?.rider
         ? {...clonePlain(state.actionDefinition.rider), ...(penalty ? {attackPenalty: penalty.total} : {}),
-          ...(reduction ? {reduceDamage: reduction.total} : {}), ...(damagePenalty ? {damagePenalty: damagePenalty.total} : {})} : null;
+          ...(reduction ? {reduceDamage: reduction.total} : {}), ...(damagePenalty ? {damagePenalty: damagePenalty.total} : {}),
+          ...(redirect?.candidate ? {redirectTo: redirect.candidate} : {})} : null;
       return continueResolutionStage({
         state: stateWithActionResult(state, {
           input,
@@ -3336,6 +3346,7 @@ function riderPatch(state, rider, {window, childState}) {
   // Planned once here: later planning keeps a component's planned dice, and the rider's definitions keep its own.
   const components = [...normalizeArray(damage.components).map(lessDice), ...added];
   const extras = normalizeArray(damage.extraComponents);
+  const durability = riderDurability(input, rider, childState);
   return {
     ok: true,
     type: "rider",
@@ -3351,13 +3362,86 @@ function riderPatch(state, rider, {window, childState}) {
       ...((rider.rollMode && input.attack) ? {attack: {...input.attack, rollMode: rider.rollMode, rollModeSources: [rider.rollMode]}} : {}),
       ...(rider.tags?.length ? {riderTags: uniqueStrings([...(input.riderTags ?? []), ...rider.tags])} : {}),
       ...(rider.push ? {riderPush: clonePlain(rider.push)} : {}),
-      // Stone's Endurance: its roll comes off the damage its own creature takes (the reactor's Token), no one else's.
-      ...((Number(rider.reduceDamage) > 0) && input.durability ? {durability: withDamageReduction(input.durability,
-        childState?.source?.tokenId ?? childState?.source?.actorId ?? null,
-        {id: `rider:${childState?.id ?? "rider"}`, type: "flat", amount: Number(rider.reduceDamage)})} : {})
+      ...(durability !== input.durability ? {durability} : {})
     },
     results: {}
   };
+}
+
+/** The creature a reaction protects (`rider.protects: "target"`: Interception, Cloud Rune): the first its event damages. */
+function protectedTokenId(childState) {
+  return normalizeArray(childState?.sourceEvent?.targets)[0]?.tokenId ?? null;
+}
+
+/**
+ * Its durability options with a rider's reduction and redirect (both can apply): Stone's Endurance's roll comes off the
+ * damage its own creature takes (the reactor's Token); Interception's off the creature it protects (`protects`). Cloud
+ * Rune's and Protective Bond's damage to the protected creature goes to the creature chosen (`redirectTo`).
+ */
+function riderDurability(input, rider, childState) {
+  let durability = input.durability;
+  if ( !durability ) return durability;
+  const protectedId = (rider.protects === "target") ? protectedTokenId(childState) : null;
+  if ( Number(rider.reduceDamage) > 0 ) durability = withDamageReduction(durability,
+    protectedId ?? childState?.source?.tokenId ?? childState?.source?.actorId ?? null,
+    {id: `rider:${childState?.id ?? "rider"}`, type: "flat", amount: Number(rider.reduceDamage)});
+  if ( rider.redirectTo?.target ) durability = withRedirect(durability, protectedId ?? protectedTokenId(childState), rider.redirectTo);
+  return durability;
+}
+
+/**
+ * Durability options moving the damage to the creature at `fromKey` (by Token) onto `candidate`: its target, with what
+ * planning its damage needs (its snapshot and resistances under each of its keys, what keeps it up at 0 Hit Points).
+ */
+function withRedirect(durability, fromKey, candidate) {
+  const options = (durability && (typeof durability === "object")) ? durability : {};
+  if ( !fromKey || !candidate?.target ) return options;
+  const keys = normalizeArray(candidate.keys);
+  return {...options, redirectsByTarget: {...(options.redirectsByTarget ?? {}), [fromKey]: candidate.target},
+    targetSystems: {...(options.targetSystems ?? {}), ...Object.fromEntries(keys.map(key => [key, candidate.actorSystem]))},
+    ...(candidate.profile ? {adjustmentProfiles: {...(options.adjustmentProfiles ?? {}),
+      ...Object.fromEntries(keys.map(key => [key, candidate.profile]))}} : {}),
+    ...(candidate.zeroHp ? {zeroHpByTarget: {...(options.zeroHpByTarget ?? {}), [candidate.target.tokenId]: candidate.zeroHp}} : {})};
+}
+
+/**
+ * Damage results with each redirected creature's (`redirectsByTarget`, by Token) moved onto the creature taking it
+ * instead (`redirectedFrom` keeps who it was for). Its amount stays; that creature's resistances apply when planned.
+ * shortcut: Cloud Rune's new target is not checked against its AC, and the attack's other effects stay; a redirected
+ * creature makes no concentration check. Upgrade by retargeting the attack itself.
+ */
+function redirectedDamage(damageResolution, redirectsByTarget) {
+  if ( !damageResolution?.ok || !redirectsByTarget || !Object.keys(redirectsByTarget).length ) return damageResolution;
+  return {...damageResolution, results: normalizeArray(damageResolution.results).map(result => {
+    const to = redirectsByTarget[String(result?.target?.tokenId ?? "")];
+    return to ? {...result, target: clonePlain(to), redirectedFrom: clonePlain(result.target)} : result;
+  })};
+}
+
+/**
+ * Who takes the damage instead (`rider.redirectDamage`): its own creature (`to: "self"`: Protective Bond), or a creature
+ * within `range` of it other than the attacker and the creature it protects (`chosen`: Cloud Rune), its controller's
+ * pick when there are several. The runtime finds them (`services.redirectCandidates`). `{candidate}`, `{wait}`, or null.
+ */
+function redirectChoice(state, services, spec) {
+  if ( !spec || (typeof services?.redirectCandidates !== "function") ) return null;
+  const event = state.sourceEvent ?? {};
+  const reactor = state.source?.tokenId ?? null;
+  const candidates = normalizeArray(spec.to === "self" ? services.redirectCandidates({tokenIds: [reactor]})
+    : services.redirectCandidates({around: reactor, range: Number(spec.range) || 5,
+      exclude: [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId].filter(Boolean)}));
+  if ( candidates.length < 2 ) return candidates.length ? {candidate: candidates[0]} : null;
+  const requestId = requestIdFor(state, "redirect");
+  const answer = getResolutionResponse(state, {requestId, type: RESOLUTION_REQUEST_TYPES.CHOICE});
+  if ( !answer ) return {wait: waitResolutionStage({state, request: createResolutionRequest({id: requestId, resolutionId: state.id,
+    stageId: ACTION_PIPELINE_STAGE_IDS.PAYMENT, type: RESOLUTION_REQUEST_TYPES.CHOICE, expectedResponseType: "choice",
+    chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, authority: {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
+    payload: {id: "redirect", type: "select-one", required: true, label: "WILDPATH.REDIRECT.Choose",
+      options: candidates.map(candidate => ({value: candidate.target.tokenId, label: candidate.target.name ?? candidate.target.tokenId})),
+      defaultValue: candidates[0].target.tokenId},
+    metadata: {title: "WILDPATH.REDIRECT.Title"}}), reason: "Its creature chooses who takes the damage instead."})};
+  const value = String(answer.response?.value?.choices?.redirect ?? answer.response?.value ?? "");
+  return {candidate: candidates.find(candidate => candidate.target.tokenId === value) ?? candidates[0]};
 }
 
 /** Durability options with one more damage reduction for the creature at `key` (`reductionsByTarget`, by Token). */

@@ -227,3 +227,12 @@ test("a reaction's reduction (Stone's Endurance) comes off its own creature's da
     reductionsByTarget: {"token-goliath": [{id: "stone", type: "flat", amount: 9}]}});
   assert.deepEqual(result.mutationPlans.map(plan => [plan.targetRef, plan.plan.amount]), [["token:token-goliath", 11], ["token:token-orc", 20]]);
 });
+
+test("two damage results on one creature (damage redirected to it): the second builds on the first", () => {
+  const damageResolution = resolveDamageTargets({
+    components: [{id: "slash", amount: 8, damageType: "slashing"}],
+    targets: [{id: "knight", actorId: "actor-knight", tokenId: "token-knight"}, {id: "knight-again", actorId: "actor-knight", tokenId: "token-knight"}]
+  });
+  const result = planDamageDurabilityMutations({damageResolution, targetSystems: {"actor:actor-knight": actorSystem(30, 30)}});
+  assert.deepEqual(result.mutationPlans.map(plan => plan.plan.updates["system.resources.health.value"]), [22, 14]);
+});
