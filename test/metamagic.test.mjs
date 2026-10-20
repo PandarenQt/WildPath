@@ -17,11 +17,12 @@ const options = definition => definition.configuration.find(choice => choice.id 
 
 test("Metamagic: a sorcerer's spells offer the options it knows, and a non-sorcerer's are unchanged", () => {
   const fireBolt = spell("fire-bolt");
-  assert.deepEqual(options(withMetamagic(fireBolt, sorcerer(["quickened", "careful", "seeking"]))), ["none", "quickened", "careful"],
-    "known options only; Seeking is a reroll offer instead");
+  assert.deepEqual(options(withMetamagic(fireBolt, sorcerer(["quickened", "careful", "seeking"]))), ["none", "quickened"],
+    "known options only; Seeking is a reroll offer instead; Careful only for a spell with a save");
+  assert.deepEqual(options(withMetamagic(spell("fireball"), sorcerer(["careful", "heightened"]))), ["none", "heightened", "careful"]);
   assert.equal(withMetamagic(fireBolt, {items: [], system: {pools: []}}), fireBolt);
   assert.equal(withMetamagic(fireBolt, sorcerer(["quickened"], {points: 0})), fireBolt, "no Sorcery Points");
-  assert.equal(options(withMetamagic(fireBolt, sorcerer(["quickened", "careful"], {points: 1}))).includes("quickened"), false,
+  assert.equal(options(withMetamagic(spell("fireball"), sorcerer(["quickened", "careful"], {points: 1}))).includes("quickened"), false,
     "Quickened's 2 points are more than it has");
   assert.deepEqual(options(withMetamagic(fireBolt, sorcerer(["transmuted"]))),
     ["none", "transmuted-acid", "transmuted-cold", "transmuted-lightning", "transmuted-poison", "transmuted-thunder"]);

@@ -297,9 +297,10 @@ export function projectPendingRequestPayloadForChooser(type, payload) {
       return pick(data, ["candidates", "options"]);
     case RESOLUTION_REQUEST_TYPES.ACTION_CONFIGURATION:
       return pick(data, ["requests"]);
-    // A yes-or-no choice (Legendary Resistance): its question and options only.
+    // A choice (Legendary Resistance's yes or no; Careful Spell's creatures): its question, options, how many may be
+    // picked (`type`, `max`) and what is picked already.
     case RESOLUTION_REQUEST_TYPES.CHOICE:
-      return pick(data, ["id", "label", "description", "options", "defaultValue"]);
+      return pick(data, ["id", "label", "description", "options", "defaultValue", "type", "max", "required"]);
     default:
       return {};
   }

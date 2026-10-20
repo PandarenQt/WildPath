@@ -942,6 +942,11 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
       return applyDeclineEffect({definition, effect, selection});
     case "remove-components":
       return applyRemoveComponentsEffect({definition, selection});
+    case "set-save":
+      // Heightened (`heightened: true`), Careful (`careful: <count>`): its save's resolution asks who.
+      if ( !definition.save || !effect.key ) return {ok: true, trace: [appliedTrace(selection, "set-save", {skipped: true})], errors: []};
+      definition.save = {...definition.save, [effect.key]: clonePlain(effect.value ?? true)};
+      return {ok: true, trace: [appliedTrace(selection, "set-save", {key: effect.key})], errors: []};
     default:
       return {ok: true, trace: [appliedTrace(selection, "ignored-unknown-effect", {effectType: effect.type ?? effect.kind ?? null})], errors: []};
   }

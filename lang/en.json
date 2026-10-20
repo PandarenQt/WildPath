@@ -309,6 +309,10 @@
       "Points": "{spent} of {budget} points spent (each score 8 to 15).",
       "OutOfRange": "Each score is 8 to 15."
     },
+    "METAMAGIC": {
+      "heightened": "Heightened Spell: which creature has Disadvantage on its save?",
+      "careful": "Careful Spell: which creatures succeed on their saves?"
+    },
     "INSPIRATION": {
       "Title": "Heroic Inspiration",
       "Keep": "Keep the roll",

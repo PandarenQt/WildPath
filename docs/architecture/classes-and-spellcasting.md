@@ -555,7 +555,8 @@ module/helpers/metamagic.mts). Its first option is None. The others are those th
 | Distant (1) | ranged or touch | range x2; touch becomes 30 ft |
 | Extended (1) | its effects or concentration last 1 minute or more | durations x2, 24 hours at most; Advantage on its Concentration saves |
 | Subtle (1) | always | its Verbal, Somatic and Material component tags go (a costly material stays); none left is `component:none`, which Counterspell can't answer |
-| Heightened (2), Careful (1) | always | cost only, "by hand" |
+| Heightened (2) | it forces a save | when the save is rolled, its caster picks one target (asked when there are several), which saves with Disadvantage: one more roll-mode source |
+| Careful (1) | it forces a save | its caster ticks up to max(1, Presence modifier) creatures, its allies ticked already; they succeed without rolling (`automatic-success`) and take no damage where a success halves it (evasion) |
 
 - **Seeking Spell** is a reroll on a missed spell attack, beside Heroic Inspiration (`withSeekingSpell`), for 1 point.
 - **Empowered Spell** is an Action of its own (no action, 1 point); its feature brings it (`flags.wildpath.grants`), so
@@ -566,7 +567,15 @@ module/helpers/metamagic.mts). Its first option is None. The others are those th
   is then refused by the authority and greyed on the action bar for the rest of that turn (`requiresContext`).
 - **Extended's Advantage:** its effective definition has `concentration.advantage`; the caster's concentration marker
   then carries a RollMode on `concentration`.
-- **shortcuts:** Heightened's target and Careful's creatures are by hand. Empowered's reroll is by hand.
+- **Heightened and Careful (2026-10-20).** The configuration effect `set-save` marks the spell's save
+  (`save.heightened`, `save.careful: <count>`), and the save roll stage asks its caster (`metamagicSaves`). A CHOICE
+  prompt now carries its `type`, `max` and ticked defaults to the chooser. The Action's source carries its disposition,
+  so its allies can be told apart.
+- **shortcuts:** Empowered's reroll is by hand.
+- **Live (2026-10-20), Heightened and Careful:** a two-target save spell (8 fire, half on a success) from sorcerer 5 QA
+  Caster at QA Ally and the Bandit Captain.
+  - Careful: QA Ally came ticked; it saved without rolling and took nothing, and the Captain failed and took 8.
+  - Heightened: the Captain was picked and saved with 2d20kl + 7.
 - **Live (2026-10-20):** as a sorcerer 5, QA Caster's Quickened Fire Bolt spent its Bonus Action and 2 points. Magic
   Missile was then greyed and refused ("no other spell of level 1 or higher").
 - **Live (two browsers, 14.369):** QA Caster, as wizard 5 and sorcerer 3 with 3 points, spent its Action. The action bar

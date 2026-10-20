@@ -344,3 +344,39 @@ test("Knock Out ends when its creature takes damage, but not from the hit that k
   assert.deepEqual(await endEffectsWhenDamaged({state: state("later")}, {fromUuid}), ["out"], "any later damage wakes it");
   assert.deepEqual(deleted, ["out"]);
 });
+
+test("Heightened Spell: its caster picks one target, which saves with Disadvantage; Careful: the picked ones succeed and take nothing", () => {
+  const base = {schemaVersion: 1, id: "action:burst", label: "Burst", tags: ["spell"], costs: {allOf: []},
+    targeting: {type: "multiple", required: true, count: 2}, damage: [{id: "fire", expression: {type: "constant", value: 8}, damageType: "fire",
+      saveOutcomePolicy: {success: "half", failure: "full"}}]};
+  const targets = [{id: "ally", actorId: "actor-ally", tokenId: "tok-ally", disposition: "friendly", name: "Ally"},
+    {id: "foe", actorId: "actor-foe", tokenId: "tok-foe", disposition: "enemy", name: "Foe"}];
+  const actors = Object.fromEntries(targets.flatMap(target => {
+    const actor = {id: target.actorId, uuid: `Actor.${target.actorId}`, system: {resources: {health: {value: 20, max: 20}}}};
+    return [[target.actorId, actor], [actor.uuid, actor], [`actor:${target.actorId}`, actor], [target.id, actor], [target.tokenId, actor],
+      [`token:${target.tokenId}`, actor]];
+  }));
+  const plan = save => planStagedActionResolution({id: `resolution:${Object.keys(save).join("-")}`, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {id: base.id, type: "action", name: "Burst", system: {definition: {...base, save: {ability: "agility", dc: {value: 15}, ...save}}}},
+    source: {actorId: "caster", disposition: "friendly"}, targets, durability: true, targetActors: actors}).state;
+  const answer = (state, value) => resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: state.pendingRequests[0].id,
+    type: state.pendingRequests[0].type, value}, services: {targetActors: actors}}).state;
+  // Heightened: asked which; the foe's save then rolls with Disadvantage.
+  let state = plan({heightened: true});
+  assert.equal(state.pendingRequests[0].payload.id, "heightened");
+  state = answer(state, "tok-foe");
+  const modes = Object.fromEntries(state.pendingRequests.map(request => [request.payload.rollRequest?.source?.tokenId ?? request.payload.rollRequest?.target?.tokenId,
+    request.payload.rollRequest?.rollMode]));
+  assert.equal(Object.values(modes).filter(mode => mode === "disadvantage").length, 1, JSON.stringify(modes));
+  // Careful: asked with its ally ticked; the ally then succeeds without rolling and takes no damage.
+  state = plan({careful: 1});
+  assert.deepEqual([state.pendingRequests[0].payload.id, state.pendingRequests[0].payload.defaultValue, state.pendingRequests[0].payload.max],
+    ["careful", ["tok-ally"], 1]);
+  state = answer(state, ["tok-ally"]);
+  assert.equal(state.pendingRequests.length, 1, "only the foe rolls");
+  const roll = state.pendingRequests[0].payload.rollRequest;
+  state = answer(state, {requestId: roll.id, resolutionId: state.id, type: roll.type, natural: 2, total: 2});
+  const damage = Object.fromEntries(state.mutationPlans.filter(entry => entry.type === "durabilityDamage")
+    .map(entry => [entry.target.tokenId, entry.plan.amount]));
+  assert.deepEqual(damage, {"tok-ally": 0, "tok-foe": 8}, "the ally succeeds and takes nothing; the foe fails");
+});
