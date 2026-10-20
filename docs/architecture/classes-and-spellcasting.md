@@ -173,6 +173,29 @@ Live (14.369): QA Fighter (Champion) at level 7 replaced Defense with Archery an
 Additional Fighting Style; Archery was greyed in that second step. Defense was then inactive, with AC 18 instead
 of 19. Turning it back on gave 19.
 
+## Prerequisites (2026-10-20)
+
+Feats, Invocations, Maneuvers, Metamagic options and infusions carry `flags.wildpath.prerequisites`, from dnd5e's
+`prerequisites` and its `requirements` text (`prerequisitesOf`).
+
+| Field | Example |
+| --- | --- |
+| `level` | A feat's character level, or a class option's class level. |
+| `items` | Identifiers: "fighting-style", "pact-of-the-blade". |
+| `abilities` | Any of them at their minimum: "Strength or Dexterity 13+". |
+| `training` | "Heavy Armor Training", a martial weapon. |
+| `spellcasting` | "Spellcasting or Pact Magic". |
+| `classLevel` | "Warlock 5". |
+| `repeatable` | It may be taken again. |
+| `text` | Anything else. It isn't checked; the option shows it beside its name. |
+
+The level-up dialog offers a feat, or a choice's option, only when its creature meets them (`unmetPrerequisites`), and
+not one it already has unless repeatable. It knows what the creature has by identifier, or by name as a slug for Items
+converted before identifiers were kept.
+
+Live (14.369): with its own Grappler switched off, QA Fighter's level 8 offered Grappler at Strength 16 and Dexterity
+13; at 10 and 10 it didn't. With Grappler on, it isn't offered again.
+
 ## Spellcasting progression (2024)
 
 - **Caster level.** Every level in a full-caster class, plus half the levels in each half-caster class,

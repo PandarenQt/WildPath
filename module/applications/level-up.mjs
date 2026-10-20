@@ -2,7 +2,7 @@
  * The level-up dialog (G8, BG3-style): one form for what a class level (with its subclass's), a species or a
  * background asks; what it grants is added without asking. The rules are helpers/level-up.mts.
  */
-import { choiceOptions, hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, poolOptions, sourceGate } from "../helpers/level-up.mjs";
+import { choiceOptions, hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, poolOptions, sourceGate, unmetPrerequisites } from "../helpers/level-up.mjs";
 import { hitDiePoolId } from "../helpers/spellcasting.mjs";
 import { actorAbilityModifier } from "../helpers/combat-statistics.mjs";
 import { classRecordsFromItems } from "../documents/actor.mjs";
@@ -45,6 +45,11 @@ function hasTrait(key, system) {
 }
 const checkbox = (name, value, label, checked = false, needs = "") => `<label class="level-up-option"><input type="checkbox" name="${name}" value="${escape(value)}"${checked ? " checked" : ""}${needs ? ` data-needs="${escape(needs)}"` : ""}> ${escape(label)}</label>`;
 const nameOf = (uuid) => globals().fromUuidSync(uuid)?.name ?? uuid;
+/** Its name, with a prerequisite it can't check shown beside it ("Agonizing Blast (Warlock Cantrip That Deals Damage)"). */
+const labelOf = (uuid, view) => {
+    const text = view.entries.get(uuid)?.flags?.wildpath?.prerequisites?.text;
+    return `${view.entries.get(uuid)?.name ?? nameOf(uuid)}${text ? ` (${text})` : ""}`;
+};
 /** One step's form section, or "" when it neither gives nor asks anything. */
 function stepHtml(step, index, actor, view) {
     const { entry } = step;
@@ -60,13 +65,15 @@ function stepHtml(step, index, actor, view) {
         }
         case "choice": {
             // Not what it already has; one it has may be replaced where the class allows it (Fighting Style, Invocations).
-            const { options, owned } = choiceOptions(entry.items ?? [], actor.items.filter(() => true));
+            // Only what it meets the prerequisites of, at this class level (an Invocation's "Warlock 5").
+            const { options: all, owned } = choiceOptions(entry.items ?? [], actor.items.filter(() => true));
+            const options = all.filter(uuid => view.allows(uuid, Number(entry.level) || 0));
             const replace = (entry.replacement && owned.length) ? `<label>${localize("WILDPATH.LEVELUP.Replace")} <select name="${name}.replace" data-replace>
         <option value="">${localize("WILDPATH.LEVELUP.ReplaceNone")}</option>${owned.map(item => `<option value="${escape(item.id)}">${escape(item.name)}</option>`).join("")}</select></label>` : "";
             if (!options.length || (!entry.count && !replace))
                 return "";
             return `<fieldset data-count="${entry.count ?? 0}">${legend}<p class="hint">${format("WILDPATH.LEVELUP.Choose", { count: entry.count ?? 0 })}</p>
-        ${replace}${options.map(uuid => checkbox(name, uuid, nameOf(uuid))).join("")}</fieldset>`;
+        ${replace}${options.map(uuid => checkbox(name, uuid, labelOf(uuid, view))).join("")}</fieldset>`;
         }
         case "trait": {
             const skills = Object.keys(globals().CONFIG.WILDPATH.SKILLS);
@@ -87,7 +94,7 @@ function stepHtml(step, index, actor, view) {
             const inputs = (entry.abilities ?? []).map(ability => `<label class="level-up-ability">${escape(localize(ABILITIES[ability]?.label ?? ability))}
         <span>${actor.system.abilities?.[ability]?.value ?? 10}</span> +
         <input type="number" name="${name}.${ability}" value="0" min="0" max="${entry.cap ?? 2}" step="1"></label>`).join("");
-            const feats = entry.feat ? `<label>${localize("WILDPATH.LEVELUP.Feat")} <select name="${name}.feat"><option value="">${localize("WILDPATH.LEVELUP.NoFeat")}</option>${view.feats.map(feat => `<option value="${escape(feat.uuid)}">${escape(feat.name)}</option>`).join("")}</select></label>` : "";
+            const feats = entry.feat ? `<label>${localize("WILDPATH.LEVELUP.Feat")} <select name="${name}.feat"><option value="">${localize("WILDPATH.LEVELUP.NoFeat")}</option>${view.feats.map(feat => `<option value="${escape(feat.uuid)}">${escape(labelOf(feat.uuid, view))}</option>`).join("")}</select></label>` : "";
             return `<fieldset data-points="${entry.points ?? 0}">${legend}<p class="hint">${format("WILDPATH.LEVELUP.Increase", { points: entry.points ?? 0, cap: entry.cap ?? 2 })}</p><div class="level-up-abilities">${inputs}</div>${feats}</fieldset>`;
         }
         case "subclass": return `<fieldset>${legend}<select name="${name}" required><option value=""></option>${view.subclasses.map(entry => `<option value="${escape(entry.uuid)}">${escape(entry.name)}</option>`).join("")}</select></fieldset>`;
@@ -143,10 +150,31 @@ function watchForm(form, ok) {
     form.addEventListener("input", check);
     check();
 }
-/** The feats and subclasses the compendiums offer. */
-async function compendiumOptions(item, totalLevel) {
+/** What a creature brings to prerequisites: its classes' levels, abilities, training, spellcasting and Items by identifier. */
+function prerequisiteFacts(actor) {
+    const system = actor.system;
+    const classes = system.classes ?? [];
+    const items = actor.items.filter(entry => entry.system?.active !== false);
+    // By identifier, or its name as one (an Item converted before identifiers were kept: "Fighting Style").
+    const slug = (name) => String(name ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    return { classLevels: Object.fromEntries(classes.map(entry => [String(entry.id ?? ""), Number(entry.level) || 0])),
+        abilities: Object.fromEntries(Object.entries(actor.system.abilities ?? {}).map(([key, ability]) => [key, Number(ability.value) || 10])),
+        training: { armor: actor.system.training?.armor ?? [], weapons: actor.system.training?.weapons ?? [] },
+        spellcasting: classes.some(entry => entry.spellcasting?.progression && (entry.spellcasting.progression !== "none")),
+        identifiers: new Set(items.flatMap(entry => [entry.flags?.wildpath?.source?.identifier, entry.system?.identifier, slug(entry.name)])
+            .filter((key) => !!key)) };
+}
+/** The feats and subclasses the compendiums offer, those its creature meets the prerequisites of. */
+async function compendiumOptions(item, totalLevel, actor) {
     const feats = new Map();
     const subclasses = new Map();
+    const entries = new Map();
+    const facts = prerequisiteFacts(actor);
+    // A feat by its creature's level; a class option by the level its class reaches. Something it has, unless repeatable.
+    const allows = (uuid, level) => {
+        const entry = entries.get(uuid);
+        return !unmetPrerequisites(entry?.flags?.wildpath?.prerequisites, { ...facts, level }, { identifier: entry?.flags?.wildpath?.source?.identifier ?? null }).length;
+    };
     const categories = totalLevel >= 19 ? [...FEATS, "epicBoon"] : FEATS;
     const { game } = globals();
     // The sources this world offers (its source settings; all of them by default).
@@ -154,9 +182,10 @@ async function compendiumOptions(item, totalLevel) {
     for (const pack of game.packs) {
         if (pack.documentName !== "Item")
             continue;
-        for (const entry of await pack.getIndex({ fields: ["flags.wildpath.source", "system.classIdentifier"] })) {
+        for (const entry of await pack.getIndex({ fields: ["flags.wildpath.source", "flags.wildpath.prerequisites", "system.classIdentifier"] })) {
             if (!allowed(entry, pack.metadata?.packageName ?? ""))
                 continue;
+            entries.set(entry.uuid, entry);
             if (categories.includes(entry.flags?.wildpath?.source?.feat ?? "") && !feats.has(entry.name))
                 feats.set(entry.name, entry);
             if ((entry.type === "subclass") && item.system.identifier && (entry.system?.classIdentifier === item.system.identifier)
@@ -165,7 +194,8 @@ async function compendiumOptions(item, totalLevel) {
         }
     }
     const byName = (a, b) => a.name.localeCompare(b.name);
-    return { feats: [...feats.values()].sort(byName), subclasses: [...subclasses.values()].sort(byName) };
+    return { feats: [...feats.values()].filter(feat => allows(feat.uuid, totalLevel)).sort(byName), subclasses: [...subclasses.values()].sort(byName),
+        entries, allows };
 }
 /** Compendium Items onto the creature, as given by `item` (they go when it goes). */
 async function addItems(actor, uuids, item) {
@@ -201,7 +231,7 @@ export async function levelUp(actor, item, { level, confirm = true }) {
     const hitDie = Number(item.system.hitDie) || 8;
     const fortitude = actorAbilityModifier(actor, "fortitude") ?? 0;
     const rolled = isClass && !first && (game.settings.get("wildpath", "rollHitPoints") === true);
-    const view = { ...await compendiumOptions(item, otherLevels + level),
+    const view = { ...await compendiumOptions(item, otherLevels + level, actor),
         hitPoints: isClass ? (rolled ? format("WILDPATH.LEVELUP.HitPointsRolled", { die: `d${hitDie}`, fortitude })
             : format("WILDPATH.LEVELUP.HitPoints", { value: hitPointsForLevel({ hitDie, first, fortitude }) })) : null };
     const sections = steps.map((step, index) => stepHtml(step, index, actor, view)).join("");

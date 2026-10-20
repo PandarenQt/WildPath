@@ -100,3 +100,19 @@ test("a choice's options: what its creature lacks, and what it has that it may r
   assert.deepEqual(choiceOptions(pool, items), {options: ["Compendium.x.Item.defense", "Compendium.x.Item.dueling"],
     owned: [{id: "a", name: "Archery"}]}, "a replaced (inactive) Defense may be picked again");
 });
+
+test("prerequisites: a feat's level and abilities, training, spellcasting, a class level, what it has; text is not checked", async () => {
+  const {unmetPrerequisites} = await import("../module/helpers/level-up.mjs");
+  const facts = {level: 4, classLevels: {fighter: 4}, abilities: {might: 12, agility: 14}, training: {armor: ["light", "medium"], weapons: ["simple"]},
+    spellcasting: false, identifiers: new Set(["fighting-style", "alert"])};
+  assert.deepEqual(unmetPrerequisites({level: 4, abilities: [{ability: "might", min: 13}, {ability: "agility", min: 13}]}, facts), [], "Dexterity 14");
+  assert.deepEqual(unmetPrerequisites({training: {armor: "heavy"}}, facts), ["training"], "Heavy Armor Master");
+  assert.deepEqual(unmetPrerequisites({training: {weapons: "martial"}}, facts), ["training"]);
+  assert.deepEqual(unmetPrerequisites({spellcasting: true}, facts), ["spellcasting"]);
+  assert.deepEqual(unmetPrerequisites({classLevel: {class: "warlock", min: 5}}, facts), ["classLevel"]);
+  assert.deepEqual(unmetPrerequisites({items: ["fighting-style"]}, facts), [], "a Fighting Style feat");
+  assert.deepEqual(unmetPrerequisites({}, facts, {identifier: "alert"}), ["repeatable"], "it has Alert already");
+  assert.deepEqual(unmetPrerequisites({repeatable: true}, facts, {identifier: "alert"}), []);
+  assert.deepEqual(unmetPrerequisites({text: "Warlock Cantrip That Deals Damage"}, facts), []);
+  assert.deepEqual(unmetPrerequisites({level: 19}, facts), ["level"], "an Epic Boon");
+});

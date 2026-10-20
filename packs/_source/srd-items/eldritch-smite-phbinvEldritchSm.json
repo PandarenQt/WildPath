@@ -147,6 +147,12 @@
       },
       "conversion": {
         "notes": []
+      },
+      "prerequisites": {
+        "level": 5,
+        "items": [
+          "pact-of-the-blade"
+        ]
       }
     }
   }

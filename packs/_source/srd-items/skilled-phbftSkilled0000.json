@@ -25,6 +25,9 @@
       },
       "conversion": {
         "notes": []
+      },
+      "prerequisites": {
+        "repeatable": true
       }
     }
   }
