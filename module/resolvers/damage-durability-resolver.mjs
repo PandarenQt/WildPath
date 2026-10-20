@@ -36,6 +36,7 @@ export function planDamageDurabilityMutations({
   targetSystems={},
   adjustments=null,
   adjustmentProfiles={},
+  reductionsByTarget={},
   concentration=null,
   resourceId="health",
   source=null,
@@ -76,7 +77,8 @@ export function planDamageDurabilityMutations({
       damageResult,
       target,
       adjustments,
-      adjustmentProfiles
+      adjustmentProfiles,
+      reductionsByTarget
     });
     if ( !adjusted.ok ) {
       failures.push({
@@ -214,9 +216,11 @@ function resolveTargetActorSystem(targetSystems, target, damageResult) {
   });
 }
 
-function adjustDamageForTarget({damageResult, target, adjustments, adjustmentProfiles}) {
+function adjustDamageForTarget({damageResult, target, adjustments, adjustmentProfiles, reductionsByTarget={}}) {
   const targetProfile = resolveTargetLookupValue(adjustmentProfiles, target, damageResult) ?? null;
-  const profile = mergeDamageAdjustmentProfiles(adjustments, targetProfile);
+  // What a reaction took off this creature's own damage (Stone's Endurance), by its Token.
+  const reductions = resolveTargetLookupValue(reductionsByTarget, target, damageResult) ?? null;
+  const profile = mergeDamageAdjustmentProfiles(adjustments, targetProfile, ...(reductions ? [{reductions}] : []));
   return adjustDamageResult(damageResult, profile);
 }
 

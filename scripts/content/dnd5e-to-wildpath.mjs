@@ -76,9 +76,9 @@ const REACTIONS = Object.freeze({
   "uncanny-dodge": {event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}"}, halves: true},
   // "when you take damage from a creature": that creature is the reaction's target.
   "hellish-rebuke": {event: "damage.applied", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}},
-  // Goliath Stone's Endurance: "when you take damage", rolled as the attack on it hits, 1d12 + its Constitution modifier
-  // off that attack's damage (`rider.reduceDamage`). shortcut: damage from a save, or with no attack, is by hand.
-  "stones-endurance": {event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}"},
+  // Goliath Stone's Endurance: "when you take damage", from anything (an attack, a save, a fall), before that damage is
+  // planned: 1d12 + its Constitution modifier off the damage it takes (`rider.reduceDamage`).
+  "stones-endurance": {event: "damage.applied", match: {phase: "before", targetTokenId: "{self}"},
     reduces: {dice: {type: "dice", number: 1, faces: 12}, bonus: {type: "ability-modifier", ability: "fortitude"}}},
   "storms-thunder": {event: "damage.applied", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}},
   // "when you take damage from a creature within 5 feet": that creature is the target of its common melee attack (its

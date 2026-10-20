@@ -90,6 +90,7 @@
       }
     },
     "CONDITIONS": {
+      "TurnDamage": "Condition damage",
       "Prone": "Prone",
       "Blinded": "Blinded",
       "Restrained": "Restrained",

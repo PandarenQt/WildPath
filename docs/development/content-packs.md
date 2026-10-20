@@ -442,6 +442,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Training (2026-10-20):** Divine Order: Protector and Primal Order: Warden carry `flags.wildpath.training`, which their
   creature has while the Item is there (classes-and-spellcasting.md). Expertise steps (Rogue, Bard, Ranger) are
   `expertise:*` choices, and weapon keys use the base names (`weapons:hand-crossbow`).
+- **Stone's Endurance (2026-10-20):** its Trigger answers `damage.applied` before damage, from anything
+  (reactions.md).
 - **Offer limits (2026-10-20):** Retaliation's Trigger has a `triggerPredicate` (within 5 ft). Hill's Tumble, Trip and
   Repelling Blast are offered against a creature Large or smaller. Eldritch Smite asks whether to knock its creature
   Prone, and its Prone (like Trip's) has a `maxSize` (reactions.md).

@@ -1,0 +1,39 @@
+import {runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
+
+/**
+ * A condition's damage at the start of its creature's turn (Bleeding, Envenomed) as an authority Action on that
+ * creature, as a fall is: its reactions before damage (Stone's Endurance), its resistances, what keeps it up at 0 (Relentless
+ * Endurance) and the dying rules all come from the Action pipeline, as for any other damage.
+ */
+
+type Data = Record<string, unknown>;
+interface TurnDamageToken {id: string; parent?: {id: string} | null}
+interface TurnDamageActor {uuid: string; isToken?: boolean; token?: TurnDamageToken | null;
+  getActiveTokens?(linked?: boolean, document?: boolean): TurnDamageToken[]}
+interface TurnDamageGame {user?: {id?: string | null} | null; i18n?: {localize?(key: string): string}}
+
+const run = runAuthorityAction as unknown as (options: Data) => Promise<unknown>;
+
+export function createFoundryTurnDamage({game, coordinator, resolveAction, logger = console}: {game: TurnDamageGame;
+  coordinator: unknown; resolveAction: unknown; logger?: unknown}) {
+  let sequence = 0;
+  /**
+   * `amount` damage of `damageType` to `actor` (its condition's, `label`), resolved by the authority. False when the
+   * creature has no Token on a Scene to resolve it on (its caller then commits the damage itself).
+   */
+  async function apply(actor: TurnDamageActor, {amount, damageType = null, label = null}: {amount: number;
+    damageType?: string | null; label?: string | null}): Promise<boolean> {
+    const token = actor.isToken ? (actor.token ?? null) : (actor.getActiveTokens?.(false, true)?.[0] ?? null);
+    if ( !token?.parent || !(Number(amount) > 0) ) return false;
+    const name = label ?? game.i18n?.localize?.("WILDPATH.CONDITIONS.TurnDamage") ?? "Condition damage";
+    const self = {actorRef: actor.uuid, tokenId: token.id, sceneId: token.parent.id};
+    await run({coordinator, resolveAction, logger, senderUserId: String(game.user?.id), label: name,
+      resolutionId: `turn-damage:${actor.uuid}:${++sequence}`, actorRef: actor.uuid,
+      source: {tokenId: token.id, sceneId: token.parent.id}, target: self,
+      definition: {schemaVersion: 1, id: "action:condition-damage", label: name, costs: {allOf: []}, tags: ["condition-damage"],
+        range: {type: "self"}, targeting: {type: "self"},
+        damage: [{id: "condition", expression: {type: "constant", value: Number(amount)}, ...(damageType ? {damageType} : {})}]}});
+    return true;
+  }
+  return {apply};
+}

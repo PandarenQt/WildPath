@@ -220,3 +220,13 @@ test("a Trigger naming a common Action (Retaliation) reacts with that Action, at
   const never = provider({scene: {grid: {distance: 5}, tokens: [mover, token("barbarian", -1, [retaliation("never")])]}, token: mover});
   assert.equal((never.reactions?.triggers ?? []).some(trigger => trigger.id.includes("retaliation")), false, "its Item set to Never");
 });
+
+test("its own Action's damage to itself (a fall, its Bleeding) offers its own reactions on itself (Stone's Endurance)", () => {
+  const stone = {id: "stone", name: "Stone's Endurance", type: "action", system: {active: true, definition: {schemaVersion: 1,
+    id: "action:stone", label: "Stone's Endurance", costs: {allOf: [{capability: "reaction", amount: 1}]}, range: {type: "self"},
+    targeting: {type: "self"}}, ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction",
+      event: "damage.applied", match: {phase: "before", targetTokenId: "{self}"}}}]}};
+  const mover = token("goliath", 1, [stone]);
+  const services = createFoundryReactionProvider({resolve: () => null})({scene: {grid: {distance: 5}, tokens: [mover]}, token: mover});
+  assert.deepEqual(services.reactions.triggers.map(trigger => trigger.id), ["reaction:goliath:stone:reaction"]);
+});

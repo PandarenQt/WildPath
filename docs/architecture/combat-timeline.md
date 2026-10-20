@@ -86,7 +86,13 @@ condition-removal plans through `EffectLifecycleCommitResolver`, `TargetMutation
 and `ResolutionTransaction`.
 
 `ConditionTriggerResolver` also consumes turn-start events for condition Trigger RuleElements. The
-current representative implementation is Bleeding's turn-start durability damage. Legacy
+current representative implementation is Bleeding's turn-start durability damage. Since 2026-10-20 that damage is
+resolved by the authority as a damage-only Action on the creature (`game.wildpath.turnDamage`,
+`adapters/foundry-v14-turn-damage.mts`), as a fall is. Its reactions before damage (Stone's Endurance), its resistances,
+what keeps it up at 0 (Relentless Endurance) and the dying rules come from the Action pipeline, and its card reads
+"Condition damage". Without the runtime or a Token on a Scene it is committed directly, as before. Live: Bleeding
+at 1 Hit Point with Relentless Endurance left the Bandit Captain at 1 ("stays up"); the next round it died and was
+marked defeated. Legacy
 `system.dot` data is translated into synthetic Trigger RuleElements only as a temporary
 compatibility layer.
 
