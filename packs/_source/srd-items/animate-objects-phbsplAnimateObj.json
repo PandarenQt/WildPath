@@ -162,7 +162,10 @@
         ],
         "rounds": 10,
         "concentration": true,
-        "spellLevel": 5
+        "spellLevel": 5,
+        "match": {
+          "attacks": true
+        }
       },
       "metadata": {
         "spellLevel": 5

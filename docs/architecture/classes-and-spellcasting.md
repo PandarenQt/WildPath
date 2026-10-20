@@ -522,6 +522,11 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   d20 shows a 1 (`inspirationReroll` filters by natural). A reroll may carry its own `rollMode` and `bonus`
   (rolls.md). shortcut: like every test offer, only when the roll failed.
 
+- **Flash of Genius (Tasha's, 2026-10-20):** a ranged test offer with no `against`: any failed check or save, its own
+  or an ally's within 30 ft (`withAllyTestOffers`, now on checks too). `addAbility: "intellect"` adds its modifier
+  (`addFlat` in `inspirationReroll`), paid with a use and its Reaction (`reaction`). shortcut: "a creature you can see"
+  is any ally in range.
+
 ## Portent (2026-10-20)
 
 2024 Diviner: after a Long Rest it rolls two d20s (three from level 14, Greater Portent). It may replace a D20 Test by

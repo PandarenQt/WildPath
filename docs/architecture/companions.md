@@ -147,3 +147,29 @@ by Player1.
   - A count below 1 summons nothing and warns the GM. Without `counts`, `count` is used.
 - **Live (two browsers, 14.369):** Player1's QA Caster cast Find Familiar, chose an Owl from 26 CR 0 Beasts and
   clicked where it appeared. Dancing Lights with the small lights gave four.
+
+## An artificer's summons (2026-10-20)
+
+Tasha's Steel Defender, Homunculus Servant and Eldritch Cannon, through the local book module.
+- **The creature by level.** A class feature's creature options carry `level {min?, max?, class?}`
+  (`summon.identifier`'s class: the Steel Defender from artificer level 3, the improved one from 15). `withSummonLevels`
+  offers only those at its creature's level. A spell's profile levels are its slot's (Find Steed) and are left alone.
+- **Bonuses from the summoner.** A class feature's bonuses read its summoner: the Steel Defender's Hit Points are its
+  Intelligence modifier + 5 per artificer level (`summonBonusesAt(…, {actor: caster})`). A feature's summons get them
+  without a spell level.
+- **The summoner's attack bonus** (`match.attacks`, for spells and class features). One Modifier makes the creature's
+  attack bonus its summoner's spell attack modifier (`matchedAttack`). 2024 spirits read it too ("Bonus equals your
+  spell attack modifier"). A magic item's creature (the Dancing Sword) keeps its own.
+- **Limits.**
+  - `limit`: one Steel Defender, one Homunculus, the Cannons by their uses. The summoner's oldest from that Action are
+    dismissed first.
+  - `endsWithSummoner`: the Homunculus is dismissed when its summoner has the Dead condition.
+- **Commanded.** The Steel Defender's and Homunculus's Actions that cost its Action also cost its summoner's Bonus
+  Action (`controllerCosts`). Its reactions and its free Dodge stay its own. shortcut: an Eldritch Cannon's features
+  are its description.
+- **The converter** now takes an activity's own activation over an Item's leftover "none" (the Steel Defender's Rend
+  became an attack).
+
+Live (two browsers, 14.369): QA Caster as a level-5 artificer (Intelligence 18) summoned the converted Steel Defender.
+It had 31 Hit Points, attacked at +7 (spell +4, Proficiency +3), and its Rend cost QA Caster's Bonus Action. A second
+summon dismissed the first.

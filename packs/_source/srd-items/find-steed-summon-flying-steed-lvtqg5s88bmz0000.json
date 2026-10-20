@@ -148,7 +148,10 @@
             "path": "castLevel"
           }
         },
-        "spellLevel": 2
+        "spellLevel": 2,
+        "match": {
+          "attacks": true
+        }
       },
       "metadata": {
         "spellLevel": 2

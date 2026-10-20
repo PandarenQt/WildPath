@@ -1,5 +1,6 @@
 import {foundryPointInRange} from "./foundry-v14-area-placement.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
+import {resolveActorAttackStatistic} from "../helpers/combat-statistics.mjs";
 
 /**
  * Summoning from an Action (M5, companions.md): when an Action with `summon` completes, the active GM places
@@ -33,7 +34,9 @@ interface SummonScene {
   createEmbeddedDocuments(type: string, data: Data[]): Promise<SummonToken[]>;
   deleteEmbeddedDocuments(type: string, ids: string[]): Promise<unknown>;
 }
-interface SummonFlag {casterUuid: string; kind: string; rounds: number | null; createdAt: {combatId: string; round: number; turn: number | null} | null}
+interface SummonFlag {casterUuid: string; kind: string; rounds: number | null; createdAt: {combatId: string; round: number; turn: number | null} | null;
+  /** The Action that summoned it and when (its `limit` counts them), and whether it goes when its caster dies. */
+  actionId?: string | null; at?: number; endsWithSummoner?: boolean}
 interface Combatant {id: string; tokenId?: string | null; sceneId?: string | null; initiative?: number | null}
 interface Combat {
   id: string; round: number; turn: number | null;
@@ -65,20 +68,39 @@ function atLevel(expression: unknown, level: number): unknown {
  * numbers, and rules for its damage, on attacks (`attackDamage`) and on everything else, saves (`saveDamage`): a
  * Modifier for a number, an ExtraDamage for dice.
  */
-export function summonBonusesAt(bonuses: Data | null | undefined, level: number) {
-  const number = (name: string) => (bonuses?.[name] ? evaluate(atLevel(bonuses[name], level), {}).value ?? 0 : 0);
+export function summonBonusesAt(bonuses: Data | null | undefined, level: number, context: Data = {}) {
+  // Its caster's own numbers too (`context`: a Steel Defender's Hit Points, Intelligence + 5 per artificer level).
+  const number = (name: string) => (bonuses?.[name] ? evaluate(atLevel(bonuses[name], level), context).value ?? 0 : 0);
   const attack = {tagsAny: ["melee", "ranged"]};
   const rules = (["attackDamage", "saveDamage"] as const).flatMap((name): Data[] => {
     const expression = bonuses?.[name] ? atLevel(bonuses[name], level) as Data : null;
     if ( !expression ) return [];
     const predicate = name === "attackDamage" ? attack : {not: attack};
-    const value = evaluate(expression, {});
+    const value = evaluate(expression, context);
     return (expression.type !== "dice") && value.ok
       ? (value.value ? [{schemaVersion: 1, id: `summon-${name}`, type: "Modifier", predicate,
         data: {domains: ["damage"], modifierType: "untyped", value: value.value}}] : [])
       : [{schemaVersion: 1, id: `summon-${name}`, type: "ExtraDamage", predicate, data: {domains: ["damage"], expression}}];
   });
   return {hp: number("hp"), ac: number("ac"), rules};
+}
+
+/**
+ * A summon whose attack bonus equals its caster's spell attack modifier (dnd5e `match.attacks`: a Steel Defender's Rend,
+ * a 2024 summoning spell's spirit): one Modifier making up the difference between its own attack bonus (its first
+ * attack's) and its caster's (spellcasting modifier + Proficiency Bonus). shortcut: a creature whose attacks differ in
+ * bonus gets the first one's difference on all; its damage's Proficiency Bonus stays its own.
+ */
+export function matchedAttack(caster: Data | null | undefined, summoned: Data | null | undefined): Data[] {
+  if ( !caster || !summoned ) return [];
+  const proficiency = (actor: Data) => Number(evaluate({type: "proficiency-bonus"}, {actor, actorSystem: actor.system}).value) || 0;
+  const spell = Number(evaluate({type: "spellcasting-modifier"}, {actor: caster, actorSystem: caster.system}).value) || 0;
+  type AttackItem = {system?: {definition?: {attack?: unknown}}};
+  const attack = [...((summoned.items ?? []) as Iterable<AttackItem>)].find(item => item.system?.definition?.attack)?.system?.definition?.attack;
+  const own = attack ? Number((resolveActorAttackStatistic as (actor: unknown, attack: unknown) => Data | null)(summoned, attack)?.totalModifier) || 0
+    : proficiency(summoned);
+  const value = spell + proficiency(caster) - own;
+  return value ? [{schemaVersion: 1, id: "summon-match-attack", type: "Modifier", data: {domains: ["attack"], modifierType: "untyped", value}}] : [];
 }
 
 /**
@@ -155,7 +177,8 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
   async function afterResolution({options, state}: {options?: {actor?: CasterActor; summonPoints?: Array<{x: number; y: number}>};
     state?: Data}) {
     const definition = state?.actionDefinition as {label?: string; summon?: {actorRef?: string; choiceId?: string; count?: number;
-      counts?: Array<{actorRef?: string; count?: unknown}>; rounds?: number; concentration?: boolean; bonuses?: Data; spellLevel?: number};
+      counts?: Array<{actorRef?: string; count?: unknown}>; rounds?: number; concentration?: boolean; bonuses?: Data; spellLevel?: number;
+      limit?: number | Data; endsWithSummoner?: boolean; match?: {attacks?: boolean}};
       range?: {normal?: {value?: number}; distance?: {value?: number}} | null} | undefined;
     const spec = definition?.summon;
     const caster = options?.actor;
@@ -219,8 +242,14 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     const offsets = (options?.summonPoints ?? []).slice(0, count).flatMap(point => place(scene.grid.getOffset(point), 1));
     offsets.push(...place(start, count - offsets.length));
     const combat = game.combat ?? null;
+    const actionId = (definition as {id?: string} | undefined)?.id ?? null;
     const summon: SummonFlag = {casterUuid: caster.uuid, kind: "summon", rounds: Number(spec.rounds) || null,
-      createdAt: combat ? {combatId: combat.id, round: combat.round, turn: combat.turn} : null};
+      createdAt: combat ? {combatId: combat.id, round: combat.round, turn: combat.turn} : null, actionId, at: Date.now(),
+      ...(spec.endsWithSummoner ? {endsWithSummoner: true} : {})};
+    // At most `limit` of its caster's from this Action (a Steel Defender, two Eldritch Cannons): the oldest go first.
+    const limit = (spec.limit && (typeof spec.limit === "object")) ? Number(evaluate(spec.limit, {actor: caster, actorSystem: caster.system}).value)
+      : Number(spec.limit);
+    if ( limit > 0 ) await dismissPastLimit(caster.uuid, actionId, Math.max(limit - count, 0));
     const data = await Promise.all(offsets.map(async offset => (await base.getTokenDocument({...scene.grid.getTopLeftPoint(offset),
       actorLink: false, disposition: casterToken.disposition ?? 0, flags: {wildpath: {summon}}}, {parent: scene})).toObject()));
     const tokens = await scene.createEmbeddedDocuments("Token", data);
@@ -228,7 +257,12 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     for ( const token of tokens ) if ( token.actor ) await companions.setControllers(token.actor, {controllers: [caster.uuid], kind: "summon"});
     // What it gains with the spell's level: the slot it was cast with, else the spell's own level.
     const level = Number((state?.configuration as {castingLevel?: number | null} | undefined)?.castingLevel ?? spec.spellLevel) || 0;
-    if ( spec.bonuses && level ) for ( const token of tokens ) await applySummonBonuses(token, summonBonusesAt(spec.bonuses, level), level);
+    // What it gains: a spell's by its level, a feature's by its caster (an artificer's level and Intelligence).
+    if ( spec.bonuses || spec.match?.attacks ) for ( const token of tokens ) {
+      const bonuses = summonBonusesAt(spec.bonuses ?? {}, level, {actor: caster, actorSystem: caster.system});
+      if ( spec.match?.attacks ) bonuses.rules.push(...matchedAttack(caster as unknown as Data, token.actor as unknown as Data));
+      await applySummonBonuses(token, bonuses, level);
+    }
     // The level it was summoned at, which a spirit's own rules read (its Multiattack: half this spell's level).
     if ( level ) for ( const token of tokens ) {
       await token.actor?.setFlag?.("wildpath", "summonLevel", level);
@@ -264,6 +298,27 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
       system: {active: true, ruleElements: bonuses.rules}}]);
   }
 
+  /** Its caster's summons from one Action, oldest first, beyond the `keep` newest: dismissed. */
+  async function dismissPastLimit(casterUuid: string, actionId: string | null, keep: number) {
+    const mine = [...(game.scenes ?? [])].flatMap(scene => [...scene.tokens].filter(token => {
+      const flag = token.flags?.wildpath?.summon as SummonFlag | undefined;
+      return (flag?.casterUuid === casterUuid) && ((flag.actionId ?? null) === actionId);
+    }).map(token => ({scene, token, at: Number((token.flags?.wildpath?.summon as SummonFlag).at) || 0}))).sort((a, b) => a.at - b.at);
+    for ( const {scene, token} of mine.slice(0, Math.max(mine.length - keep, 0)) ) await dismiss(scene, [token.id]);
+  }
+
+  /** Its caster dies (the Dead condition): the summons that go with it (a Homunculus Servant) are dismissed. */
+  async function onCasterDead(effect: {statuses?: Iterable<string>; parent?: {uuid?: string} | null}) {
+    if ( !isActiveGM() || ![...(effect.statuses ?? [])].includes("dead") || !effect.parent?.uuid ) return;
+    for ( const scene of game.scenes ?? [] ) {
+      const gone = [...scene.tokens].filter(token => {
+        const flag = token.flags?.wildpath?.summon as SummonFlag | undefined;
+        return flag?.endsWithSummoner && (flag.casterUuid === effect.parent!.uuid);
+      }).map(token => token.id);
+      if ( gone.length ) await dismiss(scene, gone);
+    }
+  }
+
   /** A concentration summon's marker ending (concentration broken, or removed by hand) dismisses its summons. */
   async function onEffectDeleted(effect: {flags?: {wildpath?: {summonTokens?: {sceneId: string; tokenIds: string[]}}}}) {
     const link = effect.flags?.wildpath?.summonTokens;
@@ -282,5 +337,5 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     }
   }
 
-  return {afterResolution, onEffectDeleted, onTurnStart};
+  return {afterResolution, onEffectDeleted, onTurnStart, onCasterDead};
 }

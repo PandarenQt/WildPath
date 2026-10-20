@@ -240,6 +240,9 @@ export function registerFoundryV14MultiplayerResolution({
   // Summoned creatures: placed by the GM, controlled by their caster, gone with its concentration or rounds.
   const summons = createFoundrySummons({game, companions, logger, fromUuid: globalThis.fromUuid ?? (() => null)});
   globalThis.Hooks?.on?.("deleteActiveEffect", effect => void summons.onEffectDeleted(effect));
+  // Its caster's death takes the summons that go with it (a Homunculus Servant).
+  globalThis.Hooks?.on?.("createActiveEffect", effect => void summons.onCasterDead(effect)
+    .catch(error => logger?.warn?.("Wild Path | Dismissing a dead caster's summons failed", error)));
   // Pushes and pulls: the GM moves each creature an Action forces, as forced movement.
   const pushes = createFoundryForcedMovement({game, logger, fromUuid: globalThis.fromUuid ?? (() => null)});
   const teleports = createFoundryTeleports({game});
@@ -934,8 +937,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, target: {id: actor.id, actorId: actor.id, actorRef: actor.uuid, uuid: actor.uuid,
         tokenId: sourceToken?.id ?? null}}) : null;
   // A fighter's Tactical Mind joins its own failed checks only.
-  const ownTest = (definition?.attack || definition?.check) ? withTestOffers(ownOffer, actor, actorSystem, game,
-    definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER}) : ownOffer;
+  // An ally's on its check too (Flash of Genius), each paying creature committed on like a target.
+  const ownTest = (definition?.attack || definition?.check) ? withAllyTestOffers(withTestOffers(ownOffer, actor, actorSystem, game,
+    definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER}), sourceToken, definition, game,
+    definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, register: payer => { allyPayers.push(payer); }})
+    : ownOffer;
   const ownInspiration = definition?.check ? withTacticalMind(ownTest, actor, actorSystem, game)
     : (definition?.tags?.includes("spell") ? withSeekingSpell(ownTest, actor, actorSystem, game) : ownTest);
   // Portent: a Diviner who sees the acting creature may replace its attack's or check's d20.
@@ -1581,7 +1587,6 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
 export function withAllyTestOffers(offer, saverToken, definition, game, test, {chooser, register=() => {}}={}) {
   if ( (offer && !offer.own) || !saverToken?.parent ) return offer;
   const conditions = new Set((definition?.effects ?? []).map(effect => effect?.conditionId).filter(Boolean));
-  if ( !conditions.size ) return offer;
   const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
   const options = [];
   for ( const token of saverToken.parent.tokens ?? [] ) {
@@ -1589,17 +1594,24 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
     for ( const item of bearer?.items ?? [] ) {
       const spec = item?.flags?.wildpath?.testOffer;
       if ( !spec?.range || !spec.tests?.includes(test) || (item.system?.active === false) ) continue;
-      if ( !(spec.against ?? []).some(condition => conditions.has(condition)) ) continue;
+      // Countercharm answers only saves against its conditions; Flash of Genius any check or save.
+      if ( spec.against && !spec.against.some(condition => conditions.has(condition)) ) continue;
       const distance = allyDistance(saverToken, token);
       if ( (distance === null) || (distance > Number(spec.range)) ) continue;
       let system;
       try { system = foundryActorSystemSnapshot(bearer); } catch { continue; }
-      const payment = resolveActorResourcePayment({actorSystem: system, cost: {allOf: [{capability: spec.pool, amount: 1}]}});
+      // Its pool, and its Reaction too when it names one beside it (`reaction`: Flash of Genius).
+      const payment = resolveActorResourcePayment({actorSystem: system, cost: {allOf: [{capability: spec.pool, amount: 1},
+        ...((spec.reaction && (spec.pool !== "reaction")) ? [{capability: "reaction", amount: 1}] : [])]}});
       if ( !payment.ok ) continue;
       register(bearer);
+      // Flash of Genius adds its bearer's modifier (`addAbility`) to the roll; Countercharm rerolls it.
+      const added = spec.addAbility ? Math.trunc(Number(evaluateValueExpression({type: "ability-modifier", ability: spec.addAbility},
+        {actor: bearer, actorSystem: system}).value) || 0) : 0;
       options.push({value: `ally-offer:${bearer.uuid}:${item.id}`, payerRef: bearer.uuid, plan: payment.mutationPlan,
-        ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), label: format("WILDPATH.INSPIRATION.AllyReroll", {name: bearer.name ?? "",
-          feature: item.name ?? ""})});
+        ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), ...(spec.addAbility ? {addFlat: added} : {}),
+        label: format(spec.addAbility ? "WILDPATH.INSPIRATION.AllyAdd" : "WILDPATH.INSPIRATION.AllyReroll", {name: bearer.name ?? "",
+          feature: item.name ?? "", value: added})});
     }
   }
   if ( !options.length ) return offer;

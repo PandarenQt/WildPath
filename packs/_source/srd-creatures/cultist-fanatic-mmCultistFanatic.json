@@ -829,7 +829,10 @@
             "count": 1,
             "rounds": 10,
             "concentration": true,
-            "spellLevel": 2
+            "spellLevel": 2,
+            "match": {
+              "attacks": true
+            }
           },
           "metadata": {
             "spellLevel": 2

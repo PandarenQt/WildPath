@@ -261,8 +261,9 @@ export function serializeActionDefinition(rawDefinition={}, options={}) {
 
 export function actionDefinitionFromItem(item, options={}) {
   const system = item?.system ?? {};
-  const raw = withMysticArcanum(withMetamagic(withOwnWeapons(withWeaponMastery(withExtraAttacks(system.definition ?? system.actionDefinition
-    ?? item?.definition ?? item?.actionDefinition ?? null, item), item?.actor ?? null), item?.actor ?? null), item?.actor ?? null), item);
+  const raw = withSummonLevels(withMysticArcanum(withMetamagic(withOwnWeapons(withWeaponMastery(withExtraAttacks(system.definition ?? system.actionDefinition
+    ?? item?.definition ?? item?.actionDefinition ?? null, item), item?.actor ?? null), item?.actor ?? null), item?.actor ?? null), item),
+    item?.actor ?? null);
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
   const legacyActivationCost = options.legacyActivationCost
@@ -327,6 +328,19 @@ function withOwnWeapons(raw, actor) {
     }
     return {...choice, options: [...options.values()]};
   })};
+}
+
+/**
+ * Options offered at its creature's level only (`option.level {min?, max?, class?}`: a Steel Defender from artificer
+ * level 3, its improved form from 15), worked out whenever the Action is read. Without a creature, all of them.
+ */
+function withSummonLevels(raw, actor) {
+  const choices = raw?.configuration;
+  if ( !actor || !Array.isArray(choices) || !choices.some(choice => (choice?.options ?? []).some(option => option?.level)) ) return raw;
+  const levelFor = range => Number(evaluateValueExpression(range.class ? {type: "class-level", class: range.class} : {type: "character-level"},
+    {actor, actorSystem: actor.system}).value) || 0;
+  const fits = option => !option?.level || (((option.level.min ?? 0) <= levelFor(option.level)) && (levelFor(option.level) <= (option.level.max ?? Infinity)));
+  return {...raw, configuration: choices.map(choice => (Array.isArray(choice?.options) ? {...choice, options: choice.options.filter(fits)} : choice))};
 }
 
 /**

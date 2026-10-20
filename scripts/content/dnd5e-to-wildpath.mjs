@@ -422,6 +422,10 @@ const TEST_OFFERS = Object.freeze({
   // 2024 Countercharm: a save failed against Charmed or Frightened, by itself or an ally within 30 ft, rerolled with
   // Advantage for its Reaction (withAllyTestOffers). Its pool is named here: its activity spends none.
   countercharm: {tests: ["save"], pool: "reaction", rollMode: "advantage", range: 30, against: ["charmed", "frightened"]},
+  // Tasha's Flash of Genius: when it or a creature it sees within 30 feet fails an ability check or save, its Intelligence
+  // modifier is added, for its Reaction and a use (its own pool, named by its identifier). shortcut: "you can see" is any
+  // ally within range, and it is offered only on a failure (as every test offer is).
+  "flash-of-genius": {tests: ["check", "save"], pool: "flash-of-genius", reaction: true, range: 30, addAbility: "intellect"},
   // 2024 Disciplined Survivor: a failed save rerolled for 1 Focus Point (its activity's).
   "disciplined-survivor": {tests: ["save"], reroll: true}
 });
@@ -854,7 +858,9 @@ function partExpression(part, {spell, ability, scales, notes, label}) {
 const says = value => Boolean(value?.units || value?.type || value?.value || value?.template?.type || value?.affects?.type);
 
 /** The activity's own value for `key` when it overrides the item's or the item's says nothing, else the item's. */
-const pick = (activity, system, key) => ((activity?.[key]?.override || !says(system?.[key])) ? activity?.[key] : system[key]) ?? {};
+// An Item's leftover "none" activation (a Steel Defender's natural weapon) gives way to its activity's own.
+const pick = (activity, system, key) => ((activity?.[key]?.override || !says(system?.[key])
+  || ((key === "activation") && (system[key]?.type === "none") && activity?.[key]?.type)) ? activity?.[key] : system[key]) ?? {};
 
 function rangeOf({activity, system, document, attack}) {
   const range = pick(activity, system, "range");
@@ -1068,11 +1074,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       pool, names, scales}), range: {type: "self"}, targeting: {type: "self"}} : null)
       ?? commonActivity({document, activity, system, spell, level, pool}) ?? (ACTIVITIES.has(activity.type)
       ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature, beasts, names})
-      : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts})
+      : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts, scales})
         : ((activity.type === "teleport") ? teleportDefinition({document, activity, system, spell, level, notes, pool})
           : ((activity.type === "transform") ? wildShapeDefinition({document, activity, system, spell, level, notes, pool, beasts})
             : (enchant ? enchantDefinition({document, activity, system, spell, level, pool, enchant})
-              : ((activity.type === "enchant") ? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales})
+              : (((activity.type === "enchant") && SUBTYPE_CLASS[system.type?.subtype])
+                ? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales})
                 : null))))));
     if ( !definition ) {
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
@@ -1972,7 +1979,7 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
  * rounds) or while it concentrates: its creature, or a choice of its creatures, from `creatures` (dnd5e Actor id to
  * WildPath uuid). Null when it chooses by Challenge Rating, or names a creature not converted.
  */
-function summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts=[]}) {
+function summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts=[], scales={}}) {
   // Chosen by Challenge Rating (Find Familiar, Pact of the Chain, Wild Companion): each converted Beast of a profile's
   // CR or lower. shortcut: a Celestial, Fey or Fiend form (Find Familiar) and other creature types are by hand.
   const byChallenge = activity.summon?.mode === "cr";
@@ -2010,17 +2017,31 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
   const lost = [];
   for ( const [name, formula] of Object.entries(activity.bonuses ?? {}) ) {
     if ( !formula || (String(formula).trim() === "0") ) continue;
-    const expression = ["hp", "ac", "attackDamage", "saveDamage"].includes(name) ? summonBonus(formula) : null;
+    // A spell's by its level; a class feature's by its summoner (a Steel Defender's: Intelligence + 5 per artificer level).
+    const expression = ["hp", "ac", "attackDamage", "saveDamage"].includes(name)
+      ? (summonBonus(formula) ?? ((document.type === "feat") ? formulaExpression(formula, {scales}) : null)) : null;
     if ( expression ) bonuses[name] = expression;
     else lost.push(name);
   }
   if ( lost.length ) notes.push(`summon: what it gains with the spell's level (${lost.join(", ")}) is not added`);
+  const rules = SUMMON_RULES[identifierOf(document)] ?? {};
+  const limit = (rules.limit === "uses") ? formulaExpression(String(system.uses?.max ?? ""), {scales}) : rules.limit;
   const timing = {count: uniform ? counts[0] : 1, ...(byCreature ? {counts: byCreature} : {}), ...(rounds ? {rounds} : {}),
     ...(concentration ? {concentration: true} : {}),
-    ...(Object.keys(bonuses).length ? {bonuses} : {}), ...((spell && level) ? {spellLevel: level} : {})};
+    ...(Object.keys(bonuses).length ? {bonuses} : {}), ...((spell && level) ? {spellLevel: level} : {}),
+    // A spell's or class feature's creature attacks with its summoner's spell attack bonus (dnd5e `match.attacks`,
+    // matchedAttack); a magic item's (Dancing Sword: its wielder's attack) keeps its own.
+    ...((activity.match?.attacks && (spell || (document.type === "feat"))) ? {match: {attacks: true}} : {}), ...(limit ? {limit} : {}),
+    ...(rules.endsWithSummoner ? {endsWithSummoner: true} : {})};
+  // A creature by its summoner's level (a Steel Defender from 3rd, its improved form from 15th: `summon.identifier`'s class).
+  const levelOf = profile => (((profile.level?.min ?? null) !== null) || ((profile.level?.max ?? null) !== null)
+    ? {level: {...(profile.level.min != null ? {min: profile.level.min} : {}), ...(profile.level.max != null ? {max: profile.level.max} : {}),
+      ...(activity.summon?.identifier ? {class: activity.summon.identifier} : {})}} : {});
   if ( profiles.length === 1 ) return {...definition, ...(range ? {range} : {}), summon: {actorRef: profiles[0].ref, ...timing}};
   const choice = {id: "summon-creature", type: "select-one", label: "Creature", required: true,
-    options: profiles.map(({profile, ref}) => ({id: ref, label: profile.name || names[String(profile.uuid).split(".").pop()] || ref}))};
+    options: profiles.map(({profile, ref}) => ({id: ref, label: profile.name || names[String(profile.uuid).split(".").pop()] || ref,
+      // A spell's profile level is its slot's (Find Steed): not its creature's level.
+      ...(spell ? {} : levelOf(profile))}))};
   return {...definition, ...(range ? {range} : {}), configuration: [...(definition.configuration ?? []), choice],
     summon: {choiceId: choice.id, ...timing}};
 }
@@ -2114,6 +2135,24 @@ function summonCount(formula, level) {
     spellmodx: {type: "spellcasting-modifier"}}});
   return parsed.ok ? parsed.expression : null;
 }
+
+/**
+ * Tasha's creatures an artificer commands with a Bonus Action, by dnd5e id: a Steel Defender and its improved form ("the
+ * only action it takes on its turn is the Dodge action, unless you take a bonus action on your turn to command it"; its
+ * Dodge is the common action, which stays free), and a Homunculus Servant's homunculus. shortcut: an Eldritch Cannon's
+ * features are its description (nothing to command yet).
+ */
+const COMMANDED = new Set(["tcoeSmithSteelDe", "tcoeImprovedStee", "oHIHDsxgQ8zoPyHl"]);
+
+/**
+ * How many of a feature's summons may be out at once, and whether they go when their summoner dies: one Steel Defender,
+ * one Homunculus Servant (which dies with its artificer), an artillerist's Eldritch Cannons by its uses (1, 2 from 15).
+ */
+const SUMMON_RULES = Object.freeze({
+  "steel-defender": {limit: 1},
+  "homunculus-servant": {limit: 1, endsWithSummoner: true},
+  "eldritch-cannon": {limit: "uses"}
+});
 
 function summonBonus(formula) {
   const text = String(formula).replace(/@item\.level/g, "castlevelx").trim();
@@ -2761,6 +2800,13 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
   if ( traits.length ) items.push({_id: `${String(actorId).slice(0, 12)}trts`, _key: `!actors.items!${actorId}.${String(actorId).slice(0, 12)}trts`,
     name: "Traits", type: "feature", img: "icons/svg/aura.svg", system: {active: true, description: "", ruleElements: traits},
     flags: {wildpath: {conversion: {notes: []}}}});
+  // A creature its summoner commands: what costs it its Action also costs its summoner's Bonus Action (`controllerCosts`);
+  // its reactions and movement stay its own.
+  if ( COMMANDED.has(document._id) ) for ( const item of items ) {
+    if ( (item.system?.definition?.costs?.allOf ?? []).some(cost => cost?.capability === "action") ) {
+      item.system.definition.controllerCosts = {allOf: [{capability: "bonus-action", amount: 1}]};
+    }
+  }
 
   const walk = number(system.attributes?.movement?.walk) ?? 30;
   const health = number(system.attributes?.hp?.max) ?? number(system.attributes?.hp?.value) ?? 1;

@@ -358,6 +358,7 @@
       "TacticalMind": "Tactical Mind: add 1d10 (Second Wind, {value} left; kept if it still fails)",
       "SeekingSpell": "Seeking Spell: reroll the d20 (1 Sorcery Point, {value} left)",
       "SetNatural": "{name}: turn it into a {natural}",
+      "AllyAdd": "Add {value} with {name}'s {feature}",
       "AllyReroll": "{name}'s {feature}: reroll with Advantage (its Reaction)",
       "RerollWith": "Reroll with {name}",
       "Indomitable": "Reroll with Indomitable, +{bonus} ({value} left)",

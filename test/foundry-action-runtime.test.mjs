@@ -2437,3 +2437,38 @@ test("Protective Bond: a reaction an effect gives (Bonded), offered while its gi
   await plain.player.declareActionIntent(plain.intent);
   assert.equal(plain.offers.length, 0);
 });
+
+test("Flash of Genius: any failed check or save of an ally within 30 ft, adding its Intelligence modifier for its Reaction and a use", async t => {
+  const {withAllyTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {scene, targetToken} = syntheticRuntimeFixture(t);
+  const flash = {id: "fog", name: "Flash of Genius", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["check", "save"],
+    pool: "flash-of-genius", reaction: true, range: 30, addAbility: "intellect"}}}};
+  const inventor = withFoundryActorSystem(fakeActor("inventor", {system: {...targetActorSystem(), abilities: {intellect: {value: 18}},
+    resources: {reaction: {value: 1, max: 1}}, pools: [{id: "flash-of-genius", value: 2, max: 4}]}}));
+  inventor.items = [flash];
+  scene.tokens.push(fakeTokenDocument({id: "inventor-token", actor: inventor, scene, offset: {i: 1, j: 3}, disposition: targetToken.disposition}));
+  const payers = [];
+  const offer = withAllyTestOffers(null, targetToken, {effects: []}, {}, "save", {chooser: "target-controller", register: payer => payers.push(payer.id)});
+  assert.deepEqual(offer.options.map(option => [option.payerRef, option.addFlat]), [["Actor.inventor", 4]], "any save, +4");
+  assert.deepEqual(Object.keys(offer.options[0].plan.updates).sort(), ["system.pools.0.value", "system.resources.reaction.value"].sort(),
+    "a use and its Reaction");
+  inventor.system.resources.reaction.value = 0;
+  assert.equal(withAllyTestOffers(null, targetToken, {effects: []}, {}, "save", {chooser: "target-controller"}), null, "no Reaction left");
+});
+
+test("Flash of Genius in an Action: a failed save gets the inventor's Intelligence modifier added, and saves", async () => {
+  const inventor = withFoundryActorSystem(fakeActor("inventor", {system: {...actorSystem(), abilities: {intellect: {value: 18}},
+    pools: [{id: "flash-of-genius", value: 2, max: 4}]}}));
+  inventor.items = [{id: "fog", name: "Flash of Genius", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["check", "save"],
+    pool: "flash-of-genius", reaction: true, range: 30, addAbility: "intellect"}}}}];
+  // The target's ally, beside it (the attacker's allies are on the other side).
+  const planned = await plannedWithConditions(fortitudeBlast("might"), {saveRoll: {total: 10, natural: 7, die: 7}, extraActors: [inventor],
+    prepareTarget: actor => Object.defineProperty(actor, "token", {get: () => actor.tokens[0] ?? null})});
+  const offerState = planned.state;
+  const [choice] = offerState.pendingRequests;
+  assert.ok(choice?.payload?.options?.some(option => /inventor/.test(option.value)), JSON.stringify(choice?.payload?.options));
+  const answered = resumeStagedActionResolution({state: offerState, response: {resolutionId: offerState.id, requestId: choice.id, type: choice.type,
+    value: {choices: {"heroic-inspiration": choice.payload.options.find(option => /inventor/.test(option.value)).value}}}}).state;
+  assert.equal(answered.results.saveResolution.successes.length, 1, "10 + 4 = 14 saves against DC 13");
+  assert.ok(answered.mutationPlans.some(plan => plan.payerRef === inventor.uuid), "the inventor pays");
+});
