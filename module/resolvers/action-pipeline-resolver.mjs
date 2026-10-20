@@ -548,10 +548,15 @@ function createDamageReactionStage() {
  * `damage.applied`, once the Action's damage is planned: its targets are the creatures that take some (Temporary Hit
  * Points it takes count), its source the creature dealing it. Null when nobody takes any.
  */
-function damageTakenReactionEvent(state) {
+/** The creatures the Action's planned damage reaches: each takes some (Temporary Hit Points it loses count). */
+function damagedTargetsOf(state) {
   const taken = plan => (Number(plan?.amount) || 0) + Math.max((Number(plan?.temporary?.from) || 0) - (Number(plan?.temporary?.to) || 0), 0);
-  const damaged = (state.mutationPlans ?? []).filter(entry => (entry?.type === "durabilityDamage") && (entry.plan?.ok !== false)
+  return (state.mutationPlans ?? []).filter(entry => (entry?.type === "durabilityDamage") && (entry.plan?.ok !== false)
     && (taken(entry.plan) > 0)).map(entry => entry.target).filter(Boolean);
+}
+
+function damageTakenReactionEvent(state) {
+  const damaged = damagedTargetsOf(state);
   if ( !damaged.length ) return null;
   const input = preparedResolverInput(state);
   return createAutomationEvent({
@@ -2049,7 +2054,9 @@ function createEffectStage() {
         targetResolution: state.results?.targetResolution ?? null,
         attackResolution: state.results?.attackResolution ?? null,
         saveResolution: state.results?.saveResolution ?? null,
-        actionContext
+        actionContext,
+        // Who its damage reached (an effect `whenDamaged` is only theirs).
+        damagedTargets: damagedTargetsOf(state)
       });
       if ( !effectResolution.ok ) {
         return failActionPlanningStage({

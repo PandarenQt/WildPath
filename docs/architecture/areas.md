@@ -354,9 +354,10 @@ is the larger of the fields across and the cubes between. A creature flying 10 f
 **Falling (2024).** A creature above the floor of its Level that gets Prone, Grappled, Restrained, Paralyzed,
 Petrified, Stunned or Unconscious falls, unless it can hover (`GrantMovement` `hover: true`; converted from dnd5e's
 hover). The active GM drops its Token to the floor as forced movement and resolves "Falling" as an authority Action:
-1d6 Bludgeoning per full 10 feet (20d6 at most), and Prone (`foundry-v14-falling.mts`).
-- Shortcuts: Prone comes even when it takes no damage (immunity); a Levitate-like effect that holds a creature up is
-  not known, so it falls too; there is no ledge or pit to fall from, only elevation above the floor.
+1d6 Bludgeoning per full 10 feet (20d6 at most), and Prone unless it took no damage (`foundry-v14-falling.mts`; the effect's
+`whenDamaged`, read in the effect stage from the Action's planned damage). Live (2026-10-20): QA Ally, Grappled 30 ft up,
+fell; with Bludgeoning immunity it took nothing and stayed standing, without it took 9 and landed Prone.
+- Shortcuts: a Levitate-like effect that holds a creature up is not known, so it falls too; there is no ledge or pit to fall from, only elevation above the floor.
 
 Live (GM browser, 14.369): QA Failer 30 feet up, knocked Prone, dropped to the floor with a "Falling" card of 3d6 (7).
 The SRD Air Elemental (fly 90, hover) knocked Prone 30 feet up stayed there unharmed.
