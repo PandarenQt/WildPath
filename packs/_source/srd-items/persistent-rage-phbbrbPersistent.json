@@ -83,7 +83,33 @@
             },
             "targeting": {
               "type": "self"
-            }
+            },
+            "configuration": [
+              {
+                "id": "use",
+                "type": "option",
+                "label": "Recharge Rage on Initiative",
+                "required": true,
+                "defaultValue": "use",
+                "options": [
+                  {
+                    "id": "use",
+                    "label": "Use it",
+                    "value": "use"
+                  },
+                  {
+                    "id": "decline",
+                    "label": "Not now",
+                    "value": "decline"
+                  }
+                ],
+                "effects": [
+                  {
+                    "type": "decline"
+                  }
+                ]
+              }
+            ]
           }
         }
       }

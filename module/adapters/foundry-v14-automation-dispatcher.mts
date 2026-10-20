@@ -1,5 +1,5 @@
 import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
-import {createAutomationEvent, createTriggerDefinition, evaluateTrigger} from "../helpers/automation-events.mjs";
+import {createAutomationEvent, createTriggerDefinition, evaluateTrigger, reactionPolicyOf} from "../helpers/automation-events.mjs";
 import {sunlightContext} from "./foundry-v14-sunlight.mjs";
 
 type Data = Record<string, unknown>;
@@ -32,13 +32,15 @@ const automationEvent = createAutomationEvent as unknown as (options: Data) => D
  * Returns the final state, or null when the Action could not start.
  */
 export async function runAuthorityAction({coordinator, resolveAction, senderUserId, resolutionId, definition, label,
-  actorRef, source, target, logger=globalThis.console}: {
+  actorRef, source, target, configuration=null, logger=globalThis.console}: {
   coordinator: Coordinator; resolveAction: ResolveAction; senderUserId: string; resolutionId: string;
-  definition: Data; label: string; actorRef: string; source: Data; target: Data; logger?: Logger;
+  definition: Data; label: string; actorRef: string; source: Data; target: Data; configuration?: Data | null; logger?: Logger;
 }) {
   const action = {id: String(definition.id), uuid: null, type: "action", name: String(definition.label ?? label),
     system: {definition: {...definition, targeting: {type: "single", required: true, count: 1}}}};
-  const resolved = await resolveAction({intent: {actorRef, source, targetRefs: [target]}, senderUserId, action});
+  // Its choices, when already made (a "you can" set to Always); otherwise the authority asks for them.
+  const resolved = await resolveAction({intent: {actorRef, source, targetRefs: [target], ...(configuration ? {configuration} : {})},
+    senderUserId, action});
   if ( !resolved.ok ) {
     logger.warn("Wild Path | An automatic effect could not resolve", resolved.reason ?? resolved);
     return null;
@@ -101,7 +103,9 @@ export function automationTriggers(actor: AutomationActor, event: Data, context:
     const actionItem = owner.type === "action" ? owner
       : items.find(entry => (entry.type === "action") && (entry.system?.definition?.id === data.actionId));
     const definition = (data.action as Data | undefined) ?? (actionItem ? definitionFor(actionItem).definition : null);
-    return definition ? [{id: String(trigger.id), definition, label: owner.name ?? String(definition.label ?? "")}] : [];
+    // Its Item's reaction setting (Always, Never, Ask) answers a "you can" (`use`) choice.
+    return definition ? [{id: String(trigger.id), definition, label: owner.name ?? String(definition.label ?? ""),
+      policy: (reactionPolicyOf as (item: unknown) => string)(owner)}] : [];
   }));
 }
 
@@ -126,10 +130,14 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
       tokenId: token?.id ?? null, data});
     const self = {actorRef: actor.uuid, ...(token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {})};
     const states = [];
-    for ( const {id, definition, label} of automationTriggers(actor, event, sunlightContext(token as never)) ) {
+    for ( const {id, definition, label, policy} of automationTriggers(actor, event, sunlightContext(token as never)) ) {
+      // A "you can" (Persistent Rage when initiative is rolled): Never skips it, Always uses it, Ask asks its controller.
+      const optional = ((definition.configuration ?? []) as Data[]).some(choice => choice.id === "use");
+      if ( optional && (policy === "never") ) continue;
       const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
         resolutionId: `${id}:${sequence}`, definition, label, actorRef: actor.uuid,
-        source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, target: self});
+        source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, target: self,
+        ...((optional && (policy === "always")) ? {configuration: {choices: {use: "use"}}} : {})});
       if ( state ) states.push(state);
     }
     // Repeated saves: the creature rolls each again as its own Action; a success ends what that save let in.

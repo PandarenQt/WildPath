@@ -134,3 +134,22 @@ test("Steady Aim (SRD) is greyed once its creature has moved this turn (`require
   actor.system.resources.movement = {value: 25, max: 30, spent: 5};
   assert.deepEqual([entry().enabled, entry().disabledCode, entry().reason.key], [false, "REQUIRES_NOT_MET", "WILDPATH.ACTIONBAR.Reason.Requires"]);
 });
+
+test("Reckless Attack (SRD) is greyed once its creature has made an attack roll this combat turn", async () => {
+  const fs = await import("node:fs");
+  const reckless = JSON.parse(fs.readFileSync("packs/_source/srd-items/reckless-attack-18a07pfv69929000.json", "utf8"));
+  const previous = globalThis.game;
+  globalThis.game = {combat: {id: "c", round: 2, turn: 1, started: true}};
+  try {
+    const actor = {name: "Barbarian", flags: {}, items: [{id: "reckless", type: "action", name: reckless.name, system: reckless.system}],
+      effects: [], system: {resources: {action: {value: 1, max: 1}, bonus: {value: 1, max: 1}, reaction: {value: 1, max: 1},
+        movement: {value: 30, max: 30, spent: 0}}, pools: []}};
+    const entry = () => actionBarContext({actor}).groups.flatMap(group => group.actions).find(action => action.id === "reckless");
+    actor.flags = {wildpath: {attackTurn: "c:2:0"}};
+    assert.equal(entry().enabled, true, "an attack on an earlier turn doesn't count");
+    actor.flags = {wildpath: {attackTurn: "c:2:1"}};
+    assert.deepEqual([entry().enabled, entry().disabledCode], [false, "REQUIRES_NOT_MET"], "it already attacked this turn");
+  } finally {
+    globalThis.game = previous;
+  }
+});

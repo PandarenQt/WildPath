@@ -117,7 +117,33 @@
                 "healingType": "healing"
               }
             ],
-            "label": "Uncanny Metabolism"
+            "label": "Uncanny Metabolism",
+            "configuration": [
+              {
+                "id": "use",
+                "type": "option",
+                "label": "Uncanny Metabolism",
+                "required": true,
+                "defaultValue": "use",
+                "options": [
+                  {
+                    "id": "use",
+                    "label": "Use it",
+                    "value": "use"
+                  },
+                  {
+                    "id": "decline",
+                    "label": "Not now",
+                    "value": "decline"
+                  }
+                ],
+                "effects": [
+                  {
+                    "type": "decline"
+                  }
+                ]
+              }
+            ]
           }
         }
       }

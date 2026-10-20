@@ -323,7 +323,14 @@ Its predicate requires a pool it gives back below its maximum (`poolBelowMax`) a
 
 Persistent Rage's "@scale.barbarian.rage" names the class's `rages` table (`SCALE_ALIASES`).
 
-shortcut: "you can" is automatic whenever the predicate holds.
+**"You can" (2026-10-20).** Its Action has a required choice `use`: "Use it" or "Not now" (the configuration effect
+`decline`: no restores, healing, damage, effects or costs). The dispatcher reads its Item's reaction setting:
+- Never: not used.
+- Always: used without asking (`configuration: {choices: {use: "use"}}`).
+- Ask (the default): the authority asks its controller.
+
+Live (two browsers, 14.369): QA Caster with Persistent Rage and 0 Rage rolled initiative. Player1 was asked; "Not now"
+spent nothing, and "Use it" spent Persistent Rage's use.
 
 Live (two browsers, 14.369): QA Caster as a level-15 barbarian with 0 of 5 Rage rolled initiative, and Rage went to 5
 while Persistent Rage's use was spent. In a second combat, with Rage at 0 again, nothing happened.

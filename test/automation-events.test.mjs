@@ -182,6 +182,15 @@ test("Persistent Rage: its Trigger answers initiative while Rage is spent and it
   assert.deepEqual(trigger.definition.restores.map(entry => entry.resourceId), ["rage"]);
   assert.equal(automationTriggers(actorWith(5, 1), event).length, 0, "Rage full");
   assert.equal(automationTriggers(actorWith(0, 0), event).length, 0, "already used this Long Rest");
+  // "You can": its creature chooses; "Not now" leaves Rage and its own use untouched.
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const effective = use => resolveActionConfiguration({definition: trigger.definition, actorSystem: actorWith(0, 1).system,
+    choices: {use}}).configuration.effectiveDefinition;
+  assert.deepEqual([effective("use").restores.length > 0, effective("decline").restores ?? [], effective("decline").costs.allOf], [true, [], []]);
+  const asked = ({id, flags}) => automationTriggers({...actorWith(0, 1), items: [{id, type: "feature", name: feature.name,
+    system: feature.system, flags}]}, event)[0].policy;
+  assert.deepEqual([asked({id: "a"}), asked({id: "b", flags: {wildpath: {reactionPolicy: "always"}}})], ["ask", "always"],
+    "its Item's reaction setting answers it (Ask by default)");
 });
 
 test("Survivor's Heroic Rally answers its turn's start while Bloodied and above 0 Hit Points", async () => {

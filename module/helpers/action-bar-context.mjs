@@ -5,6 +5,7 @@ import { discoverActionConfigurationChoices } from "./action-configuration.mjs";
 import { actionDefinitionFromAction } from "./action-definitions.mjs";
 import { isUnprepared } from "./spellcasting.mjs";
 import { evaluatePredicate } from "./predicates.mjs";
+import { requiresContext } from "./combat.mjs";
 const viewModel = createActionBarViewModel;
 const policyOf = reactionPolicyOf;
 /** How each reaction setting shows on its toggle. */
@@ -101,7 +102,7 @@ export function actionBarContext({ actor, conditions = [], odds = {}, common = [
     // What its definition requires of the creature (`requires`: Steady Aim, not moved this turn), as the authority checks.
     const requiresMet = (action) => {
         const requires = rawDefinition(action)?.requires;
-        return !requires || evaluatePredicate(requires, { actorSystem: actor.system, tags: rawDefinition(action)?.tags ?? [] }).ok;
+        return !requires || evaluatePredicate(requires, { ...requiresContext(actor), tags: rawDefinition(action)?.tags ?? [] }).ok;
     };
     const ready = (action) => itemReady(action) && requiresMet(action);
     const resourceLabels = new Map(bar.resources.map(resource => [resource.id, resource.label]));

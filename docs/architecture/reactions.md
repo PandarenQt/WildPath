@@ -307,6 +307,10 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
 - **Reckless Attack** is a free Action; its effect (slug `reckless`) gives Advantage on `attack.might` rolls and on
   attacks against it, until its next turn. Live: QA Caster's Strength attacks had Advantage, its Agility ones did not,
   and the Bandit Captain's attacks against it had Advantage.
+  - **Before its first attack roll on its turn (2026-10-20).** Its `requires` is `not attackedThisTurn`.
+    `recordAttackTurn` sets `flags.wildpath.attackTurn` to the combat turn after any attack roll. The authority and the
+    action bar both read it through `requiresContext` (`helpers/combat.mjs`). Live: QA Caster's Reckless Attack greyed
+    ("can't be used now") after its Dagger attack.
 
 - **Cunning Strike (2026-10-19):** three own-hit reactions (Poison, Trip, Withdraw) matching `extra:sneak-attack` (the
   hit's planned Sneak Attack), each with `rider: {forgoDice: {ruleId: "sneak-attack", dice: 1}}`, once a turn between them
