@@ -135,6 +135,13 @@ Live (two browsers, 14.369):
 - Player1's barbarian used Rage (a `self` custom effect with slug `raging`). Its feature's
   `{hasCondition: "raging"}` Modifier on `damage.melee` made the axe roll "1d12 + 2".
 
+## Requires (2026-10-20)
+
+`requires` is a predicate on its creature, seen as `{actorSystem, tags}`: what must hold for the Action to be used. The
+authority refuses the intent otherwise ("can't be used now"), and the action bar greys it (`REQUIRES_NOT_MET`, reason
+`WILDPATH.ACTIONBAR.Reason.Requires`). Steady Aim requires that it hasn't moved this turn:
+`{equals: {path: "actorSystem.resources.movement.spent", value: 0}}`. shortcut: outside combat movement is never reset.
+
 ## Restores (2026-10-14)
 
 `restores: [{resourceId, amount}]` refills pools of the acting creature when the Action is paid for, each up to its

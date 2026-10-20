@@ -232,8 +232,11 @@ const OFFERED_BY_ENGINE = new Set(["tactical-mind"]);
 
 /**
  * A feature dnd5e leaves without automation, as the effects its use puts on its creature. 2024 Steady Aim: Advantage
- * on its next attack roll this turn, and Speed 0 until the turn ends. shortcut: "you haven't moved this turn" is by hand.
+ * on its next attack roll this turn, and Speed 0 until the turn ends; only while it hasn't moved this turn (`requires`).
  */
+/** It hasn't moved this turn: no movement spent (Steady Aim). shortcut: outside combat movement is never reset. */
+const NOT_MOVED = Object.freeze({equals: {path: "actorSystem.resources.movement.spent", value: 0}});
+
 const SELF_EFFECTS = Object.freeze({
   "steady-aim": [{id: "effect-1", type: "effect", name: "Steady Aim", img: "icons/svg/target.svg", endsWhen: "attacks",
     duration: {value: 0, units: "turns", expiry: "turnEnd"},
@@ -837,7 +840,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const selfEffects = SELF_EFFECTS[identifierOf(document)];
     if ( selfEffects || USED_AT_TURN_START.has(identifierOf(document)) ) {
       definition = {...definition, range: {type: "self"}, targeting: {type: "self"},
-        ...(selfEffects ? {effects: structuredClone(selfEffects)} : {})};
+        ...(selfEffects ? {effects: structuredClone(selfEffects)} : {}),
+        ...((identifierOf(document) === "steady-aim") ? {requires: NOT_MOVED} : {})};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
     // A spell that fills its area with light (2024 Daylight's sunlight) is a lasting area shedding it.

@@ -60,6 +60,7 @@ import {createPhysicalDiceProvider} from "./roll-provider-resolver.mjs";
 import {resolveActorResourcePayment} from "./resource-resolver.mjs";
 import {knownMetamagic, METAMAGIC_POOL} from "../helpers/metamagic.mjs";
 import {resolveActionConfiguration} from "../helpers/action-configuration.mjs";
+import {evaluatePredicate} from "../helpers/predicates.mjs";
 import {createMultiplayerMovementAuthority} from "./multiplayer-movement-authority.mjs";
 import {createFoundryV14ReactionPauseAdapter} from "../adapters/foundry-v14-reaction-pause-adapter.mjs";
 import {foundryMovementIntentToStagedOptions} from "../adapters/foundry-v14-staged-movement-adapter.mjs";
@@ -633,6 +634,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     ok: false,
     code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
     reason: `${actor.name} can't cast spells while wearing ${hindering.name} without training in it.`
+  };
+  // What the Action requires of its creature (`requires`: Steady Aim, not moved this turn).
+  if ( !authorityAction && definition?.requires && !evaluatePredicate(definition.requires, {actorSystem, tags: definition.tags ?? []}).ok ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: `${action.name} can't be used now.`
   };
   // A magic item's Action (a wand's spell) needs its item equipped and, when it needs attunement, attuned (2024).
   const grantedBy = action.flags?.wildpath?.grantedBy ? actor.items?.get?.(action.flags.wildpath.grantedBy) : null;
