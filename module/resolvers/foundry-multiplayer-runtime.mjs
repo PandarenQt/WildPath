@@ -219,6 +219,16 @@ export function registerFoundryV14MultiplayerResolution({
     void automation.dispatch("initiative.rolled", {actor: combatant.actor, token: combatant.token,
       data: {initiative: changed.initiative}}).catch(error => logger?.warn?.("Wild Path | initiative.rolled automation failed", error));
   });
+  // An encounter's end leaves its creatures' movement full again (it is not tracked outside one); the active GM writes.
+  const refillMovement = actors => {
+    if ( !game.user?.isGM || (game.users?.activeGM && (game.users.activeGM.id !== game.user.id)) ) return;
+    for ( const actor of new Set(actors.filter(Boolean)) ) {
+      if ( Number(actor.system?.resources?.movement?.spent) > 0 ) void actor.update({"system.resources.movement.spent": 0})
+        .catch(error => logger?.warn?.("Wild Path | Refilling movement failed", error));
+    }
+  };
+  globalThis.Hooks?.on?.("deleteCombat", combat => refillMovement([...(combat.combatants ?? [])].map(combatant => combatant.actor)));
+  globalThis.Hooks?.on?.("deleteCombatant", combatant => refillMovement([combatant.actor]));
   const movement = createMultiplayerMovementAuthority({
     userId: game.user?.id ?? game.userId ?? null,
     users: () => foundryUserDirectory(game),

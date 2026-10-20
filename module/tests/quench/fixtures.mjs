@@ -119,6 +119,19 @@ export async function createQuenchCombat(scene, tokens=[]) {
 }
 
 /**
+ * A started combat with `actors` as its combatants (no Scene or Tokens): movement is tracked only in an encounter, so a
+ * test of spending it puts its creature in one.
+ */
+export async function startQuenchEncounter(runId, actors=[]) {
+  requireGM();
+  const combat = await CONFIG.Combat.documentClass.create({active:false,flags:fixtureFlags(runId)}, {renderSheet:false});
+  if (!combat) throw new Error(`Combat creation returned no fixture (Quench run ${runId}).`);
+  await combat.createEmbeddedDocuments("Combatant", actors.map(actor => ({actorId:actor.id,flags:fixtureFlags(runId)})));
+  await combat.startCombat();
+  return combat;
+}
+
+/**
  * Read-only listing of marked fixtures across every owned collection. Without a run ID it lists
  * every marked fixture; that is a diagnostic, never a deletion scope.
  */
@@ -179,6 +192,7 @@ export function useQuenchFixtures({beforeEach,afterEach}) {
     createEffect: (actor,data) => createEmbeddedQuenchEffect(actor,data),
     createScene: data => createQuenchScene({...data,runId}),
     createToken: (scene,actor,data) => createUnlinkedQuenchToken(scene,actor,data),
-    createCombat: (scene,tokens) => createQuenchCombat(scene,tokens)
+    createCombat: (scene,tokens) => createQuenchCombat(scene,tokens),
+    startEncounter: actors => startQuenchEncounter(runId,actors)
   };
 }

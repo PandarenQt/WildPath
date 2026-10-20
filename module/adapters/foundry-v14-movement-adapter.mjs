@@ -14,6 +14,7 @@ import {
   deriveMovementBudget
 } from "../helpers/movement.mjs";
 import {movementAllowance} from "../helpers/movement-modes.mjs";
+import {movementTracked} from "../helpers/combat.mjs";
 import {
   createMovementPath,
   evaluateMovementPath
@@ -1145,6 +1146,9 @@ export function getCompleteFoundryMovementWaypoints({intent={}, tokenDocument=nu
   };
 }
 
+/** The distance a move outside an encounter may cover: more than any one move reaches. */
+const UNTRACKED_DISTANCE = 100000;
+
 function movementBudgetForActor({actor=null, movementMode="walk", movementKind=MOVEMENT_KINDS.VOLUNTARY, measurementMode, grid=null}={}) {
   if ( movementKind !== MOVEMENT_KINDS.VOLUNTARY && !actor?.system?.resources?.movement ) {
     return {
@@ -1161,8 +1165,10 @@ function movementBudgetForActor({actor=null, movementMode="walk", movementKind=M
   const allowance = movementAllowance(movementMode, actor.system.speeds ?? {walk});
   if ( !allowance.ok ) return failure(allowance.code, allowance.reason);
   const spent = Number.isFinite(resource.spent) ? resource.spent : Math.max(walk - (Number(resource.value) || 0), 0);
-  const maximum = allowance.speed / allowance.costMultiplier;
-  const current = Math.max(allowance.speed - spent, 0) / allowance.costMultiplier;
+  // Outside an encounter a move is not limited by Speed (exploration): a budget no move reaches.
+  const free = (movementKind === MOVEMENT_KINDS.VOLUNTARY) && !movementTracked(actor);
+  const maximum = free ? UNTRACKED_DISTANCE : allowance.speed / allowance.costMultiplier;
+  const current = free ? UNTRACKED_DISTANCE : Math.max(allowance.speed - spent, 0) / allowance.costMultiplier;
   const capability = createMovementCapability({
     mode: movementMode,
     distance: maximum,

@@ -651,3 +651,17 @@ Public references: [TokenDocument lifecycle and movement methods](https://foundr
 [checkpoint waypoint contract](https://foundryvtt.com/api/v14/interfaces/foundry.documents.types.TokenMovementWaypoint.html),
 and [post-update moveToken hook](https://foundryvtt.com/api/v14/functions/hookEvents.moveToken.html).
 The installed source was inspected only; no Foundry private method is called by this integration.
+
+## Outside an encounter (2026-10-20)
+
+Movement is tracked only in an encounter: a creature that is a combatant of a started combat (`movementTracked`,
+`module/helpers/combat.mjs`). Outside one:
+- a move is not limited by Speed (`movementBudgetForActor` gives a budget no move reaches); walls and terrain still
+  apply;
+- a move is not paid for (the movement authority skips its payment), and any write of `movement.spent` or `.value` keeps
+  it full (the Actor data model's `_preUpdate`);
+- ending a combat (`deleteCombat`) or leaving one (`deleteCombatant`) refills its creatures' movement (the active GM
+  writes it).
+
+Steady Aim's "hasn't moved this turn" always holds outside combat. Without a Foundry world to tell (tests),
+movement is tracked.

@@ -35,6 +35,8 @@ export function registerResourceTests(quench) {
 
       it("persists movement spending from 30 to 25", async function () {
         const actor = await fixtures.createActor({name:"movement resource"});
+        // Movement is tracked only in an encounter.
+        await fixtures.startEncounter([actor]);
         assert.isTrue(await actor.spendResource("movement",5),"Affordable movement spend should succeed");
         assertBuiltin(actor,"movement",25);
         assert.equal(persistedActor(actor).getResource("movement").max,30,"Spending must not reduce the prepared maximum");

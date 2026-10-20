@@ -5,6 +5,7 @@ import {SPELLCASTING_PROGRESSIONS, deriveClassData, spellSlotPoolId} from "../..
 import {formOverrides} from "../../helpers/transformations.mjs";
 import {movementSpeeds} from "../../helpers/movement-modes.mjs";
 import {abilityScoreAfter} from "../../helpers/rule-elements.mjs";
+import {movementTracked} from "../../helpers/combat.mjs";
 
 /** Action-economy counters: what is spent is stored, what remains is derived from the (modifiable) maximum. */
 const COUNTED_RESOURCES = Object.freeze(["action", "bonus", "reaction", "movement"]);
@@ -118,6 +119,14 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     if ( Array.isArray(classes) ) {
       const pools = this.#withClassPools(classes, foundry.utils.getProperty(changes, "system.pools") ?? this.parent.toObject(true).system.pools);
       if ( pools ) foundry.utils.setProperty(changes, "system.pools", pools);
+    }
+    // Outside an encounter movement is not tracked: whatever spends it, it stays full.
+    const moved = ["system.resources.movement.spent", "system.resources.movement.value"]
+      .some(path => (foundry.utils.getProperty(changes, path) ?? changes[path]) != null);
+    if ( moved && !movementTracked(this.parent) ) {
+      for ( const path of ["system.resources.movement.spent", "system.resources.movement.value"] ) delete changes[path];
+      foundry.utils.setProperty(changes, "system.resources.movement.spent", 0);
+      foundry.utils.setProperty(changes, "system.resources.movement.value", this.resources.movement.max);
     }
     // A counted resource keeps its stored remaining value and spent count in step: a write of one sets the
     // other; a write of both (a payment) is kept as given.
