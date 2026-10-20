@@ -6,6 +6,8 @@ A creature's senses are **Darkvision**, **Blindsight**, **Tremorsense** and **Tr
 They come from its grants: `GrantSense {sense, range}` RuleElements on its species, features, gear and effects. The
 prepared data keeps the best range of each (`system.senses`, `helpers/senses.mts` `bestSenses`); nothing is stored.
 
+The Homebrew Builder's rule rows have "A sense" (a sense and its range) for writing one by hand.
+
 **Token vision.** Senses drive the Token's vision (maintainer decision, 2026-10-20), as in dnd5e
 (`adapters/foundry-v14-senses.mts`, called by `WildPathTokenDocument#_prepareDetectionModes`):
 

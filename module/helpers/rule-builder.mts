@@ -16,7 +16,8 @@ export interface RuleOptions {abilities?: readonly string[] | null}
 
 const TYPE_OF_KIND: Record<string, string> = {bonus: "Modifier", rollMode: "RollMode", resistance: "GrantResistance",
   immunity: "GrantImmunity", vulnerability: "GrantVulnerability", conditionImmunity: "ConditionImmunity", reveal: "Reveal",
-  speed: "GrantMovement", resource: "GrantResource", extraDamage: "ExtraDamage", abilityScore: "AbilityScore", aura: "Aura"};
+  speed: "GrantMovement", sense: "GrantSense", resource: "GrantResource", extraDamage: "ExtraDamage", abilityScore: "AbilityScore",
+  aura: "Aura"};
 const KIND_OF_TYPE: Record<string, string> = Object.fromEntries(Object.entries(TYPE_OF_KIND).map(([kind, type]) => [type, kind]));
 
 /** The kinds a row can be; an aura's own rules can be any but another aura. */
@@ -109,6 +110,8 @@ function ruleToRow(rule: Data, abilities: readonly string[]): Data {
     conditions: listText(data.conditions),
     distance: number(data.distance ?? data.value),
     hover: data.hover === true,
+    sense: typeof data.sense === "string" ? data.sense : "darkvision",
+    range: number(data.range ?? data.value),
     resourceId: data.resourceId ?? data.resource ?? "",
     resourceLabel: data.label ?? "",
     maximum: maximum ?? "",
@@ -150,6 +153,7 @@ const ROW_DATA: Record<string, readonly string[]> = {
   conditionImmunity: ["conditions"],
   reveal: ["details"],
   speed: ["mode", "movementMode", "distance", "value", "hover"],
+  sense: ["sense", "range", "value"],
   resource: ["resourceId", "resource", "label", "maximum", "max", "recovery", "current", "emptiesAtTurnStart", "recharge", "regain"],
   extraDamage: ["domains", "domain", "selector", "expression", "valueExpression", "damageType", "once"],
   abilityScore: ["ability", "mode", "value", "maximum"],
@@ -199,6 +203,7 @@ export function defaultRule(kind: string, id: string): Data {
     case "conditionImmunity": return rule({conditions: ["charmed"]});
     case "reveal": return rule({details: ["defenses"]});
     case "speed": return rule({mode: "fly", distance: 30});
+    case "sense": return rule({sense: "darkvision", range: 60});
     case "resource": return rule({resourceId: "points", label: "Points", maximum: 1, recovery: "longRest"});
     case "extraDamage": return rule({domains: ["damage.melee"], expression: {type: "dice", number: 1, faces: 6}, damageType: "fire", once: "turn"});
     case "abilityScore": return rule({ability: "might", mode: "upgrade", value: 19});
@@ -281,6 +286,10 @@ function writeRule(stored: Data | undefined, row: Data, model: Data | undefined,
         set("damageType", undefined);
         set("damageTypes", listOf(row.damageTypes));
       }
+      break;
+    case "sense":
+      if ( changed("sense") ) set("sense", row.sense || "darkvision");
+      if ( changed("range") ) { set("value", undefined); set("range", Math.max(0, number(row.range) ?? 0)); }
       break;
     case "speed":
       if ( changed("mode") ) { set("movementMode", undefined); set("mode", row.mode || "walk"); }
