@@ -15,6 +15,7 @@ import {createFoundryReactionProvider} from "../adapters/foundry-v14-reaction-pr
 import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
 import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
+import {combatTurnKey, requiresContext} from "../helpers/combat.mjs";
 import {createFoundryTeleports, teleportDestination} from "../adapters/foundry-v14-teleport.mjs";
 import {allyDistance, allyNearTarget, createFoundryAuras} from "../adapters/foundry-v14-auras.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
@@ -156,6 +157,7 @@ export function registerFoundryV14MultiplayerResolution({
       await endEffectsOnTargets(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenSaved(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await recordSlotSpell(event, {game});
+      await recordAttackTurn(event, {game});
       await markCasterConcentration(event, {game});
     },
     afterCancelled: event => afterCountered(event, {game}),
@@ -672,7 +674,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     reason: `${actor.name} can't cast spells while wearing ${hindering.name} without training in it.`
   };
   // What the Action requires of its creature (`requires`: Steady Aim, not moved this turn).
-  if ( !authorityAction && definition?.requires && !evaluatePredicate(definition.requires, {actorSystem, tags: definition.tags ?? []}).ok ) return {
+  if ( !authorityAction && definition?.requires && !evaluatePredicate(definition.requires, {...requiresContext(actor, {game}), actorSystem,
+    tags: definition.tags ?? []}).ok ) return {
     ok: false,
     code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
     reason: `${action.name} can't be used now.`
@@ -1115,6 +1118,17 @@ export async function recordSlotSpell({options, state}={}, {game=globalThis.game
   const paid = state.results?.paymentResolution?.paymentPlan?.resources ?? [];
   if ( !paid.some(entry => String(entry?.resourceId ?? "").includes("spell-slot.")) ) return;
   if ( actor.flags?.wildpath?.slotSpellTurn !== turn ) await actor.setFlag("wildpath", "slotSpellTurn", turn);
+}
+
+/**
+ * An attack roll made this combat turn: its creature's `flags.wildpath.attackTurn` becomes that turn, which Reckless
+ * Attack's `requires` reads ("your first attack roll on your turn": requiresContext). Outside combat nothing is recorded.
+ */
+export async function recordAttackTurn({options, state}={}, {game=globalThis.game}={}) {
+  const actor = options?.actor ?? null;
+  const turn = combatTurnKey(game);
+  if ( !turn || (typeof actor?.setFlag !== "function") || !state?.results?.attackResolution?.ok ) return;
+  if ( actor.flags?.wildpath?.attackTurn !== turn ) await actor.setFlag("wildpath", "attackTurn", turn);
 }
 
 /**

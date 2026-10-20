@@ -938,6 +938,8 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
     case "bindChoice":
     case "bind-choice":
       return applyBindChoiceEffect({definition, effect, selection});
+    case "decline":
+      return applyDeclineEffect({definition, effect, selection});
     default:
       return {ok: true, trace: [appliedTrace(selection, "ignored-unknown-effect", {effectType: effect.type ?? effect.kind ?? null})], errors: []};
   }
@@ -989,6 +991,19 @@ function applyBindChoiceEffect({definition, effect, selection}) {
       : (entry && (typeof entry === "object")) ? Object.fromEntries(Object.entries(entry).map(([key, inner]) => [key, bind(inner)])) : entry);
   definition.effects = bind(normalizeArray(definition.effects));
   return {ok: true, trace: [appliedTrace(selection, "bind-choice", {token, value})], errors: []};
+}
+
+/**
+ * Not using it after all ("you can": Persistent Rage when initiative is rolled): with its choice's `value` (by default
+ * "decline") selected, the Action does nothing and costs nothing.
+ */
+function applyDeclineEffect({definition, effect, selection}) {
+  if ( String(selection.value ?? "") !== String(effect.value ?? "decline") ) {
+    return {ok: true, trace: [appliedTrace(selection, "decline", {declined: false})], errors: []};
+  }
+  for ( const key of ["restores", "healing", "damage", "effects"] ) if ( key in definition ) definition[key] = [];
+  definition.costs = {allOf: []};
+  return {ok: true, trace: [appliedTrace(selection, "decline", {declined: true})], errors: []};
 }
 
 function applyKeepEffectEffect({definition, effect, selection}) {

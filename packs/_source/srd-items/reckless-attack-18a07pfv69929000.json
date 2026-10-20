@@ -56,7 +56,15 @@
             }
           ]
         }
-      ]
+      ],
+      "requires": {
+        "not": {
+          "equals": {
+            "path": "attackedThisTurn",
+            "value": true
+          }
+        }
+      }
     },
     "ruleElements": []
   },

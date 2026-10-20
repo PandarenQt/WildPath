@@ -37,6 +37,22 @@ export function movementTracked(actor, {game=globalThis.game}={}) {
     || (actor.isToken && actor.token?.id && (combatant.tokenId === actor.token.id))));
 }
 
+/** This combat turn's key (combat, round, turn) while a combat is started, else null. */
+export function combatTurnKey(game=globalThis.game) {
+  const combat = game?.combat;
+  return combat?.started ? `${combat.id}:${combat.round}:${combat.turn ?? 0}` : null;
+}
+
+/**
+ * What an Action's `requires` predicate sees of its creature: its data (`actorSystem`), and whether it already made an
+ * attack roll this combat turn (`attackedThisTurn`: Reckless Attack, "your first attack roll on your turn";
+ * `flags.wildpath.attackTurn`). The authority and the action bar both read it.
+ */
+export function requiresContext(actor, {game=globalThis.game}={}) {
+  const turn = combatTurnKey(game);
+  return {actorSystem: actor?.system ?? null, attackedThisTurn: (turn !== null) && (actor?.flags?.wildpath?.attackTurn === turn)};
+}
+
 export function getIncomingCombatant(combat, updateData) {
   const turn = updateData?.turn ?? combat.turn;
   return combat.turns?.[turn] ?? combat.combatant;

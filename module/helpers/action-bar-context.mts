@@ -5,6 +5,7 @@ import {discoverActionConfigurationChoices} from "./action-configuration.mjs";
 import {actionDefinitionFromAction} from "./action-definitions.mjs";
 import {isUnprepared} from "./spellcasting.mjs";
 import {evaluatePredicate} from "./predicates.mjs";
+import {requiresContext} from "./combat.mjs";
 
 /**
  * What the in-play action bar shows for one creature (M6): its action-economy counters and pools, its Actions
@@ -130,7 +131,7 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[]}: {ac
   const requiresMet = (action: ActionView) => {
     const requires = rawDefinition(action)?.requires;
     return !requires || (evaluatePredicate as (predicate: unknown, context: Data) => {ok: boolean})(requires,
-      {actorSystem: actor.system, tags: rawDefinition(action)?.tags ?? []}).ok;
+      {...(requiresContext as (actor: unknown) => Data)(actor), tags: rawDefinition(action)?.tags ?? []}).ok;
   };
   const ready = (action: ActionView) => itemReady(action) && requiresMet(action);
   const resourceLabels = new Map(bar.resources.map(resource => [resource.id, resource.label]));

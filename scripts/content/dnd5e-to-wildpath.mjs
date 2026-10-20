@@ -1186,7 +1186,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     items.push({_id: id, _key: `!items!${id}`, name: document.name, type: "action", img,
       system: {active: true, description, definition: {schemaVersion: 1, id: `action:srd-${slugify(document.name)}`, label: document.name,
         costs: {allOf: featureAction.costs ?? (featureAction.free ? [] : [{capability: pool.id, amount: 1}])}, range: {type: "self"},
-        targeting: {type: "self"}, effects: structuredClone(featureAction.effects ?? [])}, ruleElements: [pool?.rule].filter(Boolean)},
+        targeting: {type: "self"}, effects: structuredClone(featureAction.effects ?? []),
+        ...(featureAction.requires ? {requires: structuredClone(featureAction.requires)} : {})}, ruleElements: [pool?.rule].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: []}}}});
     // A chosen Metamagic option (Empowered Spell) brings its Action with it, so its class's choice lists it once.
     if ( metamagic && (items[0]?.type === "feature") ) items[0].flags.wildpath.grants = [id];
@@ -1201,9 +1202,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
 const FEATURE_ACTIONS = Object.freeze({
   "action-surge": {effects: [{id: "effect-1", type: "effect", name: "Action Surge", duration: {value: 0, units: "turns", expiry: "turnEnd"},
     ruleElements: [{schemaVersion: 1, id: "action-surge", type: "Modifier", data: {domains: ["resources.action.max"], modifierType: "untyped", value: 1}}]}]},
-  // 2024 Reckless Attack (free): Advantage on its Strength attack rolls this turn, and attack rolls against it have
-  // Advantage until its next turn; its "reckless" status gates Brutal Strike. shortcut: "your first attack" is not enforced.
-  "reckless-attack": {free: true, effects: [{id: "effect-1", type: "effect", name: "Reckless", slug: "reckless",
+  // 2024 Reckless Attack (free): "when you make your first attack roll on your turn", Advantage on its Strength attack rolls
+  // this turn, and attack rolls against it have Advantage until its next turn; its "reckless" status gates Brutal Strike.
+  "reckless-attack": {free: true, requires: {not: {equals: {path: "attackedThisTurn", value: true}}}, effects: [{id: "effect-1", type: "effect", name: "Reckless", slug: "reckless",
     duration: {value: 1, units: "rounds", expiry: "turnStart"}, ruleElements: [
       {schemaVersion: 1, id: "reckless-attacks", type: "RollMode", data: {domains: ["attack.might"], mode: "advantage"}},
       {schemaVersion: 1, id: "reckless-attacked", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}}]}]},
@@ -2085,9 +2086,13 @@ function initiativeTrigger({document, activity, system, spell, level, scales, no
   notes.push(...own);
   const predicate = {all: [{any: definition.restores.map(entry => ({poolBelowMax: entry.resourceId}))},
     ...(definition.costs?.allOf ?? []).map(cost => ({not: {poolEmpty: cost.capability}}))]};
+  // "You can": its creature is asked (its reaction policy may say Always or Never), and may let it be.
+  const use = {id: "use", type: "option", label: activity.name || document.name, required: true, defaultValue: "use",
+    options: [{id: "use", label: "Use it", value: "use"}, {id: "decline", label: "Not now", value: "decline"}],
+    effects: [{type: "decline"}]};
   return {schemaVersion: 1, id: `initiative-${slugify(activity.name || "recharge")}`, type: "Trigger", data: {kind: "automation",
     event: "initiative.rolled", predicate, action: {...definition, label: activity.name || document.name, range: {type: "self"},
-      targeting: {type: "self"}}}};
+      targeting: {type: "self"}, configuration: [...(definition.configuration ?? []), use]}}};
 }
 
 /**
