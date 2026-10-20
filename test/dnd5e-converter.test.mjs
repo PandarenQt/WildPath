@@ -1569,7 +1569,8 @@ test("reactions: Retaliation's common attack, Countercharm's ally reroll, Stone'
     rollMode: "advantage", range: 30, against: ["charmed", "frightened"]}]);
   const stone = read("stone-s-endurance-");
   assert.deepEqual([trigger(stone).event, trigger(stone).match.targetTokenId, stone.system.definition.healing,
-    stone.system.definition.rider.reduceDamage.dice.faces], ["attack.hit", "{self}", undefined, 12]);
+    stone.system.definition.rider.reduceDamage.dice.faces], ["damage.applied", "{self}", undefined, 12]);
+  assert.equal(trigger(stone).match.phase, "before", "before its damage is planned, from anything");
   assert.equal(validateActionDefinition(stone.system.definition).ok, true);
   const indomitable = read("indomitable-phbftr");
   assert.deepEqual([indomitable.type, indomitable.system.ruleElements.map(rule => rule.data.resourceId)], ["feature", ["indomitable"]],

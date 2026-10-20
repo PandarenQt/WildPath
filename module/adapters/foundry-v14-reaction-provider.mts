@@ -81,7 +81,8 @@ export function createFoundryReactionProvider({resolve = defaultResolve} = {}) {
     const tracked = movementTracked(mover.actor);
     for ( const token of scene.tokens ) {
       if ( !token.actor ) continue;
-      // Its own Action's outcome (2014 Divine Smite: "when you hit"): only its triggers bound to `sourceTokenId: "{self}"`.
+      // Its own Action's outcome (2014 Divine Smite: "when you hit"): only its triggers bound to `sourceTokenId: "{self}"`,
+      // and those on itself (`targetTokenId: "{self}"`: Stone's Endurance when it falls or bleeds).
       if ( token.id === mover.id ) {
         triggers.push(...ownActionReactions(token).map(entry => entry.trigger));
         continue;
@@ -166,7 +167,8 @@ function tokenReactions(token: TokenLike) {
  * spell) are offered beside it, as options.
  */
 function ownActionReactions(token: TokenLike) {
-  const own = tokenReactions(token).filter(entry => (entry.trigger.event as Data | undefined)?.sourceTokenId === token.id);
+  const own = tokenReactions(token).filter(entry => [(entry.trigger.event as Data | undefined)?.sourceTokenId,
+    (entry.trigger.event as Data | undefined)?.targetTokenId].includes(token.id));
   const combat = (globalThis as {game?: {combat?: {id: string; round: number; turn: number | null; started?: boolean} | null}}).game?.combat;
   const turn = combat?.started ? turnKey(combat as never) : null;
   const casting = (turn !== null) && (token.actor?.flags?.wildpath?.slotSpellTurn === turn);

@@ -373,11 +373,10 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     (`commonAction: "opportunity"`), so the provider reacts with its creature's first melee attack or Unarmed Strike at
     the damage source, for its Reaction, offered under the Item's name ("Retaliation (Dagger)") and at the Item's Always,
     Ask or Never setting, only when the damager is within 5 ft (`atMost` on `event.data.relations.{self}.distance`).
-  - **Stone's Endurance** (Goliath): an `attack.hit` interrupt on itself. Its rider `reduceDamage: {dice, bonus}`
-    (1d12 + its Fortitude modifier) is rolled when it is paid (`riderRoll`, as Cutting Words' die), and the attack it
-    answers plans that much less damage (a flat `reductions` entry in its durability adjustments). It replaces the
-    earlier heal-after. shortcuts: damage from a save, or with no attack, is by hand; on an attack with several targets
-    each takes the reduction.
+  - **Stone's Endurance** (Goliath): "when you take damage", from anything. It answers `damage.applied` in its
+    `before` phase on itself (the before-damage window below). Its rider `reduceDamage: {dice, bonus}` (1d12 + its
+    Fortitude modifier) is rolled when it is paid (`riderRoll`, as Cutting Words' die), and that much comes off the
+    damage its own creature takes (`durability.reductionsByTarget`, by its Token), no one else's.
   - **Countercharm** (bard): a test offer with a `range` (30 ft), the conditions it answers (`against`: Charmed,
     Frightened), its `pool` (its Reaction) and a `rollMode` (Advantage). When a creature fails a save against an effect
     giving one of them, it or an ally within range that has it may reroll that save (`withAllyTestOffers`): the saver's
@@ -410,6 +409,14 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   - Against an SRD Hill Giant (Huge), Hill's Tumble was not offered, and Eldritch Smite was.
   - The giant's Tree Club from 10 ft offered no Retaliation; from 5 ft it did, and the Dagger struck back.
   - With no slots, Hex was greyed with "no 1st-level slot, Pact Magic slots, ..."; one pact slot enabled it.
+- **Before damage (2026-10-20).** Every damaging Action has a reaction window after its damage is rolled and before it
+  is planned (`action.reaction.before-damage`, timing `before-damage`): a `damage.applied` event in its `before` phase,
+  its targets the creatures it will damage (an attack, a save, an area, a fall, a condition's damage at turn start), with
+  their sizes and distances. Hellish Rebuke and Retaliation keep answering the `interrupt` phase, after damage. A
+  creature's own Action that damages itself (a fall, its Bleeding) offers its own reactions on itself.
+
+  Live (two browsers, 14.369): the Bandit Captain with Stone's Endurance saved against Player1's Hellish Rebuke (10,
+  halved) and took 4; fell 20 ft for 7 and took 1; and at the start of its turn absorbed all of its Bleeding.
 - **Cutting Words (2026-10-19):** `attack.hit` with `notSourceTokenId: "{self}"`, so any creature's hit within 60 ft;
   the bard's reaction targets the attacker. Its rider `attackPenalty: {dice}` is its Bardic Inspiration die, a table by
   bard level. The child rolls it when it pays (`riderAttackPenalty`, reusing `addedDie`) and sends the total. The

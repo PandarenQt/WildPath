@@ -216,3 +216,14 @@ test("damage durability bridge treats skipped damage targets as non-mutating", (
   assert.equal(result.mutationPlans.length, 0);
   assert.equal(result.skipped[0].target.id, "missed");
 });
+
+test("a reaction's reduction (Stone's Endurance) comes off its own creature's damage only, by Token", () => {
+  const damageResolution = resolveDamageTargets({
+    components: [{id: "fire", amount: 20, damageType: "fire"}],
+    targets: [{id: "goliath", actorId: "actor-goliath", tokenId: "token-goliath"}, {id: "orc", actorId: "actor-orc", tokenId: "token-orc"}]
+  });
+  const result = planDamageDurabilityMutations({damageResolution,
+    targetSystems: {"actor:actor-goliath": actorSystem(30, 30), "actor:actor-orc": actorSystem(30, 30)},
+    reductionsByTarget: {"token-goliath": [{id: "stone", type: "flat", amount: 9}]}});
+  assert.deepEqual(result.mutationPlans.map(plan => [plan.targetRef, plan.plan.amount]), [["token:token-goliath", 11], ["token:token-orc", 20]]);
+});

@@ -101,6 +101,12 @@ healing.
 - carries rollback updates from each durability mutation plan
 - carries an optional `DocumentPersistencePort` into each transaction operation
 
+## A reaction's reduction for one creature (2026-10-20)
+
+`durability.reductionsByTarget` (by Token or Actor key, as `adjustmentProfiles`) adds reductions to that creature's
+damage only, merged after its own profile (`adjustDamageForTarget`). A reaction's rider writes it (Stone's Endurance:
+`riderPatch`), so an area that hits several creatures reduces only the reacting one's damage.
+
 ## Temporary Hit Points (2026-10-19)
 
 `system.resources.health.temp` (additive, default 0) holds a creature's Temporary Hit Points (2024):

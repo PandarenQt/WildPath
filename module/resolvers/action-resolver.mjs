@@ -854,6 +854,7 @@ export function resolveDamageDurability({damage, durability, damageResolution, a
     targetSystems: options.targetSystems ?? {},
     adjustments: options.adjustments ?? options.damageAdjustments ?? null,
     adjustmentProfiles: options.adjustmentProfiles ?? options.targetAdjustments ?? {},
+    reductionsByTarget: options.reductionsByTarget ?? {},
     concentration: options.concentration ?? damage?.concentration ?? null,
     resourceId: options.resourceId ?? "health",
     source: actionContext.source,

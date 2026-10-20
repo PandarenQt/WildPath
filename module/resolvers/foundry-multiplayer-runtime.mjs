@@ -24,6 +24,7 @@ import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
 import {createFoundrySummons} from "../adapters/foundry-v14-summons.mjs";
 import {createFoundryForcedMovement} from "../adapters/foundry-v14-forced-movement.mjs";
 import {createFoundryFalling} from "../adapters/foundry-v14-falling.mjs";
+import {createFoundryTurnDamage} from "../adapters/foundry-v14-turn-damage.mjs";
 import {createFoundryWeaponMastery} from "../adapters/foundry-v14-weapon-mastery.mjs";
 import {
   buildFoundryMovementCompletion,
@@ -201,7 +202,10 @@ export function registerFoundryV14MultiplayerResolution({
   // 2024: a stable creature regains 1 health after 1d4 hours; world time moving on (or a rest, Actor#rest) counts.
   globalThis.Hooks?.on?.("updateWorldTime", worldTime => void dying.onWorldTime(worldTime)
     .catch(error => logger?.warn?.("Wild Path | Stable recovery failed", error)));
-  game.wildpath = {...(game.wildpath ?? {}), dying};
+  // A condition's damage at turn start (Bleeding), resolved like any other damage (reactions, rescue, dying).
+  const turnDamage = createFoundryTurnDamage({game, coordinator, logger,
+    resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
+  game.wildpath = {...(game.wildpath ?? {}), dying, turnDamage};
   // 2024: an Incapacitated creature's concentration ends; everything it sustains ends with it (active GM).
   globalThis.Hooks?.on?.("createActiveEffect", effect => void endConcentrationOnIncapacitation(effect, game)
     .catch(error => logger?.warn?.("Wild Path | Ending concentration failed", error)));

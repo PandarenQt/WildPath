@@ -823,9 +823,19 @@ export default class WildPathActor extends Actor {
     if ( !result.ok ) {
       console.warn("Wild Path | Condition trigger planning failed", result);
     }
-    const updates = Object.assign({}, ...result.mutationPlans.map(plan => plan.updates));
+    // Its conditions' damage is resolved by the authority as an Action on it (reactions, resistances, rescue, dying:
+    // turnDamage), the rest committed here. Without the runtime (or a Token), the damage is committed here too.
+    const turnDamage = globalThis.game?.wildpath?.turnDamage;
+    const committed = [];
+    for ( const plan of result.mutationPlans ) {
+      const temporary = Math.max((Number(plan.temporary?.from) || 0) - (Number(plan.temporary?.to) || 0), 0);
+      const resolved = (plan.type === "damage") && turnDamage ? await turnDamage.apply(this, {
+        amount: (Number(plan.amount) || 0) + temporary, damageType: plan.metadata?.damageType ?? null}) : false;
+      if ( !resolved ) committed.push(plan);
+    }
+    const updates = Object.assign({}, ...committed.map(plan => plan.updates));
     if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
-    return result;
+    return {...result, mutationPlans: committed};
   }
 
   /* -------------------------------------------- */

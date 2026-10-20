@@ -105,6 +105,7 @@ export const ACTION_PIPELINE_STAGE_IDS = Object.freeze({
   ATTACK_OUTCOME: "action.attack-outcome",
   REACTION_AFTER_ACTION_DECLARED: "action.reaction.after-action-declared",
   REACTION_AFTER_ATTACK_OUTCOME: "action.reaction.after-attack-outcome",
+  REACTION_BEFORE_DAMAGE: "action.reaction.before-damage",
   REACTION_AFTER_DAMAGE: "action.reaction.after-damage",
   SAVE_ROLL: "action.save-roll",
   SAVE_OUTCOME: "action.save-outcome",
@@ -234,9 +235,11 @@ export function createActionResolutionPipeline({reactions=false}={}) {
   stages.push(
     createSaveRollStage(),
     createSaveOutcomeStage(),
-    createDamageRollStage(),
-    createDamageStage()
+    createDamageRollStage()
   );
+  // "When you take damage" (Stone's Endurance): before its damage is planned, so a reaction can still change it.
+  if ( reactions ) stages.push(createBeforeDamageReactionStage());
+  stages.push(createDamageStage());
   if ( reactions ) stages.push(createDamageReactionStage());
   stages.push(
     createHealingRollStage(),
@@ -412,6 +415,7 @@ export function completeStagedReactionChildResolution({
 const REACTION_STAGE_BY_TIMING = Object.freeze({
   [REACTION_WINDOW_TIMINGS.AFTER_ACTION_DECLARED]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ACTION_DECLARED,
   [REACTION_WINDOW_TIMINGS.AFTER_OUTCOME]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ATTACK_OUTCOME,
+  [REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE]: ACTION_PIPELINE_STAGE_IDS.REACTION_BEFORE_DAMAGE,
   [REACTION_WINDOW_TIMINGS.AFTER_DAMAGE]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_DAMAGE
 });
 
@@ -455,6 +459,48 @@ function createAttackOutcomeReactionStage() {
     id: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ATTACK_OUTCOME,
     timing: REACTION_WINDOW_TIMINGS.AFTER_OUTCOME,
     eventSelector: attackOutcomeReactionEvent
+  });
+}
+
+function createBeforeDamageReactionStage() {
+  return createActionPipelineReactionStage({
+    id: ACTION_PIPELINE_STAGE_IDS.REACTION_BEFORE_DAMAGE,
+    timing: REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE,
+    eventSelector: damageComingReactionEvent
+  });
+}
+
+/**
+ * `damage.applied` in its `before` phase, once the Action's damage is rolled and before it is planned: its targets are
+ * the creatures it will damage (any Action: an attack, a save, an area, a fall), its source the creature dealing it.
+ * A reaction to it may still change that damage (Stone's Endurance's reduction). Null when nobody takes any.
+ */
+function damageComingReactionEvent(state) {
+  const input = preparedResolverInput(state);
+  if ( !shouldResolveDamage(input.damage) ) return null;
+  const damageResolution = resolveActionDamage({
+    damage: input.damage,
+    targetResolution: state.results?.targetResolution ?? null,
+    attackResolution: state.results?.attackResolution ?? null,
+    saveResolution: state.results?.saveResolution ?? null,
+    actionContext: {action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
+      source: state.actionContext?.source ?? input.source ?? state.source ?? null, targets: input.targets ?? []}
+  });
+  const damaged = (damageResolution?.results ?? []).filter(result => result.ok && ((Number(result.total) || 0) > 0))
+    .map(result => result.target).filter(Boolean);
+  if ( !damaged.length ) return null;
+  return createAutomationEvent({
+    id: `event:${state.id}:damage-coming`,
+    type: AUTOMATION_EVENT_TYPES.DAMAGE_APPLIED,
+    phase: AUTOMATION_EVENT_PHASES.BEFORE,
+    source: state.actionContext?.source ?? input.source ?? state.source ?? null,
+    targets: damaged,
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? [])]),
+    data: {
+      action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
+      ...targetRelations(input, damaged),
+      timing: REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE
+    }
   });
 }
 
@@ -3040,19 +3086,21 @@ function riderPatch(state, rider, {window, childState}) {
       ...((rider.rollMode && input.attack) ? {attack: {...input.attack, rollMode: rider.rollMode}} : {}),
       ...(rider.tags?.length ? {riderTags: uniqueStrings([...(input.riderTags ?? []), ...rider.tags])} : {}),
       ...(rider.push ? {riderPush: clonePlain(rider.push)} : {}),
-      // shortcut: the reduction is the attack's, for each of its targets; upgrade when a rider names its target.
+      // Stone's Endurance: its roll comes off the damage its own creature takes (the reactor's Token), no one else's.
       ...((Number(rider.reduceDamage) > 0) && input.durability ? {durability: withDamageReduction(input.durability,
+        childState?.source?.tokenId ?? childState?.source?.actorId ?? null,
         {id: `rider:${childState?.id ?? "rider"}`, type: "flat", amount: Number(rider.reduceDamage)})} : {})
     },
     results: {}
   };
 }
 
-/** Durability options with one more flat damage reduction for every target (`adjustments.reductions`). */
-function withDamageReduction(durability, reduction) {
+/** Durability options with one more damage reduction for the creature at `key` (`reductionsByTarget`, by Token). */
+function withDamageReduction(durability, key, reduction) {
   const options = (durability && (typeof durability === "object")) ? durability : {};
-  const adjustments = options.adjustments ?? {};
-  return {...options, adjustments: {...adjustments, reductions: [...normalizeArray(adjustments.reductions), reduction]}};
+  if ( !key ) return options;
+  const byTarget = options.reductionsByTarget ?? {};
+  return {...options, reductionsByTarget: {...byTarget, [key]: [...normalizeArray(byTarget[key]), reduction]}};
 }
 
 function attackInputWithCurrentDefenses(attack, {targetActors=null, targetContexts: fallbackTargetContexts=[], targets: fallbackTargets=[]}={}) {

@@ -42,7 +42,8 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
         for (const token of scene.tokens) {
             if (!token.actor)
                 continue;
-            // Its own Action's outcome (2014 Divine Smite: "when you hit"): only its triggers bound to `sourceTokenId: "{self}"`.
+            // Its own Action's outcome (2014 Divine Smite: "when you hit"): only its triggers bound to `sourceTokenId: "{self}"`,
+            // and those on itself (`targetTokenId: "{self}"`: Stone's Endurance when it falls or bleeds).
             if (token.id === mover.id) {
                 triggers.push(...ownActionReactions(token).map(entry => entry.trigger));
                 continue;
@@ -135,7 +136,8 @@ function tokenReactions(token) {
  * spell) are offered beside it, as options.
  */
 function ownActionReactions(token) {
-    const own = tokenReactions(token).filter(entry => entry.trigger.event?.sourceTokenId === token.id);
+    const own = tokenReactions(token).filter(entry => [entry.trigger.event?.sourceTokenId,
+        entry.trigger.event?.targetTokenId].includes(token.id));
     const combat = globalThis.game?.combat;
     const turn = combat?.started ? turnKey(combat) : null;
     const casting = (turn !== null) && (token.actor?.flags?.wildpath?.slotSpellTurn === turn);

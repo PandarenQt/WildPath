@@ -63,9 +63,9 @@
         "type": "Trigger",
         "data": {
           "kind": "reaction",
-          "event": "attack.hit",
+          "event": "damage.applied",
           "match": {
-            "phase": "interrupt",
+            "phase": "before",
             "targetTokenId": "{self}"
           }
         }
