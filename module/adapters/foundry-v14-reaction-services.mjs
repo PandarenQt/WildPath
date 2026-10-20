@@ -8,6 +8,7 @@ import { turnKey } from "./foundry-v14-persistent-areas.mjs";
 import { allyNearTarget } from "./foundry-v14-auras.mjs";
 import { sunlightContext } from "./foundry-v14-sunlight.mjs";
 import { attackSight } from "./foundry-v14-senses.mjs";
+import { fearContext } from "./foundry-v14-fear.mjs";
 import { economyResourcesFromActorResources } from "../helpers/action-economy.mjs";
 import { createAutomationEvent } from "../helpers/automation-events.mjs";
 import { movementTransitionRelations } from "../helpers/movement-transition.mjs";
@@ -70,7 +71,7 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
             fromTarget: conditionsFrom(reactor.actor, actor),
             fromAttacker: conditionsFrom(actor, reactor.actor),
             allyNearTarget: allyNearTarget(reactor, target, targetFootprint.footprint ?? null) },
-        ...sunlightContext(reactor) };
+        ...sunlightContext(reactor), ...fearContext(reactor) };
     const rollMode = definition.attack ? attackRollMode(reactor.actor, actor, { type, item: reactionItem, ability: attackAbility(reactor.actor, definition.attack),
         context }) : null;
     const critical = !!definition.attack && attackForcesCritical(actor, { type, context });

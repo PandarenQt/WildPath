@@ -666,3 +666,19 @@ Movement is tracked only in an encounter: a creature that is a combatant of a st
 
 Steady Aim's "hasn't moved this turn" always holds outside combat. Without a Foundry world to tell (tests),
 movement is tracked.
+
+## Frightened and Commands: directed movement (2026-10-20)
+
+2024 Frightened: Disadvantage on ability checks and attack rolls "while the source of fear is within line of sight",
+and it "can't willingly move closer to the source of its fear" (`adapters/foundry-v14-fear.mts`).
+- **Its source.** Each Frightened effect names where it came from (effect-sources.mjs); its source's Tokens on the
+  creature's Scene are the source of fear (`directedSources`).
+- **Line of sight.** A creature's own rolls see `fearSourceOutOfSight` when every source of its fear is on the Scene and
+  a wall gives it Total Cover (`fearContext`, beside `sunlightContext` in every roll context). Frightened's roll mode
+  needs it not to be true, so an unknown source keeps the Disadvantage.
+- **Moving.** The movement authority's transition policy (`directedMovementPolicy`, for voluntary movement) refuses a
+  step that brings it closer to a source of its fear. Commanded Flee works the same way; Commanded Approach refuses a
+  step away. Forced movement is not willing.
+
+Live (GM browser, 14.369): QA Ally Frightened of the Bandit Captain could not step toward it, but stepped away. With a
+wall between them its attacks had no Disadvantage.

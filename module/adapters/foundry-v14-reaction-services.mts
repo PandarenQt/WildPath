@@ -9,6 +9,7 @@ import {turnKey} from "./foundry-v14-persistent-areas.mjs";
 import {allyNearTarget} from "./foundry-v14-auras.mjs";
 import {sunlightContext} from "./foundry-v14-sunlight.mjs";
 import {attackSight} from "./foundry-v14-senses.mjs";
+import {fearContext} from "./foundry-v14-fear.mjs";
 import {economyResourcesFromActorResources} from "../helpers/action-economy.mjs";
 import {createAutomationEvent} from "../helpers/automation-events.mjs";
 import {movementTransitionRelations} from "../helpers/movement-transition.mjs";
@@ -94,7 +95,7 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
     fromTarget: (conditionsFrom as unknown as (holder: unknown, source: unknown) => Data)(reactor.actor, actor),
     fromAttacker: (conditionsFrom as unknown as (holder: unknown, source: unknown) => Data)(actor, reactor.actor),
     allyNearTarget: allyNearTarget(reactor as never, target as never, (targetFootprint as {footprint?: Data}).footprint ?? null)},
-    ...sunlightContext(reactor as never)};
+    ...sunlightContext(reactor as never), ...fearContext(reactor as never)};
   const rollMode = definition.attack ? (attackRollMode as unknown as (a: unknown, t: unknown, o: Data) => string)(reactor.actor, actor,
     {type, item: reactionItem, ability: (attackAbility as unknown as (a: unknown, d: unknown) => string | null)(reactor.actor, definition.attack),
       context}) : null;

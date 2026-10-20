@@ -27,6 +27,7 @@ import {createFoundryForcedMovement} from "../adapters/foundry-v14-forced-moveme
 import {createFoundryFalling} from "../adapters/foundry-v14-falling.mjs";
 import {createFoundryTurnDamage} from "../adapters/foundry-v14-turn-damage.mjs";
 import {attackSight} from "../adapters/foundry-v14-senses.mjs";
+import {fearContext} from "../adapters/foundry-v14-fear.mjs";
 import {COVER_BONUS, coverBetween, foundrySightCollision} from "../adapters/foundry-v14-cover.mjs";
 
 /**
@@ -605,7 +606,7 @@ function actionCheckInput(actor, {ability=null, skill=null, escapes=null}={}, so
     ...(bonus?.naturalMinimum ? {naturalMinimum: bonus.naturalMinimum} : {}),
     // What it escapes (Powerful Build: Advantage to end Grappled).
     ...checkRollModes(actor.getRollModes?.(domains, {context: {check: {ability, skill, ...(escapes ? {escapes} : {})},
-      ...sunlightContext(sourceToken)}}) ?? [])};
+      ...sunlightContext(sourceToken), ...fearContext(sourceToken)}}) ?? [])};
 }
 
 /** A check's mode and the sources it combines (a reroll adds one more). */
@@ -1301,7 +1302,7 @@ function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
   return {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * spatial.context.gridDistance <= 5} : {}), ...sight,
     fromTarget: conditionsFrom(attacker, entry?.actor, game), fromAttacker: conditionsFrom(entry?.actor, attacker, game),
     allyNearTarget: allyNearTarget(sourceToken, token), targetDamaged: targetDamaged(entry?.actor)},
-    ...sunlightContext(sourceToken)};
+    ...sunlightContext(sourceToken), ...fearContext(sourceToken)};
 }
 
 /**
@@ -1548,7 +1549,7 @@ export function monsterRerollPayers(game, scene) {
 function saveContext(definition, ability, token=null) {
   const tags = definition?.tags ?? [];
   return {context: {save: {ability}, tags: tags.includes("spell") && !tags.includes("magical") ? [...tags, "magical"] : tags,
-    ...sunlightContext(token)}};
+    ...sunlightContext(token), ...fearContext(token)}};
 }
 
 /**
