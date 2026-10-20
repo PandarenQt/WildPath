@@ -1,6 +1,7 @@
 import { actionDefinitionFromAction } from "../helpers/action-definitions.mjs";
 import { createReactionTrigger, reactionPolicyOf } from "../helpers/automation-events.mjs";
 import { commonAction } from "../helpers/common-actions.mjs";
+import { movementTracked } from "../helpers/combat.mjs";
 import { turnKey } from "./foundry-v14-persistent-areas.mjs";
 import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
 const MOVEMENT_EVENT = "movement.transition-proposed";
@@ -36,6 +37,8 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
         // 2024 Disengage: the mover's movement provokes no Opportunity Attacks this turn; Flyby: none while it flies.
         const avoidance = mover.actor?.getOpportunityAttackAvoidance?.() ?? { always: false, movementModes: [] };
         const disengaged = (mover.actor?.statuses?.has("disengaged") === true) || avoidance.always;
+        // Outside a started encounter movement is not tracked, and provokes nothing (no Opportunity Attacks).
+        const tracked = movementTracked(mover.actor);
         for (const token of scene.tokens) {
             if (!token.actor)
                 continue;
@@ -46,10 +49,10 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
             }
             // A creature that can't make Opportunity Attacks (Staggering Blow) reacts to no movement.
             const staggered = token.actor.statuses?.has("no-opportunity-attacks") === true;
-            const reactions = tokenReactions(token).filter(entry => !(staggered && (entry.event === MOVEMENT_EVENT)));
+            const reactions = tokenReactions(token).filter(entry => !((staggered || !tracked) && (entry.event === MOVEMENT_EVENT)));
             // Every creature makes Opportunity Attacks (Baldur's Gate 3), unless an Item of its own reacts to movement,
             // even one switched off or set to Never.
-            if (!disengaged && !staggered && !ownsMovementReaction(token))
+            if (tracked && !disengaged && !staggered && !ownsMovementReaction(token))
                 reactions.push(...opportunityAttack(token, avoidance.movementModes));
             triggers.push(...reactions.map(entry => entry.trigger));
             const watching = reactions.filter(entry => entry.event === MOVEMENT_EVENT);

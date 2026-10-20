@@ -661,7 +661,8 @@ Movement is tracked only in an encounter: a creature that is a combatant of a st
 - a move is not paid for (the movement authority skips its payment), and any write of `movement.spent` or `.value` keeps
   it full (the Actor data model's `_preUpdate`);
 - ending a combat (`deleteCombat`) or leaving one (`deleteCombatant`) refills its creatures' movement (the active GM
-  writes it).
+  writes it);
+- a move provokes nothing: no Opportunity Attack and no reaction to movement (reactions.md).
 
 Steady Aim's "hasn't moved this turn" always holds outside combat. Without a Foundry world to tell (tests),
 movement is tracked.
