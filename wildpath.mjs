@@ -1,5 +1,6 @@
 import {WILDPATH} from "./module/config.mjs";
 import {registerFoundryV14ConditionStatuses} from "./module/adapters/foundry-v14-status-effects-adapter.mjs";
+import {registerBlindsight} from "./module/adapters/foundry-v14-senses.mjs";
 import {registerTokenRuler} from "./module/applications/token-ruler.mjs";
 import {registerSunlightConfig} from "./module/applications/sunlight-config.mjs";
 import {registerChatCardInteractions} from "./module/adapters/foundry-v14-chat-card-interactions.mjs";
@@ -56,6 +57,9 @@ Hooks.once("init", () => {
   CONFIG.Combat.documentClass = WildPathCombat;
   CONFIG.Combatant.documentClass = WildPathCombatant;
   CONFIG.Token.documentClass = WildPathTokenDocument;
+  // Foundry's vision reads Blinded by its own id; WildPath's condition is `blinded`. Blindsight is a detection mode.
+  CONFIG.specialStatusEffects.BLIND = "blinded";
+  registerBlindsight(CONFIG, foundry);
 
   // Actor data models
   CONFIG.Actor.dataModels = {

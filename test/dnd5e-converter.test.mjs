@@ -1609,3 +1609,16 @@ test("size and range limits on offers: Hill's Tumble, Trip and Repelling Blast L
     path: "event.data.relations.me.distance"}} : null, {event: {data: {relations: {me: {distance}}}}}).ok;
   assert.deepEqual([near(5), near(10)], [true, false]);
 });
+
+test("senses: creatures', species' and effects' Darkvision, Blindsight, Tremorsense and Truesight become GrantSense", async () => {
+  const fs = await import("node:fs");
+  const {senseRules} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  assert.deepEqual(senseRules({ranges: {darkvision: 120, blindsight: null}}).map(rule => rule.data), [{sense: "darkvision", range: 120}]);
+  assert.deepEqual(senseRules({darkvision: 60, trueseight: 30}).map(rule => rule.data), [{sense: "darkvision", range: 60},
+    {sense: "truesight", range: 30}], "older keys, and the SRD's misspelling");
+  const read = (dir, prefix) => JSON.parse(fs.readFileSync(`packs/_source/${dir}/${fs.readdirSync(`packs/_source/${dir}`)
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  assert.deepEqual(read("srd-classes", "dwarf-").system.ruleElements.map(rule => rule.data), [{sense: "darkvision", range: 120}]);
+  assert.deepEqual(read("srd-items", "witch-sight-").system.ruleElements.map(rule => [rule.type, rule.data.sense, rule.data.range]),
+    [["GrantSense", "truesight", 30]]);
+});

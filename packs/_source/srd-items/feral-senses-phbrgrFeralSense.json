@@ -7,7 +7,17 @@
   "system": {
     "active": true,
     "description": "<p>Your connection to the forces of nature grants you Blindsight with a range of 30 feet.</p><section class=\"secret\" id=\"secret-g31kKSDLrDEpbpbo\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which upgrades your Blindsight to 30 feet if you do not already have it.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "feral-senses-1",
+        "type": "GrantSense",
+        "data": {
+          "sense": "blindsight",
+          "range": 30
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +31,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Feral Senses\" change system.attributes.senses.blindsight (upgrade) not converted"
-        ]
+        "notes": []
       }
     }
   }

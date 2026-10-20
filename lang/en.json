@@ -89,6 +89,12 @@
         "CheckFailure": "Check failed"
       }
     },
+    "SENSES": {
+      "darkvision": "Darkvision",
+      "blindsight": "Blindsight",
+      "tremorsense": "Tremorsense",
+      "truesight": "Truesight"
+    },
     "CONDITIONS": {
       "TurnDamage": "Condition damage",
       "Prone": "Prone",

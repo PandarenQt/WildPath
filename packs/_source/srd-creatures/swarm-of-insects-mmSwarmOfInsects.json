@@ -309,6 +309,15 @@
               "mode": "fly",
               "distance": 20
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "sense-blindsight",
+            "type": "GrantSense",
+            "data": {
+              "sense": "blindsight",
+              "range": 30
+            }
           }
         ]
       },

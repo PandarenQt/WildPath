@@ -306,6 +306,35 @@
           }
         }
       }
+    },
+    {
+      "_id": "mmDeathDog00trts",
+      "_key": "!actors.items!mmDeathDog000000.mmDeathDog00trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "sense-darkvision",
+            "type": "GrantSense",
+            "data": {
+              "sense": "darkvision",
+              "range": 120
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
     }
   ],
   "flags": {

@@ -34,7 +34,17 @@
           "type": "effect",
           "name": "Stonecunning",
           "img": "icons/skills/trades/construction-mason-stonecutter-sculpture.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "stonecunning-1",
+              "type": "GrantSense",
+              "data": {
+                "sense": "tremorsense",
+                "range": 60
+              }
+            }
+          ],
           "duration": {
             "value": 600,
             "units": "seconds",
@@ -72,10 +82,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Stonecunning\" change system.attributes.senses.tremorsense (add) not converted",
-          "effect: \"Stonecunning\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

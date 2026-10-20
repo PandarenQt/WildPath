@@ -26,10 +26,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Seeing\" change system.attributes.senses.trueseight (upgrade) not converted",
-          "effect: \"Seeing\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       },
       "grants": [
         "dmgGemOfSeeing00"

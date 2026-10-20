@@ -10,7 +10,26 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "special-senses-1",
+        "type": "GrantSense",
+        "data": {
+          "sense": "darkvision",
+          "range": 120
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "special-senses-2",
+        "type": "GrantSense",
+        "data": {
+          "sense": "truesight",
+          "range": 120
+        }
+      }
+    ],
     "attunement": "required",
     "armor": ""
   },
@@ -28,9 +47,7 @@
       "conversion": {
         "notes": [
           "\"Light Save\" is passive or triggered: not automated",
-          "\"Daylight Save\" is passive or triggered: not automated",
-          "effect: \"Special Senses\" change system.attributes.senses.darkvision (upgrade) not converted",
-          "effect: \"Special Senses\" change system.attributes.senses.truesight (upgrade) not converted"
+          "\"Daylight Save\" is passive or triggered: not automated"
         ]
       }
     }

@@ -83,6 +83,35 @@
           }
         }
       }
+    },
+    {
+      "_id": "phbmobFaithftrts",
+      "_key": "!actors.items!phbmobFaithfulHo.phbmobFaithftrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "sense-truesight",
+            "type": "GrantSense",
+            "data": {
+              "sense": "truesight",
+              "range": 30
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
     }
   ],
   "flags": {

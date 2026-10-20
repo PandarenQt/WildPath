@@ -7,6 +7,7 @@ import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { turnKey } from "./foundry-v14-persistent-areas.mjs";
 import { allyNearTarget } from "./foundry-v14-auras.mjs";
 import { sunlightContext } from "./foundry-v14-sunlight.mjs";
+import { onGround, perceives } from "../helpers/senses.mjs";
 import { economyResourcesFromActorResources } from "../helpers/action-economy.mjs";
 import { createAutomationEvent } from "../helpers/automation-events.mjs";
 import { movementTransitionRelations } from "../helpers/movement-transition.mjs";
@@ -63,7 +64,12 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
     // The same advantage, disadvantage and forced critical hits as any attack: a Prone target within 5 ft, a Paralyzed one.
     const type = definition.attack?.type ?? null;
     const fields = footprintDistance(sourceFootprint, targetFootprint.footprint);
+    const distance = Number.isFinite(fields) ? fields * sceneContext.grid.distance : null;
+    const sees = perceives;
+    const grounded = onGround;
     const context = { attack: { type, ...(Number.isFinite(fields) ? { adjacent: fields * sceneContext.grid.distance <= 5 } : {}),
+            seesTarget: sees(reactor.actor, actor, { distance, grounded: grounded(target) }),
+            seenByTarget: sees(actor, reactor.actor, { distance, grounded: grounded(reactor) }),
             fromTarget: conditionsFrom(reactor.actor, actor),
             fromAttacker: conditionsFrom(actor, reactor.actor),
             allyNearTarget: allyNearTarget(reactor, target, targetFootprint.footprint ?? null) },

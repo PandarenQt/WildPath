@@ -37,7 +37,17 @@
           "type": "effect",
           "name": "Seeing",
           "img": "icons/commodities/gems/gem-rough-rose-teal.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "seeing-1",
+              "type": "GrantSense",
+              "data": {
+                "sense": "truesight",
+                "range": 120
+              }
+            }
+          ],
           "duration": {
             "value": 600,
             "units": "seconds",
@@ -83,10 +93,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Seeing\" change system.attributes.senses.trueseight (upgrade) not converted",
-          "effect: \"Seeing\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

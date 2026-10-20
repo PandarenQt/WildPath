@@ -915,7 +915,17 @@
               "type": "effect",
               "name": "Truesight",
               "img": "icons/magic/perception/eye-slit-orange.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "truesight-1",
+                  "type": "GrantSense",
+                  "data": {
+                    "sense": "truesight",
+                    "range": 120
+                  }
+                }
+              ],
               "duration": {
                 "value": 3600,
                 "units": "seconds",
@@ -958,10 +968,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Truesight\" change system.attributes.senses.truesight (upgrade) not converted",
-              "effect: \"Truesight\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1016,6 +1023,15 @@
               "mode": "climb",
               "distance": 40
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "sense-darkvision",
+            "type": "GrantSense",
+            "data": {
+              "sense": "darkvision",
+              "range": 60
+            }
           }
         ]
       },
@@ -1045,9 +1061,7 @@
           "Spellcasting: cast: Cure Wounds at level 6 is cast at its own level",
           "Spellcasting: cast: Flame Strike at level 6 is cast at its own level",
           "Spellcasting: cast: Geas at level 6 is cast at its own level",
-          "Spellcasting: activation: 1 minute is not an action-economy cost",
-          "Spellcasting: effect: \"Truesight\" change system.attributes.senses.truesight (upgrade) not converted",
-          "Spellcasting: effect: \"Truesight\" marks its creature only; its rules are by hand"
+          "Spellcasting: activation: 1 minute is not an action-economy cost"
         ]
       }
     }

@@ -207,6 +207,15 @@
               "mode": "swim",
               "distance": 20
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "sense-darkvision",
+            "type": "GrantSense",
+            "data": {
+              "sense": "darkvision",
+              "range": 30
+            }
           }
         ]
       },

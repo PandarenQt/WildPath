@@ -217,9 +217,11 @@ WILDPATH.CONDITIONS = {
     name: "WILDPATH.CONDITIONS.Blinded",
     summary: "WILDPATH.CONDITIONS.Summary.Blinded",
     img: "icons/svg/blind.svg",
+    // Unless it perceives its target anyway (Blindsight within range), and while its attacker goes unperceived
+    // (`attack.seesTarget`, `attack.seenByTarget`: helpers/senses.mts).
     ruleElements: [
-      rollMode("blinded.own-attacks", ["attack"], "disadvantage"),
-      rollMode("blinded.attacked", ["attacked"], "advantage")
+      rollMode("blinded.own-attacks", ["attack"], "disadvantage", {not: {equals: {path: "attack.seesTarget", value: true}}}),
+      rollMode("blinded.attacked", ["attacked"], "advantage", {not: {equals: {path: "attack.seenByTarget", value: true}}})
     ]
   },
   restrained: {
@@ -312,8 +314,9 @@ WILDPATH.CONDITIONS = {
     name: "WILDPATH.CONDITIONS.Invisible",
     summary: "WILDPATH.CONDITIONS.Summary.Invisible",
     img: "icons/svg/invisible.svg",
-    // shortcut: a creature that can see the invisible (Truesight, See Invisibility) still has disadvantage; upgrade with senses.
-    ruleElements: [rollMode("invisible.own-attacks", ["attack"], "advantage"), rollMode("invisible.attacked", ["attacked"], "disadvantage"),
+    // Unless the other creature perceives it anyway (Truesight, Blindsight or Tremorsense within range: helpers/senses.mts).
+    ruleElements: [rollMode("invisible.own-attacks", ["attack"], "advantage", {not: {equals: {path: "attack.seenByTarget", value: true}}}),
+      rollMode("invisible.attacked", ["attacked"], "disadvantage", {not: {equals: {path: "attack.seesTarget", value: true}}}),
       rollMode("invisible.initiative", ["initiative"], "advantage")]
   },
   deafened: {

@@ -404,6 +404,9 @@ domain `check.unproficient` (`resolveActorCheckStatistic`, every check). 2024 Ja
 "advantage"}`. Live (GM browser): QA Caster's Acrobatics (unproficient, Proficiency Bonus 3) went from +0 to +1, and its
 Initiative and Athletics got Advantage.
 
+**Senses (2026-10-20).** `GrantSense {sense, range}` gives a sense (`darkvision`, `blindsight`, `tremorsense`,
+`truesight`) out to `range` feet; a creature keeps the best range of each (senses-and-cover.md).
+
 **Comparing a number (2026-10-20).** The predicate `atMost: {path, value}` passes when the number at `path` is at
 most `value`; a missing number fails it (Retaliation's "within 5 feet": `event.data.relations.{self}.distance`).
 

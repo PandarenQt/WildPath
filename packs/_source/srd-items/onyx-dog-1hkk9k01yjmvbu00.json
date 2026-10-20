@@ -14,6 +14,15 @@
       {
         "schemaVersion": 1,
         "id": "mastiff-figurine-1",
+        "type": "GrantSense",
+        "data": {
+          "sense": "blindsight",
+          "range": 60
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "mastiff-figurine-2",
         "type": "AbilityScore",
         "data": {
           "ability": "intellect",
@@ -40,8 +49,7 @@
         "notes": [
           "not automated (summon): using it spends its cost; its description says the rest",
           "summon: its creature is not among the converted creatures",
-          "effect: \"Mastiff Figurine\" change system.traits.languages.value (add) not converted",
-          "effect: \"Mastiff Figurine\" change system.attributes.senses.blindsight (upgrade) not converted"
+          "effect: \"Mastiff Figurine\" change system.traits.languages.value (add) not converted"
         ]
       },
       "grants": [

@@ -1152,6 +1152,15 @@
               "mode": "fly",
               "distance": 90
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "sense-truesight",
+            "type": "GrantSense",
+            "data": {
+              "sense": "truesight",
+              "range": 120
+            }
           }
         ]
       },
