@@ -942,6 +942,10 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
       return applyDeclineEffect({definition, effect, selection});
     case "remove-components":
       return applyRemoveComponentsEffect({definition, selection});
+    case "empower-damage":
+      // Empowered Spell: how many of its damage dice below average are rolled again (the damage roll stage).
+      definition.metadata = {...(definition.metadata ?? {}), empowered: Math.max(1, Math.trunc(finiteNumber(effect.count) ?? 1))};
+      return {ok: true, trace: [appliedTrace(selection, "empower-damage", {count: definition.metadata.empowered})], errors: []};
     case "set-save":
       // Heightened (`heightened: true`), Careful (`careful: <count>`): its save's resolution asks who.
       if ( !definition.save || !effect.key ) return {ok: true, trace: [appliedTrace(selection, "set-save", {skipped: true})], errors: []};

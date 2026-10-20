@@ -1,7 +1,9 @@
 /**
  * 2024 Metamagic: a sorcerer's spell Actions offer a "Metamagic" choice of the options it knows (features flagged
  * `flags.wildpath.metamagic`), each paid from its Sorcery Points (`font-of-magic`). One option a casting.
- * Seeking Spell is a reroll offer on a missed spell attack instead, and Empowered Spell an Action of its own.
+ * Seeking Spell is a reroll offer on a missed spell attack instead. Empowered Spell is a choice of its own, beside the
+ * one option (2024: "even if you've already used a different Metamagic option"): up to max(1, Presence modifier) of its
+ * damage dice below their average are rolled again once its damage is rolled (action-pipeline-resolver.mjs).
  * - Quickened: not after a level 1+ spell this turn, and no level 1+ spell after it (`flags.wildpath.quickenedTurn`).
  * - Extended: a duration of 1 minute or more doubles, to 24 hours at most, with Advantage on its Concentration saves.
  * - Subtle: cast without Verbal, Somatic or Material components (a costly one stays), so Counterspell doesn't see it.
@@ -39,13 +41,29 @@ export function withMetamagic(raw: Data | null, actor: Data | null | undefined):
   const points = Number((actor?.system?.pools ?? []).find((pool: Data) => pool.id === METAMAGIC_POOL)?.value) || 0;
   const known = knownMetamagic(actor);
   if ( !points || !known.size ) return raw;
+  const empowered = known.has("empowered") ? empoweredChoice(raw, actor) : null;
   const options = ORDER.filter(option => known.has(option)).flatMap(option => metamagicOptions(option, raw, actor))
     .filter(option => option.cost <= points)
     .map(({cost, effects, ...option}) => ({...option, effects: [{type: "add-cost", cost: {allOf: [{capability: METAMAGIC_POOL, amount: cost}]}},
       ...effects]}));
-  if ( !options.length ) return raw;
-  return {...raw, configuration: [...(raw.configuration ?? []), {id: "metamagic", type: "select-one", label: "Metamagic", required: true,
-    options: [{id: "none", label: "None", value: "none"}, ...options]}]};
+  if ( !options.length && !empowered ) return raw;
+  return {...raw, configuration: [...(raw.configuration ?? []), ...(options.length ? [{id: "metamagic", type: "select-one", label: "Metamagic",
+    required: true, options: [{id: "none", label: "None", value: "none"}, ...options]}] : []), ...(empowered ? [empowered] : [])]};
+}
+
+/** Empowered Spell's own choice, for a spell that rolls damage dice: 1 point to reroll its lowest dice. */
+function empoweredChoice(raw: Data, actor: Data | null | undefined): Data | null {
+  // Dice anywhere in its damage: a cantrip's table of dice too.
+  const dice = (raw.damage ?? []).some((component: Data) => JSON.stringify(component?.expression ?? {}).includes('"type":"dice"')
+    || /d\d/.test(String(component?.formula ?? "")));
+  if ( !dice ) return null;
+  const count = (evaluateValueExpression as (expression: Data, context: Data) => {ok: boolean; value?: number})({type: "max",
+    terms: [{type: "constant", value: 1}, {type: "ability-modifier", ability: "presence"}]}, {actor, actorSystem: actor?.system});
+  const most = Math.max(1, Math.trunc(Number(count.value) || 1));
+  return {id: "empowered", type: "select-one", label: "Empowered Spell", required: true, defaultValue: "no",
+    options: [{id: "no", label: "No", value: "no"}, {id: "empowered", value: "empowered",
+      label: `Empowered Spell: reroll up to ${most} damage ${most === 1 ? "die" : "dice"} (1 point)`,
+      effects: [{type: "add-cost", cost: {allOf: [{capability: METAMAGIC_POOL, amount: 1}]}}, {type: "empower-damage", count: most}]}]};
 }
 
 /** One option's choices for this spell (Transmuted: one per damage type), none when it does not apply. */

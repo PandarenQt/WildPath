@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 878 automated, 284 manual, 228 features. Creatures: 375.
+Items: 877 automated, 284 manual, 228 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -507,7 +507,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Elven Lineage, Wood Elf | origins24 | Elven Lineage, Wood Elf (feature) | — |
 | Emblem | equipment24 | Emblem (gear) | — |
 | Empowered Evocation | classes24 | Empowered Evocation (feature) | — |
-| Empowered Spell | classes24 | Empowered Spell (feature), Empowered Spell (automated) | — |
+| Empowered Spell | classes24 | Empowered Spell (feature) | — |
 | Empowered Strikes | classes24 | Empowered Strikes (automated) | — |
 | Energy Bow | equipment24 | Energy Bow (attack) (automated), Energy Bow (Arrow of Transport) (manual), Energy Bow (Energy Ladder) (manual), Energy Bow (Energy Bow) (manual) | rolled (attack); what it does is by hand; not automated (utility): using it spends its cost; its description says the rest; "Arrow of Restraint" is passive or triggered: not automated; not automated (enchant): using it spends its cost; its description says the rest |
 | Enhance Ability | spells24 | Enhance Ability (automated) | — |
