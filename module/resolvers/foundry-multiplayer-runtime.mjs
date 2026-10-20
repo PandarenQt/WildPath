@@ -160,6 +160,7 @@ export function registerFoundryV14MultiplayerResolution({
       await endEffectsWhenDamaged(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await recordSlotSpell(event, {game});
       await recordAttackTurn(event, {game});
+      await recordQuickened(event, {game});
       await markCasterConcentration(event, {game});
     },
     afterCancelled: event => afterCountered(event, {game}),
@@ -682,6 +683,13 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
     reason: `${action.name} can't be used now.`
   };
+  // 2024 Quickened Spell: "nor can you cast a level 1+ spell on the same turn after modifying a spell with this option".
+  if ( !authorityAction && requiresContext(actor, {game}).quickenedThisTurn && (definition?.tags ?? []).includes("spell")
+    && (Number(definition?.metadata?.spellLevel) >= 1) ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: `${actor.name} cast a Quickened spell this turn: no other spell of level 1 or higher.`
+  };
   // 2024 Command, Flee: "spends its turn moving away from you by the fastest available means" (only Dash or Disengage).
   const usesTurn = (definition?.costs?.allOf ?? []).some(cost => ["action", "bonus-action"].includes(cost?.capability));
   if ( !authorityAction && actor.statuses?.has?.("commanded-flee") && usesTurn && !["common:dash", "common:disengage"].includes(definition?.id) ) return {
@@ -1108,7 +1116,10 @@ export async function markCasterConcentration({options, state}={}, {game=globalT
   const label = state.actionDefinition.label ?? "";
   const name = game?.i18n?.format?.("WILDPATH.AREA.Concentrating", {area: label}) ?? label;
   const duration = concentration.duration ? {value: concentration.duration.value, units: concentration.duration.units} : null;
-  const [effect] = await actor.createEmbeddedDocuments("ActiveEffect", [{name, type: "effect", system: {},
+  // Extended Spell: Advantage on the Concentration saves it calls for.
+  const system = concentration.advantage ? {ruleElements: [{schemaVersion: 1, id: "extended-concentration", type: "RollMode",
+    data: {domains: ["concentration"], mode: "advantage"}}]} : {};
+  const [effect] = await actor.createEmbeddedDocuments("ActiveEffect", [{name, type: "effect", system,
     ...(duration ? {duration} : {}),
     flags: {wildpath: {concentrationMarker: true, conditionEffect: {concentration: {sourceRef: `token:${tokenId}`}}}}}]) ?? [];
   return effect ?? null;
@@ -1127,6 +1138,19 @@ export async function recordSlotSpell({options, state}={}, {game=globalThis.game
   const paid = state.results?.paymentResolution?.paymentPlan?.resources ?? [];
   if ( !paid.some(entry => String(entry?.resourceId ?? "").includes("spell-slot.")) ) return;
   if ( actor.flags?.wildpath?.slotSpellTurn !== turn ) await actor.setFlag("wildpath", "slotSpellTurn", turn);
+}
+
+/**
+ * A spell cast with Quickened Spell this combat turn: its creature's `flags.wildpath.quickenedTurn` becomes that turn,
+ * and it can't cast another spell of level 1+ this turn (the authority refuses it; the action bar greys it).
+ */
+export async function recordQuickened({options, state}={}, {game=globalThis.game}={}) {
+  const actor = options?.actor ?? null;
+  const turn = combatTurnKey(game);
+  const choices = state?.configuration?.choices;
+  const metamagic = Array.isArray(choices) ? choices.find(choice => choice?.id === "metamagic")?.value : choices?.metamagic;
+  if ( !turn || (metamagic !== "quickened") || (typeof actor?.setFlag !== "function") ) return;
+  if ( actor.flags?.wildpath?.quickenedTurn !== turn ) await actor.setFlag("wildpath", "quickenedTurn", turn);
 }
 
 /**

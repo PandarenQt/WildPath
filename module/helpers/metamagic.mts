@@ -2,8 +2,10 @@
  * 2024 Metamagic: a sorcerer's spell Actions offer a "Metamagic" choice of the options it knows (features flagged
  * `flags.wildpath.metamagic`), each paid from its Sorcery Points (`font-of-magic`). One option a casting.
  * Seeking Spell is a reroll offer on a missed spell attack instead, and Empowered Spell an Action of its own.
- * shortcuts: Heightened's target, Careful's creatures and Subtle's components are by hand (cost only); Extended's
- * 24-hour cap and Concentration Advantage; Quickened's "no other spell of level 1+ this turn" after it.
+ * - Quickened: not after a level 1+ spell this turn, and no level 1+ spell after it (`flags.wildpath.quickenedTurn`).
+ * - Extended: a duration of 1 minute or more doubles, to 24 hours at most, with Advantage on its Concentration saves.
+ * - Subtle: cast without Verbal, Somatic or Material components (a costly one stays), so Counterspell doesn't see it.
+ * shortcuts: Heightened's target and Careful's creatures are by hand (cost only).
  */
 
 type Data = Record<string, any>;
@@ -12,7 +14,14 @@ type Option = {id: string; value: string; label: string; cost: number; effects: 
 export const METAMAGIC_POOL = "font-of-magic";
 const SIX_TYPES = Object.freeze(["acid", "cold", "fire", "lightning", "poison", "thunder"]);
 const COSTS: Record<string, number> = Object.freeze({quickened: 2, heightened: 2});
-const BY_HAND = Object.freeze(["heightened", "careful", "subtle"]);
+const BY_HAND = Object.freeze(["heightened", "careful"]);
+const SECONDS: Record<string, number> = Object.freeze({seconds: 1, second: 1, rounds: 6, round: 6, turns: 6, minutes: 60, minute: 60, hours: 3600, hour: 3600,
+  days: 86400, day: 86400});
+
+/** A duration's length in seconds (rounds are 6), or 0 when it has none or none known. */
+export function durationSeconds(duration: Data | null | undefined): number {
+  return (Number(duration?.value) || 0) * (SECONDS[String(duration?.units ?? "")] ?? 0);
+}
 const ORDER = Object.freeze(["quickened", "twinned", "transmuted", "distant", "extended", "heightened", "careful", "subtle"]);
 
 /** The Metamagic options its creature knows. */
@@ -71,9 +80,13 @@ function metamagicOptions(option: string, raw: Data, actor: Data | null | undefi
       return one([{type: "set-range", range: {...range, normal: doubled(range.normal), ...(range.long ? {long: doubled(range.long)} : {})}}]);
     }
     case "extended": {
-      const lasts = (raw.effects ?? []).some((effect: Data) => Number(effect?.duration?.value) > 0) || (Number(raw.concentration?.duration?.value) > 0);
-      return lasts ? one([{type: "scale-duration", factor: 2}]) : [];
+      // "a spell that has a duration of 1 minute or longer".
+      const lasts = [...(raw.effects ?? []).map((effect: Data) => effect?.duration), raw.concentration?.duration]
+        .some(duration => durationSeconds(duration) >= 60);
+      return lasts ? one([{type: "scale-duration", factor: 2, maxSeconds: 86400, concentrationAdvantage: true}]) : [];
     }
+    case "subtle":
+      return one([{type: "remove-components"}]);
     default:
       return one([]);
   }

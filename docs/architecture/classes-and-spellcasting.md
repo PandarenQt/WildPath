@@ -553,17 +553,22 @@ module/helpers/metamagic.mts). Its first option is None. The others are those th
 | Twinned (1) | its slot adds targets | one more target |
 | Transmuted (1) | it deals acid, cold, fire, lightning, poison or thunder | one option per other type |
 | Distant (1) | ranged or touch | range x2; touch becomes 30 ft |
-| Extended (1) | its effects or concentration have a duration | durations x2 |
-| Heightened (2), Careful (1), Subtle (1) | always | cost only, "by hand" |
+| Extended (1) | its effects or concentration last 1 minute or more | durations x2, 24 hours at most; Advantage on its Concentration saves |
+| Subtle (1) | always | its Verbal, Somatic and Material component tags go (a costly material stays); none left is `component:none`, which Counterspell can't answer |
+| Heightened (2), Careful (1) | always | cost only, "by hand" |
 
 - **Seeking Spell** is a reroll on a missed spell attack, beside Heroic Inspiration (`withSeekingSpell`), for 1 point.
 - **Empowered Spell** is an Action of its own (no action, 1 point); its feature brings it (`flags.wildpath.grants`), so
   the sorcerer's Metamagic choice lists the feature once.
 - **Payments that share a pool:** two payments of one payer from the same pool, both planned before the Action, are
   committed one after the other (`chainPayments`). Seeking's point comes after Quickened's two, not over them.
-- **shortcuts:** Heightened's target, Careful's creatures and Subtle's components are by hand. Empowered's reroll is by
-  hand. Extended's 24-hour cap and Concentration Advantage are not applied, and neither is Quickened's "no other spell of
-  level 1+ this turn" afterwards.
+- **Quickened afterwards (2026-10-20):** a Quickened cast records `flags.wildpath.quickenedTurn`. A spell of level 1+
+  is then refused by the authority and greyed on the action bar for the rest of that turn (`requiresContext`).
+- **Extended's Advantage:** its effective definition has `concentration.advantage`; the caster's concentration marker
+  then carries a RollMode on `concentration`.
+- **shortcuts:** Heightened's target and Careful's creatures are by hand. Empowered's reroll is by hand.
+- **Live (2026-10-20):** as a sorcerer 5, QA Caster's Quickened Fire Bolt spent its Bonus Action and 2 points. Magic
+  Missile was then greyed and refused ("no other spell of level 1 or higher").
 - **Live (two browsers, 14.369):** QA Caster, as wizard 5 and sorcerer 3 with 3 points, spent its Action. The action bar
   kept Fire Bolt usable. Player1 cast a Quickened Fire Bolt, which spent the Bonus Action and 2 points. It missed with a
   10, Seeking Spell rerolled it to 25, and it hit for 2d10. Points went from 3 to 0.

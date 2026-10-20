@@ -101,6 +101,11 @@ export function actionBarContext({ actor, conditions = [], odds = {}, common = [
     };
     // What its definition requires of the creature (`requires`: Steady Aim, not moved this turn), as the authority checks.
     const requiresMet = (action) => {
+        const definition = rawDefinition(action);
+        // Quickened Spell this turn: no other spell of level 1+.
+        if (requiresContext(actor).quickenedThisTurn && definition?.tags?.includes("spell")
+            && (Number(definition.metadata?.spellLevel) >= 1))
+            return false;
         const requires = rawDefinition(action)?.requires;
         return !requires || evaluatePredicate(requires, { ...requiresContext(actor), tags: rawDefinition(action)?.tags ?? [] }).ok;
     };
