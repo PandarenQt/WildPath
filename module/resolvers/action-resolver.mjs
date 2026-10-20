@@ -41,7 +41,8 @@ import {planConditionEffect} from "./effect-resolver.mjs";
 import {
   actionDefinitionActivationCost,
   actionDefinitionFromAction,
-  actionDefinitionToResolverInput
+  actionDefinitionToResolverInput,
+  CREATURE_SIZE_ORDER
 } from "../helpers/action-definitions.mjs";
 import {targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {
@@ -920,6 +921,13 @@ export function resolveActionEffects({effects, targetResolution, attackResolutio
     skipped.push(...targetSelection.skipped);
 
     for ( const entry of targetSelection.entries ) {
+      // An effect only for a creature no bigger than its `maxSize` (Prone on one Huge or smaller): a bigger one is
+      // skipped. A creature of unknown size is not.
+      const size = entry.targetContext?.size ?? entry.target?.size ?? null;
+      if ( request.maxSize && size && (CREATURE_SIZE_ORDER.indexOf(size) > CREATURE_SIZE_ORDER.indexOf(request.maxSize)) ) {
+        skipped.push({reason: `larger than ${request.maxSize}`, target: entry.target});
+        continue;
+      }
       const metadata = {
         ...(request.metadata ?? {}),
         target: entry.target,

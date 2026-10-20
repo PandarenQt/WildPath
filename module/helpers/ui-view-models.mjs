@@ -14,6 +14,7 @@ import {
   tokenRef
 } from "./entity-refs.mjs";
 import {createCombatTimeline} from "./combat-timeline.mjs";
+import {unpaidRequiredChoice} from "./automation-events.mjs";
 
 export const UI_COMMAND_TYPES = Object.freeze({
   USE_ACTION: "action.use",
@@ -224,8 +225,11 @@ function createActionBarEntry({
   const selected = Boolean((selectedActionRef && selectedActionRef === ref)
     || (selectedActionId != null && String(selectedActionId) === String(actionData.id)));
   // An option of its own paying another way (Quickened Spell: its Action as a Bonus Action) keeps it usable.
-  const enabled = (discovery.status === "available") || costAlternatives(action, activationCost)
+  const payable = (discovery.status === "available") || costAlternatives(action, activationCost)
     .some(alternative => resolvePaymentOptions({cost: alternative, resources, action: actionData, policies}).status === "available");
+  // Nor while a required resource choice (its spell slot) can't be paid: no slot left.
+  const unpaid = payable ? unpaidRequiredChoice(action?.system?.definition ?? action?.definition, resources, policies) : null;
+  const enabled = payable && !unpaid;
 
   return {
     id: actionData.id == null ? null : String(actionData.id),
@@ -240,14 +244,14 @@ function createActionBarEntry({
     state: !enabled
       ? ACTION_BAR_ENTRY_STATES.UNAVAILABLE
       : selected ? ACTION_BAR_ENTRY_STATES.SELECTED : ACTION_BAR_ENTRY_STATES.READY,
-    disabledCode: enabled ? null : discovery.code,
+    disabledCode: enabled ? null : (unpaid?.code ?? discovery.code),
     cost,
     payment: {
       status: discovery.status,
       code: discovery.code,
       defaultOptionId: defaultPayment?.id ?? null,
       options: discovery.options.map(summarizePaymentOption),
-      failures: discovery.failures.map(summarizePaymentFailure)
+      failures: [...discovery.failures, ...(unpaid?.failures ?? [])].map(summarizePaymentFailure)
     },
     command: enabled ? {
       type: UI_COMMAND_TYPES.USE_ACTION,

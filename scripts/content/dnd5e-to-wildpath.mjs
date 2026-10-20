@@ -84,7 +84,7 @@ const REACTIONS = Object.freeze({
   // "when you take damage from a creature within 5 feet": that creature is the target of its common melee attack (its
   // first melee attack or Unarmed Strike, `commonAction`). shortcut: "within 5 feet" is the attack's own reach.
   retaliation: {event: "damage.applied", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"},
-    commonAction: "opportunity"},
+    triggerPredicate: {atMost: {path: "event.data.relations.{self}.distance", value: 5}}, commonAction: "opportunity"},
   counterspell: {event: "action.declared", match: {phase: "interrupt", tagsAny: ["spell"], notSourceTokenId: "{self}"}, counters: true},
   // Another creature's attack hits: its die (Bardic Inspiration's) is subtracted from that attack roll, which is then
   // checked again. shortcut: its use on a damage roll or an ability check, "can see" and hostility are by hand.
@@ -222,8 +222,8 @@ function enchantDefinition({document, activity, system, spell, level, pool, ench
  * given up for one effect, once a turn among them: Poison (a Constitution save or Poisoned, repeated at the end of each
  * of its turns) and Trip (an Agility save or Prone), on the creature hit; Withdraw: its rogue moves up to half its Speed
  * without provoking Opportunity Attacks (Disengaged, and that much more movement this turn).
- * shortcut: Poison's Poisoner's Kit and 1-minute limit (its repeated save ends it), and Trip's "Large or smaller" are
- * by hand.
+ * Trip is only for a creature Large or smaller. shortcut: Poison's Poisoner's Kit and 1-minute limit (its repeated save
+ * ends it) are by hand.
  */
 // Improved Cunning Strike (rogue level 11): two of them on one Sneak Attack, each with its own die.
 const CUNNING_USES = {type: "table", key: {type: "class-level", class: "rogue"}, rows: {1: 1, 11: 2}};
@@ -316,6 +316,10 @@ const openHand = (extra={}) => ({tagsAll: ["flurry"], definition: definition => 
 // or Necrotic) or a type choice (Primal Strike's four), on a hit with any weapon, melee or ranged.
 const weaponHit = onceKey => ({tagsAll: ["weapon"], once: "turn", onceKey, definition: definition => definition});
 
+/** A hit offer only on a creature no bigger than `size` (Hill's Tumble's Large or smaller): its whole point. */
+const sizeAtMost = size => ({not: {oneOf: {path: "event.data.targetSize",
+  values: ["tiny", "small", "medium", "large", "huge", "gargantuan"].slice(["tiny", "small", "medium", "large", "huge", "gargantuan"].indexOf(size) + 1)}}});
+
 const OWN_HIT = Object.freeze({
   // 2024 Blessed Strikes: Divine Strike, 1d8 (2d8 from cleric level 14, its scale).
   "blessed-strikes-divine-strike/Necrotic Divine Strike": weaponHit("divine-strike"),
@@ -327,8 +331,9 @@ const OWN_HIT = Object.freeze({
   "lifedrinker/": weaponHit("lifedrinker"),
   // Eldritch Invocation Repelling Blast: a cantrip's attack hit may push its creature 10 feet away (house rule: a
   // feature changing a chosen cantrip changes every cantrip). The push rides on the attack it answers (`rider.push`, as
-  // Forceful Blow's). shortcut: "Large or smaller" is by hand.
-  "repelling-blast/Make Repelling": {tagsAll: ["cantrip"], spell: true, rider: {push: {distance: 10}}, definition: definition => definition},
+  // Forceful Blow's), only on a creature Large or smaller.
+  "repelling-blast/Make Repelling": {tagsAll: ["cantrip"], spell: true, triggerPredicate: sizeAtMost("large"),
+    rider: {push: {distance: 10, maxSize: "large"}}, definition: definition => definition},
   "open-hand-technique/Addle": openHand({definition: definition => ({...definition, effects: [{id: "effect-1", type: "effect",
     name: "Addled", slug: "no-opportunity-attacks", img: "icons/svg/daze.svg", duration: {value: 1, units: "rounds", expiry: "turnStart"},
     ruleElements: []}]})}),
@@ -337,8 +342,8 @@ const OWN_HIT = Object.freeze({
   "open-hand-technique/Topple": openHand({definition: ({push: _push, ...definition}) => definition}),
   "cunning-strike/Poison": cunning(),
   // Poison's repeated save is in the same text; Prone has none.
-  "cunning-strike/Trip": cunning({definition: definition => ({...definition,
-    effects: (definition.effects ?? []).map(({repeatSave, ...effect}) => effect)})}),
+  "cunning-strike/Trip": cunning({triggerPredicate: sizeAtMost("large"), definition: definition => ({...definition,
+    effects: (definition.effects ?? []).map(({repeatSave, ...effect}) => ({...effect, maxSize: "large"}))})}),
   "cunning-strike/Withdraw": cunning({self: true, definition: definition => ({...definition, effects: [structuredClone(WITHDRAW)]})}),
   // 2024 Devious Strikes (rogue 14): three more Cunning Strike options, each giving up more Sneak Attack dice. Only
   // Knock Out repeats its save (its text names it); Daze and Obscure last until the end of the target's next turn.
@@ -347,14 +352,18 @@ const OWN_HIT = Object.freeze({
   "devious-strikes/Knock Out": cunning({rider: {forgoDice: {ruleId: "sneak-attack", dice: 6}},
     definition: deviousStrike({duration: {value: 1, units: "minutes"}, repeatSave: "turnEnd"})}),
   "devious-strikes/Obscure": cunning({rider: {forgoDice: {ruleId: "sneak-attack", dice: 3}}, definition: deviousStrike()}),
-  // Eldritch Invocation Eldritch Smite: a Pact Magic slot spent on a weapon hit, (1 + its level)d8 Force and Prone.
-  // shortcut: any weapon, not only its pact weapon; "Huge or smaller" and "can" are its controller's (Ask) to judge.
+  // Eldritch Invocation Eldritch Smite: a Pact Magic slot spent on a weapon hit, (1 + its level)d8 Force, and Prone if its
+  // warlock chooses ("can"; on by default) and the creature is Huge or smaller. shortcut: any weapon, not only its pact
+  // weapon.
   "eldritch-smite/Smite": {...weaponHit("eldritch-smite"), dropNotes: /^consumption: attribute|custom formula/, definition: ({consumption: _consumption, ...definition}) => ({...definition,
     costs: {allOf: []}, damage: [{id: "damage-1", expression: {type: "dice", number: 1, faces: 8}, damageType: "force", provenance: "additional"}],
     configuration: [{id: "spell-slot", type: "resource", label: "Pact Magic slot", required: true,
       cost: {anyOf: [[{capability: PACT_SLOT_POOL, amount: 1}]]},
-      effects: [{type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 0, componentIds: ["damage-1"], dice: {number: 1, faces: 8}}]}],
-    effects: [{id: "effect-1", type: "condition", conditionId: "prone"}]})},
+      effects: [{type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 0, componentIds: ["damage-1"], dice: {number: 1, faces: 8}}]},
+    {id: "prone", type: "option", label: "Prone", required: true, defaultValue: "prone",
+      options: [{id: "prone", label: "Knock it Prone", value: "prone"}, {id: "standing", label: "Leave it standing", value: "standing"}],
+      effects: [{type: "keepEffect", effectIds: ["effect-1"], keep: {prone: ["effect-1"], standing: []}}]}],
+    effects: [{id: "effect-1", type: "condition", conditionId: "prone", maxSize: "huge"}]})},
   // 2024 Hurl Through Hell (Fiend Patron 14): once a turn, on any attack hit, a Charisma save; on a failure 8d10 Psychic
   // and Incapacitated until the end of the warlock's next turn. shortcut: a Fiend's immunity to the damage, and Regain
   // Use (a Pact Magic slot for its use), are by hand.
@@ -369,9 +378,9 @@ const OWN_HIT = Object.freeze({
     name: "Frost's Chill", img: "icons/svg/frozen.svg", duration: {value: 1, units: "rounds", expiry: "turnStart"},
     ruleElements: [{schemaVersion: 1, id: "chilled", type: "Modifier", data: {domains: ["resources.movement.max", "speed"], modifierType: "untyped",
       value: -10}}]}]})},
-  // shortcut: "Large or smaller" is its controller's (Ask) to judge.
-  "hills-tumble/Hill's Tumble": {spell: true, tagsAll: [], definition: definition => ({...definition,
-    effects: [{id: "effect-1", type: "condition", conditionId: "prone"}]})},
+  // Only on a creature Large or smaller.
+  "hills-tumble/Hill's Tumble": {spell: true, tagsAll: [], triggerPredicate: sizeAtMost("large"), definition: definition => ({...definition,
+    effects: [{id: "effect-1", type: "condition", conditionId: "prone", maxSize: "large"}]})},
   "stunning-strike": {once: "turn", definition: definition => ({...definition,
     configuration: (definition.configuration ?? []).filter(choice => choice.id !== "effect-choice"),
     effects: [{id: "effect-1", type: "condition", conditionId: "stunned", saveOutcomePolicy: "failure",
@@ -1059,9 +1068,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A spell's hit too, for an offer marked `spell` (Repelling Blast on Eldritch Blast).
     const {notTagsAny: _spells, ...anyHit} = SMITE_TRIGGER.match;
     const trigger = reaction ?? smite ?? (onHit ? {...SMITE_TRIGGER, match: {...(onHit.spell ? anyHit : SMITE_TRIGGER.match),
-      ...(onHit.tagsAll ? {tagsAll: onHit.tagsAll} : {})}, once: onHit.once, onceKey: onHit.onceKey, uses: onHit.uses} : null);
+      ...(onHit.tagsAll ? {tagsAll: onHit.tagsAll} : {})}, once: onHit.once, onceKey: onHit.onceKey, uses: onHit.uses,
+      triggerPredicate: onHit.triggerPredicate} : null);
     if ( trigger ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
       data: {kind: "reaction", event: trigger.event, match: trigger.match, ...(trigger.commonAction ? {commonAction: trigger.commonAction} : {}),
+        ...(trigger.triggerPredicate ? {triggerPredicate: structuredClone(trigger.triggerPredicate)} : {}),
         ...(trigger.once ? {once: trigger.once} : {}),
         ...(trigger.onceKey ? {onceKey: trigger.onceKey} : {}), ...(trigger.uses ? {uses: trigger.uses} : {})}});
     if ( flurry ) reacting.system.ruleElements.push(structuredClone(FLURRY_POOL));

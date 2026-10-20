@@ -22,7 +22,8 @@
         {
           "id": "effect-1",
           "type": "condition",
-          "conditionId": "prone"
+          "conditionId": "prone",
+          "maxSize": "large"
         }
       ],
       "range": {
@@ -60,6 +61,17 @@
             "phase": "interrupt",
             "sourceTokenId": "{self}",
             "tagsAll": []
+          },
+          "triggerPredicate": {
+            "not": {
+              "oneOf": {
+                "path": "event.data.targetSize",
+                "values": [
+                  "huge",
+                  "gargantuan"
+                ]
+              }
+            }
           }
         }
       }

@@ -205,3 +205,28 @@ test("Tireless: a Short Rest's rest.completed takes one Exhaustion level off; a 
   assert.deepEqual(trigger?.definition.effects, [{id: "effect-1", type: "condition", conditionId: "exhaustion", levels: -1}]);
   assert.equal(automationTriggers(actor, {type: "rest.completed", data: {restType: "longRest"}}).length, 0);
 });
+
+test("a reaction whose required resource choice it can't pay (Eldritch Smite with no Pact Magic slot) is not offered", async () => {
+  const fs = await import("node:fs");
+  const {economyResourcesFromActorResources} = await import("../module/helpers/action-economy.mjs");
+  const smite = JSON.parse(fs.readFileSync("packs/_source/srd-items/eldritch-smite-phbinvEldritchSm.json", "utf8")).system.definition;
+  const event = createAutomationEvent({type: AUTOMATION_EVENT_TYPES.ATTACK_HIT, phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
+    source: {actorId: "warlock"}, targets: [{actorId: "orc"}]});
+  const trigger = createReactionTrigger({id: "smite", event: AUTOMATION_EVENT_TYPES.ATTACK_HIT,
+    match: {phase: AUTOMATION_EVENT_PHASES.INTERRUPT}, actorId: "warlock", action: smite, cost: smite.costs});
+  const offered = slots => collectReactionWindows({triggers: [trigger], event, resourcesByActor: {warlock: economyResourcesFromActorResources({
+    resources: {reaction: {value: 1, max: 1}}, classes: [{id: "warlock", level: 5, spellcasting: {progression: "pact"}}],
+    pools: [{id: "spell-slot.pact", value: slots, max: 2}]})}});
+  assert.equal(offered(1).windows.length, 1, "a slot left");
+  const none = offered(0);
+  assert.deepEqual([none.windows.length, none.rejected[0].code], [0, AUTOMATION_CODES.REACTION_UNAVAILABLE], "none left");
+});
+
+test("atMost: the number at a path is at most a value; missing is not", async () => {
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const near = {atMost: {path: "event.data.relations.me.distance", value: 5}};
+  assert.equal(evaluatePredicate(near, {event: {data: {relations: {me: {distance: 5}}}}}).ok, true);
+  assert.equal(evaluatePredicate(near, {event: {data: {relations: {me: {distance: 10}}}}}).ok, false);
+  assert.equal(evaluatePredicate(near, {event: {data: {}}}).ok, false);
+  assert.equal(evaluatePredicate({atMost: {path: "x"}}, {}).code, "INVALID_PREDICATE");
+});

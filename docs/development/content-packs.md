@@ -442,6 +442,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Training (2026-10-20):** Divine Order: Protector and Primal Order: Warden carry `flags.wildpath.training`, which their
   creature has while the Item is there (classes-and-spellcasting.md). Expertise steps (Rogue, Bard, Ranger) are
   `expertise:*` choices, and weapon keys use the base names (`weapons:hand-crossbow`).
+- **Offer limits (2026-10-20):** Retaliation's Trigger has a `triggerPredicate` (within 5 ft). Hill's Tumble, Trip and
+  Repelling Blast are offered against a creature Large or smaller. Eldritch Smite asks whether to knock its creature
+  Prone, and its Prone (like Trip's) has a `maxSize` (reactions.md).
 - **Small rules (2026-10-20):** Alert, Innate Sorcery's +1 DC (and the Robe of the Archmagi's +2), Powerful Build (and
   a Mule's Beast of Burden), Disciplined Survivor's saves and reroll, and Halfling Luck convert from their dnd5e flags
   (classes-and-spellcasting.md).

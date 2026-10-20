@@ -55,13 +55,47 @@
               }
             }
           ]
+        },
+        {
+          "id": "prone",
+          "type": "option",
+          "label": "Prone",
+          "required": true,
+          "defaultValue": "prone",
+          "options": [
+            {
+              "id": "prone",
+              "label": "Knock it Prone",
+              "value": "prone"
+            },
+            {
+              "id": "standing",
+              "label": "Leave it standing",
+              "value": "standing"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "effect-1"
+              ],
+              "keep": {
+                "prone": [
+                  "effect-1"
+                ],
+                "standing": []
+              }
+            }
+          ]
         }
       ],
       "effects": [
         {
           "id": "effect-1",
           "type": "condition",
-          "conditionId": "prone"
+          "conditionId": "prone",
+          "maxSize": "huge"
         }
       ],
       "range": {

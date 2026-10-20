@@ -337,7 +337,7 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
 
 - **Repelling Blast (2026-10-20):** an own-hit offer marked `spell` drops the `notTagsAny: ["spell"]` of its match, so it
   answers a spell's hit. It answers any cantrip (`tagsAll: ["cantrip"]`, the cantrip house rule), and its rider pushes
-  the creature hit 10 ft (`rider.push`, as Forceful Blow's). shortcut: "Large or smaller" is by hand. Live: QA Caster's Eldritch Blast hit the Bandit Captain for 1d10 + 3 (Agonizing Blast), and
+  the creature hit 10 ft (`rider.push`, as Forceful Blow's), offered and pushing only one Large or smaller. Live: QA Caster's Eldritch Blast hit the Bandit Captain for 1d10 + 3 (Agonizing Blast), and
   Repelling Blast pushed it 10 ft away.
 - **Weapon hit extras (2026-10-20):** an attack's hit event also carries its statistic (`weapon` or `spell`). An own-hit
   offer can answer any weapon's hit (`tagsAll: ["weapon"]`), melee or ranged, once a turn by its `onceKey`:
@@ -355,13 +355,15 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     the target's next turn; only Knock Out (Unconscious, 1 minute) repeats its save. shortcuts: Daze's "only one of
     move, action or Bonus Action" and Knock Out's "until it takes damage" are by hand.
   - **Eldritch Smite**: a weapon hit, once a turn; its required choice spends a Pact Magic slot and deals
-    (1 + the slot's level)d8 Force, and Prone. shortcuts: any weapon, not only its pact weapon; "Huge or smaller" is
-    the controller's to judge; it is offered with no slot left, and then refused.
+    (1 + the slot's level)d8 Force; a second choice knocks the creature Prone or leaves it standing, and Prone lands
+    only on one Huge or smaller (`maxSize`). It is offered only while a Pact Magic slot is left. shortcut: any weapon,
+    not only its pact weapon.
   - **Hurl Through Hell** (Fiend Patron 14): any attack hit, once a turn, from its pool: a Charisma save; on a failure
     8d10 Psychic and Incapacitated until the end of the warlock's next turn. shortcuts: a Fiend's immunity to the
     damage and Regain Use are by hand.
   - **Giant Ancestry** (Goliath): Fire's Burn (+1d10 Fire), Frost's Chill (+1d6 Cold, Speed -10 until the start of the
-    goliath's next turn) and Hill's Tumble (Prone) answer any attack hit, each paid from its pool.
+    goliath's next turn) and Hill's Tumble (Prone, offered only against a creature Large or smaller) answer any attack
+    hit, each paid from its pool.
 
   Live (two browsers, 14.369): as a Rogue 14, QA Caster's Dagger hits offered Daze; its Sneak Attack rolled 5d6 (7d6
   less 2) and a failed save left the Bandit Captain Dazed. As a Warlock 5, Eldritch Smite spent a pact slot for 4d8
@@ -370,7 +372,7 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   - **Retaliation** (barbarian): `damage.applied` on itself from another creature. Its Trigger names a common Action
     (`commonAction: "opportunity"`), so the provider reacts with its creature's first melee attack or Unarmed Strike at
     the damage source, for its Reaction, offered under the Item's name ("Retaliation (Dagger)") and at the Item's Always,
-    Ask or Never setting. shortcut: "within 5 feet" is the attack's own reach.
+    Ask or Never setting, only when the damager is within 5 ft (`atMost` on `event.data.relations.{self}.distance`).
   - **Stone's Endurance** (Goliath): an `attack.hit` interrupt on itself. Its rider `reduceDamage: {dice, bonus}`
     (1d12 + its Fortitude modifier) is rolled when it is paid (`riderRoll`, as Cutting Words' die), and the attack it
     answers plans that much less damage (a flat `reductions` entry in its durability adjustments). It replaces the
@@ -388,6 +390,25 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   next hit offered "Retaliation (Dagger)", which attacked the Captain for QA Caster's Reaction. A Wits save against a
   charm failed on a 10; Player1 took "QA Ally's Countercharm", rerolled 2d20kh (20), and saved, with QA Ally's Reaction
   spent.
+- **Offered only when it can be paid, and only where it applies (2026-10-20):**
+  - **Required choices.** An offer is made only when its Action's costs and every required resource choice can be
+    paid (`collectReactionWindows` → `unpaidRequiredChoice`). This covers Eldritch Smite's Pact Magic slot and the slot
+    of Shield, Hellish Rebuke, Counterspell and both Divine Smites. The action bar greys such an Action the same way and
+    says what ran out ("no 1st-level slot, Pact Magic slots, ...").
+  - **Size and distance on events.** `attack.hit`/`attack.miss` and `damage.applied` events carry each target's size
+    and distance from the source (`data.relations.<tokenId>: {size, distance}`) and the first target's size
+    (`data.targetSize`), so a Trigger's `triggerPredicate` can read them.
+  - **Hit offers by size.** Hill's Tumble, Cunning Strike's Trip and Repelling Blast are offered only against a
+    creature Large or smaller.
+  - **Effects by size.** An Action's effect may name a `maxSize`: a bigger creature is skipped (Eldritch Smite's Prone,
+    Huge or smaller; Trip's, Large or smaller), as a push's `maxSize` is.
+
+  Live (two browsers, 14.369):
+  - As a Warlock 5 with no pact slot left, QA Caster's Dagger hit offered Hill's Tumble alone; with one, Eldritch Smite
+    too, asking for the slot and whether to knock the creature Prone.
+  - Against an SRD Hill Giant (Huge), Hill's Tumble was not offered, and Eldritch Smite was.
+  - The giant's Tree Club from 10 ft offered no Retaliation; from 5 ft it did, and the Dagger struck back.
+  - With no slots, Hex was greyed with "no 1st-level slot, Pact Magic slots, ..."; one pact slot enabled it.
 - **Cutting Words (2026-10-19):** `attack.hit` with `notSourceTokenId: "{self}"`, so any creature's hit within 60 ft;
   the bard's reaction targets the attacker. Its rider `attackPenalty: {dice}` is its Bardic Inspiration die, a table by
   bard level. The child rolls it when it pays (`riderAttackPenalty`, reusing `addedDie`) and sends the total. The

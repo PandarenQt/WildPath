@@ -33,7 +33,13 @@
             "targetTokenId": "{self}",
             "notSourceTokenId": "{self}"
           },
-          "commonAction": "opportunity"
+          "commonAction": "opportunity",
+          "triggerPredicate": {
+            "atMost": {
+              "path": "event.data.relations.{self}.distance",
+              "value": 5
+            }
+          }
         }
       }
     ]

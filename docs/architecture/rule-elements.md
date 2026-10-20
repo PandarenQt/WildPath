@@ -404,6 +404,9 @@ domain `check.unproficient` (`resolveActorCheckStatistic`, every check). 2024 Ja
 "advantage"}`. Live (GM browser): QA Caster's Acrobatics (unproficient, Proficiency Bonus 3) went from +0 to +1, and its
 Initiative and Athletics got Advantage.
 
+**Comparing a number (2026-10-20).** The predicate `atMost: {path, value}` passes when the number at `path` is at
+most `value`; a missing number fails it (Retaliation's "within 5 feet": `event.data.relations.{self}.distance`).
+
 **A spell's save DC, and what a check escapes (2026-10-20).** `dc.spell` is a Modifier domain: its total is added to
 the save DC of its creature's spells (Innate Sorcery). An escape check's context names what it escapes (`check.escapes`:
 `grappled` or `restrained`), so a RollMode on `check` can answer it alone (Powerful Build). An attack's roll-mode rules
