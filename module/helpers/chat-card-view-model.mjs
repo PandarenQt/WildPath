@@ -11,6 +11,8 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
     saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure",
     legendaryResistance: "WILDPATH.CHAT.Outcome.LegendaryResistance",
     staysUp: "WILDPATH.CHAT.Outcome.StaysUp",
+    half: "WILDPATH.COVER.half",
+    threeQuarters: "WILDPATH.COVER.threeQuarters",
     immune: "WILDPATH.CHAT.Outcome.Immune",
     checkSuccess: "WILDPATH.CHAT.Outcome.CheckSuccess",
     checkFailure: "WILDPATH.CHAT.Outcome.CheckFailure"
@@ -27,13 +29,16 @@ export function createResolutionCardViewModel(result) {
             const attackEntry = attack.find(entry => sameTarget(entry.target, target));
             const saveEntry = save.find(entry => sameTarget(entry.target, target));
             const kept = (result.outcomes?.zeroHp ?? []).find(entry => sameTarget(entry.target, target));
+            const covered = (result.outcomes?.cover ?? []).find(entry => sameTarget(entry.target, target));
+            const coverKey = covered?.degree ? CHAT_OUTCOME_KEYS[covered.degree] : null;
             const name = textOrNull(target.name);
             return {
                 name,
                 uuid: name ? textOrNull(target.uuid ?? target.actorRef) : null,
                 attack: attackEntry ? attackOutcome(attackEntry) : null,
                 save: saveEntry ? saveOutcome(saveEntry) : null,
-                ...(kept ? { staysUp: { label: CHAT_OUTCOME_KEYS.staysUp, name: textOrNull(kept.name) ?? "" } } : {})
+                ...(kept ? { staysUp: { label: CHAT_OUTCOME_KEYS.staysUp, name: textOrNull(kept.name) ?? "" } } : {}),
+                ...(coverKey ? { cover: { label: coverKey } } : {})
             };
         }),
         rolls: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.foundryRoll] : [])),
@@ -69,6 +74,9 @@ function saveOutcome(entry) {
 function sameTarget(left, right) {
     if (!left)
         return false;
+    // Its Token first: a Token's synthetic Actor and the Token itself are refs to the same creature.
+    if (left.tokenId && right.tokenId)
+        return left.tokenId === right.tokenId;
     if (left.actorRef && right.actorRef)
         return left.actorRef === right.actorRef;
     return !!left.id && left.id === right.id;

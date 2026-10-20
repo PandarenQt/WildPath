@@ -89,6 +89,12 @@
         "CheckFailure": "Check failed"
       }
     },
+    "COVER": {
+      "half": "Half cover",
+      "threeQuarters": "Three-quarters cover",
+      "total": "Total cover",
+      "TotalRefused": "That creature is behind Total Cover: it can't be targeted directly."
+    },
     "SENSES": {
       "darkvision": "Darkvision",
       "blindsight": "Blindsight",

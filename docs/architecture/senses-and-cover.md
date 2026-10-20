@@ -44,3 +44,40 @@ Live (two browsers, 14.369):
 - **Boon of Truesight:** it added `seeAll` 60; removing both restored range 0 and `basic`.
 - **Invisible target:** QA Caster's Dagger at an Invisible Bandit Captain rolled 2d20kl; with Truesight 60 ft it rolled
   1d20.
+
+## Cover (2026-10-20)
+
+Cover is worked out automatically for every Action (maintainer decision, 2026-10-20), on the authority
+(`adapters/foundry-v14-cover.mts` `coverBetween`, the runtime's `actionCover`). It uses the DMG's grid method:
+1. From each corner of the attacker's spaces (or from an area's point of origin: a radial area's first point; a cone,
+   line or emanation starts at the caster), lines run to the corners of each space the target occupies. Corners are
+   inset a pixel, so a line along a wall's end or a grid edge doesn't count.
+2. The attacker takes the corner and target space that see best, and a wall blocking sight cuts some share of those
+   lines (Foundry's `polygonBackends.sight.testCollision` on the target's Level):
+
+   | Lines blocked | Cover |
+   | --- | --- |
+   | none | none |
+   | up to half | Half: +2 to AC and Agility (Dexterity) saves |
+   | more than half | Three-Quarters: +5 |
+   | all | Total |
+
+3. If no wall gives cover, a creature whose space a line crosses gives Half.
+
+How each degree is applied:
+- **Attacks:** cover lowers the attack roll against that target (as raising its AC would), in the authority's numbers and
+  the odds alike.
+- **Agility saves:** cover adds to the saver's bonus.
+- **Total cover:** a creature behind it can't be targeted directly (the Action is refused, and nothing is paid). An
+  area leaves it out.
+- **Card:** each target's cover is shown on the card ("Half cover").
+- The degrees never stack: one degree, the best the attacker can find.
+
+Square and hex grids both work: the spaces and their corners are Foundry's (`getOccupiedGridSpaceOffsets`,
+`grid.getVertices`).
+
+Live (two browsers, 14.369):
+- **Creature in the way:** with QA Ally between them, QA Caster's Fire Bolt at the Bandit Captain checked 15 (17 less
+  2) against AC 15, and the card read "Half cover".
+- **Wall:** with a sight wall across the whole line, the Fire Bolt was refused ("That creature is behind Total
+  Cover").
