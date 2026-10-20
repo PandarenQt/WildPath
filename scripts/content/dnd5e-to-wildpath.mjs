@@ -243,6 +243,24 @@ const SELF_EFFECTS = Object.freeze({
       value: 0}}]}]
 });
 
+/**
+ * Its own die for a failed d20 test, which the engine offers (`flags.wildpath.testOffer`): 2024 Peerless Skill (its
+ * Bardic Inspiration die on a check or attack roll, kept if it still fails), Dark One's Own Luck (a d10 on a check or
+ * save). shortcut: offered only on a failed roll (Dark One's Own Luck may also be added to one that succeeded).
+ */
+const TEST_OFFERS = Object.freeze({
+  "peerless-skill": {tests: ["check", "attack"], refundOnFail: true},
+  "dark-ones-own-luck": {tests: ["check", "save"]}
+});
+
+/** The die of a test offer: "1d10", or a scale's die ("@scale.bard.inspiration") as its faces. */
+function testOfferFaces(formula, scales) {
+  const text = String(formula ?? "").trim();
+  const flat = /^1?d(\d+)$/i.exec(text);
+  if ( flat ) return {type: "constant", value: Number(flat[1])};
+  return /^@scale\.[a-z0-9-]+\.[a-z0-9-]+$/i.test(text) ? formulaExpression(`${text}.faces`, {scales}) : null;
+}
+
 /** Used at the start of its creature's turn, though dnd5e gives it no activation (2024 Superior Defense): a free Action. */
 const USED_AT_TURN_START = new Set(["superior-defense"]);
 
@@ -748,6 +766,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const items = [];
   const allNotes = [];
   const initiativeRules = [];
+  let testOffer = null;
   const trait = traitOf(document, {activities, system, spell, level, scales, pool, saveDC, creature});
   // A Metamagic option (Quickened Spell: "quickened"), which its sorcerer's spells offer (metamagic.mjs).
   const metamagic = (system.type?.subtype === "metamagic") ? identifierOf(document).replace(/-spell$/, "") : null;
@@ -776,6 +795,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         beasts});
       if ( recharge ) {
         initiativeRules.push(recharge);
+        continue;
+      }
+      // A die the engine offers on a failed test (Peerless Skill): its feature's flag, paid from the pool it names.
+      const offered = TEST_OFFERS[identifierOf(document)];
+      const faces = offered ? testOfferFaces(activity.roll?.formula, scales) : null;
+      const offerPool = offered ? targetPoolId(activity.consumption?.targets?.[0] ?? {}, pool, names) : null;
+      if ( faces && offerPool ) {
+        testOffer = {...offered, pool: offerPool, faces};
         continue;
       }
       // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.
@@ -963,7 +990,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         // A paladin's aura is what it grants those around it, not what its dnd5e effect gives the paladin alone.
         ...(PALADIN_AURAS[identifierOf(document)] ? [paladinAura(identifierOf(document))] : passive),
         ...((identifierOf(document) === "paladins-smite") ? [PALADINS_SMITE.pool] : [])].filter(Boolean)},
-      flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(metamagic ? {metamagic} : {})}}});
+      flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(metamagic ? {metamagic} : {}),
+        ...(testOffer ? {testOffer} : {})}}});
     if ( identifierOf(document) === "paladins-smite" ) items.push(...paladinsSmiteActions(document, img, source));
     if ( identifierOf(document) === "brutal-strike" ) items.push(...brutalStrikeActions(document, img, source, scales));
     if ( identifierOf(document) === "improved-brutal-strike" ) items.push(...improvedBrutalStrikeActions(document, img, source));

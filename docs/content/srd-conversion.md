@@ -376,7 +376,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dancing Sword | actors24 | Dancing Sword (6 items) | — |
 | Danger Sense | classes24 | Danger Sense (feature) | — |
 | Dark One's Blessing | classes24 | Dark One's Blessing (feature) | "heal" is passive or triggered: not automated |
-| Dark One's Own Luck | classes24 | Dark One's Own Luck (feature) | "Luck" is passive or triggered: not automated |
+| Dark One's Own Luck | classes24 | Dark One's Own Luck (feature) | — |
 | Darkmantle | actors24 | Darkmantle (4 items) | Crush: effect: suffocation is not a WildPath condition yet; Darkness Aura: not automated (utility): using it spends its cost; its description says the rest |
 | Darkness | spells24 | Darkness (automated) | — |
 | Darkvision | spells24 | Darkvision (automated) | effect: "Darkvision" change system.attributes.senses.darkvision (upgrade) not converted; effect: "Darkvision" marks its creature only; its rules are by hand |
@@ -1090,7 +1090,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Passwall | spells24 | Passwall (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Path of the Berserker | classes24 | Path of the Berserker (subclass) | — |
 | Pearl of Power | equipment24 | Pearl of Power (gear), Pearl of Power (automated) | — |
-| Peerless Skill | classes24 | Peerless Skill (feature) | "utility" is passive or triggered: not automated |
+| Peerless Skill | classes24 | Peerless Skill (feature) | — |
 | Pegasus | actors24 | Pegasus (2 items) | — |
 | Perfect Focus | classes24 | Perfect Focus (feature) | — |
 | Perfume | equipment24 | Perfume (gear) | — |

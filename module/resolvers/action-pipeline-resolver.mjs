@@ -1157,7 +1157,8 @@ function createAttackOutcomeStage() {
           type: "attackResolved",
           attackResolution
         }],
-        mutationPlans: reroll.payment ? [reroll.payment] : [],
+        // A die kept when the attack still misses (Peerless Skill) is not paid for.
+        mutationPlans: (reroll.payment && !(reroll.refundOnFail && !attackResolution.hits?.length)) ? [reroll.payment] : [],
         data: {attackResolution}
       });
 

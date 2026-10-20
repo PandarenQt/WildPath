@@ -352,6 +352,18 @@ Wounds rolled "2d8 + 2d8 + 7": its Intelligence +3, plus 2 + 2. Sacred Flame on 
 With Empowered Evocation, Fire Bolt rolled "2d10 + 3" (Intelligence 16). After Elemental Affinity (Fire), with Presence
 14, QA Caster had fire Resistance and Fire Bolt rolled "2d10 + 5".
 
+## Dice on a failed d20 test (2026-10-20)
+
+A feature flagged `flags.wildpath.testOffer: {pool, faces, tests, refundOnFail?}` adds its die to its creature's own
+offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a use of `pool` (`withTestOffers`):
+- **Peerless Skill:** its Bardic Inspiration die (a table by bard level) on a check or attack roll, kept if the roll
+  still fails;
+- **Dark One's Own Luck:** a d10 on a check or save, from its own uses.
+
+An attack's added die is kept when the attack still misses (`refundOnFail`), as a check's is. shortcut: offered only on
+a failed roll. Live (two browsers, 14.369): QA Caster as a level-10 bard with Peerless Skill missed with Dagger attacks
+four times even after the d10, and Bardic Inspiration stayed at 4; an 8 plus a d10 of 7 hit (AC 15), and it went to 3.
+
 ## Smaller features (2026-10-20)
 
 - **Steady Aim** (Bonus Action): Advantage on its next attack roll this turn (`endsWhen: "attacks"`), and Speed 0 until
