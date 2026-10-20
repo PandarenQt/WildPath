@@ -805,7 +805,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !trades && !USED_AT_TURN_START.has(identifierOf(document)) ) {
       // A recharge when its creature rolls Initiative (Persistent Rage, Uncanny Metabolism, Archdruid): automatic.
       const recharge = initiativeTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature,
-        beasts});
+        beasts}) ?? restTrigger(document, activity);
       if ( recharge ) {
         initiativeRules.push(recharge);
         continue;
@@ -1026,6 +1026,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       items.push(...strikes);
     }
   }
+  // An Item with Actions carries its automatic triggers on its first (Tireless' Short Rest trigger).
+  if ( initiativeRules.length && items.length && (items[0].type !== "feature") ) items[0].system.ruleElements.push(...initiativeRules);
   // A feature used on its turn that dnd5e leaves without an Action (Action Surge): its Action, paid from its own pool.
   const featureAction = FEATURE_ACTIONS[identifierOf(document)];
   if ( featureAction && (pool?.rule || featureAction.free || featureAction.costs) && !items.some(item => item.type === "action") ) {
@@ -1889,6 +1891,18 @@ function initiativeTrigger({document, activity, system, spell, level, scales, no
   return {schemaVersion: 1, id: `initiative-${slugify(activity.name || "recharge")}`, type: "Trigger", data: {kind: "automation",
     event: "initiative.rolled", predicate, action: {...definition, label: activity.name || document.name, range: {type: "self"},
       targeting: {type: "self"}}}};
+}
+
+/**
+ * What a feature does when its creature finishes a rest, as an automatic Trigger on `rest.completed`. 2024 Tireless:
+ * "Whenever you finish a Short Rest, your Exhaustion level, if any, decreases by 1."
+ */
+function restTrigger(document, activity) {
+  if ( !((identifierOf(document) === "tireless") && (activity?.name === "Decrease Exhaustion")) ) return null;
+  return {schemaVersion: 1, id: "tireless-rest", type: "Trigger", data: {event: "rest.completed",
+    predicate: {equals: {path: "event.data.restType", value: "shortRest"}},
+    action: {schemaVersion: 1, id: "action:srd-tireless-decrease-exhaustion", label: "Tireless", costs: {allOf: []}, range: {type: "self"},
+      targeting: {type: "self"}, effects: [{id: "effect-1", type: "condition", conditionId: "exhaustion", levels: -1}]}}};
 }
 
 /**

@@ -352,6 +352,13 @@ Wounds rolled "2d8 + 2d8 + 7": its Intelligence +3, plus 2 + 2. Sacred Flame on 
 With Empowered Evocation, Fire Bolt rolled "2d10 + 3" (Intelligence 16). After Elemental Affinity (Fire), with Presence
 14, QA Caster had fire Resistance and Fire Bolt rolled "2d10 + 5".
 
+## Tireless (2026-10-20)
+
+Tireless' "Decrease Exhaustion" is a `rest.completed` Trigger on its Item (`restTrigger`): a Short Rest
+(`event.data.restType: "shortRest"`) takes one Exhaustion level off. Live (two browsers, 14.369): QA Caster with
+Tireless and 2 Exhaustion took a Short Rest from Player1's client and had 1. This was the first live run of
+`rest.completed`.
+
 ## Eldritch Blast invocations (2026-10-20)
 
 Eldritch Blast is tagged `eldritch-blast`.

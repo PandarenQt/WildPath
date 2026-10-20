@@ -195,3 +195,13 @@ test("Survivor's Heroic Rally answers its turn's start while Bloodied and above 
   assert.equal(automationTriggers(actorAt(30), event).length, 0, "not Bloodied");
   assert.equal(automationTriggers(actorAt(0), event).length, 0, "at 0 Hit Points");
 });
+
+test("Tireless: a Short Rest's rest.completed takes one Exhaustion level off; a Long Rest's does not", async () => {
+  const fs = await import("node:fs");
+  const {automationTriggers} = await import("../module/adapters/foundry-v14-automation-dispatcher.mjs");
+  const item = JSON.parse(fs.readFileSync("packs/_source/srd-items/tireless-temporary-hit-points-phbrgrTireless00.json", "utf8"));
+  const actor = {id: "ranger", items: [{id: item._id, type: "action", name: item.name, system: item.system}], effects: [], system: {pools: []}};
+  const [trigger] = automationTriggers(actor, {type: "rest.completed", data: {restType: "shortRest"}});
+  assert.deepEqual(trigger?.definition.effects, [{id: "effect-1", type: "condition", conditionId: "exhaustion", levels: -1}]);
+  assert.equal(automationTriggers(actor, {type: "rest.completed", data: {restType: "longRest"}}).length, 0);
+});

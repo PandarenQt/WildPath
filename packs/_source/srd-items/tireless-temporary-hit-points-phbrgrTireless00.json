@@ -82,6 +82,42 @@
           },
           "recovery": "longRest"
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "tireless-rest",
+        "type": "Trigger",
+        "data": {
+          "event": "rest.completed",
+          "predicate": {
+            "equals": {
+              "path": "event.data.restType",
+              "value": "shortRest"
+            }
+          },
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-tireless-decrease-exhaustion",
+            "label": "Tireless",
+            "costs": {
+              "allOf": []
+            },
+            "range": {
+              "type": "self"
+            },
+            "targeting": {
+              "type": "self"
+            },
+            "effects": [
+              {
+                "id": "effect-1",
+                "type": "condition",
+                "conditionId": "exhaustion",
+                "levels": -1
+              }
+            ]
+          }
+        }
       }
     ]
   },

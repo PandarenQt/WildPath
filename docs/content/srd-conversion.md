@@ -1539,7 +1539,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Tinker's Tools | equipment24 | Tinker's Tools (gear), Tinker's Tools (automated) | — |
 | Tiny Animated Object | actors24 | Tiny Animated Object (2 items) | Slam: damage 1: custom formula "(@flags.dnd5e.summon.level - 4)d4 + @mod" not converted; Slam: rolled (attack); what it does is by hand |
 | Tiny Hut | spells24 | Tiny Hut (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
-| Tireless | classes24 | Tireless (Temporary Hit Points) (automated) | "Decrease Exhaustion" is passive or triggered: not automated |
+| Tireless | classes24 | Tireless (Temporary Hit Points) (automated) | — |
 | Tome of Clear Thought | equipment24 | Tome of Clear Thought (gear), Tome of Clear Thought (Read) (manual) | not automated (utility): using it spends its cost; its description says the rest; "Reset Progress" is passive or triggered: not automated |
 | Tome of Leadership and Influence | equipment24 | Tome of Leadership and Influence (gear), Tome of Leadership and Influence (Read) (automated) | "Reset Progress" is passive or triggered: not automated |
 | Tome of Understanding | equipment24 | Tome of Understanding (gear), Tome of Understanding (Read) (automated) | "Reset Progress" is passive or triggered: not automated |
