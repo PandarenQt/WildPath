@@ -681,6 +681,13 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
     reason: `${action.name} can't be used now.`
   };
+  // 2024 Command, Flee: "spends its turn moving away from you by the fastest available means" (only Dash or Disengage).
+  const usesTurn = (definition?.costs?.allOf ?? []).some(cost => ["action", "bonus-action"].includes(cost?.capability));
+  if ( !authorityAction && actor.statuses?.has?.("commanded-flee") && usesTurn && !["common:dash", "common:disengage"].includes(definition?.id) ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: `${actor.name} was Commanded to flee: only Dash or Disengage.`
+  };
   // A magic item's Action (a wand's spell) needs its item equipped and, when it needs attunement, attuned (2024).
   const grantedBy = action.flags?.wildpath?.grantedBy ? actor.items?.get?.(action.flags.wildpath.grantedBy) : null;
   if ( !authorityAction && grantedBy && ((grantedBy.system?.active === false) || (grantedBy.system?.attunement === "required")) ) return {

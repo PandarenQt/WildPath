@@ -49,7 +49,21 @@
         {
           "type": "effect",
           "name": "Commanded: Approach",
-          "ruleElements": [],
+          "slug": "commanded-approach",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "approach",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "action",
+                  "bonus"
+                ],
+                "maximum": 0
+              }
+            }
+          ],
           "duration": {
             "value": 1,
             "units": "rounds",
@@ -61,7 +75,22 @@
         {
           "type": "effect",
           "name": "Commanded: Drop",
-          "ruleElements": [],
+          "slug": "commanded-drop",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "drop",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "movement",
+                  "action",
+                  "bonus"
+                ],
+                "maximum": 0
+              }
+            }
+          ],
           "duration": {
             "value": 1,
             "units": "rounds",
@@ -73,6 +102,7 @@
         {
           "type": "effect",
           "name": "Commanded: Flee",
+          "slug": "commanded-flee",
           "ruleElements": [],
           "duration": {
             "value": 1,
@@ -86,6 +116,32 @@
           "type": "condition",
           "conditionId": "prone",
           "id": "effect-4",
+          "saveOutcomePolicy": "failure"
+        },
+        {
+          "type": "effect",
+          "name": "Commanded: Grovel",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "grovel",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "movement",
+                  "action",
+                  "bonus"
+                ],
+                "maximum": 0
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnEnd"
+          },
+          "id": "effect-5",
           "saveOutcomePolicy": "failure"
         },
         {
@@ -111,7 +167,7 @@
             "units": "rounds",
             "expiry": "turnEnd"
           },
-          "id": "effect-5",
+          "id": "effect-6",
           "saveOutcomePolicy": "failure"
         }
       ],
@@ -156,7 +212,8 @@
                 "effect-2",
                 "effect-3",
                 "effect-4",
-                "effect-5"
+                "effect-5",
+                "effect-6"
               ],
               "keep": {
                 "effect-option-1": [
@@ -169,10 +226,11 @@
                   "effect-3"
                 ],
                 "effect-option-4": [
-                  "effect-4"
+                  "effect-4",
+                  "effect-5"
                 ],
                 "effect-option-5": [
-                  "effect-5"
+                  "effect-6"
                 ]
               }
             }

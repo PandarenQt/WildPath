@@ -649,6 +649,8 @@ export default class WildPathActor extends Actor {
           {name: grant.label, range: grant.recharge === 6 ? "6" : `${grant.recharge}–6`})}, {messageMode: "gm"});
     }
     if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
+    // 2024 Command, Drop: "The target drops whatever it is holding": its weapons and Shield are no longer held.
+    if ( this.statuses?.has("commanded-drop") ) await this.dropHeld();
     // Its condition damage resolves on its Token in this combat (which may be on a Scene no one is viewing).
     const triggers = await this.applyConditionTriggers({events, token: combatant?.token ?? null});
     return {
@@ -808,6 +810,22 @@ export default class WildPathActor extends Actor {
       commitConditionPlan: ({actor, plan}) => WildPathConditionEffect.applyDelta(plan.conditionId, actor, plan.levels)
     });
     return result.ok ? result.effect : null;
+  }
+
+  /* -------------------------------------------- */
+
+  /**
+   * Let go of what it holds: its equipped Shields and gear whose Actions attack (its weapons) are unequipped, and a stat
+   * block's manufactured weapons (an Action with a weapon category, not granted by gear; not a Bite) are put down.
+   */
+  async dropHeld() {
+    const attacks = item => (item.flags?.wildpath?.grants ?? []).some(id => this.items.get(id)?.system?.definition?.attack)
+      || this.items.some(other => (other.flags?.wildpath?.grantedBy === item.id) && other.system?.definition?.attack);
+    const held = this.items.filter(item => (item.system?.active !== false) && (((item.type === "gear") && (item.system?.active === true)
+      && ((item.system?.armor === "shield") || attacks(item))) || ((item.type === "action") && !item.flags?.wildpath?.grantedBy
+      && (item._source ?? item).system?.definition?.attack?.weapon?.category)));
+    if ( held.length ) await this.updateEmbeddedDocuments("Item", held.map(item => ({_id: item.id, "system.active": false})));
+    return held;
   }
 
   /* -------------------------------------------- */
