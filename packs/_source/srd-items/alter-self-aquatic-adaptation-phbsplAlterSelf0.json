@@ -34,7 +34,20 @@
           "type": "effect",
           "name": "Aquatic Adaptation",
           "img": "icons/creatures/fish/fish-bluefin-yellow-blue.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "aquatic-adaptation-1",
+              "type": "GrantMovement",
+              "data": {
+                "mode": "swim",
+                "distance": {
+                  "type": "context",
+                  "path": "actorSystem.resources.movement.max"
+                }
+              }
+            }
+          ],
           "duration": {
             "value": 3600,
             "units": "seconds",
@@ -133,10 +146,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Aquatic Adaptation\" change system.attributes.movement.swim (upgrade) not converted",
-          "effect: \"Aquatic Adaptation\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

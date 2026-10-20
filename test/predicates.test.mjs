@@ -41,3 +41,10 @@ test("pool predicates: empty, and below its maximum, by id; a pool the creature 
   assert.equal(evaluatePredicate({poolBelowMax: "missing"}, {actor}).ok, false);
   assert.equal(evaluatePredicate({poolBelowMax: "rage"}, {actorSystem: {pools: [{id: "rage", value: 3, max: 3}]}}).ok, false);
 });
+
+test("bloodied: half its Hit Points or fewer", () => {
+  const actor = value => ({system: {resources: {health: {value, max: 40}}}});
+  assert.equal(evaluatePredicate({bloodied: true}, {actor: actor(20)}).ok, true);
+  assert.equal(evaluatePredicate({bloodied: true}, {actor: actor(21)}).ok, false);
+  assert.equal(evaluatePredicate({bloodied: false}, {actor: actor(40)}).ok, true);
+});

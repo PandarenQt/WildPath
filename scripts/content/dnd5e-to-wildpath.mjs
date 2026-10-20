@@ -230,6 +230,22 @@ const WITHDRAW = {id: "effect-1", type: "effect", name: "Withdraw", slug: "disen
 /** Features the engine offers itself when they apply (Tactical Mind: withTacticalMind on a failed check). */
 const OFFERED_BY_ENGINE = new Set(["tactical-mind"]);
 
+/**
+ * A feature dnd5e leaves without automation, as the effects its use puts on its creature. 2024 Steady Aim: Advantage
+ * on its next attack roll this turn, and Speed 0 until the turn ends. shortcut: "you haven't moved this turn" is by hand.
+ */
+const SELF_EFFECTS = Object.freeze({
+  "steady-aim": [{id: "effect-1", type: "effect", name: "Steady Aim", img: "icons/svg/target.svg", endsWhen: "attacks",
+    duration: {value: 0, units: "turns", expiry: "turnEnd"},
+    ruleElements: [{schemaVersion: 1, id: "steady-aim", type: "RollMode", data: {domains: ["attack"], mode: "advantage"}}]},
+  {id: "effect-2", type: "effect", name: "Steady Aim (Speed 0)", img: "icons/svg/target.svg", duration: {value: 0, units: "turns", expiry: "turnEnd"},
+    ruleElements: [{schemaVersion: 1, id: "steady-aim-speed", type: "Modifier", data: {domains: ["speed.multiplier"], modifierType: "untyped",
+      value: 0}}]}]
+});
+
+/** Used at the start of its creature's turn, though dnd5e gives it no activation (2024 Superior Defense): a free Action. */
+const USED_AT_TURN_START = new Set(["superior-defense"]);
+
 // 2024 Open Hand Technique: a hit of a Flurry of Blows strike (tagged `flurry`) offers one of three, each its own offer.
 const openHand = (extra={}) => ({tagsAll: ["flurry"], definition: definition => definition, ...extra});
 
@@ -459,7 +475,8 @@ const SKILL_MAP = Object.freeze({acr: "acrobatics", ani: "animal-handling", arc:
 /** dnd5e statuses WildPath has conditions for. */
 const CONDITION_MAP = Object.freeze(Object.fromEntries(["prone", "blinded", "restrained", "stunned", "unconscious", "poisoned",
   "exhaustion", "charmed", "deafened", "frightened", "grappled", "incapacitated", "invisible", "paralyzed", "petrified", "dead"]
-  .map(id => [id, id])));
+  // Nature's Ward names the Poisoned condition "poison".
+  .map(id => [id, id]).concat([["poison", "poisoned"]])));
 const ACTIVATION_COST = Object.freeze({action: "action", bonus: "bonus-action", reaction: "reaction", legendary: "legendary-action",
   lair: "lair-action"});
 const RECOVERY = Object.freeze({lr: "longRest", sr: "shortRest", day: "longRest", dawn: "longRest", dusk: "longRest", turn: "turn", turnStart: "turn",
@@ -537,6 +554,9 @@ export function formulaExpression(formula, {spell=false, ability=null, scales={}
     })
     // A creature's spell save DC is its number; a character's is 8 + proficiency + spellcasting modifier.
     .replace(/@attributes\.spell\.dc/g, spellDC == null ? "(8 + prof + spellmod)" : String(spellDC))
+    // "(@abilities.wis.mod)d8": dice as many as an ability modifier (Sear Undead).
+    .replace(/\(@abilities\.(str|dex|con|int|wis|cha)\.mod\)\s*d\s*(\d+)/gi, (_, key, faces) => variable({type: "dice",
+      number: {type: "ability-modifier", ability: ABILITY_MAP[key.toLowerCase()]}, faces: Number(faces)}))
     .replace(/@abilities\.(str|dex|con|int|wis|cha)\.mod/gi, (_, key) => `mod(${ABILITY_MAP[key.toLowerCase()]})`)
     .replace(/@mod\b/g, (spell || !ability) ? "spellmod" : `mod(${ability})`)
     .replace(/@(?:attributes\.)?prof\b/g, "prof")
@@ -750,7 +770,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( ["brutal-strike", "improved-brutal-strike", "elemental-affinity"].includes(identifierOf(document)) ) continue;
     // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use): used, though dnd5e may leave it passive.
     const trades = tradesPools({document, activity, pool, names, scales});
-    if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !trades ) {
+    if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !trades && !USED_AT_TURN_START.has(identifierOf(document)) ) {
       // A recharge when its creature rolls Initiative (Persistent Rage, Uncanny Metabolism, Archdruid): automatic.
       const recharge = initiativeTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature,
         beasts});
@@ -786,6 +806,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type})`}: using it spends its cost; its description says the rest`);
       definition = manualDefinition({document, activity, system, spell, level, notes, pool, names, scales});
+    }
+    const selfEffects = SELF_EFFECTS[identifierOf(document)];
+    if ( selfEffects || USED_AT_TURN_START.has(identifierOf(document)) ) {
+      definition = {...definition, range: {type: "self"}, targeting: {type: "self"},
+        ...(selfEffects ? {effects: structuredClone(selfEffects)} : {})};
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
     // A spell that fills its area with light (2024 Daylight's sunlight) is a lasting area shedding it.
     const shedding = spell ? sheddingArea({document, activity, system, definition}) : null;
@@ -1232,6 +1258,18 @@ const TRAITS = Object.freeze({
     predicate: {oneOf: {path: "castLevel", values: [1, 2, 3, 4, 5, 6, 7, 8, 9]}}, data: {domains: ["healing.spell"], modifierType: "untyped",
       valueExpression: {type: "add", terms: [{type: "constant", value: 2}, {type: "context", path: "castLevel"}]}}}],
   consumes: activities.filter(entry => entry.type === "heal"), notes: []}),
+  // 2024 Survivor (Heroic Rally): at the start of each of its turns, while Bloodied and at 1 Hit Point or more, it
+  // regains 5 + its Constitution modifier.
+  survivor: (document, {activities}) => {
+    const activity = activities.find(entry => entry.type === "heal");
+    if ( !activity ) return null;
+    return {rules: [{schemaVersion: 1, id: "heroic-rally", type: "Trigger", data: {event: "turn.started",
+      predicate: {all: [{bloodied: true}, {not: {equals: {path: "actor.system.resources.health.value", value: 0}}}]},
+      action: {schemaVersion: 1, id: "action:srd-survivor-heroic-rally", label: "Heroic Rally", costs: {allOf: []}, range: {type: "self"},
+        targeting: {type: "self"}, healing: [{id: "healing-1", healingType: "healing", expression: {type: "add",
+          terms: [{type: "constant", value: 5}, {type: "ability-modifier", ability: "fortitude"}]}}]}}}],
+    consumes: [activity], notes: []};
+  },
   "sneak-attack": (document, {activities, scales}) => {
     const activity = activities.find(entry => entry.type === "damage");
     const notes = [];
@@ -2760,7 +2798,7 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
       // A mode's Speed set to 0 (Caltrops, Freezing Burst): a factor of 0 on it.
       modifier([`speed.${match[1]}.multiplier`], {type: "constant", value: 0});
     } else if ( (match = /^system\.attributes\.movement\.(fly|swim|climb|burrow)$/.exec(key)) && ["upgrade", "override", "add"].includes(type) ) {
-      const distance = /^@attributes\.movement\.walk$/.test(String(change.value).trim())
+      const distance = /^@attributes\.movement\.(walk|speed)$/.test(String(change.value).trim())
         ? {type: "context", path: "actorSystem.resources.movement.max"} : (Number.isFinite(number) && (number > 0) ? number : null);
       if ( distance ) rule("GrantMovement", {mode: match[1], distance});
       else unmapped();

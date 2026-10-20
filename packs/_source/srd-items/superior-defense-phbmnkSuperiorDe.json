@@ -2,11 +2,66 @@
   "_id": "phbmnkSuperiorDe",
   "_key": "!items!phbmnkSuperiorDe",
   "name": "Superior Defense",
-  "type": "feature",
+  "type": "action",
   "img": "icons/magic/defensive/shield-barrier-blue.webp",
   "system": {
     "active": true,
     "description": "<p>At the start of your turn, you can expend 3 Focus Points to bolster yourself against harm for 1 minute or until you have the Incapacitated condition. During that time, you have Resistance to all damage except Force damage.</p><section id=\"secret-jojCvqn1dDjsyTzI\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature will expend 3 Focus Points and includes an Active Effect which will apply the relevant Resistances.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-superior-defense",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "monk-s-focus",
+            "amount": 3
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Superior Defense",
+          "img": "systems/dnd5e/icons/svg/items/feature.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "superior-defense-1",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "acid",
+                  "bludgeoning",
+                  "cold",
+                  "fire",
+                  "lightning",
+                  "necrotic",
+                  "piercing",
+                  "poison",
+                  "psychic",
+                  "radiant",
+                  "slashing",
+                  "thunder"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
+      "label": "Superior Defense"
+    },
     "ruleElements": []
   },
   "flags": {
@@ -21,9 +76,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"utility\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

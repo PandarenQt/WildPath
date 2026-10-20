@@ -1480,3 +1480,16 @@ test("weapon hit extras: Divine Strike's two types, Primal Strike's choice and L
   assert.deepEqual(read("elemental-fury-primal-strike").definition.configuration[0].allowedDamageTypes, ["cold", "fire", "lightning", "thunder"]);
   assert.deepEqual(read("rage-phbbrbRage000000").definition.effects.map(effect => effect.slug), ["raging"]);
 });
+
+test("gaps: Nature's Ward, Second-Story Work, Sear Undead's (Wis)d8, Steady Aim and Superior Defense convert", async () => {
+  const fs = await import("node:fs");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8")).system;
+  assert.deepEqual(read("nature-s-ward-").ruleElements.find(rule => rule.type === "ConditionImmunity").data.conditions, ["poisoned"]);
+  assert.equal(read("second-story-work-").ruleElements.find(rule => rule.type === "GrantMovement").data.mode, "climb");
+  assert.deepEqual(read("sear-undead-").definition.damage[0].expression.number, {type: "ability-modifier", ability: "wits"});
+  const aim = read("steady-aim-").definition;
+  assert.deepEqual([aim.costs.allOf[0].capability, aim.effects.map(effect => effect.ruleElements[0].type)], ["bonus-action", ["RollMode", "Modifier"]]);
+  const defense = read("superior-defense-").definition;
+  assert.deepEqual([defense.costs.allOf, defense.effects[0].ruleElements[0].type], [[{capability: "monk-s-focus", amount: 3}], "GrantResistance"]);
+});

@@ -24,7 +24,8 @@ const PREDICATE_KEYS = new Set([
   "equals",
   "oneOf",
   "poolEmpty",
-  "poolBelowMax"
+  "poolBelowMax",
+  "bloodied"
 ]);
 
 /* -------------------------------------------- */
@@ -62,7 +63,8 @@ export function evaluatePredicate(predicate, context={}) {
     evaluateConditions(predicate, context),
     evaluateEquals(predicate, context),
     evaluateOneOf(predicate, context),
-    evaluatePools(predicate, context)
+    evaluatePools(predicate, context),
+    evaluateBloodied(predicate, context)
   ];
   return tests.find(result => !result.ok) ?? pass();
 }
@@ -149,6 +151,14 @@ function evaluatePools(predicate, context) {
     if ( !found || ((Number(found.value) || 0) >= (Number(found.max) || 0)) ) return fail(`pool ${predicate.poolBelowMax} is not below its maximum`);
   }
   return pass();
+}
+
+/** `{bloodied: true}`: its creature has half its Hit Points or fewer (2024 Bloodied: Survivor's Heroic Rally). */
+function evaluateBloodied(predicate, context) {
+  if ( predicate.bloodied == null ) return pass();
+  const health = (context.actorSystem ?? context.actor?.system)?.resources?.health ?? {};
+  const bloodied = (Number(health.max) > 0) && ((Number(health.value) || 0) <= Number(health.max) / 2);
+  return (bloodied === Boolean(predicate.bloodied)) ? pass() : fail(`bloodied is not ${predicate.bloodied}`);
 }
 
 function resolvePath(object, path) {
