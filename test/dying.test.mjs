@@ -206,3 +206,23 @@ test("2024: a stable creature regains 1 health after 1d4 hours; world time and r
   assert.deepEqual(hurt.system.deathSaves, {successes: 0, failures: 1});
   assert.equal(hurt.flags.wildpath.stableSince, undefined);
 });
+
+test("drop to 0 outside an Action (a condition's damage): Relentless Endurance keeps 1 HP and pays; without a use the dying rules run", async () => {
+  const dying = createFoundryDying({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: []},
+    coordinator: {}, resolveAction: async () => ({ok: false})});
+  const orc = creature({health: 2});
+  orc.items = [{name: "Relentless Endurance", system: {active: true, ruleElements: [{type: "Trigger",
+    data: {kind: "zero-hp", event: "health.zero", zeroHp: {mode: "set", hitPoints: 1, pool: "relentless-endurance"}}}]}}];
+  orc.system.pools = [{id: "relentless-endurance", value: 1, max: 1}];
+  orc.toObject = function () { return {system: structuredClone(this.system)}; };
+  const bleed = {type: "durabilityDamage", plan: {...damage(2, 3), metadata: {damageType: "necrotic"}}};
+  orc.system.resources.health.value = 0;
+  await dying.afterPlans(orc, [bleed], {rescue: true});
+  assert.equal(orc.system.resources.health.value, 1, "kept at 1 HP");
+  assert.deepEqual(orc.effects, [], "not Unconscious");
+  assert.ok(orc.calls.some(([kind, data]) => (kind === "update") && JSON.stringify(data).includes("pools")), `its use is paid: ${JSON.stringify(orc.calls)}`);
+  orc.system.pools = [{id: "relentless-endurance", value: 0, max: 1}];
+  orc.system.resources.health.value = 0;
+  await dying.afterPlans(orc, [bleed], {rescue: true});
+  assert.deepEqual(orc.effects.map(effect => effect.system.type), ["unconscious"], "no use left: it drops");
+});

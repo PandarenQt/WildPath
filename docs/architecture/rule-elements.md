@@ -144,7 +144,15 @@ reads it, and no dispatcher runs it.
   - A use is paid on every attempt.
   - A hostile creature still at 0 gives the source its Temporary Hit Points, once.
   - The card shows "<feature>: stays up", never the DC or roll.
-- **shortcuts:** damage outside an Action (falling, a lasting area's repeat) is not checked; "you can" is automatic.
+- **Outside an Action (2026-10-20):** falling, lasting areas and turn triggers run as authority Actions, so the damage
+  stage covers them. A condition's damage at turn start (Bleeding, Envenomed) is checked by the dying adapter
+  (`afterPlans` with `rescue`), before the dying rules:
+  - `set` keeps its creature up and pays its use;
+  - `save` is a save-only authority Action on it, prompted or rolled by the dice policy.
+
+  `zeroHpFor` lives in `module/adapters/foundry-v14-zero-hp.mts`. A turn's condition damage now reaches the dying rules
+  too: Unconscious, death saves, death. Before this it did not.
+- **shortcuts:** manual HP edits (sheet, token bar) are not checked (the maintainer's choice); "you can" is automatic.
 
 **Bloodied (2026-10-20).** `{bloodied: true}` holds while its creature has half its Hit Points or fewer (2024 Bloodied).
 

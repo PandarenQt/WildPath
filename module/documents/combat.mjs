@@ -49,7 +49,10 @@ export default class WildPathCombat extends FoundryCombatDocument {
       console.warn("Wild Path | Managed Combat turn lifecycle commit failed", lifecycle);
     }
     // A condition's damage at turn start follows the dying rules too.
-    await globalThis.game?.wildpath?.dying?.afterPlans?.(actor, lifecycle.mutationPlans ?? []);
+    // Its conditions' damage at turn start (Bleeding, applied by startTurn) and the lifecycle's: a drop to 0 may be kept
+    // up first (Relentless Endurance, Undead Fortitude: rescue).
+    await globalThis.game?.wildpath?.dying?.afterPlans?.(actor, [...(recovery?.triggers?.mutationPlans ?? []),
+      ...(lifecycle.mutationPlans ?? [])], {rescue: true});
     await this.#applyTurnEvent("turn.started", combatant);
     // Summons whose rounds have run out leave before the turn goes on.
     try {
