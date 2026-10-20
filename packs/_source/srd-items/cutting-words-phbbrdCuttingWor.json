@@ -104,6 +104,41 @@
             ]
           }
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "reaction-check",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "check.succeeded",
+          "match": {
+            "phase": "interrupt",
+            "notSourceTokenId": "{self}"
+          },
+          "triggerPredicate": {
+            "all": [
+              {
+                "equals": {
+                  "path": "toSource.{self}.sees",
+                  "value": true
+                }
+              },
+              {
+                "equals": {
+                  "path": "toSource.{self}.hostile",
+                  "value": true
+                }
+              },
+              {
+                "atMost": {
+                  "path": "toSource.{self}.distance",
+                  "value": 60
+                }
+              }
+            ]
+          }
+        }
       }
     ]
   },
@@ -120,7 +155,10 @@
       },
       "conversion": {
         "notes": []
-      }
+      },
+      "grants": [
+        "1lx8h2edtoko0000"
+      ]
     }
   }
 }

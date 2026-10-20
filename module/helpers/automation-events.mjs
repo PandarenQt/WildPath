@@ -23,6 +23,8 @@ export const AUTOMATION_EVENT_TYPES = Object.freeze({
   ATTACK_ROLL: "attack.roll",
   ATTACK_HIT: "attack.hit",
   ATTACK_MISS: "attack.miss",
+  // An Action's ability check that succeeded, before its outcome counts (Cutting Words may still turn it).
+  CHECK_SUCCEEDED: "check.succeeded",
   SAVE_ROLL: "save.roll",
   SAVE_SUCCESS: "save.success",
   SAVE_FAILURE: "save.failure",

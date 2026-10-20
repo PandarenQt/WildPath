@@ -940,3 +940,37 @@ async function runDisruptScenario({id, roll}) {
     persistencePort
   };
 }
+
+test("Cutting Words on an ability check: a successful check is lowered by its die and judged again (a failed escape)", async () => {
+  const escaper = actorDocument("escaper", {system: actorSystem({action: 1, reaction: 1, ac: 14})});
+  const bard = actorDocument("bard", {system: actorSystem({action: 1, reaction: 1, hp: 20, ac: 12})});
+  const targetActors = targetActorsFor(escaper, bard);
+  const escape = {schemaVersion: 1, id: "action:test-escape", label: "Escape", costs: actionCost(), targeting: {type: "self"},
+    check: {ability: "agility", skill: "acrobatics", dc: {value: 13}}};
+  const words = {schemaVersion: 1, id: "action:test-cutting-words", label: "Cutting Words", costs: reactionCost(),
+    targeting: {type: "single", required: true, count: 1}, rider: {attackPenalty: {dice: {type: "constant", value: 5}}}};
+  const trigger = createReactionTrigger({id: "trigger:test-cutting-words", event: AUTOMATION_EVENT_TYPES.CHECK_SUCCEEDED,
+    match: {phase: AUTOMATION_EVENT_PHASES.INTERRUPT}, actorId: bard.id, actionId: words.id, actionRef: words.id, action: words,
+    chooser: {kind: "specific", userId: "player-b"}});
+  const services = {targetActors, reactions: {triggers: [trigger], resourcesByActor: {[bard.id]: reactionResourcesFor(bard)},
+    controllerUserIdsByActor: {[bard.id]: ["player-b"]}, actorDocumentsByActor: {[bard.id]: bard}, actorSystemsByActor: {[bard.id]: bard.system},
+    // Its target is the creature whose check it answers, as the Foundry reaction services make it.
+    createChildState: ({parentState, candidate, baseChildState}) => createActionResolutionState({...baseChildState,
+      actorSystem: bard.system, action: actionItem(candidate.actionDefinition), source: candidate.reactor, targets: [targetRef(escaper.id)],
+      metadata: {...baseChildState.metadata, parentResolutionId: parentState.id}})}};
+  const waiting = planStagedActionResolution({id: "resolution:cutting-check", actor: escaper, action: actionItem(escape),
+    source: {actorId: escaper.id, actorRef: escaper.uuid}, targets: [], check: {ability: "agility", skill: "acrobatics", dc: 13,
+      roll: {total: 16, die: 12}}, targetActors, services});
+  assert.equal(waiting.ok, true, resultDiagnostic(waiting));
+  assert.equal(waiting.state.currentStageId, ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_CHECK_OUTCOME, "offered once the check succeeds");
+  assert.equal(waiting.state.results.checkResolution.success, true);
+  const selected = resumeStagedActionResolution({state: waiting.state, response: acceptResponse(waiting.state.pendingRequests[0]), services});
+  const child = await executeStagedActionResolution({state: selected.state.metadata.activeChildResolution, actor: bard,
+    action: actionItem(words), targetActors, authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"},
+    persistencePort: createTestDocumentPersistenceAdapter()});
+  assert.equal(child.state.status, RESOLUTION_STATE_STATUS.COMPLETED, resultDiagnostic(child));
+  const resumed = completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services});
+  assert.equal(resumed.ok, true, resultDiagnostic(resumed));
+  assert.deepEqual([resumed.state.results.checkResolution.success, resumed.state.input.check.roll.total], [false, 11],
+    "16 less 5 is 11 against DC 13: the escape fails");
+});

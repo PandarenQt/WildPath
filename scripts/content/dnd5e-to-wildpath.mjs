@@ -99,8 +99,8 @@ const REACTIONS = Object.freeze({
     triggerPredicate: {atMost: {path: "event.data.relations.{self}.distance", value: 5}}, commonAction: "opportunity"},
   counterspell: {event: "action.declared", match: {phase: "interrupt", tagsAll: ["spell"], notTagsAny: [UNCOUNTERABLE],
     notSourceTokenId: "{self}"}, triggerPredicate: seenHostileWithin(60), counters: true},
-  // A hostile creature it sees within 60 feet hits with an attack: its die (Bardic Inspiration's) is subtracted from that
-  // attack roll, which is then checked again. shortcut: its use on a damage roll or an ability check is by hand.
+  // A hostile creature it sees within 60 feet hits with an attack or succeeds on an ability check: its die (Bardic
+  // Inspiration's) is subtracted from that roll, which is then checked again. Its damage roll: Cutting Words (Damage).
   "cutting-words": {event: "attack.hit", match: {phase: "interrupt", notSourceTokenId: "{self}"}, triggerPredicate: seenHostileWithin(60),
     attackPenalty: true}
 });
@@ -1104,6 +1104,19 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...(trigger.onceKey ? {onceKey: trigger.onceKey} : {}), ...(trigger.uses ? {uses: trigger.uses} : {})}});
     if ( flurry ) reacting.system.ruleElements.push(structuredClone(FLURRY_POOL));
     items.push(reacting);
+    // Cutting Words on an ability check (the same die off it, then judged again), and on a damage roll: an Action of its
+    // own, which comes with it (`grants`), whose die comes off that roll before anyone's share of it.
+    if ( penaltyDie ) {
+      reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction-check", type: "Trigger", data: {kind: "reaction",
+        event: "check.succeeded", match: {phase: "interrupt", notSourceTokenId: "{self}"}, triggerPredicate: seenHostileWithin(60)}});
+      const damageId = stableId(`${id}:damage`);
+      const onDamage = action(damageId, `${document.name}${suffix} (Damage)`, {...definition, id: `${definition.id}-damage`,
+        rider: {damagePenalty: {dice: structuredClone(penaltyDie)}}});
+      onDamage.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction",
+        event: "damage.applied", match: {phase: "before", notSourceTokenId: "{self}"}, triggerPredicate: seenHostileWithin(60)}});
+      reacting.flags.wildpath.grants = [damageId];
+      items.push(onDamage);
+    }
     for ( const other of choices?.slice(1) ?? [] ) items.push(action(stableId(`${id}:${other}`), `${document.name}${suffix}${title(other)}`,
       commonActivity({document, activity, system, spell, level, pool}, [other])));
     // A lasting area its caster can move ("a Magic action ... to move the Cylinder up to 60 feet"): its own Action.

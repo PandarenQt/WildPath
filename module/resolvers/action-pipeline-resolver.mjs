@@ -105,6 +105,7 @@ export const ACTION_PIPELINE_STAGE_IDS = Object.freeze({
   ATTACK_OUTCOME: "action.attack-outcome",
   REACTION_AFTER_ACTION_DECLARED: "action.reaction.after-action-declared",
   REACTION_AFTER_ATTACK_OUTCOME: "action.reaction.after-attack-outcome",
+  REACTION_AFTER_CHECK_OUTCOME: "action.reaction.after-check-outcome",
   REACTION_BEFORE_DAMAGE: "action.reaction.before-damage",
   REACTION_AFTER_DAMAGE: "action.reaction.after-damage",
   SAVE_ROLL: "action.save-roll",
@@ -227,7 +228,10 @@ export function createActionResolutionPipeline({reactions=false}={}) {
     createTargetingStage(),
     createRangeStage(),
     createCheckRollStage(),
-    createCheckOutcomeStage(),
+    createCheckOutcomeStage()
+  );
+  if ( reactions ) stages.push(createCheckOutcomeReactionStage());
+  stages.push(
     createAttackRollStage(),
     createAttackOutcomeStage()
   );
@@ -415,6 +419,7 @@ export function completeStagedReactionChildResolution({
 const REACTION_STAGE_BY_TIMING = Object.freeze({
   [REACTION_WINDOW_TIMINGS.AFTER_ACTION_DECLARED]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ACTION_DECLARED,
   [REACTION_WINDOW_TIMINGS.AFTER_OUTCOME]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ATTACK_OUTCOME,
+  [REACTION_WINDOW_TIMINGS.AFTER_CHECK_OUTCOME]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_CHECK_OUTCOME,
   [REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE]: ACTION_PIPELINE_STAGE_IDS.REACTION_BEFORE_DAMAGE,
   [REACTION_WINDOW_TIMINGS.AFTER_DAMAGE]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_DAMAGE
 });
@@ -459,6 +464,33 @@ function createAttackOutcomeReactionStage() {
     id: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ATTACK_OUTCOME,
     timing: REACTION_WINDOW_TIMINGS.AFTER_OUTCOME,
     eventSelector: attackOutcomeReactionEvent
+  });
+}
+
+function createCheckOutcomeReactionStage() {
+  return createActionPipelineReactionStage({
+    id: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_CHECK_OUTCOME,
+    timing: REACTION_WINDOW_TIMINGS.AFTER_CHECK_OUTCOME,
+    eventSelector: checkSucceededReactionEvent
+  });
+}
+
+/**
+ * `check.succeeded`: the Action's own ability check succeeded (an escape from a grapple), before that counts. A reaction
+ * may lower it (Cutting Words), and it is judged again. Its source is the creature that rolled it.
+ */
+function checkSucceededReactionEvent(state) {
+  const input = preparedResolverInput(state);
+  if ( !input.check || !state.results?.checkResolution?.success ) return null;
+  return createAutomationEvent({
+    id: `event:${state.id}:check-succeeded`,
+    type: AUTOMATION_EVENT_TYPES.CHECK_SUCCEEDED,
+    phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
+    source: state.actionContext?.source ?? input.source ?? state.source ?? null,
+    targets: input.targets ?? [],
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), input.check.ability, input.check.skill].filter(Boolean)),
+    data: {action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
+      total: Number(input.check.roll?.total) || 0, dc: input.check.dc ?? null, timing: REACTION_WINDOW_TIMINGS.AFTER_CHECK_OUTCOME}
   });
 }
 
@@ -2382,9 +2414,12 @@ function createPaymentStage() {
       if ( penalty?.wait ) return penalty.wait;
       const reduction = riderRoll(state, input, state.actionDefinition?.rider?.reduceDamage, "reduction");
       if ( reduction?.wait ) return reduction.wait;
+      // Cutting Words on a damage roll: its die comes off that roll.
+      const damagePenalty = riderRoll(state, input, state.actionDefinition?.rider?.damagePenalty, "damage-penalty");
+      if ( damagePenalty?.wait ) return damagePenalty.wait;
       const rider = state.actionDefinition?.rider
         ? {...clonePlain(state.actionDefinition.rider), ...(penalty ? {attackPenalty: penalty.total} : {}),
-          ...(reduction ? {reduceDamage: reduction.total} : {})} : null;
+          ...(reduction ? {reduceDamage: reduction.total} : {}), ...(damagePenalty ? {damagePenalty: damagePenalty.total} : {})} : null;
       return continueResolutionStage({
         state: stateWithActionResult(state, {
           input,
@@ -2944,6 +2979,9 @@ function reevaluateParentAfterReaction({parentState, childState, window, service
   const directive = childState?.results?.parentDirective;
   // A rider lowering its attack roll (Cutting Words) is checked again against its targets, as a Parry's AC is.
   const penalty = Number(directive?.data?.attackPenalty);
+  // On a successful ability check (its own window), the check is lowered and judged again against its DC.
+  if ( (directive?.type === "augment") && Number.isFinite(penalty) && penalty && (window?.timing === REACTION_WINDOW_TIMINGS.AFTER_CHECK_OUTCOME)
+    && state.input?.check?.roll ) return recheckAfterPenalty(state, penalty, {window, childState});
   if ( (directive?.type === "augment") && Number.isFinite(penalty) && penalty && state.input?.attack?.roll ) {
     const roll = state.input.attack.roll;
     state = updateResolutionState(state, {input: {...state.input, attack: {...state.input.attack, roll: {...roll,
@@ -3047,6 +3085,9 @@ function riderRoll(state, input, spec, key) {
     const row = Object.keys(dice.rows ?? {}).map(Number).filter(level => key.ok && (level <= key.value)).sort((a, b) => b - a)[0];
     dice = (row === undefined) ? null : dice.rows[String(row)] ?? dice.rows[row];
   }
+  const bonusOf = () => (spec.bonus ? (Number(evaluateValueExpression(spec.bonus, context).value) || 0) : 0);
+  // A flat amount (a homebrew rider) needs no roll.
+  if ( dice?.type === "constant" ) return {total: Math.max((Number(dice.value) || 0) + bonusOf(), 0)};
   if ( (dice?.type !== "dice") || !(Number(dice.faces) > 0) ) return null;
   const rolled = addedDie(state, input, {option: {addDice: {number: Number(dice.number) || 1, faces: Number(dice.faces)}, label: state.actionDefinition.label},
     key, stageId: ACTION_PIPELINE_STAGE_IDS.PAYMENT, rollKind: "rider",
@@ -3055,8 +3096,31 @@ function riderRoll(state, input, spec, key) {
     targets: [], original: {total: 0}});
   if ( rolled.wait ) return {wait: rolled.wait};
   if ( rolled.fail ) return null;
-  const bonus = spec.bonus ? (Number(evaluateValueExpression(spec.bonus, context).value) || 0) : 0;
-  return {total: Math.max((Number(rolled.roll?.total) || 0) + bonus, 0)};
+  return {total: Math.max((Number(rolled.roll?.total) || 0) + bonusOf(), 0)};
+}
+
+/** Its ability check lowered by `penalty` (Cutting Words) and judged again against its DC. */
+function recheckAfterPenalty(state, penalty, {window, childState}) {
+  const check = state.input.check;
+  const roll = {...check.roll, total: (Number(check.roll.total) || 0) - penalty,
+    modifiers: [...(check.roll.modifiers ?? []), {id: "check-penalty", value: -penalty}]};
+  const before = state.results?.checkResolution ?? null;
+  const after = resolveSaveAgainstDC({roll, dc: check.dc, policy: check.policy ?? {}});
+  if ( !after.ok ) return {ok: false, type: "check-outcome", code: after.code, before, after};
+  return {ok: true, type: "check-outcome", reactionWindowId: window?.id ?? null, childResolutionId: childState?.id ?? null,
+    before, after, inputPatch: {check: {...check, roll}}, results: {checkResolution: after}};
+}
+
+/** Damage components with `penalty` taken off their rolled amounts in order, none below 0 (Cutting Words). */
+function lessRolledDamage(components, penalty) {
+  let left = Math.max(Number(penalty) || 0, 0);
+  return normalizeArray(components).map(component => {
+    const amount = Number(component?.amount);
+    if ( !left || !Number.isFinite(amount) ) return component;
+    const taken = Math.min(amount, left);
+    left -= taken;
+    return {...component, amount: amount - taken};
+  });
 }
 
 function riderPatch(state, rider, {window, childState}) {
@@ -3085,6 +3149,9 @@ function riderPatch(state, rider, {window, childState}) {
       ...((forgo || added.length) ? {damage: {...damage, ...(damage.components ? {components} : {}),
         extraComponents: [...extras, ...riderDefinitions]}} : {}),
       // Its mode replaces the attack's, sources and all (Brutal Strike forgoes Advantage).
+      // Cutting Words on a damage roll: that much comes off the roll, before any target's share of it is worked out.
+      ...((Number(rider.damagePenalty) > 0) && damage.components ? {damage: {...damage,
+        components: lessRolledDamage(damage.components, rider.damagePenalty)}} : {}),
       ...((rider.rollMode && input.attack) ? {attack: {...input.attack, rollMode: rider.rollMode, rollModeSources: [rider.rollMode]}} : {}),
       ...(rider.tags?.length ? {riderTags: uniqueStrings([...(input.riderTags ?? []), ...rider.tags])} : {}),
       ...(rider.push ? {riderPush: clonePlain(rider.push)} : {}),
