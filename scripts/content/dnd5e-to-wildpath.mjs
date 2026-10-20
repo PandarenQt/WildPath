@@ -895,13 +895,17 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   document = upgradeLegacy(document);
   const system = document.system ?? {};
-  const activities = Object.values(system.activities ?? {}).sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+  // An activity with no type is a stale leftover (Tasha's infusions carry one), not something it does.
+  const activities = Object.values(system.activities ?? {}).filter(activity => activity?.type)
+    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
   const spell = document.type === "spell";
   const level = number(system.level) ?? 0;
   const pool = usesPool({document, scales}) ?? spentPool(activities, names);
   const description = houseText(document, describe(document, {names, creature}));
   const source = {system: "dnd5e", pack, id: document._id, type: document.type, book,
     license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024",
+    // What it is, for prerequisites and pools by kind (an Eldritch Invocation, a Fighting Style, an infusion).
+    identifier: identifierOf(document), subtype: system.type?.subtype || null,
     // A feat's category (origin, general, fightingStyle, epicBoon), which the level-up dialog offers (G8).
     ...((system.type?.value === "feat") ? {feat: system.type.subtype || "general"} : {})};
   const img = kept(document.img, images) ?? "icons/svg/item-bag.svg";
@@ -1423,7 +1427,7 @@ export function convertProgression(document, {uuidOf=() => [], licensed=isSrd202
     if ( senses.length ) fields.ruleElements = senses;
   }
   const source = {system: "dnd5e", pack, id: document._id, type: document.type, book,
-    license: system.source?.license || null, rules: system.source?.rules || "2024"};
+    license: system.source?.license || null, rules: system.source?.rules || "2024", identifier: identifierOf(document)};
   return {ok: true, notes, item: {_id: document._id, _key: `!items!${document._id}`, name: document.name, type,
     img: kept(document.img, images) ?? "icons/svg/book.svg",
     system: {active: true, description: describe(document, {names}), ...fields},

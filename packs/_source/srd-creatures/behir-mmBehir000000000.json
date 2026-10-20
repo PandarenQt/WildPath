@@ -139,7 +139,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -228,7 +230,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "bite",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -339,7 +343,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "constrict",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -405,7 +411,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "swallow",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -507,7 +515,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "lightning-breath",
+            "subtype": null
           },
           "conversion": {
             "notes": []

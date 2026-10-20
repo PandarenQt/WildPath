@@ -113,7 +113,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "ink-cloud",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -143,7 +145,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "compression",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -171,7 +175,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "water-breathing",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -252,7 +258,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "tentacles",
+            "subtype": null
           },
           "conversion": {
             "notes": []

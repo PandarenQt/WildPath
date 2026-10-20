@@ -88,7 +88,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "diabolical-restoration",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -116,7 +118,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "fear-aura",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -163,7 +167,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "magic-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -261,7 +267,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -301,7 +309,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "legendary-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -380,7 +390,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "bite",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -433,7 +445,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "bite",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -514,7 +528,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "devilish-claw",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -608,7 +624,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "fiery-mace",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -720,6 +738,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "fireball",
+            "subtype": null,
             "castBy": "Hellfire Spellcasting"
           },
           "conversion": {
@@ -822,6 +842,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "hold-monster",
+            "subtype": null,
             "castBy": "Hellfire Spellcasting"
           },
           "conversion": {
@@ -988,6 +1010,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "wall-of-fire",
+            "subtype": null,
             "castBy": "Hellfire Spellcasting"
           },
           "conversion": {

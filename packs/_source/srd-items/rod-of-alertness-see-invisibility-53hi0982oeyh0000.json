@@ -77,6 +77,8 @@
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
         "rules": "2024",
+        "identifier": "see-invisibility",
+        "subtype": null,
         "castBy": "Rod of Alertness"
       },
       "conversion": {

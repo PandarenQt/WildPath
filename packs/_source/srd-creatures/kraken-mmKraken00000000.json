@@ -90,7 +90,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "amphibious",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -130,7 +132,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "legendary-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -158,7 +162,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "siege-monster",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -239,7 +245,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -336,7 +344,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "tentacle",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -427,7 +437,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "fling",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -510,7 +522,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "lightning-strike",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -607,7 +621,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "swallow",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -671,7 +687,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "swallow",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -712,7 +730,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "storm-bolt",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -788,7 +808,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "toxic-ink",
+            "subtype": null
           },
           "conversion": {
             "notes": []

@@ -79,7 +79,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "swarm",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -158,7 +160,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "swarm-of-grasping-hands",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -245,7 +249,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "swarm-of-grasping-hands",
+            "subtype": null
           },
           "conversion": {
             "notes": []

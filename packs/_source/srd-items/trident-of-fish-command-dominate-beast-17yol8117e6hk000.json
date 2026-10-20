@@ -94,6 +94,8 @@
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
         "rules": "2024",
+        "identifier": "dominate-beast",
+        "subtype": null,
         "castBy": "Trident of Fish Command"
       },
       "conversion": {

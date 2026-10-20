@@ -147,7 +147,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "longbow",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -228,7 +230,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -311,7 +315,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "bite",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -404,7 +410,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "bite",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -464,7 +472,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "bite",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -544,7 +554,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "scratch",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -585,7 +597,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "shape-shift",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -628,7 +642,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "prowl",
+            "subtype": null
           },
           "conversion": {
             "notes": [

@@ -107,7 +107,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "magic-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -189,7 +191,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "rend",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -249,7 +253,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "burst-of-ingenuity",
+            "subtype": null
           },
           "conversion": {
             "notes": [

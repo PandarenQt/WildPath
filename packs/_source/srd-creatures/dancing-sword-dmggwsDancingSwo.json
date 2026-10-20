@@ -144,7 +144,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "greatsword",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -242,7 +244,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "longsword",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -340,7 +344,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "longsword",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -441,7 +447,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "rapier",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -542,7 +550,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "scimitar",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -643,7 +653,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "shortsword",
+            "subtype": null
           },
           "conversion": {
             "notes": []

@@ -101,7 +101,9 @@
             "type": "container",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "component-pouch",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -141,7 +143,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "legendary-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -169,7 +173,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "spirit-jar",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -235,7 +241,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -314,6 +322,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-magic",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -374,6 +384,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-thoughts",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -444,6 +456,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "dispel-magic",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -538,6 +552,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "fireball",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -612,6 +628,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "invisibility",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -704,6 +722,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "lightning-bolt",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -770,6 +790,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "mage-hand",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -822,6 +844,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "prestidigitation",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -991,6 +1015,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "animate-dead",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1066,6 +1092,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "dimension-door",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1139,6 +1167,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "plane-shift",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1250,6 +1280,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "chain-lightning",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1364,6 +1396,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "finger-of-death",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1460,6 +1494,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "power-word-kill",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1579,6 +1615,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "scrying",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1694,6 +1732,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "counterspell",
+            "subtype": null,
             "castBy": "Protective Magic"
           },
           "conversion": {
@@ -1789,6 +1829,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "shield",
+            "subtype": null,
             "castBy": "Protective Magic"
           },
           "conversion": {
@@ -1863,7 +1905,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "deathly-teleport",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -1939,7 +1983,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "disrupt-life",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -2019,6 +2065,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "fear",
+            "subtype": null,
             "castBy": "Frightening Gaze"
           },
           "conversion": {
@@ -2099,7 +2147,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "eldritch-burst",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -2186,7 +2236,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "paralyzing-touch",
+            "subtype": null
           },
           "conversion": {
             "notes": []

@@ -59,6 +59,8 @@
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
         "rules": "2024",
+        "identifier": "knock",
+        "subtype": null,
         "castBy": "Chime of Opening"
       },
       "conversion": {

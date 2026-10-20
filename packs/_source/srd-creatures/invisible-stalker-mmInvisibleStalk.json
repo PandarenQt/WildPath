@@ -87,7 +87,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "air-form",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -115,7 +117,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "invisibility",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -196,7 +200,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -276,7 +282,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "wind-swipe",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -377,7 +385,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "vortex",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -442,7 +452,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "vortex",
+            "subtype": null
           },
           "conversion": {
             "notes": [

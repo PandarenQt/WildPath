@@ -90,7 +90,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "greater-magic-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -118,7 +120,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "fiendish-restoration",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -182,7 +186,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -286,7 +292,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "cursed-touch",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -399,7 +407,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "baleful-command",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -478,6 +488,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-magic",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -538,6 +550,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-thoughts",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -613,6 +627,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "disguise-self",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -679,6 +695,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "mage-hand",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -761,6 +779,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "minor-illusion",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -870,6 +890,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "fly",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -961,6 +983,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "invisibility",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1068,6 +1092,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "major-image",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1139,6 +1165,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "plane-shift",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {

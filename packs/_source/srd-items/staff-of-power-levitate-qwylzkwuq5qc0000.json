@@ -125,6 +125,8 @@
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
         "rules": "2024",
+        "identifier": "levitate",
+        "subtype": null,
         "castBy": "Staff of Power"
       },
       "conversion": {

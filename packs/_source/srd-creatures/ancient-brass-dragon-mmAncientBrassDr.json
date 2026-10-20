@@ -107,7 +107,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "legendary-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -188,7 +190,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -277,7 +281,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "rend",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -377,7 +383,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "fire-breath",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -457,7 +465,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "sleep-breath",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -530,7 +540,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "sleep-breath",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -609,6 +621,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-magic",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -693,6 +707,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "minor-illusion",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -788,6 +804,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "scorching-ray",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -848,6 +866,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "shapechange",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -932,6 +952,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "speak-with-animals",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1009,6 +1031,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "control-weather",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1091,6 +1115,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-thoughts",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1194,6 +1220,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "scorching-ray",
+            "subtype": null,
             "castBy": "Blazing Light"
           },
           "conversion": {
@@ -1237,7 +1265,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "pounce",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -1392,7 +1422,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "scorching-sands",
+            "subtype": null
           },
           "conversion": {
             "notes": []

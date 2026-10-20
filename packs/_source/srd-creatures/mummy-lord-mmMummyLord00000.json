@@ -103,7 +103,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "legendary-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -131,7 +133,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "undead-restoration",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -176,7 +180,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "magic-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -280,7 +286,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "rotting-fist",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -324,7 +332,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "rotting-fist",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -407,7 +417,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -473,6 +485,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "dispel-magic",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -564,6 +578,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "thaumaturgy",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -731,6 +747,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "animate-dead",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -836,6 +854,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "harm",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -995,6 +1015,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "insect-plague",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1069,7 +1091,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "channel-negative-energy",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -1122,7 +1146,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "glare",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -1255,7 +1281,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "whirlwind-of-sand",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -1515,6 +1543,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "command",
+            "subtype": null,
             "castBy": "Dread Command"
           },
           "conversion": {
@@ -1558,7 +1588,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "necrotic-strike",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -1651,7 +1683,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "dreadful-glare",
+            "subtype": null
           },
           "conversion": {
             "notes": []

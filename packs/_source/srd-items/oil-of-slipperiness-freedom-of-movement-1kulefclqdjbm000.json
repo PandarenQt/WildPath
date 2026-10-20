@@ -107,6 +107,8 @@
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
         "rules": "2024",
+        "identifier": "freedom-of-movement",
+        "subtype": null,
         "castBy": "Oil of Slipperiness"
       },
       "conversion": {

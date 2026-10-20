@@ -79,7 +79,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "life-bond",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -172,7 +174,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "otherworldly-slam",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -258,7 +262,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "fell-glare",
+            "subtype": null
           },
           "conversion": {
             "notes": []

@@ -128,7 +128,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -208,7 +210,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "arcane-burst",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -287,6 +291,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-magic",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -353,6 +359,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "light",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -453,6 +461,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "mage-armor",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -517,6 +527,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "mage-hand",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -569,6 +581,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "prestidigitation",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -682,6 +696,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "fireball",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -775,6 +791,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "invisibility",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -882,6 +900,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "cone-of-cold",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -991,6 +1011,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "fly",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1066,6 +1088,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "misty-step",
+            "subtype": null,
             "castBy": "Misty Step"
           },
           "conversion": {
@@ -1195,6 +1219,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "counterspell",
+            "subtype": null,
             "castBy": "Protective Magic"
           },
           "conversion": {
@@ -1308,6 +1334,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "shield",
+            "subtype": null,
             "castBy": "Protective Magic"
           },
           "conversion": {

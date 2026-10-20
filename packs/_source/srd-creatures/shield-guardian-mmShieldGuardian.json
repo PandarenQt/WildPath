@@ -74,7 +74,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "bound",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -142,7 +144,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "regeneration",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -170,7 +174,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "spell-storing",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -234,7 +240,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -323,7 +331,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "fist",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -397,7 +407,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "protection",
+            "subtype": null
           },
           "conversion": {
             "notes": []

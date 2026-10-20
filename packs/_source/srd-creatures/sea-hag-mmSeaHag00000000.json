@@ -81,7 +81,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "amphibious",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -152,6 +154,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "augury",
+            "subtype": null,
             "castBy": "Coven Magic"
           },
           "conversion": {
@@ -353,6 +357,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "find-familiar",
+            "subtype": null,
             "castBy": "Coven Magic"
           },
           "conversion": {
@@ -424,6 +430,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "identify",
+            "subtype": null,
             "castBy": "Coven Magic"
           },
           "conversion": {
@@ -504,6 +512,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "locate-object",
+            "subtype": null,
             "castBy": "Coven Magic"
           },
           "conversion": {
@@ -626,6 +636,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "scrying",
+            "subtype": null,
             "castBy": "Coven Magic"
           },
           "conversion": {
@@ -714,6 +726,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "unseen-servant",
+            "subtype": null,
             "castBy": "Coven Magic"
           },
           "conversion": {
@@ -742,7 +756,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "vile-appearance",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -815,7 +831,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "claw",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -910,7 +928,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "death-glare",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -981,6 +1001,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "disguise-self",
+            "subtype": null,
             "castBy": "Illusory Appearance"
           },
           "conversion": {

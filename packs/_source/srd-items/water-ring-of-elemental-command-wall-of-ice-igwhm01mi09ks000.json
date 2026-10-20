@@ -123,6 +123,8 @@
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
         "rules": "2024",
+        "identifier": "wall-of-ice",
+        "subtype": null,
         "castBy": "Water Ring of Elemental Command"
       },
       "conversion": {

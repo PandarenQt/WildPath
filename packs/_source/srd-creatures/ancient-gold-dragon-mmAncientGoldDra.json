@@ -93,7 +93,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "amphibious",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -133,7 +135,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "legendary-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -174,7 +178,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -257,7 +263,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "rend",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -356,7 +364,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "fire-breath",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -435,6 +445,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-magic",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -547,6 +559,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "guiding-bolt",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -607,6 +621,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "shapechange",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -740,6 +756,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "flame-strike",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -811,6 +829,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "word-of-recall",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -969,6 +989,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "zone-of-truth",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1071,7 +1093,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "weakening-breath",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -1154,7 +1178,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "banish",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -1264,6 +1290,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "guiding-bolt",
+            "subtype": null,
             "castBy": "Guiding Light"
           },
           "conversion": {
@@ -1307,7 +1335,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "pounce",
+            "subtype": null
           },
           "conversion": {
             "notes": [

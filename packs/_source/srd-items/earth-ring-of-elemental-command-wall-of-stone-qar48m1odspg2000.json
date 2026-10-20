@@ -83,6 +83,8 @@
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
         "rules": "2024",
+        "identifier": "wall-of-stone",
+        "subtype": null,
         "castBy": "Earth Ring of Elemental Command"
       },
       "conversion": {

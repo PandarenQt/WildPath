@@ -127,7 +127,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -217,7 +219,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "vine-staff",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -297,7 +301,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "verdant-wisp",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -349,6 +355,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "druidcraft",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -432,6 +440,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "speak-with-animals",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -534,6 +544,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "entangle",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -643,6 +655,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "thunderwave",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -747,6 +761,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "animal-messenger",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -859,6 +875,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "longstrider",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1018,6 +1036,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "moonbeam",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {

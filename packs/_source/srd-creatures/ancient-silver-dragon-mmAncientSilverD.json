@@ -145,7 +145,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -185,7 +187,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "legendary-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -281,7 +285,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "cold-breath",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -370,7 +376,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "rend",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -495,7 +503,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "paralyzing-breath",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -586,6 +596,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-magic",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -680,6 +692,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "hold-monster",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -775,6 +789,8 @@
             "book": "SRD 5.2",
             "license": null,
             "rules": "2024",
+            "identifier": "ice-knife",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -848,6 +864,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "shapechange",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -944,6 +962,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "control-weather",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1091,6 +1111,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "ice-storm",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1178,6 +1200,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "teleport",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1351,6 +1375,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "zone-of-truth",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1449,6 +1475,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "hold-monster",
+            "subtype": null,
             "castBy": "Chill"
           },
           "conversion": {
@@ -1532,7 +1560,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "cold-gale",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -1573,7 +1603,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "pounce",
+            "subtype": null
           },
           "conversion": {
             "notes": [
