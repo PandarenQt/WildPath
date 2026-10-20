@@ -454,7 +454,19 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     30 ft of it. shortcut: the attack isn't checked again against the new creature's AC, the attack's other effects
     stay, and the new creature makes no concentration check.
 
+  - **Protective Bond** (Tasha's): Emboldening Bond's "Bonded" effect carries a Trigger with its own Action
+    (`data.action`). The provider offers it as an Item of its creature (`effectReactionItems`), only while the cleric
+    who gave the effect has Protective Bond (`giverItem`).
+    - **Offered to:** a bonded creature within 30 ft of another bonded creature that is about to take damage
+      (`targetEffects.bonded`: the first damaged creature's effects by name).
+    - **What it does:** it takes the damage (`redirectDamage: {to: "self"}`) and teleports to the nearest free space
+      beside that creature (`teleportNextTo` → `riderTeleport`, `spaceBeside`).
+    - shortcut: Expansive Bond's 60 ft and resistance aren't applied.
+
   Live (two browsers, 14.369):
+  - **Protective Bond.** QA Caster with Emboldening Bond and Protective Bond bonded QA Ally and QA Fighter, the
+    Fighter 20 ft from the Ally. The Captain's hit on QA Ally (8) offered Protective Bond. QA Fighter teleported beside
+    QA Ally and took the 8, and its Reaction was spent.
   - **Interception.** The Bandit Captain's Scimitar hit QA Ally for 7. Player1 declined Cloud Rune and took
     Interception for QA Fighter, whose Reaction was spent; QA Ally stayed at 10.
   - **Cloud Rune.** The next hit (8) offered Cloud Rune, then a choice of QA Saver, QA Wizard or QA Fighter. QA Wizard

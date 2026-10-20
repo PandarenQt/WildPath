@@ -71,15 +71,43 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
                 });
         }
         // Each reactor's relation to the event's source (`toSource`), and to the first creature it damages or targets
-        // (`toTarget`, that creature itself as `self`: Interception, Cloud Rune).
-        return triggers.length ? { reactions: { triggers, context: ({ event }) => ({ toSource: relationsToSource(scene, event),
-                    toTarget: relationsToSource(scene, { source: { tokenId: (event?.targets?.[0]?.tokenId ?? null) } }, { includeSource: true }) }) },
+        // (`toTarget`, that creature itself as `self`: Interception, Cloud Rune); and that creature's effects by name
+        // (`targetEffects.<slug>`: Protective Bond's other bonded creature).
+        return triggers.length ? { reactions: { triggers, context: ({ event }) => {
+                    const targetId = (event?.targets?.[0]?.tokenId ?? null);
+                    const target = targetId ? [...scene.tokens].find(token => token.id === targetId) ?? null : null;
+                    return { toSource: relationsToSource(scene, event), toTarget: relationsToSource(scene, { source: { tokenId: targetId } }, { includeSource: true }),
+                        targetEffects: Object.fromEntries([...(target?.actor?.effects ?? [])].filter(effect => !effect.disabled && !effect.isSuppressed)
+                            .map(effect => [slug(effect.name), true])) };
+                } },
             ...(observers.length ? { movement: { observers } } : {}) } : {};
     };
 }
+/** A name as a key: lower case, words joined by hyphens ("Bonded" → "bonded"). */
+const slug = (name) => String(name ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+/**
+ * The reactions an effect on its creature gives it (a Trigger carrying its own Action, `data.action`: Protective Bond on
+ * Emboldening Bond's "Bonded"), each as an Item of its own so it is offered like any other. One naming `giverItem` is
+ * there only while the creature that gave the effect has that feature (its identifier: "protective-bond").
+ */
+export function effectReactionItems(actor, { fromUuidSync = globalThis.fromUuidSync } = {}) {
+    return [...(actor.effects ?? [])].filter(effect => !effect.disabled && !effect.isSuppressed).flatMap(effect => (effect.system?.ruleElements ?? []).filter(element => (element.type === "Trigger") && element.data?.action)
+        .flatMap(element => {
+        const { action, giverItem, ...data } = element.data;
+        if (giverItem) {
+            const sourceRef = String(effect.flags?.wildpath?.conditionEffect?.sourceRef ?? "").replace(/^uuid:/, "");
+            const giver = (sourceRef ? fromUuidSync?.(sourceRef) : null);
+            const items = [...((giver?.items ?? giver?.actor?.items) ?? [])];
+            if (!items.some(item => (item.system?.active !== false) && (item.flags?.wildpath?.source?.identifier === giverItem)))
+                return [];
+        }
+        return [{ id: `${effect.id}-${String(element.id ?? "reaction")}`, type: "action", name: String(action.label ?? effect.name ?? ""),
+                system: { active: true, definition: action, ruleElements: [{ ...element, data }] } }];
+    }));
+}
 function tokenReactions(token) {
     const actor = token.actor;
-    const items = [...(actor.items ?? [])];
+    const items = [...(actor.items ?? []), ...effectReactionItems(actor)];
     return items.flatMap(item => {
         if (item.system?.active === false)
             return [];
