@@ -47,6 +47,24 @@ export function levelSteps(advancement: readonly AdvancementEntry[], level: numb
 }
 
 /** 2024 hit points for a class level: the Hit Die's maximum at a character's first level, else its average rounded up, plus the Fortitude modifier; at least 1. */
+/** Where content comes from, each a world setting (`source<Gate>`) that offers it in the level-up dialog or not. */
+export const SOURCE_GATES = Object.freeze(["core2014", "core2024", "supplement", "ua", "thirdParty"] as const);
+export type SourceGate = typeof SOURCE_GATES[number];
+const CORE_PACKAGES = new Set(["wildpath", "wildpath-dnd-players-handbook", "wildpath-dnd-dungeon-masters-guide", "wildpath-dnd-monster-manual"]);
+
+/**
+ * Which gate a compendium entry's source (`flags.wildpath.source`) falls under, from the package holding it: the SRD and
+ * the core books by their rules (2014, 2024); another local book module (`wildpath-…`) a supplement; Unearthed Arcana
+ * by its book's name; a third-party book (Humblewood: `source.thirdParty`), and anything WildPath did not convert, third-party.
+ */
+export function sourceGate(source: {system?: string; book?: string; rules?: string; thirdParty?: boolean} | null | undefined,
+  packageName: string | null | undefined): SourceGate {
+  if ( !source?.system || source.thirdParty ) return "thirdParty";
+  if ( /Unearthed Arcana|UA/i.test(String(source.book ?? "")) ) return "ua";
+  if ( CORE_PACKAGES.has(String(packageName ?? "")) ) return (source.rules === "2014") ? "core2014" : "core2024";
+  return String(packageName ?? "").startsWith("wildpath-") ? "supplement" : "thirdParty";
+}
+
 export function hitPointsForLevel({hitDie, first, fortitude}: {hitDie: number; first: boolean; fortitude: number}) {
   return Math.max(1, (first ? hitDie : Math.floor(hitDie / 2) + 1) + fortitude);
 }

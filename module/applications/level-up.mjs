@@ -2,7 +2,7 @@
  * The level-up dialog (G8, BG3-style): one form for what a class level (with its subclass's), a species or a
  * background asks; what it grants is added without asking. The rules are helpers/level-up.mts.
  */
-import { hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, poolOptions } from "../helpers/level-up.mjs";
+import { hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, poolOptions, sourceGate } from "../helpers/level-up.mjs";
 import { hitDiePoolId } from "../helpers/spellcasting.mjs";
 import { actorAbilityModifier } from "../helpers/combat-statistics.mjs";
 import { classRecordsFromItems } from "../documents/actor.mjs";
@@ -140,10 +140,15 @@ async function compendiumOptions(item, totalLevel) {
     const feats = new Map();
     const subclasses = new Map();
     const categories = totalLevel >= 19 ? [...FEATS, "epicBoon"] : FEATS;
-    for (const pack of globals().game.packs) {
+    const { game } = globals();
+    // The sources this world offers (its source settings; all of them by default).
+    const allowed = (entry, packageName) => game.settings.get("wildpath", `source${sourceGate(entry.flags?.wildpath?.source, packageName).replace(/^./, letter => letter.toUpperCase())}`) !== false;
+    for (const pack of game.packs) {
         if (pack.documentName !== "Item")
             continue;
-        for (const entry of await pack.getIndex({ fields: ["flags.wildpath.source.feat", "system.classIdentifier"] })) {
+        for (const entry of await pack.getIndex({ fields: ["flags.wildpath.source", "system.classIdentifier"] })) {
+            if (!allowed(entry, pack.metadata?.packageName ?? ""))
+                continue;
             if (categories.includes(entry.flags?.wildpath?.source?.feat ?? "") && !feats.has(entry.name))
                 feats.set(entry.name, entry);
             if ((entry.type === "subclass") && item.system.identifier && (entry.system?.classIdentifier === item.system.identifier)

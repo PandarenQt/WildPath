@@ -600,6 +600,25 @@ to rules:
 A dice value ("1d4", "-1d4") becomes a dice Modifier rolled with the d20 ([rolls.md](../architecture/rolls.md)).
 Every other change is noted, never approximated.
 
+## Source gating (2026-10-20)
+
+The level-up dialog offers feats and subclasses only from the sources the world allows. There are five world settings,
+all on by default; `sourceGate` in `helpers/level-up.mts` decides which one an entry falls under, from its
+`flags.wildpath.source` and the package holding it:
+
+| Gate | What falls under it |
+| --- | --- |
+| `core2014`, `core2024` | The SRD (`wildpath`) and the local PHB, DMG and MM modules, by `source.rules`. |
+| `supplement` | Any other local `wildpath-…` module (Tasha's, the paper books). |
+| `ua` | A book whose name says Unearthed Arcana. |
+| `thirdParty` | `source.thirdParty` (Humblewood), and anything WildPath did not convert (homebrew compendiums). |
+
+The filter runs before entries are merged by name, so a PHB "Alert" never hides the SRD one. Browsing compendiums
+isn't gated; Foundry's own compendium visibility covers whole books.
+
+Live (14.369): QA Fighter's level 8 offered five feats. With "Offer 2024 core content" off, it offered only the
+ability increase.
+
 ## WildPath Actions
 
 Mechanical data only, with no descriptions (AGENTS §22). Item names are functional labels, for the
