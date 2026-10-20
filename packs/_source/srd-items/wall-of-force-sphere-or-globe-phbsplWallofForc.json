@@ -12,7 +12,10 @@
       "id": "action:srd-wall-of-force-sphere-or-globe",
       "tags": [
         "spell",
-        "school:evocation"
+        "school:evocation",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

@@ -12,7 +12,10 @@
       "id": "action:srd-cube-of-force-private-sanctum",
       "tags": [
         "spell",
-        "school:abjuration"
+        "school:abjuration",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

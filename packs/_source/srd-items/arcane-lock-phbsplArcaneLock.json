@@ -12,7 +12,11 @@
       "id": "action:srd-arcane-lock",
       "tags": [
         "spell",
-        "school:abjuration"
+        "school:abjuration",
+        "component:verbal",
+        "component:somatic",
+        "component:material",
+        "component:costly-material"
       ],
       "costs": {
         "allOf": [

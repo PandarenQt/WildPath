@@ -305,7 +305,7 @@ test("spell riders (SRD): Potent Spellcasting on a cantrip, Empowered Evocation,
   };
   const fireBolt = pack("fire-bolt-").system.definition;
   const fireball = pack("fireball-").system.definition;
-  assert.deepEqual(fireBolt.tags, ["spell", "cantrip", "school:evocation", "damage:fire"]);
+  assert.deepEqual(fireBolt.tags, ["spell", "cantrip", "school:evocation", "component:verbal", "component:somatic", "damage:fire"]);
   const potent = caster(pack("blessed-strikes-potent-spellcasting").system.ruleElements);
   assert.equal(actionCombatStatistics(potent, fireBolt).damage?.modifierTotal, 3, "Wisdom 16 on a cantrip");
   assert.equal(actionCombatStatistics(potent, fireball).damage, null, "not on Fireball");

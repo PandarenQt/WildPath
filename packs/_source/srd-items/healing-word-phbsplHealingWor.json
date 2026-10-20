@@ -12,7 +12,8 @@
       "id": "action:srd-healing-word",
       "tags": [
         "spell",
-        "school:abjuration"
+        "school:abjuration",
+        "component:verbal"
       ],
       "costs": {
         "allOf": [

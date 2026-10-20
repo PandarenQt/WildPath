@@ -399,7 +399,9 @@
           "id": "action:srd-spellcasting-detect-evil-and-good",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -479,7 +481,9 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -530,7 +534,9 @@
           "id": "action:srd-spellcasting-calm-emotions",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -702,7 +708,10 @@
           "id": "action:srd-spellcasting-dispel-evil-and-good",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -796,7 +805,9 @@
           "id": "action:srd-spellcasting-entangle",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -896,7 +907,10 @@
           "id": "action:srd-spellcasting-pass-without-trace",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -998,7 +1012,8 @@
           "id": "action:srd-spellcasting-word-of-recall",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -1203,7 +1218,9 @@
           "id": "action:srd-unicorn-s-blessing-cure-wounds",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -1302,7 +1319,9 @@
           "id": "action:srd-unicorn-s-blessing-lesser-restoration",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [

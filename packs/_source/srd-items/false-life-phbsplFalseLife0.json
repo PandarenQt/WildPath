@@ -12,7 +12,10 @@
       "id": "action:srd-false-life-temporary-health",
       "tags": [
         "spell",
-        "school:necromancy"
+        "school:necromancy",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

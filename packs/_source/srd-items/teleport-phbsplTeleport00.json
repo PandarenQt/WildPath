@@ -12,7 +12,8 @@
       "id": "action:srd-teleport",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal"
       ],
       "costs": {
         "allOf": [

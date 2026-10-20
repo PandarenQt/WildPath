@@ -422,7 +422,9 @@
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "anyOf": [
@@ -514,6 +516,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "component:somatic",
             "damage:psychic"
           ],
           "costs": {
@@ -629,6 +632,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "component:verbal",
             "damage:psychic"
           ],
           "costs": {
@@ -757,7 +761,9 @@
           "id": "action:srd-spellcasting-modify-memory",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "anyOf": [
@@ -876,6 +882,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "component:somatic",
             "damage:psychic"
           ],
           "costs": {

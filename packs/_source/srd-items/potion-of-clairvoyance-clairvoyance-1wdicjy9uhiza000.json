@@ -12,7 +12,10 @@
       "id": "action:srd-potion-of-clairvoyance-clairvoyance",
       "tags": [
         "spell",
-        "school:divination"
+        "school:divination",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

@@ -12,7 +12,11 @@
       "id": "action:srd-legend-lore",
       "tags": [
         "spell",
-        "school:divination"
+        "school:divination",
+        "component:verbal",
+        "component:somatic",
+        "component:material",
+        "component:costly-material"
       ],
       "costs": {
         "allOf": []

@@ -378,7 +378,9 @@
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -458,6 +460,8 @@
           "tags": [
             "spell",
             "school:evocation",
+            "component:verbal",
+            "component:somatic",
             "damage:radiant"
           ],
           "costs": {
@@ -567,7 +571,10 @@
           "id": "action:srd-spellcasting-shapechange",
           "tags": [
             "spell",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -626,6 +633,9 @@
           "tags": [
             "spell",
             "school:evocation",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
             "damage:fire",
             "damage:radiant"
           ],
@@ -754,7 +764,8 @@
           "id": "action:srd-spellcasting-word-of-recall",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -825,7 +836,9 @@
           "id": "action:srd-spellcasting-zone-of-truth",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -1164,6 +1177,8 @@
           "tags": [
             "spell",
             "school:evocation",
+            "component:verbal",
+            "component:somatic",
             "damage:radiant"
           ],
           "costs": {

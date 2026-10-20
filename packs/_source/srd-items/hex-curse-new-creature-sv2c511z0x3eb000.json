@@ -12,7 +12,10 @@
       "id": "action:srd-hex-curse-new-creature",
       "tags": [
         "spell",
-        "school:enchantment"
+        "school:enchantment",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

@@ -383,7 +383,8 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -470,7 +471,10 @@
           "id": "action:srd-spellcasting-clairvoyance",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -545,7 +549,9 @@
           "id": "action:srd-spellcasting-cure-wounds",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -647,6 +653,9 @@
           "tags": [
             "spell",
             "school:evocation",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
             "damage:fire",
             "damage:radiant"
           ],
@@ -776,6 +785,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "component:verbal",
             "damage:psychic"
           ],
           "costs": {
@@ -889,7 +899,11 @@
           "id": "action:srd-spellcasting-true-seeing",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
+            "component:costly-material"
           ],
           "costs": {
             "allOf": [

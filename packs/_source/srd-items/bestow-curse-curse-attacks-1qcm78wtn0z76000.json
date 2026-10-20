@@ -12,7 +12,9 @@
       "id": "action:srd-bestow-curse-curse-attacks",
       "tags": [
         "spell",
-        "school:necromancy"
+        "school:necromancy",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

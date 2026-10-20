@@ -12,7 +12,10 @@
       "id": "action:srd-cube-of-force-tiny-hut",
       "tags": [
         "spell",
-        "school:evocation"
+        "school:evocation",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

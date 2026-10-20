@@ -12,7 +12,9 @@
       "id": "action:srd-prismatic-spray-indigo-save-con",
       "tags": [
         "spell",
-        "school:evocation"
+        "school:evocation",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

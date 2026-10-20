@@ -12,7 +12,9 @@
       "id": "action:srd-modify-memory",
       "tags": [
         "spell",
-        "school:enchantment"
+        "school:enchantment",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

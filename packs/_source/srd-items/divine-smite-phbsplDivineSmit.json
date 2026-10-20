@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:evocation",
+        "component:verbal",
         "damage:radiant",
         "smite"
       ],

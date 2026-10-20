@@ -12,7 +12,10 @@
       "id": "action:srd-staff-of-power-wall-of-force",
       "tags": [
         "spell",
-        "school:evocation"
+        "school:evocation",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

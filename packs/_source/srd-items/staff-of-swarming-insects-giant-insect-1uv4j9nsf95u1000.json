@@ -12,7 +12,9 @@
       "id": "action:srd-staff-of-swarming-insects-giant-insect",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

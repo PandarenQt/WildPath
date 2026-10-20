@@ -12,7 +12,8 @@
       "id": "action:srd-necklace-of-prayer-beads-guardian-of-faith",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal"
       ],
       "costs": {
         "allOf": [

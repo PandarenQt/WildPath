@@ -12,7 +12,10 @@
       "id": "action:srd-earth-ring-of-elemental-command-wall-of-stone",
       "tags": [
         "spell",
-        "school:evocation"
+        "school:evocation",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

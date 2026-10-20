@@ -12,7 +12,10 @@
       "id": "action:srd-illusory-script",
       "tags": [
         "spell",
-        "school:illusion"
+        "school:illusion",
+        "component:somatic",
+        "component:material",
+        "component:costly-material"
       ],
       "costs": {
         "allOf": []

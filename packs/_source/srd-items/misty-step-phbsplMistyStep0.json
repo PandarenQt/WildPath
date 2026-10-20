@@ -12,7 +12,8 @@
       "id": "action:srd-misty-step",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal"
       ],
       "costs": {
         "allOf": [

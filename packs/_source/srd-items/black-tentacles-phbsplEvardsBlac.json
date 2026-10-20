@@ -13,6 +13,9 @@
       "tags": [
         "spell",
         "school:conjuration",
+        "component:verbal",
+        "component:somatic",
+        "component:material",
         "damage:bludgeoning"
       ],
       "costs": {

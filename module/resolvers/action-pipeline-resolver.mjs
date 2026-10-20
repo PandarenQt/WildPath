@@ -2819,7 +2819,8 @@ function actionReactionDiscoveryOptions({state, services, event, timing}) {
     controllerUserIdsByActor: resolveMaybeFunction(options.controllerUserIdsByActor, {state, services, event, timing}) ?? {},
     context: {
       ...(input.context ?? {}),
-      ...(options.context ?? {}),
+      // Supplied for each event (each reactor's relation to its source: `toSource`).
+      ...(resolveMaybeFunction(options.context, {state, services, event, timing}) ?? {}),
       event,
       timing,
       parentAction: action,

@@ -12,7 +12,10 @@
       "id": "action:srd-staff-of-the-woodlands-locate-animals-or-plants-locate-animals-or-plants",
       "tags": [
         "spell",
-        "school:divination"
+        "school:divination",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

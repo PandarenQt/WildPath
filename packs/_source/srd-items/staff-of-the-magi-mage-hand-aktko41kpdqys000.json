@@ -13,7 +13,9 @@
       "tags": [
         "spell",
         "cantrip",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

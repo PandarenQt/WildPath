@@ -12,7 +12,9 @@
       "id": "action:srd-prismatic-spray-violet-save-wis",
       "tags": [
         "spell",
-        "school:evocation"
+        "school:evocation",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

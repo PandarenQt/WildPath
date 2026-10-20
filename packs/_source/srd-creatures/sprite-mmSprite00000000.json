@@ -296,7 +296,10 @@
           "id": "action:srd-invisibility-invisibility",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [

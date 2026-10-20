@@ -230,3 +230,21 @@ test("its own Action's damage to itself (a fall, its Bleeding) offers its own re
   const services = createFoundryReactionProvider({resolve: () => null})({scene: {grid: {distance: 5}, tokens: [mover]}, token: mover});
   assert.deepEqual(services.reactions.triggers.map(trigger => trigger.id), ["reaction:goliath:stone:reaction"]);
 });
+
+test("each reactor's relation to an event's source: hostile, how far, and whether it sees it", async () => {
+  const {relationsToSource} = await import("../module/adapters/foundry-v14-reaction-provider.mjs");
+  const at = (id, disposition, x, statuses=[]) => ({...token(id, disposition), x, y: 0, width: 1, height: 1, elevation: 0,
+    actor: {...token(id, disposition).actor, statuses: new Set(statuses), system: {senses: {}}}});
+  const scene = {tokenVision: false, grid: {type: 1, size: 100, distance: 5}, dimensions: {size: 100, distance: 5}, tokens: [at("caster", -1, 0),
+    at("wizard", 1, 1000), at("imp", -1, 200)]};
+  for ( const entry of scene.tokens ) entry.parent = scene;
+  const relations = relationsToSource(scene, {source: {tokenId: "caster"}});
+  assert.deepEqual(Object.keys(relations), ["wizard", "imp"], "everyone but the source");
+  assert.deepEqual([relations.wizard.hostile, relations.wizard.sees, relations.imp.hostile], [true, true, false]);
+  assert.equal(relations.wizard.distance, 50, "ten squares away");
+  scene.tokens[0].actor.statuses.add("invisible");
+  assert.equal(relationsToSource(scene, {source: {tokenId: "caster"}}).wizard.sees, false, "an Invisible caster is not seen");
+  assert.deepEqual(relationsToSource(scene, {source: {}}), {}, "no source on the Scene: nothing to read");
+  const services = createFoundryReactionProvider({resolve: () => null})({scene, token: scene.tokens[0]});
+  assert.equal(typeof services.reactions?.context, "function", "each event's predicates see them (toSource)");
+});

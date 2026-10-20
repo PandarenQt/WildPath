@@ -12,7 +12,10 @@
       "id": "action:srd-hat-of-many-spells-stinking-cloud",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

@@ -12,7 +12,9 @@
       "id": "action:srd-ray-of-enfeeblement",
       "tags": [
         "spell",
-        "school:necromancy"
+        "school:necromancy",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

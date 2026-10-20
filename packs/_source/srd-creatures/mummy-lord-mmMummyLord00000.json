@@ -429,7 +429,9 @@
           "id": "action:srd-spellcasting-dispel-magic",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -496,7 +498,8 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -583,7 +586,10 @@
           "id": "action:srd-spellcasting-animate-dead",
           "tags": [
             "spell",
-            "school:necromancy"
+            "school:necromancy",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -748,6 +754,8 @@
           "tags": [
             "spell",
             "school:necromancy",
+            "component:verbal",
+            "component:somatic",
             "damage:necrotic"
           ],
           "costs": {
@@ -851,6 +859,9 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
             "damage:piercing"
           ],
           "costs": {
@@ -1266,7 +1277,8 @@
           "id": "action:srd-dread-command-command-command",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [

@@ -12,7 +12,8 @@
       "id": "action:srd-mislead",
       "tags": [
         "spell",
-        "school:illusion"
+        "school:illusion",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

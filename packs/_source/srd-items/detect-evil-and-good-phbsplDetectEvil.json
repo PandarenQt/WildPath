@@ -12,7 +12,9 @@
       "id": "action:srd-detect-evil-and-good",
       "tags": [
         "spell",
-        "school:divination"
+        "school:divination",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

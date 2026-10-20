@@ -273,7 +273,10 @@
           "id": "action:srd-sleep-sleep",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [

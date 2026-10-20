@@ -395,7 +395,9 @@
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -475,6 +477,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "component:somatic",
             "damage:psychic"
           ],
           "costs": {
@@ -590,7 +593,9 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:illusion"
+            "school:illusion",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -669,7 +674,10 @@
           "id": "action:srd-spellcasting-shapechange",
           "tags": [
             "spell",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -727,7 +735,11 @@
           "id": "action:srd-spellcasting-greater-restoration",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
+            "component:costly-material"
           ],
           "costs": {
             "allOf": [
@@ -873,7 +885,10 @@
           "id": "action:srd-spellcasting-major-image",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -977,7 +992,10 @@
           "id": "action:srd-spellcasting-project-image",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -1127,6 +1145,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "component:somatic",
             "damage:psychic"
           ],
           "costs": {

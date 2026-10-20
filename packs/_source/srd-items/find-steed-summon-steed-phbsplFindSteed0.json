@@ -12,7 +12,9 @@
       "id": "action:srd-find-steed-summon-steed",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

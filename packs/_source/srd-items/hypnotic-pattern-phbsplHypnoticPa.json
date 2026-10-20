@@ -12,7 +12,9 @@
       "id": "action:srd-hypnotic-pattern",
       "tags": [
         "spell",
-        "school:illusion"
+        "school:illusion",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

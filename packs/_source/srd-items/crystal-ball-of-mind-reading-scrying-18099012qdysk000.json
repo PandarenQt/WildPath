@@ -12,7 +12,10 @@
       "id": "action:srd-crystal-ball-of-mind-reading-scrying",
       "tags": [
         "spell",
-        "school:divination"
+        "school:divination",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

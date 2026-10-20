@@ -13,6 +13,8 @@
       "tags": [
         "spell",
         "school:conjuration",
+        "component:verbal",
+        "component:somatic",
         "damage:slashing"
       ],
       "costs": {

@@ -12,7 +12,8 @@
       "id": "action:srd-time-stop",
       "tags": [
         "spell",
-        "school:transmutation"
+        "school:transmutation",
+        "component:verbal"
       ],
       "costs": {
         "allOf": [

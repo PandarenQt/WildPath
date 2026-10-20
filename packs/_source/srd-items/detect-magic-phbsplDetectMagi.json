@@ -12,7 +12,9 @@
       "id": "action:srd-detect-magic",
       "tags": [
         "spell",
-        "school:divination"
+        "school:divination",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

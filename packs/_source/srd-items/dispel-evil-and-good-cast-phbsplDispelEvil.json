@@ -12,7 +12,10 @@
       "id": "action:srd-dispel-evil-and-good-cast",
       "tags": [
         "spell",
-        "school:abjuration"
+        "school:abjuration",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

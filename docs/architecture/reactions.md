@@ -226,8 +226,11 @@ converter, by dnd5e identifier):
   needs `tagsAny: ["melee"]`: an attack's hit and miss events now carry the attack's type (`melee`, `ranged`) among their
   tags. Parry's bonus (dnd5e keeps it in the activity's roll) is an effect on itself, `+N` to `defense.ac`, that ends once
   that attack is over (`endsWhen: "attacked"`). The attack is then checked again with the new AC.
-- **Counterspell:** `action.declared` with `tagsAny: ["spell"]` and `notSourceTokenId: "{self}"`: another creature's
-  spell, never the reactor's own (without it, Counterspell answered itself). Its Action has `counters: true`: when its
+- **Counterspell:** `action.declared` with `tagsAll: ["spell"]`, `notTagsAny: ["component:none"]` and
+  `notSourceTokenId: "{self}"`: another creature's spell, never the reactor's own (without it, Counterspell answered
+  itself), and not one with no Verbal, Somatic or Material component. A converted spell's components are tags
+  (`component:verbal`, `somatic`, `material`, `costly-material`; `component:none` when it has none). A homebrew spell
+  without them can still be countered. Its predicate is "a hostile creature it sees within 60 feet" (`toSource`, below). Its Action has `counters: true`: when its
   target (the caster) fails the save, the child sets `results.parentDirective` to `cancel-parent` (code `COUNTERED`), and
   the spell is cancelled before anything of it resolves. The coordinator's new `afterCancelled` hook then spends the
   caster's Action, Bonus Action or Reaction (2024: wasted), never its slot, and posts "Fire Bolt fails. Counterspell
@@ -382,7 +385,7 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     giving one of them, it or an ally within range that has it may reroll that save (`withAllyTestOffers`): the saver's
     controller chooses, the reroll has Advantage, and the ally pays. That Advantage is one more source: it cancels one
     source of Disadvantage on the save, source for source (the runtime keeps each target's sources,
-    `save.rollModeSourcesByTarget`). shortcut: "can see" is its controller's to judge.
+    `save.rollModeSourcesByTarget`). 2024 Countercharm has no sight clause.
   - **Indomitable**'s converted Action, which spent a use and did nothing, is gone: the feature keeps the pool the
     engine's reroll pays from (`OFFERED_BY_ENGINE`).
 
@@ -420,13 +423,29 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
 - **Cutting Words (2026-10-19):** `attack.hit` with `notSourceTokenId: "{self}"`, so any creature's hit within 60 ft;
   the bard's reaction targets the attacker. Its rider `attackPenalty: {dice}` is its Bardic Inspiration die, a table by
   bard level. The child rolls it when it pays (`riderAttackPenalty`, reusing `addedDie`) and sends the total. The
-  parent lowers its attack roll by that much and checks it again against its targets, as a Parry's AC is. shortcut: its
-  use on a damage roll or an ability check, "can see" and hostility are by hand. Live: the Bandit Captain's Scimitar (16)
+  parent lowers its attack roll by that much and checks it again against its targets, as a Parry's AC is. It answers
+  only a hostile creature it sees within 60 feet (`toSource`). shortcut: its use on a damage roll or an ability check
+  is by hand. Live: the Bandit Captain's Scimitar (16)
   hit QA Caster as a level-10 bard; Player1 used Cutting Words, and the attack missed. A Reaction and a Bardic
   Inspiration were spent.
 
-Shortcuts: a Parry's "while holding a weapon", and Counterspell's 60 feet, sight and hostility, are the reactor's to
-judge (its Ask setting). Falling (Feather Fall) has no window yet; Retaliation's attack is by hand.
+**Relation to the source (2026-10-20).** Each event's predicates see every reactor's relation to its source,
+`toSource.<tokenId>` (`relationsToSource`, `adapters/foundry-v14-reaction-provider.mts`):
+- `hostile`: opposed Token dispositions;
+- `distance`: feet between their spaces;
+- `sees`: it perceives the source (Blinded, Invisible, light: `attackSight`) and no wall gives the source Total Cover
+  from it.
+
+Each value is worked out only when a predicate reads it. An event without a source Token on the Scene has none, so
+"a creature you can see" fails. The reaction services supply them as a function of the event (`reactions.context`),
+which the pipeline resolves for each event, nested reactions included.
+
+The maintainer's choice: Counterspell and Cutting Words answer only a hostile creature (no prompt on an ally's spell or
+hit). Live (two browsers, 14.369): QA Wizard (hostile, 15 ft) was offered Counterspell on Player1's Fire Bolt. Through
+the same discovery, it was not offered as an ally, at 75 ft, or behind a wall.
+
+Shortcut: a Parry's "while holding a weapon" is the reactor's to judge (its Ask setting). Falling (Feather Fall) has no
+window yet.
 
 ## Current Limits
 

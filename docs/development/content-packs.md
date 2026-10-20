@@ -444,6 +444,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
   `expertise:*` choices, and weapon keys use the base names (`weapons:hand-crossbow`).
 - **Cover (2026-10-20):** worked out from walls and creatures for every Action; no content change (senses-and-cover.md).
 - **Senses (2026-10-20):** creatures', species' and effects' senses are `GrantSense` rules (senses-and-cover.md).
+- **Spell components (2026-10-20):** spells carry `component:verbal|somatic|material|costly-material` tags, or
+  `component:none`. Counterspell needs a component, a hostile caster it sees, and 60 ft; Cutting Words a hostile
+  attacker it sees within 60 ft (reactions.md). 641 pack files.
 - **Languages (2026-10-20):** backgrounds' and species' language steps are trait keys; creatures carry
   `system.training.languages`; gear that adds a language (or armor and weapon proficiency: Bracers of Archery) carries
   `flags.wildpath.training`. An effect a summon applies (the Onyx Dog's mastiff) no longer becomes its holder's rules.

@@ -12,7 +12,8 @@
       "id": "action:srd-luck-blade-wish",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal"
       ],
       "costs": {
         "allOf": [

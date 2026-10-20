@@ -12,7 +12,9 @@
       "id": "action:srd-silence-cast",
       "tags": [
         "spell",
-        "school:illusion"
+        "school:illusion",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

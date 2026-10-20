@@ -241,7 +241,10 @@
           "id": "action:srd-read-thoughts-detect-thoughts",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [

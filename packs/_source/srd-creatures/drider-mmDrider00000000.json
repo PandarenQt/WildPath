@@ -408,7 +408,9 @@
           "id": "action:srd-magic-of-the-spider-queen-darkness",
           "tags": [
             "spell",
-            "school:evocation"
+            "school:evocation",
+            "component:verbal",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -516,7 +518,8 @@
           "id": "action:srd-magic-of-the-spider-queen-faerie-fire",
           "tags": [
             "spell",
-            "school:evocation"
+            "school:evocation",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -637,6 +640,9 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
             "damage:fire"
           ],
           "costs": {

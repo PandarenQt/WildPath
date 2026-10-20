@@ -12,7 +12,8 @@
       "id": "action:srd-helm-of-teleportation-teleport",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal"
       ],
       "costs": {
         "allOf": [

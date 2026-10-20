@@ -12,7 +12,9 @@
       "id": "action:srd-dragon-orb-daylight",
       "tags": [
         "spell",
-        "school:evocation"
+        "school:evocation",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

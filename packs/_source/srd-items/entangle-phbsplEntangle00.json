@@ -12,7 +12,9 @@
       "id": "action:srd-entangle",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

@@ -14,6 +14,8 @@
         "spell",
         "cantrip",
         "school:conjuration",
+        "component:verbal",
+        "component:somatic",
         "damage:fire"
       ],
       "costs": {

@@ -12,7 +12,11 @@
       "id": "action:srd-clone",
       "tags": [
         "spell",
-        "school:necromancy"
+        "school:necromancy",
+        "component:verbal",
+        "component:somatic",
+        "component:material",
+        "component:costly-material"
       ],
       "costs": {
         "allOf": []

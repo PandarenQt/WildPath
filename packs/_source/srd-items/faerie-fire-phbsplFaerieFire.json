@@ -12,7 +12,8 @@
       "id": "action:srd-faerie-fire",
       "tags": [
         "spell",
-        "school:evocation"
+        "school:evocation",
+        "component:verbal"
       ],
       "costs": {
         "allOf": [

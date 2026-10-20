@@ -12,7 +12,9 @@
       "id": "action:srd-create-food-and-water",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

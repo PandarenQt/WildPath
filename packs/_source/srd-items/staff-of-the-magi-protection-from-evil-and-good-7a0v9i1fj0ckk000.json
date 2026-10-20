@@ -12,7 +12,11 @@
       "id": "action:srd-staff-of-the-magi-protection-from-evil-and-good",
       "tags": [
         "spell",
-        "school:abjuration"
+        "school:abjuration",
+        "component:verbal",
+        "component:somatic",
+        "component:material",
+        "component:costly-material"
       ],
       "costs": {
         "allOf": [

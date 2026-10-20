@@ -12,7 +12,11 @@
       "id": "action:srd-simulacrum-create-simulacrum",
       "tags": [
         "spell",
-        "school:illusion"
+        "school:illusion",
+        "component:verbal",
+        "component:somatic",
+        "component:material",
+        "component:costly-material"
       ],
       "costs": {
         "allOf": []

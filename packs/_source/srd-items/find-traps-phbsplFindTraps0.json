@@ -12,7 +12,9 @@
       "id": "action:srd-find-traps",
       "tags": [
         "spell",
-        "school:divination"
+        "school:divination",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

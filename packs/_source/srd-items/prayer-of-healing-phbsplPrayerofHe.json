@@ -12,7 +12,8 @@
       "id": "action:srd-prayer-of-healing",
       "tags": [
         "spell",
-        "school:abjuration"
+        "school:abjuration",
+        "component:verbal"
       ],
       "costs": {
         "allOf": []

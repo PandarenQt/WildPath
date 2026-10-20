@@ -314,7 +314,9 @@
           "id": "action:srd-spellcasting-detect-evil-and-good",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -393,7 +395,10 @@
           "id": "action:srd-spellcasting-shapechange",
           "tags": [
             "spell",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -451,7 +456,10 @@
           "id": "action:srd-spellcasting-commune",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -522,7 +530,11 @@
           "id": "action:srd-spellcasting-raise-dead",
           "tags": [
             "spell",
-            "school:necromancy"
+            "school:necromancy",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
+            "component:costly-material"
           ],
           "costs": {
             "allOf": [
