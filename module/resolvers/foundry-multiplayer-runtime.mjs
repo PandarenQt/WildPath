@@ -741,9 +741,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( forced.some(entry => entry.outcome === "evasion") ) evasionByTarget[key] = "evasion";
       const legendary = legendaryResistanceFor(targetActor, systemSnapshots.get(targetActor), game);
       if ( legendary ) legendaryByTarget[key] = legendary;
-      const inspiration = withAddedDice(withIndomitable(inspirationOffer(targetActor, systemSnapshots.get(targetActor), game,
+      const inspiration = withTestOffers(withAddedDice(withIndomitable(inspirationOffer(targetActor, systemSnapshots.get(targetActor), game,
         {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers}), targetActor, systemSnapshots.get(targetActor), game), targetActor, game,
-        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, target});
+        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, target}), targetActor, systemSnapshots.get(targetActor), game, "save",
+        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER});
       if ( inspiration ) inspirationByTarget[key] = inspiration;
     }
     targets.push(target);
@@ -811,8 +812,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, target: {id: actor.id, actorId: actor.id, actorRef: actor.uuid, uuid: actor.uuid,
         tokenId: sourceToken?.id ?? null}}) : null;
   // A fighter's Tactical Mind joins its own failed checks only.
-  const ownInspiration = definition?.check ? withTacticalMind(ownOffer, actor, actorSystem, game)
-    : (definition?.tags?.includes("spell") ? withSeekingSpell(ownOffer, actor, actorSystem, game) : ownOffer);
+  const ownTest = (definition?.attack || definition?.check) ? withTestOffers(ownOffer, actor, actorSystem, game,
+    definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER}) : ownOffer;
+  const ownInspiration = definition?.check ? withTacticalMind(ownTest, actor, actorSystem, game)
+    : (definition?.tags?.includes("spell") ? withSeekingSpell(ownTest, actor, actorSystem, game) : ownTest);
   // A character paying for a reroll is committed on like a target, its uuid its key: the acting creature for its own
   // roll, or a player character for a monster's.
   if ( ownInspiration?.own ) targetActors[actor.uuid] ??= actor;
@@ -1305,6 +1308,29 @@ export function withTacticalMind(offer, roller, rollerSystem, game) {
   return offer ? {...offer, options: [...offer.options, option]}
     : {own: true, chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""}),
       options: [option]};
+}
+
+/**
+ * Its features' own dice for a failed d20 test (`flags.wildpath.testOffer: {pool, faces, tests, refundOnFail?}`): 2024
+ * Peerless Skill's Bardic Inspiration die on a check or attack roll, kept if it still fails; Dark One's Own Luck's d10 on
+ * a check or save. Each is paid with a use of `pool`. Added to its own offer, or an offer alone.
+ */
+export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser}={}) {
+  if ( offer && !offer.own ) return offer;
+  const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
+  const options = [];
+  for ( const item of roller?.items ?? [] ) {
+    const spec = item?.flags?.wildpath?.testOffer;
+    if ( !spec?.tests?.includes(test) || (item.system?.active === false) ) continue;
+    const payment = resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: spec.pool, amount: 1}]}});
+    const faces = evaluateValueExpression(spec.faces, {actor: roller, actorSystem: rollerSystem});
+    if ( !payment.ok || !faces.ok || !(faces.value > 0) ) continue;
+    options.push({value: `test-offer:${item.id}`, addDice: {number: 1, faces: faces.value}, payerRef: roller.uuid, plan: payment.mutationPlan,
+      ...(spec.refundOnFail ? {refundOnFail: true} : {}), label: format("WILDPATH.INSPIRATION.AddDie", {name: item.name ?? "", faces: faces.value})});
+  }
+  if ( !options.length ) return offer;
+  return offer ? {...offer, options: [...offer.options, ...options]}
+    : {own: true, chooser, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""}), options};
 }
 
 /**

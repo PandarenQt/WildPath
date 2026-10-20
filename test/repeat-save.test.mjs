@@ -97,3 +97,20 @@ test("Tactical Mind: a failed check may add 1d10 from Second Wind, spent only wh
   assert.equal(failed.results.checkResolution.success, false, "10 + 2 = 12");
   assert.equal(failed.mutationPlans.some(plan => plan.payerRef === "Actor.fighter"), false, "the use is kept");
 });
+
+test("test offers (SRD): Peerless Skill's Bardic Inspiration die on a check or attack, Dark One's Own Luck's d10 on a check or save", async () => {
+  const fs = await import("node:fs");
+  const {withTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const feature = file => {
+    const item = JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}.json`, "utf8"));
+    return {id: item._id, name: item.name, flags: item.flags, system: item.system};
+  };
+  const system = {classes: [{id: "bard", level: 10}], resources: {},
+    pools: [{id: "bardic-inspiration", value: 1, max: 4}, {id: "dark-one-s-own-luck", value: 0, max: 2}]};
+  const roller = {uuid: "Actor.hero", name: "Hero", items: [feature("peerless-skill-phbbrdPeerlessSk"), feature("dark-one-s-own-luck-phbwlkDarkOnesOw")]};
+  const offer = withTestOffers(null, roller, system, null, "attack");
+  assert.deepEqual(offer.options.map(option => [option.addDice.faces, option.refundOnFail]), [[10, true]], "a d10 at bard 10; no luck left");
+  assert.equal(withTestOffers(null, roller, system, null, "save"), null, "Peerless Skill is no save's");
+  const lucky = withTestOffers(null, roller, {...system, pools: [{id: "dark-one-s-own-luck", value: 1, max: 2}]}, null, "save");
+  assert.deepEqual(lucky.options.map(option => option.addDice.faces), [10]);
+});

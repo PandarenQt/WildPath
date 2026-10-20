@@ -45,9 +45,18 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Luck\" is passive or triggered: not automated"
-        ]
+        "notes": []
+      },
+      "testOffer": {
+        "tests": [
+          "check",
+          "save"
+        ],
+        "pool": "dark-one-s-own-luck",
+        "faces": {
+          "type": "constant",
+          "value": 10
+        }
       }
     }
   }
