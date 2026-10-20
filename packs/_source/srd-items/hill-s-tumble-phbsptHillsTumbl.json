@@ -2,11 +2,39 @@
   "_id": "phbsptHillsTumbl",
   "_key": "!items!phbsptHillsTumbl",
   "name": "Hill's Tumble",
-  "type": "feature",
+  "type": "action",
   "img": "icons/magic/control/silhouette-fall-slip-prone.webp",
   "system": {
     "active": true,
     "description": "<p>When you hit a Large or smaller creature with an attack roll and deal damage to it, you can give that target the Prone condition.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-hill-s-tumble-hill-s-tumble",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "hill-s-tumble",
+            "amount": 1
+          }
+        ]
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "prone"
+        }
+      ],
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "label": "Hill's Tumble"
+    },
     "ruleElements": [
       {
         "schemaVersion": 1,
@@ -19,6 +47,20 @@
             "type": "proficiency-bonus"
           },
           "recovery": "longRest"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": []
+          }
         }
       }
     ]
@@ -35,9 +77,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Hill's Tumble\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

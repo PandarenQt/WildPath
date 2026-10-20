@@ -2,12 +2,101 @@
   "_id": "phbinvEldritchSm",
   "_key": "!items!phbinvEldritchSm",
   "name": "Eldritch Smite",
-  "type": "feature",
+  "type": "action",
   "img": "icons/skills/melee/strike-axe-energy-pink.webp",
   "system": {
     "active": true,
     "description": "<blockquote><p>Prerequisite: Level 5+ Warlock, Pact of the Blade Invocation</p></blockquote><p>Once per turn when you hit a creature with your pact weapon, you can expend a Pact Magic spell slot to deal an extra 1d8 Force damage to the target, plus another 1d8 per level of the spell slot, and you can give the target the Prone condition if it is Huge or smaller.</p><section class=\"secret\" id=\"secret-AoE71IXdo0xg5OKe\"><p><strong>Foundry Note</strong></p><p>The <strong>Smite</strong> activity consumes a Pact Magic spell slot and increases the damage based on your pact spell level.</p></section>",
-    "ruleElements": []
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-eldritch-smite-smite",
+      "costs": {
+        "allOf": []
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 8
+          },
+          "damageType": "force",
+          "provenance": "additional"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "resource",
+          "label": "Pact Magic slot",
+          "required": true,
+          "cost": {
+            "anyOf": [
+              [
+                {
+                  "capability": "spell-slot.pact",
+                  "amount": 1
+                }
+              ]
+            ]
+          },
+          "effects": [
+            {
+              "type": "scaleDamage",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 0,
+              "componentIds": [
+                "damage-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 8
+              }
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "prone"
+        }
+      ],
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "label": "Eldritch Smite"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": [
+              "weapon"
+            ],
+            "notTagsAny": [
+              "spell"
+            ]
+          },
+          "once": "turn",
+          "onceKey": "eldritch-smite"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +110,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Smite\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

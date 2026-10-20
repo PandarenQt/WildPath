@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 868 automated, 287 manual, 232 features. Creatures: 375.
+Items: 876 automated, 287 manual, 226 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -402,7 +402,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Detect Thoughts | spells24 | Detect Thoughts (Sense Thoughts) (manual), Detect Thoughts (Probe Deeper) (automated) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; save: a failure marks its creature only; what it does is by hand |
 | Deva | actors24 | Deva (9 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature only; its rules are by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 1 hour is not an action-economy cost; Divine Aid: not SRD 5.2 (CC-BY-4.0) |
 | Devil's Sight | classes24 | Devil's Sight (feature) | effect: "Devil's Sight" change system.attributes.senses.darkvision (upgrade) not converted |
-| Devious Strikes | classes24 | Devious Strikes (feature) | "Daze" is passive or triggered: not automated; "Knock Out" is passive or triggered: not automated; "Obscure" is passive or triggered: not automated |
+| Devious Strikes | classes24 | Devious Strikes (Daze) (automated), Devious Strikes (Knock Out) (automated), Devious Strikes (Obscure) (automated) | — |
 | Devouring Blade | classes24 | Devouring Blade (feature) | — |
 | Dice | equipment24 | Dice (gear), Dice (Catch Cheating) (automated), Dice (Play to Win) (automated) | — |
 | Dimension Door | spells24 | Dimension Door (teleport) (automated), Dimension Door (damage) (automated) | teleport: a creature it brings along is moved by hand |
@@ -482,7 +482,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Eldritch Invocations | classes24 | Eldritch Invocations (feature) | — |
 | Eldritch Master | classes24 | Eldritch Master (feature) | — |
 | Eldritch Mind | classes24 | Eldritch Mind (feature) | — |
-| Eldritch Smite | classes24 | Eldritch Smite (feature) | "Smite" is passive or triggered: not automated |
+| Eldritch Smite | classes24 | Eldritch Smite (automated) | — |
 | Eldritch Spear | classes24 | Eldritch Spear (feature) | "Increase Range" is passive or triggered: not automated |
 | Elemental Affinity | classes24 | Elemental Affinity (feature), Elemental Affinity (Choose) (automated) | — |
 | Elemental Fury | classes24 | Elemental Fury (feature) | — |
@@ -603,7 +603,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Fire Shield | spells24 | Fire Shield (automated) | — |
 | Fire Storm | spells24 | Fire Storm (automated) | — |
 | Fire-Casting Statue | equipment24 | Fire-Casting Statue (gear) | "Trigger (1-4)" is passive or triggered: not automated; "Trigger (5-10)" is passive or triggered: not automated; "Trigger (11-16)" is passive or triggered: not automated; "Trigger (17-20)" is passive or triggered: not automated |
-| Fire's Burn | origins24 | Fire's Burn (feature) | "Burn" is passive or triggered: not automated |
+| Fire's Burn | origins24 | Fire's Burn (automated) | — |
 | Fireball | spells24 | Fireball (automated) | — |
 | Flail | equipment24 | Flail (automated) | — |
 | Flame Blade | spells24 | Flame Blade (Evoke Blade) (manual), Flame Blade (attack) (automated) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; concentration: nothing it sustains was converted |
@@ -638,7 +638,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Frog | actors24 | Frog (4 items) | — |
 | Frost Brand | equipment24 | Frost Brand (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Frost Giant | actors24 | Frost Giant (5 items) | War Cry: effect: "Attack: Advantage" marks its creature only; its rules are by hand |
-| Frost's Chill | origins24 | Frost's Chill (feature) | "Chill" is passive or triggered: not automated |
+| Frost's Chill | origins24 | Frost's Chill (automated) | — |
 | Gargoyle | actors24 | Gargoyle (4 items) | — |
 | Gaseous Form | spells24 | Gaseous Form (automated) | effect: transformed is not a WildPath condition yet; effect: "Gaseous Form" change img (override) not converted |
 | Gate | spells24 | Gate (Small Vertical Portal) (manual), Gate (Large Vertical Portal) (manual), Gate (Small Horizontal Portal) (manual), Gate (Large Horizontal Portal) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
@@ -782,7 +782,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Hide Armor | equipment24 | Hide Armor (gear) | — |
 | Hideous Laughter | spells24 | Hideous Laughter (automated) | — |
 | Hill Giant | actors24 | Hill Giant (4 items) | — |
-| Hill's Tumble | origins24 | Hill's Tumble (feature) | "Hill's Tumble" is passive or triggered: not automated |
+| Hill's Tumble | origins24 | Hill's Tumble (automated) | — |
 | Hippogriff | actors24 | Hippogriff (4 items) | — |
 | Hippopotamus | actors24 | Hippopotamus (4 items) | — |
 | Hobgoblin Captain | actors24 | Hobgoblin Captain (5 items) | Aura of Authority: "Expend Use" is passive or triggered: not automated |
@@ -810,7 +810,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Hunter's Mark | spells24 | Hunter's Mark (Mark Creature) (automated), Hunter's Mark (Move Mark) (automated) | — |
 | Hunter's Prey | classes24 | Hunter's Prey (feature) | — |
 | Hunting Trap | equipment24 | Hunting Trap (Escape) (automated) | "save" is passive or triggered: not automated |
-| Hurl Through Hell | classes24 | Hurl Through Hell (feature) | "Hurl Through Hell" is passive or triggered: not automated; "Regain Use" is passive or triggered: not automated |
+| Hurl Through Hell | classes24 | Hurl Through Hell (Hurl Through Hell) (automated) | "Regain Use" is passive or triggered: not automated |
 | Hydra | actors24 | Hydra (6 items) | Multiattack: not automated (utility): using it spends its cost; its description says the rest |
 | Hyena | actors24 | Hyena (2 items) | — |
 | Hypnotic Pattern | spells24 | Hypnotic Pattern (automated) | — |

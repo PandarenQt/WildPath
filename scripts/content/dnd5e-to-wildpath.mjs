@@ -219,6 +219,9 @@ function enchantDefinition({document, activity, system, spell, level, pool, ench
  */
 // Improved Cunning Strike (rogue level 11): two of them on one Sneak Attack, each with its own die.
 const CUNNING_USES = {type: "table", key: {type: "class-level", class: "rogue"}, rows: {1: 1, 11: 2}};
+// A Devious Strikes option's one effect, with its own duration (the feature's shared text would give each a repeated save).
+const deviousStrike = (timing={duration: {value: 1, units: "rounds", expiry: "turnEnd"}}) => definition => ({...definition,
+  effects: (definition.effects ?? []).map(({repeatSave: _repeat, duration: _duration, ...effect}) => ({...effect, ...structuredClone(timing)}))});
 const cunning = (extra={}) => ({once: "turn", onceKey: "cunning-strike", uses: CUNNING_USES, tagsAll: ["extra:sneak-attack"],
   rider: {forgoDice: {ruleId: "sneak-attack", dice: 1}}, definition: definition => definition, ...extra});
 const WITHDRAW = {id: "effect-1", type: "effect", name: "Withdraw", slug: "disengaged", img: "icons/svg/walk.svg",
@@ -321,6 +324,38 @@ const OWN_HIT = Object.freeze({
   "cunning-strike/Trip": cunning({definition: definition => ({...definition,
     effects: (definition.effects ?? []).map(({repeatSave, ...effect}) => effect)})}),
   "cunning-strike/Withdraw": cunning({self: true, definition: definition => ({...definition, effects: [structuredClone(WITHDRAW)]})}),
+  // 2024 Devious Strikes (rogue 14): three more Cunning Strike options, each giving up more Sneak Attack dice. Only
+  // Knock Out repeats its save (its text names it); Daze and Obscure last until the end of the target's next turn.
+  // shortcut: Daze's "only one of move, action or Bonus Action" and Knock Out's "until it takes damage" are by hand.
+  "devious-strikes/Daze": cunning({rider: {forgoDice: {ruleId: "sneak-attack", dice: 2}}, definition: deviousStrike()}),
+  "devious-strikes/Knock Out": cunning({rider: {forgoDice: {ruleId: "sneak-attack", dice: 6}},
+    definition: deviousStrike({duration: {value: 1, units: "minutes"}, repeatSave: "turnEnd"})}),
+  "devious-strikes/Obscure": cunning({rider: {forgoDice: {ruleId: "sneak-attack", dice: 3}}, definition: deviousStrike()}),
+  // Eldritch Invocation Eldritch Smite: a Pact Magic slot spent on a weapon hit, (1 + its level)d8 Force and Prone.
+  // shortcut: any weapon, not only its pact weapon; "Huge or smaller" and "can" are its controller's (Ask) to judge.
+  "eldritch-smite/Smite": {...weaponHit("eldritch-smite"), dropNotes: /^consumption: attribute|custom formula/, definition: ({consumption: _consumption, ...definition}) => ({...definition,
+    costs: {allOf: []}, damage: [{id: "damage-1", expression: {type: "dice", number: 1, faces: 8}, damageType: "force", provenance: "additional"}],
+    configuration: [{id: "spell-slot", type: "resource", label: "Pact Magic slot", required: true,
+      cost: {anyOf: [[{capability: PACT_SLOT_POOL, amount: 1}]]},
+      effects: [{type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 0, componentIds: ["damage-1"], dice: {number: 1, faces: 8}}]}],
+    effects: [{id: "effect-1", type: "condition", conditionId: "prone"}]})},
+  // 2024 Hurl Through Hell (Fiend Patron 14): once a turn, on any attack hit, a Charisma save; on a failure 8d10 Psychic
+  // and Incapacitated until the end of the warlock's next turn. shortcut: a Fiend's immunity to the damage, and Regain
+  // Use (a Pact Magic slot for its use), are by hand.
+  "hurl-through-hell/Hurl Through Hell": {spell: true, tagsAll: [], once: "turn", definition: definition => ({...definition,
+    damage: (definition.damage ?? []).map(component => ({...component, saveOutcomePolicy: {success: "none", failure: "full"}})),
+    effects: [{id: "effect-1", type: "condition", conditionId: "incapacitated", saveOutcomePolicy: "failure",
+      duration: {value: 1, units: "rounds", expiry: "sourceTurnEnd"}}]})},
+  // 2024 Goliath Giant Ancestry: on any attack hit, a use of its pool (Proficiency Bonus a Long Rest).
+  "fires-burn/Burn": {spell: true, tagsAll: [], definition: definition => definition},
+  // shortcut: its Speed penalty lasts until the start of the goliath's next turn, as Hamstrung's.
+  "frosts-chill/Chill": {spell: true, tagsAll: [], definition: definition => ({...definition, effects: [{id: "effect-1", type: "effect",
+    name: "Frost's Chill", img: "icons/svg/frozen.svg", duration: {value: 1, units: "rounds", expiry: "turnStart"},
+    ruleElements: [{schemaVersion: 1, id: "chilled", type: "Modifier", data: {domains: ["resources.movement.max", "speed"], modifierType: "untyped",
+      value: -10}}]}]})},
+  // shortcut: "Large or smaller" is its controller's (Ask) to judge.
+  "hills-tumble/Hill's Tumble": {spell: true, tagsAll: [], definition: definition => ({...definition,
+    effects: [{id: "effect-1", type: "condition", conditionId: "prone"}]})},
   "stunning-strike": {once: "turn", definition: definition => ({...definition,
     configuration: (definition.configuration ?? []).filter(choice => choice.id !== "effect-choice"),
     effects: [{id: "effect-1", type: "condition", conditionId: "stunned", saveOutcomePolicy: "failure",
@@ -988,7 +1023,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       ...(onHit.rider ? {rider: structuredClone(onHit.rider)} : {})};
       // Its effects are its own now, not dnd5e's.
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("effect: ") && !note.startsWith("not automated")
-        && !note.startsWith("save: a failure gives")));
+        && !note.startsWith("save: a failure gives") && !onHit.dropNotes?.test(note)));
     }
     const named = smite ? (/unholy/i.test(activity.name ?? "") ? " (Undead or Fiend)" : "") : suffix;
     const reacting = action(id, `${document.name}${named}${choices ? title(choices[0]) : ""}`, definition);

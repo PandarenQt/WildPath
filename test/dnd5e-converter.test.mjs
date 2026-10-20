@@ -1525,3 +1525,33 @@ test("warlock: Pact Magic classes, Magical Cunning's slots back (all at level 20
   assert.deepEqual(slot(read("srd-items", "disintegrate-")).levelByResourceId["mystic-arcanum.6"], 6);
   assert.equal(JSON.stringify(slot(read("srd-items", "fireball-")).cost).includes("mystic-arcanum"), false, "a level-3 spell has none");
 });
+
+test("on-hit features: Devious Strikes, Eldritch Smite (a Pact Magic slot), Hurl Through Hell and Giant Ancestry answer a hit", async () => {
+  const fs = await import("node:fs");
+  const {createResolvedActionPreview} = await import("../module/helpers/action-configuration.mjs");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8")).system;
+  const trigger = system => system.ruleElements.find(rule => rule.type === "Trigger").data;
+  for ( const [prefix, dice, condition, repeat] of [["devious-strikes-daze", 2, undefined, undefined],
+    ["devious-strikes-knock-out", 6, "unconscious", "turnEnd"], ["devious-strikes-obscure", 3, "blinded", undefined]] ) {
+    const system = read(prefix);
+    assert.deepEqual([trigger(system).onceKey, trigger(system).match.tagsAll, system.definition.rider.forgoDice.dice], ["cunning-strike",
+      ["extra:sneak-attack"], dice], prefix);
+    assert.deepEqual([system.definition.effects[0].conditionId, system.definition.effects[0].repeatSave], [condition, repeat], prefix);
+    assert.equal(validateActionDefinition(system.definition).ok, true, prefix);
+  }
+  const smite = read("eldritch-smite-");
+  assert.deepEqual([trigger(smite).match.tagsAll, trigger(smite).once], [["weapon"], "turn"]);
+  const actorSystem = {resources: {action: {value: 1, max: 1}, bonus: {value: 1, max: 1}, reaction: {value: 1, max: 1}},
+    classes: [{id: "warlock", level: 5, spellcasting: {progression: "pact"}}], pools: [{id: "spell-slot.pact", value: 2, max: 2}]};
+  const preview = createResolvedActionPreview({definition: smite.definition, actorSystem, choices: {"spell-slot": {resourceId: "spell-slot.pact"}}});
+  assert.equal(preview.preview.damage.components[0].formula, "4d8", "(1 + pact level 3)d8");
+  const hurl = read("hurl-through-hell-hurl");
+  assert.deepEqual([trigger(hurl).match.tagsAll, trigger(hurl).once, hurl.definition.costs.allOf[0].capability,
+    hurl.definition.effects[0].conditionId], [[], "turn", "hurl-through-hell", "incapacitated"]);
+  for ( const [prefix, pool] of [["fire-s-burn", "fire-s-burn"], ["frost-s-chill", "frost-s-chill"], ["hill-s-tumble", "hill-s-tumble"]] ) {
+    const system = read(prefix);
+    assert.deepEqual([trigger(system).match.tagsAll, system.definition.costs.allOf[0].capability], [[], pool], prefix);
+  }
+  assert.equal(read("hill-s-tumble").definition.effects[0].conditionId, "prone");
+});

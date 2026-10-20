@@ -2,11 +2,72 @@
   "_id": "phbsptFrostsChil",
   "_key": "!items!phbsptFrostsChil",
   "name": "Frost's Chill",
-  "type": "feature",
+  "type": "action",
   "img": "icons/magic/water/heart-ice-freeze.webp",
   "system": {
     "active": true,
     "description": "<p>When you hit a target with an attack roll and deal damage to it, you can also deal 1d6 Cold damage to that target and reduce its Speed by 10 feet until the start of your next turn.</p><section id=\"secret-jxuUuY0r33aiP0zL\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which can be used for tracking and reduces their Speed by 10.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-frost-s-chill-chill",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "frost-s-chill",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 6
+          },
+          "damageType": "cold",
+          "provenance": "additional"
+        }
+      ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Frost's Chill",
+          "img": "icons/svg/frozen.svg",
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnStart"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "chilled",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "resources.movement.max",
+                  "speed"
+                ],
+                "modifierType": "untyped",
+                "value": -10
+              }
+            }
+          ]
+        }
+      ],
+      "label": "Frost's Chill"
+    },
     "ruleElements": [
       {
         "schemaVersion": 1,
@@ -19,6 +80,20 @@
             "type": "proficiency-bonus"
           },
           "recovery": "longRest"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": []
+          }
         }
       }
     ]
@@ -35,9 +110,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Chill\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }
