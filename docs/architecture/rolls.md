@@ -205,6 +205,9 @@ The authority adds it to the Modifiers it reads (`resolveActorSaveStatistic`, `r
   in place of the 2024 rule that any one of each cancels). More sources of advantage than of disadvantage
   give advantage, more of disadvantage give disadvantage, and an equal count gives a normal roll
   (`combineRollModes`).
+- **Rerolls (2026-10-20).** An attack, check or save keeps the sources it combined (`rollModeSources`; a save's
+  `rollModeSourcesByTarget`). A reroll's own mode (Countercharm's Advantage, a test offer's `rollMode`) is one more
+  source, and its own `bonus` (Indomitable; a test offer's `bonus`) is added to the new roll.
 - **Rolling.** The `RollRequest` carries the result as `rollMode`, so a digital roll is `2d20kh`/`2d20kl`
   and the kept die is the natural result.
 - **Physical dice.** The prompt tells a physical roller to roll two d20s and enter the higher or the lower.

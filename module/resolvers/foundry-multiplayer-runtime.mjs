@@ -64,7 +64,7 @@ import {
   actionCombatStatistics,
   attackAbility,
   attackForcesCritical,
-  attackRollMode,
+  attackRollModeSources,
   resolveActorCheckStatistic,
   resolveActorSaveStatistic,
   resolveActorDefense
@@ -602,8 +602,13 @@ function actionCheckInput(actor, {ability=null, skill=null, escapes=null}={}, so
   return {...(bonus ? {modifier: bonus.totalModifier} : {}), ...(bonus?.dice?.length ? {dice: bonus.dice} : {}),
     ...(bonus?.naturalMinimum ? {naturalMinimum: bonus.naturalMinimum} : {}),
     // What it escapes (Powerful Build: Advantage to end Grappled).
-    rollMode: combineRollModes(actor.getRollModes?.(domains, {context: {check: {ability, skill, ...(escapes ? {escapes} : {})},
+    ...checkRollModes(actor.getRollModes?.(domains, {context: {check: {ability, skill, ...(escapes ? {escapes} : {})},
       ...sunlightContext(sourceToken)}}) ?? [])};
+}
+
+/** A check's mode and the sources it combines (a reroll adds one more). */
+function checkRollModes(sources) {
+  return {rollMode: combineRollModes(sources), rollModeSources: sources};
 }
 
 export async function foundryActionIntentToStagedOptions({intent={}, senderUserId=null, game=globalThis.game, persistencePort=null,
@@ -852,7 +857,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   };
 
   const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries, game, defenseKey});
-  const attackRollMode = definition?.attack ? foundryAttackRollMode({actor, action, definition, targetEntries, spatial, game, sourceToken}) : null;
+  const attackRollModeSourceList = definition?.attack ? foundryAttackRollModeSources({actor, action, definition, targetEntries, spatial, game, sourceToken}) : null;
+  const attackRollMode = attackRollModeSourceList ? combineRollModes(attackRollModeSourceList) : null;
   const attackOutcomes = definition?.attack ? foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) : null;
   const attackBonuses = definition?.attack ? foundryAttackBonuses({targets, targetEntries, game, sourceToken}) : null;
   // Extra damage that depends on this attack (Sneak Attack: Advantage, or an ally beside the target) sees it.
@@ -919,7 +925,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       ...(statistics.damage ? {damage: statistics.damage} : {}),
       ...(healingStatistic ? {healing: healingStatistic} : {}),
       ...((statistics.attack || attackRollMode) ? {attack: {...(statistics.attack ?? {}),
-        ...(attackRollMode ? {rollMode: attackRollMode} : {}),
+        ...(attackRollMode ? {rollMode: attackRollMode, rollModeSources: attackRollModeSourceList} : {}),
         ...(ownInspiration ? {inspiration: ownInspiration} : {}),
         ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {}),
         ...(attackBonuses ? {bonusByTarget: attackBonuses} : {})}} : {}),
@@ -1204,11 +1210,12 @@ export async function endEarlierConcentration({options}={}, {fromUuid=globalThis
  * included) and the first target's on attacks against it (`attacked`, `attacked.<type>`), combined so any of
  * each cancel. Predicates see `attack.type` and `attack.adjacent` (the attacker within 5 ft).
  */
-function foundryAttackRollMode({actor, action, definition, targetEntries, spatial, game, sourceToken}) {
+/** Each source of an attack's Advantage or Disadvantage against its first target (a reroll adds one more). */
+function foundryAttackRollModeSources({actor, action, definition, targetEntries, spatial, game, sourceToken}) {
   const type = definition.attack.type ?? null;
   const target = targetEntries[0] ?? null;
   // Its rules see the Action's tags (Innate Sorcery: Advantage on spell attacks).
-  return attackRollMode(actor, target?.actor, {type, item: action, ability: attackAbility(actor, definition.attack),
+  return attackRollModeSources(actor, target?.actor, {type, item: action, ability: attackAbility(actor, definition.attack),
     context: {...attackContext(type, spatial, target, game, sourceToken, actor), tags: definition.tags ?? []}});
 }
 
@@ -1434,7 +1441,10 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
     // A plain reroll (Disciplined Survivor; Halfling Luck, only on a natural 1: `natural`).
     if ( spec.reroll ) {
       options.push({value: `test-offer:${item.id}`, payerRef: roller.uuid, ...(payment.mutationPlan ? {plan: payment.mutationPlan} : {}),
-        ...(Number(spec.natural) > 0 ? {natural: Number(spec.natural)} : {}), label: format("WILDPATH.INSPIRATION.RerollWith", {name: item.name ?? ""})});
+        ...(Number(spec.natural) > 0 ? {natural: Number(spec.natural)} : {}),
+        // Its own Advantage or bonus on the new roll (a homebrew "reroll with Advantage").
+        ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), ...(Number(spec.bonus) ? {bonus: Number(spec.bonus)} : {}),
+        label: format("WILDPATH.INSPIRATION.RerollWith", {name: item.name ?? ""})});
       continue;
     }
     // Stroke of Luck: the roll becomes a 20 (`setNatural`), with no die of its own.
@@ -1551,7 +1561,7 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
     return entries.flatMap(entry => {
       const defense = resolveActorDefense(entry.actor, defenseKey)?.value;
       if ( !Number.isFinite(defense) ) return [];
-      const rollMode = foundryAttackRollMode({actor, action, definition, targetEntries: [entry], spatial, game, sourceToken});
+      const rollMode = combineRollModes(foundryAttackRollModeSources({actor, action, definition, targetEntries: [entry], spatial, game, sourceToken}));
       const cover = COVER_BONUS[actionCover({definition, sourceToken, targetToken: entry.token})] ?? 0;
       const total = modifier - cover + ((sourceToken && highGroundOn(game)) ? highGroundBonus(sourceToken.elevation, entry.token.elevation) : 0);
       return [{tokenId: entry.token.id, name: entry.token.name, kind: "attack", modifier: total, defense, rollMode,

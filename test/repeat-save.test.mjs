@@ -262,3 +262,29 @@ test("a reroll's own mode is one more source: Advantage cancels one Disadvantage
   assert.equal(rerollMode(["disadvantage"]), "normal");
   assert.equal(rerollMode(["disadvantage", "disadvantage"]), "disadvantage", "two sources of Disadvantage outweigh it");
 });
+
+test("an attack's or check's reroll keeps its own bonus and adds its mode as one more source", () => {
+  const offer = {own: true, chooser: "source-controller", label: "x", options: [{value: "ally", payerRef: "Actor.bard",
+    plan: {ok: true, updates: {}, payments: []}, rollMode: "advantage", bonus: 3, label: "Reroll"}]};
+  const run = (definition, input) => {
+    let state = planStagedActionResolution({id: `resolution:reroll-${definition.id}`, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+      action: {id: definition.id, type: "action", name: definition.label, system: {definition}}, source: {actorId: "actor-source"},
+      targets: [{id: "foe", actorId: "actor-foe", tokenId: "token-foe", disposition: "enemy"}], ...input}).state;
+    const answer = value => {
+      const request = state.pendingRequests[0];
+      state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+        value: typeof value === "function" ? value(request) : value}}).state;
+    };
+    answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: 2, total: 4}));
+    answer("ally");
+    const {rollMode, expected} = state.pendingRequests[0].payload.rollRequest;
+    return [rollMode, expected.modifierTotal];
+  };
+  const base = {schemaVersion: 1, costs: {allOf: []}, targeting: {type: "single", required: true, count: 1}};
+  const strike = {...base, id: "action:strike", label: "Strike", attack: {type: "melee", statistic: "weapon", defenseKey: "ac"}};
+  assert.deepEqual(run(strike, {attack: {modifierTotal: 2, defense: 30, rollMode: "disadvantage", rollModeSources: ["disadvantage"], inspiration: offer}}),
+    ["normal", 5], "the attack's reroll: +3, and its Advantage cancels the one Disadvantage");
+  const shove = {...base, id: "action:test", label: "Test", check: {ability: "might", dc: {value: 25}}};
+  assert.deepEqual(run(shove, {check: {modifierTotal: 2, dc: 25, rollMode: "disadvantage", rollModeSources: ["disadvantage", "disadvantage"],
+    inspiration: offer}}), ["disadvantage", 5], "a check's: two sources of Disadvantage outweigh it");
+});
