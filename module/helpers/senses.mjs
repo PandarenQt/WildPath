@@ -23,6 +23,24 @@ export function onGround(token) {
     return (Number(token.elevation) || 0) <= floor;
 }
 /**
+ * Whether light hides `observed` from `observer` (2024): darkness hides it from a creature without Darkvision (or
+ * Devil's Sight, or Truesight) reaching it; magical Darkness from one without Devil's Sight or Truesight reaching it,
+ * and a creature inside magical Darkness sees nothing beyond it without them. Blindsight within range, or Tremorsense on
+ * a creature on the ground, ignores light. `observerLight`, `observedLight`: where each stands (lightAt).
+ */
+export function obscured(observer, { distance = null, grounded = true, observerLight = "light", observedLight = "light" } = {}) {
+    if ((observerLight === "light") && (observedLight === "light"))
+        return false;
+    const senses = observer?.system?.senses ?? {};
+    const reaches = (sense) => ((Number(senses[sense]) || 0) > 0) && ((distance === null) || (distance <= Number(senses[sense])));
+    if (reaches("blindsight") || (grounded && reaches("tremorsense")))
+        return false;
+    const throughMagic = reaches("devilsSight") || reaches("truesight");
+    if ((observerLight === "magicalDarkness") || (observedLight === "magicalDarkness"))
+        return !throughMagic;
+    return (observedLight === "dark") && !(throughMagic || reaches("darkvision"));
+}
+/**
  * Whether `observer` perceives `observed` despite Blinded and Invisible: a Blinded creature perceives only by
  * Blindsight (or Tremorsense, a creature on the ground) within range; an Invisible creature is perceived by Truesight,
  * Blindsight or Tremorsense within range. `distance` in feet (unknown counts as within range); `grounded`: the observed

@@ -5,6 +5,8 @@
  * (registerDarknessSight); Truesight sees everything within its range (`seeAll`); Tremorsense feels what touches the
  * ground (`feelTremor`); Blindsight perceives without sight (`blindsight`, registered here).
  */
+import { obscured, onGround, perceives } from "../helpers/senses.mjs";
+import { lightAt } from "./foundry-v14-sunlight.mjs";
 /** Its creature's senses applied to a Token's prepared sight and detection modes (before Foundry fills the rest). */
 export function applySensesToToken(token) {
     const senses = token.actor?.system?.senses;
@@ -41,6 +43,23 @@ export function registerDarknessSight(config) {
         }
     }
     tokens.objectClass = WildPathToken;
+}
+/**
+ * Whether an attacker and its target see each other (2024): despite Blinded and Invisible (`perceives`), and in the
+ * light each stands in (`obscured`): `seesTarget`, `seenByTarget`. `targetHidden` and `attackerHidden` mark one that
+ * only light hides (it would be perceived in light): every creature's unseen rules read those (documents/actor.mjs), so
+ * Invisible in Darkness is still one source of Disadvantage. `distance` in feet.
+ */
+export function attackSight({ attacker, target, attackerToken = null, targetToken = null, distance = null }) {
+    const attackerLight = lightAt(attackerToken);
+    const targetLight = lightAt(targetToken);
+    const perceivesTarget = perceives(attacker, target, { distance, grounded: onGround(targetToken) });
+    const perceivedByTarget = perceives(target, attacker, { distance, grounded: onGround(attackerToken) });
+    const targetHidden = perceivesTarget && obscured(attacker, { distance, grounded: onGround(targetToken), observerLight: attackerLight,
+        observedLight: targetLight });
+    const attackerHidden = perceivedByTarget && obscured(target, { distance, grounded: onGround(attackerToken), observerLight: targetLight,
+        observedLight: attackerLight });
+    return { seesTarget: perceivesTarget && !targetHidden, seenByTarget: perceivedByTarget && !attackerHidden, targetHidden, attackerHidden };
 }
 /** A key that changes when its creature's senses do (its Token's vision is then prepared again). */
 export function sensesKey(token) {

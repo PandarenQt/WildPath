@@ -8,7 +8,7 @@ import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {turnKey} from "./foundry-v14-persistent-areas.mjs";
 import {allyNearTarget} from "./foundry-v14-auras.mjs";
 import {sunlightContext} from "./foundry-v14-sunlight.mjs";
-import {onGround, perceives} from "../helpers/senses.mjs";
+import {attackSight} from "./foundry-v14-senses.mjs";
 import {economyResourcesFromActorResources} from "../helpers/action-economy.mjs";
 import {createAutomationEvent} from "../helpers/automation-events.mjs";
 import {movementTransitionRelations} from "../helpers/movement-transition.mjs";
@@ -89,11 +89,8 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
   const type = definition.attack?.type ?? null;
   const fields = footprintDistance(sourceFootprint as never, (targetFootprint as {footprint: never}).footprint);
   const distance = Number.isFinite(fields) ? fields * sceneContext.grid.distance : null;
-  const sees = perceives as unknown as (observer: unknown, observed: unknown, options: Data) => boolean;
-  const grounded = onGround as unknown as (token: unknown) => boolean;
   const context = {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * sceneContext.grid.distance <= 5} : {}),
-    seesTarget: sees(reactor.actor, actor, {distance, grounded: grounded(target)}),
-    seenByTarget: sees(actor, reactor.actor, {distance, grounded: grounded(reactor)}),
+    ...attackSight({attacker: reactor.actor as never, target: actor as never, attackerToken: reactor as never, targetToken: target as never, distance}),
     fromTarget: (conditionsFrom as unknown as (holder: unknown, source: unknown) => Data)(reactor.actor, actor),
     fromAttacker: (conditionsFrom as unknown as (holder: unknown, source: unknown) => Data)(actor, reactor.actor),
     allyNearTarget: allyNearTarget(reactor as never, target as never, (targetFootprint as {footprint?: Data}).footprint ?? null)},

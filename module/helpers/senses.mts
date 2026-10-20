@@ -30,6 +30,25 @@ export function onGround(token: GroundToken | null | undefined): boolean {
 
 interface Perceiver {statuses?: Iterable<string> | null; system?: {senses?: Partial<Senses> | null} | null}
 
+type Light = "light" | "dark" | "magicalDarkness";
+
+/**
+ * Whether light hides `observed` from `observer` (2024): darkness hides it from a creature without Darkvision (or
+ * Devil's Sight, or Truesight) reaching it; magical Darkness from one without Devil's Sight or Truesight reaching it,
+ * and a creature inside magical Darkness sees nothing beyond it without them. Blindsight within range, or Tremorsense on
+ * a creature on the ground, ignores light. `observerLight`, `observedLight`: where each stands (lightAt).
+ */
+export function obscured(observer: Perceiver | null | undefined, {distance = null, grounded = true, observerLight = "light",
+  observedLight = "light"}: {distance?: number | null; grounded?: boolean; observerLight?: Light; observedLight?: Light} = {}): boolean {
+  if ( (observerLight === "light") && (observedLight === "light") ) return false;
+  const senses = observer?.system?.senses ?? {};
+  const reaches = (sense: Sense) => ((Number(senses[sense]) || 0) > 0) && ((distance === null) || (distance <= Number(senses[sense])));
+  if ( reaches("blindsight") || (grounded && reaches("tremorsense")) ) return false;
+  const throughMagic = reaches("devilsSight") || reaches("truesight");
+  if ( (observerLight === "magicalDarkness") || (observedLight === "magicalDarkness") ) return !throughMagic;
+  return (observedLight === "dark") && !(throughMagic || reaches("darkvision"));
+}
+
 /**
  * Whether `observer` perceives `observed` despite Blinded and Invisible: a Blinded creature perceives only by
  * Blindsight (or Tremorsense, a creature on the ground) within range; an Invisible creature is perceived by Truesight,
