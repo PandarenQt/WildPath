@@ -157,6 +157,28 @@ test("ActionConfiguration treats ordinary slots and Pact-style slots as resource
   assert.equal(result.preview.costs.payment.selectedPaymentPlan.resources[0].resourceId, "pact-slot.5");
 });
 
+test("Pact Magic slots pay for a slot up to their level, once, cast at their level", () => {
+  const levels = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  const spell = (base) => ({...scalableSpellDefinition(), damage: [{id: "burst", expression: {type: "dice", number: 3, faces: 10},
+    damageType: "fire", provenance: "spell-base"}], configuration: [{id: "casting-resource", type: ACTION_CHOICE_TYPES.RESOURCE,
+    label: "Cast At", required: true, cost: {anyOf: levels.filter(level => level >= base).map(level => [{capability: `spell-slot.${level}`, amount: 1}])},
+    levelByResourceId: Object.fromEntries(levels.filter(level => level >= base).map(level => [`spell-slot.${level}`, level])),
+    effects: [{type: "scaleDamage", componentIds: ["burst"], levelChoiceId: "casting-resource", baseLevel: base, dice: {number: 1, faces: 10}}]}]});
+  const system = actorSystem({pools: [{id: "spell-slot.1", label: "Level 1", value: 2, max: 2},
+    {id: "spell-slot.pact", label: "Pact Magic slots", value: 2, max: 2}]});
+  system.classes = [{id: "warlock", level: 5, spellcasting: {progression: "pact"}}];
+  const request = discoverActionConfigurationChoices({definition: spell(1), actorSystem: system}).requests.find(choice => choice.id === "casting-resource");
+  assert.deepEqual(request.options.map(option => option.resources[0].resourceId).sort(), ["spell-slot.1", "spell-slot.pact"], "the pact pool once");
+  assert.equal(request.options.find(option => option.resources[0].resourceId === "spell-slot.pact").metadata.castingLevel, 3);
+  const result = createResolvedActionPreview({definition: spell(1), actorSystem: system, choices: {"casting-resource": {resourceId: "spell-slot.pact"}}});
+  assert.equal(result.configuration.castingLevel, 3);
+  assert.equal(result.preview.damage.components[0].formula, "5d10", "cast at level 3: two more dice");
+  assert.deepEqual(result.preview.costs.payment.selectedPaymentPlan.resources.map(entry => entry.resourceId), ["spell-slot.pact"],
+    "the pool chosen pays, not another with the same capability");
+  const higher = discoverActionConfigurationChoices({definition: spell(4), actorSystem: system}).requests.find(choice => choice.id === "casting-resource");
+  assert.equal(higher.options.length, 0, "a level-4 spell is above the pact slots' level");
+});
+
 test("damage-type choices are contributed by rules sources and appear only after dependencies", () => {
   const hidden = discoverActionConfigurationChoices({
     definition: scalableSpellDefinition(),

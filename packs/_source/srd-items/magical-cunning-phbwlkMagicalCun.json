@@ -18,6 +18,44 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "restores": [
+        {
+          "resourceId": "spell-slot.pact",
+          "amount": 1,
+          "refuseWhenFull": true,
+          "amountExpression": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "warlock"
+            },
+            "rows": {
+              "1": {
+                "type": "divide",
+                "numerator": {
+                  "type": "resource-max",
+                  "resource": "spell-slot.pact"
+                },
+                "denominator": {
+                  "type": "constant",
+                  "value": 2
+                },
+                "round": "ceil"
+              },
+              "20": {
+                "type": "resource-max",
+                "resource": "spell-slot.pact"
+              }
+            }
+          }
+        }
+      ],
       "label": "Magical Cunning"
     },
     "ruleElements": [
@@ -49,13 +87,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "activation: 1 minute is not an action-economy cost",
-          "consumption: attribute -(ceil(@spells.pact.max / 2)) not converted",
-          "activation: 1 minute is not an action-economy cost",
-          "consumption: attribute -(ceil(@spells.pact.max / 2)) not converted"
-        ]
+        "notes": []
       }
     }
   }

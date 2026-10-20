@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 867 automated, 288 manual, 232 features. Creatures: 375.
+Items: 868 automated, 287 manual, 232 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -480,7 +480,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Efreeti Bottle | equipment24 | Efreeti Bottle (Remove Stopper) (manual) | not automated (utility): using it spends its cost; its description says the rest; "1: Attacks You" is passive or triggered: not automated; "2—9: Obeys Commands" is passive or triggered: not automated; "10: Casts Wish" is passive or triggered: not automated |
 | Eldritch Blast | spells24 | Eldritch Blast (automated) | — |
 | Eldritch Invocations | classes24 | Eldritch Invocations (feature) | — |
-| Eldritch Master | classes24 | Eldritch Master (feature) | "Eldritch Master" is passive or triggered: not automated |
+| Eldritch Master | classes24 | Eldritch Master (feature) | — |
 | Eldritch Mind | classes24 | Eldritch Mind (feature) | — |
 | Eldritch Smite | classes24 | Eldritch Smite (feature) | "Smite" is passive or triggered: not automated |
 | Eldritch Spear | classes24 | Eldritch Spear (feature) | "Increase Range" is passive or triggered: not automated |
@@ -948,7 +948,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Magic Mouth | spells24 | Magic Mouth (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
 | Magic Weapon | spells24 | Magic Weapon (automated) | — |
 | Magical Berries | spells24 | Magical Berries (automated) | — |
-| Magical Cunning | classes24 | Magical Cunning (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost; consumption: attribute -(ceil(@spells.pact.max / 2)) not converted |
+| Magical Cunning | classes24 | Magical Cunning (automated) | — |
 | Magical Discoveries | classes24 | Magical Discoveries (feature) | — |
 | Magical Secrets | classes24 | Magical Secrets (feature) | — |
 | Magma Mephit | actors24 | Magma Mephit (4 items) | Death Burst: "save" is passive or triggered: not automated |
@@ -1623,7 +1623,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Warhammer | equipment24 | Warhammer (automated), Warhammer (Two-Handed) (automated) | — |
 | Warhorse | actors24 | Warhorse (2 items) | — |
 | Warhorse Skeleton | actors24 | Warhorse Skeleton (3 items) | — |
-| Warlock | classes24 | Warlock (class) | spellcasting: pact is treated as none |
+| Warlock | classes24 | Warlock (class) | — |
 | Warrior Infantry | actors24 | Warrior Infantry (3 items) | — |
 | Warrior of the Open Hand | classes24 | Warrior of the Open Hand (subclass) | — |
 | Warrior Veteran | actors24 | Warrior Veteran (5 items) | — |

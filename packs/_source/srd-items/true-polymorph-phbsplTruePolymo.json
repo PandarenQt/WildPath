@@ -67,11 +67,18 @@
                   "capability": "spell-slot.9",
                   "amount": 1
                 }
+              ],
+              [
+                {
+                  "capability": "mystic-arcanum.9",
+                  "amount": 1
+                }
               ]
             ]
           },
           "levelByResourceId": {
-            "spell-slot.9": 9
+            "spell-slot.9": 9,
+            "mystic-arcanum.9": 9
           },
           "effects": []
         }

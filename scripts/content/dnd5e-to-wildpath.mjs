@@ -228,7 +228,28 @@ const WITHDRAW = {id: "effect-1", type: "effect", name: "Withdraw", slug: "disen
         {type: "context", path: "actorSystem.resources.movement.bonus"}]}, denominator: {type: "constant", value: 2}}}}}]};
 
 /** Features the engine offers itself when they apply (Tactical Mind: withTacticalMind on a failed check). */
-const OFFERED_BY_ENGINE = new Set(["tactical-mind"]);
+const OFFERED_BY_ENGINE = new Set(["tactical-mind", "eldritch-master"]);
+
+/** The pool of Pact Magic slots (helpers/spellcasting.mts). */
+const PACT_SLOT_POOL = "spell-slot.pact";
+
+/**
+ * 2024 Magical Cunning: Pact Magic slots back, half the maximum rounded up; all of them from warlock level 20
+ * (Eldritch Master), refused while none is spent. shortcut: its 1-minute rite is not timed.
+ */
+const MAGICAL_CUNNING_RESTORE = Object.freeze({resourceId: PACT_SLOT_POOL, amount: 1, refuseWhenFull: true, amountExpression: {
+  type: "table", key: {type: "class-level", class: "warlock"}, rows: {
+    1: {type: "divide", numerator: {type: "resource-max", resource: PACT_SLOT_POOL}, denominator: {type: "constant", value: 2}, round: "ceil"},
+    20: {type: "resource-max", resource: PACT_SLOT_POOL}}}});
+
+/**
+ * 2024 Mystic Arcanum: one spell of each level 6 to 9 cast without a slot once per Long Rest, from warlock levels 11,
+ * 13, 15 and 17: a pool per level, which a spell of exactly that level may spend (slotConfiguration). shortcut: any
+ * spell of that level, not the one chosen.
+ */
+const MYSTIC_ARCANUM_POOLS = Object.freeze([[6, 11], [7, 13], [8, 15], [9, 17]].map(([level, from]) => ({schemaVersion: 1,
+  id: `mystic-arcanum-${level}`, type: "GrantResource", data: {resourceId: `mystic-arcanum.${level}`, label: `Mystic Arcanum (level ${level})`,
+    maximum: {type: "table", key: {type: "class-level", class: "warlock"}, rows: {[from]: 1}, default: 0}, recovery: "longRest"}})));
 
 /**
  * A feature dnd5e leaves without automation, as the effects its use puts on its creature. 2024 Steady Aim: Advantage
@@ -913,6 +934,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         {resourceId: FLURRY_POOL.data.resourceId, amount: 1, amountExpression: structuredClone(FLURRY_POOL.data.maximum)}]};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
+    if ( identifierOf(document) === "magical-cunning" ) {
+      definition = {...definition, range: {type: "self"}, targeting: {type: "self"},
+        restores: [...(definition.restores ?? []), structuredClone(MAGICAL_CUNNING_RESTORE)]};
+      notes.splice(0, notes.length, ...notes.filter(note => !/^not automated|^consumption: attribute|^activation: 1 minute/.test(note)));
+    }
     const push = forcedMovement(document, definition);
     if ( push ) definition = {...definition, push};
     const suffix = usable.length > 1 ? ` (${label})` : "";
@@ -1009,7 +1035,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       system: {active: true, description, ruleElements: [pool?.rule, ...(trait?.rules ?? []), ...initiativeRules,
         // A paladin's aura is what it grants those around it, not what its dnd5e effect gives the paladin alone.
         ...(PALADIN_AURAS[identifierOf(document)] ? [paladinAura(identifierOf(document))] : passive),
-        ...((identifierOf(document) === "paladins-smite") ? [PALADINS_SMITE.pool] : [])].filter(Boolean)},
+        ...((identifierOf(document) === "paladins-smite") ? [PALADINS_SMITE.pool] : []),
+        ...((identifierOf(document) === "mystic-arcanum") ? structuredClone(MYSTIC_ARCANUM_POOLS) : [])].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(metamagic ? {metamagic} : {}),
         ...(testOffer ? {testOffer} : {}), ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {})}}});
     if ( identifierOf(document) === "paladins-smite" ) items.push(...paladinsSmiteActions(document, img, source));
@@ -1219,9 +1246,9 @@ export function convertProgression(document, {uuidOf=() => [], licensed=isSrd202
   const fields = {identifier: system.identifier || slugify(document.name), advancement};
   if ( type === "class" ) {
     const progression = system.spellcasting?.progression ?? "none";
-    // shortcut: the Artificer rounds up like a half caster; third casters and pact magic are not converted.
-    const mapped = {full: "full", half: "half", artificer: "half"}[progression] ?? "none";
-    if ( !["none", "full", "half"].includes(progression) ) notes.push(`spellcasting: ${progression} is treated as ${mapped}`);
+    // shortcut: the Artificer rounds up like a half caster; third casters are not converted.
+    const mapped = {full: "full", half: "half", artificer: "half", pact: "pact"}[progression] ?? "none";
+    if ( !["none", "full", "half", "pact"].includes(progression) ) notes.push(`spellcasting: ${progression} is treated as ${mapped}`);
     Object.assign(fields, {levels: 1, hitDie: Number(String(system.hd?.denomination ?? "d8").slice(1)) || 8, original: false,
       primaryAbility: {abilities: (system.primaryAbility?.value ?? []).map(key => ABILITY_MAP[key] ?? key), all: system.primaryAbility?.all !== false},
       spellcasting: {progression: mapped, ability: ABILITY_MAP[system.spellcasting?.ability] ?? "", prepared: preparedTable(system)}});
@@ -2061,9 +2088,12 @@ function slotConfiguration(level, damage, {healing=[], perLevel=0}={}) {
     baseLevel: level, componentIds: [component.id], dice: component.scaleDice}));
   const scaling = [...scale("scaleDamage", damage), ...scale("scaleHealing", healing),
     ...(perLevel ? [{type: "scaleTargets", levelChoiceId: "spell-slot", baseLevel: level, perLevel}] : [])];
+  // A spell of level 6 to 9 may also be cast with that level's Mystic Arcanum, at its own level.
+  const arcanum = (level >= 6) ? [`mystic-arcanum.${level}`] : [];
   return [{id: "spell-slot", type: "resource", label: "Spell slot", required: true,
-    cost: {anyOf: levels.map(each => [{capability: `spell-slot.${each}`, amount: 1}])},
-    levelByResourceId: Object.fromEntries(levels.map(each => [`spell-slot.${each}`, each])), effects: scaling}];
+    cost: {anyOf: [...levels.map(each => [{capability: `spell-slot.${each}`, amount: 1}]), ...arcanum.map(capability => [{capability, amount: 1}])]},
+    levelByResourceId: Object.fromEntries([...levels.map(each => [`spell-slot.${each}`, each]), ...arcanum.map(capability => [capability, level])]),
+    effects: scaling}];
 }
 
 /** dnd5e's base weapon ids where WildPath's differ (`light-crossbow`, as the training lists name them). */

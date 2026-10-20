@@ -584,7 +584,7 @@
       "all": true
     },
     "spellcasting": {
-      "progression": "none",
+      "progression": "pact",
       "ability": "presence",
       "prepared": [
         2,
@@ -622,9 +622,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "spellcasting: pact is treated as none"
-        ]
+        "notes": []
       }
     }
   }

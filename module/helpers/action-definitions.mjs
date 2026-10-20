@@ -655,7 +655,8 @@ function costRequirementForPayment(requirement) {
   return {
     capability: requirement.capability ?? requirement.type,
     amount: requirement.amount,
-    unit: requirement.unit ?? null
+    unit: requirement.unit ?? null,
+    ...(requirement.resourceId ? {resourceId: requirement.resourceId} : {})
   };
 }
 

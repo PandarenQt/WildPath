@@ -442,6 +442,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Training (2026-10-20):** Divine Order: Protector and Primal Order: Warden carry `flags.wildpath.training`, which their
   creature has while the Item is there (classes-and-spellcasting.md). Expertise steps (Rogue, Bard, Ranger) are
   `expertise:*` choices, and weapon keys use the base names (`weapons:hand-crossbow`).
+- **Pact Magic (2026-10-20):** the Warlock's progression is `pact`; Magical Cunning restores its slots; Mystic Arcanum
+  brings four pools, and every spell of level 6 to 9 offers its level's (classes-and-spellcasting.md).
 - **Tireless (2026-10-20):** its Short Rest Exhaustion is a `rest.completed` Trigger. An Item with Actions now carries its
   automatic triggers on its first Action.
 - **Cantrip invocations (2026-10-20):** Agonizing Blast and Repelling Blast apply to every cantrip (the cantrip house

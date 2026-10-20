@@ -7,7 +7,92 @@
   "system": {
     "active": true,
     "description": "<p>Your patron grants you a magical secret called an arcanum. Choose one level 6 Warlock spell as this arcanum.</p><p>You can cast your arcanum spell once without expending a spell slot, and you must finish a Long Rest before you can cast it in this way again.</p><p>You gain another Warlock spell of your choice that can be cast in this way when you reach Warlock levels 13 (level 7 spell), 15 (level 8 spell), and 17 (level 9 spell). You regain all uses of your Mystic Arcanum when you finish a Long Rest.</p><p>Whenever you gain a Warlock level, you can replace one of your arcanum spells with another Warlock spell of the same level.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "mystic-arcanum-6",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "mystic-arcanum.6",
+          "label": "Mystic Arcanum (level 6)",
+          "maximum": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "warlock"
+            },
+            "rows": {
+              "11": 1
+            },
+            "default": 0
+          },
+          "recovery": "longRest"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "mystic-arcanum-7",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "mystic-arcanum.7",
+          "label": "Mystic Arcanum (level 7)",
+          "maximum": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "warlock"
+            },
+            "rows": {
+              "13": 1
+            },
+            "default": 0
+          },
+          "recovery": "longRest"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "mystic-arcanum-8",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "mystic-arcanum.8",
+          "label": "Mystic Arcanum (level 8)",
+          "maximum": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "warlock"
+            },
+            "rows": {
+              "15": 1
+            },
+            "default": 0
+          },
+          "recovery": "longRest"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "mystic-arcanum-9",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "mystic-arcanum.9",
+          "label": "Mystic Arcanum (level 9)",
+          "maximum": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "warlock"
+            },
+            "rows": {
+              "17": 1
+            },
+            "default": 0
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

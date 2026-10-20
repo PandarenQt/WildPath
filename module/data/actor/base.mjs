@@ -1,7 +1,7 @@
 import {WILDPATH} from "../../config.mjs";
 import {defenseField, resourceField, poolsField} from "../fields.mjs";
 import {computeResourceMax, clampResourceValue, remainingFromSpent, spentFromRemaining} from "../../helpers/resources.mjs";
-import {SPELLCASTING_PROGRESSIONS, deriveClassData, spellSlotPoolId} from "../../helpers/spellcasting.mjs";
+import {PACT_SLOT_POOL, SPELLCASTING_PROGRESSIONS, deriveClassData, spellSlotPoolId} from "../../helpers/spellcasting.mjs";
 import {formOverrides} from "../../helpers/transformations.mjs";
 import {movementSpeeds} from "../../helpers/movement-modes.mjs";
 import {abilityScoreAfter} from "../../helpers/rule-elements.mjs";
@@ -167,9 +167,10 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     const missing = [
       ...derived.spellcasting.slots.map((count, index) => [spellSlotPoolId(index + 1), count,
         format("WILDPATH.SPELLCASTING.SlotPool", {level: index + 1}, spellSlotPoolId(index + 1))]),
+      [PACT_SLOT_POOL, derived.spellcasting.pact.slots, format("WILDPATH.SPELLCASTING.PactPool", {}, "Pact Magic"), "shortRest"],
       ...Object.entries(derived.hitDice).map(([id, count]) => [id, count, format("WILDPATH.HITDICE.Pool", {die: id.split(".").pop()}, id)])
-    ].flatMap(([id, count, label]) => ((!count || existing.has(id)) ? []
-      : [{id, label, base: 0, bonus: 0, max: count, value: count, recovery: "longRest"}]));
+    ].flatMap(([id, count, label, recovery="longRest"]) => ((!count || existing.has(id)) ? []
+      : [{id, label, base: 0, bonus: 0, max: count, value: count, recovery}]));
     return missing.length ? [...pools, ...missing] : null;
   }
 
@@ -277,7 +278,7 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     // Spell slot pools also hold what the class progression gives at the current caster level, and every
     // pool what its grants give (`GrantResource`).
     const granted = new Map([...this.spellcasting.slots.map((count, index) => [spellSlotPoolId(index + 1), count]),
-      ...Object.entries(this.hitDice ?? {})]);
+      [PACT_SLOT_POOL, this.spellcasting.pact?.slots ?? 0], ...Object.entries(this.hitDice ?? {})]);
     for ( const {id, maximum} of this.parent.getGrantedResources?.() ?? [] ) granted.set(id, (granted.get(id) ?? 0) + maximum);
     for ( const pool of this.pools ) {
       pool.modifierBonus = (this.parent.getStatistic?.(`pools.${pool.id}.max`)?.totalModifier ?? 0)

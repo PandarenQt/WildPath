@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {casterLevel, deriveClassData, hitDiceHealing, spellSlots} from "../module/helpers/spellcasting.mjs";
+import {casterLevel, deriveClassData, hitDiceHealing, pactMagic, spellSlots} from "../module/helpers/spellcasting.mjs";
 
 test("spent Hit Dice heal each roll plus Fortitude, at least 1 a die (2024) or 0 (2014)", () => {
   assert.equal(hitDiceHealing([7, 2], 2), 13);
@@ -57,4 +57,15 @@ test("prepared spells (2024): leveled spells a feature did not give, and the cla
   const paladin = {system: {levels: 2, spellcasting: {prepared: [2, 3]}}};
   assert.equal(preparedSpellLimit([wizard, paladin]), 9);
   assert.equal(preparedSpellLimit([{system: {levels: 5, spellcasting: {prepared: []}}}]), null, "a Fighter prepares none");
+});
+
+const warlock = level => ({id: "warlock", level, spellcasting: {progression: "pact", ability: "presence"}});
+
+test("Pact Magic (2024): its slots and their level follow the Warlock levels, apart from multiclass slots", () => {
+  assert.deepEqual([1, 2, 3, 11, 17, 20].map(level => pactMagic([warlock(level)])),
+    [{slots: 1, level: 1}, {slots: 2, level: 1}, {slots: 2, level: 2}, {slots: 3, level: 5}, {slots: 4, level: 5}, {slots: 4, level: 5}]);
+  assert.deepEqual(pactMagic([wizard(5)]), {slots: 0, level: 0});
+  const derived = deriveClassData([warlock(5), wizard(3)]);
+  assert.equal(derived.spellcasting.casterLevel, 3, "the Warlock's levels add no multiclass slots");
+  assert.deepEqual(derived.spellcasting.pact, {slots: 2, level: 3});
 });
