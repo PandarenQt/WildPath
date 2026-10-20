@@ -139,8 +139,8 @@ const ENDS = Object.freeze({
 /**
  * A paladin's auras (2024): what "you and your allies" in the paladin's 10-foot Emanation (30 feet from Aura Expansion,
  * paladin level 18) get, inactive while the paladin has the Incapacitated condition. Aura of Protection adds its
- * Charisma modifier to saves (at least +1); Courage and Devotion give immunity to Frightened and Charmed.
- * shortcut: a Frightened or Charmed ally entering keeps that condition; upgrade when an aura can suppress one.
+ * Charisma modifier to saves (at least +1); Courage and Devotion give immunity to Frightened and Charmed, and an ally
+ * already Frightened or Charmed has that condition suppressed while inside (WildPathActiveEffect#isSuppressed).
  */
 const PALADIN_AURAS = Object.freeze({
   "aura-of-protection": [{schemaVersion: 1, id: "protection", type: "Modifier", data: {domains: ["save"], modifierType: "untyped",

@@ -7,7 +7,28 @@ import {serializeRuleElementDefinition} from "../helpers/rule-elements.mjs";
  * becomes a properly-typed "condition" effect, with declarative RuleElements copied onto the
  * effect. Legacy `generator()` payloads are still merged for compatibility.
  */
+/** Creatures whose condition immunities are being worked out (their effects' suppression is not asked meanwhile). */
+const READING_IMMUNITIES = new WeakSet();
+
 export default class WildPathActiveEffect extends ActiveEffect {
+
+  /**
+   * A condition its creature is now immune to has no effect while that lasts (2024 Aura of Courage: "If a Frightened
+   * ally enters the aura, that condition has no effect on that ally while there"; Aura of Devotion's Charmed).
+   * @inheritDoc
+   */
+  get isSuppressed() {
+    if ( super.isSuppressed ) return true;
+    const actor = this.parent;
+    if ( (this.type !== "condition") || !this.system?.type || (typeof actor?.getConditionImmunities !== "function")
+      || READING_IMMUNITIES.has(actor) ) return false;
+    READING_IMMUNITIES.add(actor);
+    try {
+      return actor.getConditionImmunities().includes(this.system.type);
+    } finally {
+      READING_IMMUNITIES.delete(actor);
+    }
+  }
 
   /**
    * An effect may grant a resource that needs its pool on the Actor (`GrantResource`), and a condition may bring
