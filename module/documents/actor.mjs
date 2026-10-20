@@ -1,4 +1,5 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
+import {hostedRules} from "../helpers/effect-sources.mjs";
 import {
   damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, grantedSensesFromRuleElements, grantedLanguagesFromRuleElements,
   modifiersFromRuleElements,
@@ -157,7 +158,7 @@ export default class WildPathActor extends Actor {
         if ( !domains.some(entry => modifierTargetsDomain(m, entry)) ) continue;
         modifiers.push(new WildPathModifier({...m, source: effect.uuid}));
       }
-      for ( const entry of domains ) modifiers.push(...collectRuleElementModifiers(effect.system?.ruleElements, {
+      for ( const entry of domains ) modifiers.push(...collectRuleElementModifiers(hostedRules(effect), {
         actor: this,
         domain: entry,
         source: documentRuleElementSource(effect, "effect"),
@@ -956,7 +957,7 @@ function grantOwners(actor) {
     && (!transformation || contributesWhileTransformed(item, transformation)))
     .map(item => ({ruleElements: item.system?.ruleElements ?? [], source: documentRuleElementSource(item, "item")}));
   const effects = [...(actor.allApplicableEffects?.() ?? actor.effects)].filter(effect => !effect.disabled && !effect.isSuppressed)
-    .map(effect => ({ruleElements: effect.system?.ruleElements ?? [], source: documentRuleElementSource(effect, "effect")}));
+    .map(effect => ({ruleElements: hostedRules(effect), source: documentRuleElementSource(effect, "effect")}));
   const hindering = untrained.find(item => item.system.armor !== "shield");
   return [...items, ...effects, ...(hindering ? [{ruleElements: [UNTRAINED_ARMOR], source: documentRuleElementSource(hindering, "item")}] : []),
     {ruleElements: UNSEEN, source: {type: "rule", uuid: null, id: "unseen", name: "Unseen"}}];

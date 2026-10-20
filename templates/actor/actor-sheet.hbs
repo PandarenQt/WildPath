@@ -257,6 +257,11 @@
                 <div class="row-main">
                   <a class="row-name" data-action="openItem">{{item.name}}</a>
                   <span class="row-detail">{{localize "WILDPATH.SHEET.Weight" weight=item.weight}}</span>
+                  {{#each item.enchantments as |enchantment|}}
+                    <span class="row-detail">{{enchantment.name}}
+                      <button type="button" class="row-command" data-action="endEnchantment" data-effect-id="{{enchantment.id}}"
+                              title="{{localize "WILDPATH.SHEET.EndEnchantment"}}">✕</button></span>
+                  {{/each}}
                 </div>
                 <input class="quantity" type="number" min="0" step="1" value="{{item.quantity}}" data-item-field="system.quantity"
                        aria-label="{{localize "WILDPATH.SHEET.Quantity"}}" title="{{localize "WILDPATH.SHEET.Quantity"}}">

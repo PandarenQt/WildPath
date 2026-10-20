@@ -47,3 +47,21 @@ function contents(collection) {
   if ( typeof collection.values === "function" ) return [...collection.values()];
   return typeof collection === "object" ? Object.values(collection) : [];
 }
+
+/** Rules already bound to their host Item, by their rules array (so each read doesn't bind them again). */
+const HOSTED = new WeakMap();
+
+/**
+ * An effect's rules, `{{host}}` in them bound to the Item holding the effect (an infusion's `weapon:{{host}}`: that
+ * weapon's attacks), so they follow the Item wherever it goes.
+ */
+export function hostedRules(effect) {
+  const rules = effect?.system?.ruleElements ?? [];
+  const host = (effect?.parent?.documentName === "Item") ? effect.parent.id : null;
+  if ( !host || !rules.length ) return rules;
+  const cached = HOSTED.get(rules);
+  if ( cached?.host === host ) return cached.rules;
+  const bound = JSON.parse(JSON.stringify(rules).replaceAll("{{host}}", host));
+  HOSTED.set(rules, {host, rules: bound});
+  return bound;
+}

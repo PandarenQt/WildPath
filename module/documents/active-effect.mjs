@@ -19,6 +19,11 @@ export default class WildPathActiveEffect extends ActiveEffect {
    */
   get isSuppressed() {
     if ( super.isSuppressed ) return true;
+    // An effect on an Item (an infusion) counts only while that Item does: equipped, and attuned when it needs it.
+    if ( this.parent?.documentName === "Item" ) {
+      const system = this.parent.system ?? {};
+      return (system.active === false) || (system.attunement === "required");
+    }
     const actor = this.parent;
     if ( (this.type !== "condition") || !this.system?.type || (typeof actor?.getConditionImmunities !== "function")
       || READING_IMMUNITIES.has(actor) ) return false;

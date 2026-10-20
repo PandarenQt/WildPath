@@ -1,3 +1,4 @@
+import {createFoundryEnchantments} from "../adapters/foundry-v14-enchantments.mjs";
 import {consumePortents, portentOffer} from "../adapters/foundry-v14-portent.mjs";
 import {WILDPATH} from "../config.mjs";
 import {createFoundryDigitalRollProvider} from "../adapters/foundry-digital-roll-provider.mjs";
@@ -151,6 +152,7 @@ export function registerFoundryV14MultiplayerResolution({
       await dying.afterResolution(event);
       await applyActionTransformation(event, {logger});
       await summons.afterResolution(event);
+      await enchantments.afterResolution(event);
       await pushes.afterResolution(event);
       await areas.move(event);
       await teleports.afterResolution(event);
@@ -241,6 +243,8 @@ export function registerFoundryV14MultiplayerResolution({
   // Pushes and pulls: the GM moves each creature an Action forces, as forced movement.
   const pushes = createFoundryForcedMovement({game, logger, fromUuid: globalThis.fromUuid ?? (() => null)});
   const teleports = createFoundryTeleports({game});
+  // Item enchantments (infusions): the active GM puts an Action's effect on the Item it picked.
+  const enchantments = createFoundryEnchantments({game, logger});
   // Whoever rolls, every client sees the Combatant update; the active GM dispatches it.
   globalThis.Hooks?.on?.("updateCombatant", (combatant, changed) => {
     if ( !Number.isFinite(changed?.initiative) ) return;
