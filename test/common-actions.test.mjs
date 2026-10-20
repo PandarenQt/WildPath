@@ -74,10 +74,10 @@ test("Escape: only while grappled or restrained with an escape DC, its better of
   const escape = commonAction(creature([held("restrained", 12), held("grappled", 13), held("grappled", 15)]), "escape").system.definition;
   assert.equal(validateActionDefinition(escape).ok, true);
   assert.deepEqual([escape.check, escape.effects[0].conditionId, escape.effects[0].levels, escape.effects[0].checkOutcomePolicy],
-    [{skill: "acrobatics", dc: {value: 15}}, "grappled", -1, "success"], "Agility 16 beats Might 10; the hardest grapple first");
+    [{skill: "acrobatics", dc: {value: 15}, escapes: "grappled"}, "grappled", -1, "success"], "Agility 16 beats Might 10; the hardest grapple first");
   const strong = creature([held("restrained", 14)]);
   strong.system.abilities.might.value = 18;
-  assert.deepEqual(commonAction(strong, "escape").system.definition.check, {skill: "athletics", dc: {value: 14}});
+  assert.deepEqual(commonAction(strong, "escape").system.definition.check, {skill: "athletics", dc: {value: 14}, escapes: "restrained"});
   assert.equal(commonAction(strong, "escape").system.definition.effects[0].conditionId, "restrained");
 
   const grappler = {uuid: "Actor.ogre", items: [], system: {abilities: {might: {value: 19}}, details: {level: 5}}};

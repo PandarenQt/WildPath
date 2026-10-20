@@ -290,8 +290,13 @@ const TEST_OFFERS = Object.freeze({
   "stroke-of-luck": {tests: ["check", "save", "attack"], setNatural: 20},
   // 2024 Countercharm: a save failed against Charmed or Frightened, by itself or an ally within 30 ft, rerolled with
   // Advantage for its Reaction (withAllyTestOffers). Its pool is named here: its activity spends none.
-  countercharm: {tests: ["save"], pool: "reaction", rollMode: "advantage", range: 30, against: ["charmed", "frightened"]}
+  countercharm: {tests: ["save"], pool: "reaction", rollMode: "advantage", range: 30, against: ["charmed", "frightened"]},
+  // 2024 Disciplined Survivor: a failed save rerolled for 1 Focus Point (its activity's).
+  "disciplined-survivor": {tests: ["save"], reroll: true}
 });
+
+/** 2024 Luck (halfling): a 1 on the d20 of a D20 Test rerolled, free. shortcut: offered only when the roll failed. */
+const HALFLING_LUCK = Object.freeze({tests: ["check", "save", "attack"], reroll: true, natural: 1});
 
 /** The die of a test offer: "1d10", or a scale's die ("@scale.bard.inspiration") as its faces. */
 function testOfferFaces(formula, scales) {
@@ -889,7 +894,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       const offered = TEST_OFFERS[identifierOf(document)];
       const faces = offered ? testOfferFaces(activity.roll?.formula, scales) : null;
       const offerPool = offered ? targetPoolId(activity.consumption?.targets?.[0] ?? {}, pool, names) : null;
-      if ( (faces || offered?.setNatural) && offerPool ) {
+      if ( (faces || offered?.setNatural || offered?.reroll) && offerPool ) {
         testOffer = {...offered, pool: offerPool, ...(faces ? {faces} : {})};
         continue;
       }
@@ -1087,6 +1092,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       // Its Actions come with it when it is added to a creature (WildPathItem).
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(items.length ? {grants: items.map(item => item._id)} : {})}}});
   }
+  // Halfling Luck: its dnd5e flag is its test offer.
+  if ( (document.effects ?? []).some(effect => (effect.changes ?? effect.system?.changes ?? [])
+    .some(change => change.key === "flags.dnd5e.halflingLucky")) ) testOffer ??= structuredClone(HALFLING_LUCK);
   // Nothing to use: a passive ability is a feature carrying its text (and any uses its other Actions spend).
   if ( !items.length ) {
     // Its training is its flag (`flags.wildpath.training`), no longer a note.
@@ -1211,6 +1219,8 @@ function trainingKeys(document) {
   const changes = (document.effects ?? []).filter(effect => effect.transfer && !effect.disabled)
     .flatMap(effect => effect.changes ?? effect.system?.changes ?? []);
   return [...new Set(changes.flatMap(change => {
+    // 2024 Disciplined Survivor: proficiency in every saving throw.
+    if ( change.key === "flags.dnd5e.diamondSoul" ) return Object.values(ABILITY_MAP).map(ability => `saves:${ability}`);
     const kind = {"system.traits.armorProf.value": "armor", "system.traits.weaponProf.value": "weapon"}[change.key];
     if ( !kind || (change.type !== "add") ) return [];
     return String(change.value ?? "").split(/[,;]/).map(entry => entry.trim()).filter(Boolean).map(value => traitKey(`${kind}:${value}`));
@@ -1628,6 +1638,10 @@ const markDamage = (slug, damageType, faces=6) => ({schemaVersion: 1, id: `${slu
 const EFFECTS_BY_HAND = Object.freeze({
   // "Any attack roll against an affected creature or object has Advantage if the attacker can see it."
   "faerie-fire": {ruleElements: [{schemaVersion: 1, id: "faerie-fire", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}}]},
+  // 2024 Innate Sorcery: Advantage on the attack rolls of its creature's spells while it lasts (dnd5e's effect has only the
+  // +1 save DC). shortcut: any spell, not only Sorcerer spells.
+  "innate-sorcery": {extraRules: [{schemaVersion: 1, id: "innate-sorcery-attacks", type: "RollMode", predicate: {tagsAny: ["spell"]},
+    data: {domains: ["attack"], mode: "advantage"}}]},
   // "Any creature has Disadvantage on attack rolls against you."
   "blur": {ruleElements: [{schemaVersion: 1, id: "blur", type: "RollMode", data: {domains: ["attacked"], mode: "disadvantage"}}]},
   // "It has Disadvantage on the next attack roll it makes before the end of its next turn."
@@ -2950,6 +2964,17 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
       // 2024 Jack of All Trades: half the Proficiency Bonus (round down) on a skill check without that skill's proficiency.
       modifier(["check.unproficient"], {type: "floor", value: {type: "divide", numerator: {type: "proficiency-bonus"},
         denominator: {type: "constant", value: 2}}});
+    } else if ( key === "flags.dnd5e.initiativeAlert" ) {
+      // 2024 Alert: its Proficiency Bonus on Initiative. shortcut: swapping Initiative with an ally is by hand.
+      modifier(["initiative"], {type: "proficiency-bonus"});
+    } else if ( (key === "system.bonuses.spell.dc") && (type === "add") && value ) {
+      // Innate Sorcery's +1: the save DC of its creature's spells.
+      modifier(["dc.spell"], value);
+    } else if ( key === "flags.dnd5e.powerfulBuild" ) {
+      // 2024 Powerful Build: Advantage on a check to end the Grappled condition. shortcut: carrying capacity is not tracked.
+      rule("RollMode", {domains: ["check"], mode: "advantage"}, {equals: {path: "check.escapes", value: "grappled"}});
+    } else if ( ["flags.dnd5e.diamondSoul", "flags.dnd5e.halflingLucky"].includes(key) ) {
+      // Disciplined Survivor's saves are its training (trainingKeys), Luck its test offer (HALFLING_LUCK).
     } else if ( key === "flags.dnd5e.reliableTalent" ) {
       // 2024 Reliable Talent: on a check with a skill proficiency, a d20 of 9 or lower counts as 10.
       rule("RollOutcome", {domains: ["check.proficient"], outcome: "minimum-natural", threshold: 10});

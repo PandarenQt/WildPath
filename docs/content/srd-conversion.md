@@ -43,7 +43,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Alarm | spells24 | Alarm (Cast over Area) (manual), Alarm (Cast on Window or Door) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
 | Alchemist's Fire | equipment24 | Alchemist's Fire (automated) | effect: "Burning." marks its creature only; its rules are by hand |
 | Alchemist's Supplies | equipment24 | Alchemist's Supplies (gear), Alchemist's Supplies (automated) | — |
-| Alert | feats24 | Alert (feature) | effect: "Alert" change flags.dnd5e.initiativeAlert (add) not converted |
+| Alert | feats24 | Alert (feature) | — |
 | Allosaurus | actors24 | Allosaurus (2 items) | — |
 | Alter Self | spells24 | Alter Self (Aquatic Adaptation) (automated), Alter Self (Change Appearance) (automated), Alter Self (Natural Weapons) (automated), Alter Self (Attack: Claws) (automated), Alter Self (Attack: Fangs/Horns) (automated), Alter Self (Attack: Hooves) (automated) | effect: "Altered Appearance" marks its creature only; its rules are by hand; effect: "Natural Weapon" marks its creature only; its rules are by hand; concentration: nothing it sustains was converted |
 | Ammunition (Varies) | equipment24 | Ammunition (Varies) (gear) | — |
@@ -410,7 +410,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Diplomat's Pack | equipment24 | Diplomat's Pack (gear) | — |
 | Dire Wolf | actors24 | Dire Wolf (2 items) | — |
 | Disciple of Life | classes24 | Disciple of Life (feature) | — |
-| Disciplined Survivor | classes24 | Disciplined Survivor (feature) | "Consume Focus Point" is passive or triggered: not automated; effect: "Disciplined Survivor" change flags.dnd5e.diamondSoul (override) not converted |
+| Disciplined Survivor | classes24 | Disciplined Survivor (feature) | — |
 | Disguise Kit | equipment24 | Disguise Kit (gear), Disguise Kit (automated) | — |
 | Disguise Self | spells24 | Disguise Self (automated) | effect: "Disguised" marks its creature only; its rules are by hand |
 | Disintegrate | spells24 | Disintegrate (automated) | — |
@@ -843,7 +843,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ink Pen | equipment24 | Ink Pen (gear) | — |
 | Ink Pen | equipment24 | Ink Pen (gear) | — |
 | Ink Pen | equipment24 | Ink Pen (gear) | — |
-| Innate Sorcery | classes24 | Innate Sorcery (automated) | effect: "Innate Sorcery" change system.bonuses.spell.dc (add) not converted; effect: "Innate Sorcery" marks its creature only; its rules are by hand |
+| Innate Sorcery | classes24 | Innate Sorcery (automated) | — |
 | Insect Plague | spells24 | Insect Plague (automated) | — |
 | Instant Fortress | equipment24 | Instant Fortress (gear), Instant Fortress (Grow Tower) (manual), Instant Fortress (Open Fortress Door) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Instant Summons | spells24 | Instant Summons (Inscribe Mark) (manual), Instant Summons (Recall Object) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost; consumption: itemUses -1 not converted |
@@ -929,7 +929,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Longbow | equipment24 | Longbow (automated) | — |
 | Longstrider | spells24 | Longstrider (automated) | — |
 | Longsword | equipment24 | Longsword (automated), Longsword (Two-Handed) (automated) | — |
-| Luck | origins24 | Luck (feature) | effect: "Luck" change flags.dnd5e.halflingLucky (override) not converted |
+| Luck | origins24 | Luck (feature) | — |
 | Luck Blade | equipment24 | Luck Blade: Wish (automated) | "Luck Blade" is passive or triggered: not automated; "Luck" is passive or triggered: not automated |
 | Lute | equipment24 | Lute (gear), Lute (Play a Known Tune) (automated), Lute (Improvise a Song) (automated) | — |
 | Lyre | equipment24 | Lyre (gear), Lyre (Play a Known Tune) (automated), Lyre (Improvise a Song) (automated) | — |
@@ -1015,7 +1015,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Moonbeam | spells24 | Moonbeam (automated), Moonbeam (Move) (automated) | — |
 | Morningstar | equipment24 | Morningstar (automated) | — |
 | Move Earth | spells24 | Move Earth (Initial Cast) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Affect New Area" is passive or triggered: not automated |
-| Mule | actors24 | Mule (2 items) | Beast of Burden: effect: "Beast of Burden" change flags.dnd5e.powerfulBuild (override) not converted |
+| Mule | actors24 | Mule (2 items) | — |
 | Mummy | actors24 | Mummy (5 items) | Rotting Fist: effect: cursed is not a WildPath condition yet; Rotting Fist: effect: "Cursed" marks its creature only; its rules are by hand; Rotting Fist: not automated (utility): using it spends its cost; its description says the rest |
 | Mummy Lord | actors24 | Mummy Lord (18 items) | Rotting Fist: effect: cursed is not a WildPath condition yet; Rotting Fist: effect: "Cursed" marks its creature only; its rules are by hand; Rotting Fist: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand; Spellcasting: cast: Insect Plague at level 7 is cast at its own level; Glare: not automated (utility): using it spends its cost; its description says the rest; Dread Command: cast: Command at level 2 is cast at its own level; Necrotic Strike: not automated (utility): using it spends its cost; its description says the rest |
 | Musket | equipment24 | Musket (automated) | — |
@@ -1168,7 +1168,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Power Word Heal | spells24 | Power Word Heal (automated) | — |
 | Power Word Kill | spells24 | Power Word Kill (automated) | — |
 | Power Word Stun | spells24 | Power Word Stun (automated) | — |
-| Powerful Build | origins24 | Powerful Build (feature) | effect: "Powerful Build" change flags.dnd5e.powerfulBuild (override) not converted |
+| Powerful Build | origins24 | Powerful Build (feature) | — |
 | Prayer of Healing | spells24 | Prayer of Healing (automated) | activation: 10 minute is not an action-economy cost; effect: "Healed by Prayer" marks its creature only; its rules are by hand |
 | Precise Hunter | classes24 | Precise Hunter (feature) | — |
 | Preserve Life | classes24 | Preserve Life (automated) | — |
@@ -1274,7 +1274,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Robe of Eyes | equipment24 | Robe of Eyes (gear) | "Light Save" is passive or triggered: not automated; "Daylight Save" is passive or triggered: not automated; effect: "Special Senses" change system.attributes.senses.darkvision (upgrade) not converted; effect: "Special Senses" change system.attributes.senses.truesight (upgrade) not converted |
 | Robe of Scintillating Colors | equipment24 | Robe of Scintillating Colors (gear), Robe of Scintillating Colors (Display Dazzling Hues) (manual) | not automated (utility): using it spends its cost; its description says the rest; "save" is passive or triggered: not automated |
 | Robe of Stars | equipment24 | Robe of Stars (gear), Robe of Stars: Magic Missile (automated), Robe of Stars (Enter/Exit Astral Plane) (manual) | cast: Magic Missile at level 5 is cast at its own level; not automated (utility): using it spends its cost; its description says the rest |
-| Robe of the Archmagi | equipment24 | Robe of the Archmagi (gear) | effect: "Archmagi Armor" change system.attributes.ac.calc (override) not converted; effect: "Archmagi Armor" change system.attributes.ac.formula (override) not converted; effect: "War Mage" change system.bonuses.spell.dc (add) not converted |
+| Robe of the Archmagi | equipment24 | Robe of the Archmagi (gear) | effect: "Archmagi Armor" change system.attributes.ac.calc (override) not converted; effect: "Archmagi Armor" change system.attributes.ac.formula (override) not converted |
 | Robe of Useful Items | equipment24 | Robe of Useful Items (gear), Robe of Useful Items (Bullseye Lantern) (manual), Robe of Useful Items (Dagger) (manual), Robe of Useful Items (Mirror) (manual), Robe of Useful Items (Pole) (manual), Robe of Useful Items (Rope (Coiled)) (manual), Robe of Useful Items (Sack) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Roc | actors24 | Roc (5 items) | Talons: "Escape Check" is passive or triggered: not automated; Swoop: not automated (utility): using it spends its cost; its description says the rest |
 | Rod | equipment24 | Rod (gear) | — |

@@ -21,11 +21,23 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Consume Focus Point\" is passive or triggered: not automated",
-          "effect: \"Disciplined Survivor\" change flags.dnd5e.diamondSoul (override) not converted"
-        ]
-      }
+        "notes": []
+      },
+      "testOffer": {
+        "tests": [
+          "save"
+        ],
+        "reroll": true,
+        "pool": "monk-s-focus"
+      },
+      "training": [
+        "saves:might",
+        "saves:agility",
+        "saves:fortitude",
+        "saves:intellect",
+        "saves:wits",
+        "saves:presence"
+      ]
     }
   }
 }

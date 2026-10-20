@@ -276,6 +276,7 @@
       "SeekingSpell": "Seeking Spell: reroll the d20 (1 Sorcery Point, {value} left)",
       "SetNatural": "{name}: turn it into a {natural}",
       "AllyReroll": "{name}'s {feature}: reroll with Advantage (its Reaction)",
+      "RerollWith": "Reroll with {name}",
       "Indomitable": "Reroll with Indomitable, +{bonus} ({value} left)",
       "Monster": "Reroll {name}'s roll with a player character's Heroic Inspiration?",
       "Reroll": "Reroll (Heroic Inspiration)",

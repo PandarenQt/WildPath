@@ -15,6 +15,18 @@
         "schemaVersion": 1,
         "id": "war-mage-1",
         "type": "Modifier",
+        "data": {
+          "domains": [
+            "dc.spell"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "war-mage-2",
+        "type": "Modifier",
         "predicate": {
           "tagsAny": [
             "melee"
@@ -30,7 +42,7 @@
       },
       {
         "schemaVersion": 1,
-        "id": "war-mage-2",
+        "id": "war-mage-3",
         "type": "Modifier",
         "predicate": {
           "tagsAny": [
@@ -63,8 +75,7 @@
       "conversion": {
         "notes": [
           "effect: \"Archmagi Armor\" change system.attributes.ac.calc (override) not converted",
-          "effect: \"Archmagi Armor\" change system.attributes.ac.formula (override) not converted",
-          "effect: \"War Mage\" change system.bonuses.spell.dc (add) not converted"
+          "effect: \"Archmagi Armor\" change system.attributes.ac.formula (override) not converted"
         ]
       }
     }

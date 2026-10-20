@@ -442,6 +442,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Training (2026-10-20):** Divine Order: Protector and Primal Order: Warden carry `flags.wildpath.training`, which their
   creature has while the Item is there (classes-and-spellcasting.md). Expertise steps (Rogue, Bard, Ranger) are
   `expertise:*` choices, and weapon keys use the base names (`weapons:hand-crossbow`).
+- **Small rules (2026-10-20):** Alert, Innate Sorcery's +1 DC (and the Robe of the Archmagi's +2), Powerful Build (and
+  a Mule's Beast of Burden), Disciplined Survivor's saves and reroll, and Halfling Luck convert from their dnd5e flags
+  (classes-and-spellcasting.md).
 - **Reactions (2026-10-20):** Retaliation's Trigger names a common Action; Stone's Endurance reduces the damage of the
   attack on it (`rider.reduceDamage`); Countercharm is a feature with a ranged `testOffer`; Indomitable is a feature
   with its pool, no Action (reactions.md).

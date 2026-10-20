@@ -7,7 +7,25 @@
   "system": {
     "active": true,
     "description": "<p>You have Advantage on any ability check you make to end the Grappled condition. You also count as one size larger when determining your carrying capacity.</p><section class=\"secret\" id=\"secret-7qaTRjmRe4PD41G3\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which automatically upgrades your size when determining carrying capacity.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "powerful-build-1",
+        "type": "RollMode",
+        "predicate": {
+          "equals": {
+            "path": "check.escapes",
+            "value": "grappled"
+          }
+        },
+        "data": {
+          "domains": [
+            "check"
+          ],
+          "mode": "advantage"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +39,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Powerful Build\" change flags.dnd5e.powerfulBuild (override) not converted"
-        ]
+        "notes": []
       }
     }
   }

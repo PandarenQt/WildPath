@@ -135,7 +135,25 @@
       "system": {
         "active": true,
         "description": "<p>The mule counts as one size larger for the purpose of determining its carrying capacity.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "beast-of-burden-1",
+            "type": "RollMode",
+            "predicate": {
+              "equals": {
+                "path": "check.escapes",
+                "value": "grappled"
+              }
+            },
+            "data": {
+              "domains": [
+                "check"
+              ],
+              "mode": "advantage"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -149,9 +167,7 @@
             "rules": "2024"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Beast of Burden\" change flags.dnd5e.powerfulBuild (override) not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -170,9 +186,7 @@
         "challenge": 0.125
       },
       "conversion": {
-        "notes": [
-          "Beast of Burden: effect: \"Beast of Burden\" change flags.dnd5e.powerfulBuild (override) not converted"
-        ]
+        "notes": []
       }
     }
   }

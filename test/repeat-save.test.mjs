@@ -179,3 +179,45 @@ test("Countercharm: an ally's reroll of a failed save rolls with Advantage, and 
   assert.ok(state.mutationPlans.some(entry => (entry.type === "resourcePayment") && (entry.payerRef === "Actor.bard")), "the bard pays");
   assert.equal(state.mutationPlans.some(entry => entry.conditionId === "charmed"), false);
 });
+
+test("rerolls a feature offers: Disciplined Survivor paid from its pool, Halfling Luck free and only on a natural 1", async () => {
+  const {withTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const roller = items => ({uuid: "Actor.hero", name: "Hero", items});
+  const survivor = {id: "ds", name: "Disciplined Survivor", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["save"], reroll: true,
+    pool: "monk-s-focus"}}}};
+  const luck = {id: "luck", name: "Luck", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["check", "save", "attack"], reroll: true,
+    natural: 1}}}};
+  const system = focus => ({resources: {}, pools: [{id: "monk-s-focus", value: focus, max: 5}]});
+  const paid = withTestOffers(null, roller([survivor]), system(2), {}, "save", {chooser: "target-controller"});
+  assert.deepEqual(paid.options.map(option => [option.value, !!option.plan, option.natural]), [["test-offer:ds", true, undefined]]);
+  assert.equal(withTestOffers(null, roller([survivor]), system(0), {}, "save", {}), null, "no Focus Point left");
+  const free = withTestOffers(null, roller([luck]), system(0), {}, "attack", {chooser: "source-controller"});
+  assert.deepEqual(free.options.map(option => [option.natural, option.plan ?? null]), [[1, null]]);
+
+  const save = {schemaVersion: 1, id: "action:trip", label: "Trip", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    save: {ability: "might", dc: {value: 12}}, effects: [{id: "effect-1", type: "condition", conditionId: "prone", saveOutcomePolicy: "failure"}]};
+  const offer = withTestOffers(null, roller([luck]), system(0), {}, "save", {chooser: "target-controller"});
+  const run = natural => {
+    let state = planStagedActionResolution({id: `resolution:luck-${natural}`, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+      action: {id: save.id, type: "action", name: save.label, system: {definition: save}}, source: {actorId: "actor-source"},
+      targets: [{id: "hero", actorId: "actor-hero", tokenId: "token-hero", disposition: "enemy"}],
+      save: {inspirationByTarget: {"token-hero": offer}}}).state;
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural, total: natural}}}).state;
+    return state;
+  };
+  assert.equal(run(1).pendingRequests[0]?.type, "choice", "a natural 1 offers Luck");
+  const five = run(5);
+  assert.deepEqual([five.pendingRequests.length, five.results.saveResolution.results[0].success], [0, false], "a failed 5 does not");
+});
+
+test("its creature's spell save DC bonus (Innate Sorcery's `dc.spell`) adds to the DC its Action resolves", () => {
+  const charm = {schemaVersion: 1, id: "action:charm", label: "Charm", tags: ["spell"], costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, save: {ability: "wits", dc: {value: 13}},
+    effects: [{id: "effect-1", type: "condition", conditionId: "charmed", saveOutcomePolicy: "failure"}]};
+  const state = planStagedActionResolution({id: "resolution:dc", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {id: charm.id, type: "action", name: charm.label, system: {definition: charm}}, source: {actorId: "actor-source"},
+    targets: [{id: "hero", actorId: "actor-hero", tokenId: "token-hero", disposition: "enemy"}], save: {dcBonus: 1}}).state;
+  assert.equal(state.pendingRequests[0].payload.rollRequest.dc?.value ?? state.pendingRequests[0].payload.rollRequest.dc, 14);
+});

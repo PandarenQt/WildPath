@@ -458,9 +458,12 @@ function resolverRequestFromAttackDefinition(attackDefinition, runtimeAttack) {
 
 function resolverRequestFromSaveDefinition(saveDefinition, runtimeSave, evaluationContext) {
   if ( !saveDefinition ) return runtimeSave ?? null;
-  const dc = saveDefinition.dc
+  const resolved = saveDefinition.dc
     ? resolveSaveDCDefinition(saveDefinition.dc, evaluationContext)
     : null;
+  // Its creature's bonus to the DC (`dc.spell`: Innate Sorcery), which the runtime works out.
+  const bonus = Number(runtimeSave?.dcBonus) || 0;
+  const dc = (resolved && bonus && Number.isFinite(resolved.value)) ? {...resolved, value: resolved.value + bonus} : resolved;
   return mergeResolverRequest({
     saveKey: saveDefinition.saveKey ?? saveDefinition.ability ?? null,
     dc,
