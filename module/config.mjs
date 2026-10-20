@@ -331,8 +331,10 @@ WILDPATH.CONDITIONS = {
     name: "WILDPATH.CONDITIONS.Frightened",
     summary: "WILDPATH.CONDITIONS.Summary.Frightened",
     img: "icons/svg/terror.svg",
-    // shortcut: always on, not only while the source of fear is in sight; moving closer to it is not prevented.
-    ruleElements: [rollMode("frightened.own-rolls", ["attack", "check"], "disadvantage")]
+    // Only while the source of its fear is within line of sight (`fearSourceOutOfSight`, adapters/foundry-v14-fear.mts);
+    // it can't willingly move closer to it (the movement authority's directed movement policy).
+    ruleElements: [rollMode("frightened.own-rolls", ["attack", "check"], "disadvantage",
+      {not: {equals: {path: "fearSourceOutOfSight", value: true}}})]
   },
   grappled: {
     id: "grappled",

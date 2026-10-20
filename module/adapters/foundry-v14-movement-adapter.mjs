@@ -15,6 +15,7 @@ import {
 } from "../helpers/movement.mjs";
 import {movementAllowance} from "../helpers/movement-modes.mjs";
 import {movementTracked} from "../helpers/combat.mjs";
+import {directedMovementPolicy} from "./foundry-v14-fear.mjs";
 import {
   createMovementPath,
   evaluateMovementPath
@@ -492,6 +493,10 @@ export async function authorizeFoundryMovementIntent({
     intent: documents.intent
   });
 
+  // 2024 Frightened (and a Command to flee or approach): a willing step toward (or away from) its source is refused.
+  if ( !transitionPolicy && (documents.intent.movementKind === MOVEMENT_KINDS.VOLUNTARY) ) {
+    transitionPolicy = directedMovementPolicy(documents.token);
+  }
   const resolvedMode = resolveMovementMeasurementMode({game, measurementMode});
   const budgetResult = movementBudgetForActor({
     actor: documents.actor,
