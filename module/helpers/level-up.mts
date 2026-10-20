@@ -77,6 +77,34 @@ export function choiceOptions(pool: readonly string[], items: Iterable<{id: stri
   return {options: pool.filter(uuid => !have.has(uuid)), owned: owned.map(({id, name}) => ({id, name}))};
 }
 
+/** What a feat or class option may ask (`flags.wildpath.prerequisites`, scripts/content: prerequisitesOf). */
+export interface Prerequisites {level?: number; items?: string[]; abilities?: Array<{ability: string; min: number}>;
+  training?: {armor?: string; weapons?: string}; spellcasting?: boolean; classLevel?: {class: string; min: number}; repeatable?: boolean;
+  text?: string}
+/** What a creature brings to them: its levels, abilities, training, spellcasting and what it has (by identifier). */
+export interface PrerequisiteFacts {level: number; classLevels: Record<string, number>; abilities: Record<string, number>;
+  training: {armor?: string[]; weapons?: string[]}; spellcasting: boolean; identifiers: ReadonlySet<string>}
+
+/**
+ * The prerequisites a creature doesn't meet, by key (none: it may take it). `level` is its character level for a feat,
+ * the class's for a class option (an Invocation: `level` in `facts`). Something it already has is left out unless
+ * repeatable (`identifier`). Text it can't check (`text`) is not unmet.
+ */
+export function unmetPrerequisites(prerequisites: Prerequisites | null | undefined, facts: PrerequisiteFacts, {identifier=null}:
+  {identifier?: string | null} = {}): string[] {
+  const unmet: string[] = [];
+  const p = prerequisites ?? {};
+  if ( p.level && (facts.level < p.level) ) unmet.push("level");
+  if ( p.items?.some(key => !facts.identifiers.has(key)) ) unmet.push("items");
+  if ( p.abilities?.length && !p.abilities.some(({ability, min}) => (facts.abilities[ability] ?? 0) >= min) ) unmet.push("abilities");
+  if ( p.training?.armor && !(facts.training.armor ?? []).includes(p.training.armor) ) unmet.push("training");
+  if ( p.training?.weapons && !(facts.training.weapons ?? []).some(key => key === p.training!.weapons || key.startsWith(`${p.training!.weapons}`)) ) unmet.push("training");
+  if ( p.spellcasting && !facts.spellcasting ) unmet.push("spellcasting");
+  if ( p.classLevel && ((facts.classLevels[p.classLevel.class] ?? 0) < p.classLevel.min) ) unmet.push("classLevel");
+  if ( identifier && !p.repeatable && facts.identifiers.has(identifier) ) unmet.push("repeatable");
+  return unmet;
+}
+
 /** 2024 hit points for a class level: the Hit Die's maximum at a character's first level, else its average rounded up, plus the Fortitude modifier; at least 1. */
 export function hitPointsForLevel({hitDie, first, fortitude}: {hitDie: number; first: boolean; fortitude: number}) {
   return Math.max(1, (first ? hitDie : Math.floor(hitDie / 2) + 1) + fortitude);

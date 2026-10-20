@@ -58,6 +58,32 @@ export function choiceOptions(pool, items) {
     const have = new Set(owned.map(item => item.source));
     return { options: pool.filter(uuid => !have.has(uuid)), owned: owned.map(({ id, name }) => ({ id, name })) };
 }
+/**
+ * The prerequisites a creature doesn't meet, by key (none: it may take it). `level` is its character level for a feat,
+ * the class's for a class option (an Invocation: `level` in `facts`). Something it already has is left out unless
+ * repeatable (`identifier`). Text it can't check (`text`) is not unmet.
+ */
+export function unmetPrerequisites(prerequisites, facts, { identifier = null } = {}) {
+    const unmet = [];
+    const p = prerequisites ?? {};
+    if (p.level && (facts.level < p.level))
+        unmet.push("level");
+    if (p.items?.some(key => !facts.identifiers.has(key)))
+        unmet.push("items");
+    if (p.abilities?.length && !p.abilities.some(({ ability, min }) => (facts.abilities[ability] ?? 0) >= min))
+        unmet.push("abilities");
+    if (p.training?.armor && !(facts.training.armor ?? []).includes(p.training.armor))
+        unmet.push("training");
+    if (p.training?.weapons && !(facts.training.weapons ?? []).some(key => key === p.training.weapons || key.startsWith(`${p.training.weapons}`)))
+        unmet.push("training");
+    if (p.spellcasting && !facts.spellcasting)
+        unmet.push("spellcasting");
+    if (p.classLevel && ((facts.classLevels[p.classLevel.class] ?? 0) < p.classLevel.min))
+        unmet.push("classLevel");
+    if (identifier && !p.repeatable && facts.identifiers.has(identifier))
+        unmet.push("repeatable");
+    return unmet;
+}
 /** 2024 hit points for a class level: the Hit Die's maximum at a character's first level, else its average rounded up, plus the Fortitude modifier; at least 1. */
 export function hitPointsForLevel({ hitDie, first, fortitude }) {
     return Math.max(1, (first ? hitDie : Math.floor(hitDie / 2) + 1) + fortitude);

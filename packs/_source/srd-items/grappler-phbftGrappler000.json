@@ -25,6 +25,19 @@
       },
       "conversion": {
         "notes": []
+      },
+      "prerequisites": {
+        "level": 4,
+        "abilities": [
+          {
+            "ability": "might",
+            "min": 13
+          },
+          {
+            "ability": "agility",
+            "min": 13
+          }
+        ]
       }
     }
   }

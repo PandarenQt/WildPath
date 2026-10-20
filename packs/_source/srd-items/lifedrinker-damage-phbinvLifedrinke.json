@@ -96,6 +96,12 @@
       },
       "conversion": {
         "notes": []
+      },
+      "prerequisites": {
+        "level": 9,
+        "items": [
+          "pact-of-the-blade"
+        ]
       }
     }
   }

@@ -74,6 +74,11 @@
       },
       "conversion": {
         "notes": []
+      },
+      "prerequisites": {
+        "level": 2,
+        "repeatable": true,
+        "text": "Warlock Cantrip That Deals Damage via an Attack"
       }
     }
   }

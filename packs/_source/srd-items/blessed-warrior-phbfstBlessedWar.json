@@ -24,6 +24,16 @@
       },
       "conversion": {
         "notes": []
+      },
+      "prerequisites": {
+        "level": 2,
+        "items": [
+          "fighting-style"
+        ],
+        "classLevel": {
+          "class": "paladin",
+          "min": 1
+        }
       }
     }
   }

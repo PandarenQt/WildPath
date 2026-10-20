@@ -59,6 +59,9 @@
         "notes": [
           "effect: \"Altered Appearance\" marks its creature only; its rules are by hand"
         ]
+      },
+      "prerequisites": {
+        "level": 5
       }
     }
   }

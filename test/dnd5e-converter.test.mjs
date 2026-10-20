@@ -1678,3 +1678,18 @@ test("the Diviner's Portent carries its dice by wizard level; nothing to use, no
   assert.deepEqual(feature.flags.wildpath.conversion.notes, []);
   assert.deepEqual(feature.system.ruleElements, [], "its dnd5e use count is no pool");
 });
+
+test("prerequisites from dnd5e's data and requirements text, on chosen things only", async () => {
+  const {prerequisitesOf} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  assert.deepEqual(prerequisitesOf({prerequisites: {level: 4}, requirements: "Strength or Dexterity 13+"}),
+    {level: 4, abilities: [{ability: "might", min: 13}, {ability: "agility", min: 13}]});
+  assert.deepEqual(prerequisitesOf({requirements: "Intelligence, Wisdom, or Charisma 13+"}).abilities.map(entry => entry.ability),
+    ["intellect", "wits", "presence"]);
+  assert.deepEqual(prerequisitesOf({requirements: "Heavy Armor Training"}), {training: {armor: "heavy"}});
+  assert.deepEqual(prerequisitesOf({requirements: "Warlock 5"}), {classLevel: {class: "warlock", min: 5}});
+  assert.deepEqual(prerequisitesOf({requirements: "Pact of the Blade Invocation"}), {items: ["pact-of-the-blade"]});
+  assert.deepEqual(prerequisitesOf({requirements: "Spellcasting or Pact Magic Feature"}), {spellcasting: true});
+  assert.deepEqual(prerequisitesOf({prerequisites: {level: 2, repeatable: true}, requirements: "Warlock Cantrip That Deals Damage"}),
+    {level: 2, repeatable: true, text: "Warlock Cantrip That Deals Damage"});
+  assert.equal(prerequisitesOf({}), null);
+});

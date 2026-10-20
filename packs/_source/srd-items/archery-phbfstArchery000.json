@@ -43,6 +43,11 @@
       },
       "conversion": {
         "notes": []
+      },
+      "prerequisites": {
+        "items": [
+          "fighting-style"
+        ]
       }
     }
   }

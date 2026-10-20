@@ -1321,6 +1321,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...(featureAction.requires ? {requires: structuredClone(featureAction.requires)} : {})}, ruleElements: [pool?.rule].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: []}}}});
   }
+  // What it asks of its creature (a feat's, an Invocation's), on each Item it became (the level-up dialog offers it only then).
+  const chosen = (system.type?.value === "feat") || ["eldritchInvocation", "artificerInfusion", "maneuver", "metamagic", "fightingStyle"]
+    .includes(system.type?.subtype);
+  const prerequisites = chosen ? prerequisitesOf(system) : null;
+  if ( prerequisites ) for ( const item of items ) item.flags = {...(item.flags ?? {}), wildpath: {...(item.flags?.wildpath ?? {}), prerequisites}};
   return {ok: true, items, notes: [...new Set(allNotes)]};
 }
 
@@ -2872,6 +2877,39 @@ function creatureLanguages(languages) {
 function telepathyRange(text) {
   const match = /telepathy\W*(\d+)\s*(?:ft|feet|foot)\b/i.exec(String(text ?? ""));
   return match ? Number(match[1]) : null;
+}
+
+const ABILITY_NAMES = Object.freeze({strength: "might", dexterity: "agility", constitution: "fortitude", intelligence: "intellect",
+  wisdom: "wits", charisma: "presence"});
+
+/**
+ * A feat's or class option's prerequisites (`flags.wildpath.prerequisites`), from dnd5e's `prerequisites` and its
+ * `requirements` text: `level` (a feat's character level, a class option's class level), `items` (identifiers of
+ * features it must have: "fighting-style", "pact-of-the-blade"), `abilities` (any of them at its minimum: "Strength or
+ * Dexterity 13+"), `training` ("Heavy Armor Training", a martial weapon), `spellcasting`, `classLevel`
+ * ("Warlock 5"), `repeatable`, and `text` for anything else (it is still offered, its text shown). Null when none.
+ */
+export function prerequisitesOf(system) {
+  const given = system?.prerequisites ?? {};
+  const text = String(system?.requirements ?? "").trim();
+  const result = {};
+  if ( Number(given.level) > 0 ) result.level = Number(given.level);
+  if ( given.items?.length ) result.items = [...given.items];
+  if ( given.repeatable === true ) result.repeatable = true;
+  let match;
+  if ( (match = /^(?:(\w+), )?(?:(\w+),? or )?(\w+) (\d+)\+$/i.exec(text)) && [match[1], match[2], match[3]].filter(Boolean)
+    .every(name => ABILITY_NAMES[name.toLowerCase()]) ) {
+    result.abilities = [match[1], match[2], match[3]].filter(Boolean).map(name => ({ability: ABILITY_NAMES[name.toLowerCase()], min: Number(match[4])}));
+  } else if ( (match = /^(Light|Medium|Heavy) Armor Training$/i.exec(text)) ) result.training = {armor: match[1].toLowerCase()};
+  else if ( /^Shield Training$/i.test(text) ) result.training = {armor: "shield"};
+  else if ( /^Proficiency with a martial weapon$/i.test(text) ) result.training = {weapons: "martial"};
+  else if ( /^Spellcasting or Pact Magic( Feature)?$/i.test(text) ) result.spellcasting = true;
+  else if ( (match = /^Level (\d+)$/i.exec(text)) ) result.level = Number(match[1]);
+  else if ( (match = /^(Artificer|Barbarian|Bard|Cleric|Druid|Fighter|Monk|Paladin|Ranger|Rogue|Sorcerer|Warlock|Wizard)(?: (\d+))?$/i.exec(text)) ) {
+    result.classLevel = {class: match[1].toLowerCase(), min: Number(match[2]) || 1};
+  } else if ( (match = /^(.+) Invocation$/i.exec(text)) ) result.items = [...(result.items ?? []), slugify(match[1])];
+  else if ( text ) result.text = text;
+  return Object.keys(result).length ? result : null;
 }
 
 /** A creature's Telepathy as a GrantLanguage rule with its range, or nothing. */
