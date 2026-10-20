@@ -157,6 +157,7 @@ export function registerFoundryV14MultiplayerResolution({
       await endEffectsWhenAttacked(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsOnTargets(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenSaved(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
+      await endEffectsWhenDamaged(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await recordSlotSpell(event, {game});
       await recordAttackTurn(event, {game});
       await markCasterConcentration(event, {game});
@@ -1639,6 +1640,30 @@ export async function endEffectsWhenSaved({state}, {fromUuid}) {
   for ( const tokenId of new Set(saved) ) {
     const actor = scene?.tokens?.get(tokenId)?.actor;
     const effects = [...(actor?.effects ?? [])].filter(effect => effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen === "saves");
+    if ( !effects.length ) continue;
+    await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
+    ended.push(...effects.map(effect => effect.id));
+  }
+  return ended;
+}
+
+/**
+ * Effects that end when their creature takes damage (Knock Out's Unconscious, `metadata.endsWhen: "damaged"`): any damage
+ * this Action dealt it ends them, except the damage of the resolution that applied them (its hit), named in their
+ * `metadata.resolutionIds`.
+ */
+export async function endEffectsWhenDamaged({state}, {fromUuid}) {
+  const taken = plan => (Number(plan?.amount) || 0) + Math.max((Number(plan?.temporary?.from) || 0) - (Number(plan?.temporary?.to) || 0), 0);
+  const damaged = (state?.mutationPlans ?? []).filter(entry => (entry?.type === "durabilityDamage") && (entry.plan?.ok !== false)
+    && (taken(entry.plan) > 0)).map(entry => entry.target).filter(Boolean);
+  const ended = [];
+  for ( const target of damaged ) {
+    const document = await fromUuid(String(target.uuid ?? target.actorRef ?? ""));
+    const actor = document?.actor ?? document;
+    const effects = [...(actor?.effects ?? [])].filter(effect => {
+      const metadata = effect.flags?.wildpath?.conditionEffect?.metadata ?? {};
+      return (metadata.endsWhen === "damaged") && !(metadata.resolutionIds ?? []).includes(state.id);
+    });
     if ( !effects.length ) continue;
     await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
     ended.push(...effects.map(effect => effect.id));

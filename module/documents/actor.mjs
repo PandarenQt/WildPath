@@ -618,7 +618,10 @@ export default class WildPathActor extends Actor {
 
     const updates = {};
     for ( const [id, resource] of Object.entries(this.system.resources) ) {
-      if ( resource.recovery === "turn" ) updates[`system.resources.${id}.value`] = resource.max;
+      if ( resource.recovery !== "turn" ) continue;
+      updates[`system.resources.${id}.value`] = resource.max;
+      // Nothing is spent yet: a counter's refill doesn't depend on caps its last turn's spending set (Daze).
+      if ( "spent" in resource ) updates[`system.resources.${id}.spent`] = 0;
     }
     const pools = this.toObject(true).system.pools;
     for ( const [index, resource] of this.system.pools.entries() ) {

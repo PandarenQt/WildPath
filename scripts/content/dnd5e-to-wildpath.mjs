@@ -255,6 +255,13 @@ function enchantDefinition({document, activity, system, spell, level, pool, ench
 // Improved Cunning Strike (rogue level 11): two of them on one Sneak Attack, each with its own die.
 const CUNNING_USES = {type: "table", key: {type: "class-level", class: "rogue"}, rows: {1: 1, 11: 2}};
 // A Devious Strikes option's one effect, with its own duration (the feature's shared text would give each a repeated save).
+/** Daze (2024): once its creature moves, takes an action or a Bonus Action, the other two are capped at 0 this turn. */
+const spentAny = resource => ({atLeast: {path: `actorSystem.resources.${resource}.spent`, value: 1}});
+const DAZED = Object.freeze([
+  {schemaVersion: 1, id: "dazed-moved", type: "ResourceCap", predicate: spentAny("movement"), data: {resources: ["action", "bonus"], maximum: 0}},
+  {schemaVersion: 1, id: "dazed-acted", type: "ResourceCap", predicate: spentAny("action"), data: {resources: ["movement", "bonus"], maximum: 0}},
+  {schemaVersion: 1, id: "dazed-bonus", type: "ResourceCap", predicate: spentAny("bonus"), data: {resources: ["movement", "action"], maximum: 0}}
+]);
 const deviousStrike = (timing={duration: {value: 1, units: "rounds", expiry: "turnEnd"}}) => definition => ({...definition,
   effects: (definition.effects ?? []).map(({repeatSave: _repeat, duration: _duration, ...effect}) => ({...effect, ...structuredClone(timing)}))});
 const cunning = (extra={}) => ({once: "turn", onceKey: "cunning-strike", uses: CUNNING_USES, tagsAll: ["extra:sneak-attack"],
@@ -373,11 +380,17 @@ const OWN_HIT = Object.freeze({
     effects: (definition.effects ?? []).map(({repeatSave, ...effect}) => ({...effect, maxSize: "large"}))})}),
   "cunning-strike/Withdraw": cunning({self: true, definition: definition => ({...definition, effects: [structuredClone(WITHDRAW)]})}),
   // 2024 Devious Strikes (rogue 14): three more Cunning Strike options, each giving up more Sneak Attack dice. Only
-  // Knock Out repeats its save (its text names it); Daze and Obscure last until the end of the target's next turn.
-  // shortcut: Daze's "only one of move, action or Bonus Action" and Knock Out's "until it takes damage" are by hand.
-  "devious-strikes/Daze": cunning({rider: {forgoDice: {ruleId: "sneak-attack", dice: 2}}, definition: deviousStrike()}),
-  "devious-strikes/Knock Out": cunning({rider: {forgoDice: {ruleId: "sneak-attack", dice: 6}},
-    definition: deviousStrike({duration: {value: 1, units: "minutes"}, repeatSave: "turnEnd"})}),
+  // Knock Out repeats its save (its text names it) and ends when the creature takes damage (`metadata.endsWhen`); Daze
+  // and Obscure last until the end of the target's next turn. Daze: "it can do only one of the following: move or take an
+  // action or a Bonus Action" (DAZED: once one is used, the others are capped at 0).
+  "devious-strikes/Daze": cunning({rider: {forgoDice: {ruleId: "sneak-attack", dice: 2}}, definition: definition => {
+    const dazed = deviousStrike()(definition);
+    return {...dazed, effects: dazed.effects.map(effect => ({...effect, slug: "dazed", ruleElements: structuredClone(DAZED)}))};
+  }}),
+  "devious-strikes/Knock Out": cunning({rider: {forgoDice: {ruleId: "sneak-attack", dice: 6}}, definition: definition => {
+    const out = deviousStrike({duration: {value: 1, units: "minutes"}, repeatSave: "turnEnd"})(definition);
+    return {...out, effects: out.effects.map(effect => ({...effect, metadata: {...(effect.metadata ?? {}), endsWhen: "damaged"}}))};
+  }}),
   "devious-strikes/Obscure": cunning({rider: {forgoDice: {ruleId: "sneak-attack", dice: 3}}, definition: deviousStrike()}),
   // Eldritch Invocation Eldritch Smite: a Pact Magic slot spent on a weapon hit, (1 + its level)d8 Force, and Prone if its
   // warlock chooses ("can"; on by default) and the creature is Huge or smaller. shortcut: any weapon, not only its pact

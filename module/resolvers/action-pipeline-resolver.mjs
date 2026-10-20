@@ -2036,6 +2036,18 @@ function withSpellLevel(effects, state) {
   return {...effects, conditions: effects.conditions.map(entry => ({...entry, metadata: {...(entry?.metadata ?? {}), spellLevel: level}}))};
 }
 
+/**
+ * An effect that ends when its creature takes damage (Knock Out: `metadata.endsWhen: "damaged"`) remembers the
+ * resolutions that applied it (`metadata.resolutionIds`: this one and its ancestors), so the damage of the very hit that
+ * brought it does not end it (endEffectsWhenDamaged).
+ */
+function withResolutionIds(effects, state) {
+  if ( !effects?.conditions?.some(entry => entry?.metadata?.endsWhen === "damaged") ) return effects;
+  const ids = [state.id, ...normalizeArray(state.ancestry).map(entry => entry?.id)].filter(Boolean);
+  return {...effects, conditions: effects.conditions.map(entry => (entry?.metadata?.endsWhen === "damaged"
+    ? {...entry, metadata: {...entry.metadata, resolutionIds: ids}} : entry))};
+}
+
 function createEffectStage() {
   return createResolutionPipelineStage({
     id: ACTION_PIPELINE_STAGE_IDS.EFFECTS,
@@ -2050,7 +2062,7 @@ function createEffectStage() {
       let {actionResult} = planning;
 
       const effectResolution = resolveActionEffects({
-        effects: withSpellLevel(withRepeatSaves(input.effects, input.save, state.results?.saveResolution ?? null), state),
+        effects: withResolutionIds(withSpellLevel(withRepeatSaves(input.effects, input.save, state.results?.saveResolution ?? null), state), state),
         targetResolution: state.results?.targetResolution ?? null,
         attackResolution: state.results?.attackResolution ?? null,
         saveResolution: state.results?.saveResolution ?? null,

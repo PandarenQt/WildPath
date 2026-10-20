@@ -48,13 +48,69 @@
           "type": "effect",
           "name": "Devious Strikes: Dazed",
           "img": "icons/skills/melee/strike-sword-stabbed-brown.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "dazed-moved",
+              "type": "ResourceCap",
+              "predicate": {
+                "atLeast": {
+                  "path": "actorSystem.resources.movement.spent",
+                  "value": 1
+                }
+              },
+              "data": {
+                "resources": [
+                  "action",
+                  "bonus"
+                ],
+                "maximum": 0
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "dazed-acted",
+              "type": "ResourceCap",
+              "predicate": {
+                "atLeast": {
+                  "path": "actorSystem.resources.action.spent",
+                  "value": 1
+                }
+              },
+              "data": {
+                "resources": [
+                  "movement",
+                  "bonus"
+                ],
+                "maximum": 0
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "dazed-bonus",
+              "type": "ResourceCap",
+              "predicate": {
+                "atLeast": {
+                  "path": "actorSystem.resources.bonus.spent",
+                  "value": 1
+                }
+              },
+              "data": {
+                "resources": [
+                  "movement",
+                  "action"
+                ],
+                "maximum": 0
+              }
+            }
+          ],
           "saveOutcomePolicy": "failure",
           "duration": {
             "value": 1,
             "units": "rounds",
             "expiry": "turnEnd"
-          }
+          },
+          "slug": "dazed"
         }
       ],
       "rider": {

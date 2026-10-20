@@ -320,3 +320,27 @@ test("through the pipeline: a fall's Prone only on a creature it damaged, Eldrit
   const smiteProne = {id: "effect-1", type: "condition", conditionId: "prone", maxSize: "huge"};
   assert.deepEqual([planned({size: "huge", effect: smiteProne}), planned({size: "gargantuan", effect: smiteProne})], [true, false]);
 });
+
+test("Daze: once its creature moves, acts or takes a Bonus Action, the other two are capped at 0", async () => {
+  const fs = await import("node:fs");
+  const {resourceCapsFromRuleElements} = await import("../module/helpers/rule-elements.mjs");
+  const daze = JSON.parse(fs.readFileSync("packs/_source/srd-items/devious-strikes-daze-phbrgeDeviousStr.json", "utf8"));
+  const [effect] = daze.system.definition.effects;
+  const caps = spent => resourceCapsFromRuleElements([{ruleElements: effect.ruleElements}], {actorSystem: {resources: {
+    movement: {spent: spent.movement ?? 0}, action: {spent: spent.action ?? 0}, bonus: {spent: spent.bonus ?? 0}}}});
+  assert.deepEqual(caps({}), {}, "nothing used yet: anything is open");
+  assert.deepEqual(caps({movement: 5}), {action: 0, bonus: 0}, "it moved: no action or Bonus Action");
+  assert.deepEqual(caps({action: 1}), {movement: 0, bonus: 0});
+});
+
+test("Knock Out ends when its creature takes damage, but not from the hit that knocked it out", async () => {
+  const {endEffectsWhenDamaged} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const deleted = [];
+  const out = {id: "out", flags: {wildpath: {conditionEffect: {metadata: {endsWhen: "damaged", resolutionIds: ["hit"]}}}}};
+  const actor = {effects: [out, {id: "other", flags: {}}], deleteEmbeddedDocuments: async (_type, ids) => deleted.push(...ids)};
+  const fromUuid = async () => ({actor});
+  const state = id => ({id, mutationPlans: [{type: "durabilityDamage", target: {uuid: "Scene.s.Token.t"}, plan: {ok: true, amount: 6}}]});
+  assert.deepEqual(await endEffectsWhenDamaged({state: state("hit")}, {fromUuid}), [], "the knocking-out hit's own damage");
+  assert.deepEqual(await endEffectsWhenDamaged({state: state("later")}, {fromUuid}), ["out"], "any later damage wakes it");
+  assert.deepEqual(deleted, ["out"]);
+});
