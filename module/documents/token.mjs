@@ -7,21 +7,24 @@ import {applySensesToToken, sensesKey} from "../adapters/foundry-v14-senses.mjs"
 
 const BaseTokenDocument = globalThis.TokenDocument ?? class {};
 
-export default class WildPathTokenDocument extends BaseTokenDocument {
-  /** Its creature's senses as of its last preparation (its vision is prepared again when they change). */
-  #senses = null;
+/**
+ * Each Token's creature's senses as of its last preparation (its vision is prepared again when they change). Kept
+ * beside it, not in a private field: Foundry prepares a Token while constructing it, before its fields exist.
+ */
+const PREPARED_SENSES = new WeakMap();
 
+export default class WildPathTokenDocument extends BaseTokenDocument {
   /** @inheritDoc Its sight and detection modes follow its creature's senses (adapters/foundry-v14-senses.mts). */
   _prepareDetectionModes() {
     applySensesToToken(this);
-    this.#senses = sensesKey(this);
+    PREPARED_SENSES.set(this, sensesKey(this));
     super._prepareDetectionModes();
   }
 
   /** @inheritDoc When its creature's senses change, its vision is prepared and drawn again. */
   _onRelatedUpdate(update={}, operation={}) {
     super._onRelatedUpdate(update, operation);
-    if ( sensesKey(this) === this.#senses ) return;
+    if ( sensesKey(this) === PREPARED_SENSES.get(this) ) return;
     this.reset();
     this.object?.initializeVisionSource?.();
   }

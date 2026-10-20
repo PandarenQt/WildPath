@@ -18,20 +18,23 @@ export function createFoundryTurnDamage({game, coordinator, resolveAction, logge
   coordinator: unknown; resolveAction: unknown; logger?: unknown}) {
   let sequence = 0;
   /**
-   * `amount` damage of `damageType` to `actor` (its condition's, `label`), resolved by the authority. False when the
-   * creature has no Token on a Scene to resolve it on (its caller then commits the damage itself).
+   * `amount` damage of `damageType` to `actor` (its condition's, `label`), resolved by the authority: on its Token in
+   * the combat (`token`), else its own or one on the viewed Scene. Without any, it still resolves on the creature
+   * (resistances, rescue and dying; no reactions, which need a position). False only when there is no damage.
    */
-  async function apply(actor: TurnDamageActor, {amount, damageType = null, label = null}: {amount: number;
-    damageType?: string | null; label?: string | null}): Promise<boolean> {
-    const token = actor.isToken ? (actor.token ?? null) : (actor.getActiveTokens?.(false, true)?.[0] ?? null);
-    if ( !token?.parent || !(Number(amount) > 0) ) return false;
+  async function apply(actor: TurnDamageActor, {amount, damageType = null, label = null, token: given = null}: {amount: number;
+    damageType?: string | null; label?: string | null; token?: TurnDamageToken | null}): Promise<boolean> {
+    if ( !(Number(amount) > 0) ) return false;
+    const token = [given, actor.isToken ? actor.token : null, actor.getActiveTokens?.(false, true)?.[0]]
+      .find(candidate => candidate?.parent) ?? null;
     const name = label ?? game.i18n?.localize?.("WILDPATH.CONDITIONS.TurnDamage") ?? "Condition damage";
-    const self = {actorRef: actor.uuid, tokenId: token.id, sceneId: token.parent.id};
+    const at = token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {};
     await run({coordinator, resolveAction, logger, senderUserId: String(game.user?.id), label: name,
       resolutionId: `turn-damage:${actor.uuid}:${++sequence}`, actorRef: actor.uuid,
-      source: {tokenId: token.id, sceneId: token.parent.id}, target: self,
+      source: at, target: {actorRef: actor.uuid, ...at},
+      // No range: it is always its own creature's (and a creature with no Token has no position to measure from).
       definition: {schemaVersion: 1, id: "action:condition-damage", label: name, costs: {allOf: []}, tags: ["condition-damage"],
-        range: {type: "self"}, targeting: {type: "self"},
+        targeting: {type: "self"},
         damage: [{id: "condition", expression: {type: "constant", value: Number(amount)}, ...(damageType ? {damageType} : {})}]}});
     return true;
   }
