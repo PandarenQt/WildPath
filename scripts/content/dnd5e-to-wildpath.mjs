@@ -1287,7 +1287,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         // A paladin's aura is what it grants those around it, not what its dnd5e effect gives the paladin alone.
         ...(PALADIN_AURAS[identifierOf(document)] ? [paladinAura(identifierOf(document))] : passive),
         ...((identifierOf(document) === "paladins-smite") ? [PALADINS_SMITE.pool] : []),
-        ...((identifierOf(document) === "mystic-arcanum") ? structuredClone(MYSTIC_ARCANUM_POOLS) : [])].filter(Boolean)},
+        ...((identifierOf(document) === "mystic-arcanum") ? structuredClone(MYSTIC_ARCANUM_POOLS) : []),
+        ...structuredClone(FEAT_ADVANCEMENT[identifierOf(document)]?.rules ?? [])].filter(Boolean),
+        ...(FEAT_ADVANCEMENT[identifierOf(document)] ? {advancement: structuredClone(FEAT_ADVANCEMENT[identifierOf(document)].advancement)} : {})},
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(metamagic ? {metamagic} : {}),
         ...(testOffer ? {testOffer} : {}), ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {}),
         // The Diviner's Portent (a monster's, used when it sees a roll, is an Action of its own).
@@ -2911,6 +2913,20 @@ export function prerequisitesOf(system) {
   else if ( text ) result.text = text;
   return Object.keys(result).length ? result : null;
 }
+
+/**
+ * Feats that give another class's options when taken (Tasha's): their choices, at level 0, from a pool of a kind
+ * (`pool.subtype`, by the options' source subtype), which the level-up dialog asks once the feat is added. Metamagic
+ * Adept's 2 Sorcery Points join its sorcerer's own (grants on one pool add up). shortcut: Artificer Initiate's cantrip,
+ * spell and tool are taken by hand.
+ */
+const FEAT_ADVANCEMENT = Object.freeze({
+  "eldritch-adept": {advancement: [{level: 0, type: "choice", title: "Eldritch Invocation", count: 1, pool: {subtype: "eldritchInvocation"}}]},
+  "fighting-initiate": {advancement: [{level: 0, type: "choice", title: "Fighting Style", count: 1, pool: {subtype: "fightingStyle"}}]},
+  "metamagic-adept": {advancement: [{level: 0, type: "choice", title: "Metamagic", count: 2, pool: {subtype: "metamagic"}}],
+    rules: [{schemaVersion: 1, id: "metamagic-adept-points", type: "GrantResource", data: {resourceId: "font-of-magic", label: "Sorcery Points",
+      maximum: 2, recovery: "longRest"}}]}
+});
 
 /** A creature's Telepathy as a GrantLanguage rule with its range, or nothing. */
 function telepathyRule(languages) {

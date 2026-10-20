@@ -196,6 +196,20 @@ converted before identifiers were kept.
 Live (14.369): with its own Grappler switched off, QA Fighter's level 8 offered Grappler at Strength 16 and Dexterity
 13; at 10 and 10 it didn't. With Grappler on, it isn't offered again.
 
+## Feats that give another class's options (2026-10-20)
+
+A feature may carry `advancement` (`WildPathFeature`, additive), choices at level 0 that the level-up dialog asks once
+the feat is added. A choice may name a pool by kind (`pool: {subtype}`): any option whose source subtype matches,
+gated by sources and prerequisites, and at class level 0. Tasha's feats, through the converter's `FEAT_ADVANCEMENT`:
+- **Eldritch Adept:** one Invocation, among those with no Warlock-level prerequisite.
+- **Fighting Initiate:** one Fighting Style.
+- **Metamagic Adept:** two Metamagic options, and `GrantResource` +2 Sorcery Points. Grants on one pool add up, so a
+  sorcerer's points grow by 2.
+- shortcut: Artificer Initiate's cantrip, spell and tool are taken by hand.
+
+Live (14.369): the converted Eldritch Adept on QA Caster offered Armor of Shadows, Eldritch Mind and the Pacts. None
+needing Warlock levels was offered. Armor of Shadows was added.
+
 ## Spellcasting progression (2024)
 
 - **Caster level.** Every level in a full-caster class, plus half the levels in each half-caster class,

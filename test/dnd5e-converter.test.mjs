@@ -1693,3 +1693,14 @@ test("prerequisites from dnd5e's data and requirements text, on chosen things on
     {level: 2, repeatable: true, text: "Warlock Cantrip That Deals Damage"});
   assert.equal(prerequisitesOf({}), null);
 });
+
+test("a feat giving another class's options: its choice from a pool by kind, and Metamagic Adept's 2 Sorcery Points", () => {
+  const feat = identifier => convertItem({_id: `test${identifier.slice(0, 12)}`, name: identifier, type: "feat",
+    system: {identifier, type: {value: "feat", subtype: ""}, description: {value: ""}, activities: {}, source: {license: "test"}}},
+  {licensed: () => true, book: "Tasha"}).items[0];
+  const adept = feat("eldritch-adept");
+  assert.deepEqual(adept.system.advancement, [{level: 0, type: "choice", title: "Eldritch Invocation", count: 1, pool: {subtype: "eldritchInvocation"}}]);
+  const metamagic = feat("metamagic-adept");
+  assert.equal(metamagic.system.advancement[0].count, 2);
+  assert.deepEqual(metamagic.system.ruleElements.map(rule => [rule.type, rule.data.resourceId, rule.data.maximum]), [["GrantResource", "font-of-magic", 2]]);
+});
