@@ -331,6 +331,11 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   ended by the next other creature's attack (`endsWhen: "attackedByOther"`). shortcuts: a save outside an Action does not
   end Staggering Blow; Sundering Blows of two barbarians stack.
 
+- **Repelling Blast (2026-10-20):** an own-hit offer marked `spell` drops the `notTagsAny: ["spell"]` of its match, so it
+  answers a spell's hit. It answers Eldritch Blast, which is tagged `eldritch-blast`, and its rider pushes the creature
+  hit 10 ft (`rider.push`, as Forceful Blow's). shortcut: Eldritch Blast only (2024: a chosen attack cantrip); "Large or
+  smaller" is by hand. Live: QA Caster's Eldritch Blast hit the Bandit Captain for 1d10 + 3 (Agonizing Blast), and
+  Repelling Blast pushed it 10 ft away.
 - **Weapon hit extras (2026-10-20):** an attack's hit event also carries its statistic (`weapon` or `spell`). An own-hit
   offer can answer any weapon's hit (`tagsAll: ["weapon"]`), melee or ranged, once a turn by its `onceKey`:
   - Divine Strike: Radiant and Necrotic are an offer each;

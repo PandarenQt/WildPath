@@ -439,6 +439,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Spell tags (2026-10-20):** every spell (and every creature's spell) is tagged `cantrip`, `school:<name>` and
   `damage:<type>`; that touched 646 pack files, tags only. Potent Spellcasting, Empowered Evocation and Disciple of Life
   are traits, and Elemental Affinity brings its choosing Action (classes-and-spellcasting.md).
+- **Eldritch Blast invocations (2026-10-20):** Eldritch Blast is tagged `eldritch-blast`; Agonizing Blast and
+  Repelling Blast read it (classes-and-spellcasting.md).
 - **Dropping to 0 (2026-10-20):** Relentless Endurance, Relentless Rage, Undead Fortitude (Zombie, Ogre Zombie) and Dark
   One's Blessing carry `zero-hp` Triggers (rule-elements.md).
 - **Test offers (2026-10-20):** Peerless Skill and Dark One's Own Luck carry `flags.wildpath.testOffer`, which the engine

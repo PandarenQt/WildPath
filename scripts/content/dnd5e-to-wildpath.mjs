@@ -283,6 +283,10 @@ const OWN_HIT = Object.freeze({
   // Eldritch Invocation Lifedrinker: Necrotic, Psychic or Radiant 1d6. shortcut: any weapon, not only its pact weapon;
   // its Hit Die heal is by hand.
   "lifedrinker/": weaponHit("lifedrinker"),
+  // Eldritch Invocation Repelling Blast: an Eldritch Blast hit may push its creature 10 feet away. shortcut: Eldritch
+  // Blast only (2024: a chosen attack cantrip), and its "Large or smaller" is by hand.
+  // The push rides on the Eldritch Blast it answers (`rider.push`, as Forceful Blow's): the creature that blast hit.
+  "repelling-blast/Make Repelling": {tagsAll: ["eldritch-blast"], spell: true, rider: {push: {distance: 10}}, definition: definition => definition},
   "open-hand-technique/Addle": openHand({definition: definition => ({...definition, effects: [{id: "effect-1", type: "effect",
     name: "Addled", slug: "no-opportunity-attacks", img: "icons/svg/daze.svg", duration: {value: 1, units: "rounds", expiry: "turnStart"},
     ruleElements: []}]})}),
@@ -878,6 +882,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A spell's tags say what it is, for rules on spell damage: a cantrip, its school (`school:evocation`: Empowered
     // Evocation) and each damage type it deals (`damage:fire`: Elemental Affinity).
     if ( spell ) definition = {...definition, tags: [...new Set([...(definition.tags ?? []), ...(Number(level) === 0 ? ["cantrip"] : []),
+      // Eldritch Blast by name, for its invocations (Agonizing Blast, Repelling Blast).
+      ...((identifierOf(document) === "eldritch-blast") ? ["eldritch-blast"] : []),
       ...(SCHOOLS[system.school] ? [`school:${SCHOOLS[system.school]}`] : []),
       ...(definition.damage ?? []).map(component => component.damageType).filter(Boolean).map(type => `damage:${type}`)])]};
     // Lay on Hands: "restore a number of Hit Points equal to the points spent", chosen when used, from its pool.
@@ -960,8 +966,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     const named = smite ? (/unholy/i.test(activity.name ?? "") ? " (Undead or Fiend)" : "") : suffix;
     const reacting = action(id, `${document.name}${named}${choices ? title(choices[0]) : ""}`, definition);
-    const trigger = reaction ?? smite ?? (onHit ? {...SMITE_TRIGGER, match: {...SMITE_TRIGGER.match, ...(onHit.tagsAll ? {tagsAll: onHit.tagsAll} : {})},
-      once: onHit.once, onceKey: onHit.onceKey, uses: onHit.uses} : null);
+    // A spell's hit too, for an offer marked `spell` (Repelling Blast on Eldritch Blast).
+    const {notTagsAny: _spells, ...anyHit} = SMITE_TRIGGER.match;
+    const trigger = reaction ?? smite ?? (onHit ? {...SMITE_TRIGGER, match: {...(onHit.spell ? anyHit : SMITE_TRIGGER.match),
+      ...(onHit.tagsAll ? {tagsAll: onHit.tagsAll} : {})}, once: onHit.once, onceKey: onHit.onceKey, uses: onHit.uses} : null);
     if ( trigger ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
       data: {kind: "reaction", event: trigger.event, match: trigger.match, ...(trigger.once ? {once: trigger.once} : {}),
         ...(trigger.onceKey ? {onceKey: trigger.onceKey} : {}), ...(trigger.uses ? {uses: trigger.uses} : {})}});
@@ -1289,6 +1297,9 @@ const TRAITS = Object.freeze({
   // its class's.
   "blessed-strikes-potent-spellcasting": (document, {activities}) => spellDamageBonus(activities, "wits", {tagsAll: ["cantrip"]}),
   "elemental-fury-potent-spellcasting": (document, {activities}) => spellDamageBonus(activities, "wits", {tagsAll: ["cantrip"]}),
+  // Eldritch Invocation Agonizing Blast: its Charisma modifier on Eldritch Blast's damage. shortcut: Eldritch Blast only
+  // (2024: a chosen damaging cantrip).
+  "agonizing-blast": (document, {activities}) => spellDamageBonus(activities, "presence", {tagsAll: ["eldritch-blast"]}),
   // 2024 Empowered Evocation: its Intelligence modifier on one damage roll of an evocation spell.
   "empowered-evocation": (document, {activities}) => spellDamageBonus(activities, "intellect", {tagsAll: ["school:evocation"]}),
   // 2024 Disciple of Life: a spell cast with a slot heals 2 + the slot's level more.

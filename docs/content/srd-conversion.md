@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 866 automated, 288 manual, 233 features. Creatures: 375.
+Items: 867 automated, 288 manual, 232 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -1233,7 +1233,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Remarkable Athlete | classes24 | Remarkable Athlete (feature) | — |
 | Remorhaz | actors24 | Remorhaz (4 items) | Bite: "Escape Check" is passive or triggered: not automated; Swallow: effect: coverTotal is not a WildPath condition yet; Swallow: "Damage: Swallowed" is passive or triggered: not automated; Swallow: "Regurgitate: Save" is passive or triggered: not automated |
 | Remove Curse | spells24 | Remove Curse (automated) | — |
-| Repelling Blast | classes24 | Repelling Blast (feature) | "Make Repelling" is passive or triggered: not automated |
+| Repelling Blast | classes24 | Repelling Blast (automated) | — |
 | Resilient Sphere | spells24 | Resilient Sphere (automated) | effect: "Enclosed in Sphere" marks its creature only; its rules are by hand |
 | Resistance | spells24 | Resistance (automated) | effect: "Acid Protection" marks its creature only; its rules are by hand; effect: "Bludgeoning Protection" marks its creature only; its rules are by hand; effect: "Cold Protection" marks its creature only; its rules are by hand; effect: "Fire Protection" marks its creature only; its rules are by hand; effect: "Lightning Protection" marks its creature only; its rules are by hand; effect: "Necrotic Protection" marks its creature only; its rules are by hand; effect: "Piercing Protection" marks its creature only; its rules are by hand; effect: "Poison Protection" marks its creature only; its rules are by hand; effect: "Radiant Protection" marks its creature only; its rules are by hand; effect: "Slashing Protection" marks its creature only; its rules are by hand; effect: "Thunder Protection" marks its creature only; its rules are by hand |
 | Resourceful | origins24 | Resourceful (feature) | — |

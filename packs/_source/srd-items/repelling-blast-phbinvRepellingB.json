@@ -2,12 +2,50 @@
   "_id": "phbinvRepellingB",
   "_key": "!items!phbinvRepellingB",
   "name": "Repelling Blast",
-  "type": "feature",
+  "type": "action",
   "img": "icons/magic/fire/explosion-embers-evade-silhouette.webp",
   "system": {
     "active": true,
     "description": "<blockquote><p>Prerequisite: Level 2+ Warlock, a Warlock Cantrip That Deals Damage via an Attack Roll</p></blockquote><p>Choose one of your known Warlock cantrips that requires an attack roll. When you hit a Large or smaller creature with that cantrip, you can push the creature up to 10 feet straight away from you.</p><p><strong>Repeatable.</strong> You can gain this invocation more than once. Each time you do so, choose a different eligible cantrip.</p><section class=\"secret\" id=\"secret-5xV7SaKI7sGaeKvq\"><p><strong>Foundry Note</strong></p><p>The <strong>Make Repelling</strong> activity can be used to enchant a cantrip which adds \", Repelling\" as a reminder.</p></section>",
-    "ruleElements": []
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-repelling-blast-make-repelling",
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "rider": {
+        "push": {
+          "distance": 10
+        }
+      },
+      "label": "Repelling Blast"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": [
+              "eldritch-blast"
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +59,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Make Repelling\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }
