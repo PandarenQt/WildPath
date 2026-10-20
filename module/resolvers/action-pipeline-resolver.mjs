@@ -1849,7 +1849,13 @@ function createComponentRollStage({id, kind, rollType, request}) {
       for ( ;; ) {
         const components = values?.components ?? [];
         const index = components.findIndex(component => component?.amount == null);
-        if ( index < 0 ) return continueResolutionStage({state: updateResolutionState(current, {input: {...input, [kind]: values}})});
+        if ( index < 0 ) {
+          // Empowered Spell: its lowest damage dice are rolled again, once all are rolled.
+          const empowered = (kind === "damage") ? empoweredReroll(current, input, values, id) : null;
+          if ( empowered?.wait || empowered?.fail ) return empowered.wait ?? empowered.fail;
+          if ( empowered?.values ) ({values, state: current} = empowered);
+          return continueResolutionStage({state: updateResolutionState(current, {input: {...input, [kind]: values}})});
+        }
         const requestId = requestIdFor(current, index ? `${request}:${index}` : request);
         const build = () => componentRollRequestForState(current, input, {kind, rollType, requestId, index, values});
         const accepted = getResolutionResponse(current, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
@@ -1893,6 +1899,60 @@ function createComponentRollStage({id, kind, rollType, request}) {
       }
     }
   });
+}
+
+/**
+ * Empowered Spell (`metadata.empowered`: how many): its damage dice below their die's average, lowest first, up to that
+ * many, are rolled again and the new rolls are used. One roll per die size. `{wait}` while rolled, `{values, state}` once
+ * done (`empowered: "done"`), null when there is nothing to reroll.
+ */
+function empoweredReroll(state, input, values, stageId) {
+  const count = Number(state.actionDefinition?.metadata?.empowered) || 0;
+  if ( !count || (values?.empowered === "done") ) return null;
+  const picked = normalizeArray(values?.components).flatMap((component, i) => normalizeArray(component?.dice?.results)
+    .map((value, j) => ({i, j, value: Number(value), faces: Number(component.dice.faces)})))
+    .filter(entry => (entry.faces > 0) && (entry.value < ((entry.faces + 1) / 2)))
+    .sort((a, b) => ((a.value - ((a.faces + 1) / 2)) - (b.value - ((b.faces + 1) / 2)))).slice(0, count);
+  if ( !picked.length ) return {values: {...values, empowered: "done"}, state};
+  const bySize = new Map();
+  for ( const entry of picked ) bySize.set(entry.faces, [...(bySize.get(entry.faces) ?? []), entry]);
+  let current = state;
+  const rerolled = new Map();
+  for ( const [faces, entries] of bySize ) {
+    const requestId = requestIdFor(current, `damage-roll:empowered:${faces}`);
+    const rollRequest = createDamageRollRequest({id: requestId, resolutionId: current.id, type: ROLL_TYPES.CUSTOM, formula: `${entries.length}d${faces}`,
+      definition: {dice: [{number: entries.length, faces}]}, source: current.source ?? input.source ?? null, chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER,
+      authority: {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER}, metadata: {rollKind: "damage-empowered"}});
+    const accepted = getResolutionResponse(current, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
+    if ( !accepted ) return {wait: waitResolutionStage({
+      state: updateResolutionState(current, {input: {...input, damage: values}, rollRequests: appendRollRequest(current.rollRequests, rollRequest)}),
+      request: createResolutionRequest({id: requestId, resolutionId: current.id, stageId, type: RESOLUTION_REQUEST_TYPES.ROLL,
+        expectedResponseType: "roll-result", chooser: rollRequest.chooser, authority: rollRequest.authority,
+        validation: {rollRequestId: requestId, semanticType: rollRequest.type, requireNatural: false, formula: rollRequest.formula},
+        payload: {actionDefinitionId: current.actionDefinition?.id ?? null, rollKind: "damage-empowered", rollRequest, targets: input.targets ?? []}}),
+      reason: "Empowered Spell's dice are rolled again."})};
+    const request = rollRequestFromAcceptedResponse(accepted, () => rollRequest);
+    const normalized = normalizeRollResponseValue(accepted.response.value, {request, completedRequestIds: completedRollRequestIds(current)});
+    if ( !normalized.ok ) return {fail: failResolutionStage({state: current, code: normalized.code, reason: normalized.reason,
+      errors: [{code: normalized.code, reason: normalized.reason, requestId}], data: {requestId}})};
+    const results = normalizeArray(normalized.result.dice?.[0]?.results).map(result => Number(result?.result ?? result)).filter(Number.isFinite);
+    // Without each die's face (a total typed in), the total is spread evenly over the dice it rerolled.
+    const newResults = results.length === entries.length ? results
+      : entries.map((_, k) => Math.floor((Number(normalized.result.total) || 0) / entries.length) + ((k < ((Number(normalized.result.total) || 0) % entries.length)) ? 1 : 0));
+    entries.forEach((entry, k) => rerolled.set(`${entry.i}:${entry.j}`, newResults[k]));
+    current = updateResolutionState(current, {rollRequests: appendRollRequest(current.rollRequests, request),
+      rollResults: [...current.rollResults, {requestId, type: "damage-roll", semanticType: normalized.result.type, rollRequest: request,
+        rollResult: normalized.result, roll: {total: normalized.result.total}}]});
+  }
+  const components = normalizeArray(values.components).map((component, i) => {
+    const old = normalizeArray(component?.dice?.results);
+    if ( !old.some((_, j) => rerolled.has(`${i}:${j}`)) ) return component;
+    const results = old.map((value, j) => (rerolled.has(`${i}:${j}`) ? rerolled.get(`${i}:${j}`) : value));
+    const delta = results.reduce((sum, value, j) => sum + (Number(value) - Number(old[j])), 0);
+    return {...component, amount: (Number(component.amount) || 0) + delta, rolled: (Number(component.rolled) || 0) + delta,
+      dice: {...component.dice, results}, metadata: {...(component.metadata ?? {}), empowered: picked.filter(entry => entry.i === i).length}};
+  });
+  return {values: {...values, components, empowered: "done"}, state: current};
 }
 
 function createDamageStage() {

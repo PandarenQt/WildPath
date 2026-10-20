@@ -100,3 +100,34 @@ test("Metamagic: after a Quickened spell this turn, a level 1+ spell is greyed o
     assert.deepEqual([enabled("bolt"), enabled("ball")], [true, false]);
   } finally { globalThis.game = previous; }
 });
+
+test("Empowered Spell: a choice beside the other option; its lowest damage die below average is rolled again", async () => {
+  const {planStagedActionResolution, resumeStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
+  const actor = sorcerer(["quickened", "empowered"]);
+  const burst = {schemaVersion: 1, id: "action:burst", label: "Burst", tags: ["spell"], costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1}, damage: [{id: "fire", expression: {type: "dice", number: 4, faces: 6}, damageType: "fire"}]};
+  const read = withMetamagic(burst, actor);
+  assert.deepEqual(read.configuration.map(choice => choice.id), ["metamagic", "empowered"], "it stacks with another option");
+  const {configuration} = resolveActionConfiguration({definition: read, actorSystem: actor.system, choices: {metamagic: "quickened", empowered: "empowered"}});
+  assert.equal(configuration.effectiveDefinition.metadata.empowered, 1, "max(1, Presence modifier)");
+  assert.ok(JSON.stringify(configuration.effectiveDefinition.costs).includes("font-of-magic"));
+  const target = {id: "t", actorId: "actor-t", tokenId: "tok", disposition: "enemy"};
+  const victim = {id: "actor-t", uuid: "Actor.actor-t", system: {resources: {health: {value: 40, max: 40}}}};
+  const actors = {"actor-t": victim, "Actor.actor-t": victim, "actor:actor-t": victim, t: victim, tok: victim};
+  let state = planStagedActionResolution({id: "resolution:empowered", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {id: burst.id, type: "action", name: "Burst", system: {definition: {...burst, metadata: {empowered: 1}}}}, source: {actorId: "sorc"},
+    targets: [target], durability: true, targetActors: actors}).state;
+  const answer = (dice, total) => {
+    const request = state.pendingRequests[0];
+    const roll = request.payload.rollRequest;
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: {requestId: roll.id, resolutionId: state.id, type: roll.type, total, dice: [{number: dice.length, faces: 6,
+        results: dice.map(result => ({result, active: true}))}]}}, services: {targetActors: actors}}).state;
+    return roll;
+  };
+  answer([1, 4, 6, 5], 16);
+  const reroll = answer([6], 6);
+  assert.equal(reroll.formula, "1d6", "only the 1 (below the average 3.5) is rolled again");
+  const damage = state.mutationPlans.find(entry => entry.type === "durabilityDamage");
+  assert.equal(damage.plan.amount, 21, "16 with the 1 become a 6");
+});

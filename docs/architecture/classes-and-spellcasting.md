@@ -559,8 +559,12 @@ module/helpers/metamagic.mts). Its first option is None. The others are those th
 | Careful (1) | it forces a save | its caster ticks up to max(1, Presence modifier) creatures, its allies ticked already; they succeed without rolling (`automatic-success`) and take no damage where a success halves it (evasion) |
 
 - **Seeking Spell** is a reroll on a missed spell attack, beside Heroic Inspiration (`withSeekingSpell`), for 1 point.
-- **Empowered Spell** is an Action of its own (no action, 1 point); its feature brings it (`flags.wildpath.grants`), so
-  the sorcerer's Metamagic choice lists the feature once.
+- **Empowered Spell (2026-10-20)** is a choice of its own on a spell that rolls damage dice, beside the one option
+  (2024: "even if you've already used a different Metamagic option"). For 1 point (`empower-damage`:
+  `metadata.empowered`), once its damage is rolled, up to max(1, Presence modifier) of its dice below their average,
+  lowest first, are rolled again and the new rolls are used (`empoweredReroll`, one roll per die size). Its old Action
+  is gone. Live: QA Caster's Empowered Fire Bolt rolled 1 and 7; the 1 became a 3 (1d10), the Bandit Captain took 10,
+  and 1 point was spent.
 - **Payments that share a pool:** two payments of one payer from the same pool, both planned before the Action, are
   committed one after the other (`chainPayments`). Seeking's point comes after Quickened's two, not over them.
 - **Quickened afterwards (2026-10-20):** a Quickened cast records `flags.wildpath.quickenedTurn`. A spell of level 1+
@@ -571,7 +575,6 @@ module/helpers/metamagic.mts). Its first option is None. The others are those th
   (`save.heightened`, `save.careful: <count>`), and the save roll stage asks its caster (`metamagicSaves`). A CHOICE
   prompt now carries its `type`, `max` and ticked defaults to the chooser. The Action's source carries its disposition,
   so its allies can be told apart.
-- **shortcuts:** Empowered's reroll is by hand.
 - **Live (2026-10-20), Heightened and Careful:** a two-target save spell (8 fire, half on a success) from sorcerer 5 QA
   Caster at QA Ally and the Bandit Captain.
   - Careful: QA Ally came ticked; it saved without rolling and took nothing, and the Captain failed and took 8.

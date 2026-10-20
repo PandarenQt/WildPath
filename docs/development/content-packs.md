@@ -488,7 +488,7 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - Nature's Ward, Second-Story Work, Alter Self's swim Speed and Sear Undead's dice now convert
     (classes-and-spellcasting.md).
 - **Metamagic (2026-10-19):** its options are features flagged `metamagic`, which a sorcerer's spells offer
-  (classes-and-spellcasting.md). Empowered Spell's feature grants its Action. The class lists only what brings its Actions
+  (classes-and-spellcasting.md). Empowered Spell is a choice on the cast (2026-10-20: its Action is gone). The class lists only what brings its Actions
   with it (`convertedIds`: gear, or a feature with `grants`).
 - **Effects as markers (2026-10-19).** A dnd5e effect with no status and nothing WildPath maps (Alter Self's Aquatic
   Adaptation, Acid Arrow's lingering acid, a dragon's Detect Magic) is no longer dropped. It is a custom effect with

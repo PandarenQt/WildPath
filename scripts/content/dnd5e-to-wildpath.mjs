@@ -1202,8 +1202,6 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         targeting: {type: "self"}, effects: structuredClone(featureAction.effects ?? []),
         ...(featureAction.requires ? {requires: structuredClone(featureAction.requires)} : {})}, ruleElements: [pool?.rule].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: []}}}});
-    // A chosen Metamagic option (Empowered Spell) brings its Action with it, so its class's choice lists it once.
-    if ( metamagic && (items[0]?.type === "feature") ) items[0].flags.wildpath.grants = [id];
   }
   return {ok: true, items, notes: [...new Set(allNotes)]};
 }
@@ -1221,8 +1219,6 @@ const FEATURE_ACTIONS = Object.freeze({
     duration: {value: 1, units: "rounds", expiry: "turnStart"}, ruleElements: [
       {schemaVersion: 1, id: "reckless-attacks", type: "RollMode", data: {domains: ["attack.might"], mode: "advantage"}},
       {schemaVersion: 1, id: "reckless-attacked", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}}]}]},
-  // 2024 Empowered Spell (no action): spends its Sorcery Point. shortcut: rerolling its damage dice is by hand.
-  "empowered-spell": {costs: [{capability: "font-of-magic", amount: 1}]}
 });
 
 /** Each dnd5e base armor's kind. */
