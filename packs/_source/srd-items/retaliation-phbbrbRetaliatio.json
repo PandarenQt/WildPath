@@ -20,7 +20,23 @@
       },
       "label": "Retaliation"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "damage.applied",
+          "match": {
+            "phase": "interrupt",
+            "targetTokenId": "{self}",
+            "notSourceTokenId": "{self}"
+          },
+          "commonAction": "opportunity"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -34,9 +50,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

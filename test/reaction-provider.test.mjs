@@ -202,3 +202,21 @@ test("outside a started encounter, movement provokes nothing: no Opportunity Att
   assert.deepEqual(provider({scene, token: mover}).reactions.triggers.map(trigger => trigger.id),
     ["reaction:ogre:common-opportunity", "reaction:guard:strike:opportunity"]);
 });
+
+test("a Trigger naming a common Action (Retaliation) reacts with that Action, at its Item's setting", () => {
+  const retaliation = (policy) => ({id: "retaliation", name: "Retaliation", type: "action", ...(policy ? {flags: {wildpath: {reactionPolicy: policy}}} : {}),
+    system: {active: true, definition: {schemaVersion: 1, id: "action:retaliation", label: "Retaliation",
+      costs: {allOf: [{capability: "reaction", amount: 1}]}},
+    ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction", event: "damage.applied",
+      match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}, commonAction: "opportunity"}}]}});
+  const mover = token("mover", 1);
+  const provider = createFoundryReactionProvider({resolve: () => null});
+  const triggers = provider({scene: {grid: {distance: 5}, tokens: [mover, token("barbarian", -1, [retaliation()])]}, token: mover})
+    .reactions.triggers.filter(trigger => trigger.event?.type === "damage.applied" || trigger.id.includes("retaliation"));
+  assert.equal(triggers.length, 1);
+  assert.equal(triggers[0].reaction.action.id, "common:unarmed", "with no weapon, an Unarmed Strike");
+  assert.equal(triggers[0].reaction.action.label, "Retaliation", "offered under its Item's name");
+  assert.deepEqual(triggers[0].reaction.action.costs.allOf.map(cost => cost.capability), ["reaction"]);
+  const never = provider({scene: {grid: {distance: 5}, tokens: [mover, token("barbarian", -1, [retaliation("never")])]}, token: mover});
+  assert.equal((never.reactions?.triggers ?? []).some(trigger => trigger.id.includes("retaliation")), false, "its Item set to Never");
+});

@@ -1516,8 +1516,8 @@ function inspirationReroll(state, input, {offer, failed, key, stageId, rollKind,
     return {roll, rollResult: {requestId: null, type: `${rollKind}-set-natural`, roll, reroll: true, targetKey: key},
       payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null};
   }
-  // A reroll may add a bonus (Indomitable: its fighter level).
-  const rollRequest = makeRollRequest(`${rollKind}-roll:reroll:${key}`, Number(option.bonus) || 0);
+  // A reroll may add a bonus (Indomitable: its fighter level), or have its own roll mode (Countercharm: Advantage).
+  const rollRequest = makeRollRequest(`${rollKind}-roll:reroll:${key}`, Number(option.bonus) || 0, option.rollMode ?? null);
   const accepted = getResolutionResponse(state, {requestId: rollRequest.id, type: RESOLUTION_REQUEST_TYPES.ROLL});
   if ( !accepted ) return {wait: waitResolutionStage({
     state: updateResolutionState(state, {input, rollRequests: appendRollRequest(state.rollRequests, rollRequest)}),
@@ -1614,7 +1614,7 @@ function createSaveOutcomeStage() {
         const reroll = inspirationReroll(state, input, {offer: input.save.inspirationByTarget?.[key], failed: !result.success, key,
           roll: result.roll ?? input.save.rollsByTarget?.[saveTargetKey(target)] ?? null,
           stageId: ACTION_PIPELINE_STAGE_IDS.SAVE_OUTCOME, rollKind: "save", targets: [target],
-          makeRollRequest: (suffix, bonus=0) => saveRollRequestForState(state, input, {target, suffix, bonus})});
+          makeRollRequest: (suffix, bonus=0, rollMode=null) => saveRollRequestForState(state, input, {target, suffix, bonus, rollMode})});
         if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
         if ( reroll.roll ) rerolls.push({...reroll, rollKey: saveTargetKey(target)});
       }
@@ -2324,11 +2324,15 @@ function createPaymentStage() {
         }
       });
 
-      // Cutting Words: its die is rolled once it is paid for, and that much comes off the attack it answers.
-      const penalty = riderAttackPenalty(state, input);
+      // Cutting Words: its die is rolled once it is paid for, and that much comes off the attack it answers. Stone's
+      // Endurance: its roll comes off the damage of the attack it answers.
+      const penalty = riderRoll(state, input, state.actionDefinition?.rider?.attackPenalty, "penalty");
       if ( penalty?.wait ) return penalty.wait;
+      const reduction = riderRoll(state, input, state.actionDefinition?.rider?.reduceDamage, "reduction");
+      if ( reduction?.wait ) return reduction.wait;
       const rider = state.actionDefinition?.rider
-        ? {...clonePlain(state.actionDefinition.rider), ...(penalty ? {attackPenalty: penalty.total} : {})} : null;
+        ? {...clonePlain(state.actionDefinition.rider), ...(penalty ? {attackPenalty: penalty.total} : {}),
+          ...(reduction ? {reduceDamage: reduction.total} : {})} : null;
       return continueResolutionStage({
         state: stateWithActionResult(state, {
           input,
@@ -2953,11 +2957,12 @@ function reevaluateParentAfterReaction({parentState, childState, window, service
  * - `push`: the creatures it hits are pushed (Forceful Blow).
  */
 /**
- * A rider's attack penalty die (Cutting Words: its Bardic Inspiration die, a table by bard level), rolled by its
- * creature: `{total}`, `{wait}` while it is rolled, or null without one.
+ * A rider's die (`{dice, bonus?}`: Cutting Words' attack penalty, its Bardic Inspiration die, a table by bard level;
+ * Stone's Endurance's damage reduction, 1d12 plus its Fortitude modifier), rolled by its creature: `{total}`, `{wait}`
+ * while it is rolled, or null without one.
  */
-function riderAttackPenalty(state, input) {
-  const expression = state.actionDefinition?.rider?.attackPenalty?.dice;
+function riderRoll(state, input, spec, key) {
+  const expression = spec?.dice;
   if ( !expression ) return null;
   const context = {actorSystem: input.actorSystem ?? null};
   let dice = expression;
@@ -2968,13 +2973,14 @@ function riderAttackPenalty(state, input) {
   }
   if ( (dice?.type !== "dice") || !(Number(dice.faces) > 0) ) return null;
   const rolled = addedDie(state, input, {option: {addDice: {number: Number(dice.number) || 1, faces: Number(dice.faces)}, label: state.actionDefinition.label},
-    key: "penalty", stageId: ACTION_PIPELINE_STAGE_IDS.PAYMENT, rollKind: "rider",
+    key, stageId: ACTION_PIPELINE_STAGE_IDS.PAYMENT, rollKind: "rider",
     makeRollRequest: suffix => ({id: requestIdFor(state, suffix), source: state.source ?? input.source ?? null,
       chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, authority: {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER}, metadata: {}}),
     targets: [], original: {total: 0}});
   if ( rolled.wait ) return {wait: rolled.wait};
   if ( rolled.fail ) return null;
-  return {total: Number(rolled.roll?.total) || 0};
+  const bonus = spec.bonus ? (Number(evaluateValueExpression(spec.bonus, context).value) || 0) : 0;
+  return {total: Math.max((Number(rolled.roll?.total) || 0) + bonus, 0)};
 }
 
 function riderPatch(state, rider, {window, childState}) {
@@ -3004,10 +3010,20 @@ function riderPatch(state, rider, {window, childState}) {
         extraComponents: [...extras, ...riderDefinitions]}} : {}),
       ...((rider.rollMode && input.attack) ? {attack: {...input.attack, rollMode: rider.rollMode}} : {}),
       ...(rider.tags?.length ? {riderTags: uniqueStrings([...(input.riderTags ?? []), ...rider.tags])} : {}),
-      ...(rider.push ? {riderPush: clonePlain(rider.push)} : {})
+      ...(rider.push ? {riderPush: clonePlain(rider.push)} : {}),
+      // shortcut: the reduction is the attack's, for each of its targets; upgrade when a rider names its target.
+      ...((Number(rider.reduceDamage) > 0) && input.durability ? {durability: withDamageReduction(input.durability,
+        {id: `rider:${childState?.id ?? "rider"}`, type: "flat", amount: Number(rider.reduceDamage)})} : {})
     },
     results: {}
   };
+}
+
+/** Durability options with one more flat damage reduction for every target (`adjustments.reductions`). */
+function withDamageReduction(durability, reduction) {
+  const options = (durability && (typeof durability === "object")) ? durability : {};
+  const adjustments = options.adjustments ?? {};
+  return {...options, adjustments: {...adjustments, reductions: [...normalizeArray(adjustments.reductions), reduction]}};
 }
 
 function attackInputWithCurrentDefenses(attack, {targetActors=null, targetContexts: fallbackTargetContexts=[], targets: fallbackTargets=[]}={}) {
@@ -3346,7 +3362,7 @@ function checkRollRequestForState(state, input, {suffix="check-roll"}={}) {
   });
 }
 
-function saveRollRequestForState(state, input, {target=null, suffix="save-roll", bonus=0}={}) {
+function saveRollRequestForState(state, input, {target=null, suffix="save-roll", bonus=0, rollMode=null}={}) {
   const save = input.save ?? {};
   // Each target adds its own save bonus, which the runtime keys by Token.
   const targetBonus = save.modifiersByTarget?.[rollModeTargetKey(target ?? firstRollTarget(input))];
@@ -3360,7 +3376,8 @@ function saveRollRequestForState(state, input, {target=null, suffix="save-roll",
     modifier: modifier.value,
     formula: save.formula ?? save.rollFormula ?? null,
     // Each target rolls with its own advantage or disadvantage, which the runtime keys by Token.
-    rollMode: save.rollModesByTarget?.[rollModeTargetKey(target ?? firstRollTarget(input))]
+    // shortcut: a reroll's own mode (Countercharm's Advantage) replaces the target's rather than combining with it.
+    rollMode: rollMode ?? save.rollModesByTarget?.[rollModeTargetKey(target ?? firstRollTarget(input))]
       ?? save.rollMode ?? save.advantageState ?? save.roll?.mode,
     // Saves keep `system` visibility: the roller's own message mode decides (see withRollerVisibility).
     dc: save.dc ?? null,

@@ -80,14 +80,23 @@ function tokenReactions(token) {
             const event = String(data.event ?? data.eventType ?? "");
             if (((data.kind ?? data.triggerKind) !== "reaction") || !event)
                 return [];
-            const actionItem = item.type === "action" ? item
-                : items.find(entry => (entry.type === "action")
-                    && (entry.system?.definition?.id === data.reaction?.actionId));
+            // A common Action (Retaliation's `commonAction: "opportunity"`: its first melee attack or Unarmed Strike), else
+            // the Item itself or the Action it names.
+            const localize = (key) => globalThis.game?.i18n?.localize(key) ?? key;
+            const actionItem = data.commonAction ? common(actor, String(data.commonAction), { localize })
+                : item.type === "action" ? item
+                    : items.find(entry => (entry.type === "action")
+                        && (entry.system?.definition?.id === data.reaction?.actionId));
             const definition = actionItem ? definitionFor(actionItem) : null;
             if (!definition?.ok || !definition.definition)
                 return [];
-            // A reaction set to "Never" is not offered; one set to "Always" is used without asking.
-            const policy = policyOf(actionItem);
+            // Offered under its Item's name: "Retaliation (Dagger)", not "Opportunity Attack (Dagger)".
+            if (data.commonAction)
+                definition.definition = { ...definition.definition,
+                    label: String(actionItem.name ?? "")
+                        .replace(localize("WILDPATH.COMMON.OpportunityAttack"), String(item.name ?? "")) };
+            // A reaction set to "Never" is not offered; one set to "Always" is used without asking (its Item's setting).
+            const policy = policyOf(data.commonAction ? item : actionItem);
             if (policy === "never")
                 return [];
             // Only while its creature has a status (Brutal Strike: Reckless Attack's "reckless").

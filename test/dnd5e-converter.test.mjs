@@ -1555,3 +1555,23 @@ test("on-hit features: Devious Strikes, Eldritch Smite (a Pact Magic slot), Hurl
   }
   assert.equal(read("hill-s-tumble").definition.effects[0].conditionId, "prone");
 });
+
+test("reactions: Retaliation's common attack, Countercharm's ally reroll, Stone's Endurance's reduction; Indomitable is the engine's", async () => {
+  const fs = await import("node:fs");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const trigger = item => item.system.ruleElements.find(rule => rule.type === "Trigger")?.data;
+  const retaliation = read("retaliation-");
+  assert.deepEqual([trigger(retaliation).event, trigger(retaliation).commonAction, trigger(retaliation).match.notSourceTokenId],
+    ["damage.applied", "opportunity", "{self}"]);
+  const countercharm = read("countercharm-");
+  assert.deepEqual([countercharm.type, countercharm.flags.wildpath.testOffer], ["feature", {tests: ["save"], pool: "reaction",
+    rollMode: "advantage", range: 30, against: ["charmed", "frightened"]}]);
+  const stone = read("stone-s-endurance-");
+  assert.deepEqual([trigger(stone).event, trigger(stone).match.targetTokenId, stone.system.definition.healing,
+    stone.system.definition.rider.reduceDamage.dice.faces], ["attack.hit", "{self}", undefined, 12]);
+  assert.equal(validateActionDefinition(stone.system.definition).ok, true);
+  const indomitable = read("indomitable-phbftr");
+  assert.deepEqual([indomitable.type, indomitable.system.ruleElements.map(rule => rule.data.resourceId)], ["feature", ["indomitable"]],
+    "no Action that does nothing; its pool stays for the engine's reroll");
+});

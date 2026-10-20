@@ -2,24 +2,11 @@
   "_id": "phbftrIndomitabl",
   "_key": "!items!phbftrIndomitabl",
   "name": "Indomitable",
-  "type": "action",
+  "type": "feature",
   "img": "icons/skills/melee/shield-block-fire-orange.webp",
   "system": {
     "active": true,
     "description": "<p>If you fail a saving throw, you can reroll it with a bonus equal to your Fighter level (currently, ). You must use the new roll, and you can't use this feature again until you finish a Long Rest.</p><p>You can use this feature twice before a Long Rest starting at level 13 and three times before a Long Rest starting at level 17.</p><section class=\"secret\" id=\"secret-eVLmL8YfOocgD4rC\"><p><strong>Foundry Note</strong></p><p>This feature's maximum usages scale automatically as you level up.</p></section>",
-    "definition": {
-      "schemaVersion": 1,
-      "id": "action:srd-indomitable",
-      "costs": {
-        "allOf": [
-          {
-            "capability": "action",
-            "amount": 1
-          }
-        ]
-      },
-      "label": "Indomitable"
-    },
     "ruleElements": [
       {
         "schemaVersion": 1,
@@ -57,9 +44,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

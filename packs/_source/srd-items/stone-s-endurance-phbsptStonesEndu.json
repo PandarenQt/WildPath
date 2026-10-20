@@ -28,26 +28,19 @@
       "targeting": {
         "type": "self"
       },
-      "healing": [
-        {
-          "id": "healing-1",
-          "expression": {
-            "type": "add",
-            "terms": [
-              {
-                "type": "dice",
-                "number": 1,
-                "faces": 12
-              },
-              {
-                "type": "ability-modifier",
-                "ability": "fortitude"
-              }
-            ]
+      "rider": {
+        "reduceDamage": {
+          "dice": {
+            "type": "dice",
+            "number": 1,
+            "faces": 12
           },
-          "healingType": "healing"
+          "bonus": {
+            "type": "ability-modifier",
+            "ability": "fortitude"
+          }
         }
-      ],
+      },
       "label": "Stone's Endurance"
     },
     "ruleElements": [
@@ -62,6 +55,19 @@
             "type": "proficiency-bonus"
           },
           "recovery": "longRest"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "targetTokenId": "{self}"
+          }
         }
       }
     ]

@@ -442,6 +442,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Training (2026-10-20):** Divine Order: Protector and Primal Order: Warden carry `flags.wildpath.training`, which their
   creature has while the Item is there (classes-and-spellcasting.md). Expertise steps (Rogue, Bard, Ranger) are
   `expertise:*` choices, and weapon keys use the base names (`weapons:hand-crossbow`).
+- **Reactions (2026-10-20):** Retaliation's Trigger names a common Action; Stone's Endurance reduces the damage of the
+  attack on it (`rider.reduceDamage`); Countercharm is a feature with a ranged `testOffer`; Indomitable is a feature
+  with its pool, no Action (reactions.md).
 - **On-hit features (2026-10-20):** Devious Strikes' three options, Eldritch Smite, Hurl Through Hell and the Goliath's
   Fire's Burn, Frost's Chill and Hill's Tumble are own-hit Actions (reactions.md).
 - **Pact Magic (2026-10-20):** the Warlock's progression is `pact`; Magical Cunning restores its slots; Mystic Arcanum

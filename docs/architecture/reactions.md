@@ -366,6 +366,28 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   Live (two browsers, 14.369): as a Rogue 14, QA Caster's Dagger hits offered Daze; its Sneak Attack rolled 5d6 (7d6
   less 2) and a failed save left the Bandit Captain Dazed. As a Warlock 5, Eldritch Smite spent a pact slot for 4d8
   Force (8d8 on a critical hit) and knocked the Captain Prone; Fire's Burn added 1d10 Fire and spent a use.
+- **Retaliation, Stone's Endurance, Countercharm (2026-10-20):**
+  - **Retaliation** (barbarian): `damage.applied` on itself from another creature. Its Trigger names a common Action
+    (`commonAction: "opportunity"`), so the provider reacts with its creature's first melee attack or Unarmed Strike at
+    the damage source, for its Reaction, offered under the Item's name ("Retaliation (Dagger)") and at the Item's Always,
+    Ask or Never setting. shortcut: "within 5 feet" is the attack's own reach.
+  - **Stone's Endurance** (Goliath): an `attack.hit` interrupt on itself. Its rider `reduceDamage: {dice, bonus}`
+    (1d12 + its Fortitude modifier) is rolled when it is paid (`riderRoll`, as Cutting Words' die), and the attack it
+    answers plans that much less damage (a flat `reductions` entry in its durability adjustments). It replaces the
+    earlier heal-after. shortcuts: damage from a save, or with no attack, is by hand; on an attack with several targets
+    each takes the reduction.
+  - **Countercharm** (bard): a test offer with a `range` (30 ft), the conditions it answers (`against`: Charmed,
+    Frightened), its `pool` (its Reaction) and a `rollMode` (Advantage). When a creature fails a save against an effect
+    giving one of them, it or an ally within range that has it may reroll that save (`withAllyTestOffers`): the saver's
+    controller chooses, the reroll has Advantage, and the ally pays. shortcuts: Advantage replaces the saver's own roll
+    mode; "can see" is its controller's to judge.
+  - **Indomitable**'s converted Action, which spent a use and did nothing, is gone: the feature keeps the pool the
+    engine's reroll pays from (`OFFERED_BY_ENGINE`).
+
+  Live (two browsers, 14.369): the Bandit Captain's Scimitar hit QA Caster for 9; Stone's Endurance took 5 off it. Its
+  next hit offered "Retaliation (Dagger)", which attacked the Captain for QA Caster's Reaction. A Wits save against a
+  charm failed on a 10; Player1 took "QA Ally's Countercharm", rerolled 2d20kh (20), and saved, with QA Ally's Reaction
+  spent.
 - **Cutting Words (2026-10-19):** `attack.hit` with `notSourceTokenId: "{self}"`, so any creature's hit within 60 ft;
   the bard's reaction targets the attacker. Its rider `attackPenalty: {dice}` is its Bardic Inspiration die, a table by
   bard level. The child rolls it when it pays (`riderAttackPenalty`, reusing `addedDie`) and sends the total. The
