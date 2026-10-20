@@ -70,7 +70,10 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
                     context: { hostile: isHostile(token, mover) }
                 });
         }
-        return triggers.length ? { reactions: { triggers, context: ({ event }) => ({ toSource: relationsToSource(scene, event) }) },
+        // Each reactor's relation to the event's source (`toSource`), and to the first creature it damages or targets
+        // (`toTarget`, that creature itself as `self`: Interception, Cloud Rune).
+        return triggers.length ? { reactions: { triggers, context: ({ event }) => ({ toSource: relationsToSource(scene, event),
+                    toTarget: relationsToSource(scene, { source: { tokenId: (event?.targets?.[0]?.tokenId ?? null) } }, { includeSource: true }) }) },
             ...(observers.length ? { movement: { observers } } : {}) } : {};
     };
 }
@@ -209,13 +212,15 @@ function reachFields(definition, scene) {
  * Invisible, light: attackSight) and a wall blocking sight doesn't hide it entirely (Total Cover). Nothing for an event
  * without a source Token on the Scene, so a predicate reading it fails (no "creature you can see").
  */
-export function relationsToSource(scene, event) {
+export function relationsToSource(scene, event, { includeSource = false } = {}) {
     const sourceId = (event?.source?.tokenId ?? event?.tokenId);
     const tokens = [...(scene.tokens ?? [])];
     const source = sourceId ? tokens.find(token => token.id === sourceId) : null;
     const relations = {};
     if (!source?.actor)
         return relations;
+    if (includeSource)
+        relations[source.id] = { hostile: false, distance: 0, sees: true, self: true };
     const grid = createFoundryV14TacticalGridAdapter({ scene: scene });
     const footprintOf = (token) => { const result = grid.tokenToFootprint(token); return result.ok ? result.footprint : null; };
     const from = footprintOf(source);

@@ -1014,8 +1014,37 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     },
     // Damage and healing are planned on fresh snapshots of these Actors (a resolution may wait on a prompt).
     services: {...(reactions?.services ?? {}), targetActors, snapshotActor: foundryActorSystemSnapshot,
-      damageProfileOf: actor => clonePlainData(actor.getDamageProfile?.() ?? null, "target.damageProfile")}
+      damageProfileOf: actor => clonePlainData(actor.getDamageProfile?.() ?? null, "target.damageProfile"),
+      redirectCandidates: options => redirectCandidates(scene, game, targetActors, options)}
   };
+}
+
+/**
+ * The creatures on `scene` a reaction may move damage to (Cloud Rune, Protective Bond): the Tokens named (`tokenIds`), or
+ * those within `range` feet of the Token `around` other than it and `exclude`. Each is a damage target with what planning
+ * needs (its snapshot, resistances and 0-HP rescue, under the keys it is committed by), and is committed on like a target.
+ */
+export function redirectCandidates(scene, game, targetActors, {tokenIds=null, around=null, range=5, exclude=[]}={}) {
+  const tokens = scene?.tokens ? [...(scene.tokens.values?.() ?? scene.tokens)] : [];
+  const from = around ? tokens.find(token => token.id === around) ?? null : null;
+  const grid = from ? createFoundryV14TacticalGridAdapter({scene}) : null;
+  const footprintOf = token => { const result = grid.tokenToFootprint(token); return result.ok ? result.footprint : null; };
+  const origin = from ? footprintOf(from) : null;
+  // Any creature, friend or foe, by the distance between their spaces.
+  const within = token => { const to = origin ? footprintOf(token) : null;
+    return !!to && (footprintDistance(origin, to) * (Number(scene.grid?.distance) || 5) <= Number(range)); };
+  return tokens.filter(token => token.actor && (tokenIds ? tokenIds.includes(token.id) : (from && (token.id !== around)
+    && !exclude.includes(token.id) && within(token))))
+    .flatMap(token => {
+      const actor = token.actor;
+      let actorSystem;
+      try { actorSystem = foundryActorSystemSnapshot(actor); } catch { return []; }
+      const keys = targetControllerKeys(actor, {tokenId: token.id, sceneId: scene.id}, game);
+      for ( const key of keys ) targetActors[key] ??= actor;
+      return [{target: {id: actor.id ?? null, actorId: actor.id ?? null, actorRef: actor.uuid ?? null, uuid: actor.uuid ?? null,
+        tokenId: token.id, name: token.name ?? actor.name ?? ""}, keys, actorSystem,
+      profile: clonePlainData(actor.getDamageProfile?.() ?? null, "redirect.damageProfile"), zeroHp: zeroHpFor(actor, actorSystem)}];
+    });
 }
 
 /**

@@ -2371,3 +2371,36 @@ test("Portent (2024 Diviner, replacing a rolled d20): offered to a Diviner who s
     flags: {wildpath: {portent: {1: 0, 2: 0}}}}]});
   assert.equal(spent.state.pendingRequests.length, 0, "no dice left");
 });
+
+test("damage reactions for another creature: Interception reduces an ally's damage, Cloud Rune moves it to a third creature", async t => {
+  const reaction = (id, rider, triggerPredicate) => ({id, type: "action", name: id, system: {active: true,
+    definition: {schemaVersion: 1, id: `action:${id}`, label: id, costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]},
+      range: {type: "self"}, targeting: {type: "self"}, rider},
+    ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction", event: "damage.applied",
+      match: {phase: "before", tagsAll: ["hit"], notSourceTokenId: "{self}"}, triggerPredicate}}]}});
+  const near = feet => [{equals: {path: "toTarget.{self}.sees", value: true}}, {atMost: {path: "toTarget.{self}.distance", value: feet}}];
+
+  // Interception: its bystander beside the target takes 4 off the 6 the target takes.
+  const intercept = reaction("interception", {reduceDamage: {dice: {type: "constant", value: 4}}, protects: "target"},
+    {all: [...near(5), {not: {equals: {path: "toTarget.{self}.self", value: true}}}]});
+  const guarded = counterattackFixture(t, {reactor: "bystander", holderItems: [intercept]});
+  const declared = await guarded.player.declareActionIntent(guarded.intent);
+  const record = guarded.gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(guarded.offers.length, 1, "offered to the creature beside the target");
+  assert.equal(guarded.targetActor.system.resources.health.value, 28, "6 less 4");
+  assert.equal(guarded.holder.system.resources.health.value, 20, "its own health untouched");
+
+  // Cloud Rune: the damage goes to the one other creature within 30 ft of its rune knight.
+  const rune = reaction("cloud-rune", {redirectDamage: {to: "chosen", range: 30}, protects: "target"}, {all: near(30)});
+  const moved = counterattackFixture(t, {reactor: "bystander", holderItems: [rune]});
+  const decoy = withFoundryActorSystem(fakeActor("decoy", {system: {...targetActorSystem(), resources: {health: {value: 20, max: 20}}}}));
+  const decoyToken = fakeTokenDocument({id: "decoy-token", actor: decoy, scene: moved.scene, offset: {i: 0, j: 3}});
+  Object.assign(decoy, {uuid: `${decoyToken.uuid}.Actor.decoy`, isToken: true, token: decoyToken, tokens: [decoyToken]});
+  moved.scene.tokens.push(decoyToken);
+  const redirected = await moved.player.declareActionIntent(moved.intent);
+  const after = moved.gm.getRecord(redirected.resolutionId);
+  assert.equal(after.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(after.state.errors).slice(0, 1500));
+  assert.deepEqual([moved.targetActor.system.resources.health.value, decoy.system.resources.health.value], [30, 14],
+    "the target takes nothing; the decoy takes the 6");
+});

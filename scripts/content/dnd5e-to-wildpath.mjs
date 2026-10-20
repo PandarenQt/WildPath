@@ -75,6 +75,11 @@ const UNCOUNTERABLE = "component:none";
  */
 const seenHostileWithin = feet => ({all: [{equals: {path: "toSource.{self}.sees", value: true}},
   {equals: {path: "toSource.{self}.hostile", value: true}}, {atMost: {path: "toSource.{self}.distance", value: feet}}]});
+/** The creature its event damages (`toTarget`, from that creature; itself included as `self`) is within `feet` and seen. */
+const seenTargetWithin = feet => [{equals: {path: "toTarget.{self}.sees", value: true}}, {atMost: {path: "toTarget.{self}.distance", value: feet}}];
+/** 2024 Deflect Attacks' reduction: 1d10 + its Dexterity modifier + its monk level. */
+const DEFLECTION = Object.freeze({dice: {type: "dice", number: 1, faces: 10}, bonus: {type: "add", terms: [
+  {type: "ability-modifier", ability: "agility"}, {type: "class-level", class: "monk"}]}});
 
 /**
  * Reactions by their 2024 trigger, as a reaction Trigger on their Action: Shield and a Parry when an attack on their
@@ -92,6 +97,22 @@ const REACTIONS = Object.freeze({
   // planned: 1d12 + its Constitution modifier off the damage it takes (`rider.reduceDamage`).
   "stones-endurance": {event: "damage.applied", match: {phase: "before", targetTokenId: "{self}"},
     reduces: {dice: {type: "dice", number: 1, faces: 12}, bonus: {type: "ability-modifier", ability: "fortitude"}}},
+  // 2024 Deflect Attacks: "When an attack roll hits you and its damage includes Bludgeoning, Piercing, or Slashing damage";
+  // Deflect Energy, any damage. Its Redirect is a new attack, not this damage (by hand).
+  "deflect-attacks": {event: "damage.applied", match: {phase: "before", targetTokenId: "{self}", tagsAll: ["hit"],
+    tagsAny: ["damage:bludgeoning", "damage:piercing", "damage:slashing"]}, reduces: DEFLECTION},
+  "deflect-energy": {event: "damage.applied", match: {phase: "before", targetTokenId: "{self}", tagsAll: ["hit"]}, reduces: DEFLECTION},
+  // 2024 Interception: "When a creature you can see hits another creature within 5 feet of you with an attack roll": 1d10 +
+  // its Proficiency Bonus off the damage that creature takes. shortcut: its "holding a Shield or a Simple or Martial
+  // weapon" isn't checked; upgrade with an equipment predicate.
+  interception: {event: "damage.applied", match: {phase: "before", tagsAll: ["hit"], notSourceTokenId: "{self}"},
+    triggerPredicate: {all: [{equals: {path: "toSource.{self}.sees", value: true}}, ...seenTargetWithin(5),
+      {not: {equals: {path: "toTarget.{self}.self", value: true}}}]},
+    reduces: {dice: {type: "dice", number: 1, faces: 10}, bonus: {type: "proficiency-bonus"}}, protects: "target"},
+  // Tasha's Cloud Rune: "when you or a creature you can see within 30 feet of you is hit by an attack roll ... choose a
+  // different creature within 30 feet of you, other than the attacker": the damage goes to it (redirectedDamage).
+  "cloud-rune": {event: "damage.applied", match: {phase: "before", tagsAll: ["hit"], notSourceTokenId: "{self}"},
+    triggerPredicate: {all: seenTargetWithin(30)}, redirect: {to: "chosen", range: 30}, protects: "target"},
   "storms-thunder": {event: "damage.applied", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}},
   // "when you take damage from a creature within 5 feet": that creature is the target of its common melee attack (its
   // first melee attack or Unarmed Strike, `commonAction`). A damager with no position (a fall) is not within 5 feet.
@@ -1092,9 +1113,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     // Its Trigger brings a common Action (Retaliation's melee attack), so its own utility does nothing more.
     if ( reaction?.commonAction ) notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
-    if ( reaction?.reduces ) {
+    if ( reaction?.reduces || reaction?.redirect ) {
       const {healing: _healing, ...rest} = definition;
-      definition = {...rest, range: {type: "self"}, targeting: {type: "self"}, rider: {reduceDamage: structuredClone(reaction.reduces)}};
+      definition = {...rest, range: {type: "self"}, targeting: {type: "self"}, rider: {
+        ...(reaction.reduces ? {reduceDamage: structuredClone(reaction.reduces)} : {}),
+        ...(reaction.redirect ? {redirectDamage: structuredClone(reaction.redirect)} : {}),
+        ...(reaction.protects ? {protects: reaction.protects} : {})}};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
     if ( bonusAC && !definition.effects?.length ) {
@@ -1177,7 +1201,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Its training is its flag (`flags.wildpath.training`), no longer a note.
     if ( trainingKeys(document).length ) allNotes.splice(0, allNotes.length, ...allNotes.filter(note => !/traits\.(armorProf|weaponProf|languages)/.test(note)));
     items.push({_id: document._id, _key: `!items!${document._id}`, name: document.name, type: "feature", img,
-      system: {active: true, description, ruleElements: [pool?.rule, ...(trait?.rules ?? []), ...initiativeRules,
+      // Portent's dnd5e use count is no pool: its dice are (portentDice).
+      system: {active: true, description, ruleElements: [(identifierOf(document) === "portent") ? null : pool?.rule,
+        ...(trait?.rules ?? []), ...initiativeRules,
         // A paladin's aura is what it grants those around it, not what its dnd5e effect gives the paladin alone.
         ...(PALADIN_AURAS[identifierOf(document)] ? [paladinAura(identifierOf(document))] : passive),
         ...((identifierOf(document) === "paladins-smite") ? [PALADINS_SMITE.pool] : []),

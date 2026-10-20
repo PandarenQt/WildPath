@@ -331,6 +331,10 @@
       "heightened": "Heightened Spell: which creature has Disadvantage on its save?",
       "careful": "Careful Spell: which creatures succeed on their saves?"
     },
+    "REDIRECT": {
+      "Title": "Who takes the damage",
+      "Choose": "The creature that takes the damage instead"
+    },
     "PORTENT": {
       "Title": "Portent",
       "Keep": "Keep the roll",

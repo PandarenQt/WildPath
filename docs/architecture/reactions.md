@@ -432,6 +432,33 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
 
   Live (two browsers, 14.369): the Bandit Captain with Stone's Endurance saved against Player1's Hellish Rebuke (10,
   halved) and took 4; fell 20 ft for 7 and took 1; and at the start of its turn absorbed all of its Bleeding.
+- **Damage for another creature (2026-10-20).** These use the before-damage window.
+  - **The event.** Its `damage.applied` event carries `hit` when an attack roll hit, and `damage:<type>` for each type it
+    deals.
+  - **Where the creature stands.** Reactions also see `toTarget`: each creature's relation to the first creature
+    damaged, that creature itself included as `self`.
+  - **Rider fields.**
+    - `protects: "target"` keys a reduction to that creature instead of the reactor.
+    - `redirectDamage: {to: "self" | "chosen", range}` moves the damage. With `chosen`, the reactor's controller picks
+      from the creatures within `range` of it, other than the attacker and the target (`redirectChoice`; the runtime
+      lists them with `redirectCandidates`).
+    - The damage step then moves that result onto the creature taking it (`redirectedDamage`). Its resistances,
+      snapshot and 0-HP rescue apply.
+  - **Two results on one creature.** A creature taking two damage results plans each on the snapshot the first left.
+  - **Deflect Attacks** (SRD): a hit with bludgeoning, piercing or slashing damage. 1d10 + its Dexterity modifier + its
+    monk level comes off the damage it takes, where before it was a manual heal. **Deflect Energy:** any damage type.
+    Its Redirect is a new attack and stays a manual Action.
+  - **Interception** (PHB): a creature it sees hits another creature within 5 ft of it. 1d10 + its Proficiency Bonus
+    comes off that creature's damage. shortcut: its "holding a Shield or a weapon" isn't checked.
+  - **Cloud Rune** (Tasha's): it or a creature it sees within 30 ft is hit. The damage goes to another creature within
+    30 ft of it. shortcut: the attack isn't checked again against the new creature's AC, the attack's other effects
+    stay, and the new creature makes no concentration check.
+
+  Live (two browsers, 14.369):
+  - **Interception.** The Bandit Captain's Scimitar hit QA Ally for 7. Player1 declined Cloud Rune and took
+    Interception for QA Fighter, whose Reaction was spent; QA Ally stayed at 10.
+  - **Cloud Rune.** The next hit (8) offered Cloud Rune, then a choice of QA Saver, QA Wizard or QA Fighter. QA Wizard
+    went from 10 to 2, and QA Ally took nothing.
 - **Cutting Words (2026-10-19):** `attack.hit` with `notSourceTokenId: "{self}"`, so any creature's hit within 60 ft;
   the bard's reaction targets the attacker. Its rider `attackPenalty: {dice}` is its Bardic Inspiration die, a table by
   bard level. The child rolls it when it pays (`riderAttackPenalty`, reusing `addedDie`) and sends the total. The
