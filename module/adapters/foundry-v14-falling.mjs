@@ -34,13 +34,13 @@ export function createFoundryFalling({ game, coordinator, resolveAction, logger 
             return true;
         const label = game.i18n?.localize?.("WILDPATH.FALLING.Fall") ?? "Falling";
         const self = { actorRef: actor.uuid, tokenId: token.id, sceneId: token.parent.id };
-        // shortcut: the fall's Prone comes with its damage even when the creature takes none (immunity); 2024 spares it.
+        // 2024: Prone, "unless it avoids taking damage from the fall" (immunity, a reaction that cancels it).
         await runAuthorityAction({ coordinator: coordinator, resolveAction: resolveAction, logger,
             senderUserId: String(game.user?.id), resolutionId: `fall:${actor.uuid}:${++sequence}`, label, actorRef: actor.uuid,
             source: { tokenId: token.id, sceneId: token.parent.id }, target: self,
             definition: { schemaVersion: 1, id: "action:fall", label, costs: { allOf: [] }, tags: ["fall"],
                 damage: [{ id: "fall", expression: { type: "dice", number: dice, faces: 6 }, damageType: "bludgeoning" }],
-                effects: [{ id: "fall-prone", type: "condition", conditionId: "prone" }] } });
+                effects: [{ id: "fall-prone", type: "condition", conditionId: "prone", whenDamaged: true }] } });
         return true;
     }
     return { onEffectCreated, fall };

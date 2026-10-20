@@ -540,6 +540,9 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
       saveOutcomePolicy: effect.application?.saveOutcomePolicy ?? effect.saveOutcomePolicy ?? null,
       duration: (effect.type === "effect") ? null : (effect.duration ?? definition.duration),
       concentration: effect.concentration,
+      // Only on a creature no bigger than this (Eldritch Smite's Prone), only on one its Action damaged (a fall's Prone).
+      ...(effect.maxSize ? {maxSize: effect.maxSize} : {}),
+      ...(effect.whenDamaged ? {whenDamaged: true} : {}),
       source: effect.source ?? definition.source,
       origin: effect.origin ?? definition.source,
       metadata: {
@@ -1216,6 +1219,8 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
     ...(effect.repeatSave ? {repeatSave: String(effect.repeatSave)} : {}),
     // Only on a creature no bigger than this (Eldritch Smite's Prone: Huge or smaller).
     ...(effect.maxSize ? {maxSize: String(effect.maxSize)} : {}),
+    // Only on a creature its Action damaged (a fall's Prone: "unless it avoids taking damage from the fall").
+    ...(effect.whenDamaged === true ? {whenDamaged: true} : {}),
     predicate: clonePlain(effect.predicate ?? null),
     source: clonePlain(effect.source ?? null),
     origin: clonePlain(effect.origin ?? null),

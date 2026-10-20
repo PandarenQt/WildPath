@@ -288,3 +288,35 @@ test("an attack's or check's reroll keeps its own bonus and adds its mode as one
   assert.deepEqual(run(shove, {check: {modifierTotal: 2, dc: 25, rollMode: "disadvantage", rollModeSources: ["disadvantage", "disadvantage"],
     inspiration: offer}}), ["disadvantage", 5], "a check's: two sources of Disadvantage outweigh it");
 });
+
+test("an effect `whenDamaged` is only on a creature its Action damaged (a fall's Prone, unless it took no damage)", async () => {
+  const {resolveActionEffects} = await import("../module/resolvers/action-resolver.mjs");
+  const prone = [{id: "fall-prone", type: "condition", conditionId: "prone", whenDamaged: true}];
+  const targetResolution = {targetContexts: [{target: {id: "t", tokenId: "tok"}, selected: true}]};
+  const planned = damagedTargets => resolveActionEffects({effects: prone, targetResolution, actionContext: {source: {}}, damagedTargets})
+    .mutationPlans.length;
+  const wrapped = {targetContexts: [{target: {id: "token:s.tok", target: {id: "tok", tokenId: "tok"}, size: "medium"}, selected: true}]};
+  assert.equal(resolveActionEffects({effects: prone, targetResolution: wrapped, actionContext: {source: {}}, damagedTargets: [{tokenId: "tok"}]})
+    .mutationPlans.length, 1, "the runtime's candidate (its ref inside `target`) is matched by its Token");
+  assert.deepEqual([planned([{tokenId: "tok"}]), planned([]), planned(null)], [1, 0, 1],
+    "damaged: Prone; immune to it: standing; no damage information: as before");
+});
+
+test("through the pipeline: a fall's Prone only on a creature it damaged, Eldritch Smite's Prone only on one Huge or smaller", () => {
+  const planned = ({amount=4, size=null, effect}) => {
+    const definition = {schemaVersion: 1, id: "action:test-effects", label: "Test", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+      damage: [{id: "hit", expression: {type: "constant", value: amount}, damageType: "bludgeoning"}], effects: [effect]};
+    const target = {id: "t", actorId: "actor-t", tokenId: "tok", disposition: "enemy", ...(size ? {size} : {})};
+    const actor = {id: "actor-t", uuid: "Actor.actor-t", system: {resources: {health: {value: 10, max: 10}}}};
+    const {state} = planStagedActionResolution({id: `resolution:effects-${amount}-${size}`, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+      action: {id: definition.id, type: "action", name: "Test", system: {definition}}, source: {actorId: "a"}, targets: [target],
+      // Its size comes with its footprint, as the runtime's targeting candidates carry it.
+      ...(size ? {targeting: {candidates: [{id: "t", target, size}]}} : {}),
+      durability: true, targetActors: {"actor-t": actor, "Actor.actor-t": actor, "actor:actor-t": actor}});
+    return state.mutationPlans.some(plan => plan.type === "conditionEffect");
+  };
+  const fallProne = {id: "fall-prone", type: "condition", conditionId: "prone", whenDamaged: true};
+  assert.deepEqual([planned({amount: 4, effect: fallProne}), planned({amount: 0, effect: fallProne})], [true, false]);
+  const smiteProne = {id: "effect-1", type: "condition", conditionId: "prone", maxSize: "huge"};
+  assert.deepEqual([planned({size: "huge", effect: smiteProne}), planned({size: "gargantuan", effect: smiteProne})], [true, false]);
+});

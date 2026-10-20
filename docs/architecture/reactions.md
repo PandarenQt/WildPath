@@ -408,7 +408,8 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   - **Hit offers by size.** Hill's Tumble, Cunning Strike's Trip and Repelling Blast are offered only against a
     creature Large or smaller.
   - **Effects by size.** An Action's effect may name a `maxSize`: a bigger creature is skipped (Eldritch Smite's Prone,
-    Huge or smaller; Trip's, Large or smaller), as a push's `maxSize` is.
+    Huge or smaller; Trip's, Large or smaller), as a push's `maxSize` is. (2026-10-20: the definition's `maxSize` now
+    reaches the resolver; before, only a request built by hand carried it.)
 
   Live (two browsers, 14.369):
   - As a Warlock 5 with no pact slot left, QA Caster's Dagger hit offered Hill's Tumble alone; with one, Eldritch Smite

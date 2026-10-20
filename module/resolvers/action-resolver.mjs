@@ -896,7 +896,16 @@ export function resolveHealingDurability({healing, durability, healingResolution
   });
 }
 
-export function resolveActionEffects({effects, targetResolution, attackResolution, saveResolution, actionContext}) {
+/** Whether two target refs name the same creature (its Token first, else its Actor); a candidate is its `target`. */
+function sameEffectTarget(left, right) {
+  const ref = value => ((value?.target && (typeof value.target === "object")) ? value.target : value);
+  const a = ref(left);
+  const b = ref(right);
+  if ( a?.tokenId && b?.tokenId ) return a.tokenId === b.tokenId;
+  return !!(a?.actorId && (a.actorId === b?.actorId)) || !!(a?.id && (a.id === b?.id));
+}
+
+export function resolveActionEffects({effects, targetResolution, attackResolution, saveResolution, actionContext, damagedTargets=null}) {
   const requests = normalizeActionConditionEffectRequests({effects, actionContext});
   const conditionPlans = [];
   const mutationPlans = [];
@@ -927,6 +936,11 @@ export function resolveActionEffects({effects, targetResolution, attackResolutio
       const size = entry.targetContext?.size ?? entry.target?.size ?? null;
       if ( request.maxSize && size && (CREATURE_SIZE_ORDER.indexOf(size) > CREATURE_SIZE_ORDER.indexOf(request.maxSize)) ) {
         skipped.push({reason: `larger than ${request.maxSize}`, target: entry.target});
+        continue;
+      }
+      // An effect only for a creature its Action damaged (`whenDamaged`): one that took none is spared.
+      if ( request.whenDamaged && damagedTargets && !damagedTargets.some(target => sameEffectTarget(target, entry.target)) ) {
+        skipped.push({reason: "took no damage", target: entry.target});
         continue;
       }
       const metadata = {
