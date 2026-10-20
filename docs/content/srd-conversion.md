@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 864 automated, 289 manual, 234 features. Creatures: 375.
+Items: 866 automated, 288 manual, 233 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -45,7 +45,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Alchemist's Supplies | equipment24 | Alchemist's Supplies (gear), Alchemist's Supplies (automated) | — |
 | Alert | feats24 | Alert (feature) | effect: "Alert" change flags.dnd5e.initiativeAlert (add) not converted |
 | Allosaurus | actors24 | Allosaurus (2 items) | — |
-| Alter Self | spells24 | Alter Self (Aquatic Adaptation) (automated), Alter Self (Change Appearance) (automated), Alter Self (Natural Weapons) (automated), Alter Self (Attack: Claws) (automated), Alter Self (Attack: Fangs/Horns) (automated), Alter Self (Attack: Hooves) (automated) | effect: "Aquatic Adaptation" change system.attributes.movement.swim (upgrade) not converted; effect: "Aquatic Adaptation" marks its creature only; its rules are by hand; effect: "Altered Appearance" marks its creature only; its rules are by hand; effect: "Natural Weapon" marks its creature only; its rules are by hand; concentration: nothing it sustains was converted |
+| Alter Self | spells24 | Alter Self (Aquatic Adaptation) (automated), Alter Self (Change Appearance) (automated), Alter Self (Natural Weapons) (automated), Alter Self (Attack: Claws) (automated), Alter Self (Attack: Fangs/Horns) (automated), Alter Self (Attack: Hooves) (automated) | effect: "Altered Appearance" marks its creature only; its rules are by hand; effect: "Natural Weapon" marks its creature only; its rules are by hand; concentration: nothing it sustains was converted |
 | Ammunition (Varies) | equipment24 | Ammunition (Varies) (gear) | — |
 | Ammunition of Slaying | equipment24 | Ammunition of Slaying (Ammunition of Slaying) (manual) | "Slaying Save" is passive or triggered: not automated; not automated (enchant): using it spends its cost; its description says the rest |
 | Ammunition, +1, +2, or +3 | equipment24 | Ammunition, +1, +2, or +3 (manual) | not automated (enchant): using it spends its cost; its description says the rest |
@@ -1026,7 +1026,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Naturally Stealthy | origins24 | Naturally Stealthy (feature) | — |
 | Nature's Sanctuary | classes24 | Nature's Sanctuary (Spectral Trees and Vines) (automated), Nature's Sanctuary (Move) (manual) | effect: coverHalf is not a WildPath condition yet; not automated (utility): using it spends its cost; its description says the rest |
 | Nature's Veil | classes24 | Nature's Veil (automated) | — |
-| Nature's Ward | classes24 | Nature's Ward (feature) | effect: "Nature's Ward" condition immunity poison not converted |
+| Nature's Ward | classes24 | Nature's Ward (feature) | — |
 | Navigator's Tools | equipment24 | Navigator's Tools (gear), Navigator's Tools (Plot a Course) (automated), Navigator's Tools (Determine Position by Stargazing) (automated) | — |
 | Necklace of Adaptation | equipment24 | Necklace of Adaptation (gear) | — |
 | Necklace of Fireballs | equipment24 | Necklace of Fireballs (gear), Necklace of Fireballs: Fireball (automated) | "Determine Number of Beads" is passive or triggered: not automated |
@@ -1324,10 +1324,10 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Sculpt Spells | classes24 | Sculpt Spells (feature) | — |
 | Sea Hag | actors24 | Sea Hag (12 items) | Coven Magic: not automated (utility): using it spends its cost; its description says the rest; Coven Magic: activation: 1 minute is not an action-economy cost; Coven Magic: concentration: its caster concentrates; what it sustains is by hand; Coven Magic: activation: 10 minute is not an action-economy cost; Coven Magic: save: a failure marks its creature only; what it does is by hand; Coven Magic: "Create Sensor" is passive or triggered: not automated; Vile Appearance: "save" is passive or triggered: not automated; Illusory Appearance: effect: "Disguised" marks its creature only; its rules are by hand |
 | Seahorse | actors24 | Seahorse (3 items) | Bubble Dash: not automated (utility): using it spends its cost; its description says the rest |
-| Sear Undead | classes24 | Sear Undead (automated) | damage 1: custom formula "(@abilities.wis.mod)d8" not converted |
+| Sear Undead | classes24 | Sear Undead (automated) | — |
 | Searing Smite | spells24 | Searing Smite (Start of Turn Save) (automated), Searing Smite (Damage) (automated) | effect: "Seared" marks its creature only; its rules are by hand |
 | Second Wind | classes24 | Second Wind (automated) | — |
-| Second-Story Work | classes24 | Second-Story Work (feature) | effect: "Second-Story Work" change system.attributes.movement.climb (upgrade) not converted |
+| Second-Story Work | classes24 | Second-Story Work (feature) | — |
 | Secret Chest | spells24 | Secret Chest (Hide Chest) (manual), Secret Chest (Recall Chest) (automated) | not automated (utility): using it spends its cost; its description says the rest |
 | Secret Chest | actors24 | Secret Chest (0 items) | — |
 | See Invisibility | spells24 | See Invisibility (automated) | effect: "See Invisibility" change system.attributes.senses.special (add) not converted; effect: "See Invisibility" marks its creature only; its rules are by hand |
@@ -1451,7 +1451,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Staff of Withering | equipment24 | Staff of Withering (attack) (automated), Staff of Withering (attack) (Two-Handed) (automated) | "Damage & Save" is passive or triggered: not automated |
 | Star | equipment24 | Star (gear) | "Card Effect" is passive or triggered: not automated |
 | Starry Wisp | spells24 | Starry Wisp (automated) | effect: "Illuminated" marks its creature only; its rules are by hand |
-| Steady Aim | classes24 | Steady Aim (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Steady Aim | classes24 | Steady Aim (automated) | — |
 | Steam Mephit | actors24 | Steam Mephit (5 items) | Death Burst: "save" is passive or triggered: not automated |
 | Stinking Cloud | spells24 | Stinking Cloud (Create Cloud) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Start of Turn Save" is passive or triggered: not automated |
 | Stirge | actors24 | Stirge (3 items) | Proboscis: activation: turnStart is not an action-economy cost |
@@ -1480,13 +1480,13 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Sunbeam | spells24 | Sunbeam (Initial Cast) (automated), Sunbeam (Create New Sunbeam) (automated) | — |
 | Sunburst | spells24 | Sunburst (automated) | — |
 | Superior Critical | classes24 | Superior Critical (feature) | — |
-| Superior Defense | classes24 | Superior Defense (feature) | "utility" is passive or triggered: not automated |
+| Superior Defense | classes24 | Superior Defense (automated) | — |
 | Superior Hunter's Defense | classes24 | Superior Hunter's Defense (automated) | — |
 | Superior Hunter's Prey | classes24 | Superior Hunter's Prey (feature) | "damage" is passive or triggered: not automated |
 | Superior Inspiration | classes24 | Superior Inspiration (feature) | — |
 | Supreme Healing | classes24 | Supreme Healing (feature) | — |
 | Supreme Sneak | classes24 | Supreme Sneak (feature) | — |
-| Survivor | classes24 | Survivor (feature) | "heal" is passive or triggered: not automated |
+| Survivor | classes24 | Survivor (feature) | — |
 | Swarm of Bats | actors24 | Swarm of Bats (4 items) | — |
 | Swarm of Crawling Claws | actors24 | Swarm of Crawling Claws (4 items) | — |
 | Swarm of Insects | actors24 | Swarm of Insects (5 items) | — |

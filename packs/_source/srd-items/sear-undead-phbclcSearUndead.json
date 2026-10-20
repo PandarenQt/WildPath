@@ -55,6 +55,25 @@
           }
         }
       },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": {
+              "type": "ability-modifier",
+              "ability": "wits"
+            },
+            "faces": 8
+          },
+          "damageType": "radiant",
+          "provenance": "additional",
+          "saveOutcomePolicy": {
+            "success": "none",
+            "failure": "full"
+          }
+        }
+      ],
       "effects": [
         {
           "id": "effect-1",
@@ -85,9 +104,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "damage 1: custom formula \"(@abilities.wis.mod)d8\" not converted"
-        ]
+        "notes": []
       }
     }
   }

@@ -18,6 +18,64 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Steady Aim",
+          "img": "icons/svg/target.svg",
+          "endsWhen": "attacks",
+          "duration": {
+            "value": 0,
+            "units": "turns",
+            "expiry": "turnEnd"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "steady-aim",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attack"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Steady Aim (Speed 0)",
+          "img": "icons/svg/target.svg",
+          "duration": {
+            "value": 0,
+            "units": "turns",
+            "expiry": "turnEnd"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "steady-aim-speed",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "speed.multiplier"
+                ],
+                "modifierType": "untyped",
+                "value": 0
+              }
+            }
+          ]
+        }
+      ],
       "label": "Steady Aim"
     },
     "ruleElements": []
@@ -34,9 +92,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

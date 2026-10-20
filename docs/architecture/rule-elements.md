@@ -124,6 +124,8 @@ values see beside `tags` and `conditions`. The runtime passes `castLevel`, the l
 out from the intent's choices. Disciple of Life uses it: `{type: "add", terms: [2, {type: "context", path: "castLevel"}]}`
 while `castLevel` is 1 to 9.
 
+**Bloodied (2026-10-20).** `{bloodied: true}` holds while its creature has half its Hit Points or fewer (2024 Bloodied).
+
 **Pools (2026-10-19).** `{poolEmpty: "<id>"}` and `{poolBelowMax: "<id>"}` read a pool of the creature by id (from
 `actorSystem` or `actor.system`). A pool it lacks is neither. Persistent Rage's Trigger uses them.
 

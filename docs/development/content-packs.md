@@ -439,6 +439,10 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Spell tags (2026-10-20):** every spell (and every creature's spell) is tagged `cantrip`, `school:<name>` and
   `damage:<type>`; that touched 646 pack files, tags only. Potent Spellcasting, Empowered Evocation and Disciple of Life
   are traits, and Elemental Affinity brings its choosing Action (classes-and-spellcasting.md).
+- **Smaller features (2026-10-20):**
+  - Steady Aim, Superior Defense and Survivor are automated.
+  - Nature's Ward, Second-Story Work, Alter Self's swim Speed and Sear Undead's dice now convert
+    (classes-and-spellcasting.md).
 - **Metamagic (2026-10-19):** its options are features flagged `metamagic`, which a sorcerer's spells offer
   (classes-and-spellcasting.md). Empowered Spell's feature grants its Action. The class lists only what brings its Actions
   with it (`convertedIds`: gear, or a feature with `grants`).

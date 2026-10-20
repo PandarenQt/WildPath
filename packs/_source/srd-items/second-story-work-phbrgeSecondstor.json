@@ -7,7 +7,20 @@
   "system": {
     "active": true,
     "description": "<p>You've trained to get into especially hard-to-reach places, granting you these benefits.</p><p><strong>Climber.</strong> You gain a Climb Speed equal to your Speed.</p><p><strong>Jumper.</strong> You can determine your jump distance using your Dexterity rather than your Strength.</p><section class=\"secret\" id=\"secret-7BCLTkAFUjinYhJw\"><p><strong>Foundry Note</strong></p><p>This feature does not automatically add the Climb Speed and will have to be added manually.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "second-story-work-1",
+        "type": "GrantMovement",
+        "data": {
+          "mode": "climb",
+          "distance": {
+            "type": "context",
+            "path": "actorSystem.resources.movement.max"
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +34,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Second-Story Work\" change system.attributes.movement.climb (upgrade) not converted"
-        ]
+        "notes": []
       }
     }
   }

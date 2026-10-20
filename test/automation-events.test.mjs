@@ -183,3 +183,15 @@ test("Persistent Rage: its Trigger answers initiative while Rage is spent and it
   assert.equal(automationTriggers(actorWith(5, 1), event).length, 0, "Rage full");
   assert.equal(automationTriggers(actorWith(0, 0), event).length, 0, "already used this Long Rest");
 });
+
+test("Survivor's Heroic Rally answers its turn's start while Bloodied and above 0 Hit Points", async () => {
+  const fs = await import("node:fs");
+  const {automationTriggers} = await import("../module/adapters/foundry-v14-automation-dispatcher.mjs");
+  const feature = JSON.parse(fs.readFileSync("packs/_source/srd-items/survivor-phbftrSurvivor00.json", "utf8"));
+  const actorAt = value => ({id: "f", items: [{id: feature._id, type: "feature", name: feature.name, system: feature.system}], effects: [],
+    system: {resources: {health: {value, max: 40}}, pools: []}});
+  const event = {type: "turn.started"};
+  assert.equal(automationTriggers(actorAt(15), event).length, 1);
+  assert.equal(automationTriggers(actorAt(30), event).length, 0, "not Bloodied");
+  assert.equal(automationTriggers(actorAt(0), event).length, 0, "at 0 Hit Points");
+});

@@ -7,7 +7,64 @@
   "system": {
     "active": true,
     "description": "<p>You attain the pinnacle of resilience in battle, giving you these benefits.</p><p><strong>Defy Death.</strong> You have Advantage on Death Saving Throws. Moreover, when you roll 18–20 on a Death Saving Throw, you gain the benefit of rolling a 20 on it.</p><p><strong>Heroic Rally.</strong> At the start of each of your turns, you regain Hit Points equal to 5 plus your Constitution modifier if you are Bloodied and have at least 1 Hit Point.</p><section id=\"secret-z1Nr871ifr67hchm\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature does not automate the Death Saving Throw changes. It includes an activity for healing but does not automatically add it when you are Bloodied.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "heroic-rally",
+        "type": "Trigger",
+        "data": {
+          "event": "turn.started",
+          "predicate": {
+            "all": [
+              {
+                "bloodied": true
+              },
+              {
+                "not": {
+                  "equals": {
+                    "path": "actor.system.resources.health.value",
+                    "value": 0
+                  }
+                }
+              }
+            ]
+          },
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-survivor-heroic-rally",
+            "label": "Heroic Rally",
+            "costs": {
+              "allOf": []
+            },
+            "range": {
+              "type": "self"
+            },
+            "targeting": {
+              "type": "self"
+            },
+            "healing": [
+              {
+                "id": "healing-1",
+                "healingType": "healing",
+                "expression": {
+                  "type": "add",
+                  "terms": [
+                    {
+                      "type": "constant",
+                      "value": 5
+                    },
+                    {
+                      "type": "ability-modifier",
+                      "ability": "fortitude"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +78,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"heal\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

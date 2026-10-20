@@ -349,6 +349,24 @@ Its creature's rules read these tags:
 
 Live (two browsers, 14.369): QA Caster with Wisdom 16, Potent Spellcasting and Disciple of Life. Player1's level-2 Cure
 Wounds rolled "2d8 + 2d8 + 7": its Intelligence +3, plus 2 + 2. Sacred Flame on the Bandit Captain rolled "2d8 + 3".
+With Empowered Evocation, Fire Bolt rolled "2d10 + 3" (Intelligence 16). After Elemental Affinity (Fire), with Presence
+14, QA Caster had fire Resistance and Fire Bolt rolled "2d10 + 5".
+
+## Smaller features (2026-10-20)
+
+- **Steady Aim** (Bonus Action): Advantage on its next attack roll this turn (`endsWhen: "attacks"`), and Speed 0 until
+  the turn ends (`SELF_EFFECTS`). shortcut: "you haven't moved this turn" is by hand.
+- **Superior Defense:** a free Action, 3 Focus Points, Resistance to every type but Force for 1 minute
+  (`USED_AT_TURN_START`). shortcut: its "start of your turn" is by hand.
+- **Survivor (Heroic Rally):** a `turn.started` Trigger healing 5 + its Constitution modifier while Bloodied and above
+  0 Hit Points (the `bloodied` predicate, rule-elements.md).
+- **Converter fixes:**
+  - Nature's Ward's dnd5e "poison" condition immunity is Poisoned. shortcut: its land's Resistance is by hand.
+  - A climb or swim Speed of `@attributes.movement.speed` equals its walking Speed (Second-Story Work, Alter Self's
+    Aquatic Adaptation).
+  - `(@abilities.wis.mod)d8` is dice as many as that modifier (Sear Undead).
+- **Live (two browsers, 14.369):** QA Caster at 4 of 10 HP with Survivor started its turn at 9 HP. Steady Aim set its
+  Speed to 0, its Dagger attack rolled 2d20kh, and the Advantage effect ended after that attack.
 
 ## Font of Magic (2026-10-19)
 
