@@ -285,6 +285,8 @@ export function registerStagedMovementTests(quench) {
           elevation:0,level:scene.initialLevel.id});
         await mover.update({disposition:CONST.TOKEN_DISPOSITIONS.FRIENDLY});
         await guard.update({disposition:CONST.TOKEN_DISPOSITIONS.HOSTILE});
+        // Movement provokes only in a started encounter.
+        await (await fixtures.createCombat(scene,[mover,guard])).startCombat();
         const runId = mover.getFlag("wildpath","quenchRunId");
         const data = qaActionData(runId);
         data.system.definition.costs = {allOf:[{capability:"reaction",amount:1}]};

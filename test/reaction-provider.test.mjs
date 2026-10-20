@@ -187,3 +187,18 @@ test("a creature that can't make Opportunity Attacks (Staggering Blow) reacts to
   guard.actor.statuses = new Set(["no-opportunity-attacks"]);
   assert.deepEqual(reactors(), []);
 });
+
+test("outside a started encounter, movement provokes nothing: no Opportunity Attack, no movement reaction", (t) => {
+  const previous = globalThis.game;
+  t.after(() => { globalThis.game = previous; });
+  const mover = {...token("mover", 1), actor: {id: "actor-mover", uuid: "Actor.mover", items: [], statuses: new Set()}};
+  const scene = {grid: {distance: 5}, tokens: [mover, token("ogre", -1, []), token("guard", -1, [strike()])]};
+  const provider = createFoundryReactionProvider({resolve: () => null});
+  globalThis.game = {combats: []};
+  assert.deepEqual(provider({scene, token: mover}), {}, "no encounter");
+  globalThis.game = {combats: [{started: false, combatants: [{actor: mover.actor}]}]};
+  assert.deepEqual(provider({scene, token: mover}), {}, "an encounter not yet started");
+  globalThis.game = {combats: [{started: true, combatants: [{actor: mover.actor}]}]};
+  assert.deepEqual(provider({scene, token: mover}).reactions.triggers.map(trigger => trigger.id),
+    ["reaction:ogre:common-opportunity", "reaction:guard:strike:opportunity"]);
+});

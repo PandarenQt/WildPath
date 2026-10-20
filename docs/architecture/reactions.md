@@ -68,6 +68,9 @@ one switched off or set to Never):
   definition id is kept, so the weapon's own modifiers count.
 - **When it triggers.** A hostile creature leaves its reach (`relations.{self}.leavesReach` and `hostile`).
 - **Disengage.** A mover with the `disengaged` status provokes none.
+- **Only in an encounter (2026-10-20, maintainer).** A mover that is not a combatant of a started combat
+  (`movementTracked`) provokes nothing: no Opportunity Attack, and no Item reaction to movement. The token ruler's
+  threat labels follow, since they ask the same provider.
 - **The setting.** Its Always, Ask or Never setting is the creature's own:
   `flags.wildpath.commonPolicies.opportunity`, set from the Common group on the action bar.
 
