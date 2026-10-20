@@ -77,7 +77,9 @@
         "title": "Class Features",
         "type": "grant",
         "items": [
-          "Compendium.wildpath.srd-items.Item.phbrgeDeviousStr"
+          "Compendium.wildpath.srd-items.Item.phbrgeDeviousStr",
+          "Compendium.wildpath.srd-items.Item.5qfh4ir30i6g0000",
+          "Compendium.wildpath.srd-items.Item.5gfvfj1rivwif000"
         ],
         "optional": false
       },

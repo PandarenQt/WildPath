@@ -2,11 +2,44 @@
   "_id": "phbsptFiresBurn0",
   "_key": "!items!phbsptFiresBurn0",
   "name": "Fire's Burn",
-  "type": "feature",
+  "type": "action",
   "img": "icons/magic/fire/flame-burning-fist-strike.webp",
   "system": {
     "active": true,
     "description": "<p>When you hit a target with an attack roll and deal damage to it, you can also deal 1d10 Fire damage to that target.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-fire-s-burn-burn",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "fire-s-burn",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 10
+          },
+          "damageType": "fire",
+          "provenance": "additional"
+        }
+      ],
+      "label": "Fire's Burn"
+    },
     "ruleElements": [
       {
         "schemaVersion": 1,
@@ -19,6 +52,20 @@
             "type": "proficiency-bonus"
           },
           "recovery": "longRest"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": []
+          }
         }
       }
     ]
@@ -35,9 +82,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Burn\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

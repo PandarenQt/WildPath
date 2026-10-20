@@ -346,6 +346,23 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   weapon, not only its pact weapon, and its Hit Die heal is by hand; an Unarmed Strike counts as a weapon. Live: QA
   Caster as a level-7 cleric hit the Bandit Captain with a Dagger (3). Both Divine Strikes were offered, and Radiant
   dealt 1d8 (7).
+- **More own-hit offers (2026-10-20):**
+  - **Devious Strikes** (rogue 14): Daze, Knock Out and Obscure are Cunning Strike options (`extra:sneak-attack`, the
+    `cunning-strike` once-key and uses) giving up 2, 6 and 3 Sneak Attack dice. Daze and Obscure last until the end of
+    the target's next turn; only Knock Out (Unconscious, 1 minute) repeats its save. shortcuts: Daze's "only one of
+    move, action or Bonus Action" and Knock Out's "until it takes damage" are by hand.
+  - **Eldritch Smite**: a weapon hit, once a turn; its required choice spends a Pact Magic slot and deals
+    (1 + the slot's level)d8 Force, and Prone. shortcuts: any weapon, not only its pact weapon; "Huge or smaller" is
+    the controller's to judge; it is offered with no slot left, and then refused.
+  - **Hurl Through Hell** (Fiend Patron 14): any attack hit, once a turn, from its pool: a Charisma save; on a failure
+    8d10 Psychic and Incapacitated until the end of the warlock's next turn. shortcuts: a Fiend's immunity to the
+    damage and Regain Use are by hand.
+  - **Giant Ancestry** (Goliath): Fire's Burn (+1d10 Fire), Frost's Chill (+1d6 Cold, Speed -10 until the start of the
+    goliath's next turn) and Hill's Tumble (Prone) answer any attack hit, each paid from its pool.
+
+  Live (two browsers, 14.369): as a Rogue 14, QA Caster's Dagger hits offered Daze; its Sneak Attack rolled 5d6 (7d6
+  less 2) and a failed save left the Bandit Captain Dazed. As a Warlock 5, Eldritch Smite spent a pact slot for 4d8
+  Force (8d8 on a critical hit) and knocked the Captain Prone; Fire's Burn added 1d10 Fire and spent a use.
 - **Cutting Words (2026-10-19):** `attack.hit` with `notSourceTokenId: "{self}"`, so any creature's hit within 60 ft;
   the bard's reaction targets the attacker. Its rider `attackPenalty: {dice}` is its Bardic Inspiration die, a table by
   bard level. The child rolls it when it pays (`riderAttackPenalty`, reusing `addedDie`) and sends the total. The

@@ -442,6 +442,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Training (2026-10-20):** Divine Order: Protector and Primal Order: Warden carry `flags.wildpath.training`, which their
   creature has while the Item is there (classes-and-spellcasting.md). Expertise steps (Rogue, Bard, Ranger) are
   `expertise:*` choices, and weapon keys use the base names (`weapons:hand-crossbow`).
+- **On-hit features (2026-10-20):** Devious Strikes' three options, Eldritch Smite, Hurl Through Hell and the Goliath's
+  Fire's Burn, Frost's Chill and Hill's Tumble are own-hit Actions (reactions.md).
 - **Pact Magic (2026-10-20):** the Warlock's progression is `pact`; Magical Cunning restores its slots; Mystic Arcanum
   brings four pools, and every spell of level 6 to 9 offers its level's (classes-and-spellcasting.md).
 - **Tireless (2026-10-20):** its Short Rest Exhaustion is a `rest.completed` Trigger. An Item with Actions now carries its
