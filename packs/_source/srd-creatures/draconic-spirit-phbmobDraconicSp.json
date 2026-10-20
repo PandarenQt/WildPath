@@ -26,6 +26,12 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "draconic",
+        "understands the languages you know"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 14

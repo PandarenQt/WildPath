@@ -4,6 +4,16 @@
  * choice changes on the creature. Pure data: the dialog (applications/level-up.mts) asks and applies.
  */
 /** The 2024 weapons by category, for a Weapon Mastery choice ("masteries:martial:*"). */
+/**
+ * The 2024 languages (dnd5e's keys): the standard ones a character may pick at creation, and the rare ones (Primordial
+ * with its four dialects). A creature's languages are its `training.languages`; "standard" stands for every standard
+ * language, "rare" for every rare one, "telepathy" for its Telepathy.
+ */
+export const LANGUAGES = Object.freeze({
+    standard: Object.freeze(["common", "sign", "draconic", "dwarvish", "elvish", "giant", "gnomish", "goblin", "halfling", "orc"]),
+    rare: Object.freeze(["abyssal", "celestial", "deep", "druidic", "infernal", "primordial", "aquan", "auran", "ignan", "terran",
+        "sylvan", "cant", "undercommon", "aarakocra", "gith", "gnoll"])
+});
 export const WEAPONS = Object.freeze({
     simple: ["club", "dagger", "greatclub", "handaxe", "javelin", "light-hammer", "mace", "quarterstaff", "sickle", "spear", "dart",
         "light-crossbow", "shortbow", "sling"],
@@ -34,6 +44,11 @@ export function poolOptions(pool, { skills }) {
                 return skills.map(skill => `skills:${skill}`);
             if (key === "expertise:*")
                 return skills.map(skill => `expertise:${skill}`);
+            // Languages: every one, the standard ones, or the rare ones.
+            const pick = { "languages:*": [...LANGUAGES.standard, ...LANGUAGES.rare], "languages:standard:*": LANGUAGES.standard,
+                "languages:rare:*": LANGUAGES.rare }[key];
+            if (pick)
+                return pick.map(language => `languages:${language}`);
             if (key === "masteries:*")
                 return [...(WEAPONS.simple ?? []), ...(WEAPONS.martial ?? [])].map(weapon => `masteries:${weapon}`);
             const match = /^(masteries|weapons):(simple|martial):\*$/.exec(key);
@@ -61,7 +76,7 @@ export function traitUpdates(keys, system) {
         }
         else if (kind === "saves")
             updates[`system.abilities.${value}.saveProficient`] = true;
-        else if (["armor", "weapons", "tools", "masteries"].includes(kind))
+        else if (["armor", "weapons", "tools", "masteries", "languages"].includes(kind))
             (lists[kind] ??= new Set(training[kind] ?? [])).add(value);
     }
     for (const [kind, names] of Object.entries(lists))
@@ -88,7 +103,7 @@ export function mergeTraining(system, keys) {
         }
         else if ((kind === "saves") && abilities[value])
             abilities[value].saveProficient = true;
-        else if (["armor", "weapons", "tools", "masteries"].includes(kind))
+        else if (["armor", "weapons", "tools", "masteries", "languages"].includes(kind))
             training[kind] = [...new Set([...(training[kind] ?? []), value])];
     }
 }

@@ -33,6 +33,12 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "Blink Dog",
+        "understands Elvish and Sylvan but can’t speak them"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 13

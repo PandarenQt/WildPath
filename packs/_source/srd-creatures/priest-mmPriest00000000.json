@@ -36,6 +36,11 @@
         "proficiency": 2
       }
     },
+    "training": {
+      "languages": [
+        "Common plus one other language"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 13

@@ -26,6 +26,11 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "terran"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 17

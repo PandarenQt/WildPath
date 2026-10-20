@@ -208,6 +208,21 @@
         ]
       },
       {
+        "level": 2,
+        "title": "Deft Explorer",
+        "type": "trait",
+        "grants": [],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "languages:standard:*",
+              "languages:rare:*"
+            ]
+          }
+        ]
+      },
+      {
         "level": 3,
         "title": null,
         "type": "subclass"
@@ -394,9 +409,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "languages are not tracked"
-        ]
+        "notes": []
       }
     }
   }

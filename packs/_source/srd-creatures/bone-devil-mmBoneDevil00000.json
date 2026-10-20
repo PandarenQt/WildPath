@@ -37,6 +37,12 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "infernal",
+        "telepathy 120 ft."
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 16

@@ -33,6 +33,11 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "draconic"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 17

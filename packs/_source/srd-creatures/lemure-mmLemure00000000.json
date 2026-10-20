@@ -26,6 +26,11 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "Understands Infernal but can’t speak"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 9

@@ -27,6 +27,11 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "Common plus two other languages"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 11

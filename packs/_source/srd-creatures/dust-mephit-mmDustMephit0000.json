@@ -33,6 +33,12 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "auran",
+        "terran"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 12

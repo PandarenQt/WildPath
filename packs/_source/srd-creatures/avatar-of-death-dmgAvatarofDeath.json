@@ -26,6 +26,11 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "All languages known to its summoner"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 20

@@ -44,10 +44,12 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Bow Proficiencies\" change system.traits.weaponProf.value (add) not converted"
-        ]
-      }
+        "notes": []
+      },
+      "training": [
+        "weapons:longbow",
+        "weapons:shortbow"
+      ]
     }
   }
 }

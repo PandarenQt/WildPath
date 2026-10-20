@@ -26,6 +26,11 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "Understands Common plus one other language but can’t speak"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 14

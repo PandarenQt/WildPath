@@ -30,6 +30,12 @@
         "proficiency": 2
       }
     },
+    "training": {
+      "languages": [
+        "common",
+        "can’t speak in bear form"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 15

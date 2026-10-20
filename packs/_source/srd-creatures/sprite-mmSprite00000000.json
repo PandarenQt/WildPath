@@ -33,6 +33,13 @@
         "proficiency": 2
       }
     },
+    "training": {
+      "languages": [
+        "common",
+        "elvish",
+        "sylvan"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 15

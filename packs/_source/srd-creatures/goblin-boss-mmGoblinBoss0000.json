@@ -30,6 +30,12 @@
         "proficiency": 2
       }
     },
+    "training": {
+      "languages": [
+        "common",
+        "goblin"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 17

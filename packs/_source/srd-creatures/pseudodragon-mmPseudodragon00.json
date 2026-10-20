@@ -33,6 +33,11 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "Understands Common and Draconic but can’t speak"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 14

@@ -30,6 +30,12 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "common",
+        "Can’t speak in boar form"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 15

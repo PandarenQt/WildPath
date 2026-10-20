@@ -54,6 +54,10 @@ function traitLabel(key: string, {kindless=false}: {kindless?: boolean}={}) {
   const value = rest.join(":");
   if ( kind === "skills" ) return localize(SKILLS[value]?.label ?? value);
   if ( kind === "saves" ) return format("WILDPATH.LEVELUP.Save", {ability: localize(ABILITIES[value]?.label ?? value)});
+  if ( kind === "languages" ) {
+    const language = localize(`WILDPATH.LANGUAGES.${value}`);
+    return kindless ? language : `${localize("WILDPATH.SHEET.Training.languages")}: ${language}`;
+  }
   const name = value.split(/[-:]/u).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
   return kindless ? name : `${localize(`WILDPATH.SHEET.Training.${kind}`)}: ${name}`;
 }
@@ -98,7 +102,8 @@ function stepHtml(step: LevelStep, index: number, actor: LevelActor, view: View)
       const skills = Object.keys(globals().CONFIG.WILDPATH.SKILLS);
       const grants = (entry.grants ?? []).map(key => `<div class="level-up-option" data-key="${escape(key)}">${escape(traitLabel(key))}</div>`).join("");
       const choices = (entry.choices ?? []).map((choice, at) => {
-        const options = poolOptions(choice.pool, {skills}).filter(key => !hasTrait(key, actor.system));
+        // Not what it already has, nor what this step grants (the Acolyte's Common).
+        const options = poolOptions(choice.pool, {skills}).filter(key => !hasTrait(key, actor.system) && !(entry.grants ?? []).includes(key));
         if ( !options.length ) return "";
         return `<div data-count="${choice.count}"><p class="hint">${format("WILDPATH.LEVELUP.Choose", {count: choice.count})}</p>
           ${options.map(key => checkbox(`${name}.${at}`, key, traitLabel(key, {kindless: true}), false, (key.startsWith("expertise:")

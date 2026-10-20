@@ -37,6 +37,12 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "Understands Abyssal, Celestial, Infernal, and Primordial but can’t speak",
+        "telepathy 120 ft."
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 18

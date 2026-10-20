@@ -39,6 +39,14 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "abyssal",
+        "common",
+        "infernal",
+        "primordial"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 17

@@ -26,6 +26,13 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "common",
+        "giant",
+        "aquan"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 14

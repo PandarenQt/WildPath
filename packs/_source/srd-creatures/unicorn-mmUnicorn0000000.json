@@ -26,6 +26,13 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "elvish",
+        "celestial",
+        "sylvan"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 12

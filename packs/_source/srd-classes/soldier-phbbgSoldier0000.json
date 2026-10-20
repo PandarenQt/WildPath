@@ -48,6 +48,22 @@
           "Compendium.wildpath.srd-items.Item.phbftSavageAttac"
         ],
         "optional": false
+      },
+      {
+        "level": 0,
+        "title": "Choose Languages",
+        "type": "trait",
+        "grants": [
+          "languages:common"
+        ],
+        "choices": [
+          {
+            "count": 2,
+            "pool": [
+              "languages:standard:*"
+            ]
+          }
+        ]
       }
     ]
   },
@@ -63,9 +79,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "languages are not tracked"
-        ]
+        "notes": []
       }
     }
   }

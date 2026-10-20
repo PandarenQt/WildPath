@@ -40,6 +40,12 @@
         "proficiency": 2
       }
     },
+    "training": {
+      "languages": [
+        "common",
+        "celestial"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 17
