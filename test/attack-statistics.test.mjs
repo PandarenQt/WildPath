@@ -319,7 +319,7 @@ test("spell riders (SRD): Potent Spellcasting on a cantrip, Empowered Evocation,
   assert.equal(actionCombatStatistics(life, cure, {context: {castLevel: null}}).healing, undefined, "no slot: nothing");
 });
 
-test("Eldritch Blast invocations (SRD): Agonizing Blast adds Charisma to it alone; Repelling Blast answers its hit with a push", async () => {
+test("cantrip invocations (SRD, house rule): Agonizing Blast adds Charisma to every cantrip; Repelling Blast answers a cantrip's hit", async () => {
   const fs = await import("node:fs");
   const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
   const pack = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
@@ -329,8 +329,9 @@ test("Eldritch Blast invocations (SRD): Agonizing Blast adds Charisma to it alon
       system: {active: true, modifiers: [], ruleElements: pack("agonizing-blast-").system.ruleElements}}]});
   actor.allApplicableEffects = () => [];
   assert.equal(actionCombatStatistics(actor, pack("eldritch-blast-").system.definition).damage?.modifierTotal, 3);
-  assert.equal(actionCombatStatistics(actor, pack("fire-bolt-").system.definition).damage, null, "not another cantrip");
+  assert.equal(actionCombatStatistics(actor, pack("fire-bolt-").system.definition).damage?.modifierTotal, 3, "every cantrip (house rule)");
+  assert.equal(actionCombatStatistics(actor, pack("fireball-").system.definition).damage, null, "not a leveled spell");
   const repelling = pack("repelling-blast-").system;
   const match = repelling.ruleElements.find(rule => rule.type === "Trigger").data.match;
-  assert.deepEqual([match.tagsAll, match.notTagsAny, repelling.definition.rider], [["eldritch-blast"], undefined, {push: {distance: 10}}]);
+  assert.deepEqual([match.tagsAll, match.notTagsAny, repelling.definition.rider], [["cantrip"], undefined, {push: {distance: 10}}]);
 });

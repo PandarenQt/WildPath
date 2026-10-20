@@ -119,8 +119,8 @@ function tokenReactions(token) {
 /**
  * `token`'s reactions to its own Action (`sourceTokenId: "{self}"`). One marked `onlyWithoutOtherSlotSpell` (Paladin's
  * Smite's 2014 Divine Smite) is offered only while its creature has cast no spell with a slot this combat turn other
- * than a `smite` (`flags.wildpath.slotSpellTurn`, recordSlotSpell); while it is, its creature's other `smite` reactions
- * (the 2024 spell) are not.
+ * than a `smite` (`flags.wildpath.slotSpellTurn`, recordSlotSpell). Its creature's other `smite` reactions (the 2024
+ * spell) are offered beside it, as options.
  */
 function ownActionReactions(token) {
     const own = tokenReactions(token).filter(entry => entry.trigger.event?.sourceTokenId === token.id);
@@ -128,9 +128,7 @@ function ownActionReactions(token) {
     const turn = combat?.started ? turnKey(combat) : null;
     const casting = (turn !== null) && (token.actor?.flags?.wildpath?.slotSpellTurn === turn);
     const free = own.filter(entry => entry.data.onlyWithoutOtherSlotSpell === true);
-    if (casting || !free.length)
-        return own.filter(entry => !free.includes(entry));
-    return own.filter(entry => free.includes(entry) || !(entry.definition.tags ?? []).includes("smite"));
+    return (casting && free.length) ? own.filter(entry => !free.includes(entry)) : own;
 }
 /**
  * A once-a-turn reaction's record key and the combat turn, and whether it was used this turn
