@@ -203,6 +203,21 @@ export function registerConditionTests(quench) {
           "Disadvantage on attacks against others");
         assert.lengthOf(grappled.getRollModes(["attack"],{context:{attack:{fromTarget:{grappled:true}}}}),0,"but not against the grappler");
       });
+
+      it("a condition its creature becomes immune to has no effect while that lasts (Aura of Courage)", async function () {
+        const actor = await fixtures.createActor({name:"frightened ally"});
+        const effect = await actor.toggleCondition("frightened");
+        const fear = () => actor.getRollModes(["attack"],{context:{fearSourceOutOfSight:false}}).filter(entry => entry.mode === "disadvantage").length;
+        assert.isFalse(effect.isSuppressed);
+        assert.equal(fear(),1,"Frightened: Disadvantage on its attacks");
+        const [ward] = await actor.createEmbeddedDocuments("Item",[{name:"Courage",type:"feature",system:{active:true,
+          ruleElements:[{schemaVersion:1,id:"courage",type:"ConditionImmunity",data:{conditions:["frightened"]}}]}}]);
+        assert.isTrue(actor.effects.get(effect.id).isSuppressed,"suppressed while it is immune");
+        assert.equal(fear(),0,"no Disadvantage while suppressed");
+        await ward.delete();
+        assert.isFalse(actor.effects.get(effect.id).isSuppressed);
+        assert.equal(fear(),1,"back once the immunity ends");
+      });
     });
   }, {displayName:"WILDPATH: Real Foundry Conditions",preSelected:false});
 }

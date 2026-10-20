@@ -627,6 +627,12 @@ rules to the creatures within `radius` feet of its bearer.
   adds its paladin's Charisma modifier, not the ally's. A rule `predicate` on the Aura sees the bearer's conditions
   (`missingCondition: "incapacitated"`).
 - **Condition immunity.** `getConditionImmunities` reads the auras around the creature too (Aura of Courage).
+- **Suppression (2026-10-20).** A condition its creature is immune to has no effect while that lasts:
+  `WildPathActiveEffect#isSuppressed` is true for it, so its rules stop counting. 2024 Aura of Courage: "If a
+  Frightened ally enters the aura, that condition has no effect on that ally while there."
+  - A per-creature guard stops the recursion (immunities read the effects, whose suppression asks for immunities).
+  - Live (14.369): a Frightened QA Ally beside QA Fighter's Courage aura had no Disadvantage; with QA Fighter 30 ft away,
+    it had Disadvantage again.
 - **Limits.**
   - Data preparation leaves auras out, so an aura does not change Speed or health maxima.
   - Only Modifier-type rules reach statistics; roll modes from auras are not read yet.
