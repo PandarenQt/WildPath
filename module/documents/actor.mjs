@@ -706,6 +706,8 @@ export default class WildPathActor extends Actor {
     const note = rerolled ? `, ${game.i18n.localize("WILDPATH.INSPIRATION.Rerolled")}` : "";
     await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this}), flavor: `${label} (${formula}${note})`,
       flags: {wildpath: {rollTest: {actorUuid: this.uuid, ability, skill, save, rerolled}}}});
+    // A check uses up the help it had (Assist's Advantage).
+    if ( !save ) await game.wildpath?.endEffectsWhenChecked?.(this, {ability: used, skill});
     return roll.total;
   }
 

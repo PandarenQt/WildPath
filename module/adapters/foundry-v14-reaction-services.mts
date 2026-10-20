@@ -6,7 +6,7 @@ import {actionCombatStatistics, attackAbility, attackForcesCritical, attackRollM
 import {conditionsFrom} from "../helpers/effect-sources.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {turnKey} from "./foundry-v14-persistent-areas.mjs";
-import {allyNearTarget} from "./foundry-v14-auras.mjs";
+import {allyNearTarget, helpedByAlly} from "./foundry-v14-auras.mjs";
 import {sunlightContext} from "./foundry-v14-sunlight.mjs";
 import {attackSight} from "./foundry-v14-senses.mjs";
 import {fearContext} from "./foundry-v14-fear.mjs";
@@ -94,7 +94,8 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
     ...attackSight({attacker: reactor.actor as never, target: actor as never, attackerToken: reactor as never, targetToken: target as never, distance}),
     fromTarget: (conditionsFrom as unknown as (holder: unknown, source: unknown) => Data)(reactor.actor, actor),
     fromAttacker: (conditionsFrom as unknown as (holder: unknown, source: unknown) => Data)(actor, reactor.actor),
-    allyNearTarget: allyNearTarget(reactor as never, target as never, (targetFootprint as {footprint?: Data}).footprint ?? null)},
+    allyNearTarget: allyNearTarget(reactor as never, target as never, (targetFootprint as {footprint?: Data}).footprint ?? null),
+    helpedByAlly: helpedByAlly(reactor as never, actor as never)},
     ...sunlightContext(reactor as never), ...fearContext(reactor as never)};
   const rollMode = definition.attack ? (attackRollMode as unknown as (a: unknown, t: unknown, o: Data) => string)(reactor.actor, actor,
     {type, item: reactionItem, ability: (attackAbility as unknown as (a: unknown, d: unknown) => string | null)(reactor.actor, definition.attack),

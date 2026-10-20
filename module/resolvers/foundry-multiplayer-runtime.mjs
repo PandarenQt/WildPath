@@ -17,7 +17,7 @@ import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry
 import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {combatTurnKey, requiresContext} from "../helpers/combat.mjs";
 import {createFoundryTeleports, teleportDestination} from "../adapters/foundry-v14-teleport.mjs";
-import {allyDistance, allyNearTarget, createFoundryAuras} from "../adapters/foundry-v14-auras.mjs";
+import {alliedTokens, allyDistance, allyNearTarget, createFoundryAuras, effectGiver, helpedByAlly} from "../adapters/foundry-v14-auras.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 import {AUTOMATION_QUERY, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
@@ -57,7 +57,7 @@ import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {ROLL_AUTHORITY, combineRollModes, d20Chance} from "../helpers/rolls.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {conditionsFrom, creatureRefs, effectsFrom, revealedTo} from "../helpers/effect-sources.mjs";
-import {customEffectId} from "../helpers/action-definitions.mjs";
+import {CREATURE_SIZE_ORDER, customEffectId} from "../helpers/action-definitions.mjs";
 import {isUnprepared} from "../helpers/spellcasting.mjs";
 
 export {conditionsFrom, revealedTo};
@@ -158,6 +158,7 @@ export function registerFoundryV14MultiplayerResolution({
       await endEffectsOnTargets(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenSaved(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenDamaged(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
+      await endEffectsWhenChecked(options?.actor, state?.input?.check ?? null);
       await recordSlotSpell(event, {game});
       await recordAttackTurn(event, {game});
       await recordQuickened(event, {game});
@@ -223,7 +224,7 @@ export function registerFoundryV14MultiplayerResolution({
   // A condition's damage at turn start (Bleeding), resolved like any other damage (reactions, rescue, dying).
   const turnDamage = createFoundryTurnDamage({game, coordinator, logger,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
-  game.wildpath = {...(game.wildpath ?? {}), dying, turnDamage};
+  game.wildpath = {...(game.wildpath ?? {}), dying, turnDamage, endEffectsWhenChecked};
   // 2024: an Incapacitated creature's concentration ends; everything it sustains ends with it (active GM).
   globalThis.Hooks?.on?.("createActiveEffect", effect => void endConcentrationOnIncapacitation(effect, game)
     .catch(error => logger?.warn?.("Wild Path | Ending concentration failed", error)));
@@ -754,6 +755,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const coverByTarget = [];
   const saveModifiers = {};
   const saveDice = {};
+  // The save each target makes when it may choose (a Grapple's Might or Agility).
+  const saveAbilityByTarget = {};
   const saveOutcomes = {};
   const evasionByTarget = {};
   const legendaryByTarget = {};
@@ -803,9 +806,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     // 2024: each target's own advantage or disadvantage on the save it makes (`save`, `save.<ability>`), by
     // Token (unlinked copies of one Actor share its id).
     if ( definition?.save ) {
-      const ability = definition.save.ability ?? definition.save.saveKey ?? null;
       const key = target.tokenId ?? target.id;
       const saverToken = targetTokenFor(targetActor, hint, game);
+      // A choice of saves (2024 Grapple: Might or Agility): the one it is likelier to pass.
+      const ability = bestSaveAbility({definition, targetActor, saverToken, cover, actor, actorSystem});
+      if ( (definition.save.abilities?.length ?? 0) > 1 ) saveAbilityByTarget[key] = ability;
       const modes = (targetActor.getRollModes?.(["save", `save.${ability}`], saveContext(definition, ability, saverToken)) ?? [])
         .map(entry => entry?.mode ?? entry);
       saveRollModes[key] = combineRollModes(modes);
@@ -879,6 +884,15 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   };
 
   const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries, game, defenseKey});
+  // 2024 Grapple and Shove: "The target must be no more than one size larger than you" (`targeting.maxSizeAboveSource`).
+  const above = Number(definition?.targeting?.maxSizeAboveSource);
+  const rank = size => CREATURE_SIZE_ORDER.indexOf(String(size ?? ""));
+  const sourceRank = rank(spatial?.context?.sourceFootprint?.size);
+  if ( Number.isFinite(above) && (sourceRank >= 0) && (spatial?.context?.targetFootprints ?? []).some(entry => rank(entry?.size) > sourceRank + above) ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: game.i18n?.localize?.("WILDPATH.COMMON.TooLarge") ?? "That creature is too large."
+  };
   const attackRollModeSourceList = definition?.attack ? foundryAttackRollModeSources({actor, action, definition, targetEntries, spatial, game, sourceToken}) : null;
   const attackRollMode = attackRollModeSourceList ? combineRollModes(attackRollModeSourceList) : null;
   const attackOutcomes = definition?.attack ? foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) : null;
@@ -956,6 +970,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         // Its creature's bonus to its spells' save DC (Innate Sorcery's +1, a Robe of the Archmagi's +2: `dc.spell`).
         ...(spellDcBonus ? {dcBonus: spellDcBonus} : {}),
         ...(Object.keys(saveDice).length ? {diceByTarget: saveDice} : {}),
+        ...(Object.keys(saveAbilityByTarget).length ? {abilityByTarget: saveAbilityByTarget} : {}),
         ...(Object.keys(legendaryByTarget).length ? {legendaryByTarget} : {}),
         ...(Object.keys(inspirationByTarget).length ? {inspirationByTarget} : {}),
         ...(Object.keys(evasionByTarget).length ? {evasionByTarget} : {}),
@@ -1335,7 +1350,9 @@ function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
     distance}) : {};
   return {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * spatial.context.gridDistance <= 5} : {}), ...sight,
     fromTarget: conditionsFrom(attacker, entry?.actor, game), fromAttacker: conditionsFrom(entry?.actor, attacker, game),
-    allyNearTarget: allyNearTarget(sourceToken, token), targetDamaged: targetDamaged(entry?.actor)},
+    allyNearTarget: allyNearTarget(sourceToken, token), targetDamaged: targetDamaged(entry?.actor),
+    // An ally of the attacker Helped against this target (2024 Help: its Distracted).
+    helpedByAlly: helpedByAlly(sourceToken, entry?.actor)},
     ...sunlightContext(sourceToken), ...fearContext(sourceToken)};
 }
 
@@ -1577,6 +1594,27 @@ export function monsterRerollPayers(game, scene) {
 }
 
 /**
+ * The save a target makes when its Action lets it choose (`save.abilities`, 2024 Grapple and Shove: "a Strength or
+ * Dexterity saving throw (it chooses)"): the one it is likelier to pass against the Action's DC, from its own bonus,
+ * cover, Advantage or Disadvantage and automatic failures. Else the Action's one save.
+ */
+export function bestSaveAbility({definition, targetActor, saverToken, cover="none", actor=null, actorSystem=null}) {
+  const save = definition.save ?? {};
+  const choices = save.abilities?.length ? save.abilities : [save.ability ?? save.saveKey ?? null];
+  if ( choices.length < 2 ) return choices[0];
+  const dc = Number(save.dc?.value ?? evaluateValueExpression(save.dc?.valueExpression, {actor, actorSystem}).value) || 10;
+  const chance = ability => {
+    const context = saveContext(definition, ability, saverToken);
+    if ( (targetActor.getRollOutcomes?.(["save", `save.${ability}`], context) ?? []).some(entry => entry.outcome === "automatic-failure") ) return 0;
+    const modes = (targetActor.getRollModes?.(["save", `save.${ability}`], context) ?? []).map(entry => entry?.mode ?? entry);
+    const bonus = resolveActorSaveStatistic(targetActor, ability);
+    const modifier = (bonus?.totalModifier ?? 0) + ((ability === "agility") ? (COVER_BONUS[cover] ?? 0) : 0);
+    return d20Chance({modifier, target: dc, rollMode: combineRollModes(modes), dice: bonus?.dice ?? []});
+  };
+  return choices.reduce((best, ability) => (chance(ability) > chance(best) ? ability : best));
+}
+
+/**
  * What a save's RuleElement predicates see: its ability, and the Action's tags. Every spell is `magical` too, so
  * Magic Resistance (`{tagsAny: ["magical"]}`) covers spells and Actions tagged `magical` (a magic item's).
  */
@@ -1674,6 +1712,19 @@ export async function endEffectsWhenSaved({state}, {fromUuid}) {
 }
 
 /**
+ * Effects that end once their creature makes the ability check they help (Assist: `endsWhen: "checks"`, its Advantage
+ * on `check.<skill>`): after an Action's check, or one rolled from the sheet (documents/actor.mjs).
+ */
+export async function endEffectsWhenChecked(actor, check) {
+  if ( !actor?.effects || !check ) return [];
+  const domains = new Set(["check", check.ability ? `check.${check.ability}` : null, check.skill ? `check.${check.skill}` : null].filter(Boolean));
+  const used = [...actor.effects].filter(effect => (effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen === "checks")
+    && (effect.system?.ruleElements ?? []).some(rule => (rule.data?.domains ?? []).some(domain => domains.has(domain))));
+  if ( used.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", used.map(effect => effect.id));
+  return used.map(effect => effect.id);
+}
+
+/**
  * Effects that end when their creature takes damage (Knock Out's Unconscious, `metadata.endsWhen: "damaged"`): any damage
  * this Action dealt it ends them, except the damage of the resolution that applied them (its hit), named in their
  * `metadata.resolutionIds`.
@@ -1722,7 +1773,9 @@ export async function endEffectsWhenAttacked({state}, {fromUuid}) {
     const fromAttacker = new Set(attacker ? effectsFrom(actor, attacker).map(effect => effect.id) : []);
     await end(actor, [...actor.effects].filter(effect => !(hit && [...(effect.statuses ?? [])].some(status => applied.has(status)))
       && ((endsWhen(effect) === "attacked") || ((endsWhen(effect) === "attackedBySource") && fromAttacker.has(effect.id))
-        || ((endsWhen(effect) === "attackedByOther") && !fromAttacker.has(effect.id)))));
+        || ((endsWhen(effect) === "attackedByOther") && !fromAttacker.has(effect.id))
+        // Help's: only its helper's ally's attack uses it up.
+        || ((endsWhen(effect) === "attackedByAllyOfSource") && alliedTokens(sourceToken, effectGiver(effect, actor, scene))))));
   }
   if ( attacker ) await end(attacker, [...attacker.effects].filter(effect => endsWhen(effect) === "attacks"));
   return ended;

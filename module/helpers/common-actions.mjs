@@ -6,6 +6,7 @@
  */
 import { actionDefinitionActivationCost, actionDefinitionFromAction } from "./action-definitions.mjs";
 import { actorAbilityModifier, actorProficiencyBonus, resolveActorCheckStatistic } from "./combat-statistics.mjs";
+import { WILDPATH } from "../config.mjs";
 const definitionOf = actionDefinitionFromAction;
 const costOf = actionDefinitionActivationCost;
 const ACTION = { allOf: [{ capability: "action", amount: 1 }] };
@@ -14,22 +15,25 @@ const BONUS_ACTION = { allOf: [{ capability: "bonus-action", amount: 1 }] };
 const SHOVES = new Set(["shove", "push"]);
 const SELF = { range: { type: "self" }, targeting: { type: "self" } };
 const TOUCH = { range: { type: "reach", distance: { value: 5, unit: "ft" } }, targeting: { type: "single", required: true, count: 1 } };
+/** Grapple and Shove (2024): "no more than one size larger than you". */
+const GRAB = { ...TOUCH, targeting: { ...TOUCH.targeting, maxSizeAboveSource: 1 } };
 const UNTIL_TURN_END = { value: 0, units: "turns", expiry: "turnEnd" };
 const UNTIL_NEXT_TURN = { value: 1, units: "rounds", expiry: "turnStart" };
 /** An Unarmed Strike's save DC: 8 + Might modifier + Proficiency Bonus. */
 const STRIKE_DC = { valueExpression: { type: "add", terms: [{ type: "constant", value: 8 }, { type: "ability-modifier", ability: "might" },
             { type: "proficiency-bonus" }] } };
-// shortcut: the target saves with Might; 2024 lets it choose Might or Agility. Upgrade with a target's choice of save.
-const strikeSave = (effect) => ({ ...TOUCH, save: { ability: "might", dc: STRIKE_DC },
+// 2024: the target saves with Might or Agility, its choice: the one it is likelier to pass (`abilities`, the runtime).
+const STRIKE_SAVE = { ability: "might", abilities: ["might", "agility"], dc: STRIKE_DC };
+const strikeSave = (effect) => ({ ...GRAB, save: STRIKE_SAVE,
     effects: [{ id: "on-fail", type: "condition", saveOutcomePolicy: "failure", ...effect }] });
 /** Each common action: its lang key, icon and definition (without id and label, which `commonAction` adds). */
 const COMMON = {
+    // 2024 Dash: "extra movement for the current turn ... equal to your Speed after applying any modifiers": its Speed
+    // doubled, after its Modifiers (Exhaustion, Slow) and with its other factors (Haste: four times in all).
+    // shortcut: a second Dash in one turn (Action Surge) adds nothing more; upgrade when an effect can count its uses.
     dash: { name: "WILDPATH.COMMON.Dash", img: "icons/svg/wingfoot.svg", definition: { costs: ACTION, ...SELF,
-            // shortcut: the extra movement is the Speed before Modifiers (Exhaustion is not doubled); upgrade with a Speed snapshot.
             effects: [{ id: "dashing", type: "effect", name: "Dashing", slug: "dashing", img: "icons/svg/wingfoot.svg", duration: UNTIL_TURN_END,
-                    ruleElements: [{ schemaVersion: 1, id: "dash", type: "Modifier", data: { domains: ["resources.movement.max"], modifierType: "untyped",
-                                valueExpression: { type: "add", terms: [{ type: "context", path: "actorSystem.resources.movement.base" },
-                                        { type: "context", path: "actorSystem.resources.movement.bonus" }] } } }] }] } },
+                    ruleElements: [{ schemaVersion: 1, id: "dash", type: "Modifier", data: { domains: ["speed.multiplier"], modifierType: "untyped", value: 2 } }] }] } },
     disengage: { name: "WILDPATH.COMMON.Disengage", img: "icons/svg/walk.svg", definition: { costs: ACTION, ...SELF,
             effects: [{ id: "disengaged", type: "effect", name: "Disengaged", slug: "disengaged", img: "icons/svg/walk.svg",
                     duration: UNTIL_TURN_END, ruleElements: [] }] } },
@@ -39,21 +43,29 @@ const COMMON = {
                         { schemaVersion: 1, id: "dodge-attacked", type: "RollMode", data: { domains: ["attacked"], mode: "disadvantage" } },
                         { schemaVersion: 1, id: "dodge-agility", type: "RollMode", data: { domains: ["save.agility"], mode: "advantage" } }
                     ] }] } },
-    // 2024 Help, assisting an attack: the first attack roll against an enemy beside you has Advantage, until the start
-    // of your next turn. shortcut: any creature's attack uses it, not only an ally's; helping a check is by hand.
+    // 2024 Help, assisting an attack: "the first attack roll that the ally makes against the enemy" beside you has
+    // Advantage, until the start of your next turn: only an ally of the helper's (`attack.helpedByAlly`), and its attack
+    // ends it (`attackedByAllyOfSource`).
     help: { name: "WILDPATH.COMMON.Help", img: "icons/svg/upgrade.svg", definition: { costs: ACTION, ...TOUCH,
             effects: [{ id: "helped", type: "effect", name: "Distracted", slug: "distracted", img: "icons/svg/upgrade.svg",
-                    duration: UNTIL_NEXT_TURN, endsWhen: "attacked",
-                    ruleElements: [{ schemaVersion: 1, id: "help-attacked", type: "RollMode", data: { domains: ["attacked"], mode: "advantage" } }] }] } },
+                    duration: UNTIL_NEXT_TURN, endsWhen: "attackedByAllyOfSource",
+                    ruleElements: [{ schemaVersion: 1, id: "help-attacked", type: "RollMode", predicate: { equals: { path: "attack.helpedByAlly", value: true } },
+                            data: { domains: ["attacked"], mode: "advantage" } }] }] } },
+    // 2024 Help, assisting an ability check: an ally near enough (30 feet) has Advantage on its next check with one of the
+    // helper's skills, until the start of the helper's next turn (`endsWhen: "checks"`). Its skill is chosen when used.
+    assist: { name: "WILDPATH.COMMON.Assist", img: "icons/svg/upgrade.svg", definition: { costs: ACTION,
+            range: { type: "ranged", normal: { value: 30, unit: "ft" } }, targeting: { type: "single", required: true, count: 1 },
+            effects: [{ id: "assisted", type: "effect", name: "Assisted", slug: "assisted", img: "icons/svg/upgrade.svg",
+                    duration: { value: 1, units: "rounds", expiry: "sourceTurnStart" }, endsWhen: "checks",
+                    ruleElements: [{ schemaVersion: 1, id: "assist-check", type: "RollMode", data: { domains: ["check.{{skill}}"], mode: "advantage" } }] }] } },
     hide: { name: "WILDPATH.COMMON.Hide", img: "icons/svg/cowled.svg", definition: { costs: ACTION, ...SELF,
             check: { ability: "agility", skill: "stealth", dc: { value: 15 } },
             effects: [{ id: "hidden", type: "condition", conditionId: "invisible", checkOutcomePolicy: "success" }] } },
     grapple: { name: "WILDPATH.COMMON.Grapple", img: "icons/svg/anchor.svg", definition: { costs: ACTION, ...strikeSave({ conditionId: "grappled" }) } },
     // 2024 Shove: on a failed save, the target is pushed 5 feet away or has the Prone condition; one action for each.
-    // shortcut: any size can be shoved; 2024 allows one size larger than you at most. Upgrade with creature sizes.
     shove: { name: "WILDPATH.COMMON.Shove", img: "icons/svg/falling.svg", definition: { costs: ACTION, ...strikeSave({ conditionId: "prone" }) } },
-    push: { name: "WILDPATH.COMMON.Push", img: "icons/svg/thrust.svg", definition: { costs: ACTION, ...TOUCH,
-            save: { ability: "might", dc: STRIKE_DC }, push: { distance: 5 } } },
+    push: { name: "WILDPATH.COMMON.Push", img: "icons/svg/thrust.svg", definition: { costs: ACTION, ...GRAB,
+            save: STRIKE_SAVE, push: { distance: 5 } } },
     unarmed: { name: "WILDPATH.COMMON.UnarmedStrike", img: "icons/svg/combat.svg", definition: { costs: ACTION, ...TOUCH,
             attack: { type: "melee", statistic: "weapon", defenseKey: "ac", proficient: true },
             damage: [{ id: "unarmed", expression: { type: "constant", value: 1 }, damageType: "bludgeoning", provenance: "weapon-base" }] } },
@@ -117,6 +129,11 @@ export function commonAction(actor, id, { localize = (key) => key, bonusShove = 
     const held = (id === "escape") ? escapable(creature) : null;
     if ((id === "escape") && !held)
         return null;
+    // Assist: one of its skill proficiencies, chosen when used; none, no Assist.
+    const skills = (id === "assist") ? Object.entries(creature.system?.skills ?? {})
+        .filter(([, skill]) => (Number(skill?.proficiency) || 0) > 0).map(([key]) => key) : [];
+    if ((id === "assist") && !skills.length)
+        return null;
     const name = localize(entry.name);
     const definition = { schemaVersion: 1, id: `common:${id}`, label: name, ...structuredClone(entry.definition),
         ...((bonusShove && SHOVES.has(id)) ? { costs: structuredClone(BONUS_ACTION) } : {}) };
@@ -130,6 +147,10 @@ export function commonAction(actor, id, { localize = (key) => key, bonusShove = 
             escapes: held.conditionId };
         definition.effects[0].conditionId = held.conditionId;
     }
+    if (skills.length)
+        definition.configuration = [{ id: "skill", type: "select-one", label: "WILDPATH.COMMON.AssistSkill", required: true,
+                options: skills.map(skill => ({ id: skill, value: skill, label: localize(WILDPATH.SKILLS?.[skill]?.label
+                        ?? skill) })), effects: [{ type: "bindChoice" }] }];
     // A grapple's escape DC is the grappler's own: 8 + Might modifier + Proficiency Bonus (2024), kept on its Grappled.
     if (id === "grapple") {
         const might = actorAbilityModifier(creature, "might");

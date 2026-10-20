@@ -5,7 +5,7 @@ import { actionCombatStatistics, attackAbility, attackForcesCritical, attackRoll
 import { conditionsFrom } from "../helpers/effect-sources.mjs";
 import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { turnKey } from "./foundry-v14-persistent-areas.mjs";
-import { allyNearTarget } from "./foundry-v14-auras.mjs";
+import { allyNearTarget, helpedByAlly } from "./foundry-v14-auras.mjs";
 import { sunlightContext } from "./foundry-v14-sunlight.mjs";
 import { attackSight } from "./foundry-v14-senses.mjs";
 import { fearContext } from "./foundry-v14-fear.mjs";
@@ -70,7 +70,8 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
             ...attackSight({ attacker: reactor.actor, target: actor, attackerToken: reactor, targetToken: target, distance }),
             fromTarget: conditionsFrom(reactor.actor, actor),
             fromAttacker: conditionsFrom(actor, reactor.actor),
-            allyNearTarget: allyNearTarget(reactor, target, targetFootprint.footprint ?? null) },
+            allyNearTarget: allyNearTarget(reactor, target, targetFootprint.footprint ?? null),
+            helpedByAlly: helpedByAlly(reactor, actor) },
         ...sunlightContext(reactor), ...fearContext(reactor) };
     const rollMode = definition.attack ? attackRollMode(reactor.actor, actor, { type, item: reactionItem, ability: attackAbility(reactor.actor, definition.attack),
         context }) : null;

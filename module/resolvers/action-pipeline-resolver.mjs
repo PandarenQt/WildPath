@@ -3694,8 +3694,9 @@ function saveRollRequestForState(state, input, {target=null, suffix="save-roll",
     metadata: {
       actionDefinitionId: state.actionDefinition?.id ?? null,
       rollKind: "save",
-      saveKey: save.saveKey ?? save.ability ?? null,
-      ability: save.ability ?? null,
+      // The save its target chose, when it may (a Grapple's Might or Agility).
+      saveKey: save.abilityByTarget?.[rollModeTargetKey(target ?? firstRollTarget(input))] ?? save.saveKey ?? save.ability ?? null,
+      ability: save.abilityByTarget?.[rollModeTargetKey(target ?? firstRollTarget(input))] ?? save.ability ?? null,
       dcKey: save.dcKey ?? "save"
     }
   });
