@@ -940,6 +940,8 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
       return applyBindChoiceEffect({definition, effect, selection});
     case "decline":
       return applyDeclineEffect({definition, effect, selection});
+    case "remove-components":
+      return applyRemoveComponentsEffect({definition, selection});
     default:
       return {ok: true, trace: [appliedTrace(selection, "ignored-unknown-effect", {effectType: effect.type ?? effect.kind ?? null})], errors: []};
   }
@@ -1068,10 +1070,31 @@ function applyReplaceCostEffect({definition, effect, selection}) {
 /** Its effects and its caster's concentration last `factor` times as long (Extended Spell): `{type: "scale-duration", factor}`. */
 function applyScaleDurationEffect({definition, effect, selection}) {
   const factor = finiteNumber(effect.factor) ?? 1;
-  const scaled = duration => ((finiteNumber(duration?.value) > 0) ? {...duration, value: duration.value * factor} : duration);
+  // Extended Spell: no longer than `maxSeconds` (24 hours).
+  const cap = finiteNumber(effect.maxSeconds);
+  const seconds = {seconds: 1, second: 1, rounds: 6, round: 6, turns: 6, minutes: 60, minute: 60, hours: 3600, hour: 3600, days: 86400, day: 86400};
+  const scaled = duration => {
+    if ( !(finiteNumber(duration?.value) > 0) ) return duration;
+    const longer = {...duration, value: duration.value * factor};
+    const unit = seconds[String(longer.units ?? "")];
+    return (cap && unit && ((longer.value * unit) > cap)) ? {...duration, value: cap / unit} : longer;
+  };
   definition.effects = normalizeArray(definition.effects).map(entry => (entry?.duration ? {...entry, duration: scaled(entry.duration)} : entry));
   if ( definition.concentration?.duration ) definition.concentration = {...definition.concentration, duration: scaled(definition.concentration.duration)};
-  return {ok: true, trace: [appliedTrace(selection, "scale-duration", {factor})], errors: []};
+  // And Advantage on the Concentration saves it calls for (the caster's concentration marker carries it).
+  if ( effect.concentrationAdvantage && definition.concentration ) definition.concentration = {...definition.concentration, advantage: true};
+  return {ok: true, trace: [appliedTrace(selection, "scale-duration", {factor, cap})], errors: []};
+}
+
+/**
+ * Subtle Spell: cast without its Verbal, Somatic or Material components; a Material one with a cost (or consumed) stays.
+ * Without any it is `component:none`, which Counterspell can't answer.
+ */
+function applyRemoveComponentsEffect({definition, selection}) {
+  const plain = new Set(["component:verbal", "component:somatic", "component:material"]);
+  const kept = normalizeArray(definition.tags).filter(tag => !plain.has(tag));
+  definition.tags = kept.some(tag => String(tag).startsWith("component:")) ? kept : [...kept, "component:none"];
+  return {ok: true, trace: [appliedTrace(selection, "remove-components", {})], errors: []};
 }
 
 /** The casting level a scaling effect reads: its own, or the level its choice (a spell slot) selected. */

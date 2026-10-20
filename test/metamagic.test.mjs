@@ -68,3 +68,34 @@ test("Seeking Spell: a missed spell attack may be rerolled for 1 Sorcery Point, 
   assert.equal(withSeekingSpell(null, sorcerer(["careful"]), sorcerer(["careful"]).system, null), null);
   assert.equal(withSeekingSpell(null, actor, sorcerer(["seeking"], {points: 0}).system, null), null);
 });
+
+test("Metamagic: Extended doubles to 24 hours at most, with Advantage on Concentration; only for 1 minute or longer", () => {
+  const actor = sorcerer(["extended", "subtle"]);
+  const lasting = hours => ({schemaVersion: 1, id: "action:lasting", label: "Lasting", tags: ["spell", "component:verbal", "component:somatic"],
+    costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "self"}, concentration: {duration: {value: hours, units: "hours"}},
+    effects: [{id: "effect-1", type: "effect", name: "Lasting", duration: {value: hours, units: "hours"}}]});
+  const extended = hours => resolveActionConfiguration({definition: withMetamagic(lasting(hours), actor), actorSystem: actor.system,
+    choices: {metamagic: "extended"}}).configuration.effectiveDefinition;
+  assert.deepEqual([extended(8).effects[0].duration.value, extended(16).effects[0].duration.value, extended(16).concentration.duration.value],
+    [16, 24, 24], "8 hours doubles to 16; 16 hours stops at 24");
+  assert.equal(extended(8).concentration.advantage, true);
+  const instant = {...lasting(1), concentration: null, effects: [{id: "effect-1", type: "effect", name: "Brief", duration: {value: 5, units: "rounds"}}]};
+  assert.equal(options(withMetamagic(instant, actor)).includes("extended"), false, "30 seconds: not Extended");
+  // Subtle: its components go, so Counterspell can't see it; a costly material would stay.
+  const subtle = resolveActionConfiguration({definition: withMetamagic(lasting(1), actor), actorSystem: actor.system,
+    choices: {metamagic: "subtle"}}).configuration.effectiveDefinition;
+  assert.deepEqual(subtle.tags, ["spell", "component:none"]);
+});
+
+test("Metamagic: after a Quickened spell this turn, a level 1+ spell is greyed on the bar; a cantrip is not", async () => {
+  const {actionBarContext} = await import("../module/helpers/action-bar-context.mjs");
+  const previous = globalThis.game;
+  globalThis.game = {combat: {started: true, id: "c", round: 1, turn: 0}};
+  try {
+    const item = (id, prefix) => ({id, type: "action", name: id, system: {definition: spell(prefix)}});
+    const actor = {name: "Sorcerer", flags: {wildpath: {quickenedTurn: "c:1:0"}}, effects: [], items: [item("bolt", "fire-bolt"), item("ball", "fireball")],
+      system: {resources: {action: {value: 1, max: 1}, bonus: {value: 1, max: 1}, reaction: {value: 1, max: 1}}, pools: [{id: "spell-slot.3", value: 2, max: 2}]}};
+    const enabled = id => actionBarContext({actor}).groups.flatMap(group => group.actions).find(action => action.id === id)?.enabled;
+    assert.deepEqual([enabled("bolt"), enabled("ball")], [true, false]);
+  } finally { globalThis.game = previous; }
+});
