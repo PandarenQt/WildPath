@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-mind-spike",
       "tags": [
-        "spell"
+        "spell",
+        "school:divination",
+        "damage:psychic"
       ],
       "costs": {
         "allOf": [

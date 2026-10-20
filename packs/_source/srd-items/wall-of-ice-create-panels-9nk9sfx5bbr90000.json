@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-wall-of-ice-create-panels",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:cold"
       ],
       "costs": {
         "allOf": [

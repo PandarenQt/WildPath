@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-staff-of-power-lightning-bolt",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:lightning"
       ],
       "costs": {
         "allOf": [

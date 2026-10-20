@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-arcanist-s-magic-aura",
       "tags": [
-        "spell"
+        "spell",
+        "school:illusion"
       ],
       "costs": {
         "allOf": [

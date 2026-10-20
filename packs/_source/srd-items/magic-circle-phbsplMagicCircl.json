@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-magic-circle",
       "tags": [
-        "spell"
+        "spell",
+        "school:abjuration"
       ],
       "costs": {
         "allOf": []

@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-shield",
       "tags": [
-        "spell"
+        "spell",
+        "school:abjuration"
       ],
       "costs": {
         "allOf": [

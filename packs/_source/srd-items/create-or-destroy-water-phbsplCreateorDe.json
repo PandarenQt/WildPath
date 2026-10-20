@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-create-or-destroy-water",
       "tags": [
-        "spell"
+        "spell",
+        "school:transmutation"
       ],
       "costs": {
         "allOf": [

@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-instant-summons-recall-object",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration"
       ],
       "costs": {
         "allOf": [

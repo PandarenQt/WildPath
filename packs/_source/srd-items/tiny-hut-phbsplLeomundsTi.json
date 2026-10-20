@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-tiny-hut",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation"
       ],
       "costs": {
         "allOf": []

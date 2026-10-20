@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-rod-of-resurrection-heal",
       "tags": [
-        "spell"
+        "spell",
+        "school:abjuration"
       ],
       "costs": {
         "allOf": [

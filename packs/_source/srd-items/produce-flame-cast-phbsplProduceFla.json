@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-produce-flame-cast",
       "tags": [
-        "spell"
+        "spell",
+        "cantrip",
+        "school:conjuration"
       ],
       "costs": {
         "allOf": [

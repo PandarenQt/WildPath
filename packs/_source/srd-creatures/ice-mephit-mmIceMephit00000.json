@@ -284,7 +284,8 @@
           "schemaVersion": 1,
           "id": "action:srd-fog-cloud-fog-cloud",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [

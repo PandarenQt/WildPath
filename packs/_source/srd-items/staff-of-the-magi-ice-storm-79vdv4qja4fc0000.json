@@ -11,7 +11,10 @@
       "schemaVersion": 1,
       "id": "action:srd-staff-of-the-magi-ice-storm",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:bludgeoning",
+        "damage:cold"
       ],
       "costs": {
         "allOf": [

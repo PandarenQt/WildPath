@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-earth-ring-of-elemental-command-wall-of-stone",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation"
       ],
       "costs": {
         "allOf": [

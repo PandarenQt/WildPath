@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-vitriolic-sphere",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:acid"
       ],
       "costs": {
         "allOf": [

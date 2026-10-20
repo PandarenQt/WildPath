@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-water-ring-of-elemental-command-wall-of-ice",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:cold"
       ],
       "costs": {
         "allOf": [

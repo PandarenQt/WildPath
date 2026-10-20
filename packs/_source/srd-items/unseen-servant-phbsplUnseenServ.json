@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-unseen-servant",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration"
       ],
       "costs": {
         "allOf": [

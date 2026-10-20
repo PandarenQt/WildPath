@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-magic-jar-return-from-host",
       "tags": [
-        "spell"
+        "spell",
+        "school:necromancy"
       ],
       "costs": {
         "allOf": [

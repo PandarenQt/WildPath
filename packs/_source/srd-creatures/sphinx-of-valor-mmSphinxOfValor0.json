@@ -625,7 +625,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-evil-and-good",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -703,7 +704,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-thaumaturgy",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -789,7 +792,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -886,7 +890,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-dispel-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -970,7 +975,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-greater-restoration",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -1115,7 +1121,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-heroes-feast",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -1187,7 +1194,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-zone-of-truth",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [

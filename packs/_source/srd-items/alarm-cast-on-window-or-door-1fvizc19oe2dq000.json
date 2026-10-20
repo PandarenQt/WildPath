@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-alarm-cast-on-window-or-door",
       "tags": [
-        "spell"
+        "spell",
+        "school:abjuration"
       ],
       "costs": {
         "allOf": []

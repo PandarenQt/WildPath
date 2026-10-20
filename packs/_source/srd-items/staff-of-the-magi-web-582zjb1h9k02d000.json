@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-staff-of-the-magi-web",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration",
+        "damage:fire"
       ],
       "costs": {
         "allOf": [

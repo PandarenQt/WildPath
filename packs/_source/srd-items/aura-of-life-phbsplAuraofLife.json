@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-aura-of-life-create-aura",
       "tags": [
-        "spell"
+        "spell",
+        "school:abjuration"
       ],
       "costs": {
         "allOf": [

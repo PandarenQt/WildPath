@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-meld-into-stone",
       "tags": [
-        "spell"
+        "spell",
+        "school:transmutation",
+        "damage:untyped"
       ],
       "costs": {
         "allOf": [

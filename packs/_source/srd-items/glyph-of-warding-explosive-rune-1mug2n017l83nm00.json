@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-glyph-of-warding-explosive-rune",
       "tags": [
-        "spell"
+        "spell",
+        "school:abjuration",
+        "damage:acid"
       ],
       "costs": {
         "allOf": []

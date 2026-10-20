@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-augury",
       "tags": [
-        "spell"
+        "spell",
+        "school:divination"
       ],
       "costs": {
         "allOf": []

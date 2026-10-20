@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-arcane-eye",
       "tags": [
-        "spell"
+        "spell",
+        "school:divination"
       ],
       "costs": {
         "allOf": [

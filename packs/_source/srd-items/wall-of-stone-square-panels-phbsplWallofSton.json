@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-wall-of-stone-square-panels",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation"
       ],
       "costs": {
         "allOf": [

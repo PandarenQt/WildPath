@@ -1,0 +1,286 @@
+{
+  "_id": "1pkxonyil972q000",
+  "_key": "!items!1pkxonyil972q000",
+  "name": "Elemental Affinity (Choose)",
+  "type": "action",
+  "img": "icons/magic/symbols/elements-air-earth-fire-water.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-elemental-affinity",
+      "label": "Elemental Affinity (Choose)",
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "acid",
+          "type": "effect",
+          "name": "Elemental Affinity (Acid)",
+          "slug": "elemental-affinity",
+          "img": "icons/magic/symbols/elements-air-earth-fire-water.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "affinity-acid",
+              "type": "Modifier",
+              "predicate": {
+                "tagsAll": [
+                  "damage:acid"
+                ]
+              },
+              "data": {
+                "domains": [
+                  "damage.spell"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "ability-modifier",
+                  "ability": "presence"
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "affinity-acid-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "acid"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "cold",
+          "type": "effect",
+          "name": "Elemental Affinity (Cold)",
+          "slug": "elemental-affinity",
+          "img": "icons/magic/symbols/elements-air-earth-fire-water.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "affinity-cold",
+              "type": "Modifier",
+              "predicate": {
+                "tagsAll": [
+                  "damage:cold"
+                ]
+              },
+              "data": {
+                "domains": [
+                  "damage.spell"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "ability-modifier",
+                  "ability": "presence"
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "affinity-cold-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "cold"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "fire",
+          "type": "effect",
+          "name": "Elemental Affinity (Fire)",
+          "slug": "elemental-affinity",
+          "img": "icons/magic/symbols/elements-air-earth-fire-water.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "affinity-fire",
+              "type": "Modifier",
+              "predicate": {
+                "tagsAll": [
+                  "damage:fire"
+                ]
+              },
+              "data": {
+                "domains": [
+                  "damage.spell"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "ability-modifier",
+                  "ability": "presence"
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "affinity-fire-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "fire"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "lightning",
+          "type": "effect",
+          "name": "Elemental Affinity (Lightning)",
+          "slug": "elemental-affinity",
+          "img": "icons/magic/symbols/elements-air-earth-fire-water.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "affinity-lightning",
+              "type": "Modifier",
+              "predicate": {
+                "tagsAll": [
+                  "damage:lightning"
+                ]
+              },
+              "data": {
+                "domains": [
+                  "damage.spell"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "ability-modifier",
+                  "ability": "presence"
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "affinity-lightning-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "lightning"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "poison",
+          "type": "effect",
+          "name": "Elemental Affinity (Poison)",
+          "slug": "elemental-affinity",
+          "img": "icons/magic/symbols/elements-air-earth-fire-water.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "affinity-poison",
+              "type": "Modifier",
+              "predicate": {
+                "tagsAll": [
+                  "damage:poison"
+                ]
+              },
+              "data": {
+                "domains": [
+                  "damage.spell"
+                ],
+                "modifierType": "untyped",
+                "valueExpression": {
+                  "type": "ability-modifier",
+                  "ability": "presence"
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "affinity-poison-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "poison"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "configuration": [
+        {
+          "id": "type",
+          "type": "select-one",
+          "label": "Damage type",
+          "required": true,
+          "options": [
+            {
+              "id": "acid",
+              "label": "Acid",
+              "value": "acid"
+            },
+            {
+              "id": "cold",
+              "label": "Cold",
+              "value": "cold"
+            },
+            {
+              "id": "fire",
+              "label": "Fire",
+              "value": "fire"
+            },
+            {
+              "id": "lightning",
+              "label": "Lightning",
+              "value": "lightning"
+            },
+            {
+              "id": "poison",
+              "label": "Poison",
+              "value": "poison"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "poison"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbscrElementalA",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

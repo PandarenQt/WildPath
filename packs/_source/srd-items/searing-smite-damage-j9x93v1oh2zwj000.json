@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-searing-smite-damage",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:fire"
       ],
       "costs": {
         "allOf": [

@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-staff-of-fire-wall-of-fire",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:fire"
       ],
       "costs": {
         "allOf": [

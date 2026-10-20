@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-legend-lore",
       "tags": [
-        "spell"
+        "spell",
+        "school:divination"
       ],
       "costs": {
         "allOf": []

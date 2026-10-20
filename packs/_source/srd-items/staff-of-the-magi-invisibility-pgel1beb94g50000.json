@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-staff-of-the-magi-invisibility",
       "tags": [
-        "spell"
+        "spell",
+        "school:illusion"
       ],
       "costs": {
         "allOf": [

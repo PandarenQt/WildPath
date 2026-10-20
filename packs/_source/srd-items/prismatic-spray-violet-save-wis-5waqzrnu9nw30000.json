@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-prismatic-spray-violet-save-wis",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation"
       ],
       "costs": {
         "allOf": [

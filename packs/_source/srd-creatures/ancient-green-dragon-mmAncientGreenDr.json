@@ -415,7 +415,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "anyOf": [
@@ -505,7 +506,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-mind-spike",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination",
+            "damage:psychic"
           ],
           "costs": {
             "anyOf": [
@@ -618,7 +621,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-geas",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment",
+            "damage:psychic"
           ],
           "costs": {
             "anyOf": [
@@ -745,7 +750,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-modify-memory",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "anyOf": [
@@ -862,7 +868,9 @@
           "schemaVersion": 1,
           "id": "action:srd-mind-invasion-mind-spike",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination",
+            "damage:psychic"
           ],
           "costs": {
             "anyOf": [

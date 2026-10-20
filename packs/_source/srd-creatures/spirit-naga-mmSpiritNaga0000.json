@@ -331,7 +331,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -409,7 +410,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-mage-hand",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -469,7 +472,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-minor-illusion",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -547,7 +552,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-water-breathing",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -626,7 +632,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-thoughts",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -703,7 +710,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-dimension-door",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -778,7 +786,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-hold-person",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [
@@ -875,7 +884,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-lightning-bolt",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:lightning"
           ],
           "costs": {
             "allOf": [

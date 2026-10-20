@@ -452,7 +452,8 @@
           "schemaVersion": 1,
           "id": "action:srd-charm-charm-person",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [
@@ -594,7 +595,8 @@
           "schemaVersion": 1,
           "id": "action:srd-beguile-command",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [

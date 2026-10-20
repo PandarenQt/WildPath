@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-scrying-firsthand-and-body-part",
       "tags": [
-        "spell"
+        "spell",
+        "school:divination"
       ],
       "costs": {
         "allOf": []

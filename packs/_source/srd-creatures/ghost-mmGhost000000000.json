@@ -267,7 +267,8 @@
           "schemaVersion": 1,
           "id": "action:srd-etherealness-etherealness-etherealness",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [

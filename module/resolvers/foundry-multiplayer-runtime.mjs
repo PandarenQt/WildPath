@@ -59,6 +59,7 @@ import {createMultiplayerActionCoordinator} from "./multiplayer-action-coordinat
 import {createPhysicalDiceProvider} from "./roll-provider-resolver.mjs";
 import {resolveActorResourcePayment} from "./resource-resolver.mjs";
 import {knownMetamagic, METAMAGIC_POOL} from "../helpers/metamagic.mjs";
+import {resolveActionConfiguration} from "../helpers/action-configuration.mjs";
 import {createMultiplayerMovementAuthority} from "./multiplayer-movement-authority.mjs";
 import {createFoundryV14ReactionPauseAdapter} from "../adapters/foundry-v14-reaction-pause-adapter.mjs";
 import {foundryMovementIntentToStagedOptions} from "../adapters/foundry-v14-staged-movement-adapter.mjs";
@@ -791,6 +792,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     turn: game.combat?.started ? turnKey(game.combat) : null, context: {attack: {...attackContext(definition.attack.type ?? null, spatial,
       targetEntries[0], game, sourceToken, actor).attack, rollMode: attackRollMode}},
     target: targetEntries.length === 1 ? targetEntries[0].actor : null}) : combatStatistics;
+  // Healing bonuses, which may read the level it is cast at (Disciple of Life: 2 + that level).
+  const healingStatistic = definition?.healing?.length ? actionCombatStatistics(actor, definition, {item: action,
+    context: {castLevel: intent.configuration?.choices ? (resolveActionConfiguration({definition, actorSystem,
+      choices: intent.configuration.choices}).configuration?.castingLevel ?? null) : null}}).healing ?? null : null;
   const concentration = foundryConcentrationContext({targetEntries, game, scene: sourceToken?.parent ?? null});
   // Holders of effects a broken concentration ends are committed on too; a key another Actor already owns is
   // ambiguous (copies of one base Actor) and is dropped, so lookups fall through to the holder's uuid.
@@ -836,6 +841,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(typeof intent.messageMode === "string" ? {messageMode: intent.messageMode} : {})
       },
       ...(statistics.damage ? {damage: statistics.damage} : {}),
+      ...(healingStatistic ? {healing: healingStatistic} : {}),
       ...((statistics.attack || attackRollMode) ? {attack: {...(statistics.attack ?? {}),
         ...(attackRollMode ? {rollMode: attackRollMode} : {}),
         ...(ownInspiration ? {inspiration: ownInspiration} : {}),

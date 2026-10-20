@@ -252,7 +252,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-light",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:evocation"
           ],
           "costs": {
             "allOf": [
@@ -312,7 +314,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-thaumaturgy",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -398,7 +402,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-command",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [
@@ -617,7 +622,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-hold-person",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [
@@ -712,7 +718,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spiritual-weapon-spiritual-weapon",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation"
           ],
           "costs": {
             "allOf": [

@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-wand-of-magic-missiles-magic-missile",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:force"
       ],
       "costs": {
         "allOf": [

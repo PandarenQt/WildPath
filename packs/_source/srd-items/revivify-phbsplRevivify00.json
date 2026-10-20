@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-revivify",
       "tags": [
-        "spell"
+        "spell",
+        "school:necromancy",
+        "damage:healing"
       ],
       "costs": {
         "allOf": [

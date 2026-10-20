@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-rod-of-alertness-see-invisibility",
       "tags": [
-        "spell"
+        "spell",
+        "school:divination"
       ],
       "costs": {
         "allOf": [

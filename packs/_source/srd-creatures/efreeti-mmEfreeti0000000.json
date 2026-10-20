@@ -142,7 +142,8 @@
           "schemaVersion": 1,
           "id": "action:srd-wishes-cast-wish-wish",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -468,7 +469,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -546,7 +548,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-elementalism",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -596,7 +600,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-gaseous-form",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -759,7 +764,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-invisibility",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -846,7 +852,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-major-image",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -949,7 +956,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-plane-shift",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -1018,7 +1026,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-tongues",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -1114,7 +1123,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-wall-of-fire",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:fire"
           ],
           "costs": {
             "allOf": [

@@ -624,7 +624,9 @@
           "schemaVersion": 1,
           "id": "action:srd-hellfire-spellcasting-fireball",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:fire"
           ],
           "costs": {
             "allOf": [
@@ -733,7 +735,8 @@
           "schemaVersion": 1,
           "id": "action:srd-hellfire-spellcasting-hold-monster",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [
@@ -831,7 +834,9 @@
           "schemaVersion": 1,
           "id": "action:srd-hellfire-spellcasting-wall-of-fire",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:fire"
           ],
           "costs": {
             "allOf": [

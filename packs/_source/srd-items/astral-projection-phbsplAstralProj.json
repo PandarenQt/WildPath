@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-astral-projection",
       "tags": [
-        "spell"
+        "spell",
+        "school:necromancy"
       ],
       "costs": {
         "allOf": []

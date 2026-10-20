@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-dancing-lights-move-lights",
       "tags": [
-        "spell"
+        "spell",
+        "cantrip",
+        "school:illusion"
       ],
       "costs": {
         "allOf": [

@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-water-ring-of-elemental-command-water-walk",
       "tags": [
-        "spell"
+        "spell",
+        "school:transmutation"
       ],
       "costs": {
         "allOf": [

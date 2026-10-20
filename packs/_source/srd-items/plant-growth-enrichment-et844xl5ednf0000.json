@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-plant-growth-enrichment",
       "tags": [
-        "spell"
+        "spell",
+        "school:transmutation"
       ],
       "costs": {
         "allOf": []

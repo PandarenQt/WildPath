@@ -545,7 +545,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -623,7 +624,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-minor-illusion",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -701,7 +704,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-scorching-ray",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:fire"
           ],
           "costs": {
             "anyOf": [
@@ -794,7 +799,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-shapechange",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -851,7 +857,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-speak-with-animals",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -922,7 +929,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-control-weather",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -1000,7 +1008,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-thoughts",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -1077,7 +1086,9 @@
           "schemaVersion": 1,
           "id": "action:srd-blazing-light-scorching-ray",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:fire"
           ],
           "costs": {
             "anyOf": [

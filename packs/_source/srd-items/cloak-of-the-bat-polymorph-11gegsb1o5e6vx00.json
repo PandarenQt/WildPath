@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-cloak-of-the-bat-polymorph",
       "tags": [
-        "spell"
+        "spell",
+        "school:transmutation"
       ],
       "costs": {
         "allOf": [

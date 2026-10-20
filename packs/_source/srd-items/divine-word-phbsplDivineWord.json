@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-divine-word",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation"
       ],
       "costs": {
         "allOf": [

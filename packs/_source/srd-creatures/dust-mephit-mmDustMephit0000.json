@@ -266,7 +266,8 @@
           "schemaVersion": 1,
           "id": "action:srd-sleep-sleep",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [

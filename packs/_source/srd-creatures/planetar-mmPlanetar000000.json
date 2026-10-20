@@ -440,7 +440,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-evil-and-good",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -518,7 +519,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-commune",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -588,7 +590,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-control-weather",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -666,7 +669,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-dispel-evil-and-good",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -759,7 +763,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-raise-dead",
           "tags": [
-            "spell"
+            "spell",
+            "school:necromancy"
           ],
           "costs": {
             "allOf": [
@@ -1125,7 +1130,8 @@
           "schemaVersion": 1,
           "id": "action:srd-divine-aid-bless",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [
@@ -1255,7 +1261,8 @@
           "schemaVersion": 1,
           "id": "action:srd-divine-aid-dispel-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -1339,7 +1346,8 @@
           "schemaVersion": 1,
           "id": "action:srd-divine-aid-healing-word",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -1437,7 +1445,8 @@
           "schemaVersion": 1,
           "id": "action:srd-divine-aid-lesser-restoration",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -1597,7 +1606,8 @@
           "schemaVersion": 1,
           "id": "action:srd-divine-aid-cure-wounds",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -1695,7 +1705,8 @@
           "schemaVersion": 1,
           "id": "action:srd-divine-aid-invisibility",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -1782,7 +1793,8 @@
           "schemaVersion": 1,
           "id": "action:srd-divine-aid-lesser-restoration",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -1942,7 +1954,8 @@
           "schemaVersion": 1,
           "id": "action:srd-divine-aid-remove-curse",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [

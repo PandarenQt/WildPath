@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-candle-of-invocation-burn-and-cast-gate",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration"
       ],
       "costs": {
         "allOf": [

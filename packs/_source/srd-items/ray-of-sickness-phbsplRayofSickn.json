@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-ray-of-sickness",
       "tags": [
-        "spell"
+        "spell",
+        "school:necromancy",
+        "damage:poison"
       ],
       "costs": {
         "allOf": [

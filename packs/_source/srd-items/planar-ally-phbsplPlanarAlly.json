@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-planar-ally-beseech-entity",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration"
       ],
       "costs": {
         "allOf": []

@@ -391,7 +391,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-evil-and-good",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -469,7 +470,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-druidcraft",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -519,7 +522,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-calm-emotions",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [
@@ -690,7 +694,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-dispel-evil-and-good",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -783,7 +788,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-entangle",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -882,7 +888,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-pass-without-trace",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -983,7 +990,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-word-of-recall",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -1187,7 +1195,8 @@
           "schemaVersion": 1,
           "id": "action:srd-unicorn-s-blessing-cure-wounds",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -1285,7 +1294,8 @@
           "schemaVersion": 1,
           "id": "action:srd-unicorn-s-blessing-lesser-restoration",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [

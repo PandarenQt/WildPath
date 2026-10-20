@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-prismatic-spray-cast",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:acid"
       ],
       "costs": {
         "allOf": [

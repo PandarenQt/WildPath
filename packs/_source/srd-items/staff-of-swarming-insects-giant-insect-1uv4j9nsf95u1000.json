@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-staff-of-swarming-insects-giant-insect",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration"
       ],
       "costs": {
         "allOf": [

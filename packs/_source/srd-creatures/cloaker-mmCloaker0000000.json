@@ -345,7 +345,8 @@
           "schemaVersion": 1,
           "id": "action:srd-phantasms-mirror-image",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [

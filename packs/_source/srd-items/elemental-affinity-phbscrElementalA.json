@@ -21,14 +21,11 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"Acid\" is passive or triggered: not automated",
-          "\"Cold\" is passive or triggered: not automated",
-          "\"Fire\" is passive or triggered: not automated",
-          "\"Lightning\" is passive or triggered: not automated",
-          "\"Poison\" is passive or triggered: not automated"
-        ]
-      }
+        "notes": []
+      },
+      "grants": [
+        "1pkxonyil972q000"
+      ]
     }
   }
 }

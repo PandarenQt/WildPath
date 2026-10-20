@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-chain-lightning",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:lightning"
       ],
       "costs": {
         "allOf": [

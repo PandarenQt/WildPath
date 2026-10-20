@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-animal-friendship",
       "tags": [
-        "spell"
+        "spell",
+        "school:enchantment"
       ],
       "costs": {
         "allOf": [

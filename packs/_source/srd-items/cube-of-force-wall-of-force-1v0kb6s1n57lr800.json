@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-cube-of-force-wall-of-force",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation"
       ],
       "costs": {
         "allOf": [

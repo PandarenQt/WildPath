@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-power-word-heal-heal-fully",
       "tags": [
-        "spell"
+        "spell",
+        "school:enchantment"
       ],
       "costs": {
         "allOf": [

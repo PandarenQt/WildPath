@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-staff-of-charming-comprehend-languages",
       "tags": [
-        "spell"
+        "spell",
+        "school:divination"
       ],
       "costs": {
         "allOf": [

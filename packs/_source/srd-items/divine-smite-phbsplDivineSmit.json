@@ -12,6 +12,8 @@
       "id": "action:srd-divine-smite-cast",
       "tags": [
         "spell",
+        "school:evocation",
+        "damage:radiant",
         "smite"
       ],
       "costs": {

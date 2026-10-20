@@ -548,7 +548,8 @@
           "schemaVersion": 1,
           "id": "action:srd-frightful-presence-fear",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [

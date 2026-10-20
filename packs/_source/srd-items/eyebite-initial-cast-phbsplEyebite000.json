@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-eyebite-initial-cast",
       "tags": [
-        "spell"
+        "spell",
+        "school:necromancy"
       ],
       "costs": {
         "allOf": [

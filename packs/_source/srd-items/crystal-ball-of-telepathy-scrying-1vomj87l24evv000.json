@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-crystal-ball-of-telepathy-scrying",
       "tags": [
-        "spell"
+        "spell",
+        "school:divination"
       ],
       "costs": {
         "allOf": [

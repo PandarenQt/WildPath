@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-harm",
       "tags": [
-        "spell"
+        "spell",
+        "school:necromancy",
+        "damage:necrotic"
       ],
       "costs": {
         "allOf": [

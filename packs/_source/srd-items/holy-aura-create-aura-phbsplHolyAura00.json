@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-holy-aura-create-aura",
       "tags": [
-        "spell"
+        "spell",
+        "school:abjuration"
       ],
       "costs": {
         "allOf": [

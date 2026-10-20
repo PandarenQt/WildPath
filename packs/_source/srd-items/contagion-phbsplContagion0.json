@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-contagion",
       "tags": [
-        "spell"
+        "spell",
+        "school:necromancy",
+        "damage:necrotic"
       ],
       "costs": {
         "allOf": [

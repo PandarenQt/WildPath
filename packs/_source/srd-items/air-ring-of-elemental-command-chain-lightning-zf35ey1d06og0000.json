@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-air-ring-of-elemental-command-chain-lightning",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:lightning"
       ],
       "costs": {
         "allOf": [

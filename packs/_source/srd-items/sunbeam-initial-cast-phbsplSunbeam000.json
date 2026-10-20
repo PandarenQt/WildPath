@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-sunbeam-initial-cast",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:radiant"
       ],
       "costs": {
         "allOf": [

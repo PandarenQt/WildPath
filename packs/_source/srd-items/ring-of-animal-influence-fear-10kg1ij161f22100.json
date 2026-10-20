@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-ring-of-animal-influence-fear-affects-beasts-only-fear",
       "tags": [
-        "spell"
+        "spell",
+        "school:illusion"
       ],
       "costs": {
         "allOf": [

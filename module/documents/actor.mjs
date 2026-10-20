@@ -116,11 +116,12 @@ export default class WildPathActor extends Actor {
    * @param {string[]} [options.tags]    Tags of what is being rolled (attack type, Action tags).
    * @returns {WildPathStatistic}
    */
-  getStatistic(domain, {item=null, tags=[], auras=false}={}) {
+  getStatistic(domain, {item=null, tags=[], auras=false, context={}}={}) {
     const domains = [domain].flat().filter(Boolean).map(String);
     const modifiers = [];
-    // What a rule's predicate sees: the roll's tags (attack type, the Action's tags) and the creature's conditions.
-    const seen = {tags: [...new Set(tags.filter(Boolean).map(String))], conditions: [...(this.statuses ?? [])]};
+    // What a rule's predicate and value see: the roll's tags (attack type, the Action's tags), the creature's
+    // conditions, and `context` (`castLevel`: Disciple of Life's 2 + the spell's level).
+    const seen = {...context, tags: [...new Set(tags.filter(Boolean).map(String))], conditions: [...(this.statuses ?? [])]};
 
     const transformation = this.transformation;
     const untrained = untrainedArmor(this);

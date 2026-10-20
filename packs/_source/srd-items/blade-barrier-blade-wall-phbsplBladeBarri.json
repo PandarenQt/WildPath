@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-blade-barrier-blade-wall",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:force"
       ],
       "costs": {
         "allOf": [

@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-ring-of-water-walking-water-walk",
       "tags": [
-        "spell"
+        "spell",
+        "school:transmutation"
       ],
       "costs": {
         "allOf": [

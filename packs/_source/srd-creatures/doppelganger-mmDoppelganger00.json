@@ -235,7 +235,8 @@
           "schemaVersion": 1,
           "id": "action:srd-read-thoughts-detect-thoughts",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [

@@ -442,7 +442,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -520,7 +521,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-guiding-bolt",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:radiant"
           ],
           "costs": {
             "allOf": [
@@ -628,7 +631,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-shapechange",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -685,7 +689,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-speak-with-animals",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -756,7 +761,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-thaumaturgy",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -842,7 +849,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-thoughts",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -919,7 +927,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-control-water",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation",
+            "damage:bludgeoning"
           ],
           "costs": {
             "allOf": [
@@ -1080,7 +1090,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-scrying",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -1199,7 +1210,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-water-breathing",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -1297,7 +1309,9 @@
           "schemaVersion": 1,
           "id": "action:srd-guiding-light-guiding-bolt",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:radiant"
           ],
           "costs": {
             "allOf": [

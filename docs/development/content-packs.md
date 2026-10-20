@@ -436,6 +436,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - Divine Strike, Primal Strike and Lifedrinker are own-hit offers on any weapon hit.
   - Colossus Slayer and Frenzy are `ExtraDamage` traits.
   - Rage's effect has the `raging` slug.
+- **Spell tags (2026-10-20):** every spell (and every creature's spell) is tagged `cantrip`, `school:<name>` and
+  `damage:<type>`; that touched 646 pack files, tags only. Potent Spellcasting, Empowered Evocation and Disciple of Life
+  are traits, and Elemental Affinity brings its choosing Action (classes-and-spellcasting.md).
 - **Metamagic (2026-10-19):** its options are features flagged `metamagic`, which a sorcerer's spells offer
   (classes-and-spellcasting.md). Empowered Spell's feature grants its Action. The class lists only what brings its Actions
   with it (`convertedIds`: gear, or a feature with `grants`).

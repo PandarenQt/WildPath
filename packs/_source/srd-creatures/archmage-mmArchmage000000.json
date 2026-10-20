@@ -268,7 +268,8 @@
           "schemaVersion": 1,
           "id": "action:srd-misty-step-misty-step",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -341,7 +342,8 @@
           "schemaVersion": 1,
           "id": "action:srd-protective-magic-counterspell",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -445,7 +447,8 @@
           "schemaVersion": 1,
           "id": "action:srd-protective-magic-shield",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -553,7 +556,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -631,7 +635,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-thoughts",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -689,7 +694,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-disguise-self",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -759,7 +765,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-invisibility",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -827,7 +834,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-light",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:evocation"
           ],
           "costs": {
             "allOf": [
@@ -887,7 +896,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-mage-armor",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -983,7 +993,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-mage-hand",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -1043,7 +1055,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-prestidigitation",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -1093,7 +1107,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-fly",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -1198,7 +1213,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-lightning-bolt",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:lightning"
           ],
           "costs": {
             "allOf": [
@@ -1306,7 +1323,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-cone-of-cold",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:cold"
           ],
           "costs": {
             "allOf": [
@@ -1410,7 +1429,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-mind-blank",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -1524,7 +1544,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-scrying",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -1643,7 +1664,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-teleport",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [

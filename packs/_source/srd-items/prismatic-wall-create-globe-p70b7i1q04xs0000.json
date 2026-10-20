@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-prismatic-wall-create-globe",
       "tags": [
-        "spell"
+        "spell",
+        "school:abjuration"
       ],
       "costs": {
         "allOf": [

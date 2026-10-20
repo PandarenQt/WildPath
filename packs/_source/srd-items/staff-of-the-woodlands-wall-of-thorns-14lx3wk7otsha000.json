@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-staff-of-the-woodlands-wall-of-thorns",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration",
+        "damage:piercing"
       ],
       "costs": {
         "allOf": [

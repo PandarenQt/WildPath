@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-ring-of-three-wishes-wish",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration"
       ],
       "costs": {
         "allOf": [

@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-cone-of-cold",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:cold"
       ],
       "costs": {
         "allOf": [

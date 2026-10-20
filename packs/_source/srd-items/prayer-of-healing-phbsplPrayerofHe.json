@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-prayer-of-healing",
       "tags": [
-        "spell"
+        "spell",
+        "school:abjuration"
       ],
       "costs": {
         "allOf": []

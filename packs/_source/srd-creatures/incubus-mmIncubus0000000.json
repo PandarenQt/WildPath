@@ -274,7 +274,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-disguise-self",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -344,7 +345,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-etherealness",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -415,7 +417,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-dream",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion",
+            "damage:psychic"
           ],
           "costs": {
             "allOf": [
@@ -547,7 +551,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-hypnotic-pattern",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [

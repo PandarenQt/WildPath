@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-staff-of-the-magi-knock",
       "tags": [
-        "spell"
+        "spell",
+        "school:transmutation"
       ],
       "costs": {
         "allOf": [

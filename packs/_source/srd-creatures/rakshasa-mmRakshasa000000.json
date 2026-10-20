@@ -414,7 +414,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -492,7 +493,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-thoughts",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -550,7 +552,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-disguise-self",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -620,7 +623,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-mage-hand",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -680,7 +685,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-minor-illusion",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -758,7 +765,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-fly",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -863,7 +871,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-invisibility",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -950,7 +959,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-major-image",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -1053,7 +1063,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-plane-shift",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [

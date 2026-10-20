@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-circlet-of-blasting-scorching-ray",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:fire"
       ],
       "costs": {
         "allOf": [

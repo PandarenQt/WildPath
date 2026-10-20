@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-scrying-secondhand-and-garment",
       "tags": [
-        "spell"
+        "spell",
+        "school:divination"
       ],
       "costs": {
         "allOf": []

@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-alter-self-attack-claws",
       "tags": [
-        "spell"
+        "spell",
+        "school:transmutation",
+        "damage:slashing"
       ],
       "costs": {
         "allOf": [
