@@ -324,6 +324,18 @@
       "heightened": "Heightened Spell: which creature has Disadvantage on its save?",
       "careful": "Careful Spell: which creatures succeed on their saves?"
     },
+    "PORTENT": {
+      "Title": "Portent",
+      "Keep": "Keep the roll",
+      "Offer": "{roller} rolled. Replace the d20 with one of {name}'s foretelling rolls?",
+      "Use": "Use {value}",
+      "Button": "Portent ({name})",
+      "Choose": "Foretelling roll",
+      "Replace": "Replace the d20",
+      "Rolled": "{name}: foretelling rolls {values}",
+      "Replaced": "{name} foretold {value}: the total is {total}.",
+      "Dice": "Portent"
+    },
     "INSPIRATION": {
       "Title": "Heroic Inspiration",
       "Keep": "Keep the roll",

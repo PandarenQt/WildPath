@@ -6,6 +6,7 @@ import {registerTokenRuler} from "./module/applications/token-ruler.mjs";
 import {registerSunlightConfig} from "./module/applications/sunlight-config.mjs";
 import {registerChatCardInteractions} from "./module/adapters/foundry-v14-chat-card-interactions.mjs";
 import {registerInspirationRerolls} from "./module/applications/inspiration-reroll.mjs";
+import {registerPortent} from "./module/adapters/foundry-v14-portent.mjs";
 
 import "./module/tests/quench/index.mjs";
 
@@ -324,6 +325,7 @@ function collectionContents(collection) {
 Hooks.on("deleteCombat", combat => onCombatEnd(combat));
 registerChatCardInteractions();
 registerInspirationRerolls();
+registerPortent();
 Hooks.on("moveToken", (document, movement, operation, user) => onFoundryV14MoveToken(document, movement, operation, user));
 Hooks.on("pauseToken", document => onFoundryV14PauseToken(document));
 Hooks.on("stopToken", document => onFoundryV14StopToken(document));

@@ -361,10 +361,16 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
       selectedPaymentOptionId: current.configuration.selectedPaymentOptionId ?? null
     } : null,
     preview: current.results?.preview ?? null,
-    rolls: (current.rollResults ?? []).map(entry => {
+    rolls: (current.rollResults ?? []).reduce((rolls, entry) => {
       const requestId = entry.requestId ?? entry.rollRequest?.id ?? null;
       const request = entry.rollRequest ?? (current.rollRequests ?? []).find(candidate => candidate?.id === requestId) ?? null;
-      return {
+      const previous = rolls.at(-1);
+      // A d20 set to a number (Stroke of Luck, Portent) rolls nothing: it shows as entered, seen as the roll it replaced.
+      if ( !entry.rollResult && Number.isFinite(entry.roll?.total) && previous ) return [...rolls, {requestId: null,
+        type: entry.type ?? null, visibility: previous.visibility, rollerKind: previous.rollerKind,
+        formula: String(previous.formula ?? "").replace(/^\s*\d*d20(?:min\d+)?(?:k[hl]\d*)?/i, String(entry.roll.natural ?? "")) || null,
+        rollResult: {total: entry.roll.total, natural: entry.roll.natural ?? null}}];
+      return [...rolls, {
         requestId,
         type: entry.type ?? entry.semanticType ?? null,
         visibility: rollVisibility(request, entry.rollResult),
@@ -372,8 +378,8 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
         rollerKind: request?.authority?.kind ?? null,
         formula: request ? (rollFormulaForRequest(request).formula ?? null) : null,
         rollResult: entry.rollResult ?? null
-      };
-    }),
+      }];
+    }, []),
     outcomes: {
       attack: current.results?.attackResolution ?? null,
       save: current.results?.saveResolution ?? null,

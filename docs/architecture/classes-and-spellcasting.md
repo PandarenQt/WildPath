@@ -522,6 +522,33 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   d20 shows a 1 (`inspirationReroll` filters by natural). A reroll may carry its own `rollMode` and `bonus`
   (rolls.md). shortcut: like every test offer, only when the roll failed.
 
+## Portent (2026-10-20)
+
+2024 Diviner: after a Long Rest it rolls two d20s (three from level 14, Greater Portent). It may replace a D20 Test by
+itself or a creature it can see with one of them, once per turn. By the maintainer's ruling (2026-10-20) it replaces
+the d20 after the roll, like Stroke of Luck.
+
+How it works (`adapters/foundry-v14-portent.mts`):
+- **The feature.** The converted feature carries `flags.wildpath.portentDice`, a table by wizard level (local PHB
+  conversion; the SRD has no Diviner).
+- **The dice.** `Actor#rest` rolls them on a Long Rest, in a message to its owner and the GM. They are kept as
+  `flags.wildpath.portent` (`{"1": 14, "2": 3}`, where 0 means used), and the sheet header shows the unused ones. The
+  turn of the last use is `portentTurn`.
+- **Who may use one.** `portentHolders`: every Diviner on the Scene that
+  - has an unused die;
+  - hasn't used one this turn;
+  - isn't set to Never (its feature's reaction policy);
+  - is the roller, or sees it (`relationsToSource`: sight, light, walls).
+
+  A GM-hidden roller isn't offered to a player's Diviner. The Diviner's active players answer, otherwise the GM.
+- **An Action's d20.** The runtime offers `attack.portent`, `check.portent` and `save.portentByTarget`.
+  - After the roll, `portentReplace` (pipeline) asks each holder before Heroic Inspiration. A die used sets the natural
+    (`setNatural`), so a 20 is a critical hit. A Diviner uses at most one die per resolution, even across several saves.
+  - `consumePortents` spends the die once the Action completes (shortcut: after the commit, not in it).
+- **A sheet roll's or initiative's card.** A Diviner's owner gets a Portent button. The active GM checks the request
+  (the user owns the Diviner, which may use it now). It then posts the new total, marks the old card, sets the
+  combatant's initiative, and spends the die.
+
 An attack's added die is kept when the attack still misses (`refundOnFail`), as a check's is. shortcut: offered only on
 a failed roll. Live (two browsers, 14.369): QA Caster as a level-10 bard with Peerless Skill missed with Dagger attacks
 four times even after the d10, and Bardic Inspiration stayed at 4; an 8 plus a d10 of 7 hit (AC 15), and it went to 3.

@@ -1661,3 +1661,13 @@ test("languages convert: a background's choices and a creature's own, with its f
   const onyx = read("srd-items", "onyx-dog-");
   assert.deepEqual([onyx.system.ruleElements, onyx.flags.wildpath.training], [[], undefined]);
 });
+
+test("the Diviner's Portent carries its dice by wizard level; nothing to use, no note", () => {
+  const portent = convertItem({_id: "testPortent00001", name: "Portent", type: "feat",
+    system: {identifier: "portent", description: {value: "<p>Roll two d20s.</p>"}, activities: {}, source: {license: "test"}}},
+  {licensed: () => true, book: "PHB"});
+  const [feature] = portent.items;
+  assert.equal(feature.type, "feature");
+  assert.deepEqual(feature.flags.wildpath.portentDice, {type: "table", key: {type: "class-level", class: "wizard"}, rows: {1: 2, 14: 3}});
+  assert.deepEqual(feature.flags.wildpath.conversion.notes, []);
+});

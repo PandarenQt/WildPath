@@ -1,3 +1,4 @@
+import {consumePortents, portentOffer} from "../adapters/foundry-v14-portent.mjs";
 import {WILDPATH} from "../config.mjs";
 import {createFoundryDigitalRollProvider} from "../adapters/foundry-digital-roll-provider.mjs";
 import {createFoundryV14DocumentPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
@@ -158,10 +159,12 @@ export function registerFoundryV14MultiplayerResolution({
       await endEffectsOnTargets(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenSaved(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenDamaged(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
-      await endEffectsWhenChecked(options?.actor, state?.input?.check ?? null);
+      await endEffectsWhenChecked(event.options?.actor, event.state?.input?.check ?? null);
       await recordSlotSpell(event, {game});
       await recordAttackTurn(event, {game});
       await recordQuickened(event, {game});
+      // The foretelling rolls its d20s used (Portent).
+      await consumePortents(event, {game, fromUuid: globalThis.fromUuid ?? (async () => null)});
       await markCasterConcentration(event, {game});
     },
     afterCancelled: event => afterCountered(event, {game}),
@@ -761,6 +764,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const evasionByTarget = {};
   const legendaryByTarget = {};
   const inspirationByTarget = {};
+  const portentByTarget = {};
   // What keeps each target up at 0 Hit Points, and which are hostile to this creature (Dark One's Blessing).
   const zeroHpByTarget = {};
   const hostileKeys = [];
@@ -832,6 +836,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         systemSnapshots.get(targetActor), game, "save", {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER}), saverToken, definition, game, "save",
         {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, register: payer => { allyPayers.push(payer); }});
       if ( inspiration ) inspirationByTarget[key] = inspiration;
+      // Portent: a Diviner who sees it may replace its d20.
+      const portent = portentOffer(saverToken, game);
+      if ( portent ) portentByTarget[key] = portent;
     }
     if ( definition?.damage?.length ) {
       const key = target.tokenId ?? target.id;
@@ -927,6 +934,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER}) : ownOffer;
   const ownInspiration = definition?.check ? withTacticalMind(ownTest, actor, actorSystem, game)
     : (definition?.tags?.includes("spell") ? withSeekingSpell(ownTest, actor, actorSystem, game) : ownTest);
+  // Portent: a Diviner who sees the acting creature may replace its attack's or check's d20.
+  const ownPortent = (definition?.attack || definition?.check) ? portentOffer(sourceToken, game) : null;
   // A character paying for a reroll is committed on like a target, its uuid its key: the acting creature for its own
   // roll, or a player character for a monster's.
   if ( ownInspiration?.own ) targetActors[actor.uuid] ??= actor;
@@ -963,6 +972,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       ...((statistics.attack || attackRollMode) ? {attack: {...(statistics.attack ?? {}),
         ...(attackRollMode ? {rollMode: attackRollMode, rollModeSources: attackRollModeSourceList} : {}),
         ...(ownInspiration ? {inspiration: ownInspiration} : {}),
+        ...(ownPortent ? {portent: ownPortent} : {}),
         ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {}),
         ...(attackBonuses ? {bonusByTarget: attackBonuses} : {})}} : {}),
       ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes, modifiersByTarget: saveModifiers,
@@ -973,10 +983,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(Object.keys(saveAbilityByTarget).length ? {abilityByTarget: saveAbilityByTarget} : {}),
         ...(Object.keys(legendaryByTarget).length ? {legendaryByTarget} : {}),
         ...(Object.keys(inspirationByTarget).length ? {inspirationByTarget} : {}),
+        ...(Object.keys(portentByTarget).length ? {portentByTarget} : {}),
         ...(Object.keys(evasionByTarget).length ? {evasionByTarget} : {}),
         outcomesByTarget: saveOutcomes}} : {}),
       ...(definition?.check ? {check: {...actionCheckInput(actor, definition.check, sourceToken),
-        ...(ownInspiration ? {inspiration: ownInspiration} : {})}} : {}),
+        ...(ownInspiration ? {inspiration: ownInspiration} : {}), ...(ownPortent ? {portent: ownPortent} : {})}} : {}),
       ...(definition?.summon && Array.isArray(intent.summon?.points) ? {summonPoints: intent.summon.points.slice(0, 20)
         .map(point => ({x: Number(point?.x), y: Number(point?.y)}))
         .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y))} : {}),

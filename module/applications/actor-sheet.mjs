@@ -1,6 +1,7 @@
 import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.mjs";
 import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {levelUp} from "./level-up.mjs";
+import {portentDice, portentFeature} from "../adapters/foundry-v14-portent.mjs";
 import {LANGUAGES} from "../helpers/level-up.mjs";
 import {chooseAbilityScores} from "./ability-scores.mjs";
 import {mysticArcanumPoolId, preparedSpellLimit, preparesSpell, spellBaseLevel} from "../helpers/spellcasting.mjs";
@@ -113,6 +114,8 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       granted: [...named(key, (this.actor.system.training?.[key] ?? []).filter(name => !(own.training?.[key] ?? []).includes(name))),
         ...grants(key)].join(", ")}));
     context.typeLabel = CONFIG.Actor.typeLabels?.[this.actor.type] ?? this.actor.type;
+    // A Diviner's foretelling rolls not yet used (Portent).
+    context.portent = portentFeature(this.actor) ? portentDice(this.actor).map(die => die.value).join(", ") : "";
     // A "Level up" button per class while the character is below level 20 (G8).
     const classes = this.actor.items.filter(item => item.type === "class");
     const total = classes.reduce((sum, item) => sum + (Number(item.system.levels) || 0), 0);
