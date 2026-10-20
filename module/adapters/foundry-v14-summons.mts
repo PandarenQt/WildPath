@@ -21,7 +21,7 @@ interface SummonToken {
   id: string; uuid: string; x: number; y: number; disposition?: number; hidden?: boolean; actorId?: string | null;
   parent?: SummonScene | null;
   actor?: {uuid: string; update?(data: Data): Promise<unknown>; createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown>;
-    setFlag?(scope: string, key: string, value: unknown): Promise<unknown>; ensureGrantedPools?(): Promise<unknown>;
+    setFlag?(scope: string, key: string, value: unknown): Promise<unknown>; syncItemRecords?(): Promise<unknown>;
     system?: {resources?: {health?: {base?: number; value?: number}}; defenses?: {ac?: {value?: number}}}} | null;
   flags?: {wildpath?: {summon?: SummonFlag}};
   getOccupiedGridSpaceOffsets?(data?: {x: number; y: number}): Offset[];
@@ -232,7 +232,7 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     // The level it was summoned at, which a spirit's own rules read (its Multiattack: half this spell's level).
     if ( level ) for ( const token of tokens ) {
       await token.actor?.setFlag?.("wildpath", "summonLevel", level);
-      await token.actor?.ensureGrantedPools?.();
+      await token.actor?.syncItemRecords?.();
     }
     // 2024: in combat a summon shares its caster's Initiative and takes its turn right after the caster's.
     // shortcut: a creature tied with the caster but sorted after it still goes before the summons; fine for whole-number initiative.

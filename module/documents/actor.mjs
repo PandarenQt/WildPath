@@ -48,6 +48,9 @@ const identifierOf = item => item.system?.identifier || String(item.name ?? "").
  * Class records from class and subclass Items: each class with its levels, Hit Die, spellcasting and the subclasses
  * that name it. The class marked original (its level-1 class), else the first, is the original one.
  */
+/** Whether a descendant document is a class or subclass Item (its class records change with it). */
+const isClassDocument = document => (document?.documentName === "Item") && ["class", "subclass"].includes(document.type);
+
 export function classRecordsFromItems(items) {
   const classes = items.filter(item => item.type === "class");
   const marked = classes.some(item => item.system?.original);
@@ -300,21 +303,52 @@ export default class WildPathActor extends Actor {
     });
   }
 
+  /** The queue of record syncs: one at a time, each from the stored data the one before it left. */
+  #recordSync = Promise.resolve();
+
   /**
-   * Its class records (levels, Hit Dice, spellcasting, subclasses) from its class and subclass Items (G8), stored where
-   * every reader of classes looks. Called when one of those Items is added, changed or removed; a creature with no
-   * such Items keeps the records it was given.
+   * Store what its Items and effects make of it: its class records (levels, Hit Dice, spellcasting, subclasses, G8) when
+   * `classes` (a class or subclass Item changed; a creature with no such Items keeps the records it was given), with the
+   * class pools the data model's `_preUpdate` adds to that write, then any pool a grant newly needs (`GrantResource`).
+   * Syncs run one after another, so no write starts from a stale copy of the pools.
+   * @returns {Promise<void>} once this sync (and every one before it) is stored
    */
-  async syncClassRecords() {
-    const records = classRecordsFromItems([...this.items]);
-    if ( JSON.stringify(this.toObject(true).system.classes ?? []) !== JSON.stringify(records) ) await this.update({"system.classes": records});
+  syncItemRecords({classes=false}={}) {
+    this.#recordSync = this.#recordSync.then(async () => {
+      // Its class records first (their pools come with them), so a granted pool is sized at its new level (a
+      // Proficiency Bonus of uses), then full.
+      const records = classes ? classRecordsFromItems([...this.items]) : null;
+      if ( records && (JSON.stringify(this.toObject(true).system.classes ?? []) !== JSON.stringify(records)) ) {
+        await this.update({"system.classes": records});
+      }
+      const pools = this.toObject(true).system.pools ?? [];
+      const missing = this.grantedPoolsMissing(pools);
+      if ( missing.length ) await this.update({"system.pools": [...pools, ...missing]});
+    }).catch(error => console.error("WildPath | Actor records could not be stored.", error));
+    return this.#recordSync;
   }
 
-  /** Store any pool a grant newly needs (an Item or effect with `GrantResource` was added or changed). */
-  async ensureGrantedPools() {
-    const pools = this.toObject(true).system.pools;
-    const missing = this.grantedPoolsMissing(pools);
-    if ( missing.length ) await this.update({"system.pools": [...pools, ...missing]});
+  /** Once every record sync so far is stored (a level-up reads the pools after its class's). */
+  recordsSettled() {
+    return this.#recordSync;
+  }
+
+  /** @inheritDoc */
+  _onCreateDescendantDocuments(parent, collection, documents, data, options, userId) {
+    super._onCreateDescendantDocuments(parent, collection, documents, data, options, userId);
+    if ( userId === globalThis.game?.user?.id ) void this.syncItemRecords({classes: documents.some(isClassDocument)});
+  }
+
+  /** @inheritDoc */
+  _onUpdateDescendantDocuments(parent, collection, documents, changes, options, userId) {
+    super._onUpdateDescendantDocuments(parent, collection, documents, changes, options, userId);
+    if ( userId === globalThis.game?.user?.id ) void this.syncItemRecords({classes: documents.some(isClassDocument)});
+  }
+
+  /** @inheritDoc */
+  _onDeleteDescendantDocuments(parent, collection, documents, ids, options, userId) {
+    super._onDeleteDescendantDocuments(parent, collection, documents, ids, options, userId);
+    if ( userId === globalThis.game?.user?.id ) void this.syncItemRecords({classes: documents.some(isClassDocument)});
   }
 
   /**

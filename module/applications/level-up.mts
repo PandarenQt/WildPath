@@ -20,6 +20,7 @@ export interface LevelActor {
   items: {filter(fn: (item: LevelItem) => boolean): LevelItem[]};
   toObject(source?: boolean): {system: {pools: Array<{id: string; value: number}>}};
   update(data: Data): Promise<unknown>;
+  recordsSettled?(): Promise<void>;
   createEmbeddedDocuments(type: string, data: Data[]): Promise<LevelItem[]>;
   getActiveTokens(linked?: boolean, document?: boolean): Array<{update(data: Data): Promise<unknown>}>;
 }
@@ -289,7 +290,9 @@ async function apply(actor: LevelActor, item: LevelItem, {level, steps, form, fi
     updates["system.resources.health.base"] = first ? gained : health.base + gained;
     updates["system.resources.health.value"] = first ? gained : health.value + gained;
     if ( level > (Number(item.system.levels) || 1) ) await item.update({"system.levels": level});
-    // One more Hit Die to spend (a new class's pool starts full; the maximum is its classes' levels).
+    // One more Hit Die to spend (a new class's pool starts full; the maximum is its classes' levels), read once the
+    // Actor has stored what the new level makes of it (its class records and pools), so this write isn't stale.
+    await actor.recordsSettled?.();
     const pools = actor.toObject(true).system.pools;
     const pool = pools.find(entry => entry.id === hitDiePoolId(hitDie));
     const count = actor.items.filter(entry => (entry.type === "class") && (Number(entry.system.hitDie) === hitDie))

@@ -187,7 +187,7 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         if (level)
             for (const token of tokens) {
                 await token.actor?.setFlag?.("wildpath", "summonLevel", level);
-                await token.actor?.ensureGrantedPools?.();
+                await token.actor?.syncItemRecords?.();
             }
         // 2024: in combat a summon shares its caster's Initiative and takes its turn right after the caster's.
         // shortcut: a creature tied with the caster but sorted after it still goes before the summons; fine for whole-number initiative.
