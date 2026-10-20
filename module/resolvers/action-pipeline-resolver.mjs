@@ -1054,14 +1054,21 @@ function createCheckOutcomeStage() {
       let checkResolution = resolveCheck(input.check.roll);
       if ( !checkResolution.ok ) return failResolutionStage({state, code: checkResolution.code, reason: checkResolution.reason,
         data: {checkResolution}});
+      // Portent may replace its d20 with a foretelling roll.
+      const portent = portentReplace(state, input, {offer: input.check.portent, roll: input.check.roll, key: "check",
+        stageId: ACTION_PIPELINE_STAGE_IDS.CHECK_OUTCOME, rollKind: "check"});
+      if ( portent.wait || portent.fail ) return portent.wait ?? portent.fail;
+      const foretold = portent.roll ? {...input, check: {...input.check, roll: portent.roll}} : input;
+      if ( portent.roll ) checkResolution = resolveCheck(portent.roll);
       // Heroic Inspiration may reroll it (the creature's own failure, or a monster's check by the GM's choice).
-      const reroll = inspirationReroll(state, input, {offer: input.check.inspiration, failed: !checkResolution.success, key: "check",
-        roll: input.check.roll,
+      const reroll = inspirationReroll(state, foretold, {offer: input.check.inspiration, failed: !checkResolution.success, key: "check",
+        roll: foretold.check.roll,
         stageId: ACTION_PIPELINE_STAGE_IDS.CHECK_OUTCOME, rollKind: "check",
         makeRollRequest: (suffix, bonus=0, rollMode=null) => checkRollRequestForState(state, input, {suffix, bonus, rollMode})});
       if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
       if ( !reroll.roll ) return continueResolutionStage({
-        state: updateResolutionState(state, {input, results: {...state.results, checkResolution}}),
+        state: withRerolls(updateResolutionState(state, {input: foretold, results: {...state.results, checkResolution}}),
+          portent.roll ? [portent] : []),
         data: {success: checkResolution.success}
       });
       const rerolled = {...input, check: {...input.check, roll: reroll.roll}};
@@ -1073,7 +1080,8 @@ function createCheckOutcomeStage() {
       const actionResult = addResolutionStep(planning.actionResult, {stage: ACTION_RESOLUTION_STAGES.ROLL, events: [], consequences: [],
         mutationPlans: kept ? [] : [reroll.payment].filter(Boolean), data: {checkResolution}});
       return continueResolutionStage({
-        state: withRerolls(stateWithActionResult(state, {input: rerolled, actionResult, results: {checkResolution}}), [reroll]),
+        state: withRerolls(stateWithActionResult(state, {input: rerolled, actionResult, results: {checkResolution}}),
+          [portent, reroll].filter(entry => entry.roll)),
         data: {success: checkResolution.success}
       });
     }
@@ -1215,8 +1223,16 @@ function createAttackOutcomeStage() {
         }
       });
       let attackResolution = resolveAttack(attack.roll);
+      // Portent may replace its d20 with a foretelling roll.
+      const portent = attackResolution.ok ? portentReplace(state, input, {offer: attack.portent, roll: attack.roll, key: "attack",
+        stageId: ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME, rollKind: "attack", targets: input.targets ?? []}) : {};
+      if ( portent.wait || portent.fail ) return portent.wait ?? portent.fail;
+      if ( portent.roll ) {
+        input = {...input, attack: {...attack, roll: portent.roll}};
+        attackResolution = resolveAttack(portent.roll);
+      }
       // Heroic Inspiration may reroll it (a miss of a player's character, or a monster's attack by the GM's choice).
-      const reroll = attackResolution.ok ? inspirationReroll(state, input, {offer: attack.inspiration, roll: attack.roll,
+      const reroll = attackResolution.ok ? inspirationReroll(state, input, {offer: attack.inspiration, roll: input.attack.roll,
         failed: !attackResolution.hits.length, key: "attack", stageId: ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME, rollKind: "attack",
         makeRollRequest: (suffix, bonus=0, rollMode=null) => attackRollRequestForState(state, input, {suffix, bonus, rollMode})}) : {};
       if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
@@ -1253,7 +1269,7 @@ function createAttackOutcomeStage() {
           input,
           actionResult,
           results: {attackResolution}
-        }), reroll.roll ? [reroll] : []),
+        }), [portent, reroll].filter(entry => entry.roll)),
         data: {
           hitCount: attackResolution.hits.length,
           missCount: attackResolution.misses.length
@@ -1619,13 +1635,14 @@ function addedDie(state, input, {option, key, stageId, rollKind, makeRollRequest
     refundOnFail: option.refundOnFail === true};
 }
 
-function inspirationReroll(state, input, {offer: offered, failed, key, stageId, rollKind, makeRollRequest, targets=[], roll: original=null}) {
+function inspirationReroll(state, input, {offer: offered, failed, key, stageId, rollKind, makeRollRequest, targets=[], roll: original=null,
+  id="heroic-inspiration"}) {
   // An option only for one natural (Halfling Luck's 1) is offered only when the d20 shows it.
   const natural = Number(original?.natural ?? original?.die) || 0;
   const offer = offered ? {...offered, options: (offered.options ?? []).filter(option => !(Number(option.natural) > 0)
     || (Number(option.natural) === natural))} : offered;
   if ( !offer?.options?.length || (offer.own && !failed) ) return {};
-  const choiceId = requestIdFor(state, `heroic-inspiration:${key}`);
+  const choiceId = requestIdFor(state, `${id}:${key}`);
   const chosen = getResolutionResponse(state, {requestId: choiceId, type: RESOLUTION_REQUEST_TYPES.CHOICE});
   if ( !chosen ) return {wait: waitResolutionStage({
     state: updateResolutionState(state, {input}),
@@ -1636,17 +1653,18 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
       type: RESOLUTION_REQUEST_TYPES.CHOICE,
       expectedResponseType: "choice",
       chooser: offer.chooser,
-      authority: {kind: offer.chooser},
-      payload: {id: "heroic-inspiration", label: offer.label ?? "WILDPATH.INSPIRATION.Title",
+      // Named users (a Diviner's player, else the GM: Portent), or the chooser's kind.
+      authority: offer.authority ?? {kind: offer.chooser},
+      payload: {id, label: offer.label ?? "WILDPATH.INSPIRATION.Title",
         options: [...offer.options.map(option => ({value: option.value, label: option.label})),
           {value: "keep", label: "WILDPATH.INSPIRATION.Keep"}],
         defaultValue: "keep", targets},
-      metadata: {title: "WILDPATH.INSPIRATION.Title"}
+      metadata: {title: offer.title ?? "WILDPATH.INSPIRATION.Title"}
     }),
     reason: "A d20 may be rerolled with Heroic Inspiration."
   })};
   const value = chosen.response?.value;
-  const option = offer.options.find(entry => entry.value === (value?.choices?.["heroic-inspiration"] ?? value));
+  const option = offer.options.find(entry => entry.value === (value?.choices?.[id] ?? value));
   if ( !option ) return {};
   // Bardic Inspiration adds a die to the roll instead of rolling it again.
   if ( option.addDice ) return addedDie(state, input, {option, key, stageId, rollKind, makeRollRequest, targets, original});
@@ -1656,7 +1674,9 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
     const before = Number(original?.natural ?? original?.die) || 0;
     const roll = {...(original ?? {}), natural, die: natural, d20: natural, total: (Number(original?.total) || 0) - before + natural,
       modifiers: [...(original?.modifiers ?? []), {id: "set-natural", value: natural - before, label: option.label ?? null}]};
-    return {roll, rollResult: {requestId: null, type: `${rollKind}-set-natural`, roll, reroll: true, targetKey: key},
+    return {roll, rollResult: {requestId: null, type: `${rollKind}-set-natural`, roll, reroll: true, targetKey: key,
+      // The foretelling roll used (Portent), which the runtime spends once the Action completes.
+      ...(option.portent ? {portent: option.portent} : {})},
       payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null};
   }
   // A reroll may add a bonus (Indomitable: its fighter level), or have its own roll mode (Countercharm: Advantage).
@@ -1688,6 +1708,32 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
     rollResult: {requestId: accepted.request.id, type: `${rollKind}-roll`, semanticType: normalized.result.type, rollRequest: request,
       rollResult: normalized.result, roll, reroll: true, targetKey: key},
     payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null};
+}
+
+/**
+ * 2024 Portent: "You can replace any D20 Test made by you or a creature that you can see with one of these foretelling
+ * rolls ... once per turn." By the maintainer's ruling (2026-10-20) it is chosen once the d20 is rolled, replacing it,
+ * like Stroke of Luck (`setNatural`). `offer.holders` comes from the runtime (adapters/foundry-v14-portent): each Diviner
+ * who may, its unused dice, and who answers for it (`authority`). Each is asked in turn (`portent:<n>:<key>`); one that
+ * already used a die in this resolution (or in `used`, filled as it goes) isn't asked again. Returns what
+ * inspirationReroll returns; its `rollResult.portent` is the die to spend.
+ */
+function portentReplace(state, input, {offer, roll, key, stageId, rollKind, targets=[], used=new Set()}) {
+  const spent = new Set([...used, ...normalizeArray(state.rollResults).map(result => result?.portent?.holderRef).filter(Boolean)]);
+  for ( const [index, holder] of normalizeArray(offer?.holders).entries() ) {
+    if ( !holder?.dice?.length || spent.has(holder.holderRef) ) continue;
+    const result = inspirationReroll(state, input, {id: `portent:${index}`, key, stageId, rollKind, targets, roll, failed: true,
+      makeRollRequest: () => null, offer: {own: false, chooser: holder.authority?.kind ?? ROLL_AUTHORITY.GM, authority: holder.authority,
+        label: holder.label ?? "WILDPATH.PORTENT.Title", title: "WILDPATH.PORTENT.Title",
+        options: holder.dice.map(die => ({value: `use:${die.slot}`, label: die.label ?? String(die.value), setNatural: Number(die.value),
+          portent: {holderRef: holder.holderRef, slot: die.slot, value: Number(die.value)}}))}});
+    if ( result.wait || result.fail ) return result;
+    if ( result.roll ) {
+      used.add(holder.holderRef);
+      return result;
+    }
+  }
+  return {};
 }
 
 /** A resolved stage's state with its Heroic Inspiration rerolls' rolls recorded (only once the stage continues). */
@@ -1748,9 +1794,26 @@ function createSaveOutcomeStage() {
         }
       });
       let saveResolution = resolveSaves(targetContexts);
+      // Portent: each target's d20 may be replaced with a foretelling roll, each Diviner's once.
+      const rerolls = [];
+      const foretelling = new Set();
+      for ( const result of saveResolution.ok ? [...saveResolution.failures, ...saveResolution.successes] : [] ) {
+        const target = result.targetContext?.target ?? result.target;
+        const portent = portentReplace(state, input, {offer: input.save.portentByTarget?.[rollModeTargetKey(result.target)],
+          roll: result.roll ?? input.save.rollsByTarget?.[saveTargetKey(target)] ?? null, key: saveTargetKey(target),
+          stageId: ACTION_PIPELINE_STAGE_IDS.SAVE_OUTCOME, rollKind: "save", targets: [target], used: foretelling});
+        if ( portent.wait || portent.fail ) return portent.wait ?? portent.fail;
+        if ( portent.roll ) rerolls.push({...portent, rollKey: saveTargetKey(target)});
+      }
+      if ( rerolls.length ) {
+        input = {...input, save: {...input.save, rollsByTarget: {...(input.save.rollsByTarget ?? {}),
+          ...Object.fromEntries(rerolls.map(reroll => [reroll.rollKey, reroll.roll]))}}};
+        targetContexts = contextsFor(input.save.rollsByTarget);
+        saveResolution = resolveSaves(targetContexts);
+      }
       // Heroic Inspiration: a player character's failed save, or a monster's save by the GM's choice, may be rerolled
       // (before Legendary Resistance, which a rerolled failure can still use).
-      const rerolls = [];
+      const foretold = rerolls.length;
       for ( const result of saveResolution.ok ? [...saveResolution.failures, ...saveResolution.successes] : [] ) {
         const target = result.targetContext?.target ?? result.target;
         const key = rollModeTargetKey(result.target);
@@ -1761,9 +1824,9 @@ function createSaveOutcomeStage() {
         if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
         if ( reroll.roll ) rerolls.push({...reroll, rollKey: saveTargetKey(target)});
       }
-      if ( rerolls.length ) {
+      if ( rerolls.length > foretold ) {
         input = {...input, save: {...input.save, rollsByTarget: {...(input.save.rollsByTarget ?? {}),
-          ...Object.fromEntries(rerolls.map(reroll => [reroll.rollKey, reroll.roll]))}}};
+          ...Object.fromEntries(rerolls.slice(foretold).map(reroll => [reroll.rollKey, reroll.roll]))}}};
         targetContexts = contextsFor(input.save.rollsByTarget);
         saveResolution = resolveSaves(targetContexts);
       }

@@ -317,6 +317,12 @@ const SELF_EFFECTS = Object.freeze({
  * Bardic Inspiration die on a check or attack roll, kept if it still fails), Dark One's Own Luck (a d10 on a check or
  * save). shortcut: offered only on a failed roll (Dark One's Own Luck may also be added to one that succeeded).
  */
+/**
+ * 2024 Portent (Diviner, PHB): the d20s it rolls after each Long Rest, two, three from level 14 (Greater Portent).
+ * Its feature's flag (`flags.wildpath.portentDice`); the engine rolls and offers them (adapters/foundry-v14-portent).
+ */
+const PORTENT_DICE = Object.freeze({type: "table", key: {type: "class-level", class: "wizard"}, rows: {1: 2, 14: 3}});
+
 const TEST_OFFERS = Object.freeze({
   "peerless-skill": {tests: ["check", "attack"], refundOnFail: true},
   "dark-ones-own-luck": {tests: ["check", "save"]},
@@ -1173,7 +1179,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...((identifierOf(document) === "paladins-smite") ? [PALADINS_SMITE.pool] : []),
         ...((identifierOf(document) === "mystic-arcanum") ? structuredClone(MYSTIC_ARCANUM_POOLS) : [])].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(metamagic ? {metamagic} : {}),
-        ...(testOffer ? {testOffer} : {}), ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {})}}});
+        ...(testOffer ? {testOffer} : {}), ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {}),
+        // The Diviner's Portent (a monster's, used when it sees a roll, is an Action of its own).
+        ...((identifierOf(document) === "portent") ? {portentDice: structuredClone(PORTENT_DICE)} : {})}}});
     if ( identifierOf(document) === "paladins-smite" ) items.push(...paladinsSmiteActions(document, img, source));
     if ( identifierOf(document) === "brutal-strike" ) items.push(...brutalStrikeActions(document, img, source, scales));
     if ( identifierOf(document) === "improved-brutal-strike" ) items.push(...improvedBrutalStrikeActions(document, img, source));

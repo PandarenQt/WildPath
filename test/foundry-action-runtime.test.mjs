@@ -7,6 +7,7 @@ import {CREATURE_SIZES} from "../module/helpers/grid-footprints.mjs";
 import {RESOLUTION_STATE_STATUS, validateResolutionStateSerializable} from "../module/helpers/resolution-state.mjs";
 import {createActionResolutionState, planStagedActionResolution, resumeStagedActionResolution} from "../module/resolvers/action-pipeline-resolver.mjs";
 import {withFoundryActorSystem} from "./fixtures/foundry-actor-system.mjs";
+import {consumePortents, portentHolders} from "../module/adapters/foundry-v14-portent.mjs";
 import {
   MULTIPLAYER_AUTHORITY_CODES,
   MULTIPLAYER_MESSAGE_TYPES,
@@ -2324,4 +2325,49 @@ test("Countercharm: offered for a save failed against Charmed or Frightened, by 
   targetActor.items = [countercharm];
   for ( const system of [targetSource, targetActor.system] ) system.resources.reaction = {value: 1, max: 1};
   assert.equal(offerFor({effects: [{conditionId: "frightened"}]}).options.length, 2, "its own too");
+});
+
+test("Portent (2024 Diviner, replacing a rolled d20): offered to a Diviner who sees the roller, once per turn", async () => {
+  const diviner = fakeActor("diviner", {system: actorSystem(), owners: ["player-b"]});
+  diviner.items = [{id: "portent", name: "Portent", system: {active: true}, flags: {wildpath: {portentDice: {type: "constant", value: 2}}}}];
+  diviner.flags = {wildpath: {portent: {1: 3, 2: 17, 3: 0}}};
+  const answer = (state, value) => {
+    const request = state.pendingRequests[0];
+    return resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: {choices: {[request.payload.id]: value}}}});
+  };
+  // A monster's attack that missed: the Diviner's player is asked, before Heroic Inspiration.
+  const asked = await plannedWithConditions(meleeStrikeDefinition(), {attackRoll: {total: 5, natural: 1, die: 1}, extraActors: [diviner]});
+  const [choice] = asked.state.pendingRequests;
+  assert.deepEqual([choice.payload.id, choice.authority.kind, choice.payload.options.map(option => option.value)],
+    ["portent:0", "specific", ["use:1", "use:2", "keep"]]);
+  const foretold = answer(asked.state, "use:2").state;
+  assert.equal(foretold.results.attackResolution.hits.length, 1, "5 - 1 + 17 = 21 hits AC 14");
+  assert.deepEqual(foretold.rollResults.find(entry => entry.portent)?.portent, {holderRef: "Actor.diviner", slot: "2", value: 17});
+  const kept = answer(asked.state, "keep").state;
+  assert.equal(kept.results.attackResolution.misses.length, 1);
+  // A save: its target's d20 replaced; 2 - 2 + 17 = 17 saves against DC 13.
+  // (Its Token found through its Actor: the fake Scene's Tokens are a plain list.)
+  const saving = await plannedWithConditions(fortitudeBlast("might"), {saveRoll: {total: 2, natural: 2, die: 2}, extraActors: [diviner],
+    prepareTarget: actor => Object.defineProperty(actor, "token", {get: () => actor.tokens[0] ?? null})});
+  assert.match(saving.state.pendingRequests[0].id, /portent:0:enemy$/u);
+  assert.equal(answer(saving.state, "use:2").state.results.saveResolution.successes.length, 1);
+
+  // Its die is spent once the Action completes: that slot becomes 0.
+  const updates = [];
+  Object.assign(diviner, {update: async data => updates.push(data)});
+  await consumePortents({state: foretold}, {game: {combat: null}, fromUuid: async uuid => (uuid === diviner.uuid ? diviner : null)});
+  assert.deepEqual(updates, [{"flags.wildpath.portent.2": 0}]);
+
+  // Used this turn: not offered again.
+  // Its own roll needs no sight; a die used this combat turn is not offered again until the next.
+  const scene = fakeScene(new FakeSquareGrid(), {id: "scene-portent"});
+  const own = fakeTokenDocument({id: "diviner-token", actor: diviner, scene, offset: {i: 0, j: 0}});
+  scene.tokens = [own];
+  const turnOf = turn => ({combat: {started: true, id: "combat", round: 1, turn}});
+  diviner.flags.wildpath.portentTurn = "combat:1:0";
+  assert.deepEqual([portentHolders(own, turnOf(0)).length, portentHolders(own, turnOf(1)).length], [0, 1]);
+  const spent = await plannedWithConditions(meleeStrikeDefinition(), {attackRoll: {total: 5, natural: 1, die: 1}, extraActors: [{...diviner,
+    flags: {wildpath: {portent: {1: 0, 2: 0}}}}]});
+  assert.equal(spent.state.pendingRequests.length, 0, "no dice left");
 });
