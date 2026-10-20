@@ -76,6 +76,12 @@
           ]
         }
       ],
+      "requires": {
+        "equals": {
+          "path": "actorSystem.resources.movement.spent",
+          "value": 0
+        }
+      },
       "label": "Steady Aim"
     },
     "ruleElements": []

@@ -395,7 +395,8 @@
       "Unavailable": "Not available now",
       "Reason": {
         "Spent": "no {name} left",
-        "ItemNotReady": "{name} must be equipped, and attuned if it needs it"
+        "ItemNotReady": "{name} must be equipped, and attuned if it needs it",
+        "Requires": "can't be used now"
       },
       "Group": {
         "action": "Actions",

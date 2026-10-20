@@ -183,6 +183,8 @@ export function actionDefinitionField() {
     concentration: new ObjectField({nullable: true, initial: null}),
     // A reaction's changes to the Action it answers (Cunning Strike, Brutal Strike): {forgoDice, damage, rollMode, tags, push}.
     rider: new ObjectField({nullable: true, initial: null}),
+    // What its creature must be for it to be used, a predicate (Steady Aim: it hasn't moved this turn).
+    requires: new ObjectField({nullable: true, initial: null}),
     // Pools of the acting creature the Action refills when used (Multiattack's attacks): [{resourceId, amount}].
     restores: objectArrayField(),
     range: new ObjectField({nullable: true, initial: null}),

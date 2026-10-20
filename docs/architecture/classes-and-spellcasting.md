@@ -367,7 +367,7 @@ four times even after the d10, and Bardic Inspiration stayed at 4; an 8 plus a d
 ## Smaller features (2026-10-20)
 
 - **Steady Aim** (Bonus Action): Advantage on its next attack roll this turn (`endsWhen: "attacks"`), and Speed 0 until
-  the turn ends (`SELF_EFFECTS`). shortcut: "you haven't moved this turn" is by hand.
+  the turn ends (`SELF_EFFECTS`). Only while it hasn't moved this turn (`requires`, action-definitions.md).
 - **Superior Defense:** a free Action, 3 Focus Points, Resistance to every type but Force for 1 minute
   (`USED_AT_TURN_START`). shortcut: its "start of your turn" is by hand.
 - **Survivor (Heroic Rally):** a `turn.started` Trigger healing 5 + its Constitution modifier while Bloodied and above

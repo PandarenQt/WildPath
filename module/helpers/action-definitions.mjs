@@ -141,6 +141,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // Effects it ends on its targets: those tagged (`tags`, Remove Curse's "curse") and spells up to a level (`spells`:
     // a number, or "slot" for the level it is cast at; Dispel Magic).
     ...(raw.ends ? {ends: normalizePlainComponent(raw.ends)} : {}),
+    // What its creature must be for it to be used: a predicate on `{actorSystem, tags}` (Steady Aim: it has not moved
+    // this turn). The authority refuses it otherwise, and the action bar greys it.
+    ...(raw.requires ? {requires: clonePlain(raw.requires)} : {}),
     // A reaction's changes to the Action it answers (reactions.md): {forgoDice, damage, rollMode, tags, push}.
     ...(raw.rider ? {rider: normalizePlainComponent(raw.rider)} : {}),
     // Its caster concentrates on it for `duration` (a native duration), though nothing it sustains is automated (Fog
@@ -712,7 +715,8 @@ function validatePredicateCandidates(definition, errors) {
     {value: definition.targeting?.refinementPolicy?.defaultPredicate, path: "targeting.refinementPolicy.defaultPredicate"},
     ...definition.damage.map((component, index) => ({value: component.predicate, path: `damage.${index}.predicate`})),
     ...definition.healing.map((component, index) => ({value: component.predicate, path: `healing.${index}.predicate`})),
-    ...definition.effects.map((effect, index) => ({value: effect.predicate, path: `effects.${index}.predicate`}))
+    ...definition.effects.map((effect, index) => ({value: effect.predicate, path: `effects.${index}.predicate`})),
+    {value: definition.requires, path: "requires"}
   ];
   for ( const candidate of candidates ) validatePredicate(candidate.value, candidate.path, errors);
 }

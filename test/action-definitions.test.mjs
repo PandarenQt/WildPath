@@ -381,3 +381,11 @@ test("ActionDefinition rejects non-plain persisted objects before lossy JSON clo
     assert.match(result.errors[0].reason, /plain JSON data/);
   }
 });
+
+test("`requires` is kept as a predicate, and an invalid one is refused", async () => {
+  const {validateActionDefinition} = await import("../module/helpers/action-definitions.mjs");
+  const requires = {equals: {path: "actorSystem.resources.movement.spent", value: 0}};
+  const ok = validateActionDefinition({schemaVersion: 1, id: "action:aim", costs: {allOf: []}, requires});
+  assert.deepEqual(ok.definition.requires, requires);
+  assert.equal(validateActionDefinition({schemaVersion: 1, id: "action:aim", costs: {allOf: []}, requires: {bogus: 1}}).ok, false);
+});

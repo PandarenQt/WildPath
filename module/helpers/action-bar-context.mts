@@ -4,6 +4,7 @@ import {activeEffectViews} from "./effect-views.mjs";
 import {discoverActionConfigurationChoices} from "./action-configuration.mjs";
 import {actionDefinitionFromAction} from "./action-definitions.mjs";
 import {isUnprepared} from "./spellcasting.mjs";
+import {evaluatePredicate} from "./predicates.mjs";
 
 /**
  * What the in-play action bar shows for one creature (M6): its action-economy counters and pools, its Actions
@@ -125,10 +126,18 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[]}: {ac
     const source = sourceItem(action);
     return !source || ((source.system?.active !== false) && (source.system?.attunement !== "required"));
   };
+  // What its definition requires of the creature (`requires`: Steady Aim, not moved this turn), as the authority checks.
+  const requiresMet = (action: ActionView) => {
+    const requires = rawDefinition(action)?.requires;
+    return !requires || (evaluatePredicate as (predicate: unknown, context: Data) => {ok: boolean})(requires,
+      {actorSystem: actor.system, tags: rawDefinition(action)?.tags ?? []}).ok;
+  };
+  const ready = (action: ActionView) => itemReady(action) && requiresMet(action);
   const resourceLabels = new Map(bar.resources.map(resource => [resource.id, resource.label]));
   // Why it is not available, in words: its item is not ready, or what has run out ("no 3rd-level slot left").
   const reason = (action: ActionView) => {
     if ( !itemReady(action) ) return {key: "WILDPATH.ACTIONBAR.Reason.ItemNotReady", name: sourceItem(action)?.name ?? ""};
+    if ( !requiresMet(action) ) return {key: "WILDPATH.ACTIONBAR.Reason.Requires", name: ""};
     const spent = [...new Set((action.payment?.failures ?? []).filter(failure => failure.code === "INSUFFICIENT_RESOURCE")
       .map(failure => resourceLabels.get(String(failure.resourceId)) ?? String(failure.resourceId)))];
     return spent.length ? {key: "WILDPATH.ACTIONBAR.Reason.Spent", name: spent.join(", ")} : {key: "WILDPATH.ACTIONBAR.Unavailable", name: ""};
@@ -142,9 +151,9 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[]}: {ac
     return level === null ? groupId : `spell-${level}`;
   };
   const view = (groupId: string) => (action: ActionView) => ({id: action.id, label: action.label,
-    img: action.img ?? "icons/svg/sword.svg", enabled: action.enabled && itemReady(action),
-    disabledCode: itemReady(action) ? action.disabledCode : "ITEM_NOT_READY",
-    ...((action.enabled && itemReady(action)) ? {} : {reason: reason(action)}),
+    img: action.img ?? "icons/svg/sword.svg", enabled: action.enabled && ready(action),
+    disabledCode: itemReady(action) ? (requiresMet(action) ? action.disabledCode : "REQUIRES_NOT_MET") : "ITEM_NOT_READY",
+    ...((action.enabled && ready(action)) ? {} : {reason: reason(action)}),
     odds: oddsView(odds[action.id ?? ""] ?? []),
     // A spell whose only choice is its slot: one button per slot level it can use now.
     ...(((spellLevel(rawDefinition(action)) ?? 0) > 0) && action.enabled ? {slots: slotButtons(items.get(action.id ?? ""), actor.system)} : {}),

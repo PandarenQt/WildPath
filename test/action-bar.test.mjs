@@ -122,3 +122,15 @@ test("spells go by level with a button per slot they can use; magic items' Actio
     "a spent 4th-level slot has no button");
   assert.equal(groups[0].actions[0].slots, undefined, "a cantrip spends no slot");
 });
+
+test("Steady Aim (SRD) is greyed once its creature has moved this turn (`requires`)", async () => {
+  const fs = await import("node:fs");
+  const aim = JSON.parse(fs.readFileSync("packs/_source/srd-items/steady-aim-phbrgeSteadyAim0.json", "utf8"));
+  const actor = {name: "Rogue", items: [{id: "aim", type: "action", name: aim.name, system: aim.system}], effects: [],
+    system: {resources: {action: {value: 1, max: 1}, bonus: {value: 1, max: 1}, reaction: {value: 1, max: 1},
+      movement: {value: 30, max: 30, spent: 0}}, pools: []}};
+  const entry = () => actionBarContext({actor}).groups.flatMap(group => group.actions).find(action => action.id === "aim");
+  assert.equal(entry().enabled, true);
+  actor.system.resources.movement = {value: 25, max: 30, spent: 5};
+  assert.deepEqual([entry().enabled, entry().disabledCode, entry().reason.key], [false, "REQUIRES_NOT_MET", "WILDPATH.ACTIONBAR.Reason.Requires"]);
+});
