@@ -359,8 +359,15 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
 - **More own-hit offers (2026-10-20):**
   - **Devious Strikes** (rogue 14): Daze, Knock Out and Obscure are Cunning Strike options (`extra:sneak-attack`, the
     `cunning-strike` once-key and uses) giving up 2, 6 and 3 Sneak Attack dice. Daze and Obscure last until the end of
-    the target's next turn; only Knock Out (Unconscious, 1 minute) repeats its save. shortcuts: Daze's "only one of
-    move, action or Bonus Action" and Knock Out's "until it takes damage" are by hand.
+    the target's next turn; only Knock Out (Unconscious, 1 minute) repeats its save.
+    - **Daze (2026-10-20):** three `ResourceCap`s with the new predicate `atLeast` on what its creature has spent. Once
+      it moves, takes an action or a Bonus Action, the other two are capped at 0. Turn recovery now also zeroes
+      `spent`, so a refill doesn't depend on last turn's caps.
+    - **Knock Out (2026-10-20):** its Unconscious has `metadata.endsWhen: "damaged"` and remembers the resolutions
+      that applied it (`resolutionIds`). `endEffectsWhenDamaged` ends it when its creature takes damage, except from
+      that hit.
+    - Live: Dazed QA Ally moved 10 ft and had no Action or Bonus Action left; its next turn was full again. Knocked out,
+      it stayed down through a miss and woke (still Prone) when the Bandit Captain's Scimitar hit it for 13.
   - **Eldritch Smite**: a weapon hit, once a turn; its required choice spends a Pact Magic slot and deals
     (1 + the slot's level)d8 Force; a second choice knocks the creature Prone or leaves it standing, and Prone lands
     only on one Huge or smaller (`maxSize`). It is offered only while a Pact Magic slot is left. shortcut: any weapon,

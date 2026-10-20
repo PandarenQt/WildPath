@@ -410,6 +410,7 @@ Initiative and Athletics got Advantage.
 
 **Comparing a number (2026-10-20).** The predicate `atMost: {path, value}` passes when the number at `path` is at
 most `value`; a missing number fails it (Retaliation's "within 5 feet": `event.data.relations.{self}.distance`).
+`atLeast: {path, value}` is its mirror (Daze: `actorSystem.resources.movement.spent` at least 1).
 
 **A spell's save DC, and what a check escapes (2026-10-20).** `dc.spell` is a Modifier domain: its total is added to
 the save DC of its creature's spells (Innate Sorcery). An escape check's context names what it escapes (`check.escapes`:

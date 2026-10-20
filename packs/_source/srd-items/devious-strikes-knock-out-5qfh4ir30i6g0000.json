@@ -52,7 +52,10 @@
             "value": 1,
             "units": "minutes"
           },
-          "repeatSave": "turnEnd"
+          "repeatSave": "turnEnd",
+          "metadata": {
+            "endsWhen": "damaged"
+          }
         }
       ],
       "rider": {

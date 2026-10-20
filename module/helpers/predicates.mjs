@@ -24,6 +24,7 @@ const PREDICATE_KEYS = new Set([
   "equals",
   "oneOf",
   "atMost",
+  "atLeast",
   "poolEmpty",
   "poolBelowMax",
   "bloodied"
@@ -65,6 +66,7 @@ export function evaluatePredicate(predicate, context={}) {
     evaluateEquals(predicate, context),
     evaluateOneOf(predicate, context),
     evaluateAtMost(predicate, context),
+    evaluateAtLeast(predicate, context),
     evaluatePools(predicate, context),
     evaluateBloodied(predicate, context)
   ];
@@ -137,6 +139,17 @@ function evaluateAtMost(predicate, context) {
   const value = resolvePath(context, predicate.atMost.path);
   return (Number.isFinite(value) && (value <= Number(predicate.atMost.value))) ? pass()
     : fail(`${predicate.atMost.path} was not at most ${predicate.atMost.value}`);
+}
+
+/** `atLeast: {path, value}`: the number at `path` is at least `value` (Daze: once it has moved, `movement.spent` >= 1). */
+function evaluateAtLeast(predicate, context) {
+  if ( !("atLeast" in predicate) ) return pass();
+  if ( !isPlainObject(predicate.atLeast) || !("path" in predicate.atLeast) || !Number.isFinite(Number(predicate.atLeast.value)) ) {
+    return invalid("Predicate 'atLeast' must include a path and a numeric value.");
+  }
+  const value = resolvePath(context, predicate.atLeast.path);
+  return (Number.isFinite(value) && (value >= Number(predicate.atLeast.value))) ? pass()
+    : fail(`${predicate.atLeast.path} was not at least ${predicate.atLeast.value}`);
 }
 
 function evaluateOneOf(predicate, context) {
