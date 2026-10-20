@@ -218,6 +218,8 @@ export function registerRuleElementTests(quench) {
         const wings = await fixtures.createItem(actor,{system:{ruleElements:[{schemaVersion:1,id:"wings",type:"GrantMovement",
           data:{mode:"fly",distance:60}}]}});
         assert.deepEqual({...actor.system.speeds},{walk:30,fly:60});
+        // Movement is tracked only in an encounter.
+        await fixtures.startEncounter([actor]);
         await actor.update({"system.resources.movement.value":10});
         assert.equal(actor.system.resources.movement.spent,20,"Writing what remains stores what was spent");
         await wings.update({"system.active":false});

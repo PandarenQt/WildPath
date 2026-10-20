@@ -3540,3 +3540,18 @@ test("a move by a V14 action that teleports (Displace, Blink) is a teleport, not
     globalThis.CONFIG = previous;
   }
 });
+
+test("outside an encounter a move is not limited by Speed; in a started combat it is", async () => {
+  const {movementTracked} = await import("../module/helpers/combat.mjs");
+  const fixture = modeFixture({walk: 30});
+  fixture.playerGame.combats = fixture.gmGame.combats = [];
+  const far = Array.from({length: 8}, (_, index) => ({i: index + 1, j: 0}));
+  const explored = await moveInMode(fixture, {id: "explore", action: "walk", offsets: far});
+  assert.equal(explored, true, `40 ft outside combat: ${JSON.stringify(fixture.warnings ?? [])}`);
+  const back = modeFixture({walk: 30});
+  back.playerGame.combats = back.gmGame.combats = [{started: true, combatants: [{actor: back.actor}]}];
+  assert.equal(await moveInMode(back, {id: "fight", action: "walk", offsets: far}), false, "40 ft against a 30 ft Speed in combat");
+  assert.equal(movementTracked(back.actor, {game: back.playerGame}), true);
+  assert.equal(movementTracked(back.actor, {game: {combats: [{started: false, combatants: [{actor: back.actor}]}]}}), false, "a combat not started");
+  assert.equal(movementTracked(back.actor, {game: {}}), true, "no world to tell: tracked");
+});

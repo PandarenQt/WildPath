@@ -24,6 +24,19 @@ export const TURN_RECOVERY_CODES = Object.freeze({
  * @param {{turn?: number}} [updateData]
  * @returns {object|undefined}
  */
+/**
+ * Whether a creature's movement is tracked: it is in an encounter, a combatant of a started combat (its Token's, for an
+ * unlinked one). Outside one, movement stays full and a move is not limited by Speed. Without combats to look at (no
+ * Foundry world), it is tracked.
+ */
+export function movementTracked(actor, {game=globalThis.game}={}) {
+  if ( !game?.combats ) return true;
+  if ( !actor ) return false;
+  return [...(game?.combats ?? [])].some(combat => combat?.started && [...(combat.combatants ?? [])].some(combatant =>
+    (combatant.actor === actor) || (actor.uuid && (combatant.actor?.uuid === actor.uuid))
+    || (actor.isToken && actor.token?.id && (combatant.tokenId === actor.token.id))));
+}
+
 export function getIncomingCombatant(combat, updateData) {
   const turn = updateData?.turn ?? combat.turn;
   return combat.turns?.[turn] ?? combat.combatant;

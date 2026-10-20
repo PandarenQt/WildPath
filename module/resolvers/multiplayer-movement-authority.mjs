@@ -1,3 +1,4 @@
+import {movementTracked} from "../helpers/combat.mjs";
 import {
   MULTIPLAYER_AUTHORITY_CODES,
   MULTIPLAYER_MESSAGE_TYPES,
@@ -910,7 +911,8 @@ export function createMultiplayerMovementAuthority({
     paymentPlan.id += `:prefix:${record.progress?.completedTransitionCount ?? 0}`;
     let mutationPlan = null;
     let paymentFailure = null;
-    if ( paymentPlan.resources.length ) {
+    // Outside an encounter a move is not paid for: movement is not tracked.
+    if ( paymentPlan.resources.length && movementTracked(documents.actor) ) {
       mutationPlan = createActorResourceMutationPlan(documents.actor.system, paymentPlan);
       if ( !mutationPlan.ok ) paymentFailure = failure(
         mutationPlan.code ?? RESOURCE_RESOLUTION_CODES.COMMIT_FAILED, mutationPlan.reason, {movementId: completion.movementId});

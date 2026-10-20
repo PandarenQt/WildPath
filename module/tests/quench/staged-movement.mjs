@@ -108,6 +108,8 @@ export function registerStagedMovementTests(quench) {
           assert.strictEqual(token.actor.parent,token,"Synthetic Actor must belong to the exact Token");
           assert.instanceOf(token.delta,foundry.documents.ActorDelta,"Real ActorDelta required");
         }
+        // Movement is tracked (spent) only in an encounter.
+        await (await fixtures.createCombat(scene,[mover])).startCombat();
         const runId = mover.getFlag("wildpath","quenchRunId");
         const persistencePort = createFoundryV14DocumentPersistenceAdapter();
         const adapter = createFoundryV14TacticalGridAdapter({scene});
