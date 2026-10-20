@@ -257,6 +257,15 @@
               "distance": 60,
               "hover": true
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "sense-truesight",
+            "type": "GrantSense",
+            "data": {
+              "sense": "truesight",
+              "range": 60
+            }
           }
         ]
       },

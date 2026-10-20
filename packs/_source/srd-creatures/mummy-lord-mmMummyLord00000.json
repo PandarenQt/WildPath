@@ -1631,6 +1631,15 @@
           },
           {
             "schemaVersion": 1,
+            "id": "sense-truesight",
+            "type": "GrantSense",
+            "data": {
+              "sense": "truesight",
+              "range": 60
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "legendary-actions",
             "type": "GrantResource",
             "data": {

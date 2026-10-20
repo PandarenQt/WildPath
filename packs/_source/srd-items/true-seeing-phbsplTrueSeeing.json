@@ -40,7 +40,17 @@
           "type": "effect",
           "name": "Truesight",
           "img": "icons/magic/perception/eye-slit-orange.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "truesight-1",
+              "type": "GrantSense",
+              "data": {
+                "sense": "truesight",
+                "range": 120
+              }
+            }
+          ],
           "duration": {
             "value": 3600,
             "units": "seconds",
@@ -110,10 +120,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Truesight\" change system.attributes.senses.truesight (upgrade) not converted",
-          "effect: \"Truesight\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

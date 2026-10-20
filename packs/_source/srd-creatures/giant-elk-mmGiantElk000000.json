@@ -240,6 +240,35 @@
           }
         }
       }
+    },
+    {
+      "_id": "mmGiantElk00trts",
+      "_key": "!actors.items!mmGiantElk000000.mmGiantElk00trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "sense-darkvision",
+            "type": "GrantSense",
+            "data": {
+              "sense": "darkvision",
+              "range": 90
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
     }
   ],
   "flags": {

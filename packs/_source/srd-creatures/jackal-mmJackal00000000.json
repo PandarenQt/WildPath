@@ -131,6 +131,35 @@
           }
         }
       }
+    },
+    {
+      "_id": "mmJackal0000trts",
+      "_key": "!actors.items!mmJackal00000000.mmJackal0000trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "sense-darkvision",
+            "type": "GrantSense",
+            "data": {
+              "sense": "darkvision",
+              "range": 90
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
     }
   ],
   "flags": {

@@ -134,6 +134,35 @@
           }
         }
       }
+    },
+    {
+      "_id": "mmScorpion00trts",
+      "_key": "!actors.items!mmScorpion000000.mmScorpion00trts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "sense-blindsight",
+            "type": "GrantSense",
+            "data": {
+              "sense": "blindsight",
+              "range": 10
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
     }
   ],
   "flags": {

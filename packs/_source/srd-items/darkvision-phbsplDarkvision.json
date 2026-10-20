@@ -40,7 +40,17 @@
           "type": "effect",
           "name": "Darkvision",
           "img": "icons/magic/perception/eye-winged-pink.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "darkvision-1",
+              "type": "GrantSense",
+              "data": {
+                "sense": "darkvision",
+                "range": 120
+              }
+            }
+          ],
           "duration": {
             "value": 28800,
             "units": "seconds",
@@ -138,10 +148,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Darkvision\" change system.attributes.senses.darkvision (upgrade) not converted",
-          "effect: \"Darkvision\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

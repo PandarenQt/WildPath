@@ -236,6 +236,15 @@
               "mode": "swim",
               "distance": 30
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "sense-blindsight",
+            "type": "GrantSense",
+            "data": {
+              "sense": "blindsight",
+              "range": 10
+            }
           }
         ]
       },

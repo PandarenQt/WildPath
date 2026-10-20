@@ -10,7 +10,17 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "goggles-on-1",
+        "type": "GrantSense",
+        "data": {
+          "sense": "darkvision",
+          "range": 60
+        }
+      }
+    ],
     "attunement": "",
     "armor": ""
   },
@@ -26,9 +36,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Goggles On\" change system.attributes.senses.darkvision (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

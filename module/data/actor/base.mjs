@@ -7,6 +7,7 @@ import {movementSpeeds} from "../../helpers/movement-modes.mjs";
 import {abilityScoreAfter} from "../../helpers/rule-elements.mjs";
 import {movementTracked} from "../../helpers/combat.mjs";
 import {mergeTraining} from "../../helpers/level-up.mjs";
+import {bestSenses} from "../../helpers/senses.mjs";
 
 /** Action-economy counters: what is spent is stored, what remains is derived from the (modifiable) maximum. */
 const COUNTED_RESOURCES = Object.freeze(["action", "bonus", "reaction", "movement"]);
@@ -234,6 +235,8 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
         this.resourceCaps.movement ?? Infinity)};
     });
     this.speeds = movementSpeeds(this.resources.movement.max, grants);
+    // Its senses, the best range of each its grants give (GrantSense); its Token's vision follows them.
+    this.senses = bestSenses(this.parent?.getGrantedSenses?.() ?? []);
   }
 
   /* -------------------------------------------- */

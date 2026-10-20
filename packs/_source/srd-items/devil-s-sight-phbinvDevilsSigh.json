@@ -7,7 +7,17 @@
   "system": {
     "active": true,
     "description": "<blockquote><p>Prerequisite: Level 2+ Warlock</p></blockquote><p>You can see normally in Dim Light and Darkness—both magical and nonmagical—within 120 feet of yourself.</p><section class=\"secret\" id=\"secret-RVsijULbRFU2b9ZU\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect that grants you darkvision to 120 feet.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "devil-s-sight-1",
+        "type": "GrantSense",
+        "data": {
+          "sense": "darkvision",
+          "range": 120
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +31,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Devil's Sight\" change system.attributes.senses.darkvision (upgrade) not converted"
-        ]
+        "notes": []
       }
     }
   }

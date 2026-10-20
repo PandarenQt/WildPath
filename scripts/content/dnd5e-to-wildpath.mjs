@@ -1338,6 +1338,9 @@ export function convertProgression(document, {uuidOf=() => [], licensed=isSrd202
   if ( type === "species" ) {
     const sizes = advancement.find(entry => entry.type === "size")?.sizes ?? [];
     fields.size = sizes.includes("medium") ? "medium" : (sizes[0] ?? "medium");
+    // Its senses (Darkvision 60 ft) are its creature's while it is theirs.
+    const senses = senseRules(system.senses);
+    if ( senses.length ) fields.ruleElements = senses;
   }
   const source = {system: "dnd5e", pack, id: document._id, type: document.type, book,
     license: system.source?.license || null, rules: system.source?.rules || "2024"};
@@ -2832,6 +2835,22 @@ function multiattack(items, notes) {
 }
 
 /** Resistances, immunities and Legendary Actions as rules on the creature's Traits feature. */
+/** The senses dnd5e names, as WildPath's (helpers/senses.mts); a misspelt key in the SRD data reads as its sense. */
+const SENSE_KEYS = Object.freeze({darkvision: "darkvision", blindsight: "blindsight", tremorsense: "tremorsense", truesight: "truesight",
+  trueseight: "truesight"});
+
+/**
+ * A creature's or species' senses (dnd5e 6: `senses.ranges.<sense>`; older data and species: `senses.<sense>`) as
+ * GrantSense rules, one per sense with a range.
+ */
+export function senseRules(senses) {
+  const ranges = {...(senses ?? {}), ...(senses?.ranges ?? {})};
+  return Object.entries(SENSE_KEYS).flatMap(([key, sense]) => {
+    const range = number(ranges[key]);
+    return range ? [{schemaVersion: 1, id: `sense-${sense}`, type: "GrantSense", data: {sense, range}}] : [];
+  });
+}
+
 function traitRules(system, notes) {
   const rules = [];
   const traits = system.traits ?? {};
@@ -2851,6 +2870,8 @@ function traitRules(system, notes) {
     if ( distance ) rules.push({schemaVersion: 1, id: `speed-${mode}`, type: "GrantMovement", data: {mode, distance,
       ...(((mode === "fly") && system.attributes?.movement?.hover) ? {hover: true} : {})}});
   }
+  rules.push(...senseRules(system.attributes?.senses));
+  if ( system.attributes?.senses?.special ) notes.push(`senses: "${system.attributes.senses.special}" by hand`);
   const legendary = number(system.resources?.legact?.max);
   if ( legendary ) rules.push({schemaVersion: 1, id: "legendary-actions", type: "GrantResource",
     data: {resourceId: "legendary-action", label: "Legendary Actions", maximum: legendary, recovery: "turn"}});
@@ -3026,6 +3047,10 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
         ? {type: "context", path: "actorSystem.resources.movement.max"} : (Number.isFinite(number) && (number > 0) ? number : null);
       if ( distance ) rule("GrantMovement", {mode: match[1], distance});
       else unmapped();
+    } else if ( (match = /^system\.attributes\.senses\.(?:ranges\.)?(\w+)$/.exec(key)) && SENSE_KEYS[match[1]]
+      && ["upgrade", "override", "add"].includes(type) && (number > 0) ) {
+      // Darkvision, Devil's Sight, Feral Senses, Witch Sight, True Seeing, Stonecunning's Tremorsense.
+      rule("GrantSense", {sense: SENSE_KEYS[match[1]], range: number});
     } else if ( key === "system.attributes.movement.hover" ) {
       // Fly, Gaseous Form, a Potion of Flying: hovering, on the fly Speed the same effect grants (below).
       hover = ["true", "1"].includes(String(change.value).trim().toLowerCase());

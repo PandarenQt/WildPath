@@ -441,6 +441,24 @@
           },
           {
             "schemaVersion": 1,
+            "id": "sense-blindsight",
+            "type": "GrantSense",
+            "data": {
+              "sense": "blindsight",
+              "range": 30
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "sense-tremorsense",
+            "type": "GrantSense",
+            "data": {
+              "sense": "tremorsense",
+              "range": 60
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "initiative",
             "type": "Modifier",
             "data": {

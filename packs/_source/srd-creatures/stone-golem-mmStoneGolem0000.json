@@ -544,6 +544,15 @@
           },
           {
             "schemaVersion": 1,
+            "id": "sense-darkvision",
+            "type": "GrantSense",
+            "data": {
+              "sense": "darkvision",
+              "range": 120
+            }
+          },
+          {
+            "schemaVersion": 1,
             "id": "initiative",
             "type": "Modifier",
             "data": {

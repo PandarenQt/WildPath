@@ -1245,6 +1245,7 @@ export type RuleElementType =
   | "GrantResistance"
   | "GrantImmunity"
   | "GrantMovement"
+  | "GrantSense"
   | "Trigger"
   | (string & {});
 

@@ -313,6 +313,35 @@
           }
         }
       }
+    },
+    {
+      "_id": "mmGiantScorptrts",
+      "_key": "!actors.items!mmGiantScorpion0.mmGiantScorptrts",
+      "name": "Traits",
+      "type": "feature",
+      "img": "icons/svg/aura.svg",
+      "system": {
+        "active": true,
+        "description": "",
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "sense-blindsight",
+            "type": "GrantSense",
+            "data": {
+              "sense": "blindsight",
+              "range": 60
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
     }
   ],
   "flags": {

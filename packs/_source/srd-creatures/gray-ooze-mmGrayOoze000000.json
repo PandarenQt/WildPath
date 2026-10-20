@@ -215,6 +215,15 @@
               "mode": "climb",
               "distance": 10
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "sense-blindsight",
+            "type": "GrantSense",
+            "data": {
+              "sense": "blindsight",
+              "range": 60
+            }
           }
         ]
       },

@@ -189,6 +189,15 @@
               "mode": "fly",
               "distance": 60
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "sense-darkvision",
+            "type": "GrantSense",
+            "data": {
+              "sense": "darkvision",
+              "range": 120
+            }
           }
         ]
       },

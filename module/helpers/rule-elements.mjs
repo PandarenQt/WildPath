@@ -15,6 +15,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   ARMOR_CLASS: "ArmorClass",
   REVEAL: "Reveal",
   GRANT_MOVEMENT: "GrantMovement",
+  GRANT_SENSE: "GrantSense",
   ROLL_MODE: "RollMode",
   RESOURCE_CAP: "ResourceCap",
   ABILITY_SCORE: "AbilityScore",
@@ -61,6 +62,8 @@ const TYPE_ALIASES = Object.freeze({
   armorclass: RULE_ELEMENT_TYPES.ARMOR_CLASS,
   reveal: RULE_ELEMENT_TYPES.REVEAL,
   grantmovement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
+  grantsense: RULE_ELEMENT_TYPES.GRANT_SENSE,
+  sense: RULE_ELEMENT_TYPES.GRANT_SENSE,
   movement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   rollmode: RULE_ELEMENT_TYPES.ROLL_MODE,
   resourcecap: RULE_ELEMENT_TYPES.RESOURCE_CAP,
@@ -120,6 +123,7 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.ARMOR_CLASS, armorClassRuleElement],
     [RULE_ELEMENT_TYPES.REVEAL, revealRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_MOVEMENT, grantMovementRuleElement],
+    [RULE_ELEMENT_TYPES.GRANT_SENSE, grantSenseRuleElement],
     [RULE_ELEMENT_TYPES.TRIGGER, triggerRuleElement]
   ]);
 }
@@ -607,8 +611,22 @@ function avoidOpportunityAttacksRuleElement(ruleElement) {
  * What the creature bearing this rule reveals to whoever applied its effect: `defenses` (its AC and save bonuses,
  * so the odds against it show, whatever the table's house rule).
  */
+/** The senses a creature's grants give (`GrantSense`): `{sense, range}`, one per grant. */
+export function grantedSensesFromRuleElements(owners=[], context={}) {
+  return owners.flatMap(({ruleElements=[], source=null}) =>
+    collectRuleElementContributions({ruleElements, context, source}).contributions.senses);
+}
+
 function revealRuleElement(ruleElement) {
   return success({reveals: normalizeStrings(ruleElement.data.details ?? "defenses")});
+}
+
+/** A sense (Darkvision, Blindsight, Tremorsense, Truesight) out to `range` feet: `{sense, range}`. */
+function grantSenseRuleElement(ruleElement, context) {
+  const data = ruleElement.data;
+  const range = evaluateNumeric(data.range ?? data.value ?? 0, context);
+  if ( !range.ok ) return range;
+  return success({senses: [{sense: String(data.sense ?? ""), range: range.value, source: ruleElementSource(ruleElement)}]});
 }
 
 function grantMovementRuleElement(ruleElement, context) {
@@ -858,6 +876,7 @@ function emptyContributions() {
       absorptions: []
     },
     movement: [],
+    senses: [],
     rollModes: [],
     resourceCaps: [],
     abilityScores: [],
@@ -883,6 +902,7 @@ function mergeContributions(target, source={}) {
   target.modifiers.push(...(source.modifiers ?? []));
   target.resources.push(...(source.resources ?? []));
   target.movement.push(...(source.movement ?? source.movements ?? []));
+  target.senses.push(...(source.senses ?? []));
   target.rollModes.push(...(source.rollModes ?? []));
   target.resourceCaps.push(...(source.resourceCaps ?? []));
   target.abilityScores.push(...(source.abilityScores ?? []));

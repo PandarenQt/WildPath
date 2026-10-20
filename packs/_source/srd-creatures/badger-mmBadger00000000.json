@@ -146,6 +146,15 @@
               "mode": "burrow",
               "distance": 5
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "sense-darkvision",
+            "type": "GrantSense",
+            "data": {
+              "sense": "darkvision",
+              "range": 30
+            }
           }
         ]
       },

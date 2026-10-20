@@ -3,10 +3,29 @@ import {
 } from "../adapters/foundry-v14-movement-adapter.mjs";
 import {prepareFoundryReactionCheckpoints} from "../adapters/foundry-v14-reaction-checkpoint-adapter.mjs";
 import {isStagedMovementWrite} from "../adapters/foundry-v14-staged-movement-commit.mjs";
+import {applySensesToToken, sensesKey} from "../adapters/foundry-v14-senses.mjs";
 
 const BaseTokenDocument = globalThis.TokenDocument ?? class {};
 
 export default class WildPathTokenDocument extends BaseTokenDocument {
+  /** Its creature's senses as of its last preparation (its vision is prepared again when they change). */
+  #senses = null;
+
+  /** @inheritDoc Its sight and detection modes follow its creature's senses (adapters/foundry-v14-senses.mts). */
+  _prepareDetectionModes() {
+    applySensesToToken(this);
+    this.#senses = sensesKey(this);
+    super._prepareDetectionModes();
+  }
+
+  /** @inheritDoc When its creature's senses change, its vision is prepared and drawn again. */
+  _onRelatedUpdate(update={}, operation={}) {
+    super._onRelatedUpdate(update, operation);
+    if ( sensesKey(this) === this.#senses ) return;
+    this.reset();
+    this.object?.initializeVisionSource?.();
+  }
+
   async _preUpdate(changed, operation, user) {
     const runtime = movementRuntime();
     if ( runtime?.prepareReactionCheckpoints && !isStagedMovementWrite(this, operation, changed) ) {

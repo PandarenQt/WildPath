@@ -7,7 +7,17 @@
   "system": {
     "active": true,
     "description": "<p>You gain the following benefits.</p><p><strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30.</p><p><strong>Truesight.</strong> You have Truesight with a range of 60 feet.</p><section id=\"secret-MmPASAH8hA8METnP\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect which grants you Truesight with a range of 60 feet.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "boon-of-truesight-1",
+        "type": "GrantSense",
+        "data": {
+          "sense": "truesight",
+          "range": 60
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -22,9 +32,7 @@
         "feat": "epicBoon"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Boon of Truesight\" change system.attributes.senses.truesight (upgrade) not converted"
-        ]
+        "notes": []
       }
     }
   }

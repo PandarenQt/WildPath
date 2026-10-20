@@ -291,6 +291,24 @@
               "mode": "burrow",
               "distance": 10
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "sense-darkvision",
+            "type": "GrantSense",
+            "data": {
+              "sense": "darkvision",
+              "range": 60
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "sense-tremorsense",
+            "type": "GrantSense",
+            "data": {
+              "sense": "tremorsense",
+              "range": 60
+            }
           }
         ]
       },
