@@ -10,7 +10,7 @@ import { WILDPATH } from "../config.mjs";
 import { DEFAULT_RULE_ELEMENT_REGISTRY, evaluateRuleElement, normalizeRuleElementType, validateRuleElementDefinition } from "./rule-elements.mjs";
 const TYPE_OF_KIND = { bonus: "Modifier", rollMode: "RollMode", resistance: "GrantResistance",
     immunity: "GrantImmunity", vulnerability: "GrantVulnerability", conditionImmunity: "ConditionImmunity", reveal: "Reveal",
-    speed: "GrantMovement", sense: "GrantSense", resource: "GrantResource", extraDamage: "ExtraDamage", abilityScore: "AbilityScore",
+    speed: "GrantMovement", sense: "GrantSense", language: "GrantLanguage", resource: "GrantResource", extraDamage: "ExtraDamage", abilityScore: "AbilityScore",
     aura: "Aura" };
 const KIND_OF_TYPE = Object.fromEntries(Object.entries(TYPE_OF_KIND).map(([kind, type]) => [type, kind]));
 /** The kinds a row can be; an aura's own rules can be any but another aura. */
@@ -106,6 +106,7 @@ function ruleToRow(rule, abilities) {
         distance: number(data.distance ?? data.value),
         hover: data.hover === true,
         sense: typeof data.sense === "string" ? data.sense : "darkvision",
+        language: typeof data.language === "string" ? data.language : "common",
         range: number(data.range ?? data.value),
         resourceId: data.resourceId ?? data.resource ?? "",
         resourceLabel: data.label ?? "",
@@ -147,6 +148,7 @@ const ROW_DATA = {
     reveal: ["details"],
     speed: ["mode", "movementMode", "distance", "value", "hover"],
     sense: ["sense", "range", "value"],
+    language: ["language", "range"],
     resource: ["resourceId", "resource", "label", "maximum", "max", "recovery", "current", "emptiesAtTurnStart", "recharge", "regain"],
     extraDamage: ["domains", "domain", "selector", "expression", "valueExpression", "damageType", "once"],
     abilityScore: ["ability", "mode", "value", "maximum"],
@@ -204,6 +206,7 @@ export function defaultRule(kind, id) {
         case "reveal": return rule({ details: ["defenses"] });
         case "speed": return rule({ mode: "fly", distance: 30 });
         case "sense": return rule({ sense: "darkvision", range: 60 });
+        case "language": return rule({ language: "common" });
         case "resource": return rule({ resourceId: "points", label: "Points", maximum: 1, recovery: "longRest" });
         case "extraDamage": return rule({ domains: ["damage.melee"], expression: { type: "dice", number: 1, faces: 6 }, damageType: "fire", once: "turn" });
         case "abilityScore": return rule({ ability: "might", mode: "upgrade", value: 19 });
@@ -299,6 +302,13 @@ function writeRule(stored, row, model, field, errors, options, index, siblings) 
                 set("damageType", undefined);
                 set("damageTypes", listOf(row.damageTypes));
             }
+            break;
+        case "language":
+            if (changed("language"))
+                set("language", row.language || "common");
+            // Telepathy's range; none for a language spoken in the ordinary way.
+            if (changed("range"))
+                set("range", (number(row.range) ?? 0) > 0 ? number(row.range) : undefined);
             break;
         case "sense":
             if (changed("sense"))

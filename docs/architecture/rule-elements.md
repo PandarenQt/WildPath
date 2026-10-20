@@ -405,6 +405,9 @@ domain `check.unproficient` (`resolveActorCheckStatistic`, every check). 2024 Ja
 "advantage"}`. Live (GM browser): QA Caster's Acrobatics (unproficient, Proficiency Bonus 3) went from +0 to +1, and its
 Initiative and Athletics got Advantage.
 
+**Languages (2026-10-20).** `GrantLanguage {language, range?, spokenOnly?, understood?, bond?}` gives a language,
+Telepathy with its range, or an understanding of every language (`any`); classes-and-spellcasting.md.
+
 **Senses (2026-10-20).** `GrantSense {sense, range}` gives a sense (`darkvision`, `blindsight`, `tremorsense`,
 `truesight`) out to `range` feet; a creature keeps the best range of each (senses-and-cover.md).
 

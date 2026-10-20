@@ -1,6 +1,7 @@
 import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.mjs";
 import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {levelUp} from "./level-up.mjs";
+import {LANGUAGES} from "../helpers/level-up.mjs";
 import {chooseAbilityScores} from "./ability-scores.mjs";
 import {mysticArcanumPoolId, preparedSpellLimit, preparesSpell, spellBaseLevel} from "../helpers/spellcasting.mjs";
 
@@ -9,6 +10,27 @@ const LEVELLED = new Set(["class", "species", "background"]);
 
 /** What the sheet's training fields list (comma-separated names). */
 const TRAINING = ["armor", "weapons", "tools", "masteries", "languages"];
+const LANGUAGE_KEYS = [...LANGUAGES.standard, ...LANGUAGES.rare, "telepathy"];
+
+/** A language's name from its key; free text ("understands Common but can't speak") stays as it is. */
+function languageLabel(name) {
+  const key = `WILDPATH.LANGUAGES.${name}`;
+  return game.i18n.has(key) ? game.i18n.localize(key) : name;
+}
+
+/** A language typed by its name as its key; anything else as typed. */
+function languageKey(entry) {
+  return LANGUAGE_KEYS.find(key => (key === entry.toLowerCase()) || (languageLabel(key).toLowerCase() === entry.toLowerCase())) ?? entry;
+}
+
+/** A language a rule gives, in words: "Telepathy 120 ft.", "Any language (spoken)", "Elvish (Telepathic Bond)". */
+function grantedLanguageLabel(grant) {
+  const name = languageLabel(grant.language);
+  const ranged = Number(grant.range) > 0 ? game.i18n.format("WILDPATH.LANGUAGES.Ranged", {language: name, range: grant.range}) : name;
+  const notes = [grant.spokenOnly ? "WILDPATH.LANGUAGES.Spoken" : null, grant.bond ? "WILDPATH.LANGUAGES.Bond" : null].filter(Boolean)
+    .map(note => game.i18n.localize(note));
+  return notes.length ? `${ranged} (${notes.join(", ")})` : ranged;
+}
 
 const {HandlebarsApplicationMixin} = foundry.applications.api;
 const {ActorSheetV2} = foundry.applications.sheets;
@@ -83,9 +105,13 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       modifierText: signed(resolveActorCheckStatistic(this.actor, {skill: key})?.totalModifier ?? 0)}));
     context.proficiencyLevels = {0: "WILDPATH.SHEET.SkillProficiency.None", 1: "WILDPATH.SHEET.SkillProficiency.Proficient",
       2: "WILDPATH.SHEET.SkillProficiency.Expertise"};
+    // Languages by their names; what its rules give beside them ("Telepathy 120 ft.", "Any language (spoken)").
+    const named = (key, names) => ((key === "languages") ? names.map(languageLabel) : names);
+    const grants = (key) => ((key === "languages") ? (this.actor.getGrantedLanguages?.() ?? []).map(grantedLanguageLabel) : []);
     context.training = TRAINING.map(key => ({key, label: `WILDPATH.SHEET.Training.${key}`, hint: `WILDPATH.SHEET.Training.Hint.${key}`,
-      value: (own.training?.[key] ?? []).join(", "),
-      granted: (this.actor.system.training?.[key] ?? []).filter(name => !(own.training?.[key] ?? []).includes(name)).join(", ")}));
+      value: named(key, own.training?.[key] ?? []).join(", "),
+      granted: [...named(key, (this.actor.system.training?.[key] ?? []).filter(name => !(own.training?.[key] ?? []).includes(name))),
+        ...grants(key)].join(", ")}));
     context.typeLabel = CONFIG.Actor.typeLabels?.[this.actor.type] ?? this.actor.type;
     // A "Level up" button per class while the character is below level 20 (G8).
     const classes = this.actor.items.filter(item => item.type === "class");
@@ -156,7 +182,9 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     // Training is typed as a comma-separated list.
     for ( const key of TRAINING ) {
       const value = data.system?.training?.[key];
-      if ( typeof value === "string" ) data.system.training[key] = value.split(",").map(entry => entry.trim()).filter(Boolean);
+      if ( typeof value === "string" ) data.system.training[key] = value.split(",").map(entry => entry.trim()).filter(Boolean)
+        // A language typed by its name is stored as its key ("Elvish": "elvish"); anything else as typed.
+        .map(entry => ((key === "languages") ? languageKey(entry) : entry));
     }
     const pools = data.system?.pools;
     if ( pools && !Array.isArray(pools) ) {
