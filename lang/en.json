@@ -431,7 +431,8 @@
       "Progression": {
         "none": "None",
         "full": "Full caster",
-        "half": "Half caster"
+        "half": "Half caster",
+        "pact": "Pact Magic"
       },
       "OriginalClass": "Original class (level 1)",
       "OfClass": "Class",
@@ -981,7 +982,8 @@
       "TooMighty": "{form} is beyond {target}'s Challenge Rating or level: no transformation."
     },
     "SPELLCASTING": {
-      "SlotPool": "Level {level} spell slots"
+      "SlotPool": "Level {level} spell slots",
+      "PactPool": "Pact Magic slots"
     },
     "NOTIFY": {
       "RollRejected": "That result is not possible for these dice. Check the roll and enter it again.",

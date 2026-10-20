@@ -1505,3 +1505,23 @@ test("Divine Order: Protector and Primal Order: Warden carry the training they g
   assert.deepEqual(traitUpdates(protector, {training: {armor: ["light", "medium"], weapons: ["simple"]}}),
     {"system.training.weapons": ["simple", "martial"], "system.training.armor": ["light", "medium", "heavy"]});
 });
+
+test("warlock: Pact Magic classes, Magical Cunning's slots back (all at level 20), Mystic Arcanum on level 6-9 spells", async () => {
+  const fs = await import("node:fs");
+  const {withResourceRestores} = await import("../module/resolvers/resource-resolver.mjs");
+  const read = (dir, prefix) => JSON.parse(fs.readFileSync(`packs/_source/${dir}/${fs.readdirSync(`packs/_source/${dir}`)
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  assert.equal(read("srd-classes", "warlock-").system.spellcasting.progression, "pact");
+  const {restores} = read("srd-items", "magical-cunning-").system.definition;
+  const regained = (level, max) => {
+    const actorSystem = {classes: [{id: "warlock", level, spellcasting: {progression: "pact"}}],
+      pools: [{id: "spell-slot.pact", value: 0, max}]};
+    return withResourceRestores(actorSystem, {ok: true, updates: {}, payments: []}, restores).updates["system.pools.0.value"];
+  };
+  assert.deepEqual([regained(11, 3), regained(5, 2), regained(20, 4)], [2, 1, 4]);
+  const arcanum = read("srd-items", "mystic-arcanum-").system.ruleElements.map(rule => [rule.data.resourceId, Object.keys(rule.data.maximum.rows)[0]]);
+  assert.deepEqual(arcanum, [["mystic-arcanum.6", "11"], ["mystic-arcanum.7", "13"], ["mystic-arcanum.8", "15"], ["mystic-arcanum.9", "17"]]);
+  const slot = item => item.system.definition.configuration.find(choice => choice.id === "spell-slot");
+  assert.deepEqual(slot(read("srd-items", "disintegrate-")).levelByResourceId["mystic-arcanum.6"], 6);
+  assert.equal(JSON.stringify(slot(read("srd-items", "fireball-")).cost).includes("mystic-arcanum"), false, "a level-3 spell has none");
+});

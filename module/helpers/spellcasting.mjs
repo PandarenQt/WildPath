@@ -3,9 +3,11 @@
  * its total level, original class and spell slots from these; another ruleset replaces this module rather
  * than branching inside callers (AGENTS §10).
  */
-export const SPELLCASTING_PROGRESSIONS = Object.freeze({ NONE: "none", FULL: "full", HALF: "half" });
+export const SPELLCASTING_PROGRESSIONS = Object.freeze({ NONE: "none", FULL: "full", HALF: "half", PACT: "pact" });
 /** The pool that holds slots of one spell level; slot payments name it as their capability. */
 export const spellSlotPoolId = (spellLevel) => `spell-slot.${spellLevel}`;
+/** The pool of Pact Magic slots: it pays for any slot up to its level (action-economy), recovered on a Short Rest. */
+export const PACT_SLOT_POOL = "spell-slot.pact";
 /** The pool that holds a creature's Hit Dice of one size (`hit-die.d10`). */
 export const hitDiePoolId = (faces) => `hit-die.d${faces}`;
 /** What spent Hit Dice heal: each die's roll plus the Fortitude modifier, at least `minimum` (2024: 1; 2014: 0). */
@@ -38,6 +40,17 @@ export function spellSlots(level) {
     return Array.from({ length: 9 }, (_, index) => row[index] ?? 0);
 }
 /**
+ * 2024 Pact Magic from the levels of pact classes (the Warlock): 1 slot, 2 from level 2, 3 from 11, 4 from 17, all of
+ * one level, half the class level rounded up and at most 5. Separate from the multiclass slots (casterLevel).
+ */
+export function pactMagic(classes) {
+    const level = classes.filter(entry => entry.spellcasting?.progression === SPELLCASTING_PROGRESSIONS.PACT)
+        .reduce((total, entry) => total + Math.max(Number(entry.level) || 0, 0), 0);
+    if (!level)
+        return { slots: 0, level: 0 };
+    return { slots: (level >= 17) ? 4 : (level >= 11) ? 3 : (level >= 2) ? 2 : 1, level: Math.min(Math.ceil(level / 2), 5) };
+}
+/**
  * What an Actor's class records mean: the total level, the original (level-1) class, and spellcasting.
  * The original class is the one marked `original`, else the first. The Actor's spellcasting ability is
  * the original class's when it casts, else the first casting class's; each class keeps its own.
@@ -60,7 +73,8 @@ export function deriveClassData(classes) {
     return {
         level,
         original,
-        spellcasting: { casterLevel: levelForSlots, ability: caster?.spellcasting?.ability || null, slots: spellSlots(levelForSlots) },
+        spellcasting: { casterLevel: levelForSlots, ability: caster?.spellcasting?.ability || null, slots: spellSlots(levelForSlots),
+            pact: pactMagic(classes) },
         hitDice
     };
 }

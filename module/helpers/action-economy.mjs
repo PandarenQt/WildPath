@@ -9,6 +9,7 @@
  */
 
 import {evaluatePredicate} from "./predicates.mjs";
+import {PACT_SLOT_POOL, pactMagic, spellSlotPoolId} from "./spellcasting.mjs";
 
 export const ECONOMY_UNITS = Object.freeze({
   USES: "uses",
@@ -173,17 +174,20 @@ export function economyResourcesFromActorResources(actorSystem) {
     }));
   }
 
+  // Pact Magic slots pay for a slot of any level up to theirs, and the spell is cast at their level.
+  const pact = pactMagic(actorSystem?.classes ?? []);
   for ( const pool of actorSystem?.pools ?? [] ) {
+    const isPact = (pool.id === PACT_SLOT_POOL) && (pact.level > 0);
     resources.push(createEconomyResource({
       id: pool.id,
       category: pool.id,
       current: pool.value,
       maximum: pool.max,
       unit: ECONOMY_UNITS.POINTS,
-      paymentCapabilities: [pool.id],
+      paymentCapabilities: isPact ? [pool.id, ...Array.from({length: pact.level}, (_, index) => spellSlotPoolId(index + 1))] : [pool.id],
       refreshPolicies: [mapRecoveryToRefresh(pool.recovery)],
       source: {type: "actorPool", slug: pool.id},
-      metadata: {label: pool.label}
+      metadata: isPact ? {label: pool.label, castingLevel: pact.level} : {label: pool.label}
     }));
   }
   return resources;
@@ -229,9 +233,13 @@ export function resolvePaymentOptions({cost, resources, action={}, policies={}})
     return {...result, options: result.options.map(option => ({...option,
       id: option.id.replace(/^payment-/u, `payment-${branch + 1}-`)}))};
   });
-  const options = branchResults.flatMap(result => result.options);
+  // One pool paying several branches (Pact Magic slots for spell-slot.1 to .3) is one option, not one per branch.
+  const seen = new Set();
+  const options = branchResults.flatMap(result => result.options).sort(comparePaymentOptions).filter(option => {
+    const key = (option.resources ?? []).map(entry => `${entry.resourceId}:${entry.amount}`).sort().join("|");
+    return !key || (!seen.has(key) && !!seen.add(key));
+  });
   const failures = branchResults.flatMap(result => result.failures);
-  options.sort(comparePaymentOptions);
 
   return {
     status: options.length ? "available" : "unavailable",
@@ -329,6 +337,7 @@ function findCandidates(requirement, resources, action, mode) {
   const failures = [];
 
   for ( const resource of resources ) {
+    if ( requirement.resourceId && (resource.id !== requirement.resourceId) ) continue;
     const evaluation = evaluateResourceForRequirement(resource, requirement, action);
     if ( evaluation.code === ECONOMY_AVAILABILITY.AVAILABLE ) {
       available.push({
@@ -450,7 +459,10 @@ function normalizeRequirement(requirement) {
   return {
     capability: requirement?.capability ?? requirement?.type,
     amount: Math.max(Number(requirement?.amount ?? 1) || 0, 0),
-    unit: requirement?.unit ?? null
+    unit: requirement?.unit ?? null,
+    // A requirement from a chosen payment (a resource choice) pays from the pool chosen, not any with the capability.
+    ...((requirement?.resourceId ?? requirement?.metadata?.resourceId)
+      ? {resourceId: requirement.resourceId ?? requirement.metadata.resourceId} : {})
   };
 }
 

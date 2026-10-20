@@ -165,7 +165,19 @@ Live (two browsers): a Fighter 3 had "Hit Dice (d10) 3/3". Player1 set its Steal
 - **Pool maxima.** A slot pool's maximum adds the table's count to its own base, bonus and modifiers.
 - **New pools.** When an Actor is created with class records, or its classes change, any slot pool a
   newly reached spell level needs is created full, with long-rest recovery.
-- **Pact-style slots.** These stay separate pools with short-rest recovery. There are no third casters.
+- **Pact Magic (2026-10-20).** A class with the `pact` progression (the Warlock) has its own slots, apart from the
+  caster level: one `spell-slot.pact` pool (1 slot, 2 from level 2, 3 from 11, 4 from 17) recovered on a Short Rest,
+  all of one level, half its class levels rounded up and at most 5 (`pactMagic`). The pool pays for a slot of any level
+  up to its own (`paymentCapabilities` `spell-slot.1` to `spell-slot.<level>`), so every spell's slot choice offers it
+  once, and the spell is cast at the pool's level (its `castingLevel`), upcast like any slot.
+  - **Magical Cunning** restores `spell-slot.pact` by half its maximum rounded up, all of it at Warlock level 20
+    (Eldritch Master); it is refused while none is spent. shortcut: its 1-minute rite is not timed.
+  - **Mystic Arcanum** gives a pool per spell level 6 to 9 (Warlock levels 11, 13, 15 and 17), recovered on a Long
+    Rest; a spell of exactly that level may spend it instead of a slot. shortcut: any spell of that level, not the one
+    chosen.
+- **The pool chosen pays.** A resource choice's option is paid from the pool it named (`resourceId` on the requirement),
+  not from another pool with the same capability: Pact Magic slots chosen are not swapped for a level-1 slot.
+- There are no third casters.
 
 The ruleset lives in one module (`helpers/spellcasting.mts`), so another ruleset replaces that module
 rather than branching inside callers (AGENTS §10).
@@ -173,6 +185,11 @@ rather than branching inside callers (AGENTS §10).
 Live (Quench, 14.369): a Wizard 3 / Paladin 3 is level 6 with the Wizard as its original class. It is
 caster level 5, with slot pools of 4, 3 and 2 created full. Adding Paladin levels and a Cleric level
 raised it to caster level 7 and added the level-4 slot pool.
+
+Live (two browsers, 14.369): QA Caster as a Warlock 5 had "Pact Magic slots" 2/2 (Short Rest). Player1's Hex offered a
+level-1 slot, a level-2 slot and Pact Magic slots once; the pact slot paid (2 to 1). Magical Cunning brought it back to
+2/2 and spent its use; with both spent, a Short Rest refilled them and left the level-1 slot and Magical Cunning spent.
+A Wizard 3 beside it was caster level 3 with its own slots, the pact slots unchanged.
 
 ## Transformations
 
