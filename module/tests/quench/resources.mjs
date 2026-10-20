@@ -33,6 +33,22 @@ export function registerResourceTests(quench) {
         assert.deepEqual(actor.toObject(true),before,"Resource lookup and affordability must not persist mutations");
       });
 
+      it("keeps every pool when a class and a pool-granting Item are added in one batch", async function () {
+        const actor = await fixtures.createActor({name:"one batch"});
+        const classes = game.packs.get("wildpath.srd-classes"), items = game.packs.get("wildpath.srd-items");
+        const warlock = (await classes.getDocument("phbwlkWarlock000")).toObject();
+        warlock.system.levels = 5;
+        const burn = (await items.getDocument("phbsptFiresBurn0")).toObject();
+        await actor.createEmbeddedDocuments("Item",[warlock,burn]);
+        await new Promise(resolve => setTimeout(resolve,300));
+        await actor.recordsSettled();
+        const ids = actor.toObject(true).system.pools.map(pool => pool.id);
+        for (const id of ["spell-slot.pact","hit-die.d8","fire-s-burn"]) assert.include(ids,id,`${id} is stored`);
+        assert.equal(actor.system.classes[0]?.level,5,"its class record");
+        const burnPool = actor.system.pools.find(pool => pool.id === "fire-s-burn");
+        assert.equal(burnPool.value,burnPool.max,"a granted pool starts full, at the class's level (Proficiency Bonus 3)");
+      });
+
       it("persists movement spending from 30 to 25", async function () {
         const actor = await fixtures.createActor({name:"movement resource"});
         // Movement is tracked only in an encounter.

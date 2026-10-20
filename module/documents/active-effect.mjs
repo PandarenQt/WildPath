@@ -16,7 +16,7 @@ export default class WildPathActiveEffect extends ActiveEffect {
   _onCreate(data, options, userId) {
     super._onCreate(data, options, userId);
     if ( userId !== game.user.id ) return;
-    void this.parent?.ensureGrantedPools?.();
+    // A pool it grants is stored by its Actor (WildPathActor#syncItemRecords).
     for ( const implied of WILDPATH.CONDITIONS[this.system?.type]?.implies ?? [] ) {
       const present = [...(this.parent?.effects ?? [])].some(effect => effect.system?.type === implied);
       if ( !present ) void this.parent?.toggleCondition?.(implied);

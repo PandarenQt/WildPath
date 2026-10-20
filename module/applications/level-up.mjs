@@ -272,7 +272,9 @@ async function apply(actor, item, { level, steps, form, first, hitDie, fortitude
         updates["system.resources.health.value"] = first ? gained : health.value + gained;
         if (level > (Number(item.system.levels) || 1))
             await item.update({ "system.levels": level });
-        // One more Hit Die to spend (a new class's pool starts full; the maximum is its classes' levels).
+        // One more Hit Die to spend (a new class's pool starts full; the maximum is its classes' levels), read once the
+        // Actor has stored what the new level makes of it (its class records and pools), so this write isn't stale.
+        await actor.recordsSettled?.();
         const pools = actor.toObject(true).system.pools;
         const pool = pools.find(entry => entry.id === hitDiePoolId(hitDie));
         const count = actor.items.filter(entry => (entry.type === "class") && (Number(entry.system.hitDie) === hitDie))

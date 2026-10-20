@@ -165,6 +165,12 @@ Live (two browsers): a Fighter 3 had "Hit Dice (d10) 3/3". Player1 set its Steal
 - **Pool maxima.** A slot pool's maximum adds the table's count to its own base, bonus and modifiers.
 - **New pools.** When an Actor is created with class records, or its classes change, any slot pool a
   newly reached spell level needs is created full, with long-rest recovery.
+- **One writer (2026-10-20).** An Actor stores what its Items and effects make of it itself, once per batch of changes
+  (`WildPathActor#syncItemRecords`, from its descendant-document hooks): its class records when a class or subclass
+  changed (with their pools), then the pools its grants newly need, sized at the new level and full. Syncs run one after
+  another, so adding a class and a pool-granting feature in one call keeps every pool, and a level-up reads the pools
+  only once they are stored (`recordsSettled`). Live: Player1 added a Warlock 5 and Fire's Burn in one call; QA Caster
+  had Pact Magic slots 2/2, Hit Dice (d8) 5/5 and Fire's Burn 3/3. A Wizard levelled from 1 to 2 had Hit Dice 2/2.
 - **Pact Magic (2026-10-20).** A class with the `pact` progression (the Warlock) has its own slots, apart from the
   caster level: one `spell-slot.pact` pool (1 slot, 2 from level 2, 3 from 11, 4 from 17) recovered on a Short Rest,
   all of one level, half its class levels rounded up and at most 5 (`pactMagic`). The pool pays for a slot of any level

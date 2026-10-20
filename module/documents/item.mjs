@@ -22,7 +22,6 @@ async function chooseTestSkill(actor, skills, name) {
 }
 
 /** Item types whose changes rebuild their creature's class records (G8). */
-const CLASS_TYPES = new Set(["class", "subclass"]);
 
 /**
  * The Item document subclass for the WildPath system.
@@ -36,10 +35,9 @@ export default class WildPathItem extends Item {
   _onCreate(data, options, userId) {
     super._onCreate(data, options, userId);
     if ( userId !== game.user.id ) return;
-    void this.actor?.ensureGrantedPools?.();
+    // Its pools and class records are the Actor's to store, once per batch (WildPathActor#syncItemRecords).
     void this.#addGrantedActions();
     void this.#addTraining();
-    if ( CLASS_TYPES.has(this.type) ) void this.actor?.syncClassRecords?.();
   }
 
   /**
@@ -59,7 +57,6 @@ export default class WildPathItem extends Item {
     if ( (userId !== game.user.id) || !this.actor ) return;
     const granted = this.actor.items.filter(item => item.flags?.wildpath?.grantedBy === this.id).map(item => item.id);
     if ( granted.length ) void this.actor.deleteEmbeddedDocuments("Item", granted);
-    if ( CLASS_TYPES.has(this.type) ) void this.actor.syncClassRecords?.();
   }
 
   /**
@@ -73,12 +70,6 @@ export default class WildPathItem extends Item {
     const actions = await pack.getDocuments({_id__in: ids});
     if ( actions.length ) await this.actor.createEmbeddedDocuments("Item", actions.map(action => foundry.utils.mergeObject(action.toObject(),
       {"flags.wildpath.grantedBy": this.id, "_stats.compendiumSource": action.uuid})));
-  }
-
-  _onUpdate(changed, options, userId) {
-    super._onUpdate(changed, options, userId);
-    if ( (userId === game.user.id) && ("system" in changed) ) void this.actor?.ensureGrantedPools?.();
-    if ( (userId === game.user.id) && CLASS_TYPES.has(this.type) ) void this.actor?.syncClassRecords?.();
   }
 
   /**
