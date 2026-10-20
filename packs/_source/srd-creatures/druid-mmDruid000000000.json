@@ -36,6 +36,13 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "common",
+        "druidic",
+        "sylvan"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 13

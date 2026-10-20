@@ -26,6 +26,11 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "Telepathy 1 mile (works only with you)"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 11

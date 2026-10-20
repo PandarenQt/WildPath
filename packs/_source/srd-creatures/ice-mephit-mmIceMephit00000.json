@@ -33,6 +33,12 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "aquan",
+        "auran"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 11

@@ -26,6 +26,11 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "Understands Abyssal, Common, and Infernal but can’t speak"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 13

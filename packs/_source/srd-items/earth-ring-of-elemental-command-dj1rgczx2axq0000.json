@@ -43,7 +43,6 @@
           "\"Collapsing Structure Save\" is passive or triggered: not automated",
           "not automated (utility): using it spends its cost; its description says the rest",
           "concentration: its caster concentrates; what it sustains is by hand",
-          "effect: \"Earth Focus\" change system.traits.languages.value (add) not converted",
           "effect: \"Earth Focus\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted"
         ]
       },
@@ -53,6 +52,9 @@
         "c3eiaeho0reo0000",
         "yxoxb11uv8yj3000",
         "qar48m1odspg2000"
+      ],
+      "training": [
+        "languages:terran"
       ]
     }
   }

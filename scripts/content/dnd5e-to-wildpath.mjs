@@ -1092,16 +1092,19 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     allNotes.push(...notes);
   }
   // What it gives while it is had (worn, for gear): its passive effects' rules.
-  const passive = (document.effects ?? []).filter(effect => effect.transfer && !effect.disabled).flatMap(effect => effectRules(effect, allNotes, {scales}));
+  const passive = passiveEffects(document).flatMap(effect => effectRules(effect, allNotes, {scales}));
   // Equipment is gear its owner equips (G7): armor's AC, and its passive effects. A potion or scroll is only its Actions.
   if ( GEAR_TYPES.has(document.type) && !((document.type === "consumable") && items.length) ) {
     const gearId = items.some(item => item._id === document._id) ? stableId(`${document._id}:gear`) : document._id;
+    // Its training is its flag, no longer a note.
+    if ( trainingKeys(document).length ) allNotes.splice(0, allNotes.length, ...allNotes.filter(note => !/traits\.(armorProf|weaponProf|languages)/.test(note)));
     items.unshift({_id: gearId, _key: `!items!${gearId}`, name: document.name, type: "gear", img,
       system: {active: false, description, quantity: Math.max(0, Math.round(number(system.quantity) ?? 1)),
         weight: number(system.weight?.value ?? system.weight) ?? 0, slot: "", ruleElements: [...armorRules(document, allNotes), ...passive],
         attunement: (system.attunement === "required") ? "required" : "", armor: (document.type === "equipment" ? armorKind(system) : null) ?? ""},
       // Its Actions come with it when it is added to a creature (WildPathItem).
-      flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(items.length ? {grants: items.map(item => item._id)} : {})}}});
+      flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(items.length ? {grants: items.map(item => item._id)} : {}),
+        ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {})}}});
   }
   // Halfling Luck: its dnd5e flag is its test offer.
   if ( (document.effects ?? []).some(effect => (effect.changes ?? effect.system?.changes ?? [])
@@ -1109,7 +1112,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   // Nothing to use: a passive ability is a feature carrying its text (and any uses its other Actions spend).
   if ( !items.length ) {
     // Its training is its flag (`flags.wildpath.training`), no longer a note.
-    if ( trainingKeys(document).length ) allNotes.splice(0, allNotes.length, ...allNotes.filter(note => !/traits\.(armorProf|weaponProf)/.test(note)));
+    if ( trainingKeys(document).length ) allNotes.splice(0, allNotes.length, ...allNotes.filter(note => !/traits\.(armorProf|weaponProf|languages)/.test(note)));
     items.push({_id: document._id, _key: `!items!${document._id}`, name: document.name, type: "feature", img,
       system: {active: true, description, ruleElements: [pool?.rule, ...(trait?.rules ?? []), ...initiativeRules,
         // A paladin's aura is what it grants those around it, not what its dnd5e effect gives the paladin alone.
@@ -1223,15 +1226,29 @@ export function preparedTable(system) {
 }
 
 /**
+ * The effects an Item gives its holder while it is had: its enabled transfer effects, but not one a summon applies to
+ * the creature it summons (an Onyx Dog's "Mastiff Figurine" is the mastiff's Intellect, Common and Blindsight).
+ */
+function passiveEffects(document) {
+  const summoned = new Set(Object.values(document.system?.activities ?? {}).filter(activity => activity.type === "summon")
+    .flatMap(activity => (activity.effects ?? []).map(effect => effect._id)));
+  return (document.effects ?? []).filter(effect => effect.transfer && !effect.disabled && !summoned.has(effect._id));
+}
+
+/**
  * The armor and weapon training a feature's passive effects give (2024 Divine Order: Protector's martial weapons and
  * heavy armor), as trait keys its creature gains when the Item is added (`flags.wildpath.training`).
  */
 function trainingKeys(document) {
-  const changes = (document.effects ?? []).filter(effect => effect.transfer && !effect.disabled)
+  const changes = passiveEffects(document)
     .flatMap(effect => effect.changes ?? effect.system?.changes ?? []);
   return [...new Set(changes.flatMap(change => {
     // 2024 Disciplined Survivor: proficiency in every saving throw.
     if ( change.key === "flags.dnd5e.diamondSoul" ) return Object.values(ABILITY_MAP).map(ability => `saves:${ability}`);
+    // A language it gives (a Belt of Dwarvenkind's Dwarvish; a Helm of Telepathy's free text).
+    if ( (change.type === "add") && /^system\.traits\.languages\.(value|custom)$/.test(change.key) ) {
+      return String(change.value ?? "").split(/[,;]/).map(entry => entry.trim()).filter(Boolean).map(value => `languages:${value}`);
+    }
     const kind = {"system.traits.armorProf.value": "armor", "system.traits.weaponProf.value": "weapon"}[change.key];
     if ( !kind || (change.type !== "add") ) return [];
     return String(change.value ?? "").split(/[,;]/).map(entry => entry.trim()).filter(Boolean).map(value => traitKey(`${kind}:${value}`));
@@ -1261,7 +1278,13 @@ export function traitKey(key, {mastery=false}={}) {
     case "weapon": return `${mastery ? "masteries" : "weapons"}:${((rest.length === 2) && (rest[1] !== "*"))
       ? (WEAPON_BASES[rest[1]] ?? rest[1]) : rest.map(part => WEAPON_TRAINING[part] ?? part).join(":")}`;
     case "tool": return `tools:${rest.at(-1)}`;
-    case "languages": return null;
+    // A language (`languages:standard:elvish`, `languages:exotic:primordial:aquan`) is its own key; a choice of any
+    // standard or rare (dnd5e's exotic) language keeps its pool.
+    case "languages": {
+      const last = rest.at(-1);
+      if ( last !== "*" ) return `languages:${last}`;
+      return {standard: "languages:standard:*", exotic: "languages:rare:*"}[rest[0]] ?? "languages:*";
+    }
     default: return String(key);
   }
 }
@@ -1301,9 +1324,6 @@ export function convertProgression(document, {uuidOf=() => [], licensed=isSrd202
         const expertise = ["expertise", "forcedExpertise"].includes(config.mode);
         const keys = list => list.map(key => traitKey(key, {mastery})).filter(Boolean)
           .map(key => (expertise ? key.replace(/^skills:/, "expertise:") : key));
-        if ( [...(config.grants ?? []), ...(config.choices ?? []).flatMap(choice => choice.pool ?? [])].some(key => String(key).startsWith("languages")) ) {
-          notes.push("languages are not tracked");
-        }
         const grants = keys(config.grants ?? []);
         const choices = (config.choices ?? []).map(choice => ({count: Number(choice.count) || 1, pool: keys(choice.pool ?? [])}))
           .filter(choice => choice.pool.length);
@@ -2582,6 +2602,9 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
         const level = Math.min(Math.floor(number(system.skills?.[key]?.value) ?? 0), 2);
         return level > 0 ? [[skill, {proficiency: level}]] : [];
       })),
+      // Its languages ("exotic" is WildPath's "rare"), what it says of them ("understands Common but can't speak"), and
+      // its Telepathy with its range ("telepathy 120 ft.").
+      ...(creatureLanguages(system.traits?.languages).length ? {training: {languages: creatureLanguages(system.traits?.languages)}} : {}),
       defenses: {ac: {value: armorClass(document, modifier("dex"), notes)}},
       resources: {health: {base: health, value: health}, movement: {base: walk, value: walk}},
       details: {threat: Math.floor(challenge)},
@@ -2595,6 +2618,15 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
     flags: {wildpath: {source: {system: "dnd5e", pack, id: document._id, type: document.type, book,
       license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024", challenge}, conversion: {notes}}}
   }};
+}
+
+/** A creature's languages as its training list: dnd5e's keys, its free text split at semicolons, and Telepathy. */
+function creatureLanguages(languages) {
+  const keys = [...(languages?.value ?? [])].map(key => ((key === "exotic") ? "rare" : String(key)));
+  const custom = String(languages?.custom ?? "").split(";").map(text => text.trim()).filter(Boolean);
+  const range = number(languages?.communication?.telepathy?.value);
+  const telepathy = (range && !custom.some(text => /telepathy/i.test(text))) ? [`telepathy ${range} ft.`] : [];
+  return [...new Set([...keys, ...custom, ...telepathy])];
 }
 
 /** The stat block's AC: its natural or flat AC, else worn armor (with its Agility cap) and a shield. */

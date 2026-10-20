@@ -26,6 +26,11 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "Understands the languages you know"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 11

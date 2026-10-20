@@ -224,6 +224,22 @@
         ]
       },
       {
+        "level": 1,
+        "title": "Thieves' Cant",
+        "type": "trait",
+        "grants": [
+          "languages:cant"
+        ],
+        "choices": [
+          {
+            "count": 1,
+            "pool": [
+              "languages:*"
+            ]
+          }
+        ]
+      },
+      {
         "level": 15,
         "title": null,
         "type": "trait",
@@ -388,9 +404,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "languages are not tracked"
-        ]
+        "notes": []
       }
     }
   }

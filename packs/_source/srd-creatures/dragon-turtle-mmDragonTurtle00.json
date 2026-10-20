@@ -28,6 +28,12 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "draconic",
+        "aquan"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 20

@@ -32,6 +32,14 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "common",
+        "elvish",
+        "celestial",
+        "sylvan"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 14

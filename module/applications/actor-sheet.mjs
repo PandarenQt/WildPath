@@ -8,7 +8,7 @@ import {mysticArcanumPoolId, preparedSpellLimit, preparesSpell, spellBaseLevel} 
 const LEVELLED = new Set(["class", "species", "background"]);
 
 /** What the sheet's training fields list (comma-separated names). */
-const TRAINING = ["armor", "weapons", "tools", "masteries"];
+const TRAINING = ["armor", "weapons", "tools", "masteries", "languages"];
 
 const {HandlebarsApplicationMixin} = foundry.applications.api;
 const {ActorSheetV2} = foundry.applications.sheets;

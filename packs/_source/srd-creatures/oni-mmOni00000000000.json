@@ -40,6 +40,12 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "common",
+        "giant"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 17

@@ -68,3 +68,13 @@ test("SRD classes: an Expertise step offers Expertise, and one weapon's training
   const grants = rogue.filter(entry => entry.type === "trait").flatMap(entry => entry.grants ?? []);
   assert.ok(grants.includes("weapons:hand-crossbow") || grants.includes("weapons:rapier"), JSON.stringify(grants));
 });
+
+test("languages: a choice of any, standard or rare languages, merged as training while their source lasts", async () => {
+  const {LANGUAGES, mergeTraining, poolOptions} = await import("../module/helpers/level-up.mjs");
+  assert.deepEqual(poolOptions(["languages:standard:*"], {skills: []}), LANGUAGES.standard.map(language => `languages:${language}`));
+  assert.equal(poolOptions(["languages:*"], {skills: []}).length, LANGUAGES.standard.length + LANGUAGES.rare.length);
+  assert.ok(poolOptions(["languages:rare:*"], {skills: []}).includes("languages:cant"));
+  const system = {skills: {}, abilities: {}, training: {languages: ["common"]}};
+  mergeTraining(system, ["languages:elvish", "languages:common"]);
+  assert.deepEqual(system.training.languages, ["common", "elvish"]);
+});

@@ -595,7 +595,9 @@ test("weapons (G7): a Versatile weapon's two-handed Action, and a magic weapon's
 test("classes, subclasses, species and backgrounds (G8): their fields and what each level gives", async () => {
   const {convertProgression, traitKey} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
   assert.deepEqual(["skills:ath", "skills:*", "saves:con", "armor:hvy", "weapon:mar", "tool:art:calligrapher", "languages:standard:*"]
-    .map(key => traitKey(key)), ["skills:athletics", "skills:*", "saves:fortitude", "armor:heavy", "weapons:martial", "tools:calligrapher", null]);
+    .map(key => traitKey(key)), ["skills:athletics", "skills:*", "saves:fortitude", "armor:heavy", "weapons:martial", "tools:calligrapher", "languages:standard:*"]);
+  assert.deepEqual(["languages:standard:elvish", "languages:exotic:primordial:aquan", "languages:exotic:*", "languages:*"]
+    .map(key => traitKey(key)), ["languages:elvish", "languages:aquan", "languages:rare:*", "languages:*"]);
   assert.equal(traitKey("weapon:mar:*", {mastery: true}), "masteries:martial:*");
   const uuidOf = uuid => (uuid.endsWith("SecondWind") ? ["Compendium.wildpath.srd-items.Item.wind"] : []);
   const fighter = {_id: "testFighter00000", name: "Test Fighter", type: "class", system: {source: SRD, identifier: "fighter",
@@ -1621,4 +1623,22 @@ test("senses: creatures', species' and effects' Darkvision, Blindsight, Tremorse
   assert.deepEqual(read("srd-classes", "dwarf-").system.ruleElements.map(rule => rule.data), [{sense: "darkvision", range: 120}]);
   assert.deepEqual(read("srd-items", "witch-sight-").system.ruleElements.map(rule => [rule.type, rule.data.sense, rule.data.range]),
     [["GrantSense", "truesight", 30]]);
+});
+
+test("languages convert: a background's choices and a creature's own, with its free text and Telepathy", async () => {
+  const fs = await import("node:fs");
+  const read = (dir, prefix) => JSON.parse(fs.readFileSync(`packs/_source/${dir}/${fs.readdirSync(`packs/_source/${dir}`)
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const acolyte = read("srd-classes", "acolyte-");
+  assert.ok(JSON.stringify(acolyte.system.advancement).includes("languages:"), "its language step");
+  assert.equal(JSON.stringify(acolyte.flags.wildpath.conversion.notes).includes("languages are not tracked"), false);
+  const aboleth = read("srd-creatures", "aboleth-");
+  assert.deepEqual(aboleth.system.training.languages, ["deep", "telepathy 120 ft."]);
+  // Gear's language is its training while worn, no longer a note.
+  const helm = read("srd-items", "helm-of-telepathy-dmg");
+  assert.deepEqual(helm.flags.wildpath.training, ["languages:Telepathy (30 feet)"]);
+  assert.equal(JSON.stringify(helm.flags.wildpath.conversion.notes).includes("traits.languages"), false);
+  // An effect a summon applies is the summoned creature's: the Onyx Dog's holder gets no Common, Blindsight or Intellect.
+  const onyx = read("srd-items", "onyx-dog-");
+  assert.deepEqual([onyx.system.ruleElements, onyx.flags.wildpath.training], [[], undefined]);
 });

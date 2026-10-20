@@ -29,6 +29,12 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "abyssal",
+        "telepathy 120 ft."
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 18

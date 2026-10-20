@@ -45,7 +45,7 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
       skills: new SchemaField(skills),
       // What it is trained with: armor (light, medium, heavy, shield), weapons (simple, martial, or a weapon), tools,
       // and the weapons whose mastery it uses (2024).
-      training: new SchemaField({armor: names(), weapons: names(), tools: names(), masteries: names()}),
+      training: new SchemaField({armor: names(), weapons: names(), tools: names(), masteries: names(), languages: names()}),
       defenses: new SchemaField({
         ac: defenseField({initial: null})
       }),
@@ -219,7 +219,10 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     // anything reads them (untrained armor is read with the scores).
     for ( const item of this.parent?.items ?? [] ) {
       const keys = item?.flags?.wildpath?.training;
-      if ( (item.system?.active !== false) && Array.isArray(keys) && keys.length ) mergeTraining(this, keys);
+      // Gear counts while equipped and, when it needs attunement, attuned.
+      if ( (item.system?.active !== false) && (item.system?.attunement !== "required") && Array.isArray(keys) && keys.length ) {
+        mergeTraining(this, keys);
+      }
     }
     // First: hit points, saves, AC and every modifier read the scores.
     this.#applyAbilityScores();

@@ -33,6 +33,12 @@
         "proficiency": 2
       }
     },
+    "training": {
+      "languages": [
+        "common",
+        "auran"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 14

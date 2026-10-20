@@ -30,7 +30,8 @@ is made of, beside its class records:
   ability each uses are `CONFIG.WILDPATH.SKILLS` (ids are the check domains': `stealth`, `sleight-of-hand`). A
   skill check adds the proficiency bonus once or twice, and uses the skill's own ability unless the check names
   another (`resolveActorCheckStatistic`).
-- **Training.** `system.training`: `armor`, `weapons`, `tools` and `masteries` (the weapons whose mastery it uses),
+- **Training.** `system.training`: `armor`, `weapons`, `tools`, `masteries` (the weapons whose mastery it uses) and
+  `languages` (below),
   lists of names typed on the sheet. Weapon training decides weapon proficiency (`attackProficient`): a weapon
   attack (`attack.weapon`) adds the proficiency bonus only when the training names its category or the weapon
   itself; a creature with no weapon training (a stat block) keeps the attack's own `proficient`. Armor training
@@ -386,8 +387,11 @@ source Item lists what it gives in `flags.wildpath.training`, as trait keys (`sk
 `armor:x`, `weapons:x`, `tools:x`, `masteries:x`):
 - **Level-up** writes a step's grants and picks on the Item the step comes from (the class, its subclass, the species or
   the background), not on the creature.
-- **Features** carry them from conversion: dnd5e passive effects that add armor or weapon proficiency (Divine Order:
-  Protector `["weapons:martial", "armor:heavy"]`; Primal Order: Warden `["armor:medium", "weapons:martial"]`).
+- **Features and gear** carry them from conversion: dnd5e passive effects that add armor or weapon proficiency or a
+  language (Divine Order: Protector `["weapons:martial", "armor:heavy"]`; Bracers of Archery `["weapons:longbow",
+  "weapons:shortbow"]`; Helm of Telepathy `["languages:Telepathy (30 feet)"]`). Gear's count while it is equipped and,
+  when it needs attunement, attuned. An effect a summon applies is the summoned creature's, not its holder's (the Onyx
+  Dog's mastiff).
 - **Derived.** The creature's prepared data (`data/actor/base.mjs`, before the scores are read) starts from its own
   values and merges every active Item's keys (`mergeTraining`): a skill proficient (Expertise for `expertise:`), a save
   proficient, a name added to a training list. Nothing is written, so deleting the Item takes it away.
@@ -397,13 +401,33 @@ source Item lists what it gives in `flags.wildpath.training`, as trait keys (`sk
   ("from its features"), so saving the sheet never copies it in.
 - No migration: what earlier level-ups wrote stays the creature's own.
 - shortcut: the extra cantrip (Thaumaturge, Magician) is by hand.
-- Gear training (Bracers of Archery) stays a note.
 
 Live (two browsers, 14.369): Player1 added Divine Order: Protector to QA Caster: heavy armor and martial weapons while
 it was there, none once deleted, its own training untouched. The Acolyte background gave Insight, Religion and
 calligrapher's tools (shown "from its features"; its own skills stayed untrained) and took them away when deleted. A
 level-1 Rogue offered Expertise only once Stealth and Perception were picked in the same dialog; both became Expertise
 (proficiency 2) on the Rogue, and deleting it removed them.
+
+## Languages (2026-10-20)
+
+A creature's languages are its `training.languages` (an optional list): dnd5e's keys (`common`, `elvish`, `deep`),
+free text ("understands Common but can't speak"), and `telepathy`. `WILDPATH.LANGUAGES` lists the 2024 standard and
+rare languages (dnd5e's "exotic" is WildPath's "rare"; Primordial's four dialects are their own).
+- **Trait keys.** `languages:<key>` gives one; a choice pool `languages:standard:*`, `languages:rare:*` or
+  `languages:*` offers the standard ones, the rare ones, or all. A step's grants are not offered again in its choices
+  (the Acolyte's Common).
+- **Sources.** Level-up writes them on the background, species or class that gives them, like other training; gear
+  gives its own (above). A creature's stat block languages are its own.
+- **Sheet.** A "Languages" training list.
+- **Conversion.** dnd5e's `languages:standard:elvish` is `languages:elvish`; creatures' `traits.languages` (value,
+  custom text split at semicolons, Telepathy); gear's `system.traits.languages.*` adds.
+- shortcuts: Telepathy's range is text; spells that grant languages (Comprehend Languages, Tongues, Speak with Animals,
+  Telepathic Bond) are by hand.
+
+Live (two browsers, 14.369): Player1 added the Acolyte to QA Caster: the dialog granted Common and offered the other
+nine standard languages; Draconic and Elvish were recorded on the background, not the creature, and left with it. A
+Helm of Telepathy gave "Telepathy (30 feet)" only once attuned. The Aboleth reads Deep Speech and Telepathy 120 ft.;
+the Adult Red Dragon Common and Draconic.
 
 ## Small rules (2026-10-20)
 

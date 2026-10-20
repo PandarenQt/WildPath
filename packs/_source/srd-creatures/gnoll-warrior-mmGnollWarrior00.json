@@ -26,6 +26,11 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "gnoll"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 15

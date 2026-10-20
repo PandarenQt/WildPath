@@ -26,6 +26,11 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "auran"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 15

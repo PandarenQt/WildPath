@@ -30,6 +30,11 @@
         "proficiency": 2
       }
     },
+    "training": {
+      "languages": [
+        "deep"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 16

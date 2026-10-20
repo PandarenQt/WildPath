@@ -28,6 +28,12 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "standard",
+        "rare"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 19

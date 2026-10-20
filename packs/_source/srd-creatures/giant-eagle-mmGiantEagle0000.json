@@ -30,6 +30,13 @@
         "proficiency": 2
       }
     },
+    "training": {
+      "languages": [
+        "common",
+        "celestial",
+        "auran"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 13

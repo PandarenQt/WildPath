@@ -26,6 +26,11 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "Understands Abyssal but can’t speak"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 12

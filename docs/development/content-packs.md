@@ -230,8 +230,8 @@ species, 4 backgrounds) and each book package's own `classes` pack.
     (`classRestriction: "primary"`) or when multiclassing (`"secondary"`);
   - `improvement`: ability increases (`points`, `cap`, the `abilities` allowed), or a feat for a class's;
   - `subclass`, and a species' `size`.
-- Hit points (from the Hit Die) and scale values (the features' own tables) need no entry. Languages are not
-  tracked.
+- Hit points (from the Hit Die) and scale values (the features' own tables) need no entry. Languages are trait keys
+  (`languages:elvish`, pools `languages:standard:*`, `languages:rare:*`).
 
 ### Equipment and magic items (G7, 2026-10-15)
 
@@ -444,6 +444,10 @@ equipped. Equipping it (`system.active`) turns its rules on.
   `expertise:*` choices, and weapon keys use the base names (`weapons:hand-crossbow`).
 - **Cover (2026-10-20):** worked out from walls and creatures for every Action; no content change (senses-and-cover.md).
 - **Senses (2026-10-20):** creatures', species' and effects' senses are `GrantSense` rules (senses-and-cover.md).
+- **Languages (2026-10-20):** backgrounds' and species' language steps are trait keys; creatures carry
+  `system.training.languages`; gear that adds a language (or armor and weapon proficiency: Bracers of Archery) carries
+  `flags.wildpath.training`. An effect a summon applies (the Onyx Dog's mastiff) no longer becomes its holder's rules.
+  224 pack files (classes-and-spellcasting.md).
 - **Stone's Endurance (2026-10-20):** its Trigger answers `damage.applied` before damage, from anything
   (reactions.md).
 - **Offer limits (2026-10-20):** Retaliation's Trigger has a `triggerPredicate` (within 5 ft). Hill's Tumble, Trip and

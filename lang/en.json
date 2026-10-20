@@ -89,6 +89,37 @@
         "CheckFailure": "Check failed"
       }
     },
+    "LANGUAGES": {
+      "common": "Common",
+      "sign": "Common Sign Language",
+      "draconic": "Draconic",
+      "dwarvish": "Dwarvish",
+      "elvish": "Elvish",
+      "giant": "Giant",
+      "gnomish": "Gnomish",
+      "goblin": "Goblin",
+      "halfling": "Halfling",
+      "orc": "Orc",
+      "abyssal": "Abyssal",
+      "celestial": "Celestial",
+      "deep": "Deep Speech",
+      "druidic": "Druidic",
+      "infernal": "Infernal",
+      "primordial": "Primordial",
+      "aquan": "Aquan",
+      "auran": "Auran",
+      "ignan": "Ignan",
+      "terran": "Terran",
+      "sylvan": "Sylvan",
+      "cant": "Thieves' Cant",
+      "undercommon": "Undercommon",
+      "aarakocra": "Aarakocra",
+      "gith": "Gith",
+      "gnoll": "Gnoll",
+      "standard": "All standard languages",
+      "rare": "All rare languages",
+      "telepathy": "Telepathy"
+    },
     "COVER": {
       "half": "Half cover",
       "threeQuarters": "Three-quarters cover",
@@ -918,11 +949,13 @@
         "weapons": "Weapons",
         "tools": "Tools",
         "masteries": "Weapon Mastery",
+        "languages": "Languages",
         "Hint": {
           "armor": "light, medium, heavy, shield",
           "weapons": "simple, martial, or a weapon",
           "tools": "thieves' tools, a musical instrument",
-          "masteries": "the weapons whose mastery you use"
+          "masteries": "the weapons whose mastery you use",
+          "languages": "common, elvish, thieves' cant"
         }
       },
       "Attuned": "Attuned",

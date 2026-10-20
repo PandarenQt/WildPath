@@ -30,6 +30,12 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "aquan",
+        "ignan"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 10

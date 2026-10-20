@@ -246,6 +246,15 @@
         "choices": []
       },
       {
+        "level": 1,
+        "title": "Druidic",
+        "type": "trait",
+        "grants": [
+          "languages:druidic"
+        ],
+        "choices": []
+      },
+      {
         "level": 19,
         "title": null,
         "type": "improvement",
@@ -311,9 +320,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "languages are not tracked"
-        ]
+        "notes": []
       }
     }
   }

@@ -33,6 +33,12 @@
         "proficiency": 2
       }
     },
+    "training": {
+      "languages": [
+        "elvish",
+        "undercommon"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 19

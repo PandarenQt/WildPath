@@ -37,6 +37,12 @@
         "proficiency": 2
       }
     },
+    "training": {
+      "languages": [
+        "deep",
+        "telepathy 120 ft."
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 17

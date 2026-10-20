@@ -28,6 +28,11 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "Understands Common and Giant but can’t speak"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 8

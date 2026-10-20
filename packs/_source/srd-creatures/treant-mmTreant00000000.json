@@ -26,6 +26,14 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "common",
+        "elvish",
+        "druidic",
+        "sylvan"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 16

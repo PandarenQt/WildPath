@@ -30,6 +30,12 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "common",
+        "abyssal"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 17

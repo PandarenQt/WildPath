@@ -28,6 +28,11 @@
       }
     },
     "skills": {},
+    "training": {
+      "languages": [
+        "ignan"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 17

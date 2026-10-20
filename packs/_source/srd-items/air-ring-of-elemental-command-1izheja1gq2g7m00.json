@@ -53,8 +53,7 @@
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest",
           "save: a failure marks its creature only; what it does is by hand",
-          "concentration: its caster concentrates; what it sustains is by hand",
-          "effect: \"Air Focus\" change system.traits.languages.value (add) not converted"
+          "concentration: its caster concentrates; what it sustains is by hand"
         ]
       },
       "grants": [
@@ -63,6 +62,9 @@
         "vea8qa1b3cvm4000",
         "87cd6p1md1gqp000",
         "1tmwfq81visuwa00"
+      ],
+      "training": [
+        "languages:auran"
       ]
     }
   }

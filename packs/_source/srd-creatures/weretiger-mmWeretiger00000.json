@@ -33,6 +33,12 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "common",
+        "can’t speak in tiger form"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 12

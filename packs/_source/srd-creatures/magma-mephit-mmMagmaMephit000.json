@@ -30,6 +30,12 @@
         "proficiency": 1
       }
     },
+    "training": {
+      "languages": [
+        "ignan",
+        "terran"
+      ]
+    },
     "defenses": {
       "ac": {
         "value": 11
