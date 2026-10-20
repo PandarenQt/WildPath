@@ -1467,7 +1467,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Storm of Vengeance | spells24 | Storm of Vengeance (Create Storm) (automated) | "Turn 2: Acid Rain" is passive or triggered: not automated; "Turn 3: Lightning" is passive or triggered: not automated; "Turn 4: Hailstones" is passive or triggered: not automated; "Turn 5+: Gusts and Rain" is passive or triggered: not automated |
 | Storm's Thunder | origins24 | Storm's Thunder (automated) | — |
 | String | equipment24 | String (gear) | — |
-| Stroke of Luck | classes24 | Stroke of Luck (feature) | "Stroke of Luck" is passive or triggered: not automated |
+| Stroke of Luck | classes24 | Stroke of Luck (feature) | — |
 | Studded Leather Armor | equipment24 | Studded Leather Armor (gear) | — |
 | Studied Attacks | classes24 | Studied Attacks (feature) | — |
 | Stunning Strike | classes24 | Stunning Strike (automated) | — |

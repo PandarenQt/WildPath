@@ -390,6 +390,11 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   still fails;
 - **Dark One's Own Luck:** a d10 on a check or save, from its own uses.
 
+- **Stroke of Luck (2026-10-20):** `testOffer.setNatural: 20` on a check, save or attack. The failed roll becomes a
+  natural 20, so an attack's is a critical hit; its use is spent (1 per Short Rest). shortcut: the card still shows the
+  d20 as rolled. Live: QA Caster's Dagger missed with a 3; Stroke of Luck made it a critical hit (2d4), and the use was
+  spent.
+
 An attack's added die is kept when the attack still misses (`refundOnFail`), as a check's is. shortcut: offered only on
 a failed roll. Live (two browsers, 14.369): QA Caster as a level-10 bard with Peerless Skill missed with Dagger attacks
 four times even after the d10, and Bardic Inspiration stayed at 4; an 8 plus a d10 of 7 hit (AC 15), and it went to 3.

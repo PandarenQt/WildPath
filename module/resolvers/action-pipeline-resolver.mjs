@@ -1507,6 +1507,15 @@ function inspirationReroll(state, input, {offer, failed, key, stageId, rollKind,
   if ( !option ) return {};
   // Bardic Inspiration adds a die to the roll instead of rolling it again.
   if ( option.addDice ) return addedDie(state, input, {option, key, stageId, rollKind, makeRollRequest, targets, original});
+  // Stroke of Luck turns the d20 into a 20 (`setNatural`): a natural 20, so an attack's is a critical hit.
+  if ( Number(option.setNatural) > 0 ) {
+    const natural = Number(option.setNatural);
+    const before = Number(original?.natural ?? original?.die) || 0;
+    const roll = {...(original ?? {}), natural, die: natural, d20: natural, total: (Number(original?.total) || 0) - before + natural,
+      modifiers: [...(original?.modifiers ?? []), {id: "set-natural", value: natural - before, label: option.label ?? null}]};
+    return {roll, rollResult: {requestId: null, type: `${rollKind}-set-natural`, roll, reroll: true, targetKey: key},
+      payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null};
+  }
   // A reroll may add a bonus (Indomitable: its fighter level).
   const rollRequest = makeRollRequest(`${rollKind}-roll:reroll:${key}`, Number(option.bonus) || 0);
   const accepted = getResolutionResponse(state, {requestId: rollRequest.id, type: RESOLUTION_REQUEST_TYPES.ROLL});
@@ -1542,7 +1551,8 @@ function inspirationReroll(state, input, {offer, failed, key, stageId, rollKind,
 function withRerolls(state, rerolls) {
   if ( !rerolls.length ) return state;
   return updateResolutionState(state, {
-    rollRequests: rerolls.reduce((requests, reroll) => appendRollRequest(requests, reroll.rollRequest), state.rollRequests),
+    rollRequests: rerolls.reduce((requests, reroll) => (reroll.rollRequest ? appendRollRequest(requests, reroll.rollRequest) : requests),
+      state.rollRequests),
     rollResults: [...state.rollResults, ...rerolls.map(reroll => reroll.rollResult)]
   });
 }
