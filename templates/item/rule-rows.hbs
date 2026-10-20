@@ -46,6 +46,12 @@
         <label>{{localize "WILDPATH.RULES.Range"}}
           <input type="number" name="{{row.name}}.range" value="{{row.range}}" min="0" step="5"></label>
       {{/if}}
+      {{#if row.isLanguage}}
+        <select name="{{row.name}}.language" aria-label="{{localize "WILDPATH.RULES.LanguageLabel"}}">
+          {{selectOptions ../ctx.languages selected=row.language localize=true}}</select>
+        <label>{{localize "WILDPATH.RULES.Range"}}
+          <input type="number" name="{{row.name}}.range" value="{{row.range}}" min="0" step="5"></label>
+      {{/if}}
       {{#if row.isResource}}
         <input type="text" name="{{row.name}}.resourceLabel" value="{{row.resourceLabel}}" placeholder="Spirit Points"
                aria-label="{{localize "WILDPATH.RULES.ResourceLabel"}}">

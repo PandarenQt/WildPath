@@ -1,6 +1,6 @@
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {
-  damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, grantedSensesFromRuleElements,
+  damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, grantedSensesFromRuleElements, grantedLanguagesFromRuleElements,
   modifiersFromRuleElements,
   resourceCapsFromRuleElements, abilityScoreChangesFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements,
   conditionImmunitiesFromRuleElements, opportunityAttackAvoidanceFromRuleElements, extraAttacksFromRuleElements, normalizeRuleElementType,
@@ -272,6 +272,11 @@ export default class WildPathActor extends Actor {
   /** The senses this creature's grants give (`GrantSense`): `{sense, range}`. */
   getGrantedSenses() {
     return grantedSensesFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
+  }
+
+  /** The languages its grants give (`GrantLanguage`): Telepathy's range, Tongues', Comprehend Languages'. */
+  getGrantedLanguages() {
+    return grantedLanguagesFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
   }
 
   /** The resources this creature's grants give (`GrantResource`); each backs its pool of the same id. */

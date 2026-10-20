@@ -16,6 +16,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   REVEAL: "Reveal",
   GRANT_MOVEMENT: "GrantMovement",
   GRANT_SENSE: "GrantSense",
+  GRANT_LANGUAGE: "GrantLanguage",
   ROLL_MODE: "RollMode",
   RESOURCE_CAP: "ResourceCap",
   ABILITY_SCORE: "AbilityScore",
@@ -64,6 +65,8 @@ const TYPE_ALIASES = Object.freeze({
   grantmovement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   grantsense: RULE_ELEMENT_TYPES.GRANT_SENSE,
   sense: RULE_ELEMENT_TYPES.GRANT_SENSE,
+  grantlanguage: RULE_ELEMENT_TYPES.GRANT_LANGUAGE,
+  language: RULE_ELEMENT_TYPES.GRANT_LANGUAGE,
   movement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   rollmode: RULE_ELEMENT_TYPES.ROLL_MODE,
   resourcecap: RULE_ELEMENT_TYPES.RESOURCE_CAP,
@@ -124,6 +127,7 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.REVEAL, revealRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_MOVEMENT, grantMovementRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_SENSE, grantSenseRuleElement],
+    [RULE_ELEMENT_TYPES.GRANT_LANGUAGE, grantLanguageRuleElement],
     [RULE_ELEMENT_TYPES.TRIGGER, triggerRuleElement]
   ]);
 }
@@ -617,6 +621,28 @@ export function grantedSensesFromRuleElements(owners=[], context={}) {
     collectRuleElementContributions({ruleElements, context, source}).contributions.senses);
 }
 
+/** The languages a creature's grants give (`GrantLanguage`): `{language, range, spokenOnly, understood, bond}`, one each. */
+export function grantedLanguagesFromRuleElements(owners=[], context={}) {
+  return owners.flatMap(({ruleElements=[], source=null}) =>
+    collectRuleElementContributions({ruleElements, context, source}).contributions.languages);
+}
+
+/**
+ * A language it knows or understands (2024): `language` is a language's key, `any` (every language: Comprehend
+ * Languages, Tongues), `beasts` (Speak with Animals) or `telepathy`. `range` in feet (Telepathy's); `spokenOnly`: only
+ * what is spoken (Tongues, Speak with Animals), not written; `understood`: what it says is understood by any creature
+ * that knows a language (Tongues); `bond`: only among creatures sharing the bond (Telepathic Bond).
+ */
+function grantLanguageRuleElement(ruleElement, context) {
+  const data = ruleElement.data;
+  const language = String(data.language ?? "").trim();
+  if ( !language ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "GrantLanguage RuleElement requires a language.");
+  const range = (data.range == null) ? {ok: true, value: null} : evaluateNumeric(data.range, context);
+  if ( !range.ok ) return range;
+  return success({languages: [{language, range: range.value, spokenOnly: data.spokenOnly === true, understood: data.understood === true,
+    bond: data.bond === true, source: ruleElementSource(ruleElement)}]});
+}
+
 function revealRuleElement(ruleElement) {
   return success({reveals: normalizeStrings(ruleElement.data.details ?? "defenses")});
 }
@@ -877,6 +903,7 @@ function emptyContributions() {
     },
     movement: [],
     senses: [],
+    languages: [],
     rollModes: [],
     resourceCaps: [],
     abilityScores: [],
@@ -903,6 +930,7 @@ function mergeContributions(target, source={}) {
   target.resources.push(...(source.resources ?? []));
   target.movement.push(...(source.movement ?? source.movements ?? []));
   target.senses.push(...(source.senses ?? []));
+  target.languages.push(...(source.languages ?? []));
   target.rollModes.push(...(source.rollModes ?? []));
   target.resourceCaps.push(...(source.resourceCaps ?? []));
   target.abilityScores.push(...(source.abilityScores ?? []));

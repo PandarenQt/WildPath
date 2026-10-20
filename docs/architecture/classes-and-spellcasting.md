@@ -425,7 +425,17 @@ rare languages (dnd5e's "exotic" is WildPath's "rare"; Primordial's four dialect
   (the Acolyte's Common).
 - **Sources.** Level-up writes them on the background, species or class that gives them, like other training; gear
   gives its own (above). A creature's stat block languages are its own.
-- **Sheet.** A "Languages" training list.
+- **Sheet.** A "Languages" training list, by their names (2026-10-20): a typed name is stored as its key ("Elvish" →
+  `elvish`), free text as typed. What its rules give shows beside it ("Telepathy 30 ft.").
+- **`GrantLanguage` (2026-10-20).** A RuleElement `{language, range?, spokenOnly?, understood?, bond?}`:
+  - `language`: a language's key, `any` (Comprehend Languages, Tongues), `beasts` (Speak with Animals) or
+    `telepathy`.
+  - `range`: Telepathy's, in feet.
+  - `spokenOnly`: only what is spoken. `understood`: what it says is understood by anyone with a language (Tongues).
+    `bond`: only among creatures sharing the bond (Telepathic Bond).
+  - It is read by `getGrantedLanguages`, and the rule builder has "A language".
+  - Live: QA Caster with Elvish and Dwarvish, and a feature with Telepathy 30, showed "Elvish, Dwarvish" and "Telepathy
+    30 ft."; typing "Elvish, Deep Speech, understands Common" stored `elvish`, `deep` and the text.
 - **Conversion.** dnd5e's `languages:standard:elvish` is `languages:elvish`; creatures' `traits.languages` (value,
   custom text split at semicolons, Telepathy); gear's `system.traits.languages.*` adds.
 - shortcuts: Telepathy's range is text; spells that grant languages (Comprehend Languages, Tongues, Speak with Animals,

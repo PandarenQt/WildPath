@@ -168,3 +168,19 @@ test("a sense row (GrantSense): its sense and range, edited and rebuilt", () => 
   assert.deepEqual([edited[0].type, edited[0].data], ["GrantSense", {sense: "truesight", range: 120}]);
   assert.deepEqual(ruleGaps(edited), [], "nothing it can't show");
 });
+
+test("a language row (GrantLanguage): its language and Telepathy's range, edited and rebuilt", async () => {
+  const rules = [defaultRule("language", "tongue")];
+  assert.deepEqual(rules[0].data, {language: "common"});
+  const [row] = rulesToRows(rules, {abilities});
+  assert.deepEqual([row.kind, row.language], ["language", "common"]);
+  const edited = rowsToRules(form([{...row, language: "telepathy", range: "120"}]), rules, {abilities}).ruleElements;
+  assert.deepEqual([edited[0].type, edited[0].data], ["GrantLanguage", {language: "telepathy", range: 120}]);
+  const plain = rowsToRules(form([{...row, language: "elvish", range: ""}]), rules, {abilities}).ruleElements;
+  assert.deepEqual(plain[0].data, {language: "elvish"}, "no range for a language spoken in the ordinary way");
+  const {grantedLanguagesFromRuleElements} = await import("../module/helpers/rule-elements.mjs");
+  assert.deepEqual(grantedLanguagesFromRuleElements([{ruleElements: [...edited, {schemaVersion: 1, id: "tongues", type: "GrantLanguage",
+    data: {language: "any", spokenOnly: true, understood: true}}]}]).map(({source: _source, ...grant}) => grant),
+  [{language: "telepathy", range: 120, spokenOnly: false, understood: false, bond: false},
+    {language: "any", range: null, spokenOnly: true, understood: true, bond: false}]);
+});

@@ -118,7 +118,12 @@
       "gnoll": "Gnoll",
       "standard": "All standard languages",
       "rare": "All rare languages",
-      "telepathy": "Telepathy"
+      "telepathy": "Telepathy",
+      "any": "Any language",
+      "beasts": "Beasts",
+      "Ranged": "{language} {range} ft.",
+      "Spoken": "spoken",
+      "Bond": "bonded"
     },
     "COVER": {
       "half": "Half cover",
@@ -557,6 +562,7 @@
       "Conditions": "Conditions",
       "MovementLabel": "Movement",
       "SenseLabel": "Sense",
+      "LanguageLabel": "Language",
       "Range": "Range (ft)",
       "Distance": "Speed (ft)",
       "ResourceLabel": "Name",
@@ -598,6 +604,7 @@
         "reveal": "Reveals its AC and saves to whoever applied it",
         "speed": "A Speed",
         "sense": "A sense",
+        "language": "A language",
         "resource": "A resource pool",
         "extraDamage": "Extra damage on a hit",
         "abilityScore": "An ability score",
