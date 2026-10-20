@@ -2,7 +2,7 @@
  * The level-up dialog (G8, BG3-style): one form for what a class level (with its subclass's), a species or a
  * background asks; what it grants is added without asking. The rules are helpers/level-up.mts.
  */
-import {hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, poolOptions, traitUpdates} from "../helpers/level-up.mjs";
+import {hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, poolOptions} from "../helpers/level-up.mjs";
 import type {AdvancementEntry, LevelStep} from "../helpers/level-up.mjs";
 import {hitDiePoolId} from "../helpers/spellcasting.mjs";
 import {actorAbilityModifier} from "../helpers/combat-statistics.mjs";
@@ -62,14 +62,17 @@ function hasTrait(key: string, system: LevelActor["system"]) {
   const [kind = "", ...rest] = key.split(":");
   const value = rest.join(":");
   if ( kind === "skills" ) return (system.skills?.[value]?.proficiency ?? 0) > 0;
+  // Expertise is for a skill not yet expert; one not yet proficient waits for this dialog's pick (watchForm).
+  if ( kind === "expertise" ) return (system.skills?.[value]?.proficiency ?? 0) >= 2;
   if ( kind === "saves" ) return (system.abilities?.[value] as {saveProficient?: boolean} | undefined)?.saveProficient === true;
   return (system.training?.[kind] ?? []).includes(value);
 }
 
 interface View {feats: IndexEntry[]; subclasses: IndexEntry[]; hitPoints: string | null}
 
-const checkbox = (name: string, value: string, label: string, checked=false) =>
-  `<label class="level-up-option"><input type="checkbox" name="${name}" value="${escape(value)}"${checked ? " checked" : ""}> ${escape(label)}</label>`;
+const checkbox = (name: string, value: string, label: string, checked=false, needs="") =>
+  `<label class="level-up-option"><input type="checkbox" name="${name}" value="${escape(value)}"${checked ? " checked" : ""}${
+    needs ? ` data-needs="${escape(needs)}"` : ""}> ${escape(label)}</label>`;
 const nameOf = (uuid: string) => globals().fromUuidSync(uuid)?.name ?? uuid;
 
 /** One step's form section, or "" when it neither gives nor asks anything. */
@@ -92,12 +95,13 @@ function stepHtml(step: LevelStep, index: number, actor: LevelActor, view: View)
     }
     case "trait": {
       const skills = Object.keys(globals().CONFIG.WILDPATH.SKILLS);
-      const grants = (entry.grants ?? []).map(key => `<div class="level-up-option">${escape(traitLabel(key))}</div>`).join("");
+      const grants = (entry.grants ?? []).map(key => `<div class="level-up-option" data-key="${escape(key)}">${escape(traitLabel(key))}</div>`).join("");
       const choices = (entry.choices ?? []).map((choice, at) => {
         const options = poolOptions(choice.pool, {skills}).filter(key => !hasTrait(key, actor.system));
         if ( !options.length ) return "";
         return `<div data-count="${choice.count}"><p class="hint">${format("WILDPATH.LEVELUP.Choose", {count: choice.count})}</p>
-          ${options.map(key => checkbox(`${name}.${at}`, key, traitLabel(key, {kindless: true}))).join("")}</div>`;
+          ${options.map(key => checkbox(`${name}.${at}`, key, traitLabel(key, {kindless: true}), false, (key.startsWith("expertise:")
+            && !((actor.system.skills?.[key.slice(10)]?.proficiency ?? 0) > 0)) ? `skills:${key.slice(10)}` : "")).join("")}</div>`;
       }).join("");
       return (grants || choices) ? `<fieldset>${legend}${grants}${choices}</fieldset>` : "";
     }
@@ -123,15 +127,22 @@ function stepHtml(step: LevelStep, index: number, actor: LevelActor, view: View)
   }
 }
 
-/** A count is met exactly, points are spent exactly (or a feat is taken), a required select is set: then OK. */
+/**
+ * A count is met exactly, points are spent exactly (or a feat is taken), a required select is set: then OK. An option
+ * that needs a trait (Expertise in a skill not yet proficient) waits until this dialog grants or picks it.
+ */
 function watchForm(form: HTMLFormElement, ok: HTMLButtonElement | null) {
   const check = () => {
     let valid = true;
+    const given = new Set([...form.querySelectorAll<HTMLElement>("[data-key]")].map(element => element.dataset.key)
+      .concat([...form.querySelectorAll<HTMLInputElement>("input[type=checkbox]:checked:not([data-needs])")].map(box => box.value)));
+    const blocked = (box: HTMLInputElement) => !!box.dataset.needs && !given.has(box.dataset.needs);
     for ( const group of form.querySelectorAll<HTMLElement>("[data-count]") ) {
       const boxes = [...group.querySelectorAll<HTMLInputElement>(":scope > label > input[type=checkbox]")];
-      const wanted = Math.min(Number(group.dataset.count) || 0, boxes.length);
+      for ( const box of boxes ) if ( blocked(box) ) box.checked = false;
+      const wanted = Math.min(Number(group.dataset.count) || 0, boxes.filter(box => !blocked(box)).length);
       const checked = boxes.filter(box => box.checked).length;
-      for ( const box of boxes ) box.disabled = !box.checked && (checked >= wanted);
+      for ( const box of boxes ) box.disabled = blocked(box) || (!box.checked && (checked >= wanted));
       valid &&= checked === wanted;
     }
     for ( const group of form.querySelectorAll<HTMLElement>("[data-points]") ) {
@@ -188,7 +199,7 @@ export async function levelUp(actor: LevelActor, item: LevelItem, {level, confir
   const subclasses = isClass ? actor.items.filter(entry => (entry.type === "subclass")
     && ((entry.system as {classIdentifier?: string}).classIdentifier === item.system.identifier)) : [];
   const steps = [...levelSteps(item.system.advancement ?? [], level, {original}),
-    ...subclasses.flatMap(subclass => levelSteps(subclass.system.advancement ?? [], level))];
+    ...subclasses.flatMap(subclass => levelSteps(subclass.system.advancement ?? [], level).map(step => ({...step, source: subclass})))];
   const otherLevels = classes.filter(entry => entry !== item).reduce((sum, entry) => sum + (Number(entry.system.levels) || 0), 0);
   const first = isClass && !otherLevels && (level === 1);
   const scores = Object.fromEntries(Object.entries(actor.system.abilities ?? {}).map(([key, ability]) => [key, Number(ability.value) || 10]));
@@ -228,15 +239,19 @@ async function apply(actor: LevelActor, item: LevelItem, {level, steps, form, fi
   steps: LevelStep[]; form: FormData; first: boolean; hitDie: number; fortitude: number; rolled: boolean}): Promise<boolean> {
   const picked = (name: string) => form.getAll(name).map(String).filter(Boolean);
   const uuids: string[] = [];
-  const traits: string[] = [];
+  // What each step's Item gives (its picks too), recorded on that Item (`flags.wildpath.training`), not on the creature.
+  const traits = new Map<LevelItem, string[]>();
   const abilities = Object.fromEntries(Object.entries(actor.system.abilities ?? {}).map(([key, ability]) => [key, {value: Number(ability.value) || 10}]));
   let size: string | null = null;
   let subclass: string | null = null;
-  for ( const [index, {kind, entry}] of steps.entries() ) {
+  for ( const [index, {kind, entry, source}] of steps.entries() ) {
     const name = `s${index}`;
     if ( kind === "grant" ) uuids.push(...(entry.optional ? picked(name) : (entry.items ?? [])));
     else if ( kind === "choice" ) uuids.push(...picked(name));
-    else if ( kind === "trait" ) traits.push(...(entry.grants ?? []), ...(entry.choices ?? []).flatMap((_choice, at) => picked(`${name}.${at}`)));
+    else if ( kind === "trait" ) {
+      const owner = (source as LevelItem | undefined) ?? item;
+      traits.set(owner, [...(traits.get(owner) ?? []), ...(entry.grants ?? []), ...(entry.choices ?? []).flatMap((_choice, at) => picked(`${name}.${at}`))]);
+    }
     else if ( kind === "improvement" ) {
       for ( const [ability, value] of Object.entries(entry.fixed ?? {}) ) {
         if ( abilities[ability] ) abilities[ability].value = Math.min(abilities[ability].value + value, 20);
@@ -253,7 +268,11 @@ async function apply(actor: LevelActor, item: LevelItem, {level, steps, form, fi
     } else if ( kind === "subclass" ) subclass = picked(name)[0] ?? null;
     else if ( kind === "size" ) size = picked(name)[0] ?? entry.sizes?.[0] ?? null;
   }
-  const updates: Data = {...traitUpdates(traits, actor.system), ...Object.fromEntries(Object.entries(abilities)
+  for ( const [owner, keys] of traits ) {
+    const known = ((owner as {flags?: {wildpath?: {training?: string[]}}}).flags?.wildpath?.training) ?? [];
+    if ( keys.length ) await owner.update({"flags.wildpath.training": [...new Set([...known, ...keys])]});
+  }
+  const updates: Data = {...Object.fromEntries(Object.entries(abilities)
     .filter(([key, ability]) => ability.value !== Number(actor.system.abilities?.[key]?.value))
     .map(([key, ability]) => [`system.abilities.${key}.value`, ability.value]))};
   const footprint = size ? TOKEN_SIZES[size] : undefined;

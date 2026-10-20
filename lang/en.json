@@ -866,6 +866,8 @@
       "ArmorClass": "Armor Class",
       "Proficiency": "Proficiency +{bonus}",
       "SaveProficient": "Proficient in this ability's saves",
+      "Granted": "from its features: {list}",
+      "GrantedSave": "Proficient from its class or features",
       "EffectiveAc": "Armor Class with gear, effects and auras",
       "AcTyped": "A typed Armor Class replaces the one worked out from armor and Agility; bonuses still add. Leave it blank to work it out.",
       "AcCalculated": "Auto",

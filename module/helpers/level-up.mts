@@ -14,7 +14,7 @@ export interface AdvancementEntry {
   sizes?: string[];
 }
 
-export interface LevelStep {kind: string; title: string | null; entry: AdvancementEntry}
+export interface LevelStep {kind: string; title: string | null; entry: AdvancementEntry; source?: unknown}
 
 /** The 2024 weapons by category, for a Weapon Mastery choice ("masteries:martial:*"). */
 export const WEAPONS = Object.freeze({
@@ -40,10 +40,15 @@ export function hitPointsForLevel({hitDie, first, fortitude}: {hitDie: number; f
   return Math.max(1, (first ? hitDie : Math.floor(hitDie / 2) + 1) + fortitude);
 }
 
-/** The keys a choice offers: `skills:*` is every skill, `masteries:martial:*` every martial weapon, the rest as they are. */
+/**
+ * The keys a choice offers: `skills:*` (or `expertise:*`) is every skill, `masteries:martial:*` every martial weapon,
+ * `masteries:*` every weapon, the rest as they are.
+ */
 export function poolOptions(pool: readonly string[], {skills}: {skills: readonly string[]}): string[] {
   return [...new Set(pool.flatMap(key => {
     if ( key === "skills:*" ) return skills.map(skill => `skills:${skill}`);
+    if ( key === "expertise:*" ) return skills.map(skill => `expertise:${skill}`);
+    if ( key === "masteries:*" ) return [...(WEAPONS.simple ?? []), ...(WEAPONS.martial ?? [])].map(weapon => `masteries:${weapon}`);
     const match = /^(masteries|weapons):(simple|martial):\*$/.exec(key);
     if ( match ) return (WEAPONS[match[2]!] ?? []).map(weapon => `${match[1]}:${weapon}`);
     return [key];
@@ -62,14 +67,35 @@ export function traitUpdates(keys: readonly string[], system: Data): Data {
     const [kind, ...rest] = key.split(":");
     const value = rest.join(":");
     if ( !kind || !value || value.endsWith("*") ) continue;
-    if ( kind === "skills" ) {
+    if ( (kind === "skills") || (kind === "expertise") ) {
       const current = Number(((system.skills as Data | undefined)?.[value] as {proficiency?: number} | undefined)?.proficiency) || 0;
-      updates[`system.skills.${value}.proficiency`] = Math.max(current, 1);
+      updates[`system.skills.${value}.proficiency`] = Math.max(current, (kind === "expertise") ? 2 : 1);
     } else if ( kind === "saves" ) updates[`system.abilities.${value}.saveProficient`] = true;
     else if ( ["armor", "weapons", "tools", "masteries"].includes(kind) ) (lists[kind] ??= new Set(training[kind] ?? [])).add(value);
   }
   for ( const [kind, names] of Object.entries(lists) ) updates[`system.training.${kind}`] = [...names];
   return updates;
+}
+
+/**
+ * Trait keys merged into a creature's prepared data in place (G8): what its Items give it (`flags.wildpath.training`)
+ * over its own. A skill proficient (`expertise:` its Expertise), a save proficient, a training list with the name
+ * added. Nothing is written: losing the Item loses what it gave.
+ */
+export function mergeTraining(system: Data, keys: readonly string[]): void {
+  const skills = (system.skills ?? {}) as Record<string, {proficiency?: number} | undefined>;
+  const abilities = (system.abilities ?? {}) as Record<string, {saveProficient?: boolean} | undefined>;
+  const training = (system.training ??= {}) as Record<string, string[] | undefined>;
+  for ( const key of keys ) {
+    const [kind, ...rest] = String(key).split(":");
+    const value = rest.join(":");
+    if ( !kind || !value || value.endsWith("*") ) continue;
+    const skill = skills[value];
+    if ( ((kind === "skills") || (kind === "expertise")) && skill ) {
+      skill.proficiency = Math.max(Number(skill.proficiency) || 0, (kind === "expertise") ? 2 : 1);
+    } else if ( (kind === "saves") && abilities[value] ) abilities[value]!.saveProficient = true;
+    else if ( ["armor", "weapons", "tools", "masteries"].includes(kind) ) training[kind] = [...new Set([...(training[kind] ?? []), value])];
+  }
 }
 
 /** An ability increase (2024): each chosen ability raised by its points, never above `cap` points each or 20. */

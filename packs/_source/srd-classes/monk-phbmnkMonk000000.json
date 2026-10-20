@@ -272,9 +272,9 @@
         "type": "trait",
         "grants": [
           "weapons:simple",
-          "weapons:martial:handcrossbow",
-          "weapons:martial:scimitar",
-          "weapons:martial:shortsword"
+          "weapons:hand-crossbow",
+          "weapons:scimitar",
+          "weapons:shortsword"
         ],
         "choices": []
       },

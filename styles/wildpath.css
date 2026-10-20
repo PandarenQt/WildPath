@@ -616,3 +616,5 @@
 .wildpath.sheet .skills-block .skill-ability { opacity: 0.6; font-size: var(--font-size-11, 11px); }
 .wildpath.sheet .skills-block .skill-modifier { font-weight: bold; }
 .wildpath.sheet .skills-block .training { display: grid; grid-template-columns: 7.5em 1fr; gap: 4px; align-items: center; }
+.wildpath.sheet .granted { font-size: var(--font-size-11, 11px); color: var(--color-text-secondary, #666); }
+.wildpath.sheet .skills-block .training .granted { grid-column: 2; }

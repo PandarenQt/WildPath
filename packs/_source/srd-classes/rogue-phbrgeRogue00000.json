@@ -202,7 +202,7 @@
           {
             "count": 2,
             "pool": [
-              "skills:*"
+              "expertise:*"
             ]
           }
         ]
@@ -216,7 +216,7 @@
           {
             "count": 2,
             "pool": [
-              "skills:*"
+              "expertise:*"
             ]
           }
         ]
@@ -292,11 +292,11 @@
         "type": "trait",
         "grants": [
           "weapons:simple",
-          "weapons:martial:handcrossbow",
-          "weapons:martial:rapier",
-          "weapons:martial:scimitar",
-          "weapons:martial:shortsword",
-          "weapons:martial:whip"
+          "weapons:hand-crossbow",
+          "weapons:rapier",
+          "weapons:scimitar",
+          "weapons:shortsword",
+          "weapons:whip"
         ],
         "choices": []
       },

@@ -6,6 +6,7 @@ import {formOverrides} from "../../helpers/transformations.mjs";
 import {movementSpeeds} from "../../helpers/movement-modes.mjs";
 import {abilityScoreAfter} from "../../helpers/rule-elements.mjs";
 import {movementTracked} from "../../helpers/combat.mjs";
+import {mergeTraining} from "../../helpers/level-up.mjs";
 
 /** Action-economy counters: what is spent is stored, what remains is derived from the (modifiable) maximum. */
 const COUNTED_RESOURCES = Object.freeze(["action", "bonus", "reaction", "movement"]);
@@ -212,6 +213,12 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
   /** @inheritDoc */
   prepareDerivedData() {
     super.prepareDerivedData();
+    // What its Items give it (a class's, background's or feature's training and proficiencies), over its own: before
+    // anything reads them (untrained armor is read with the scores).
+    for ( const item of this.parent?.items ?? [] ) {
+      const keys = item?.flags?.wildpath?.training;
+      if ( (item.system?.active !== false) && Array.isArray(keys) && keys.length ) mergeTraining(this, keys);
+    }
     // First: hit points, saves, AC and every modifier read the scores.
     this.#applyAbilityScores();
     this.#deriveClasses();

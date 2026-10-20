@@ -61,6 +61,8 @@
                 <span class="ability-rolls">
                   <input type="checkbox" name="system.abilities.{{ability.key}}.saveProficient" {{checked ability.saveProficient}}
                          title="{{localize "WILDPATH.SHEET.SaveProficient"}}" aria-label="{{localize "WILDPATH.SHEET.SaveProficient"}}">
+                  {{#if ability.saveGranted}}<i class="fa-solid fa-link granted" data-tooltip="WILDPATH.SHEET.GrantedSave"
+                    aria-label="{{localize "WILDPATH.SHEET.GrantedSave"}}"></i>{{/if}}
                   <button type="button" class="icon-roll" data-action="rollTest" data-ability="{{ability.key}}"
                           title="{{localize "WILDPATH.SHEET.RollCheck"}}" aria-label="{{localize "WILDPATH.SHEET.RollCheck"}}"><i class="fa-solid fa-dice-d20"></i></button>
                   <button type="button" class="icon-roll" data-action="rollTest" data-save="{{ability.key}}"
@@ -128,6 +130,7 @@
                 <button type="button" class="skill-name" data-action="rollTest" data-skill="{{skill.key}}"
                         title="{{localize "WILDPATH.SHEET.RollSkill"}}">{{localize skill.label}} <span class="skill-ability">({{localize skill.abilityLabel}})</span></button>
                 <span class="skill-modifier">{{skill.modifierText}}</span>
+                {{#if skill.granted}}<span class="granted">{{localize "WILDPATH.SHEET.Granted" list=(localize skill.granted)}}</span>{{/if}}
               </li>
             {{/each}}
           </ol>
@@ -136,6 +139,7 @@
             <label class="training">
               <span>{{localize entry.label}}</span>
               <input type="text" name="system.training.{{entry.key}}" value="{{entry.value}}" placeholder="{{localize entry.hint}}">
+              {{#if entry.granted}}<span class="granted">{{localize "WILDPATH.SHEET.Granted" list=entry.granted}}</span>{{/if}}
             </label>
           {{/each}}
         </div>

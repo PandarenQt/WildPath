@@ -439,8 +439,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Spell tags (2026-10-20):** every spell (and every creature's spell) is tagged `cantrip`, `school:<name>` and
   `damage:<type>`; that touched 646 pack files, tags only. Potent Spellcasting, Empowered Evocation and Disciple of Life
   are traits, and Elemental Affinity brings its choosing Action (classes-and-spellcasting.md).
-- **Training (2026-10-20):** Divine Order: Protector and Primal Order: Warden carry `flags.wildpath.training`, added to
-  their creature when the Item is (classes-and-spellcasting.md).
+- **Training (2026-10-20):** Divine Order: Protector and Primal Order: Warden carry `flags.wildpath.training`, which their
+  creature has while the Item is there (classes-and-spellcasting.md). Expertise steps (Rogue, Bard, Ranger) are
+  `expertise:*` choices, and weapon keys use the base names (`weapons:hand-crossbow`).
 - **Tireless (2026-10-20):** its Short Rest Exhaustion is a `rest.completed` Trigger. An Item with Actions now carries its
   automatic triggers on its first Action.
 - **Cantrip invocations (2026-10-20):** Agonizing Blast and Repelling Blast apply to every cantrip (the cantrip house

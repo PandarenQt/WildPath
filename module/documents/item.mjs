@@ -43,11 +43,11 @@ export default class WildPathItem extends Item {
   }
 
   /**
-   * The training a feature gives its creature (`flags.wildpath.training`: Divine Order: Protector's `armor:heavy`,
-   * `weapons:martial`), added as a level-up trait step adds it. shortcut: removing the Item keeps the training.
+   * Training a source expressly leaves with its creature (`flags.wildpath.trainingPermanent`), written into the
+   * creature's own values. Other training (`flags.wildpath.training`) is worked out from its Items while they last.
    */
   async #addTraining() {
-    const keys = this.flags?.wildpath?.training;
+    const keys = this.flags?.wildpath?.trainingPermanent;
     if ( !this.actor || !Array.isArray(keys) || !keys.length ) return;
     const updates = traitUpdates(keys, this.actor.system);
     if ( Object.keys(updates).length ) await this.actor.update(updates);
