@@ -352,6 +352,19 @@ Wounds rolled "2d8 + 2d8 + 7": its Intelligence +3, plus 2 + 2. Sacred Flame on 
 With Empowered Evocation, Fire Bolt rolled "2d10 + 3" (Intelligence 16). After Elemental Affinity (Fire), with Presence
 14, QA Caster had fire Resistance and Fire Bolt rolled "2d10 + 5".
 
+## Training from a feature (2026-10-20)
+
+A feature whose dnd5e passive effects add armor or weapon proficiency carries `flags.wildpath.training`, as trait keys
+(Divine Order: Protector `["weapons:martial", "armor:heavy"]`; Primal Order: Warden `["armor:medium", "weapons:martial"]`).
+When the Item is added to a creature (level-up, or dropped on its sheet), `traitUpdates` adds them as a level-up trait
+step does.
+- shortcut: removing the Item keeps the training.
+- shortcut: the extra cantrip (Thaumaturge, Magician) is by hand.
+- Gear training (Bracers of Archery) stays a note.
+
+Live (two browsers, 14.369): Player1 added Divine Order: Protector to QA Caster, whose training went from none to heavy
+armor and martial weapons.
+
 ## Tireless (2026-10-20)
 
 Tireless' "Decrease Exhaustion" is a `rest.completed` Trigger on its Item (`restTrigger`): a Short Rest

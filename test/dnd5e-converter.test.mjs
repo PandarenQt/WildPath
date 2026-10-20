@@ -1493,3 +1493,15 @@ test("gaps: Nature's Ward, Second-Story Work, Sear Undead's (Wis)d8, Steady Aim 
   const defense = read("superior-defense-").definition;
   assert.deepEqual([defense.costs.allOf, defense.effects[0].ruleElements[0].type], [[{capability: "monk-s-focus", amount: 3}], "GrantResistance"]);
 });
+
+test("Divine Order: Protector and Primal Order: Warden carry the training they give, added as a trait step adds it", async () => {
+  const fs = await import("node:fs");
+  const {traitUpdates} = await import("../module/helpers/level-up.mjs");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const protector = read("divine-order-protector-").flags.wildpath.training;
+  assert.deepEqual(protector, ["weapons:martial", "armor:heavy"]);
+  assert.deepEqual(read("primal-order-warden-").flags.wildpath.training, ["armor:medium", "weapons:martial"]);
+  assert.deepEqual(traitUpdates(protector, {training: {armor: ["light", "medium"], weapons: ["simple"]}}),
+    {"system.training.weapons": ["simple", "martial"], "system.training.armor": ["light", "medium", "heavy"]});
+});
