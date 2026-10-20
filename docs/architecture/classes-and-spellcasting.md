@@ -179,8 +179,11 @@ Live (two browsers): a Fighter 3 had "Hit Dice (d10) 3/3". Player1 set its Steal
   - **Magical Cunning** restores `spell-slot.pact` by half its maximum rounded up, all of it at Warlock level 20
     (Eldritch Master); it is refused while none is spent. shortcut: its 1-minute rite is not timed.
   - **Mystic Arcanum** gives a pool per spell level 6 to 9 (Warlock levels 11, 13, 15 and 17), recovered on a Long
-    Rest; a spell of exactly that level may spend it instead of a slot. shortcut: any spell of that level, not the one
-    chosen.
+    Rest. The warlock marks one spell of each level as its arcanum (the sheet's Arcanum toggle on a level 6-9 spell
+    while that pool exists; one a level, `flags.wildpath.arcanum`); only that spell offers its level's arcanum, at its
+    own level (`withMysticArcanum`, as the authority builds its definition), and it is not counted as prepared. Live:
+    a Warlock 11 marked Disintegrate (then Eyebite, which unmarked it, then Disintegrate again) and cast it from the
+    arcanum (1/1 to 0/1); Eyebite stayed unavailable, its pact slots being level 5.
 - **The pool chosen pays.** A resource choice's option is paid from the pool it named (`resourceId` on the requirement),
   not from another pool with the same capability: Pact Magic slots chosen are not swapped for a level-1 slot.
 - There are no third casters.

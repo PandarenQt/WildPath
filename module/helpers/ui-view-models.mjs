@@ -15,6 +15,7 @@ import {
 } from "./entity-refs.mjs";
 import {createCombatTimeline} from "./combat-timeline.mjs";
 import {unpaidRequiredChoice} from "./automation-events.mjs";
+import {actionDefinitionFromItem} from "./action-definitions.mjs";
 
 export const UI_COMMAND_TYPES = Object.freeze({
   USE_ACTION: "action.use",
@@ -228,7 +229,9 @@ function createActionBarEntry({
   const payable = (discovery.status === "available") || costAlternatives(action, activationCost)
     .some(alternative => resolvePaymentOptions({cost: alternative, resources, action: actionData, policies}).status === "available");
   // Nor while a required resource choice (its spell slot) can't be paid: no slot left.
-  const unpaid = payable ? unpaidRequiredChoice(action?.system?.definition ?? action?.definition, resources, policies) : null;
+  // Its definition as the authority builds it from its Item (a Mystic Arcanum's option, Extra Attack's pool).
+  const definition = action?.system?.definition ? actionDefinitionFromItem(action).definition : (action?.definition ?? null);
+  const unpaid = payable ? unpaidRequiredChoice(definition, resources, policies) : null;
   const enabled = payable && !unpaid;
 
   return {

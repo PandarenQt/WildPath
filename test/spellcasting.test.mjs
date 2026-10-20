@@ -69,3 +69,21 @@ test("Pact Magic (2024): its slots and their level follow the Warlock levels, ap
   assert.equal(derived.spellcasting.casterLevel, 3, "the Warlock's levels add no multiclass slots");
   assert.deepEqual(derived.spellcasting.pact, {slots: 2, level: 3});
 });
+
+test("Mystic Arcanum: only the spell marked as its level's arcanum may spend that arcanum, and it isn't prepared", async () => {
+  const fs = await import("node:fs");
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const {preparesSpell, spellBaseLevel} = await import("../module/helpers/spellcasting.mjs");
+  const disintegrate = JSON.parse(fs.readFileSync("packs/_source/srd-items/disintegrate-phbsplDisintegra.json", "utf8"));
+  assert.equal(spellBaseLevel(disintegrate.system.definition), 6);
+  assert.equal(spellBaseLevel({configuration: [{id: "spell-slot", levelByResourceId: {"spell-slot": {6: 6, 7: 7}}}]}), 6, "Foundry's nested keys");
+  const actor = pools => ({system: {pools}});
+  const spell = (arcanum, pools) => ({...disintegrate, flags: {wildpath: {arcanum}}, actor: actor(pools)});
+  const options = item => actionDefinitionFromItem(item).definition.configuration.find(choice => choice.id === "spell-slot").cost.anyOf
+    .map(branch => branch[0].capability);
+  const arcanumPool = [{id: "mystic-arcanum.6", value: 1, max: 1}];
+  assert.equal(options(spell(true, arcanumPool)).includes("mystic-arcanum.6"), true, "marked, with the arcanum");
+  assert.equal(options(spell(false, arcanumPool)).includes("mystic-arcanum.6"), false, "not marked");
+  assert.equal(options(spell(true, [])).includes("mystic-arcanum.6"), false, "no arcanum of that level");
+  assert.deepEqual([preparesSpell(spell(true, arcanumPool)), preparesSpell(spell(false, arcanumPool))], [false, true]);
+});

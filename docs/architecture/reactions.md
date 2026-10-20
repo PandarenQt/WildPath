@@ -381,8 +381,9 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   - **Countercharm** (bard): a test offer with a `range` (30 ft), the conditions it answers (`against`: Charmed,
     Frightened), its `pool` (its Reaction) and a `rollMode` (Advantage). When a creature fails a save against an effect
     giving one of them, it or an ally within range that has it may reroll that save (`withAllyTestOffers`): the saver's
-    controller chooses, the reroll has Advantage, and the ally pays. shortcuts: Advantage replaces the saver's own roll
-    mode; "can see" is its controller's to judge.
+    controller chooses, the reroll has Advantage, and the ally pays. That Advantage is one more source: it cancels one
+    source of Disadvantage on the save, source for source (the runtime keeps each target's sources,
+    `save.rollModeSourcesByTarget`). shortcut: "can see" is its controller's to judge.
   - **Indomitable**'s converted Action, which spent a use and did nothing, is gone: the feature keeps the pool the
     engine's reroll pays from (`OFFERED_BY_ENGINE`).
 

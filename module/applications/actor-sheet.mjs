@@ -2,7 +2,7 @@ import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.
 import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {levelUp} from "./level-up.mjs";
 import {chooseAbilityScores} from "./ability-scores.mjs";
-import {preparedSpellLimit, preparesSpell} from "../helpers/spellcasting.mjs";
+import {mysticArcanumPoolId, preparedSpellLimit, preparesSpell, spellBaseLevel} from "../helpers/spellcasting.mjs";
 
 /** Item types whose drop opens the level-up dialog (G8): a class's first level, a species or background. */
 const LEVELLED = new Set(["class", "species", "background"]);
@@ -39,6 +39,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       levelUp: WildPathActorSheet.#onLevelUp,
       abilityScores: WildPathActorSheet.#onAbilityScores,
       togglePrepared: WildPathActorSheet.#onTogglePrepared,
+      toggleArcanum: WildPathActorSheet.#onToggleArcanum,
       rollTest: WildPathActorSheet.#onRollTest,
       deleteEffect: WildPathActorSheet.#onDeleteEffect
     }
@@ -99,6 +100,10 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       const item = this.actor.items.get(row.id);
       row.prepares = preparesSpell(item);
       row.prepared = item?.system?.prepared !== false;
+      // A spell of level 6 to 9 may be its level's Mystic Arcanum while the creature has that arcanum.
+      const level = item?.system?.definition?.tags?.includes("spell") ? spellBaseLevel(item.system.definition) : null;
+      const pool = (level >= 6) ? this.actor.system.pools.find(entry => entry.id === mysticArcanumPoolId(level)) : null;
+      row.arcanum = (pool && (pool.max > 0)) ? {level, on: item.flags?.wildpath?.arcanum === true} : null;
     }
     const preparing = this.actor.items.filter(preparesSpell);
     const limit = preparedSpellLimit(classes);
@@ -232,6 +237,18 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     if ( prepared && (limit !== null) && (count > limit) ) {
       ui.notifications.warn(game.i18n.format("WILDPATH.SHEET.PreparedOver", {name: this.actor.name, count, limit}));
     }
+  }
+
+  /** @this {WildPathActorSheet} Make a spell its level's Mystic Arcanum (one a level), or no longer. */
+  static async #onToggleArcanum(event, target) {
+    const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
+    if ( !item ) return;
+    const on = item.flags?.wildpath?.arcanum !== true;
+    const level = spellBaseLevel(item.system.definition);
+    const others = this.actor.items.filter(entry => (entry !== item) && (entry.flags?.wildpath?.arcanum === true)
+      && (spellBaseLevel(entry.system.definition) === level));
+    await this.actor.updateEmbeddedDocuments("Item", [{_id: item.id, "flags.wildpath.arcanum": on},
+      ...(on ? others.map(entry => ({_id: entry.id, "flags.wildpath.arcanum": false})) : [])]);
   }
 
   /** @this {WildPathActorSheet} Generate the six ability scores (standard array, point buy or 4d6). */

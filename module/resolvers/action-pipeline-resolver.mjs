@@ -57,7 +57,8 @@ import {
   normalizeRollResponseValue,
   rollFormulaForRequest,
   rollResultToDamageComponents,
-  rollResultToResolverRoll
+  rollResultToResolverRoll,
+  combineRollModes
 } from "../helpers/rolls.mjs";
 import {
   ACTION_RESOLVER_CODES,
@@ -3390,6 +3391,13 @@ function checkRollRequestForState(state, input, {suffix="check-roll"}={}) {
   });
 }
 
+/** A target's save mode: its own, or with a reroll's `extra` mode as one more source. */
+function saveRollMode(save, key, extra=null) {
+  const own = save.rollModesByTarget?.[key] ?? save.rollMode ?? save.advantageState ?? save.roll?.mode;
+  if ( !extra ) return own;
+  return combineRollModes([...(save.rollModeSourcesByTarget?.[key] ?? [own].filter(Boolean)), extra]);
+}
+
 function saveRollRequestForState(state, input, {target=null, suffix="save-roll", bonus=0, rollMode=null}={}) {
   const save = input.save ?? {};
   // Each target adds its own save bonus, which the runtime keys by Token.
@@ -3403,10 +3411,9 @@ function saveRollRequestForState(state, input, {target=null, suffix="save-roll",
     type: ROLL_TYPES.SAVING_THROW,
     modifier: modifier.value,
     formula: save.formula ?? save.rollFormula ?? null,
-    // Each target rolls with its own advantage or disadvantage, which the runtime keys by Token.
-    // shortcut: a reroll's own mode (Countercharm's Advantage) replaces the target's rather than combining with it.
-    rollMode: rollMode ?? save.rollModesByTarget?.[rollModeTargetKey(target ?? firstRollTarget(input))]
-      ?? save.rollMode ?? save.advantageState ?? save.roll?.mode,
+    // Each target rolls with its own advantage or disadvantage, which the runtime keys by Token; a reroll's own mode
+    // (Countercharm's Advantage) is one more source, cancelling source for source.
+    rollMode: saveRollMode(save, rollModeTargetKey(target ?? firstRollTarget(input)), rollMode),
     // Saves keep `system` visibility: the roller's own message mode decides (see withRollerVisibility).
     dc: save.dc ?? null,
     source: target ?? firstRollTarget(input) ?? state.source ?? input.source ?? null,
