@@ -115,13 +115,21 @@ function tokenReactions(token: TokenLike) {
       if ( (element.type !== "Trigger") || (element.enabled === false) ) return [];
       const event = String(data.event ?? data.eventType ?? "");
       if ( ((data.kind ?? data.triggerKind) !== "reaction") || !event ) return [];
-      const actionItem = item.type === "action" ? item
-        : items.find(entry => (entry.type === "action")
-          && (entry.system?.definition?.id === (data.reaction as Data | undefined)?.actionId));
+      // A common Action (Retaliation's `commonAction: "opportunity"`: its first melee attack or Unarmed Strike), else
+      // the Item itself or the Action it names.
+      const localize = (key: string) => (globalThis as {game?: {i18n?: {localize(key: string): string}}}).game?.i18n?.localize(key) ?? key;
+      const actionItem = data.commonAction ? common(actor, String(data.commonAction), {localize})
+        : item.type === "action" ? item
+          : items.find(entry => (entry.type === "action")
+            && (entry.system?.definition?.id === (data.reaction as Data | undefined)?.actionId));
       const definition = actionItem ? definitionFor(actionItem) : null;
       if ( !definition?.ok || !definition.definition ) return [];
-      // A reaction set to "Never" is not offered; one set to "Always" is used without asking.
-      const policy = policyOf(actionItem!);
+      // Offered under its Item's name: "Retaliation (Dagger)", not "Opportunity Attack (Dagger)".
+      if ( data.commonAction ) definition.definition = {...definition.definition,
+        label: String((actionItem as {name?: string}).name ?? "")
+          .replace(localize("WILDPATH.COMMON.OpportunityAttack"), String((item as {name?: string}).name ?? ""))};
+      // A reaction set to "Never" is not offered; one set to "Always" is used without asking (its Item's setting).
+      const policy = policyOf(data.commonAction ? item : actionItem!);
       if ( policy === "never" ) return [];
       // Only while its creature has a status (Brutal Strike: Reckless Attack's "reckless").
       if ( data.whileStatus && !actor.statuses?.has(String(data.whileStatus)) ) return [];

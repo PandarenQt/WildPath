@@ -76,7 +76,15 @@ const REACTIONS = Object.freeze({
   "uncanny-dodge": {event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}"}, halves: true},
   // "when you take damage from a creature": that creature is the reaction's target.
   "hellish-rebuke": {event: "damage.applied", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}},
+  // Goliath Stone's Endurance: "when you take damage", rolled as the attack on it hits, 1d12 + its Constitution modifier
+  // off that attack's damage (`rider.reduceDamage`). shortcut: damage from a save, or with no attack, is by hand.
+  "stones-endurance": {event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}"},
+    reduces: {dice: {type: "dice", number: 1, faces: 12}, bonus: {type: "ability-modifier", ability: "fortitude"}}},
   "storms-thunder": {event: "damage.applied", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}},
+  // "when you take damage from a creature within 5 feet": that creature is the target of its common melee attack (its
+  // first melee attack or Unarmed Strike, `commonAction`). shortcut: "within 5 feet" is the attack's own reach.
+  retaliation: {event: "damage.applied", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"},
+    commonAction: "opportunity"},
   counterspell: {event: "action.declared", match: {phase: "interrupt", tagsAny: ["spell"], notSourceTokenId: "{self}"}, counters: true},
   // Another creature's attack hits: its die (Bardic Inspiration's) is subtracted from that attack roll, which is then
   // checked again. shortcut: its use on a damage roll or an ability check, "can see" and hostility are by hand.
@@ -231,7 +239,7 @@ const WITHDRAW = {id: "effect-1", type: "effect", name: "Withdraw", slug: "disen
         {type: "context", path: "actorSystem.resources.movement.bonus"}]}, denominator: {type: "constant", value: 2}}}}}]};
 
 /** Features the engine offers itself when they apply (Tactical Mind: withTacticalMind on a failed check). */
-const OFFERED_BY_ENGINE = new Set(["tactical-mind", "eldritch-master"]);
+const OFFERED_BY_ENGINE = new Set(["tactical-mind", "eldritch-master", "indomitable"]);
 
 /** The pool of Pact Magic slots (helpers/spellcasting.mts). */
 const PACT_SLOT_POOL = "spell-slot.pact";
@@ -279,7 +287,10 @@ const TEST_OFFERS = Object.freeze({
   "peerless-skill": {tests: ["check", "attack"], refundOnFail: true},
   "dark-ones-own-luck": {tests: ["check", "save"]},
   // 2024 Stroke of Luck: a failed D20 Test becomes a 20, once per Short Rest.
-  "stroke-of-luck": {tests: ["check", "save", "attack"], setNatural: 20}
+  "stroke-of-luck": {tests: ["check", "save", "attack"], setNatural: 20},
+  // 2024 Countercharm: a save failed against Charmed or Frightened, by itself or an ally within 30 ft, rerolled with
+  // Advantage for its Reaction (withAllyTestOffers). Its pool is named here: its activity spends none.
+  countercharm: {tests: ["save"], pool: "reaction", rollMode: "advantage", range: 30, against: ["charmed", "frightened"]}
 });
 
 /** The die of a test offer: "1d10", or a scale's die ("@scale.bard.inspiration") as its faces. */
@@ -847,8 +858,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   for ( const [index, activity] of usable.entries() ) {
     const notes = [...(pool?.notes ?? [])];
     const label = activity.name || activity.type;
-    // An activity a common trait automates (Regeneration's healing) is the trait's, not an Action.
-    if ( trait?.consumes?.includes(activity) ) continue;
+    // An activity a common trait automates (Regeneration's healing) is the trait's, not an Action; one the engine offers
+    // itself (Indomitable's reroll) is its feature's.
+    if ( trait?.consumes?.includes(activity) || OFFERED_BY_ENGINE.has(identifierOf(document)) ) continue;
+    // A test offer naming its own pool (Countercharm's Reaction) is its feature's flag, whatever its activation.
+    if ( TEST_OFFERS[identifierOf(document)]?.pool ) {
+      testOffer = structuredClone(TEST_OFFERS[identifierOf(document)]);
+      continue;
+    }
     // A passive or triggered ability is not something a creature uses on its turn; its feature carries its text.
     const activation = pick(activity, system, "activation").type ?? "";
     // A feature used when its creature hits (Stunning Strike): offered on that hit, though dnd5e leaves it passive.
@@ -1009,6 +1026,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
           type: "GrantResistance", data: {damageTypes: []}}]}]};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
+    // Its Trigger brings a common Action (Retaliation's melee attack), so its own utility does nothing more.
+    if ( reaction?.commonAction ) notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
+    if ( reaction?.reduces ) {
+      const {healing: _healing, ...rest} = definition;
+      definition = {...rest, range: {type: "self"}, targeting: {type: "self"}, rider: {reduceDamage: structuredClone(reaction.reduces)}};
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
+    }
     if ( bonusAC && !definition.effects?.length ) {
       definition = {...definition, range: {type: "self"}, targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect",
         name: document.name, ...(img ? {img} : {}), endsWhen: "attacked", ruleElements: [{schemaVersion: 1, id: "parry", type: "Modifier",
@@ -1032,7 +1056,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const trigger = reaction ?? smite ?? (onHit ? {...SMITE_TRIGGER, match: {...(onHit.spell ? anyHit : SMITE_TRIGGER.match),
       ...(onHit.tagsAll ? {tagsAll: onHit.tagsAll} : {})}, once: onHit.once, onceKey: onHit.onceKey, uses: onHit.uses} : null);
     if ( trigger ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
-      data: {kind: "reaction", event: trigger.event, match: trigger.match, ...(trigger.once ? {once: trigger.once} : {}),
+      data: {kind: "reaction", event: trigger.event, match: trigger.match, ...(trigger.commonAction ? {commonAction: trigger.commonAction} : {}),
+        ...(trigger.once ? {once: trigger.once} : {}),
         ...(trigger.onceKey ? {onceKey: trigger.onceKey} : {}), ...(trigger.uses ? {uses: trigger.uses} : {})}});
     if ( flurry ) reacting.system.ruleElements.push(structuredClone(FLURRY_POOL));
     items.push(reacting);

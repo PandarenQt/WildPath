@@ -34,6 +34,20 @@ export function allyNearTarget(attacker, target, footprint = null) {
         return !!ally && (footprintDistance(ally, at) * scene.grid.distance <= 5);
     });
 }
+/** How far `other` stands from `token`, in feet, when it is `token` itself (0) or its ally by disposition; else null. */
+export function allyDistance(token, other) {
+    if (!token || !other)
+        return null;
+    if (token.id === other.id)
+        return 0;
+    const scene = token.parent;
+    if (!scene || !affectsToken("allies", token, other))
+        return null;
+    const adapter = createFoundryV14TacticalGridAdapter({ scene });
+    const footprintOf = (each) => adapter.tokenToFootprint(each).footprint ?? null;
+    const [from, to] = [footprintOf(token), footprintOf(other)];
+    return (from && to) ? footprintDistance(from, to) * scene.grid.distance : null;
+}
 export function createFoundryAuras() {
     /** Rule owners (`{ruleElements, source}`) the auras around `actor`'s Tokens grant it. */
     function ownersFor(actor) {

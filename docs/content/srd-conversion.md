@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 876 automated, 287 manual, 226 features. Creatures: 375.
+Items: 877 automated, 284 manual, 228 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -341,7 +341,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Costume | equipment24 | Costume (gear) | — |
 | Costume | equipment24 | Costume (gear) | — |
 | Couatl | actors24 | Couatl (13 items) | Constrict: "Escape Check" is passive or triggered: not automated; Spellcasting: effect: "Detect Evil and Good" marks its creature only; its rules are by hand; Spellcasting: effect: "Detect Magic" marks its creature only; its rules are by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: "Create Sensor" is passive or triggered: not automated |
-| Countercharm | classes24 | Countercharm (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Countercharm | classes24 | Countercharm (feature) | — |
 | Counterspell | spells24 | Counterspell (automated) | rolled (save); what it does is by hand |
 | Crab | actors24 | Crab (3 items) | — |
 | Crawler Mucus | equipment24 | Crawler Mucus (gear) | "Use Poison" is passive or triggered: not automated |
@@ -834,7 +834,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Improved Elemental Fury | classes24 | Improved Elemental Fury (feature) | — |
 | Incendiary Cloud | spells24 | Incendiary Cloud (Create Cloud) (automated) | "Per Turn Save" is passive or triggered: not automated |
 | Incubus | actors24 | Incubus (9 items) | Succubus Form: "Shape-Shift: Succubus" is passive or triggered: not automated; Restless Touch: effect: cursed is not a WildPath condition yet; Restless Touch: effect: "Cursed" marks its creature only; its rules are by hand; Spellcasting: effect: "Disguised" marks its creature only; its rules are by hand; Spellcasting: effect: ethereal is not a WildPath condition yet; Spellcasting: effect: "Etherealness" marks its creature only; its rules are by hand; Spellcasting: activation: 1 minute is not an action-economy cost |
-| Indomitable | classes24 | Indomitable (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Indomitable | classes24 | Indomitable (feature) | — |
 | Indomitable Might | classes24 | Indomitable Might (feature) | — |
 | Inflict Wounds | spells24 | Inflict Wounds (automated) | — |
 | Ink | equipment24 | Ink (gear) | — |
@@ -1239,7 +1239,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Resourceful | origins24 | Resourceful (feature) | — |
 | Restoring Touch | classes24 | Restoring Touch (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses 5 * @scaling not converted |
 | Resurrection | spells24 | Resurrection (Cast) (automated), Resurrection (Taxing Cast) (automated) | activation: 1 hour is not an action-economy cost; effect: "Spell Taxed" marks its creature only; its rules are by hand |
-| Retaliation | classes24 | Retaliation (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Retaliation | classes24 | Retaliation (automated) | — |
 | Reverse Gravity | spells24 | Reverse Gravity (automated) | save: a failure marks its creature only; what it does is by hand |
 | Revivify | spells24 | Revivify (automated) | — |
 | Rhinoceros | actors24 | Rhinoceros (2 items) | — |

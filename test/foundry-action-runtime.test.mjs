@@ -2257,3 +2257,49 @@ test("a weapon attack's hit carries the `weapon` tag, so an own-hit reaction on 
   assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
   assert.equal(offers.length, 1, "offered on the weapon's hit");
 });
+
+test("Stone's Endurance: as an attack on it hits, 1d12 + its Fortitude modifier comes off that attack's damage", async t => {
+  const fs = await import("node:fs");
+  const stone = JSON.parse(fs.readFileSync("packs/_source/srd-items/stone-s-endurance-phbsptStonesEndu.json", "utf8"));
+  const {targetActor, targetSource, gm, player, offers, intent, holder} = counterattackFixture(t, {
+    holderItems: [{id: stone._id, type: "action", name: stone.name, system: stone.system}], gmQueue: [{total: 3}]});
+  for ( const system of [targetSource, targetActor.system] ) {
+    system.abilities = {...(system.abilities ?? {}), fortitude: {value: 14}};
+    system.pools = [{id: "stone-s-endurance", value: 2, max: 2}];
+  }
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(offers.length, 1, "offered to the creature hit");
+  assert.equal(targetActor.system.resources.health.value, 29, "6 damage less 3 + 2");
+  assert.equal(holder.system.resources.reaction.value, 0);
+  assert.equal(holder.system.pools.find(pool => pool.id === "stone-s-endurance").value, 1);
+});
+
+test("Countercharm: offered for a save failed against Charmed or Frightened, by the creature itself or an ally within 30 ft", async t => {
+  const {withAllyTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {scene, targetActor, targetToken, targetSource} = syntheticRuntimeFixture(t);
+  const countercharm = {id: "cc", name: "Countercharm", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["save"], pool: "reaction",
+    rollMode: "advantage", range: 30, against: ["charmed", "frightened"]}}}};
+  const bardAt = (id, j, disposition=targetToken.disposition) => {
+    const actor = withFoundryActorSystem(fakeActor(id, {system: {...targetActorSystem(), resources: {reaction: {value: 1, max: 1}}}}));
+    actor.items = [countercharm];
+    scene.tokens.push(fakeTokenDocument({id: `${id}-token`, actor, scene, offset: {i: 1, j}, disposition}));
+    return actor;
+  };
+  const charm = {effects: [{conditionId: "charmed"}]};
+  const payers = [];
+  const offerFor = definition => withAllyTestOffers(null, targetToken, definition, {}, "save", {chooser: "target-controller",
+    register: payer => payers.push(payer.id)});
+  bardAt("far-bard", 7);
+  bardAt("foe-bard", 1, -targetToken.disposition);
+  assert.equal(offerFor(charm), null, "35 ft away, or not an ally");
+  bardAt("bard", 6);
+  const offer = offerFor(charm);
+  assert.deepEqual(offer.options.map(option => [option.payerRef, option.rollMode]), [["Actor.bard", "advantage"]], "30 ft away");
+  assert.deepEqual(payers, ["bard"], "registered to pay");
+  assert.equal(offerFor({effects: [{conditionId: "prone"}]}), null, "a save against Prone");
+  targetActor.items = [countercharm];
+  for ( const system of [targetSource, targetActor.system] ) system.resources.reaction = {value: 1, max: 1};
+  assert.equal(offerFor({effects: [{conditionId: "frightened"}]}).options.length, 2, "its own too");
+});

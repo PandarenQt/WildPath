@@ -16,7 +16,7 @@ import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-se
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
 import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {createFoundryTeleports, teleportDestination} from "../adapters/foundry-v14-teleport.mjs";
-import {allyNearTarget, createFoundryAuras} from "../adapters/foundry-v14-auras.mjs";
+import {allyDistance, allyNearTarget, createFoundryAuras} from "../adapters/foundry-v14-auras.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 import {AUTOMATION_QUERY, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
@@ -717,6 +717,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // Player characters who may pay for a monster's reroll (Heroic Inspiration), found once when first asked.
   let inspirationPayers = null;
   const payers = () => (inspirationPayers ??= monsterRerollPayers(game, sourceToken?.parent ?? null));
+  // Allies paying for a target's reroll (Countercharm), committed on like targets.
+  const allyPayers = [];
   const ambiguousKeys = new Set();
   // The authority, not the client's selection, decides who a "self" or "no target" Action targets.
   const targetingType = definition?.targeting?.type;
@@ -763,10 +765,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( forced.some(entry => entry.outcome === "evasion") ) evasionByTarget[key] = "evasion";
       const legendary = legendaryResistanceFor(targetActor, systemSnapshots.get(targetActor), game);
       if ( legendary ) legendaryByTarget[key] = legendary;
-      const inspiration = withTestOffers(withAddedDice(withIndomitable(inspirationOffer(targetActor, systemSnapshots.get(targetActor), game,
-        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers}), targetActor, systemSnapshots.get(targetActor), game), targetActor, game,
-        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, target}), targetActor, systemSnapshots.get(targetActor), game, "save",
-        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER});
+      const inspiration = withAllyTestOffers(withTestOffers(withAddedDice(withIndomitable(inspirationOffer(targetActor,
+        systemSnapshots.get(targetActor), game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers}), targetActor,
+        systemSnapshots.get(targetActor), game), targetActor, game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, target}), targetActor,
+        systemSnapshots.get(targetActor), game, "save", {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER}), saverToken, definition, game, "save",
+        {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, register: payer => { allyPayers.push(payer); }});
       if ( inspiration ) inspirationByTarget[key] = inspiration;
     }
     if ( definition?.damage?.length ) {
@@ -850,7 +853,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // Its own reward for dropping a creature (Dark One's Blessing) is committed on it, its uuid its key.
   const onReduce = definition?.damage?.length ? reducedToZeroFor(actor, actorSystem) : null;
   if ( onReduce ) targetActors[actor.uuid] ??= actor;
-  for ( const payer of inspirationPayers ?? [] ) targetActors[payer.uuid] ??= payer;
+  for ( const payer of [...(inspirationPayers ?? []), ...allyPayers] ) targetActors[payer.uuid] ??= payer;
   // Reactors on the Scene (Trigger RuleElements on Action events) and the acting creature they may answer.
   const scene = sourceToken?.parent ?? null;
   const reactions = scene ? foundryActionReactionServices({game, scene, token: sourceToken,
@@ -1374,7 +1377,8 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
   const options = [];
   for ( const item of roller?.items ?? [] ) {
     const spec = item?.flags?.wildpath?.testOffer;
-    if ( !spec?.tests?.includes(test) || (item.system?.active === false) ) continue;
+    // One with a range is offered to its allies too (withAllyTestOffers).
+    if ( !spec?.tests?.includes(test) || spec.range || (item.system?.active === false) ) continue;
     const payment = resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: spec.pool, amount: 1}]}});
     if ( !payment.ok ) continue;
     // Stroke of Luck: the roll becomes a 20 (`setNatural`), with no die of its own.
@@ -1391,6 +1395,41 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
   if ( !options.length ) return offer;
   return offer ? {...offer, options: [...offer.options, ...options]}
     : {own: true, chooser, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""}), options};
+}
+
+/**
+ * 2024 Countercharm: when a creature fails a save against an effect giving one of a feature's conditions (`against`:
+ * Charmed, Frightened), it or an ally within the feature's `range` that has it may reroll the save for it with that
+ * feature's `rollMode` (Advantage), paying its `pool` (its Reaction). Each paying creature is registered (`register`) so
+ * its payment is committed on it. The saver's controller decides. shortcut: "can see" is its controller's to judge.
+ */
+export function withAllyTestOffers(offer, saverToken, definition, game, test, {chooser, register=() => {}}={}) {
+  if ( (offer && !offer.own) || !saverToken?.parent ) return offer;
+  const conditions = new Set((definition?.effects ?? []).map(effect => effect?.conditionId).filter(Boolean));
+  if ( !conditions.size ) return offer;
+  const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
+  const options = [];
+  for ( const token of saverToken.parent.tokens ?? [] ) {
+    const bearer = token.actor;
+    for ( const item of bearer?.items ?? [] ) {
+      const spec = item?.flags?.wildpath?.testOffer;
+      if ( !spec?.range || !spec.tests?.includes(test) || (item.system?.active === false) ) continue;
+      if ( !(spec.against ?? []).some(condition => conditions.has(condition)) ) continue;
+      const distance = allyDistance(saverToken, token);
+      if ( (distance === null) || (distance > Number(spec.range)) ) continue;
+      let system;
+      try { system = foundryActorSystemSnapshot(bearer); } catch { continue; }
+      const payment = resolveActorResourcePayment({actorSystem: system, cost: {allOf: [{capability: spec.pool, amount: 1}]}});
+      if ( !payment.ok ) continue;
+      register(bearer);
+      options.push({value: `ally-offer:${bearer.uuid}:${item.id}`, payerRef: bearer.uuid, plan: payment.mutationPlan,
+        ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), label: format("WILDPATH.INSPIRATION.AllyReroll", {name: bearer.name ?? "",
+          feature: item.name ?? ""})});
+    }
+  }
+  if ( !options.length ) return offer;
+  return offer ? {...offer, options: [...offer.options, ...options]}
+    : {own: true, chooser, label: format("WILDPATH.INSPIRATION.OwnSave", {name: saverToken.actor?.name ?? ""}), options};
 }
 
 /**

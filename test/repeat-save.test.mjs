@@ -153,3 +153,29 @@ test("Stroke of Luck (SRD): a missed attack becomes a natural 20, a critical hit
   assert.equal(state.results.attackResolution.hits[0]?.outcome, "criticalHit", JSON.stringify(state.errors ?? []).slice(0, 300));
   assert.ok(state.mutationPlans.some(plan => (plan.type === "resourcePayment") && (plan.payerRef === "Actor.rogue")), "its use is spent");
 });
+
+test("Countercharm: an ally's reroll of a failed save rolls with Advantage, and that ally pays", () => {
+  const charm = {schemaVersion: 1, id: "action:charm", label: "Charm", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    save: {ability: "wits", dc: {value: 13}}, effects: [{id: "effect-1", type: "condition", conditionId: "charmed", saveOutcomePolicy: "failure"}]};
+  const plan = {ok: true, updates: {"system.resources.reaction.value": 0}, payments: []};
+  const offer = {own: true, chooser: "target-controller", label: "x",
+    options: [{value: "ally-offer:Actor.bard:cc", payerRef: "Actor.bard", plan, rollMode: "advantage", label: "Bard's Countercharm"}]};
+  let state = planStagedActionResolution({id: "resolution:charm", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {id: charm.id, type: "action", name: charm.label, system: {definition: charm}}, source: {actorId: "actor-source"},
+    targets: [{id: "fighter", actorId: "actor-fighter", tokenId: "token-fighter", disposition: "enemy"}],
+    save: {inspirationByTarget: {"token-fighter": offer}}}).state;
+  const answer = value => {
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: typeof value === "function" ? value(request) : value}}).state;
+    return request;
+  };
+  answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: 4, total: 4}));
+  answer("ally-offer:Actor.bard:cc");
+  const reroll = answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type,
+    natural: 15, total: 15}));
+  assert.equal(reroll.payload.rollRequest.rollMode, "advantage");
+  assert.equal(state.results.saveResolution.results[0].success, true, "15 against DC 13");
+  assert.ok(state.mutationPlans.some(entry => (entry.type === "resourcePayment") && (entry.payerRef === "Actor.bard")), "the bard pays");
+  assert.equal(state.mutationPlans.some(entry => entry.conditionId === "charmed"), false);
+});
