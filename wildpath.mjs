@@ -7,6 +7,7 @@ import {registerSunlightConfig} from "./module/applications/sunlight-config.mjs"
 import {registerChatCardInteractions} from "./module/adapters/foundry-v14-chat-card-interactions.mjs";
 import {registerInspirationRerolls} from "./module/applications/inspiration-reroll.mjs";
 import {registerPortent} from "./module/adapters/foundry-v14-portent.mjs";
+import {SOURCE_GATES} from "./module/helpers/level-up.mjs";
 
 import "./module/tests/quench/index.mjs";
 
@@ -174,6 +175,13 @@ Hooks.once("init", () => {
     type: Boolean,
     default: true
   });
+
+  // Which sources the level-up dialog offers feats and subclasses from (sourceGate): all, until a GM turns one off.
+  for ( const gate of SOURCE_GATES ) {
+    const key = gate.replace(/^./, letter => letter.toUpperCase());
+    game.settings.register("wildpath", `source${key}`, {name: `WILDPATH.SETTINGS.Source.${key}.Name`,
+      hint: `WILDPATH.SETTINGS.Source.${key}.Hint`, scope: "world", config: true, type: Boolean, default: true});
+  }
 
   // Hit points on level up (G8): the Hit Die's average by default, or rolled.
   game.settings.register("wildpath", "rollHitPoints", {

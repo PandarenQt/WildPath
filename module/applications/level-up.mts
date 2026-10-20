@@ -2,7 +2,7 @@
  * The level-up dialog (G8, BG3-style): one form for what a class level (with its subclass's), a species or a
  * background asks; what it grants is added without asking. The rules are helpers/level-up.mts.
  */
-import {hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, poolOptions} from "../helpers/level-up.mjs";
+import {hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, poolOptions, sourceGate} from "../helpers/level-up.mjs";
 import type {AdvancementEntry, LevelStep} from "../helpers/level-up.mjs";
 import {hitDiePoolId} from "../helpers/spellcasting.mjs";
 import {actorAbilityModifier} from "../helpers/combat-statistics.mjs";
@@ -24,12 +24,13 @@ export interface LevelActor {
   createEmbeddedDocuments(type: string, data: Data[]): Promise<LevelItem[]>;
   getActiveTokens(linked?: boolean, document?: boolean): Array<{update(data: Data): Promise<unknown>}>;
 }
-interface IndexEntry {uuid: string; name: string; type?: string; system?: {classIdentifier?: string}; flags?: {wildpath?: {source?: {feat?: string}}}}
+interface IndexEntry {uuid: string; name: string; type?: string; system?: {classIdentifier?: string}; flags?: {wildpath?: {source?: {feat?: string;
+  system?: string; book?: string; rules?: string; thirdParty?: boolean}}}}
 interface Globals {
   foundry: {applications: {api: {DialogV2: {wait(config: Data): Promise<unknown>}}};
     utils: {escapeHTML(text: string): string; mergeObject(target: Data, source: Data): Data}};
   game: {i18n: {localize(key: string): string; format(key: string, data: Data): string};
-    packs: Iterable<{documentName: string; getIndex(options: {fields: string[]}): Promise<Iterable<IndexEntry>>}>;
+    packs: Iterable<{documentName: string; metadata?: {packageName?: string}; getIndex(options: {fields: string[]}): Promise<Iterable<IndexEntry>>}>;
     settings: {get(scope: string, key: string): unknown}; items: {fromCompendium(document: unknown): Data}};
   CONFIG: {WILDPATH: {ABILITIES: Record<string, {label: string}>; SKILLS: Record<string, {label: string}>}};
   fromUuid(uuid: string): Promise<unknown>;
@@ -171,9 +172,14 @@ async function compendiumOptions(item: LevelItem, totalLevel: number): Promise<P
   const feats = new Map<string, IndexEntry>();
   const subclasses = new Map<string, IndexEntry>();
   const categories = totalLevel >= 19 ? [...FEATS, "epicBoon"] : FEATS;
-  for ( const pack of globals().game.packs ) {
+  const {game} = globals();
+  // The sources this world offers (its source settings; all of them by default).
+  const allowed = (entry: IndexEntry, packageName: string) => game.settings.get("wildpath",
+    `source${sourceGate(entry.flags?.wildpath?.source, packageName).replace(/^./, letter => letter.toUpperCase())}`) !== false;
+  for ( const pack of game.packs ) {
     if ( pack.documentName !== "Item" ) continue;
-    for ( const entry of await pack.getIndex({fields: ["flags.wildpath.source.feat", "system.classIdentifier"]}) ) {
+    for ( const entry of await pack.getIndex({fields: ["flags.wildpath.source", "system.classIdentifier"]}) ) {
+      if ( !allowed(entry, pack.metadata?.packageName ?? "") ) continue;
       if ( categories.includes(entry.flags?.wildpath?.source?.feat ?? "") && !feats.has(entry.name) ) feats.set(entry.name, entry);
       if ( (entry.type === "subclass") && item.system.identifier && (entry.system?.classIdentifier === item.system.identifier)
         && !subclasses.has(entry.name) ) subclasses.set(entry.name, entry);

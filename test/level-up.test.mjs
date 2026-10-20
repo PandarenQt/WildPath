@@ -78,3 +78,15 @@ test("languages: a choice of any, standard or rare languages, merged as training
   mergeTraining(system, ["languages:elvish", "languages:common"]);
   assert.deepEqual(system.training.languages, ["common", "elvish"]);
 });
+
+test("source gates: the core books by their rules, other local books as supplements, UA by name, the rest third-party", async () => {
+  const {sourceGate} = await import("../module/helpers/level-up.mjs");
+  const source = (extra={}) => ({system: "dnd5e", book: "Player's Handbook", rules: "2024", ...extra});
+  assert.equal(sourceGate(source(), "wildpath"), "core2024", "the SRD");
+  assert.equal(sourceGate(source({rules: "2014"}), "wildpath-dnd-players-handbook"), "core2014");
+  assert.equal(sourceGate(source({book: "Tasha's Cauldron of Everything"}), "wildpath-dnd-tashas-cauldron"), "supplement");
+  assert.equal(sourceGate(source({book: "Unearthed Arcana: Mages of Strixhaven"}), "wildpath-ua"), "ua");
+  assert.equal(sourceGate(source({thirdParty: true}), "wildpath-humblewood"), "thirdParty");
+  assert.equal(sourceGate(undefined, "world"), "thirdParty", "homebrew WildPath did not convert");
+  assert.equal(sourceGate(source(), "some-module"), "thirdParty");
+});

@@ -35,6 +35,13 @@
         "Name": "GM may reroll monster rolls with players' inspiration",
         "Hint": "On: after a monster's d20 (an attack, a save or a check), the GM is asked whether to reroll it by spending a player character's Heroic Inspiration point. Off: only players spend their points, on their own failed rolls."
       },
+      "Source": {
+        "Core2014": {"Name": "Offer 2014 core content", "Hint": "Feats and subclasses from the 2014 core books in the level-up dialog."},
+        "Core2024": {"Name": "Offer 2024 core content", "Hint": "Feats and subclasses from the SRD and the 2024 core books in the level-up dialog."},
+        "Supplement": {"Name": "Offer supplements", "Hint": "Feats and subclasses from other official books (Tasha's, Xanathar's, ...) in the level-up dialog."},
+        "Ua": {"Name": "Offer Unearthed Arcana", "Hint": "Playtest feats and subclasses in the level-up dialog."},
+        "ThirdParty": {"Name": "Offer third-party and homebrew content", "Hint": "Feats and subclasses from third-party books and homebrew compendiums in the level-up dialog."}
+      },
       "RollHitPoints": {
         "Name": "Roll hit points on level up",
         "Hint": "On: each level after the first rolls its Hit Die for hit points (at least 1, with the Fortitude modifier). Off: the Hit Die's average rounded up, as the 2024 rules suggest."
