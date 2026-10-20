@@ -437,9 +437,14 @@ rare languages (dnd5e's "exotic" is WildPath's "rare"; Primordial's four dialect
   - Live: QA Caster with Elvish and Dwarvish, and a feature with Telepathy 30, showed "Elvish, Dwarvish" and "Telepathy
     30 ft."; typing "Elvish, Deep Speech, understands Common" stored `elvish`, `deep` and the text.
 - **Conversion.** dnd5e's `languages:standard:elvish` is `languages:elvish`; creatures' `traits.languages` (value,
-  custom text split at semicolons, Telepathy); gear's `system.traits.languages.*` adds.
-- shortcuts: Telepathy's range is text; spells that grant languages (Comprehend Languages, Tongues, Speak with Animals,
-  Telepathic Bond) are by hand.
+  custom text split at semicolons); gear's `system.traits.languages.*` adds.
+  - **Telepathy (2026-10-20)** is a `GrantLanguage telepathy` rule with its range: a creature's (its communication
+    range, or "telepathy 120 ft." text) and the Helm of Telepathy's (30 ft). "Telepathy 1 mile (works only with you)"
+    stays text.
+  - **Language spells (2026-10-20)**, by their effect's name (`LANGUAGE_EFFECTS`): Comprehend Languages `any`;
+    Tongues `any`, spoken, understood by others; Speak with Animals `beasts`, spoken; Telepathic Bond `telepathy`,
+    bonded. A spell or feature effect that adds a plain language gives it (Alter Self's Aquan).
+  - 43 pack files.
 
 Live (two browsers, 14.369): Player1 added the Acolyte to QA Caster: the dialog granted Common and offered the other
 nine standard languages; Draconic and Elvish were recorded on the background, not the creature, and left with it. A

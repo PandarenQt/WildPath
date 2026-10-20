@@ -32,8 +32,7 @@
     "skills": {},
     "training": {
       "languages": [
-        "infernal",
-        "telepathy 120 ft."
+        "infernal"
       ]
     },
     "defenses": {
@@ -540,6 +539,15 @@
             "data": {
               "sense": "darkvision",
               "range": 150
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "telepathy",
+            "type": "GrantLanguage",
+            "data": {
+              "language": "telepathy",
+              "range": 120
             }
           },
           {

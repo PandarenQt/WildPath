@@ -37,7 +37,16 @@
           "type": "effect",
           "name": "Comprehension",
           "img": "icons/sundries/books/book-open-purple.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "comprehension-1",
+              "type": "GrantLanguage",
+              "data": {
+                "language": "any"
+              }
+            }
+          ],
           "duration": {
             "value": 3600,
             "units": "seconds",
@@ -142,10 +151,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Comprehension\" change system.traits.languages.value (add) not converted",
-          "effect: \"Comprehension\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

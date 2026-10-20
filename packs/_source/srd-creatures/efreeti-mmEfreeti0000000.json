@@ -1083,7 +1083,18 @@
               "type": "effect",
               "name": "Universal Communication",
               "img": "icons/environment/settlement/pyramid.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "universal-communication-1",
+                  "type": "GrantLanguage",
+                  "data": {
+                    "language": "any",
+                    "spokenOnly": true,
+                    "understood": true
+                  }
+                }
+              ],
               "duration": {
                 "value": 3600,
                 "units": "seconds",
@@ -1126,10 +1137,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
-              "effect: \"Universal Communication\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1369,8 +1377,6 @@
           "Spellcasting: effect: transformed is not a WildPath condition yet",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
-          "Spellcasting: effect: \"Universal Communication\" marks its creature only; its rules are by hand",
           "Spellcasting: cast: Wall of Fire at level 7 is cast at its own level",
           "Spellcasting: \"damage\" is passive or triggered: not automated"
         ]

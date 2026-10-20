@@ -60,22 +60,10 @@
               "type": "Modifier",
               "data": {
                 "domains": [
-                  "resources.movement.max"
+                  "speed.multiplier"
                 ],
                 "modifierType": "untyped",
-                "valueExpression": {
-                  "type": "add",
-                  "terms": [
-                    {
-                      "type": "context",
-                      "path": "actorSystem.resources.movement.base"
-                    },
-                    {
-                      "type": "context",
-                      "path": "actorSystem.resources.movement.bonus"
-                    }
-                  ]
-                }
+                "value": 2
               }
             }
           ]

@@ -942,7 +942,7 @@ test("a grapple or restraint keeps its escape DC, from the Escape Check activity
 test("an effect with nothing WildPath maps still marks its creature, for its duration and concentration (Alter Self)", () => {
   const alter = {_id: "testAlterSelf001", name: "Alter Self", type: "spell", img: "systems/dnd5e/icons/spell.webp",
     effects: [{_id: "altered", name: "Aquatic Adaptation", img: "icons/svg/water.svg", transfer: false, statuses: [], duration: {value: 1, units: "hours"},
-      system: {changes: [{key: "system.traits.languages.custom", mode: 2, value: "Aquan"}]}}],
+      system: {changes: [{key: "flags.dnd5e.unknownTrait", mode: 2, value: "1"}]}}],
     system: {source: SRD, identifier: "alter-self", level: 2, preparation: {mode: "prepared"}, properties: ["vocal", "concentration"],
       activation: {type: "action"}, range: {units: "self"}, target: {affects: {type: "self"}, template: {}},
       activities: {a: activity("utility", {effects: [{_id: "altered"}]})}}};
@@ -1645,11 +1645,18 @@ test("languages convert: a background's choices and a creature's own, with its f
   assert.ok(JSON.stringify(acolyte.system.advancement).includes("languages:"), "its language step");
   assert.equal(JSON.stringify(acolyte.flags.wildpath.conversion.notes).includes("languages are not tracked"), false);
   const aboleth = read("srd-creatures", "aboleth-");
-  assert.deepEqual(aboleth.system.training.languages, ["deep", "telepathy 120 ft."]);
-  // Gear's language is its training while worn, no longer a note.
+  assert.deepEqual(aboleth.system.training.languages, ["deep"]);
+  assert.deepEqual(aboleth.items.flatMap(item => item.system.ruleElements ?? []).filter(rule => rule.type === "GrantLanguage")
+    .map(rule => rule.data), [{language: "telepathy", range: 120}], "its Telepathy is a rule with its range");
+  // Gear's Telepathy is its rule while worn (30 feet), no longer a note.
   const helm = read("srd-items", "helm-of-telepathy-dmg");
-  assert.deepEqual(helm.flags.wildpath.training, ["languages:Telepathy (30 feet)"]);
+  assert.deepEqual(helm.system.ruleElements.filter(rule => rule.type === "GrantLanguage").map(rule => rule.data), [{language: "telepathy", range: 30}]);
   assert.equal(JSON.stringify(helm.flags.wildpath.conversion.notes).includes("traits.languages"), false);
+  // The language spells: their understanding as rules.
+  const understood = prefix => read("srd-items", prefix).system.definition.effects.flatMap(effect => effect.ruleElements).map(rule => rule.data);
+  assert.deepEqual([understood("comprehend-languages-"), understood("tongues-"), understood("speak-with-animals-"), understood("telepathic-bond-")],
+    [[{language: "any"}], [{language: "any", spokenOnly: true, understood: true}], [{language: "beasts", spokenOnly: true}],
+      [{language: "telepathy", bond: true}]]);
   // An effect a summon applies is the summoned creature's: the Onyx Dog's holder gets no Common, Blindsight or Intellect.
   const onyx = read("srd-items", "onyx-dog-");
   assert.deepEqual([onyx.system.ruleElements, onyx.flags.wildpath.training], [[], undefined]);

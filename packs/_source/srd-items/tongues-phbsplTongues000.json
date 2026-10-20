@@ -42,7 +42,18 @@
           "type": "effect",
           "name": "Universal Communication",
           "img": "icons/environment/settlement/pyramid.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "universal-communication-1",
+              "type": "GrantLanguage",
+              "data": {
+                "language": "any",
+                "spokenOnly": true,
+                "understood": true
+              }
+            }
+          ],
           "duration": {
             "value": 3600,
             "units": "seconds",
@@ -133,10 +144,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
-          "effect: \"Universal Communication\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

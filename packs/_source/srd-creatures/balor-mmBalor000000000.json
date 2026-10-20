@@ -34,8 +34,7 @@
     },
     "training": {
       "languages": [
-        "abyssal",
-        "telepathy 120 ft."
+        "abyssal"
       ]
     },
     "defenses": {
@@ -618,6 +617,15 @@
             "type": "GrantSense",
             "data": {
               "sense": "truesight",
+              "range": 120
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "telepathy",
+            "type": "GrantLanguage",
+            "data": {
+              "language": "telepathy",
               "range": 120
             }
           },

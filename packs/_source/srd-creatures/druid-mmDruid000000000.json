@@ -397,7 +397,17 @@
               "type": "effect",
               "name": "Bestial Communication",
               "img": "icons/creatures/mammals/dog-husky-white-blue.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "bestial-communication-1",
+                  "type": "GrantLanguage",
+                  "data": {
+                    "language": "beasts",
+                    "spokenOnly": true
+                  }
+                }
+              ],
               "duration": {
                 "value": 600,
                 "units": "seconds",
@@ -425,10 +435,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
-              "effect: \"Bestial Communication\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1035,8 +1042,6 @@
       "conversion": {
         "notes": [
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
-          "Spellcasting: effect: \"Bestial Communication\" marks its creature only; its rules are by hand",
           "Spellcasting: effect: \"Carrying Message\" marks its creature only; its rules are by hand"
         ]
       }

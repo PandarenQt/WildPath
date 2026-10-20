@@ -1297,7 +1297,9 @@ function trainingKeys(document) {
     if ( change.key === "flags.dnd5e.diamondSoul" ) return Object.values(ABILITY_MAP).map(ability => `saves:${ability}`);
     // A language it gives (a Belt of Dwarvenkind's Dwarvish; a Helm of Telepathy's free text).
     if ( (change.type === "add") && /^system\.traits\.languages\.(value|custom)$/.test(change.key) ) {
-      return String(change.value ?? "").split(/[,;]/).map(entry => entry.trim()).filter(Boolean).map(value => `languages:${value}`);
+      // Telepathy (a Helm of Telepathy's) is its rule instead (effectRules), with its range.
+      return String(change.value ?? "").split(/[,;]/).map(entry => entry.trim()).filter(entry => entry && !telepathyRange(entry))
+        .map(value => `languages:${value}`);
     }
     const kind = {"system.traits.armorProf.value": "armor", "system.traits.weaponProf.value": "weapon"}[change.key];
     if ( !kind || (change.type !== "add") ) return [];
@@ -2680,13 +2682,38 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
   }};
 }
 
+/**
+ * Spells that give an understanding of languages, by their effect's name (2024): Comprehend Languages understands any
+ * language; Tongues understands any spoken one and is understood by anyone with a language; Speak with Animals talks to
+ * Beasts; Telepathic Bond links its creatures by telepathy.
+ */
+const LANGUAGE_EFFECTS = Object.freeze({
+  "Comprehension": {language: "any"},
+  "Universal Communication": {language: "any", spokenOnly: true, understood: true},
+  "Bestial Communication": {language: "beasts", spokenOnly: true},
+  "Bonded Telepathy": {language: "telepathy", bond: true}
+});
+
 /** A creature's languages as its training list: dnd5e's keys, its free text split at semicolons, and Telepathy. */
 function creatureLanguages(languages) {
   const keys = [...(languages?.value ?? [])].map(key => ((key === "exotic") ? "rare" : String(key)));
-  const custom = String(languages?.custom ?? "").split(";").map(text => text.trim()).filter(Boolean);
-  const range = number(languages?.communication?.telepathy?.value);
-  const telepathy = (range && !custom.some(text => /telepathy/i.test(text))) ? [`telepathy ${range} ft.`] : [];
-  return [...new Set([...keys, ...custom, ...telepathy])];
+  // Its Telepathy with a range is a rule (telepathyRule); "Telepathy 1 mile (works only with you)" stays its text.
+  const custom = String(languages?.custom ?? "").split(";").map(text => text.trim()).filter(Boolean)
+    .filter(text => !telepathyRange(text));
+  return [...new Set([...keys, ...custom])];
+}
+
+/** Telepathy's range in feet from its text ("telepathy 120 ft.", "Telepathy (30 feet)"), or null. */
+function telepathyRange(text) {
+  const match = /telepathy\W*(\d+)\s*(?:ft|feet|foot)\b/i.exec(String(text ?? ""));
+  return match ? Number(match[1]) : null;
+}
+
+/** A creature's Telepathy as a GrantLanguage rule with its range, or nothing. */
+function telepathyRule(languages) {
+  const range = number(languages?.communication?.telepathy?.value)
+    ?? String(languages?.custom ?? "").split(";").map(telepathyRange).find(Boolean) ?? null;
+  return range ? [{schemaVersion: 1, id: "telepathy", type: "GrantLanguage", data: {language: "telepathy", range}}] : [];
 }
 
 /** The stat block's AC: its natural or flat AC, else worn armor (with its Agility cap) and a shield. */
@@ -2963,6 +2990,7 @@ function traitRules(system, notes) {
       ...(((mode === "fly") && system.attributes?.movement?.hover) ? {hover: true} : {})}});
   }
   rules.push(...senseRules(system.attributes?.senses));
+  rules.push(...telepathyRule(traits.languages));
   if ( system.attributes?.senses?.special ) notes.push(`senses: "${system.attributes.senses.special}" by hand`);
   const legendary = number(system.resources?.legact?.max);
   if ( legendary ) rules.push({schemaVersion: 1, id: "legendary-actions", type: "GrantResource",
@@ -3145,6 +3173,17 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
       // Darkvision) is its own sense, which sees through magical Darkness.
       const sense = (/devil.?s sight/i.test(String(effect.name ?? "")) && (SENSE_KEYS[match[1]] === "darkvision")) ? "devilsSight" : SENSE_KEYS[match[1]];
       rule("GrantSense", {sense, range: number});
+    } else if ( /^system\.traits\.languages\.(value|custom)$/.test(key) && (type === "add") ) {
+      // A language it gives: a language spell's understanding by its effect's name (Comprehend Languages, Tongues, Speak
+      // with Animals, Telepathic Bond), Telepathy with its range (a Helm of Telepathy), or, for an effect a spell or
+      // feature applies, the language itself (Alter Self's Aquan; worn gear's are its training: trainingKeys).
+      const named = LANGUAGE_EFFECTS[String(effect.name ?? "")];
+      const telepathy = telepathyRange(change.value);
+      const languages = String(change.value ?? "").split(/[,;]/).map(entry => entry.trim().toLowerCase()).filter(Boolean);
+      if ( named ) { if ( !rules.some(entry => entry.type === "GrantLanguage") ) rule("GrantLanguage", structuredClone(named)); }
+      else if ( telepathy ) rule("GrantLanguage", {language: "telepathy", range: telepathy});
+      else if ( !effect.transfer && languages.length ) for ( const language of languages ) rule("GrantLanguage", {language});
+      else if ( !effect.transfer ) unmapped();
     } else if ( key === "system.attributes.movement.hover" ) {
       // Fly, Gaseous Form, a Potion of Flying: hovering, on the fly Speed the same effect grants (below).
       hover = ["true", "1"].includes(String(change.value).trim().toLowerCase());

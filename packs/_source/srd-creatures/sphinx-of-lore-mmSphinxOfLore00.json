@@ -1174,7 +1174,18 @@
               "type": "effect",
               "name": "Universal Communication",
               "img": "icons/environment/settlement/pyramid.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "universal-communication-1",
+                  "type": "GrantLanguage",
+                  "data": {
+                    "language": "any",
+                    "spokenOnly": true,
+                    "understood": true
+                  }
+                }
+              ],
               "duration": {
                 "value": 3600,
                 "units": "seconds",
@@ -1217,10 +1228,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
-              "effect: \"Universal Communication\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1472,8 +1480,6 @@
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Universal Communication\" change system.traits.languages.custom (add) not converted",
-          "Spellcasting: effect: \"Universal Communication\" marks its creature only; its rules are by hand",
           "Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest",
           "Weight of Years: \"Years Older\" is passive or triggered: not automated"
         ]

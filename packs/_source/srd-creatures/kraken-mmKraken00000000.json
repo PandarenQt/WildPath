@@ -39,8 +39,7 @@
     },
     "training": {
       "languages": [
-        "Understands Abyssal, Celestial, Infernal, and Primordial but can’t speak",
-        "telepathy 120 ft."
+        "Understands Abyssal, Celestial, Infernal, and Primordial but can’t speak"
       ]
     },
     "defenses": {
@@ -846,6 +845,15 @@
             "type": "GrantSense",
             "data": {
               "sense": "truesight",
+              "range": 120
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "telepathy",
+            "type": "GrantLanguage",
+            "data": {
+              "language": "telepathy",
               "range": 120
             }
           },
