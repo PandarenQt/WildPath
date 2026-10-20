@@ -424,8 +424,16 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   the bard's reaction targets the attacker. Its rider `attackPenalty: {dice}` is its Bardic Inspiration die, a table by
   bard level. The child rolls it when it pays (`riderAttackPenalty`, reusing `addedDie`) and sends the total. The
   parent lowers its attack roll by that much and checks it again against its targets, as a Parry's AC is. It answers
-  only a hostile creature it sees within 60 feet (`toSource`). shortcut: its use on a damage roll or an ability check
-  is by hand. Live: the Bandit Captain's Scimitar (16)
+  only a hostile creature it sees within 60 feet (`toSource`).
+  - **On an ability check (2026-10-20):** a second Trigger on `check.succeeded`, a new event in a new window after an
+    Action's check succeeds (`after-check-outcome`). The same `attackPenalty` lowers that check, which is judged again
+    against its DC (`recheckAfterPenalty`).
+  - **On a damage roll (2026-10-20):** "Cutting Words (Damage)", an Action the main one grants. It reacts to
+    `damage.applied` before the damage is planned. Its rider `damagePenalty` takes its die off the rolled damage
+    components in order, before any target's share (half on a save) is worked out.
+  - A rider's die may also be a flat amount (`{type: "constant"}`), for homebrew.
+  - Live (two browsers, 14.369): the Bandit Captain's Scimitar rolled 5 against QA Ally. Player1's QA Caster (bard 10)
+    used Cutting Words (Damage), rolled a 1 on its d10, and QA Ally took 4. Live: the Bandit Captain's Scimitar (16)
   hit QA Caster as a level-10 bard; Player1 used Cutting Words, and the attack missed. A Reaction and a Bardic
   Inspiration were spent.
 

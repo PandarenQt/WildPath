@@ -1264,6 +1264,25 @@ test("Brutal Strike: a reckless Strength attack gives up its Advantage for 1d10 
   assert.ok(playerRollRequests.some(request => (request.type === "damage") && request.definition.dice.some(die => die.faces === 10)), "1d10 more");
 });
 
+test("Cutting Words (Damage): a bard's die comes off another creature's damage roll", async t => {
+  const fs = await import("node:fs");
+  const words = JSON.parse(fs.readFileSync("packs/_source/srd-items/cutting-words-damage-1lx8h2edtoko0000.json", "utf8"));
+  const taken = async decision => {
+    const {targetActor, holder, gm, player, offers, intent} = counterattackFixture(t, {reactor: "bystander", decision,
+      holderItems: [{id: words._id, type: "action", name: words.name, system: words.system}], gmQueue: [{total: 3}]});
+    holder.system.classes = [{id: "bard", level: 10}];
+    holder.system.pools = [{id: "bardic-inspiration", value: 2, max: 2}];
+    const declared = await player.declareActionIntent(intent);
+    assert.equal(gm.getRecord(declared.resolutionId).state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+    return {offered: offers.length, damage: 30 - targetActor.system.resources.health.value};
+  };
+  const plain = await taken("decline");
+  const cut = await taken("use");
+  assert.deepEqual([plain.offered, cut.offered], [1, 1], "offered on the hostile attacker's damage roll");
+  assert.ok(plain.damage > 3, `the attack deals ${plain.damage}`);
+  assert.equal(cut.damage, plain.damage - 3, "the 3 it rolled comes off that damage");
+});
+
 test("Cutting Words: a bard's die comes off another creature's hit, which is checked again and misses", async t => {
   const fs = await import("node:fs");
   const words = JSON.parse(fs.readFileSync("packs/_source/srd-items/cutting-words-phbbrdCuttingWor.json", "utf8"));

@@ -24,6 +24,8 @@ export const REACTION_WINDOW_SCHEMA_VERSION = 1;
 
 export const REACTION_WINDOW_TIMINGS = Object.freeze({
   AFTER_ACTION_DECLARED: "after-action-declared",
+  // Once its ability check succeeds (Cutting Words).
+  AFTER_CHECK_OUTCOME: "after-check-outcome",
   AFTER_OUTCOME: "after-outcome",
   BEFORE_DAMAGE: "before-damage",
   // Once its damage is planned: "when you take damage from a creature" (Hellish Rebuke).

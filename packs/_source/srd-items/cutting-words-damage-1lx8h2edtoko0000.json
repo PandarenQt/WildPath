@@ -1,0 +1,126 @@
+{
+  "_id": "1lx8h2edtoko0000",
+  "_key": "!items!1lx8h2edtoko0000",
+  "name": "Cutting Words (Damage)",
+  "type": "action",
+  "img": "icons/magic/sonic/scream-wail-shout-teal.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You learn to use your wit to supernaturally distract, confuse, and otherwise sap the confidence and competence of others. When a creature that you can see within 60 feet of yourself makes a damage roll or succeeds on an ability check or attack roll, you can take a Reaction to expend one use of your Bardic Inspiration; roll your Bardic Inspiration die, and subtract the number rolled from the creature's roll, reducing the damage or potentially turning the success into a failure.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-cutting-words-cut-with-words-damage",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "reaction",
+            "amount": 1
+          },
+          {
+            "capability": "bardic-inspiration",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "rider": {
+        "damagePenalty": {
+          "dice": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "bard"
+            },
+            "rows": {
+              "1": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "5": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "10": {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              "15": {
+                "type": "dice",
+                "number": 1,
+                "faces": 12
+              }
+            }
+          }
+        }
+      },
+      "label": "Cutting Words (Damage)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "damage.applied",
+          "match": {
+            "phase": "before",
+            "notSourceTokenId": "{self}"
+          },
+          "triggerPredicate": {
+            "all": [
+              {
+                "equals": {
+                  "path": "toSource.{self}.sees",
+                  "value": true
+                }
+              },
+              {
+                "equals": {
+                  "path": "toSource.{self}.hostile",
+                  "value": true
+                }
+              },
+              {
+                "atMost": {
+                  "path": "toSource.{self}.distance",
+                  "value": 60
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbbrdCuttingWor",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}
