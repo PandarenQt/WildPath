@@ -90,9 +90,12 @@ current representative implementation is Bleeding's turn-start durability damage
 resolved by the authority as a damage-only Action on the creature (`game.wildpath.turnDamage`,
 `adapters/foundry-v14-turn-damage.mts`), as a fall is. Its reactions before damage (Stone's Endurance), its resistances,
 what keeps it up at 0 (Relentless Endurance) and the dying rules come from the Action pipeline, and its card reads
-"Condition damage". Without the runtime or a Token on a Scene it is committed directly, as before. Live: Bleeding
+"Condition damage". It resolves on the creature's Token in that combat, even on a Scene no one is viewing. A creature
+with no Token on a Scene still resolves it, on itself: resistances, rescue and dying, but no reactions, which need a
+position. Only without the runtime is it committed directly. Live: Bleeding
 at 1 Hit Point with Relentless Endurance left the Bandit Captain at 1 ("stays up"); the next round it died and was
-marked defeated. Legacy
+marked defeated. A creature with no Token and fire Resistance took 4 of 8 fire, then 8 cold to 0 (2026-10-20).
+Legacy
 `system.dot` data is translated into synthetic Trigger RuleElements only as a temporary
 compatibility layer.
 

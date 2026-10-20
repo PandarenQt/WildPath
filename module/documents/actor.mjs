@@ -649,7 +649,8 @@ export default class WildPathActor extends Actor {
           {name: grant.label, range: grant.recharge === 6 ? "6" : `${grant.recharge}–6`})}, {messageMode: "gm"});
     }
     if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
-    const triggers = await this.applyConditionTriggers({events});
+    // Its condition damage resolves on its Token in this combat (which may be on a Scene no one is viewing).
+    const triggers = await this.applyConditionTriggers({events, token: combatant?.token ?? null});
     return {
       ok: true,
       code: TURN_RECOVERY_CODES.OK,
@@ -817,9 +818,10 @@ export default class WildPathActor extends Actor {
    * method only commits the planned Actor updates.
    * @param {object} [options]
    * @param {object[]} [options.events]
+   * @param {object|null} [options.token]  its Token in the combat, where its condition damage resolves
    * @returns {Promise<object>}
    */
-  async applyConditionTriggers({events=[]}={}) {
+  async applyConditionTriggers({events=[], token=null}={}) {
     const result = planConditionTriggerConsequences({
       actor: this,
       actorSystem: this.system,
@@ -830,13 +832,13 @@ export default class WildPathActor extends Actor {
       console.warn("Wild Path | Condition trigger planning failed", result);
     }
     // Its conditions' damage is resolved by the authority as an Action on it (reactions, resistances, rescue, dying:
-    // turnDamage), the rest committed here. Without the runtime (or a Token), the damage is committed here too.
+    // turnDamage), the rest committed here. Without the runtime, the damage is committed here too.
     const turnDamage = globalThis.game?.wildpath?.turnDamage;
     const committed = [];
     for ( const plan of result.mutationPlans ) {
       const temporary = Math.max((Number(plan.temporary?.from) || 0) - (Number(plan.temporary?.to) || 0), 0);
       const resolved = (plan.type === "damage") && turnDamage ? await turnDamage.apply(this, {
-        amount: (Number(plan.amount) || 0) + temporary, damageType: plan.metadata?.damageType ?? null}) : false;
+        amount: (Number(plan.amount) || 0) + temporary, damageType: plan.metadata?.damageType ?? null, token}) : false;
       if ( !resolved ) committed.push(plan);
     }
     const updates = Object.assign({}, ...committed.map(plan => plan.updates));
