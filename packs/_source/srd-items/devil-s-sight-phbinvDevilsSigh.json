@@ -13,7 +13,7 @@
         "id": "devil-s-sight-1",
         "type": "GrantSense",
         "data": {
-          "sense": "darkvision",
+          "sense": "devilsSight",
           "range": 120
         }
       }

@@ -130,7 +130,8 @@
       "darkvision": "Darkvision",
       "blindsight": "Blindsight",
       "tremorsense": "Tremorsense",
-      "truesight": "Truesight"
+      "truesight": "Truesight",
+      "devilsSight": "Devil's Sight"
     },
     "CONDITIONS": {
       "TurnDamage": "Condition damage",

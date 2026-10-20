@@ -1623,6 +1623,8 @@ test("senses: creatures', species' and effects' Darkvision, Blindsight, Tremorse
   assert.deepEqual(read("srd-classes", "dwarf-").system.ruleElements.map(rule => rule.data), [{sense: "darkvision", range: 120}]);
   assert.deepEqual(read("srd-items", "witch-sight-").system.ruleElements.map(rule => [rule.type, rule.data.sense, rule.data.range]),
     [["GrantSense", "truesight", 30]]);
+  assert.deepEqual(read("srd-items", "devil-s-sight-").system.ruleElements.map(rule => rule.data), [{sense: "devilsSight", range: 120}],
+    "Devil's Sight is its own sense (it sees through magical Darkness), not Darkvision");
 });
 
 test("languages convert: a background's choices and a creature's own, with its free text and Telepathy", async () => {

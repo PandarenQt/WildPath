@@ -1,13 +1,26 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {bestSenses, onGround, perceives} from "../module/helpers/senses.mjs";
+import {applySensesToToken, registerDarknessSight} from "../module/adapters/foundry-v14-senses.mjs";
 import {rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
 import {combineRollModes} from "../module/helpers/rolls.mjs";
 import {WILDPATH} from "../module/config.mjs";
 
 test("a creature's senses are the best range each grant gives", () => {
   assert.deepEqual(bestSenses([{sense: "darkvision", range: 60}, {sense: "darkvision", range: 120}, {sense: "truesight", range: 30},
-    {sense: "smell", range: 10}]), {darkvision: 120, blindsight: 0, tremorsense: 0, truesight: 30});
+    {sense: "smell", range: 10}]), {darkvision: 120, blindsight: 0, tremorsense: 0, truesight: 30, devilsSight: 0});
+});
+
+test("Devil's Sight and Truesight see in the dark and through magical Darkness: sight range, and the highest priority", () => {
+  const token = senses => ({sight: {}, detectionModes: {}, actor: {system: {senses}}});
+  const sees = token({darkvision: 60, devilsSight: 120});
+  applySensesToToken(sees);
+  assert.deepEqual(sees.sight, {range: 120, visionMode: "darkvision"});
+  const config = {Token: {objectClass: class { _getVisionSourceData() { return {radius: 1}; } }}};
+  registerDarknessSight(config);
+  const source = senses => Object.assign(new config.Token.objectClass(), {document: {actor: {system: {senses}}}})._getVisionSourceData();
+  assert.deepEqual([source({devilsSight: 120}).priority, source({truesight: 30}).priority, source({darkvision: 60}).priority],
+    [Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, undefined], "Darkvision alone is blinded by magical Darkness");
 });
 
 test("perceiving despite Blinded and Invisible: Blindsight, Truesight and Tremorsense within range", () => {

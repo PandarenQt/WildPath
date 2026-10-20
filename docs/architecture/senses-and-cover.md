@@ -2,7 +2,8 @@
 
 ## Senses (2026-10-20)
 
-A creature's senses are **Darkvision**, **Blindsight**, **Tremorsense** and **Truesight**, each with a range in feet.
+A creature's senses are **Darkvision**, **Blindsight**, **Tremorsense**, **Truesight** and **Devil's Sight**, each with a
+range in feet.
 They come from its grants: `GrantSense {sense, range}` RuleElements on its species, features, gear and effects. The
 prepared data keeps the best range of each (`system.senses`, `helpers/senses.mts` `bestSenses`); nothing is stored.
 
@@ -13,7 +14,8 @@ The Homebrew Builder's rule rows have "A sense" (a sense and its range) for writ
 
 | Sense | Effect on the Token |
 | --- | --- |
-| Darkvision, Truesight | sight range is the better of the two, vision mode `darkvision` (none: range 0, `basic`) |
+| Darkvision, Truesight, Devil's Sight | sight range is the best of the three, vision mode `darkvision` (none: range 0, `basic`) |
+| Truesight, Devil's Sight | the vision source has the highest priority, so magical Darkness neither blinds nor walls it off |
 | Truesight | adds the `seeAll` detection mode within its range |
 | Tremorsense | adds `feelTremor` |
 | Blindsight | adds `blindsight`, a WildPath detection mode |
@@ -37,7 +39,13 @@ The Homebrew Builder's rule rows have "A sense" (a sense and its range) for writ
 - **Effect changes:** `system.attributes.senses.<sense>` (Darkvision, Devil's Sight, Feral Senses, Witch Sight, True
   Seeing, Boon of Truesight, Stonecunning, Goggles of Night, a Robe of Eyes) become `GrantSense`.
 - **By hand:** a creature's free-text special senses are noted.
-- shortcut: Devil's Sight is Darkvision 120 ft; seeing through magical Darkness is by hand.
+- **Devil's Sight** (2026-10-20) is its own sense (`devilsSight`), converted from its effect's Darkvision 120.
+
+**Seeing through Darkness** (`registerDarknessSight`, a Token subclass). Foundry blinds a vision source inside a
+darkness source of equal or higher priority (`PointVisionSource`), and a polygon skips darkness edges below its own
+priority. Tokens are priority 0, so Darkness blinds them; a Token with Devil's Sight or Truesight gets the highest
+priority. Live (two browsers, 14.369): with a darkness light on the Bandit Captain, Player1's QA Caster with
+Darkvision 60 could not see it (`testVisibility` false); with Devil's Sight 120 it could.
 
 Live (two browsers, 14.369):
 - **Dwarf species:** QA Caster had Darkvision 120, and its Token sight 120 in `darkvision` mode.

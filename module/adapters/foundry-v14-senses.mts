@@ -1,8 +1,9 @@
 /**
  * A creature's senses on its Token (Foundry 14): its sight range and vision mode, and its detection modes, follow its
- * senses (`system.senses`, helpers/senses.mts) as dnd5e's do. Darkvision and Truesight see in the dark (vision mode
- * `darkvision`, the best range of the two); Truesight also sees everything within its range (`seeAll`); Tremorsense
- * feels what touches the ground (`feelTremor`); Blindsight perceives without sight (`blindsight`, registered here).
+ * senses (`system.senses`, helpers/senses.mts) as dnd5e's do. Darkvision, Truesight and Devil's Sight see in the dark
+ * (vision mode `darkvision`, the best range of the three); Truesight and Devil's Sight also see through magical Darkness
+ * (registerDarknessSight); Truesight sees everything within its range (`seeAll`); Tremorsense feels what touches the
+ * ground (`feelTremor`); Blindsight perceives without sight (`blindsight`, registered here).
  */
 
 type Data = Record<string, unknown>;
@@ -18,7 +19,7 @@ export function applySensesToToken(token: SensingToken) {
   const senses = token.actor?.system?.senses;
   if ( !senses ) return;
   const range = (sense: string) => Math.max(Number(senses[sense]) || 0, 0);
-  const sight = Math.max(range("darkvision"), range("truesight"));
+  const sight = Math.max(range("darkvision"), range("truesight"), range("devilsSight"));
   // Its sight stays on or off as its Token is set; its range and mode are its senses'.
   token.sight.range = sight;
   token.sight.visionMode = sight > 0 ? "darkvision" : "basic";
@@ -26,6 +27,28 @@ export function applySensesToToken(token: SensingToken) {
   for ( const [id, distance] of modes ) {
     if ( distance > 0 ) token.detectionModes[id] = {enabled: true, range: distance};
   }
+}
+
+/**
+ * Devil's Sight and Truesight see through magical Darkness (2024): a Token with either has a vision source of the
+ * highest priority, which a darkness source neither blinds (`PointVisionSource`: blinded while its priority is at most
+ * the darkness's) nor walls off (a polygon skips edges of a lower priority than its own). Others keep priority 0, so
+ * any Darkness blinds them. Its range is its sight's, the best of its senses that see in the dark.
+ */
+export function registerDarknessSight(config: Data) {
+  const tokens = (config as {Token?: {objectClass?: new (...args: never[]) => object}}).Token;
+  const Base = tokens?.objectClass as unknown as (new (...args: never[]) => {_getVisionSourceData(): Data}) | undefined;
+  if ( !tokens || !Base ) return;
+  class WildPathToken extends Base {
+    declare document: {actor?: {system?: {senses?: Partial<Record<string, number>> | null} | null} | null};
+    /** @inheritDoc */
+    override _getVisionSourceData() {
+      const data = super._getVisionSourceData();
+      const senses = this.document?.actor?.system?.senses ?? {};
+      return ((Number(senses.devilsSight) > 0) || (Number(senses.truesight) > 0)) ? {...data, priority: Number.MAX_SAFE_INTEGER} : data;
+    }
+  }
+  tokens.objectClass = WildPathToken as never;
 }
 
 /** A key that changes when its creature's senses do (its Token's vision is then prepared again). */
