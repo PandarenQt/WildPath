@@ -318,3 +318,19 @@ test("spell riders (SRD): Potent Spellcasting on a cantrip, Empowered Evocation,
   assert.deepEqual(actionCombatStatistics(life, cure, {context: {castLevel: 2}}).healing, {modifierTotal: 4}, "2 + level 2");
   assert.equal(actionCombatStatistics(life, cure, {context: {castLevel: null}}).healing, undefined, "no slot: nothing");
 });
+
+test("Eldritch Blast invocations (SRD): Agonizing Blast adds Charisma to it alone; Repelling Blast answers its hit with a push", async () => {
+  const fs = await import("node:fs");
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const pack = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const actor = Object.assign(Object.create(WildPathActor.prototype), {id: "warlock", uuid: "Actor.warlock", effects: [], statuses: new Set(),
+    flags: {}, system: {abilities: {presence: {value: 16}}}, items: [{id: "f", uuid: "Actor.warlock.Item.f", type: "feature",
+      system: {active: true, modifiers: [], ruleElements: pack("agonizing-blast-").system.ruleElements}}]});
+  actor.allApplicableEffects = () => [];
+  assert.equal(actionCombatStatistics(actor, pack("eldritch-blast-").system.definition).damage?.modifierTotal, 3);
+  assert.equal(actionCombatStatistics(actor, pack("fire-bolt-").system.definition).damage, null, "not another cantrip");
+  const repelling = pack("repelling-blast-").system;
+  const match = repelling.ruleElements.find(rule => rule.type === "Trigger").data.match;
+  assert.deepEqual([match.tagsAll, match.notTagsAny, repelling.definition.rider], [["eldritch-blast"], undefined, {push: {distance: 10}}]);
+});

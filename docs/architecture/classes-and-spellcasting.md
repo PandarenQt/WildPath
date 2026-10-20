@@ -352,6 +352,14 @@ Wounds rolled "2d8 + 2d8 + 7": its Intelligence +3, plus 2 + 2. Sacred Flame on 
 With Empowered Evocation, Fire Bolt rolled "2d10 + 3" (Intelligence 16). After Elemental Affinity (Fire), with Presence
 14, QA Caster had fire Resistance and Fire Bolt rolled "2d10 + 5".
 
+## Eldritch Blast invocations (2026-10-20)
+
+Eldritch Blast is tagged `eldritch-blast`.
+- **Agonizing Blast:** its Charisma modifier on `damage.spell` for `eldritch-blast`.
+- **Repelling Blast:** an offer on its hit that pushes the creature 10 ft (reactions.md).
+
+shortcut: Eldritch Blast only, where 2024 lets the warlock choose a cantrip; Eldritch Spear (range) stays by hand.
+
 ## Dropping to 0 Hit Points (2026-10-20)
 
 Relentless Endurance, Relentless Rage, Undead Fortitude (zombies) and Dark One's Blessing (rule-elements.md, "Dropping
