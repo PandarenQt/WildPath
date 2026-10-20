@@ -12,7 +12,10 @@
       "id": "action:srd-phantasmal-force-cast",
       "tags": [
         "spell",
-        "school:illusion"
+        "school:illusion",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

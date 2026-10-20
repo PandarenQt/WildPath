@@ -14,6 +14,8 @@
         "spell",
         "cantrip",
         "school:evocation",
+        "component:verbal",
+        "component:somatic",
         "damage:fire"
       ],
       "costs": {

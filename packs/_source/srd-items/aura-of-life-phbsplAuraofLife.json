@@ -12,7 +12,8 @@
       "id": "action:srd-aura-of-life-create-aura",
       "tags": [
         "spell",
-        "school:abjuration"
+        "school:abjuration",
+        "component:verbal"
       ],
       "costs": {
         "allOf": [

@@ -12,7 +12,9 @@
       "id": "action:srd-disguise-self",
       "tags": [
         "spell",
-        "school:illusion"
+        "school:illusion",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

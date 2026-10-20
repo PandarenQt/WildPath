@@ -13,7 +13,9 @@
       "tags": [
         "spell",
         "cantrip",
-        "school:illusion"
+        "school:illusion",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

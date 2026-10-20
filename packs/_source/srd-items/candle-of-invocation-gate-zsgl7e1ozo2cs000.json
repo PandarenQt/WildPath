@@ -12,7 +12,10 @@
       "id": "action:srd-candle-of-invocation-burn-and-cast-gate",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

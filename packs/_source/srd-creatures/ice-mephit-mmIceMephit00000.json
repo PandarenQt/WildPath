@@ -291,7 +291,9 @@
           "id": "action:srd-fog-cloud-fog-cloud",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [

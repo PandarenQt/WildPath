@@ -389,7 +389,8 @@
           "id": "action:srd-commanding-presence-command",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -592,7 +593,8 @@
           "id": "action:srd-spellcasting-command",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -795,7 +797,9 @@
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -875,6 +879,8 @@
           "tags": [
             "spell",
             "school:evocation",
+            "component:verbal",
+            "component:somatic",
             "damage:fire"
           ],
           "costs": {
@@ -968,6 +974,9 @@
           "tags": [
             "spell",
             "school:evocation",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
             "damage:fire"
           ],
           "costs": {
@@ -1076,6 +1085,8 @@
           "tags": [
             "spell",
             "school:evocation",
+            "component:verbal",
+            "component:somatic",
             "damage:fire"
           ],
           "costs": {

@@ -13,6 +13,8 @@
       "tags": [
         "spell",
         "school:evocation",
+        "component:verbal",
+        "component:somatic",
         "damage:fire"
       ],
       "costs": {

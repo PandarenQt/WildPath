@@ -1011,7 +1011,13 @@ test("reactions by their 2024 trigger: Shield and Parry when hit, Counterspell w
   const [counter] = convertItem(reactionSpell("testCounterspl01", "counterspell", "Counterspell",
     {a: activity("save", {activation: {type: "reaction", override: false}, save: {ability: ["con"], dc: {calculation: "spellcasting", formula: ""}}})})).items;
   assert.deepEqual(reacts(counter), {kind: "reaction", event: "action.declared",
-    match: {phase: "interrupt", tagsAny: ["spell"], notSourceTokenId: "{self}"}}, "another creature's spell, never its own");
+    match: {phase: "interrupt", tagsAll: ["spell"], notTagsAny: ["component:none"],
+      notSourceTokenId: "{self}"}, triggerPredicate: {all: [{equals: {path: "toSource.{self}.sees", value: true}},
+      {equals: {path: "toSource.{self}.hostile", value: true}}, {atMost: {path: "toSource.{self}.distance", value: 60}}]}},
+    "another creature's spell, unless it has no component, a hostile one it sees within 60 feet, never its own");
+  assert.ok(counter.system.definition.tags.includes("component:somatic"), "its own components are tags");
+  const [silent] = convertItem(reactionSpell("testSilentSpel01", "silent", "Silent", {a: activity("utility", {})}, {properties: []})).items;
+  assert.ok(silent.system.definition.tags.includes("component:none"), "no component: it can't be countered");
   assert.equal(counter.system.definition.counters, true);
   assert.equal(validateActionDefinition(counter.system.definition).ok, true);
 
@@ -1157,14 +1163,14 @@ test("Wild Shape: a Bonus Action, its transformation by the 2014 rules (limits, 
 test("Divine Smite: the 2024 spell on its own melee hit; Paladin's Smite brings the 2014 one and its free cast", () => {
   const damage = number => ({parts: [{number, denomination: 8, types: ["radiant"], scaling: {mode: "whole", number: 1}}]});
   const smite = {_id: "testDivineSmite1", name: "Divine Smite", type: "spell", img: "icons/svg/sun.svg", effects: [],
-    system: {source: SRD, identifier: "divine-smite", level: 1, school: "evo", activation: {type: "bonus"},
+    system: {source: SRD, identifier: "divine-smite", level: 1, school: "evo", properties: ["vocal"], activation: {type: "bonus"},
       activities: {a: activity("damage", {name: "Cast", activation: {type: "bonus", override: false}, damage: damage(2), consumption: {scaling: {allowed: true}}}),
         b: activity("damage", {name: "Unholy Creature Damage", activation: {type: "bonus", override: false}, damage: damage(3), consumption: {scaling: {allowed: true}}})}}};
   const [plain, unholy] = convertItem(smite).items;
   assert.deepEqual([plain.name, unholy.name], ["Divine Smite", "Divine Smite (Undead or Fiend)"]);
   const {definition} = plain.system;
   assert.deepEqual([definition.tags, definition.costs.allOf.map(cost => cost.capability), definition.targeting.type],
-    [["spell", "school:evocation", "damage:radiant", "smite"], ["bonus-action"], "single"]);
+    [["spell", "school:evocation", "component:verbal", "damage:radiant", "smite"], ["bonus-action"], "single"]);
   assert.deepEqual(Object.keys(definition.configuration[0].levelByResourceId).slice(-2), ["spell-slot.9", "paladins-smite"]);
   assert.deepEqual(plain.system.ruleElements.find(rule => rule.type === "Trigger").data, {kind: "reaction", event: "attack.hit",
     match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"], notTagsAny: ["spell"]}});

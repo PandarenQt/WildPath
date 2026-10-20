@@ -259,7 +259,9 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:evocation"
+            "school:evocation",
+            "component:verbal",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -321,7 +323,8 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -408,7 +411,8 @@
           "id": "action:srd-spellcasting-command",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -628,7 +632,10 @@
           "id": "action:srd-spellcasting-hold-person",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -724,7 +731,9 @@
           "id": "action:srd-spiritual-weapon-spiritual-weapon",
           "tags": [
             "spell",
-            "school:evocation"
+            "school:evocation",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [

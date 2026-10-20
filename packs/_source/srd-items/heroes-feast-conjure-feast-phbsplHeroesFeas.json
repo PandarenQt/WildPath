@@ -12,7 +12,11 @@
       "id": "action:srd-heroes-feast-conjure-feast",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal",
+        "component:somatic",
+        "component:material",
+        "component:costly-material"
       ],
       "costs": {
         "allOf": []

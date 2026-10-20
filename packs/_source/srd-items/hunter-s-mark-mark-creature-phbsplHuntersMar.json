@@ -12,7 +12,8 @@
       "id": "action:srd-hunter-s-mark-mark-creature",
       "tags": [
         "spell",
-        "school:divination"
+        "school:divination",
+        "component:verbal"
       ],
       "costs": {
         "allOf": [

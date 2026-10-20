@@ -12,7 +12,8 @@
       "id": "action:srd-power-word-stun",
       "tags": [
         "spell",
-        "school:enchantment"
+        "school:enchantment",
+        "component:verbal"
       ],
       "costs": {
         "allOf": [

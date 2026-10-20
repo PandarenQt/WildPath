@@ -12,7 +12,9 @@
       "id": "action:srd-dragon-orb-suggestion",
       "tags": [
         "spell",
-        "school:enchantment"
+        "school:enchantment",
+        "component:verbal",
+        "component:material"
       ],
       "costs": {
         "allOf": [

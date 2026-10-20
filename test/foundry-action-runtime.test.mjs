@@ -93,6 +93,8 @@ function fakeScene(grid, {id="scene-a", tokens=[]}={}) {
     id,
     uuid: `Scene.${id}`,
     name: "Test Scene",
+    // No Token vision: all of it is lit (lightAt).
+    tokenVision: false,
     grid,
     dimensions: {
       distance: grid.distance,
@@ -1104,7 +1106,8 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
   if ( reactor === "bystander" ) {
     holder = withFoundryActorSystem(fakeActor("bystander", {system: {...targetActorSystem(), resources: {
       health: {value: 20, max: 20}, reaction: {value: 1, max: 1}}}, owners: []}));
-    const token = fakeTokenDocument({id: "bystander-token", actor: holder, scene, offset: {i: 0, j: 1}});
+    // An ally of the target: hostile to the attacker (Cutting Words answers only a hostile creature).
+    const token = fakeTokenDocument({id: "bystander-token", actor: holder, scene, offset: {i: 0, j: 1}, disposition: 1});
     Object.assign(holder, {uuid: `${token.uuid}.Actor.bystander`, isToken: true, token, tokens: [token]});
     scene.tokens.push(token);
   }

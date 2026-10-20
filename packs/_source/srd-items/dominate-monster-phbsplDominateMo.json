@@ -12,7 +12,9 @@
       "id": "action:srd-dominate-monster",
       "tags": [
         "spell",
-        "school:enchantment"
+        "school:enchantment",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

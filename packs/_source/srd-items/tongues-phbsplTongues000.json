@@ -12,7 +12,9 @@
       "id": "action:srd-tongues",
       "tags": [
         "spell",
-        "school:divination"
+        "school:divination",
+        "component:verbal",
+        "component:material"
       ],
       "costs": {
         "allOf": [

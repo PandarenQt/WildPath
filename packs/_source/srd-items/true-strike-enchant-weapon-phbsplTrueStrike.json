@@ -13,7 +13,9 @@
       "tags": [
         "spell",
         "cantrip",
-        "school:divination"
+        "school:divination",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

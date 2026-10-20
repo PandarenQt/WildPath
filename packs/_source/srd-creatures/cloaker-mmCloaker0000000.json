@@ -352,7 +352,9 @@
           "id": "action:srd-phantasms-mirror-image",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [

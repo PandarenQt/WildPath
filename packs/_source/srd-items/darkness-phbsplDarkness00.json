@@ -12,7 +12,9 @@
       "id": "action:srd-darkness",
       "tags": [
         "spell",
-        "school:evocation"
+        "school:evocation",
+        "component:verbal",
+        "component:material"
       ],
       "costs": {
         "allOf": [

@@ -283,7 +283,9 @@
           "id": "action:srd-spellcasting-disguise-self",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -354,7 +356,9 @@
           "id": "action:srd-spellcasting-etherealness",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -427,6 +431,9 @@
           "tags": [
             "spell",
             "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
             "damage:psychic"
           ],
           "costs": {
@@ -560,7 +567,9 @@
           "id": "action:srd-spellcasting-hypnotic-pattern",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [

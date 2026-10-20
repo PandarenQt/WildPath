@@ -12,7 +12,10 @@
       "id": "action:srd-faithful-hound-move-hound",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

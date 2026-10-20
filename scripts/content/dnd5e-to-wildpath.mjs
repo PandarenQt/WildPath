@@ -64,10 +64,22 @@ export function beastsOf(documents, uuidOf) {
 }
 
 /**
+ * A spell with no Verbal, Somatic or Material component (`component:none`, as a Subtle one is) can't be countered; any
+ * other spell can, a homebrew one whose components aren't tagged included.
+ */
+const UNCOUNTERABLE = "component:none";
+
+/**
+ * "A creature you can see within `feet` feet": the event's source, hostile to the reactor (the maintainer's choice:
+ * no prompt on an ally's spell or hit), seen by it (senses, light, walls: relationsToSource).
+ */
+const seenHostileWithin = feet => ({all: [{equals: {path: "toSource.{self}.sees", value: true}},
+  {equals: {path: "toSource.{self}.hostile", value: true}}, {atMost: {path: "toSource.{self}.distance", value: feet}}]});
+
+/**
  * Reactions by their 2024 trigger, as a reaction Trigger on their Action: Shield and a Parry when an attack on their
- * creature hits (the attack is then checked again against its new AC), Counterspell when a creature declares a spell
- * (a failed save cancels it, `counters`). shortcut: Parry's "melee attack" and Counterspell's 60 feet, sight and
- * hostility are the reactor's to judge (its Ask setting); upgrade when trigger predicates read distance and disposition.
+ * creature hits (the attack is then checked again against its new AC; Parry's only a melee attack), Counterspell when a
+ * hostile creature it sees within 60 feet casts a spell with a component (a failed save cancels it, `counters`).
  */
 const REACTIONS = Object.freeze({
   shield: {event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}"}},
@@ -82,14 +94,29 @@ const REACTIONS = Object.freeze({
     reduces: {dice: {type: "dice", number: 1, faces: 12}, bonus: {type: "ability-modifier", ability: "fortitude"}}},
   "storms-thunder": {event: "damage.applied", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}},
   // "when you take damage from a creature within 5 feet": that creature is the target of its common melee attack (its
-  // first melee attack or Unarmed Strike, `commonAction`). shortcut: "within 5 feet" is the attack's own reach.
+  // first melee attack or Unarmed Strike, `commonAction`). A damager with no position (a fall) is not within 5 feet.
   retaliation: {event: "damage.applied", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"},
     triggerPredicate: {atMost: {path: "event.data.relations.{self}.distance", value: 5}}, commonAction: "opportunity"},
-  counterspell: {event: "action.declared", match: {phase: "interrupt", tagsAny: ["spell"], notSourceTokenId: "{self}"}, counters: true},
-  // Another creature's attack hits: its die (Bardic Inspiration's) is subtracted from that attack roll, which is then
-  // checked again. shortcut: its use on a damage roll or an ability check, "can see" and hostility are by hand.
-  "cutting-words": {event: "attack.hit", match: {phase: "interrupt", notSourceTokenId: "{self}"}, attackPenalty: true}
+  counterspell: {event: "action.declared", match: {phase: "interrupt", tagsAll: ["spell"], notTagsAny: [UNCOUNTERABLE],
+    notSourceTokenId: "{self}"}, triggerPredicate: seenHostileWithin(60), counters: true},
+  // A hostile creature it sees within 60 feet hits with an attack: its die (Bardic Inspiration's) is subtracted from that
+  // attack roll, which is then checked again. shortcut: its use on a damage roll or an ability check is by hand.
+  "cutting-words": {event: "attack.hit", match: {phase: "interrupt", notSourceTokenId: "{self}"}, triggerPredicate: seenHostileWithin(60),
+    attackPenalty: true}
 });
+
+/**
+ * A spell's component tags from dnd5e's properties (Counterspell, Subtle Spell): a material with a cost, or consumed, is
+ * also `costly-material`; none at all is `component:none`.
+ */
+function componentTags(system) {
+  const properties = new Set(system?.properties ?? []);
+  const material = properties.has("material");
+  const tags = [...(properties.has("vocal") ? ["component:verbal"] : []), ...(properties.has("somatic") ? ["component:somatic"] : []),
+    ...(material ? ["component:material"] : []),
+    ...((material && ((Number(system?.materials?.cost) > 0) || system?.materials?.consumed)) ? ["component:costly-material"] : [])];
+  return tags.length ? tags : [UNCOUNTERABLE];
+}
 
 /**
  * When its 2024 text has a creature repeat the save that let its effect in, ending it on a success: `turnEnd` ("repeats
@@ -969,9 +996,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A spell's level, for what ends spells by level (Dispel Magic); a slot cast at a higher one says so when used.
     if ( spell && Number.isFinite(Number(level)) ) definition = {...definition, metadata: {...(definition.metadata ?? {}), spellLevel: Number(level)}};
     // A spell's tags say what it is, for rules on spell damage: a cantrip, its school (`school:evocation`: Empowered
-    // Evocation) and each damage type it deals (`damage:fire`: Elemental Affinity).
+    // Evocation), each damage type it deals (`damage:fire`: Elemental Affinity), and its components (Counterspell).
     if ( spell ) definition = {...definition, tags: [...new Set([...(definition.tags ?? []), ...(Number(level) === 0 ? ["cantrip"] : []),
-      ...(SCHOOLS[system.school] ? [`school:${SCHOOLS[system.school]}`] : []),
+      ...(SCHOOLS[system.school] ? [`school:${SCHOOLS[system.school]}`] : []), ...componentTags(system),
       ...(definition.damage ?? []).map(component => component.damageType).filter(Boolean).map(type => `damage:${type}`)])]};
     // Lay on Hands: "restore a number of Hit Points equal to the points spent", chosen when used, from its pool.
     if ( (identifierOf(document) === "lay-on-hands") && (activity.type === "heal") && pool ) {

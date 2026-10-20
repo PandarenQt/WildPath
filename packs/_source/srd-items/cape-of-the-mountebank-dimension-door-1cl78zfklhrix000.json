@@ -12,7 +12,8 @@
       "id": "action:srd-cape-of-the-mountebank-dimension-door",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal"
       ],
       "costs": {
         "allOf": [

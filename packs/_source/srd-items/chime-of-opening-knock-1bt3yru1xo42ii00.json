@@ -12,7 +12,8 @@
       "id": "action:srd-chime-of-opening-knock",
       "tags": [
         "spell",
-        "school:transmutation"
+        "school:transmutation",
+        "component:verbal"
       ],
       "costs": {
         "allOf": [

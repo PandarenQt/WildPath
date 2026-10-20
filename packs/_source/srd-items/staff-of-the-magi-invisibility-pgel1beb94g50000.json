@@ -12,7 +12,10 @@
       "id": "action:srd-staff-of-the-magi-invisibility",
       "tags": [
         "spell",
-        "school:illusion"
+        "school:illusion",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

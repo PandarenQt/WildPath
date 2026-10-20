@@ -12,7 +12,9 @@
       "id": "action:srd-conjure-woodland-beings-disengage",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

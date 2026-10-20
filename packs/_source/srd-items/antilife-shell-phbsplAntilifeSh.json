@@ -12,7 +12,9 @@
       "id": "action:srd-antilife-shell",
       "tags": [
         "spell",
-        "school:abjuration"
+        "school:abjuration",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

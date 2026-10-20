@@ -458,7 +458,9 @@
           "id": "action:srd-charm-charm-person",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -601,7 +603,8 @@
           "id": "action:srd-beguile-command",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [

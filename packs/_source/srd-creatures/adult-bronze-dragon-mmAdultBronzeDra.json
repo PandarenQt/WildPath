@@ -507,7 +507,9 @@
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -587,6 +589,8 @@
           "tags": [
             "spell",
             "school:evocation",
+            "component:verbal",
+            "component:somatic",
             "damage:radiant"
           ],
           "costs": {
@@ -708,7 +712,10 @@
           "id": "action:srd-spellcasting-shapechange",
           "tags": [
             "spell",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -766,7 +773,9 @@
           "id": "action:srd-spellcasting-speak-with-animals",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -839,7 +848,8 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -926,7 +936,10 @@
           "id": "action:srd-spellcasting-detect-thoughts",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -1004,7 +1017,10 @@
           "id": "action:srd-spellcasting-water-breathing",
           "tags": [
             "spell",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -1104,6 +1120,8 @@
           "tags": [
             "spell",
             "school:evocation",
+            "component:verbal",
+            "component:somatic",
             "damage:radiant"
           ],
           "costs": {

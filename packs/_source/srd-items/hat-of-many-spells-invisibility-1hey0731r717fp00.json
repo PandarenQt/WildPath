@@ -12,7 +12,10 @@
       "id": "action:srd-hat-of-many-spells-invisibility",
       "tags": [
         "spell",
-        "school:illusion"
+        "school:illusion",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

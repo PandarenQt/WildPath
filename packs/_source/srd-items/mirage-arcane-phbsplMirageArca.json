@@ -12,7 +12,9 @@
       "id": "action:srd-mirage-arcane-alter-terrain",
       "tags": [
         "spell",
-        "school:illusion"
+        "school:illusion",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": []

@@ -345,7 +345,9 @@
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "anyOf": [
@@ -436,7 +438,9 @@
           "id": "action:srd-spellcasting-fog-cloud",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "anyOf": [
@@ -508,7 +512,9 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:evocation"
+            "school:evocation",
+            "component:verbal",
+            "component:material"
           ],
           "costs": {
             "anyOf": [
@@ -581,7 +587,10 @@
           "id": "action:srd-spellcasting-control-weather",
           "tags": [
             "spell",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "anyOf": [
@@ -676,7 +685,10 @@
           "id": "action:srd-spellcasting-gaseous-form",
           "tags": [
             "spell",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "anyOf": [
@@ -856,7 +868,9 @@
           "id": "action:srd-spellcasting-telekinesis",
           "tags": [
             "spell",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "anyOf": [
@@ -975,7 +989,8 @@
           "id": "action:srd-misty-step-misty-step",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal"
           ],
           "costs": {
             "anyOf": [

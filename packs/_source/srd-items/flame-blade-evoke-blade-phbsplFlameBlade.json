@@ -12,7 +12,10 @@
       "id": "action:srd-flame-blade-evoke-blade",
       "tags": [
         "spell",
-        "school:evocation"
+        "school:evocation",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:divination",
+        "component:somatic",
         "damage:psychic"
       ],
       "costs": {

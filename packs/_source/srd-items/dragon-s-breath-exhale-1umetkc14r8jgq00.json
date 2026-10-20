@@ -13,6 +13,9 @@
       "tags": [
         "spell",
         "school:transmutation",
+        "component:verbal",
+        "component:somatic",
+        "component:material",
         "damage:acid"
       ],
       "costs": {

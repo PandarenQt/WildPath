@@ -13,6 +13,9 @@
       "tags": [
         "spell",
         "school:evocation",
+        "component:verbal",
+        "component:somatic",
+        "component:material",
         "damage:thunder"
       ],
       "costs": {

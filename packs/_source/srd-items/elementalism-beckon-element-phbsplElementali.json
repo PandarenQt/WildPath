@@ -13,7 +13,9 @@
       "tags": [
         "spell",
         "cantrip",
-        "school:transmutation"
+        "school:transmutation",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

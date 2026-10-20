@@ -447,7 +447,9 @@
           "id": "action:srd-spellcasting-detect-evil-and-good",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -526,7 +528,10 @@
           "id": "action:srd-spellcasting-commune",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -597,7 +602,10 @@
           "id": "action:srd-spellcasting-control-weather",
           "tags": [
             "spell",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -676,7 +684,10 @@
           "id": "action:srd-spellcasting-dispel-evil-and-good",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -770,7 +781,11 @@
           "id": "action:srd-spellcasting-raise-dead",
           "tags": [
             "spell",
-            "school:necromancy"
+            "school:necromancy",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
+            "component:costly-material"
           ],
           "costs": {
             "allOf": [
@@ -1137,7 +1152,10 @@
           "id": "action:srd-divine-aid-bless",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -1268,7 +1286,9 @@
           "id": "action:srd-divine-aid-dispel-magic",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -1353,7 +1373,8 @@
           "id": "action:srd-divine-aid-healing-word",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -1452,7 +1473,9 @@
           "id": "action:srd-divine-aid-lesser-restoration",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -1613,7 +1636,9 @@
           "id": "action:srd-divine-aid-cure-wounds",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -1712,7 +1737,10 @@
           "id": "action:srd-divine-aid-invisibility",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -1800,7 +1828,9 @@
           "id": "action:srd-divine-aid-lesser-restoration",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -1961,7 +1991,9 @@
           "id": "action:srd-divine-aid-remove-curse",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [

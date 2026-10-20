@@ -13,6 +13,8 @@
       "tags": [
         "spell",
         "school:illusion",
+        "component:verbal",
+        "component:somatic",
         "damage:psychic"
       ],
       "costs": {

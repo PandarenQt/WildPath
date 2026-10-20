@@ -12,7 +12,9 @@
       "id": "action:srd-staff-of-charming-charm-person",
       "tags": [
         "spell",
-        "school:enchantment"
+        "school:enchantment",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

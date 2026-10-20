@@ -12,7 +12,9 @@
       "id": "action:srd-mass-suggestion",
       "tags": [
         "spell",
-        "school:enchantment"
+        "school:enchantment",
+        "component:verbal",
+        "component:material"
       ],
       "costs": {
         "allOf": [

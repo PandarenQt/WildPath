@@ -421,7 +421,9 @@
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -500,7 +502,10 @@
           "id": "action:srd-spellcasting-fear",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -578,6 +583,9 @@
           "tags": [
             "spell",
             "school:evocation",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
             "damage:acid"
           ],
           "costs": {
@@ -687,7 +695,10 @@
           "id": "action:srd-spellcasting-create-undead",
           "tags": [
             "spell",
-            "school:necromancy"
+            "school:necromancy",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -760,7 +771,10 @@
           "id": "action:srd-spellcasting-speak-with-dead",
           "tags": [
             "spell",
-            "school:necromancy"
+            "school:necromancy",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -831,6 +845,9 @@
           "tags": [
             "spell",
             "school:evocation",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
             "damage:acid"
           ],
           "costs": {
@@ -1049,7 +1066,10 @@
           "id": "action:srd-frightful-presence-fear",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [

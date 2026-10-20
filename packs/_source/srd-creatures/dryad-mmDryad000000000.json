@@ -387,7 +387,10 @@
           "id": "action:srd-spellcasting-animal-friendship",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "anyOf": [
@@ -470,7 +473,9 @@
           "id": "action:srd-spellcasting-charm-monster",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "anyOf": [
@@ -554,7 +559,9 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "anyOf": [
@@ -613,7 +620,9 @@
           "id": "action:srd-spellcasting-entangle",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "anyOf": [
@@ -725,7 +734,10 @@
           "id": "action:srd-spellcasting-pass-without-trace",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "anyOf": [

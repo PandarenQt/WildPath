@@ -230,7 +230,9 @@
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -310,7 +312,9 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:evocation"
+            "school:evocation",
+            "component:verbal",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -371,7 +375,10 @@
           "id": "action:srd-spellcasting-mage-armor",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -469,7 +476,9 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -531,7 +540,9 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -583,6 +594,9 @@
           "tags": [
             "spell",
             "school:evocation",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
             "damage:fire"
           ],
           "costs": {
@@ -692,7 +706,10 @@
           "id": "action:srd-spellcasting-invisibility",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -781,6 +798,9 @@
           "tags": [
             "spell",
             "school:evocation",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
             "damage:cold"
           ],
           "costs": {
@@ -884,7 +904,10 @@
           "id": "action:srd-spellcasting-fly",
           "tags": [
             "spell",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -990,7 +1013,8 @@
           "id": "action:srd-misty-step-misty-step",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -1064,7 +1088,8 @@
           "id": "action:srd-protective-magic-counterspell",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -1126,10 +1151,35 @@
               "event": "action.declared",
               "match": {
                 "phase": "interrupt",
-                "tagsAny": [
+                "tagsAll": [
                   "spell"
                 ],
+                "notTagsAny": [
+                  "component:none"
+                ],
                 "notSourceTokenId": "{self}"
+              },
+              "triggerPredicate": {
+                "all": [
+                  {
+                    "equals": {
+                      "path": "toSource.{self}.sees",
+                      "value": true
+                    }
+                  },
+                  {
+                    "equals": {
+                      "path": "toSource.{self}.hostile",
+                      "value": true
+                    }
+                  },
+                  {
+                    "atMost": {
+                      "path": "toSource.{self}.distance",
+                      "value": 60
+                    }
+                  }
+                ]
               }
             }
           }
@@ -1169,7 +1219,9 @@
           "id": "action:srd-protective-magic-shield",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [

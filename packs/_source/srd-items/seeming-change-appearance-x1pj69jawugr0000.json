@@ -12,7 +12,9 @@
       "id": "action:srd-seeming-change-appearance",
       "tags": [
         "spell",
-        "school:illusion"
+        "school:illusion",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

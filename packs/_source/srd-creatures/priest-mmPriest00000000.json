@@ -322,7 +322,9 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:evocation"
+            "school:evocation",
+            "component:verbal",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -384,7 +386,8 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -471,7 +474,9 @@
           "id": "action:srd-spellcasting-spiritual-weapon",
           "tags": [
             "spell",
-            "school:evocation"
+            "school:evocation",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -553,7 +558,10 @@
           "id": "action:srd-divine-aid-bless",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -684,7 +692,9 @@
           "id": "action:srd-divine-aid-dispel-magic",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -769,7 +779,8 @@
           "id": "action:srd-divine-aid-healing-word",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -868,7 +879,9 @@
           "id": "action:srd-divine-aid-lesser-restoration",
           "tags": [
             "spell",
-            "school:abjuration"
+            "school:abjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [

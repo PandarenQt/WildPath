@@ -12,7 +12,10 @@
       "id": "action:srd-air-ring-of-elemental-command-gust-of-wind",
       "tags": [
         "spell",
-        "school:evocation"
+        "school:evocation",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

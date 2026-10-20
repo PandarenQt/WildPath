@@ -12,7 +12,10 @@
       "id": "action:srd-teleportation-circle",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal",
+        "component:material",
+        "component:costly-material"
       ],
       "costs": {
         "allOf": []

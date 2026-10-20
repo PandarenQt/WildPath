@@ -148,7 +148,8 @@
           "id": "action:srd-wishes-cast-wish-wish",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal"
           ],
           "costs": {
             "allOf": [
@@ -306,7 +307,9 @@
           "id": "action:srd-spellcasting-detect-evil-and-good",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -385,7 +388,9 @@
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -464,7 +469,9 @@
           "id": "action:srd-spellcasting-create-food-and-water",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -534,7 +541,9 @@
           "id": "action:srd-spellcasting-tongues",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -631,7 +640,10 @@
           "id": "action:srd-spellcasting-wind-walk",
           "tags": [
             "spell",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -764,7 +776,10 @@
           "id": "action:srd-spellcasting-creation",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -836,7 +851,10 @@
           "id": "action:srd-spellcasting-gaseous-form",
           "tags": [
             "spell",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -1000,7 +1018,10 @@
           "id": "action:srd-spellcasting-invisibility",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -1088,7 +1109,10 @@
           "id": "action:srd-spellcasting-major-image",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -1192,7 +1216,10 @@
           "id": "action:srd-spellcasting-plane-shift",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [

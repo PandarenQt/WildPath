@@ -355,7 +355,9 @@
           "id": "action:srd-spellcasting-disguise-self",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -427,7 +429,9 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:illusion"
+            "school:illusion",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -507,6 +511,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "component:verbal",
             "damage:psychic"
           ],
           "costs": {
@@ -619,7 +624,10 @@
           "id": "action:srd-spellcasting-major-image",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -723,7 +731,10 @@
           "id": "action:srd-spellcasting-scrying",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [

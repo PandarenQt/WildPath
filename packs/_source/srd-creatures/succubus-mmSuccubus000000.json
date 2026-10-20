@@ -286,7 +286,9 @@
           "id": "action:srd-charm-dominate-person",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [

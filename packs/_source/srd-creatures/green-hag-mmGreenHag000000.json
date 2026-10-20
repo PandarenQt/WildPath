@@ -116,7 +116,10 @@
           "id": "action:srd-coven-magic-augury",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -187,7 +190,11 @@
           "id": "action:srd-coven-magic-find-familiar",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
+            "component:costly-material"
           ],
           "costs": {
             "allOf": [
@@ -381,7 +388,10 @@
           "id": "action:srd-coven-magic-identify",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -452,7 +462,10 @@
           "id": "action:srd-coven-magic-locate-object",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -529,7 +542,10 @@
           "id": "action:srd-coven-magic-scrying",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -649,7 +665,10 @@
           "id": "action:srd-coven-magic-unseen-servant",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -934,7 +953,10 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -1027,7 +1049,9 @@
           "id": "action:srd-spellcasting-disguise-self",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -1098,7 +1122,10 @@
           "id": "action:srd-spellcasting-invisibility",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -1168,7 +1195,9 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:illusion"
+            "school:illusion",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -1248,6 +1277,8 @@
           "tags": [
             "spell",
             "school:necromancy",
+            "component:verbal",
+            "component:somatic",
             "damage:poison"
           ],
           "costs": {

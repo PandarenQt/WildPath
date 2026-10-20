@@ -4,6 +4,10 @@ import {commonAction} from "../helpers/common-actions.mjs";
 import {movementTracked} from "../helpers/combat.mjs";
 import {turnKey} from "./foundry-v14-persistent-areas.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
+import {footprintDistance} from "../helpers/grid-footprints.mjs";
+import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-adapter.mjs";
+import {attackSight} from "./foundry-v14-senses.mjs";
+import {coverBetween, foundrySightCollision} from "./foundry-v14-cover.mjs";
 
 type Data = Record<string, unknown>;
 
@@ -65,7 +69,8 @@ const definitionFor = actionDefinitionFromAction as (item: ItemLike) => {ok: boo
  * Item) or the Action named by `data.reaction.actionId`. Reactors to movement also become observers: reach
  * in fields from that Action's reach range, hostility from Token dispositions. `{self}` stands for this
  * reactor's Token id in predicate paths (`event.data.relations.{self}.leavesReach`) and in `match` values
- * (`match: {targetTokenId: "{self}"}`: "an attack on me").
+ * (`match: {targetTokenId: "{self}"}`: "an attack on me"). Each event's predicates also see every reactor's relation to
+ * its source (`toSource.{self}`: relationsToSource).
  */
 export function createFoundryReactionProvider({resolve = defaultResolve} = {}) {
   return function reactionServices(context: ProviderContext = {}) {
@@ -102,7 +107,8 @@ export function createFoundryReactionProvider({resolve = defaultResolve} = {}) {
         context: {hostile: isHostile(token, mover)}
       });
     }
-    return triggers.length ? {reactions: {triggers}, ...(observers.length ? {movement: {observers}} : {})} : {};
+    return triggers.length ? {reactions: {triggers, context: ({event}: {event?: Data}) => ({toSource: relationsToSource(scene, event)})},
+      ...(observers.length ? {movement: {observers}} : {})} : {};
   };
 }
 
@@ -231,6 +237,42 @@ function reachFields(definition: Data, scene: SceneLike) {
   const feet = (range.type === "reach") && Number.isFinite(range.distance?.value) ? range.distance!.value! : 5;
   const fieldSize = Number(scene.grid?.distance) || 5;
   return Math.max(1, Math.floor(feet / fieldSize));
+}
+
+/**
+ * Each Token's relation to `event`'s source, by Token id, worked out when a predicate reads it (`toSource.<id>`):
+ * `hostile` (dispositions), `distance` in feet between their spaces, and `sees`: it perceives the source (Blinded,
+ * Invisible, light: attackSight) and a wall blocking sight doesn't hide it entirely (Total Cover). Nothing for an event
+ * without a source Token on the Scene, so a predicate reading it fails (no "creature you can see").
+ */
+export function relationsToSource(scene: SceneLike, event: Data | undefined): Record<string, {hostile: boolean;
+  distance: number | null; sees: boolean}> {
+  const sourceId = ((event?.source as Data | undefined)?.tokenId ?? event?.tokenId) as string | undefined;
+  const tokens = [...(scene.tokens ?? [])];
+  const source = sourceId ? tokens.find(token => token.id === sourceId) : null;
+  const relations = {};
+  if ( !source?.actor ) return relations;
+  const grid = createFoundryV14TacticalGridAdapter({scene: scene as never}) as {tokenToFootprint(token: unknown): {ok: boolean; footprint?: unknown}};
+  const footprintOf = (token: TokenLike) => { const result = grid.tokenToFootprint(token); return result.ok ? result.footprint : null; };
+  const from = footprintOf(source);
+  const fieldDistance = Number(scene.grid?.distance) || 5;
+  for ( const token of tokens ) {
+    if ( !token.actor || (token.id === source.id) ) continue;
+    let memo: {hostile: boolean; distance: number | null; sees: boolean} | null = null;
+    Object.defineProperty(relations, token.id, {enumerable: true, get() {
+      if ( memo ) return memo;
+      const to = footprintOf(token);
+      const fields = (from && to) ? (footprintDistance as unknown as (a: unknown, b: unknown) => number)(from, to) : NaN;
+      const distance = Number.isFinite(fields) ? fields * fieldDistance : null;
+      const collides = foundrySightCollision();
+      const walled = collides ? coverBetween({source: token as never, target: source as never, collides}) === "total" : false;
+      const sees = !walled && attackSight({attacker: token.actor as never, target: source.actor as never, attackerToken: token as never,
+        targetToken: source as never, distance}).seesTarget;
+      memo = {hostile: isHostile(token, source), distance, sees};
+      return memo;
+    }});
+  }
+  return relations;
 }
 
 /** Friendly and hostile Tokens are hostile to each other; neutral Tokens are hostile to no one. */

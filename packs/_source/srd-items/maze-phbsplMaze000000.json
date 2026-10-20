@@ -12,7 +12,9 @@
       "id": "action:srd-maze-banish-to-maze",
       "tags": [
         "spell",
-        "school:conjuration"
+        "school:conjuration",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

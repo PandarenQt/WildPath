@@ -12,7 +12,10 @@
       "id": "action:srd-detect-poison-and-disease",
       "tags": [
         "spell",
-        "school:divination"
+        "school:divination",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

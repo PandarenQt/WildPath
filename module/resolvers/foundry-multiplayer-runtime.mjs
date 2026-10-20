@@ -1466,7 +1466,7 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
  * 2024 Countercharm: when a creature fails a save against an effect giving one of a feature's conditions (`against`:
  * Charmed, Frightened), it or an ally within the feature's `range` that has it may reroll the save for it with that
  * feature's `rollMode` (Advantage), paying its `pool` (its Reaction). Each paying creature is registered (`register`) so
- * its payment is committed on it. The saver's controller decides. shortcut: "can see" is its controller's to judge.
+ * its payment is committed on it. The saver's controller decides (2024 Countercharm has no sight clause).
  */
 export function withAllyTestOffers(offer, saverToken, definition, game, test, {chooser, register=() => {}}={}) {
   if ( (offer && !offer.own) || !saverToken?.parent ) return offer;

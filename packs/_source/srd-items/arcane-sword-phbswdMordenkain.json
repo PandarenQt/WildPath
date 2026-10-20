@@ -12,7 +12,10 @@
       "id": "action:srd-arcane-sword-create-spectral-sword",
       "tags": [
         "spell",
-        "school:evocation"
+        "school:evocation",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

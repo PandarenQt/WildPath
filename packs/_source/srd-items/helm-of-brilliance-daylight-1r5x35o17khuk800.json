@@ -12,7 +12,9 @@
       "id": "action:srd-helm-of-brilliance-daylight",
       "tags": [
         "spell",
-        "school:evocation"
+        "school:evocation",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

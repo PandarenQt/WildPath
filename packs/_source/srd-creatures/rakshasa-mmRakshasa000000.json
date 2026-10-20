@@ -421,7 +421,9 @@
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -500,7 +502,10 @@
           "id": "action:srd-spellcasting-detect-thoughts",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -559,7 +564,9 @@
           "id": "action:srd-spellcasting-disguise-self",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -631,7 +638,9 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -693,7 +702,9 @@
           "tags": [
             "spell",
             "cantrip",
-            "school:illusion"
+            "school:illusion",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -772,7 +783,10 @@
           "id": "action:srd-spellcasting-fly",
           "tags": [
             "spell",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -878,7 +892,10 @@
           "id": "action:srd-spellcasting-invisibility",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -966,7 +983,10 @@
           "id": "action:srd-spellcasting-major-image",
           "tags": [
             "spell",
-            "school:illusion"
+            "school:illusion",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -1070,7 +1090,10 @@
           "id": "action:srd-spellcasting-plane-shift",
           "tags": [
             "spell",
-            "school:conjuration"
+            "school:conjuration",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [

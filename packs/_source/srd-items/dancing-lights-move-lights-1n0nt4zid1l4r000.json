@@ -13,7 +13,10 @@
       "tags": [
         "spell",
         "cantrip",
-        "school:illusion"
+        "school:illusion",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": [

@@ -13,7 +13,9 @@
       "tags": [
         "spell",
         "cantrip",
-        "school:evocation"
+        "school:evocation",
+        "component:verbal",
+        "component:somatic"
       ],
       "costs": {
         "allOf": [

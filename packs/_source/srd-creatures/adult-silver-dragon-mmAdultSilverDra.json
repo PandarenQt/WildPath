@@ -517,7 +517,9 @@
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
             "spell",
-            "school:divination"
+            "school:divination",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -596,7 +598,10 @@
           "id": "action:srd-spellcasting-hold-monster",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -674,6 +679,8 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "component:somatic",
+            "component:material",
             "damage:piercing"
           ],
           "costs": {
@@ -768,7 +775,10 @@
           "id": "action:srd-spellcasting-shapechange",
           "tags": [
             "spell",
-            "school:transmutation"
+            "school:transmutation",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [
@@ -827,6 +837,9 @@
           "tags": [
             "spell",
             "school:evocation",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
             "damage:bludgeoning",
             "damage:cold"
           ],
@@ -951,7 +964,9 @@
           "id": "action:srd-spellcasting-zone-of-truth",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal",
+            "component:somatic"
           ],
           "costs": {
             "allOf": [
@@ -1087,7 +1102,10 @@
           "id": "action:srd-chill-hold-monster",
           "tags": [
             "spell",
-            "school:enchantment"
+            "school:enchantment",
+            "component:verbal",
+            "component:somatic",
+            "component:material"
           ],
           "costs": {
             "allOf": [

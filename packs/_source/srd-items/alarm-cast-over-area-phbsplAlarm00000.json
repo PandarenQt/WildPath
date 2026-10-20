@@ -12,7 +12,10 @@
       "id": "action:srd-alarm-cast-over-area",
       "tags": [
         "spell",
-        "school:abjuration"
+        "school:abjuration",
+        "component:verbal",
+        "component:somatic",
+        "component:material"
       ],
       "costs": {
         "allOf": []

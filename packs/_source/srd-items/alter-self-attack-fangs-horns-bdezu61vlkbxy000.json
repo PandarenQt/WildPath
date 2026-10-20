@@ -13,6 +13,8 @@
       "tags": [
         "spell",
         "school:transmutation",
+        "component:verbal",
+        "component:somatic",
         "damage:piercing"
       ],
       "costs": {
