@@ -1056,6 +1056,10 @@ test("Command's five commands and Bestow Curse's curses: chosen when used, appli
     ["Approach", "Drop", "Flee", "Grovel", "Halt"]);
   assert.deepEqual(effects.find(effect => effect.conditionId).conditionId, "prone", "Grovel: Prone");
   assert.deepEqual(effects.at(-1).ruleElements[0].data, {resources: ["movement", "action", "bonus"], maximum: 0}, "Halt");
+  // Approach, Drop and Flee are statuses the movement authority and the runtime enforce; their turn's caps.
+  assert.deepEqual(effects.filter(effect => effect.slug).map(effect => [effect.slug, effect.ruleElements.flatMap(rule => rule.data.resources)]),
+    [["commanded-approach", ["action", "bonus"]], ["commanded-drop", ["movement", "action", "bonus"]], ["commanded-flee", []]]);
+  assert.equal(effects.filter(effect => (effect.name === "Commanded: Grovel")).length, 1, "Grovel ends its turn too");
   assert.ok(effects.every(effect => effect.saveOutcomePolicy === "failure"));
   assert.equal(validateActionDefinition(command.system.definition).ok, true);
 

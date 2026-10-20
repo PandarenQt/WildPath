@@ -1742,23 +1742,29 @@ const EFFECTS_BY_HAND = Object.freeze({
 const effectsByHand = (document, activity) => EFFECTS_BY_HAND[`${identifierOf(document)}/${activity?.name}`]
   ?? EFFECTS_BY_HAND[identifierOf(document)] ?? null;
 
-/** One command until the end of its next turn (2024 Command): its creature's marker, with what it can enforce. */
-const commanded = (name, rules=[]) => ({type: "effect", name: `Commanded: ${name}`, ruleElements: rules,
-  duration: {value: 1, units: "rounds", expiry: "turnEnd"}});
+/**
+ * One command until the end of its next turn (2024 Command): its creature's marker (its status `slug`), with what it
+ * enforces: caps on its turn's resources, and the movement and Actions its status allows.
+ */
+const commanded = (name, rules=[], slug=null) => ({type: "effect", name: `Commanded: ${name}`, ...(slug ? {slug} : {}),
+  ruleElements: rules, duration: {value: 1, units: "rounds", expiry: "turnEnd"}});
+const turnCap = (id, resources) => ({schemaVersion: 1, id, type: "ResourceCap", data: {resources, maximum: 0}});
 
 /**
  * Options an Action's effect is chosen from when it is used, by its 2024 text (Command's five commands). Each option is
- * one or more effects; a failed save applies the one chosen. shortcut: Approach, Drop and Flee only mark the creature;
- * where it moves and what it drops are by hand.
+ * one or more effects; a failed save applies the one chosen:
+ * - Approach: it moves toward its commander, and can't move away (`commanded-approach`) or take an action.
+ * - Drop: it drops what it holds when its turn starts (documents/actor.mjs) and ends its turn.
+ * - Flee: it moves away (`commanded-flee`: it can't move closer), with only Dash or Disengage as its action.
+ * - Grovel: Prone, and its turn ends. Halt: it doesn't move or take an action or Bonus Action.
  */
 const CHOICES_BY_HAND = Object.freeze({
   command: {chooseOne: "Command", options: [
-    {label: "Approach", effects: [commanded("Approach")]},
-    {label: "Drop", effects: [commanded("Drop")]},
-    {label: "Flee", effects: [commanded("Flee")]},
-    {label: "Grovel", effects: [{type: "condition", conditionId: "prone"}]},
-    {label: "Halt", effects: [commanded("Halt", [{schemaVersion: 1, id: "halt", type: "ResourceCap",
-      data: {resources: ["movement", "action", "bonus"], maximum: 0}}])]}
+    {label: "Approach", effects: [commanded("Approach", [turnCap("approach", ["action", "bonus"])], "commanded-approach")]},
+    {label: "Drop", effects: [commanded("Drop", [turnCap("drop", ["movement", "action", "bonus"])], "commanded-drop")]},
+    {label: "Flee", effects: [commanded("Flee", [], "commanded-flee")]},
+    {label: "Grovel", effects: [{type: "condition", conditionId: "prone"}, commanded("Grovel", [turnCap("grovel", ["movement", "action", "bonus"])])]},
+    {label: "Halt", effects: [commanded("Halt", [turnCap("halt", ["movement", "action", "bonus"])])]}
   ]}
 });
 

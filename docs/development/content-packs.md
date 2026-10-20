@@ -375,7 +375,15 @@ equipped. Equipping it (`system.active`) turns its rules on.
   its turns carries `repeatSave` (rule-elements.md): 18 SRD Actions, Hold Person and Paralyzing Breath among them.
 - **Command and Bestow Curse (2026-10-19).** Command's five commands are a choice when it is used (`CHOICES_BY_HAND`):
   Grovel is Prone; Halt caps movement, Action and Bonus Action at 0 until the end of the caster's next turn; Approach,
-  Drop and Flee mark the creature ("Commanded: Flee"), and what it does is by hand. Bestow Curse's Curse Attacks gives
+  Drop and Flee mark the creature ("Commanded: Flee").
+  - **Command enforced (2026-10-20).** Each command is a status:
+    - `commanded-approach`: no action; a step away from the commander is refused (movement-paths.md).
+    - `commanded-flee`: a step closer is refused; only Dash or Disengage may be its action.
+    - `commanded-drop`: when its turn starts it lets go of what it holds (`WildPathActor#dropHeld`: equipped Shields and
+      weapon gear; a stat block's manufactured weapons), and it can't move or act.
+    - Grovel also ends its turn.
+    - Live: Commanded to flee, QA Caster's Dagger was refused, and a step back toward the Bandit Captain was refused.
+      Commanded to drop, the Captain put down its Scimitar when its turn started. Bestow Curse's Curse Attacks gives
   Disadvantage on the creature's attacks against its caster (`attack.fromTarget`), and Curse Resilience 1d8 Necrotic when
   its caster hits it (as Hunter's Mark); Curse Actions stays a marker. `EFFECTS_BY_HAND` can now be keyed by activity
   ("bestow-curse/Curse Attacks"). An effect dnd5e does not mark `onSave: true` applies on a failed save only (34 effects
