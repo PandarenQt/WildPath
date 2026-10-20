@@ -96,8 +96,23 @@ export function deriveClassData(classes: readonly ClassRecord[]) {
   };
 }
 
+/**
+ * A spell's own level: the lowest its slot choice names (`levelByResourceId`, which Foundry may store nested as
+ * `{"spell-slot": {"6": 6}}`), or null for an Action with no slot choice (a cantrip).
+ */
+export function spellBaseLevel(definition: {configuration?: Array<{id?: string; levelByResourceId?: Record<string, unknown>}>} | null | undefined) {
+  const choice = definition?.configuration?.find(entry => entry?.id === "spell-slot");
+  const levels = Object.values(choice?.levelByResourceId ?? {})
+    .flatMap(value => ((value && (typeof value === "object")) ? Object.values(value as Record<string, unknown>) : [value]))
+    .map(Number).filter(Number.isFinite);
+  return levels.length ? Math.min(...levels) : null;
+}
+
+/** The pool of Mystic Arcanum uses of one spell level (`mystic-arcanum.6`). */
+export const mysticArcanumPoolId = (level: number) => `mystic-arcanum.${level}`;
+
 interface PreparingItem {
-  type?: string; flags?: {wildpath?: {grantedBy?: string | null}};
+  type?: string; flags?: {wildpath?: {grantedBy?: string | null; arcanum?: boolean}};
   system?: {prepared?: boolean; definition?: {tags?: string[]; configuration?: Array<{id?: string}>}};
 }
 
@@ -107,8 +122,9 @@ interface PreparingItem {
  */
 export function preparesSpell(item: PreparingItem | null | undefined) {
   const definition = item?.system?.definition;
-  return (item?.type === "action") && !item.flags?.wildpath?.grantedBy && !!definition?.tags?.includes("spell")
-    && !!definition.configuration?.some(choice => choice?.id === "spell-slot");
+  // A Mystic Arcanum spell is cast from its arcanum (or a slot), never prepared.
+  return (item?.type === "action") && !item.flags?.wildpath?.grantedBy && !item.flags?.wildpath?.arcanum
+    && !!definition?.tags?.includes("spell") && !!definition.configuration?.some(choice => choice?.id === "spell-slot");
 }
 
 /** A spell its creature has not prepared, so it can't cast it. */

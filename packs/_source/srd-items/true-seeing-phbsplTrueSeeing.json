@@ -79,12 +79,6 @@
                   "capability": "spell-slot.9",
                   "amount": 1
                 }
-              ],
-              [
-                {
-                  "capability": "mystic-arcanum.6",
-                  "amount": 1
-                }
               ]
             ]
           },
@@ -92,8 +86,7 @@
             "spell-slot.6": 6,
             "spell-slot.7": 7,
             "spell-slot.8": 8,
-            "spell-slot.9": 9,
-            "mystic-arcanum.6": 6
+            "spell-slot.9": 9
           },
           "effects": []
         }

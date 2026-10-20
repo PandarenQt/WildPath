@@ -237,3 +237,28 @@ test("an effect with a maxSize skips a bigger creature (Eldritch Smite's Prone: 
     ...choices}}).configuration.effectiveDefinition.effects.map(effect => effect.conditionId);
   assert.deepEqual([effects({prone: "prone"}), effects({prone: "standing"})], [["prone"], []], "Prone, or not: the warlock's choice");
 });
+
+test("a reroll's own mode is one more source: Advantage cancels one Disadvantage, not two", () => {
+  const charm = {schemaVersion: 1, id: "action:charm", label: "Charm", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    save: {ability: "wits", dc: {value: 13}}, effects: [{id: "effect-1", type: "condition", conditionId: "charmed", saveOutcomePolicy: "failure"}]};
+  const offer = {own: true, chooser: "target-controller", label: "x", options: [{value: "ally", payerRef: "Actor.bard",
+    plan: {ok: true, updates: {}, payments: []}, rollMode: "advantage", label: "Countercharm"}]};
+  const rerollMode = sources => {
+    let state = planStagedActionResolution({id: `resolution:modes-${sources.length}`, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+      action: {id: charm.id, type: "action", name: charm.label, system: {definition: charm}}, source: {actorId: "actor-source"},
+      targets: [{id: "fighter", actorId: "actor-fighter", tokenId: "token-fighter", disposition: "enemy"}],
+      save: {inspirationByTarget: {"token-fighter": offer}, rollModesByTarget: {"token-fighter": "disadvantage"},
+        rollModeSourcesByTarget: {"token-fighter": sources}}}).state;
+    const answer = value => {
+      const request = state.pendingRequests[0];
+      state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+        value: typeof value === "function" ? value(request) : value}}).state;
+      return request;
+    };
+    answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: 4, total: 4}));
+    answer("ally");
+    return state.pendingRequests[0].payload.rollRequest.rollMode;
+  };
+  assert.equal(rerollMode(["disadvantage"]), "normal");
+  assert.equal(rerollMode(["disadvantage", "disadvantage"]), "disadvantage", "two sources of Disadvantage outweigh it");
+});

@@ -197,6 +197,12 @@
               <a class="row-name" data-action="openItem">{{item.name}}</a>
               <span class="row-detail">{{item.availability.reason}}</span>
             </div>
+            {{#if item.arcanum}}
+              <button type="button" class="row-command" data-action="toggleArcanum" aria-pressed="{{#if item.arcanum.on}}true{{else}}false{{/if}}"
+                      title="{{localize "WILDPATH.SHEET.ArcanumHint" level=item.arcanum.level}}">
+                {{#if item.arcanum.on}}{{localize "WILDPATH.SHEET.Arcanum"}}{{else}}{{localize "WILDPATH.SHEET.NotArcanum"}}{{/if}}
+              </button>
+            {{/if}}
             {{#if item.prepares}}
               <button type="button" class="row-command" data-action="togglePrepared" aria-pressed="{{#if item.prepared}}true{{else}}false{{/if}}">
                 {{#if item.prepared}}{{localize "WILDPATH.SHEET.Prepared"}}{{else}}{{localize "WILDPATH.SHEET.NotPrepared"}}{{/if}}

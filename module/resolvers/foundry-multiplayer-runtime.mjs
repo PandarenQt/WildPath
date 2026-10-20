@@ -707,6 +707,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const targets = [];
   const targetEntries = [];
   const saveRollModes = {};
+  const saveRollModeSources = {};
   const saveModifiers = {};
   const saveDice = {};
   const saveOutcomes = {};
@@ -758,8 +759,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       const ability = definition.save.ability ?? definition.save.saveKey ?? null;
       const key = target.tokenId ?? target.id;
       const saverToken = targetTokenFor(targetActor, hint, game);
-      saveRollModes[key] = combineRollModes(targetActor.getRollModes?.(["save", `save.${ability}`],
-        saveContext(definition, ability, saverToken)) ?? []);
+      const modes = (targetActor.getRollModes?.(["save", `save.${ability}`], saveContext(definition, ability, saverToken)) ?? [])
+        .map(entry => entry?.mode ?? entry);
+      saveRollModes[key] = combineRollModes(modes);
+      // Its sources too, so a reroll with a mode of its own (Countercharm's Advantage) cancels source for source.
+      if ( modes.length ) saveRollModeSources[key] = modes;
       // Each target's own save bonus (Modifiers on save.<ability> and save), and an automatic failure.
       const bonus = resolveActorSaveStatistic(targetActor, ability);
       if ( bonus ) saveModifiers[key] = bonus.totalModifier;
@@ -889,6 +893,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {}),
         ...(attackBonuses ? {bonusByTarget: attackBonuses} : {})}} : {}),
       ...(Object.keys(saveRollModes).length ? {save: {rollModesByTarget: saveRollModes, modifiersByTarget: saveModifiers,
+        ...(Object.keys(saveRollModeSources).length ? {rollModeSourcesByTarget: saveRollModeSources} : {}),
         // Its creature's bonus to its spells' save DC (Innate Sorcery's +1, a Robe of the Archmagi's +2: `dc.spell`).
         ...(spellDcBonus ? {dcBonus: spellDcBonus} : {}),
         ...(Object.keys(saveDice).length ? {diceByTarget: saveDice} : {}),

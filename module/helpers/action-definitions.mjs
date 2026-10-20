@@ -11,6 +11,7 @@ import {
 import {WILDPATH} from "../config.mjs";
 import {withWeaponMastery} from "./weapon-mastery.mjs";
 import {withMetamagic} from "./metamagic.mjs";
+import {mysticArcanumPoolId, spellBaseLevel} from "./spellcasting.mjs";
 
 /** When a custom effect ends early: its creature is attacked, attacked by the creature that applied it, or attacks. */
 export const CUSTOM_EFFECT_ENDS_WHEN = Object.freeze(["attacked", "attackedBySource", "attackedByOther", "attacks", "saves"]);
@@ -253,8 +254,8 @@ export function serializeActionDefinition(rawDefinition={}, options={}) {
 
 export function actionDefinitionFromItem(item, options={}) {
   const system = item?.system ?? {};
-  const raw = withMetamagic(withOwnWeapons(withWeaponMastery(withExtraAttacks(system.definition ?? system.actionDefinition ?? item?.definition
-    ?? item?.actionDefinition ?? null, item), item?.actor ?? null), item?.actor ?? null), item?.actor ?? null);
+  const raw = withMysticArcanum(withMetamagic(withOwnWeapons(withWeaponMastery(withExtraAttacks(system.definition ?? system.actionDefinition
+    ?? item?.definition ?? item?.actionDefinition ?? null, item), item?.actor ?? null), item?.actor ?? null), item?.actor ?? null), item);
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
   const legacyActivationCost = options.legacyActivationCost
@@ -318,6 +319,21 @@ function withOwnWeapons(raw, actor) {
     }
     return {...choice, options: [...options.values()]};
   })};
+}
+
+/**
+ * 2024 Mystic Arcanum: the spell its warlock chose for a level 6 to 9 (`flags.wildpath.arcanum`) may also be cast at its
+ * own level from that level's arcanum (`mystic-arcanum.<level>`, once per Long Rest), while its creature has that pool.
+ */
+function withMysticArcanum(raw, item) {
+  const choice = item?.flags?.wildpath?.arcanum ? raw?.configuration?.find(entry => entry?.id === "spell-slot") : null;
+  const level = choice ? spellBaseLevel(raw) : null;
+  if ( !(level >= 6) ) return raw;
+  const capability = mysticArcanumPoolId(level);
+  if ( !(item.actor?.system?.pools ?? []).some(pool => pool.id === capability) ) return raw;
+  return {...raw, configuration: raw.configuration.map(entry => ((entry !== choice) ? entry : {...entry,
+    cost: {anyOf: [...(entry.cost?.anyOf ?? []), [{capability, amount: 1}]]},
+    levelByResourceId: {...(entry.levelByResourceId ?? {}), [capability]: level}}))};
 }
 
 function withExtraAttacks(raw, item) {

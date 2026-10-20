@@ -266,3 +266,16 @@ test("an Action whose required slot choice can't be paid (no slot left) is greye
   assert.equal(spent.enabled, false);
   assert.ok(spent.payment.failures.some(failure => failure.resourceId === "spell-slot.1" && failure.code === "INSUFFICIENT_RESOURCE"));
 });
+
+test("a spell marked as its level's Mystic Arcanum stays usable with no slot of that level, while the arcanum lasts", async () => {
+  const fs = await import("node:fs");
+  const disintegrate = JSON.parse(fs.readFileSync("packs/_source/srd-items/disintegrate-phbsplDisintegra.json", "utf8"));
+  const bar = (arcanum, uses) => {
+    const pools = [{id: "mystic-arcanum.6", label: "Mystic Arcanum (level 6)", value: uses, max: 1}];
+    const item = {...disintegrate, id: "dis", flags: {wildpath: {arcanum}}, actor: {system: {pools}},
+      activationCost: {allOf: [{capability: "action", amount: 1}]}};
+    return createActionBarViewModel({actor: {id: "actor-a", name: "Rook"}, actorSystem: {...actorSystem(), pools}, actions: [item]})
+      .actions.find(action => action.id === "dis").enabled;
+  };
+  assert.deepEqual([bar(true, 1), bar(true, 0), bar(false, 1)], [true, false, false]);
+});

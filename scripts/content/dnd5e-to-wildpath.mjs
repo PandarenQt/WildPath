@@ -255,8 +255,8 @@ const MAGICAL_CUNNING_RESTORE = Object.freeze({resourceId: PACT_SLOT_POOL, amoun
 
 /**
  * 2024 Mystic Arcanum: one spell of each level 6 to 9 cast without a slot once per Long Rest, from warlock levels 11,
- * 13, 15 and 17: a pool per level, which a spell of exactly that level may spend (slotConfiguration). shortcut: any
- * spell of that level, not the one chosen.
+ * 13, 15 and 17: a pool per level, which the spell its warlock marks as that level's arcanum may spend (on the sheet;
+ * action-definitions withMysticArcanum).
  */
 const MYSTIC_ARCANUM_POOLS = Object.freeze([[6, 11], [7, 13], [8, 15], [9, 17]].map(([level, from]) => ({schemaVersion: 1,
   id: `mystic-arcanum-${level}`, type: "GrantResource", data: {resourceId: `mystic-arcanum.${level}`, label: `Mystic Arcanum (level ${level})`,
@@ -2173,12 +2173,9 @@ function slotConfiguration(level, damage, {healing=[], perLevel=0}={}) {
     baseLevel: level, componentIds: [component.id], dice: component.scaleDice}));
   const scaling = [...scale("scaleDamage", damage), ...scale("scaleHealing", healing),
     ...(perLevel ? [{type: "scaleTargets", levelChoiceId: "spell-slot", baseLevel: level, perLevel}] : [])];
-  // A spell of level 6 to 9 may also be cast with that level's Mystic Arcanum, at its own level.
-  const arcanum = (level >= 6) ? [`mystic-arcanum.${level}`] : [];
   return [{id: "spell-slot", type: "resource", label: "Spell slot", required: true,
-    cost: {anyOf: [...levels.map(each => [{capability: `spell-slot.${each}`, amount: 1}]), ...arcanum.map(capability => [{capability, amount: 1}])]},
-    levelByResourceId: Object.fromEntries([...levels.map(each => [`spell-slot.${each}`, each]), ...arcanum.map(capability => [capability, level])]),
-    effects: scaling}];
+    cost: {anyOf: levels.map(each => [{capability: `spell-slot.${each}`, amount: 1}])},
+    levelByResourceId: Object.fromEntries(levels.map(each => [`spell-slot.${each}`, each])), effects: scaling}];
 }
 
 /** dnd5e's base weapon ids where WildPath's differ (`light-crossbow`, as the training lists name them). */

@@ -454,7 +454,7 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **On-hit features (2026-10-20):** Devious Strikes' three options, Eldritch Smite, Hurl Through Hell and the Goliath's
   Fire's Burn, Frost's Chill and Hill's Tumble are own-hit Actions (reactions.md).
 - **Pact Magic (2026-10-20):** the Warlock's progression is `pact`; Magical Cunning restores its slots; Mystic Arcanum
-  brings four pools, and every spell of level 6 to 9 offers its level's (classes-and-spellcasting.md).
+  brings four pools, which the spell marked as each level's arcanum offers (classes-and-spellcasting.md).
 - **Tireless (2026-10-20):** its Short Rest Exhaustion is a `rest.completed` Trigger. An Item with Actions now carries its
   automatic triggers on its first Action.
 - **Cantrip invocations (2026-10-20):** Agonizing Blast and Repelling Blast apply to every cantrip (the cantrip house
