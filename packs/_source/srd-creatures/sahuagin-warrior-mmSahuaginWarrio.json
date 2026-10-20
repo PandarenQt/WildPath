@@ -83,7 +83,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "blood-frenzy",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -111,7 +113,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "limited-amphibiousness",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -139,7 +143,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "shark-telepathy",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -203,7 +209,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -282,7 +290,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "claw",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -323,7 +333,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "aquatic-charge",
+            "subtype": null
           },
           "conversion": {
             "notes": [

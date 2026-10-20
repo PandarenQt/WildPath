@@ -488,6 +488,8 @@
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
         "rules": "2024",
+        "identifier": "polymorph",
+        "subtype": null,
         "castBy": "Cloak of the Bat"
       },
       "conversion": {

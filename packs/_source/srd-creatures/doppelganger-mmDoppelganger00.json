@@ -139,7 +139,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -219,7 +221,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "slam",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -277,6 +281,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-thoughts",
+            "subtype": null,
             "castBy": "Read Thoughts"
           },
           "conversion": {
@@ -382,7 +388,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "unsettling-visage",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -423,7 +431,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "shape-shift",
+            "subtype": null
           },
           "conversion": {
             "notes": [

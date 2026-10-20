@@ -97,7 +97,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "amphibious",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -161,7 +163,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -255,7 +259,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "storm-sword",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -347,7 +353,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "thunderbolt",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -451,7 +459,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "lightning-storm",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -530,6 +540,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-magic",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -596,6 +608,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "light",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -673,6 +687,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "control-weather",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {

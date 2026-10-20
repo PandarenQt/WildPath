@@ -117,7 +117,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "incubus-form",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -181,7 +183,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -263,7 +267,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "fiendish-touch",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -357,6 +363,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "dominate-person",
+            "subtype": null,
             "castBy": "Charm"
           },
           "conversion": {
@@ -434,7 +442,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "draining-kiss",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -475,7 +485,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "shape-shift",
+            "subtype": null
           },
           "conversion": {
             "notes": [

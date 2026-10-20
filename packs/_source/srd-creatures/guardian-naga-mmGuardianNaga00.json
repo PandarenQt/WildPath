@@ -95,7 +95,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "celestial-restoration",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -176,7 +178,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -265,7 +269,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "bite",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -360,7 +366,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "poisonous-spittle",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -449,6 +457,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "thaumaturgy",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -527,6 +537,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "clairvoyance",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -628,6 +640,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "cure-wounds",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -760,6 +774,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "flame-strike",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -874,6 +890,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "geas",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -985,6 +1003,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "true-seeing",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {

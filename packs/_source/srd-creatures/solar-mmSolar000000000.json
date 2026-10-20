@@ -84,7 +84,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "divine-awareness",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -112,7 +114,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "exalted-restoration",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -152,7 +156,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "legendary-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -197,7 +203,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "magic-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -278,7 +286,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -388,7 +398,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "slaying-bow",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -477,7 +489,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "flying-sword",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -556,6 +570,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-evil-and-good",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -629,6 +645,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "commune",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -709,6 +727,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "control-weather",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -806,6 +826,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "dispel-evil-and-good",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1176,6 +1198,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "resurrection",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1246,7 +1270,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "blinding-gaze",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -1326,7 +1352,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "radiant-teleport",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -1427,6 +1455,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "cure-wounds",
+            "subtype": null,
             "castBy": "Divine Aid"
           },
           "conversion": {
@@ -1592,6 +1622,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "lesser-restoration",
+            "subtype": null,
             "castBy": "Divine Aid"
           },
           "conversion": {
@@ -1679,6 +1711,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "remove-curse",
+            "subtype": null,
             "castBy": "Divine Aid"
           },
           "conversion": {

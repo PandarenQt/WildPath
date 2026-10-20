@@ -104,6 +104,8 @@
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
         "rules": "2024",
+        "identifier": "magic-missile",
+        "subtype": null,
         "castBy": "Robe of Stars"
       },
       "conversion": {

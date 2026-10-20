@@ -142,7 +142,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -236,7 +238,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "thunderous-mace",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -323,7 +327,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "thundercloud",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -414,6 +420,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-magic",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -485,6 +493,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "fog-cloud",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -565,6 +575,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "light",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -658,6 +670,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "control-weather",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -843,6 +857,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "gaseous-form",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -965,6 +981,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "telekinesis",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1039,6 +1057,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "misty-step",
+            "subtype": null,
             "castBy": "Misty Step"
           },
           "conversion": {

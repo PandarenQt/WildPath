@@ -70,7 +70,9 @@
         "type": "equipment",
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
-        "rules": "2024"
+        "rules": "2024",
+        "identifier": "robe-of-the-archmagi",
+        "subtype": null
       },
       "conversion": {
         "notes": [

@@ -66,7 +66,7 @@ test("a weapon becomes its attack: finesse, reach, and its own damage that the a
   assert.deepEqual(notes, []);
   assert.equal(items[0].img, "icons/weapons/swords/sword.webp", "core icons are kept");
   assert.deepEqual(items[0].flags.wildpath.source, {system: "dnd5e", pack: null, id: "testLongsword001", type: "weapon", book: "SRD 5.2",
-    license: "CC-BY-4.0", rules: "2024"});
+    license: "CC-BY-4.0", rules: "2024", identifier: "test-sword", subtype: null});
 });
 
 test("an area save spell: a sphere, the spell save DC, half on a success, and a slot of its level or higher that scales", () => {

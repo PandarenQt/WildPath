@@ -97,6 +97,8 @@
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
         "rules": "2024",
+        "identifier": "speak-with-animals",
+        "subtype": null,
         "castBy": "Ring of Animal Influence"
       },
       "conversion": {

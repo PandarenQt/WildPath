@@ -23,7 +23,9 @@
         "type": "container",
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
-        "rules": "2024"
+        "rules": "2024",
+        "identifier": "bag-of-holding",
+        "subtype": null
       },
       "conversion": {
         "notes": []

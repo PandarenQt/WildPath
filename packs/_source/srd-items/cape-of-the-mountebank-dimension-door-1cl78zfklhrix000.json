@@ -61,6 +61,8 @@
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
         "rules": "2024",
+        "identifier": "dimension-door",
+        "subtype": null,
         "castBy": "Cape of the Mountebank"
       },
       "conversion": {

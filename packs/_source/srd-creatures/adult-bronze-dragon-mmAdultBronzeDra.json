@@ -92,7 +92,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "amphibious",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -132,7 +134,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "legendary-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -213,7 +217,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -302,7 +308,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "rend",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -402,7 +410,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "lightning-breath",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -485,7 +495,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "repulsion-breath",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -564,6 +576,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-magic",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -688,6 +702,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "guiding-bolt",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -748,6 +764,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "shapechange",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -832,6 +850,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "speak-with-animals",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -921,6 +941,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "thaumaturgy",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -998,6 +1020,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-thoughts",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1102,6 +1126,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "water-breathing",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1230,6 +1256,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "guiding-bolt",
+            "subtype": null,
             "castBy": "Guiding Light"
           },
           "conversion": {
@@ -1273,7 +1301,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "pounce",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -1365,7 +1395,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "thunderclap",
+            "subtype": null
           },
           "conversion": {
             "notes": []

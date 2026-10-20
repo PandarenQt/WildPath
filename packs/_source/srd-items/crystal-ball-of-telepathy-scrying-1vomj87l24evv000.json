@@ -105,6 +105,8 @@
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
         "rules": "2024",
+        "identifier": "scrying",
+        "subtype": null,
         "castBy": "Crystal Ball of Telepathy"
       },
       "conversion": {

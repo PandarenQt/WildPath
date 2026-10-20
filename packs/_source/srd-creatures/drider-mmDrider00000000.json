@@ -87,7 +87,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "spider-climb",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -134,7 +136,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "sunlight-sensitivity",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -162,7 +166,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "web-walker",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -226,7 +232,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -306,7 +314,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "foreleg",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -386,7 +396,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "poison-burst",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -496,6 +508,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "darkness",
+            "subtype": null,
             "castBy": "Magic of the Spider Queen"
           },
           "conversion": {
@@ -617,6 +631,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "faerie-fire",
+            "subtype": null,
             "castBy": "Magic of the Spider Queen"
           },
           "conversion": {
@@ -769,6 +785,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "web",
+            "subtype": null,
             "castBy": "Magic of the Spider Queen"
           },
           "conversion": {

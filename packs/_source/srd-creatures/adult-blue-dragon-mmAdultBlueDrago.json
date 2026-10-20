@@ -101,7 +101,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "legendary-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -182,7 +184,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -271,7 +275,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "rend",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -370,7 +376,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "lightning-breath",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -449,6 +457,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-magic",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -523,6 +533,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "invisibility",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -587,6 +599,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "mage-hand",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -691,6 +705,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "shatter",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -810,6 +826,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "scrying",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -885,6 +903,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "sending",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -928,7 +948,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "cloaked-flight",
+            "subtype": null
           },
           "conversion": {
             "notes": [
@@ -1038,6 +1060,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "shatter",
+            "subtype": null,
             "castBy": "Sonic Boom"
           },
           "conversion": {
@@ -1079,7 +1103,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "tail-swipe",
+            "subtype": null
           },
           "conversion": {
             "notes": [

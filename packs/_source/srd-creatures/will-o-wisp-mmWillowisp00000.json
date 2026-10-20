@@ -79,7 +79,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "ephemeral",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -107,7 +109,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "illumination",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -135,7 +139,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "incorporeal-movement",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -189,7 +195,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "vanish",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -256,7 +264,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "consume-life",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -328,7 +338,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "shock",
+            "subtype": null
           },
           "conversion": {
             "notes": []

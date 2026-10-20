@@ -144,7 +144,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "mace",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -216,7 +218,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "radiant-flame",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -280,6 +284,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "light",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -369,6 +375,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "thaumaturgy",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -503,6 +511,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "bless",
+            "subtype": null,
             "castBy": "Divine Aid"
           },
           "conversion": {
@@ -603,6 +613,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "healing-word",
+            "subtype": null,
             "castBy": "Divine Aid"
           },
           "conversion": {
@@ -700,6 +712,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "sanctuary",
+            "subtype": null,
             "castBy": "Divine Aid"
           },
           "conversion": {
@@ -736,7 +750,9 @@
             "type": "loot",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "holy-symbol-varies",
+            "subtype": null
           },
           "conversion": {
             "notes": []

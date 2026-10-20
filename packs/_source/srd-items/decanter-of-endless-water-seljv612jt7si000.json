@@ -23,7 +23,9 @@
         "type": "equipment",
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
-        "rules": "2024"
+        "rules": "2024",
+        "identifier": "decanter-of-endless-water",
+        "subtype": null
       },
       "conversion": {
         "notes": [

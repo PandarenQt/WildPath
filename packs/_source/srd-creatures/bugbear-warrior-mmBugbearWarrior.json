@@ -139,7 +139,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "light-hammer",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -167,7 +169,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "abduct",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -248,7 +252,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "grab",
+            "subtype": null
           },
           "conversion": {
             "notes": []

@@ -33,7 +33,9 @@
         "type": "equipment",
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
-        "rules": "2024"
+        "rules": "2024",
+        "identifier": "cloak-of-the-manta-ray",
+        "subtype": null
       },
       "conversion": {
         "notes": []

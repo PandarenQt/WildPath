@@ -157,6 +157,8 @@
         "book": "SRD 5.2",
         "license": "CC-BY-4.0",
         "rules": "2024",
+        "identifier": "web",
+        "subtype": null,
         "castBy": "Wand of Web"
       },
       "conversion": {

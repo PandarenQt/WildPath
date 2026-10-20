@@ -168,7 +168,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "shortsword",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -266,7 +268,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "light-crossbow",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -330,7 +334,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "evasion",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -394,7 +400,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -435,7 +443,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "cunning-action",
+            "subtype": null
           },
           "conversion": {
             "notes": [

@@ -149,7 +149,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "pact-blade",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -236,7 +238,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "pact-blade",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -300,6 +304,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "light",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -389,6 +395,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "thaumaturgy",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -668,6 +676,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "command",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -767,6 +777,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "hold-person",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -851,6 +863,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "spiritual-weapon",
+            "subtype": null,
             "castBy": "Spiritual Weapon"
           },
           "conversion": {
@@ -884,7 +898,9 @@
             "type": "loot",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "holy-symbol-varies",
+            "subtype": null
           },
           "conversion": {
             "notes": []

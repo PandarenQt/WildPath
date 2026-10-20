@@ -143,7 +143,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -232,7 +234,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "claw",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -333,7 +337,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "corrupting-touch",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -404,6 +410,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "disguise-self",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -488,6 +496,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "minor-illusion",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -600,6 +610,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "geas",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -709,6 +721,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "major-image",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -828,6 +842,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "scrying",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -873,7 +889,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "leap",
+            "subtype": null
           },
           "conversion": {
             "notes": [

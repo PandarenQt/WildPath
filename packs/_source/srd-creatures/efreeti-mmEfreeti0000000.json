@@ -81,7 +81,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "elemental-restoration",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -126,7 +128,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "magic-resistance",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -221,6 +225,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "wish",
+            "subtype": null,
             "castBy": "Wishes"
           },
           "conversion": {
@@ -285,7 +291,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "multiattack",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -374,7 +382,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "heated-blade",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -454,7 +464,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "hurl-flame",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -533,6 +545,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "detect-magic",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -587,6 +601,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "elementalism",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -753,6 +769,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "gaseous-form",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -847,6 +865,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "invisibility",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -954,6 +974,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "major-image",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1025,6 +1047,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "plane-shift",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1134,6 +1158,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "tongues",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {
@@ -1297,6 +1323,8 @@
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
             "rules": "2024",
+            "identifier": "wall-of-fire",
+            "subtype": null,
             "castBy": "Spellcasting"
           },
           "conversion": {

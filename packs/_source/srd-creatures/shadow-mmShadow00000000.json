@@ -78,7 +78,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "amorphous",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -126,7 +128,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "sunlight-weakness",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -198,7 +202,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "draining-swipe",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -373,7 +379,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "draining-swipe",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -418,7 +426,9 @@
             "type": "weapon",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "draining-swipe",
+            "subtype": null
           },
           "conversion": {
             "notes": []
@@ -480,7 +490,9 @@
             "type": "feat",
             "book": "SRD 5.2",
             "license": "CC-BY-4.0",
-            "rules": "2024"
+            "rules": "2024",
+            "identifier": "shadow-stealth",
+            "subtype": null
           },
           "conversion": {
             "notes": []
