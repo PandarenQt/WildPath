@@ -64,16 +64,27 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     });
     context.sheet = sheet;
     Object.assign(context, sheet);
+    // The sheet edits the creature's own training and proficiencies (its source); what its Items give it is shown
+    // beside them, never saved as its own (G8: losing the Item loses it).
+    const own = this.actor._source?.system ?? {};
+    for ( const ability of context.abilities ?? [] ) {
+      const mine = own.abilities?.[ability.key]?.saveProficient === true;
+      ability.saveGranted = ability.saveProficient && !mine;
+      ability.saveProficient = mine;
+    }
     // Each skill with its check bonus (ability, proficiency or expertise, Modifiers), and its proficiency to set.
     const signed = value => (value < 0 ? `${value}` : `+${value}`);
     context.skills = Object.entries(CONFIG.WILDPATH.SKILLS ?? {}).map(([key, skill]) => ({key, label: skill.label,
       abilityLabel: CONFIG.WILDPATH.ABILITIES[skill.ability]?.label ?? skill.ability,
-      proficiency: this.actor.system.skills?.[key]?.proficiency ?? 0,
+      proficiency: own.skills?.[key]?.proficiency ?? 0,
+      granted: ((this.actor.system.skills?.[key]?.proficiency ?? 0) > (own.skills?.[key]?.proficiency ?? 0))
+        ? `WILDPATH.SHEET.SkillProficiency.${["None", "Proficient", "Expertise"][this.actor.system.skills[key].proficiency] ?? "Proficient"}` : null,
       modifierText: signed(resolveActorCheckStatistic(this.actor, {skill: key})?.totalModifier ?? 0)}));
     context.proficiencyLevels = {0: "WILDPATH.SHEET.SkillProficiency.None", 1: "WILDPATH.SHEET.SkillProficiency.Proficient",
       2: "WILDPATH.SHEET.SkillProficiency.Expertise"};
     context.training = TRAINING.map(key => ({key, label: `WILDPATH.SHEET.Training.${key}`, hint: `WILDPATH.SHEET.Training.Hint.${key}`,
-      value: (this.actor.system.training?.[key] ?? []).join(", ")}));
+      value: (own.training?.[key] ?? []).join(", "),
+      granted: (this.actor.system.training?.[key] ?? []).filter(name => !(own.training?.[key] ?? []).includes(name)).join(", ")}));
     context.typeLabel = CONFIG.Actor.typeLabels?.[this.actor.type] ?? this.actor.type;
     // A "Level up" button per class while the character is below level 20 (G8).
     const classes = this.actor.items.filter(item => item.type === "class");

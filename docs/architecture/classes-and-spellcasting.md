@@ -128,12 +128,13 @@ only what one level asks, and adds what it grants:
   "Level up <class>" button per class (below level 20) opens the next level. Closing it changes nothing.
 - **What it shows.** That level's entries from the class and its subclass, or the species' or background's: features
   granted (listed), choices of features, skills, training and Weapon Mastery (checkboxes; what the creature already
-  has is not offered), an Ability Score Improvement (points to spend, or a feat from the compendiums' origin and
+  has is not offered; Expertise in a skill not yet proficient waits until this dialog grants or picks the skill), an Ability Score Improvement (points to spend, or a feat from the compendiums' origin and
   general feats, Epic Boons from level 19), the subclass (from every Item compendium, by class identifier) and a
   species' size. Confirm stays disabled until every count and every point is met.
 - **What it does.** The class's `levels` goes up; hit points rise by the Hit Die's maximum at a character's first
   level, else its average rounded up, plus the Fortitude modifier (the `rollHitPoints` world setting rolls the die
-  instead, with the roll in chat); one more Hit Die is available. Skills, saves and training are added, ability
+  instead, with the roll in chat); one more Hit Die is available. Skills, saves and training are recorded on the class,
+  subclass, species or background that gave them (see "Training from its sources" below), ability
   scores raised (20 at most), the features created from their compendium as given by the class (so they go when it
   goes), and a chosen subclass is added with its own features for that level.
 - **Multiclassing** (a class beside another) uses the class's multiclass proficiencies and the average hit points,
@@ -352,18 +353,31 @@ Wounds rolled "2d8 + 2d8 + 7": its Intelligence +3, plus 2 + 2. Sacred Flame on 
 With Empowered Evocation, Fire Bolt rolled "2d10 + 3" (Intelligence 16). After Elemental Affinity (Fire), with Presence
 14, QA Caster had fire Resistance and Fire Bolt rolled "2d10 + 5".
 
-## Training from a feature (2026-10-20)
+## Training from its sources (2026-10-20)
 
-A feature whose dnd5e passive effects add armor or weapon proficiency carries `flags.wildpath.training`, as trait keys
-(Divine Order: Protector `["weapons:martial", "armor:heavy"]`; Primal Order: Warden `["armor:medium", "weapons:martial"]`).
-When the Item is added to a creature (level-up, or dropped on its sheet), `traitUpdates` adds them as a level-up trait
-step does.
-- shortcut: removing the Item keeps the training.
+A creature loses a skill, save, training or Weapon Mastery when it loses what gave it (the maintainer's rule). Each
+source Item lists what it gives in `flags.wildpath.training`, as trait keys (`skills:x`, `expertise:x`, `saves:x`,
+`armor:x`, `weapons:x`, `tools:x`, `masteries:x`):
+- **Level-up** writes a step's grants and picks on the Item the step comes from (the class, its subclass, the species or
+  the background), not on the creature.
+- **Features** carry them from conversion: dnd5e passive effects that add armor or weapon proficiency (Divine Order:
+  Protector `["weapons:martial", "armor:heavy"]`; Primal Order: Warden `["armor:medium", "weapons:martial"]`).
+- **Derived.** The creature's prepared data (`data/actor/base.mjs`, before the scores are read) starts from its own
+  values and merges every active Item's keys (`mergeTraining`): a skill proficient (Expertise for `expertise:`), a save
+  proficient, a name added to a training list. Nothing is written, so deleting the Item takes it away.
+- **Kept.** A source that expressly leaves its training with the creature lists it in `flags.wildpath.trainingPermanent`
+  instead; it is written into the creature's own values when the Item is added. No SRD source uses it.
+- **Sheet.** Skills, saves and training lists edit the creature's own values; what its Items give shows beside them
+  ("from its features"), so saving the sheet never copies it in.
+- No migration: what earlier level-ups wrote stays the creature's own.
 - shortcut: the extra cantrip (Thaumaturge, Magician) is by hand.
 - Gear training (Bracers of Archery) stays a note.
 
-Live (two browsers, 14.369): Player1 added Divine Order: Protector to QA Caster, whose training went from none to heavy
-armor and martial weapons.
+Live (two browsers, 14.369): Player1 added Divine Order: Protector to QA Caster: heavy armor and martial weapons while
+it was there, none once deleted, its own training untouched. The Acolyte background gave Insight, Religion and
+calligrapher's tools (shown "from its features"; its own skills stayed untrained) and took them away when deleted. A
+level-1 Rogue offered Expertise only once Stealth and Perception were picked in the same dialog; both became Expertise
+(proficiency 2) on the Rogue, and deleting it removed them.
 
 ## Tireless (2026-10-20)
 

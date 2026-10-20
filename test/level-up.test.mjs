@@ -46,3 +46,25 @@ test("ability score generation: point buy costs 27 for 15/15/15/8/8/8, and an ar
   assert.equal(usesPool([8, 10, 12, 13, 14, 15], [15, 14, 13, 12, 10, 8]), true);
   assert.equal(usesPool([15, 15, 13, 12, 10, 8], [15, 14, 13, 12, 10, 8]), false);
 });
+
+test("training from its Items merges over its own: a union, proficiency at least 1, Expertise 2; nothing is written", async () => {
+  const {mergeTraining, poolOptions} = await import("../module/helpers/level-up.mjs");
+  const system = {skills: {stealth: {proficiency: 0}, arcana: {proficiency: 1}, history: {proficiency: 2}},
+    abilities: {agility: {saveProficient: false}}, training: {armor: ["light"], weapons: []}};
+  mergeTraining(system, ["skills:stealth", "expertise:arcana", "skills:history", "saves:agility", "armor:light", "armor:medium",
+    "weapons:hand-crossbow", "skills:*", "skills:unknown"]);
+  assert.deepEqual([system.skills.stealth.proficiency, system.skills.arcana.proficiency, system.skills.history.proficiency], [1, 2, 2]);
+  assert.equal(system.abilities.agility.saveProficient, true);
+  assert.deepEqual([system.training.armor, system.training.weapons], [["light", "medium"], ["hand-crossbow"]]);
+  assert.deepEqual(poolOptions(["expertise:*"], {skills: ["arcana", "stealth"]}), ["expertise:arcana", "expertise:stealth"]);
+  assert.ok(poolOptions(["masteries:*"], {skills: []}).includes("masteries:longsword"), "every weapon");
+});
+
+test("SRD classes: an Expertise step offers Expertise, and one weapon's training is its base name", async () => {
+  const fs = await import("node:fs");
+  const rogue = JSON.parse(fs.readFileSync("packs/_source/srd-classes/rogue-phbrgeRogue00000.json", "utf8")).system.advancement;
+  const pools = rogue.filter(entry => entry.type === "trait").flatMap(entry => (entry.choices ?? []).flatMap(choice => choice.pool));
+  assert.ok(pools.includes("expertise:*"), JSON.stringify(pools));
+  const grants = rogue.filter(entry => entry.type === "trait").flatMap(entry => entry.grants ?? []);
+  assert.ok(grants.includes("weapons:hand-crossbow") || grants.includes("weapons:rapier"), JSON.stringify(grants));
+});

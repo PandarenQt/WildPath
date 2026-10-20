@@ -1148,7 +1148,10 @@ export function traitKey(key, {mastery=false}={}) {
     case "skills": return `skills:${tail === "*" ? "*" : slugify(DND_SKILLS[tail] ?? tail)}`;
     case "saves": return `saves:${ABILITY_MAP[tail] ?? tail}`;
     case "armor": return `armor:${ARMOR_TRAINING[tail] ?? tail}`;
-    case "weapon": return `${mastery ? "masteries" : "weapons"}:${rest.map(part => WEAPON_TRAINING[part] ?? part).join(":")}`;
+    // A category (`weapon:mar`, `weapon:mar:*`) keeps it; one weapon (`weapon:mar:handcrossbow`) is its base, as an
+    // attack names it (`hand-crossbow`).
+    case "weapon": return `${mastery ? "masteries" : "weapons"}:${((rest.length === 2) && (rest[1] !== "*"))
+      ? (WEAPON_BASES[rest[1]] ?? rest[1]) : rest.map(part => WEAPON_TRAINING[part] ?? part).join(":")}`;
     case "tool": return `tools:${rest.at(-1)}`;
     case "languages": return null;
     default: return String(key);
@@ -1186,7 +1189,10 @@ export function convertProgression(document, {uuidOf=() => [], licensed=isSrd202
           replacement: choice.replacement === true, items: uuids(config.pool ?? [])}));
       case "Trait": {
         const mastery = config.mode === "mastery";
-        const keys = list => list.map(key => traitKey(key, {mastery})).filter(Boolean);
+        // An Expertise step (Rogue, Bard, Ranger): its skills become Expertise (`expertise:<skill>`).
+        const expertise = ["expertise", "forcedExpertise"].includes(config.mode);
+        const keys = list => list.map(key => traitKey(key, {mastery})).filter(Boolean)
+          .map(key => (expertise ? key.replace(/^skills:/, "expertise:") : key));
         if ( [...(config.grants ?? []), ...(config.choices ?? []).flatMap(choice => choice.pool ?? [])].some(key => String(key).startsWith("languages")) ) {
           notes.push("languages are not tracked");
         }

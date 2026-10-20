@@ -151,7 +151,7 @@
           {
             "count": 2,
             "pool": [
-              "skills:*"
+              "expertise:*"
             ]
           }
         ]
@@ -165,7 +165,7 @@
           {
             "count": 2,
             "pool": [
-              "skills:*"
+              "expertise:*"
             ]
           }
         ]

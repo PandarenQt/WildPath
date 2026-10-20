@@ -133,12 +133,12 @@
           {
             "count": 1,
             "pool": [
-              "skills:arcana",
-              "skills:history",
-              "skills:investigation",
-              "skills:medicine",
-              "skills:nature",
-              "skills:religion"
+              "expertise:arcana",
+              "expertise:history",
+              "expertise:investigation",
+              "expertise:medicine",
+              "expertise:nature",
+              "expertise:religion"
             ]
           }
         ]
