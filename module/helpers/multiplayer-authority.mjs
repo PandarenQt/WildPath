@@ -382,7 +382,8 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
       effects: current.results?.effectResolution ?? null,
       payment: current.results?.paymentResolution?.paymentPlan ?? null,
       ...(current.results?.movementOutcome ? {movement: current.results.movementOutcome} : {}),
-      ...(current.results?.zeroHp?.length ? {zeroHp: current.results.zeroHp} : {})
+      ...(current.results?.zeroHp?.length ? {zeroHp: current.results.zeroHp} : {}),
+      ...(current.input?.context?.cover?.length ? {cover: current.input.context.cover} : {})
     },
     committedMutations: sanitizeCommittedMutations(transaction),
     trace: (current.trace ?? []).map(entry => ({
@@ -468,7 +469,10 @@ function projectPublicResolutionResult(data) {
       // Who stayed up at 0 Hit Points and by what (Relentless Endurance): never its DC or roll.
       ...(normalizeArray(data.outcomes?.zeroHp).some(entry => entry?.kept === true) ? {zeroHp: normalizeArray(data.outcomes.zeroHp)
         .filter(entry => (entry?.kept === true) && entry.target)
-        .map(entry => ({target: projectEntityRefForDisclosure(entry.target), name: stringOrNull(entry.name), kept: true}))} : {})
+        .map(entry => ({target: projectEntityRefForDisclosure(entry.target), name: stringOrNull(entry.name), kept: true}))} : {}),
+      // Each target's cover, as everyone at the table can see it.
+      ...(normalizeArray(data.outcomes?.cover).length ? {cover: normalizeArray(data.outcomes.cover).filter(entry => entry?.target)
+        .map(entry => ({target: projectEntityRefForDisclosure(entry.target), degree: stringOrNull(entry.degree)}))} : {})
     },
     rolls: normalizeArray(data.rolls)
       .filter(entry => entry?.visibility === "public")

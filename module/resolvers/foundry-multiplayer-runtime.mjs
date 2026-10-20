@@ -26,6 +26,18 @@ import {createFoundryForcedMovement} from "../adapters/foundry-v14-forced-moveme
 import {createFoundryFalling} from "../adapters/foundry-v14-falling.mjs";
 import {createFoundryTurnDamage} from "../adapters/foundry-v14-turn-damage.mjs";
 import {onGround, perceives} from "../helpers/senses.mjs";
+import {COVER_BONUS, coverBetween, foundrySightCollision} from "../adapters/foundry-v14-cover.mjs";
+
+/**
+ * The cover `targetToken` has against an Action of `sourceToken` (2024): from its corners, or from an area's point of
+ * origin (a radial area's first point; a cone or line starts at the caster). "none" without walls to test (no canvas).
+ */
+export function actionCover({definition, sourceToken, targetToken, points=[]}) {
+  const collides = foundrySightCollision();
+  if ( !collides || !sourceToken || !targetToken || (targetToken.id === sourceToken.id) ) return "none";
+  const origin = ((definition?.targeting?.type === "area") && (definition.area?.shape === "radial") && points[0]) ? points[0] : null;
+  return coverBetween({source: origin ? null : sourceToken, origin, target: targetToken, collides});
+}
 import {createFoundryWeaponMastery} from "../adapters/foundry-v14-weapon-mastery.mjs";
 import {
   buildFoundryMovementCompletion,
@@ -713,6 +725,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const targetEntries = [];
   const saveRollModes = {};
   const saveRollModeSources = {};
+  // Each target's cover (shown on the card).
+  const coverByTarget = [];
   const saveModifiers = {};
   const saveDice = {};
   const saveOutcomes = {};
@@ -749,6 +763,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       tokenId: stringOrNull(typeof ref === "object" ? ref.tokenId : null),
       sceneId: stringOrNull(typeof ref === "object" ? ref.sceneId : null)
     };
+    // Its cover against this Action (walls and creatures between): +2 or +5 to its AC and Dexterity saves.
+    const cover = definition ? actionCover({definition, sourceToken, targetToken: targetTokenFor(targetActor, hint, game),
+      points: intent.area?.points ?? []}) : "none";
     const target = withActorDefense({
       id: targetActor.id ?? targetRef,
       actorId: targetActor.id ?? null,
@@ -771,7 +788,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( modes.length ) saveRollModeSources[key] = modes;
       // Each target's own save bonus (Modifiers on save.<ability> and save), and an automatic failure.
       const bonus = resolveActorSaveStatistic(targetActor, ability);
-      if ( bonus ) saveModifiers[key] = bonus.totalModifier;
+      const covered = (ability === "agility") ? COVER_BONUS[cover] : 0;
+      if ( bonus || covered ) saveModifiers[key] = (bonus?.totalModifier ?? 0) + covered;
       if ( bonus?.dice?.length ) saveDice[key] = bonus.dice;
       const forced = targetActor.getRollOutcomes?.(["save", `save.${ability}`], saveContext(definition, ability, saverToken)) ?? [];
       if ( forced.some(entry => entry.outcome === "automatic-failure") ) saveOutcomes[key] = "automatic-failure";
@@ -801,8 +819,15 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       const profile = targetActor.getDamageProfile?.() ?? null;
       if ( profile ) targetProfiles[key] = clonePlainData(profile, "target.damageProfile");
     }
-    targetEntries.push({actor: targetActor, hint});
+    targetEntries.push({actor: targetActor, hint, cover});
+    if ( cover !== "none" ) coverByTarget.push({target: {...target}, degree: cover});
   }
+  // 2024 Total Cover: a creature behind it can't be targeted directly (an area's is left out of the area).
+  if ( (definition?.targeting?.type !== "area") && targetEntries.some(entry => entry.cover === "total") ) return {
+    ok: false,
+    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+    reason: game.i18n?.localize?.("WILDPATH.COVER.TotalRefused") ?? "That creature is behind Total Cover."
+  };
   // 2024 Charmed: a charmed creature can't attack its charmer or target it with damage or harmful effects.
   const harmful = definition && (definition.attack || definition.save || definition.damage.length || definition.effects.length);
   if ( harmful && !authorityAction && targetEntries.some(({actor: target}) => conditionsFrom(actor, target, game).charmed) ) return {
@@ -888,6 +913,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       targeting: spatial?.targetFootprints.length ? {candidates: spatial.targetFootprints} : null,
       context: {
         ...(spatial ? {spatial: spatial.context} : {}),
+        ...(coverByTarget.length ? {cover: coverByTarget} : {}),
         ...(typeof intent.messageMode === "string" ? {messageMode: intent.messageMode} : {})
       },
       ...(statistics.damage ? {damage: statistics.damage} : {}),
@@ -1210,7 +1236,8 @@ function foundryAttackBonuses({targets, targetEntries, game, sourceToken}) {
     // (`from:<status>`: not the barbarian's own attacks).
     const from = sourceToken.actor ? Object.keys(conditionsFrom(entry.actor, sourceToken.actor, game)).map(id => `from:${id}`) : [];
     const own = Number(entry.actor?.getStatistic?.("attacked", {tags: from})?.totalModifier) || 0;
-    const bonus = (token ? highGroundBonus(sourceToken.elevation, token.elevation) : 0) + own;
+    // Its cover raises its AC: the attack roll is that much lower against it.
+    const bonus = (token ? highGroundBonus(sourceToken.elevation, token.elevation) : 0) + own - (COVER_BONUS[entry.cover ?? "none"] ?? 0);
     if ( bonus ) bonuses[targets[index].tokenId ?? targets[index].id] = bonus;
   });
   return Object.keys(bonuses).length ? bonuses : null;
@@ -1525,7 +1552,8 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
       const defense = resolveActorDefense(entry.actor, defenseKey)?.value;
       if ( !Number.isFinite(defense) ) return [];
       const rollMode = foundryAttackRollMode({actor, action, definition, targetEntries: [entry], spatial, game, sourceToken});
-      const total = modifier + ((sourceToken && highGroundOn(game)) ? highGroundBonus(sourceToken.elevation, entry.token.elevation) : 0);
+      const cover = COVER_BONUS[actionCover({definition, sourceToken, targetToken: entry.token})] ?? 0;
+      const total = modifier - cover + ((sourceToken && highGroundOn(game)) ? highGroundBonus(sourceToken.elevation, entry.token.elevation) : 0);
       return [{tokenId: entry.token.id, name: entry.token.name, kind: "attack", modifier: total, defense, rollMode,
         chance: d20Chance({modifier: total, target: defense, rollMode, natural: true, dice: statistics.attack?.dice})}];
     });
@@ -1537,7 +1565,8 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
     const context = saveContext(definition, ability, token);
     const rollMode = combineRollModes(target.getRollModes?.(["save", `save.${ability}`], context) ?? []);
     const statistic = resolveActorSaveStatistic(target, ability);
-    const modifier = statistic?.totalModifier ?? 0;
+    const modifier = (statistic?.totalModifier ?? 0) + ((ability === "agility")
+      ? (COVER_BONUS[actionCover({definition, sourceToken, targetToken: token})] ?? 0) : 0);
     const automatic = (target.getRollOutcomes?.(["save", `save.${ability}`], context) ?? [])
       .some(outcome => outcome.outcome === "automatic-failure");
     return {tokenId: token.id, name: token.name, kind: "save", ability, dc, modifier, rollMode, automatic,
@@ -1651,7 +1680,9 @@ function foundryActionArea({action, actor, intent, sourceToken}) {
   if ( !sourceToken?.parent ) return {ok: false, reason: "An area Action needs its caster's Token on a Scene."};
   const placed = foundryAreaFootprint({definition, sourceToken, points: intent.area?.points ?? []});
   if ( !placed.ok ) return placed;
+  // A creature behind Total Cover from its point of origin is not in it.
   const targetRefs = foundryAreaTargetTokens({sourceToken, footprint: placed.footprint, definition})
+    .filter(token => actionCover({definition, sourceToken, targetToken: token, points: intent.area?.points ?? []}) !== "total")
     .map(token => ({actorRef: token.actor?.uuid ?? null, tokenId: token.id, sceneId: token.parent?.id ?? null}))
     .filter(ref => ref.actorRef);
   // A lasting area becomes a Region once the Action completes (see createFoundryPersistentAreas).

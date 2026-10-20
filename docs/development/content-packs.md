@@ -442,6 +442,7 @@ equipped. Equipping it (`system.active`) turns its rules on.
 - **Training (2026-10-20):** Divine Order: Protector and Primal Order: Warden carry `flags.wildpath.training`, which their
   creature has while the Item is there (classes-and-spellcasting.md). Expertise steps (Rogue, Bard, Ranger) are
   `expertise:*` choices, and weapon keys use the base names (`weapons:hand-crossbow`).
+- **Cover (2026-10-20):** worked out from walls and creatures for every Action; no content change (senses-and-cover.md).
 - **Senses (2026-10-20):** creatures', species' and effects' senses are `GrantSense` rules (senses-and-cover.md).
 - **Stone's Endurance (2026-10-20):** its Trigger answers `damage.applied` before damage, from anything
   (reactions.md).
