@@ -36,7 +36,17 @@
           "type": "effect",
           "name": "Bestial Communication",
           "img": "icons/creatures/mammals/dog-husky-white-blue.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "bestial-communication-1",
+              "type": "GrantLanguage",
+              "data": {
+                "language": "beasts",
+                "spokenOnly": true
+              }
+            }
+          ],
           "duration": {
             "value": 600,
             "units": "seconds",
@@ -141,10 +151,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
-          "effect: \"Bestial Communication\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

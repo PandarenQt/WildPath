@@ -42,8 +42,7 @@
     },
     "training": {
       "languages": [
-        "infernal",
-        "telepathy 120 ft."
+        "infernal"
       ]
     },
     "defenses": {
@@ -601,6 +600,15 @@
             "type": "GrantSense",
             "data": {
               "sense": "blindsight",
+              "range": 120
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "telepathy",
+            "type": "GrantLanguage",
+            "data": {
+              "language": "telepathy",
               "range": 120
             }
           },

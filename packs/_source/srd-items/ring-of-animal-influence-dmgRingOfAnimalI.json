@@ -26,10 +26,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
-          "effect: \"Bestial Communication\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       },
       "grants": [
         "ba3i6h1w67pov000",

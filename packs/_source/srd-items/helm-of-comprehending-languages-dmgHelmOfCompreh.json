@@ -26,10 +26,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Comprehension\" change system.traits.languages.value (add) not converted",
-          "effect: \"Comprehension\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       },
       "grants": [
         "7h096e1ugrlwu000"

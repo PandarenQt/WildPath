@@ -10,7 +10,17 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "telepathy-1",
+        "type": "GrantLanguage",
+        "data": {
+          "language": "telepathy",
+          "range": 30
+        }
+      }
+    ],
     "attunement": "required",
     "armor": ""
   },
@@ -35,9 +45,6 @@
       "grants": [
         "1lpl3lj1sw54nh00",
         "1d8sewb1xqr4pv00"
-      ],
-      "training": [
-        "languages:Telepathy (30 feet)"
       ]
     }
   }

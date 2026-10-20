@@ -761,7 +761,17 @@
               "type": "effect",
               "name": "Bestial Communication",
               "img": "icons/creatures/mammals/dog-husky-white-blue.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "bestial-communication-1",
+                  "type": "GrantLanguage",
+                  "data": {
+                    "language": "beasts",
+                    "spokenOnly": true
+                  }
+                }
+              ],
               "duration": {
                 "value": 600,
                 "units": "seconds",
@@ -789,10 +799,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
-              "effect: \"Bestial Communication\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1323,8 +1330,6 @@
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
-          "Spellcasting: effect: \"Bestial Communication\" change system.traits.languages.custom (add) not converted",
-          "Spellcasting: effect: \"Bestial Communication\" marks its creature only; its rules are by hand",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: nothing it sustains was converted",
