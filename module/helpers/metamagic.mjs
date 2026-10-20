@@ -5,12 +5,15 @@
  * - Quickened: not after a level 1+ spell this turn, and no level 1+ spell after it (`flags.wildpath.quickenedTurn`).
  * - Extended: a duration of 1 minute or more doubles, to 24 hours at most, with Advantage on its Concentration saves.
  * - Subtle: cast without Verbal, Somatic or Material components (a costly one stays), so Counterspell doesn't see it.
- * shortcuts: Heightened's target and Careful's creatures are by hand (cost only).
+ * - Heightened: one target (its caster picks when there are several) has Disadvantage on its save.
+ * - Careful: up to max(1, Presence modifier) creatures its caster picks (its allies ticked) succeed on the save, and take
+ *   no damage on a success. Both are asked when the save is rolled (action-pipeline-resolver.mjs).
  */
+import { evaluateValueExpression } from "./value-expressions.mjs";
 export const METAMAGIC_POOL = "font-of-magic";
 const SIX_TYPES = Object.freeze(["acid", "cold", "fire", "lightning", "poison", "thunder"]);
 const COSTS = Object.freeze({ quickened: 2, heightened: 2 });
-const BY_HAND = Object.freeze(["heightened", "careful"]);
+const BY_HAND = Object.freeze([]);
 const SECONDS = Object.freeze({ seconds: 1, second: 1, rounds: 6, round: 6, turns: 6, minutes: 60, minute: 60, hours: 3600, hour: 3600,
     days: 86400, day: 86400 });
 /** A duration's length in seconds (rounds are 6), or 0 when it has none or none known. */
@@ -85,6 +88,15 @@ function metamagicOptions(option, raw, actor) {
         }
         case "subtle":
             return one([{ type: "remove-components" }]);
+        case "heightened":
+            return raw.save ? one([{ type: "set-save", key: "heightened", value: true }]) : [];
+        case "careful": {
+            if (!raw.save)
+                return [];
+            const count = evaluateValueExpression({ type: "max",
+                terms: [{ type: "constant", value: 1 }, { type: "ability-modifier", ability: "presence" }] }, { actor, actorSystem: actor?.system });
+            return one([{ type: "set-save", key: "careful", value: Math.max(1, Math.trunc(Number(count.value) || 1)) }]);
+        }
         default:
             return one([]);
     }

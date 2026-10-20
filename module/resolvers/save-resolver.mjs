@@ -187,6 +187,21 @@ function resolveSaveTargetRoll({roll, targetContext, dc, dcKey, saveKey, policy,
   }
 
   const targetDC = resolveTargetSaveDC(normalizedContext, dcKey, dc);
+  // An automatic success (Careful Spell) needs no roll either.
+  if ( normalizedContext.overrides.some(override => override?.type === "automatic-success") ) return {
+    ok: true,
+    code: SAVE_RESOLVER_CODES.OK,
+    outcome: SAVE_OUTCOMES.SUCCESS,
+    success: true,
+    critical: false,
+    automatic: true,
+    margin: null,
+    roll: null,
+    dc: normalizeSaveDC(targetDC),
+    target: normalizeTargetRef(normalizedContext.target),
+    targetContext: normalizedContext,
+    context: clonePlain(context) ?? {}
+  };
   // An automatic failure (a Stunned creature's Might save) needs no roll.
   if ( normalizedContext.overrides.some(override => override?.type === "automatic-failure") ) return {
     ok: true,

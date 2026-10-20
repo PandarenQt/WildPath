@@ -1267,8 +1267,12 @@ function createSaveRollStage() {
   return createResolutionPipelineStage({
     id: ACTION_PIPELINE_STAGE_IDS.SAVE_ROLL,
     run(state) {
-      const input = preparedResolverInput(state);
+      let input = preparedResolverInput(state);
       const saveTargets = input.save ? selectedSaveTargets(state, input) : [];
+      // Heightened and Careful Spell: its caster says who, before anyone rolls.
+      const metamagic = metamagicSaves(state, input, saveTargets);
+      if ( metamagic.wait ) return metamagic.wait;
+      input = metamagic.input;
       // A target that fails automatically rolls nothing; the others roll their own saves.
       const rolling = saveTargets.filter(target => !input.save?.outcomesByTarget?.[rollModeTargetKey(target)]);
       if ( rolling.length < saveTargets.length ) {
@@ -1458,6 +1462,56 @@ function selectedSaveTargets(state, input) {
 /** The Token a target (a ref, a candidate, or a candidate's target) stands for: how the runtime keys per-target data. */
 function rollModeTargetKey(target) {
   return String(target?.tokenId ?? target?.target?.tokenId ?? target?.metadata?.foundry?.tokenId ?? target?.id ?? "");
+}
+
+/**
+ * Heightened Spell (`save.heightened`): one target, its caster's pick when there are several, has Disadvantage on the
+ * save, one more roll-mode source. Careful Spell (`save.careful`: how many): the creatures its caster picks (its allies
+ * ticked) succeed automatically (`automatic-success`) and take no damage on a success (evasion). `{wait}` while asked.
+ */
+function metamagicSaves(state, input, saveTargets) {
+  const save = state.actionDefinition?.save ?? {};
+  if ( !input.save || !saveTargets.length || (!save.heightened && !save.careful) ) return {input};
+  const keyOf = target => rollModeTargetKey(target);
+  const options = saveTargets.map(target => ({value: keyOf(target), label: target?.name ?? target?.target?.name ?? keyOf(target)}));
+  const ask = (id, payload) => {
+    const requestId = requestIdFor(state, `metamagic:${id}`);
+    const answer = getResolutionResponse(state, {requestId, type: RESOLUTION_REQUEST_TYPES.CHOICE});
+    if ( answer ) return {value: answer.response?.value?.choices?.[id] ?? answer.response?.value};
+    return {wait: waitResolutionStage({state: updateResolutionState(state, {input}), request: createResolutionRequest({id: requestId,
+      resolutionId: state.id, stageId: ACTION_PIPELINE_STAGE_IDS.SAVE_ROLL, type: RESOLUTION_REQUEST_TYPES.CHOICE,
+      expectedResponseType: "choice", chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, authority: {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
+      payload: {id, options, ...payload}, metadata: {title: `WILDPATH.METAMAGIC.${id}`}}), reason: "Its caster chooses for its Metamagic."})};
+  };
+  let next = input;
+  if ( save.heightened ) {
+    const chosen = (saveTargets.length === 1) ? {value: keyOf(saveTargets[0])}
+      : ask("heightened", {type: "select-one", label: "WILDPATH.METAMAGIC.heightened", required: true, defaultValue: options[0].value});
+    if ( chosen.wait ) return chosen;
+    const key = String(chosen.value ?? "");
+    if ( key ) {
+      const own = next.save.rollModesByTarget?.[key] ?? next.save.rollMode ?? null;
+      const sources = [...(next.save.rollModeSourcesByTarget?.[key] ?? [own].filter(Boolean)), "disadvantage"];
+      next = {...next, save: {...next.save, rollModesByTarget: {...(next.save.rollModesByTarget ?? {}), [key]: combineRollModes(sources)},
+        rollModeSourcesByTarget: {...(next.save.rollModeSourcesByTarget ?? {}), [key]: sources}}};
+    }
+  }
+  if ( save.careful ) {
+    const most = Math.max(1, Number(save.careful) || 1);
+    // Its allies ticked: those standing with its caster (its source's disposition, as its targets' contexts label them).
+    const side = input.source?.disposition ?? state.source?.disposition ?? "friendly";
+    const contexts = normalizeArray(state.results?.targetResolution?.targetContexts);
+    const sideOf = target => target?.disposition ?? contexts.find(context => keyOf(context?.target ?? context) === keyOf(target))?.target?.disposition
+      ?? contexts.find(context => keyOf(context?.target ?? context) === keyOf(target))?.disposition ?? null;
+    const allies = saveTargets.filter(target => sideOf(target) === side).slice(0, most).map(keyOf);
+    const chosen = ask("careful", {type: "select-many", label: "WILDPATH.METAMAGIC.careful", max: most, defaultValue: allies});
+    if ( chosen.wait ) return chosen;
+    const keys = normalizeArray(chosen.value).map(String).filter(key => options.some(option => option.value === key)).slice(0, most);
+    if ( keys.length ) next = {...next, save: {...next.save,
+      outcomesByTarget: {...(next.save.outcomesByTarget ?? {}), ...Object.fromEntries(keys.map(key => [key, "automatic-success"]))},
+      evasionByTarget: {...(next.save.evasionByTarget ?? {}), ...Object.fromEntries(keys.map(key => [key, "evasion"]))}}};
+  }
+  return {input: next};
 }
 
 /** Target contexts with the outcome the runtime forced on them (keyed by Token) added as an override. */

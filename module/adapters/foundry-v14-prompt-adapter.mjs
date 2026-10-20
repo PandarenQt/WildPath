@@ -284,9 +284,11 @@ function renderSelectOneControl(control) {
 }
 
 function renderSelectManyControl(control) {
+  // Its defaults ticked (Careful Spell's allies).
+  const ticked = new Set((Array.isArray(control.defaultValue) ? control.defaultValue : []).map(String));
   const options = control.options.map(option => `
     <label class="checkbox">
-      <input type="checkbox" name="choice:${escapeHtml(control.choiceId ?? control.id)}" value="${escapeHtml(option.id)}">
+      <input type="checkbox" name="choice:${escapeHtml(control.choiceId ?? control.id)}" value="${escapeHtml(option.id)}"${ticked.has(String(option.id)) ? " checked" : ""}>
       <span>${escapeHtml(option.label)}</span>
     </label>
   `).join("");
@@ -461,6 +463,10 @@ function targetRefinementValueFromForm(viewModel, response) {
 
 function genericValueFromForm(viewModel, response) {
   const control = viewModel.controls[0] ?? {};
+  // Several picks (Careful Spell's creatures): every ticked one.
+  if ( control.choiceId && (control.type === PROMPT_CONTROL_TYPES.SELECT_MANY) ) return {
+    choices: {[control.choiceId]: formValues(response, `choice:${control.choiceId}`)}
+  };
   if ( control.choiceId ) return {
     choices: {
       [control.choiceId]: formValue(response, `choice:${control.choiceId}`)

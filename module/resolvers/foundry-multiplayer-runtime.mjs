@@ -873,7 +873,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     actorRef: actor.uuid ?? actorRef,
     uuid: actor.uuid ?? null,
     tokenId: sourceToken?.id ?? intent.source?.tokenId ?? intent.tokenId ?? null,
-    tokenRef: sourceToken?.uuid ?? intent.source?.tokenRef ?? intent.tokenRef ?? null
+    tokenRef: sourceToken?.uuid ?? intent.source?.tokenRef ?? intent.tokenRef ?? null,
+    // Its side, as its targets' are labelled (Careful Spell ticks the creatures on it).
+    ...(sourceToken ? {disposition: foundryDispositionLabel(sourceToken.disposition)} : {})
   };
 
   const spatial = buildFoundryActionSpatialContext({sourceToken, targetEntries, game, defenseKey});
