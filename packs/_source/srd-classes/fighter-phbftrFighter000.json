@@ -294,6 +294,253 @@
         ]
       },
       {
+        "level": 2,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 3,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 4,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 5,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 6,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 7,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 8,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 9,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 10,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 11,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 12,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 13,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 14,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 15,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 16,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 17,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 18,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 19,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
+        "level": 20,
+        "title": "Fighting Style",
+        "type": "choice",
+        "count": 0,
+        "replacement": true,
+        "items": [
+          "Compendium.wildpath.srd-items.Item.phbfstArchery000",
+          "Compendium.wildpath.srd-items.Item.phbfstDefense000",
+          "Compendium.wildpath.srd-items.Item.phbfstGreatWeapo",
+          "Compendium.wildpath.srd-items.Item.phbfstTwoWeaponF"
+        ]
+      },
+      {
         "level": 4,
         "title": "Weapon Mastery",
         "type": "trait",

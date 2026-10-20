@@ -157,6 +157,22 @@ Player1 leveled to 5 from their own browser (Extra Attack, Hit Dice 5/5); with `
 Live (two browsers): a Fighter 3 had "Hit Dice (d10) 3/3". Player1 set its Stealth to Expertise on the sheet (+2 to
 +6) and typed its armor training.
 
+## Replacing a choice at level-up (2026-10-20)
+
+Some classes let a later level swap an earlier pick: a Fighter's Fighting Style, a Warlock's Invocations, Tasha's
+infusions (any artificer level from 3rd). The converter keeps those levels (`count: 0, replacement: true`), where it
+used to drop every level without a new pick.
+- **The dialog.** A choice step lists only options its creature doesn't have (`choiceOptions`). It also offers to
+  replace one it has, an active Item from that pool by compendium source. Replacing one allows one more pick, and an
+  option checked in one step is greyed in the others.
+- **Applying it.** The replaced Item stays, set inactive, with `flags.wildpath.replaced {atLevel, by}`. Its rules,
+  training and granted Actions stop; the authority refuses an inactive Action, and an inactive Metamagic option is no
+  longer known. Switching it back on restores it.
+
+Live (14.369): QA Fighter (Champion) at level 7 replaced Defense with Archery and took Great Weapon Fighting as its
+Additional Fighting Style; Archery was greyed in that second step. Defense was then inactive, with AC 18 instead
+of 19. Turning it back on gave 19.
+
 ## Spellcasting progression (2024)
 
 - **Caster level.** Every level in a full-caster class, plus half the levels in each half-caster class,

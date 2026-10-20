@@ -30,7 +30,6 @@ export function levelSteps(advancement, level, { original = true } = {}) {
         .filter(entry => !entry.classRestriction || (entry.classRestriction === (original ? "primary" : "secondary")))
         .map(entry => ({ kind: entry.type, title: entry.title ?? null, entry }));
 }
-/** 2024 hit points for a class level: the Hit Die's maximum at a character's first level, else its average rounded up, plus the Fortitude modifier; at least 1. */
 /** Where content comes from, each a world setting (`source<Gate>`) that offers it in the level-up dialog or not. */
 export const SOURCE_GATES = Object.freeze(["core2014", "core2024", "supplement", "ua", "thirdParty"]);
 const CORE_PACKAGES = new Set(["wildpath", "wildpath-dnd-players-handbook", "wildpath-dnd-dungeon-masters-guide", "wildpath-dnd-monster-manual"]);
@@ -48,6 +47,18 @@ export function sourceGate(source, packageName) {
         return (source.rules === "2014") ? "core2014" : "core2024";
     return String(packageName ?? "").startsWith("wildpath-") ? "supplement" : "thirdParty";
 }
+/**
+ * A choice's pool against what its creature already has (Items by their compendium source): the options it may still
+ * pick, and the ones it has that it may replace (an active Item from the pool: a Fighting Style, an Invocation, a
+ * Maneuver, an infusion it knows).
+ */
+export function choiceOptions(pool, items) {
+    const owned = [...items].filter(item => (item.system?.active !== false) && pool.includes(String(item._stats?.compendiumSource ?? "")))
+        .map(item => ({ id: item.id, name: item.name, source: String(item._stats.compendiumSource) }));
+    const have = new Set(owned.map(item => item.source));
+    return { options: pool.filter(uuid => !have.has(uuid)), owned: owned.map(({ id, name }) => ({ id, name })) };
+}
+/** 2024 hit points for a class level: the Hit Die's maximum at a character's first level, else its average rounded up, plus the Fortitude modifier; at least 1. */
 export function hitPointsForLevel({ hitDie, first, fortitude }) {
     return Math.max(1, (first ? hitDie : Math.floor(hitDie / 2) + 1) + fortitude);
 }

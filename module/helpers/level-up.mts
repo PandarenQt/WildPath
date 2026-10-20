@@ -8,7 +8,7 @@ type Data = Record<string, unknown>;
 
 export interface AdvancementEntry {
   level?: number; type: string; title?: string | null; classRestriction?: string;
-  items?: string[]; optional?: boolean; count?: number;
+  items?: string[]; optional?: boolean; count?: number; replacement?: boolean;
   grants?: string[]; choices?: Array<{count: number; pool: string[]}>;
   points?: number; cap?: number; abilities?: string[]; fixed?: Record<string, number>; feat?: boolean;
   sizes?: string[];
@@ -46,7 +46,6 @@ export function levelSteps(advancement: readonly AdvancementEntry[], level: numb
     .map(entry => ({kind: entry.type, title: entry.title ?? null, entry}));
 }
 
-/** 2024 hit points for a class level: the Hit Die's maximum at a character's first level, else its average rounded up, plus the Fortitude modifier; at least 1. */
 /** Where content comes from, each a world setting (`source<Gate>`) that offers it in the level-up dialog or not. */
 export const SOURCE_GATES = Object.freeze(["core2014", "core2024", "supplement", "ua", "thirdParty"] as const);
 export type SourceGate = typeof SOURCE_GATES[number];
@@ -65,6 +64,20 @@ export function sourceGate(source: {system?: string; book?: string; rules?: stri
   return String(packageName ?? "").startsWith("wildpath-") ? "supplement" : "thirdParty";
 }
 
+/**
+ * A choice's pool against what its creature already has (Items by their compendium source): the options it may still
+ * pick, and the ones it has that it may replace (an active Item from the pool: a Fighting Style, an Invocation, a
+ * Maneuver, an infusion it knows).
+ */
+export function choiceOptions(pool: readonly string[], items: Iterable<{id: string; name: string; system?: {active?: boolean};
+  _stats?: {compendiumSource?: string | null}}>): {options: string[]; owned: Array<{id: string; name: string}>} {
+  const owned = [...items].filter(item => (item.system?.active !== false) && pool.includes(String(item._stats?.compendiumSource ?? "")))
+    .map(item => ({id: item.id, name: item.name, source: String(item._stats!.compendiumSource)}));
+  const have = new Set(owned.map(item => item.source));
+  return {options: pool.filter(uuid => !have.has(uuid)), owned: owned.map(({id, name}) => ({id, name}))};
+}
+
+/** 2024 hit points for a class level: the Hit Die's maximum at a character's first level, else its average rounded up, plus the Fortitude modifier; at least 1. */
 export function hitPointsForLevel({hitDie, first, fortitude}: {hitDie: number; first: boolean; fortitude: number}) {
   return Math.max(1, (first ? hitDie : Math.floor(hitDie / 2) + 1) + fortitude);
 }

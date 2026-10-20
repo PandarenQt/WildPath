@@ -1485,9 +1485,16 @@ export function convertProgression(document, {uuidOf=() => [], licensed=isSrd202
     switch ( entry.type ) {
       case "HitPoints": case "ScaleValue": return [];
       case "ItemGrant": return [{...base, type: "grant", items: uuids(config.items ?? []), optional: config.optional === true}];
-      case "ItemChoice": return Object.entries(config.choices ?? {}).filter(([, choice]) => Number(choice?.count) > 0)
-        .map(([level, choice]) => ({...base, level: Number(level) || 0, type: "choice", count: Number(choice.count),
-          replacement: choice.replacement === true, items: uuids(config.pool ?? [])}));
+      // A level that only lets one be replaced (a Fighter's Fighting Style, a Warlock's Invocations: `count: null`) is
+      // kept; Tasha's infusions may be replaced at every artificer level from 3rd ("whenever you gain a level").
+      case "ItemChoice": {
+        const infusions = config.restriction?.subtype === "artificerInfusion";
+        const levels = Object.entries(config.choices ?? {}).filter(([, choice]) => (Number(choice?.count) > 0) || choice?.replacement)
+          .map(([level, choice]) => [Number(level) || 0, choice]);
+        if ( infusions ) for ( let level = 3; level <= 20; level++ ) if ( !levels.some(([at]) => at === level) ) levels.push([level, {count: 0}]);
+        return levels.sort(([a], [b]) => a - b).map(([level, choice]) => ({...base, level, type: "choice", count: Number(choice.count) || 0,
+          replacement: (choice.replacement === true) || (infusions && (level >= 3)), items: uuids(config.pool ?? [])}));
+      }
       case "Trait": {
         const mastery = config.mode === "mastery";
         // An Expertise step (Rogue, Bard, Ranger): its skills become Expertise (`expertise:<skill>`).

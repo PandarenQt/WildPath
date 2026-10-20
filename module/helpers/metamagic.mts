@@ -32,7 +32,9 @@ const ORDER = Object.freeze(["quickened", "twinned", "transmuted", "distant", "e
 
 /** The Metamagic options its creature knows. */
 export function knownMetamagic(actor: Data | null | undefined): Set<string> {
-  return new Set([...(actor?.items ?? [])].map((item: Data) => item?.flags?.wildpath?.metamagic).filter(Boolean));
+  // An option it replaced (inactive) is no longer known.
+  return new Set([...(actor?.items ?? [])].filter((item: Data) => item?.system?.active !== false)
+    .map((item: Data) => item?.flags?.wildpath?.metamagic).filter(Boolean));
 }
 
 /** A spell Action's definition with a "Metamagic" choice, for a creature that knows options and has Sorcery Points. */

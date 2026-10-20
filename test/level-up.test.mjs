@@ -90,3 +90,13 @@ test("source gates: the core books by their rules, other local books as suppleme
   assert.equal(sourceGate(undefined, "world"), "thirdParty", "homebrew WildPath did not convert");
   assert.equal(sourceGate(source(), "some-module"), "thirdParty");
 });
+
+test("a choice's options: what its creature lacks, and what it has that it may replace", async () => {
+  const {choiceOptions} = await import("../module/helpers/level-up.mjs");
+  const pool = ["Compendium.x.Item.archery", "Compendium.x.Item.defense", "Compendium.x.Item.dueling"];
+  const items = [{id: "a", name: "Archery", system: {active: true}, _stats: {compendiumSource: "Compendium.x.Item.archery"}},
+    {id: "d", name: "Defense", system: {active: false}, _stats: {compendiumSource: "Compendium.x.Item.defense"}},
+    {id: "r", name: "Rope", system: {active: true}, _stats: {compendiumSource: null}}];
+  assert.deepEqual(choiceOptions(pool, items), {options: ["Compendium.x.Item.defense", "Compendium.x.Item.dueling"],
+    owned: [{id: "a", name: "Archery"}]}, "a replaced (inactive) Defense may be picked again");
+});
