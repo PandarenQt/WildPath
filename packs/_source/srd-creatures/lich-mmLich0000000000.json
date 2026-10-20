@@ -251,7 +251,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -329,7 +330,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-thoughts",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -387,7 +389,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-dispel-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -452,7 +455,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-fireball-lvl-5-fireball",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:fire"
           ],
           "costs": {
             "allOf": [
@@ -541,7 +546,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-invisibility",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -609,7 +615,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-lightning-bolt-lvl-5-lightning-bolt",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:lightning"
           ],
           "costs": {
             "allOf": [
@@ -698,7 +706,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-mage-hand",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -758,7 +768,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-prestidigitation",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -808,7 +820,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-animate-dead",
           "tags": [
-            "spell"
+            "spell",
+            "school:necromancy"
           ],
           "costs": {
             "allOf": [
@@ -971,7 +984,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-dimension-door",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -1046,7 +1060,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-plane-shift",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -1115,7 +1130,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-chain-lightning",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:lightning"
           ],
           "costs": {
             "allOf": [
@@ -1219,7 +1236,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-finger-of-death",
           "tags": [
-            "spell"
+            "spell",
+            "school:necromancy",
+            "damage:necrotic"
           ],
           "costs": {
             "allOf": [
@@ -1331,7 +1350,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-power-word-kill",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment",
+            "damage:psychic"
           ],
           "costs": {
             "allOf": [
@@ -1422,7 +1443,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-scrying",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -1541,7 +1563,8 @@
           "schemaVersion": 1,
           "id": "action:srd-protective-magic-counterspell",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -1627,7 +1650,8 @@
           "schemaVersion": 1,
           "id": "action:srd-protective-magic-shield",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -1867,7 +1891,8 @@
           "schemaVersion": 1,
           "id": "action:srd-frightening-gaze-fear",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [

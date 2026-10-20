@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-programmed-illusion-create-illusion",
       "tags": [
-        "spell"
+        "spell",
+        "school:illusion"
       ],
       "costs": {
         "allOf": [

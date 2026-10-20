@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-cloak-of-arachnida-web",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration",
+        "damage:fire"
       ],
       "costs": {
         "allOf": [

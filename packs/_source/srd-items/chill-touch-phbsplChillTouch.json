@@ -11,7 +11,10 @@
       "schemaVersion": 1,
       "id": "action:srd-chill-touch",
       "tags": [
-        "spell"
+        "spell",
+        "cantrip",
+        "school:necromancy",
+        "damage:necrotic"
       ],
       "costs": {
         "allOf": [

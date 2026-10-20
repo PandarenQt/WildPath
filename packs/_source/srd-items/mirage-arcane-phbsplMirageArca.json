@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-mirage-arcane-alter-terrain",
       "tags": [
-        "spell"
+        "spell",
+        "school:illusion"
       ],
       "costs": {
         "allOf": []

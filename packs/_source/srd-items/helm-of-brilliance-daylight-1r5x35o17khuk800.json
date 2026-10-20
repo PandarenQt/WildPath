@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-helm-of-brilliance-daylight",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation"
       ],
       "costs": {
         "allOf": [

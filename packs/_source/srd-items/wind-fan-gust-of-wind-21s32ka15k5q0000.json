@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-wind-fan-gust-of-wind-gust-of-wind",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation"
       ],
       "costs": {
         "allOf": [

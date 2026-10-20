@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-staff-of-swarming-insects-insect-plague",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration",
+        "damage:piercing"
       ],
       "costs": {
         "allOf": [

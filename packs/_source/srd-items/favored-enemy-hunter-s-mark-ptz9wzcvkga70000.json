@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-favored-enemy-hunter-s-mark",
       "tags": [
-        "spell"
+        "spell",
+        "school:divination"
       ],
       "costs": {
         "allOf": [

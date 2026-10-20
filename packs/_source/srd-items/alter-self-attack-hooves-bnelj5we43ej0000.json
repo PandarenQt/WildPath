@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-alter-self-attack-hooves",
       "tags": [
-        "spell"
+        "spell",
+        "school:transmutation",
+        "damage:bludgeoning"
       ],
       "costs": {
         "allOf": [

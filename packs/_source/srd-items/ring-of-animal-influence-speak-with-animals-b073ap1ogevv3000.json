@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-ring-of-animal-influence-speak-with-animals",
       "tags": [
-        "spell"
+        "spell",
+        "school:divination"
       ],
       "costs": {
         "allOf": [

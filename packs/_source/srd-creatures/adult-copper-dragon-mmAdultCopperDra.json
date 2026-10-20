@@ -388,7 +388,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -466,7 +467,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-mind-spike",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination",
+            "damage:psychic"
           ],
           "costs": {
             "anyOf": [
@@ -579,7 +582,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-minor-illusion",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -657,7 +662,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-shapechange",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -714,7 +720,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-greater-restoration",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -859,7 +866,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-major-image",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -1037,7 +1045,9 @@
           "schemaVersion": 1,
           "id": "action:srd-mind-jolt-mind-spike",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination",
+            "damage:psychic"
           ],
           "costs": {
             "anyOf": [

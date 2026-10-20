@@ -12,6 +12,8 @@
       "id": "action:srd-divine-smite-unholy-creature-damage",
       "tags": [
         "spell",
+        "school:evocation",
+        "damage:radiant",
         "smite"
       ],
       "costs": {

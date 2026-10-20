@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-power-word-kill-compel-to-die",
       "tags": [
-        "spell"
+        "spell",
+        "school:enchantment",
+        "damage:psychic"
       ],
       "costs": {
         "allOf": [

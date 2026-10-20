@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-crystal-ball-of-telepathy-suggestion",
       "tags": [
-        "spell"
+        "spell",
+        "school:enchantment"
       ],
       "costs": {
         "allOf": [

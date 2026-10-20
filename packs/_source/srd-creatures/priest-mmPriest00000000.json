@@ -315,7 +315,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-light",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:evocation"
           ],
           "costs": {
             "allOf": [
@@ -375,7 +377,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-thaumaturgy",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -461,7 +465,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-spiritual-weapon",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation"
           ],
           "costs": {
             "allOf": [
@@ -542,7 +547,8 @@
           "schemaVersion": 1,
           "id": "action:srd-divine-aid-bless",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [
@@ -672,7 +678,8 @@
           "schemaVersion": 1,
           "id": "action:srd-divine-aid-dispel-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -756,7 +763,8 @@
           "schemaVersion": 1,
           "id": "action:srd-divine-aid-healing-word",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -854,7 +862,8 @@
           "schemaVersion": 1,
           "id": "action:srd-divine-aid-lesser-restoration",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [

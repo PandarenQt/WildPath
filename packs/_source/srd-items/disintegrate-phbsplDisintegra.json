@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-disintegrate",
       "tags": [
-        "spell"
+        "spell",
+        "school:transmutation",
+        "damage:force"
       ],
       "costs": {
         "allOf": [

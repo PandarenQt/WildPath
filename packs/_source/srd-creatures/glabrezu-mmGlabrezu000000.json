@@ -406,7 +406,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-darkness",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation"
           ],
           "costs": {
             "anyOf": [
@@ -501,7 +502,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "anyOf": [
@@ -587,7 +589,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-dispel-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "anyOf": [
@@ -660,7 +663,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-confusion",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "anyOf": [
@@ -780,7 +784,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-fly",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "anyOf": [
@@ -897,7 +902,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-power-word-stun",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "anyOf": [

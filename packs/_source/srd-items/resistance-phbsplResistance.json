@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-resistance",
       "tags": [
-        "spell"
+        "spell",
+        "cantrip",
+        "school:abjuration"
       ],
       "costs": {
         "allOf": [

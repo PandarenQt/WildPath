@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-water-ring-of-elemental-command-tsunami",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration",
+        "damage:bludgeoning"
       ],
       "costs": {
         "allOf": [

@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-true-strike-enchant-weapon",
       "tags": [
-        "spell"
+        "spell",
+        "cantrip",
+        "school:divination"
       ],
       "costs": {
         "allOf": [

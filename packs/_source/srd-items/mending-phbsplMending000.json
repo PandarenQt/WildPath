@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-mending",
       "tags": [
-        "spell"
+        "spell",
+        "cantrip",
+        "school:transmutation"
       ],
       "costs": {
         "allOf": []

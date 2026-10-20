@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-shillelagh-imbue-weapon",
       "tags": [
-        "spell"
+        "spell",
+        "cantrip",
+        "school:transmutation"
       ],
       "costs": {
         "allOf": [

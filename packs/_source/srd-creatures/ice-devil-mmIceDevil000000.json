@@ -328,7 +328,9 @@
           "schemaVersion": 1,
           "id": "action:srd-ice-wall-wall-of-ice",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:cold"
           ],
           "costs": {
             "allOf": [

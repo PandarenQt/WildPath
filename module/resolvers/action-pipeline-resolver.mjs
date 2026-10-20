@@ -1689,7 +1689,7 @@ function createComponentRollStage({id, kind, rollType, request}) {
       if ( !resolves || ((kind === "damage") && attackResolvedAsOnlyMisses(state)) ) {
         return continueResolutionStage({state: updateResolutionState(state, {input})});
       }
-      let values = kind === "damage" ? withFixedModifier(input.damage) : input[kind];
+      let values = withFixedModifier(input[kind]);
       let current = state;
       for ( ;; ) {
         const components = values?.components ?? [];
@@ -1727,7 +1727,7 @@ function createComponentRollStage({id, kind, rollType, request}) {
           data: {requestId, rollRequest, validation: normalized.validation}});
         const [rolled] = rollResultToDamageComponents({result: normalized.result, components: [components[index]]});
         // The damage modifier rolled with this component's dice; it must not be added again to its amount.
-        const modifierRolled = (kind === "damage") && (index === modifierComponentIndex(values));
+        const modifierRolled = index === modifierComponentIndex(values);
         values = {...values, components: components.map((component, i) => (i === index ? rolled : component)),
           ...(modifierRolled ? {modifierApplied: true} : {})};
         current = updateResolutionState(current, {
@@ -2464,7 +2464,7 @@ function componentRollRequestForState(state, input, {kind, rollType, requestId, 
     ...(component.dice ? {dice: {...component.dice, number: (Number(component.dice.number) || 1) * 2}} : {}),
     ...(component.expression ? {expression: withDoubledDice(component.expression)} : {})};
   const modifier = (Number(component.bonus) || 0)
-    + (((kind === "damage") && (index === modifierComponentIndex(values)) && Number.isFinite(values.modifierTotal)
+    + (((index === modifierComponentIndex(values)) && Number.isFinite(values.modifierTotal)
       && !values.modifierApplied) ? values.modifierTotal : 0);
   return createDamageRollRequest({
     id: requestId,
@@ -2501,7 +2501,7 @@ function onceUsePlans(damage, damageResolution) {
   });
 }
 
-/** The component the creature's damage modifier goes on: the first weapon component, else the first one. */
+/** The component the creature's damage (or healing) modifier goes on: the first weapon component, else the first one. */
 function modifierComponentIndex(damage) {
   return Math.max((damage?.components ?? []).findIndex(component => component?.provenance === "weapon-base"), 0);
 }

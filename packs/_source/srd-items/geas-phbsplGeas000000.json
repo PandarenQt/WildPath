@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-geas",
       "tags": [
-        "spell"
+        "spell",
+        "school:enchantment",
+        "damage:psychic"
       ],
       "costs": {
         "allOf": []

@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-create-undead-reassert-control",
       "tags": [
-        "spell"
+        "spell",
+        "school:necromancy"
       ],
       "costs": {
         "allOf": []

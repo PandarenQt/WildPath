@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-bestow-curse-curse-resilience",
       "tags": [
-        "spell"
+        "spell",
+        "school:necromancy",
+        "damage:necrotic"
       ],
       "costs": {
         "allOf": [

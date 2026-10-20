@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-flaming-sphere",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration",
+        "damage:fire"
       ],
       "costs": {
         "allOf": [

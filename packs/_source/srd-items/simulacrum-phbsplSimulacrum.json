@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-simulacrum-create-simulacrum",
       "tags": [
-        "spell"
+        "spell",
+        "school:illusion"
       ],
       "costs": {
         "allOf": []

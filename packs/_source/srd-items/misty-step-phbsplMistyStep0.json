@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-misty-step",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration"
       ],
       "costs": {
         "allOf": [

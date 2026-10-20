@@ -279,7 +279,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-evil-and-good",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -357,7 +358,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -435,7 +437,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-thoughts",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -493,7 +496,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-shapechange",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -550,7 +554,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-create-food-and-water",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -619,7 +624,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-dream",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion",
+            "damage:psychic"
           ],
           "costs": {
             "allOf": [
@@ -751,7 +758,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-greater-restoration",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -896,7 +904,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-scrying",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -1015,7 +1024,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-sleep",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [

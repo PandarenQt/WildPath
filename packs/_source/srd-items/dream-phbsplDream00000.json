@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-dream",
       "tags": [
-        "spell"
+        "spell",
+        "school:illusion",
+        "damage:psychic"
       ],
       "costs": {
         "allOf": []

@@ -312,6 +312,38 @@ function martialArtsActions(document, img, source, scales) {
     make("Flurry of Blows Strike", "flurry", [{capability: "flurry-of-blows", amount: 1}], {tags: ["flurry"]}, [structuredClone(FLURRY_POOL)])];
 }
 
+/** The spell schools dnd5e abbreviates. */
+const SCHOOLS = Object.freeze({abj: "abjuration", con: "conjuration", div: "divination", enc: "enchantment", evo: "evocation",
+  ill: "illusion", nec: "necromancy", trs: "transmutation"});
+
+/** An ability modifier added to spell damage under `predicate` (Potent Spellcasting, Empowered Evocation), once a roll. */
+function spellDamageBonus(activities, ability, predicate) {
+  return {rules: [{schemaVersion: 1, id: `spell-damage-${ability}`, type: "Modifier", predicate, data: {domains: ["damage.spell"],
+    modifierType: "untyped", valueExpression: {type: "ability-modifier", ability}}}],
+  consumes: activities.filter(entry => entry.type === "damage"), notes: []};
+}
+
+/**
+ * 2024 Elemental Affinity: its type, chosen once (Acid, Cold, Fire, Lightning or Poison), is a lasting effect on the
+ * sorcerer: Resistance to it, and its Charisma modifier on a spell's damage of that type. shortcut: the choice is an
+ * Action used once, not tied to its Draconic ancestry.
+ */
+function elementalAffinityAction(document, img, source) {
+  const types = ["acid", "cold", "fire", "lightning", "poison"];
+  const title = type => `${type.charAt(0).toUpperCase()}${type.slice(1)}`;
+  const id = stableId(`${document._id}:choose`);
+  const name = `${document.name} (Choose)`;
+  const effect = type => ({id: type, type: "effect", name: `${document.name} (${title(type)})`, slug: "elemental-affinity", img,
+    ruleElements: [{schemaVersion: 1, id: `affinity-${type}`, type: "Modifier", predicate: {tagsAll: [`damage:${type}`]},
+      data: {domains: ["damage.spell"], modifierType: "untyped", valueExpression: {type: "ability-modifier", ability: "presence"}}},
+    {schemaVersion: 1, id: `affinity-${type}-resistance`, type: "GrantResistance", data: {damageTypes: [type]}}]});
+  return {_id: id, _key: `!items!${id}`, name, type: "action", img, system: {active: true, description: "", definition: {schemaVersion: 1,
+    id: "action:srd-elemental-affinity", label: name, costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"},
+    effects: types.map(effect), configuration: [{id: "type", type: "select-one", label: "Damage type", required: true,
+      options: types.map(type => ({id: type, label: title(type), value: type})), effects: [{type: "keepEffect", effectIds: types}]}]},
+  ruleElements: []}, flags: {wildpath: {source, conversion: {notes: []}}}};
+}
+
 /** A damage activity as once-a-turn extra weapon damage of the weapon's type, under `predicate` (Frenzy, Colossus Slayer). */
 function weaponExtra(activities, scales, label, predicate) {
   const activity = activities.find(entry => entry.type === "damage");
@@ -715,7 +747,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const enchant = ENCHANTS[identifierOf(document)] ?? null;
     if ( enchant && (activity.type !== "enchant") ) continue;
     // Brutal Strike's Actions are its own (brutalStrikeActions), not its dnd5e damage activity.
-    if ( ["brutal-strike", "improved-brutal-strike"].includes(identifierOf(document)) ) continue;
+    if ( ["brutal-strike", "improved-brutal-strike", "elemental-affinity"].includes(identifierOf(document)) ) continue;
     // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use): used, though dnd5e may leave it passive.
     const trades = tradesPools({document, activity, pool, names, scales});
     if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !trades ) {
@@ -780,6 +812,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     // A spell's level, for what ends spells by level (Dispel Magic); a slot cast at a higher one says so when used.
     if ( spell && Number.isFinite(Number(level)) ) definition = {...definition, metadata: {...(definition.metadata ?? {}), spellLevel: Number(level)}};
+    // A spell's tags say what it is, for rules on spell damage: a cantrip, its school (`school:evocation`: Empowered
+    // Evocation) and each damage type it deals (`damage:fire`: Elemental Affinity).
+    if ( spell ) definition = {...definition, tags: [...new Set([...(definition.tags ?? []), ...(Number(level) === 0 ? ["cantrip"] : []),
+      ...(SCHOOLS[system.school] ? [`school:${SCHOOLS[system.school]}`] : []),
+      ...(definition.damage ?? []).map(component => component.damageType).filter(Boolean).map(type => `damage:${type}`)])]};
     // Lay on Hands: "restore a number of Hit Points equal to the points spent", chosen when used, from its pool.
     if ( (identifierOf(document) === "lay-on-hands") && (activity.type === "heal") && pool ) {
       definition = {...definition, costs: {allOf: (definition.costs?.allOf ?? []).filter(cost => cost.capability !== pool.id)},
@@ -904,6 +941,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( identifierOf(document) === "paladins-smite" ) items.push(...paladinsSmiteActions(document, img, source));
     if ( identifierOf(document) === "brutal-strike" ) items.push(...brutalStrikeActions(document, img, source, scales));
     if ( identifierOf(document) === "improved-brutal-strike" ) items.push(...improvedBrutalStrikeActions(document, img, source));
+    // Elemental Affinity brings the Action choosing its type.
+    if ( identifierOf(document) === "elemental-affinity" ) {
+      const choose = elementalAffinityAction(document, img, source);
+      items[0].flags.wildpath.grants = [choose._id];
+      items.push(choose);
+    }
     // Martial Arts brings its Unarmed Strikes with it, so its class grants the feature alone.
     if ( identifierOf(document) === "martial-arts" ) {
       const strikes = martialArtsActions(document, img, source, scales);
@@ -1178,6 +1221,17 @@ const TRAITS = Object.freeze({
   // Points. shortcut: Horde Breaker, its other option, is by hand.
   "hunters-prey": (document, {activities, scales}) => weaponExtra(activities, scales, "Colossus Slayer",
     {equals: {path: "attack.targetDamaged", value: true}}),
+  // 2024 Potent Spellcasting (cleric, druid): its Wisdom modifier on a cantrip's damage. shortcut: any cantrip, not only
+  // its class's.
+  "blessed-strikes-potent-spellcasting": (document, {activities}) => spellDamageBonus(activities, "wits", {tagsAll: ["cantrip"]}),
+  "elemental-fury-potent-spellcasting": (document, {activities}) => spellDamageBonus(activities, "wits", {tagsAll: ["cantrip"]}),
+  // 2024 Empowered Evocation: its Intelligence modifier on one damage roll of an evocation spell.
+  "empowered-evocation": (document, {activities}) => spellDamageBonus(activities, "intellect", {tagsAll: ["school:evocation"]}),
+  // 2024 Disciple of Life: a spell cast with a slot heals 2 + the slot's level more.
+  "disciple-of-life": (document, {activities}) => ({rules: [{schemaVersion: 1, id: "disciple-of-life", type: "Modifier",
+    predicate: {oneOf: {path: "castLevel", values: [1, 2, 3, 4, 5, 6, 7, 8, 9]}}, data: {domains: ["healing.spell"], modifierType: "untyped",
+      valueExpression: {type: "add", terms: [{type: "constant", value: 2}, {type: "context", path: "castLevel"}]}}}],
+  consumes: activities.filter(entry => entry.type === "heal"), notes: []}),
   "sneak-attack": (document, {activities, scales}) => {
     const activity = activities.find(entry => entry.type === "damage");
     const notes = [];

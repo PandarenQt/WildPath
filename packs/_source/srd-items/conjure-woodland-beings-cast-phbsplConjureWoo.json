@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-conjure-woodland-beings-cast",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration",
+        "damage:force"
       ],
       "costs": {
         "allOf": [

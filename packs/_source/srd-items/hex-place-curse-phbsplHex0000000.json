@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-hex-place-curse",
       "tags": [
-        "spell"
+        "spell",
+        "school:enchantment"
       ],
       "costs": {
         "allOf": [

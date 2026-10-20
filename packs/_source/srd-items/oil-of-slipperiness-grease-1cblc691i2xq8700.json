@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-oil-of-slipperiness-pour-on-ground-grease",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration"
       ],
       "costs": {
         "allOf": [

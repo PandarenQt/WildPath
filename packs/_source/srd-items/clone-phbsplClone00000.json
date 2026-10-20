@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-clone",
       "tags": [
-        "spell"
+        "spell",
+        "school:necromancy"
       ],
       "costs": {
         "allOf": []

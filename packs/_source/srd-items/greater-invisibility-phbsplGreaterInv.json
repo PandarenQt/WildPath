@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-greater-invisibility",
       "tags": [
-        "spell"
+        "spell",
+        "school:illusion"
       ],
       "costs": {
         "allOf": [

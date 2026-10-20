@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-fire-ring-of-elemental-command-fire-storm",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:fire"
       ],
       "costs": {
         "allOf": [

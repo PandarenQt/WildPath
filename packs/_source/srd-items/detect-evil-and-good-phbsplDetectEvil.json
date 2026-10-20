@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-detect-evil-and-good",
       "tags": [
-        "spell"
+        "spell",
+        "school:divination"
       ],
       "costs": {
         "allOf": [

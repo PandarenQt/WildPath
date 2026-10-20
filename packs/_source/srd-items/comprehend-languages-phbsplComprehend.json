@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-comprehend-languages",
       "tags": [
-        "spell"
+        "spell",
+        "school:divination"
       ],
       "costs": {
         "allOf": [

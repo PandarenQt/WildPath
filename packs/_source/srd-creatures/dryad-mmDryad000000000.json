@@ -380,7 +380,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-animal-friendship",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "anyOf": [
@@ -462,7 +463,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-charm-monster",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "anyOf": [
@@ -544,7 +546,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-druidcraft",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:transmutation"
           ],
           "costs": {
             "anyOf": [
@@ -602,7 +606,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-entangle",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "anyOf": [
@@ -713,7 +718,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-pass-without-trace",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "anyOf": [

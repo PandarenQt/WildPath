@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-death-ward",
       "tags": [
-        "spell"
+        "spell",
+        "school:abjuration"
       ],
       "costs": {
         "allOf": [

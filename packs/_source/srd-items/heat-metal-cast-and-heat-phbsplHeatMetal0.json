@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-heat-metal-cast-and-heat",
       "tags": [
-        "spell"
+        "spell",
+        "school:transmutation",
+        "damage:fire"
       ],
       "costs": {
         "allOf": [

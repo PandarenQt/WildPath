@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-speak-with-dead",
       "tags": [
-        "spell"
+        "spell",
+        "school:necromancy"
       ],
       "costs": {
         "allOf": [

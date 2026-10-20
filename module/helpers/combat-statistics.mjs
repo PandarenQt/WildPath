@@ -212,10 +212,15 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
   const extraComponents = extra.map(entry => ({id: `extra:${onceKey(entry)}`, expression: entry.expression,
     damageType: entry.damageType ?? components[0]?.damageType ?? "untyped", provenance: "additional", metadata: {ruleId: entry.id},
     ...(((entry.once === "turn") && turn) ? {once: {key: onceKey(entry), turn}} : {})}));
+  // Healing bonuses (`healing.spell`, `healing`), added once to its first component; their values see `context`
+  // (`castLevel`: Disciple of Life).
+  const healing = (definition?.healing ?? []).length ? (resolveActorStatisticModifier(actor,
+    [tags.includes("spell") ? "healing.spell" : null, "healing"].filter(Boolean), {item, tags, context}).value ?? 0) : 0;
   return {
     defenseKey: attackDefinition ? (attackDefinition.defenseKey ?? "ac") : null,
     damage: (components.length && (weapon || bonus || extraComponents.length))
       ? {modifierTotal, ...(extraComponents.length ? {extraComponents} : {})} : null,
+    ...(healing ? {healing: {modifierTotal: healing}} : {}),
     attack: statistic ? {
       statistic,
       modifierTotal: statistic.totalModifier,

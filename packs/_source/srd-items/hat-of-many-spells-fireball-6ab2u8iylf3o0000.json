@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-hat-of-many-spells-fireball",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:fire"
       ],
       "costs": {
         "allOf": [

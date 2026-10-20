@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-magic-jar-cast-and-transfer-soul",
       "tags": [
-        "spell"
+        "spell",
+        "school:necromancy"
       ],
       "costs": {
         "allOf": []

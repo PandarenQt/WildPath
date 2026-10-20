@@ -395,7 +395,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -473,7 +474,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-identify",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -524,7 +526,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-mage-hand",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -584,7 +588,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-minor-illusion",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -662,7 +668,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-prestidigitation",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -712,7 +720,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-dispel-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -796,7 +805,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-legend-lore",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -866,7 +876,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-locate-object",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -942,7 +953,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-plane-shift",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -1011,7 +1023,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-remove-curse",
           "tags": [
-            "spell"
+            "spell",
+            "school:abjuration"
           ],
           "costs": {
             "allOf": [
@@ -1095,7 +1108,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-tongues",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [

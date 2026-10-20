@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-ensnaring-strike",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration",
+        "damage:piercing"
       ],
       "costs": {
         "allOf": [

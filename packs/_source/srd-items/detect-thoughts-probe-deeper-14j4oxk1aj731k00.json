@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-detect-thoughts-probe-deeper",
       "tags": [
-        "spell"
+        "spell",
+        "school:divination"
       ],
       "costs": {
         "allOf": [

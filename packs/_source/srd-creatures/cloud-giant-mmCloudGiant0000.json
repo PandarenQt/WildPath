@@ -338,7 +338,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "anyOf": [
@@ -428,7 +429,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-fog-cloud",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "anyOf": [
@@ -498,7 +500,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-light",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:evocation"
           ],
           "costs": {
             "anyOf": [
@@ -570,7 +574,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-control-weather",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "anyOf": [
@@ -664,7 +669,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-gaseous-form",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "anyOf": [
@@ -843,7 +849,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-telekinesis",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "anyOf": [
@@ -961,7 +968,8 @@
           "schemaVersion": 1,
           "id": "action:srd-misty-step-misty-step",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "anyOf": [

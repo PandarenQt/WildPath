@@ -118,6 +118,12 @@ Before this, these predicates never matched. Data preparation (resource maxima, 
 A rule on an effect also sees that effect's level as `source.level`, wherever it is read, data preparation
 included. The 2014 Exhaustion table gates each of its rules this way: `{oneOf: {path: "source.level", values: [2, 3, 4]}}`.
 
+**Healing and context (2026-10-20).** Healing reads Modifiers on `healing.spell` (a spell's) and `healing`. Their total
+is added once to the first healing component, as damage's is. `getStatistic` takes a `context`, which predicates and
+values see beside `tags` and `conditions`. The runtime passes `castLevel`, the level a healing spell is cast at, worked
+out from the intent's choices. Disciple of Life uses it: `{type: "add", terms: [2, {type: "context", path: "castLevel"}]}`
+while `castLevel` is 1 to 9.
+
 **Pools (2026-10-19).** `{poolEmpty: "<id>"}` and `{poolBelowMax: "<id>"}` read a pool of the creature by id (from
 `actorSystem` or `actor.system`). A pool it lacks is neither. Persistent Rage's Trigger uses them.
 

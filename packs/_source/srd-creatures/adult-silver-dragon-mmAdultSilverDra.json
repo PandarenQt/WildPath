@@ -510,7 +510,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -588,7 +589,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-hold-monster",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [
@@ -664,7 +666,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-ice-knife",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration",
+            "damage:piercing"
           ],
           "costs": {
             "anyOf": [
@@ -757,7 +761,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-shapechange",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -814,7 +819,10 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-ice-storm",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:bludgeoning",
+            "damage:cold"
           ],
           "costs": {
             "allOf": [
@@ -936,7 +944,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-zone-of-truth",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [
@@ -1071,7 +1080,8 @@
           "schemaVersion": 1,
           "id": "action:srd-chill-hold-monster",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [

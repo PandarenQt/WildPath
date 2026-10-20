@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-color-spray",
       "tags": [
-        "spell"
+        "spell",
+        "school:illusion"
       ],
       "costs": {
         "allOf": [

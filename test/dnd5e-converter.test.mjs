@@ -1162,7 +1162,7 @@ test("Divine Smite: the 2024 spell on its own melee hit; Paladin's Smite brings 
   assert.deepEqual([plain.name, unholy.name], ["Divine Smite", "Divine Smite (Undead or Fiend)"]);
   const {definition} = plain.system;
   assert.deepEqual([definition.tags, definition.costs.allOf.map(cost => cost.capability), definition.targeting.type],
-    [["spell", "smite"], ["bonus-action"], "single"]);
+    [["spell", "school:evocation", "damage:radiant", "smite"], ["bonus-action"], "single"]);
   assert.deepEqual(Object.keys(definition.configuration[0].levelByResourceId).slice(-2), ["spell-slot.9", "paladins-smite"]);
   assert.deepEqual(plain.system.ruleElements.find(rule => rule.type === "Trigger").data, {kind: "reaction", event: "attack.hit",
     match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"], notTagsAny: ["spell"]}});

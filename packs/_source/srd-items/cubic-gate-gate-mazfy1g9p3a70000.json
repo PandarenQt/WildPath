@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-cubic-gate-gate",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration"
       ],
       "costs": {
         "allOf": [

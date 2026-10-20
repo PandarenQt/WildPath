@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-storm-of-vengeance-create-storm",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration",
+        "damage:thunder"
       ],
       "costs": {
         "allOf": [

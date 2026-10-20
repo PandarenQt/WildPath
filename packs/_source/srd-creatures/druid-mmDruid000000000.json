@@ -311,7 +311,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-druidcraft",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -361,7 +363,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-speak-with-animals",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -432,7 +435,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-entangle",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -531,7 +535,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-thunderwave",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:thunder"
           ],
           "costs": {
             "allOf": [
@@ -636,7 +642,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-animal-messenger",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [
@@ -738,7 +745,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-longstrider",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "allOf": [
@@ -844,7 +852,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-moonbeam",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:radiant"
           ],
           "costs": {
             "allOf": [

@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-wall-of-fire-create-wall",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:fire"
       ],
       "costs": {
         "allOf": [

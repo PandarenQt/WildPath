@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-word-of-recall-teleport-to-sanctuary",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration"
       ],
       "costs": {
         "allOf": [

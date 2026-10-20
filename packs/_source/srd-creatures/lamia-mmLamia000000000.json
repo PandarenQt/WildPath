@@ -348,7 +348,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-disguise-self",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -418,7 +419,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-minor-illusion",
           "tags": [
-            "spell"
+            "spell",
+            "cantrip",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -496,7 +499,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-geas",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment",
+            "damage:psychic"
           ],
           "costs": {
             "allOf": [
@@ -607,7 +612,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-major-image",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -710,7 +716,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-scrying",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [

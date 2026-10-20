@@ -277,7 +277,8 @@
           "schemaVersion": 1,
           "id": "action:srd-charm-dominate-person",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "allOf": [

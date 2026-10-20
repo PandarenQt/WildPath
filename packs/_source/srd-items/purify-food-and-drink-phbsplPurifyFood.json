@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-purify-food-and-drink",
       "tags": [
-        "spell"
+        "spell",
+        "school:transmutation"
       ],
       "costs": {
         "allOf": [

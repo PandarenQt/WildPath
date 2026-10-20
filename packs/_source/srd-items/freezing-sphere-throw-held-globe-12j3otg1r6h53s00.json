@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-freezing-sphere-throw-held-globe",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:untyped"
       ],
       "costs": {
         "allOf": [

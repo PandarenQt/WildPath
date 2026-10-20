@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-cloudkill",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration",
+        "damage:poison"
       ],
       "costs": {
         "allOf": [

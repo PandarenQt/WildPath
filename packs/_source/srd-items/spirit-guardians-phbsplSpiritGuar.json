@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-spirit-guardians-cast-and-save",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration",
+        "damage:necrotic"
       ],
       "costs": {
         "allOf": [

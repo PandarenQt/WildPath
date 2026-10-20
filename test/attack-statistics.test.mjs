@@ -290,3 +290,31 @@ test("Colossus Slayer and Frenzy (SRD): extra weapon damage when the target is m
   assert.equal(extra(actorWith("frenzy-phbbrbFrenzy0000", ["raging", "reckless"]), {}).length, 1);
   assert.equal(extra(actorWith("frenzy-phbbrbFrenzy0000", ["raging"]), {}).length, 0, "not Reckless");
 });
+
+test("spell riders (SRD): Potent Spellcasting on a cantrip, Empowered Evocation, Elemental Affinity's type, Disciple of Life's 2 + level", async () => {
+  const fs = await import("node:fs");
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const pack = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const caster = rules => {
+    const actor = Object.assign(Object.create(WildPathActor.prototype), {id: "caster", uuid: "Actor.caster", effects: [], statuses: new Set(),
+      flags: {}, system: {abilities: {wits: {value: 16}, intellect: {value: 18}, presence: {value: 14}}},
+      items: [{id: "f", uuid: "Actor.caster.Item.f", type: "feature", system: {active: true, modifiers: [], ruleElements: rules}}]});
+    actor.allApplicableEffects = () => [];
+    return actor;
+  };
+  const fireBolt = pack("fire-bolt-").system.definition;
+  const fireball = pack("fireball-").system.definition;
+  assert.deepEqual(fireBolt.tags, ["spell", "cantrip", "school:evocation", "damage:fire"]);
+  const potent = caster(pack("blessed-strikes-potent-spellcasting").system.ruleElements);
+  assert.equal(actionCombatStatistics(potent, fireBolt).damage?.modifierTotal, 3, "Wisdom 16 on a cantrip");
+  assert.equal(actionCombatStatistics(potent, fireball).damage, null, "not on Fireball");
+  assert.equal(actionCombatStatistics(caster(pack("empowered-evocation").system.ruleElements), fireball).damage?.modifierTotal, 4);
+  const fire = pack("elemental-affinity-choose").system.definition.effects.find(effect => effect.id === "fire").ruleElements;
+  assert.equal(actionCombatStatistics(caster(fire), fireball).damage?.modifierTotal, 2, "Charisma 14 on fire");
+  assert.equal(actionCombatStatistics(caster(fire), pack("lightning-bolt-").system.definition).damage, null);
+  const life = caster(pack("disciple-of-life").system.ruleElements);
+  const cure = pack("cure-wounds-").system.definition;
+  assert.deepEqual(actionCombatStatistics(life, cure, {context: {castLevel: 2}}).healing, {modifierTotal: 4}, "2 + level 2");
+  assert.equal(actionCombatStatistics(life, cure, {context: {castLevel: null}}).healing, undefined, "no slot: nothing");
+});

@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 863 automated, 289 manual, 234 features. Creatures: 375.
+Items: 864 automated, 289 manual, 234 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -179,7 +179,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Blessed Healer | classes24 | Blessed Healer (feature) | "heal" is passive or triggered: not automated |
 | Blessed Strikes | classes24 | Blessed Strikes (feature) | — |
 | Blessed Strikes: Divine Strike | classes24 | Blessed Strikes: Divine Strike (Necrotic Divine Strike) (automated), Blessed Strikes: Divine Strike (Radiant Divine Strike) (automated) | — |
-| Blessed Strikes: Potent Spellcasting | classes24 | Blessed Strikes: Potent Spellcasting (feature) | "damage" is passive or triggered: not automated |
+| Blessed Strikes: Potent Spellcasting | classes24 | Blessed Strikes: Potent Spellcasting (feature) | — |
 | Blessed Warrior | classes24 | Blessed Warrior (feature) | — |
 | Blight | spells24 | Blight (automated) | — |
 | Blindness/Deafness | spells24 | Blindness/Deafness (automated) | — |
@@ -409,7 +409,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dimensional Shackles | equipment24 | Dimensional Shackles (gear), Dimensional Shackles (Place Shackles) (automated), Dimensional Shackles (Attempt Escape) (automated) | effect: "Dimensionally Bound" marks its creature only; its rules are by hand |
 | Diplomat's Pack | equipment24 | Diplomat's Pack (gear) | — |
 | Dire Wolf | actors24 | Dire Wolf (2 items) | — |
-| Disciple of Life | classes24 | Disciple of Life (feature) | "heal" is passive or triggered: not automated |
+| Disciple of Life | classes24 | Disciple of Life (feature) | — |
 | Disciplined Survivor | classes24 | Disciplined Survivor (feature) | "Consume Focus Point" is passive or triggered: not automated; effect: "Disciplined Survivor" change flags.dnd5e.diamondSoul (override) not converted |
 | Disguise Kit | equipment24 | Disguise Kit (gear), Disguise Kit (automated) | — |
 | Disguise Self | spells24 | Disguise Self (automated) | effect: "Disguised" marks its creature only; its rules are by hand |
@@ -484,7 +484,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Eldritch Mind | classes24 | Eldritch Mind (feature) | — |
 | Eldritch Smite | classes24 | Eldritch Smite (feature) | "Smite" is passive or triggered: not automated |
 | Eldritch Spear | classes24 | Eldritch Spear (feature) | "Increase Range" is passive or triggered: not automated |
-| Elemental Affinity | classes24 | Elemental Affinity (feature) | "Acid" is passive or triggered: not automated; "Cold" is passive or triggered: not automated; "Fire" is passive or triggered: not automated; "Lightning" is passive or triggered: not automated; "Poison" is passive or triggered: not automated |
+| Elemental Affinity | classes24 | Elemental Affinity (feature), Elemental Affinity (Choose) (automated) | — |
 | Elemental Fury | classes24 | Elemental Fury (feature) | — |
 | Elemental Fury: Potent Spellcasting | classes24 | Elemental Fury: Potent Spellcasting (feature) | — |
 | Elemental Fury: Primal Strike | classes24 | Elemental Fury: Primal Strike (automated) | — |
@@ -506,7 +506,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Elven Lineage, High Elf | origins24 | Elven Lineage, High Elf (feature) | — |
 | Elven Lineage, Wood Elf | origins24 | Elven Lineage, Wood Elf (feature) | — |
 | Emblem | equipment24 | Emblem (gear) | — |
-| Empowered Evocation | classes24 | Empowered Evocation (feature) | "damage" is passive or triggered: not automated |
+| Empowered Evocation | classes24 | Empowered Evocation (feature) | — |
 | Empowered Spell | classes24 | Empowered Spell (feature), Empowered Spell (automated) | — |
 | Empowered Strikes | classes24 | Empowered Strikes (automated) | — |
 | Energy Bow | equipment24 | Energy Bow (attack) (automated), Energy Bow (Arrow of Transport) (manual), Energy Bow (Energy Ladder) (manual), Energy Bow (Energy Bow) (manual) | rolled (attack); what it does is by hand; not automated (utility): using it spends its cost; its description says the rest; "Arrow of Restraint" is passive or triggered: not automated; not automated (enchant): using it spends its cost; its description says the rest |

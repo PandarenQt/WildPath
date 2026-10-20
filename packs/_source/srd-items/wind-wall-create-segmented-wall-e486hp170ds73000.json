@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-wind-wall-create-segmented-wall",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:bludgeoning"
       ],
       "costs": {
         "allOf": [

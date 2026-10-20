@@ -7,7 +7,48 @@
   "system": {
     "active": true,
     "description": "<p>When a spell you cast with a spell slot restores Hit Points to a creature, that creature regains additional Hit Points on the turn you cast the spell. The additional Hit Points equal 2 plus the spell slot's level.</p><section class=\"secret\" id=\"secret-Gy6bYP3AKuabnUlQ\"><p><strong>Foundry Note</strong></p><p>This feature includes a healing activity. Set the scale to the spell slot level you cast and it will provide a healing roll for you.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "disciple-of-life",
+        "type": "Modifier",
+        "predicate": {
+          "oneOf": {
+            "path": "castLevel",
+            "values": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9
+            ]
+          }
+        },
+        "data": {
+          "domains": [
+            "healing.spell"
+          ],
+          "modifierType": "untyped",
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 2
+              },
+              {
+                "type": "context",
+                "path": "castLevel"
+              }
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +62,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"heal\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

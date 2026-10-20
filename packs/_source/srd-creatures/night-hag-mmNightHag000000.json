@@ -80,7 +80,8 @@
           "schemaVersion": 1,
           "id": "action:srd-coven-magic-augury",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -150,7 +151,8 @@
           "schemaVersion": 1,
           "id": "action:srd-coven-magic-find-familiar",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -343,7 +345,8 @@
           "schemaVersion": 1,
           "id": "action:srd-coven-magic-identify",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -413,7 +416,8 @@
           "schemaVersion": 1,
           "id": "action:srd-coven-magic-locate-object",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -489,7 +493,8 @@
           "schemaVersion": 1,
           "id": "action:srd-coven-magic-scrying",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -608,7 +613,8 @@
           "schemaVersion": 1,
           "id": "action:srd-coven-magic-unseen-servant",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -904,7 +910,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-detect-magic",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -982,7 +989,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-etherealness",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -1053,7 +1061,9 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-magic-missile",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation",
+            "damage:force"
           ],
           "costs": {
             "allOf": [
@@ -1139,7 +1149,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-phantasmal-killer",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [
@@ -1216,7 +1227,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-plane-shift",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -1328,7 +1340,9 @@
           "schemaVersion": 1,
           "id": "action:srd-nightmare-haunting-dream",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion",
+            "damage:psychic"
           ],
           "costs": {
             "allOf": [

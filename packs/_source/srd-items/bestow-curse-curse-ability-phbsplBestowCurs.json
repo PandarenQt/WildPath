@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-bestow-curse-curse-ability",
       "tags": [
-        "spell"
+        "spell",
+        "school:necromancy"
       ],
       "costs": {
         "allOf": [

@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-seeming-change-appearance",
       "tags": [
-        "spell"
+        "spell",
+        "school:illusion"
       ],
       "costs": {
         "allOf": [

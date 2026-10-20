@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-oil-of-slipperiness-cover-creature-freedom-of-movement",
       "tags": [
-        "spell"
+        "spell",
+        "school:abjuration"
       ],
       "costs": {
         "allOf": [

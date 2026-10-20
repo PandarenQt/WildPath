@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-hat-of-many-spells-stinking-cloud",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration"
       ],
       "costs": {
         "allOf": [

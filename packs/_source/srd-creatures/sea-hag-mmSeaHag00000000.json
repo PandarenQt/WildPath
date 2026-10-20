@@ -95,7 +95,8 @@
           "schemaVersion": 1,
           "id": "action:srd-coven-magic-augury",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -165,7 +166,8 @@
           "schemaVersion": 1,
           "id": "action:srd-coven-magic-find-familiar",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -358,7 +360,8 @@
           "schemaVersion": 1,
           "id": "action:srd-coven-magic-identify",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -428,7 +431,8 @@
           "schemaVersion": 1,
           "id": "action:srd-coven-magic-locate-object",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -504,7 +508,8 @@
           "schemaVersion": 1,
           "id": "action:srd-coven-magic-scrying",
           "tags": [
-            "spell"
+            "spell",
+            "school:divination"
           ],
           "costs": {
             "allOf": [
@@ -623,7 +628,8 @@
           "schemaVersion": 1,
           "id": "action:srd-coven-magic-unseen-servant",
           "tags": [
-            "spell"
+            "spell",
+            "school:conjuration"
           ],
           "costs": {
             "allOf": [
@@ -899,7 +905,8 @@
           "schemaVersion": 1,
           "id": "action:srd-illusory-appearance-disguise-self",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "allOf": [

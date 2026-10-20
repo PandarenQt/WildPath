@@ -11,7 +11,10 @@
       "schemaVersion": 1,
       "id": "action:srd-meteor-swarm",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:fire",
+        "damage:bludgeoning"
       ],
       "costs": {
         "allOf": [

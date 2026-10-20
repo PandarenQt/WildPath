@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-light",
       "tags": [
-        "spell"
+        "spell",
+        "cantrip",
+        "school:evocation"
       ],
       "costs": {
         "allOf": [

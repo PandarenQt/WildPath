@@ -11,7 +11,8 @@
       "schemaVersion": 1,
       "id": "action:srd-wand-of-fear-command",
       "tags": [
-        "spell"
+        "spell",
+        "school:enchantment"
       ],
       "costs": {
         "allOf": [

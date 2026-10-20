@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-call-lightning",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration",
+        "damage:untyped"
       ],
       "costs": {
         "allOf": [

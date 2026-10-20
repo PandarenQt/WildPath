@@ -7,7 +7,28 @@
   "system": {
     "active": true,
     "description": "<p>Add your Wisdom modifier to the damage you deal with any Cleric cantrip.</p><section class=\"secret\" id=\"secret-bDHa7ClHZ3YPWKvs\"><p><strong>Foundry Note</strong></p><p>This bonus damage is not automatically included in your cantrips.</p><p>You can add  to the Situational Bonus field of your cantrip's damage rolls or you can permanently add it to your cantrips by adding \"@abilities.wis.mod\" (minus the quotes) in the Bonus field.</p><p>Alternatively, the <strong>Damage</strong> activity on this feature includes your Wisdom modifier and allows you to choose the damage type in the roll's dialog box.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "spell-damage-wits",
+        "type": "Modifier",
+        "predicate": {
+          "tagsAll": [
+            "cantrip"
+          ]
+        },
+        "data": {
+          "domains": [
+            "damage.spell"
+          ],
+          "modifierType": "untyped",
+          "valueExpression": {
+            "type": "ability-modifier",
+            "ability": "wits"
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -21,9 +42,7 @@
         "rules": "2024"
       },
       "conversion": {
-        "notes": [
-          "\"damage\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-wand-of-web-web",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration",
+        "damage:fire"
       ],
       "costs": {
         "allOf": [

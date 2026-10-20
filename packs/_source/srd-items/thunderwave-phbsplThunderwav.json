@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-thunderwave",
       "tags": [
-        "spell"
+        "spell",
+        "school:evocation",
+        "damage:thunder"
       ],
       "costs": {
         "allOf": [

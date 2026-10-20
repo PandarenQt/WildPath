@@ -441,7 +441,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-charm-person",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "anyOf": [
@@ -552,7 +553,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-darkness",
           "tags": [
-            "spell"
+            "spell",
+            "school:evocation"
           ],
           "costs": {
             "anyOf": [
@@ -674,7 +676,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-gaseous-form",
           "tags": [
-            "spell"
+            "spell",
+            "school:transmutation"
           ],
           "costs": {
             "anyOf": [
@@ -853,7 +856,8 @@
           "schemaVersion": 1,
           "id": "action:srd-spellcasting-sleep",
           "tags": [
-            "spell"
+            "spell",
+            "school:enchantment"
           ],
           "costs": {
             "anyOf": [
@@ -968,7 +972,8 @@
           "schemaVersion": 1,
           "id": "action:srd-invisibility-invisibility",
           "tags": [
-            "spell"
+            "spell",
+            "school:illusion"
           ],
           "costs": {
             "anyOf": [

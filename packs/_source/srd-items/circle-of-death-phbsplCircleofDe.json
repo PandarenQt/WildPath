@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-circle-of-death",
       "tags": [
-        "spell"
+        "spell",
+        "school:necromancy",
+        "damage:necrotic"
       ],
       "costs": {
         "allOf": [

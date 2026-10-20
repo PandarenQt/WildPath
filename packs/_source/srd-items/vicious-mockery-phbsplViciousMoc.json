@@ -11,7 +11,10 @@
       "schemaVersion": 1,
       "id": "action:srd-vicious-mockery",
       "tags": [
-        "spell"
+        "spell",
+        "cantrip",
+        "school:enchantment",
+        "damage:psychic"
       ],
       "costs": {
         "allOf": [

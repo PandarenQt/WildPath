@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-necklace-of-prayer-beads-shining-smite",
       "tags": [
-        "spell"
+        "spell",
+        "school:transmutation",
+        "damage:radiant"
       ],
       "costs": {
         "allOf": [

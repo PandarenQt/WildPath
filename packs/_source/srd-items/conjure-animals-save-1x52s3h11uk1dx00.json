@@ -11,7 +11,9 @@
       "schemaVersion": 1,
       "id": "action:srd-conjure-animals",
       "tags": [
-        "spell"
+        "spell",
+        "school:conjuration",
+        "damage:slashing"
       ],
       "costs": {
         "allOf": [
