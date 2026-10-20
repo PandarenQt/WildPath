@@ -1,3 +1,4 @@
+import { effectsFrom } from "../helpers/effect-sources.mjs";
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { createReachFootprint, footprintDistance } from "../helpers/grid-footprints.mjs";
 import { WILDPATH } from "../config.mjs";
@@ -33,6 +34,29 @@ export function allyNearTarget(attacker, target, footprint = null) {
         const ally = footprintOf(token);
         return !!ally && (footprintDistance(ally, at) * scene.grid.distance <= 5);
     });
+}
+/** Whether `other` is an ally of `token` by disposition (not `token` itself). */
+export function alliedTokens(token, other) {
+    return !!(token && other) && (token.id !== other.id) && affectsToken("allies", token, other);
+}
+/**
+ * The Token on `scene` that gave `effect` to its creature (the effect names its source: effect-sources.mjs), or null.
+ */
+export function effectGiver(effect, holder, scene) {
+    return [...(scene?.tokens ?? [])].find(token => token.actor
+        && effectsFrom(holder, token.actor)
+            .some(entry => entry.id === effect.id)) ?? null;
+}
+/**
+ * 2024 Help with an attack: whether `target` has a Distracted effect whose helper is an ally of `attacker` (and not the
+ * attacker): that ally's attack roll against it has Advantage (`attack.helpedByAlly`).
+ */
+export function helpedByAlly(attacker, target) {
+    const scene = attacker?.parent;
+    if (!attacker || !scene || !target)
+        return false;
+    return [...(target.effects ?? [])].some(effect => !effect.disabled && new Set(effect.statuses ?? []).has("distracted")
+        && alliedTokens(attacker, effectGiver(effect, target, scene)));
 }
 /** How far `other` stands from `token`, in feet, when it is `token` itself (0) or its ally by disposition; else null. */
 export function allyDistance(token, other) {

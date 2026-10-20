@@ -14,7 +14,8 @@ import {withMetamagic} from "./metamagic.mjs";
 import {mysticArcanumPoolId, spellBaseLevel} from "./spellcasting.mjs";
 
 /** When a custom effect ends early: its creature is attacked, attacked by the creature that applied it, or attacks. */
-export const CUSTOM_EFFECT_ENDS_WHEN = Object.freeze(["attacked", "attackedBySource", "attackedByOther", "attacks", "saves"]);
+export const CUSTOM_EFFECT_ENDS_WHEN = Object.freeze(["attacked", "attackedBySource", "attackedByOther", "attackedByAllyOfSource", "attacks",
+  "saves", "checks"]);
 
 /**
  * When a creature an effect reached repeats the save that let it in (2024: "At the end of each of its turns, the target
@@ -24,7 +25,9 @@ export const REPEAT_SAVE_TIMINGS = Object.freeze(["turnEnd", "turnStart"]);
 
 /** V14's ActiveEffect duration units and expiry events (CONST), for a custom effect's native duration. */
 export const CUSTOM_EFFECT_DURATION_UNITS = Object.freeze(["years", "months", "days", "hours", "minutes", "seconds", "rounds", "turns"]);
-export const CUSTOM_EFFECT_EXPIRY_EVENTS = Object.freeze(["combatStart", "roundStart", "turnStart", "combatEnd", "roundEnd", "turnEnd"]);
+// `sourceTurnStart`/`sourceTurnEnd`: the start or end of its source's next turn (Assist: "before the start of your next turn").
+export const CUSTOM_EFFECT_EXPIRY_EVENTS = Object.freeze(["combatStart", "roundStart", "turnStart", "combatEnd", "roundEnd", "turnEnd",
+  "sourceTurnStart", "sourceTurnEnd"]);
 
 /** The status id a custom effect is known by: its `slug` ("raging"), else one unique to this Action and effect. */
 export function customEffectId(definitionId, effect) {
@@ -1137,6 +1140,9 @@ function normalizeTargetingDefinition(targeting) {
     predicate: clonePlain(targeting.predicate ?? null),
     eligibilityPolicy: clonePlain(targeting.eligibilityPolicy ?? targeting.eligibility ?? {}) ?? {},
     refinementPolicy: clonePlain(targeting.refinementPolicy ?? targeting.refinement ?? {}) ?? {},
+    // How many sizes larger than its source a target may be (2024 Grapple and Shove: one).
+    ...(Number.isFinite(Number(targeting.maxSizeAboveSource)) && (targeting.maxSizeAboveSource !== null)
+      ? {maxSizeAboveSource: Number(targeting.maxSizeAboveSource)} : {}),
     metadata: clonePlain(targeting.metadata ?? {}) ?? {}
   };
 }

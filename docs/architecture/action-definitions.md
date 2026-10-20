@@ -169,12 +169,13 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 
 | Action | What it does |
 | --- | --- |
-| Dash | Dashing until the end of the turn: + the creature's Speed to its movement |
+| Dash | Dashing until the end of the turn: its Speed doubled after its Modifiers (`speed.multiplier` ×2, 2026-10-20) |
 | Disengage | Disengaged until the end of the turn |
 | Dodge | Dodging until the start of its next turn: attacks against it have disadvantage, its Agility saves advantage |
-| Help | An enemy within 5 ft is Distracted until the start of your next turn: the next attack against it has advantage |
+| Help | An enemy within 5 ft is Distracted until the start of your next turn: an ally's next attack against it has advantage |
+| Help (a check) | `assist`: an ally within 30 ft has advantage on its next check with one of the helper's skill proficiencies, until the start of the helper's next turn (2026-10-20) |
 | Hide | A DC 15 Agility (Stealth) check; on a success, Invisible |
-| Grapple | The target makes a Might save, DC 8 + Might modifier + Proficiency Bonus; on a failure, Grappled |
+| Grapple | The target makes a Might or Agility save (the one it is likelier to pass), DC 8 + Might modifier + Proficiency Bonus; on a failure, Grappled. Not on a creature more than one size larger |
 | Shove: Prone | The same save; on a failure, Prone |
 | Shove: Push | The same save; on a failure, pushed 5 feet away (forced movement, areas.md) |
 | Unarmed Strike | A melee attack for 1 + Might modifier bludgeoning damage |
@@ -195,10 +196,24 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
   with Heroic Inspiration. 2024 sets no DC: the GM judges. Live: Player1's Search spent the QA Fighter's Action and
   rolled Perception, 1d20 + 5. Its card comes just before the Action's own.
 
+**2024 details (2026-10-20).**
+- **Grapple, Shove, Push:** `save.abilities: ["might", "agility"]`. The runtime gives each target the save it is
+  likelier to pass against the DC (`bestSaveAbility`: its bonus, cover, roll modes, automatic failures) as
+  `save.abilityByTarget`. `targeting.maxSizeAboveSource: 1` refuses a target more than one size larger.
+- **Dash:** a ×2 factor on every Speed, so Exhaustion, Slow and Haste count.
+- **Help:** its Distracted gives Advantage only to an ally of the helper (`attack.helpedByAlly`), and ends with that
+  ally's attack (`endsWhen: "attackedByAllyOfSource"`).
+- **Assist:** its Advantage ends when the ally makes a check with that skill, from an Action or the sheet
+  (`endsWhen: "checks"`, `endEffectsWhenChecked`).
+- Live (two browsers, 14.369):
+  - QA Caster's Grapple: the Bandit Captain saved with Agility (+7), not Might.
+  - A Huge Hill Giant could not be grappled.
+  - With Exhaustion 2, Dash took QA Caster's 20 ft to 40.
+  - QA Fighter Helped against the Captain; QA Caster's Dagger rolled 2d20kh and the help ended.
+  - QA Fighter assisted QA Caster's Athletics: a Stealth check rolled 1d20, then Athletics 2d20kh, which used it up.
+
 Shortcuts:
-- the Dash Speed is the creature's own, before Modifiers;
-- Grapple and Shove use a Might save, where 2024 lets the target choose Might or Agility;
-- Grapple and Shove work on a creature of any size; 2024 allows one size larger than you at most;
+- a second Dash in one turn adds nothing more;
 - Disengage stops the common Opportunity Attack, but not a movement reaction a creature's own content defines.
   Being pushed or teleported out of reach provokes none (2024).
 
@@ -206,8 +221,7 @@ With the `bonusActionShove` world setting (Baldur's Gate 3, off by default) both
 and the authority build them alike. Live: with it on, Player1's Shove: Push spent QA Caster's Bonus Action and left
 its Action.
 
-Help covers the 2024 attack assist; any creature's next attack uses it, not only an ally's, and helping a check is by
-hand. Live (two browsers): Player1's Help on the Bandit Captain, then an Unarmed Strike while Prone, rolled `1d20 + 1`
+Help covers the 2024 attack assist; Help (a check) the other half. Live (two browsers): Player1's Help on the Bandit Captain, then an Unarmed Strike while Prone, rolled `1d20 + 1`
 (the advantage cancelled Prone's disadvantage) and Distracted ended.
 
 Not yet: Magic (a spell or magic item's own Action already is one) and Ready (the GM's call).

@@ -1,3 +1,4 @@
+import {effectsFrom} from "../helpers/effect-sources.mjs";
 import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-adapter.mjs";
 import {createReachFootprint, footprintDistance} from "../helpers/grid-footprints.mjs";
 import {WILDPATH} from "../config.mjs";
@@ -46,6 +47,32 @@ export function allyNearTarget(attacker: AuraToken | null, target: AuraToken | n
     const ally = footprintOf(token);
     return !!ally && ((footprintDistance as (a: Data, b: Data) => number)(ally, at) * scene.grid.distance <= 5);
   });
+}
+
+/** Whether `other` is an ally of `token` by disposition (not `token` itself). */
+export function alliedTokens(token: AuraToken | null | undefined, other: AuraToken | null | undefined) {
+  return !!(token && other) && (token.id !== other.id) && affectsToken("allies", token, other);
+}
+
+/**
+ * The Token on `scene` that gave `effect` to its creature (the effect names its source: effect-sources.mjs), or null.
+ */
+export function effectGiver(effect: {id?: string}, holder: unknown, scene: AuraScene | null | undefined): AuraToken | null {
+  return [...(scene?.tokens ?? [])].find(token => token.actor
+    && (effectsFrom as unknown as (holder: unknown, source: unknown) => Array<{id?: string}>)(holder, token.actor)
+      .some(entry => entry.id === effect.id)) ?? null;
+}
+
+/**
+ * 2024 Help with an attack: whether `target` has a Distracted effect whose helper is an ally of `attacker` (and not the
+ * attacker): that ally's attack roll against it has Advantage (`attack.helpedByAlly`).
+ */
+export function helpedByAlly(attacker: AuraToken | null | undefined, target: {effects?: Iterable<{id?: string; disabled?: boolean;
+  statuses?: Iterable<string>}>} | null | undefined) {
+  const scene = attacker?.parent;
+  if ( !attacker || !scene || !target ) return false;
+  return [...(target.effects ?? [])].some(effect => !effect.disabled && new Set(effect.statuses ?? []).has("distracted")
+    && alliedTokens(attacker, effectGiver(effect, target, scene)));
 }
 
 /** How far `other` stands from `token`, in feet, when it is `token` itself (0) or its ally by disposition; else null. */
