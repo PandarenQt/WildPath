@@ -26,7 +26,7 @@ export interface LevelActor {
   getActiveTokens(linked?: boolean, document?: boolean): Array<{update(data: Data): Promise<unknown>}>;
 }
 interface IndexEntry {uuid: string; name: string; type?: string; system?: {classIdentifier?: string}; flags?: {wildpath?: {source?: {feat?: string;
-  system?: string; book?: string; rules?: string; thirdParty?: boolean; identifier?: string}; prerequisites?: Prerequisites}}}
+  system?: string; book?: string; rules?: string; thirdParty?: boolean; identifier?: string; subtype?: string | null}; prerequisites?: Prerequisites}}}
 interface Globals {
   foundry: {applications: {api: {DialogV2: {wait(config: Data): Promise<unknown>}}};
     utils: {escapeHTML(text: string): string; mergeObject(target: Data, source: Data): Data}};
@@ -104,7 +104,9 @@ function stepHtml(step: LevelStep, index: number, actor: LevelActor, view: View)
     case "choice": {
       // Not what it already has; one it has may be replaced where the class allows it (Fighting Style, Invocations).
       // Only what it meets the prerequisites of, at this class level (an Invocation's "Warlock 5").
-      const {options: all, owned} = choiceOptions(entry.items ?? [], actor.items.filter(() => true) as unknown as Parameters<typeof choiceOptions>[1]);
+      const pool = entry.items ?? (entry.pool?.subtype ? [...view.entries.values()].filter(option => option.flags?.wildpath?.source?.subtype
+        === entry.pool!.subtype).map(option => option.uuid) : []);
+      const {options: all, owned} = choiceOptions(pool, actor.items.filter(() => true) as unknown as Parameters<typeof choiceOptions>[1]);
       const options = all.filter(uuid => view.allows(uuid, Number(entry.level) || 0));
       const replace = (entry.replacement && owned.length) ? `<label>${localize("WILDPATH.LEVELUP.Replace")} <select name="${name}.replace" data-replace>
         <option value="">${localize("WILDPATH.LEVELUP.ReplaceNone")}</option>${owned.map(item => `<option value="${escape(item.id)}">${
@@ -366,7 +368,11 @@ async function apply(actor: LevelActor, item: LevelItem, {level, steps, form, fi
   }
   await actor.update(updates);
   if ( footprint ) await Promise.all(actor.getActiveTokens(false, true).map(token => token.update({width: footprint, height: footprint})));
-  await addItems(actor, uuids, item);
+  const added = await addItems(actor, uuids, item);
+  // A feat that gives choices of its own (Eldritch Adept) asks them now, as its own level 0.
+  for ( const created of added ) if ( (created.type === "feature") && (created.system.advancement ?? []).length ) {
+    await levelUp(actor, created, {level: 0, confirm: false});
+  }
   // What it replaced stays, inactive, as its history: its rules, training and Actions stop (it can be switched back).
   for ( const {id, by} of replaced ) await actor.items.get?.(id)?.update({"system.active": false,
     "flags.wildpath.replaced": {atLevel: level, by}});

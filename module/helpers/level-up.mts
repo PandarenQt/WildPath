@@ -9,6 +9,8 @@ type Data = Record<string, unknown>;
 export interface AdvancementEntry {
   level?: number; type: string; title?: string | null; classRestriction?: string;
   items?: string[]; optional?: boolean; count?: number; replacement?: boolean;
+  /** A choice of any option of a kind, by its source subtype (Eldritch Adept's Invocation), in place of `items`. */
+  pool?: {subtype: string};
   grants?: string[]; choices?: Array<{count: number; pool: string[]}>;
   points?: number; cap?: number; abilities?: string[]; fixed?: Record<string, number>; feat?: boolean;
   sizes?: string[];

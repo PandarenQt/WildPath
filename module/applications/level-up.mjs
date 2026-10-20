@@ -66,7 +66,9 @@ function stepHtml(step, index, actor, view) {
         case "choice": {
             // Not what it already has; one it has may be replaced where the class allows it (Fighting Style, Invocations).
             // Only what it meets the prerequisites of, at this class level (an Invocation's "Warlock 5").
-            const { options: all, owned } = choiceOptions(entry.items ?? [], actor.items.filter(() => true));
+            const pool = entry.items ?? (entry.pool?.subtype ? [...view.entries.values()].filter(option => option.flags?.wildpath?.source?.subtype
+                === entry.pool.subtype).map(option => option.uuid) : []);
+            const { options: all, owned } = choiceOptions(pool, actor.items.filter(() => true));
             const options = all.filter(uuid => view.allows(uuid, Number(entry.level) || 0));
             const replace = (entry.replacement && owned.length) ? `<label>${localize("WILDPATH.LEVELUP.Replace")} <select name="${name}.replace" data-replace>
         <option value="">${localize("WILDPATH.LEVELUP.ReplaceNone")}</option>${owned.map(item => `<option value="${escape(item.id)}">${escape(item.name)}</option>`).join("")}</select></label>` : "";
@@ -340,7 +342,12 @@ async function apply(actor, item, { level, steps, form, first, hitDie, fortitude
     await actor.update(updates);
     if (footprint)
         await Promise.all(actor.getActiveTokens(false, true).map(token => token.update({ width: footprint, height: footprint })));
-    await addItems(actor, uuids, item);
+    const added = await addItems(actor, uuids, item);
+    // A feat that gives choices of its own (Eldritch Adept) asks them now, as its own level 0.
+    for (const created of added)
+        if ((created.type === "feature") && (created.system.advancement ?? []).length) {
+            await levelUp(actor, created, { level: 0, confirm: false });
+        }
     // What it replaced stays, inactive, as its history: its rules, training and Actions stop (it can be switched back).
     for (const { id, by } of replaced)
         await actor.items.get?.(id)?.update({ "system.active": false,
