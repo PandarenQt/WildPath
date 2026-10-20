@@ -158,3 +158,13 @@ test("an ability score is a rule row: which ability, how it changes, the score a
   assert.deepEqual(stone.ruleElements[0].data, {ability: "fortitude", mode: "add", value: 2, maximum: 20});
   assert.equal(defaultRule("abilityScore", "new").type, "AbilityScore");
 });
+
+test("a sense row (GrantSense): its sense and range, edited and rebuilt", () => {
+  const rules = [defaultRule("sense", "devils-sight")];
+  assert.deepEqual(rules[0].data, {sense: "darkvision", range: 60});
+  const [row] = rulesToRows(rules, {abilities});
+  assert.deepEqual([row.kind, row.sense, row.range], ["sense", "darkvision", 60]);
+  const edited = rowsToRules(form([{...row, sense: "truesight", range: "120"}]), rules, {abilities}).ruleElements;
+  assert.deepEqual([edited[0].type, edited[0].data], ["GrantSense", {sense: "truesight", range: 120}]);
+  assert.deepEqual(ruleGaps(edited), [], "nothing it can't show");
+});

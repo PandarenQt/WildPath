@@ -40,6 +40,12 @@
         <label class="checkbox"><input type="checkbox" name="{{row.name}}.hover" {{checked row.hover}}>
           {{localize "WILDPATH.RULES.Hover"}}</label>
       {{/if}}
+      {{#if row.isSense}}
+        <select name="{{row.name}}.sense" aria-label="{{localize "WILDPATH.RULES.SenseLabel"}}">
+          {{selectOptions ../ctx.senses selected=row.sense localize=true}}</select>
+        <label>{{localize "WILDPATH.RULES.Range"}}
+          <input type="number" name="{{row.name}}.range" value="{{row.range}}" min="0" step="5"></label>
+      {{/if}}
       {{#if row.isResource}}
         <input type="text" name="{{row.name}}.resourceLabel" value="{{row.resourceLabel}}" placeholder="Spirit Points"
                aria-label="{{localize "WILDPATH.RULES.ResourceLabel"}}">

@@ -10,7 +10,8 @@ import { WILDPATH } from "../config.mjs";
 import { DEFAULT_RULE_ELEMENT_REGISTRY, evaluateRuleElement, normalizeRuleElementType, validateRuleElementDefinition } from "./rule-elements.mjs";
 const TYPE_OF_KIND = { bonus: "Modifier", rollMode: "RollMode", resistance: "GrantResistance",
     immunity: "GrantImmunity", vulnerability: "GrantVulnerability", conditionImmunity: "ConditionImmunity", reveal: "Reveal",
-    speed: "GrantMovement", resource: "GrantResource", extraDamage: "ExtraDamage", abilityScore: "AbilityScore", aura: "Aura" };
+    speed: "GrantMovement", sense: "GrantSense", resource: "GrantResource", extraDamage: "ExtraDamage", abilityScore: "AbilityScore",
+    aura: "Aura" };
 const KIND_OF_TYPE = Object.fromEntries(Object.entries(TYPE_OF_KIND).map(([kind, type]) => [type, kind]));
 /** The kinds a row can be; an aura's own rules can be any but another aura. */
 export const RULE_KINDS = Object.freeze(Object.keys(TYPE_OF_KIND));
@@ -104,6 +105,8 @@ function ruleToRow(rule, abilities) {
         conditions: listText(data.conditions),
         distance: number(data.distance ?? data.value),
         hover: data.hover === true,
+        sense: typeof data.sense === "string" ? data.sense : "darkvision",
+        range: number(data.range ?? data.value),
         resourceId: data.resourceId ?? data.resource ?? "",
         resourceLabel: data.label ?? "",
         maximum: maximum ?? "",
@@ -143,6 +146,7 @@ const ROW_DATA = {
     conditionImmunity: ["conditions"],
     reveal: ["details"],
     speed: ["mode", "movementMode", "distance", "value", "hover"],
+    sense: ["sense", "range", "value"],
     resource: ["resourceId", "resource", "label", "maximum", "max", "recovery", "current", "emptiesAtTurnStart", "recharge", "regain"],
     extraDamage: ["domains", "domain", "selector", "expression", "valueExpression", "damageType", "once"],
     abilityScore: ["ability", "mode", "value", "maximum"],
@@ -199,6 +203,7 @@ export function defaultRule(kind, id) {
         case "conditionImmunity": return rule({ conditions: ["charmed"] });
         case "reveal": return rule({ details: ["defenses"] });
         case "speed": return rule({ mode: "fly", distance: 30 });
+        case "sense": return rule({ sense: "darkvision", range: 60 });
         case "resource": return rule({ resourceId: "points", label: "Points", maximum: 1, recovery: "longRest" });
         case "extraDamage": return rule({ domains: ["damage.melee"], expression: { type: "dice", number: 1, faces: 6 }, damageType: "fire", once: "turn" });
         case "abilityScore": return rule({ ability: "might", mode: "upgrade", value: 19 });
@@ -293,6 +298,14 @@ function writeRule(stored, row, model, field, errors, options, index, siblings) 
                 set("types", undefined);
                 set("damageType", undefined);
                 set("damageTypes", listOf(row.damageTypes));
+            }
+            break;
+        case "sense":
+            if (changed("sense"))
+                set("sense", row.sense || "darkvision");
+            if (changed("range")) {
+                set("value", undefined);
+                set("range", Math.max(0, number(row.range) ?? 0));
             }
             break;
         case "speed":

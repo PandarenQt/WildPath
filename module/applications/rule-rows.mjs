@@ -1,4 +1,5 @@
 import {MOVEMENT_MODES, RULE_KINDS, WHILE_PREDICATES, ruleDomains, rulesToRows} from "../helpers/rule-builder.mjs";
+import {SENSES} from "../helpers/senses.mjs";
 
 /** The rule-rows partial, shared by the item sheet, an Action's custom effects and the effect sheet. */
 export const RULE_ROWS_TEMPLATE = "systems/wildpath/templates/item/rule-rows.hbs";
@@ -55,7 +56,7 @@ export function ruleRowsContext(ruleElements, {prefix, field=prefix, list, error
       ...row, name, path: at.join("."),
       isOther: row.kind === "other", isBonus: row.kind === "bonus", isRollMode: row.kind === "rollMode",
       isDamageTypes: ["resistance", "immunity", "vulnerability"].includes(row.kind),
-      isConditions: row.kind === "conditionImmunity", isSpeed: row.kind === "speed", isResource: row.kind === "resource",
+      isConditions: row.kind === "conditionImmunity", isSpeed: row.kind === "speed", isSense: row.kind === "sense", isResource: row.kind === "resource",
       isExtraDamage: row.kind === "extraDamage", isAura: row.kind === "aura", isAbilityScore: row.kind === "abilityScore",
       scoreAdds: row.scoreMode === "add",
       hasAppliesTo: ["bonus", "rollMode", "extraDamage"].includes(row.kind),
@@ -74,6 +75,7 @@ export function ruleRowsContext(ruleElements, {prefix, field=prefix, list, error
       modifierTypes: Object.fromEntries(Object.entries(CONFIG.WILDPATH.MODIFIER_TYPES).map(([key, type]) => [key, type.label])),
       modes: options(["advantage", "disadvantage"], "WILDPATH.RULES.Mode."),
       movementModes: options(MOVEMENT_MODES, "WILDPATH.RULES.Movement."),
+      senses: options(SENSES, "WILDPATH.SENSES."),
       recovery: options(CONFIG.WILDPATH.RESOURCE_RECOVERY, "WILDPATH.RULES.Recovery."),
       affects: options(["allies", "enemies", "all"], "WILDPATH.RULES.Affects."),
       abilities: Object.fromEntries(Object.entries(CONFIG.WILDPATH.ABILITIES).map(([key, ability]) => [key, ability.label])),
