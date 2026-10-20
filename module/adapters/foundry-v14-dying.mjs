@@ -1,6 +1,9 @@
 import { mutationTargetIdentity } from "../helpers/mutation-target.mjs";
 import { resolveTargetLookupValue, targetLookupRefs } from "../helpers/target-actor-refs.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
+import { zeroHpFor } from "./foundry-v14-zero-hp.mjs";
+import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
+import { commitActorResourceMutationPlan } from "../resolvers/resource-resolver.mjs";
 export const DEATH_SAVE_DC = 10;
 const RESET = Object.freeze({ successes: 0, failures: 0 });
 const STABLE = Object.freeze({ successes: 3, failures: 0 });
@@ -145,13 +148,19 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
         if (types.length)
             await actor.update(Object.fromEntries(types.map(type => [`flags.wildpath.damageTaken.${type}`, true])));
     }
-    /** The health changes `plans` committed on `actor` (a condition's damage at turn start). */
-    async function afterPlans(actor, plans = [], { critical = false } = {}) {
+    /**
+     * The health changes `plans` committed on `actor` (a condition's damage at turn start). With `rescue`, damage outside
+     * an Action that dropped it to 0 may keep it up first (rescueAtZero); an Action's own damage was checked before
+     * commit, so `afterResolution` never rescues.
+     */
+    async function afterPlans(actor, plans = [], { critical = false, rescue = false } = {}) {
         if (!actor || !isActiveGM())
             return;
         for (const entry of plans) {
             const change = (entry.plan ?? entry);
             const type = String((entry.plan ? (change.type ?? entry.type) : entry.type) ?? "");
+            if (rescue && DAMAGE.has(type) && await rescueAtZero(actor, change))
+                continue;
             if (DAMAGE.has(type))
                 await recordStoppingDamage(actor, entry);
             let consequence = dyingAfterChange({ change: { ...change, type }, critical, character: savesForDeath(actor),
@@ -162,6 +171,47 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
             }
             await apply(actor, consequence);
         }
+    }
+    /**
+     * Damage outside an Action that dropped `actor` from above 0 to 0, not by massive damage: its drop-to-0 rule
+     * (Relentless Endurance, Relentless Rage, Undead Fortitude; zeroHpFor) may keep it up. Its use is paid; a save is a
+     * save-only authority Action on it, so the dice policy prompts its controller or rolls. True when it stayed up.
+     */
+    async function rescueAtZero(actor, change) {
+        if (!((Number(change.from) || 0) > 0) || ((Number(change.to) || 0) !== 0)
+            || ((Number(change.overflow) || 0) >= (Number(change.max) || 0)))
+            return false;
+        let system;
+        try {
+            system = foundryActorSystemSnapshot(actor);
+        }
+        catch {
+            return false;
+        }
+        const rule = zeroHpFor(actor, system);
+        if (!rule)
+            return false;
+        const metadata = (change.metadata ?? {});
+        const byType = metadata.damageResult?.byDamageType ?? {};
+        if ((rule.notOn ?? []).some((reason) => (reason === metadata.damageType) || (Number(byType[reason]) > 0)))
+            return false;
+        if (rule.payment?.plan)
+            await commitActorResourceMutationPlan(actor, rule.payment.plan);
+        let kept = rule.mode !== "save";
+        if (!kept) {
+            const dc = rule.dc ?? ((Number(rule.dcPlusDamage) || 0) + (Number(change.amount) || 0));
+            const self = actor;
+            const token = self.isToken ? (self.token ?? null) : (self.getActiveTokens?.(false, true)?.[0] ?? null);
+            const where = token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {};
+            const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
+                resolutionId: `zero-hp:${actor.uuid}:${++sequence}`, label: String(rule.name ?? ""), actorRef: actor.uuid, source: where,
+                target: { actorRef: actor.uuid, ...where }, definition: { schemaVersion: 1, id: "action:zero-hp-save", label: String(rule.name ?? ""),
+                    costs: { allOf: [] }, save: { ability: rule.ability, dc: { value: dc } } } });
+            kept = (state?.results?.saveResolution?.successes?.length ?? 0) > 0;
+        }
+        if (kept)
+            await actor.update({ "system.resources.health.value": rule.hitPoints });
+        return kept;
     }
     /** After an Action: each target whose health it changed, a critical hit counting as two failed saves at 0. */
     async function afterResolution({ options, state }) {

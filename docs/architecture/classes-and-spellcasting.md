@@ -396,6 +396,8 @@ Live (two browsers, 14.369):
   DC 16 kept it at 1 HP ("Undead Fortitude: stays up").
 - **Dark One's Blessing:** QA Caster as a level-5 warlock dropped the hostile Captain with Fire Bolt and gained 5
   Temporary Hit Points.
+- **Damage over time (2026-10-20):** QA Caster at 1 HP with Relentless Endurance and Bleeding started its round. It
+  stayed at 1 HP, and the use was spent. With no use left, the next tick dropped it Unconscious.
 
 ## Dice on a failed d20 test (2026-10-20)
 
