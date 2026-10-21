@@ -41,35 +41,35 @@
           "options": [
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmBrownBear00000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmBrownBear00000"
+              "label": "Brown Bear"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantBoar00000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmGiantBoar00000"
+              "label": "Giant Boar"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmRat00000000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmRat00000000000"
+              "label": "Rat"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmOwl00000000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmOwl00000000000"
+              "label": "Owl"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmLion0000000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmLion0000000000"
+              "label": "Lion"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmGoat0000000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmGoat0000000000"
+              "label": "Goat"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmMastiff0000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmMastiff0000000"
+              "label": "Mastiff"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantGoat00000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmGiantGoat00000"
+              "label": "Giant Goat"
             }
           ]
         }
@@ -77,6 +77,10 @@
       "summon": {
         "choiceId": "summon-creature",
         "count": 1
+      },
+      "draw": {
+        "table": "Compendium.wildpath.srd-tables.RollTable.dmgRustBagOfTric",
+        "choiceId": "summon-creature"
       },
       "label": "Rust Bag of Tricks"
     },

@@ -48,9 +48,11 @@ itself is `dnd5e-to-wildpath.mjs`.
   as the owner's, or its name does); a creature's lore table never is. A result naming a converted document names
   WildPath's (`Compendium.wildpath.srd-creatures.Actor.mmWeasel00000000`), any other is its text; links in their text
   are rewritten so or left as their label; only Foundry's own art is kept (`convertTable`). Foundry draws them as any
-  table. shortcut: a drawn outcome is not applied for you (a Bag of Tricks' beast is summoned from the bag's own
-  Action; a Wand of Wonder's spell is cast by hand); upgrade with a draw that runs the Action its result names.
-  Live (14.369): the Gray Bag of Tricks rolled 8, Giant Elk, the SRD creature.
+  table. An item whose table picks its creature (a Bag of Tricks: its description embeds the table) draws it when used
+  (`definition.draw: {table, choiceId}`, `Item#use`): the result names the option its summon takes. shortcut: other
+  drawn outcomes are not applied for you (a Wand of Wonder's spell is cast by hand); upgrade with a draw that runs the
+  Action its result names. Live (14.369): the Gray Bag of Tricks table rolled 8, Giant Elk, the SRD creature; using the
+  Gray Bag of Tricks drew it and summoned a Dire Wolf beside its holder.
 - **Reading dnd5e's packs.** Copy them out of the dnd5e system folder, extract the copy with the Foundry CLI
   (`extractPack`), and point the script at the extracted folder. Opening a LevelDB pack writes to it.
 - **The mapping.**

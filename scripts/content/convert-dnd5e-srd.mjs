@@ -43,6 +43,17 @@ const creatures = withRedirects(Object.fromEntries(readPack(from, "actors24").fi
 // The Beasts Polymorph may choose.
 const beasts = beastsOf(readPack(from, "actors24").filter(isSrd2024), document => creatures[document._id]);
 
+// Its tables: only those of an SRD 5.2 magic item or spell (a table's id begins as its owner's: dmgWandOfWonderE of the
+// Wand of Wonder; or its name does: Gray Bag of Tricks), never a creature's lore table, which this export does not license.
+const tableOwners = [...readPack(from, "equipment24"), ...readPack(from, "spells24")].filter(isSrd2024);
+const ownedTables = readPack(from, "tables24").filter(table => Array.isArray(table.results)).flatMap(table => {
+  const owner = tableOwners.find(document => document._id.slice(0, 12).toLowerCase() === table._id.slice(0, 12).toLowerCase())
+    ?? tableOwners.find(document => (document.name.length >= 6) && table.name.startsWith(document.name));
+  return owner ? [{table, owner}] : [];
+});
+// An item drawing its own table when used (a Bag of Tricks): its converted table's uuid, by dnd5e id.
+const tables = Object.fromEntries(ownedTables.map(({table}) => [table._id, `Compendium.wildpath.srd-tables.RollTable.${table._id}`]));
+
 const items = [];
 const actors = [];
 const progressions = [];
@@ -52,7 +63,7 @@ const convertedIds = new Map();
 for ( const pack of ITEM_PACKS ) {
   for ( const document of readPack(from, pack).filter(wanted) ) {
     if ( !["spell", "weapon", "feat", "equipment", "consumable", "tool", "loot", "container"].includes(document.type) ) continue;
-    const result = convertItem(document, {scales, pack, names, creatures, spells, beasts});
+    const result = convertItem(document, {scales, pack, names, creatures, spells, beasts, tables});
     items.push(...result.items);
     const gear = result.items.filter(item => item.type === "gear");
     const granting = result.items.filter(item => item.flags?.wildpath?.grants?.length);
@@ -78,21 +89,14 @@ for ( const document of readPack(from, "actors24").filter(wanted) ) {
   report.push({pack: "actors24", name: document.name, converted: [`${result.actor.name} (${result.actor.items.length} items)`], notes: result.notes});
 }
 
-// Its tables: only those of an SRD 5.2 magic item or spell (a table's id begins as its owner's: dmgWandOfWonderE of the
-// Wand of Wonder; or its name does: Gray Bag of Tricks), never a creature's lore table, which this export does not license.
-const tableOwners = [...readPack(from, "equipment24"), ...readPack(from, "spells24")].filter(isSrd2024);
 const tableUuid = uuid => {
   const id = String(uuid ?? "").split(".").pop();
   if ( String(uuid).includes(".actors24.") || String(uuid).includes(".monsters.") ) return creatures[id] ?? null;
   const converted = convertedIds.get(id)?.[0];
   return converted ? `Compendium.wildpath.srd-items.Item.${converted}` : null;
 };
-const tables = readPack(from, "tables24").filter(table => Array.isArray(table.results)).flatMap(table => {
-  const owner = tableOwners.find(document => document._id.slice(0, 12).toLowerCase() === table._id.slice(0, 12).toLowerCase())
-    ?? tableOwners.find(document => (document.name.length >= 6) && table.name.startsWith(document.name));
-  return owner ? [convertTable(table, {uuidOf: tableUuid, source: {system: "dnd5e", pack: "tables24", id: table._id, book: "SRD 5.2",
-    license: "CC-BY-4.0", rules: "2024", owner: owner.name}})] : [];
-});
+const convertedTables = ownedTables.map(({table, owner}) => convertTable(table, {uuidOf: tableUuid, source: {system: "dnd5e",
+  pack: "tables24", id: table._id, book: "SRD 5.2", license: "CC-BY-4.0", rules: "2024", owner: owner.name}}));
 
 /** What a converted Item is: automated, manual (it spends its cost only), or a passive feature. */
 function kind(item) {
@@ -101,7 +105,7 @@ function kind(item) {
 }
 
 // Never anything but SRD 5.2 under the repository.
-for ( const document of [...items, ...actors, ...progressions, ...tables] ) {
+for ( const document of [...items, ...actors, ...progressions, ...convertedTables] ) {
   if ( (document.flags.wildpath.source.license !== "CC-BY-4.0") || (document.flags.wildpath.source.book !== "SRD 5.2") ) {
     throw new Error(`${document.name} is not SRD 5.2 content; nothing was written`);
   }
@@ -114,7 +118,7 @@ const write = (folder, documents) => {
 write("packs/_source/srd-items", items);
 write("packs/_source/srd-creatures", actors);
 write("packs/_source/srd-classes", progressions);
-write("packs/_source/srd-tables", tables);
+write("packs/_source/srd-tables", convertedTables);
 
 const counts = items.reduce((total, item) => ({...total, [kind(item)]: (total[kind(item)] ?? 0) + 1}), {});
 const rows = report.sort((a, b) => a.name.localeCompare(b.name)).map(entry => `| ${entry.name} | ${entry.pack} | ${entry.converted.join(", ") || "—"} | ${

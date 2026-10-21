@@ -41,35 +41,35 @@
           "options": [
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmApe00000000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmApe00000000000"
+              "label": "Ape"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmJackal00000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmJackal00000000"
+              "label": "Jackal"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmBaboon00000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmBaboon00000000"
+              "label": "Baboon"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmAxeBeak0000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmAxeBeak0000000"
+              "label": "Axe Beak"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmBlackBear00000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmBlackBear00000"
+              "label": "Black Bear"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantWeasel000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmGiantWeasel000"
+              "label": "Giant Weasel"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantHyena0000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmGiantHyena0000"
+              "label": "Giant Hyena"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmTiger000000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmTiger000000000"
+              "label": "Tiger"
             }
           ]
         }
@@ -77,6 +77,10 @@
       "summon": {
         "choiceId": "summon-creature",
         "count": 1
+      },
+      "draw": {
+        "table": "Compendium.wildpath.srd-tables.RollTable.dmgTanBagOfTrick",
+        "choiceId": "summon-creature"
       },
       "label": "Tan Bag of Tricks"
     },

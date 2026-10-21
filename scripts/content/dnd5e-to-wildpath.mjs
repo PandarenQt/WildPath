@@ -1075,7 +1075,7 @@ export function upgradeLegacy(document) {
  * @returns {{ok: true, items: object[], notes: string[]} | {ok: false, reason: string}}
  */
 export function convertItem(document, {scales={}, pack=null, saveDC=null, spellDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2",
-  images=["icons/"], spells={}, creatures={}, beasts=[], usesOf={}}={}) {
+  images=["icons/"], spells={}, creatures={}, beasts=[], usesOf={}, tables={}}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   document = upgradeLegacy(document);
   const system = document.system ?? {};
@@ -1179,7 +1179,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       pool, names, scales}), range: {type: "self"}, targeting: {type: "self"}} : null)
       ?? commonActivity({document, activity, system, spell, level, pool}) ?? (ACTIVITIES.has(activity.type)
       ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature, beasts, names})
-      : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts, scales})
+      : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts, scales,
+        tables})
         : ((activity.type === "teleport") ? teleportDefinition({document, activity, system, spell, level, notes, pool})
           : ((activity.type === "transform") ? wildShapeDefinition({document, activity, system, spell, level, notes, pool, beasts})
             : (enchant ? enchantDefinition({document, activity, system, spell, level, pool, enchant})
@@ -2309,7 +2310,7 @@ export function withRedirects(creatures, redirects) {
  * rounds) or while it concentrates: its creature, or a choice of its creatures, from `creatures` (dnd5e Actor id to
  * WildPath uuid). Null when it chooses by Challenge Rating, or names a creature not converted.
  */
-function summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts=[], scales={}}) {
+function summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts=[], scales={}, tables={}}) {
   // Chosen by Challenge Rating (Find Familiar, Pact of the Chain, Wild Companion): each converted Beast of a profile's
   // CR or lower. shortcut: a Celestial, Fey or Fiend form (Find Familiar) and other creature types are by hand.
   const byChallenge = activity.summon?.mode === "cr";
@@ -2369,11 +2370,15 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
       ...(activity.summon?.identifier ? {class: activity.summon.identifier} : {})}} : {});
   if ( profiles.length === 1 ) return {...definition, ...(range ? {range} : {}), summon: {actorRef: profiles[0].ref, ...timing}};
   const choice = {id: "summon-creature", type: "select-one", label: "Creature", required: true,
-    options: profiles.map(({profile, ref}) => ({id: ref, label: profile.name || names[String(profile.uuid).split(".").pop()] || ref,
+    options: profiles.map(({profile, ref}) => ({id: ref, label: profile.name || names[String(profile.uuid).split(".").pop()]
+      || names[String(ref).split(".").pop()] || ref,
       // A spell's profile level is its slot's (Find Steed): not its creature's level.
       ...(spell ? {} : levelOf(profile))}))};
+  // A magic item whose table picks the creature (a Bag of Tricks): its use draws it (`draw`, Item#use).
+  const table = /@(?:UUID|Embed)\[Compendium\.dnd5e\.tables24\.RollTable\.(\w+)/.exec(String(system.description?.value ?? ""))?.[1];
+  const drawn = table && tables[table] ? {draw: {table: tables[table], choiceId: choice.id}} : {};
   return {...definition, ...(range ? {range} : {}), configuration: [...(definition.configuration ?? []), choice],
-    summon: {choiceId: choice.id, ...timing}};
+    summon: {choiceId: choice.id, ...timing}, ...drawn};
 }
 
 /** The 2024 common actions an activity may take by name (Cunning Action's Dash, Disengage or Hide). */
