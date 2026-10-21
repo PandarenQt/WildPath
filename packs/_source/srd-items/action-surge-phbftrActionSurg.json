@@ -45,9 +45,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"utility\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

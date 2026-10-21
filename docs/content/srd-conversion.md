@@ -21,7 +21,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Acid Splash | spells24 | Acid Splash (automated) | — |
 | Acolyte | origins24 | Acolyte (background) | — |
 | Acrobatic Movement | classes24 | Acrobatic Movement (feature) | — |
-| Action Surge | classes24 | Action Surge (feature), Action Surge (automated) | "utility" is passive or triggered: not automated |
+| Action Surge | classes24 | Action Surge (feature), Action Surge (automated) | — |
 | Activate Folding Boat | equipment24 | Activate Folding Boat (gear), Activate Folding Boat (1st and 2nd Command) (manual), Activate Folding Boat (3rd Command) (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; not automated (utility): using it spends its cost; its description says the rest |
 | Adamantine Armor | equipment24 | Adamantine Armor (gear) | "Adamantine Armor" is passive or triggered: not automated |
 | Additional Fighting Style | classes24 | Additional Fighting Style (feature) | — |
@@ -205,7 +205,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Boon of Spell Recall | feats24 | Boon of Spell Recall (feature) | "Free Cast Roll" is passive or triggered: not automated |
 | Boon of the Night Spirit | feats24 | Boon of the Night Spirit (automated) | — |
 | Boon of Truesight | feats24 | Boon of Truesight (feature) | — |
-| Boots of Elvenkind | equipment24 | Boots of Elvenkind (gear) | effect: "Boots of Elvenkind" change  (add) not converted |
+| Boots of Elvenkind | equipment24 | Boots of Elvenkind (gear) | — |
 | Boots of Levitation | equipment24 | Boots of Levitation (gear), Boots of Levitation: Levitate (automated) | effect: "Levitating" marks its creature only; its rules are by hand |
 | Boots of Speed | equipment24 | Boots of Speed (gear), Boots of Speed (automated) | — |
 | Boots of Striding and Springing | equipment24 | Boots of Striding and Springing (gear) | effect: "Unburdened Movement" change system.attributes.movement.walk (upgrade) not converted |
@@ -288,7 +288,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Climber's Kit | equipment24 | Climber's Kit (gear) | — |
 | Cloak of Arachnida | equipment24 | Cloak of Arachnida (gear), Cloak of Arachnida: Web (automated) | — |
 | Cloak of Displacement | equipment24 | Cloak of Displacement (gear) | — |
-| Cloak of Elvenkind | equipment24 | Cloak of Elvenkind (gear) | effect: "Cloak of Elvenkind" change  (add) not converted |
+| Cloak of Elvenkind | equipment24 | Cloak of Elvenkind (gear) | text: "Wondrous Item, Uncommon (Requires Attunement)    While you wear this cloak, Wisdom (Perception) checks made to perceive you have Disadvantage, and you have Advantage on Dexterity (Stealth) checks." not converted |
 | Cloak of Invisibility | equipment24 | Cloak of Invisibility (gear), Cloak of Invisibility (automated) | — |
 | Cloak of Protection | equipment24 | Cloak of Protection (gear) | — |
 | Cloak of the Bat | equipment24 | Cloak of the Bat (gear), Cloak of the Bat: Polymorph (automated) | "Grip Edges" is passive or triggered: not automated; transform: a Beast the caster chooses; what the creature may do in its form is by hand |

@@ -10,7 +10,19 @@
     "quantity": 1,
     "weight": 2,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "cloak-of-elvenkind-stealth",
+        "type": "RollMode",
+        "data": {
+          "domains": [
+            "check.stealth"
+          ],
+          "mode": "advantage"
+        }
+      }
+    ],
     "attunement": "required",
     "armor": ""
   },
@@ -29,7 +41,7 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Cloak of Elvenkind\" change  (add) not converted"
+          "text: \"Wondrous Item, Uncommon (Requires Attunement)    While you wear this cloak, Wisdom (Perception) checks made to perceive you have Disadvantage, and you have Advantage on Dexterity (Stealth) checks.\" not converted"
         ]
       }
     }

@@ -268,7 +268,7 @@ const SUBTYPE_CLASS = Object.freeze({artificerInfusion: "artificer"});
  */
 function enchantmentRules(effect) {
   const id = slugify(effect.name);
-  return (effect.changes ?? effect.system?.changes ?? []).flatMap(change => {
+  return effectChanges(effect).flatMap(change => {
     const value = number(change.value);
     if ( !value || (change.type !== "add") ) return [];
     if ( change.key === "system.magicalBonus" ) return ["attack", "damage"].map(domain => ({schemaVersion: 1, id: `${id}-${domain}`,
@@ -740,6 +740,25 @@ const ACTIVITIES = new Set(["attack", "save", "check", "damage", "heal", "utilit
 const SPELL_DC = {type: "add", terms: [{type: "constant", value: 8}, {type: "proficiency-bonus"}, {type: "spellcasting-modifier"}]};
 const SLOT_MODES = new Set(["prepared", "always", "spell", "pact", "ritual"]);
 
+/** An effect's changes (dnd5e keeps them on the effect, or under `system` in newer data). */
+export function effectChanges(effect) {
+  // A blank row (no key; Boots and Cloak of Elvenkind) changes nothing: the effect is as good as empty.
+  return (effect?.changes ?? effect?.system?.changes ?? []).filter(change => change?.key);
+}
+
+/**
+ * An effect's statuses (see above for its changes). Some dnd5e data stored a Set as the string "[object Set]"
+ * (Tasha's Fulminating Treatise, Far Realm Shard, Mighty Servant of Leuk-o): its condition is then only in the effect's
+ * name ("Prone", "Charmed (Destructive)").
+ */
+export function effectStatuses(effect) {
+  const statuses = effect?.statuses ?? [];
+  const slugs = statuses.filter(status => /^[a-z][\w-]*$/u.test(status));
+  if ( slugs.length === statuses.length ) return statuses;
+  const named = String(effect?.name ?? "").toLowerCase().match(/^[a-z]+/u)?.[0];
+  return [...slugs, ...((named && CONDITION_MAP[named] && !slugs.includes(named)) ? [named] : [])];
+}
+
 /** Whether a dnd5e document is SRD 5.2 content its source says may be shared (CC-BY-4.0, 2024 rules). */
 export function isSrd2024(document) {
   const source = document?.system?.source ?? {};
@@ -1056,8 +1075,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       }
       // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.
       const marked = (activity.type === "damage") && Object.values(EFFECTS_BY_HAND).some(hand => hand.bonusDamage === label);
-      // A feature the engine offers on its own (Tactical Mind, with a failed check) needs no Action.
-      if ( !trait && !marked && !metamagic && !OFFERED_BY_ENGINE.has(identifierOf(document)) ) allNotes.push(`"${label}" is passive or triggered: not automated`);
+      // A feature the engine offers on its own (Tactical Mind, with a failed check) needs no Action; one that becomes its
+      // own Action (Action Surge: FEATURE_ACTIONS) is not passive.
+      if ( !trait && !marked && !metamagic && !OFFERED_BY_ENGINE.has(identifierOf(document)) && !FEATURE_ACTIONS[identifierOf(document)] ) {
+        allNotes.push(`"${label}" is passive or triggered: not automated`);
+      }
       continue;
     }
     // Monster spellcasting (G4): a cast activity is its spell, at the activity's cost and uses rather than a slot.
@@ -1258,7 +1280,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     allNotes.push(...notes);
   }
   // What it gives while it is had (worn, for gear): its passive effects' rules.
-  const passive = passiveEffects(document).flatMap(effect => effectRules(effect, allNotes, {scales}));
+  const passive = [...passiveEffects(document).flatMap(effect => effectRules(effect, allNotes, {scales})), ...emptyPassiveRules(document, allNotes)];
   // Equipment is gear its owner equips (G7): armor's AC, and its passive effects. A potion or scroll is only its Actions.
   if ( GEAR_TYPES.has(document.type) && !((document.type === "consumable") && items.length) ) {
     const gearId = items.some(item => item._id === document._id) ? stableId(`${document._id}:gear`) : document._id;
@@ -1273,7 +1295,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {})}}});
   }
   // Halfling Luck: its dnd5e flag is its test offer.
-  if ( (document.effects ?? []).some(effect => (effect.changes ?? effect.system?.changes ?? [])
+  if ( (document.effects ?? []).some(effect => effectChanges(effect)
     .some(change => change.key === "flags.dnd5e.halflingLucky")) ) testOffer ??= structuredClone(HALFLING_LUCK);
   // Nothing to use: a passive ability is a feature carrying its text (and any uses its other Actions spend).
   if ( !items.length ) {
@@ -1411,12 +1433,39 @@ function passiveEffects(document) {
 }
 
 /**
+ * What an Item's passive effects, left empty in dnd5e, name in its text: "Advantage on Dexterity (Stealth) checks" (Boots
+ * and Cloak of Elvenkind) is that skill's roll mode. Read only when every passive effect has no changes and no statuses; a
+ * sentence of Advantage or Disadvantage it can't read is noted (the Cloak's "Perception checks made to see you").
+ */
+function emptyPassiveRules(document, notes=[]) {
+  const effects = passiveEffects(document);
+  if ( !effects.length || effects.some(effect => effectChanges(effect).length || effectStatuses(effect).length) ) return [];
+  const text = String(document.system?.description?.value ?? "").replace(/<[^>]+>/gu, " ");
+  const skills = new Set(Object.values(SKILL_MAP));
+  const own = /\b(Advantage|Disadvantage) on (?:[A-Z][a-z]+ )?\(([A-Z][A-Za-z ]+)\) checks/gu;
+  const rules = [];
+  for ( const sentence of text.split(/(?<=\.)\s+/u).filter(sentence => /\b(?:Advantage|Disadvantage)\b/u.test(sentence)) ) {
+    let rest = sentence;
+    for ( const [phrase, mode, name] of sentence.matchAll(own) ) {
+      const skill = name.toLowerCase().replace(/ /gu, "-");
+      if ( !skills.has(skill) ) continue;
+      rules.push({schemaVersion: 1, id: `${identifierOf(document)}-${skill}`, type: "RollMode",
+        data: {domains: [`check.${skill}`], mode: mode.toLowerCase()}});
+      rest = rest.replace(phrase, "");
+    }
+    // What else it says of Advantage (others' checks "made to see you") is not read.
+    if ( /\b(?:Advantage|Disadvantage)\b/u.test(rest) ) notes.push(`text: "${sentence.trim()}" not converted`);
+  }
+  return rules;
+}
+
+/**
  * The armor and weapon training a feature's passive effects give (2024 Divine Order: Protector's martial weapons and
  * heavy armor), as trait keys its creature gains when the Item is added (`flags.wildpath.training`).
  */
 function trainingKeys(document) {
   const changes = passiveEffects(document)
-    .flatMap(effect => effect.changes ?? effect.system?.changes ?? []);
+    .flatMap(effectChanges);
   return [...new Set(changes.flatMap(change => {
     // 2024 Disciplined Survivor: proficiency in every saving throw.
     if ( change.key === "flags.dnd5e.diamondSoul" ) return Object.values(ABILITY_MAP).map(ability => `saves:${ability}`);
@@ -2549,7 +2598,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
   for ( const reference of references ) {
     const effect = (document.effects ?? []).find(entry => entry._id === reference._id);
     const first = effects.length;
-    const statuses = effect?.statuses ?? [];
+    const statuses = effectStatuses(effect);
     const known = statuses.filter(status => CONDITION_MAP[status]);
     // dnd5e applies an effect on a successful save only when it says so (`onSave` defaults to false).
     const onFailure = definition.save && (reference.onSave !== true) ? {saveOutcomePolicy: "failure"} : {};
@@ -2564,9 +2613,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
     }
     // Its own changes (Bless, Shield of Faith, Haste) become a custom effect with the rules they map to; an effect dnd5e
     // leaves empty (Faerie Fire's) takes its rules from the 2024 text, by hand.
-    const hand = effect && !(effect.system?.changes ?? effect.changes ?? []).length ? byHand : null;
+    const hand = effect && !effectChanges(effect).length ? byHand : null;
     // An effect named as a common action's (Step of the Wind's Disengaged) is that action's own.
-    const common = effect && !hand && !(effect.system?.changes ?? effect.changes ?? []).length ? COMMON_EFFECTS[effect.name] : null;
+    const common = effect && !hand && !effectChanges(effect).length ? COMMON_EFFECTS[effect.name] : null;
     if ( common ) {
       effects.push({...commonRules(common).effects[0], id: `effect-${effects.length + 1}`, ...onFailure,
         ...(concentration ? {concentration: true} : {})});
@@ -3266,7 +3315,7 @@ function effectDuration(duration) {
  * has no equivalent for is noted, never approximated.
  */
 export function effectRules(effect, notes=[], {scales={}}={}) {
-  const changes = effect?.system?.changes ?? effect?.changes ?? [];
+  const changes = effectChanges(effect);
   const rules = [];
   const base = slugify(effect?.name) || "effect";
   const rule = (type, data, predicate=null) => rules.push({schemaVersion: 1, id: `${base}-${rules.length + 1}`, type,
