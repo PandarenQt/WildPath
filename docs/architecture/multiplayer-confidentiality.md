@@ -202,8 +202,9 @@ to the GM). Target names come from the Token, not the Actor, and hidden Tokens g
 
 A reaction is an Action too. When its child resolution completes, it posts its own card from that
 child's `BROADCAST_SAFE` projection. The card is posted once and authored by the reactor's controller.
-That card is public for now, because the chooser's message mode does not yet travel with a reaction
-choice.
+It is posted in that user's message mode (2026-10-21): every answer a client gives carries its
+`core.messageMode` (`metadata.messageMode`), and the authority keeps the latest per user for the resolution, so a
+reaction chosen in GM-only mode posts a GM-only card while the triggering Action's card keeps its own mode.
 
 ## What remains intentionally broadcast
 
