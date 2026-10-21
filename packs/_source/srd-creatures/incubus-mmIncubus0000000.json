@@ -173,10 +173,8 @@
           "effects": [
             {
               "id": "effect-1",
-              "type": "effect",
-              "name": "Cursed",
-              "img": "systems/dnd5e/icons/svg/statuses/cursed.svg",
-              "ruleElements": [],
+              "type": "condition",
+              "conditionId": "cursed",
               "metadata": {
                 "tags": [
                   "curse"
@@ -202,10 +200,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: cursed is not a WildPath condition yet",
-              "effect: \"Cursed\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -386,10 +381,8 @@
           "effects": [
             {
               "id": "effect-1",
-              "type": "effect",
-              "name": "Etherealness",
-              "img": "systems/dnd5e/icons/svg/statuses/ethereal.svg",
-              "ruleElements": [],
+              "type": "condition",
+              "conditionId": "ethereal",
               "duration": {
                 "value": 28800,
                 "units": "seconds",
@@ -419,10 +412,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "effect: ethereal is not a WildPath condition yet",
-              "effect: \"Etherealness\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -904,11 +894,7 @@
       "conversion": {
         "notes": [
           "Succubus Form: \"Shape-Shift: Succubus\" is passive or triggered (narrative): not automated",
-          "Restless Touch: effect: cursed is not a WildPath condition yet",
-          "Restless Touch: effect: \"Cursed\" marks its creature only; its rules are by hand",
           "Spellcasting: effect: \"Disguised\" marks its creature (narrative)",
-          "Spellcasting: effect: ethereal is not a WildPath condition yet",
-          "Spellcasting: effect: \"Etherealness\" marks its creature only; its rules are by hand",
           "Spellcasting: activation: 1 minute is not an action-economy cost"
         ]
       }

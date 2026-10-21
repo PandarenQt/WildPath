@@ -42,6 +42,11 @@
       "effects": [
         {
           "id": "effect-1",
+          "type": "condition",
+          "conditionId": "coverHalf"
+        },
+        {
+          "id": "effect-2",
           "type": "effect",
           "name": "Nature's Ward: Arid",
           "img": "icons/magic/nature/vines-thorned-curled-glow-green.webp",
@@ -59,7 +64,12 @@
           ]
         },
         {
-          "id": "effect-2",
+          "id": "effect-3",
+          "type": "condition",
+          "conditionId": "coverHalf"
+        },
+        {
+          "id": "effect-4",
           "type": "effect",
           "name": "Nature's Ward: Polar",
           "img": "icons/magic/nature/vines-thorned-curled-glow-green.webp",
@@ -77,7 +87,12 @@
           ]
         },
         {
-          "id": "effect-3",
+          "id": "effect-5",
+          "type": "condition",
+          "conditionId": "coverHalf"
+        },
+        {
+          "id": "effect-6",
           "type": "effect",
           "name": "Nature's Ward: Temperate",
           "img": "icons/magic/nature/vines-thorned-curled-glow-green.webp",
@@ -95,7 +110,12 @@
           ]
         },
         {
-          "id": "effect-4",
+          "id": "effect-7",
+          "type": "condition",
+          "conditionId": "coverHalf"
+        },
+        {
+          "id": "effect-8",
           "type": "effect",
           "name": "Nature's Ward: Tropical",
           "img": "icons/magic/nature/vines-thorned-curled-glow-green.webp",
@@ -148,20 +168,28 @@
                 "effect-1",
                 "effect-2",
                 "effect-3",
-                "effect-4"
+                "effect-4",
+                "effect-5",
+                "effect-6",
+                "effect-7",
+                "effect-8"
               ],
               "keep": {
                 "effect-option-1": [
-                  "effect-1"
-                ],
-                "effect-option-2": [
+                  "effect-1",
                   "effect-2"
                 ],
+                "effect-option-2": [
+                  "effect-3",
+                  "effect-4"
+                ],
                 "effect-option-3": [
-                  "effect-3"
+                  "effect-5",
+                  "effect-6"
                 ],
                 "effect-option-4": [
-                  "effect-4"
+                  "effect-7",
+                  "effect-8"
                 ]
               }
             }
@@ -186,12 +214,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: coverHalf is not a WildPath condition yet",
-          "effect: coverHalf is not a WildPath condition yet",
-          "effect: coverHalf is not a WildPath condition yet",
-          "effect: coverHalf is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }

@@ -189,8 +189,9 @@ const perLevel = (id, domains, value) => ({schemaVersion: 1, id: `condition.${id
  * (poison) and Bleeding are built this way; another damage type is one more entry.
  */
 function damageOverTimeCondition({id, name, summary, img, damageType, amount=1, stacking=true, maxLevel, label}) {
-  const perTurn = stacking ? {type: "multiply", terms: [{type: "context", path: "effect.system.level"}, {type: "constant", value: amount}]}
-    : {type: "constant", value: amount};
+  // `amount` is a number, or a ValueExpression of its own (Burning's 1d4).
+  const each = (typeof amount === "object") ? amount : {type: "constant", value: amount};
+  const perTurn = stacking ? {type: "multiply", terms: [{type: "context", path: "effect.system.level"}, each]} : each;
   return {id, name, summary, img, ...(stacking ? {stacking: true} : {}), ...(maxLevel ? {maxLevel} : {}),
     ruleElements: [{schemaVersion: 1, id: `condition.${id}.turn-start-damage`, type: "Trigger", label: label ?? `${id} turn damage`,
       data: {event: "turn.started", payload: {type: "durabilityChange", changeType: "damage", resourceId: "health",
@@ -367,7 +368,28 @@ WILDPATH.CONDITIONS = {
     img: "icons/skills/wounds/blood-cells-disease-green.webp", damageType: "poison", label: "WILDPATH.CONDITIONS.TurnDamageOf.Envenomed"}),
   bleeding: damageOverTimeCondition({id: "bleeding", name: "WILDPATH.CONDITIONS.Bleeding", summary: "WILDPATH.CONDITIONS.Summary.Bleeding",
     img: "icons/skills/wounds/blood-spurt-spray-red.webp", damageType: "bleeding", stacking: false,
-    label: "WILDPATH.CONDITIONS.TurnDamageOf.Bleeding"})
+    label: "WILDPATH.CONDITIONS.TurnDamageOf.Bleeding"}),
+  // 2024 Burning (Alchemist's Fire, a Fire Elemental's touch): 1d4 Fire damage at the start of each of its turns, until
+  // it is put out (an action, by hand: remove it).
+  burning: damageOverTimeCondition({id: "burning", name: "WILDPATH.CONDITIONS.Burning", summary: "WILDPATH.CONDITIONS.Summary.Burning",
+    img: "icons/magic/fire/flame-burning-creature-orange.webp", damageType: "fire", amount: {type: "dice", number: 1, faces: 4}, stacking: false,
+    label: "WILDPATH.CONDITIONS.TurnDamageOf.Burning"}),
+  // A curse (a Mummy's Rotting Fist, an Aboleth's Mucus Cloud): what it does is the effect's or its text's; Remove Curse
+  // ends it (the converter tags it `curse`).
+  cursed: {id: "cursed", name: "WILDPATH.CONDITIONS.Cursed", summary: "WILDPATH.CONDITIONS.Summary.Cursed",
+    img: "icons/magic/unholy/hand-claw-glow-orange.webp", ruleElements: []},
+  // On the Ethereal Plane (Etherealness, Blink): it and a creature that is not can't target each other
+  // (foundry-multiplayer-runtime.mjs).
+  ethereal: {id: "ethereal", name: "WILDPATH.CONDITIONS.Ethereal", summary: "WILDPATH.CONDITIONS.Summary.Ethereal",
+    img: "icons/magic/control/silhouette-hold-change-blue.webp", ruleElements: []},
+  // Cover its creature has wherever it stands (a swallowed creature's Total Cover): the better of this and what the
+  // walls between give (actionCover).
+  coverHalf: {id: "coverHalf", name: "WILDPATH.CONDITIONS.CoverHalf", summary: "WILDPATH.CONDITIONS.Summary.CoverHalf",
+    img: "icons/svg/shield.svg", ruleElements: []},
+  coverThreeQuarters: {id: "coverThreeQuarters", name: "WILDPATH.CONDITIONS.CoverThreeQuarters",
+    summary: "WILDPATH.CONDITIONS.Summary.CoverThreeQuarters", img: "icons/svg/shield.svg", ruleElements: []},
+  coverTotal: {id: "coverTotal", name: "WILDPATH.CONDITIONS.CoverTotal", summary: "WILDPATH.CONDITIONS.Summary.CoverTotal",
+    img: "icons/svg/shield.svg", ruleElements: []}
 };
 
 /**

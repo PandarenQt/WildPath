@@ -387,10 +387,8 @@
           "effects": [
             {
               "id": "effect-1",
-              "type": "effect",
-              "name": "Cursed",
-              "img": "systems/dnd5e/icons/svg/statuses/cursed.svg",
-              "ruleElements": [],
+              "type": "condition",
+              "conditionId": "cursed",
               "saveOutcomePolicy": "failure",
               "metadata": {
                 "tags": [
@@ -417,10 +415,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: cursed is not a WildPath condition yet",
-              "effect: \"Cursed\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -668,8 +663,6 @@
       },
       "conversion": {
         "notes": [
-          "Bite (Bear or Hybrid Form Only): effect: cursed is not a WildPath condition yet",
-          "Bite (Bear or Hybrid Form Only): effect: \"Cursed\" marks its creature only; its rules are by hand",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

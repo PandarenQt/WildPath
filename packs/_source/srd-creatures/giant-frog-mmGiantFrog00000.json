@@ -234,10 +234,15 @@
             {
               "id": "effect-1",
               "type": "condition",
-              "conditionId": "blinded"
+              "conditionId": "coverTotal"
             },
             {
               "id": "effect-2",
+              "type": "condition",
+              "conditionId": "blinded"
+            },
+            {
+              "id": "effect-3",
               "type": "condition",
               "conditionId": "restrained"
             }
@@ -260,9 +265,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: coverTotal is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -385,7 +388,6 @@
       },
       "conversion": {
         "notes": [
-          "Swallow: effect: coverTotal is not a WildPath condition yet",
           "Swallow: activation: turnEnd is not an action-economy cost"
         ]
       }

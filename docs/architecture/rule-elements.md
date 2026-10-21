@@ -536,6 +536,18 @@ creature's turns. A stacking condition deals that amount once per stack (`effect
 application adds a stack.
 - **Envenomed** is poison and stacks. It is Poisoned's former damage, kept by the maintainer on 2026-10-14.
 - **Bleeding** is bleeding damage and does not stack.
+- **Burning** (2026-10-21) is 1d4 Fire and does not stack; its creature puts it out with an action (remove it). Dice
+  in a condition's amount are planned at their average, rounded down, and rolled by the Action that applies them
+  (`metadata.amountExpression`, `turnDamage`).
+
+**Other conditions (2026-10-21).** Cursed, Ethereal and the three cover conditions carry no rules of their own:
+- **Cursed** marks a curse whose rules are its effect's or its text's; the converter tags it `curse`, so Remove Curse
+  ends it. dnd5e's "cursed" status becomes it only on an effect with nothing else (Hex's and Bestow Curse's keep their
+  own effects).
+- **Ethereal**: it and a creature that is not can't target each other (`WILDPATH.REFUSAL.Ethereal`). shortcut: an
+  area still reaches it.
+- **Half, Three-Quarters and Total Cover**: its creature's cover wherever it stands, the better of this and the walls'
+  (`actionCover`); a swallowed creature's Total Cover means it can't be targeted directly.
 
 Another damage type is one more entry. Poisoned is now the 2024 condition only: disadvantage on attack
 rolls and ability checks, and no damage.

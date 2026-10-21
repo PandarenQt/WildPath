@@ -29,9 +29,7 @@
       },
       "conversion": {
         "notes": [
-          "\"Plate Armor of Etherealness\" is passive or triggered (narrative): not automated",
-          "effect: ethereal is not a WildPath condition yet",
-          "effect: \"Etherealness\" marks its creature only; its rules are by hand"
+          "\"Plate Armor of Etherealness\" is passive or triggered (narrative): not automated"
         ]
       },
       "grants": [

@@ -217,10 +217,8 @@
           "effects": [
             {
               "id": "effect-1",
-              "type": "effect",
-              "name": "Cursed",
-              "img": "systems/dnd5e/icons/svg/statuses/cursed.svg",
-              "ruleElements": [],
+              "type": "condition",
+              "conditionId": "cursed",
               "metadata": {
                 "tags": [
                   "curse"
@@ -246,10 +244,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: cursed is not a WildPath condition yet",
-              "effect: \"Cursed\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -460,8 +455,6 @@
       },
       "conversion": {
         "notes": [
-          "Rotting Fist: effect: cursed is not a WildPath condition yet",
-          "Rotting Fist: effect: \"Cursed\" marks its creature only; its rules are by hand",
           "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

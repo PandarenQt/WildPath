@@ -708,11 +708,17 @@
             {
               "id": "effect-1",
               "type": "condition",
-              "conditionId": "blinded",
+              "conditionId": "coverTotal",
               "saveOutcomePolicy": "failure"
             },
             {
               "id": "effect-2",
+              "type": "condition",
+              "conditionId": "blinded",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-3",
               "type": "condition",
               "conditionId": "restrained",
               "saveOutcomePolicy": "failure"
@@ -736,9 +742,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: coverTotal is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -1015,7 +1019,6 @@
       "conversion": {
         "notes": [
           "Reflective Carapace: \"Roll d6\" is passive or triggered: not automated",
-          "Swallow: effect: coverTotal is not a WildPath condition yet",
           "Swallow: \"Damage: Swallowed\" is passive or triggered: not automated",
           "Swallow: \"Regurgitate: Save\" is passive or triggered: not automated",
           "Onslaught: not automated (utility): using it spends its cost; its description says the rest"

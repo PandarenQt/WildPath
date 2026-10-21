@@ -270,10 +270,8 @@
           "effects": [
             {
               "id": "effect-1",
-              "type": "effect",
-              "name": "Cursed",
-              "img": "systems/dnd5e/icons/svg/statuses/cursed.svg",
-              "ruleElements": [],
+              "type": "condition",
+              "conditionId": "cursed",
               "metadata": {
                 "tags": [
                   "curse"
@@ -299,10 +297,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: cursed is not a WildPath condition yet",
-              "effect: \"Cursed\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1252,8 +1247,6 @@
       },
       "conversion": {
         "notes": [
-          "Cursed Touch: effect: cursed is not a WildPath condition yet",
-          "Cursed Touch: effect: \"Cursed\" marks its creature only; its rules are by hand",
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",

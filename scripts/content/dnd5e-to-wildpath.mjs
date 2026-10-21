@@ -759,7 +759,8 @@ const SKILL_MAP = Object.freeze({acr: "acrobatics", ani: "animal-handling", arc:
 
 /** dnd5e statuses WildPath has conditions for. */
 const CONDITION_MAP = Object.freeze(Object.fromEntries(["prone", "blinded", "restrained", "stunned", "unconscious", "poisoned",
-  "exhaustion", "charmed", "deafened", "frightened", "grappled", "incapacitated", "invisible", "paralyzed", "petrified", "dead"]
+  "exhaustion", "charmed", "deafened", "frightened", "grappled", "incapacitated", "invisible", "paralyzed", "petrified", "dead",
+  "burning", "cursed", "ethereal", "coverHalf", "coverThreeQuarters", "coverTotal"]
   // Nature's Ward names the Poisoned condition "poison".
   .map(id => [id, id]).concat([["poison", "poisoned"]])));
 const ACTIVATION_COST = Object.freeze({action: "action", bonus: "bonus-action", reaction: "reaction", legendary: "legendary-action",
@@ -2818,7 +2819,10 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const effect = (document.effects ?? []).find(entry => entry._id === reference._id);
     const first = effects.length;
     const statuses = effectStatuses(effect);
-    const known = statuses.filter(status => CONDITION_MAP[status]);
+    // dnd5e's "cursed" is the Cursed condition only on an effect with nothing else (a Mummy's curse); Hex's and Bestow
+    // Curse's own effects carry their rules, tagged `curse` below.
+    const known = statuses.filter(status => CONDITION_MAP[status]
+      && !((status === "cursed") && (byHand || effectChanges(effect).length || (identifierOf(document) === "hex"))));
     // dnd5e applies an effect on a successful save only when it says so (`onSave` defaults to false).
     const onFailure = definition.save && (reference.onSave !== true) ? {saveOutcomePolicy: "failure"} : {};
     // A mark given by hand (its slug) is its own status ("marked", "cursed").
