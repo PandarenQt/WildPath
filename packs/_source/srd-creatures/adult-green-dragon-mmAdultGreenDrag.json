@@ -504,7 +504,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
+              "effect: \"Detect Magic\" marks its creature (narrative)"
             ]
           }
         }
@@ -1189,7 +1189,7 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: cast: Mind Spike at level 3 is cast at its own level",
           "Spellcasting: effect: \"Spiked\" marks its creature only; its rules are by hand",
           "Spellcasting: activation: 1 minute is not an action-economy cost",

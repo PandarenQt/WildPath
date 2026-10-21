@@ -1875,6 +1875,14 @@ export function moveAreaDefinition(document, definition) {
 /** A feature's description as plain text, one space between words. */
 const plainText = document => String(document.system?.description?.value ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
+/**
+ * Effects that only remind the table of what a creature can sense, say or seem (Detect Magic, Zone of Truth's "Cannot
+ * Lie", Disguise Self): the marker on its creature, for its duration and concentration, is all there is to automate.
+ */
+const NARRATIVE_MARKERS = new Set(["Detect Magic", "Detect Evil and Good", "Detect Poison and Disease", "Disguised", "Cannot Lie",
+  "Water Breathing", "Water Walking", "Speaking with Plants", "Speaking with Animals", "Carrying Message", "Altered Appearance",
+  "Hidden from Divination", "Comprehending Languages", "Tongues", "Telepathic Bond", "Scrying"]);
+
 /** Words of a game rule in a use's text: one without any is narrative (its cost spent is all there is). */
 const MECHANICAL_TEXT = /\b(damage|saving throw|save\b|DC \d|Advantage|Disadvantage|attack roll|Hit Points?|Armor Class|\bAC\b|Speed|Blinded|Charmed|Deafened|Frightened|Grappled|Incapacitated|Invisible|Paralyzed|Petrified|Poisoned|Prone|Restrained|Stunned|Unconscious|Exhaustion|Resistance|Immunity|teleport|Bright Light|Dim Light|ability check|bonus|darkvision|blindsight|tremorsense|truesight|difficult terrain|reaction|Bonus Action|extra attack|spell slot)/i;
 
@@ -2699,7 +2707,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
       const duration = effectDuration(effect.duration);
       effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(effect.img ? {img: effect.img} : {}),
         ruleElements: [], ...(duration ? {duration} : {}), ...onFailure, ...(concentration ? {concentration: true} : {})});
-      notes.push(`effect: "${effect.name}" marks its creature only; its rules are by hand`);
+      notes.push(NARRATIVE_MARKERS.has(effect.name) ? `effect: "${effect.name}" marks its creature (narrative)`
+        : `effect: "${effect.name}" marks its creature only; its rules are by hand`);
     }
     // dnd5e's "cursed" status (Bestow Curse, Hex) tags what it became, so Remove Curse ends it.
     if ( statuses.includes("cursed") || (identifierOf(document) === "hex") ) for ( const entry of effects.slice(first) ) {

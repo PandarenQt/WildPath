@@ -31,8 +31,8 @@
         "notes": [
           "not automated (cast): using it spends its cost; its description says the rest",
           "cast: its spell was not found among the converted spells",
-          "effect: \"Detect Magic\" marks its creature only; its rules are by hand",
-          "effect: \"Detect Poison and Disease\" marks its creature only; its rules are by hand",
+          "effect: \"Detect Magic\" marks its creature (narrative)",
+          "effect: \"Detect Poison and Disease\" marks its creature (narrative)",
           "effect: \"See Invisibility\" change system.attributes.senses.special (add) not converted",
           "effect: \"See Invisibility\" marks its creature only; its rules are by hand"
         ]

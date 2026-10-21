@@ -578,7 +578,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand"
+              "effect: \"Detect Evil and Good\" marks its creature (narrative)"
             ]
           }
         }
@@ -1835,7 +1835,7 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Detect Evil and Good\" marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 10 minute is not an action-economy cost",

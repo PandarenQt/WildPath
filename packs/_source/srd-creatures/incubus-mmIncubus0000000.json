@@ -345,7 +345,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Disguised\" marks its creature only; its rules are by hand"
+              "effect: \"Disguised\" marks its creature (narrative)"
             ]
           }
         }
@@ -886,7 +886,7 @@
           "Succubus Form: \"Shape-Shift: Succubus\" is passive or triggered (narrative): not automated",
           "Restless Touch: effect: cursed is not a WildPath condition yet",
           "Restless Touch: effect: \"Cursed\" marks its creature only; its rules are by hand",
-          "Spellcasting: effect: \"Disguised\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Disguised\" marks its creature (narrative)",
           "Spellcasting: effect: ethereal is not a WildPath condition yet",
           "Spellcasting: effect: \"Etherealness\" marks its creature only; its rules are by hand",
           "Spellcasting: activation: 1 minute is not an action-economy cost"

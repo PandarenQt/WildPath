@@ -428,7 +428,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
+              "effect: \"Detect Magic\" marks its creature (narrative)"
             ]
           }
         }
@@ -1130,7 +1130,7 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: area: 20 * @item.level-ft sphere is not supported; the user picks the targets",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",

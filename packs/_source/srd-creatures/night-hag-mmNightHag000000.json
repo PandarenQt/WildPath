@@ -1023,7 +1023,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
+              "effect: \"Detect Magic\" marks its creature (narrative)"
             ]
           }
         }
@@ -1623,7 +1623,7 @@
           "Coven Magic: activation: 10 minute is not an action-economy cost",
           "Coven Magic: save: a failure marks its creature only; what it does is by hand",
           "Coven Magic: \"Create Sensor\" is passive or triggered: not automated",
-          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: effect: ethereal is not a WildPath condition yet",
           "Spellcasting: effect: \"Etherealness\" marks its creature only; its rules are by hand",
           "Spellcasting: cast: Magic Missile at level 4 is cast at its own level",

@@ -610,7 +610,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
+              "effect: \"Detect Magic\" marks its creature (narrative)"
             ]
           }
         }
@@ -1389,7 +1389,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Cannot Lie\" marks its creature only; its rules are by hand"
+              "effect: \"Cannot Lie\" marks its creature (narrative)"
             ]
           }
         }
@@ -1782,7 +1782,7 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: cast: Ice Knife at level 2 is cast at its own level",
           "Spellcasting: \"Shard Explosion\" is passive or triggered: not automated",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
@@ -1792,7 +1792,7 @@
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: cast: Ice Storm at level 7 is cast at its own level",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Cannot Lie\" marks its creature only; its rules are by hand"
+          "Spellcasting: effect: \"Cannot Lie\" marks its creature (narrative)"
         ]
       }
     }
