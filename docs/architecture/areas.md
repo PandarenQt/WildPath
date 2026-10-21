@@ -341,8 +341,11 @@ is the larger of the fields across and the cubes between. A creature flying 10 f
   - a point is as high as the creature standing on it, else the ground. Aiming a Fireball at a flying creature's
     field centers it on that creature.
   - Creatures at other elevations are no longer left out of every area (`strictElevation: false`).
-- Shortcuts: cones and lines are aimed level; Opportunity Attacks measure flat; lasting areas keep their own
-  elevation band (open by default).
+- **Aimed up or down (2026-10-21).** A cone or line aimed at a creature above or below its caster tilts toward it:
+  its band rises (or falls) by the slope from the caster's height to that creature's, times each creature's distance
+  across (`aimedTilt`). Aimed where no creature stands, it stays level. Quench: a line aimed at a goblin 30 feet up
+  reaches it; aimed level along the same row it passes beneath.
+- Shortcuts: Opportunity Attacks measure flat; lasting areas keep their own elevation band (open by default).
 - **High ground (Baldur's Gate 3, 2026-10-15).** With the `highGround` world setting on (off by default), an attack
   from 8 feet or more above its target gets +2, and from 8 feet or more below −2 (`highGroundBonus`). The runtime
   sends it per target (`attack.bonusByTarget`, by Token); the attack stage makes it an `attack-bonus` override, added
