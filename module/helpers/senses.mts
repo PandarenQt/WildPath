@@ -22,6 +22,12 @@ export function bestSenses(grants: ReadonlyArray<{sense?: string; range?: number
 
 interface GroundToken {elevation?: number | null; level?: unknown; parent?: {levels?: {get?(id: string): {elevation?: {bottom?: number}} | undefined}} | null}
 
+/** The brightest of a creature's lights (`{bright, dim, angle?}`, by its dim radius), or null when it sheds none. */
+export function brightestLight(lights: ReadonlyArray<{bright?: number; dim?: number; angle?: number}> = []) {
+  const best = [...lights].filter(light => (Number(light?.dim) || 0) > 0).sort((a, b) => (Number(b.dim) || 0) - (Number(a.dim) || 0))[0];
+  return best ? {bright: Number(best.bright) || 0, dim: Number(best.dim) || 0, ...(best.angle ? {angle: Number(best.angle)} : {})} : null;
+}
+
 /** Whether a Token stands on its Level's floor (Tremorsense feels only what touches the ground); unknown counts as on it. */
 export function onGround(token: GroundToken | null | undefined): boolean {
   if ( !token ) return true;

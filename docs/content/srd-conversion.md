@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 956 automated, 252 manual, 227 features. Creatures: 375.
+Items: 965 automated, 246 manual, 227 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -892,15 +892,15 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Kraken | actors24 | Kraken (12 items) | Swallow: "Damage: Swallowed" is passive or triggered: not automated; Swallow: "Regurgitate: Save" is passive or triggered: not automated; Storm Bolt: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Ladder | equipment24 | Ladder (gear) | — |
 | Lamia | actors24 | Lamia (10 items) | Spellcasting: effect: "Disguised" marks its creature (narrative); Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated; Leap: not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Lamp | equipment24 | Lamp (gear), Lamp (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Lamp | equipment24 | Lamp (gear), Lamp (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Lamp | equipment24 | Lamp (gear), Lamp (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Lamp | equipment24 | Lamp (gear), Lamp (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Lamp | equipment24 | Lamp (gear), Lamp (automated) | — |
+| Lamp | equipment24 | Lamp (gear), Lamp (automated) | — |
+| Lamp | equipment24 | Lamp (gear), Lamp (automated) | — |
+| Lamp | equipment24 | Lamp (gear), Lamp (automated) | — |
 | Lance | equipment24 | Lance (automated) | — |
 | Land's Aid | classes24 | Land's Aid (save) (automated) | "heal" is passive or triggered: not automated |
 | Lantern of Revealing | equipment24 | Lantern of Revealing (gear), Lantern of Revealing (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Lantern, Bullseye | equipment24 | Lantern, Bullseye (gear), Lantern, Bullseye (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Lantern, Hooded | equipment24 | Lantern, Hooded (gear), Lantern, Hooded (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Lantern, Bullseye | equipment24 | Lantern, Bullseye (gear), Lantern, Bullseye (automated) | — |
+| Lantern, Hooded | equipment24 | Lantern, Hooded (gear), Lantern, Hooded (automated) | — |
 | Large Animated Object | actors24 | Large Animated Object (2 items) | Slam: damage 1: custom formula "(@flags.dnd5e.summon.level - 3)d6 + @mod + @flags.dnd5e.summon.mod" not converted; Slam: rolled (attack); what it does is by hand |
 | Large Form | origins24 | Large Form (automated) | — |
 | Lay on Hands | classes24 | Lay on Hands (heal) (automated), Lay on Hands (Remove Poison) (automated) | — |
@@ -1528,14 +1528,14 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Tiefling, Infernal | origins24 | Tiefling, Infernal (species) | — |
 | Tiger | actors24 | Tiger (4 items) | — |
 | Time Stop | spells24 | Time Stop (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Tinderbox | equipment24 | Tinderbox (gear), Tinderbox (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Tinker's Tools | equipment24 | Tinker's Tools (gear), Tinker's Tools (automated) | — |
 | Tiny Animated Object | actors24 | Tiny Animated Object (2 items) | Slam: damage 1: custom formula "(@flags.dnd5e.summon.level - 4)d4 + @mod" not converted; Slam: rolled (attack); what it does is by hand |
 | Tiny Hut | spells24 | Tiny Hut (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
@@ -1544,9 +1544,9 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Tome of Leadership and Influence | equipment24 | Tome of Leadership and Influence (gear), Tome of Leadership and Influence (Read) (automated) | "Reset Progress" is passive or triggered (narrative): not automated |
 | Tome of Understanding | equipment24 | Tome of Understanding (gear), Tome of Understanding (Read) (automated) | "Reset Progress" is passive or triggered (narrative): not automated |
 | Tongues | spells24 | Tongues (automated) | — |
-| Torch | equipment24 | Torch (automated) | consumption: itemUses 1 not converted |
-| Torch | equipment24 | Torch (automated) | consumption: itemUses 1 not converted |
-| Torch | equipment24 | Torch (automated) | consumption: itemUses 1 not converted |
+| Torch | equipment24 | Torch (automated), Torch (Light) (automated) | consumption: itemUses 1 not converted |
+| Torch | equipment24 | Torch (automated), Torch (Light) (automated) | consumption: itemUses 1 not converted |
+| Torch | equipment24 | Torch (automated), Torch (Light) (automated) | consumption: itemUses 1 not converted |
 | Torpor | equipment24 | Torpor (automated) | — |
 | Tough | actors24 | Tough (3 items) | — |
 | Tough Boss | actors24 | Tough Boss (5 items) | — |

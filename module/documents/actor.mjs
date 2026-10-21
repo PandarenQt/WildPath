@@ -3,7 +3,7 @@ import {pruneActorPools} from "../helpers/migrations.mjs";
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {hostedRules} from "../helpers/effect-sources.mjs";
 import {
-  damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, grantedSensesFromRuleElements, grantedLanguagesFromRuleElements,
+  damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, grantedSensesFromRuleElements, grantedLightsFromRuleElements, grantedLanguagesFromRuleElements,
   modifiersFromRuleElements,
   resourceCapsFromRuleElements, abilityScoreChangesFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements,
   conditionImmunitiesFromRuleElements, opportunityAttackAvoidanceFromRuleElements, extraAttacksFromRuleElements, normalizeRuleElementType,
@@ -320,6 +320,11 @@ export default class WildPathActor extends Actor {
   /** The senses this creature's grants give (`GrantSense`): `{sense, range}`. */
   getGrantedSenses() {
     return grantedSensesFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
+  }
+
+  /** The light this creature's grants shed (`GrantLight`): `{bright, dim, angle}`. */
+  getGrantedLights() {
+    return grantedLightsFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
   }
 
   /** The languages its grants give (`GrantLanguage`): Telepathy's range, Tongues', Comprehend Languages'. */

@@ -16,6 +16,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   REVEAL: "Reveal",
   GRANT_MOVEMENT: "GrantMovement",
   GRANT_SENSE: "GrantSense",
+  GRANT_LIGHT: "GrantLight",
   GRANT_LANGUAGE: "GrantLanguage",
   ROLL_MODE: "RollMode",
   RESOURCE_CAP: "ResourceCap",
@@ -65,6 +66,8 @@ const TYPE_ALIASES = Object.freeze({
   grantmovement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
   grantsense: RULE_ELEMENT_TYPES.GRANT_SENSE,
   sense: RULE_ELEMENT_TYPES.GRANT_SENSE,
+  grantlight: RULE_ELEMENT_TYPES.GRANT_LIGHT,
+  light: RULE_ELEMENT_TYPES.GRANT_LIGHT,
   grantlanguage: RULE_ELEMENT_TYPES.GRANT_LANGUAGE,
   language: RULE_ELEMENT_TYPES.GRANT_LANGUAGE,
   movement: RULE_ELEMENT_TYPES.GRANT_MOVEMENT,
@@ -127,6 +130,7 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.REVEAL, revealRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_MOVEMENT, grantMovementRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_SENSE, grantSenseRuleElement],
+    [RULE_ELEMENT_TYPES.GRANT_LIGHT, grantLightRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_LANGUAGE, grantLanguageRuleElement],
     [RULE_ELEMENT_TYPES.TRIGGER, triggerRuleElement]
   ]);
@@ -625,6 +629,12 @@ export function grantedSensesFromRuleElements(owners=[], context={}) {
     collectRuleElementContributions({ruleElements, context, source}).contributions.senses);
 }
 
+/** The light a creature's grants shed (`GrantLight`): `{bright, dim, angle}`, one per grant. */
+export function grantedLightsFromRuleElements(owners=[], context={}) {
+  return owners.flatMap(({ruleElements=[], source=null}) =>
+    collectRuleElementContributions({ruleElements, context, source}).contributions.lights);
+}
+
 /** The languages a creature's grants give (`GrantLanguage`): `{language, range, spokenOnly, understood, bond}`, one each. */
 export function grantedLanguagesFromRuleElements(owners=[], context={}) {
   return owners.flatMap(({ruleElements=[], source=null}) =>
@@ -657,6 +667,21 @@ function grantSenseRuleElement(ruleElement, context) {
   const range = evaluateNumeric(data.range ?? data.value ?? 0, context);
   if ( !range.ok ) return range;
   return success({senses: [{sense: String(data.sense ?? ""), range: range.value, source: ruleElementSource(ruleElement)}]});
+}
+
+/**
+ * Light its creature sheds (a lit Torch: Bright Light 20 feet, Dim Light 20 more): `bright` and `dim` radii in feet, dim
+ * counted from the creature (40 for the Torch), and `angle` for a cone (a Bullseye Lantern's 60).
+ */
+function grantLightRuleElement(ruleElement, context) {
+  const data = ruleElement.data;
+  const bright = evaluateNumeric(data.bright ?? 0, context);
+  if ( !bright.ok ) return bright;
+  const dim = evaluateNumeric(data.dim ?? data.bright ?? 0, context);
+  if ( !dim.ok ) return dim;
+  const angle = Number(data.angle);
+  return success({lights: [{bright: Math.max(bright.value, 0), dim: Math.max(dim.value, bright.value, 0),
+    ...(((angle > 0) && (angle < 360)) ? {angle} : {}), source: ruleElementSource(ruleElement)}]});
 }
 
 function grantMovementRuleElement(ruleElement, context) {
@@ -909,6 +934,7 @@ function emptyContributions() {
     },
     movement: [],
     senses: [],
+    lights: [],
     languages: [],
     rollModes: [],
     resourceCaps: [],
@@ -936,6 +962,7 @@ function mergeContributions(target, source={}) {
   target.resources.push(...(source.resources ?? []));
   target.movement.push(...(source.movement ?? source.movements ?? []));
   target.senses.push(...(source.senses ?? []));
+  target.lights.push(...(source.lights ?? []));
   target.languages.push(...(source.languages ?? []));
   target.rollModes.push(...(source.rollModes ?? []));
   target.resourceCaps.push(...(source.resourceCaps ?? []));

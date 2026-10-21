@@ -464,6 +464,17 @@ Reaction" (a ResourceCap), "<Type> Protection" (Resistance), and Acid Arrow's "L
 `turn.ended` Trigger on the effect deals its 2d4 Acid, and it lasts until the end of the caster's next turn (an
 effect's Triggers run like an Item's; the spell's separate later-damage Action is dropped).
 
+**Light (2026-10-21).** `GrantLight {bright, dim, angle?}` sheds light from its creature: Bright Light out to `bright`
+feet and Dim Light out to `dim` (counted from the creature: a Torch is 20 and 40), in a cone of `angle` degrees when
+given (a Bullseye Lantern's 60). The creature keeps the brightest (`system.light`, by its dim radius), and its Token's
+light is that one unless the Token's own is brighter; it is prepared, never stored
+(`applyLightToToken`, `adapters/foundry-v14-senses.mts`).
+- The converter's light sources (`LIGHT_SOURCES`, 2024 PHB: Torch, Candle, Lamp, Hooded and Bullseye Lanterns) light
+  with an Action that puts a lit effect on their user for their hours. A Torch, which dnd5e gives only its attack,
+  gets a "Torch (Light)" Action; a Torch or Candle is lit with a Bonus Action (a Tinderbox, 2024), a Lamp or Lantern
+  with its own cost and fuel. A Tinderbox's own use is narrative.
+- Live (14.369): lighting a Torch gave its character's Token Bright 20 ft and Dim 40 ft on a dark Scene.
+
 **Comparing a number (2026-10-20).** The predicate `atMost: {path, value}` passes when the number at `path` is at
 most `value`; a missing number fails it (Retaliation's "within 5 feet": `event.data.relations.{self}.distance`).
 `atLeast: {path, value}` is its mirror (Daze: `actorSystem.resources.movement.spent` at least 1).

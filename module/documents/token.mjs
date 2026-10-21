@@ -4,7 +4,7 @@ import {
 import {movementMessage} from "../helpers/refusal-messages.mjs";
 import {prepareFoundryReactionCheckpoints} from "../adapters/foundry-v14-reaction-checkpoint-adapter.mjs";
 import {isStagedMovementWrite} from "../adapters/foundry-v14-staged-movement-commit.mjs";
-import {applySensesToToken, sensesKey} from "../adapters/foundry-v14-senses.mjs";
+import {applyLightToToken, applySensesToToken, sensesKey} from "../adapters/foundry-v14-senses.mjs";
 
 const BaseTokenDocument = globalThis.TokenDocument ?? class {};
 
@@ -22,12 +22,19 @@ export default class WildPathTokenDocument extends BaseTokenDocument {
     super._prepareDetectionModes();
   }
 
-  /** @inheritDoc When its creature's senses change, its vision is prepared and drawn again. */
+  /** @inheritDoc Its light follows its creature's (a lit Torch: adapters/foundry-v14-senses.mts). */
+  prepareDerivedData() {
+    super.prepareDerivedData();
+    applyLightToToken(this);
+  }
+
+  /** @inheritDoc When its creature's senses or light change, its vision and light are prepared and drawn again. */
   _onRelatedUpdate(update={}, operation={}) {
     super._onRelatedUpdate(update, operation);
     if ( sensesKey(this) === PREPARED_SENSES.get(this) ) return;
     this.reset();
     this.object?.initializeVisionSource?.();
+    this.object?.initializeLightSource?.();
   }
 
   async _preUpdate(changed, operation, user) {
