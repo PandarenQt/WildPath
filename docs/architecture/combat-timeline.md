@@ -102,11 +102,32 @@ character (as dnd5e keeps them, not a Bastion Actor): basic or special, the char
 hirelings and the order it takes (`data/item/facility.mjs`). The book converter turns the DMG's 35 into them
 (`convertFacility`; local only). A character's sheet lists its facilities in a Bastion section, where each special one is
 issued its order for the turn (or Maintain). The GM's "Bastion Turn" tool among the Token controls
-(`applications/bastions.mjs`) moves the world 7 days on, lists in the chat each facility carrying out its order, rolls a
-Bastion event (d100) for a character whose facilities all maintained, and sets every order back to Maintain. shortcut:
-what an order yields (crafted items, defenders, gold) and the event are the GM's, from the facility's text and the event
-table. Live (14.369): a character's Arcane Study, ordered to Craft from its sheet, carried it out in a Bastion turn 7 days
-long, and its order went back to Maintain.
+(`applications/bastions.mjs`) moves the world 7 days on, carries out each order and lists it in the chat, and sets every
+order back to Maintain. The rules are pure, in `helpers/bastions.mjs`:
+- **Joining.** A facility added to a character is checked (`WildPathItem#_preCreate`, `admitFacility`): a special one needs
+  character level 5, its own level, and a free slot (2 at 5th, 4 at 9th, 5 at 13th, 6 at 17th; the sheet shows them); a
+  basic one past the first two costs its space's gold (500, 1,000 or 3,000 gp), paid from the character's coins. A basic
+  facility is enlarged from the sheet (500 gp to Roomy, 2,000 gp to Vast). Build days are stated, not tracked.
+- **Orders.** Craft works on the Item dropped on the facility in the sheet, 7 days a turn against its crafting time
+  (`helpers/crafting.mjs`), and pays its materials when done; Trade buys stock up to the facility's limit (a Storehouse's
+  500 gp) or sells it at its profit; Recruit adds up to 4 Bastion Defenders, no more than the facilities house (a
+  Barrack's 12). The facility's craft, trade and defender data come from dnd5e's (`convertFacility`). Empower, Harvest
+  and Research post their line; the facility's text says what the GM gives.
+- **Events.** A character whose facilities all maintained draws the "Bastion Events" table a converted book provides
+  (the book converter now converts each book's roll tables, locally), else rolls a d100. An Attack costs a defender for
+  each 1 on 6d6. shortcut: an Armory's 2 fewer dice and the other events' effects are the GM's, until events are
+  automated one by one.
+- **The Bastion Map** (`applications/bastion-map.mjs`, opened from the sheet's Bastion section). Its owner lays out the
+  facilities on a grid of 5-foot squares sized by level (12 at 5th, 16 at 9th, 20 at 13th, 24 at 17th): pick a
+  facility, then click or drag; right-click clears. A facility covers at most its space (Cramped 4, Roomy 16, Vast 36
+  squares) in any shape, as the DMG lets players configure it. Saved as `system.bastion.map.cells` (`{x, y,
+  facilityId}`). The GM's "Make a Scene" builds a Scene of it: a coloured Drawing per square, each facility's name, and a
+  Wall on every square edge where the facility meets another or nothing, one per 5 feet, so any can be made a door.
+Live (14.369): a level 1 character was refused a Smithy; at 9th, a Smithy, Storehouse, Barrack and Workshop joined, two
+basic facilities came free and a third cost 500 gp. The player painted the Smithy on a 16 by 16 map (capped at 16
+squares) and saved it; the GM's Scene had the three facilities walled and named. One Bastion turn crafted a Dagger,
+stocked the Storehouse with 500 gp and recruited 4 defenders; the next sold the stock for 550 gp; a quiet one drew
+"Refugees" from the DMG's table.
 
 **Chases (2026-10-22).** The GM's "Chase" tool among the Token controls turns the running combat into a chase
 (`flags.wildpath.chase`, `applications/chases.mjs`; again, it ends it). In a chase each creature Dashes 3 + its

@@ -10,6 +10,7 @@ import {resolveActorCheckStatistic} from "../helpers/combat-statistics.mjs";
 import {traitUpdates} from "../helpers/level-up.mjs";
 import {refuseBrokenRules} from "../helpers/rule-guard.mjs";
 import {consumeScrollOf, highestSpellLevel, spellLevelOf} from "../helpers/spell-scrolls.mjs";
+import {admitFacility} from "../applications/bastions.mjs";
 
 /** Which of `skills` the creature checks (Search, Study, Influence), each with its bonus; null when closed. */
 async function chooseTestSkill(actor, skills, name) {
@@ -42,6 +43,18 @@ export default class WildPathItem extends Item {
     const hidden = gear._source.system.unidentified ?? {};
     this.name = hidden.name || globalThis.game.i18n.localize("WILDPATH.ITEM.Unidentified");
     this.system.description = hidden.description ?? "";
+  }
+
+  /**
+   * A Bastion facility joins its character's Bastion only when it may (applications/bastions.mjs): a special one by its
+   * level and a free slot, a third or later basic one paid for. `options.wildpath.free` skips that (setting one up).
+   */
+  async _preCreate(data, options, user) {
+    if ( (await super._preCreate(data, options, user)) === false ) return false;
+    if ( (this.type === "facility") && this.actor && !options?.wildpath?.free && (user?.id === globalThis.game?.user?.id) ) {
+      return (await admitFacility(this.actor, data)) ? undefined : false;
+    }
+    return undefined;
   }
 
   /** An edit adding problems to its RuleElements is refused, with them in words (a macro's too, not only a sheet's). */

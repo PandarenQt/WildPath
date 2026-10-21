@@ -12,7 +12,7 @@ import {validateActionDefinition} from "../../module/helpers/action-definitions.
  * - Every Action must be valid and every id unique within its pack, or nothing is written.
  * - The new package is built beside the old one and swapped in: the old one is renamed aside first, which fails without
  *   changing anything while Foundry holds its packs open (return to the setup screen, then run it again).
- * `packs`: `[name, type ("Item" | "Actor"), documents, label]`; empty ones are left out.
+ * `packs`: `[name, type ("Item" | "Actor" | "RollTable"), documents, label]`; empty ones are left out.
  */
 export async function writeLocalModule({target, id, title, description, version="1.0.0", packs, flags={}, notes=[]}) {
   if ( !relative(process.cwd(), target).startsWith("..") ) throw new Error(`Refusing to write ${target}: it is inside this repository.`);

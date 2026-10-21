@@ -13,6 +13,14 @@ export default class WildPathCharacter extends WildPathBaseActor {
     const coin = () => new NumberField({required: false, integer: true, initial: 0, min: 0});
     return {
       ...super.defineSchema(),
+      // Its Bastion (applications/bastions.mjs): its name, its Bastion Defenders, and its map's squares, each a facility's.
+      bastion: new foundry.data.fields.SchemaField({
+        name: new StringField({required: true, blank: true, initial: ""}),
+        defenders: new NumberField({required: true, integer: true, initial: 0, min: 0}),
+        map: new foundry.data.fields.SchemaField({cells: new foundry.data.fields.ArrayField(new foundry.data.fields.SchemaField({
+          x: new NumberField({required: true, integer: true, min: 0}), y: new NumberField({required: true, integer: true, min: 0}),
+          facilityId: new StringField({required: true, blank: false})}))})
+      }),
       // Its coins (helpers/crafting.mjs spends them).
       currency: new foundry.data.fields.SchemaField({pp: coin(), gp: coin(), ep: coin(), sp: coin(), cp: coin()}),
       details: new foundry.data.fields.SchemaField({

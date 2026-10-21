@@ -29,11 +29,15 @@ Turns the running combat into a chase; press it again to end the chase.
 Moves the world 7 days on.
 
 - Each player character's special facilities carry out the orders issued on its sheet's **Bastion** section.
+  - **Craft** works 7 days on the Item dropped on the facility, and makes it (paying its materials) when its days are done.
+  - **Trade** buys stock with the character's gold, or sells what it holds at its profit.
+  - **Recruit** adds up to 4 Bastion Defenders, as many as the facilities house.
+  - **Empower, Harvest and Research** are listed; the facility's text says what you give.
 - The chat lists each order carried out.
-- A character whose facilities all maintained rolls a d100 for a Bastion event.
+- A character whose facilities all maintained has a Bastion event: drawn from the DMG's "Bastion Events" table when its converted module is enabled, else a d100. An Attack removes a defender for each 1 on 6d6; any other event is yours to run.
 - Every order then goes back to Maintain.
 
-What an order yields (crafted items, defenders, gold) comes from the facility's text.
+On a character's **Bastion map**, the **Make a Scene** button builds a Scene of it: each facility coloured and named, walls around them. Add the doors.
 
 ## Encounters and experience
 

@@ -2,7 +2,7 @@ import {cpSync, existsSync, mkdtempSync, readFileSync, rmSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {join, relative, resolve} from "node:path";
 import {extractPack} from "@foundryvtt/foundryvtt-cli";
-import {PROGRESSION_TYPES, beastsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables,
+import {convertTable, PROGRESSION_TYPES, beastsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables,
   withRedirects} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 import {writeLocalModule} from "./local-module.mjs";
@@ -104,16 +104,21 @@ for ( const pack of manifest.packs ?? [] ) {
   }
 }
 
+// The book's roll tables (the DMG's Bastion Events, treasure, ...): a result linking an Item converted here points to it.
+const tables = (manifest.packs ?? []).filter(pack => pack.type === "RollTable").flatMap(documents)
+  .filter(table => table.results?.length).map(table => convertTable(table, {source: {system: "dnd5e", book: manifest.title},
+    uuidOf: uuid => uuidOf(uuid)[0] ?? null}));
+
 // The package: its manifest, its packs and its notes (local-module.mjs: validated, then swapped in).
 await writeLocalModule({target, id: `wildpath-${moduleId}`, title: `WildPath: ${manifest.title}`,
   description: `${manifest.title}, converted on this computer for the WildPath system. For personal use only: do not share or publish it.`,
   version: manifest.version ?? "1.0.0",
   packs: [["items", "Item", items, `${manifest.title}: Spells, Equipment and Features`], ["creatures", "Actor", actors, `${manifest.title}: Creatures`],
-    ["classes", "Item", progressions, `${manifest.title}: Classes and Origins`]],
+    ["classes", "Item", progressions, `${manifest.title}: Classes and Origins`], ["tables", "RollTable", tables, `${manifest.title}: Tables`]],
   flags: {convertedFrom: moduleId, sourceVersion: manifest.version ?? null}, notes});
 rmSync(work, {recursive: true, force: true});
 const kinds = items.reduce((total, item) => {
   const kind = ["feature", "gear"].includes(item.type) ? item.type : (item.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")) ? "manual" : "automated");
   return {...total, [kind]: (total[kind] ?? 0) + 1};
 }, {});
-console.log(`${target}: Items ${JSON.stringify(kinds)}, creatures ${actors.length}${existsSync(join(target, "module.json")) ? "" : " (no manifest!)"}`);
+console.log(`${target}: Items ${JSON.stringify(kinds)}, creatures ${actors.length}, tables ${tables.length}${existsSync(join(target, "module.json")) ? "" : " (no manifest!)"}`);
