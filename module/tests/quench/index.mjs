@@ -12,6 +12,7 @@ import {registerActionResultTests} from "./action-results.mjs";
 import {registerRepresentativeActionTests} from "./representative-actions.mjs";
 import {registerAreaTests} from "./areas.mjs";
 import {registerLanguageTests} from "./languages.mjs";
+import {registerApplicationTests} from "./applications.mjs";
 
 export function registerQuenchTests(quench) {
   registerRuntimeSmokeTests(quench);
@@ -27,4 +28,5 @@ export function registerQuenchTests(quench) {
   registerRepresentativeActionTests(quench);
   registerAreaTests(quench);
   registerLanguageTests(quench);
+  registerApplicationTests(quench);
 }

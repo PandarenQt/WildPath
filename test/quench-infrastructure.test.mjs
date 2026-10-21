@@ -73,7 +73,7 @@ function fixtureStore(t,{isGM=true}={}) {
   return {actors,scenes,combats,calls,add,addScene,addCombat,documentClass,sceneClass,combatClass};
 }
 
-test("Quench entry loads without Quench or Foundry globals and registers the thirteen batches on demand", async t => {
+test("Quench entry loads without Quench or Foundry globals and registers the fourteen batches on demand", async t => {
   const hooks = [], batches = [];
   globals(t,{Hooks:{on:(...args) => hooks.push(args)},game:undefined,foundry:undefined,quench:undefined});
   const {registerQuenchTests} = await import("../module/tests/quench/index.mjs");
@@ -81,7 +81,8 @@ test("Quench entry loads without Quench or Foundry globals and registers the thi
   registerQuenchTests({registerBatch:(key,register,options) => batches.push({key,register,options})});
   assert.deepEqual(batches.map(b => b.key),["wildpath.runtime-smoke","wildpath.documents","wildpath.resources",
     "wildpath.effects","wildpath.conditions","wildpath.rule-elements","wildpath.combat","wildpath.staged-movement",
-    "wildpath.multiplayer-disclosure","wildpath.action-results","wildpath.representative-actions","wildpath.areas","wildpath.languages"]);
+    "wildpath.multiplayer-disclosure","wildpath.action-results","wildpath.representative-actions","wildpath.areas","wildpath.languages",
+    "wildpath.applications"]);
   const movementNames = [];
   const counts = batches.map(batch => {
     let count = 0;
@@ -92,14 +93,15 @@ test("Quench entry loads without Quench or Foundry globals and registers the thi
     assert.equal(batch.options.preSelected,false,"Registration must not opt developers into mutation tests");
     return count;
   });
-  assert.deepEqual(counts,[4,13,13,4,11,15,13,7,4,3,8,3,2]);
-  assert.equal(batches.at(-7).options.displayName,"WILDPATH: Real Foundry Combat");
-  assert.equal(batches.at(-6).options.displayName,"WILDPATH: Staged Movement");
-  assert.equal(batches.at(-5).options.displayName,"WILDPATH: Multiplayer Disclosure");
-  assert.equal(batches.at(-4).options.displayName,"WILDPATH: Action Results");
-  assert.equal(batches.at(-3).options.displayName,"WILDPATH: Representative Actions");
-  assert.equal(batches.at(-2).options.displayName,"WILDPATH: Areas");
-  assert.equal(batches.at(-1).options.displayName,"WILDPATH: Languages");
+  assert.deepEqual(counts,[4,13,13,4,11,15,13,7,4,3,8,3,2,5]);
+  assert.equal(batches.at(-8).options.displayName,"WILDPATH: Real Foundry Combat");
+  assert.equal(batches.at(-7).options.displayName,"WILDPATH: Staged Movement");
+  assert.equal(batches.at(-6).options.displayName,"WILDPATH: Multiplayer Disclosure");
+  assert.equal(batches.at(-5).options.displayName,"WILDPATH: Action Results");
+  assert.equal(batches.at(-4).options.displayName,"WILDPATH: Representative Actions");
+  assert.equal(batches.at(-3).options.displayName,"WILDPATH: Areas");
+  assert.equal(batches.at(-2).options.displayName,"WILDPATH: Languages");
+  assert.equal(batches.at(-1).options.displayName,"WILDPATH: Applications");
   assert.deepEqual(movementNames,["ordinary square/Medium movement","square/Medium reaction decline",
     "square/Medium reaction miss","square/Medium reaction hit","square/Medium reaction stop","Large-hex reaction decline",
     "a hostile guard's Trigger RuleElement makes an opportunity attack through the production provider"]);
