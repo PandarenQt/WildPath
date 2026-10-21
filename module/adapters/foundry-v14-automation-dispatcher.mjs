@@ -2,6 +2,16 @@ import { actionDefinitionFromAction } from "../helpers/action-definitions.mjs";
 import { createAutomationEvent, createTriggerDefinition, evaluateTrigger, reactionPolicyOf } from "../helpers/automation-events.mjs";
 import { sunlightContext } from "./foundry-v14-sunlight.mjs";
 import { tokensAround } from "./foundry-v14-auras.mjs";
+import { conditionsFrom } from "../helpers/effect-sources.mjs";
+/**
+ * The creatures a creature has swallowed (a Purple Worm's Swallow): on its scene, those with Total Cover it gave them,
+ * as only a swallow does.
+ */
+const swallowedBy = (actor, token) => [...(token?.parent?.tokens ?? [])]
+    .filter((other, index, all) => (other.id !== token?.id) && other.actor
+    && conditionsFrom(other.actor, actor).coverTotal
+    // A linked creature with two Tokens here is still one creature.
+    && (all.findIndex(entry => entry.actor === other.actor) === index));
 /** Whether a creature is immune to an Action for now (a success's "immune to this Fear Aura for 24 hours"). */
 const immuneTo = (actor, actionId) => [...(actor?.effects ?? [])].some(effect => !effect.disabled && (effect.flags?.wildpath?.conditionEffect?.metadata
     ?.immuneTo === actionId));
@@ -119,7 +129,8 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
                 continue;
             // shortcut: each creature in the Emanation is its own Action (its own damage roll), as a lasting area's are; upgrade
             // when an authority Action takes several targets.
-            const targets = around ? tokensAround(token, around).filter(other => !immuneTo(other.actor, definition.id))
+            const targets = around ? (around.swallowed ? swallowedBy(actor, token)
+                : tokensAround(token, around)).filter(other => !immuneTo(other.actor, definition.id))
                 .map(other => ({ actorRef: other.actor?.uuid ?? null, tokenId: other.id, sceneId: token?.parent?.id })) : [self];
             for (const [index, target] of targets.entries()) {
                 const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,

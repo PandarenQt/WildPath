@@ -67,4 +67,10 @@ test("a cover condition is its creature's cover wherever it stands, unless the w
   assert.equal(actionCover({definition: {}, sourceToken: {id: "s"}, targetToken: target(["coverTotal"])}), "total", "swallowed");
   assert.equal(actionCover({definition: {}, sourceToken: {id: "s"}, targetToken: target(["coverHalf"])}), "half");
   assert.equal(actionCover({definition: {}, sourceToken: {id: "s"}, targetToken: target([])}), "none");
+  // The worm that swallowed it reaches it: the Total Cover it gave is against everything outside it.
+  const worm = {uuid: "Actor.worm", id: "worm"};
+  const swallowed = {id: "t", parent: null, actor: {statuses: new Set(["coverTotal"]), effects: [{statuses: new Set(["coverTotal"]),
+    flags: {wildpath: {conditionEffect: {sourceRef: "Actor.worm"}}}}]}};
+  assert.equal(actionCover({definition: {}, sourceToken: {id: "s", actor: worm}, targetToken: swallowed}), "none");
+  assert.equal(actionCover({definition: {}, sourceToken: {id: "s", actor: {uuid: "Actor.other", id: "other"}}, targetToken: swallowed}), "total");
 });

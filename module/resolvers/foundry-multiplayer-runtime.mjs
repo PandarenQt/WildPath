@@ -41,9 +41,11 @@ import {COVER_BONUS, coverBetween, foundrySightCollision} from "../adapters/foun
  */
 export function actionCover({definition, sourceToken, targetToken, points=[]}) {
   if ( !sourceToken || !targetToken || (targetToken.id === sourceToken.id) ) return "none";
-  // Its own cover condition (a swallowed creature's Total Cover), else none; the walls' if better.
+  // Its own cover condition (a swallowed creature's Total Cover), else none; the walls' if better. Cover the source gave it
+  // is none against the source itself (the worm that swallowed it).
   const statuses = targetToken.actor?.statuses;
-  const own = ["coverTotal", "coverThreeQuarters", "coverHalf"].find(status => statuses?.has?.(status));
+  const given = sourceToken.actor ? conditionsFrom(targetToken.actor, sourceToken.actor) : {};
+  const own = ["coverTotal", "coverThreeQuarters", "coverHalf"].find(status => statuses?.has?.(status) && !given[status]);
   const held = own ? {coverTotal: "total", coverThreeQuarters: "threeQuarters", coverHalf: "half"}[own] : "none";
   const collides = foundrySightCollision(targetToken.parent);
   if ( !collides || (held === "total") ) return held;

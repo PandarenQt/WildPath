@@ -1137,6 +1137,14 @@ test("what a creature does around itself at a turn boundary is an automatic Eman
       damage: {parts: [{number: 2, denomination: 6, types: ["fire"], bonus: ""}]}})).items;
   assert.deepEqual([burst.system.ruleElements[0].data.event, burst.system.ruleElements[0].data.around], ["creature.died",
     {radius: 5, affects: "others"}], "as it dies");
+  const [worm] = convertItem(passive("testSwallow00001", "Swallow", "<p>Strength Saving Throw: DC 19.</p><p>Failure: The target is "
+    + "swallowed by the purple worm. A swallowed creature has the Blinded and Restrained conditions, has Total Cover against attacks and "
+    + "other effects outside the purple worm, and takes 17 (5d6) Acid damage at the start of each of the purple worm's turns.</p>",
+    {name: "Damage: Swallowed", target: {affects: {type: "creature", special: "Swallowed by the behir"}, template: {}, override: false},
+      damage: {parts: [{number: 5, denomination: 6, types: ["acid"], bonus: ""}]}})).items;
+  const [digest] = worm.system.ruleElements;
+  assert.deepEqual([digest.data.event, digest.data.around, digest.data.action.damage[0].damageType], ["turn.started", {swallowed: true}, "acid"],
+    "a swallow's damage reaches those it holds");
   const [aura] = fear.system.ruleElements;
   assert.deepEqual([aura.data.event, aura.data.around, aura.data.predicate], ["turn.started",
     {radius: 20, affects: "enemies", on: "others"}, {missingCondition: "incapacitated"}]);
