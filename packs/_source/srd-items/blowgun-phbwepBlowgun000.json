@@ -29,6 +29,7 @@
           "mastery": "vex"
         }
       },
+      "ammunition": "blowgunNeedle",
       "range": {
         "type": "ranged",
         "normal": {

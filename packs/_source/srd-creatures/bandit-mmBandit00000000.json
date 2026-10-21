@@ -175,6 +175,7 @@
               "mastery": "slow"
             }
           },
+          "ammunition": "crossbowBolt",
           "range": {
             "type": "ranged",
             "normal": {

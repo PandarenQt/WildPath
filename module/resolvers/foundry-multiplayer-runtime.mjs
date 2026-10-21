@@ -53,6 +53,7 @@ export function actionCover({definition, sourceToken, targetToken, points=[]}) {
   return order.indexOf(walls) >= order.indexOf(held) ? walls : held;
 }
 import {createFoundryWeaponMastery} from "../adapters/foundry-v14-weapon-mastery.mjs";
+import {lacksAmmunition, offerAmmunitionRecovery, spendAmmunition} from "../adapters/foundry-v14-ammunition.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -164,6 +165,7 @@ export function registerFoundryV14MultiplayerResolution({
       await applyActionTransformation(event, {logger});
       await summons.afterResolution(event);
       await enchantments.afterResolution(event);
+      await spendAmmunition(event, {game});
       await pushes.afterResolution(event);
       await areas.move(event);
       await teleports.afterResolution(event);
@@ -280,7 +282,11 @@ export function registerFoundryV14MultiplayerResolution({
         .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.RefillMovement") ?? "RefillMovement"}, error));
     }
   };
-  globalThis.Hooks?.on?.("deleteCombat", combat => refillMovement([...(combat.combatants ?? [])].map(combatant => combatant.actor)));
+  globalThis.Hooks?.on?.("deleteCombat", combat => {
+    refillMovement([...(combat.combatants ?? [])].map(combatant => combatant.actor));
+    void offerAmmunitionRecovery(combat, {game}).catch(error => gmNotice("WILDPATH.NOTICE.StepFailed",
+      {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Ammunition") ?? "Ammunition"}, error));
+  });
   globalThis.Hooks?.on?.("deleteCombatant", combatant => refillMovement([combatant.actor]));
   const movement = createMultiplayerMovementAuthority({
     userId: game.user?.id ?? game.userId ?? null,
@@ -862,6 +868,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   }
   // 2024 Total Cover: a creature behind it can't be targeted directly (an area's is left out of the area).
   if ( (definition?.targeting?.type !== "area") && targetEntries.some(entry => entry.cover === "total") ) return refused("WILDPATH.COVER.TotalRefused");
+  // A weapon that fires ammunition its character has none of (2024).
+  if ( !authorityAction && lacksAmmunition(actor, definition) ) return refused("WILDPATH.REFUSAL.NoAmmunition");
   // On the Ethereal Plane: an ethereal creature and one that is not can't target each other (an area's leaves it out by
   // hand). shortcut: an area's targets are not filtered; upgrade when areas drop the ones on another plane.
   const ethereal = creature => Boolean(creature?.statuses?.has?.("ethereal"));

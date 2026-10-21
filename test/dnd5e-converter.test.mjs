@@ -1025,6 +1025,14 @@ test("a magic item template enchants an Item of its kind: a choice of its option
   assert.equal(enchant.enchant.optionChoiceId, "enchantment");
 });
 
+test("a weapon with the Ammunition property names the ammunition its attack spends (a Longbow's arrows)", () => {
+  const bow = {...weapon, _id: "testLongbow00001", name: "Test Longbow", system: {...weapon.system, properties: ["amm", "two"],
+    ammunition: {type: "arrow"}}};
+  const [action] = convertItem(bow).items.filter(item => item.type === "action");
+  assert.equal(action.system.definition.ammunition, "arrow");
+  assert.equal(convertItem(weapon).items.find(item => item.type === "action").system.definition.ammunition, undefined, "a sword fires none");
+});
+
 test("a light source is lit by an Action that sheds its light from its user for its hours (a Torch: a Bonus Action)", () => {
   const torch = {_id: "testTorch0000001", name: "Torch", type: "consumable", effects: [], system: {source: SRD, identifier: "torch",
     description: {value: ""}, activities: {a: activity("attack", {attack: {ability: "", bonus: "", type: {value: "melee", classification: "weapon"}},

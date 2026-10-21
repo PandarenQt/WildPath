@@ -29,6 +29,7 @@
           "mastery": "slow"
         }
       },
+      "ammunition": "slingBullet",
       "range": {
         "type": "ranged",
         "normal": {

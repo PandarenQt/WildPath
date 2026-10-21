@@ -32,6 +32,7 @@
           "mastery": "vex"
         }
       },
+      "ammunition": "crossbowBolt",
       "range": {
         "type": "ranged",
         "normal": {

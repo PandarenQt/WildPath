@@ -29,6 +29,7 @@
           "mastery": "vex"
         }
       },
+      "ammunition": "arrow",
       "range": {
         "type": "ranged",
         "normal": {

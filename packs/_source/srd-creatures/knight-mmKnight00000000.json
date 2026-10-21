@@ -198,6 +198,7 @@
               "mastery": "push"
             }
           },
+          "ammunition": "crossbowBolt",
           "range": {
             "type": "ranged",
             "normal": {

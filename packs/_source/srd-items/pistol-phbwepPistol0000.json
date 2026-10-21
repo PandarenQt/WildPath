@@ -29,6 +29,7 @@
           "mastery": "vex"
         }
       },
+      "ammunition": "firearmBullet",
       "range": {
         "type": "ranged",
         "normal": {

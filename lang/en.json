@@ -1203,7 +1203,8 @@
       "ReactionStopped": "A reaction stopped the move.",
       "Displaced": "A reaction moved the creature; its move ends there.",
       "Blocked": "Something blocks that path.",
-      "Ethereal": "A creature on the Ethereal Plane and one that is not can't target each other."
+      "Ethereal": "A creature on the Ethereal Plane and one that is not can't target each other.",
+      "NoAmmunition": "Out of ammunition for that weapon."
     },
     "NOTICE": {
       "StepFailed": "WildPath: {step} failed. The console has the details.",
@@ -1214,7 +1215,8 @@
         "EndConcentration": "ending concentration",
         "DismissSummons": "dismissing a dead caster's summons",
         "Initiative": "an initiative trigger",
-        "RefillMovement": "refilling movement"
+        "RefillMovement": "refilling movement",
+        "Ammunition": "Ammunition"
       },
       "FormMissing": "WildPath: the form this Action names can't be found, so nothing was transformed.",
       "FormTooStrong": "{form} is beyond {name}'s Challenge Rating or level, so it wasn't transformed.",
@@ -1236,6 +1238,11 @@
     },
     "COMBAT": {
       "LairActions": "Top of the round: {names} may take a Lair Action."
+    },
+    "AMMUNITION": {
+      "Title": "Recover ammunition",
+      "Hint": "After a fight, a minute's search recovers half the ammunition spent, rounded down.",
+      "Line": "{name}: {spent} {item} spent, {recover} recovered"
     }
   },
   "TYPES": {
