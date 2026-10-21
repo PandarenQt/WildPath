@@ -58,6 +58,7 @@ import {
 } from "../helpers/multiplayer-authority.mjs";
 import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefinitionToResolverInput} from "../helpers/action-definitions.mjs";
 import {tokenRef} from "../helpers/entity-refs.mjs";
+import {targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {ROLL_AUTHORITY, combineRollModes, d20Chance} from "../helpers/rolls.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
@@ -879,13 +880,14 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const attackRollMode = attackRollModeSourceList ? combineRollModes(attackRollModeSourceList) : null;
   const attackOutcomes = definition?.attack ? foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) : null;
   const attackBonuses = definition?.attack ? foundryAttackBonuses({targets, targetEntries, game, sourceToken}) : null;
-  // Extra damage that depends on this attack (Sneak Attack: Advantage, or an ally beside the target) sees it.
-  // shortcut: a target's own extra damage (Hunter's Mark) counts for an attack on one target; per-target extra
-  // damage for a multi-target attack waits for per-target damage components.
+  // Extra damage that depends on this attack (Sneak Attack: Advantage, or an ally beside the target) sees it. A target's
+  // own (Hunter's Mark, Hex) counts on it alone; with several targets, each one's on that one (its refs).
   const statistics = definition?.attack ? actionCombatStatistics(actor, definition, {item: action,
     turn: game.combat?.started ? turnKey(game.combat) : null, context: {attack: {...attackContext(definition.attack.type ?? null, spatial,
       targetEntries[0], game, sourceToken, actor).attack, rollMode: attackRollMode}},
-    target: targetEntries.length === 1 ? targetEntries[0].actor : null}) : combatStatistics;
+    target: targetEntries.length === 1 ? targetEntries[0].actor : null,
+    targets: targetEntries.length > 1 ? targetEntries.map((entry, index) => ({actor: entry.actor, refs: targetLookupRefs(targets[index])})) : null})
+    : combatStatistics;
   // Healing bonuses, which may read the level it is cast at (Disciple of Life: 2 + that level).
   const healingStatistic = definition?.healing?.length ? actionCombatStatistics(actor, definition, {item: action,
     context: {castLevel: intent.configuration?.choices ? (resolveActionConfiguration({definition, actorSystem,

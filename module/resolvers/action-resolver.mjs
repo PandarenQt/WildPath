@@ -835,7 +835,7 @@ export function resolveActionDamage({damage, targetResolution, attackResolution,
       weaponDamageScaling: preparedDamage.weaponDamageScaling,
       ...(damage.context ?? {})
     },
-    componentsForTarget: componentsForTargetFromSaveOutcomePolicy({
+    componentsForTarget: componentsForTargetFromDamage({
       damage,
       saveResolution
     })
@@ -1235,6 +1235,20 @@ function normalizeDamageDurabilityOptions(options) {
   if ( options === true ) return {};
   if ( !options ) return null;
   return options;
+}
+
+/**
+ * Each target's components: those meant for it alone (`metadata.targetRefs`: its own Hunter's Mark on one of several
+ * targets) only on it, then its save's outcome on the rest.
+ */
+function componentsForTargetFromDamage({damage, saveResolution}) {
+  const saved = componentsForTargetFromSaveOutcomePolicy({damage, saveResolution});
+  return (targetContext, components) => {
+    const refs = targetLookupRefs(targetContext.target ?? targetContext);
+    const own = components.filter(component => !Array.isArray(component.metadata?.targetRefs)
+      || component.metadata.targetRefs.some(ref => refs.includes(ref)));
+    return saved ? saved(targetContext, own) : own;
+  };
 }
 
 function componentsForTargetFromSaveOutcomePolicy({damage, saveResolution}) {

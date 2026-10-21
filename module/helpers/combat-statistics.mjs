@@ -189,7 +189,7 @@ export function attackForcesCritical(target, {type=null, context={}}={}) {
  *   once-per-turn rules; `context` is what extra damage predicates see of the attack (`attack.rollMode`, `attack.allyNearTarget`).
  *   `target`, an attack's one target: its own extra damage on attacks against it counts too (Hunter's Mark).
  */
-export function actionCombatStatistics(actor, definition, {item=null, turn=null, context={}, target=null}={}) {
+export function actionCombatStatistics(actor, definition, {item=null, turn=null, context={}, target=null, targets=null}={}) {
   const attackDefinition = definition?.attack ?? null;
   // A weapon's attack names its weapon (`weapon:<id>`, the gear granting it), so a rule can reach that weapon alone
   // (Magic Weapon's chosen weapon).
@@ -207,16 +207,26 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
   const extraTags = [attackDefinition?.type, ...tags, statistic?.ability, ...(attackDefinition?.properties ?? [])].filter(Boolean);
   // The target's own (`attacked`: Hunter's Mark, Hex) count on an attack; its predicates see this attack
   // (`attack.fromAttacker`: the marks it bears from this attacker).
-  const marked = (components.length && attackDefinition && (typeof target?.getExtraDamage === "function"))
-    ? target.getExtraDamage(["attacked", `attacked.${attackDefinition.type}`], {tags: extraTags, context}) : [];
+  const markedOn = creature => ((components.length && attackDefinition && (typeof creature?.getExtraDamage === "function"))
+    ? creature.getExtraDamage(["attacked", `attacked.${attackDefinition.type}`], {tags: extraTags, context}) : []);
+  const unused = entry => !((entry.once === "turn") && turn && (actor.flags?.wildpath?.onceUsed?.[onceKey(entry)] === turn));
   const extra = [...((components.length && (typeof actor?.getExtraDamage === "function"))
-    ? actor.getExtraDamage(damageDomains(attackDefinition, tags), {item, tags: extraTags, context}) : []), ...marked]
-    .filter(entry => !((entry.once === "turn") && turn && (actor.flags?.wildpath?.onceUsed?.[onceKey(entry)] === turn)));
+    ? actor.getExtraDamage(damageDomains(attackDefinition, tags), {item, tags: extraTags, context}) : []), ...markedOn(target)]
+    .filter(unused);
   // Extra damage with no type of its own is the Action's (Sneak Attack deals the weapon's).
   // Each names its rule (`metadata.ruleId`: "sneak-attack"), which a reaction's rider can give dice of up (Cunning Strike).
-  const extraComponents = extra.map(entry => ({id: `extra:${onceKey(entry)}`, expression: entry.expression,
-    damageType: entry.damageType ?? components[0]?.damageType ?? "untyped", provenance: "additional", metadata: {ruleId: entry.id},
-    ...(((entry.once === "turn") && turn) ? {once: {key: onceKey(entry), turn}} : {})}));
+  const component = (entry, suffix="", metadata={}) => ({id: `extra:${onceKey(entry)}${suffix}`, expression: entry.expression,
+    damageType: entry.damageType ?? components[0]?.damageType ?? "untyped", provenance: "additional", metadata: {ruleId: entry.id, ...metadata},
+    ...(((entry.once === "turn") && turn) ? {once: {key: onceKey(entry), turn}} : {})});
+  // With several targets (Eldritch Blast's beams, Scorching Ray's rays), each creature's own (Hex, Hunter's Mark) counts
+  // only on it (`metadata.targetRefs`), once for each of its entries; the damage resolver keeps it for that creature.
+  const seen = new Set();
+  const perTarget = (targets ?? []).flatMap((entry, index) => {
+    if ( !entry?.actor || seen.has(entry.actor) ) return [];
+    seen.add(entry.actor);
+    return markedOn(entry.actor).filter(unused).map(marked => component(marked, `:${index}`, {targetRefs: entry.refs ?? []}));
+  });
+  const extraComponents = [...extra.map(entry => component(entry)), ...perTarget];
   // Healing bonuses (`healing.spell`, `healing`), added once to its first component; their values see `context`
   // (`castLevel`: Disciple of Life).
   const healing = (definition?.healing ?? []).length ? (resolveActorStatisticModifier(actor,
