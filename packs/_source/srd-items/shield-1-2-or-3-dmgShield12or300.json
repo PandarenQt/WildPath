@@ -21,6 +21,112 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "armor",
+              "shield"
+            ]
+          }
+        },
+        {
+          "id": "enchantment",
+          "type": "option",
+          "label": "Shield, +1, +2, or +3",
+          "required": true,
+          "options": [
+            {
+              "id": "0",
+              "label": "Shield +1",
+              "value": "0"
+            },
+            {
+              "id": "1",
+              "label": "Shield +2",
+              "value": "1"
+            },
+            {
+              "id": "2",
+              "label": "Shield +3",
+              "value": "2"
+            }
+          ]
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "shield-1-2-or-3",
+        "optionChoiceId": "enchantment",
+        "effects": [
+          {
+            "name": "Shield +1",
+            "img": "systems/dnd5e/icons/spell-tiers/spell2.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "shield-1-ac",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "defense.ac"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "name": "Shield +2",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "shield-2-ac",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "defense.ac"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 2
+                }
+              }
+            ]
+          },
+          {
+            "name": "Shield +3",
+            "img": "systems/dnd5e/icons/spell-tiers/spell4.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "shield-3-ac",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "defense.ac"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 3
+                }
+              }
+            ]
+          }
+        ]
+      },
       "label": "Shield, +1, +2, or +3"
     },
     "ruleElements": []
@@ -39,9 +145,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

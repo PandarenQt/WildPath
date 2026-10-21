@@ -167,7 +167,13 @@ the local book module.
     `system.armor.magicalBonus` becomes AC.
   - "+2 when you reach 10th level" sets the level ranges.
   - The Item whose uses it spends (Infuse Item) is its limit and key.
-  - shortcut: riders (Radiant Weapon's reaction), the new name and attunement are by hand.
+  - Any Item's enchant activity converts so (2026-10-21), not only infusions: a magic item template (Armor of
+    Resistance, Shield +1, +2 or +3) is the Action that makes an Item of its kind that magic item. Its several options
+    with no level between them are a choice (`enchant.optionChoiceId`, the chosen effect's index), and each brings
+    the effects its option names (`riders.effect`: Armor of Resistance's Acid Resistance). A magic bonus may be added
+    or raised to (`upgrade`).
+  - shortcut: other riders (Radiant Weapon's reaction), changes to the Item itself (Mithral Armor's Strength and Stealth),
+    the new name and attunement are by hand.
 
 Live (two browsers, 14.369):
 - QA Caster used the converted Enhanced Weapon on its Dagger: attack +2 → +3, damage +0 → +1. Its Longsword was
@@ -175,3 +181,5 @@ Live (two browsers, 14.369):
 - A copy given to QA Fighter kept the +1.
 - With no Artificer levels (a limit of 1), infusing the Longsword ended both Dagger infusions.
 - An effect on the unequipped Shield gave nothing (AC 10); equipped, AC was 13 (Shield +2, effect +1).
+- 2026-10-21: a character with an equipped Shield used the SRD "Shield, +1, +2, or +3" and chose +2: the Shield got
+  "Shield +2", and AC went 12 → 14.

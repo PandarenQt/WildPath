@@ -21,6 +21,96 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "weapon"
+            ]
+          }
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "berserker-axe",
+        "effects": [
+          {
+            "name": "Berserker Axe",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "berserker-axe-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "berserker-axe-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "berserker-hp-increase-1",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "resources.health.max"
+                  ],
+                  "modifierType": "untyped",
+                  "valueExpression": {
+                    "type": "multiply",
+                    "terms": [
+                      {
+                        "type": "constant",
+                        "value": 1
+                      },
+                      {
+                        "type": "character-level"
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
       "label": "Berserker Axe"
     },
     "ruleElements": []
@@ -39,9 +129,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

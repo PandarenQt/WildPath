@@ -286,7 +286,8 @@ function enchantmentRules(effect) {
   const id = slugify(effect.name);
   return effectChanges(effect).flatMap(change => {
     const value = number(change.value);
-    if ( !value || (change.type !== "add") ) return [];
+    // A magic bonus is added, or raised to (`upgrade`: a +1 Shield, a +2 Weapon).
+    if ( !value || !["add", "upgrade"].includes(change.type) ) return [];
     if ( change.key === "system.magicalBonus" ) return ["attack", "damage"].map(domain => ({schemaVersion: 1, id: `${id}-${domain}`,
       type: "Modifier", data: {domains: [domain], modifierType: "untyped", value}, predicate: {tagsAny: ["weapon:{{host}}"]}}));
     if ( change.key === "system.armor.magicalBonus" ) return [{schemaVersion: 1, id: `${id}-ac`, type: "Modifier",
@@ -304,8 +305,11 @@ function enchantmentRules(effect) {
  * changes is a rule.
  */
 function itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf={}, scales={}}) {
-  const sources = (activity.effects ?? []).map(ref => (document.effects ?? []).find(effect => effect._id === ref._id)).filter(Boolean);
-  const effects = sources.map(effect => ({name: effect.name, ...(effect.img ? {img: effect.img} : {}), ruleElements: enchantmentRules(effect)}))
+  // Each enchantment with the effects it brings along on its Item (`riders.effect`: Armor of Resistance's Acid Resistance).
+  const byId = id => (document.effects ?? []).find(effect => effect._id === id);
+  const effects = (activity.effects ?? []).map(ref => ({ref, effect: byId(ref._id)})).filter(({effect}) => effect)
+    .map(({ref, effect}) => ({name: effect.name, ...(effect.img ? {img: effect.img} : {}), ruleElements: [...enchantmentRules(effect),
+      ...(ref.riders?.effect ?? []).map(byId).filter(Boolean).flatMap(rider => effectRules(rider, []))]}))
     .filter(effect => effect.ruleElements.length);
   if ( !effects.length ) return null;
   const raised = /increases to \+(\d+) when you reach (\d+)(?:st|nd|rd|th) level/i.exec(plainText(document));
@@ -315,17 +319,24 @@ function itemEnchantDefinition({document, activity, system, spell, level, pool, 
     effect.level = {...(/\+\d+$/.test(effect.name) ? {min: at} : {max: at - 1}), ...(levelClass ? {class: levelClass} : {})};
     effect.name = effect.name.replace(/\s*\+\d+$/, "");
   }
-  // What it suits: a weapon (`restrictions.type`), armor and Shields (its AC bonus), else any Item.
-  const kinds = (activity.restrictions?.type === "weapon") ? ["weapon"]
-    : effects.some(effect => effect.ruleElements.some(rule => rule.data.domains.includes("defense.ac"))) ? ["armor", "shield"] : [];
+  // What it suits: a weapon (`restrictions.type`, or a weapon's own template), armor and Shields (its AC bonus, or an armor's
+  // template: Armor of Resistance), else any Item.
+  const kinds = ((activity.restrictions?.type === "weapon") || (document.type === "weapon")) ? ["weapon"]
+    : (effects.some(effect => effect.ruleElements.some(rule => rule.data?.domains?.includes("defense.ac")))
+      || ((document.type === "equipment") && /\b(?:armor|shield)\b/i.test(document.name))) ? ["armor", "shield"] : [];
+  // Several with no level between them are a choice of one (+1, +2 or +3; Acid or Fire Resistance), by its index.
+  const choose = (effects.length > 1) && !(raised && (effects.length === 2));
   const limited = (activity.consumption?.targets ?? []).find(target => (target.type === "itemUses") && target.target);
   const limitId = limited ? String(limited.target).split(".").pop() : null;
   const limit = (limitId && usesOf[limitId]) ? formulaExpression(String(usesOf[limitId]), {scales}) : null;
   const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool, scales});
   return {...definition, range: {type: "self"}, targeting: {type: "self"},
     configuration: [...(definition.configuration ?? []), {id: "item", type: "select-one", label: "Item", required: true, options: [],
-      optionsFrom: {type: "gear", kinds}}],
-    enchant: {choiceId: "item", key: limitId ?? identifierOf(document), ...(limit ? {limit} : {}), effects}};
+      optionsFrom: {type: "gear", kinds}},
+    ...(choose ? [{id: "enchantment", type: "option", label: document.name, required: true,
+      options: effects.map((effect, index) => ({id: String(index), label: effect.name, value: String(index)}))}] : [])],
+    enchant: {choiceId: "item", key: limitId ?? identifierOf(document), ...(limit ? {limit} : {}), ...(choose ? {optionChoiceId: "enchantment"} : {}),
+      effects}};
 }
 
 /** An enchantment's Action: its cost (and slot), a choice of its creature's weapon, and the effect on it. */
@@ -1172,7 +1183,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         : ((activity.type === "teleport") ? teleportDefinition({document, activity, system, spell, level, notes, pool})
           : ((activity.type === "transform") ? wildShapeDefinition({document, activity, system, spell, level, notes, pool, beasts})
             : (enchant ? enchantDefinition({document, activity, system, spell, level, pool, enchant})
-              : (((activity.type === "enchant") && SUBTYPE_CLASS[system.type?.subtype])
+              : ((activity.type === "enchant")
                 ? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales})
                 : null))))));
     if ( definition && trapTier ) definition = trapDefinition(definition, document.name);

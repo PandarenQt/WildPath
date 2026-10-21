@@ -38,3 +38,16 @@ test("an enchantment's Item choice: its creature's own gear of the kinds it suit
   assert.deepEqual(options(["armor", "shield"]), ["plate", "board"]);
   assert.deepEqual(options([]), ["sword", "dagger", "plate", "board", "rope"], "any Item");
 });
+
+test("an enchantment of several options applies the one chosen (Shield, +1, +2, or +3)", async () => {
+  const {createFoundryEnchantments} = await import("../module/adapters/foundry-v14-enchantments.mjs");
+  const created = [];
+  const shield = {id: "shield", effects: [], createEmbeddedDocuments: async (type, data) => { created.push(...data); return data; }};
+  const actor = {uuid: "Actor.a", system: {details: {level: 1}}, items: {get: id => (id === "shield" ? shield : null)}};
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, actors: [], scenes: []};
+  const bonus = value => ({name: `Shield +${value}`, ruleElements: [{type: "Modifier", data: {domains: ["defense.ac"], value}}]});
+  const state = {actionDefinition: {id: "action:shield", enchant: {choiceId: "item", optionChoiceId: "enchantment", key: "shield",
+    effects: [bonus(1), bonus(2), bonus(3)]}}, configuration: {choices: [{id: "item", value: "shield"}, {id: "enchantment", value: "1"}]}};
+  await createFoundryEnchantments({game}).afterResolution({options: {actor}, state});
+  assert.deepEqual(created.map(effect => [effect.name, effect.system.ruleElements[0].data.value]), [["Shield +2", 2]]);
+});

@@ -42,7 +42,8 @@ function enchantmentsOf(game: Data, key: string, creatorRef: string) {
 export function createFoundryEnchantments({game, logger=console}: {game: Data; logger?: {warn(...args: unknown[]): void}}) {
   /** After an Action that enchants, on the active GM: the chosen Item gets its effect. */
   async function afterResolution({options, state}: {options?: {actor?: Data}; state?: Data}) {
-    const spec = state?.actionDefinition?.enchant as {choiceId: string; key?: string; limit?: unknown; effects: EnchantEffect[]} | undefined;
+    const spec = state?.actionDefinition?.enchant as {choiceId: string; optionChoiceId?: string; key?: string; limit?: unknown;
+      effects: EnchantEffect[]} | undefined;
     const actor = options?.actor;
     if ( !spec || !actor || (game.users?.activeGM?.id !== game.user?.id) ) return null;
     const choices = state?.configuration?.choices;
@@ -55,7 +56,10 @@ export function createFoundryEnchantments({game, logger=console}: {game: Data; l
     const levelOf = (effect: EnchantEffect) => (effect.level?.class
       ? Number(evaluateValueExpression({type: "class-level", class: effect.level.class}, {actor, actorSystem: actor.system}).value) || 0
       : Number(actor.system?.details?.level) || 0);
-    const effect = spec.effects.find(entry => enchantEffectFor([entry], levelOf(entry)) === entry) ?? null;
+    // The one its user chose (`optionChoiceId`: its index), else the one for its creator's level.
+    const option = (spec.optionChoiceId && Array.isArray(choices)) ? choices.find((entry: Data) => entry?.id === spec.optionChoiceId) : null;
+    const effect = option ? (spec.effects[Number(option.value ?? option.optionId)] ?? null)
+      : (spec.effects.find(entry => enchantEffectFor([entry], levelOf(entry)) === entry) ?? null);
     if ( !effect ) return null;
     const key = String(spec.key ?? state?.actionDefinition?.id ?? "enchantment");
     // One with its key per Item: a new one replaces it.

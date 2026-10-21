@@ -21,6 +21,50 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "weapon"
+            ]
+          }
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "weapon-of-warning",
+        "effects": [
+          {
+            "name": "Weapon of Warning",
+            "img": "systems/dnd5e/icons/spell-tiers/spell2.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "supernatural-readiness-initiative-advantage-1",
+                "type": "RollMode",
+                "data": {
+                  "domains": [
+                    "initiative"
+                  ],
+                  "mode": "advantage"
+                }
+              }
+            ]
+          }
+        ]
+      },
       "label": "Weapon of Warning"
     },
     "ruleElements": []
@@ -39,9 +83,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

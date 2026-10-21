@@ -21,6 +21,175 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": []
+          }
+        },
+        {
+          "id": "enchantment",
+          "type": "option",
+          "label": "Ammunition, +1, +2, or +3",
+          "required": true,
+          "options": [
+            {
+              "id": "0",
+              "label": "Ammunition +1",
+              "value": "0"
+            },
+            {
+              "id": "1",
+              "label": "Ammunition +2",
+              "value": "1"
+            },
+            {
+              "id": "2",
+              "label": "Ammunition +3",
+              "value": "2"
+            }
+          ]
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "ammunition-1-2-or-3",
+        "optionChoiceId": "enchantment",
+        "effects": [
+          {
+            "name": "Ammunition +1",
+            "img": "systems/dnd5e/icons/spell-tiers/spell2.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "ammunition-1-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "ammunition-1-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Ammunition +2",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "ammunition-2-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 2
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "ammunition-2-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 2
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Ammunition +3",
+            "img": "systems/dnd5e/icons/spell-tiers/spell4.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "ammunition-3-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 3
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "ammunition-3-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 3
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
       "label": "Ammunition, +1, +2, or +3"
     },
     "ruleElements": []
@@ -39,9 +208,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

@@ -29,7 +29,6 @@
       },
       "conversion": {
         "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest",
           "armor: of any kind; give it its armor's AC by hand"
         ]
       },

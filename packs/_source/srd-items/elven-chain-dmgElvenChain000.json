@@ -21,6 +21,52 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "armor",
+              "shield"
+            ]
+          }
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "elven-chain",
+        "effects": [
+          {
+            "name": "Elven Chain",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "elven-chain-ac",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "defense.ac"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                }
+              }
+            ]
+          }
+        ]
+      },
       "label": "Elven Chain"
     },
     "ruleElements": []
@@ -39,9 +85,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

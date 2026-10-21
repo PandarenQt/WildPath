@@ -1011,6 +1011,20 @@ test("a feature used as its creature hits, by its text, is offered on its own hi
   assert.ok(still.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), "nothing about a hit");
 });
 
+test("a magic item template enchants an Item of its kind: a choice of its options, each with the effects it brings (Armor of Resistance)", () => {
+  const option = (id, type) => ({_id: id, name: `Armor of ${type} Resistance`, type: "enchantment",
+    system: {changes: [{key: "name", value: `{} of ${type} Resistance`, type: "override"}]}});
+  const rider = (id, type) => ({_id: id, name: `${type} Resistance`, system: {changes: [{key: "system.traits.dr.value", value: type.toLowerCase(), type: "add"}]}});
+  const armor = {_id: "testArmorResist1", name: "Armor of Resistance", type: "equipment", system: {source: SRD, description: {value: ""},
+    activities: {a: activity("enchant", {effects: [{_id: "acid", riders: {effect: ["acidr"]}}, {_id: "fire", riders: {effect: ["firer"]}}]})}},
+    effects: [option("acid", "Acid"), option("fire", "Fire"), rider("acidr", "Acid"), rider("firer", "Fire")]};
+  const enchant = convertItem(armor).items.find(item => item.type === "action").system.definition;
+  assert.deepEqual(enchant.configuration.map(choice => [choice.id, choice.optionsFrom?.kinds ?? choice.options.map(entry => entry.value)]),
+    [["item", ["armor", "shield"]], ["enchantment", ["0", "1"]]]);
+  assert.deepEqual(enchant.enchant.effects.map(effect => effect.ruleElements.map(rule => rule.data.damageTypes)), [[["acid"]], [["fire"]]]);
+  assert.equal(enchant.enchant.optionChoiceId, "enchantment");
+});
+
 test("a trap's tier is an Action that sets it: a lasting 5-foot square anywhere that springs on each creature entering it", () => {
   const roof = {_id: "testTrapRoof0001", name: "Collapsing Roof", type: "equipment", effects: [], system: {source: SRD,
     description: {value: "<p>Deadly Trap.</p>"}, activities: {a: activity("save", {name: "Trigger (5-10)", activation: {type: "", override: false},
