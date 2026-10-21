@@ -140,8 +140,14 @@ only what one level asks, and adds what it grants:
   goes), and a chosen subclass is added with its own features for that level.
 - **Multiclassing** (a class beside another) uses the class's multiclass proficiencies and the average hit points,
   and warns, without blocking, when either class's primary abilities are below 13.
-- Shortcuts: a later Fortitude increase does not raise earlier levels' hit points; removing a class does not take
-  back its hit points or ability increases; a subclass dropped directly gets no dialog; spells a feature chooses
+- **Hit points follow Fortitude (2026-10-21).** The health base records the Fortitude modifier it counts for each level
+  (`resources.health.perLevelFortitude`); the maximum counts the current one instead, times the character's level. So a
+  later increase (an ability score step, a feat, an Amulet of Health while worn) raises every level's hit points, and a
+  decrease lowers them. A level gained after a change first brings the base to the new modifier. Characters built
+  before this record their stored Fortitude's (world migration 3); hit points typed by hand count nothing.
+  Live: a Fighter at Fortitude 14 had 12, then 20; Fortitude 16 made it 22; level 3 made it 31; an Amulet of Health
+  (Fortitude 19) made it 34, and taking it off 31.
+- Shortcuts: removing a class does not take back its hit points or ability increases; a subclass dropped directly gets no dialog; spells a feature chooses
   (Magic Initiate, a spellbook) are not asked.
 
 Live (two browsers, SRD 5.2): the Fighter dropped on a new character gave 12 hit points (d10 + 2), Might and

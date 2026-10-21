@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {runMigrations, stalePoolIds, threatFix} from "../module/helpers/migrations.mjs";
+import {fortitudeFix, runMigrations, stalePoolIds, threatFix} from "../module/helpers/migrations.mjs";
 
 test("a pool is stale only when nothing names it and it has no base of its own", () => {
   const pools = [
@@ -22,6 +22,17 @@ test("an NPC converted before fractional Challenge Ratings gets its fraction bac
   assert.equal(threatFix(npc(0.25, 0.25)), null);
   assert.equal(threatFix({type: "npc", system: {details: {threat: 3}}}), null, "no converted rating: left as it is");
   assert.equal(threatFix({type: "character", flags: {wildpath: {source: {challenge: 2}}}}), null);
+});
+
+test("a character built by level-up records the Fortitude modifier its Hit Points count for each level", () => {
+  const character = (fortitude, extra={}) => ({type: "character", system: {classes: [{id: "fighter", level: 3}],
+    abilities: {fortitude: {value: fortitude}}, resources: {health: {base: 28, ...extra}}}});
+  assert.equal(fortitudeFix(character(14)), 2);
+  assert.equal(fortitudeFix(character(9)), -1);
+  assert.equal(fortitudeFix(character(14, {perLevelFortitude: 1})), null, "already recorded");
+  assert.equal(fortitudeFix({type: "character", system: {classes: [], abilities: {fortitude: {value: 14}}}}), null,
+    "Hit Points typed by hand: nothing to count");
+  assert.equal(fortitudeFix({type: "npc", system: {classes: [{}]}}), null);
 });
 
 function world({version=0, isGM=true, active=true}={}) {
