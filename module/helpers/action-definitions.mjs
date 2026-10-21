@@ -533,7 +533,10 @@ function resolverRequestFromDamageDefinition(definition, runtimeDamage, evaluati
   // Extra damage from the creature's rules (ExtraDamage) follows the Action's own components.
   const extras = normalizeArray(runtimeDamage?.extraComponents)
     .map((component, index) => normalizeDamageDefinition(component, definition.damage.length + index));
-  const components = [...definition.damage, ...extras].map((component, index) => damageComponentForResolver({
+  // A larger die rolled in place of the weapon's own (Martial Arts with a Monk weapon: `baseExpression`).
+  const own = runtimeDamage?.baseExpression ? definition.damage.map(component => ((component.provenance === "weapon-base")
+    ? {...component, expression: clonePlain(runtimeDamage.baseExpression)} : component)) : definition.damage;
+  const components = [...own, ...extras].map((component, index) => damageComponentForResolver({
     component,
     index,
     runtimeComponents,

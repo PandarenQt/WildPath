@@ -7,7 +7,200 @@
   "system": {
     "active": true,
     "description": "<p>Your practice of martial arts gives you mastery of combat styles that use your Unarmed Strike and Monk weapons, which are the following:</p><ul><li>Simple Melee weapons</li><li>Martial Melee weapons that have the Light property</li></ul><p>You gain the following benefits while you are unarmed or wielding only Monk weapons and you aren't wearing armor or wielding a Shield.</p><p><strong>Bonus Unarmed Strike.</strong> You can make an Unarmed Strike as a Bonus Action.</p><p><strong>Martial Arts Die.</strong> You can roll 1d6 in place of the normal damage of your Unarmed Strike or Monk weapons. This die changes as you gain Monk levels, as shown in the Martial Arts column of the Monk Features table.</p><p><strong>Current Martial Arts Die:</strong> (by class level)</p><p><strong>Dexterous Attacks.</strong>You can use your Dexterity modifier instead of your Strength modifier for the attack and damage rolls of your Unarmed Strikes and Monk weapons. In addition, when you use the Grapple or Shove option of your Unarmed Strike, you can use your Dexterity modifier instead of your Strength modifier to determine the save DC.</p><section class=\"secret\" id=\"secret-krbGYn2lplFe7kOG\"><p><strong>Foundry Note</strong></p><p>This feature includes activities for enchanting a weapon which adds a <strong>Monk Attack</strong> activity to it that integrates the changes mentioned above.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "martial-arts-die",
+        "type": "ExtraDamage",
+        "predicate": {
+          "all": [
+            {
+              "tagsAll": [
+                "melee"
+              ]
+            },
+            {
+              "any": [
+                {
+                  "tagsAll": [
+                    "category:simple"
+                  ]
+                },
+                {
+                  "tagsAll": [
+                    "category:martial",
+                    "light"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "data": {
+          "domains": [
+            "damage.weapon"
+          ],
+          "expression": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "monk"
+            },
+            "rows": {
+              "1": {
+                "type": "dice",
+                "number": 1,
+                "faces": 6
+              },
+              "5": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "11": {
+                "type": "dice",
+                "number": 1,
+                "faces": 10
+              },
+              "17": {
+                "type": "dice",
+                "number": 1,
+                "faces": 12
+              }
+            }
+          },
+          "replacesBase": true
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "martial-arts-dexterity-attack",
+        "type": "Modifier",
+        "predicate": {
+          "all": [
+            {
+              "all": [
+                {
+                  "tagsAll": [
+                    "melee"
+                  ]
+                },
+                {
+                  "any": [
+                    {
+                      "tagsAll": [
+                        "category:simple"
+                      ]
+                    },
+                    {
+                      "tagsAll": [
+                        "category:martial",
+                        "light"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tagsAll": [
+                "might"
+              ]
+            }
+          ]
+        },
+        "data": {
+          "domains": [
+            "attack"
+          ],
+          "modifierType": "untyped",
+          "valueExpression": {
+            "type": "max",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 0
+              },
+              {
+                "type": "subtract",
+                "left": {
+                  "type": "ability-modifier",
+                  "ability": "agility"
+                },
+                "right": {
+                  "type": "ability-modifier",
+                  "ability": "might"
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "martial-arts-dexterity-damage",
+        "type": "Modifier",
+        "predicate": {
+          "all": [
+            {
+              "all": [
+                {
+                  "tagsAll": [
+                    "melee"
+                  ]
+                },
+                {
+                  "any": [
+                    {
+                      "tagsAll": [
+                        "category:simple"
+                      ]
+                    },
+                    {
+                      "tagsAll": [
+                        "category:martial",
+                        "light"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "tagsAll": [
+                "might"
+              ]
+            }
+          ]
+        },
+        "data": {
+          "domains": [
+            "damage"
+          ],
+          "modifierType": "untyped",
+          "valueExpression": {
+            "type": "max",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 0
+              },
+              {
+                "type": "subtract",
+                "left": {
+                  "type": "ability-modifier",
+                  "ability": "agility"
+                },
+                "right": {
+                  "type": "ability-modifier",
+                  "ability": "might"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

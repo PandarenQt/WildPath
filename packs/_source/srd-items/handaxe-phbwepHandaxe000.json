@@ -23,6 +23,9 @@
         "statistic": "weapon",
         "defenseKey": "ac",
         "proficient": true,
+        "properties": [
+          "light"
+        ],
         "weapon": {
           "category": "simple",
           "base": "handaxe",

@@ -1515,6 +1515,14 @@ test("monk: Martial Arts brings three Unarmed Strikes, Flurry of Blows fills its
     .find(file => file.startsWith(prefix))}`, "utf8"));
   const feature = read("martial-arts-phbmnkMartialArt");
   assert.equal(feature.flags.wildpath.grants.length, 3);
+  // Monk weapons: the Martial Arts die in place of their own when larger, Dexterity in place of Strength.
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const [die, dexterity] = feature.system.ruleElements;
+  assert.deepEqual([die.type, die.data.replacesBase, dexterity.data.domains], ["ExtraDamage", true, ["attack"]]);
+  const monkWeapon = tags => evaluatePredicate(die.predicate, {tags}).ok;
+  assert.deepEqual([monkWeapon(["melee", "category:martial", "light"]), monkWeapon(["melee", "category:simple"]),
+    monkWeapon(["melee", "category:martial"]), monkWeapon(["ranged", "category:simple"])], [true, true, false, false],
+    "a shortsword and a quarterstaff are Monk weapons; a longsword and a dart are not");
   const flurryStrike = read("martial-arts-flurry-of-blows-strike");
   const definition = flurryStrike.system.definition;
   assert.deepEqual([definition.costs.allOf[0].capability, definition.tags, definition.attack.properties],
