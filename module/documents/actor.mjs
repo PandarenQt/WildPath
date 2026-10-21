@@ -824,7 +824,15 @@ export default class WildPathActor extends Actor {
     }
     const pools = this.toObject(true).system.pools;
     const grants = new Map(this.getGrantedResources().map(grant => [grant.id, grant]));
+    const legacy = globalThis.game?.settings?.get?.("wildpath", "rulesVersion") === "2014";
     for ( const [index, resource] of this.system.pools.entries() ) {
+      // 2014: a Long Rest gives back spent Hit Dice up to half of them (at least one). shortcut: half of each die size,
+      // not a choice across a multiclass character's sizes; upgrade with a Hit Dice choice on the rest.
+      if ( legacy && long && String(resource.id).startsWith("hit-die.") ) {
+        pools[index].value = Math.min(resource.max, resource.value + Math.max(1, Math.floor(resource.max / 2)));
+        updates["system.pools"] = pools;
+        continue;
+      }
       // Its grant's recovery when one grants it (a stored pool keeps the recovery it was created with).
       if ( recovers(grants.get(resource.id)?.recovery ?? resource.recovery) ) {
         pools[index].value = resource.max;

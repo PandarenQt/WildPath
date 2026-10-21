@@ -415,11 +415,17 @@ WILDPATH.CONDITIONS_2014 = {
   grappled: {...conditions2024.grappled, summary: "WILDPATH.CONDITIONS.Summary.Grappled2014", ruleElements: [cap("grappled.speed-0", ["movement"])]},
   exhaustion: {...conditions2024.exhaustion, summary: "WILDPATH.CONDITIONS.Summary.Exhaustion2014", ruleElements: [
     rollMode("exhaustion.checks", ["check"], "disadvantage"),
-    // shortcut: halving caps every Speed at half the walking Speed's own maximum; upgrade with per-Speed caps.
-    grant("exhaustion.speed-halved", "ResourceCap", {resources: ["movement"], maximum: half("movement")}, atLevels([2, 3, 4])),
+    // "Speed halved": every Speed, each its own half (a factor on each, as Slowed's).
+    // (By its level in the value, as 2024's leveled Modifiers read it: halved at 2 to 4, Speed 0 from 5.)
+    grant("exhaustion.speed-halved", "Modifier", {domains: ["speed.multiplier"], modifierType: "untyped", valueExpression: {type: "table",
+      key: {type: "context", path: "effect.system.level"}, rows: {1: 1, 2: 0.5, 5: 1}}}),
     rollMode("exhaustion.attacks-saves", ["attack", "save"], "disadvantage", atLevels([3, 4, 5, 6])),
     grant("exhaustion.hit-point-maximum-halved", "ResourceCap", {resources: ["health"], maximum: half("health")}, atLevels([4, 5, 6])),
-    grant("exhaustion.speed-0", "ResourceCap", {resources: ["movement"], maximum: 0}, atLevels([5, 6]))]}
+    grant("exhaustion.speed-0", "ResourceCap", {resources: ["movement"], maximum: 0}, atLevels([5, 6]))]},
+  // 2014 surprise: "you can't move or take an action on your first turn of the combat, and you can't take a reaction
+  // until that turn ends" (no Disadvantage on Initiative). That turn's end ends it (documents/combat.mjs).
+  surprised: {...conditions2024.surprised, summary: "WILDPATH.CONDITIONS.Summary.Surprised2014",
+    ruleElements: [cap("surprised.no-first-turn", ["movement", "action", "bonus", "reaction"])]}
 };
 
 /* -------------------------------------------- */
