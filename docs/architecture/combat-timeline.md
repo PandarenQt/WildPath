@@ -97,6 +97,13 @@ each character's XP budget by level (Low, Moderate, High; no multiplier for numb
 Live (14.369): an ogre-sized foe (CR 2, 450 XP) against one 1st-level character was "Beyond High"; defeating it and
 ending the combat awarded 450 XP, and the chat said the character may level up.
 
+**Journeys (2026-10-22).** The GM's "Journey" tool among the Token controls (`applications/journey.mjs`) moves the
+party some hours at a pace (2024 DMG): Fast 4, Normal 3, Slow 2 miles an hour. Each player character gets the pace's
+effect for those hours (Fast: Disadvantage on Perception and Survival checks; Slow: Advantage), every hour past 8 is a
+forced march (a Fortitude save, DC 10 + 1 per hour past 8, or 1 Exhaustion level), the world's time moves on, and the
+chat says how far they went. shortcut: navigation, foraging and terrain are the GM's. Live (14.369): 9 hours at a Fast
+pace went 36 miles; the forced march's failed save gave Exhaustion, and Perception checks had Disadvantage.
+
 **Party rest (2026-10-21).** The GM's "Party Rest" tool among the Token controls (`applications/party-rest.mjs`) rests
 every player character at once, a Short Rest (1 hour) or a Long Rest (8 hours), each by `WildPathActor#rest()`, then
 moves the world's time on by those hours, so what lasts hours runs out. Each player spends Hit Dice from its sheet; an

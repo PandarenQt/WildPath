@@ -1274,6 +1274,18 @@
       "AwardHint": "The defeated foes are worth {xp} XP: {each} XP each for {names}.",
       "Awarded": "{each} XP each: {names}.",
       "LevelUp": "{names} may now level up."
+    },
+    "JOURNEY": {
+      "Title": "Journey",
+      "Hint": "The party travels: Fast 4, Normal 3, Slow 2 miles an hour. Past 8 hours, each hour is a forced march (a Fortitude save or 1 Exhaustion level).",
+      "PaceLabel": "Pace",
+      "Hours": "Hours",
+      "fast": "Fast",
+      "normal": "Normal",
+      "slow": "Slow",
+      "Pace": "Travel pace: {pace}",
+      "Done": "The party travels {miles} miles in {hours} hours at a {pace} pace.",
+      "Exhausted": "Forced march: {names} gained Exhaustion."
     }
   },
   "TYPES": {
