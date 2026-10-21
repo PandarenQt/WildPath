@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 877 automated, 284 manual, 228 features. Creatures: 375.
+Items: 893 automated, 268 manual, 228 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -222,7 +222,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Breath Weapon | origins24 | Breath Weapon (Breath Weapon (Cone)) (automated), Breath Weapon (Breath Weapon (Line)) (automated) | — |
 | Brewer's Supplies | equipment24 | Brewer's Supplies (gear), Brewer's Supplies (Detect Poisoned Drink) (automated), Brewer's Supplies (Identify Alcohol) (automated) | — |
 | Bronze Dragon Wyrmling | actors24 | Bronze Dragon Wyrmling (6 items) | — |
-| Bronze Griffon | equipment24 | Bronze Griffon (gear), Bronze Griffon (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
+| Bronze Griffon | equipment24 | Bronze Griffon (gear), Bronze Griffon (automated) | — |
 | Bronze Horn of Valhalla | equipment24 | Bronze Horn of Valhalla (gear), Bronze Horn of Valhalla (automated) | — |
 | Brooch of Shielding | equipment24 | Brooch of Shielding (gear) | — |
 | Broom of Flying | equipment24 | Broom of Flying (gear), Broom of Flying (Activate Broom) (automated), Broom of Flying (Send Alone or Recall) (manual) | effect: flying is not a WildPath condition yet; not automated (utility): using it spends its cost; its description says the rest |
@@ -488,7 +488,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Elemental Fury | classes24 | Elemental Fury (feature) | — |
 | Elemental Fury: Potent Spellcasting | classes24 | Elemental Fury: Potent Spellcasting (feature) | — |
 | Elemental Fury: Primal Strike | classes24 | Elemental Fury: Primal Strike (automated) | — |
-| Elemental Gem | equipment24 | Elemental Gem (Blue Sapphire) (manual), Elemental Gem (Emerald) (manual), Elemental Gem (Red Corundum) (manual), Elemental Gem (Yellow Diamond) (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
+| Elemental Gem | equipment24 | Elemental Gem (Blue Sapphire) (automated), Elemental Gem (Emerald) (automated), Elemental Gem (Red Corundum) (automated), Elemental Gem (Yellow Diamond) (automated) | — |
 | Elemental Gem (Blue Sapphire) | equipment24 | Elemental Gem (Blue Sapphire) (automated) | — |
 | Elemental Gem (Emerald) | equipment24 | Elemental Gem (Emerald) (automated) | — |
 | Elemental Gem (Red Corundum) | equipment24 | Elemental Gem (Red Corundum) (automated) | — |
@@ -711,13 +711,13 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Goblin Warrior | actors24 | Goblin Warrior (7 items) | — |
 | Goggles of Night | equipment24 | Goggles of Night (gear) | — |
 | Gold Dragon Wyrmling | actors24 | Gold Dragon Wyrmling (6 items) | — |
-| Golden Lions | equipment24 | Golden Lions (gear), Golden Lions (Use First Lion) (manual), Golden Lions (Use Second Lion) (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
+| Golden Lions | equipment24 | Golden Lions (gear), Golden Lions (Use First Lion) (automated), Golden Lions (Use Second Lion) (automated) | — |
 | Goliath | origins24 | Goliath (species) | — |
 | Goodberry | spells24 | Goodberry (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Gorgon | actors24 | Gorgon (4 items) | — |
 | Grappler | feats24 | Grappler (feature) | — |
 | Grappling Hook | equipment24 | Grappling Hook (gear), Grappling Hook (automated) | — |
-| Gray Bag of Tricks | equipment24 | Gray Bag of Tricks (gear), Gray Bag of Tricks (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
+| Gray Bag of Tricks | equipment24 | Gray Bag of Tricks (gear), Gray Bag of Tricks (automated) | — |
 | Gray Ooze | actors24 | Gray Ooze (4 items) | — |
 | Grease | spells24 | Grease (automated) | save: a failure gives prone (its text); the rest is by hand |
 | Great Weapon Fighting | feats24 | Great Weapon Fighting (feature) | — |
@@ -798,7 +798,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Homunculus | actors24 | Homunculus (3 items) | Bite: "save" is passive or triggered: not automated |
 | Horn | equipment24 | Horn (gear), Horn (Play a Known Tune) (automated), Horn (Improvise a Song) (automated) | — |
 | Horn of Blasting | equipment24 | Horn of Blasting (gear), Horn of Blasting (Blow Horn) (automated), Horn of Blasting (Explosion Damage) (automated) | "Object Damage" is passive or triggered: not automated; "Roll for Explosion Chance" is passive or triggered: not automated |
-| Horn of Valhalla | equipment24 | Horn of Valhalla (gear), Horn of Valhalla (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; consumption: itemUses @item.uses.max not converted |
+| Horn of Valhalla | equipment24 | Horn of Valhalla (gear), Horn of Valhalla (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: a count of "@scaling" is not converted; consumption: itemUses @item.uses.max not converted |
 | Horned Devil | actors24 | Horned Devil (7 items) | Infernal Tail: "Target: HP Loss" is passive or triggered: not automated; Infernal Tail: "Stanch Wound Check" is passive or triggered: not automated |
 | Horseshoes of a Zephyr | equipment24 | Horseshoes of a Zephyr (gear), Horseshoes of a Zephyr (automated) | effect: "Ignore Difficult Terrain" change system.attributes.movement.ignoredDifficultTerrain (add) not converted; effect: "Ignore Difficult Terrain" marks its creature only; its rules are by hand |
 | Horseshoes of Speed | equipment24 | Horseshoes of Speed (gear), Horseshoes of Speed (automated) | — |
@@ -873,7 +873,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Iron Golem | actors24 | Iron Golem (8 items) | — |
 | Iron Horn of Valhalla | equipment24 | Iron Horn of Valhalla (gear), Iron Horn of Valhalla (automated) | — |
 | Irresistible Dance | spells24 | Irresistible Dance (automated) | effect: "Short Dance" marks its creature only; its rules are by hand |
-| Ivory Goats | equipment24 | Ivory Goats (gear), Ivory Goats (Goat of Terror) (manual), Ivory Goats (Goat of Traveling) (automated), Ivory Goats (Revert or Recall Goat of Traveling) (automated), Ivory Goats (Goat of Travail) (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
+| Ivory Goats | equipment24 | Ivory Goats (gear), Ivory Goats (Goat of Terror) (manual), Ivory Goats (Goat of Traveling) (automated), Ivory Goats (Revert or Recall Goat of Traveling) (automated), Ivory Goats (Goat of Travail) (automated) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
 | Jack of All Trades | classes24 | Jack of All Trades (feature) | — |
 | Jackal | actors24 | Jackal (2 items) | — |
 | Javelin | equipment24 | Javelin (automated) | — |
@@ -966,7 +966,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Manual of Golems | equipment24 | Manual of Golems (gear) | "Create Clay Golem" is passive or triggered: not automated; "Create Flesh Golem" is passive or triggered: not automated; "Create Iron Golem" is passive or triggered: not automated; "Create Stone Golem" is passive or triggered: not automated |
 | Manual of Quickness of Action | equipment24 | Manual of Quickness of Action (gear), Manual of Quickness of Action (Read) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; "Reset Progress" is passive or triggered (narrative): not automated |
 | Map | equipment24 | Map (gear) | — |
-| Marble Elephant | equipment24 | Marble Elephant (gear), Marble Elephant (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
+| Marble Elephant | equipment24 | Marble Elephant (gear), Marble Elephant (automated) | — |
 | Marilith | actors24 | Marilith (10 items) | Teleport: not automated (utility): using it spends its cost; its description says the rest |
 | Martial Arts | classes24 | Martial Arts (feature), Martial Arts (Unarmed Strike) (automated), Martial Arts (Bonus Unarmed Strike) (automated), Martial Arts (Flurry of Blows Strike) (automated) | "Master Simple Weapon" is passive or triggered: not automated; "Master Light Martial Weapon" is passive or triggered: not automated |
 | Marvelous Pigments | equipment24 | Marvelous Pigments (gear), Marvelous Pigments (Determine Number of Pots) (manual), Marvelous Pigments (Paint) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; consumption: itemUses 1d3 not converted; activation: 10 minute is not an action-economy cost |
@@ -1041,7 +1041,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Oath of Devotion | classes24 | Oath of Devotion (subclass) | — |
 | Oath of Devotion Spells | classes24 | Oath of Devotion Spells (feature) | — |
 | Oathbow | equipment24 | Oathbow (Oathbow) (manual), Oathbow (Attack Sworn Enemy) (automated) | not automated (enchant): using it spends its cost; its description says the rest; "Swear Oath" is passive or triggered: not automated |
-| Obsidian Steed | equipment24 | Obsidian Steed (gear), Obsidian Steed (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; consumption: itemUses @item.uses.max not converted |
+| Obsidian Steed | equipment24 | Obsidian Steed (gear), Obsidian Steed (automated) | — |
 | Ochre Jelly | actors24 | Ochre Jelly (5 items) | Split: summon: what it gains with the spell's level (hp) is not added |
 | Octopus | actors24 | Octopus (5 items) | Ink Cloud: not automated (utility): using it spends its cost; its description says the rest |
 | Ogre | actors24 | Ogre (3 items) | — |
@@ -1059,7 +1059,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Oil of Taggit | equipment24 | Oil of Taggit (gear) | "Use Poison" is passive or triggered: not automated |
 | One with Shadows | classes24 | One with Shadows (automated) | — |
 | Oni | actors24 | Oni (11 items) | Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: cast: Charm Person at level 2 is cast at its own level; Spellcasting: effect: transformed is not a WildPath condition yet; Spellcasting: effect: "Gaseous Form" change img (override) not converted |
-| Onyx Dog | equipment24 | Onyx Dog (gear), Onyx Dog (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
+| Onyx Dog | equipment24 | Onyx Dog (gear), Onyx Dog (automated) | — |
 | Open Hand Technique | classes24 | Open Hand Technique (Addle) (automated), Open Hand Technique (Push) (automated), Open Hand Technique (Topple) (automated) | — |
 | Orb | equipment24 | Orb (gear) | — |
 | Orc | origins24 | Orc (species) | — |
@@ -1297,7 +1297,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Roper | actors24 | Roper (6 items) | Reel: not automated (utility): using it spends its cost; its description says the rest |
 | Roving | classes24 | Roving (feature) | — |
 | Ruin | equipment24 | Ruin (gear) | "Card Effect" is passive or triggered (narrative): not automated |
-| Rust Bag of Tricks | equipment24 | Rust Bag of Tricks (gear), Rust Bag of Tricks (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
+| Rust Bag of Tricks | equipment24 | Rust Bag of Tricks (gear), Rust Bag of Tricks (automated) | — |
 | Rust Monster | actors24 | Rust Monster (7 items) | Iron Scent: "Expend Use" is passive or triggered (narrative): not automated; Antennae: rolled (save); what it does is by hand; Destroy Metal: not automated (utility, narrative): using it spends its cost; its description says the rest; Reflexive Antennae: not automated (utility): using it spends its cost; its description says the rest |
 | Saber-Toothed Tiger | actors24 | Saber-Toothed Tiger (6 items) | — |
 | Sack | equipment24 | Sack (gear) | — |
@@ -1338,7 +1338,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Sentinel Shield | equipment24 | Sentinel Shield (gear) | — |
 | Sequester | spells24 | Sequester (automated) | — |
 | Serpent Venom | equipment24 | Serpent Venom (gear) | "Use Poison" is passive or triggered: not automated |
-| Serpentine Owl | equipment24 | Serpentine Owl (gear), Serpentine Owl (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; consumption: itemUses @item.uses.max not converted |
+| Serpentine Owl | equipment24 | Serpentine Owl (gear), Serpentine Owl (automated) | — |
 | Shadow | actors24 | Shadow (7 items) | — |
 | Shambling Mound | actors24 | Shambling Mound (6 items) | Engulf: "Engulfed: Damage" is passive or triggered: not automated; Engulf: not automated (check): using it spends its cost; its description says the rest; Engulf: check: a choice of acr/ath uses acr; Engulf: check: acr/ath DC (@skills.ath.passive) not converted |
 | Shapechange | spells24 | Shapechange (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
@@ -1365,7 +1365,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Silent Image | spells24 | Silent Image (automated) | — |
 | Silver Dragon Wyrmling | actors24 | Silver Dragon Wyrmling (5 items) | — |
 | Silver Horn of Valhalla | equipment24 | Silver Horn of Valhalla (gear), Silver Horn of Valhalla (automated) | — |
-| Silver Raven | equipment24 | Silver Raven (gear), Silver Raven (summon) (manual), Silver Raven: Animal Messenger (automated) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; consumption: itemUses @item.uses.max not converted; effect: "Carrying Message" marks its creature (narrative) |
+| Silver Raven | equipment24 | Silver Raven (gear), Silver Raven (summon) (automated), Silver Raven: Animal Messenger (automated) | effect: "Carrying Message" marks its creature (narrative) |
 | Simulacrum | spells24 | Simulacrum (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 12 hour is not an action-economy cost |
 | Skeleton | actors24 | Skeleton (3 items) | — |
 | Skilled | feats24 | Skilled (feature) | — |
@@ -1505,7 +1505,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Talisman of the Sphere | equipment24 | Talisman of the Sphere (gear) | — |
 | Talisman of Ultimate Evil | equipment24 | Talisman of Ultimate Evil (gear), Talisman of Ultimate Evil (Ultimate End) (automated) | "Non-Fiend or Undead Damage" is passive or triggered: not automated |
 | Talons | equipment24 | Talons (gear) | "Card Effect" is passive or triggered (narrative): not automated |
-| Tan Bag of Tricks | equipment24 | Tan Bag of Tricks (gear), Tan Bag of Tricks (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
+| Tan Bag of Tricks | equipment24 | Tan Bag of Tricks (gear), Tan Bag of Tricks (automated) | — |
 | Tarrasque | actors24 | Tarrasque (13 items) | Reflective Carapace: "Roll d6" is passive or triggered: not automated; Swallow: effect: coverTotal is not a WildPath condition yet; Swallow: "Damage: Swallowed" is passive or triggered: not automated; Swallow: "Regurgitate: Save" is passive or triggered: not automated; Onslaught: not automated (utility): using it spends its cost; its description says the rest |
 | Telekinesis | spells24 | Telekinesis (automated) | save: a failure marks its creature only; what it does is by hand |
 | Telepathic Bond | spells24 | Telepathic Bond (automated) | — |

@@ -25,6 +25,59 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 20,
+          "unit": "ft"
+        }
+      },
+      "configuration": [
+        {
+          "id": "summon-creature",
+          "type": "select-one",
+          "label": "Creature",
+          "required": true,
+          "options": [
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWeasel00000000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmWeasel00000000"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantRat000000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmGiantRat000000"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBadger00000000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmBadger00000000"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBoar0000000000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmBoar0000000000"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPanther0000000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmPanther0000000"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantBadger000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmGiantBadger000"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDireWolf000000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmDireWolf000000"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantElk000000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmGiantElk000000"
+            }
+          ]
+        }
+      ],
+      "summon": {
+        "choiceId": "summon-creature",
+        "count": 1
+      },
       "label": "Gray Bag of Tricks"
     },
     "ruleElements": [
@@ -58,10 +111,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest",
-          "summon: its creature is not among the converted creatures"
-        ]
+        "notes": []
       }
     }
   }

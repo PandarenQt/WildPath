@@ -1,6 +1,7 @@
 import {mkdirSync, rmSync, writeFileSync} from "node:fs";
 import {join} from "node:path";
-import {PROGRESSION_TYPES, beastsOf, convertActor, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables, slugify} from "./dnd5e-to-wildpath.mjs";
+import {PROGRESSION_TYPES, beastsOf, convertActor, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables, slugify,
+  withRedirects} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 
 /**
@@ -27,9 +28,18 @@ const names = nameIndex([...ITEM_PACKS, "actors24", "content24", "tables24"].fla
 const wanted = document => isSrd2024(document) && (!only || only.has(document.name));
 // The spells a creature's Spellcasting casts, by id.
 const spells = Object.fromEntries(readPack(from, "spells24").map(document => [document._id, document]));
-// The creatures a summon brings, by dnd5e id: the SRD's own, in this system's creature pack.
-const creatures = Object.fromEntries(readPack(from, "actors24").filter(document => isSrd2024(document) && (document.type === "npc"))
-  .map(document => [document._id, `Compendium.wildpath.srd-creatures.Actor.${document._id}`]));
+// The creatures a summon brings, by dnd5e id: the SRD's own, in this system's creature pack. Some SRD items (a
+// Figurine of Wondrous Power, a Horn of Valhalla) name a creature by an older id; these are the SRD creatures those ids
+// redirect to (ids only, as the DMG module's redirects give them).
+const SUMMON_REDIRECTS = {"5SgVGhQBswgWRwsF": "mmNightmare00000", "8SMQl75HLjhuSeau": "mmFireElemental0", Hm4o2FgPZsdbXjLq: "mmFleshGolem0000",
+  JW8bXggOMBx1S6tF: "mmBaboon00000000", MZYCPIVoBs918qGZ: "mmJackal00000000", SXXvwaLBNuzBymp3: "mmAxeBeak0000000",
+  SsuCaF2fIEoDdFA3: "mmGiantBoar00000", VVXly3ue0i3YgGrB: "mmGiantOwl000000", YOqhbf8WsX0jH9Fu: "mmClayGolem00000",
+  aAqfEHPiVbhMwZ6j: "mmGiantHyena0000", banHjKDMCegbUwYE: "mmAirElemental00", h052EIIUmRwJum65: "mmGriffon0000000",
+  h98AuPfomEPcCibP: "mmIronGolem00000", hQt3qIahnB1Odb40: "mmGiantElk000000", kz1t6xeXVwODpYb2: "mmBerserker00000",
+  namJz755U1EhvEJa: "mmWaterElemental", q1YJIeIt6rK8fCKn: "mmGiantRat000000", sApYLZj9PTZ40wJr: "mmEarthElemental",
+  t8WYD7ak07X7xpx8: "mmMummy000000000", z3gSIXHHWYaHjfBT: "mmStoneGolem0000"};
+const creatures = withRedirects(Object.fromEntries(readPack(from, "actors24").filter(document => isSrd2024(document) && (document.type === "npc"))
+  .map(document => [document._id, `Compendium.wildpath.srd-creatures.Actor.${document._id}`])), SUMMON_REDIRECTS);
 // The Beasts Polymorph may choose.
 const beasts = beastsOf(readPack(from, "actors24").filter(isSrd2024), document => creatures[document._id]);
 
