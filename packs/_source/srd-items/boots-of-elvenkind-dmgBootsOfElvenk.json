@@ -10,7 +10,19 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "boots-of-elvenkind-stealth",
+        "type": "RollMode",
+        "data": {
+          "domains": [
+            "check.stealth"
+          ],
+          "mode": "advantage"
+        }
+      }
+    ],
     "attunement": "",
     "armor": ""
   },
@@ -28,9 +40,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Boots of Elvenkind\" change  (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

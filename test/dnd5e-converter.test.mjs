@@ -1130,6 +1130,35 @@ test("Action Surge: an Action of its own, paid from its uses, for one more Actio
   assert.deepEqual(action.system.definition.effects[0].ruleElements[0].data, {domains: ["resources.action.max"], modifierType: "untyped", value: 1});
   assert.deepEqual(action.system.definition.effects[0].duration, {value: 0, units: "turns", expiry: "turnEnd"});
   assert.equal(validateActionDefinition(action.system.definition).ok, true);
+  assert.deepEqual(convertItem(surge).notes, [], "its blank activity is the Action, not a passive ability");
+});
+
+test("broken dnd5e effect data: a blank change is no change, and a status stored as \"[object Set]\" is read from the name", async () => {
+  const {effectChanges, effectStatuses} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  assert.deepEqual(effectChanges({changes: [{key: "", value: "", type: "add"}, {key: "system.attributes.ac.bonus", value: "1", type: "add"}]})
+    .map(change => change.key), ["system.attributes.ac.bonus"]);
+  assert.deepEqual(effectStatuses({name: "Prone", statuses: ["[object Set]"]}), ["prone"]);
+  assert.deepEqual(effectStatuses({name: "Charmed (Destructive)", statuses: ["[object Set]"]}), ["charmed"]);
+  assert.deepEqual(effectStatuses({name: "Glowing", statuses: ["[object Set]"]}), [], "no condition in its name: none");
+  assert.deepEqual(effectStatuses({name: "Anything", statuses: ["blinded"]}), ["blinded"], "good data is as it is");
+});
+
+test("an Item whose passive effect dnd5e left blank takes its skill roll mode from its text (Boots of Elvenkind)", () => {
+  const boots = {_id: "testElvenBoots01", name: "Test Boots", type: "equipment", img: "icons/svg/item-bag.svg",
+    effects: [{_id: "e1", name: "Test Boots", transfer: true, disabled: false, changes: [{key: "", value: "", type: "add"}]}],
+    system: {source: SRD, identifier: "test-boots", type: {value: "wondrous"}, activities: {},
+      description: {value: "<p>While you wear these boots, your steps make no sound. You also have Advantage on Dexterity (Stealth) checks.</p>"}}};
+  const {items, notes} = convertItem(boots);
+  const gear = items.find(item => item.type === "gear");
+  assert.deepEqual(gear.system.ruleElements.map(rule => [rule.type, rule.data]),
+    [["RollMode", {domains: ["check.stealth"], mode: "advantage"}]]);
+  assert.deepEqual(notes, [], "no note for its blank change");
+  const cloak = {...boots, _id: "testElvenCloak01", name: "Test Cloak", system: {...boots.system, identifier: "test-cloak", description: {value:
+    "<p>While you wear this cloak, Wisdom (Perception) checks made to see you have Disadvantage, and you have Advantage on Dexterity (Stealth) checks.</p>"}}};
+  const converted = convertItem(cloak);
+  assert.deepEqual(converted.items.find(item => item.type === "gear").system.ruleElements.map(rule => rule.data.domains), [["check.stealth"]]);
+  assert.equal(converted.notes.length, 1, "others' checks against it are noted, not dropped");
+  assert.match(converted.notes[0], /^text: "While you wear this cloak/u);
 });
 
 test("a change on a class's scale reads its table: Rage's damage (Strength-based melee), Unarmored Movement", async () => {
