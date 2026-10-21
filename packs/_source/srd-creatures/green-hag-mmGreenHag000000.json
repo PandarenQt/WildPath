@@ -658,7 +658,7 @@
           "conversion": {
             "notes": [
               "activation: 10 minute is not an action-economy cost",
-              "save: a failure marks its creature only; what it does is by hand",
+              "save: a failure marks its creature (narrative)",
               "\"Create Sensor\" is passive or triggered: not automated"
             ]
           }
@@ -1448,7 +1448,7 @@
           "Coven Magic: activation: 1 minute is not an action-economy cost",
           "Coven Magic: concentration: its caster concentrates; what it sustains is by hand",
           "Coven Magic: activation: 10 minute is not an action-economy cost",
-          "Coven Magic: save: a failure marks its creature only; what it does is by hand",
+          "Coven Magic: save: a failure marks its creature (narrative)",
           "Coven Magic: \"Create Sensor\" is passive or triggered: not automated",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: nothing it sustains was converted",

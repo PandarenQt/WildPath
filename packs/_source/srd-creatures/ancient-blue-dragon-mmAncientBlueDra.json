@@ -843,7 +843,7 @@
           "conversion": {
             "notes": [
               "activation: 10 minute is not an action-economy cost",
-              "save: a failure marks its creature only; what it does is by hand",
+              "save: a failure marks its creature (narrative)",
               "\"Create Sensor\" is passive or triggered: not automated"
             ]
           }
@@ -1291,7 +1291,7 @@
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: cast: Shatter at level 3 is cast at its own level",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: save: a failure marks its creature only; what it does is by hand",
+          "Spellcasting: save: a failure marks its creature (narrative)",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Sonic Boom: cast: Shatter at level 3 is cast at its own level",

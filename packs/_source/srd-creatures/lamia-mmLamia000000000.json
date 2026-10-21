@@ -866,7 +866,7 @@
           "conversion": {
             "notes": [
               "activation: 10 minute is not an action-economy cost",
-              "save: a failure marks its creature only; what it does is by hand",
+              "save: a failure marks its creature (narrative)",
               "\"Create Sensor\" is passive or triggered: not automated"
             ]
           }
@@ -965,7 +965,7 @@
           "Spellcasting: effect: \"Disguised\" marks its creature (narrative)",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: save: a failure marks its creature only; what it does is by hand",
+          "Spellcasting: save: a failure marks its creature (narrative)",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
           "Leap: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]

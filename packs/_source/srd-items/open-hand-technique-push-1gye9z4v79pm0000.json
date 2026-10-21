@@ -42,10 +42,10 @@
           }
         }
       },
-      "effects": [],
       "push": {
         "distance": 15
       },
+      "effects": [],
       "label": "Open Hand Technique (Push)"
     },
     "ruleElements": [
@@ -84,7 +84,9 @@
         "subtype": null
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "rolled (save); what it does is by hand"
+        ]
       }
     }
   }

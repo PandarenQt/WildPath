@@ -133,21 +133,12 @@
           "effects": []
         }
       ],
-      "effects": [
-        {
-          "id": "effect-1",
-          "type": "effect",
-          "name": "Gust of Wind",
-          "img": "icons/magic/air/air-wave-gust-blue.webp",
-          "ruleElements": [],
-          "duration": {
-            "value": 1,
-            "units": "minutes"
-          },
-          "saveOutcomePolicy": "failure",
-          "concentration": true
+      "concentration": {
+        "duration": {
+          "value": 1,
+          "units": "minutes"
         }
-      ],
+      },
       "metadata": {
         "spellLevel": 2
       },
@@ -173,7 +164,8 @@
       },
       "conversion": {
         "notes": [
-          "save: a failure marks its creature only; what it does is by hand"
+          "rolled (save); what it does is by hand",
+          "concentration: its caster concentrates; what it sustains is by hand"
         ]
       }
     }

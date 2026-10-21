@@ -152,7 +152,7 @@
       "conversion": {
         "notes": [
           "activation: 10 minute is not an action-economy cost",
-          "save: a failure marks its creature only; what it does is by hand"
+          "save: a failure marks its creature (narrative)"
         ]
       }
     }
