@@ -1,0 +1,145 @@
+{
+  "_id": "dmgGrayBagOfTric",
+  "_key": "!tables!dmgGrayBagOfTric",
+  "name": "Gray Bag of Tricks",
+  "img": "icons/containers/bags/coinpouch-leather-grey.webp",
+  "description": "",
+  "formula": "1d8",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "wHuva8KyJqk0ks9t",
+      "_key": "!tables.results!dmgGrayBagOfTric.wHuva8KyJqk0ks9t",
+      "type": "document",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Weasel",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmWeasel00000000"
+    },
+    {
+      "_id": "z4mqTXpfNseZDTT6",
+      "_key": "!tables.results!dmgGrayBagOfTric.z4mqTXpfNseZDTT6",
+      "type": "document",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Giant Rat",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmGiantRat000000"
+    },
+    {
+      "_id": "y0mm0I94cSaTbkk6",
+      "_key": "!tables.results!dmgGrayBagOfTric.y0mm0I94cSaTbkk6",
+      "type": "document",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Badger",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmBadger00000000"
+    },
+    {
+      "_id": "v65tOkYcYXbUplIe",
+      "_key": "!tables.results!dmgGrayBagOfTric.v65tOkYcYXbUplIe",
+      "type": "document",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Boar",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmBoar0000000000"
+    },
+    {
+      "_id": "HRPWtZTeg5oK5ImY",
+      "_key": "!tables.results!dmgGrayBagOfTric.HRPWtZTeg5oK5ImY",
+      "type": "document",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Panther",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmPanther0000000"
+    },
+    {
+      "_id": "3Qtoly9mgrhZ8UW4",
+      "_key": "!tables.results!dmgGrayBagOfTric.3Qtoly9mgrhZ8UW4",
+      "type": "document",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Giant Badger",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmGiantBadger000"
+    },
+    {
+      "_id": "LumSf2zPMkOkfFLE",
+      "_key": "!tables.results!dmgGrayBagOfTric.LumSf2zPMkOkfFLE",
+      "type": "document",
+      "range": [
+        7,
+        7
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Dire Wolf",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmDireWolf000000"
+    },
+    {
+      "_id": "GaLvOBWWFIj4RQIO",
+      "_key": "!tables.results!dmgGrayBagOfTric.GaLvOBWWFIj4RQIO",
+      "type": "document",
+      "range": [
+        8,
+        8
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Giant Elk",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmGiantElk000000"
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "dmgGrayBagOfTric",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Gray Bag of Tricks"
+      }
+    }
+  }
+}

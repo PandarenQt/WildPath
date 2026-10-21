@@ -1,0 +1,355 @@
+{
+  "_id": "dmg22CardDeckOfM",
+  "_key": "!tables!dmg22CardDeckOfM",
+  "name": "Mysterious Deck: 22 Cards",
+  "img": "icons/sundries/gaming/playing-cards-black.webp",
+  "description": "",
+  "formula": "1d100",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "5WGqQRDzxKVqIgoI",
+      "_key": "!tables.results!dmg22CardDeckOfM.5WGqQRDzxKVqIgoI",
+      "type": "document",
+      "range": [
+        1,
+        5
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Balance",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtBalance000"
+    },
+    {
+      "_id": "k0SXf6JEb7Eairsz",
+      "_key": "!tables.results!dmg22CardDeckOfM.k0SXf6JEb7Eairsz",
+      "type": "document",
+      "range": [
+        6,
+        10
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Comet",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtComet00000"
+    },
+    {
+      "_id": "APmmNA5Z3jQQG2U0",
+      "_key": "!tables.results!dmg22CardDeckOfM.APmmNA5Z3jQQG2U0",
+      "type": "document",
+      "range": [
+        11,
+        14
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Donjon",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtDonjon0000"
+    },
+    {
+      "_id": "JT3pbm7yJ23CiCqT",
+      "_key": "!tables.results!dmg22CardDeckOfM.JT3pbm7yJ23CiCqT",
+      "type": "document",
+      "range": [
+        15,
+        18
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Euryale",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtEuryale000"
+    },
+    {
+      "_id": "JIVjZDR7dWYLBJi4",
+      "_key": "!tables.results!dmg22CardDeckOfM.JIVjZDR7dWYLBJi4",
+      "type": "document",
+      "range": [
+        19,
+        23
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Fates",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtFates00000"
+    },
+    {
+      "_id": "kGl8BbIhwg7Ptesu",
+      "_key": "!tables.results!dmg22CardDeckOfM.kGl8BbIhwg7Ptesu",
+      "type": "document",
+      "range": [
+        24,
+        27
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Flames",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtFlames0000"
+    },
+    {
+      "_id": "dG8deoNGQdNwnJRf",
+      "_key": "!tables.results!dmg22CardDeckOfM.dG8deoNGQdNwnJRf",
+      "type": "document",
+      "range": [
+        28,
+        31
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Fool",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtFool000000"
+    },
+    {
+      "_id": "GUJztKPsgSVX7R39",
+      "_key": "!tables.results!dmg22CardDeckOfM.GUJztKPsgSVX7R39",
+      "type": "document",
+      "range": [
+        32,
+        36
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Gem",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtGem0000000"
+    },
+    {
+      "_id": "trQNDzdEF19fadQK",
+      "_key": "!tables.results!dmg22CardDeckOfM.trQNDzdEF19fadQK",
+      "type": "document",
+      "range": [
+        37,
+        41
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Jester",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtJester0000"
+    },
+    {
+      "_id": "D9Z08jw6cnu1UMjo",
+      "_key": "!tables.results!dmg22CardDeckOfM.D9Z08jw6cnu1UMjo",
+      "type": "document",
+      "range": [
+        42,
+        46
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Key",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtKey0000000"
+    },
+    {
+      "_id": "bEMGelUnEQGCNIch",
+      "_key": "!tables.results!dmg22CardDeckOfM.bEMGelUnEQGCNIch",
+      "type": "document",
+      "range": [
+        47,
+        51
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Knight",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtKnight0000"
+    },
+    {
+      "_id": "sxKB8VQEBh0roKnc",
+      "_key": "!tables.results!dmg22CardDeckOfM.sxKB8VQEBh0roKnc",
+      "type": "document",
+      "range": [
+        52,
+        56
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Moon",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.7rvx7t1c3nezv000"
+    },
+    {
+      "_id": "1HtTelpxxOAc4vID",
+      "_key": "!tables.results!dmg22CardDeckOfM.1HtTelpxxOAc4vID",
+      "type": "document",
+      "range": [
+        57,
+        60
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Puzzle",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtPuzzle0000"
+    },
+    {
+      "_id": "9isSpLlYLL5h2Aoa",
+      "_key": "!tables.results!dmg22CardDeckOfM.9isSpLlYLL5h2Aoa",
+      "type": "document",
+      "range": [
+        61,
+        64
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Rogue",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtRogue00000"
+    },
+    {
+      "_id": "nIAzWt9uXY5U3kSz",
+      "_key": "!tables.results!dmg22CardDeckOfM.nIAzWt9uXY5U3kSz",
+      "type": "document",
+      "range": [
+        65,
+        68
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Ruin",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtRuin000000"
+    },
+    {
+      "_id": "nvT66fqxT99k5jKd",
+      "_key": "!tables.results!dmg22CardDeckOfM.nvT66fqxT99k5jKd",
+      "type": "document",
+      "range": [
+        69,
+        73
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Sage",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtSage000000"
+    },
+    {
+      "_id": "DAzY7u6xTitMeoB6",
+      "_key": "!tables.results!dmg22CardDeckOfM.DAzY7u6xTitMeoB6",
+      "type": "document",
+      "range": [
+        74,
+        77
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Skull",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtSkull00000"
+    },
+    {
+      "_id": "petFp3KELvvag9R3",
+      "_key": "!tables.results!dmg22CardDeckOfM.petFp3KELvvag9R3",
+      "type": "document",
+      "range": [
+        78,
+        82
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Star",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtStar000000"
+    },
+    {
+      "_id": "WN6avNTrKLMyCRVD",
+      "_key": "!tables.results!dmg22CardDeckOfM.WN6avNTrKLMyCRVD",
+      "type": "document",
+      "range": [
+        83,
+        87
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Sun",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtSun0000000"
+    },
+    {
+      "_id": "xVsjx6HCackwxQ1O",
+      "_key": "!tables.results!dmg22CardDeckOfM.xVsjx6HCackwxQ1O",
+      "type": "document",
+      "range": [
+        88,
+        91
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Talons",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtTalons0000"
+    },
+    {
+      "_id": "rMJiKI5wApRiSebO",
+      "_key": "!tables.results!dmg22CardDeckOfM.rMJiKI5wApRiSebO",
+      "type": "document",
+      "range": [
+        92,
+        96
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Throne",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtThrone0000"
+    },
+    {
+      "_id": "93Y3C0JT1dJtoFwW",
+      "_key": "!tables.results!dmg22CardDeckOfM.93Y3C0JT1dJtoFwW",
+      "type": "document",
+      "range": [
+        97,
+        100
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Void",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-items.Item.dmgDmtVoid000000"
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "dmg22CardDeckOfM",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Mysterious Deck"
+      }
+    }
+  }
+}

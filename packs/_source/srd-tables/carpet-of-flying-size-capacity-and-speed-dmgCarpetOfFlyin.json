@@ -1,0 +1,81 @@
+{
+  "_id": "dmgCarpetOfFlyin",
+  "_key": "!tables!dmgCarpetOfFlyin",
+  "name": "Carpet of Flying: Size, Capacity, and Speed",
+  "img": "icons/commodities/cloth/cloth-bolt-gold-pink.webp",
+  "description": "",
+  "formula": "1d100",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "NcFzEzCwypsVMRNM",
+      "_key": "!tables.results!dmgCarpetOfFlyin.NcFzEzCwypsVMRNM",
+      "type": "text",
+      "range": [
+        1,
+        20
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "3 × 5 ft. | 200 lb. capacity | 80 ft. Fly speed"
+    },
+    {
+      "_id": "SeuSATVRfn9PNk5i",
+      "_key": "!tables.results!dmgCarpetOfFlyin.SeuSATVRfn9PNk5i",
+      "type": "text",
+      "range": [
+        21,
+        55
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "4 × 6 ft. | 400 lb. capacity | 60 ft. Fly speed"
+    },
+    {
+      "_id": "jmCslHbnZ20wlGo7",
+      "_key": "!tables.results!dmgCarpetOfFlyin.jmCslHbnZ20wlGo7",
+      "type": "text",
+      "range": [
+        56,
+        80
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "5 × 7 ft. | 600 lb. capacity | 40 ft. Fly speed"
+    },
+    {
+      "_id": "uhPivfkjbQ5TGQE5",
+      "_key": "!tables.results!dmgCarpetOfFlyin.uhPivfkjbQ5TGQE5",
+      "type": "text",
+      "range": [
+        81,
+        100
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "6 × 9 ft. | 800 lb. capacity | 30 ft. Fly speed"
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "dmgCarpetOfFlyin",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Carpet of Flying"
+      }
+    }
+  }
+}

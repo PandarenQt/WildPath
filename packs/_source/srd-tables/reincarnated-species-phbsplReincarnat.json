@@ -1,0 +1,165 @@
+{
+  "_id": "phbsplReincarnat",
+  "_key": "!tables!phbsplReincarnat",
+  "name": "Reincarnated Species",
+  "img": "icons/creatures/magical/spirit-undead-horned-blue.webp",
+  "description": "<p>Roll [[/r 1d10]] and consult the table below to determine the body’s species, or the DM chooses another playable species.</p>",
+  "formula": "1d10",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "DLKTRYgF1vpG4ons",
+      "_key": "!tables.results!phbsplReincarnat.DLKTRYgF1vpG4ons",
+      "type": "text",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Aasimar"
+    },
+    {
+      "_id": "lCG2E5mLJL43oGk4",
+      "_key": "!tables.results!phbsplReincarnat.lCG2E5mLJL43oGk4",
+      "type": "text",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Dragonborn",
+      "description": ""
+    },
+    {
+      "_id": "Ym4LPQm1DMZ3iUBH",
+      "_key": "!tables.results!phbsplReincarnat.Ym4LPQm1DMZ3iUBH",
+      "type": "text",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Dwarf",
+      "description": ""
+    },
+    {
+      "_id": "9FtTDJCOwnD97SOu",
+      "_key": "!tables.results!phbsplReincarnat.9FtTDJCOwnD97SOu",
+      "type": "text",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Goliath",
+      "description": ""
+    },
+    {
+      "_id": "RI73kNpd5iAababR",
+      "_key": "!tables.results!phbsplReincarnat.RI73kNpd5iAababR",
+      "type": "text",
+      "range": [
+        7,
+        7
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Halfling",
+      "description": ""
+    },
+    {
+      "_id": "6L3KbE75ugKNdbhg",
+      "_key": "!tables.results!phbsplReincarnat.6L3KbE75ugKNdbhg",
+      "type": "text",
+      "range": [
+        8,
+        8
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Human",
+      "description": ""
+    },
+    {
+      "_id": "xNcsrma8ucsEEgz3",
+      "_key": "!tables.results!phbsplReincarnat.xNcsrma8ucsEEgz3",
+      "type": "text",
+      "range": [
+        9,
+        9
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Orc",
+      "description": ""
+    },
+    {
+      "_id": "8g4dm4vqB60zPWw5",
+      "_key": "!tables.results!phbsplReincarnat.8g4dm4vqB60zPWw5",
+      "type": "text",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Elven Lineage",
+      "description": ""
+    },
+    {
+      "_id": "PkXN8vlW5cXx8vbB",
+      "_key": "!tables.results!phbsplReincarnat.PkXN8vlW5cXx8vbB",
+      "type": "text",
+      "range": [
+        10,
+        10
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Fiendish Legacy",
+      "description": ""
+    },
+    {
+      "_id": "ncs8GLvSuavCJAqf",
+      "_key": "!tables.results!phbsplReincarnat.ncs8GLvSuavCJAqf",
+      "type": "text",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Gnomish Lineage",
+      "description": ""
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "phbsplReincarnat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Reincarnate"
+      }
+    }
+  }
+}

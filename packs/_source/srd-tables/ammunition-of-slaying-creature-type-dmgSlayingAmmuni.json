@@ -1,0 +1,221 @@
+{
+  "_id": "dmgSlayingAmmuni",
+  "_key": "!tables!dmgSlayingAmmuni",
+  "name": "Ammunition of Slaying: Creature Type",
+  "img": "icons/weapons/ammunition/arrow-head-war-flight.webp",
+  "description": "",
+  "formula": "1d100",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "f4AT66qY6IpW9XGE",
+      "_key": "!tables.results!dmgSlayingAmmuni.f4AT66qY6IpW9XGE",
+      "type": "text",
+      "range": [
+        1,
+        10
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/creatures/magical/spirit-poison-smoke-green.webp",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "bBzSzzTMgsRu2p9m",
+      "_key": "!tables.results!dmgSlayingAmmuni.bBzSzzTMgsRu2p9m",
+      "type": "text",
+      "range": [
+        11,
+        15
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/creatures/mammals/goat-horned-blue.webp",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "5IAfN2gE45YNRnH5",
+      "_key": "!tables.results!dmgSlayingAmmuni.5IAfN2gE45YNRnH5",
+      "type": "text",
+      "range": [
+        16,
+        20
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/magic/holy/angel-winged-humanoid-blue.webp",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "7gOENkePCrW02UwC",
+      "_key": "!tables.results!dmgSlayingAmmuni.7gOENkePCrW02UwC",
+      "type": "text",
+      "range": [
+        21,
+        25
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/creatures/magical/construct-iron-stomping-yellow.webp",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "tlAU84ok29YhTp9I",
+      "_key": "!tables.results!dmgSlayingAmmuni.tlAU84ok29YhTp9I",
+      "type": "text",
+      "range": [
+        26,
+        35
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/creatures/abilities/dragon-fire-breath-orange.webp",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "NjnaG5MkLXwiOFD8",
+      "_key": "!tables.results!dmgSlayingAmmuni.NjnaG5MkLXwiOFD8",
+      "type": "text",
+      "range": [
+        36,
+        45
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/creatures/magical/spirit-fire-orange.webp",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "x3ELDvpdCuJRDeDg",
+      "_key": "!tables.results!dmgSlayingAmmuni.x3ELDvpdCuJRDeDg",
+      "type": "text",
+      "range": [
+        46,
+        50
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/environment/people/commoner.webp",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "x7mSfJ8AjeVv3NRI",
+      "_key": "!tables.results!dmgSlayingAmmuni.x7mSfJ8AjeVv3NRI",
+      "type": "text",
+      "range": [
+        51,
+        60
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/creatures/magical/spirit-undead-ghost-blue.webp",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "w8UkRFQNaRdjewAd",
+      "_key": "!tables.results!dmgSlayingAmmuni.w8UkRFQNaRdjewAd",
+      "type": "text",
+      "range": [
+        61,
+        70
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/creatures/unholy/demon-fire-horned-mask.webp",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "NfUynzHOgrEO5mmb",
+      "_key": "!tables.results!dmgSlayingAmmuni.NfUynzHOgrEO5mmb",
+      "type": "text",
+      "range": [
+        71,
+        75
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/skills/melee/hand-grip-hammer-spiked-blue.webp",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "WQ8bqLhZbWxPsP0b",
+      "_key": "!tables.results!dmgSlayingAmmuni.WQ8bqLhZbWxPsP0b",
+      "type": "text",
+      "range": [
+        76,
+        80
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/creatures/magical/humanoid-giant-forest-blue.webp",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "4WNFaBpWyeDphNcG",
+      "_key": "!tables.results!dmgSlayingAmmuni.4WNFaBpWyeDphNcG",
+      "type": "text",
+      "range": [
+        81,
+        85
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/creatures/slimes/slime-face-hollow-green.webp",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "aL8OS42JpqroJaaW",
+      "_key": "!tables.results!dmgSlayingAmmuni.aL8OS42JpqroJaaW",
+      "type": "text",
+      "range": [
+        86,
+        90
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/magic/nature/tree-animated-smile.webp",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "evZ08L9NQb1evYe9",
+      "_key": "!tables.results!dmgSlayingAmmuni.evZ08L9NQb1evYe9",
+      "type": "text",
+      "range": [
+        91,
+        100
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/magic/death/undead-skeleton-rags-fire-green.webp",
+      "name": "",
+      "description": ""
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "dmgSlayingAmmuni",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Ammunition of Slaying"
+      }
+    }
+  }
+}

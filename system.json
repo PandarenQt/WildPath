@@ -19,7 +19,10 @@
       "path": "packs/actions",
       "type": "Item",
       "system": "wildpath",
-      "ownership": {"PLAYER": "OBSERVER", "ASSISTANT": "OWNER"}
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
     },
     {
       "name": "srd-items",
@@ -27,8 +30,16 @@
       "path": "packs/srd-items",
       "type": "Item",
       "system": "wildpath",
-      "ownership": {"PLAYER": "OBSERVER", "ASSISTANT": "OWNER"},
-      "flags": {"wildpath": {"license": "CC-BY-4.0", "source": "SRD 5.2"}}
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {
+        "wildpath": {
+          "license": "CC-BY-4.0",
+          "source": "SRD 5.2"
+        }
+      }
     },
     {
       "name": "srd-classes",
@@ -53,8 +64,33 @@
       "path": "packs/srd-creatures",
       "type": "Actor",
       "system": "wildpath",
-      "ownership": {"PLAYER": "OBSERVER", "ASSISTANT": "OWNER"},
-      "flags": {"wildpath": {"license": "CC-BY-4.0", "source": "SRD 5.2"}}
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {
+        "wildpath": {
+          "license": "CC-BY-4.0",
+          "source": "SRD 5.2"
+        }
+      }
+    },
+    {
+      "name": "srd-tables",
+      "label": "WILDPATH.PACKS.SrdTables",
+      "path": "packs/srd-tables",
+      "type": "RollTable",
+      "system": "wildpath",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      },
+      "flags": {
+        "wildpath": {
+          "license": "CC-BY-4.0",
+          "source": "SRD 5.2"
+        }
+      }
     }
   ],
   "esmodules": [
@@ -73,23 +109,51 @@
   "documentTypes": {
     "Actor": {
       "character": {
-        "htmlFields": ["biography"]
+        "htmlFields": [
+          "biography"
+        ]
       },
       "npc": {
-        "htmlFields": ["biography"]
+        "htmlFields": [
+          "biography"
+        ]
       }
     },
     "Item": {
       "feature": {
-        "htmlFields": ["description"]
+        "htmlFields": [
+          "description"
+        ]
       },
       "action": {
-        "htmlFields": ["description"]
+        "htmlFields": [
+          "description"
+        ]
       },
-      "class": {"htmlFields": ["description"]}, "subclass": {"htmlFields": ["description"]},
-      "species": {"htmlFields": ["description"]}, "background": {"htmlFields": ["description"]},
+      "class": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "subclass": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "species": {
+        "htmlFields": [
+          "description"
+        ]
+      },
+      "background": {
+        "htmlFields": [
+          "description"
+        ]
+      },
       "gear": {
-        "htmlFields": ["description"]
+        "htmlFields": [
+          "description"
+        ]
       }
     },
     "ActiveEffect": {

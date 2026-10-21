@@ -1,0 +1,95 @@
+{
+  "_id": "dmgAmuletOfThePl",
+  "_key": "!tables!dmgAmuletOfThePl",
+  "name": "Amulet of the Planes Destination",
+  "img": "icons/equipment/neck/amulet-carved-stone-purple.webp",
+  "description": "",
+  "formula": "1d100",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "m2UKvzZf0ZibczrG",
+      "_key": "!tables.results!dmgAmuletOfThePl.m2UKvzZf0ZibczrG",
+      "type": "text",
+      "range": [
+        1,
+        60
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Random location on the plane you named"
+    },
+    {
+      "_id": "vH6t70BzwrR0dfnM",
+      "_key": "!tables.results!dmgAmuletOfThePl.vH6t70BzwrR0dfnM",
+      "type": "text",
+      "range": [
+        61,
+        70
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Random location on an Inner Plane determined by rolling [[/r 1d6]]: on a 1 , the Plane of Air; on a 2 , the Plane of Earth; on a 3 , the Plane of Fire; on a 4 , the Plane of Water; on a 5 , the Feywild; on a 6 , the Shadowfell"
+    },
+    {
+      "_id": "k7P9te8NuEctUdxE",
+      "_key": "!tables.results!dmgAmuletOfThePl.k7P9te8NuEctUdxE",
+      "type": "text",
+      "range": [
+        71,
+        80
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Random location on an Outer Plane determined by rolling [[/r 1d8]]: on a 1 , Arborea; on a 2 , Arcadia; on a 3 , the Beastlands; on a 4 , Bytopia; on a 5 , Elysium; on a 6 , Mechanus; on a 7 , Mount Celestia; on an 8 , Ysgard"
+    },
+    {
+      "_id": "iMtDiN65JNwyr8oG",
+      "_key": "!tables.results!dmgAmuletOfThePl.iMtDiN65JNwyr8oG",
+      "type": "text",
+      "range": [
+        81,
+        90
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Random location on an Outer Plane determined by rolling [[/r 1d8]]: on a 1 , the Abyss; on a 2 , Acheron; on a 3 , Carceri; on a 4 , Gehenna; on a 5 , Hades; on a 6 , Limbo; on a 7 , the Nine Hells; on an 8 , Pandemonium"
+    },
+    {
+      "_id": "nF1GNDH2Vmrg1HM0",
+      "_key": "!tables.results!dmgAmuletOfThePl.nF1GNDH2Vmrg1HM0",
+      "type": "text",
+      "range": [
+        91,
+        100
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Random location on the Astral Plane"
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "dmgAmuletOfThePl",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Amulet of the Planes"
+      }
+    }
+  }
+}

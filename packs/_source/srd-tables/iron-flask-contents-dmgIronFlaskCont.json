@@ -1,0 +1,445 @@
+{
+  "_id": "dmgIronFlaskCont",
+  "_key": "!tables!dmgIronFlaskCont",
+  "name": "Iron Flask Contents",
+  "img": "icons/consumables/potions/bottle-metal-yellow-gray.webp",
+  "description": "",
+  "formula": "1d100",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "FzxlBkxfevasbrc3",
+      "_key": "!tables.results!dmgIronFlaskCont.FzxlBkxfevasbrc3",
+      "type": "text",
+      "range": [
+        1,
+        50
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "No creature"
+    },
+    {
+      "_id": "W4W6IJNT6teGMK8d",
+      "_key": "!tables.results!dmgIronFlaskCont.W4W6IJNT6teGMK8d",
+      "type": "text",
+      "range": [
+        51,
+        51
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Arcanaloth"
+    },
+    {
+      "_id": "zpHwjd1YJow38mZB",
+      "_key": "!tables.results!dmgIronFlaskCont.zpHwjd1YJow38mZB",
+      "type": "text",
+      "range": [
+        52,
+        54
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmBoneDevil00000]{Bone Devil}"
+    },
+    {
+      "_id": "XqZtH1EFDI1q7sSR",
+      "_key": "!tables.results!dmgIronFlaskCont.XqZtH1EFDI1q7sSR",
+      "type": "text",
+      "range": [
+        55,
+        56
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Cambion"
+    },
+    {
+      "_id": "GA2oN1ONYtd2d1oM",
+      "_key": "!tables.results!dmgIronFlaskCont.GA2oN1ONYtd2d1oM",
+      "type": "text",
+      "range": [
+        57,
+        58
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Dao"
+    },
+    {
+      "_id": "b4NphZw4kd43WgoD",
+      "_key": "!tables.results!dmgIronFlaskCont.b4NphZw4kd43WgoD",
+      "type": "text",
+      "range": [
+        59,
+        59
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmDeva0000000000]{Deva}"
+    },
+    {
+      "_id": "8OiTu5NP3dChxsCJ",
+      "_key": "!tables.results!dmgIronFlaskCont.8OiTu5NP3dChxsCJ",
+      "type": "text",
+      "range": [
+        60,
+        61
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmDjinni00000000]{Djinni}"
+    },
+    {
+      "_id": "lrHMKxSlGjCLPuOZ",
+      "_key": "!tables.results!dmgIronFlaskCont.lrHMKxSlGjCLPuOZ",
+      "type": "text",
+      "range": [
+        62,
+        63
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Efreeti@UUID[Compendium.wildpath.srd-creatures.Actor.mmEfreeti0000000]{Efreeti}"
+    },
+    {
+      "_id": "kuilN1qOGLjst4Wl",
+      "_key": "!tables.results!dmgIronFlaskCont.kuilN1qOGLjst4Wl",
+      "type": "text",
+      "range": [
+        64,
+        65
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmErinyes0000000]{Erinyes}"
+    },
+    {
+      "_id": "obCOgvqVL9KjwcpP",
+      "_key": "!tables.results!dmgIronFlaskCont.obCOgvqVL9KjwcpP",
+      "type": "text",
+      "range": [
+        66,
+        67
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Fomorian"
+    },
+    {
+      "_id": "xHh95qbfKFKEq01U",
+      "_key": "!tables.results!dmgIronFlaskCont.xHh95qbfKFKEq01U",
+      "type": "text",
+      "range": [
+        68,
+        68
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Githyanki Knight"
+    },
+    {
+      "_id": "8FK8zuLGc0tDJm4p",
+      "_key": "!tables.results!dmgIronFlaskCont.8FK8zuLGc0tDJm4p",
+      "type": "text",
+      "range": [
+        69,
+        69
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Githzerai Zerth"
+    },
+    {
+      "_id": "NzMZ2MpPTeoIJi2F",
+      "_key": "!tables.results!dmgIronFlaskCont.NzMZ2MpPTeoIJi2F",
+      "type": "text",
+      "range": [
+        70,
+        71
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmGlabrezu000000]{Glabrezu}"
+    },
+    {
+      "_id": "WHHUs8y6pKDZ7uBv",
+      "_key": "!tables.results!dmgIronFlaskCont.WHHUs8y6pKDZ7uBv",
+      "type": "text",
+      "range": [
+        72,
+        74
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmHezrou00000000]{Hezrou}"
+    },
+    {
+      "_id": "ZOcXFCF42vOPHsbg",
+      "_key": "!tables.results!dmgIronFlaskCont.ZOcXFCF42vOPHsbg",
+      "type": "text",
+      "range": [
+        75,
+        75
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmIncubus0000000]{Incubus}"
+    },
+    {
+      "_id": "VqMOV26INyDc0A6O",
+      "_key": "!tables.results!dmgIronFlaskCont.VqMOV26INyDc0A6O",
+      "type": "text",
+      "range": [
+        76,
+        77
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmInvisibleStalk]{Invisible Stalker}"
+    },
+    {
+      "_id": "zSaswLLoeZtDpkQv",
+      "_key": "!tables.results!dmgIronFlaskCont.zSaswLLoeZtDpkQv",
+      "type": "text",
+      "range": [
+        78,
+        79
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Marid"
+    },
+    {
+      "_id": "kZ8HdRRcmHuMhKkE",
+      "_key": "!tables.results!dmgIronFlaskCont.kZ8HdRRcmHuMhKkE",
+      "type": "text",
+      "range": [
+        80,
+        80
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmMarilith000000]{Marilith}"
+    },
+    {
+      "_id": "znmeCmvYog5uU6lh",
+      "_key": "!tables.results!dmgIronFlaskCont.znmeCmvYog5uU6lh",
+      "type": "text",
+      "range": [
+        81,
+        82
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Mezzoloth"
+    },
+    {
+      "_id": "s07bwP0mZ7VjthM5",
+      "_key": "!tables.results!dmgIronFlaskCont.s07bwP0mZ7VjthM5",
+      "type": "text",
+      "range": [
+        83,
+        84
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmNalfeshnee0000]{Nalfeshnee}"
+    },
+    {
+      "_id": "yJ7LJnX0RVRAJO63",
+      "_key": "!tables.results!dmgIronFlaskCont.yJ7LJnX0RVRAJO63",
+      "type": "text",
+      "range": [
+        85,
+        86
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmNightHag000000]{Night Hag}"
+    },
+    {
+      "_id": "qPWo77BQmkdMAG2C",
+      "_key": "!tables.results!dmgIronFlaskCont.qPWo77BQmkdMAG2C",
+      "type": "text",
+      "range": [
+        87,
+        88
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Nycaloth"
+    },
+    {
+      "_id": "mk8RnOBZMpdVvsCH",
+      "_key": "!tables.results!dmgIronFlaskCont.mk8RnOBZMpdVvsCH",
+      "type": "text",
+      "range": [
+        89,
+        89
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmPlanetar000000]{Planetar}"
+    },
+    {
+      "_id": "uwaotDWieh3D6R5g",
+      "_key": "!tables.results!dmgIronFlaskCont.uwaotDWieh3D6R5g",
+      "type": "text",
+      "range": [
+        90,
+        91
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Red Slaad"
+    },
+    {
+      "_id": "QORMgdB0pFnRQhBA",
+      "_key": "!tables.results!dmgIronFlaskCont.QORMgdB0pFnRQhBA",
+      "type": "text",
+      "range": [
+        92,
+        93
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmSalamander0000]{Salamander}"
+    },
+    {
+      "_id": "JdQs70UnIA9AiqbE",
+      "_key": "!tables.results!dmgIronFlaskCont.JdQs70UnIA9AiqbE",
+      "type": "text",
+      "range": [
+        94,
+        94
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmSolar000000000]{Solar}"
+    },
+    {
+      "_id": "ENAbwd5BuTe2MSlN",
+      "_key": "!tables.results!dmgIronFlaskCont.ENAbwd5BuTe2MSlN",
+      "type": "text",
+      "range": [
+        95,
+        95
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmSuccubus000000]{Succubus}"
+    },
+    {
+      "_id": "FNCHezQEOJoukpBO",
+      "_key": "!tables.results!dmgIronFlaskCont.FNCHezQEOJoukpBO",
+      "type": "text",
+      "range": [
+        96,
+        96
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Ultroloth"
+    },
+    {
+      "_id": "Rg4S4iYh5EZtrE39",
+      "_key": "!tables.results!dmgIronFlaskCont.Rg4S4iYh5EZtrE39",
+      "type": "text",
+      "range": [
+        97,
+        99
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmVrock000000000]{Vrock}"
+    },
+    {
+      "_id": "Q2qN5Nx2eUTi61RL",
+      "_key": "!tables.results!dmgIronFlaskCont.Q2qN5Nx2eUTi61RL",
+      "type": "text",
+      "range": [
+        100,
+        100
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.mmXorn0000000000]{Xorn}"
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "dmgIronFlaskCont",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Iron Flask"
+      }
+    }
+  }
+}

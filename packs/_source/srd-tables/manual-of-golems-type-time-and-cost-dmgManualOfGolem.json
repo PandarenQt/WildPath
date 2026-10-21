@@ -1,0 +1,81 @@
+{
+  "_id": "dmgManualOfGolem",
+  "_key": "!tables!dmgManualOfGolem",
+  "name": "Manual of Golems: Type, Time, and Cost",
+  "img": "icons/sundries/books/book-eye-purple.webp",
+  "description": "",
+  "formula": "1d20",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "7I6vQPv0T86eyaR4",
+      "_key": "!tables.results!dmgManualOfGolem.7I6vQPv0T86eyaR4",
+      "type": "text",
+      "range": [
+        1,
+        5
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Golem:</strong> Clay Golem<br /><strong>Time:</strong> 30 days<br /><strong>Cost:</strong> 65,000 GP"
+    },
+    {
+      "_id": "OkN7NDendLyIZpeN",
+      "_key": "!tables.results!dmgManualOfGolem.OkN7NDendLyIZpeN",
+      "type": "text",
+      "range": [
+        6,
+        17
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Golem:</strong> Flesh Golem<br /><strong>Time:</strong> 60 days<br /><strong>Cost:</strong> 50,000 GP"
+    },
+    {
+      "_id": "fDMIU1f5wTvvhGYg",
+      "_key": "!tables.results!dmgManualOfGolem.fDMIU1f5wTvvhGYg",
+      "type": "text",
+      "range": [
+        18,
+        18
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Golem:</strong> Iron Golem<br /><strong>Time:</strong> 120 days<br /><strong>Cost:</strong> 100,000 GP"
+    },
+    {
+      "_id": "4Jv2P9MWTX6Hk8kO",
+      "_key": "!tables.results!dmgManualOfGolem.4Jv2P9MWTX6Hk8kO",
+      "type": "text",
+      "range": [
+        19,
+        20
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Golem:</strong> Stone Golem<br /><strong>Time:</strong> 90 days<br /><strong>Cost:</strong> 80,000 GP"
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "dmgManualOfGolem",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Manual of Gainful Exercise"
+      }
+    }
+  }
+}

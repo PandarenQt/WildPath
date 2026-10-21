@@ -2242,6 +2242,31 @@ function trapDefinition(definition, name) {
       persistence: {duration: null, concentration: false, triggers: [{on: ["area.entered"], action: sprung}]}}};
 }
 
+/**
+ * A dnd5e RollTable (2024): drawn as Foundry draws any table. A result naming a document converted here (`uuidOf`: a
+ * spell, a magic item, a creature) names WildPath's; one naming any other is its text. Links in its text are rewritten
+ * the same way, or left as their label. Only Foundry's own art is kept. `source` is the SRD magic item or spell it
+ * belongs to.
+ */
+export function convertTable(table, {uuidOf, source}) {
+  // A link with no label to anything but a converted document (an effect of its Item) is dropped.
+  const text = html => String(html ?? "").replace(/@UUID\[([^\]]+)\](?:\{([^}]*)\})?/g, (_match, uuid, label) => {
+    const to = /^Compendium\.[\w-]+\.[\w-]+\.(?:Item|Actor)\.[\w-]+$/.test(uuid) ? uuidOf(uuid) : null;
+    return to ? `@UUID[${to}]${label ? `{${label}}` : ""}` : (label ?? "");
+  });
+  const icon = img => kept(img, ["icons/"]) ?? "icons/svg/d20-black.svg";
+  return {_id: table._id, _key: `!tables!${table._id}`, name: table.name, img: icon(table.img), description: text(table.description),
+    formula: table.formula || `1d${Math.max(...(table.results ?? []).map(result => Number(result.range?.[1]) || 1))}`,
+    replacement: table.replacement !== false, displayRoll: table.displayRoll !== false,
+    results: (table.results ?? []).map(result => {
+      const to = (result.type === "document") ? uuidOf(result.documentUuid) : null;
+      return {_id: result._id, _key: `!tables.results!${table._id}.${result._id}`, type: to ? "document" : "text",
+        range: result.range, weight: result.weight ?? 1, drawn: false, img: icon(result.img), name: result.name ?? "",
+        description: text(result.description), ...(to ? {documentUuid: to} : {})};
+    }),
+    flags: {wildpath: {source}}};
+}
+
 /** A creature id's name part: `phbmobWeasel0000` and `mmWeasel00000000` are both `weasel`; a random id has none. */
 const creatureKey = id => (/^(?:phbmob|mm|dmg|phb)[A-Z]/u.test(id) ? id.replace(/^(?:phbmob|mm|dmg|phb)/u, "").replace(/0+$/u, "").toLowerCase() : "");
 

@@ -1,0 +1,109 @@
+{
+  "_id": "dmgQuaalsFeather",
+  "_key": "!tables!dmgQuaalsFeather",
+  "name": "Feather Tokens",
+  "img": "icons/commodities/treasure/token-brass-round.webp",
+  "description": "",
+  "formula": "1d100",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "6ts9sOOmi8asXRRY",
+      "_key": "!tables.results!dmgQuaalsFeather.6ts9sOOmi8asXRRY",
+      "type": "text",
+      "range": [
+        1,
+        20
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-items.Item.dmgAnchorQuaalsF]{Anchor (Uncommon)}"
+    },
+    {
+      "_id": "woWPcAMvykC0hSse",
+      "_key": "!tables.results!dmgQuaalsFeather.woWPcAMvykC0hSse",
+      "type": "text",
+      "range": [
+        21,
+        35
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-items.Item.dmgBirdQuaalsFea]{Bird (Rare)}"
+    },
+    {
+      "_id": "uN2o6j8HCqjDSxin",
+      "_key": "!tables.results!dmgQuaalsFeather.uN2o6j8HCqjDSxin",
+      "type": "text",
+      "range": [
+        36,
+        50
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-items.Item.dmgFanQuaalsFeat]{Fan (Uncommon)}"
+    },
+    {
+      "_id": "07qegfRyfFxCLRcu",
+      "_key": "!tables.results!dmgQuaalsFeather.07qegfRyfFxCLRcu",
+      "type": "text",
+      "range": [
+        51,
+        65
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-items.Item.dmgSwanBoatQuaal]{Swan boat (Rare)}"
+    },
+    {
+      "_id": "PfCCS7GgUYI9rf5G",
+      "_key": "!tables.results!dmgQuaalsFeather.PfCCS7GgUYI9rf5G",
+      "type": "text",
+      "range": [
+        66,
+        90
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-items.Item.dmgTreeQuaalsFea]{Tree (Uncommon)}"
+    },
+    {
+      "_id": "PdtTtSFdX9kIcD1O",
+      "_key": "!tables.results!dmgQuaalsFeather.PdtTtSFdX9kIcD1O",
+      "type": "text",
+      "range": [
+        91,
+        100
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-items.Item.dmgWhipQuaalsFea]{Whip (Rare)}"
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "dmgQuaalsFeather",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Feather Token"
+      }
+    }
+  }
+}

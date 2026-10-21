@@ -1,0 +1,145 @@
+{
+  "_id": "dmgRustBagOfTric",
+  "_key": "!tables!dmgRustBagOfTric",
+  "name": "Rust Bag of Tricks",
+  "img": "icons/containers/bags/sack-leather-red.webp",
+  "description": "",
+  "formula": "1d8",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "XAwjD2CKetY0vDzS",
+      "_key": "!tables.results!dmgRustBagOfTric.XAwjD2CKetY0vDzS",
+      "type": "document",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Rat",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmRat00000000000"
+    },
+    {
+      "_id": "GHibWDnM5Q0a2JtC",
+      "_key": "!tables.results!dmgRustBagOfTric.GHibWDnM5Q0a2JtC",
+      "type": "document",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Owl",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmOwl00000000000"
+    },
+    {
+      "_id": "1miaa3ePalyErX8y",
+      "_key": "!tables.results!dmgRustBagOfTric.1miaa3ePalyErX8y",
+      "type": "document",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Mastiff",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmMastiff0000000"
+    },
+    {
+      "_id": "uhxub63WB4H7yROY",
+      "_key": "!tables.results!dmgRustBagOfTric.uhxub63WB4H7yROY",
+      "type": "document",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Goat",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmGoat0000000000"
+    },
+    {
+      "_id": "D9qG1cIKGxRGMdm7",
+      "_key": "!tables.results!dmgRustBagOfTric.D9qG1cIKGxRGMdm7",
+      "type": "document",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Giant Goat",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmGiantGoat00000"
+    },
+    {
+      "_id": "SvVflxSVAZgZiUZz",
+      "_key": "!tables.results!dmgRustBagOfTric.SvVflxSVAZgZiUZz",
+      "type": "document",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Giant Boar",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmGiantBoar00000"
+    },
+    {
+      "_id": "SyT5zrUhk8Zh98rX",
+      "_key": "!tables.results!dmgRustBagOfTric.SyT5zrUhk8Zh98rX",
+      "type": "document",
+      "range": [
+        7,
+        7
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Lion",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmLion0000000000"
+    },
+    {
+      "_id": "SzMeDSCvraNzAqcm",
+      "_key": "!tables.results!dmgRustBagOfTric.SzMeDSCvraNzAqcm",
+      "type": "document",
+      "range": [
+        8,
+        8
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Brown Bear",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmBrownBear00000"
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "dmgRustBagOfTric",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Rust Bag of Tricks"
+      }
+    }
+  }
+}

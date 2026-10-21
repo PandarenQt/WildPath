@@ -1,0 +1,165 @@
+{
+  "_id": "dmgArmorOfResist",
+  "_key": "!tables!dmgArmorOfResist",
+  "name": "Armor of Resistance Type",
+  "img": "icons/equipment/chest/breastplate-layered-gold.webp",
+  "description": "",
+  "formula": "1d10",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "whhI1ElflkCbBJ3U",
+      "_key": "!tables.results!dmgArmorOfResist.whhI1ElflkCbBJ3U",
+      "type": "text",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "HJhUoa9dRFWS20cE",
+      "_key": "!tables.results!dmgArmorOfResist.HJhUoa9dRFWS20cE",
+      "type": "text",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "MWsbp9Vjx5ZFyydf",
+      "_key": "!tables.results!dmgArmorOfResist.MWsbp9Vjx5ZFyydf",
+      "type": "text",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "En1vnLK0ysLhxisl",
+      "_key": "!tables.results!dmgArmorOfResist.En1vnLK0ysLhxisl",
+      "type": "text",
+      "range": [
+        7,
+        7
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "eJkcua7kOtectwDX",
+      "_key": "!tables.results!dmgArmorOfResist.eJkcua7kOtectwDX",
+      "type": "text",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "LrupslmEYeqxfFWP",
+      "_key": "!tables.results!dmgArmorOfResist.LrupslmEYeqxfFWP",
+      "type": "text",
+      "range": [
+        8,
+        8
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "MQVpjSCnzqIKWNu2",
+      "_key": "!tables.results!dmgArmorOfResist.MQVpjSCnzqIKWNu2",
+      "type": "text",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "vhvfqW7O1Gzc4xnK",
+      "_key": "!tables.results!dmgArmorOfResist.vhvfqW7O1Gzc4xnK",
+      "type": "text",
+      "range": [
+        9,
+        9
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "tJKURr8q9I73BV2y",
+      "_key": "!tables.results!dmgArmorOfResist.tJKURr8q9I73BV2y",
+      "type": "text",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": ""
+    },
+    {
+      "_id": "ZdsE9Cp3Pt2i84xf",
+      "_key": "!tables.results!dmgArmorOfResist.ZdsE9Cp3Pt2i84xf",
+      "type": "text",
+      "range": [
+        10,
+        10
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": ""
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "dmgArmorOfResist",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Armor of Resistance"
+      }
+    }
+  }
+}

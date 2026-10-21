@@ -1,0 +1,145 @@
+{
+  "_id": "dmgTanBagOfTrick",
+  "_key": "!tables!dmgTanBagOfTrick",
+  "name": "Tan Bag of Tricks",
+  "img": "icons/svg/d20-black.svg",
+  "description": "",
+  "formula": "1d8",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "1nEUEa3WUmsNMDFC",
+      "_key": "!tables.results!dmgTanBagOfTrick.1nEUEa3WUmsNMDFC",
+      "type": "document",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Jackal",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmJackal00000000"
+    },
+    {
+      "_id": "B2uTmg4glLwbt7OE",
+      "_key": "!tables.results!dmgTanBagOfTrick.B2uTmg4glLwbt7OE",
+      "type": "document",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Ape",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmApe00000000000"
+    },
+    {
+      "_id": "kDI3PFkVjvrFOI7G",
+      "_key": "!tables.results!dmgTanBagOfTrick.kDI3PFkVjvrFOI7G",
+      "type": "document",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Baboon",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmBaboon00000000"
+    },
+    {
+      "_id": "dGC8E7S2XXliLPjy",
+      "_key": "!tables.results!dmgTanBagOfTrick.dGC8E7S2XXliLPjy",
+      "type": "document",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Axe Beak",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmAxeBeak0000000"
+    },
+    {
+      "_id": "SEhoRaQ3DYPJpgis",
+      "_key": "!tables.results!dmgTanBagOfTrick.SEhoRaQ3DYPJpgis",
+      "type": "document",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Black Bear",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmBlackBear00000"
+    },
+    {
+      "_id": "aQ0vAp1BNIGLUZa0",
+      "_key": "!tables.results!dmgTanBagOfTrick.aQ0vAp1BNIGLUZa0",
+      "type": "document",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Giant Weasel",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmGiantWeasel000"
+    },
+    {
+      "_id": "GlIp7jcoqnfbWWqc",
+      "_key": "!tables.results!dmgTanBagOfTrick.GlIp7jcoqnfbWWqc",
+      "type": "document",
+      "range": [
+        7,
+        7
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Giant Hyena",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmGiantHyena0000"
+    },
+    {
+      "_id": "dQ9za3nwnBnEltRF",
+      "_key": "!tables.results!dmgTanBagOfTrick.dQ9za3nwnBnEltRF",
+      "type": "document",
+      "range": [
+        8,
+        8
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "Tiger",
+      "description": "",
+      "documentUuid": "Compendium.wildpath.srd-creatures.Actor.mmTiger000000000"
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "dmgTanBagOfTrick",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Tan Bag of Tricks"
+      }
+    }
+  }
+}
