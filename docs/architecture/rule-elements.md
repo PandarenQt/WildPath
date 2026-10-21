@@ -353,6 +353,8 @@ test). `affects` is `others` (everyone else) or `enemies` (the opposite disposit
 - Without `on`, it runs when its own creature's event happens, on each creature within `radius` feet (2024 Azer
   Sentinel's Fire Aura: "At the end of each of the azer's turns, each creature of the azer's choice in a 5-foot
   Emanation ... takes 5 (1d10) Fire damage").
+- On `creature.died` (the dying rules raise it as its creature dies, 2026-10-21), it reaches those around it as it dies
+  (a mephit's or a Balor's Death Burst: "explodes when it dies"; the converter reads `activation.condition`).
 - With `on: "others"`, it runs when another creature's own turn starts or ends within `radius` feet, on that creature
   (a Pit Fiend's Fear Aura: "any enemy that starts its turn in the aura"; a Ghast's Stench).
 - Its predicate sees its creature's conditions (`missingCondition: "incapacitated"`: "unless the azer has the

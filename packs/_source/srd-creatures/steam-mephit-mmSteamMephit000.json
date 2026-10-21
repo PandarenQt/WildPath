@@ -105,7 +105,51 @@
       "system": {
         "active": true,
         "description": "<p>The steam mephit explodes when it dies.</p><p><em>Dexterity Saving Throw: </em>DC 10, each creature in a 5-foot Emanation originating from the steam mephit.</p><p><em>Failure: </em>5 (2d4) Fire damage.</p><p><em>Success:</em> Half damage.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "turn-death-burst",
+            "type": "Trigger",
+            "data": {
+              "kind": "automation",
+              "event": "creature.died",
+              "around": {
+                "radius": 5,
+                "affects": "others"
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-death-burst",
+                "label": "Death Burst",
+                "costs": {
+                  "allOf": []
+                },
+                "save": {
+                  "ability": "agility",
+                  "dc": {
+                    "value": 10
+                  }
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 2,
+                      "faces": 4
+                    },
+                    "damageType": "fire",
+                    "provenance": "additional",
+                    "saveOutcomePolicy": {
+                      "success": "half",
+                      "failure": "full"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -121,9 +165,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"save\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -462,9 +504,7 @@
         "challenge": 0.25
       },
       "conversion": {
-        "notes": [
-          "Death Burst: \"save\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

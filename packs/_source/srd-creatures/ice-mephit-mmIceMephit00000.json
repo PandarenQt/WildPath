@@ -78,7 +78,51 @@
       "system": {
         "active": true,
         "description": "<p>The ice mephit explodes when it dies.</p><p><em>Constitution Saving Throw: </em>DC 10, each creature in a 5-foot Emanation originating from the ice mephit.</p><p><em>Failure: </em>5 (2d4) Cold damage.</p><p><em>Success:</em> Half damage.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "turn-death-burst",
+            "type": "Trigger",
+            "data": {
+              "kind": "automation",
+              "event": "creature.died",
+              "around": {
+                "radius": 5,
+                "affects": "others"
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-death-burst",
+                "label": "Death Burst",
+                "costs": {
+                  "allOf": []
+                },
+                "save": {
+                  "ability": "fortitude",
+                  "dc": {
+                    "value": 10
+                  }
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 2,
+                      "faces": 4
+                    },
+                    "damageType": "cold",
+                    "provenance": "additional",
+                    "saveOutcomePolicy": {
+                      "success": "half",
+                      "failure": "full"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -94,9 +138,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"save\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -452,7 +494,6 @@
       },
       "conversion": {
         "notes": [
-          "Death Burst: \"save\" is passive or triggered: not automated",
           "Fog Cloud: not automated (utility): using it spends its cost; its description says the rest",
           "Fog Cloud: area: 20 * @item.level-ft sphere is not supported; the user picks the targets",
           "Fog Cloud: concentration: its caster concentrates; what it sustains is by hand"
