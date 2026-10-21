@@ -6,6 +6,7 @@ import {registerBlindsight, registerDarknessSight} from "./module/adapters/found
 import {registerLanguages} from "./module/applications/languages.mjs";
 import {registerTokenRuler} from "./module/applications/token-ruler.mjs";
 import {registerSunlightConfig} from "./module/applications/sunlight-config.mjs";
+import {registerPartyRest} from "./module/applications/party-rest.mjs";
 import {registerChatCardInteractions} from "./module/adapters/foundry-v14-chat-card-interactions.mjs";
 import {registerInspirationRerolls} from "./module/applications/inspiration-reroll.mjs";
 import {registerPortent} from "./module/adapters/foundry-v14-portent.mjs";
@@ -102,6 +103,7 @@ Hooks.once("init", () => {
   // Dragged Tokens show the movement left and the Opportunity Attacks their path would provoke.
   registerTokenRuler();
   registerSunlightConfig();
+  registerPartyRest();
 
   // Trackable Token attributes
   CONFIG.Actor.trackableAttributes = {
