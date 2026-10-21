@@ -60,7 +60,9 @@
       }
     },
     "details": {
-      "threat": 23
+      "threat": 23,
+      "type": "dragon",
+      "subtype": "metallic"
     },
     "dyingMode": "auto"
   },

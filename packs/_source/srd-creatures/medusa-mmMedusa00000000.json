@@ -58,7 +58,9 @@
       }
     },
     "details": {
-      "threat": 6
+      "threat": 6,
+      "type": "monstrosity",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

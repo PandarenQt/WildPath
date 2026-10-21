@@ -50,7 +50,9 @@
       }
     },
     "details": {
-      "threat": 0
+      "threat": 0,
+      "type": "beast",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

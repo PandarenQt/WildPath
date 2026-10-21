@@ -58,7 +58,9 @@
       }
     },
     "details": {
-      "threat": 10
+      "threat": 10,
+      "type": "aberration",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

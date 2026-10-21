@@ -50,7 +50,9 @@
       }
     },
     "details": {
-      "threat": 9
+      "threat": 9,
+      "type": "plant",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

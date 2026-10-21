@@ -58,7 +58,9 @@
       }
     },
     "details": {
-      "threat": 5
+      "threat": 5,
+      "type": "humanoid",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

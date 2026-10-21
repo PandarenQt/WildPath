@@ -36,6 +36,7 @@
             "units": "turns",
             "expiry": "turnEnd"
           },
+          "stack": "separate",
           "ruleElements": [
             {
               "schemaVersion": 1,
@@ -43,10 +44,10 @@
               "type": "Modifier",
               "data": {
                 "domains": [
-                  "speed.multiplier"
+                  "speed.dash"
                 ],
                 "modifierType": "untyped",
-                "value": 2
+                "value": 1
               }
             }
           ]

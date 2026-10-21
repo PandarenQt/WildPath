@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {fortitudeFix, runMigrations, stalePoolIds, threatFix} from "../module/helpers/migrations.mjs";
+import {creatureTypeFix, fortitudeFix, runMigrations, stalePoolIds, threatFix} from "../module/helpers/migrations.mjs";
 
 test("a pool is stale only when nothing names it and it has no base of its own", () => {
   const pools = [
@@ -33,6 +33,19 @@ test("a character built by level-up records the Fortitude modifier its Hit Point
   assert.equal(fortitudeFix({type: "character", system: {classes: [], abilities: {fortitude: {value: 14}}}}), null,
     "Hit Points typed by hand: nothing to count");
   assert.equal(fortitudeFix({type: "npc", system: {classes: [{}]}}), null);
+});
+
+test("an NPC converted before creatures carried a type takes it from its compendium creature", () => {
+  const types = new Map([["mmZombie00000000", {type: "undead", subtype: ""}]]);
+  const zombie = {type: "npc", _id: "worldCopy", system: {details: {type: ""}}, flags: {wildpath: {source: {id: "mmZombie00000000"}}}};
+  assert.deepEqual(creatureTypeFix(zombie, types), {"system.details.type": "undead", "system.details.subtype": ""});
+  assert.equal(creatureTypeFix({...zombie, system: {details: {type: "fiend"}}}, types), null, "it has one: left as it is");
+  assert.equal(creatureTypeFix({...zombie, flags: {}}, types), null, "no compendium creature");
+  assert.equal(creatureTypeFix({type: "character"}, types), null);
+  const named = new Map([["name:Owl", {type: "beast"}], ["name:Guard", null]]);
+  assert.deepEqual(creatureTypeFix({type: "npc", name: "Owl", system: {details: {}}}, named), {"system.details.type": "beast",
+    "system.details.subtype": ""}, "no source: one compendium creature of its name");
+  assert.equal(creatureTypeFix({type: "npc", name: "Guard", system: {details: {}}}, named), null, "a name several types share");
 });
 
 function world({version=0, isGM=true, active=true}={}) {

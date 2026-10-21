@@ -42,7 +42,9 @@
       }
     },
     "details": {
-      "threat": 4
+      "threat": 4,
+      "type": "ooze",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

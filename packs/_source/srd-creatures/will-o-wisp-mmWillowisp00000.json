@@ -47,7 +47,9 @@
       }
     },
     "details": {
-      "threat": 2
+      "threat": 2,
+      "type": "undead",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

@@ -57,7 +57,9 @@
       }
     },
     "details": {
-      "threat": 3
+      "threat": 3,
+      "type": "fey",
+      "subtype": "goblinoid"
     },
     "dyingMode": "auto"
   },

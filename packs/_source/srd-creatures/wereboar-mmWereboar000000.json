@@ -52,7 +52,9 @@
       }
     },
     "details": {
-      "threat": 4
+      "threat": 4,
+      "type": "monstrosity",
+      "subtype": "lycanthrope"
     },
     "dyingMode": "auto"
   },

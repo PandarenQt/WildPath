@@ -59,7 +59,9 @@
       }
     },
     "details": {
-      "threat": 15
+      "threat": 15,
+      "type": "undead",
+      "subtype": "cleric"
     },
     "dyingMode": "auto"
   },

@@ -226,11 +226,12 @@ function wildShapeDefinition({document, activity, system, spell, level, notes, p
 /**
  * Divine Smite: offered when its creature hits with a melee attack that is not a spell's, on the creature hit. The 2024
  * spell is a Bonus Action; its second activity ("Unholy Creature") is the one against an Undead or a Fiend, 1d8 more.
- * Both are tagged `smite`. A critical hit doubles their dice, as part of the attack's damage.
- * shortcut: its player picks the Undead or Fiend one, as converted creatures carry no creature type; upgrade when they do.
+ * Both are tagged `smite`. A critical hit doubles their dice, as part of the attack's damage. The Undead or Fiend one is
+ * offered only on such a creature (`targetType`), the other only on any other.
  */
 const SMITE_TRIGGER = Object.freeze({event: "attack.hit",
   match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"], notTagsAny: ["spell"]}});
+const UNHOLY = Object.freeze({oneOf: {path: "targetType", values: ["undead", "fiend"]}});
 
 /**
  * Enchantments of one of its creature's own weapons (dnd5e enchant activities): when used it picks the weapon (a
@@ -1242,7 +1243,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const reacting = action(id, `${document.name}${named}${choices ? title(choices[0]) : ""}`, definition);
     // A spell's hit too, for an offer marked `spell` (Repelling Blast on Eldritch Blast).
     const {notTagsAny: _spells, ...anyHit} = SMITE_TRIGGER.match;
-    const trigger = reaction ?? smite ?? (onHit ? {...SMITE_TRIGGER, match: {...(onHit.spell ? anyHit : SMITE_TRIGGER.match),
+    const smiting = smite ? {...smite, triggerPredicate: /unholy/i.test(activity.name ?? "") ? UNHOLY : {not: UNHOLY}} : null;
+    const trigger = reaction ?? smiting ?? (onHit ? {...SMITE_TRIGGER, match: {...(onHit.spell ? anyHit : SMITE_TRIGGER.match),
       ...(onHit.tagsAll ? {tagsAll: onHit.tagsAll} : {})}, once: onHit.once, onceKey: onHit.onceKey, uses: onHit.uses,
       triggerPredicate: onHit.triggerPredicate} : null);
     if ( trigger ) reacting.system.ruleElements.push({schemaVersion: 1, id: "reaction", type: "Trigger",
@@ -2911,7 +2913,9 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
       ...(creatureLanguages(system.traits?.languages).length ? {training: {languages: creatureLanguages(system.traits?.languages)}} : {}),
       defenses: {ac: {value: armorClass(document, modifier("dex"), notes)}},
       resources: {health: {base: health, value: health}, movement: {base: walk, value: walk}},
-      details: {threat: challenge},
+      // Its creature type; a custom one ("custom") is its own label ("object").
+      details: {threat: challenge, type: slugify(String(((system.details?.type?.value === "custom") ? system.details.type.custom
+        : system.details?.type?.value) ?? "")), subtype: String(system.details?.type?.subtype ?? "").toLowerCase()},
       dyingMode: "auto"
     },
     prototypeToken: {name: document.name, width: size, height: size, disposition: -1, actorLink: false,
