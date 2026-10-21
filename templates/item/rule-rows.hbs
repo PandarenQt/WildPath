@@ -53,7 +53,7 @@
           <input type="number" name="{{row.name}}.range" value="{{row.range}}" min="0" step="5"></label>
       {{/if}}
       {{#if row.isResource}}
-        <input type="text" name="{{row.name}}.resourceLabel" value="{{row.resourceLabel}}" placeholder="Spirit Points"
+        <input type="text" name="{{row.name}}.resourceLabel" value="{{row.resourceLabel}}" placeholder="{{localize "WILDPATH.RULES.ResourceLabelExample"}}"
                aria-label="{{localize "WILDPATH.RULES.ResourceLabel"}}">
         <input type="text" name="{{row.name}}.resourceId" value="{{row.resourceId}}" placeholder="spirit-points"
                aria-label="{{localize "WILDPATH.RULES.ResourceId"}}">

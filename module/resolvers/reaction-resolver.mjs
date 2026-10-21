@@ -957,7 +957,7 @@ function createReactionChoiceRequest({parentState, window, stageId=null, candida
     },
     metadata: {
       required: false,
-      title: "Reaction Available",
+      title: "WILDPATH.PROMPT.Title.ReactionAvailable",
       reactionWindowId: window.id,
       offerSequence
     }

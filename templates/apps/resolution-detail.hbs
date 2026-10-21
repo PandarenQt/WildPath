@@ -11,7 +11,7 @@
   <h4>{{localize "WILDPATH.INSPECTOR.Attacks"}}</h4>
   <table><tbody>
     {{#each selected.attacks as |attack|}}
-      <tr><td>{{attack.target}}</td><td>{{attack.total}} vs {{localize "WILDPATH.SHEET.AC"}} {{attack.defense}}</td><td>{{attack.outcome}}</td></tr>
+      <tr><td>{{attack.target}}</td><td>{{localize "WILDPATH.INSPECTOR.AgainstAC" total=attack.total defense=attack.defense}}</td><td>{{attack.outcome}}</td></tr>
     {{/each}}
   </tbody></table>
 {{/if}}
@@ -19,7 +19,7 @@
   <h4>{{localize "WILDPATH.INSPECTOR.Saves"}}</h4>
   <table><tbody>
     {{#each selected.saves as |save|}}
-      <tr><td>{{save.target}}</td><td>{{#if save.automatic}}{{localize "WILDPATH.INSPECTOR.Automatic"}}{{else}}{{save.total}}{{/if}} vs DC {{save.dc}}</td><td>{{save.outcome}}</td></tr>
+      <tr><td>{{save.target}}</td><td>{{#if save.automatic}}{{localize "WILDPATH.INSPECTOR.Automatic"}}{{else}}{{save.total}}{{/if}} {{localize "WILDPATH.INSPECTOR.AgainstDC" dc=save.dc}}</td><td>{{save.outcome}}</td></tr>
     {{/each}}
   </tbody></table>
 {{/if}}
