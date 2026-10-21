@@ -534,7 +534,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
+              "effect: \"Detect Magic\" marks its creature (narrative)"
             ]
           }
         }
@@ -1365,7 +1365,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Water Breathing\" marks its creature only; its rules are by hand"
+              "effect: \"Water Breathing\" marks its creature (narrative)"
             ]
           }
         }
@@ -1789,14 +1789,14 @@
       "conversion": {
         "notes": [
           "Multiattack: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: cast: Guiding Bolt at level 2 is cast at its own level",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
-          "Spellcasting: effect: \"Water Breathing\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Water Breathing\" marks its creature (narrative)",
           "Guiding Light: cast: Guiding Bolt at level 2 is cast at its own level"
         ]
       }

@@ -668,7 +668,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
+              "effect: \"Detect Magic\" marks its creature (narrative)"
             ]
           }
         }
@@ -807,7 +807,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Disguised\" marks its creature only; its rules are by hand"
+              "effect: \"Disguised\" marks its creature (narrative)"
             ]
           }
         }
@@ -1892,11 +1892,11 @@
       "conversion": {
         "notes": [
           "Protective Magic: rolled (save); what it does is by hand",
-          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
-          "Spellcasting: effect: \"Disguised\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Disguised\" marks its creature (narrative)",
           "Spellcasting: cast: Lightning Bolt at level 7 is cast at its own level",
           "Spellcasting: cast: Cone of Cold at level 9 is cast at its own level",
           "Spellcasting: activation: 10 minute is not an action-economy cost",

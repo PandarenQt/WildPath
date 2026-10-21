@@ -711,7 +711,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand"
+              "effect: \"Detect Evil and Good\" marks its creature (narrative)"
             ]
           }
         }
@@ -904,7 +904,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
+              "effect: \"Detect Magic\" marks its creature (narrative)"
             ]
           }
         }
@@ -1383,7 +1383,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Cannot Lie\" marks its creature only; its rules are by hand"
+              "effect: \"Cannot Lie\" marks its creature (narrative)"
             ]
           }
         }
@@ -1634,14 +1634,14 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand",
-          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Detect Evil and Good\" marks its creature (narrative)",
+          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: dispel: a lasting area or an object is not a target (by hand)",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: consumption: itemUses -12 not converted",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
-          "Spellcasting: effect: \"Cannot Lie\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Cannot Lie\" marks its creature (narrative)",
           "Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest",
           "Weight of Years: \"Years Older\" is passive or triggered: not automated"
         ]

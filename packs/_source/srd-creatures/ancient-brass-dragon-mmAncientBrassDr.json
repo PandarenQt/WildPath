@@ -635,7 +635,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
+              "effect: \"Detect Magic\" marks its creature (narrative)"
             ]
           }
         }
@@ -1606,7 +1606,7 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: cast: Scorching Ray at level 3 is cast at its own level",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",

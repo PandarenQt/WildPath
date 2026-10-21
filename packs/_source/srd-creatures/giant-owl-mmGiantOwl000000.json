@@ -264,7 +264,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand"
+              "effect: \"Detect Evil and Good\" marks its creature (narrative)"
             ]
           }
         }
@@ -347,7 +347,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
+              "effect: \"Detect Magic\" marks its creature (narrative)"
             ]
           }
         }
@@ -486,8 +486,8 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand",
-          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand"
+          "Spellcasting: effect: \"Detect Evil and Good\" marks its creature (narrative)",
+          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)"
         ]
       }
     }

@@ -1009,7 +1009,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Disguised\" marks its creature only; its rules are by hand"
+              "effect: \"Disguised\" marks its creature (narrative)"
             ]
           }
         }
@@ -1075,7 +1075,7 @@
           "Coven Magic: save: a failure marks its creature only; what it does is by hand",
           "Coven Magic: \"Create Sensor\" is passive or triggered: not automated",
           "Vile Appearance: \"save\" is passive or triggered: not automated",
-          "Illusory Appearance: effect: \"Disguised\" marks its creature only; its rules are by hand"
+          "Illusory Appearance: effect: \"Disguised\" marks its creature (narrative)"
         ]
       }
     }

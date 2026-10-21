@@ -756,7 +756,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
+              "effect: \"Detect Magic\" marks its creature (narrative)"
             ]
           }
         }
@@ -1730,7 +1730,7 @@
       "conversion": {
         "notes": [
           "Spellcasting: cast: Command at level 2 is cast at its own level",
-          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: cast: Scorching Ray at level 3 is cast at its own level",
           "Spellcasting: cast: Fireball at level 6 is cast at its own level",
           "Spellcasting: activation: 10 minute is not an action-economy cost",

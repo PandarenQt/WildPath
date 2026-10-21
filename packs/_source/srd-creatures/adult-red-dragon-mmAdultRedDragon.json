@@ -996,7 +996,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Detect Magic\" marks its creature only; its rules are by hand"
+              "effect: \"Detect Magic\" marks its creature (narrative)"
             ]
           }
         }
@@ -1528,7 +1528,7 @@
         "notes": [
           "Commanding Presence: cast: Command at level 2 is cast at its own level",
           "Spellcasting: cast: Command at level 2 is cast at its own level",
-          "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand"
+          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)"
         ]
       }
     }
