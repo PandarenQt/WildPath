@@ -1,5 +1,6 @@
 import {combineRollModes} from "./rolls.mjs";
 import {WILDPATH} from "../config.mjs";
+import {selectTableRows} from "./value-expressions.mjs";
 
 /**
  * Snapshot actor combat statistics into plain data for staged action resolution.
@@ -194,7 +195,10 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
   // A weapon's attack names its weapon (`weapon:<id>`, the gear granting it), so a rule can reach that weapon alone
   // (Magic Weapon's chosen weapon).
   const weaponId = (attackDefinition?.weapon && item) ? (item.flags?.wildpath?.grantedBy ?? item.id) : null;
-  const tags = [...(definition?.tags ?? []), ...(weaponId ? [`weapon:${weaponId}`] : [])];
+  // ... and its kind (`category:simple`) and properties (`light`), so a rule can reach a Monk weapon.
+  const weaponKind = attackDefinition?.weapon?.category ? [`category:${attackDefinition.weapon.category}`, ...(attackDefinition.properties ?? [])]
+    : [];
+  const tags = [...(definition?.tags ?? []), ...(weaponId ? [`weapon:${weaponId}`] : []), ...weaponKind];
   const statistic = attackDefinition ? resolveActorAttackStatistic(actor, attackDefinition, {item, tags}) : null;
   const components = definition?.damage ?? [];
   const weapon = !statistic?.spell && Number.isFinite(statistic?.abilityModifier)
@@ -210,9 +214,17 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
   const markedOn = creature => ((components.length && attackDefinition && (typeof creature?.getExtraDamage === "function"))
     ? creature.getExtraDamage(["attacked", `attacked.${attackDefinition.type}`], {tags: extraTags, context}) : []);
   const unused = entry => !((entry.once === "turn") && turn && (actor.flags?.wildpath?.onceUsed?.[onceKey(entry)] === turn));
-  const extra = [...((components.length && (typeof actor?.getExtraDamage === "function"))
+  const found = [...((components.length && (typeof actor?.getExtraDamage === "function"))
     ? actor.getExtraDamage(damageDomains(attackDefinition, tags), {item, tags: extraTags, context}) : []), ...markedOn(target)]
     .filter(unused);
+  const extra = found.filter(entry => !entry.replacesBase);
+  // A die rolled in place of the weapon's own when larger (Martial Arts with a Monk weapon): the largest, at its level.
+  const own = components.find(component => component.provenance === "weapon-base");
+  const average = expression => diceAverage(selectTableRows(expression, {actorSystem: actor?.system ?? null}));
+  const baseExpression = own ? found.filter(entry => entry.replacesBase).map(entry => entry.expression)
+    .reduce((best, expression) => ((average(expression) > average(best)) ? expression : best), own.expression) : null;
+  const replaced = (baseExpression && (baseExpression !== own?.expression)) ? selectTableRows(baseExpression, {actorSystem: actor?.system ?? null})
+    : null;
   // Extra damage with no type of its own is the Action's (Sneak Attack deals the weapon's).
   // Each names its rule (`metadata.ruleId`: "sneak-attack"), which a reaction's rider can give dice of up (Cunning Strike).
   const component = (entry, suffix="", metadata={}) => ({id: `extra:${onceKey(entry)}${suffix}`, expression: entry.expression,
@@ -233,8 +245,8 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
     [tags.includes("spell") ? "healing.spell" : null, "healing"].filter(Boolean), {item, tags, context}).value ?? 0) : 0;
   return {
     defenseKey: attackDefinition ? (attackDefinition.defenseKey ?? "ac") : null,
-    damage: (components.length && (weapon || bonus || extraComponents.length))
-      ? {modifierTotal, ...(extraComponents.length ? {extraComponents} : {})} : null,
+    damage: (components.length && (weapon || bonus || extraComponents.length || replaced))
+      ? {modifierTotal, ...(extraComponents.length ? {extraComponents} : {}), ...(replaced ? {baseExpression: replaced} : {})} : null,
     ...(healing ? {healing: {modifierTotal: healing}} : {}),
     attack: statistic ? {
       statistic,
@@ -254,6 +266,15 @@ const isSpellAttack = (attack, tags=[]) => (attack?.statistic === "spell") || ta
  * ability; for a weapon with the `finesse` property the better of Might and Agility; else Might in melee and
  * Agility at range.
  */
+/** The average of an expression's dice and constants (1d8 is 4.5): which die is larger. */
+function diceAverage(expression) {
+  if ( !expression || (typeof expression !== "object") ) return Number(expression) || 0;
+  if ( expression.type === "dice" ) return (Number(expression.number) || 0) * ((Number(expression.faces) || 0) + 1) / 2;
+  if ( expression.type === "constant" ) return Number(expression.value) || 0;
+  if ( (expression.type === "add") && Array.isArray(expression.terms) ) return expression.terms.reduce((sum, term) => sum + diceAverage(term), 0);
+  return 0;
+}
+
 export function attackAbility(actor, attack={}, {tags=[]}={}) {
   if ( attack.ability ) return String(attack.ability);
   if ( isSpellAttack(attack, tags) ) return actor?.system?.spellcasting?.ability ?? null;

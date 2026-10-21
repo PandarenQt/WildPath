@@ -586,8 +586,13 @@ condition-name branches.
 
 ## ExtraDamage (2026-10-14)
 
-`{type: "ExtraDamage", data: {domains, expression, damageType, once?: "turn"}}` adds a damage component to an
-Action's own damage in the damage domains (`damage`, `damage.melee`, `damage.weapon`, ...). Its predicates see
+`{type: "ExtraDamage", data: {domains, expression, damageType, once?: "turn", replacesBase?: true}}` adds a damage
+component to an Action's own damage in the damage domains (`damage`, `damage.melee`, `damage.weapon`, ...). With
+`replacesBase` (2026-10-21) it is rolled in place of the weapon's own die instead, when larger at the creature's level
+(2024 Martial Arts: the Martial Arts die with a Monk weapon). A weapon attack's rules also see its kind
+(`category:simple`, `category:martial`) and properties (`finesse`, `light`): Martial Arts' Monk weapon is
+`{all: [{tagsAll: ["melee"]}, {any: [{tagsAll: ["category:simple"]}, {tagsAll: ["category:martial", "light"]}]}]}`,
+with Dexterity in place of Strength (a Modifier adding the difference when better). Its predicates see
 the attack type, the Action's tags, the attack's ability, the weapon's properties (`finesse`) and the creature's
 conditions. They also see the attack against its first target: `attack.rollMode` and `attack.allyNearTarget`. With
 no `damageType`, it deals the Action's own (2026-10-14).

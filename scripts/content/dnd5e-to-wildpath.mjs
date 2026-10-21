@@ -559,7 +559,6 @@ const FLURRY_POOL = Object.freeze({schemaVersion: 1, id: "flurry-of-blows-strike
  * 2024 Martial Arts: Unarmed Strikes with the Martial Arts die (a table by monk level) and the better of Strength and
  * Dexterity (the finesse property). One costs its Action (Extra Attack pays it too), one a Bonus Action, and one a
  * Flurry of Blows strike, tagged `flurry` (Open Hand Technique answers its hits).
- * shortcut: monk weapons keep their own die and ability.
  */
 function martialArtsActions(document, img, source, scales) {
   const {id: _id, label: _label, costs: _costs, ...unarmed} = commonAction({uuid: ""}, "unarmed").system.definition;
@@ -576,6 +575,21 @@ function martialArtsActions(document, img, source, scales) {
   return [make("Unarmed Strike", "strike", [{capability: "action", amount: 1}]),
     make("Bonus Unarmed Strike", "bonus", [{capability: "bonus-action", amount: 1}]),
     make("Flurry of Blows Strike", "flurry", [{capability: "flurry-of-blows", amount: 1}], {tags: ["flurry"]}, [structuredClone(FLURRY_POOL)])];
+}
+
+/**
+ * 2024 Martial Arts with Monk weapons (Simple Melee weapons, and Martial Melee weapons with the Light property): the
+ * Martial Arts die in place of the weapon's own when larger, and Dexterity in place of Strength when better.
+ */
+const MONK_WEAPON = Object.freeze({all: [{tagsAll: ["melee"]}, {any: [{tagsAll: ["category:simple"]}, {tagsAll: ["category:martial", "light"]}]}]});
+function monkWeaponRules(scales) {
+  const die = formulaExpression("@scale.monk.die", {scales}) ?? {type: "dice", number: 1, faces: 6};
+  return [{schemaVersion: 1, id: "martial-arts-die", type: "ExtraDamage", predicate: MONK_WEAPON,
+    data: {domains: ["damage.weapon"], expression: die, replacesBase: true}},
+  ...["attack", "damage"].map(domain => ({schemaVersion: 1, id: `martial-arts-dexterity-${domain}`, type: "Modifier",
+    predicate: {all: [MONK_WEAPON, {tagsAll: ["might"]}]}, data: {domains: [domain], modifierType: "untyped",
+      valueExpression: {type: "max", terms: [{type: "constant", value: 0}, {type: "subtract",
+        left: {type: "ability-modifier", ability: "agility"}, right: {type: "ability-modifier", ability: "might"}}]}}}))];
 }
 
 /** The spell schools dnd5e abbreviates. */
@@ -1327,9 +1341,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       items[0].flags.wildpath.grants = [choose._id];
       items.push(choose);
     }
-    // Martial Arts brings its Unarmed Strikes with it, so its class grants the feature alone.
+    // Martial Arts brings its Unarmed Strikes with it, so its class grants the feature alone; its Monk weapons' rules are
+    // its own.
     if ( identifierOf(document) === "martial-arts" ) {
       const strikes = martialArtsActions(document, img, source, scales);
+      items[0].system.ruleElements.push(...monkWeaponRules(scales));
       items[0].flags.wildpath.grants = strikes.map(strike => strike._id);
       items.push(...strikes);
     }
@@ -2522,7 +2538,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
     // Spells and stat-block attacks are proficient; a character not proficient with a weapon unticks it.
     proficient: true} : null;
   if ( attack ) {
-    if ( (system.properties ?? []).includes("fin") ) attack.properties = ["finesse"];
+    // Its properties a rule or the engine reads: finesse (its better ability), light (a Monk weapon, two-weapon fighting).
+    const properties = [["fin", "finesse"], ["lgt", "light"]].filter(([key]) => (system.properties ?? []).includes(key)).map(([, name]) => name);
+    if ( properties.length ) attack.properties = properties;
     if ( attackData.ability && ABILITY_MAP[attackData.ability] ) attack.ability = ABILITY_MAP[attackData.ability];
     const weapon = weaponOf(document);
     if ( weapon ) attack.weapon = weapon;

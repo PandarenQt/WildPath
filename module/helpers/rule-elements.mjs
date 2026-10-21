@@ -682,7 +682,8 @@ function grantMovementRuleElement(ruleElement, context) {
 /**
  * Extra damage an Action deals in `domains` (the damage domains: `damage`, `damage.melee`, `damage.weapon`, ...):
  * "+1d6 fire when you hit with a melee attack" is `{domains: ["damage.melee"], expression: 1d6, damageType: "fire"}`.
- * It joins the Action's own damage (one roll, doubled on a critical); `once: "turn"` limits it to once per turn.
+ * It joins the Action's own damage (one roll, doubled on a critical); `once: "turn"` limits it to once per turn. With
+ * `replacesBase` it is instead rolled in place of the weapon's own die when it is larger (a Monk's Martial Arts die).
  */
 function extraDamageRuleElement(ruleElement) {
   const data = ruleElement.data;
@@ -697,7 +698,8 @@ function extraDamageRuleElement(ruleElement) {
   }
   return success({
     extraDamage: [{id: data.id ?? ruleElement.id, domains, expression: clonePlain(expression), damageType: data.damageType ?? null,
-      once: data.once ?? null, source: ruleElementSource(ruleElement), metadata: contributionMetadata(ruleElement, data.metadata)}]
+      once: data.once ?? null, ...(data.replacesBase === true ? {replacesBase: true} : {}), source: ruleElementSource(ruleElement),
+      metadata: contributionMetadata(ruleElement, data.metadata)}]
   });
 }
 

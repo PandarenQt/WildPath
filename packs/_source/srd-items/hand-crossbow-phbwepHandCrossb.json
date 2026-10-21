@@ -23,6 +23,9 @@
         "statistic": "weapon",
         "defenseKey": "ac",
         "proficient": true,
+        "properties": [
+          "light"
+        ],
         "weapon": {
           "category": "martial",
           "base": "hand-crossbow",

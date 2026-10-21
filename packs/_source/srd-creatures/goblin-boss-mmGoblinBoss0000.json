@@ -100,7 +100,8 @@
             "defenseKey": "ac",
             "proficient": true,
             "properties": [
-              "finesse"
+              "finesse",
+              "light"
             ],
             "weapon": {
               "category": "martial",
@@ -181,7 +182,8 @@
             "defenseKey": "ac",
             "proficient": true,
             "properties": [
-              "finesse"
+              "finesse",
+              "light"
             ],
             "weapon": {
               "category": "martial",
