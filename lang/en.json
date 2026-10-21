@@ -205,6 +205,10 @@
         "Stunned2014": "Incapacitated, Speed 0. You fail Might and Agility saves; attacks against you have advantage.",
         "Grappled2014": "Speed 0.",
         "Exhaustion2014": "Level 1: disadvantage on checks. 2: half Speed. 3: disadvantage on attacks and saves. 4: half Hit Point maximum. 5: Speed 0. 6: death."
+      },
+      "TurnDamageOf": {
+        "Envenomed": "Envenomed Turn Damage",
+        "Bleeding": "Bleeding Turn Damage"
       }
     },
     "PROMPT": {
@@ -215,7 +219,8 @@
         "Damage": "Damage",
         "Healing": "Healing",
         "Save": "Save",
-        "Invalid": "These choices can't be used now."
+        "Invalid": "These choices can't be used now.",
+        "SaveDC": "{ability} DC {dc}"
       },
       "Yes": "Yes",
       "No": "No",
@@ -344,7 +349,10 @@
     },
     "METAMAGIC": {
       "heightened": "Heightened Spell: which creature has Disadvantage on its save?",
-      "careful": "Careful Spell: which creatures succeed on their saves?"
+      "careful": "Careful Spell: which creatures succeed on their saves?",
+      "Choice": "Metamagic",
+      "None": "None",
+      "empowered": "Empowered Spell"
     },
     "REDIRECT": {
       "Title": "Who takes the damage",
@@ -968,8 +976,12 @@
         "turnStart": "the start of a turn",
         "combatEnd": "the end of combat",
         "roundEnd": "the end of a round",
-        "turnEnd": "the end of a turn"
-      }
+        "turnEnd": "the end of a turn",
+        "sourceTurnStart": "the start of its source's turn",
+        "sourceTurnEnd": "the end of its source's turn"
+      },
+      "EffectChoice": "Effect",
+      "SpellSlot": "Spell slot"
     },
     "SHEET": {
       "AC": "AC",
@@ -1086,7 +1098,14 @@
         "dies": "Dies"
       },
       "Suppressed": "Suppressed",
-      "EffectSource": "From {name}"
+      "EffectSource": "From {name}",
+      "Unarmored": "Unarmored",
+      "Availability": {
+        "Ready": "Ready",
+        "Spent": "Nothing left to pay with",
+        "NoResource": "Needs a resource it doesn't have",
+        "Unavailable": "Not usable now"
+      }
     },
     "PACKS": {
       "Actions": "WildPath Actions",
@@ -1111,6 +1130,14 @@
       "MovementFailed": "The movement could not be completed: {reason}",
       "MovementStoppedByArea": "You stopped on entering {area}. Your remaining movement is kept.",
       "AnsweredByGM": "The GM answered this for you."
+    },
+    "ITEM": {
+      "RuntimeMissing": "WildPath's action runtime isn't running yet; reload the world.",
+      "NotPrepared": "{name} is not prepared.",
+      "CannotUse": "{name} can't be used right now."
+    },
+    "REACTIONS": {
+      "Decline": "Decline"
     }
   },
   "TYPES": {

@@ -88,16 +88,17 @@ export default class WildPathItem extends Item {
     const runtime = globalThis.game?.wildpath;
     if ( typeof runtime?.executeActionIntent !== "function" ) {
       console.warn("Wild Path | Multiplayer action runtime is not registered; unable to use this Action.");
+      globalThis.ui?.notifications?.error?.(globalThis.game?.i18n?.localize?.("WILDPATH.ITEM.RuntimeMissing"));
       return false;
     }
     // An unprepared spell is refused before its slot or area is asked (the authority refuses it too).
     if ( isUnprepared(this) ) {
-      globalThis.ui?.notifications?.warn?.(`${this.name} is not prepared.`);
+      globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.format?.("WILDPATH.ITEM.NotPrepared", {name: this.name}));
       return false;
     }
     const built = buildFoundryActionUseIntent({actor: this.actor, action: this});
     if ( !built.ok ) {
-      globalThis.ui?.notifications?.warn?.(built.reason ?? `Unable to use ${this.name}.`);
+      globalThis.ui?.notifications?.warn?.(built.reason ?? globalThis.game?.i18n?.format?.("WILDPATH.ITEM.CannotUse", {name: this.name}));
       return false;
     }
     const definition = actionDefinitionFromAction(this, {actorSystem: this.actor.system});

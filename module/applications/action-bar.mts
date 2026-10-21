@@ -57,7 +57,8 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
     const actor = this.shownActor;
     if ( !actor ) return {shown: false};
     const common = this.#common(actor);
-    const context = actionBarContext({actor, conditions: Object.values(globals.CONFIG.WILDPATH.CONDITIONS),
+    const context = actionBarContext({actor, localize: (key: string) => globals.game.i18n.localize(key),
+      conditions: Object.values(globals.CONFIG.WILDPATH.CONDITIONS),
       odds: this.#odds(actor, common), common});
     // Each target's odds, one line each, in the button's tooltip.
     const {i18n} = globals.game;

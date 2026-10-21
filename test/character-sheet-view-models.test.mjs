@@ -62,7 +62,7 @@ test("actor sheet view model exposes action availability without sheet rules", (
 
   assert.equal(model.actionItems[0].availability.enabled, false);
   assert.equal(model.actionItems[0].availability.code, "INSUFFICIENT_RESOURCE");
-  assert.equal(model.actionItems[0].availability.reason, "Insufficient Resource");
+  assert.equal(model.actionItems[0].availability.reason, "WILDPATH.SHEET.Availability.Spent");
 });
 
 test("actor sheet view model renders custom resources without hardcoded slots", () => {

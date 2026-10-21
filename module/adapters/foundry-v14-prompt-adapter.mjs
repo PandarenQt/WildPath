@@ -211,7 +211,10 @@ export function renderConfigurationPreview({definition, actorSystem, choices}) {
   const healing = (preview.healing?.components ?? []).map(entry => (entry.expression ? shown(entry) : entry.formula)).filter(Boolean);
   if ( healing.length ) lines.push([localize("WILDPATH.PROMPT.Configure.Healing"), healing.join(" + ")]);
   const dc = definition.save?.dc?.value;
-  if ( definition.save ) lines.push([localize("WILDPATH.PROMPT.Configure.Save"), `${definition.save.ability ?? ""}${dc != null ? ` DC ${dc}` : ""}`]);
+  if ( definition.save ) {
+    const ability = localize(globalThis.CONFIG?.WILDPATH?.ABILITIES?.[definition.save.ability]?.label ?? definition.save.ability ?? "");
+    lines.push([localize("WILDPATH.PROMPT.Configure.Save"), (dc != null) ? localize("WILDPATH.PROMPT.Configure.SaveDC", {ability, dc}) : ability]);
+  }
   return `<dl>${lines.map(([label, text]) => `<dt>${escapeHtml(label)}</dt><dd>${escapeHtml(text)}</dd>`).join("")}</dl>`;
 }
 
@@ -305,8 +308,8 @@ function renderBooleanControl(control) {
     <div class="form-group">
       <label for="wildpath-${escapeHtml(control.id)}">${escapeHtml(control.label)}</label>
       <select id="wildpath-${escapeHtml(control.id)}" name="choice:${escapeHtml(control.choiceId ?? control.id)}"${control.required ? " required" : ""}>
-        <option value="true"${control.defaultValue === true ? " selected" : ""}>Yes</option>
-        <option value="false"${control.defaultValue === false ? " selected" : ""}>No</option>
+        <option value="true"${control.defaultValue === true ? " selected" : ""}>${escapeHtml(localize("WILDPATH.PROMPT.Yes"))}</option>
+        <option value="false"${control.defaultValue === false ? " selected" : ""}>${escapeHtml(localize("WILDPATH.PROMPT.No"))}</option>
       </select>
     </div>
   `;

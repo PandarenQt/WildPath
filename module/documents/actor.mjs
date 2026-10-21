@@ -63,7 +63,7 @@ export function classRecordsFromItems(items) {
 }
 
 /** 2024: a creature's AC without armor is 10 + its Agility modifier. */
-const UNARMORED = Object.freeze({schemaVersion: 1, id: "unarmored", type: "ArmorClass", data: {label: "Unarmored",
+const UNARMORED = Object.freeze({schemaVersion: 1, id: "unarmored", type: "ArmorClass", data: {label: "WILDPATH.SHEET.Unarmored",
   value: {type: "add", terms: [{type: "constant", value: 10}, {type: "ability-modifier", ability: "agility"}]}}});
 
 /**

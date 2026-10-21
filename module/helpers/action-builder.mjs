@@ -103,7 +103,7 @@ function syncEffectChoice(next, { create = false } = {}) {
     const keep = found?.entry.effects[0].keep;
     const labels = new Map((found?.entry.options ?? []).map((option) => [String(keep?.[option.value]?.[0] ?? option.value), option.label]));
     const option = (index) => `effect-option-${index + 1}`;
-    configuration.push({ ...(found?.entry ?? { id: "effect-choice", type: "option", label: "Effect", required: true }),
+    configuration.push({ ...(found?.entry ?? { id: "effect-choice", type: "option", label: "WILDPATH.BUILDER.EffectChoice", required: true }),
         options: effects.map((effect, index) => ({ id: option(index), value: option(index),
             label: labels.get(effect.id) ?? effect.name ?? effect.conditionId ?? `Effect ${index + 1}` })),
         effects: [{ type: "keepEffect", effectIds: effects.map(effect => effect.id),
@@ -553,7 +553,7 @@ const WRITERS = {
             return;
         }
         const id = found?.entry.id ?? "spell-slot";
-        const entry = { ...(found?.entry ?? { id, type: "resource", label: "Spell slot", required: true }) };
+        const entry = { ...(found?.entry ?? { id, type: "resource", label: "WILDPATH.BUILDER.SpellSlot", required: true }) };
         if (!found || changed("level")) {
             const levels = Array.from({ length: 10 - level }, (_, offset) => level + offset);
             entry.cost = { anyOf: levels.map(each => [{ capability: `spell-slot.${each}`, amount: 1 }]) };

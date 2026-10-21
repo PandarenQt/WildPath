@@ -945,7 +945,7 @@ function createReactionChoiceRequest({parentState, window, stageId=null, candida
         })),
         {
           id: "decline",
-          label: "Decline",
+          label: "WILDPATH.REACTIONS.Decline",
           value: {
             decision: REACTION_CHOICE_DECISIONS.DECLINE
           },
