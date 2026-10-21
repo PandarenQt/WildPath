@@ -4,11 +4,14 @@
     <ol class="carousel-turns">
       {{#each turns as |turn|}}
         <li class="carousel-turn {{#if turn.active}}active{{/if}} {{#if turn.defeated}}defeated{{/if}} {{#if turn.hidden}}concealed{{/if}}"
-            data-combatant-id="{{turn.id}}" data-action="pan" title="{{turn.name}}">
-          {{#if turn.img}}<img src="{{turn.img}}" alt="{{turn.name}}" width="48" height="48">{{/if}}
+            data-combatant-id="{{turn.id}}">
+          <button type="button" data-action="pan" data-tooltip="{{turn.name}}" {{#if turn.active}}aria-current="true"{{/if}}>
+          {{#if turn.img}}<img src="{{turn.img}}" alt="" width="48" height="48">{{/if}}
           <span class="turn-name">{{turn.name}}</span>
           {{#if turn.health}}
-            <span class="turn-health" title="{{turn.health.value}} / {{turn.health.max}}"><span style="width: {{turn.health.percent}}%"></span></span>
+            <span class="turn-health" role="meter" aria-valuemin="0" aria-valuemax="{{turn.health.max}}" aria-valuenow="{{turn.health.value}}"
+                  aria-label="{{localize "WILDPATH.SHEET.Health" value=turn.health.value max=turn.health.max}}"
+                  data-tooltip="{{localize "WILDPATH.SHEET.Health" value=turn.health.value max=turn.health.max}}"><span style="width: {{turn.health.percent}}%"></span></span>
           {{/if}}
           {{#if turn.conditions.length}}
             <span class="turn-conditions">
@@ -18,6 +21,7 @@
               {{/each}}
             </span>
           {{/if}}
+          </button>
         </li>
       {{/each}}
     </ol>

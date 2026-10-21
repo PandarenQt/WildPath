@@ -1,9 +1,11 @@
 <div class="wildpath-inspector">
   <ol class="inspector-list">
     {{#each entries as |entry|}}
-      <li class="inspector-entry {{#if entry.active}}active{{/if}}" data-action="select" data-resolution-id="{{entry.id}}">
-        <span class="entry-label">{{entry.label}}</span>
-        <span class="entry-status">{{entry.status}}</span>
+      <li class="inspector-entry {{#if entry.active}}active{{/if}}">
+        <button type="button" class="row-name" data-action="select" data-resolution-id="{{entry.id}}" aria-pressed="{{#if entry.active}}true{{else}}false{{/if}}">
+          <span class="entry-label">{{entry.label}}</span>
+          <span class="entry-status">{{entry.status}}</span>
+        </button>
       </li>
     {{else}}
       <li class="inspector-empty">{{localize "WILDPATH.INSPECTOR.Empty"}}</li>

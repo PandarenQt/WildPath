@@ -169,9 +169,11 @@
         {{#if header.deathSaves}}
           <div class="death-saves">
             <span>{{localize "WILDPATH.SHEET.Successes"}}</span>
-            {{#each header.deathSaves.successPips as |marked|}}<span class="pip {{#if marked}}marked{{/if}}"></span>{{/each}}
+            <span class="pips" role="img" aria-label="{{localize "WILDPATH.SHEET.PipCount" count=header.deathSaves.successes}}"
+              data-tooltip="{{localize "WILDPATH.SHEET.PipCount" count=header.deathSaves.successes}}">{{#each header.deathSaves.successPips as |marked|}}<span class="pip {{#if marked}}marked{{/if}}"></span>{{/each}}</span>
             <span>{{localize "WILDPATH.SHEET.Failures"}}</span>
-            {{#each header.deathSaves.failurePips as |marked|}}<span class="pip failure {{#if marked}}marked{{/if}}"></span>{{/each}}
+            <span class="pips" role="img" aria-label="{{localize "WILDPATH.SHEET.PipCount" count=header.deathSaves.failures}}"
+              data-tooltip="{{localize "WILDPATH.SHEET.PipCount" count=header.deathSaves.failures}}">{{#each header.deathSaves.failurePips as |marked|}}<span class="pip failure {{#if marked}}marked{{/if}}"></span>{{/each}}</span>
             {{#if header.deathSaves.stable}}<span class="actor-pill">{{localize "WILDPATH.SHEET.Stable"}}</span>{{/if}}
           </div>
         {{/if}}
@@ -214,7 +216,7 @@
               </button>
             {{/if}}
             <button type="button" class="row-command" data-action="useItem" {{#unless item.availability.enabled}}disabled{{/unless}}{{#if item.prepares}}{{#unless item.prepared}} disabled{{/unless}}{{/if}}>{{localize "WILDPATH.SHEET.Use"}}</button>
-            <button type="button" class="row-command" data-action="deleteItem" title="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
+            <button type="button" class="row-command" data-action="deleteItem" title="{{localize "WILDPATH.SHEET.Delete"}}" aria-label="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
           </li>
         {{else}}
           <li class="empty-row">{{localize "WILDPATH.SHEET.Empty.Actions"}}</li>
@@ -241,7 +243,7 @@
                   <button type="button" class="row-name" data-action="openItem">{{item.name}}</button>
                   <span class="row-detail">{{localize (concat "TYPES.Item." item.type)}}</span>
                 </div>
-                <button type="button" class="row-command" data-action="deleteItem" title="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
+                <button type="button" class="row-command" data-action="deleteItem" title="{{localize "WILDPATH.SHEET.Delete"}}" aria-label="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
               </li>
             {{else}}
               <li class="empty-row">{{localize "WILDPATH.SHEET.Empty.Features"}}</li>
@@ -264,7 +266,7 @@
                   {{#each item.enchantments as |enchantment|}}
                     <span class="row-detail">{{enchantment.name}}
                       <button type="button" class="row-command" data-action="endEnchantment" data-effect-id="{{enchantment.id}}"
-                              title="{{localize "WILDPATH.SHEET.EndEnchantment"}}">✕</button></span>
+                              title="{{localize "WILDPATH.SHEET.EndEnchantment"}}" aria-label="{{localize "WILDPATH.SHEET.EndEnchantment"}}">✕</button></span>
                   {{/each}}
                 </div>
                 <input class="quantity" type="number" min="0" step="1" value="{{item.quantity}}" data-item-field="system.quantity"
@@ -278,7 +280,7 @@
                     {{#if item.attuned}}{{localize "WILDPATH.SHEET.Attuned"}}{{else}}{{localize "WILDPATH.SHEET.NotAttuned"}}{{/if}}
                   </button>
                 {{/if}}
-                <button type="button" class="row-command" data-action="deleteItem" title="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
+                <button type="button" class="row-command" data-action="deleteItem" title="{{localize "WILDPATH.SHEET.Delete"}}" aria-label="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
               </li>
             {{else}}
               <li class="empty-row">{{localize "WILDPATH.SHEET.Empty.Gear"}}</li>
@@ -297,7 +299,7 @@
                 <button type="button" class="row-name" data-action="openItem">{{item.name}}</button>
                 <span class="row-detail">{{localize (concat "TYPES.Item." item.type)}}</span>
               </div>
-              <button type="button" class="row-command" data-action="deleteItem" title="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
+              <button type="button" class="row-command" data-action="deleteItem" title="{{localize "WILDPATH.SHEET.Delete"}}" aria-label="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
             </li>
           {{else}}
             <li class="empty-row">{{localize "WILDPATH.SHEET.Empty.Other"}}</li>
@@ -325,7 +327,7 @@
             <button type="button" class="row-command" data-action="toggleEffect">
               {{#if effect.disabled}}{{localize "WILDPATH.SHEET.Enable"}}{{else}}{{localize "WILDPATH.SHEET.Disable"}}{{/if}}
             </button>
-            <button type="button" class="row-command" data-action="deleteEffect" title="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
+            <button type="button" class="row-command" data-action="deleteEffect" title="{{localize "WILDPATH.SHEET.Delete"}}" aria-label="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
           </li>
         {{else}}
           <li class="empty-row">{{localize "WILDPATH.SHEET.Empty.Effects"}}</li>

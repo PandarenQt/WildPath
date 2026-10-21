@@ -534,6 +534,7 @@
   background: #222; color: #fff; font-size: 0.7rem; text-align: center;
 }
 .wildpath.actor .death-saves { display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; }
+.wildpath.actor .death-saves .pips { display: inline-flex; gap: 0.25rem; }
 .wildpath.actor .death-saves .pip { width: 0.8rem; height: 0.8rem; border: 1px solid var(--wp-muted); border-radius: 50%; }
 .wildpath.actor .death-saves .pip.marked { background: var(--wp-success); }
 .wildpath.actor .death-saves .pip.failure.marked { background: var(--wp-danger); }
@@ -576,7 +577,7 @@
 #wildpath-action-bar .bar-group[data-group="common"] .bar-action-label { display: none; }
 #wildpath-action-bar .bar-group[data-group="common"] .bar-action { padding: 2px; }
 #wildpath-action-bar .bar-action img { border: none; }
-#wildpath-action-bar .bar-action:disabled { opacity: 0.45; }
+#wildpath-action-bar .bar-action:is(:disabled, [aria-disabled="true"]) { opacity: 0.45; cursor: not-allowed; }
 .waypoint-label .wildpath-movement-left { opacity: 0.85; }
 .waypoint-label .wildpath-movement-left.over { color: #ff6666; font-weight: bold; }
 .waypoint-label .wildpath-threat { color: #ffb347; font-weight: bold; }
@@ -589,7 +590,8 @@
 /* The Rules Inspector (M6, GM only). */
 .wildpath.rules-inspector .wildpath-inspector { display: grid; grid-template-columns: 220px 1fr; gap: 8px; height: 100%; }
 .wildpath.rules-inspector .inspector-list { margin: 0; padding: 0; list-style: none; overflow-y: auto; }
-.wildpath.rules-inspector .inspector-entry { display: flex; justify-content: space-between; gap: 4px; padding: 3px 4px; cursor: pointer; }
+.wildpath.rules-inspector .inspector-entry > button { display: flex; justify-content: space-between; gap: 4px; width: 100%; height: auto;
+  padding: 3px 4px; border: none; background: none; color: inherit; font: inherit; text-align: start; cursor: pointer; }
 .wildpath.rules-inspector .inspector-entry.active { background: rgba(120, 120, 255, 0.2); }
 .wildpath.rules-inspector .entry-status { opacity: 0.6; font-size: 0.8em; }
 .wildpath.rules-inspector .inspector-detail { overflow-y: auto; }
@@ -637,9 +639,10 @@
   background: var(--wp-hud-bg); color: var(--wp-hud-text); font-size: 0.75rem;
 }
 #wildpath-combat-carousel .carousel-turns { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; overflow-x: auto; }
-#wildpath-combat-carousel .carousel-turn {
-  display: flex; flex-direction: column; align-items: center; width: 56px; padding: 2px; border: 2px solid transparent;
-  border-radius: 4px; cursor: pointer;
+#wildpath-combat-carousel .carousel-turn { width: 56px; border: 2px solid transparent; border-radius: 4px; }
+#wildpath-combat-carousel .carousel-turn > button {
+  display: flex; flex-direction: column; align-items: center; gap: 0; width: 100%; height: auto; padding: 2px; border: none;
+  background: none; color: inherit; font: inherit; cursor: pointer;
 }
 #wildpath-combat-carousel .carousel-turn.active { border-color: var(--wp-hud-accent); background: rgba(224, 180, 76, 0.15); }
 #wildpath-combat-carousel .carousel-turn.defeated { opacity: 0.4; }
