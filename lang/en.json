@@ -217,7 +217,8 @@
         "Ethereal": "You are on the Ethereal Plane: you and creatures that are not can't target each other.",
         "CoverHalf": "+2 to your AC and Agility saves wherever you stand.",
         "CoverThreeQuarters": "+5 to your AC and Agility saves wherever you stand.",
-        "CoverTotal": "You can't be targeted directly."
+        "CoverTotal": "You can't be targeted directly.",
+        "Surprised": "Combat caught you unaware: your Initiative roll has Disadvantage. Rolling it ends this."
       },
       "TurnDamageOf": {
         "Envenomed": "Envenomed Turn Damage",
@@ -229,7 +230,8 @@
       "Ethereal": "Ethereal",
       "CoverHalf": "Half Cover",
       "CoverThreeQuarters": "Three-Quarters Cover",
-      "CoverTotal": "Total Cover"
+      "CoverTotal": "Total Cover",
+      "Surprised": "Surprised"
     },
     "PROMPT": {
       "Confirm": "Confirm",

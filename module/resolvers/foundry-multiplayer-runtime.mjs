@@ -265,6 +265,10 @@ export function registerFoundryV14MultiplayerResolution({
   // Whoever rolls, every client sees the Combatant update; the active GM dispatches it.
   globalThis.Hooks?.on?.("updateCombatant", (combatant, changed) => {
     if ( !Number.isFinite(changed?.initiative) ) return;
+    // Its initiative rolled, Surprised has done its part (2024: Disadvantage on that roll); the active GM ends it.
+    const surprised = combatant.actor?.statuses?.has?.("surprised") && (game.users?.activeGM?.id === game.user?.id);
+    if ( surprised ) void combatant.actor.toggleCondition?.("surprised", {levels: -1})
+      .catch?.(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Initiative") ?? "Initiative"}, error));
     void automation.dispatch("initiative.rolled", {actor: combatant.actor, token: combatant.token,
       data: {initiative: changed.initiative}}).catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Initiative") ?? "Initiative"}, error));
   });

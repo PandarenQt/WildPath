@@ -374,6 +374,10 @@ WILDPATH.CONDITIONS = {
   burning: damageOverTimeCondition({id: "burning", name: "WILDPATH.CONDITIONS.Burning", summary: "WILDPATH.CONDITIONS.Summary.Burning",
     img: "icons/magic/fire/flame-burning-creature-orange.webp", damageType: "fire", amount: {type: "dice", number: 1, faces: 4}, stacking: false,
     label: "WILDPATH.CONDITIONS.TurnDamageOf.Burning"}),
+  // 2024 Surprise: "If a combatant is surprised by combat starting, that combatant has Disadvantage on their Initiative
+  // roll." The GM marks it from the Token HUD; rolling its initiative ends it (foundry-multiplayer-runtime.mjs).
+  surprised: {id: "surprised", name: "WILDPATH.CONDITIONS.Surprised", summary: "WILDPATH.CONDITIONS.Summary.Surprised",
+    img: "icons/svg/hazard.svg", ruleElements: [rollMode("surprised.initiative", ["initiative"], "disadvantage")]},
   // A curse (a Mummy's Rotting Fist, an Aboleth's Mucus Cloud): what it does is the effect's or its text's; Remove Curse
   // ends it (the converter tags it `curse`).
   cursed: {id: "cursed", name: "WILDPATH.CONDITIONS.Cursed", summary: "WILDPATH.CONDITIONS.Summary.Cursed",

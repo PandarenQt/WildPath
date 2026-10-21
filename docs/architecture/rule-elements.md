@@ -563,6 +563,9 @@ application adds a stack.
   own effects).
 - **Ethereal**: it and a creature that is not can't target each other (`WILDPATH.REFUSAL.Ethereal`). shortcut: an
   area still reaches it.
+- **Surprised** (2024): its Initiative roll has Disadvantage (`initiative` RollMode). The GM marks it from the Token HUD;
+  once its Combatant's initiative is set, the active GM ends it. Live (14.369): a Surprised creature rolled `2d20kl`, and
+  Surprised was gone after.
 - **Half, Three-Quarters and Total Cover**: its creature's cover wherever it stands, the better of this and the walls'
   (`actionCover`); a swallowed creature's Total Cover means it can't be targeted directly.
 
