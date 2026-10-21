@@ -1127,7 +1127,7 @@
             "notes": [
               "activation: 10 minute is not an action-economy cost",
               "save: a failure marks its creature (narrative)",
-              "\"Create Sensor\" is passive or triggered: not automated"
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -1735,7 +1735,7 @@
           "Spellcasting: cast: Fireball at level 6 is cast at its own level",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: save: a failure marks its creature (narrative)",
-          "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
+          "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated",
           "Commanding Presence: cast: Command at level 2 is cast at its own level",
           "Fiery Rays: cast: Scorching Ray at level 3 is cast at its own level"
         ]

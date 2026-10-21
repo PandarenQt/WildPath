@@ -1148,7 +1148,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       const escape = (activity.type === "check") && /escape/i.test(activity.name ?? "");
       if ( !trait && !marked && !metamagic && !escape && !OFFERED_BY_ENGINE.has(identifierOf(document)) && !FEATURE_ACTIONS[identifierOf(document)] ) {
         // A trait whose text names no game rule (an option's heading, a 2014 trait's flavor) is its own description.
-        const narrative = !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`);
+        const narrative = NARRATIVE_ACTIVITIES.has(activity.name ?? "")
+          || !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`);
         allNotes.push(`"${label}" is passive or triggered${narrative ? " (narrative)" : ""}: not automated`);
       }
       continue;
@@ -1940,6 +1941,13 @@ const plainText = document => String(document.system?.description?.value ?? "").
 const NARRATIVE_MARKERS = new Set(["Detect Magic", "Detect Evil and Good", "Detect Poison and Disease", "Disguised", "Cannot Lie",
   "Water Breathing", "Water Walking", "Speaking with Plants", "Speaking with Animals", "Carrying Message", "Altered Appearance",
   "Hidden from Divination", "Comprehending Languages", "Tongues", "Telepathic Bond", "Scrying"]);
+
+/**
+ * Activities that only tell the table something, by their dnd5e name: Scrying's sensor, a revival or re-forming days
+ * later (a Lemure, a Lich), counting a bag's beans.
+ */
+const NARRATIVE_ACTIVITIES = new Set(["Create Sensor", "Revive: Days", "Days to Reform", "Count Beans", "Determine Number of Pots",
+  "Count Number of Cards"]);
 
 /** Words of a game rule in a use's text: one without any is narrative (its cost spent is all there is). */
 const MECHANICAL_TEXT = /\b(damage|saving throw|save\b|DC \d|Advantage|Disadvantage|attack roll|Hit Points?|Armor Class|\bAC\b|Speed|Blinded|Charmed|Deafened|Frightened|Grappled|Incapacitated|Invisible|Paralyzed|Petrified|Poisoned|Prone|Restrained|Stunned|Unconscious|Exhaustion|Resistance|Immunity|teleport|Bright Light|Dim Light|ability check|bonus|darkvision|blindsight|tremorsense|truesight|difficult terrain|reaction|Bonus Action|extra attack|spell slot)/i;

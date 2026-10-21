@@ -181,7 +181,7 @@
           },
           "conversion": {
             "notes": [
-              "\"Days to Reform\" is passive or triggered: not automated"
+              "\"Days to Reform\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -1630,7 +1630,7 @@
             "notes": [
               "activation: 10 minute is not an action-economy cost",
               "save: a failure marks its creature (narrative)",
-              "\"Create Sensor\" is passive or triggered: not automated"
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -2389,7 +2389,7 @@
       },
       "conversion": {
         "notes": [
-          "Spirit Jar: \"Days to Reform\" is passive or triggered: not automated",
+          "Spirit Jar: \"Days to Reform\" is passive or triggered (narrative): not automated",
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
@@ -2401,7 +2401,7 @@
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: \"Raise Zombie\" is passive or triggered: not automated",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
+          "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated",
           "Protective Magic: rolled (save); what it does is by hand"
         ]
       }

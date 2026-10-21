@@ -1261,7 +1261,7 @@
             "notes": [
               "activation: 10 minute is not an action-economy cost",
               "save: a failure marks its creature (narrative)",
-              "\"Create Sensor\" is passive or triggered: not automated"
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -1800,7 +1800,7 @@
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature (narrative)",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
+          "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated",
           "Spellcasting: effect: \"Water Breathing\" marks its creature (narrative)",
           "Guiding Light: cast: Guiding Bolt at level 2 is cast at its own level"
         ]
