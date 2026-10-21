@@ -9,7 +9,7 @@ type Data = Record<string, unknown>;
 interface Point {x: number; y: number}
 interface Field {[key: string]: unknown}
 interface Footprint {topology: string; fields: Field[]; boundaryVertices?: Array<{id: string}>; [key: string]: unknown}
-interface Token {id: string; parent: unknown; elevation?: number; depth?: number}
+interface Token {id: string; parent: unknown; elevation?: number; depth?: number; x?: number; y?: number; width?: number; height?: number}
 interface AreaDefinition {
   area?: {shape?: string | null; size?: {value?: number} | null; height?: {value?: number} | null} | null;
   range?: {type?: string; normal?: {value?: number}; distance?: {value?: number}} | null;
@@ -97,7 +97,8 @@ export function foundryAreaFootprint({definition, sourceToken, points}: {
   const preview = boundaryArea({shape, placement, directionVertex: directionResult.vertex,
     rangeDistance: size, gridDistance, topology});
   if (!preview.ok || !preview.resolved) return {ok: false, code: "BadDirection", reason: preview.reason ?? "That direction is not allowed.", needs: "direction"};
-  return {ok: true, footprint: preview.resolved};
+  // Where it was aimed: a creature there, above or below, tilts it toward that height (foundryAreaTargetTokens).
+  return {ok: true, footprint: {...preview.resolved, aim: {x: second.x, y: second.y}}};
 }
 
 /**
@@ -170,13 +171,43 @@ export function foundryAreaTargetTokens({sourceToken, footprint, definition=null
   const tokens = tokensOn(footprint);
   if ( !definition ) return tokens;
   const gridDistance = Number(scene.grid?.distance) || 5;
+  // The height of the creature standing on a field, the highest of several; null with none.
+  const heightOn = (field: Field) => {
+    const standing = tokensOn({topology: footprint.topology, fields: [field]}).map(token => Number(token.elevation) || 0);
+    return standing.length ? Math.max(0, ...standing) : null;
+  };
   const point = (footprint.point ?? footprint.origin) as Field | null | undefined;
-  const pointHeight = point ? Math.max(0, ...tokensOn({topology: footprint.topology, fields: [point]}).map(token => Number(token.elevation) || 0)) : 0;
+  const pointHeight = point ? (heightOn(point) ?? 0) : 0;
   const {bottom, top} = areaHeights({definition, sourceToken, pointHeight, gridDistance});
+  const tilt = aimedTilt({footprint, sourceToken, scene, gridDistance, heightOn});
   return tokens.filter(token => {
     const elevation = Number(token.elevation) || 0;
-    return (elevation <= top) && ((elevation + ((Number(token.depth) || 1) * gridDistance)) >= bottom);
+    const rise = tilt ? tilt.slope * tilt.distanceTo(token) : 0;
+    return (elevation <= (top + rise)) && ((elevation + ((Number(token.depth) || 1) * gridDistance)) >= (bottom + rise));
   });
+}
+
+/**
+ * A cone or line aimed at a creature above or below its caster tilts toward it: from the caster's height to that
+ * creature's, so a creature `d` feet away (across) is reached `slope * d` feet higher or lower (2024: areas are 3D). Aimed
+ * where no creature stands, it stays level. Null when it is level.
+ */
+function aimedTilt({footprint, sourceToken, scene, gridDistance, heightOn}: {footprint: Footprint; sourceToken: Token;
+  scene: {grid?: {size?: number; distance?: number} | undefined}; gridDistance: number; heightOn(field: Field): number | null}) {
+  const aim = (footprint as {aim?: Point}).aim;
+  if ( !aim ) return null;
+  const size = Number(scene.grid?.size) || 100;
+  const field = (createFoundryV14TacticalGridAdapter({scene}).pointToField(aim) as {ok: boolean; field?: Field}).field ?? null;
+  if ( !field ) return null;
+  const centerOf = (token: Token) => ({x: (Number(token.x) || 0) + (((Number(token.width) || 1) * size) / 2),
+    y: (Number(token.y) || 0) + (((Number(token.height) || 1) * size) / 2)});
+  const from = centerOf(sourceToken);
+  const across = (point: Point) => (Math.hypot(point.x - from.x, point.y - from.y) / size) * gridDistance;
+  const reach = across(aim);
+  const caster = Number(sourceToken.elevation) || 0;
+  const aimed = heightOn(field);
+  const slope = (reach && (aimed !== null)) ? (aimed - caster) / reach : 0;
+  return slope ? {slope, distanceTo: (token: Token) => across(centerOf(token))} : null;
 }
 
 /**
@@ -184,7 +215,7 @@ export function foundryAreaTargetTokens({sourceToken, footprint, definition=null
  * radius above and below its point, a Cylinder its `area.height` up from it (a circle, height 0, stays on it), a Cube
  * its side up from it. From its caster (a cone, a line, an emanation, a Cube "originating from you") it is level with
  * the caster. A point is as high as the creature standing on it (`pointHeight`), else the ground.
- * shortcut: cones and lines are aimed level; upgrade with a vertical aim.
+ * A cone or line aimed up or down tilts (aimedTilt).
  */
 export function areaHeights({definition, sourceToken, pointHeight=0, gridDistance=5}: {definition: AreaDefinition; sourceToken: Token;
   pointHeight?: number; gridDistance?: number}) {

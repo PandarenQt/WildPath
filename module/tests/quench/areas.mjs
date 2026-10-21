@@ -50,6 +50,20 @@ export function registerAreaTests(quench) {
         assert.deepEqual(hit("line",[corner(2),east]),["goblin A"]);
       });
 
+      it("a line aimed at a flying creature tilts up to it; aimed where none stands it stays level", async () => {
+        const {tokens,corner} = await layout("SQUARE");
+        await tokens["goblin A"].update({elevation:30});
+        const flying = game.scenes.get(tokens.caster.parent.id).tokens.get(tokens["goblin A"].id);
+        const covered = second => {
+          const placed = foundryAreaFootprint({definition:AREAS.line,sourceToken:tokens.caster,points:[corner(2),second]});
+          assert.isTrue(placed.ok,JSON.stringify(placed));
+          return foundryAreaTargetTokens({sourceToken:tokens.caster,footprint:placed.footprint,definition:AREAS.line})
+            .map(token => token.name);
+        };
+        assert.include(covered({x:flying.x + 50,y:flying.y + 50}).join(),"goblin A","aimed at it, 30 feet up, it reaches it");
+        assert.notInclude(covered({x:corner(2).x + 400,y:corner(2).y}).join(),"goblin A","aimed level, it passes beneath");
+      });
+
       it("hex: a click picks the corner its hexes share, and burst, cone and line cover exactly their hexes", async () => {
         const {corner,hit,adapter} = await layout("HEXODDR");
         // The caster's upper-right corner is shared with its east and north-east neighbours.
