@@ -745,6 +745,26 @@ test("a lasting area its caster may move gets a Move Action: that action's cost 
   assert.equal(validateActionDefinition({...move, moveArea: {of: "", distance: 60}}).ok, false);
 });
 
+test("a follow-up attack of a spell is at the level the spell was cast, answered by the authority, never asked", async () => {
+  const blade = {_id: "testFlameBlade01", name: "Test Blade", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
+    system: {source: SRD, identifier: "test-blade", level: 2, preparation: {mode: "prepared"}, properties: ["vocal", "concentration"],
+      activation: {type: "bonus"}, range: {units: "self"}, target: {affects: {}, template: {}},
+      activities: {a: activity("utility", {name: "Evoke", consumption: {spellSlot: true}}),
+        b: activity("attack", {name: "Slash", consumption: {spellSlot: false}, attack: {type: {value: "melee", classification: "spell"}},
+          damage: {parts: [{number: 3, denomination: 6, bonus: "", types: ["fire"], scaling: {mode: "whole", number: 1}}]}})}}};
+  const slash = convertItem(blade).items.find(item => item.name.includes("Slash"));
+  const [choice] = slash.system.definition.configuration;
+  assert.deepEqual([choice.id, choice.type, choice.fromCast, choice.options.map(option => option.value)],
+    ["cast-level", "option", true, [2, 3, 4, 5, 6, 7, 8, 9]]);
+  assert.deepEqual(choice.effects.map(effect => [effect.type, effect.levelChoiceId, effect.baseLevel]), [["scaleDamage", "cast-level", 2]]);
+  assert.equal(validateActionDefinition(slash.system.definition).ok, true);
+  const {castLevelChoices} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const action = {flags: {wildpath: {source: {id: "testFlameBlade01"}}}};
+  assert.deepEqual(castLevelChoices(slash.system.definition, action, {flags: {wildpath: {castLevels: {testFlameBlade01: 4}}}}), {"cast-level": 4});
+  assert.deepEqual(castLevelChoices(slash.system.definition, action, {flags: {}}), {"cast-level": 2}, "never cast: its own level");
+  assert.equal(castLevelChoices({configuration: []}, action, {}), null);
+});
+
 test("Hunter's Mark and Hex mark their target: extra damage on the caster's hits, Hex's one chosen ability, no slot to move it", () => {
   const spell = (id, name, effects, activities) => ({_id: id, name, type: "spell", img: "systems/dnd5e/icons/spell.webp", effects,
     system: {source: SRD, identifier: name === "Hex" ? "hex" : "hunters-mark", level: 1, preparation: {mode: "prepared"},

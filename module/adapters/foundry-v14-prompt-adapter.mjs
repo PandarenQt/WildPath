@@ -161,6 +161,8 @@ function renderBatchContent(rows) {
  * @returns {Promise<object|null|undefined>} the choices, null when cancelled, undefined when the Action asks nothing.
  */
 export async function promptActionConfiguration({definition, actorSystem, name=null, DialogV2=null}={}) {
+  // A follow-up's cast level is the authority's to answer (`fromCast`), never asked.
+  definition = {...definition, configuration: (definition?.configuration ?? []).filter(choice => !choice?.fromCast)};
   const discovery = discoverActionConfigurationChoices({definition, actorSystem});
   if ( !discovery.ok || !discovery.requests?.length ) return undefined;
   const Dialog = resolveDialogV2({DialogV2, context: {}});

@@ -166,6 +166,7 @@ export function registerFoundryV14MultiplayerResolution({
       await endEffectsWhenDamaged(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenChecked(event.options?.actor, event.state?.input?.check ?? null);
       await recordSlotSpell(event, {game});
+      await recordCastLevel(event);
       await recordAttackTurn(event, {game});
       await recordQuickened(event, {game});
       // The foretelling rolls its d20s used (Portent).
@@ -669,6 +670,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     .definition ?? null, {item: action, turn: game.combat?.started ? turnKey(game.combat) : null});
   const definitionResult = actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null});
   const definition = definitionResult.ok ? definitionResult.definition : null;
+  // A follow-up of a spell already cast is at the level it was cast at, from its caster's record (never the sender's).
+  const fromCast = castLevelChoices(definition, action, actor);
+  if ( fromCast ) intent = {...intent, configuration: {...(intent.configuration ?? {}),
+    choices: {...(intent.configuration?.choices ?? {}), ...fromCast}}};
   // 2024 Wild Shape and Polymorph: a transformed creature can't cast spells. Spells it already cast (their lasting
   // areas, which run as authority Actions) go on.
   if ( !authorityAction && actor.transformation && definition?.tags?.includes("spell") ) return refused("WILDPATH.REFUSAL.Transformed");
@@ -1168,6 +1173,35 @@ export async function recordSlotSpell({options, state}={}, {game=globalThis.game
   const paid = state.results?.paymentResolution?.paymentPlan?.resources ?? [];
   if ( !paid.some(entry => String(entry?.resourceId ?? "").includes("spell-slot.")) ) return;
   if ( actor.flags?.wildpath?.slotSpellTurn !== turn ) await actor.setFlag("wildpath", "slotSpellTurn", turn);
+}
+
+/** The spell an Action is part of: its converted source (a spell's Actions, its follow-ups included, share it). */
+const spellKey = action => action?.flags?.wildpath?.source?.id ?? null;
+
+/**
+ * A spell cast with a slot: the level, kept on its caster under the spell (`flags.wildpath.castLevels`), for its
+ * follow-ups (castLevelChoices).
+ */
+export async function recordCastLevel({options, state}={}) {
+  const actor = options?.actor ?? null;
+  const key = spellKey(options?.action);
+  const level = Number(state?.configuration?.castingLevel);
+  if ( !key || !Number.isFinite(level) || !(state?.actionDefinition?.tags ?? []).includes("spell") || (typeof actor?.setFlag !== "function") ) return;
+  if ( actor.flags?.wildpath?.castLevels?.[key] !== level ) await actor.setFlag("wildpath", `castLevels.${key}`, level);
+}
+
+/**
+ * A follow-up's `fromCast` choices (Flame Blade's attack, Move Mark): the level its spell was last cast at by this
+ * creature, else the lowest it offers (its spell's own level). Null when it has none.
+ */
+export function castLevelChoices(definition, action, actor) {
+  const choices = (definition?.configuration ?? []).filter(choice => choice?.fromCast);
+  if ( !choices.length ) return null;
+  const recorded = Number(actor?.flags?.wildpath?.castLevels?.[spellKey(action)]);
+  return Object.fromEntries(choices.map(choice => {
+    const levels = (choice.options ?? []).map(option => Number(option.value)).filter(Number.isFinite);
+    return [choice.id, levels.includes(recorded) ? recorded : Math.min(...levels)];
+  }));
 }
 
 /**

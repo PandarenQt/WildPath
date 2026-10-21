@@ -249,7 +249,8 @@
         "TargetRefinement": "Adjust targets",
         "ReactionChoice": "Reaction",
         "ReactionAvailable": "Reaction available"
-      }
+      },
+      "CastLevel": "Cast at level"
     },
     "AREA": {
       "Concentrating": "Concentrating: {area}",

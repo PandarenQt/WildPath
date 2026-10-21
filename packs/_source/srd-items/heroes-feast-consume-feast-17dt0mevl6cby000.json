@@ -79,6 +79,51 @@
           }
         }
       ],
+      "configuration": [
+        {
+          "id": "cast-level",
+          "type": "option",
+          "label": "WILDPATH.PROMPT.CastLevel",
+          "required": true,
+          "fromCast": true,
+          "options": [
+            {
+              "id": "level-6",
+              "label": "6",
+              "value": 6
+            },
+            {
+              "id": "level-7",
+              "label": "7",
+              "value": 7
+            },
+            {
+              "id": "level-8",
+              "label": "8",
+              "value": 8
+            },
+            {
+              "id": "level-9",
+              "label": "9",
+              "value": 9
+            }
+          ],
+          "effects": [
+            {
+              "type": "scaleHealing",
+              "levelChoiceId": "cast-level",
+              "baseLevel": 6,
+              "componentIds": [
+                "healing-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 10
+              }
+            }
+          ]
+        }
+      ],
       "metadata": {
         "followUp": true,
         "spellLevel": 6
