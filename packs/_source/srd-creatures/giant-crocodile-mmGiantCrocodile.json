@@ -403,9 +403,7 @@
         "challenge": 5
       },
       "conversion": {
-        "notes": [
-          "Bite: \"Escape Check\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

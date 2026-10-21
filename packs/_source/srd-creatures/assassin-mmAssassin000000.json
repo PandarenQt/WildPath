@@ -452,7 +452,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -526,7 +526,7 @@
       },
       "conversion": {
         "notes": [
-          "Cunning Action: not automated (utility): using it spends its cost; its description says the rest"
+          "Cunning Action: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

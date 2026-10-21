@@ -486,7 +486,6 @@
       },
       "conversion": {
         "notes": [
-          "Tentacle: \"Escape Check\" is passive or triggered: not automated",
           "Reel: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

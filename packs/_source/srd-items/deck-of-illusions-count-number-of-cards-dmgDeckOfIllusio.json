@@ -73,7 +73,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
+          "not automated (utility, narrative): using it spends its cost; its description says the rest",
           "consumption: itemUses 1d20 - 1 not converted",
           "consumption: itemUses 1d20 - 1 not converted"
         ]

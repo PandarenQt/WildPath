@@ -1148,9 +1148,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "consumption: attribute 1 not converted",
-              "consumption: attribute 1 not converted"
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1301,8 +1299,7 @@
           "Mind Invasion: effect: \"Spiked\" marks its creature only; its rules are by hand",
           "Noxious Miasma: effect: \"Damaged: −2 AC\" change system.armor.value (add) not converted",
           "Noxious Miasma: effect: \"Damaged: −2 AC\" marks its creature only; its rules are by hand",
-          "Pounce: not automated (utility): using it spends its cost; its description says the rest",
-          "Pounce: consumption: attribute 1 not converted"
+          "Pounce: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

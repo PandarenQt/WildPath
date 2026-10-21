@@ -615,9 +615,7 @@
         "challenge": 8
       },
       "conversion": {
-        "notes": [
-          "Chain: \"Escape Check\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

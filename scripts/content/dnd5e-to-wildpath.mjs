@@ -1093,7 +1093,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       const marked = (activity.type === "damage") && Object.values(EFFECTS_BY_HAND).some(hand => hand.bonusDamage === label);
       // A feature the engine offers on its own (Tactical Mind, with a failed check) needs no Action; one that becomes its
       // own Action (Action Surge: FEATURE_ACTIONS) is not passive.
-      if ( !trait && !marked && !metamagic && !OFFERED_BY_ENGINE.has(identifierOf(document)) && !FEATURE_ACTIONS[identifierOf(document)] ) {
+      const escape = (activity.type === "check") && /escape/i.test(activity.name ?? "");
+      if ( !trait && !marked && !metamagic && !escape && !OFFERED_BY_ENGINE.has(identifierOf(document)) && !FEATURE_ACTIONS[identifierOf(document)] ) {
         allNotes.push(`"${label}" is passive or triggered: not automated`);
       }
       continue;
@@ -1121,7 +1122,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
                 : null))))));
     if ( !definition ) {
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
-      notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type})`}: using it spends its cost; its description says the rest`);
+      // A use whose text names no game rule (Alarm, Create or Destroy Water, a Tinderbox) is narrative: spending its cost is
+      // all there is to automate.
+      const narrative = (activity.type === "utility") && !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`);
+      notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type}${narrative ? ", narrative" : ""})`}: using it spends its cost; its description says the rest`);
       definition = manualDefinition({document, activity, system, spell, level, notes, pool, names, scales});
     }
     const selfEffects = SELF_EFFECTS[identifierOf(document)];
@@ -1179,7 +1183,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       definition = {...definition, ends: structuredClone(ending), targeting: definition.targeting ?? {type: "single", required: true, count: 1},
         ...(range ? {range} : {})};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")),
-        ...(ending.spells ? ["dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"] : []));
+        ...(ending.spells ? ["dispel: a lasting area or an object is not a target (by hand)"] : []));
     }
     // Flurry of Blows: its Bonus Action and Focus Point fill the strikes Martial Arts' Flurry strike spends.
     const flurry = (identifierOf(document) === "monks-focus") && (activity.name === "Flurry of Blows");
@@ -1866,6 +1870,9 @@ export function moveAreaDefinition(document, definition) {
 /** A feature's description as plain text, one space between words. */
 const plainText = document => String(document.system?.description?.value ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
+/** Words of a game rule in a use's text: one without any is narrative (its cost spent is all there is). */
+const MECHANICAL_TEXT = /\b(damage|saving throw|save\b|DC \d|Advantage|Disadvantage|attack roll|Hit Points?|Armor Class|\bAC\b|Speed|Blinded|Charmed|Deafened|Frightened|Grappled|Incapacitated|Invisible|Paralyzed|Petrified|Poisoned|Prone|Restrained|Stunned|Unconscious|Exhaustion|Resistance|Immunity|teleport|Bright Light|Dim Light|ability check|bonus)/i;
+
 /**
  * The push or pull (G6) its text gives an Action that hits or forces a save: "pushed up to 10 feet (straight) away
  * from you", "pulls the target up to 30 feet straight toward itself", with any limit ("If the target is a Large or
@@ -2402,6 +2409,9 @@ function consumptionDefinition(definition, {document, activity, notes, pool, nam
     : ((target.type === "activityUses") ? activityPool({document, activity})?.id ?? null : null));
   for ( const target of targets ) {
     if ( target === byLevel ) continue;
+    // dnd5e's own count of the Legendary or Lair Action its activation already costs (Pounce): paid as that.
+    if ( (target.type === "attribute") && ({"resources.legact.value": "legendary", "resources.lair.value": "lair"}[target.target]
+      === activity.activation?.type) ) continue;
     const text = String(target.value ?? "").trim();
     // An amount chosen when used (Ioun Stone of Reserve's "by level"), or rolled (Bag of Beans' 3d4), stays by hand.
     if ( givesBack(text) && ((scaling.allowed && (target.scaling?.mode === "amount") && !text.includes("@scaling"))

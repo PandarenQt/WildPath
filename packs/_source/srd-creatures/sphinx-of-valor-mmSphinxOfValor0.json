@@ -993,7 +993,7 @@
           },
           "conversion": {
             "notes": [
-              "dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
+              "dispel: a lasting area or an object is not a target (by hand)"
             ]
           }
         }
@@ -1636,7 +1636,7 @@
         "notes": [
           "Spellcasting: effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand",
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
-          "Spellcasting: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand",
+          "Spellcasting: dispel: a lasting area or an object is not a target (by hand)",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: consumption: itemUses -12 not converted",

@@ -530,7 +530,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1603,10 +1603,11 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand",
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Indifference\" marks its creature only; its rules are by hand",
           "Spellcasting: effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Charging Horn: not automated (utility): using it spends its cost; its description says the rest"

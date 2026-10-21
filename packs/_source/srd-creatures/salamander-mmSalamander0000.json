@@ -509,8 +509,7 @@
       },
       "conversion": {
         "notes": [
-          "Fire Aura: activation: turnEnd is not an action-economy cost",
-          "Constrict: \"Escape Check\" is passive or triggered: not automated"
+          "Fire Aura: activation: turnEnd is not an action-economy cost"
         ]
       }
     }

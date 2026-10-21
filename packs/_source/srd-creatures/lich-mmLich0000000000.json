@@ -464,7 +464,7 @@
           },
           "conversion": {
             "notes": [
-              "dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
+              "dispel: a lasting area or an object is not a target (by hand)"
             ]
           }
         }
@@ -2379,7 +2379,7 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
-          "Spellcasting: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand",
+          "Spellcasting: dispel: a lasting area or an object is not a target (by hand)",
           "Spellcasting: cast: Fireball at level 5 is cast at its own level",
           "Spellcasting: cast: Lightning Bolt at level 5 is cast at its own level",
           "Spellcasting: teleport: a creature it brings along is moved by hand",

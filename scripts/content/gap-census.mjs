@@ -33,6 +33,8 @@ const RULES = [
   [/summon: a creature chosen by Challenge Rating/, () => "summon: a creature chosen by Challenge Rating"],
   [/summon: its creature is not among the converted/, () => "summon: its creature is not converted"],
   [/summon: a count of/, () => "summon: a count from a formula"],
+  [/^not automated \((\w+), narrative\)/, () => "narrative use (its cost is all there is)"],
+  [/concentration: its caster concentrates/, () => "concentration sustained (its effect is noted apart)"],
   [/^not automated \((\w+)\)/, match => `used, not automated: ${match[1]} activity`],
   [/save: a failure gives/, () => "save: conditions from its text (the rest by hand)"],
   [/save: a failure marks its creature only/, () => "save: a failure marks its creature (rules by hand)"],
@@ -54,6 +56,10 @@ const RULES = [
   [/AC: /, () => "AC calculation"],
   [/healing: temporary/, () => "temporary Hit Points"]
 ];
+/** Reasons that say how something is handled rather than what is missing: counted apart from the real gaps. */
+const INFORMATIONAL = new Set(["narrative use (its cost is all there is)", "concentration sustained (its effect is noted apart)",
+  "long activation (minutes, hours)", "resistance bypasses"]);
+
 const reason = note => {
   // A creature's notes name the item first ("Multiattack: not automated..."); the reason is what follows.
   for ( const text of [note, note.replace(/^[^:"]+: /, "")] ) {
@@ -97,5 +103,12 @@ for ( const [source, documents] of Object.entries(sources) ) {
 const columns = Object.keys(sources);
 const rows = Object.entries(counts).map(([key, bySource]) => [key, columns.map(column => bySource[column] ?? 0)])
   .sort((a, b) => b[1].reduce((x, y) => x + y, 0) - a[1].reduce((x, y) => x + y, 0));
-console.log(`| Reason | ${columns.join(" | ")} | Total |\n| --- | ${columns.map(() => "---").join(" | ")} | --- |`);
-for ( const [key, values] of rows ) console.log(`| ${key} | ${values.join(" | ")} | ${values.reduce((x, y) => x + y, 0)} |`);
+const sum = list => list.reduce((total, [, values]) => total + values.reduce((x, y) => x + y, 0), 0);
+const real = rows.filter(([key]) => !INFORMATIONAL.has(key));
+const info = rows.filter(([key]) => INFORMATIONAL.has(key));
+console.log(`Real gaps: ${sum(real)}; informational notes: ${sum(info)}.\n`);
+for ( const [title, list] of [["Real gaps", real], ["Informational", info]] ) {
+  console.log(`### ${title}\n\n| Reason | ${columns.join(" | ")} | Total |\n| --- | ${columns.map(() => "---").join(" | ")} | --- |`);
+  for ( const [key, values] of list ) console.log(`| ${key} | ${values.join(" | ")} | ${values.reduce((x, y) => x + y, 0)} |`);
+  console.log("");
+}

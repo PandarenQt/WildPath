@@ -711,8 +711,7 @@
       },
       "conversion": {
         "notes": [
-          "Barbed Hide: activation: turnStart is not an action-economy cost",
-          "Claws: \"Escape Check\" is passive or triggered: not automated"
+          "Barbed Hide: activation: turnStart is not an action-economy cost"
         ]
       }
     }

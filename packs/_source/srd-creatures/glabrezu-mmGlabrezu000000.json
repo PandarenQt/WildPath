@@ -673,7 +673,7 @@
           },
           "conversion": {
             "notes": [
-              "dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
+              "dispel: a lasting area or an object is not a target (by hand)"
             ]
           }
         }
@@ -1185,9 +1185,8 @@
       },
       "conversion": {
         "notes": [
-          "Pincer: \"Escape Check\" is passive or triggered: not automated",
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
-          "Spellcasting: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand",
+          "Spellcasting: dispel: a lasting area or an object is not a target (by hand)",
           "Spellcasting: area: @item.level * 5 - 10-ft sphere is not supported; the user picks the targets",
           "Spellcasting: effect: \"Confused\" marks its creature only; its rules are by hand"
         ]

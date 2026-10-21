@@ -461,7 +461,6 @@
       },
       "conversion": {
         "notes": [
-          "Talons: \"Escape Check\" is passive or triggered: not automated",
           "Swoop: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

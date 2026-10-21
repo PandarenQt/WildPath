@@ -653,7 +653,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 1 minute is not an action-economy cost"
             ]
           }
@@ -735,7 +735,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
               "concentration: its caster concentrates; what it sustains is by hand",
               "concentration: nothing it sustains was converted"
@@ -1836,13 +1836,14 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand",
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
           "Spellcasting: effect: \"Spell Taxed\" marks its creature only; its rules are by hand",
           "Divine Aid: cast: Cure Wounds at level 2 is cast at its own level"

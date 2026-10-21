@@ -533,7 +533,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 1 minute is not an action-economy cost"
             ]
           }
@@ -829,7 +829,7 @@
           },
           "conversion": {
             "notes": [
-              "dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
+              "dispel: a lasting area or an object is not a target (by hand)"
             ]
           }
         }
@@ -905,7 +905,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost"
             ]
           }
@@ -987,7 +987,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "concentration: its caster concentrates; what it sustains is by hand"
             ]
           }
@@ -1513,9 +1513,10 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
-          "Spellcasting: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand",
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: dispel: a lasting area or an object is not a target (by hand)",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",

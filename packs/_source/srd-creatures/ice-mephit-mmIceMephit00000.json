@@ -359,7 +359,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "area: 20 * @item.level-ft sphere is not supported; the user picks the targets",
               "concentration: its caster concentrates; what it sustains is by hand"
             ]
@@ -453,7 +453,7 @@
       "conversion": {
         "notes": [
           "Death Burst: \"save\" is passive or triggered: not automated",
-          "Fog Cloud: not automated (utility): using it spends its cost; its description says the rest",
+          "Fog Cloud: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Fog Cloud: area: 20 * @item.level-ft sphere is not supported; the user picks the targets",
           "Fog Cloud: concentration: its caster concentrates; what it sustains is by hand"
         ]
