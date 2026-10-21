@@ -1202,7 +1202,7 @@
       "CreatureTypes": "creature types"
     },
     "COMBAT": {
-      "LairActions": "Initiative 20: {names} may take a Lair Action."
+      "LairActions": "Top of the round: {names} may take a Lair Action."
     }
   },
   "TYPES": {

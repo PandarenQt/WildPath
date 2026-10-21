@@ -1354,7 +1354,7 @@
               "label": "Lair Action",
               "maximum": 1,
               "recovery": "none",
-              "refillsAtInitiative": 20
+              "refillsAtInitiative": 100
             }
           },
           {
