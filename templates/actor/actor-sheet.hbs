@@ -253,7 +253,12 @@
 
         <div class="field-block">
           <h4>{{localize "WILDPATH.SHEET.Gear"}}
-            <span class="row-detail">{{localize "WILDPATH.SHEET.Carried" weight=summary.carriedWeight}}</span>
+            {{#if summary.carryingCapacity}}
+              <span class="row-detail">{{localize "WILDPATH.SHEET.CarriedOf" weight=summary.carriedWeight capacity=summary.carryingCapacity}}</span>
+            {{else}}
+              <span class="row-detail">{{localize "WILDPATH.SHEET.Carried" weight=summary.carriedWeight}}</span>
+            {{/if}}
+            {{#if summary.carryingStatus}}<span class="row-detail wp-warning">{{localize summary.carryingStatus}}</span>{{/if}}
             <button type="button" class="row-command" data-action="createItem" data-type="gear">{{localize "WILDPATH.SHEET.Create"}}</button>
           </h4>
           <ol class="sheet-list">

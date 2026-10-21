@@ -374,6 +374,12 @@
   text-transform: capitalize;
 }
 
+/* What a load does (over capacity, encumbered): read as a warning. */
+.wildpath.actor-sheet .row-detail.wp-warning {
+  color: var(--wp-warning);
+  text-transform: none;
+}
+
 .wildpath.actor-sheet .row-command {
   min-width: 4.25rem;
 }

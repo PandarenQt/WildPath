@@ -142,6 +142,24 @@ future UI:
 - internal weight per space
 - actor weight trace when an actor context is supplied
 
+## Carrying (2026-10-21)
+
+The world setting **Carrying** (`encumbrance`, `helpers/carrying.mjs`) decides what a character's load does. Its
+carried weight is every gear Item's quantity × weight, equipped or not (the sheet's "Carried").
+- **Carrying capacity (2024, the default):** its Might score × 15 lb, times its size's factor by its prototype Token's
+  width (Tiny ½, Large ×2, Huge ×4, Gargantuan ×8). Carrying more, its Speed is at most 5 feet (a `movement`
+  ResourceCap of 5), as for dragging, lifting or pushing more than that.
+- **Variant encumbrance (2014 PHB):** over 5 × Might it is Encumbered (−10 ft on every Speed); over 10 × Might Heavily
+  Encumbered (−20 ft, and Disadvantage on Might, Agility and Fortitude attack rolls, saves and checks). Over its
+  capacity, the 5-foot cap too.
+- **Off:** the weight is shown, and nothing follows.
+
+Its load (`system.carrying`) is worked out in data preparation after the ability scores; its rules join the
+character's own as a "Carrying" source (`grantOwners`), so the Rules Inspector shows them. Only characters: a stat
+block's Speed is its own. The sheet shows "Carried: 200 / 150 lb" and what the load does.
+
+Live (14.369): a Might 10 character carried up to 150 lb; a 200 lb anvil made its Speed 5 ft, and 40 lb gave 30 back.
+
 ## Item enchantments (2026-10-20)
 
 An Action with `enchant` puts an effect on one of its creature's Items: an Artificer's infusions, from Tasha's, through

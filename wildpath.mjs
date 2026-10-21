@@ -223,6 +223,19 @@ Hooks.once("init", () => {
     default: false
   });
 
+  // Carrying (helpers/carrying.mjs): the 2024 capacity, the 2014 variant encumbrance, or neither.
+  game.settings.register("wildpath", "encumbrance", {
+    name: "WILDPATH.SETTINGS.Encumbrance.Name",
+    hint: "WILDPATH.SETTINGS.Encumbrance.Hint",
+    scope: "world",
+    config: true,
+    type: String,
+    choices: {capacity: "WILDPATH.SETTINGS.Encumbrance.Capacity", variant: "WILDPATH.SETTINGS.Encumbrance.Variant",
+      off: "WILDPATH.SETTINGS.Encumbrance.Off"},
+    default: "capacity",
+    requiresReload: true
+  });
+
   // House rule: whether players see the odds before acting (the GM always does).
   game.settings.register("wildpath", "playersSeeOdds", {
     name: "WILDPATH.SETTINGS.PlayersSeeOdds.Name",

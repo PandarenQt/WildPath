@@ -51,7 +51,11 @@ export function createActorSheetViewModel({
     effectCount: effectEntries.length,
     activeConditionCount: conditionEntries.filter(condition => condition.active).length,
     // Everything carried, equipped or not: quantity times weight.
-    carriedWeight: Math.round(groupedItems.gear.reduce((total, item) => total + ((item.quantity ?? 1) * (item.weight ?? 0)), 0) * 100) / 100
+    carriedWeight: Math.round(groupedItems.gear.reduce((total, item) => total + ((item.quantity ?? 1) * (item.weight ?? 0)), 0) * 100) / 100,
+    // Against its capacity, and what its load does (helpers/carrying.mjs), when the world counts it.
+    carryingCapacity: ((actorSystem.carrying?.mode ?? "off") !== "off") ? actorSystem.carrying.capacity : null,
+    carryingStatus: actorSystem.carrying?.over ? "WILDPATH.SHEET.OverCapacity"
+      : ({1: "WILDPATH.SHEET.Encumbered", 2: "WILDPATH.SHEET.HeavilyEncumbered"}[actorSystem.carrying?.encumbered] ?? null)
   };
 
   return {
