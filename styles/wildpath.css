@@ -709,3 +709,18 @@
 .wildpath-language-foreign { letter-spacing: 0.05em; }
 
 .wildpath .sheet-warning { margin: 0 0 0.35rem; padding: 0.3rem 0.5rem; border-left: 3px solid var(--wp-warning, #8a5f23); background: rgba(138, 95, 35, 0.12); font-size: 0.8rem; }
+
+/* The Bastion Map (applications/bastion-map.mjs): the facility list beside the grid of 5-foot squares. */
+.wildpath.bastion-map .bastion-map-body { display: flex; gap: 0.75rem; height: 100%; }
+.wildpath.bastion-map .bastion-facilities { flex: 0 0 15rem; display: flex; flex-direction: column; gap: 0.4rem; overflow-y: auto; }
+.wildpath.bastion-map .bastion-facilities ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+.wildpath.bastion-map .bastion-facilities button { display: flex; align-items: center; gap: 0.4rem; width: 100%; text-align: left; }
+.wildpath.bastion-map .bastion-facilities button.active { outline: 2px solid var(--wp-accent, #8a5f23); }
+.wildpath.bastion-map .swatch { width: 1rem; height: 1rem; border-radius: 2px; flex: none; }
+.wildpath.bastion-map .count { margin-left: auto; font-size: 0.75rem; color: var(--wp-muted); }
+.wildpath.bastion-map .bastion-grid { flex: 1; display: grid; aspect-ratio: 1; align-self: flex-start; max-height: 100%;
+  background: var(--wp-surface, #eee); border: 1px solid var(--wp-muted); user-select: none; touch-action: none; }
+.wildpath.bastion-map .bastion-cell { border: 1px solid rgb(0 0 0 / 0.12); aspect-ratio: 1; cursor: crosshair; }
+.wildpath.bastion-map .wp-warning { color: var(--wp-warning); margin: 0; }
+.wildpath.sheet .bastion-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin: 0 0 0.4rem; }
+.wildpath.sheet .bastion-summary button { margin-left: auto; width: auto; }

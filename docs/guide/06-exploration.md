@@ -38,3 +38,8 @@ Until your GM says you've identified a magic item, you see only what it looks li
 ## Bastions
 
 From level 5 a character may have a Bastion. Its facilities are listed in the **Bastion** section of your sheet. Before each Bastion turn, issue each special facility its order there; the GM runs the turn.
+
+- **Facilities.** Drop a facility on your sheet. A special one needs its level and a free slot (2 at level 5, 4 at 9, 5 at 13, 6 at 17); the sheet shows how many you use. Your first two basic facilities are free; more cost gold, as does **Enlarge**.
+- **Crafting.** Drop an Item on a facility that crafts (a Smithy, a Workshop) to choose what its Craft orders make.
+- **Defenders.** The sheet shows your Bastion Defenders and how many your facilities house.
+- **The map.** **Bastion map** opens a grid of 5-foot squares, 12 by 12 at level 5, growing to 24 by 24 at 17. Pick a facility, then click or drag over squares to lay it out in any shape, up to its space (Cramped 4 squares, Roomy 16, Vast 36). Right-click clears a square. **Save the map** when it has no problems listed.

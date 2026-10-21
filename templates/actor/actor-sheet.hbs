@@ -301,17 +301,25 @@
         </div>
       </div>
 
-      {{#if bastion.length}}
+      {{#if bastionInfo}}
       <div class="field-block bastion">
         <h4>{{localize "WILDPATH.BASTION.Title"}}</h4>
+        <p class="bastion-summary">
+          <span>{{localize "WILDPATH.BASTION.Slots" used=bastionInfo.used slots=bastionInfo.slots}}</span>
+          <span>{{localize "WILDPATH.BASTION.Defenders" count=bastionInfo.defenders housed=bastionInfo.housed}}</span>
+          <button type="button" data-action="bastionMap">{{localize "WILDPATH.BASTION.Map"}}</button>
+        </p>
         <ol class="sheet-list">
           {{#each bastion as |facility|}}
             <li class="sheet-row" data-item-id="{{facility.id}}">
               <img class="row-image" src="{{facility.img}}" width="28" height="28" alt="{{facility.name}}">
               <div class="row-main">
                 <button type="button" class="row-name" data-action="openItem">{{facility.name}}</button>
-                <span class="row-detail">{{localize facility.kindLabel}}</span>
+                <span class="row-detail">{{localize facility.kindLabel}} · {{localize facility.size}}{{#if facility.crafting}} · {{localize "WILDPATH.BASTION.Making" item=facility.crafting progress=facility.progress}}{{else if (eq facility.crafting "")}} · {{localize "WILDPATH.BASTION.DropToCraft"}}{{/if}}</span>
               </div>
+              {{#if (and facility.enlarge ../editable)}}
+                <button type="button" class="row-command" data-action="enlargeFacility" title="{{localize "WILDPATH.BASTION.Enlarge" cost=facility.enlarge}}">{{localize "WILDPATH.BASTION.EnlargeShort"}}</button>
+              {{/if}}
               {{#if facility.orders}}
                 <select data-item-order aria-label="{{localize "WILDPATH.BASTION.IssueOrder"}}" {{disabled (not ../editable)}}>
                   {{selectOptions facility.orders selected=facility.current localize=true}}</select>

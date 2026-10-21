@@ -2286,7 +2286,9 @@ export function convertFacility(document, {licensed=isSrd2024, book="SRD 5.2", i
     img: kept(document.img, images) ?? "icons/environment/settlement/house-cottage.webp",
     system: {active: true, description: houseText(document, describe(document, {names})), ruleElements: [],
       kind: (system.type?.value === "basic") ? "basic" : "special", level: Number(system.level) || 0, size: system.size ?? "",
-      hirelings: Number(system.hirelings?.max) || 0, order: system.order ?? "", current: {order: "maintain"}},
+      hirelings: Number(system.hirelings?.max) || 0, order: system.order ?? "", defenders: Number(system.defenders?.max) || 0,
+      trade: {profit: Number(system.trade?.profit) || 0, stockMax: Number(system.trade?.stock?.max) || 0, stock: 0},
+      current: {order: "maintain", craft: "", progress: 0}},
     flags: {wildpath: {source: {system: "dnd5e", pack, id: document._id, type: document.type, book,
       license: system.source?.license || null, rules: system.source?.rules || "2024", identifier: identifierOf(document)},
       conversion: {notes: []}}}}};

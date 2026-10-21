@@ -1,4 +1,7 @@
 import {xpForLevel} from "../helpers/encounters.mjs";
+import {ENLARGE_COST, specialSlots} from "../helpers/bastions.mjs";
+import {enlargeFacility} from "./bastions.mjs";
+import {WildPathBastionMap} from "./bastion-map.mjs";
 import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.mjs";
 import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {levelUp} from "./level-up.mjs";
@@ -71,7 +74,9 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       togglePrepared: WildPathActorSheet.#onTogglePrepared,
       toggleArcanum: WildPathActorSheet.#onToggleArcanum,
       rollTest: WildPathActorSheet.#onRollTest,
-      deleteEffect: WildPathActorSheet.#onDeleteEffect
+      deleteEffect: WildPathActorSheet.#onDeleteEffect,
+      enlargeFacility: WildPathActorSheet.#onEnlargeFacility,
+      bastionMap: WildPathActorSheet.#onBastionMap
     }
   };
 
@@ -95,11 +100,23 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     });
     context.sheet = sheet;
     Object.assign(context, sheet);
-    // Its Bastion's facilities, a special one with the orders it may be issued: its own, or maintain.
-    context.bastion = this.actor.items.filter(item => item.type === "facility").map(item => ({id: item.id, name: item.name, img: item.img,
+    // Its Bastion's facilities, a special one with the orders it may be issued: its own, or maintain. A Craft order shows
+    // what it makes (an Item dropped on the facility); a basic facility short of Vast can be enlarged.
+    const facilities = this.actor.items.filter(item => item.type === "facility");
+    context.bastion = facilities.map(item => ({id: item.id, name: item.name, img: item.img,
       kindLabel: `WILDPATH.BASTION.${item.system.kind === "basic" ? "Basic" : "Special"}`, current: item.system.current?.order ?? "maintain",
+      size: `WILDPATH.BASTION.Sizes.${item.system.size || "cramped"}`,
+      crafting: (item.system.order === "craft") ? (item.system.current?.craft ? (fromUuidSync(item.system.current.craft)?.name ?? "?") : "") : null,
+      progress: Number(item.system.current?.progress) || 0,
+      enlarge: (item.system.kind === "basic") ? (ENLARGE_COST[item.system.size]?.[0] ?? null) : null,
       orders: ((item.system.kind === "special") && item.system.order) ? {maintain: "WILDPATH.BASTION.Orders.maintain",
         [item.system.order]: `WILDPATH.BASTION.Orders.${item.system.order}`} : null}));
+    if ( this.actor.type === "character" ) {
+      const level = Number(this.actor.system.details?.level) || 0;
+      context.bastionInfo = (level >= 5) || facilities.length ? {slots: specialSlots(level),
+        used: facilities.filter(item => item.system.kind === "special").length, defenders: Number(this.actor.system.bastion?.defenders) || 0,
+        housed: facilities.reduce((total, item) => total + (Number(item.system.defenders) || 0), 0)} : null;
+    }
     context.otherItems = (context.otherItems ?? []).filter(item => item.type !== "facility");
     // A character's coins.
     if ( this.actor.type === "character" ) context.coins = ["pp", "gp", "ep", "sp", "cp"].map(id => ({id, label: `WILDPATH.COINS.${id}`,
@@ -224,6 +241,12 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
 
   /** A class, species or background dropped from elsewhere asks its level's choices (G8). */
   async _onDropItem(event, item) {
+    // An Item dropped on a facility that crafts is what its next Craft orders make.
+    const facility = this.actor.items.get(event.target?.closest?.("[data-item-id]")?.dataset.itemId);
+    if ( (facility?.type === "facility") && (facility.system.order === "craft") && (item.type !== "facility") && this.isEditable ) {
+      await facility.update({"system.current.craft": item.uuid, "system.current.progress": 0});
+      return null;
+    }
     const moved = item.parent?.uuid === this.actor.uuid;
     const created = await super._onDropItem(event, item);
     // An enchanted Item (an infusion) handed over from another creature this user owns moves, not copies: two copies
@@ -367,6 +390,15 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
   }
 
   /** @this {WildPathActorSheet} */
+  static async #onEnlargeFacility(event, target) {
+    const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
+    if ( item ) await enlargeFacility(item);
+  }
+
+  static #onBastionMap() {
+    void new WildPathBastionMap(this.actor).render(true);
+  }
+
   static async #onOpenItem(event, target) {
     this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId)?.sheet?.render(true);
   }
