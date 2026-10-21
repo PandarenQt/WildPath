@@ -1247,6 +1247,12 @@
       "Title": "Recover ammunition",
       "Hint": "After a fight, a minute's search recovers half the ammunition spent, rounded down.",
       "Line": "{name}: {spent} {item} spent, {recover} recovered"
+    },
+    "SCROLL": {
+      "CannotRead": "{name} casts no spells and can't read the scroll.",
+      "Lost": "{name}: the check (DC {dc}) failed, and the spell fades from the scroll.",
+      "Make": "Make Spell Scroll",
+      "Made": "{name} is in the Items directory."
     }
   },
   "TYPES": {

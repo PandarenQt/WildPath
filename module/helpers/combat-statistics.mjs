@@ -92,6 +92,12 @@ export function attackProficient(actor, attack) {
  */
 export function resolveActorAttackStatistic(actor, attack={}, {item=null, tags=[]}={}) {
   if ( !actor || !attack ) return null;
+  // A bonus of its own, not its creature's (a Spell Scroll's: +5 to +11 by the spell's level).
+  const fixed = Number(attack.fixedBonus);
+  if ( (attack.fixedBonus != null) && Number.isFinite(fixed) ) {
+    return {key: "fixed", domain: "attack", modifier: fixed, totalModifier: fixed, dice: [], ability: null, abilityModifier: 0, proficiency: 0,
+      spell: isSpellAttack(attack, tags), source: {type: "fixed-attack-bonus", actorId: actor.id ?? null, value: fixed}};
+  }
   const key = stringOrNull(attack.statistic ?? attack.statisticKey ?? attack.selector ?? attack.domain);
   if ( !key && !attack.ability ) return null;
   const domains = uniqueStrings([

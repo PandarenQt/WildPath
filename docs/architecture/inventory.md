@@ -160,6 +160,23 @@ block's Speed is its own. The sheet shows "Carried: 200 / 150 lb" and what the l
 
 Live (14.369): a Might 10 character carried up to 150 lb; a 200 lb anvil made its Speed 5 ft, and 40 lb gave 30 back.
 
+## Spell Scrolls (2026-10-21)
+
+A GM makes a Spell Scroll from any spell's Action (its item sheet's "Make Spell Scroll"): gear named "Spell Scroll
+(<spell>)" that carries its own Action (`flags.wildpath.grantedActions`, created on whoever holds it, as a compendium
+gear's `grants` are). That Action (`helpers/spell-scrolls.mjs`):
+- casts the spell at its own level with no slot, with the scroll's save DC and attack bonus (2024 DMG: DC 13 and +5 for
+  cantrips to 2nd level, up to DC 19 and +11 at 9th; `attack.fixedBonus`, a new optional attack field, replaces its
+  reader's bonus);
+- can't be read by a creature that casts no spells; one whose highest spell level is below the spell's first rolls its
+  spellcasting ability, DC 10 + the spell's level, and on a failure the spell fades (`Item#use`);
+- once read, the scroll crumbles: one fewer, and gone with its Action at none.
+
+shortcut: any spellcaster reads any scroll, not only one whose spell is on its class's list.
+
+Live (14.369): a non-caster couldn't read a Guiding Bolt scroll; a 1st-level Wizard read it (1d20 + 5) and it crumbled;
+a Hold Person scroll's DC 12 check failed (8), and the scroll was gone.
+
 ## Identification (2026-10-21)
 
 Gear may be unidentified (`system.identified: false`, a new optional field, true by default), with what it looks like

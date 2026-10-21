@@ -179,6 +179,8 @@ export function actionDefinitionField() {
     teleport: new ObjectField({nullable: true, initial: null}),
     // The ammunition its weapon's attack spends ("arrow"; adapters/foundry-v14-ammunition.mjs).
     ammunition: new StringField({required: false, nullable: true, initial: null}),
+    // Cast from a Spell Scroll, which reading uses up (helpers/spell-scrolls.mjs).
+    scroll: new BooleanField({required: false, initial: false}),
     // Enchants one of its creature's Items (an infusion; inventory.md): {choiceId, key, limit?, effects}.
     enchant: new ObjectField({nullable: true, initial: null}),
     // Makes each dying target stable when the Action completes (dying-and-death.md); a check gates it like an effect.

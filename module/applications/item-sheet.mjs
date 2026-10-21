@@ -1,3 +1,4 @@
+import {scrollItemData} from "../helpers/spell-scrolls.mjs";
 import {CUSTOM_EFFECT_DURATION_UNITS, CUSTOM_EFFECT_EXPIRY_EVENTS, validateActionDefinition} from "../helpers/action-definitions.mjs";
 import {summarizeActionDefinition} from "../helpers/action-definition-summary.mjs";
 import {ACTION_TEMPLATES, AREA_SHAPES, addBuilderRow, applyActionTemplate, builderGaps, builderIssues, builderToDefinition,
@@ -38,7 +39,8 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       builderTemplate: WildPathItemSheet.#onBuilderTemplate,
       builderTest: WildPathItemSheet.#onBuilderTest,
       ruleAdd: WildPathItemSheet.#onRuleAdd,
-      ruleRemove: WildPathItemSheet.#onRuleRemove
+      ruleRemove: WildPathItemSheet.#onRuleRemove,
+      makeScroll: WildPathItemSheet.#onMakeScroll
     }
   };
 
@@ -303,6 +305,12 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     await this.#editRules(target, (rules, path) => addRule(rules, "bonus", path));
   }
 
+  /** A Spell Scroll of this spell, made in the Items directory (helpers/spell-scrolls.mjs). */
+  static async #onMakeScroll() {
+    const made = await Item.create(scrollItemData(this.item));
+    if ( made ) ui.notifications.info(game.i18n.format("WILDPATH.SCROLL.Made", {name: made.name}));
+  }
+
   static async #onRuleRemove(event, target) {
     await this.#editRules(target, (rules, path) => removeRule(rules, path.at(-1), path.slice(0, -1)));
   }
@@ -345,6 +353,9 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     context.isAction = this.item.type === "action";
     context.isGear = this.item.type === "gear";
     context.isGM = game.user.isGM;
+    // A spell's Action can be written on a Spell Scroll (GM).
+    context.canMakeScroll = game.user.isGM && (this.item.type === "action") && (this.item.system.definition?.tags ?? []).includes("spell")
+      && !this.item.system.definition?.scroll;
     context.armorKinds = {"": "WILDPATH.ITEMSHEET.ArmorKind.none", light: "WILDPATH.ITEMSHEET.ArmorKind.light",
       medium: "WILDPATH.ITEMSHEET.ArmorKind.medium", heavy: "WILDPATH.ITEMSHEET.ArmorKind.heavy", shield: "WILDPATH.ITEMSHEET.ArmorKind.shield"};
     // A class, subclass, species or background (G8): its own fields, and what each level gives.
