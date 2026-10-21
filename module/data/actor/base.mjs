@@ -345,9 +345,13 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
   #speedFactor(mode) {
     const domains = ["speed.multiplier", `speed.${mode}.multiplier`];
     // Only Modifiers naming a factor: a wildcard (`all`) bonus is not one.
-    const applied = (this.parent?.getStatistic?.(domains)?.applied ?? [])
-      .filter(modifier => [...(modifier.domains ?? [])].some(domain => domains.includes(domain)));
-    return applied.reduce((product, modifier) => product * (Number.isFinite(Number(modifier.value)) ? Number(modifier.value) : 1), 1);
+    const named = (list) => (this.parent?.getStatistic?.(list)?.applied ?? [])
+      .filter(modifier => [...(modifier.domains ?? [])].some(domain => list.includes(domain)));
+    const number = (modifier, fallback) => (Number.isFinite(Number(modifier.value)) ? Number(modifier.value) : fallback);
+    const factor = named(domains).reduce((product, modifier) => product * number(modifier, 1), 1);
+    // Each Dash this turn adds its Speed after its other factors once more (`speed.dash`, common-actions.mts).
+    const dashes = named(["speed.dash"]).reduce((sum, modifier) => sum + number(modifier, 0), 0);
+    return factor * (1 + Math.max(dashes, 0));
   }
 
   /* -------------------------------------------- */

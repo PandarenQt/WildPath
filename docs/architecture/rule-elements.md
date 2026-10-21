@@ -408,6 +408,10 @@ Modifiers").
 after the Speed's bonuses (`speed`, and a mode's own `speed.<mode>`: Ray of Frost's -10) and before a movement cap. Only
 Modifiers naming a factor domain count; a wildcard `all` bonus does not. The converter maps dnd5e's movement multiplier
 and per-mode multiplies there, a mode set to 0 (Caltrops) to a factor of 0, and Stunning Strike's success halves Speed.
+Each Dash this turn adds the Speed after those factors once more: the factors' product times (1 + the sum of
+`speed.dash`; 2026-10-21). A Dash's effect is `stack: "separate"`, so a second one (Action Surge) is a new effect beside
+the first, its rules with ids of their own, rather than the first refreshed: two Dashes are three times the Speed, Haste
+and one Dash four.
 Live: Haste on QA Fighter took its walking Speed from 30 to 60; Quench checks Haste, Slow and a fly-only factor.
 
 **Unproficient skill checks (2026-10-19).** A skill check its creature lacks the skill's proficiency for also reads the

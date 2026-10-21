@@ -29,11 +29,12 @@ const strikeSave = (effect) => ({ ...GRAB, save: STRIKE_SAVE,
 /** Each common action: its lang key, icon and definition (without id and label, which `commonAction` adds). */
 const COMMON = {
     // 2024 Dash: "extra movement for the current turn ... equal to your Speed after applying any modifiers": its Speed
-    // doubled, after its Modifiers (Exhaustion, Slow) and with its other factors (Haste: four times in all).
-    // shortcut: a second Dash in one turn (Action Surge) adds nothing more; upgrade when an effect can count its uses.
+    // once more for each Dash this turn (`speed.dash`; a second, with Action Surge, three times in all), after its
+    // Modifiers (Exhaustion, Slow) and with its other factors (Haste and a Dash: four times).
     dash: { name: "WILDPATH.COMMON.Dash", img: "icons/svg/wingfoot.svg", definition: { costs: ACTION, ...SELF,
             effects: [{ id: "dashing", type: "effect", name: "Dashing", slug: "dashing", img: "icons/svg/wingfoot.svg", duration: UNTIL_TURN_END,
-                    ruleElements: [{ schemaVersion: 1, id: "dash", type: "Modifier", data: { domains: ["speed.multiplier"], modifierType: "untyped", value: 2 } }] }] } },
+                    stack: "separate",
+                    ruleElements: [{ schemaVersion: 1, id: "dash", type: "Modifier", data: { domains: ["speed.dash"], modifierType: "untyped", value: 1 } }] }] } },
     disengage: { name: "WILDPATH.COMMON.Disengage", img: "icons/svg/walk.svg", definition: { costs: ACTION, ...SELF,
             effects: [{ id: "disengaged", type: "effect", name: "Disengaged", slug: "disengaged", img: "icons/svg/walk.svg",
                     duration: UNTIL_TURN_END, ruleElements: [] }] } },

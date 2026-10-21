@@ -169,7 +169,7 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 
 | Action | What it does |
 | --- | --- |
-| Dash | Dashing until the end of the turn: its Speed doubled after its Modifiers (`speed.multiplier` ×2, 2026-10-20) |
+| Dash | Dashing until the end of the turn: its Speed once more after its Modifiers and factors, for each Dash this turn (`speed.dash` 1; 2026-10-21) |
 | Disengage | Disengaged until the end of the turn |
 | Dodge | Dodging until the start of its next turn: attacks against it have disadvantage, its Agility saves advantage |
 | Help | An enemy within 5 ft is Distracted until the start of your next turn: an ally's next attack against it has advantage |
@@ -213,7 +213,6 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
   - QA Fighter assisted QA Caster's Athletics: a Stealth check rolled 1d20, then Athletics 2d20kh, which used it up.
 
 Shortcuts:
-- a second Dash in one turn adds nothing more;
 - Disengage stops the common Opportunity Attack, but not a movement reaction a creature's own content defines.
   Being pushed or teleported out of reach provokes none (2024).
 

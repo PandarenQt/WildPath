@@ -67,7 +67,8 @@ export function planConditionEffect({
     });
   }
 
-  const existing = findExistingCondition(existingConditions ?? actor?.effects ?? [], id);
+  // A separate effect (a second Dash) is a new one each time, never the one already there.
+  const existing = definition.separate ? null : findExistingCondition(existingConditions ?? actor?.effects ?? [], id);
   const stacking = definition.stacking === true;
   const maxLevel = stacking ? normalizeMaxLevel(definition.maxLevel) : null;
   const transition = stacking

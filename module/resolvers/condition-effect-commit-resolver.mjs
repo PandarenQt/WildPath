@@ -109,7 +109,7 @@ async function applyStackingConditionDelta(actor, plan, existingEffect, levels, 
 }
 
 async function createConditionEffect(actor, plan, level, persistence) {
-  const data = plan.definition?.custom ? customEffectDocumentData(plan, level) : conditionEffectDocumentData(plan, level);
+  const data = plan.definition?.custom ? customEffectDocumentData(plan, level, actor) : conditionEffectDocumentData(plan, level);
   if ( !plan.definition?.custom && (typeof actor.toggleStatusEffect === "function") ) {
     const toggle = await persistence.toggleStatusEffect({
       actor,
@@ -215,15 +215,19 @@ function conditionEffectDocumentData(plan, level) {
  * A custom effect (an Action's buff or debuff): an ordinary effect carrying its rules, known by its status id. V14
  * runs its duration, started on the source's combatant, so "until the start of your next turn" is the caster's turn.
  */
-function customEffectDocumentData(plan, level) {
+function customEffectDocumentData(plan, level, actor=null) {
   const definition = plan.definition ?? {};
   const combatant = sourceCombatant(plan.source);
+  // A separate effect's rules count beside its earlier ones (a second Dash), so each copy's rules have ids of their own.
+  const copy = definition.separate ? collectionContents(actor?.effects ?? [])
+    .filter(effect => effect.flags?.wildpath?.conditionEffect?.conditionId === plan.conditionId).length + 1 : 0;
+  const ruleElements = clonePlain(definition.ruleElements ?? []).map(rule => (copy > 1 ? {...rule, id: `${rule.id}:${copy}`} : rule));
   const data = {
     type: "effect",
     name: definition.name ?? plan.conditionId,
     img: definition.img ?? undefined,
     statuses: [plan.conditionId],
-    system: {ruleElements: clonePlain(definition.ruleElements ?? [])},
+    system: {ruleElements},
     ...(definition.duration ? {duration: clonePlain(definition.duration)} : {}),
     ...(combatant ? {start: {combatant: combatant.id}} : {})
   };
@@ -329,8 +333,9 @@ function findConditionEffect(actor, planOrSnapshot) {
     if ( id && (effect.id === id || effect._id === id) ) return true;
     if ( uuid && effect.uuid === uuid ) return true;
     if ( conditionId && (effect.type === "condition") && (effect.system?.type === conditionId) ) return true;
-    // A custom effect is matched by the status id it was created with, so applying it again refreshes it.
-    return !!conditionId && (effect.flags?.wildpath?.conditionEffect?.definition?.custom === true)
+    // A custom effect is matched by the status id it was created with, so applying it again refreshes it; a separate
+    // one (a second Dash) is new each time.
+    return !!conditionId && !planOrSnapshot?.definition?.separate && (effect.flags?.wildpath?.conditionEffect?.definition?.custom === true)
       && (effect.flags.wildpath.conditionEffect.conditionId === conditionId);
   }) ?? null;
 }

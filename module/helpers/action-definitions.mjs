@@ -573,7 +573,9 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
       ...((effect.type === "effect") ? {conditionDefinitions: {[customEffectId(definition.id, effect)]: {
         id: customEffectId(definition.id, effect), name: effect.name, img: effect.img ?? null, custom: true, stacking: false,
         ruleElements: clonePlain(effect.ruleElements ?? []), duration: clonePlain(effect.duration ?? null),
-        ...(effect.endsWhen ? {endsWhen: effect.endsWhen} : {})}}} : {}),
+        ...(effect.endsWhen ? {endsWhen: effect.endsWhen} : {}),
+        // Applied again, a new one beside it rather than the old one refreshed (a second Dash: `stack: "separate"`).
+        ...((effect.stack === "separate") ? {separate: true} : {})}}} : {}),
       levels: (effect.type === "effect") ? 1 : effect.levels,
       saveOutcomePolicy: effect.application?.saveOutcomePolicy ?? effect.saveOutcomePolicy ?? null,
       duration: (effect.type === "effect") ? null : (effect.duration ?? definition.duration),
@@ -1265,7 +1267,8 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
     ...(type === "effect" ? {name: stringOrNull(effect.name), img: stringOrNull(effect.img), slug: stringOrNull(effect.slug),
       ruleElements: normalizeArray(effect.ruleElements).map(clonePlain),
       // It ends after the next attack against its creature (Help, Guiding Bolt), else with its duration.
-      ...(effect.endsWhen ? {endsWhen: String(effect.endsWhen)} : {})} : {}),
+      ...(effect.endsWhen ? {endsWhen: String(effect.endsWhen)} : {}),
+      ...((effect.stack === "separate") ? {stack: "separate"} : {})} : {}),
     ...(effect.repeatSave ? {repeatSave: String(effect.repeatSave)} : {}),
     // Only on a creature no bigger than this (Eldritch Smite's Prone: Huge or smaller).
     ...(effect.maxSize ? {maxSize: String(effect.maxSize)} : {}),

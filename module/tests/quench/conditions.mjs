@@ -222,6 +222,23 @@ export function registerConditionTests(quench) {
         assert.equal(fear(),1,"back once the immunity ends");
       });
 
+      it("each Dash this turn adds its Speed once more, after its other factors", async function () {
+        const {commitConditionEffectMutationPlan} = await import("../../resolvers/condition-effect-commit-resolver.mjs");
+        const {commonAction} = await import("../../helpers/common-actions.mjs");
+        const runner = await fixtures.createActor({name:"dasher"});
+        const walk = runner.system.resources.movement.max;
+        const dashing = commonAction(runner,"dash",{localize:key => key}).system.definition.effects[0];
+        const plan = {type:"conditionEffect",conditionId:"dashing",levels:1,action:"create",
+          definition:{id:"dashing",custom:true,separate:true,name:"Dashing",ruleElements:dashing.ruleElements}};
+        await commitConditionEffectMutationPlan(runner,plan);
+        assert.equal(runner.system.resources.movement.max,walk * 2,"one Dash");
+        await commitConditionEffectMutationPlan(runner,plan);
+        assert.equal(runner.system.resources.movement.max,walk * 3,"a second (Action Surge): three times in all");
+        await runner.createEmbeddedDocuments("ActiveEffect",[{name:"hasted",type:"effect",system:{ruleElements:[{schemaVersion:1,id:"haste",
+          type:"Modifier",data:{domains:["speed.multiplier"],modifierType:"untyped",value:2}}]}}]);
+        assert.equal(runner.system.resources.movement.max,walk * 6,"Haste doubles the Speed each Dash adds");
+      });
+
       it("20 creatures with conditions and auras read their rules within budget", async function () {
         this.timeout(60000);
         const scene = await fixtures.createScene({name:"performance"});
