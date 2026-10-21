@@ -1397,7 +1397,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     items.unshift({_id: gearId, _key: `!items!${gearId}`, name: document.name, type: "gear", img,
       system: {active: false, description, quantity: Math.max(0, Math.round(number(system.quantity) ?? 1)),
         weight: number(system.weight?.value ?? system.weight) ?? 0, slot: "", ruleElements: [...armorRules(document, allNotes), ...passive],
-        attunement: (system.attunement === "required") ? "required" : "", armor: (document.type === "equipment" ? armorKind(system) : null) ?? ""},
+        attunement: (system.attunement === "required") ? "required" : "", armor: (document.type === "equipment" ? armorKind(system) : null) ?? "",
+        // What it looks like before it is identified (dnd5e's own), for its GM to hand out unidentified.
+        ...(system.unidentified?.name ? {unidentified: {name: system.unidentified.name, description: system.unidentified.description ?? ""}} : {})},
       // Its Actions come with it when it is added to a creature (WildPathItem).
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(items.length ? {grants: items.map(item => item._id)} : {}),
         ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {})}}});

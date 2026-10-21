@@ -39,6 +39,10 @@
   <label>{{localize "WILDPATH.ITEMSHEET.WeightLabel"}} <input type="number" name="system.weight" value="{{system.weight}}" min="0" step="0.1"></label>
   <label>{{localize "WILDPATH.ITEMSHEET.Slot"}} <input type="text" name="system.slot" value="{{system.slot}}" placeholder="{{localize "WILDPATH.ITEMSHEET.SlotPlaceholder"}}"></label>
   <label>{{localize "WILDPATH.ITEMSHEET.Armor"}} <select name="system.armor">{{selectOptions armorKinds selected=system.armor localize=true}}</select></label>
+  {{#if isGM}}
+  <label>{{localize "WILDPATH.ITEMSHEET.Identified"}} <input type="checkbox" name="system.identified" {{checked system.identified}}></label>
+  <label>{{localize "WILDPATH.ITEMSHEET.UnidentifiedName"}} <input type="text" name="system.unidentified.name" value="{{system.unidentified.name}}"></label>
+  {{/if}}
 </div>
 {{/if}}
 </div>

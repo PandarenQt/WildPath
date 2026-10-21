@@ -1,6 +1,6 @@
 import WildPathBaseItem from "./base.mjs";
 
-const {NumberField, StringField} = foundry.data.fields;
+const {BooleanField, HTMLField, NumberField, SchemaField, StringField} = foundry.data.fields;
 
 /**
  * Physical equipment. Reuses the base `active` field to represent "equipped".
@@ -17,7 +17,13 @@ export default class WildPathGear extends WildPathBaseItem {
       // A magic item that needs attunement gives nothing until attuned: "" (none needed), "required", "attuned".
       attunement: new StringField({required: true, blank: true, initial: "", choices: ["", "required", "attuned"]}),
       // Armor's kind, which a character's armor training must name (G8): worn untrained, it hinders; a Shield protects not.
-      armor: new StringField({required: true, blank: true, initial: "", choices: ["", "light", "medium", "heavy", "shield"]})
+      armor: new StringField({required: true, blank: true, initial: "", choices: ["", "light", "medium", "heavy", "shield"]}),
+      // A magic item not yet identified: its players see only what it looks like (documents/item.mjs). The GM decides.
+      identified: new BooleanField({required: false, initial: true}),
+      unidentified: new SchemaField({
+        name: new StringField({required: false, blank: true, initial: ""}),
+        description: new HTMLField({required: false, blank: true, initial: ""})
+      }, {required: false})
     };
   }
 

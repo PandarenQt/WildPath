@@ -603,7 +603,9 @@
         "test": "Test",
         "advanced": "Advanced",
         "description": "Description"
-      }
+      },
+      "Identified": "Identified",
+      "UnidentifiedName": "Unidentified name"
     },
     "REST": {
       "NoBenefit": "{name} has 0 Hit Points, so the long rest gives no benefit (its hours still count toward a stable creature's recovery).",
@@ -1175,7 +1177,8 @@
     "ITEM": {
       "RuntimeMissing": "WildPath's action runtime isn't running yet; reload the world.",
       "NotPrepared": "{name} is not prepared.",
-      "CannotUse": "{name} can't be used right now."
+      "CannotUse": "{name} can't be used right now.",
+      "Unidentified": "Unidentified item"
     },
     "REACTIONS": {
       "Decline": "Decline"

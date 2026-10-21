@@ -160,6 +160,16 @@ block's Speed is its own. The sheet shows "Carried: 200 / 150 lb" and what the l
 
 Live (14.369): a Might 10 character carried up to 150 lb; a 200 lb anvil made its Speed 5 ft, and 40 lb gave 30 back.
 
+## Identification (2026-10-21)
+
+Gear may be unidentified (`system.identified: false`, a new optional field, true by default), with what it looks like
+(`system.unidentified.name`, `.description`; the converter keeps dnd5e's). Its players then see only that: the gear's
+name and description, and the names of the Actions it brings (`WildPathItem#prepareDerivedData`, on their clients only;
+nothing stored changes). Without an unidentified name it is "Unidentified item". The GM sees everything, and decides
+when it is identified (the item sheet's Identified box): Identify, a Short Rest's study, or using it. Live (two browsers,
+14.369): Player1 saw "Plain Wand" for a GM's unidentified Wand of Secrets and its Action, and its real names once the GM
+identified it.
+
 ## Ammunition (2026-10-21)
 
 A weapon with the Ammunition property names what it fires (`definition.ammunition`: "arrow", "crossbowBolt",
