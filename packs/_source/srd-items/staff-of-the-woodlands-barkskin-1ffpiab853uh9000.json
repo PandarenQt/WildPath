@@ -47,7 +47,17 @@
           "type": "effect",
           "name": "Bark-like Skin",
           "img": "icons/magic/nature/barrier-shield-wood-vines.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "barkskin",
+              "type": "ArmorClass",
+              "data": {
+                "value": 17,
+                "minimum": true
+              }
+            }
+          ],
           "duration": {
             "value": 3600,
             "units": "seconds",
@@ -99,10 +109,7 @@
         "castBy": "Staff of the Woodlands"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Bark-like Skin\" change system.attributes.ac.min (upgrade) not converted",
-          "effect: \"Bark-like Skin\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

@@ -1095,7 +1095,20 @@
               "type": "effect",
               "name": "Damaged: −2 AC",
               "img": "icons/skills/melee/shield-damaged-broken-blue.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "ac-penalty",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "defense.ac"
+                    ],
+                    "modifierType": "untyped",
+                    "value": -2
+                  }
+                }
+              ],
               "duration": {
                 "value": 1,
                 "units": "turns",
@@ -1122,10 +1135,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: \"Damaged: −2 AC\" change system.armor.value (add) not converted",
-              "effect: \"Damaged: −2 AC\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1358,9 +1368,7 @@
           "Spellcasting: effect: \"Spiked\" marks its creature only; its rules are by hand",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Mind Invasion: cast: Mind Spike at level 3 is cast at its own level",
-          "Mind Invasion: effect: \"Spiked\" marks its creature only; its rules are by hand",
-          "Noxious Miasma: effect: \"Damaged: −2 AC\" change system.armor.value (add) not converted",
-          "Noxious Miasma: effect: \"Damaged: −2 AC\" marks its creature only; its rules are by hand"
+          "Mind Invasion: effect: \"Spiked\" marks its creature only; its rules are by hand"
         ]
       }
     }

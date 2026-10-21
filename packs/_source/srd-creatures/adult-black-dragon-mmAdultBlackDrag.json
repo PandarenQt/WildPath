@@ -672,11 +672,41 @@
               "type": "effect",
               "name": "Lingering Acid",
               "img": "icons/magic/acid/dissolve-arm-flesh.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "lingering-acid",
+                  "type": "Trigger",
+                  "data": {
+                    "kind": "automation",
+                    "event": "turn.ended",
+                    "action": {
+                      "schemaVersion": 1,
+                      "id": "action:lingering-acid",
+                      "label": "Lingering Acid",
+                      "costs": {
+                        "allOf": []
+                      },
+                      "damage": [
+                        {
+                          "id": "acid",
+                          "expression": {
+                            "type": "dice",
+                            "number": 2,
+                            "faces": 4
+                          },
+                          "damageType": "acid",
+                          "provenance": "spell-base"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ],
               "duration": {
                 "value": 1,
-                "units": "turns",
-                "expiry": "turnStart"
+                "units": "rounds",
+                "expiry": "turnEnd"
               }
             }
           ],
@@ -703,8 +733,7 @@
           },
           "conversion": {
             "notes": [
-              "cast: Acid Arrow at level 3 is cast at its own level",
-              "effect: \"Lingering Acid\" marks its creature only; its rules are by hand"
+              "cast: Acid Arrow at level 3 is cast at its own level"
             ]
           }
         }
@@ -862,11 +891,41 @@
               "type": "effect",
               "name": "Lingering Acid",
               "img": "icons/magic/acid/dissolve-drip-droplet-smoke.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "lingering-acid",
+                  "type": "Trigger",
+                  "data": {
+                    "kind": "automation",
+                    "event": "turn.ended",
+                    "action": {
+                      "schemaVersion": 1,
+                      "id": "action:lingering-acid",
+                      "label": "Lingering Acid",
+                      "costs": {
+                        "allOf": []
+                      },
+                      "damage": [
+                        {
+                          "id": "acid",
+                          "expression": {
+                            "type": "dice",
+                            "number": 2,
+                            "faces": 4
+                          },
+                          "damageType": "acid",
+                          "provenance": "spell-base"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ],
               "duration": {
                 "value": 1,
-                "units": "turns",
-                "expiry": "turnStart"
+                "units": "rounds",
+                "expiry": "turnEnd"
               },
               "saveOutcomePolicy": "failure"
             }
@@ -909,7 +968,6 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Lingering Acid\" marks its creature only; its rules are by hand",
               "\"End of Turn Damage\" is passive or triggered: not automated"
             ]
           }
@@ -1322,7 +1380,6 @@
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: cast: Acid Arrow at level 3 is cast at its own level",
-          "Spellcasting: effect: \"Lingering Acid\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: \"End of Turn Damage\" is passive or triggered: not automated"
         ]

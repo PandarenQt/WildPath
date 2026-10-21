@@ -452,7 +452,11 @@ Telepathy with its range, or an understanding of every language (`any`); classes
 (`EFFECTS_BY_NAME` in the converter), wherever it comes from: "Next Attack: Disadv." (a RollMode its next attack
 ends), "Attack: Advantage", "Concentration Disadvantage", "Damaged: −2 AC", Barkskin's "Bark-like Skin" (an AC
 floor), Protection from Evil and Good's "Protected" (`attack.attackerType`, the attacker's creature type, among six)
-and "See Invisibility" (the sense, a mile).
+and "See Invisibility" (the sense, a mile). They apply when none of the effect's own changes converts (Barkskin's
+`ac.min`, See Invisibility's `senses.special`). Also: combined Advantage or Disadvantage ("Adv: Attacks & Saves"), "No
+Reaction" (a ResourceCap), "<Type> Protection" (Resistance), and Acid Arrow's "Lingering Acid": an automatic
+`turn.ended` Trigger on the effect deals its 2d4 Acid, and it lasts until the end of the caster's next turn (an
+effect's Triggers run like an Item's; the spell's separate later-damage Action is dropped).
 
 **Comparing a number (2026-10-20).** The predicate `atMost: {path, value}` passes when the number at `path` is at
 most `value`; a missing number fails it (Retaliation's "within 5 feet": `event.data.relations.{self}.distance`).

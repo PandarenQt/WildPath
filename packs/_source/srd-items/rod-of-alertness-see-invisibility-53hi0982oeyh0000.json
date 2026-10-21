@@ -37,7 +37,17 @@
           "type": "effect",
           "name": "See Invisibility",
           "img": "icons/magic/perception/orb-eye-scrying.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "see-invisibility",
+              "type": "GrantSense",
+              "data": {
+                "sense": "seeInvisibility",
+                "range": 5280
+              }
+            }
+          ],
           "duration": {
             "value": 3600,
             "units": "seconds",
@@ -82,10 +92,7 @@
         "castBy": "Rod of Alertness"
       },
       "conversion": {
-        "notes": [
-          "effect: \"See Invisibility\" change system.attributes.senses.special (add) not converted",
-          "effect: \"See Invisibility\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }
