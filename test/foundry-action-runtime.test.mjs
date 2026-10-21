@@ -1095,7 +1095,7 @@ test("two unlinked Tokens of one base Actor each make their own save", async t =
 
 /** A GM-controlled target whose Token answers "a hit on me" by striking back (authored Trigger RuleElement). */
 function counterattackFixture(t, {decision="use", reactor="target", event="attack.hit", natural=null, once=false, rider=null, extra=null,
-  queue=null, pick=null, items=null, holderItems=null, gmQueue=null}={}) {
+  queue=null, pick=null, items=null, holderItems=null, gmQueue=null, gmMessageMode=null}={}) {
   const fixture = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
   const {scene, sourceActor, targetActor, targetSource, game} = fixture;
   scene.tokens.get = id => scene.tokens.find(token => token.id === id);
@@ -1154,6 +1154,7 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
   const gmRolls = {...gmProvider, execute: request => { gmRollRequests.push(request); return gmProvider.execute(request); }};
   const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
     transport: hub.createEndpoint({userId: "gm-a"}), publishResult: post => { posts.push(post); },
+    ...(gmMessageMode ? {rollContext: {messageMode: gmMessageMode}} : {}),
     promptPorts: [createTestPromptAdapter({id: "counterattack-choice", queue: [request => {
       offers.push(request);
       return decision === "use" ? {decision, candidateId: request.payload.candidates[0].id} : {decision};
@@ -1203,6 +1204,14 @@ for ( const decision of ["use", "decline"] ) test(`a counterattack Trigger on th
     assert.equal(sourceActor.system.resources.health.value, 20);
     assert.equal(targetActor.system.resources.reaction.value, 1);
   }
+});
+
+test("a reaction's card follows its chooser's message mode", async t => {
+  const {gm, player, posts, intent} = counterattackFixture(t, {gmMessageMode: "gm"});
+  const declared = await player.declareActionIntent(intent);
+  assert.equal(gm.getRecord(declared.resolutionId)?.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.deepEqual(posts.map(post => [post.result.action?.name, post.messageMode]), [["Counterattack", "gm"], ["Runtime Melee Strike", null]],
+    "the GM chose the counterattack in GM-only mode; the player's own Action keeps theirs");
 });
 
 test("a counterattack Trigger on a bystander's Token ignores an attack on someone else", async t => {

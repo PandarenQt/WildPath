@@ -671,6 +671,10 @@ export function createMultiplayerActionCoordinator({
       return validation;
     }
 
+    // Its sender's message mode (a reaction's chooser), for the card of what they chose.
+    if ( envelope.senderUserId && (typeof response.metadata?.messageMode === "string") ) {
+      (record.messageModeByUser ??= {})[envelope.senderUserId] = response.metadata.messageMode;
+    }
     // Claim before yielding: concurrent duplicate envelopes cannot create two children.
     record.processedRequestIds.add(requestKey({id: response.requestId, resolutionId: execution.state.id}, execution.state));
     const resumed = await (record.host && !execution.nested ? record.host.resume : resumeResolution)({
@@ -801,9 +805,8 @@ export function createMultiplayerActionCoordinator({
   }
 
   /**
-   * A reaction is an Action too: its completed child posts its own public card, once, authored by the
-   * reactor's controller. shortcut: the card is public (the chooser's message mode does not travel with a
-   * reaction choice yet); carry it on the choice response when per-chooser modes are needed.
+   * A reaction is an Action too: its completed child posts its own card, once, authored by the reactor's controller,
+   * in that user's message mode (public, GM-only, blind) as their responses in this resolution carried it.
    */
   async function publishChildResult(record, state) {
     if ( (typeof publishResult !== "function") || (state.status !== RESOLUTION_STATE_STATUS.COMPLETED) ) return;
@@ -815,7 +818,7 @@ export function createMultiplayerActionCoordinator({
     try {
       const sanitized = sanitizeResolutionResultForTransport({state, result: {ok: true},
         authorityUserId: record.authorityUserId, initiatorUserId});
-      await publishResult({resolutionId: state.id, initiatorUserId, messageMode: null,
+      await publishResult({resolutionId: state.id, initiatorUserId, messageMode: record.messageModeByUser?.[initiatorUserId] ?? null,
         actor: actorForResolutionState(record, state), action: actionForResolutionState(record, state),
         result: projectResolutionResultForDisclosure(sanitized, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE)});
     } catch (error) {
@@ -1133,9 +1136,9 @@ export async function answerPendingRequestLocally({
   return {
     ok: true,
     code: MULTIPLAYER_AUTHORITY_CODES.OK,
-    response: request?.type === RESOLUTION_REQUEST_TYPES.ROLL
+    response: withResponderMode(request?.type === RESOLUTION_REQUEST_TYPES.ROLL
       ? {...coordinated.response, value: withRollerVisibility(coordinated.response?.value, context)}
-      : coordinated.response
+      : coordinated.response, context)
   };
 }
 
@@ -1187,6 +1190,12 @@ function withRollerVisibility(value, context) {
   const visibility = normalizeRollVisibility(context.messageMode);
   if ( visibility === ROLL_VISIBILITY.SYSTEM ) return value;
   return {...value, metadata: {...(value.metadata ?? {}), visibility}};
+}
+
+/** The responder's own message mode travels with every answer they give (a reaction's card follows it). */
+function withResponderMode(response, context) {
+  if ( !response || (typeof context?.messageMode !== "string") ) return response;
+  return {...response, metadata: {...(response.metadata ?? {}), messageMode: context.messageMode}};
 }
 
 function responseFromEnvelope(envelope) {
