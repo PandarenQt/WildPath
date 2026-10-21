@@ -2214,6 +2214,38 @@ function escapeDCOf(document, {creature=null, saveDC=null}={}) {
 /** Effects named as a common action's own (Step of the Wind's "Disengaged"): that action's effect. */
 const COMMON_EFFECTS = Object.freeze({Disengaged: "disengage", Dashing: "dash", Dodging: "dodge"});
 
+const rollModeRule = (id, domains, mode, predicate=null) => ({schemaVersion: 1, id, type: "RollMode",
+  data: {domains, mode}, ...(predicate ? {predicate} : {})});
+const NEXT_ATTACK_DISADVANTAGE = {endsWhen: "attacks", ruleElements: [rollModeRule("next-attack", ["attack"], "disadvantage")]};
+
+/**
+ * Rules for dnd5e effects left without changes, by their name wherever they come from (a spell, a stat block's
+ * action, a staff's or rod's cast), from the 2024 texts:
+ * - "the target has Disadvantage on the next attack roll it makes" (an Ettin's Morningstar, a Fire Giant's Hammer
+ *   Throw, Ray of Enfeeblement on a success): its next attack ends it.
+ * - "Advantage on attack rolls" (a Frost Giant's War Cry); "Disadvantage on saving throws to maintain Concentration"
+ *   (a black dragon's Cloud of Insects); "a −2 penalty to AC" (a green dragon's Noxious Miasma).
+ * - Barkskin: "an Armor Class of 17 if its AC is lower than that" (an ArmorClass floor).
+ * - Protection from Evil and Good: Aberrations, Celestials, Elementals, Fey, Fiends and Undead have Disadvantage on
+ *   attack rolls against it. shortcut: its Charmed and Frightened protection from them is by hand; upgrade when a
+ *   ConditionImmunity reads its condition's source.
+ * - See Invisibility: it sees the Invisible as far as it sees (a mile).
+ */
+const EFFECTS_BY_NAME = Object.freeze({
+  "Next Attack: Disadv.": NEXT_ATTACK_DISADVANTAGE,
+  "Disadv.: Attacks": NEXT_ATTACK_DISADVANTAGE,
+  "Brief Enfeeblement": NEXT_ATTACK_DISADVANTAGE,
+  "Attack: Advantage": {ruleElements: [rollModeRule("attack-advantage", ["attack"], "advantage")]},
+  "Concentration Disadvantage": {ruleElements: [rollModeRule("concentration-disadvantage", ["concentration"], "disadvantage")]},
+  "Damaged: −2 AC": {ruleElements: [{schemaVersion: 1, id: "ac-penalty", type: "Modifier",
+    data: {domains: ["defense.ac"], modifierType: "untyped", value: -2}}]},
+  "Bark-like Skin": {ruleElements: [{schemaVersion: 1, id: "barkskin", type: "ArmorClass", data: {value: 17, minimum: true}}]},
+  "Protected": {ruleElements: [rollModeRule("protected", ["attacked"], "disadvantage", {oneOf: {path: "attack.attackerType",
+    values: ["aberration", "celestial", "elemental", "fey", "fiend", "undead"]}})]},
+  "See Invisibility": {ruleElements: [{schemaVersion: 1, id: "see-invisibility", type: "GrantSense",
+    data: {sense: "seeInvisibility", range: 5280}}]}
+});
+
 /**
  * A teleport of its own creature to a space within a distance (Misty Step's 30 feet, Dimension Door's 500): its cost
  * and `teleport: {distance}`. Null for one with no distance in feet (Teleport, Plane Shift), which stays by hand.
@@ -2675,7 +2707,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     }
     // Its own changes (Bless, Shield of Faith, Haste) become a custom effect with the rules they map to; an effect dnd5e
     // leaves empty (Faerie Fire's) takes its rules from the 2024 text, by hand.
-    const hand = effect && !effectChanges(effect).length ? byHand : null;
+    const hand = effect && !effectChanges(effect).length ? (byHand ?? EFFECTS_BY_NAME[effect.name] ?? null) : null;
     // An effect named as a common action's (Step of the Wind's Disengaged) is that action's own.
     const common = effect && !hand && !effectChanges(effect).length ? COMMON_EFFECTS[effect.name] : null;
     if ( common ) {

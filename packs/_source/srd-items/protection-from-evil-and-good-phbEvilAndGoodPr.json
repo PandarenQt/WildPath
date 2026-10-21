@@ -44,7 +44,32 @@
           "type": "effect",
           "name": "Protected",
           "img": "icons/magic/holy/yin-yang-balance-symbol.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "protected",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "mode": "disadvantage"
+              },
+              "predicate": {
+                "oneOf": {
+                  "path": "attack.attackerType",
+                  "values": [
+                    "aberration",
+                    "celestial",
+                    "elemental",
+                    "fey",
+                    "fiend",
+                    "undead"
+                  ]
+                }
+              }
+            }
+          ],
           "duration": {
             "value": 600,
             "units": "seconds",
@@ -152,9 +177,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Protected\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

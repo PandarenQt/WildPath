@@ -419,7 +419,19 @@
               "type": "effect",
               "name": "Attack: Advantage",
               "img": "icons/magic/sonic/scream-wail-shout-teal.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "attack-advantage",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "attack"
+                    ],
+                    "mode": "advantage"
+                  }
+                }
+              ],
               "duration": {
                 "value": 1,
                 "units": "turns",
@@ -461,9 +473,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: \"Attack: Advantage\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -526,9 +536,7 @@
         "challenge": 8
       },
       "conversion": {
-        "notes": [
-          "War Cry: effect: \"Attack: Advantage\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

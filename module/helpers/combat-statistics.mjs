@@ -36,7 +36,11 @@ export function resolveActorDefense(actor, defenseKey="ac") {
   const ac = ((key === "ac") && (base == null)) ? bestArmorClass(actor) : base;
   const statistic = resolveActorStatisticModifier(actor, [`defense.${key}`, key]);
   const modifier = statistic.known ? statistic.value : null;
-  const value = ac == null && modifier == null ? null : (ac ?? 0) + (modifier ?? 0);
+  const total = ac == null && modifier == null ? null : (ac ?? 0) + (modifier ?? 0);
+  // A floor (Barkskin's 17) once its bonuses are in.
+  const floors = (key === "ac") && (total != null)
+    ? (actor.getArmorClasses?.() ?? []).filter(formula => formula.minimum).map(formula => formula.value) : [];
+  const value = floors.length ? Math.max(total, ...floors) : total;
   if ( value == null ) return null;
   return {
     value,
@@ -55,7 +59,7 @@ export function resolveActorDefense(actor, defenseKey="ac") {
 
 /** The best of a creature's ways to work out its AC: the armor it wears, else its unarmored ways. */
 function bestArmorClass(actor) {
-  const formulas = actor.getArmorClasses?.() ?? [];
+  const formulas = (actor.getArmorClasses?.() ?? []).filter(formula => !formula.minimum);
   const worn = formulas.filter(formula => formula.armor);
   const counted = worn.length ? worn : formulas;
   return counted.length ? Math.max(...counted.map(formula => formula.value)) : null;

@@ -424,7 +424,14 @@ Initiative and Athletics got Advantage.
 Telepathy with its range, or an understanding of every language (`any`); classes-and-spellcasting.md.
 
 **Senses (2026-10-20).** `GrantSense {sense, range}` gives a sense (`darkvision`, `blindsight`, `tremorsense`,
-`truesight`) out to `range` feet; a creature keeps the best range of each (senses-and-cover.md).
+`truesight`, `devilsSight`, `seeInvisibility`) out to `range` feet; a creature keeps the best range of each
+(senses-and-cover.md).
+
+**Effects known by name (2026-10-21).** A dnd5e effect without changes takes its rules from its name
+(`EFFECTS_BY_NAME` in the converter), wherever it comes from: "Next Attack: Disadv." (a RollMode its next attack
+ends), "Attack: Advantage", "Concentration Disadvantage", "Damaged: −2 AC", Barkskin's "Bark-like Skin" (an AC
+floor), Protection from Evil and Good's "Protected" (`attack.attackerType`, the attacker's creature type, among six)
+and "See Invisibility" (the sense, a mile).
 
 **Comparing a number (2026-10-20).** The predicate `atMost: {path, value}` passes when the number at `path` is at
 most `value`; a missing number fails it (Retaliation's "within 5 feet": `event.data.relations.{self}.distance`).
@@ -689,6 +696,8 @@ or a ValueExpression: Chain Mail is `16`, a Breastplate `14 + min(Agility modifi
   creature's stat block AC is typed, so it keeps its own. Actors made before this store 10, which counts as typed
   until the field is cleared.
 - Gear counts only while equipped (`system.active`); an effect (Mage Armor) while it lasts.
+- **A floor (2026-10-21).** `minimum: true` makes `value` the lowest the AC can be, after its bonuses, typed or worked
+  out (Barkskin: "an Armor Class of 17 if its AC is lower than that"). A floor is not a way to work it out.
 
 Live (two browsers, 14.369): QA Caster (Agility 16) showed AC 13 unarmored. Player1 equipped the SRD Chain Mail and
 Shield from the sheet: AC 18, and 10 feet less Speed (Might 10 under the armor's 13). Unequipping the Chain Mail gave

@@ -312,12 +312,25 @@
               "type": "effect",
               "name": "Next Attack: Disadv.",
               "img": "modules/dnd-players-handbook/assets/icons/items/morningstar.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "next-attack",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "attack"
+                    ],
+                    "mode": "disadvantage"
+                  }
+                }
+              ],
               "duration": {
                 "value": 1,
                 "units": "turns",
                 "expiry": "turnStart"
-              }
+              },
+              "endsWhen": "attacks"
             }
           ],
           "label": "Morningstar"
@@ -338,9 +351,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: \"Next Attack: Disadv.\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -471,9 +482,7 @@
         "challenge": 4
       },
       "conversion": {
-        "notes": [
-          "Morningstar: effect: \"Next Attack: Disadv.\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

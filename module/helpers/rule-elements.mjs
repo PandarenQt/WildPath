@@ -599,13 +599,15 @@ function extraAttackRuleElement(ruleElement) {
  * A way to work out the creature's Armor Class (2024): `value`, a number or ValueExpression ("11 + Agility modifier",
  * "10 + Agility + Fortitude modifiers"). `armor: true` is armor it wears; while it wears any, its unarmored ways
  * (Unarmored Defense, Mage Armor) do not count. Its AC uses the best that counts; bonuses (a Shield) add to it.
+ * `minimum: true` is a floor instead (Barkskin: "an Armor Class of 17 if its AC is lower than that"), typed AC too.
  */
 function armorClassRuleElement(ruleElement, context) {
   const data = ruleElement.data;
   const value = evaluateNumeric(data.value ?? data.valueExpression, context);
   if ( !value.ok ) return value;
   return success({armorClasses: [{id: data.id ?? ruleElement.id, label: data.label ?? ruleElement.label ?? ruleElement.id,
-    value: value.value, armor: data.armor === true, source: ruleElementSource(ruleElement)}]});
+    value: value.value, armor: data.armor === true, ...(data.minimum === true ? {minimum: true} : {}),
+    source: ruleElementSource(ruleElement)}]});
 }
 
 /** The creature provokes no Opportunity Attacks: when it moves in one of `movementModes`, or always when none is named. */

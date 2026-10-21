@@ -971,7 +971,19 @@
               "type": "effect",
               "name": "Concentration Disadvantage",
               "img": "icons/creatures/invertebrates/fly-wasp-mosquito-green.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "concentration-disadvantage",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "concentration"
+                    ],
+                    "mode": "disadvantage"
+                  }
+                }
+              ],
               "duration": {
                 "value": 1,
                 "units": "rounds",
@@ -998,9 +1010,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: \"Concentration Disadvantage\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1304,8 +1314,7 @@
           "Spellcasting: cast: Acid Arrow at level 3 is cast at its own level",
           "Spellcasting: effect: \"Lingering Acid\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: \"End of Turn Damage\" is passive or triggered: not automated",
-          "Cloud of Insects: effect: \"Concentration Disadvantage\" marks its creature only; its rules are by hand"
+          "Spellcasting: \"End of Turn Damage\" is passive or triggered: not automated"
         ]
       }
     }

@@ -8,7 +8,7 @@ import {WILDPATH} from "../module/config.mjs";
 
 test("a creature's senses are the best range each grant gives", () => {
   assert.deepEqual(bestSenses([{sense: "darkvision", range: 60}, {sense: "darkvision", range: 120}, {sense: "truesight", range: 30},
-    {sense: "smell", range: 10}]), {darkvision: 120, blindsight: 0, tremorsense: 0, truesight: 30, devilsSight: 0});
+    {sense: "smell", range: 10}]), {darkvision: 120, blindsight: 0, tremorsense: 0, truesight: 30, devilsSight: 0, seeInvisibility: 0});
 });
 
 test("Devil's Sight and Truesight see in the dark and through magical Darkness: sight range, and the highest priority", () => {
@@ -32,6 +32,11 @@ test("perceiving despite Blinded and Invisible: Blindsight, Truesight and Tremor
   assert.equal(perceives(creature(["blinded"], {truesight: 120}), creature()), false, "Truesight is sight");
   assert.equal(perceives(creature(["blinded"], {blindsight: 10}), creature(["invisible"]), {distance: 10}), true);
   assert.equal(perceives(creature(["blinded"], {tremorsense: 60}), creature(), {distance: 20, grounded: false}), false, "a flier");
+  assert.equal(perceives(creature([], {seeInvisibility: 5280}), creature(["invisible"]), {distance: 60}), true, "See Invisibility");
+  assert.equal(perceives(creature(["blinded"], {seeInvisibility: 5280}), creature(["invisible"]), {distance: 60}), false, "and it is sight");
+  const token = {sight: {}, detectionModes: {}, actor: {system: {senses: {seeInvisibility: 5280}}}};
+  applySensesToToken(token);
+  assert.deepEqual([token.sight.visionMode, token.detectionModes.seeInvisibility], ["basic", {enabled: true, range: 5280}]);
   assert.equal(onGround({elevation: 20, level: "l", parent: {levels: {get: () => ({elevation: {bottom: 0}})}}}), false);
 });
 

@@ -976,6 +976,26 @@ test("an effect with nothing WildPath maps still marks its creature, for its dur
   assert.equal(validateActionDefinition(spell.system.definition).ok, true);
 });
 
+test("an empty effect known by its name gets its 2024 rules (Barkskin, a Morningstar's next attack, See Invisibility)", () => {
+  const spell = (id, identifier, effect) => ({_id: id, name: effect, type: "spell", img: "systems/dnd5e/icons/spell.webp",
+    effects: [{_id: "named", name: effect, transfer: false, statuses: [], duration: {value: 1, units: "hours"}, system: {changes: []}}],
+    system: {source: SRD, identifier, level: 2, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},
+      range: {units: "touch"}, target: {affects: {type: "creature", count: 1}, template: {}},
+      activities: {a: activity("utility", {effects: [{_id: "named"}]})}}});
+  const rulesOf = (id, identifier, effect) => {
+    const [item] = convertItem(spell(id, identifier, effect)).items;
+    assert.equal(item.flags.wildpath.conversion.notes.some(note => /marks its creature/.test(note)), false, effect);
+    return item.system.definition.effects[0];
+  };
+  assert.deepEqual(rulesOf("testBarkskin0001", "barkskin", "Bark-like Skin").ruleElements[0].data, {value: 17, minimum: true});
+  const next = rulesOf("testNextAttack01", "morningstar", "Next Attack: Disadv.");
+  assert.deepEqual([next.endsWhen, next.ruleElements[0].data], ["attacks", {domains: ["attack"], mode: "disadvantage"}]);
+  assert.deepEqual(rulesOf("testSeeInvisib01", "see-invisibility", "See Invisibility").ruleElements[0].data,
+    {sense: "seeInvisibility", range: 5280});
+  assert.deepEqual(rulesOf("testProtection01", "protection-from-evil-and-good", "Protected").ruleElements[0].predicate.oneOf.path,
+    "attack.attackerType");
+});
+
 test("a save with nothing else converted: the conditions its text gives on a failure, else a marker while it lasts", () => {
   const spell = (id, name, text, extra={}) => ({_id: id, name, type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
     system: {source: SRD, identifier: name.toLowerCase().replace(/\W+/g, "-"), level: 1, preparation: {mode: "prepared"}, properties: ["vocal"],
