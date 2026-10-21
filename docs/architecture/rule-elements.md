@@ -371,6 +371,12 @@ test). `affects` is `others` (everyone else) or `enemies` (the opposite disposit
   (a mephit's or a Balor's Death Burst: "explodes when it dies"; the converter reads `activation.condition`).
 - With `on: "others"`, it runs when another creature's own turn starts or ends within `radius` feet, on that creature
   (a Pit Fiend's Fear Aura: "any enemy that starts its turn in the aura"; a Ghast's Stench).
+- With `swallowed: true` (2026-10-22), it runs on each creature its creature has swallowed: one with Total Cover that its
+  creature gave it (`conditionsFrom`), once per creature (2024 Purple Worm: "takes 17 (5d6) Acid damage at the start of
+  each of the purple worm's turns"; the converter reads dnd5e's "Damage: Swallowed" activity). That Total Cover is
+  "against attacks and other effects outside" the swallower, so `actionCover` leaves out cover a creature's source gave
+  it when that source acts on it. shortcut: regurgitating (30 damage in a turn from inside) is the GM's; upgrade when
+  damage is tallied per turn and source.
 - Its predicate sees its creature's conditions (`missingCondition: "incapacitated"`: "unless the azer has the
   Incapacitated condition", "while it doesn't have the Incapacitated condition").
 - A creature carrying an effect whose `metadata.immuneTo` names the Action is skipped. The converter adds one on a

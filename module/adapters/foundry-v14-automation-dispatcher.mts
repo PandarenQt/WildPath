@@ -2,6 +2,7 @@ import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
 import {createAutomationEvent, createTriggerDefinition, evaluateTrigger, reactionPolicyOf} from "../helpers/automation-events.mjs";
 import {sunlightContext} from "./foundry-v14-sunlight.mjs";
 import {tokensAround} from "./foundry-v14-auras.mjs";
+import {conditionsFrom} from "../helpers/effect-sources.mjs";
 
 type Data = Record<string, unknown>;
 interface RuleElement {id?: string; type?: string; enabled?: boolean; data?: Data}
@@ -15,9 +16,19 @@ interface Coordinator {resolveAuthorityAction(options: Data): Promise<{ok: boole
 type ResolveAction = (options: Data) => Promise<Data & {ok: boolean; reason?: string}>;
 interface Logger {warn(...args: unknown[]): void}
 /** A trigger acting around its creature: on each creature within `radius` feet, or (`on: "others"`) on another creature
- * whose own turn starts or ends there. */
-interface Around {radius: number; affects?: string; on?: string}
+ * whose own turn starts or ends there; or (`swallowed`) on each creature it has swallowed. */
+interface Around {radius?: number; affects?: string; on?: string; swallowed?: boolean}
 interface Placed {id: string; parent?: {id: string; tokens?: Iterable<Placed>} | null; actor?: (AutomationActor & {statuses?: Iterable<string>}) | null}
+
+/**
+ * The creatures a creature has swallowed (a Purple Worm's Swallow): on its scene, those with Total Cover it gave them,
+ * as only a swallow does.
+ */
+const swallowedBy = (actor: AutomationActor, token: Placed | null): Placed[] => [...(token?.parent?.tokens ?? [])]
+  .filter((other, index, all) => (other.id !== token?.id) && other.actor
+    && (conditionsFrom as (holder: unknown, source: unknown) => Record<string, boolean>)(other.actor, actor).coverTotal
+    // A linked creature with two Tokens here is still one creature.
+    && (all.findIndex(entry => entry.actor === other.actor) === index));
 
 /** Whether a creature is immune to an Action for now (a success's "immune to this Fear Aura for 24 hours"). */
 const immuneTo = (actor: AutomationActor | null | undefined, actionId: unknown) => [...(actor?.effects ?? [])].some(effect =>
@@ -150,7 +161,8 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
       if ( optional && (policy === "never") ) continue;
       // shortcut: each creature in the Emanation is its own Action (its own damage roll), as a lasting area's are; upgrade
       // when an authority Action takes several targets.
-      const targets = around ? tokensAround(token as never, around).filter(other => !immuneTo(other.actor as never, definition.id))
+      const targets = around ? (around.swallowed ? swallowedBy(actor, token as Placed | null)
+        : tokensAround(token as never, around as never) as Placed[]).filter(other => !immuneTo(other.actor as never, definition.id))
         .map(other => ({actorRef: other.actor?.uuid ?? null, tokenId: other.id, sceneId: token?.parent?.id})) : [self];
       for ( const [index, target] of targets.entries() ) {
         const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
@@ -167,7 +179,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
       const theirs = {...sunlightContext(bearer as never), conditions: [...(bearer.actor.statuses ?? [])]};
       for ( const {id, definition, label, around} of automationTriggers(bearer.actor, event, theirs) ) {
         if ( (around?.on !== "others") || immuneTo(actor, definition.id)
-          || !tokensAround(bearer as never, around).some(other => other.id === placed?.id) ) continue;
+          || !tokensAround(bearer as never, around as never).some(other => other.id === placed?.id) ) continue;
         const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
           resolutionId: `${id}:${sequence}:${actor.id}`, definition, label, actorRef: bearer.actor.uuid,
           source: {tokenId: bearer.id, sceneId: placed?.parent?.id}, target: self});

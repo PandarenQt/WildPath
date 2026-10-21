@@ -726,7 +726,40 @@
           ],
           "label": "Swallow (Save)"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "turn-damage-swallowed",
+            "type": "Trigger",
+            "data": {
+              "kind": "automation",
+              "event": "turn.started",
+              "around": {
+                "swallowed": true
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-swallow-damage-swallowed",
+                "label": "Swallow",
+                "costs": {
+                  "allOf": []
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 16,
+                      "faces": 6
+                    },
+                    "damageType": "acid",
+                    "provenance": "additional"
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -1019,7 +1052,6 @@
       "conversion": {
         "notes": [
           "Reflective Carapace: \"Roll d6\" is passive or triggered: not automated",
-          "Swallow: \"Damage: Swallowed\" is passive or triggered: not automated",
           "Swallow: \"Regurgitate: Save\" is passive or triggered: not automated",
           "Onslaught: not automated (utility): using it spends its cost; its description says the rest"
         ]

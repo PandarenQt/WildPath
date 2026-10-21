@@ -2696,10 +2696,13 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
   const dies = !others && !own && /\bwhen (?:it|the [^.,]{1,60}?) dies\b/iu.test(text);
   const when = others ? others[2].replace(/s$/u, "") : own?.[1];
   if ( (!when && !dies) || /\bnext\b/iu.test(own?.[0] ?? "") || /^\s*While\b/u.test(text) ) return null;
+  // What a swallowing creature does to those inside it ("takes 17 (5d6) Acid damage at the start of each of the purple
+  // worm's turns"): a damage activity dnd5e names for the swallowed.
+  const swallowed = own && (activity.type === "damage") && /\bswallowed\b/iu.test(`${activity.name ?? ""} ${activity.target?.affects?.special ?? ""}`);
   const template = activity.target?.template ?? {};
   const size = ["radius", "emanation", "sphere"].includes(template.type) ? Number(template.size)
     : Number(/\b(\d+)-foot(?:-radius)? Emanation\b/iu.exec(text)?.[1]);
-  if ( !(size > 0) ) return null;
+  if ( !(size > 0) && !swallowed ) return null;
   const its = [];
   const definition = convertActivity({document, activity, system, spell, level, scales, notes: its, pool, saveDC, spellDC, creature, beasts,
     names});
@@ -2717,7 +2720,7 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
     ? {missingCondition: "incapacitated"} : null;
   return {schemaVersion: 1, id: `turn-${slugify(activity.name || document.name)}`, type: "Trigger", data: {kind: "automation",
     event: dies ? "creature.died" : (when.toLowerCase() === "start" ? "turn.started" : "turn.ended"), ...(predicate ? {predicate} : {}),
-    around: {radius: size, affects: enemies ? "enemies" : "others", ...(others ? {on: "others"} : {})},
+    around: swallowed ? {swallowed: true} : {radius: size, affects: enemies ? "enemies" : "others", ...(others ? {on: "others"} : {})},
     action: {schemaVersion: 1, id: definition.id, label: document.name, costs: {allOf: []}, ...(definition.tags ? {tags: definition.tags} : {}),
       ...(definition.save ? {save: definition.save} : {}), ...(definition.damage?.length ? {damage: definition.damage} : {}),
       ...((definition.effects?.length || immune.length) ? {effects: [...(definition.effects ?? []), ...immune]} : {})}}};
