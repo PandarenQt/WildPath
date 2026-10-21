@@ -112,7 +112,7 @@ const REACTIONS = Object.freeze({
   // Tasha's Cloud Rune: "when you or a creature you can see within 30 feet of you is hit by an attack roll ... choose a
   // different creature within 30 feet of you, other than the attacker": the damage goes to it (redirectedDamage).
   "cloud-rune": {event: "damage.applied", match: {phase: "before", tagsAll: ["hit"], notSourceTokenId: "{self}"},
-    triggerPredicate: {all: seenTargetWithin(30)}, redirect: {to: "chosen", range: 30}, protects: "target"},
+    triggerPredicate: {all: seenTargetWithin(30)}, redirect: {to: "chosen", range: 30, sameRoll: true}, protects: "target"},
   "storms-thunder": {event: "damage.applied", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"}},
   // "when you take damage from a creature within 5 feet": that creature is the target of its common melee attack (its
   // first melee attack or Unarmed Strike, `commonAction`). A damager with no position (a fall) is not within 5 feet.

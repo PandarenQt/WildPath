@@ -2055,7 +2055,7 @@ function createDamageStage() {
         attackResolution: state.results?.attackResolution ?? null,
         saveResolution: state.results?.saveResolution ?? null,
         actionContext
-      }), input.durability?.redirectsByTarget);
+      }), input.durability?.redirectsByTarget, state.results?.attackResolution ?? null);
       if ( !damageResolution.ok ) {
         return failActionPlanningStage({
           state,
@@ -3396,7 +3396,8 @@ function riderDurability(input, rider, childState) {
   if ( Number(rider.reduceDamage) > 0 ) durability = withDamageReduction(durability,
     protectedId ?? childState?.source?.tokenId ?? childState?.source?.actorId ?? null,
     {id: `rider:${childState?.id ?? "rider"}`, type: "flat", amount: Number(rider.reduceDamage)});
-  if ( rider.redirectTo?.target ) durability = withRedirect(durability, protectedId ?? protectedTokenId(childState), rider.redirectTo);
+  if ( rider.redirectTo?.target ) durability = withRedirect(durability, protectedId ?? protectedTokenId(childState), rider.redirectTo,
+    rider.redirectDamage);
   return durability;
 }
 
@@ -3404,11 +3405,14 @@ function riderDurability(input, rider, childState) {
  * Durability options moving the damage to the creature at `fromKey` (by Token) onto `candidate`: its target, with what
  * planning its damage needs (its snapshot and resistances under each of its keys, what keeps it up at 0 Hit Points).
  */
-function withRedirect(durability, fromKey, candidate) {
+function withRedirect(durability, fromKey, candidate, spec=null) {
   const options = (durability && (typeof durability === "object")) ? durability : {};
   if ( !fromKey || !candidate?.target ) return options;
   const keys = normalizeArray(candidate.keys);
-  return {...options, redirectsByTarget: {...(options.redirectsByTarget ?? {}), [fromKey]: candidate.target},
+  // The attack becomes the new creature's, with the same roll (Cloud Rune): against its AC.
+  const to = (spec?.sameRoll && Number.isFinite(Number(candidate.ac))) ? {...candidate.target, sameRollAgainst: Number(candidate.ac)}
+    : candidate.target;
+  return {...options, redirectsByTarget: {...(options.redirectsByTarget ?? {}), [fromKey]: to},
     targetSystems: {...(options.targetSystems ?? {}), ...Object.fromEntries(keys.map(key => [key, candidate.actorSystem]))},
     ...(candidate.profile ? {adjustmentProfiles: {...(options.adjustmentProfiles ?? {}),
       ...Object.fromEntries(keys.map(key => [key, candidate.profile]))}} : {}),
@@ -3417,15 +3421,24 @@ function withRedirect(durability, fromKey, candidate) {
 
 /**
  * Damage results with each redirected creature's (`redirectsByTarget`, by Token) moved onto the creature taking it
- * instead (`redirectedFrom` keeps who it was for). Its amount stays; that creature's resistances apply when planned.
- * shortcut: Cloud Rune's new target is not checked against its AC, and the attack's other effects stay; a redirected
- * creature makes no concentration check. Upgrade by retargeting the attack itself.
+ * instead (`redirectedFrom` keeps who it was for). Its amount stays; that creature's resistances apply when planned, and
+ * it makes a concentration check like a target. An attack that became the new creature's with the same roll (Cloud Rune:
+ * `sameRollAgainst`, its AC) misses it when that roll is lower: no damage.
+ * shortcut: the attack's other effects (a rider, a condition) stay with the first target; upgrade by retargeting them.
  */
-function redirectedDamage(damageResolution, redirectsByTarget) {
+function redirectedDamage(damageResolution, redirectsByTarget, attackResolution=null) {
   if ( !damageResolution?.ok || !redirectsByTarget || !Object.keys(redirectsByTarget).length ) return damageResolution;
+  const rollAgainst = tokenId => normalizeArray(attackResolution?.results ?? attackResolution?.hits)
+    .find(entry => String(entry?.target?.tokenId ?? "") === tokenId);
   return {...damageResolution, results: normalizeArray(damageResolution.results).map(result => {
-    const to = redirectsByTarget[String(result?.target?.tokenId ?? "")];
-    return to ? {...result, target: clonePlain(to), redirectedFrom: clonePlain(result.target)} : result;
+    const from = String(result?.target?.tokenId ?? "");
+    const redirect = redirectsByTarget[from];
+    if ( !redirect ) return result;
+    const {sameRollAgainst, ...to} = redirect;
+    const total = Number(rollAgainst(from)?.total ?? rollAgainst(from)?.attackTotal ?? rollAgainst(from)?.roll?.total);
+    const missed = Number.isFinite(sameRollAgainst) && Number.isFinite(total) && (total < sameRollAgainst);
+    return {...result, target: clonePlain(to), redirectedFrom: clonePlain(result.target),
+      ...(missed ? {total: 0, components: [], byDamageType: {}, missed: true} : {})};
   })};
 }
 

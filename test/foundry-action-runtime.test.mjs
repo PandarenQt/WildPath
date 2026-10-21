@@ -2406,12 +2406,28 @@ test("damage reactions for another creature: Interception reduces an ally's dama
   const decoy = withFoundryActorSystem(fakeActor("decoy", {system: {...targetActorSystem(), resources: {health: {value: 20, max: 20}}}}));
   const decoyToken = fakeTokenDocument({id: "decoy-token", actor: decoy, scene: moved.scene, offset: {i: 0, j: 3}});
   Object.assign(decoy, {uuid: `${decoyToken.uuid}.Actor.decoy`, isToken: true, token: decoyToken, tokens: [decoyToken]});
+  // It concentrates on something: taking the damage instead, it makes the check a target would.
+  const held = {id: "held", name: "Held", flags: {wildpath: {conditionEffect: {concentration: {sourceRef: "token:decoy-token"}}}}};
+  decoy.effects = [{...held, toObject: () => structuredClone(held)}];
   moved.scene.tokens.push(decoyToken);
   const redirected = await moved.player.declareActionIntent(moved.intent);
   const after = moved.gm.getRecord(redirected.resolutionId);
   assert.equal(after.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(after.state.errors).slice(0, 1500));
   assert.deepEqual([moved.targetActor.system.resources.health.value, decoy.system.resources.health.value], [30, 14],
     "the target takes nothing; the decoy takes the 6");
+  assert.match(JSON.stringify(after.state.results.concentrationResolution ?? null), /decoy/u, "the decoy makes a concentration check");
+
+  // 2024 Cloud Rune: the decoy becomes the attack's target "using the same roll": 22 misses its AC 25.
+  const sameRoll = reaction("cloud-rune", {redirectDamage: {to: "chosen", range: 30, sameRoll: true}, protects: "target"}, {all: near(30)});
+  const armored = counterattackFixture(t, {reactor: "bystander", holderItems: [sameRoll]});
+  const knight = withFoundryActorSystem(fakeActor("knight", {system: {...targetActorSystem(20, 20, {ac: 25})}}));
+  const knightToken = fakeTokenDocument({id: "knight-token", actor: knight, scene: armored.scene, offset: {i: 0, j: 3}});
+  Object.assign(knight, {uuid: `${knightToken.uuid}.Actor.knight`, isToken: true, token: knightToken, tokens: [knightToken]});
+  armored.scene.tokens.push(knightToken);
+  const missed = armored.gm.getRecord((await armored.player.declareActionIntent(armored.intent)).resolutionId);
+  assert.equal(missed.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(missed.state.errors).slice(0, 1500));
+  assert.deepEqual([armored.targetActor.system.resources.health.value, knight.system.resources.health.value], [30, 20],
+    "the attack becomes the knight's and misses: nobody takes the 6");
 });
 
 test("Protective Bond: a reaction an effect gives (Bonded), offered while its giver has the feature; it takes the damage", async t => {

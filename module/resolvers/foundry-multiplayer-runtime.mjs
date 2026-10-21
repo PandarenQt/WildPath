@@ -892,7 +892,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const healingStatistic = definition?.healing?.length ? actionCombatStatistics(actor, definition, {item: action,
     context: {castLevel: intent.configuration?.choices ? (resolveActionConfiguration({definition, actorSystem,
       choices: intent.configuration.choices}).configuration?.castingLevel ?? null) : null}}).healing ?? null : null;
-  const concentration = foundryConcentrationContext({targetEntries, game, scene: sourceToken?.parent ?? null});
+  const concentration = foundryConcentrationContext({targetEntries, game, scene: sourceToken?.parent ?? null, sourceToken});
   // Holders of effects a broken concentration ends are committed on too; a key another Actor already owns is
   // ambiguous (copies of one base Actor) and is dropped, so lookups fall through to the holder's uuid.
   for ( const holder of concentration?.holders ?? [] ) {
@@ -1023,6 +1023,8 @@ export function redirectCandidates(scene, game, targetActors, {tokenIds=null, ar
       for ( const key of keys ) targetActors[key] ??= actor;
       return [{target: {id: actor.id ?? null, actorId: actor.id ?? null, actorRef: actor.uuid ?? null, uuid: actor.uuid ?? null,
         tokenId: token.id, name: token.name ?? actor.name ?? ""}, keys, actorSystem,
+      // Its AC, for an attack that becomes its (Cloud Rune: "using the same roll").
+      ac: resolveActorDefense(actor, "ac")?.value ?? null,
       profile: clonePlainData(actor.getDamageProfile?.() ?? null, "redirect.damageProfile"), zeroHp: zeroHpFor(actor, actorSystem)}];
     });
 }
@@ -1894,7 +1896,7 @@ function foundryActionArea({action, actor, intent, sourceToken}) {
  * ref). Scans the Scene's Token Actors and the world's Actors for those effects and returns, for the
  * targeted creatures that sustain any, the pipeline's `concentration` input plus the holders to commit on.
  */
-function foundryConcentrationContext({targetEntries=[], game=globalThis.game, scene=null}={}) {
+function foundryConcentrationContext({targetEntries=[], game=globalThis.game, scene=null, sourceToken=null}={}) {
   const holders = [...new Set([
     ...collectionContents(scene?.tokens).map(token => token?.actor).filter(Boolean),
     ...collectionContents(game?.actors)
@@ -1911,7 +1913,12 @@ function foundryConcentrationContext({targetEntries=[], game=globalThis.game, sc
   const states = {};
   const dependents = [];
   const usedHolders = new Set();
-  for ( const {actor, hint} of targetEntries ) {
+  // The targets, then every other concentrating creature on the Scene: a reaction may move the damage to one (Cloud Rune,
+  // Protective Bond), and it makes its check like a target. Only a creature that takes damage is checked.
+  const targeted = new Set(targetEntries.map(entry => entry.actor));
+  const others = collectionContents(scene?.tokens).filter(token => token?.actor && !targeted.has(token.actor)
+    && (token.id !== sourceToken?.id) && sustained.has(`token:${token.id}`)).map(token => ({actor: token.actor, hint: {tokenId: token.id, sceneId: scene.id}}));
+  for ( const {actor, hint} of [...targetEntries, ...others] ) {
     const token = targetTokenFor(actor, hint, game);
     const refs = uniqueStrings([token?.id ? `token:${token.id}` : null, ...targetControllerKeys(actor, hint, game)]);
     const sourceRef = refs.find(ref => sustained.has(ref));
