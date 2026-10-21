@@ -1685,7 +1685,8 @@
               "resourceId": "lair-action",
               "label": "Lair Action",
               "maximum": 1,
-              "recovery": "turn"
+              "recovery": "none",
+              "refillsAtInitiative": 20
             }
           },
           {

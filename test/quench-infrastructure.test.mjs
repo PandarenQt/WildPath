@@ -93,7 +93,7 @@ test("Quench entry loads without Quench or Foundry globals and registers the fou
     assert.equal(batch.options.preSelected,false,"Registration must not opt developers into mutation tests");
     return count;
   });
-  assert.deepEqual(counts,[4,13,13,4,12,15,13,7,4,3,8,3,2,5]);
+  assert.deepEqual(counts,[4,13,13,4,12,15,14,7,4,3,8,3,2,5]);
   assert.equal(batches.at(-8).options.displayName,"WILDPATH: Real Foundry Combat");
   assert.equal(batches.at(-7).options.displayName,"WILDPATH: Staged Movement");
   assert.equal(batches.at(-6).options.displayName,"WILDPATH: Multiplayer Disclosure");

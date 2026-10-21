@@ -578,6 +578,9 @@ Speed keeps the creature up when it is knocked Prone (areas.md, "Falling").
 - A monster's Legendary Actions: `{resourceId: "legendary-action", maximum: 3, recovery: "turn"}`, which refills at
   the start of the monster's own turn. Its legendary Actions cost `{capability: "legendary-action", amount: 1}`; a
   pool pays for its own id. Nothing yet enforces "only right after another creature's turn"; the GM decides.
+- A creature's 2014 Lair Action: `{resourceId: "lair-action", maximum: 1, recovery: "none", refillsAtInitiative: 20}`
+  (2026-10-21). The first turn of a round below initiative 20 comes after count 20, so `WildPathCombat` refills every
+  combatant's such pool there, once a round (`flags.wildpath.lairRound`), and whispers the GM who may take one.
 - A long rest also restores what a short rest does.
 
 Future resolvers should request the relevant RuleElement bundle
