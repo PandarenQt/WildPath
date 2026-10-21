@@ -443,12 +443,13 @@ export default class WildPathActor extends Actor {
    * 2024 Polymorph: `temporaryHealth` Temporary Hit Points (the form's Hit Points), the transformation ending once
    * they are gone (`untilTemporaryHealthLost`), and with its caster's concentration (`concentrationRef`).
    * @param {Actor} form
+   * A `duration` (`{value, units}`: Wild Shape's hours) ends it when it runs out, as V14 expires effects.
    * @param {{takes?: string[], keepItemTypes?: string[], temporaryHealth?: number, untilTemporaryHealthLost?: boolean,
-   *   concentrationRef?: string}} [policy]
+   *   concentrationRef?: string, duration?: {value: number, units: string}|null}} [policy]
    * @returns {Promise<ActiveEffect>}
    */
   async transform(form, {takes=DEFAULT_FORM_STATISTICS, keepItemTypes=DEFAULT_KEPT_ITEM_TYPES, temporaryHealth=0,
-    untilTemporaryHealthLost=false, concentrationRef=null}={}) {
+    untilTemporaryHealthLost=false, concentrationRef=null, duration=null}={}) {
     if ( this.transformation ) await this.revertTransformation();
     // The creature's Tokens take the form's size; each one's own is kept to restore on revert.
     const tokens = tokensOf(this);
@@ -457,9 +458,11 @@ export default class WildPathActor extends Actor {
       name: game.i18n.format("WILDPATH.TRANSFORMATION.Effect", {form: form.name}), type: "effect", system: {}, img: form.img,
       flags: {wildpath: {transformation: {formRef: form.uuid, takes: [...takes], keepItemTypes: [...keepItemTypes],
         tokenSizes: tokens.map(token => ({uuid: token.uuid, width: token.width, height: token.height})),
-        ...(untilTemporaryHealthLost ? {untilTemporaryHealthLost: true} : {})},
+        // The form's own Hit Points, which healing in it restores (2014 Wild Shape).
+        ...(untilTemporaryHealthLost ? {untilTemporaryHealthLost: true, formHealth: temporaryHealth} : {})},
       // It ends with its caster's concentration (sustainedEffects), as a lasting area's marker does.
-      ...(concentrationRef ? {conditionEffect: {concentration: {sourceRef: concentrationRef}}} : {})}}
+      ...(concentrationRef ? {conditionEffect: {concentration: {sourceRef: concentrationRef}}} : {})}},
+      ...(duration ? {duration: {value: duration.value, units: duration.units}} : {})
     }]);
     if ( temporaryHealth > 0 ) await this.update({"system.resources.health.temp":
       Math.max(Number(this.system.resources?.health?.temp) || 0, temporaryHealth)});

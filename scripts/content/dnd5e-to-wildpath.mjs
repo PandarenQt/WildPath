@@ -205,9 +205,9 @@ const WILD_SHAPE_2014 = Object.freeze({
  * A transform activity (Wild Shape: the 2024 Bonus Action, its transformation by the 2014 rules): a Beast form its user
  * picks, within its druid level's limits. The form's Strength, Dexterity, Constitution, AC and Speed replace its own, and its Hit Points come
  * as Temporary Hit Points: the druid reverts when they are gone, and damage beyond them carries over to its own, as
- * the 2014 text has it. Null without Beasts to choose from, or for another preset.
- * shortcut: every eligible Beast is offered (not only Beasts seen), it lasts until reverted (not half its druid level
- * in hours), and healing in the form heals the druid's own Hit Points; upgrade with a form Hit Point pool.
+ * the 2014 text has it; healing in the form heals the form, up to its Hit Points. It lasts half its druid level in
+ * hours (rounded down). Null without Beasts to choose from, or for another preset.
+ * The maintainer's rules choice: every eligible Beast is offered; that the druid has seen it is the player's to keep.
  */
 function wildShapeDefinition({document, activity, system, spell, level, notes, pool, beasts=[]}) {
   const settings = activity.transform ?? activity.settings ?? {};
@@ -220,7 +220,8 @@ function wildShapeDefinition({document, activity, system, spell, level, notes, p
   const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool});
   return {...definition, range: {type: "self"}, targeting: {type: "self"},
     configuration: [...(definition.configuration ?? []), choice],
-    transform: {choiceId: choice.id, limits: {class: owner, rows}, temporaryHealth: "form"}};
+    transform: {choiceId: choice.id, limits: {class: owner, rows}, temporaryHealth: "form",
+      duration: {class: owner, perLevel: 0.5, units: "hours"}}};
 }
 
 /**

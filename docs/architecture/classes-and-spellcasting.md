@@ -324,6 +324,12 @@ the 1×1 Token.
   Live (two browsers, 14.369): Player1's level-2 druid was refused a Constrictor Snake ("has a Swim Speed, not allowed at
   druid level 2") with nothing spent; a Wolf (then an Action; Wild Shape is a Bonus Action again since) took a use, gave 11 Temporary Hit Points and
   Might 14 while its Intellect 16 stayed, a Short Rest refilled both uses, and Wild Shape (Revert) restored Might 10.
+- **Its hours and its own Hit Points (2026-10-21).** `duration: {class, perLevel, units}` gives the form a duration,
+  a share of that class's level rounded down (Wild Shape: half the druid level, in hours); V14 expires it and the
+  creature reverts. Healing in a `temporaryHealth: "form"` form heals the form (its Temporary Hit Points) up to the
+  form's Hit Points (`formHealth` on the transformation, in the creature's snapshot), not the druid's own. Live: a
+  Wolf form lasted 2 hours with 11 Hit Points, and its expiry reverted it, its copies and its Hit Points gone. The
+  maintainer's rules choice stays: every eligible Beast is offered; that the druid has seen it is the player's to keep.
 
 - **On its targets (2026-10-19, 2024 Polymorph).** A `transform` with `targets: true` transforms each creature that
   failed the Action's save, not its user. The form must not have a Challenge Rating above the creature's own (or its

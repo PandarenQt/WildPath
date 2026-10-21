@@ -67,6 +67,15 @@ export function createActorHealingMutationPlan(actorSystem, {
     }
   });
   const temp = temporaryOf(actorSystem, resourceId);
+  // In a form whose Hit Points are its Temporary Hit Points (2014 Wild Shape), healing heals the form, up to its own.
+  const form = (resourceId === "health") ? Number(actorSystem?.formHealth) || 0 : 0;
+  if ( form > 0 ) {
+    const healed = Math.min(temp + Math.max((normalizeAmount(total) ?? 0) - temporary, 0), form);
+    const formPlan = createActorDurabilityMutationPlan(actorSystem, {type: DURABILITY_CHANGE_TYPES.HEALING, amount: 0, resourceId,
+      source, target: target ?? healingResult?.target ?? null, metadata: {healingResult: healingResult ? clonePlain(healingResult) : null,
+        ...metadata, form: true}});
+    return (healed > temp) ? withTemporary(formPlan, resourceId, temp, healed) : formPlan;
+  }
   return (temporary > temp) ? withTemporary(plan, resourceId, temp, temporary) : plan;
 }
 

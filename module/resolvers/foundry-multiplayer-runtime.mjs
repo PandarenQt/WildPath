@@ -200,10 +200,12 @@ export function registerFoundryV14MultiplayerResolution({
   globalThis.Hooks?.on?.("combatStart", trackTokenEffects);
   trackTokenEffects();
   // V14 marks an effect expired when its duration runs out; then an Action's custom effect (a buff), a concentration
-  // marker, or a condition lasting until its source's next turn (Stunning Strike, started on that Combatant) is removed.
+  // marker, a condition lasting until its source's next turn (Stunning Strike, started on that Combatant), or a form
+  // (Wild Shape's hours: its creature reverts) is removed.
   globalThis.Hooks?.on?.("updateActiveEffect", (effect, changes) => {
     const flags = effect.flags?.wildpath ?? {};
     if ( (changes?.duration?.expired === true) && (flags.conditionEffect?.definition?.custom || flags.concentrationMarker
+      || flags.transformation
       || /^source/.test(String(flags.conditionEffect?.duration?.expiry ?? ""))) && (game.users?.activeGM?.id === game.user?.id) ) {
       void effect.delete();
     }
@@ -1115,8 +1117,12 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
   if ( !spec.targets ) {
     // 2014 Wild Shape: the form's Hit Points as Temporary Hit Points, reverting once they are gone (its limits were
     // checked when it was used).
+    // It lasts a share of its class's level (Wild Shape: half the druid level, in hours, rounded down).
+    const levels = Number(actor.system?.classes?.find?.(entry => entry.id === spec.duration?.class)?.level) || 0;
+    const value = spec.duration ? Math.floor(levels * (Number(spec.duration.perLevel) || 0)) : 0;
     return actor.transform(form, {...policy, ...((spec.temporaryHealth === "form")
-      ? {temporaryHealth: Number(form.system?.resources?.health?.max) || 0, untilTemporaryHealthLost: true} : {})});
+      ? {temporaryHealth: Number(form.system?.resources?.health?.max) || 0, untilTemporaryHealthLost: true} : {}),
+    ...(value > 0 ? {duration: {value, units: spec.duration.units ?? "hours"}} : {})});
   }
   // Polymorph: each creature that failed its save takes the form, unless the form's Challenge Rating is above its own
   // (or its level). It gains the form's Hit Points as Temporary Hit Points, and reverts when they are gone or when its

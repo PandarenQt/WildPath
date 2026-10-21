@@ -17,6 +17,10 @@ export function foundryActorSystemSnapshot(actor) {
         if (typeof actor.getStatistic === "function") {
             snapshot.proficiencyBonus = actorProficiencyBonus(actor);
         }
+        // In a form whose Hit Points are Temporary Hit Points (2014 Wild Shape): those Hit Points, which healing restores.
+        const formHealth = Number(actor.transformation?.policy?.formHealth);
+        if (formHealth > 0)
+            snapshot.formHealth = formHealth;
         return snapshot;
     }
     catch (error) {
