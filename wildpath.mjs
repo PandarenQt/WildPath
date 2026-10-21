@@ -23,7 +23,7 @@ import {WildPathBackground, WildPathClass, WildPathSpecies, WildPathSubclass} fr
 import WildPathBaseEffect from "./module/data/active-effect/base.mjs";
 import WildPathConditionEffect from "./module/data/active-effect/condition.mjs";
 
-import WildPathActor from "./module/documents/actor.mjs";
+import WildPathActor, {invalidateRules} from "./module/documents/actor.mjs";
 import WildPathItem from "./module/documents/item.mjs";
 import WildPathActiveEffect from "./module/documents/active-effect.mjs";
 import WildPathCombat from "./module/documents/combat.mjs";
@@ -56,6 +56,11 @@ Hooks.once("init", () => {
 
   // Document class overrides
   CONFIG.Actor.documentClass = WildPathActor;
+  // A moved Token, a changed Scene, combat or setting may change who stands in which aura.
+  for ( const hook of ["createToken", "updateToken", "deleteToken", "canvasReady", "updateScene", "updateCombat", "deleteCombat", "updateSetting",
+    "updateWorldTime"] ) {
+    Hooks.on(hook, invalidateRules);
+  }
   CONFIG.Item.documentClass = WildPathItem;
   CONFIG.ActiveEffect.documentClass = WildPathActiveEffect;
   CONFIG.Combat.documentClass = WildPathCombat;

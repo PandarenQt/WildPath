@@ -68,11 +68,34 @@ const UNARMORED = Object.freeze({schemaVersion: 1, id: "unarmored", type: "Armor
   value: {type: "add", terms: [{type: "constant", value: 10}, {type: "ability-modifier", ability: "agility"}]}}});
 
 /**
+ * Condition immunities and auras are read for every condition's suppression, and each reads every aura on the Scene: they
+ * are worked out once per creature until something that can move a rule changes (a creature prepared, a Token moved, a
+ * Scene, combat or setting changed: `invalidateRules`).
+ */
+let rulesTick = 0;
+const RULES_CACHE = new WeakMap();
+/** Creatures whose condition immunities are being worked out: their own conditions are not suppressed meanwhile. */
+const READING_IMMUNITIES = new WeakSet();
+export function invalidateRules() { rulesTick++; }
+function cachedRules(actor, key, compute) {
+  let entry = RULES_CACHE.get(actor);
+  if ( entry?.tick !== rulesTick ) RULES_CACHE.set(actor, entry = {tick: rulesTick});
+  if ( !(key in entry) ) entry[key] = compute();
+  return entry[key];
+}
+
+/**
  * The Actor document subclass for the WildPath system.
  * Centralizes resource math, action-economy spending, and condition toggling so every
  * Actor sub-type shares one consistent, generically-keyed API.
  */
 export default class WildPathActor extends Actor {
+
+  /** What it was prepared from may change any creature's immunities or auras; read mid-preparation, they are not kept. */
+  prepareData() {
+    invalidateRules();
+    try { super.prepareData(); } finally { invalidateRules(); }
+  }
 
   /* -------------------------------------------- */
   /*  Floating combat text                         */
@@ -214,15 +237,25 @@ export default class WildPathActor extends Actor {
 
   /** The auras this creature's features, gear and effects give it (`Aura`). */
   getAuras() {
-    return aurasFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
+    const compute = () => aurasFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
+    // While its immunities are worked out its conditions all count, so that reading is not kept.
+    return READING_IMMUNITIES.has(this) ? compute() : cachedRules(this, "auras", compute);
   }
 
   /** The conditions this creature's features, gear and effects make it immune to (`ConditionImmunity`). */
   getConditionImmunities() {
-    // An aura around it counts too (Aura of Courage: no Frightened while in its paladin's aura).
-    const auras = globalThis.game?.wildpath?.auras?.ownersFor?.(this) ?? [];
-    return conditionImmunitiesFromRuleElements([...grantOwners(this), ...auras], {actor: this, actorSystem: this.system,
-      conditions: [...(this.statuses ?? [])]});
+    if ( READING_IMMUNITIES.has(this) ) return [];
+    return cachedRules(this, "immunities", () => {
+      READING_IMMUNITIES.add(this);
+      try {
+        // An aura around it counts too (Aura of Courage: no Frightened while in its paladin's aura).
+        const auras = globalThis.game?.wildpath?.auras?.ownersFor?.(this) ?? [];
+        return conditionImmunitiesFromRuleElements([...grantOwners(this), ...auras], {actor: this, actorSystem: this.system,
+          conditions: [...(this.statuses ?? [])]});
+      } finally {
+        READING_IMMUNITIES.delete(this);
+      }
+    });
   }
 
   /** The pools this creature's further attacks of an Attack action are paid from (`ExtraAttack`). */
