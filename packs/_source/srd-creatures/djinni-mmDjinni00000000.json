@@ -1312,7 +1312,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (teleport): using it spends its cost; its description says the rest"
+              "not automated (teleport, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1711,7 +1711,7 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: area: 5 * @item.level - 20-ft cube is not supported; the user picks the targets",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
-          "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest"
+          "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

@@ -1183,7 +1183,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (teleport): using it spends its cost; its description says the rest"
+              "not automated (teleport, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1252,7 +1252,7 @@
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature (narrative)",
           "Spellcasting: effect: \"Disguised\" marks its creature (narrative)",
-          "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest"
+          "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

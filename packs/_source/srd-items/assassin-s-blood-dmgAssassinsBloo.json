@@ -2,17 +2,91 @@
   "_id": "dmgAssassinsBloo",
   "_key": "!items!dmgAssassinsBloo",
   "name": "Assassin's Blood",
-  "type": "gear",
+  "type": "action",
   "img": "icons/consumables/potions/bottle-bulb-corked-glowing-red.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p><em>Ingested Poison</em></p><p>A creature subjected to Assassin's Blood makes a DC 10 Constitution saving throw. On a failed save, the creature takes 6 (1d12) Poison damage and has the Poisoned condition for 24 hours. On a successful save, the creature takes half as much damage only.</p>",
-    "quantity": 1,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [],
-    "attunement": "",
-    "armor": ""
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-assassin-s-blood-use-poison",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "assassin-s-blood",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 10
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 12
+          },
+          "damageType": "poison",
+          "provenance": "additional",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "poisoned",
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 86400,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
+      "label": "Assassin's Blood"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "assassin-s-blood-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "assassin-s-blood",
+          "label": "Assassin's Blood",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -28,9 +102,7 @@
         "subtype": "ingested"
       },
       "conversion": {
-        "notes": [
-          "\"Use Poison\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

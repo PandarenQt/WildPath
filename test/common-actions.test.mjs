@@ -120,6 +120,15 @@ test("Help: an ally's next attack on an enemy beside you has Advantage, and that
   await endEffectsWhenAttacked({state}, {fromUuid: async () => ({parent: scene})});
   assert.deepEqual(deleted, ["distracted"], "after the attack, hit or miss; other effects stay");
   assert.deepEqual(await endEffectsWhenAttacked({state: {results: {}}}, {fromUuid: async () => null}), [], "no attack, nothing ends");
+  // Its attacker's `hits` effects (an injury poison's coat) end on a hit, not on a miss.
+  const coated = [];
+  const attacker = {effects: [effect("coat", "hits")], deleteEmbeddedDocuments: async (type, ids) => coated.push(...ids)};
+  const at = {parent: scene, actor: attacker};
+  await endEffectsWhenAttacked({state}, {fromUuid: async () => at});
+  assert.deepEqual(coated, [], "a miss keeps the coat");
+  const hit = {...state, results: {attackResolution: {results: [{ok: true, hit: true, target: {tokenId: "enemy"}}]}}};
+  await endEffectsWhenAttacked({state: hit}, {fromUuid: async () => at});
+  assert.deepEqual(coated, ["coat"], "a hit delivers it");
   // Help's Distracted: its helper's ally's attack ends it; the helper's own does not.
   const {helpedByAlly} = await import("../module/adapters/foundry-v14-auras.mjs");
   const helpScene = {tokens: []};

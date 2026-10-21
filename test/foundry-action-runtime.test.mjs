@@ -1274,6 +1274,21 @@ test("Brutal Strike: a reckless Strength attack gives up its Advantage for 1d10 
   assert.ok(playerRollRequests.some(request => (request.type === "damage") && request.definition.dice.some(die => die.faces === 10)), "1d10 more");
 });
 
+test("an injury poison's coat: its next weapon hit offers the poison's save to the creature hit", async t => {
+  const fs = await import("node:fs");
+  const venom = JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith("serpent-venom"))}`, "utf8"));
+  const coat = venom.system.definition.effects[0];
+  const {sourceActor, player, gm, offers, intent} = counterattackFixture(t, {reactor: "source", items: [],
+    queue: [{natural: 18, total: 22}, {total: 4}], gmQueue: [{natural: 2, total: 2}]});
+  sourceActor.effects = [{id: "coat", name: coat.name, disabled: false, system: {ruleElements: coat.ruleElements}, flags: {}}];
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.deepEqual(offers.map(offer => offer.payload.candidates.map(candidate => candidate.actionId)),
+    [["action:srd-serpent-venom-use-poison:coat"]], "offered on the weapon hit");
+});
+
 test("Cutting Words (Damage): a bard's die comes off another creature's damage roll", async t => {
   const fs = await import("node:fs");
   const words = JSON.parse(fs.readFileSync("packs/_source/srd-items/cutting-words-damage-1lx8h2edtoko0000.json", "utf8"));

@@ -88,7 +88,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (teleport): using it spends its cost; its description says the rest"
+          "not automated (teleport, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

@@ -2,17 +2,164 @@
   "_id": "dmgLolthsSting00",
   "_key": "!items!dmgLolthsSting00",
   "name": "Spider's Sting",
-  "type": "gear",
+  "type": "action",
   "img": "icons/skills/wounds/injury-pain-impaled-hand-blood.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p><em>Injury Poison</em></p><p>A creature subjected to Lolth's Sting must succeed on a DC 13 Constitution saving throw or have the Poisoned condition for 1 hour. If the creature fails the save by 5 or more, the creature also has the Unconscious condition while Poisoned in this way. The creature wakes up if it takes damage or if another creature takes an action to shake it awake.</p>",
-    "quantity": 1,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [],
-    "attunement": "",
-    "armor": ""
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-spider-s-sting-use-poison",
+      "label": "Spider's Sting",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "spider-s-sting",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Spider's Sting",
+          "img": "icons/skills/wounds/injury-pain-impaled-hand-blood.webp",
+          "duration": {
+            "value": 1,
+            "units": "minutes"
+          },
+          "endsWhen": "hits",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "coat",
+              "type": "Trigger",
+              "data": {
+                "kind": "reaction",
+                "event": "attack.hit",
+                "match": {
+                  "phase": "interrupt",
+                  "sourceTokenId": "{self}",
+                  "tagsAll": [
+                    "weapon"
+                  ]
+                },
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-spider-s-sting-use-poison:coat",
+                  "save": {
+                    "ability": "fortitude",
+                    "dc": {
+                      "value": 13
+                    }
+                  },
+                  "effects": [
+                    {
+                      "id": "effect-1",
+                      "type": "condition",
+                      "conditionId": "poisoned",
+                      "saveOutcomePolicy": "failure",
+                      "duration": {
+                        "value": 3600,
+                        "units": "seconds",
+                        "expiry": "turnStart"
+                      }
+                    },
+                    {
+                      "id": "effect-2",
+                      "type": "condition",
+                      "conditionId": "unconscious",
+                      "saveOutcomePolicy": "failure",
+                      "duration": {
+                        "value": 3600,
+                        "units": "seconds",
+                        "expiry": "turnStart"
+                      }
+                    }
+                  ],
+                  "configuration": [
+                    {
+                      "id": "effect-choice",
+                      "type": "option",
+                      "label": "Effect",
+                      "required": true,
+                      "options": [
+                        {
+                          "id": "effect-option-1",
+                          "label": "Poisoned",
+                          "value": "effect-option-1"
+                        },
+                        {
+                          "id": "effect-option-2",
+                          "label": "Unconscious",
+                          "value": "effect-option-2"
+                        }
+                      ],
+                      "effects": [
+                        {
+                          "type": "keepEffect",
+                          "effectIds": [
+                            "effect-1",
+                            "effect-2"
+                          ],
+                          "keep": {
+                            "effect-option-1": [
+                              "effect-1"
+                            ],
+                            "effect-option-2": [
+                              "effect-2"
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ],
+                  "label": "Spider's Sting",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "range": {
+                    "type": "special"
+                  },
+                  "targeting": {
+                    "type": "single",
+                    "required": true,
+                    "count": 1
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "spider-s-sting-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "spider-s-sting",
+          "label": "Spider's Sting",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -28,9 +175,7 @@
         "subtype": "injury"
       },
       "conversion": {
-        "notes": [
-          "\"Use Poison\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

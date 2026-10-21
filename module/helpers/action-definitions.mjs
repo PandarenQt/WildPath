@@ -15,7 +15,7 @@ import {mysticArcanumPoolId, spellBaseLevel} from "./spellcasting.mjs";
 
 /** When a custom effect ends early: its creature is attacked, attacked by the creature that applied it, or attacks. */
 export const CUSTOM_EFFECT_ENDS_WHEN = Object.freeze(["attacked", "attackedBySource", "attackedByOther", "attackedByAllyOfSource", "attacks",
-  "saves", "checks"]);
+  "hits", "saves", "checks"]);
 
 /**
  * When a creature an effect reached repeats the save that let it in (2024: "At the end of each of its turns, the target

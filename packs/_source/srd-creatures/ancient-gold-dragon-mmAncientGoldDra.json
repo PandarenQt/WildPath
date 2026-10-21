@@ -845,7 +845,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (teleport): using it spends its cost; its description says the rest",
+              "not automated (teleport, narrative): using it spends its cost; its description says the rest",
               "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
@@ -1513,7 +1513,7 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: cast: Flame Strike at level 6 is cast at its own level",
-          "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Cannot Lie\" marks its creature (narrative)",
           "Guiding Light: cast: Guiding Bolt at level 2 is cast at its own level"
         ]

@@ -18,6 +18,8 @@ const RULES = [
   [/effect: (\w+) is not a WildPath condition/, match => `condition: ${match[1]}`],
   [/effect: ".*" marks its creature \(narrative\)/, () => "narrative marker (a reminder, nothing to automate)"],
   [/effect: ".*" marks its creature only/, () => "effect marker only (its rules by hand)"],
+  // A change of its token's image is how it looks, nothing to automate.
+  [/effect: ".*" change img \(\w+\) not converted/, () => "effect image (how it looks)"],
   [/effect: ".*" change (\S+) \((\w+)\) not converted/, match => `effect change: ${match[1].replace(/\.(str|dex|con|int|wis|cha)\./, ".<ability>.")
     .replace(/skills\.\w+\./, "skills.<skill>.").replace(/movement\.\w+/, "movement.<mode>")} (${match[2]})`],
   [/cantrip damage growing/, () => "cantrip scaling by level"],
@@ -61,7 +63,7 @@ const RULES = [
 ];
 /** Reasons that say how something is handled rather than what is missing: counted apart from the real gaps. */
 const INFORMATIONAL = new Set(["narrative use (its cost is all there is)", "passive trait (its text is its rule)",
-  "narrative marker (a reminder, nothing to automate)", "narrative save (it tells or hides; nothing to automate)",
+  "narrative marker (a reminder, nothing to automate)", "narrative save (it tells or hides; nothing to automate)", "effect image (how it looks)",
   "concentration sustained (its effect is noted apart)",
   "long activation (minutes, hours)", "resistance bypasses"]);
 

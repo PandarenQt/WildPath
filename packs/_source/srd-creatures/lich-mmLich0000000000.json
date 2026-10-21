@@ -1180,7 +1180,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (teleport): using it spends its cost; its description says the rest"
+              "not automated (teleport, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -2398,7 +2398,7 @@
           "Spellcasting: cast: Fireball at level 5 is cast at its own level",
           "Spellcasting: cast: Lightning Bolt at level 5 is cast at its own level",
           "Spellcasting: teleport: a creature it brings along is moved by hand",
-          "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: \"Raise Zombie\" is passive or triggered: not automated",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",

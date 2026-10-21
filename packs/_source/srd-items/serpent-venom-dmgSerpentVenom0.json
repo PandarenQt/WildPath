@@ -2,17 +2,119 @@
   "_id": "dmgSerpentVenom0",
   "_key": "!items!dmgSerpentVenom0",
   "name": "Serpent Venom",
-  "type": "gear",
+  "type": "action",
   "img": "icons/consumables/potions/round-decorated-snake-green.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p><em>Injury Poison</em></p><p>A creature subjected to Serpent Venom must succeed on a DC 11 Constitution saving throw, taking 10 (3d6) Poison damage on a failed save or half as much damage on a successful one.</p>",
-    "quantity": 1,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [],
-    "attunement": "",
-    "armor": ""
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-serpent-venom-use-poison",
+      "label": "Serpent Venom",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "serpent-venom",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Serpent Venom",
+          "img": "icons/consumables/potions/round-decorated-snake-green.webp",
+          "duration": {
+            "value": 1,
+            "units": "minutes"
+          },
+          "endsWhen": "hits",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "coat",
+              "type": "Trigger",
+              "data": {
+                "kind": "reaction",
+                "event": "attack.hit",
+                "match": {
+                  "phase": "interrupt",
+                  "sourceTokenId": "{self}",
+                  "tagsAll": [
+                    "weapon"
+                  ]
+                },
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-serpent-venom-use-poison:coat",
+                  "save": {
+                    "ability": "fortitude",
+                    "dc": {
+                      "value": 11
+                    }
+                  },
+                  "damage": [
+                    {
+                      "id": "damage-1",
+                      "expression": {
+                        "type": "dice",
+                        "number": 3,
+                        "faces": 6
+                      },
+                      "damageType": "poison",
+                      "provenance": "additional",
+                      "saveOutcomePolicy": {
+                        "success": "half",
+                        "failure": "full"
+                      }
+                    }
+                  ],
+                  "label": "Serpent Venom",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "range": {
+                    "type": "special"
+                  },
+                  "targeting": {
+                    "type": "single",
+                    "required": true,
+                    "count": 1
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "serpent-venom-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "serpent-venom",
+          "label": "Serpent Venom",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -28,9 +130,7 @@
         "subtype": "injury"
       },
       "conversion": {
-        "notes": [
-          "\"Use Poison\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

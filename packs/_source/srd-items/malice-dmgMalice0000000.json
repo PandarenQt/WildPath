@@ -2,17 +2,86 @@
   "_id": "dmgMalice0000000",
   "_key": "!items!dmgMalice0000000",
   "name": "Malice",
-  "type": "gear",
+  "type": "action",
   "img": "icons/magic/air/fog-gas-smoke-orange.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p><em>Inhaled Poison</em></p><p>A creature subjected to Malice must succeed on a DC 15 Constitution saving throw or have the Poisoned condition for 1 hour. The creature also has the Blinded condition while Poisoned in this way.</p>",
-    "quantity": 1,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [],
-    "attunement": "",
-    "armor": ""
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-malice-use-poison",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "malice",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 15
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "blinded",
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-2",
+          "type": "condition",
+          "conditionId": "poisoned",
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
+      "label": "Malice"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "malice-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "malice",
+          "label": "Malice",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -28,9 +97,7 @@
         "subtype": "inhaled"
       },
       "conversion": {
-        "notes": [
-          "\"Use Poison\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

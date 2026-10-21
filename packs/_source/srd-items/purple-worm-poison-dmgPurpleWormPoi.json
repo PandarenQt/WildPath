@@ -2,17 +2,119 @@
   "_id": "dmgPurpleWormPoi",
   "_key": "!items!dmgPurpleWormPoi",
   "name": "Purple Worm Poison",
-  "type": "gear",
+  "type": "action",
   "img": "icons/consumables/potions/bottle-conical-corked-purple.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p><em>Injury Poison</em></p><p>A creature subjected to Purple Worm Poison makes a DC 21 Constitution saving throw, taking 35 (10d6) Poison damage on a failed save or half as much damage on a successful one.</p>",
-    "quantity": 1,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [],
-    "attunement": "",
-    "armor": ""
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-purple-worm-poison-use-poison",
+      "label": "Purple Worm Poison",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "purple-worm-poison",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Purple Worm Poison",
+          "img": "icons/consumables/potions/bottle-conical-corked-purple.webp",
+          "duration": {
+            "value": 1,
+            "units": "minutes"
+          },
+          "endsWhen": "hits",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "coat",
+              "type": "Trigger",
+              "data": {
+                "kind": "reaction",
+                "event": "attack.hit",
+                "match": {
+                  "phase": "interrupt",
+                  "sourceTokenId": "{self}",
+                  "tagsAll": [
+                    "weapon"
+                  ]
+                },
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-purple-worm-poison-use-poison:coat",
+                  "save": {
+                    "ability": "fortitude",
+                    "dc": {
+                      "value": 21
+                    }
+                  },
+                  "damage": [
+                    {
+                      "id": "damage-1",
+                      "expression": {
+                        "type": "dice",
+                        "number": 10,
+                        "faces": 6
+                      },
+                      "damageType": "poison",
+                      "provenance": "additional",
+                      "saveOutcomePolicy": {
+                        "success": "half",
+                        "failure": "full"
+                      }
+                    }
+                  ],
+                  "label": "Purple Worm Poison",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "range": {
+                    "type": "special"
+                  },
+                  "targeting": {
+                    "type": "single",
+                    "required": true,
+                    "count": 1
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "purple-worm-poison-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "purple-worm-poison",
+          "label": "Purple Worm Poison",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -28,9 +130,7 @@
         "subtype": "injury"
       },
       "conversion": {
-        "notes": [
-          "\"Use Poison\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

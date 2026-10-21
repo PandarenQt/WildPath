@@ -1070,7 +1070,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const system = document.system ?? {};
   // An activity with no type is a stale leftover (Tasha's infusions carry one), not something it does.
   const activities = Object.values(system.activities ?? {}).filter(activity => activity?.type)
-    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0));
+    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)).map(activity => poisonUse(system, activity));
   const spell = document.type === "spell";
   const level = number(system.level) ?? 0;
   const pool = usesPool({document, scales}) ?? spentPool(activities, names);
@@ -1172,14 +1172,19 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
               : (((activity.type === "enchant") && SUBTYPE_CLASS[system.type?.subtype])
                 ? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales})
                 : null))))));
+    if ( definition && (system.type?.value === "poison") && (system.type?.subtype === "injury") && (activity.name === "Use Poison") ) {
+      definition = coatDefinition(definition, document, img);
+    }
     if ( !definition ) {
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
       // A use whose text names no game rule (Alarm, Create or Destroy Water, a Tinderbox) is narrative: spending its cost is
       // all there is to automate.
       // So is a Spellcasting feature's own heading beside the spells it casts (its cast activities are the rules).
       const casts = Object.values(system.activities ?? {}).some(entry => entry.type === "cast");
-      const narrative = (activity.type === "utility")
-        && (casts || !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`));
+      // So is a teleport off the Scene (Teleport, Plane Shift, Word of Recall: miles, another plane): its creature leaves.
+      const narrative = ((activity.type === "utility")
+        && (casts || !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`)))
+        || ((activity.type === "teleport") && !((number(activity.teleport?.value) > 0) && ((activity.teleport?.units ?? "ft") === "ft")));
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type}${narrative ? ", narrative" : ""})`}: using it spends its cost; its description says the rest`);
       definition = manualDefinition({document, activity, system, spell, level, notes, pool, names, scales});
     }
@@ -2125,6 +2130,35 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
       // A spell's reaction Trigger (a Mage's Counterspell) comes with it.
       ...(action.system.ruleElements ?? []).filter(rule => rule.type === "Trigger")].filter(Boolean)},
     flags: {wildpath: {source: {...action.flags.wildpath.source, castBy: document.name}, conversion: {notes: [...notes]}}}};
+}
+
+/**
+ * A poison's use (2024 DMG), which dnd5e leaves without an activation: the Utilize action, on one creature within 5 feet
+ * (a contact, ingested or inhaled poison), its save and what a failure does as dnd5e gives them. An injury poison coats
+ * a weapon instead (coatDefinition).
+ */
+function poisonUse(system, activity) {
+  if ( (system.type?.value !== "poison") || (activity.name !== "Use Poison") || !["", "none", "special"].includes(activity.activation?.type ?? "") ) {
+    return activity;
+  }
+  return {...activity, activation: {type: "action", value: 1, override: true}, range: {value: "5", units: "ft", override: true},
+    target: {...(activity.target ?? {}), affects: {...(activity.target?.affects ?? {}), type: "creature", count: "1"}, override: true}};
+}
+
+/**
+ * An injury poison (2024): using it coats its user's weapon. The coat is an effect on its user for 1 minute whose
+ * reaction, on its next weapon hit, makes the creature hit take the poison's save; the hit ends it (`endsWhen: "hits"`).
+ * shortcut: any weapon hit delivers it, not only a Piercing or Slashing one; upgrade when a hit's damage types reach
+ * its trigger.
+ */
+function coatDefinition(definition, document, img) {
+  const {costs, range: _range, targeting: _targeting, ...poison} = definition;
+  const strike = {...poison, id: `${definition.id}:coat`, label: document.name, costs: {allOf: []}, range: {type: "special"},
+    targeting: {type: "single", required: true, count: 1}};
+  return {schemaVersion: 1, id: definition.id, label: document.name, costs, ...(definition.tags ? {tags: definition.tags} : {}),
+    range: {type: "self"}, targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect", name: document.name, img,
+      duration: {value: 1, units: "minutes"}, endsWhen: "hits", ruleElements: [{schemaVersion: 1, id: "coat", type: "Trigger",
+        data: {kind: "reaction", event: "attack.hit", match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["weapon"]}, action: strike}}]}]};
 }
 
 /** A creature id's name part: `phbmobWeasel0000` and `mmWeasel00000000` are both `weasel`; a random id has none. */
