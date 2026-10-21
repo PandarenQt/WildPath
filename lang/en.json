@@ -1185,6 +1185,13 @@
       "PushNoToken": "WildPath: a push needs its source's Token on a Scene.",
       "SocketFailed": "WildPath couldn't set up its multiplayer channel; players' Actions won't resolve. Reload the world.",
       "BrokenRules": "WildPath: some rules on {name} ({actor}) can't be read and are skipped. Open it to see which."
+    },
+    "MIGRATION": {
+      "Start": "WildPath is updating this world's data. Please wait before making changes.",
+      "Done": "WildPath finished updating this world's data.",
+      "Failed": "WildPath couldn't finish updating this world ({name}). The console has the details; it tries again at the next start.",
+      "Threat": "fractional Challenge Ratings",
+      "StalePools": "removing pools left by deleted Items"
     }
   },
   "TYPES": {

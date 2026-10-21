@@ -1,4 +1,5 @@
 import {gmNotice} from "./module/helpers/gm-notice.mjs";
+import {runMigrations} from "./module/helpers/migrations.mjs";
 import {WILDPATH} from "./module/config.mjs";
 import {registerFoundryV14ConditionStatuses} from "./module/adapters/foundry-v14-status-effects-adapter.mjs";
 import {registerBlindsight, registerDarknessSight} from "./module/adapters/foundry-v14-senses.mjs";
@@ -115,6 +116,8 @@ Hooks.once("init", () => {
   };
 
   // The 2014 rules replace the conditions that differ (a world setting; read during init, applied after a reload).
+  // The last world migration done (module/helpers/migrations.mjs).
+  game.settings.register("wildpath", "migrationVersion", {scope: "world", config: false, type: Number, default: 0});
   game.settings.register("wildpath", "rulesVersion", {
     name: "WILDPATH.SETTINGS.RulesVersion.Name",
     hint: "WILDPATH.SETTINGS.RulesVersion.Hint",
@@ -263,6 +266,7 @@ Hooks.once("init", () => {
 /* -------------------------------------------- */
 
 Hooks.once("ready", async () => {
+  await runMigrations();
   const registration = registerFoundryV14MultiplayerResolution();
   if ( !registration.ok ) {
     gmNotice("WILDPATH.NOTICE.SocketFailed", {}, registration);
