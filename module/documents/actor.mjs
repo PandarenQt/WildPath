@@ -13,7 +13,7 @@ import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTr
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {floatHealthChange} from "../applications/floating-text.mjs";
-import {hitDiceHealing, hitDiePoolId} from "../helpers/spellcasting.mjs";
+import {effectiveSpellcasting, hitDiceHealing, hitDiePoolId} from "../helpers/spellcasting.mjs";
 import {actorAbilityModifier, resolveActorCheckStatistic, resolveActorSaveStatistic} from "../helpers/combat-statistics.mjs";
 import {combineRollModes, d20FormulaWith} from "../helpers/rolls.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
@@ -61,7 +61,7 @@ export function classRecordsFromItems(items) {
   return classes.map((item, index) => ({id: identifierOf(item), name: item.name ?? "", level: Number(item.system?.levels) || 1,
     hitDie: Number(item.system?.hitDie) || null, original: marked ? item.system?.original === true : index === 0,
     subclasses: items.filter(entry => (entry.type === "subclass") && (entry.system?.classIdentifier === identifierOf(item))).map(identifierOf),
-    spellcasting: {progression: item.system?.spellcasting?.progression ?? "none", ability: item.system?.spellcasting?.ability ?? ""}}));
+    spellcasting: (({progression="none", ability=""}) => ({progression, ability}))(effectiveSpellcasting(item, items))}));
 }
 
 /** 2024: a creature's AC without armor is 10 + its Agility modifier. */

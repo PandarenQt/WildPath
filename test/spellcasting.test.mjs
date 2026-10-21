@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {casterLevel, deriveClassData, hitDiceHealing, pactMagic, spellSlots} from "../module/helpers/spellcasting.mjs";
+import {casterLevel, deriveClassData, effectiveSpellcasting, hitDiceHealing, pactMagic, preparedSpellLimit, spellSlots} from "../module/helpers/spellcasting.mjs";
 
 test("spent Hit Dice heal each roll plus Fortitude, at least 1 a die (2024) or 0 (2014)", () => {
   assert.equal(hitDiceHealing([7, 2], 2), 13);
@@ -86,4 +86,27 @@ test("Mystic Arcanum: only the spell marked as its level's arcanum may spend tha
   assert.equal(options(spell(false, arcanumPool)).includes("mystic-arcanum.6"), false, "not marked");
   assert.equal(options(spell(true, [])).includes("mystic-arcanum.6"), false, "no arcanum of that level");
   assert.deepEqual([preparesSpell(spell(true, arcanumPool)), preparesSpell(spell(false, arcanumPool))], [false, true]);
+});
+
+test("third casters: their own table alone (a third of the level, rounded up, from 3rd), a third rounded down beside others", () => {
+  const knight = level => ({id: "fighter", level, spellcasting: {progression: "third"}});
+  // 2024 Eldritch Knight: 3rd level two 1st-level slots, 7th four and two, 19th 4/3/3/1.
+  assert.deepEqual([2, 3, 4, 7, 10, 13, 19].map(level => casterLevel([knight(level)])), [0, 1, 2, 3, 4, 5, 7]);
+  assert.deepEqual(spellSlots(casterLevel([knight(7)])).slice(0, 2), [4, 2]);
+  assert.deepEqual(spellSlots(casterLevel([knight(19)])).slice(0, 4), [4, 3, 3, 1]);
+  // Multiclassed with a wizard: a third of the Fighter levels, rounded down.
+  assert.equal(casterLevel([knight(8), {id: "wizard", level: 2, spellcasting: {progression: "full"}}]), 4);
+  assert.equal(casterLevel([knight(3), {id: "warlock", level: 2, spellcasting: {progression: "pact"}}]), 1, "Pact Magic is apart");
+});
+
+test("a class with no spellcasting of its own casts through its subclass, and prepares by its table", () => {
+  const fighter = {type: "class", system: {identifier: "fighter", levels: 7, spellcasting: {progression: "none", ability: ""}}};
+  const knight = {type: "subclass", system: {classIdentifier: "fighter", spellcasting: {progression: "third", ability: "intellect",
+    prepared: [0, 0, 3, 4, 4, 4, 5]}}};
+  const champion = {type: "subclass", system: {classIdentifier: "fighter", spellcasting: {progression: "none"}}};
+  assert.equal(effectiveSpellcasting(fighter, [fighter, knight]).progression, "third");
+  assert.equal(effectiveSpellcasting(fighter, [fighter, knight]).ability, "intellect");
+  assert.equal(effectiveSpellcasting(fighter, [fighter, champion]).progression, "none");
+  assert.equal(preparedSpellLimit([fighter], [fighter, knight]), 5);
+  assert.equal(preparedSpellLimit([fighter], [fighter, champion]), null);
 });

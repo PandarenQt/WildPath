@@ -163,7 +163,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       row.arcanum = (pool && (pool.max > 0)) ? {level, on: item.flags?.wildpath?.arcanum === true} : null;
     }
     const preparing = this.actor.items.filter(preparesSpell);
-    const limit = preparedSpellLimit(classes);
+    const limit = preparedSpellLimit(classes, [...this.actor.items]);
     const count = preparing.filter(item => item.system.prepared !== false).length;
     context.preparedSpells = (preparing.length || (limit !== null)) ? {count, limit, over: (limit !== null) && (count > limit)} : null;
     context.dyingModes = {auto: "WILDPATH.SHEET.DyingMode.auto", deathSaves: "WILDPATH.SHEET.DyingMode.deathSaves",
@@ -302,7 +302,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     if ( !item ) return;
     const prepared = item.system.prepared === false;
     await item.update({"system.prepared": prepared});
-    const limit = preparedSpellLimit(this.actor.items.filter(entry => entry.type === "class"));
+    const limit = preparedSpellLimit(this.actor.items.filter(entry => entry.type === "class"), [...this.actor.items]);
     const count = this.actor.items.filter(entry => preparesSpell(entry) && (entry.system.prepared !== false)).length;
     if ( prepared && (limit !== null) && (count > limit) ) {
       ui.notifications.warn(game.i18n.format("WILDPATH.SHEET.PreparedOver", {name: this.actor.name, count, limit}));
