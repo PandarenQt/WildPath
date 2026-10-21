@@ -10,7 +10,7 @@ Every Actor stores one record per class in `system.classes`. Multiclassing is th
 ```js
 {id: "paladin", name: "Paladin", level: 3, original: false,
  subclasses: ["oath-a"],                                  // a class may hold several subclasses
- spellcasting: {progression: "half", ability: "presence"}} // progression: none | full | half
+ spellcasting: {progression: "half", ability: "presence"}} // progression: none | full | half | third | pact
 ```
 
 Derived on preparation (`helpers/spellcasting.mts`, `WildPathBaseActor#deriveClasses`):
@@ -219,7 +219,13 @@ needing Warlock levels was offered. Armor of Shadows was added.
 ## Spellcasting progression (2024)
 
 - **Caster level.** Every level in a full-caster class, plus half the levels in each half-caster class,
-  rounded up per class. A level-1 Paladin is caster level 1, and Wizard 3 + Paladin 3 is caster level 5.
+  rounded up per class. A level-1 Paladin is caster level 1, and Wizard 3 + Paladin 3 is caster level 5. The Artificer
+  is a half caster (it rounds up).
+- **Third casters (2026-10-21).** The Eldritch Knight and Arcane Trickster cast through their subclass: the subclass
+  Item carries `spellcasting` (`third`, Intellect, its prepared table), and a class with none of its own takes its
+  subclass's (`effectiveSpellcasting`), in its class record and its prepared limit. A third of its levels count,
+  rounded down, beside another casting class; alone it uses its own table, a third rounded up from 3rd level. Live: a
+  Fighter 7 with the Eldritch Knight had caster level 3, four 1st- and two 2nd-level slots.
 - **Slots.** Spell slots per spell level come from the 2024 multiclass spellcaster table at that caster
   level. They are held in the existing `spell-slot.<n>` pools, which Actions already pay with.
 - **Pool maxima.** A slot pool's maximum adds the table's count to its own base, bonus and modifiers.
@@ -246,7 +252,6 @@ needing Warlock levels was offered. Armor of Shadows was added.
     arcanum (1/1 to 0/1); Eyebite stayed unavailable, its pact slots being level 5.
 - **The pool chosen pays.** A resource choice's option is paid from the pool it named (`resourceId` on the requirement),
   not from another pool with the same capability: Pact Magic slots chosen are not swapped for a level-1 slot.
-- There are no third casters.
 
 The ruleset lives in one module (`helpers/spellcasting.mts`), so another ruleset replaces that module
 rather than branching inside callers (AGENTS §10).
