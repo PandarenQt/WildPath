@@ -1039,7 +1039,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
               "concentration: its caster concentrates; what it sustains is by hand",
               "concentration: nothing it sustains was converted"
@@ -1273,9 +1273,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "consumption: attribute 1 not converted",
-              "consumption: attribute 1 not converted"
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1565,12 +1563,12 @@
           "Spellcasting: cast: Scorching Ray at level 3 is cast at its own level",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
+          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Blazing Light: cast: Scorching Ray at level 3 is cast at its own level",
-          "Pounce: not automated (utility): using it spends its cost; its description says the rest",
-          "Pounce: consumption: attribute 1 not converted"
+          "Pounce: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

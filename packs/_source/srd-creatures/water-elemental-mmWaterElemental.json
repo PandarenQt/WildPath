@@ -567,7 +567,6 @@
       "conversion": {
         "notes": [
           "Freeze: \"Use\" is passive or triggered: not automated",
-          "Whelm: \"Escape Check\" is passive or triggered: not automated",
           "Whelm: activation: turnStart is not an action-economy cost"
         ]
       }

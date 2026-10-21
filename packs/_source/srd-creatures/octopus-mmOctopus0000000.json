@@ -323,8 +323,7 @@
       },
       "conversion": {
         "notes": [
-          "Ink Cloud: not automated (utility): using it spends its cost; its description says the rest",
-          "Tentacles: \"Escape Check\" is passive or triggered: not automated"
+          "Ink Cloud: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

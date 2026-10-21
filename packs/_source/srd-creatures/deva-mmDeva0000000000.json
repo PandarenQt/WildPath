@@ -525,7 +525,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 1 minute is not an action-economy cost"
             ]
           }
@@ -972,6 +972,7 @@
           "Spellcasting: effect: \"Detect Evil and Good\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
+          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
           "Divine Aid: not SRD 5.2 (CC-BY-4.0)"

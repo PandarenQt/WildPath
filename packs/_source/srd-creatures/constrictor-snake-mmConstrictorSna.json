@@ -276,9 +276,7 @@
         "challenge": 0.25
       },
       "conversion": {
-        "notes": [
-          "Constrict: \"Escape Check\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

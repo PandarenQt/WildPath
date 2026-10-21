@@ -97,7 +97,7 @@
       },
       "conversion": {
         "notes": [
-          "dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
+          "dispel: a lasting area or an object is not a target (by hand)"
         ]
       }
     }

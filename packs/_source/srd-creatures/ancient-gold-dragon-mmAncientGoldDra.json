@@ -186,7 +186,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1343,9 +1343,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "consumption: attribute 1 not converted",
-              "consumption: attribute 1 not converted"
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1455,7 +1453,7 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest",
+          "Multiattack: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Magic\" marks its creature only; its rules are by hand",
           "Spellcasting: cast: Guiding Bolt at level 4 is cast at its own level",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
@@ -1464,8 +1462,7 @@
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Cannot Lie\" marks its creature only; its rules are by hand",
           "Guiding Light: cast: Guiding Bolt at level 2 is cast at its own level",
-          "Pounce: not automated (utility): using it spends its cost; its description says the rest",
-          "Pounce: consumption: attribute 1 not converted"
+          "Pounce: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

@@ -1005,7 +1005,6 @@
       "conversion": {
         "notes": [
           "Reflective Carapace: \"Roll d6\" is passive or triggered: not automated",
-          "Bite: \"Escape Check\" is passive or triggered: not automated",
           "Swallow: effect: coverTotal is not a WildPath condition yet",
           "Swallow: \"Damage: Swallowed\" is passive or triggered: not automated",
           "Swallow: \"Regurgitate: Save\" is passive or triggered: not automated",

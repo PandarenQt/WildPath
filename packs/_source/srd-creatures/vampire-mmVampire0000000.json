@@ -215,7 +215,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1060,8 +1060,7 @@
       "conversion": {
         "notes": [
           "Misty Escape: \"Paralyzed\" is passive or triggered: not automated",
-          "Multiattack (Vampire Form Only): not automated (utility): using it spends its cost; its description says the rest",
-          "Grave Strike (Vampire Form Only): \"Escape Check\" is passive or triggered: not automated",
+          "Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Deathless Strike: not automated (utility): using it spends its cost; its description says the rest",
           "Vampire Weakness: \"Damage: Running Water\" is passive or triggered: not automated",
           "Vampire Weakness: \"Staked to the Heart\" is passive or triggered: not automated",

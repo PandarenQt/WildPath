@@ -162,7 +162,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 1 minute is not an action-economy cost"
             ]
           }
@@ -438,7 +438,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 1 minute is not an action-economy cost"
             ]
           }
@@ -520,7 +520,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "concentration: its caster concentrates; what it sustains is by hand"
             ]
           }
@@ -1068,7 +1068,7 @@
       },
       "conversion": {
         "notes": [
-          "Coven Magic: not automated (utility): using it spends its cost; its description says the rest",
+          "Coven Magic: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Coven Magic: activation: 1 minute is not an action-economy cost",
           "Coven Magic: concentration: its caster concentrates; what it sustains is by hand",
           "Coven Magic: activation: 10 minute is not an action-economy cost",

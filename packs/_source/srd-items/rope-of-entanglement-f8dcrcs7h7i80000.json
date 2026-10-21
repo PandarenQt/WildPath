@@ -29,7 +29,6 @@
       },
       "conversion": {
         "notes": [
-          "\"Escape\" is passive or triggered: not automated",
           "\"Damage Rope\" is passive or triggered: not automated",
           "\"Repair Rope\" is passive or triggered: not automated"
         ]

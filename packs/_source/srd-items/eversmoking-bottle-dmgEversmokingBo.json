@@ -40,7 +40,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
+          "not automated (utility, narrative): using it spends its cost; its description says the rest",
           "area: 50 + @scaling * 10-ft radius is not supported; the user picks the targets"
         ]
       }

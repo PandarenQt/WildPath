@@ -493,7 +493,7 @@
           },
           "conversion": {
             "notes": [
-              "dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand"
+              "dispel: a lasting area or an object is not a target (by hand)"
             ]
           }
         }
@@ -1154,7 +1154,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1596,7 +1596,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1823,11 +1823,11 @@
           "Rotting Fist: effect: cursed is not a WildPath condition yet",
           "Rotting Fist: effect: \"Cursed\" marks its creature only; its rules are by hand",
           "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: dispel: a spell above its level needs the caster's check, by hand; areas and objects by hand",
+          "Spellcasting: dispel: a lasting area or an object is not a target (by hand)",
           "Spellcasting: cast: Insect Plague at level 7 is cast at its own level",
-          "Glare: not automated (utility): using it spends its cost; its description says the rest",
+          "Glare: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Dread Command: cast: Command at level 2 is cast at its own level",
-          "Necrotic Strike: not automated (utility): using it spends its cost; its description says the rest"
+          "Necrotic Strike: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

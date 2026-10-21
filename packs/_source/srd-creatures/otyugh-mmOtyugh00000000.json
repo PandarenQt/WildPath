@@ -450,8 +450,7 @@
       },
       "conversion": {
         "notes": [
-          "Bite: \"save\" is passive or triggered: not automated",
-          "Tentacle: \"Escape Check\" is passive or triggered: not automated"
+          "Bite: \"save\" is passive or triggered: not automated"
         ]
       }
     }

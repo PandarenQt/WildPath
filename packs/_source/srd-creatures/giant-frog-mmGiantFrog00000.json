@@ -385,7 +385,6 @@
       },
       "conversion": {
         "notes": [
-          "Bite: \"Escape Check\" is passive or triggered: not automated",
           "Swallow: effect: coverTotal is not a WildPath condition yet",
           "Swallow: activation: turnEnd is not an action-economy cost"
         ]

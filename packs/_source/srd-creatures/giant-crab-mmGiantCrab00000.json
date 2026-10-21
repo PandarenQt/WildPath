@@ -225,9 +225,7 @@
         "challenge": 0.125
       },
       "conversion": {
-        "notes": [
-          "Claw: \"Escape Check\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

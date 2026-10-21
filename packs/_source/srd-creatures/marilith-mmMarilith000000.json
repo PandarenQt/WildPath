@@ -820,7 +820,6 @@
       },
       "conversion": {
         "notes": [
-          "Constrict: \"Escape Check\" is passive or triggered: not automated",
           "Teleport: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

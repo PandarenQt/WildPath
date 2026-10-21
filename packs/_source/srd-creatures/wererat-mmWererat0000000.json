@@ -609,7 +609,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -670,7 +670,7 @@
         "notes": [
           "Bite (Rat or Hybrid Form Only): effect: cursed is not a WildPath condition yet",
           "Bite (Rat or Hybrid Form Only): effect: \"Cursed\" marks its creature only; its rules are by hand",
-          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
+          "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

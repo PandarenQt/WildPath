@@ -914,7 +914,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1145,7 +1145,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1283,9 +1283,9 @@
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Sonic Boom: cast: Shatter at level 3 is cast at its own level",
-          "Tail Swipe: not automated (utility): using it spends its cost; its description says the rest"
+          "Tail Swipe: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

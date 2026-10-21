@@ -369,7 +369,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -475,7 +475,7 @@
       "conversion": {
         "notes": [
           "Stench: \"save\" is passive or triggered: not automated",
-          "Leap: not automated (utility): using it spends its cost; its description says the rest"
+          "Leap: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

@@ -310,9 +310,7 @@
         "challenge": 1
       },
       "conversion": {
-        "notes": [
-          "Grab: \"Escape Check\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

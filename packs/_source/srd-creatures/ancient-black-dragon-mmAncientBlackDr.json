@@ -846,7 +846,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1199,9 +1199,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "consumption: attribute 1 not converted",
-              "consumption: attribute 1 not converted"
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1341,11 +1339,11 @@
           "Spellcasting: summon: its creature is not among the converted creatures",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: cast: Vitriolic Sphere at level 5 is cast at its own level",
           "Spellcasting: \"End of Turn Damage\" is passive or triggered: not automated",
           "Cloud of Insects: effect: \"Clouded\" marks its creature only; its rules are by hand",
-          "Pounce: not automated (utility): using it spends its cost; its description says the rest",
-          "Pounce: consumption: attribute 1 not converted"
+          "Pounce: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

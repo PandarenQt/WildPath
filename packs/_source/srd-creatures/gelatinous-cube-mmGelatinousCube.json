@@ -354,8 +354,7 @@
           "Ooze Cube: \"Puller Damage\" is passive or triggered: not automated",
           "Transparent: \"check\" is passive or triggered: not automated",
           "Engulf: effect: coverTotal is not a WildPath condition yet",
-          "Engulf: effect: suffocation is not a WildPath condition yet",
-          "Engulf: \"Escape Check\" is passive or triggered: not automated"
+          "Engulf: effect: suffocation is not a WildPath condition yet"
         ]
       }
     }

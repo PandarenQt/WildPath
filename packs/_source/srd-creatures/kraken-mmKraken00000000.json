@@ -738,7 +738,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -952,11 +952,10 @@
       },
       "conversion": {
         "notes": [
-          "Tentacle: \"Escape Check\" is passive or triggered: not automated",
           "Swallow: effect: coverTotal is not a WildPath condition yet",
           "Swallow: \"Damage: Swallowed\" is passive or triggered: not automated",
           "Swallow: \"Regurgitate: Save\" is passive or triggered: not automated",
-          "Storm Bolt: not automated (utility): using it spends its cost; its description says the rest"
+          "Storm Bolt: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

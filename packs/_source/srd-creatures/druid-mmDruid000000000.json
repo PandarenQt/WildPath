@@ -363,7 +363,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1063,7 +1063,7 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Carrying Message\" marks its creature only; its rules are by hand"
         ]
       }

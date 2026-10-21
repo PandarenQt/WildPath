@@ -573,7 +573,6 @@
       },
       "conversion": {
         "notes": [
-          "Vortex: \"Escape Check\" is passive or triggered: not automated",
           "Vortex: activation: turnStart is not an action-economy cost"
         ]
       }
