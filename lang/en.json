@@ -1221,7 +1221,8 @@
         "DismissSummons": "dismissing a dead caster's summons",
         "Initiative": "an initiative trigger",
         "RefillMovement": "refilling movement",
-        "Ammunition": "Ammunition"
+        "Ammunition": "Ammunition",
+        "Contagion": "Contagion"
       },
       "FormMissing": "WildPath: the form this Action names can't be found, so nothing was transformed.",
       "FormTooStrong": "{form} is beyond {name}'s Challenge Rating or level, so it wasn't transformed.",

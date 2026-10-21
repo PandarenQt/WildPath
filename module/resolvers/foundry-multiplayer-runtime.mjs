@@ -55,6 +55,7 @@ export function actionCover({definition, sourceToken, targetToken, points=[]}) {
 import {createFoundryWeaponMastery} from "../adapters/foundry-v14-weapon-mastery.mjs";
 import {lacksAmmunition, offerAmmunitionRecovery, spendAmmunition} from "../adapters/foundry-v14-ammunition.mjs";
 import {consumeScrollOf} from "../helpers/spell-scrolls.mjs";
+import {createFoundryContagions} from "../adapters/foundry-v14-contagions.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -247,10 +248,17 @@ export function registerFoundryV14MultiplayerResolution({
   // 2024: a stable creature regains 1 health after 1d4 hours; world time moving on (or a rest, Actor#rest) counts.
   globalThis.Hooks?.on?.("updateWorldTime", worldTime => void dying.onWorldTime(worldTime)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.StableRecovery") ?? "StableRecovery"}, error)));
+  // Contagions (helpers/contagions.mjs): an infection's incubation, its symptoms as time passes, its fight after a rest.
+  const contagions = createFoundryContagions({game, logger});
+  const contagionStep = step => error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Contagion")
+    ?? step}, error);
+  globalThis.Hooks?.on?.("createActiveEffect", effect => void contagions.onEffectCreated(effect).catch(contagionStep("Contagion")));
+  globalThis.Hooks?.on?.("deleteActiveEffect", effect => void contagions.onEffectDeleted(effect).catch(contagionStep("Contagion")));
+  globalThis.Hooks?.on?.("updateWorldTime", () => void contagions.onWorldTime().catch(contagionStep("Contagion")));
   // A condition's damage at turn start (Bleeding), resolved like any other damage (reactions, rescue, dying).
   const turnDamage = createFoundryTurnDamage({game, coordinator, logger,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
-  game.wildpath = {...(game.wildpath ?? {}), dying, turnDamage, endEffectsWhenChecked};
+  game.wildpath = {...(game.wildpath ?? {}), dying, turnDamage, endEffectsWhenChecked, contagions};
   // 2024: an Incapacitated creature's concentration ends; everything it sustains ends with it (active GM).
   globalThis.Hooks?.on?.("createActiveEffect", effect => void endConcentrationOnIncapacitation(effect, game)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.EndConcentration") ?? "EndConcentration"}, error)));
