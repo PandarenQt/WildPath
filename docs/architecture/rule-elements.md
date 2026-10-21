@@ -448,6 +448,12 @@ Telepathy with its range, or an understanding of every language (`any`); classes
 `truesight`, `devilsSight`, `seeInvisibility`) out to `range` feet; a creature keeps the best range of each
 (senses-and-cover.md).
 
+**Offered as it hits, by its text (2026-10-21).** Beside the named on-hit features (`OWN_HIT`), the converter offers a
+passive damage or save activity on its creature's own hits when its text says "when you hit a creature with an attack
+roll" or "with a weapon" (a Battle Master's maneuvers, Favored Foe): a weapon's hit when it says weapon, once a turn
+when it says so. A part of every damage type ("add the die to the attack's damage roll") becomes a rider on the attack
+it answers, of the attack's own type.
+
 **Effects known by name (2026-10-21).** A dnd5e effect without changes takes its rules from its name
 (`EFFECTS_BY_NAME` in the converter), wherever it comes from: "Next Attack: Disadv." (a RollMode its next attack
 ends), "Attack: Advantage", "Concentration Disadvantage", "Damaged: −2 AC", Barkskin's "Bark-like Skin" (an AC

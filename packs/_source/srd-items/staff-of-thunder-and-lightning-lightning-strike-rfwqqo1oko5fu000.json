@@ -26,7 +26,9 @@
         ]
       },
       "targeting": {
-        "type": "area"
+        "type": "single",
+        "required": true,
+        "count": 1
       },
       "area": {
         "shape": "line",
@@ -61,6 +63,9 @@
           }
         }
       ],
+      "range": {
+        "type": "special"
+      },
       "label": "Staff of Thunder and Lightning (Lightning Strike)"
     },
     "ruleElements": [
@@ -90,6 +95,20 @@
             "value": 1
           },
           "recovery": "longRest"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": []
+          }
         }
       }
     ]

@@ -41,7 +41,7 @@ const CORE_PACKAGES = new Set(["wildpath", "wildpath-dnd-players-handbook", "wil
 export function sourceGate(source, packageName) {
     if (!source?.system || source.thirdParty)
         return "thirdParty";
-    if (/Unearthed Arcana|UA/i.test(String(source.book ?? "")))
+    if (/Unearthed Arcana|\bUA\b/i.test(String(source.book ?? "")))
         return "ua";
     if (CORE_PACKAGES.has(String(packageName ?? "")))
         return (source.rules === "2014") ? "core2014" : "core2024";

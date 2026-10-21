@@ -1,0 +1,86 @@
+{
+  "_id": "lycuamth6bi40000",
+  "_key": "!items!lycuamth6bi40000",
+  "name": "Sword of Wounding (Sword of Wounding Save)",
+  "type": "action",
+  "img": "icons/skills/melee/strike-sword-blood-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Glaive, Greatsword, Longsword, Rapier, Scimitar, or Shortsword), Rare (Requires Attunement)</em></p><p>When you hit a creature with an attack using this magic weapon, the target takes an extra 2d6 Necrotic damage and must succeed on a DC 15 Constitution saving throw or be unable to regain Hit Points for 1 hour. The target repeats the save at the end of each of its turns, ending the effect on itself on a success.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-sword-of-wounding-sword-of-wounding-save",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 15
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Wounded and Cannot Heal",
+          "img": "icons/skills/melee/strike-sword-blood-red.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "repeatSave": "turnEnd"
+        }
+      ],
+      "range": {
+        "type": "special"
+      },
+      "label": "Sword of Wounding (Sword of Wounding Save)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": []
+          }
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgSwordOfWoundi",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "sword-of-wounding",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}
