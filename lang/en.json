@@ -715,7 +715,9 @@
         "damageWeapon": "Weapon damage",
         "damageSpell": "Spell damage",
         "attacked": "Attack rolls against you"
-      }
+      },
+      "Issue": "Rule {n}: {text}",
+      "Refused": "{name} was not changed. {problems}"
     },
     "BUILDER": {
       "EditInAdvanced": "Edit this on the Advanced tab.",

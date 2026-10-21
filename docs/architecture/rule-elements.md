@@ -186,6 +186,17 @@ serialize
 RuleElement evaluation clones authored data before dispatch and must not mutate the definition or
 the evaluation context.
 
+**Checked when written (2026-10-21).** `module/helpers/rule-guard.mjs` puts a list's problems in
+words, one per rule ("Rule 2: Unknown RuleElement type: Nope"), from `ruleIssues`: the shape, an
+unknown type, and a rule that needs no context but cannot be worked out. The item and effect sheets
+list them on their rules tab and keep an unsaved draft with them; the actor sheet flags an Item or
+effect whose stored rules have any. An Item or ActiveEffect update (from a sheet, a macro or the
+API) that would add a problem the stored list lacks is refused in `_preUpdate`, and its user is told
+which. A creation is not refused, so an import with a broken rule still arrives and is flagged. The
+check is not in the data field itself: a stored document failing its schema would be hidden from the
+world as invalid. The reasons after "Rule n:" are the validator's own (JSON paths, in English): they
+are for the content's author.
+
 ## Persistence
 
 The base Item and ActiveEffect data models now persist:

@@ -1,4 +1,4 @@
-import {ruleElementListErrors} from "./item-sheet.mjs";
+import {ruleProblems} from "../helpers/rule-guard.mjs";
 import {addRule, removeRule, rowsToRules} from "../helpers/rule-builder.mjs";
 import {RULE_ROWS_TEMPLATE, ruleButtonPath, ruleRowsContext} from "./rule-rows.mjs";
 
@@ -26,7 +26,7 @@ const rowOptions = () => ({field: "wildpath.rules", abilities: Object.keys(globa
 /**
  * Foundry's effect sheet with a Rule Elements tab: the effect's RuleElements as rule rows (homebrew-content-builder.md,
  * third slice), and as JSON under Advanced. The engine's validator checks the list on Save; an invalid list keeps the
- * sheet open with the errors in a notification, and nothing is saved.
+ * sheet open with what was typed and its problems listed on the tab, and nothing is saved.
  */
 export class WildPathEffectSheet extends ActiveEffectConfig {
   static override DEFAULT_OPTIONS = {classes: ["wildpath", "themed", "theme-light"], actions: {ruleAdd: WildPathEffectSheet.#onRuleAdd,
@@ -42,14 +42,21 @@ export class WildPathEffectSheet extends ActiveEffectConfig {
   declare form: HTMLFormElement;
   declare isEditable: boolean;
   declare submit: (options?: Data) => Promise<unknown>;
+  declare render: (options?: Data) => Promise<unknown>;
+
+  /** What was typed on the tab and not saved, with its problems, until it is saved or the sheet closes. */
+  #draft: {rules?: unknown; json?: string | undefined; errors: unknown[]; problems: string[]} | null = null;
 
   async _preparePartContext(partId: string, context: Data) {
     // @ts-expect-error The Foundry base class is typed only as far as this file needs.
     const partContext: Data = await super._preparePartContext(partId, context);
     if ( partId === "ruleElements" ) {
       const stored = this.document.toObject(true).system?.ruleElements ?? [];
-      partContext.ruleElementsJson = JSON.stringify(stored, null, 2);
-      partContext.r = ruleRowsContext(stored, {prefix: "wildpath.rules", list: "effect", editable: this.isEditable});
+      const draft = this.#draft;
+      partContext.ruleElementsJson = draft?.json ?? JSON.stringify(stored, null, 2);
+      partContext.r = ruleRowsContext(stored, {prefix: "wildpath.rules", list: "effect", editable: this.isEditable,
+        errors: (draft?.errors ?? []) as never[], draft: draft?.rules as never});
+      partContext.rulesIssues = draft ? [globals.game.i18n.localize("WILDPATH.ITEMSHEET.NotSaved"), ...draft.problems] : ruleProblems(stored);
     }
     return partContext;
   }
@@ -72,8 +79,13 @@ export class WildPathEffectSheet extends ActiveEffectConfig {
         errors = [(error as Error).message];
       }
     }
-    if ( ruleElements ) errors.push(...ruleElementListErrors(ruleElements));
-    if ( errors.length ) throw new Error(`${globals.game.i18n.localize("WILDPATH.ITEMSHEET.NotSaved")} ${errors.join("; ")}`);
+    if ( ruleElements ) errors.push(...ruleProblems(ruleElements));
+    if ( errors.length ) {
+      this.#draft = {rules: drafts.rules, json: typeof text === "string" ? text : undefined, errors: rows.errors, problems: errors};
+      void this.render();
+      throw new Error(`${globals.game.i18n.localize("WILDPATH.ITEMSHEET.NotSaved")} ${errors.join(" ")}`);
+    }
+    this.#draft = null;
     if ( ruleElements ) globals.foundry.utils.setProperty(submitData, "system.ruleElements", ruleElements);
     return submitData;
   }

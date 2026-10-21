@@ -1,5 +1,6 @@
 import {WILDPATH} from "../config.mjs";
 import {serializeRuleElementDefinition} from "../helpers/rule-elements.mjs";
+import {refuseBrokenRules} from "../helpers/rule-guard.mjs";
 
 /**
  * The ActiveEffect document subclass for the WildPath system.
@@ -8,6 +9,12 @@ import {serializeRuleElementDefinition} from "../helpers/rule-elements.mjs";
  * effect. Legacy `generator()` payloads are still merged for compatibility.
  */
 export default class WildPathActiveEffect extends ActiveEffect {
+
+  /** An edit adding problems to its RuleElements is refused, with them in words (a macro's too, not only a sheet's). */
+  async _preUpdate(changes, options, user) {
+    if ( refuseBrokenRules(this, foundry.utils.getProperty(changes, "system.ruleElements")) ) return false;
+    return super._preUpdate(changes, options, user);
+  }
 
   /**
    * A condition its creature is now immune to has no effect while that lasts (2024 Aura of Courage: "If a Frightened

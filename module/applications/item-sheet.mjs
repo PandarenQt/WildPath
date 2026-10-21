@@ -3,8 +3,8 @@ import {summarizeActionDefinition} from "../helpers/action-definition-summary.mj
 import {ACTION_TEMPLATES, AREA_SHAPES, addBuilderRow, applyActionTemplate, builderGaps, builderIssues, builderToDefinition,
   definitionToBuilder, removeBuilderRow} from "../helpers/action-builder.mjs";
 import {WEAPONS} from "../helpers/level-up.mjs";
-import {DEFAULT_RULE_ELEMENT_REGISTRY, validateRuleElementDefinition} from "../helpers/rule-elements.mjs";
-import {addRule, removeRule, ruleIssues, rowsToRules} from "../helpers/rule-builder.mjs";
+import {addRule, removeRule, rowsToRules} from "../helpers/rule-builder.mjs";
+import {ruleProblems} from "../helpers/rule-guard.mjs";
 import {RULE_ROWS_TEMPLATE, ruleButtonPath, ruleRowsContext} from "./rule-rows.mjs";
 import {previewAction} from "../helpers/action-preview.mjs";
 import {actionCombatStatistics, resolveActorCheckStatistic} from "../helpers/combat-statistics.mjs";
@@ -12,17 +12,6 @@ import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-a
 
 const {HandlebarsApplicationMixin} = foundry.applications.api;
 const {ItemSheetV2} = foundry.applications.sheets;
-
-/** What the engine's validator finds wrong with a list of RuleElements; empty when it is valid. */
-export function ruleElementListErrors(ruleElements) {
-  if ( !Array.isArray(ruleElements) ) return ["RuleElements must be a list."];
-  return ruleElements.flatMap((entry, index) => {
-    const result = validateRuleElementDefinition(entry, {index});
-    if ( !result.ok ) return [`${index}: ${result.reason ?? result.code}`];
-    // The validator checks shape only; a type no handler knows would be skipped when the rules are read.
-    return DEFAULT_RULE_ELEMENT_REGISTRY.has(result.ruleElement.type) ? [] : [`${index}: Unknown RuleElement type: ${entry.type}`];
-  });
-}
 
 /** 2024 damage types, offered as suggestions; any slug is accepted. */
 const DAMAGE_TYPES = ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant",
@@ -167,7 +156,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       delete this.#drafts.rules;
       return null;
     }
-    const issues = ruleElementListErrors(result.ruleElements);
+    const issues = ruleProblems(result.ruleElements);
     if ( issues.length ) {
       this.#drafts.rules = {values, errors: [], issues};
       return null;
@@ -182,7 +171,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     if ( typeof text !== "string" ) return null;
     const stored = JSON.stringify(this.item.toObject(true).system.ruleElements ?? [], null, 2);
     if ( !this.#drafts.ruleElements && (text.replace(/\r\n/g, "\n") === stored) ) return null;
-    return this.#parseDraft("ruleElements", text, ruleElementListErrors);
+    return this.#parseDraft("ruleElements", text, ruleProblems);
   }
 
   /**
@@ -389,7 +378,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     context.r = ruleRowsContext(source.ruleElements, {prefix: "wildpath.rules", list: "item", errors: rules?.errors ?? [],
       draft: rules?.values, editable: this.isEditable});
     context.rulesIssues = rules ? [game.i18n.localize("WILDPATH.ITEMSHEET.NotSaved"), ...(rules.issues ?? [])]
-      : ruleIssues(source.ruleElements).map(issue => `${issue.index + 1}: ${issue.text}`);
+      : ruleProblems(source.ruleElements);
     return context;
   }
 

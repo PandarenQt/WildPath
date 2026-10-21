@@ -1,5 +1,8 @@
 <section class="tab builder{{#if tab.active}} active{{/if}}" data-group="{{tab.group}}" data-tab="{{tab.id}}">
   <p class="hint">{{localize "WILDPATH.RULES.Intro"}}</p>
+  {{#if rulesIssues.length}}
+  <ul class="builder-issues">{{#each rulesIssues as |issue|}}<li class="error">{{issue}}</li>{{/each}}</ul>
+  {{/if}}
   {{> "systems/wildpath/templates/item/rule-rows.hbs" rows=r.rows kinds=r.ctx.kinds ctx=r.ctx path=""}}
   <details class="advanced">
     <summary>{{localize "WILDPATH.ITEMSHEET.Tab.advanced"}}</summary>
