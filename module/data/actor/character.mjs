@@ -14,7 +14,7 @@ export default class WildPathCharacter extends WildPathBaseActor {
     return {
       ...super.defineSchema(),
       // Its coins (helpers/crafting.mjs spends them).
-      currency: new foundry.data.fields.SchemaField({pp: coin(), gp: coin(), ep: coin(), sp: coin(), cp: coin()}, {required: false}),
+      currency: new foundry.data.fields.SchemaField({pp: coin(), gp: coin(), ep: coin(), sp: coin(), cp: coin()}),
       details: new foundry.data.fields.SchemaField({
         ancestry: new StringField({required: true, blank: true}),
         background: new StringField({required: true, blank: true}),

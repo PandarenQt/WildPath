@@ -26,7 +26,7 @@ export default class WildPathGear extends WildPathBaseItem {
       unidentified: new SchemaField({
         name: new StringField({required: false, blank: true, initial: ""}),
         description: new HTMLField({required: false, blank: true, initial: ""})
-      }, {required: false})
+      })
     };
   }
 
