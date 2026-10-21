@@ -1,0 +1,109 @@
+{
+  "_id": "dmgPoisonedNeedl",
+  "_key": "!items!dmgPoisonedNeedl",
+  "name": "Poisoned Needle (Trigger (1-4))",
+  "type": "action",
+  "img": "icons/magic/acid/dissolve-drip-droplet-smoke.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p><em>Nuisance Trap (Levels 1–4)</em></p><p><strong>Trigger:</strong> A creature opens the trap's lock improperly or fails to disarm the trap</p><p><strong>Duration:</strong> Instantaneous</p><p>A poisoned needle is hidden in a lock. When a creature opens the lock with any object other than the proper key, the needle springs out and stabs the creature. The creature makes a DC 11 Constitution saving throw. On a failed save, the creature takes 5 (1d10) Poison damage and has the Poisoned condition for 1 hour. On a successful save, the creature takes half as much damage only.</p><p><em><strong>Avoid.</strong></em> The trap doesn't trigger if the lock is opened using a <em>Knock</em> spell or similar magic.</p><p><em><strong>Detect and Disarm.</strong></em> As a Search action, a creature can examine the trapped lock and make a (Perception) check check, detecting the needle on a successful check. Once the trap is detected, a character can take an action to try to disarm the trap, doing so with a successful (Sleight of Hand) check check. On a failed check, the creature triggers the trap.</p><p><em><strong>At Higher Levels.</strong></em> You can scale the trap for higher levels by increasing the damage and the save DC, as shown in the following table.</p><table><thead><tr><th><p>Levels</p></th><th><p>Poison Damage</p></th><th><p>Save DC</p></th><th></th></tr></thead><tbody><tr><td><p>5–10</p></td><td><p>11 (2d10)</p></td><td><p>13</p></td><td></td></tr><tr><td><p>11–16</p></td><td><p>22 (4d10)</p></td><td><p>15</p></td><td></td></tr><tr><td><p>17–20</p></td><td><p>55 (10d10)</p></td><td><p>17</p></td><td></td></tr></tbody></table></div>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-poisoned-needle-trigger-1-4",
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "cube",
+        "size": {
+          "value": 5,
+          "unit": "ft"
+        },
+        "persistence": {
+          "duration": null,
+          "concentration": false,
+          "triggers": [
+            {
+              "on": [
+                "area.entered"
+              ],
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-poisoned-needle-trigger-1-4:sprung",
+                "label": "Poisoned Needle",
+                "costs": {
+                  "allOf": []
+                },
+                "save": {
+                  "ability": "fortitude",
+                  "dc": {
+                    "value": 11
+                  }
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 1,
+                      "faces": 10
+                    },
+                    "damageType": "poison",
+                    "provenance": "additional",
+                    "saveOutcomePolicy": {
+                      "success": "half",
+                      "failure": "full"
+                    }
+                  }
+                ],
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "effect",
+                    "name": "Poisoned Needle",
+                    "img": "systems/dnd5e/icons/svg/statuses/poisoned.svg",
+                    "ruleElements": [],
+                    "duration": {
+                      "value": 3600,
+                      "units": "seconds",
+                      "expiry": "turnStart"
+                    },
+                    "saveOutcomePolicy": "failure"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "label": "Poisoned Needle (Trigger (1-4))"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPoisonedNeedl",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "poisoned-needle",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Poisoned Needle\" marks its creature only; its rules are by hand"
+        ]
+      }
+    }
+  }
+}

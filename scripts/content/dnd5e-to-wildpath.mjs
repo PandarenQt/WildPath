@@ -1116,7 +1116,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( ["brutal-strike", "improved-brutal-strike", "elemental-affinity"].includes(identifierOf(document)) ) continue;
     // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use): used, though dnd5e may leave it passive.
     const trades = tradesPools({document, activity, pool, names, scales});
-    if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !trades && !USED_AT_TURN_START.has(identifierOf(document)) ) {
+    // A trap's tier ("Trigger (5-10)", 2024 DMG) is set by the GM as a lasting area (trapDefinition).
+    const trapTier = /^Trigger \(\d+[–-]\d+\)$/u.test(activity.name ?? "") && ["save", "damage", "attack"].includes(activity.type);
+    if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !trades && !trapTier && !USED_AT_TURN_START.has(identifierOf(document)) ) {
       // A recharge when its creature rolls Initiative (Persistent Rage, Uncanny Metabolism, Archdruid): automatic.
       const recharge = initiativeTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature,
         beasts}) ?? restTrigger(document, activity);
@@ -1172,6 +1174,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
               : (((activity.type === "enchant") && SUBTYPE_CLASS[system.type?.subtype])
                 ? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales})
                 : null))))));
+    if ( definition && trapTier ) definition = trapDefinition(definition, document.name);
     if ( definition && (system.type?.value === "poison") && (system.type?.subtype === "injury") && (activity.name === "Use Poison") ) {
       definition = coatDefinition(definition, document, img);
     }
@@ -2159,6 +2162,21 @@ function coatDefinition(definition, document, img) {
     range: {type: "self"}, targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect", name: document.name, img,
       duration: {value: 1, units: "minutes"}, endsWhen: "hits", ruleElements: [{schemaVersion: 1, id: "coat", type: "Trigger",
         data: {kind: "reaction", event: "attack.hit", match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["weapon"]}, action: strike}}]}]};
+}
+
+/**
+ * A trap's tier (2024 DMG: "Trigger (5-10)", by the characters' levels) as the Action its GM sets it with: a lasting
+ * 5-foot square placed anywhere, with no duration, that springs on each creature entering it: its save or attack, and
+ * its damage and effects. Setting it does nothing else. shortcut: finding it (Wisdom (Perception)) and disarming it are
+ * by hand (delete its area), and so is a trap that springs only once; upgrade with hazard Regions that hold their DCs.
+ */
+function trapDefinition(definition, name) {
+  const sprung = {schemaVersion: 1, id: `${definition.id}:sprung`, label: name, costs: {allOf: []},
+    ...Object.fromEntries(["tags", "save", "attack", "damage", "effects"].filter(key => definition[key] && !(Array.isArray(definition[key])
+      && !definition[key].length)).map(key => [key, definition[key]]))};
+  return {schemaVersion: 1, id: definition.id, ...(definition.label ? {label: definition.label} : {}), costs: {allOf: []},
+    range: {type: "special"}, targeting: {type: "area"}, area: {shape: "cube", size: {value: 5, unit: "ft"},
+      persistence: {duration: null, concentration: false, triggers: [{on: ["area.entered"], action: sprung}]}}};
 }
 
 /** A creature id's name part: `phbmobWeasel0000` and `mmWeasel00000000` are both `weasel`; a random id has none. */

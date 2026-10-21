@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 913 automated, 267 manual, 227 features. Creatures: 375.
+Items: 941 automated, 267 manual, 227 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -303,7 +303,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Club | equipment24 | Club (automated) | — |
 | Cobbler's Tools | equipment24 | Cobbler's Tools (gear), Cobbler's Tools (automated) | — |
 | Cockatrice | actors24 | Cockatrice (3 items) | Petrifying Bite: "First Save" is passive or triggered: not automated; Petrifying Bite: activation: turnEnd is not an action-economy cost |
-| Collapsing Roof | equipment24 | Collapsing Roof (gear) | "Trigger (1-4)" is passive or triggered: not automated; "Trigger (5-10)" is passive or triggered: not automated; "Trigger (11-16)" is passive or triggered: not automated; "Trigger (17-20)" is passive or triggered: not automated |
+| Collapsing Roof | equipment24 | Collapsing Roof (gear), Collapsing Roof (Trigger (1-4)) (automated), Collapsing Roof (Trigger (5-10)) (automated), Collapsing Roof (Trigger (11-16)) (automated), Collapsing Roof (Trigger (17-20)) (automated) | — |
 | College of Lore | classes24 | College of Lore (subclass) | — |
 | Color Spray | spells24 | Color Spray (automated) | — |
 | Comet | equipment24 | Comet (gear) | "Card Effect: Start" is passive or triggered: not automated; "Card Effect: Resolve" is passive or triggered: not automated |
@@ -559,7 +559,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Faithful Hound | spells24 | Faithful Hound (summon) (automated), Faithful Hound (Move Hound) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Faithful Hound | actors24 | Faithful Hound (2 items) | Bite: "save" is passive or triggered: not automated |
 | Faithful Steed | classes24 | Faithful Steed (feature) | — |
-| Falling Net | equipment24 | Falling Net (gear), Falling Net (Escape Check (1-4)) (automated), Falling Net (Escape Check (5-10)) (automated), Falling Net (Escape Check (11-16)) (automated), Falling Net (Escape Check (17-20)) (automated), Falling Net (Set Trap) (automated) | "Trigger (1-4)" is passive or triggered: not automated; "Trigger (5-10)" is passive or triggered: not automated; "Trigger (11-16)" is passive or triggered: not automated; "Trigger (17-20)" is passive or triggered: not automated; activation: 10 minute is not an action-economy cost |
+| Falling Net | equipment24 | Falling Net (gear), Falling Net (Trigger (1-4)) (automated), Falling Net (Trigger (5-10)) (automated), Falling Net (Trigger (11-16)) (automated), Falling Net (Trigger (17-20)) (automated), Falling Net (Escape Check (1-4)) (automated), Falling Net (Escape Check (5-10)) (automated), Falling Net (Escape Check (11-16)) (automated), Falling Net (Escape Check (17-20)) (automated), Falling Net (Set Trap) (automated) | activation: 10 minute is not an action-economy cost |
 | False Life | spells24 | False Life (automated) | — |
 | Fast Hands | classes24 | Fast Hands (Sleight of Hand) (manual), Fast Hands (Thieves' Tools) (manual), Fast Hands (Use an Object) (manual) | not automated (check): using it spends its cost; its description says the rest; check: slt DC (?) not converted; check: dex DC (?) not converted; not automated (utility): using it spends its cost; its description says the rest |
 | Fast Movement | classes24 | Fast Movement (feature) | — |
@@ -602,7 +602,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Fire Ring of Elemental Command | equipment24 | Fire Ring of Elemental Command (gear), Fire Ring of Elemental Command (Elemental Compulsion) (automated), Fire Ring of Elemental Command: Burning Hands (automated), Fire Ring of Elemental Command: Fireball (automated), Fire Ring of Elemental Command: Fire Storm (automated), Fire Ring of Elemental Command: Wall of Fire (automated) | "damage" is passive or triggered: not automated |
 | Fire Shield | spells24 | Fire Shield (automated) | — |
 | Fire Storm | spells24 | Fire Storm (automated) | — |
-| Fire-Casting Statue | equipment24 | Fire-Casting Statue (gear) | "Trigger (1-4)" is passive or triggered: not automated; "Trigger (5-10)" is passive or triggered: not automated; "Trigger (11-16)" is passive or triggered: not automated; "Trigger (17-20)" is passive or triggered: not automated |
+| Fire-Casting Statue | equipment24 | Fire-Casting Statue (gear), Fire-Casting Statue (Trigger (1-4)) (automated), Fire-Casting Statue (Trigger (5-10)) (automated), Fire-Casting Statue (Trigger (11-16)) (automated), Fire-Casting Statue (Trigger (17-20)) (automated) | — |
 | Fire's Burn | origins24 | Fire's Burn (automated) | — |
 | Fireball | spells24 | Fireball (automated) | — |
 | Flail | equipment24 | Flail (automated) | — |
@@ -778,7 +778,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Heroism | spells24 | Heroism (automated) | — |
 | Hex | spells24 | Hex (Place Curse) (automated), Hex (Curse New Creature) (automated) | — |
 | Hezrou | actors24 | Hezrou (7 items) | Leap: not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Hidden Pit | equipment24 | Hidden Pit (gear) | "Trigger (1-4)" is passive or triggered: not automated; "Trigger (5-10)" is passive or triggered: not automated; "Trigger (11-16)" is passive or triggered: not automated; "Trigger (17-20)" is passive or triggered: not automated |
+| Hidden Pit | equipment24 | Hidden Pit (gear), Hidden Pit (Trigger (1-4)) (automated), Hidden Pit (Trigger (5-10)) (automated), Hidden Pit (Trigger (11-16)) (automated), Hidden Pit (Trigger (17-20)) (automated) | — |
 | Hide Armor | equipment24 | Hide Armor (gear) | — |
 | Hideous Laughter | spells24 | Hideous Laughter (automated) | — |
 | Hill Giant | actors24 | Hill Giant (4 items) | — |
@@ -1124,8 +1124,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Plesiosaurus | actors24 | Plesiosaurus (3 items) | — |
 | Poison Spray | spells24 | Poison Spray (automated) | — |
 | Poison, Basic | equipment24 | Poison, Basic (automated) | — |
-| Poisoned Darts | equipment24 | Poisoned Darts (gear) | "Trigger (1-4)" is passive or triggered: not automated; "Trigger (5-10)" is passive or triggered: not automated; "Trigger (11-16)" is passive or triggered: not automated; "Trigger (17-20)" is passive or triggered: not automated |
-| Poisoned Needle | equipment24 | Poisoned Needle (gear) | "Trigger (1-4)" is passive or triggered: not automated; "Trigger (5-10)" is passive or triggered: not automated; "Trigger (11-16)" is passive or triggered: not automated; "Trigger (17-20)" is passive or triggered: not automated |
+| Poisoned Darts | equipment24 | Poisoned Darts (gear), Poisoned Darts (Trigger (1-4)) (automated), Poisoned Darts (Trigger (5-10)) (automated), Poisoned Darts (Trigger (11-16)) (automated), Poisoned Darts (Trigger (17-20)) (automated) | — |
+| Poisoned Needle | equipment24 | Poisoned Needle (gear), Poisoned Needle (Trigger (1-4)) (automated), Poisoned Needle (Trigger (5-10)) (automated), Poisoned Needle (Trigger (11-16)) (automated), Poisoned Needle (Trigger (17-20)) (automated) | effect: "Poisoned Needle" marks its creature only; its rules are by hand |
 | Poisoner's Kit | equipment24 | Poisoner's Kit (gear), Poisoner's Kit (automated) | — |
 | Polar Bear | actors24 | Polar Bear (3 items) | — |
 | Pole | equipment24 | Pole (gear) | — |
@@ -1425,7 +1425,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Spider Climb | spells24 | Spider Climb (automated) | — |
 | Spider's Sting | equipment24 | Spider's Sting (automated) | — |
 | Spike Growth | spells24 | Spike Growth (automated) | concentration: its caster concentrates; what it sustains is by hand |
-| Spiked Pit | equipment24 | Spiked Pit (gear) | "Trigger (1-4)" is passive or triggered: not automated; "Trigger (5-10)" is passive or triggered: not automated; "Trigger (11-16)" is passive or triggered: not automated; "Trigger (17-20)" is passive or triggered: not automated |
+| Spiked Pit | equipment24 | Spiked Pit (gear), Spiked Pit (Trigger (1-4)) (automated), Spiked Pit (Trigger (5-10)) (automated), Spiked Pit (Trigger (11-16)) (automated), Spiked Pit (Trigger (17-20)) (automated) | — |
 | Spikes, Iron | equipment24 | Spikes, Iron (gear) | — |
 | Spirit Guardians | spells24 | Spirit Guardians (automated) | — |
 | Spirit Naga | actors24 | Spirit Naga (13 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: effect: "Water Breathing" marks its creature (narrative); Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: teleport: a creature it brings along is moved by hand; Spellcasting: cast: Hold Person at level 3 is cast at its own level; Spellcasting: cast: Lightning Bolt at level 4 is cast at its own level |

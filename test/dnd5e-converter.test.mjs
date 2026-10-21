@@ -1001,6 +1001,21 @@ test("a feature used as its creature hits, by its text, is offered on its own hi
   assert.ok(still.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), "nothing about a hit");
 });
 
+test("a trap's tier is an Action that sets it: a lasting 5-foot square anywhere that springs on each creature entering it", () => {
+  const roof = {_id: "testTrapRoof0001", name: "Collapsing Roof", type: "equipment", effects: [], system: {source: SRD,
+    description: {value: "<p>Deadly Trap.</p>"}, activities: {a: activity("save", {name: "Trigger (5-10)", activation: {type: "", override: false},
+      save: {ability: ["dex"], dc: {calculation: "", formula: "15"}}, damage: {parts: [{number: 4, denomination: 10, types: ["bludgeoning"], bonus: ""}]}})}}};
+  const tier = convertItem(roof).items.find(item => item.type === "action");
+  const {area, targeting, range, costs} = tier.system.definition;
+  assert.deepEqual([targeting, range, costs, area.shape, area.size.value, area.persistence.duration], [{type: "area"}, {type: "special"},
+    {allOf: []}, "cube", 5, null]);
+  const [sprung] = area.persistence.triggers;
+  assert.deepEqual([sprung.on, sprung.action.label, sprung.action.save.dc, sprung.action.damage[0].damageType],
+    [["area.entered"], "Collapsing Roof", {value: 15}, "bludgeoning"]);
+  assert.equal(validateActionDefinition(tier.system.definition).ok, true);
+  assert.deepEqual(tier.flags.wildpath.conversion.notes, []);
+});
+
 test("a summon's creature by its id, an old id a module redirects, or a PHB appendix id by its name", () => {
   const creatures = withRedirects({mmGriffon0000000: "griffon", mmWeasel00000000: "weasel", mmGiantCentipede: "centipede"},
     'CONFIG.compendium.uuidRedirects["Compendium.dnd-dungeon-masters-guide.actors.Actor.h052EIIUmRwJum65"] = "Compendium.dnd5e.actors24.Actor.mmGriffon0000000";');
