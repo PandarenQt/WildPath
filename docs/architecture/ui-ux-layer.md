@@ -274,7 +274,12 @@ The GM's view of why a resolution came out as it did: `WildPathRulesInspector`
   - health changes from and to;
   - every payment, the source's and a companion controller's;
   - errors.
-- **Opening it:** an **Inspect** link that only GMs see on each resolution card, or `game.wildpath.inspect()`.
+- **Opening it:** an **Inspect** button that only GMs see on each resolution card, or `game.wildpath.inspect()`.
+- **A resolution it no longer holds (2026-10-21):** the world was reloaded since its card, or it fell out of the
+  records. Its Inspect button says so instead of opening the newest one. One older than the 25 shown, but still held,
+  opens.
+- **Following along:** while open, it redraws when a resolution starts, moves on or ends, or someone is waited on (a
+  one-second check of the records' ids and stages; the coordinator has no change events).
 
 Live (two browsers, 14.369):
 - The GM inspected Player1's Melee Strike by a Restrained hero: `2d20kl` at disadvantage, then the 1d8

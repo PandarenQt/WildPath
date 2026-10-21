@@ -288,7 +288,8 @@
       "Errors": "Errors",
       "WaitingOn": "Waiting on {user} ({type})",
       "AnswerFor": "Answer for them",
-      "Open": "Open the Rules Inspector"
+      "Open": "Open the Rules Inspector",
+      "Unavailable": "This resolution's details aren't on this client any more: the world was reloaded since, or it is too old. Its chat card still shows what happened."
     },
     "CAROUSEL": {
       "Round": "Round {round}",

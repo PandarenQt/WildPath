@@ -18,16 +18,47 @@ export class WildPathRulesInspector extends HandlebarsApplicationMixin(Applicati
     static PARTS = { body: { template: "systems/wildpath/templates/apps/rules-inspector.hbs",
             templates: ["systems/wildpath/templates/apps/resolution-detail.hbs"] } };
     selectedId = null;
+    #watch = null;
+    #seen = "";
     async _prepareContext() {
         const coordinator = globals.game.wildpath?.multiplayer?.coordinator;
         const records = [...(coordinator?.records?.values() ?? [])].reverse().slice(0, RECENT);
         const entries = records.map(inspectResolution);
-        const selected = entries.find(entry => entry.id === this.selectedId) ?? entries[0] ?? null;
+        this.#seen = this.#signature();
+        // A resolution named by its card that this client no longer holds (the world was reloaded, or it is too old) is
+        // said to be gone, not swapped for the newest one.
+        const named = this.selectedId ? coordinator?.records?.get(this.selectedId) : null;
+        const unavailable = !!this.selectedId && !named;
+        const selected = unavailable ? null
+            : (entries.find(entry => entry.id === this.selectedId) ?? (named ? inspectResolution(named) : entries[0] ?? null));
         // Who each running resolution waits on, so the GM can answer for a Player who is away.
         const waiting = (coordinator?.waitingRequests?.() ?? []).filter(entry => entry.resolutionId === selected?.id)
             .map(entry => ({ type: entry.type, user: globals.game.users?.get(entry.userId)?.name ?? entry.userId }));
         return { entries: entries.map(entry => ({ id: entry.id, label: entry.label, status: entry.status,
-                active: entry.id === selected?.id })), selected, waiting };
+                active: entry.id === selected?.id })), selected, waiting, unavailable };
+    }
+    /** What the records look like now: each one's id and stage, and who is waited on. */
+    #signature() {
+        const coordinator = globals.game.wildpath?.multiplayer?.coordinator;
+        const records = [...(coordinator?.records?.values() ?? [])].slice(-RECENT)
+            .map(record => `${record.resolutionId}:${record.state?.status ?? ""}`);
+        return JSON.stringify([records, coordinator?.waitingRequests?.().length ?? 0]);
+    }
+    /** While open, it follows the resolutions: redrawn when one starts, moves on or ends. */
+    _onRender(context, options) {
+        // @ts-expect-error The Foundry base class is typed only as far as this file needs.
+        super._onRender(context, options);
+        this.#watch ??= setInterval(() => {
+            if (this.#signature() !== this.#seen)
+                void this.render();
+        }, 1000);
+    }
+    _onClose(options) {
+        // @ts-expect-error The Foundry base class is typed only as far as this file needs.
+        super._onClose(options);
+        if (this.#watch)
+            clearInterval(this.#watch);
+        this.#watch = null;
     }
     /** The GM answers, here, what the selected resolution waits on another user for. */
     static async #onAnswer() {
@@ -50,8 +81,7 @@ export function openRulesInspector(resolutionId = null) {
     if (!globals.game.user?.isGM)
         return null;
     inspector ??= new WildPathRulesInspector();
-    if (resolutionId)
-        inspector.selectedId = resolutionId;
+    inspector.selectedId = resolutionId;
     void inspector.render({ force: true });
     return inspector;
 }
@@ -62,7 +92,8 @@ export function registerRulesInspector() {
         const card = html?.querySelector?.(".resolution-card");
         if (!globals.game.user?.isGM || !resolutionId || !card)
             return;
-        const link = document.createElement("a");
+        const link = document.createElement("button");
+        link.type = "button";
         link.className = "wildpath-inspect";
         link.textContent = globals.game.i18n.localize("WILDPATH.INSPECTOR.Inspect");
         link.addEventListener("click", event => {
