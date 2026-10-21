@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {checkOf, convertActor, convertItem, creatureRef, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex,
+import {checkOf, convertActor, convertItem, convertTable, creatureRef, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex,
   scaleTables, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import * as valueExpressions from "../module/helpers/value-expressions.mjs";
@@ -1057,6 +1057,23 @@ test("a trap's tier is an Action that sets it: a lasting 5-foot square anywhere 
     [["area.entered"], "Collapsing Roof", {value: 15}, "bludgeoning"]);
   assert.equal(validateActionDefinition(tier.system.definition).ok, true);
   assert.deepEqual(tier.flags.wildpath.conversion.notes, []);
+});
+
+test("a RollTable keeps its results, naming WildPath's documents where converted, else their text", () => {
+  const table = {_id: "dmgGrayBagOfTric", name: "Gray Bag of Tricks", img: "modules/book/bag.webp", formula: "1d8", description: "",
+    results: [{_id: "r1", type: "document", range: [1, 1], weight: 1, name: "Weasel", img: "modules/book/weasel.webp",
+      documentUuid: "Compendium.dnd5e.actors24.Actor.mmWeasel00000000"},
+    {_id: "r2", type: "document", range: [2, 2], name: "Rat King", documentUuid: "Compendium.dnd5e.actors24.Actor.unknownRatKing00"},
+    {_id: "r3", type: "text", range: [3, 3], description: "Cast @UUID[Compendium.dnd5e.spells24.Item.phbsplDarkness00]{Darkness}, as "
+      + "@UUID[Compendium.dnd5e.equipment24.Item.x.ActiveEffect.y] shows"}]};
+  const uuidOf = uuid => ({mmWeasel00000000: "Compendium.wildpath.srd-creatures.Actor.mmWeasel00000000",
+    phbsplDarkness00: "Compendium.wildpath.srd-items.Item.phbsplDarkness00"}[String(uuid).split(".").pop()] ?? null);
+  const converted = convertTable(table, {uuidOf, source: {license: "CC-BY-4.0"}});
+  assert.deepEqual(converted.results.map(result => [result.type, result.documentUuid ?? null, result.img]), [
+    ["document", "Compendium.wildpath.srd-creatures.Actor.mmWeasel00000000", "icons/svg/d20-black.svg"],
+    ["text", null, "icons/svg/d20-black.svg"], ["text", null, "icons/svg/d20-black.svg"]]);
+  assert.equal(converted.results[2].description, "Cast @UUID[Compendium.wildpath.srd-items.Item.phbsplDarkness00]{Darkness}, as  shows");
+  assert.deepEqual([converted.img, converted.formula, converted._key], ["icons/svg/d20-black.svg", "1d8", "!tables!dmgGrayBagOfTric"]);
 });
 
 test("a summon's creature by its id, an old id a module redirects, or a PHB appendix id by its name", () => {

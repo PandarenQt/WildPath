@@ -1,0 +1,249 @@
+{
+  "_id": "dmgCandleOfInvoc",
+  "_key": "!tables!dmgCandleOfInvoc",
+  "name": "Candle of Invocation: Outer Plane Destination",
+  "img": "icons/sundries/lights/candle-lit-yellow.webp",
+  "description": "",
+  "formula": "1d100",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "ag0urHCE1g8iDteP",
+      "_key": "!tables.results!dmgCandleOfInvoc.ag0urHCE1g8iDteP",
+      "type": "text",
+      "range": [
+        1,
+        5
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Abyss"
+    },
+    {
+      "_id": "pCP4ICaQKzln5zTc",
+      "_key": "!tables.results!dmgCandleOfInvoc.pCP4ICaQKzln5zTc",
+      "type": "text",
+      "range": [
+        55,
+        59
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Gehenna"
+    },
+    {
+      "_id": "OZ1lU2EWqnzeBQqm",
+      "_key": "!tables.results!dmgCandleOfInvoc.OZ1lU2EWqnzeBQqm",
+      "type": "text",
+      "range": [
+        6,
+        10
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Acheron"
+    },
+    {
+      "_id": "vXez4BUgXFHAayCM",
+      "_key": "!tables.results!dmgCandleOfInvoc.vXez4BUgXFHAayCM",
+      "type": "text",
+      "range": [
+        60,
+        64
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Hades"
+    },
+    {
+      "_id": "jCH8BtBFKvOxQKe5",
+      "_key": "!tables.results!dmgCandleOfInvoc.jCH8BtBFKvOxQKe5",
+      "type": "text",
+      "range": [
+        11,
+        17
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Arborea"
+    },
+    {
+      "_id": "36NsH0b08cWRJ5S3",
+      "_key": "!tables.results!dmgCandleOfInvoc.36NsH0b08cWRJ5S3",
+      "type": "text",
+      "range": [
+        65,
+        69
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Limbo"
+    },
+    {
+      "_id": "hMMK8Z1s2frHXEYN",
+      "_key": "!tables.results!dmgCandleOfInvoc.hMMK8Z1s2frHXEYN",
+      "type": "text",
+      "range": [
+        18,
+        25
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Arcadia"
+    },
+    {
+      "_id": "q7ketUvAJCoLBkHc",
+      "_key": "!tables.results!dmgCandleOfInvoc.q7ketUvAJCoLBkHc",
+      "type": "text",
+      "range": [
+        70,
+        77
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Mechanus"
+    },
+    {
+      "_id": "vctndF7xPiru2vGe",
+      "_key": "!tables.results!dmgCandleOfInvoc.vctndF7xPiru2vGe",
+      "type": "text",
+      "range": [
+        26,
+        33
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Beastlands"
+    },
+    {
+      "_id": "dmCLeLfvwj5jLDnN",
+      "_key": "!tables.results!dmgCandleOfInvoc.dmCLeLfvwj5jLDnN",
+      "type": "text",
+      "range": [
+        78,
+        85
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Mount Celestia"
+    },
+    {
+      "_id": "5ajkPx3j34og3PQq",
+      "_key": "!tables.results!dmgCandleOfInvoc.5ajkPx3j34og3PQq",
+      "type": "text",
+      "range": [
+        34,
+        41
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Bytopia"
+    },
+    {
+      "_id": "FNEgnQ7Zo62CbsSo",
+      "_key": "!tables.results!dmgCandleOfInvoc.FNEgnQ7Zo62CbsSo",
+      "type": "text",
+      "range": [
+        86,
+        90
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Nine Hells"
+    },
+    {
+      "_id": "ToqvjVmLEWuqyXV8",
+      "_key": "!tables.results!dmgCandleOfInvoc.ToqvjVmLEWuqyXV8",
+      "type": "text",
+      "range": [
+        42,
+        46
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Carceri"
+    },
+    {
+      "_id": "5VNozBp2PgScksuZ",
+      "_key": "!tables.results!dmgCandleOfInvoc.5VNozBp2PgScksuZ",
+      "type": "text",
+      "range": [
+        91,
+        95
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Pandemonium"
+    },
+    {
+      "_id": "efnExAQ7h5U5JY9c",
+      "_key": "!tables.results!dmgCandleOfInvoc.efnExAQ7h5U5JY9c",
+      "type": "text",
+      "range": [
+        47,
+        54
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Elysium"
+    },
+    {
+      "_id": "NPXTuTLfn13GTU2j",
+      "_key": "!tables.results!dmgCandleOfInvoc.NPXTuTLfn13GTU2j",
+      "type": "text",
+      "range": [
+        96,
+        100
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Ysgard"
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "dmgCandleOfInvoc",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Candle of Invocation"
+      }
+    }
+  }
+}

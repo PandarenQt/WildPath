@@ -1,0 +1,165 @@
+{
+  "_id": "dmgRingOfResista",
+  "_key": "!tables!dmgRingOfResista",
+  "name": "Ring of Resistance: Damage Type and Gemstone",
+  "img": "icons/equipment/finger/ring-ball-silver.webp",
+  "description": "",
+  "formula": "1d10",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "n5eFVZKGRo6Rxy4a",
+      "_key": "!tables.results!dmgRingOfResista.n5eFVZKGRo6Rxy4a",
+      "type": "text",
+      "range": [
+        1,
+        1
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Acid (Pearl)"
+    },
+    {
+      "_id": "xnFb80dWJtRoNx7k",
+      "_key": "!tables.results!dmgRingOfResista.xnFb80dWJtRoNx7k",
+      "type": "text",
+      "range": [
+        2,
+        2
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Fire (Garnet)"
+    },
+    {
+      "_id": "e0N3YSm0uveQ1gWw",
+      "_key": "!tables.results!dmgRingOfResista.e0N3YSm0uveQ1gWw",
+      "type": "text",
+      "range": [
+        3,
+        3
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Fire (Garnet)"
+    },
+    {
+      "_id": "97EfeVQ5Nh5wQhtY",
+      "_key": "!tables.results!dmgRingOfResista.97EfeVQ5Nh5wQhtY",
+      "type": "text",
+      "range": [
+        4,
+        4
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Force (Sapphire)"
+    },
+    {
+      "_id": "J3sfMzhF6UTSGgGq",
+      "_key": "!tables.results!dmgRingOfResista.J3sfMzhF6UTSGgGq",
+      "type": "text",
+      "range": [
+        5,
+        5
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Lightning (Citrine)"
+    },
+    {
+      "_id": "sHcZrNeK31eYvQZC",
+      "_key": "!tables.results!dmgRingOfResista.sHcZrNeK31eYvQZC",
+      "type": "text",
+      "range": [
+        6,
+        6
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Necrotic (Jet)"
+    },
+    {
+      "_id": "W4X3OE4buVrrguLW",
+      "_key": "!tables.results!dmgRingOfResista.W4X3OE4buVrrguLW",
+      "type": "text",
+      "range": [
+        7,
+        7
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Poison (Amethyst)"
+    },
+    {
+      "_id": "XqDcxMZ5OtPAXIJ6",
+      "_key": "!tables.results!dmgRingOfResista.XqDcxMZ5OtPAXIJ6",
+      "type": "text",
+      "range": [
+        8,
+        8
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Psychic (Jade)"
+    },
+    {
+      "_id": "xw4IIE7xXkMBNDyT",
+      "_key": "!tables.results!dmgRingOfResista.xw4IIE7xXkMBNDyT",
+      "type": "text",
+      "range": [
+        9,
+        9
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Radiant (Topaz)"
+    },
+    {
+      "_id": "UWx3HTlcdQYzQnI0",
+      "_key": "!tables.results!dmgRingOfResista.UWx3HTlcdQYzQnI0",
+      "type": "text",
+      "range": [
+        10,
+        10
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "Thunder (Spinel)"
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "dmgRingOfResista",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Ring of Resistance"
+      }
+    }
+  }
+}

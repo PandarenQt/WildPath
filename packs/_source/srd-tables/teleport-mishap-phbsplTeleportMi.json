@@ -1,0 +1,249 @@
+{
+  "_id": "phbsplTeleportMi",
+  "_key": "!tables!phbsplTeleportMi",
+  "name": "Teleport Mishap",
+  "img": "icons/magic/movement/abstract-ribbons-red-orange.webp",
+  "description": "<p><strong>Mishap damage:</strong> [[/damage 3d10 type=force]]</p><p><strong>Off target distance:</strong> [[/r 2d12#Miles]]{2d12 miles} [[/r 1d8#Direction]]{Direction}</p>",
+  "formula": "1d100",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "RaCnOnLRcJPv11Vf",
+      "_key": "!tables.results!phbsplTeleportMi.RaCnOnLRcJPv11Vf",
+      "type": "text",
+      "range": [
+        1,
+        100
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Permanent circle:</strong> On target"
+    },
+    {
+      "_id": "4W9YPHqIIDyt3WbV",
+      "_key": "!tables.results!phbsplTeleportMi.4W9YPHqIIDyt3WbV",
+      "type": "text",
+      "range": [
+        1,
+        100
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Linked object:</strong> On target"
+    },
+    {
+      "_id": "MgxjepFoJzZqVf1M",
+      "_key": "!tables.results!phbsplTeleportMi.MgxjepFoJzZqVf1M",
+      "type": "text",
+      "range": [
+        1,
+        5
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Very familiar:</strong> Mishap"
+    },
+    {
+      "_id": "BtifMFAP26aAcDOx",
+      "_key": "!tables.results!phbsplTeleportMi.BtifMFAP26aAcDOx",
+      "type": "text",
+      "range": [
+        6,
+        13
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Very familiar:</strong> Similar area"
+    },
+    {
+      "_id": "K6jZpSdlRXI1Wg9Q",
+      "_key": "!tables.results!phbsplTeleportMi.K6jZpSdlRXI1Wg9Q",
+      "type": "text",
+      "range": [
+        14,
+        24
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Very familiar:</strong> Off target"
+    },
+    {
+      "_id": "ZPWjjJxSnyLENM8O",
+      "_key": "!tables.results!phbsplTeleportMi.ZPWjjJxSnyLENM8O",
+      "type": "text",
+      "range": [
+        25,
+        100
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Very familiar:</strong> On target"
+    },
+    {
+      "_id": "niANcATD48MDIE5s",
+      "_key": "!tables.results!phbsplTeleportMi.niANcATD48MDIE5s",
+      "type": "text",
+      "range": [
+        1,
+        33
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Seen casually:</strong> Mishap"
+    },
+    {
+      "_id": "rPgQoygHRRWRRmIK",
+      "_key": "!tables.results!phbsplTeleportMi.rPgQoygHRRWRRmIK",
+      "type": "text",
+      "range": [
+        34,
+        43
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Seen casually:</strong> Similar area"
+    },
+    {
+      "_id": "5hV5vL7SYu53EPvb",
+      "_key": "!tables.results!phbsplTeleportMi.5hV5vL7SYu53EPvb",
+      "type": "text",
+      "range": [
+        44,
+        53
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Seen casually:</strong> Off target"
+    },
+    {
+      "_id": "KShVQqILsbEKwNQ1",
+      "_key": "!tables.results!phbsplTeleportMi.KShVQqILsbEKwNQ1",
+      "type": "text",
+      "range": [
+        54,
+        73
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Seen casually:</strong> Off target"
+    },
+    {
+      "_id": "n7LhrgNZV6rYGYBv",
+      "_key": "!tables.results!phbsplTeleportMi.n7LhrgNZV6rYGYBv",
+      "type": "text",
+      "range": [
+        1,
+        43
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Viewed or described:</strong> Mishap"
+    },
+    {
+      "_id": "S3FXuqVgRazP23RK",
+      "_key": "!tables.results!phbsplTeleportMi.S3FXuqVgRazP23RK",
+      "type": "text",
+      "range": [
+        44,
+        53
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Viewed or described:</strong> Similar area"
+    },
+    {
+      "_id": "LWWefv3FEwkukueE",
+      "_key": "!tables.results!phbsplTeleportMi.LWWefv3FEwkukueE",
+      "type": "text",
+      "range": [
+        54,
+        73
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Viewed or described:</strong> Off target"
+    },
+    {
+      "_id": "K3Uun9ZfyGTdLNJl",
+      "_key": "!tables.results!phbsplTeleportMi.K3Uun9ZfyGTdLNJl",
+      "type": "text",
+      "range": [
+        74,
+        100
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>Viewed or described:</strong> On target"
+    },
+    {
+      "_id": "UH8N3zGLSGiLPObv",
+      "_key": "!tables.results!phbsplTeleportMi.UH8N3zGLSGiLPObv",
+      "type": "text",
+      "range": [
+        1,
+        50
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>False destination:</strong> Mishap"
+    },
+    {
+      "_id": "yJ4FhyyZvenG7AJl",
+      "_key": "!tables.results!phbsplTeleportMi.yJ4FhyyZvenG7AJl",
+      "type": "text",
+      "range": [
+        51,
+        100
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/svg/d20-black.svg",
+      "name": "",
+      "description": "<strong>False destination:</strong> Similar area"
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "phbsplTeleportMi",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Teleportation Circle"
+      }
+    }
+  }
+}

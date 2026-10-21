@@ -42,6 +42,15 @@ itself is `dnd5e-to-wildpath.mjs`.
   - The "Free Rules" documents (Unlicensed) and those with no license are skipped.
   - Each converted document keeps its origin and license in `flags.wildpath.source`.
   - Premium books (PHB, DMG, MM) are never written to `packs/_source`.
+- **Tables (2026-10-21).** **SRD 5.2: Tables** (`srd-tables`, RollTables) holds the tables of SRD 5.2 magic items and
+  spells (Wand of Wonder Effects, the Bags of Tricks, the Mysterious Deck, Confusion Behavior, Teleport Mishap: 27).
+  RollTables carry no license, so a table is taken only when an SRD-licensed magic item or spell owns it (its id begins
+  as the owner's, or its name does); a creature's lore table never is. A result naming a converted document names
+  WildPath's (`Compendium.wildpath.srd-creatures.Actor.mmWeasel00000000`), any other is its text; links in their text
+  are rewritten so or left as their label; only Foundry's own art is kept (`convertTable`). Foundry draws them as any
+  table. shortcut: a drawn outcome is not applied for you (a Bag of Tricks' beast is summoned from the bag's own
+  Action; a Wand of Wonder's spell is cast by hand); upgrade with a draw that runs the Action its result names.
+  Live (14.369): the Gray Bag of Tricks rolled 8, Giant Elk, the SRD creature.
 - **Reading dnd5e's packs.** Copy them out of the dnd5e system folder, extract the copy with the Foundry CLI
   (`extractPack`), and point the script at the extracted folder. Opening a LevelDB pack writes to it.
 - **The mapping.**

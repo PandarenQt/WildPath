@@ -1,0 +1,81 @@
+{
+  "_id": "dmgHornOfValhall",
+  "_key": "!tables!dmgHornOfValhall",
+  "name": "Horn of Valhalla: Type and Requirement",
+  "img": "icons/commodities/bones/horn-drinking-white.webp",
+  "description": "",
+  "formula": "1d100",
+  "replacement": true,
+  "displayRoll": true,
+  "results": [
+    {
+      "_id": "eWS51SY5F1OCOHOT",
+      "_key": "!tables.results!dmgHornOfValhall.eWS51SY5F1OCOHOT",
+      "type": "text",
+      "range": [
+        1,
+        40
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/commodities/metal/ingot-stamped-silver.webp",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-items.Item.b9gvehylpxo10000]{Silver} (2 spirits); No requirement"
+    },
+    {
+      "_id": "vsuTVLSnSFqxIfeV",
+      "_key": "!tables.results!dmgHornOfValhall.vsuTVLSnSFqxIfeV",
+      "type": "text",
+      "range": [
+        41,
+        75
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/commodities/metal/ingot-stamped-flat-gold.webp",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-items.Item.1frcj0mxhosli000]{Brass} (3 spirits); Proficiency with all Simple weapons"
+    },
+    {
+      "_id": "IawBPbUJ4QPD80hH",
+      "_key": "!tables.results!dmgHornOfValhall.IawBPbUJ4QPD80hH",
+      "type": "text",
+      "range": [
+        76,
+        90
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/commodities/metal/ingot-stamped-bronze.webp",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-items.Item.mnqhpo1jn4ujs000]{Bronze} (4 spirits); Training with all Medium armor"
+    },
+    {
+      "_id": "znOdbmKsZl4MZ96Q",
+      "_key": "!tables.results!dmgHornOfValhall.znOdbmKsZl4MZ96Q",
+      "type": "text",
+      "range": [
+        91,
+        100
+      ],
+      "weight": 1,
+      "drawn": false,
+      "img": "icons/commodities/metal/ingot-iron.webp",
+      "name": "",
+      "description": "@UUID[Compendium.wildpath.srd-items.Item.1aui9g5tfg38p000]{Iron} (5 spirits); Proficiency with all Martial weapons"
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "tables24",
+        "id": "dmgHornOfValhall",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "owner": "Horn of Valhalla"
+      }
+    }
+  }
+}
