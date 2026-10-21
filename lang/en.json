@@ -1138,6 +1138,31 @@
     },
     "REACTIONS": {
       "Decline": "Decline"
+    },
+    "REFUSAL": {
+      "Generic": "That can't be done right now. The GM can see why.",
+      "Transformed": "A transformed creature can't cast spells.",
+      "ArmorCasting": "{name} can't cast spells while wearing {armor} without training in it.",
+      "Quickened": "{name} cast a Quickened spell this turn: no other spell of level 1 or higher.",
+      "Flee": "{name} was Commanded to flee: only Dash or Disengage.",
+      "Equip": "{name} must be equipped to use this.",
+      "EquipAttune": "{name} must be equipped and attuned to use this.",
+      "Charmed": "A charmed creature can't harm its charmer.",
+      "NoArea": "There is no area of yours to move.",
+      "AreaAttached": "That area moves with its creature.",
+      "AreaTooFar": "The area moves at most {distance} feet.",
+      "OptionUnavailable": "That choice isn't available for this creature.",
+      "NeedsTarget": "Choose a target first.",
+      "TooManyTargets": "Too many targets are chosen.",
+      "NotWilling": "That creature isn't willing.",
+      "OutOfRange": "That target is out of range.",
+      "ChoiceMissing": "A choice this Action needs is missing.",
+      "MovementGeneric": "That move can't be made. The GM can see why.",
+      "NoMovement": "Not enough movement left for that.",
+      "MovementMode": "This creature can't move that way.",
+      "ReactionStopped": "A reaction stopped the move.",
+      "Displaced": "A reaction moved the creature; its move ends there.",
+      "Blocked": "Something blocks that path."
     }
   },
   "TYPES": {

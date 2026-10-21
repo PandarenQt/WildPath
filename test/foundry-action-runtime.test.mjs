@@ -2083,8 +2083,8 @@ test("a transformed creature can't cast spells, but its other Actions still reso
   const spell = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), tags: ["spell"]});
   spell.sourceActor.transformation = {effect: {}, policy: {formRef: "Actor.bear"}};
   const refused = await foundryActionIntentToStagedOptions({intent: spell.intent, senderUserId: "player-a", game: spell.game});
-  assert.equal(refused.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED);
-  assert.match(refused.reason, /can't cast spells/);
+  assert.equal(refused.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED);
+  assert.match(refused.reason, /REFUSAL.Transformed|can.t cast spells/);
   spell.sourceActor.transformation = null;
   const caster = await foundryActionIntentToStagedOptions({intent: spell.intent, senderUserId: "player-a", game: spell.game});
   assert.equal(caster.ok, true, JSON.stringify(caster.reason));
@@ -2487,4 +2487,16 @@ test("Bountiful Luck: an ally's natural 1 only, never its own roll", async t => 
   targetActor.system.resources.reaction = {value: 1, max: 1};
   assert.equal(withAllyTestOffers(null, targetToken, {effects: []}, {}, "save", {chooser: "target-controller"}).options.length, 1,
     "its own Bountiful Luck is not offered on its own roll");
+});
+
+test("a refusal reaches its player in words: its own, a known lower-level reason, else a plain sentence (the GM sees why)", async () => {
+  const {refusalMessage} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const game = isGM => ({user: {isGM}, i18n: {localize: key => `loc:${key}`, format: (key, data) => `fmt:${key}:${data.reason}`}});
+  assert.equal(refusalMessage({code: "ACTION_REFUSED", reason: "A charmed creature can't harm its charmer."}, game(false)),
+    "A charmed creature can't harm its charmer.");
+  assert.equal(refusalMessage({code: "X", reason: "Option is not available: abc123"}, game(false)), "loc:WILDPATH.REFUSAL.OptionUnavailable");
+  assert.equal(refusalMessage({code: "X", reason: "spell-slot.3 has 0 but needs 1"}, game(false)), "loc:WILDPATH.NOTIFY.PaymentUnavailable");
+  assert.equal(refusalMessage({code: "X", reason: "The Action sender must own the acting Actor."}, game(false)), "loc:WILDPATH.REFUSAL.Generic");
+  assert.equal(refusalMessage({code: "X", reason: "The Action sender must own the acting Actor."}, game(true)),
+    "fmt:WILDPATH.NOTIFY.ActionFailed:The Action sender must own the acting Actor.");
 });

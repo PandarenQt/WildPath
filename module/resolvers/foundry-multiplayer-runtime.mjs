@@ -1,3 +1,5 @@
+import {movementMessage, refusalMessage} from "../helpers/refusal-messages.mjs";
+export {refusalMessage};
 import {createFoundryEnchantments} from "../adapters/foundry-v14-enchantments.mjs";
 import {consumePortents, portentOffer} from "../adapters/foundry-v14-portent.mjs";
 import {WILDPATH} from "../config.mjs";
@@ -563,7 +565,11 @@ function foundryUserTargetRefs(game=globalThis.game) {
  * Report a multiplayer resolution failure to the local user through Foundry's notification UI.
  * This is intentionally minimal - a full chat-card/result surface is a later product milestone.
  */
-const ROLL_REJECTION_CODES = new Set(["INVALID_MANUAL_RESULT", "INVALID_ROLL_RESULT"]);
+
+/** A refusal meant for its player, in its words (`refused`): the authority's own checks. */
+function refused(key, data={}) {
+  return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED, reason: globalThis.game?.i18n?.format?.(key, data) ?? key};
+}
 
 function notifyMultiplayerFailure(event={}, {logger=globalThis.console}={}) {
   if ( !event?.error ) return;
@@ -575,12 +581,8 @@ function notifyMultiplayerFailure(event={}, {logger=globalThis.console}={}) {
   }
   const reason = event.error.reason ?? event.error.code ?? "";
   if ( typeof globalThis.ui?.notifications?.warn === "function" ) {
-    const i18n = globalThis.game?.i18n;
-    // An unaffordable cost (spent Actions, or a condition that leaves none) reads as plain words, not a code.
-    const message = ROLL_REJECTION_CODES.has(event.error.code) ? i18n?.localize?.("WILDPATH.NOTIFY.RollRejected")
-      : reason === "PAYMENT_UNAVAILABLE" ? i18n?.localize?.("WILDPATH.NOTIFY.PaymentUnavailable")
-        : i18n?.format?.("WILDPATH.NOTIFY.ActionFailed", {reason});
-    globalThis.ui.notifications.warn(message ?? `Wild Path | ${reason}`);
+    globalThis.ui.notifications.warn(refusalMessage(event.error, globalThis.game) ?? `Wild Path | ${reason}`);
+    logger?.debug?.("Wild Path | Action refused", event.error);
   } else {
     logger?.warn?.("Wild Path | Multiplayer action resolution failed", event.error);
   }
@@ -596,8 +598,7 @@ function notifyMultiplayerMovementFailure(event={}, {logger=globalThis.console}=
   if ( !error ) return;
   const reason = error.reason ?? error.code ?? "";
   if ( typeof globalThis.ui?.notifications?.warn === "function" ) {
-    const message = globalThis.game?.i18n?.format?.("WILDPATH.NOTIFY.MovementFailed", {reason});
-    globalThis.ui.notifications.warn(message ?? `Wild Path | ${reason}`);
+    globalThis.ui.notifications.warn(movementMessage(error, globalThis.game) ?? `Wild Path | ${reason}`);
   } else {
     logger?.warn?.("Wild Path | Multiplayer movement failed", error);
   }
@@ -669,55 +670,26 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const definition = definitionResult.ok ? definitionResult.definition : null;
   // 2024 Wild Shape and Polymorph: a transformed creature can't cast spells. Spells it already cast (their lasting
   // areas, which run as authority Actions) go on.
-  if ( !authorityAction && actor.transformation && definition?.tags?.includes("spell") ) return {
-    ok: false,
-    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
-    reason: "A transformed creature can't cast spells."
-  };
+  if ( !authorityAction && actor.transformation && definition?.tags?.includes("spell") ) return refused("WILDPATH.REFUSAL.Transformed");
   // 2024: a spell of 1st level or higher is cast only while prepared.
-  if ( !authorityAction && isUnprepared(action) ) return {
-    ok: false,
-    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
-    reason: `${action.name} is not prepared.`
-  };
+  if ( !authorityAction && isUnprepared(action) ) return refused("WILDPATH.ITEM.NotPrepared", {name: action.name ?? ""});
   // 2024: a creature wearing armor it isn't trained with can't cast spells.
   const hindering = definition?.tags?.includes("spell") ? actor.getUntrainedArmor?.()?.find(item => item.system.armor !== "shield") : null;
-  if ( !authorityAction && hindering ) return {
-    ok: false,
-    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
-    reason: `${actor.name} can't cast spells while wearing ${hindering.name} without training in it.`
-  };
+  if ( !authorityAction && hindering ) return refused("WILDPATH.REFUSAL.ArmorCasting", {name: actor.name ?? "", armor: hindering.name ?? ""});
   // What the Action requires of its creature (`requires`: Steady Aim, not moved this turn).
   if ( !authorityAction && definition?.requires && !evaluatePredicate(definition.requires, {...requiresContext(actor, {game}), actorSystem,
-    tags: definition.tags ?? []}).ok ) return {
-    ok: false,
-    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
-    reason: `${action.name} can't be used now.`
-  };
+    tags: definition.tags ?? []}).ok ) return refused("WILDPATH.ITEM.CannotUse", {name: action.name ?? ""});
   // 2024 Quickened Spell: "nor can you cast a level 1+ spell on the same turn after modifying a spell with this option".
   if ( !authorityAction && requiresContext(actor, {game}).quickenedThisTurn && (definition?.tags ?? []).includes("spell")
-    && (Number(definition?.metadata?.spellLevel) >= 1) ) return {
-    ok: false,
-    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
-    reason: `${actor.name} cast a Quickened spell this turn: no other spell of level 1 or higher.`
-  };
+    && (Number(definition?.metadata?.spellLevel) >= 1) ) return refused("WILDPATH.REFUSAL.Quickened", {name: actor.name ?? ""});
   // 2024 Command, Flee: "spends its turn moving away from you by the fastest available means" (only Dash or Disengage).
   const usesTurn = (definition?.costs?.allOf ?? []).some(cost => ["action", "bonus-action"].includes(cost?.capability));
-  if ( !authorityAction && actor.statuses?.has?.("commanded-flee") && usesTurn && !["common:dash", "common:disengage"].includes(definition?.id) ) return {
-    ok: false,
-    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
-    reason: `${actor.name} was Commanded to flee: only Dash or Disengage.`
-  };
+  if ( !authorityAction && actor.statuses?.has?.("commanded-flee") && usesTurn && !["common:dash", "common:disengage"].includes(definition?.id) ) return refused("WILDPATH.REFUSAL.Flee", {name: actor.name ?? ""});
   // A magic item's Action (a wand's spell) needs its item equipped and, when it needs attunement, attuned (2024).
   // An Action it replaced (inactive: an Invocation, a Maneuver) is not used.
-  if ( !authorityAction && (action.system?.active === false) ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
-    reason: game.i18n?.format?.("WILDPATH.LEVELUP.Replaced", {name: action.name ?? ""}) ?? `${action.name} was replaced.`};
+  if ( !authorityAction && (action.system?.active === false) ) return refused("WILDPATH.LEVELUP.Replaced", {name: action.name ?? ""});
   const grantedBy = action.flags?.wildpath?.grantedBy ? actor.items?.get?.(action.flags.wildpath.grantedBy) : null;
-  if ( !authorityAction && grantedBy && ((grantedBy.system?.active === false) || (grantedBy.system?.attunement === "required")) ) return {
-    ok: false,
-    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
-    reason: `${grantedBy.name} must be equipped${grantedBy.system?.attunement ? " and attuned" : ""} to use this.`
-  };
+  if ( !authorityAction && grantedBy && ((grantedBy.system?.active === false) || (grantedBy.system?.attunement === "required")) ) return refused(grantedBy.system?.attunement ? "WILDPATH.REFUSAL.EquipAttune" : "WILDPATH.REFUSAL.Equip", {name: grantedBy.name ?? ""});
   const defenseKey = combatStatistics.defenseKey;
   const sourceTokenResolution = resolveFoundrySourceToken({actor, source: intent.source ?? {}, game});
   if ( !sourceTokenResolution.ok ) return {
@@ -742,12 +714,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const area = foundryActionArea({action, actor, intent, sourceToken});
   if ( !area.ok ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: area.reason};
   const areaMove = definition?.moveArea ? foundryAreaMove({definition, actor, intent, sourceToken}) : null;
-  if ( areaMove && !areaMove.ok ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED, reason: areaMove.reason};
+  if ( areaMove && !areaMove.ok ) return refused(areaMove.key ?? "WILDPATH.REFUSAL.Generic", areaMove.data ?? {});
   // A teleport lands where its player clicked, checked again here: within its distance, on the Scene, on a free space.
   const landing = definition?.teleport ? teleportDestination({token: sourceToken ?? null, point: intent.teleport?.point ?? {x: NaN, y: NaN},
     distance: Number(definition.teleport.distance) || 0}) : null;
-  if ( landing && !landing.ok ) return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
-    reason: game.i18n?.localize?.(`WILDPATH.TELEPORT.${landing.code}`) ?? landing.code};
+  if ( landing && !landing.ok ) return refused(`WILDPATH.TELEPORT.${landing.code}`);
   // A Wild Shape form beyond its druid's level is refused before anything is paid.
   if ( definition?.transform?.limits ) {
     const formRef = chosenFormRef(definition.transform, intent.configuration?.choices);
@@ -870,18 +841,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     if ( cover !== "none" ) coverByTarget.push({target: {...target}, degree: cover});
   }
   // 2024 Total Cover: a creature behind it can't be targeted directly (an area's is left out of the area).
-  if ( (definition?.targeting?.type !== "area") && targetEntries.some(entry => entry.cover === "total") ) return {
-    ok: false,
-    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
-    reason: game.i18n?.localize?.("WILDPATH.COVER.TotalRefused") ?? "That creature is behind Total Cover."
-  };
+  if ( (definition?.targeting?.type !== "area") && targetEntries.some(entry => entry.cover === "total") ) return refused("WILDPATH.COVER.TotalRefused");
   // 2024 Charmed: a charmed creature can't attack its charmer or target it with damage or harmful effects.
   const harmful = definition && (definition.attack || definition.save || definition.damage.length || definition.effects.length);
-  if ( harmful && !authorityAction && targetEntries.some(({actor: target}) => conditionsFrom(actor, target, game).charmed) ) return {
-    ok: false,
-    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
-    reason: "A charmed creature can't harm its charmer."
-  };
+  if ( harmful && !authorityAction && targetEntries.some(({actor: target}) => conditionsFrom(actor, target, game).charmed) ) return refused("WILDPATH.REFUSAL.Charmed");
   // Unlinked Tokens of one base Actor share its id (and `actor:<id>`); such a key would resolve every one of
   // them to whichever was registered last. Drop it so lookups fall through to the Token-specific keys.
   for ( const key of ambiguousKeys ) {
@@ -905,11 +868,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const above = Number(definition?.targeting?.maxSizeAboveSource);
   const rank = size => CREATURE_SIZE_ORDER.indexOf(String(size ?? ""));
   const sourceRank = rank(spatial?.context?.sourceFootprint?.size);
-  if ( Number.isFinite(above) && (sourceRank >= 0) && (spatial?.context?.targetFootprints ?? []).some(entry => rank(entry?.size) > sourceRank + above) ) return {
-    ok: false,
-    code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
-    reason: game.i18n?.localize?.("WILDPATH.COMMON.TooLarge") ?? "That creature is too large."
-  };
+  if ( Number.isFinite(above) && (sourceRank >= 0) && (spatial?.context?.targetFootprints ?? []).some(entry => rank(entry?.size) > sourceRank + above) ) return refused("WILDPATH.COMMON.TooLarge");
   const attackRollModeSourceList = definition?.attack ? foundryAttackRollModeSources({actor, action, definition, targetEntries, spatial, game, sourceToken}) : null;
   const attackRollMode = attackRollModeSourceList ? combineRollModes(attackRollModeSourceList) : null;
   const attackOutcomes = definition?.attack ? foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) : null;
@@ -1852,8 +1811,8 @@ export async function endEffectsWhenAttacked({state}, {fromUuid}) {
 function foundryAreaMove({definition, actor, intent, sourceToken}) {
   const scene = sourceToken?.parent ?? null;
   const found = scene ? ownArea(scene, {of: definition.moveArea.of, actorRef: actor.uuid}) : null;
-  if ( !found ) return {ok: false, reason: "There is no area of yours to move."};
-  if ( found.flag.attached ) return {ok: false, reason: "That area moves with its creature."};
+  if ( !found ) return {ok: false, key: "WILDPATH.REFUSAL.NoArea", reason: "There is no area of yours to move."};
+  if ( found.flag.attached ) return {ok: false, key: "WILDPATH.REFUSAL.AreaAttached", reason: "That area moves with its creature."};
   const placed = foundryAreaFootprint({definition: {area: {shape: found.flag.shape, size: {value: found.flag.size, unit: "ft"}},
     targeting: {type: "area"}}, sourceToken, points: intent.area?.points ?? []});
   if ( !placed.ok ) return {ok: false, reason: placed.reason};
@@ -1861,7 +1820,8 @@ function foundryAreaMove({definition, actor, intent, sourceToken}) {
   const to = areaFieldsCenter(placed.footprint.fields, scene);
   const feet = (from && to) ? scene.grid?.measurePath?.([from, to])?.distance ?? null : null;
   if ( (feet === null) || (feet > Number(definition.moveArea.distance)) ) {
-    return {ok: false, reason: `The area moves at most ${definition.moveArea.distance} feet.`};
+    return {ok: false, key: "WILDPATH.REFUSAL.AreaTooFar", data: {distance: definition.moveArea.distance},
+      reason: `The area moves at most ${definition.moveArea.distance} feet.`};
   }
   return {ok: true, move: {sceneId: scene.id, regionId: found.region.id, fields: placed.footprint.fields}};
 }
