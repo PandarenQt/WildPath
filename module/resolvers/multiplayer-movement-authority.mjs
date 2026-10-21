@@ -559,13 +559,11 @@ export function createMultiplayerMovementAuthority({
     let areaEntries = [];
     let areaExits = [];
     let auraSweeps = [];
+    const authorizing = chain.length ? {...intent, movementKind: record.approval.path.movementKind,
+      movementMode: record.approval.path.movementMode} : intent;
+    const authorize = () => authorizeMovement({intent: authorizing, game, measurementMode: record?.progress?.measurementMode ?? measurementMode});
     try {
-      approval = await authorizeMovement({
-        intent: chain.length ? {...intent, movementKind: record.approval.path.movementKind,
-          movementMode: record.approval.path.movementMode} : intent,
-        game,
-        measurementMode: record?.progress?.measurementMode ?? measurementMode
-      });
+      approval = await authorize();
       if ( chain.length && approval.approved ) {
         const end = completedMovementPrefix(record.progress, approval.path.anchors, baseTransitionCount);
         if ( end !== record.progress.approvedTransitions.length
@@ -622,7 +620,7 @@ export function createMultiplayerMovementAuthority({
           }
           if ( beforeStep ) stepReactions = await resolveBeforeStepReactions({approval, documents, supplied: services, triggers,
             progress: record?.progress ?? progress, transitionIndex: baseTransitionCount,
-            usedTriggerIds: record?.usedReactionTriggerIds ?? []});
+            usedTriggerIds: record?.usedReactionTriggerIds ?? [], reauthorize: authorize});
         }
       }
     } catch (error) {
@@ -1109,7 +1107,8 @@ export function createMultiplayerMovementAuthority({
    * this step's reactions resolve here and the step is approved only after them. A reaction that does not
    * complete, or one that displaces the mover, stops the movement before the step.
    */
-  async function resolveBeforeStepReactions({approval, documents, supplied, triggers, progress, transitionIndex, usedTriggerIds}) {
+  async function resolveBeforeStepReactions({approval, documents, supplied, triggers, progress, transitionIndex, usedTriggerIds,
+    reauthorize=null}) {
     const eventId = movementEventId(progress, `transition-proposed:${transitionIndex}`);
     const [previous, proposed] = approval.evaluation.footprints;
     const prepared = beforeStepReaction({game, scene: documents.scene, token: documents.token, supplied, eventId,
@@ -1134,11 +1133,15 @@ export function createMultiplayerMovementAuthority({
       .filter(candidate => window.resolvedCandidateIds.includes(candidate.id)).map(candidate => candidate.triggerId));
     if ( state.status !== "completed" ) return {ok: false, eventId, usedTriggerIds: used,
       reason: "A reaction stopped the movement."};
-    // shortcut: only the mover's position is rechecked; re-authorize the remaining route once reactions can change speed or budgets.
     const current = currentTokenAnchor({tokenDocument: documents.token, scene: documents.scene,
       position: documents.token.toObject(true)});
     if ( !current.ok || !sameMovementFootprint(current.footprint, previous) ) return {ok: false, eventId, usedTriggerIds: used,
       reason: "The moving Token was displaced during a reaction."};
+    // What the reactions did to the mover (Speed 0, movement spent, a condition) counts: the rest of the route is
+    // authorized again, as it now stands.
+    const again = reauthorize ? await reauthorize() : null;
+    if ( again && !again.approved ) return {ok: false, eventId, usedTriggerIds: used,
+      reason: again.reason ?? "A reaction stopped the movement."};
     return {ok: true, eventId, usedTriggerIds: used};
   }
 

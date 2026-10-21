@@ -638,6 +638,20 @@ for ( const cancel of [false, true] ) test(`a before-step reaction resolves insi
   assert.equal(fixture.coordinator.records.size, 1);
 });
 
+test("after a before-step reaction the rest of the route is authorized again: a mover out of movement stops", async () => {
+  const fixture = movementReactionFixture({event: "movement.transition-proposed", beforeStepReaction: proposedStepReaction});
+  const prepared = {movement: {[fixture.token.id]: {waypoints: [pointForOffset(fixture.scene, {i: 2, j: 0})]}}};
+  await prepareFoundryReactionCheckpoints(fixture.token, {}, prepared, PLAYER, fixture.playerAuthority, "checkpoint-root");
+  const operation = checkpointOperation(fixture.token, {passedCount: 1, offsets: [{i: 1, j: 0}, {i: 2, j: 0}]});
+  const approval = withFoundryGlobals(fixture, () => fixture.token._preUpdateMovement(operation, {}));
+  await until(() => latestReactionRequest(fixture));
+  // What the reaction did (a Sentinel's Speed 0, movement spent): the mover has none left when it is checked again.
+  fixture.actor.system.resources.movement.value = 0;
+  await fixture.playerTransport.send(reactionResponse(latestReactionRequest(fixture), "use"));
+  assert.equal(await approval, false, "the step that was approved before the reaction no longer is");
+  assert.equal(fixture.gmAuthority.approvedMovements.size, 0);
+});
+
 /** Burning ground from the first field to the east: the mover's first step enters it. */
 function burningGround() {
   const applied = [];

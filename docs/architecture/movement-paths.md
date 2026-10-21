@@ -635,8 +635,9 @@ The reaction services read the Scene and the moving Token as documents. Native i
 refs (`token:<scene>.<id>`), not UUIDs, so the authority resolves the documents and passes them to the
 provider.
 
-shortcut: after a reaction only the mover's position is rechecked; re-authorize the remaining route
-once reactions can change speed or movement budgets.
+After a before-step reaction the mover's position is checked, and then the rest of the route is authorized again as
+it now stands (2026-10-21): a reaction that left the mover with Speed 0 or no movement stops the step that was
+approved before it.
 
 Live (two browsers, 14.369, 2026-10-14): Player1 moved a mover three steps away from a hostile guard,
 using `TokenDocument#move`, the call a drag ends in. The GM's prompt appeared before step 0. The
