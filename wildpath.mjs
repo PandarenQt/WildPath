@@ -7,6 +7,7 @@ import {registerLanguages} from "./module/applications/languages.mjs";
 import {registerTokenRuler} from "./module/applications/token-ruler.mjs";
 import {registerSunlightConfig} from "./module/applications/sunlight-config.mjs";
 import {registerPartyRest} from "./module/applications/party-rest.mjs";
+import {registerEncounters} from "./module/applications/encounters.mjs";
 import {registerChatCardInteractions} from "./module/adapters/foundry-v14-chat-card-interactions.mjs";
 import {registerInspirationRerolls} from "./module/applications/inspiration-reroll.mjs";
 import {registerPortent} from "./module/adapters/foundry-v14-portent.mjs";
@@ -104,6 +105,7 @@ Hooks.once("init", () => {
   registerTokenRuler();
   registerSunlightConfig();
   registerPartyRest();
+  registerEncounters();
 
   // Trackable Token attributes
   CONFIG.Actor.trackableAttributes = {
@@ -223,6 +225,17 @@ Hooks.once("init", () => {
     config: true,
     type: Boolean,
     default: false
+  });
+
+  // Level advancement (2024): by experience points, awarded when a combat ends, or by the GM's milestones.
+  game.settings.register("wildpath", "advancement", {
+    name: "WILDPATH.SETTINGS.Advancement.Name",
+    hint: "WILDPATH.SETTINGS.Advancement.Hint",
+    scope: "world",
+    config: true,
+    type: String,
+    choices: {xp: "WILDPATH.SETTINGS.Advancement.Xp", milestone: "WILDPATH.SETTINGS.Advancement.Milestone"},
+    default: "xp"
   });
 
   // Carrying (helpers/carrying.mjs): the 2024 capacity, the 2014 variant encumbrance, or neither.

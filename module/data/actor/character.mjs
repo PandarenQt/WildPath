@@ -16,6 +16,8 @@ export default class WildPathCharacter extends WildPathBaseActor {
         ancestry: new StringField({required: true, blank: true}),
         background: new StringField({required: true, blank: true}),
         level: new NumberField({required: true, integer: true, initial: 1, min: 1}),
+        // Its experience points (the `advancement` setting at XP; helpers/encounters.mjs).
+        xp: new NumberField({required: false, integer: true, initial: 0, min: 0}),
         // Its creature type: every 2024 player species is a Humanoid.
         type: new StringField({required: false, blank: true, initial: "humanoid"})
       })

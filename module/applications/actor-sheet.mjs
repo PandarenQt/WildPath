@@ -1,3 +1,4 @@
+import {xpForLevel} from "../helpers/encounters.mjs";
 import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.mjs";
 import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {levelUp} from "./level-up.mjs";
@@ -94,6 +95,11 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     });
     context.sheet = sheet;
     Object.assign(context, sheet);
+    // A character's experience, toward its next level (the `advancement` setting at XP).
+    if ( (this.actor.type === "character") && (game.settings.get("wildpath", "advancement") === "xp") ) {
+      const level = Number(this.actor.system.details?.level) || 1;
+      context.experience = {value: Number(this.actor.system.details?.xp) || 0, next: (level < 20) ? xpForLevel(level + 1) : null};
+    }
     // The sheet edits the creature's own training and proficiencies (its source); what its Items give it is shown
     // beside them, never saved as its own (G8: losing the Item loses it).
     const own = this.actor._source?.system ?? {};
