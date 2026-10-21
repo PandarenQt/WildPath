@@ -11,6 +11,9 @@
       <li class="inspector-empty">{{localize "WILDPATH.INSPECTOR.Empty"}}</li>
     {{/each}}
   </ol>
+  {{#if unavailable}}
+    <p class="inspector-detail hint">{{localize "WILDPATH.INSPECTOR.Unavailable"}}</p>
+  {{/if}}
   {{#if selected}}
     <section class="inspector-detail">
       <h3>{{selected.label}} <span class="entry-status">{{selected.status}}</span></h3>

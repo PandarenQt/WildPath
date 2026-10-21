@@ -598,7 +598,8 @@
 .wildpath.rules-inspector .inspector-stages span { display: inline-block; margin: 0 4px 2px 0; padding: 0 4px; border-radius: 3px;
   background: rgba(0, 0, 0, 0.1); font-size: 0.75em; }
 .wildpath.rules-inspector table { width: 100%; font-size: 0.85em; }
-.resolution-card + .wildpath-inspect, .resolution-card .wildpath-inspect { display: block; margin-top: 4px; font-size: 0.8em; text-align: right; cursor: pointer; }
+.resolution-card + .wildpath-inspect, .resolution-card .wildpath-inspect { display: block; width: auto; margin: 4px 0 0 auto; padding: 0;
+  border: none; background: none; color: var(--wp-accent); font-size: 0.8em; line-height: 1.4; text-decoration: underline; cursor: pointer; }
 
 /* Item and effect sheet JSON editors (the first slice of the Homebrew Builder). */
 .wildpath .json-editor { width: 100%; font-family: monospace; font-size: 0.8rem; }
