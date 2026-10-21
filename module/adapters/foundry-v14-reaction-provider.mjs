@@ -263,7 +263,7 @@ export function relationsToSource(scene, event, { includeSource = false } = {}) 
                 const to = footprintOf(token);
                 const fields = (from && to) ? footprintDistance(from, to) : NaN;
                 const distance = Number.isFinite(fields) ? fields * fieldDistance : null;
-                const collides = foundrySightCollision();
+                const collides = foundrySightCollision(scene);
                 const walled = collides ? coverBetween({ source: token, target: source, collides }) === "total" : false;
                 const sees = !walled && attackSight({ attacker: token.actor, target: source.actor, attackerToken: token,
                     targetToken: source, distance }).seesTarget;

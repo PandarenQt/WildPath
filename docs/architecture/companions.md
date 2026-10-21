@@ -74,8 +74,8 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
     Large summon needs all four of its fields.
   - It must be on the Scene (not in its padding) and within the Action's range of the caster.
   - Under the 2024 rules it must also be a space the caster can see. The summon's centre and every field must
-    be in the caster's sight, so it never straddles a wall. Walls are tested only when the GM is viewing the
-    caster's Scene.
+    be in the caster's sight, so it never straddles a wall. Walls count on any Scene
+    ([senses-and-cover.md](senses-and-cover.md#walls-on-any-scene)).
 - **Compendium creatures** are imported into the world once, and later summons reuse them.
 - **Control.** Each Token is a `summon` whose controller is the caster, so the caster's Player owns and
   commands it, through the same shared control as companions.

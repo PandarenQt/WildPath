@@ -40,7 +40,7 @@ import {COVER_BONUS, coverBetween, foundrySightCollision} from "../adapters/foun
  * origin (a radial area's first point; a cone or line starts at the caster). "none" without walls to test (no canvas).
  */
 export function actionCover({definition, sourceToken, targetToken, points=[]}) {
-  const collides = foundrySightCollision();
+  const collides = foundrySightCollision(targetToken?.parent);
   if ( !collides || !sourceToken || !targetToken || (targetToken.id === sourceToken.id) ) return "none";
   const origin = ((definition?.targeting?.type === "area") && (definition.area?.shape === "radial") && points[0]) ? points[0] : null;
   return coverBetween({source: origin ? null : sourceToken, origin, target: targetToken, collides});

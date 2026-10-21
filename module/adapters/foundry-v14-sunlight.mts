@@ -1,3 +1,5 @@
+import {wallsBlock} from "./foundry-v14-walls.mjs";
+
 /**
  * Light at a Token. Sunlight (Sunlight Sensitivity, a Vampire's Regeneration): a Token stands in sunlight when its Scene
  * is tagged as sunlit (`flags.wildpath.sunlight`, daytime outdoors), or a light tagged as sunlight reaches it. Such a
@@ -41,10 +43,11 @@ function lightReaches(token: TokenLike, scene: SceneLike, accept: Accept, canvas
   const reaches = (light: SunlitDocument, config: LightConfig | undefined, source: LightSourceLike | undefined) => {
     if ( !accept(light, config) || light.hidden ) return false;
     if ( rendered && source?.testPoint ) return (source.active !== false) && source.testPoint(point);
-    // shortcut: off the viewed Scene, walls are not considered; the light's own radius from its position decides.
+    // Off the viewed Scene: within the light's radius, with no wall that stops light between (foundry-v14-walls.mts).
     const radius = Math.max(Number(config?.bright) || 0, Number(config?.dim) || 0) * pixelsPerUnit;
     const center = centerOf(light);
-    return (radius > 0) && (Math.hypot(point.x - center.x, point.y - center.y) <= radius);
+    return (radius > 0) && (Math.hypot(point.x - center.x, point.y - center.y) <= radius)
+      && !wallsBlock(scene as never, center, point, {type: "light"});
   };
   return [...(scene.lights ?? [])].some(light => reaches(light, light.config, light.object?.lightSource))
     || [...(scene.tokens ?? [])].some(other => (other.id !== token.id) && reaches(other, other.light, other.object?.light))

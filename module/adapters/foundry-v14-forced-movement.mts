@@ -1,3 +1,4 @@
+import {sceneCollision} from "./foundry-v14-walls.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 /**
  * Forced movement (G6, areas.md): when an Action with `push` completes, the active GM moves each creature it pushed
@@ -87,13 +88,14 @@ export function createFoundryForcedMovement({game, logger=console, fromUuid}: {g
       // The farthest moves first when pushed, the nearest when pulled, so none blocks another needlessly.
       .sort((a, b) => (spec.toward ? 1 : -1) * (distanceOf(a) - distanceOf(b)));
     const moved = [];
+    const collides = sceneCollision(scene as never);
     for ( const token of tokens ) {
       const others = new Set([...scene.tokens].filter(other => other !== token)
         .flatMap(other => (other.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
-      // shortcut: walls are tested through the Token's placeable, so only when the GM is viewing its Scene.
+      // Walls stop it on any Scene, viewed or not (foundry-v14-walls.mts).
       const blocked = (origin: Point, destination: Point, position: Point) =>
         !(scene.dimensions?.sceneRect?.contains(destination.x, destination.y) ?? true)
-        || Boolean(token.object?.checkCollision?.(destination, {origin, type: "move", mode: "any"}))
+        || Boolean(collides(origin, destination, {type: "move"}))
         || (token.getOccupiedGridSpaceOffsets?.(position) ?? []).some(offset => others.has(key(offset)));
       const destination = forcedDestination(token, from, fields, {toward: spec.toward === true, blocked});
       if ( !destination ) continue;

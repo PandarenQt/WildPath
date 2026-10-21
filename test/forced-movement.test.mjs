@@ -2,17 +2,17 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {createFoundryForcedMovement, forcedDestination} from "../module/adapters/foundry-v14-forced-movement.mjs";
 
-/** A square 100-px, 5-ft grid Scene of 1x1 Tokens (`[id, x, y, width]`), and a wall along `wallX` if given. */
+/** A square 100-px, 5-ft grid Scene of 1x1 Tokens (`[id, x, y, width]`), and a wall document along `wallX` if given. */
 function scene(tokens, {wallX=null}={}) {
   const world = {grid: {isSquare: true, size: 100, sizeX: 100, sizeY: 100, distance: 5},
-    dimensions: {sceneRect: {contains: (x, y) => (x >= 0) && (y >= 0) && (x < 3000) && (y < 3000)}}, tokens: null};
+    dimensions: {sceneRect: {contains: (x, y) => (x >= 0) && (y >= 0) && (x < 3000) && (y < 3000)}}, tokens: null,
+    walls: (wallX == null) ? [] : [{c: [wallX, 0, wallX, 3000], move: 20, sight: 20, light: 20, dir: 0, door: 0, ds: 0}]};
   const list = tokens.map(([id, x, y, width=1]) => {
     const token = {id, x, y, width, height: width, parent: world, updates: [],
       getCenterPoint: (p=token) => ({x: p.x + (width * 50), y: p.y + (width * 50)}),
       getSnappedPosition: p => ({x: Math.round(p.x / 100) * 100, y: Math.round(p.y / 100) * 100}),
       getOccupiedGridSpaceOffsets: (p=token) => Array.from({length: width * width}, (_, n) =>
         ({i: (p.y / 100) + Math.floor(n / width), j: (p.x / 100) + (n % width)})),
-      object: {checkCollision: (destination, {origin}) => (wallX != null) && ((origin.x < wallX) !== (destination.x < wallX))},
       update: async (data, operation) => { token.updates.push({data, operation}); Object.assign(token, data); }};
     return token;
   });

@@ -55,7 +55,7 @@ export function fearContext(token: FearToken | null | undefined): Data {
   const {sources, known, statuses} = directedSources(token);
   if ( !statuses.includes("frightened") || !known ) return {};
   const fear = sources.filter(source => source.status === "frightened");
-  const collides = foundrySightCollision();
+  const collides = foundrySightCollision((token as {parent?: unknown} | null | undefined)?.parent);
   if ( !fear.length || !collides ) return {};
   const outOfSight = fear.every(source => coverBetween({source: token as never, target: source.token as never, collides}) === "total");
   return outOfSight ? {fearSourceOutOfSight: true} : {};

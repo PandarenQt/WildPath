@@ -1,10 +1,4 @@
-/**
- * Light at a Token. Sunlight (Sunlight Sensitivity, a Vampire's Regeneration): a Token stands in sunlight when its Scene
- * is tagged as sunlit (`flags.wildpath.sunlight`, daytime outdoors), or a light tagged as sunlight reaches it. Such a
- * light is an ambient light or a Token's own light: a Daylight spell, a sunbeam through a window. And whether it stands
- * in light, darkness or magical Darkness (`lightAt`: what can see it). On the viewed Scene Foundry's own light sources
- * decide (walls and elevation included); elsewhere a light's radius does.
- */
+import { wallsBlock } from "./foundry-v14-walls.mjs";
 const tagged = (document) => document.flags?.wildpath?.sunlight === true;
 /** Whether a light `accept`ed (an ambient light, another Token's or its own) reaches `token` on its Scene. */
 function lightReaches(token, scene, accept, canvas) {
@@ -21,10 +15,11 @@ function lightReaches(token, scene, accept, canvas) {
             return false;
         if (rendered && source?.testPoint)
             return (source.active !== false) && source.testPoint(point);
-        // shortcut: off the viewed Scene, walls are not considered; the light's own radius from its position decides.
+        // Off the viewed Scene: within the light's radius, with no wall that stops light between (foundry-v14-walls.mts).
         const radius = Math.max(Number(config?.bright) || 0, Number(config?.dim) || 0) * pixelsPerUnit;
         const center = centerOf(light);
-        return (radius > 0) && (Math.hypot(point.x - center.x, point.y - center.y) <= radius);
+        return (radius > 0) && (Math.hypot(point.x - center.x, point.y - center.y) <= radius)
+            && !wallsBlock(scene, center, point, { type: "light" });
     };
     return [...(scene.lights ?? [])].some(light => reaches(light, light.config, light.object?.lightSource))
         || [...(scene.tokens ?? [])].some(other => (other.id !== token.id) && reaches(other, other.light, other.object?.light))

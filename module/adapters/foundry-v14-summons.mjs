@@ -1,3 +1,4 @@
+import { sceneCollision } from "./foundry-v14-walls.mjs";
 import { gmNotice } from "../helpers/gm-notice.mjs";
 import { foundryPointInRange } from "./foundry-v14-area-placement.mjs";
 import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
@@ -151,9 +152,12 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
             return cells.length ? cells : [offset];
         };
         // The summon's centre and each of its fields must be in its caster's sight, so it never straddles a wall.
-        // shortcut: walls are tested through the caster's placeable, so only when the GM is viewing the caster's Scene.
-        const collides = casterToken.object?.checkCollision?.bind(casterToken.object);
-        const seen = (point) => !collides?.(point, { type: "sight", mode: "any" });
+        // Walls count on any Scene, viewed or not (foundry-v14-walls.mts), seen from the caster's centre.
+        const collision = sceneCollision(scene);
+        const eye = { x: (Number(casterToken.x) || 0) + (((Number(casterToken.width) || 1) * (scene.grid.sizeX ?? 0)) / 2),
+            y: (Number(casterToken.y) || 0) + (((Number(casterToken.height) || 1) * (scene.grid.sizeY ?? 0)) / 2) };
+        const collides = (point) => Boolean(collision(eye, point, { type: "sight" }));
+        const seen = (point) => !collides(point);
         const centre = (offset) => {
             const { x, y } = scene.grid.getTopLeftPoint(offset);
             return { x: x + (((shape.width ?? 1) * (scene.grid.sizeX ?? 0)) / 2), y: y + (((shape.height ?? 1) * (scene.grid.sizeY ?? 0)) / 2) };

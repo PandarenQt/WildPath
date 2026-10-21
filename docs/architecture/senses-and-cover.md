@@ -86,7 +86,7 @@ Cover is worked out automatically for every Action (maintainer decision, 2026-10
    line or emanation starts at the caster), lines run to the corners of each space the target occupies. Corners are
    inset a pixel, so a line along a wall's end or a grid edge doesn't count.
 2. The attacker takes the corner and target space that see best, and a wall blocking sight cuts some share of those
-   lines (Foundry's `polygonBackends.sight.testCollision` on the target's Level):
+   lines (the target's Scene's walls, on its Level: see "Walls on any Scene" below):
 
    | Lines blocked | Cover |
    | --- | --- |
@@ -96,6 +96,16 @@ Cover is worked out automatically for every Action (maintainer decision, 2026-10
    | all | Total |
 
 3. If no wall gives cover, a creature whose space a line crosses gives Half.
+
+### Walls on any Scene
+
+`adapters/foundry-v14-walls.mts` (2026-10-21) tests a line against a Scene's walls whether or not the canvas shows it.
+On the rendered Scene Foundry's polygon backends decide (`testCollision`). On any other Scene, the Scene's wall
+documents do, as Foundry reads them: a wall stops the senses it blocks (`move`, `sight`, `light`); an open door stops
+nothing; a one-way wall stops a line only from one side; Limited walls stop sight and light only two at once. Cover,
+fear's line of sight, reactions' "can see", forced movement, summon placement and sunlight all use it. Live: on a
+Scene with every kind of wall, 600 random lines gave the same answer as Foundry's own test. Shortcut: off the rendered
+Scene a Proximity or Distance wall blocks at any distance.
 
 How each degree is applied:
 - **Attacks:** cover lowers the attack roll against that target (as raising its AC would), in the authority's numbers and
