@@ -95,6 +95,9 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     });
     context.sheet = sheet;
     Object.assign(context, sheet);
+    // A character's coins.
+    if ( this.actor.type === "character" ) context.coins = ["pp", "gp", "ep", "sp", "cp"].map(id => ({id, label: `WILDPATH.COINS.${id}`,
+      value: Number(this.actor.system.currency?.[id]) || 0}));
     // A character's experience, toward its next level (the `advancement` setting at XP).
     if ( (this.actor.type === "character") && (game.settings.get("wildpath", "advancement") === "xp") ) {
       const level = Number(this.actor.system.details?.level) || 1;

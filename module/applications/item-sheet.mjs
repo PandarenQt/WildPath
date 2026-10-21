@@ -1,4 +1,5 @@
 import {scrollItemData} from "../helpers/spell-scrolls.mjs";
+import {craftingPlan, spendGold} from "../helpers/crafting.mjs";
 import {CUSTOM_EFFECT_DURATION_UNITS, CUSTOM_EFFECT_EXPIRY_EVENTS, validateActionDefinition} from "../helpers/action-definitions.mjs";
 import {summarizeActionDefinition} from "../helpers/action-definition-summary.mjs";
 import {ACTION_TEMPLATES, AREA_SHAPES, addBuilderRow, applyActionTemplate, builderGaps, builderIssues, builderToDefinition,
@@ -40,7 +41,8 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       builderTest: WildPathItemSheet.#onBuilderTest,
       ruleAdd: WildPathItemSheet.#onRuleAdd,
       ruleRemove: WildPathItemSheet.#onRuleRemove,
-      makeScroll: WildPathItemSheet.#onMakeScroll
+      makeScroll: WildPathItemSheet.#onMakeScroll,
+      craft: WildPathItemSheet.#onCraft
     }
   };
 
@@ -305,6 +307,29 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     await this.#editRules(target, (rules, path) => addRule(rules, "bonus", path));
   }
 
+  /**
+   * Craft this gear for a player's character (helpers/crafting.mjs): its coins pay for the materials, and it gains the
+   * item; the chat says how many days of work it took.
+   */
+  static async #onCraft() {
+    const characters = game.actors.filter(actor => (actor.type === "character") && actor.hasPlayerOwner);
+    if ( !characters.length ) return;
+    const plan = craftingPlan({price: this.item.system.price ?? this.item.flags?.wildpath?.price,
+      rarity: this.item.system.rarity ?? this.item.flags?.wildpath?.rarity,
+      consumable: this.item.flags?.wildpath?.source?.type === "consumable", scrollLevel: this.item.flags?.wildpath?.scrollLevel ?? null});
+    const answer = await foundry.applications.api.DialogV2.input({window: {title: game.i18n.format("WILDPATH.CRAFT.Title", {name: this.item.name})},
+      content: `<p>${game.i18n.format("WILDPATH.CRAFT.Plan", plan)}</p><select name="actor">${characters.map(actor =>
+        `<option value="${actor.id}">${foundry.utils.escapeHTML(actor.name)}</option>`).join("")}</select>`, rejectClose: false});
+    const actor = game.actors.get(answer?.actor ?? "");
+    if ( !actor ) return;
+    const coins = spendGold(actor.system.currency ?? {}, plan.cost);
+    if ( !coins ) return ui.notifications.warn(game.i18n.format("WILDPATH.CRAFT.TooPoor", {name: actor.name, cost: plan.cost}));
+    await actor.update({"system.currency": coins});
+    const {_id, ...data} = this.item.toObject();
+    await actor.createEmbeddedDocuments("Item", [{...data, system: {...data.system, quantity: 1}}]);
+    await ChatMessage.create({content: game.i18n.format("WILDPATH.CRAFT.Done", {name: actor.name, item: this.item.name, ...plan})});
+  }
+
   /** A Spell Scroll of this spell, made in the Items directory (helpers/spell-scrolls.mjs). */
   static async #onMakeScroll() {
     const made = await Item.create(scrollItemData(this.item));
@@ -353,6 +378,8 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     context.isAction = this.item.type === "action";
     context.isGear = this.item.type === "gear";
     context.isGM = game.user.isGM;
+    // Gear, or an Action that stands for an item (an SRD Longbow: its price in its flags).
+    context.canCraft = game.user.isGM && ((this.item.type === "gear") || Number.isFinite(Number(this.item.flags?.wildpath?.price)));
     // A spell's Action can be written on a Spell Scroll (GM).
     context.canMakeScroll = game.user.isGM && (this.item.type === "action") && (this.item.system.definition?.tags ?? []).includes("spell")
       && !this.item.system.definition?.scroll;

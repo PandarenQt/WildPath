@@ -611,7 +611,8 @@
         "description": "Description"
       },
       "Identified": "Identified",
-      "UnidentifiedName": "Unidentified name"
+      "UnidentifiedName": "Unidentified name",
+      "Price": "Price (GP)"
     },
     "REST": {
       "NoBenefit": "{name} has 0 Hit Points, so the long rest gives no benefit (its hours still count toward a stable creature's recovery).",
@@ -1286,6 +1287,20 @@
       "Pace": "Travel pace: {pace}",
       "Done": "The party travels {miles} miles in {hours} hours at a {pace} pace.",
       "Exhausted": "Forced march: {names} gained Exhaustion."
+    },
+    "COINS": {
+      "pp": "PP",
+      "gp": "GP",
+      "ep": "EP",
+      "sp": "SP",
+      "cp": "CP"
+    },
+    "CRAFT": {
+      "Button": "Craft for a character",
+      "Title": "Craft {name}",
+      "Plan": "It takes {days} days of work and {cost} GP of materials.",
+      "TooPoor": "{name} can't pay the {cost} GP it takes.",
+      "Done": "{name} crafts {item}: {days} days of work and {cost} GP of materials."
     }
   },
   "TYPES": {

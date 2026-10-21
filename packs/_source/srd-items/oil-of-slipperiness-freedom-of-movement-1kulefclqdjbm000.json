@@ -116,7 +116,9 @@
           "activation: 10 minute is not an action-economy cost",
           "effect: \"Unrestricted Movement\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted"
         ]
-      }
+      },
+      "price": 200,
+      "rarity": "uncommon"
     }
   }
 }

@@ -81,7 +81,9 @@
           "consumption: itemUses 4 not converted",
           "cast: Cure Wounds at level 9 is cast at its own level"
         ]
-      }
+      },
+      "price": 0,
+      "rarity": "artifact"
     }
   }
 }

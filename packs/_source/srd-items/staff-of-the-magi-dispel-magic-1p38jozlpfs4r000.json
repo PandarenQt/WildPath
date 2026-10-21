@@ -99,7 +99,9 @@
         "notes": [
           "dispel: a lasting area or an object is not a target (by hand)"
         ]
-      }
+      },
+      "price": 200000,
+      "rarity": "legendary"
     }
   }
 }

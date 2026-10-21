@@ -132,7 +132,9 @@
         "notes": [
           "\"Apply Lethargy\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "price": 20000,
+      "rarity": "veryRare"
     }
   }
 }

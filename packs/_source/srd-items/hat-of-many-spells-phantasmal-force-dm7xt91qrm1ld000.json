@@ -104,7 +104,9 @@
           "effect: \"Seeing Illusions\" marks its creature only; its rules are by hand",
           "\"Phantasm Damage\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

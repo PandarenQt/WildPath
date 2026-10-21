@@ -96,7 +96,9 @@
         "notes": [
           "save: a failure marks its creature only; what it does is by hand"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

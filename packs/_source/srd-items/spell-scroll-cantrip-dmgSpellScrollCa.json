@@ -12,7 +12,9 @@
     "slot": "",
     "ruleElements": [],
     "attunement": "",
-    "armor": ""
+    "armor": "",
+    "price": 30,
+    "rarity": "common"
   },
   "flags": {
     "wildpath": {

@@ -78,7 +78,9 @@
           "activation: 10 minute is not an action-economy cost",
           "area: 100 * @item.level - 300-ft cube is not supported; the user picks the targets"
         ]
-      }
+      },
+      "price": 4000,
+      "rarity": "rare"
     }
   }
 }

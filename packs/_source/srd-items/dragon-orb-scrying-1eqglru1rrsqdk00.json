@@ -101,7 +101,9 @@
           "save: a failure marks its creature (narrative)",
           "\"Create Sensor\" is passive or triggered (narrative): not automated"
         ]
-      }
+      },
+      "price": 0,
+      "rarity": "artifact"
     }
   }
 }

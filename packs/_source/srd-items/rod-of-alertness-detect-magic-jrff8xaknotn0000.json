@@ -92,7 +92,9 @@
         "notes": [
           "effect: \"Detect Magic\" marks its creature (narrative)"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

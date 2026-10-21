@@ -146,7 +146,9 @@
       },
       "conversion": {
         "notes": []
-      }
+      },
+      "price": 4000,
+      "rarity": "rare"
     }
   }
 }

@@ -142,7 +142,9 @@
         "notes": [
           "\"damage\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "price": 0,
+      "rarity": "veryRare"
     }
   }
 }

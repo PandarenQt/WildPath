@@ -76,7 +76,9 @@
         "notes": [
           "effect: \"Jump\" marks its creature only; its rules are by hand"
         ]
-      }
+      },
+      "price": 400,
+      "rarity": "uncommon"
     }
   }
 }

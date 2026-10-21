@@ -93,7 +93,9 @@
         "notes": [
           "effect: \"Detect Poison and Disease\" marks its creature (narrative)"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

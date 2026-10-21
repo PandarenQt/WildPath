@@ -219,7 +219,9 @@
           "effect: \"Enervated\" change system.bonuses.msak.damage (add) not converted",
           "effect: \"Enervated\" change system.bonuses.rsak.damage (add) not converted"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

@@ -85,7 +85,9 @@
         "notes": [
           "rolled (attack); what it does is by hand"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

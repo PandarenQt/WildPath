@@ -139,7 +139,9 @@
         "notes": [
           "cast: Fireball at level 5 is cast at its own level"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

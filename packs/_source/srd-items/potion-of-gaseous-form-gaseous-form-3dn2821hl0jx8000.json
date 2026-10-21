@@ -163,7 +163,9 @@
           "effect: transformed is not a WildPath condition yet",
           "effect: \"Gaseous Form\" change img (override) not converted"
         ]
-      }
+      },
+      "price": 2000,
+      "rarity": "rare"
     }
   }
 }

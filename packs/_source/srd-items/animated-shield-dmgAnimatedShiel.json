@@ -62,7 +62,9 @@
         "notes": [
           "effect: \"Animated Shield\" marks its creature only; its rules are by hand"
         ]
-      }
+      },
+      "price": 40010,
+      "rarity": "veryRare"
     }
   }
 }

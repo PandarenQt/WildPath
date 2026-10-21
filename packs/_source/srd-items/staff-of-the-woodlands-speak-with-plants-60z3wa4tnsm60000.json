@@ -102,7 +102,9 @@
         "notes": [
           "effect: \"Speaking with Plants\" marks its creature (narrative)"
         ]
-      }
+      },
+      "price": 4000,
+      "rarity": "rare"
     }
   }
 }

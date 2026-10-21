@@ -56,7 +56,7 @@ export function scrollItemData(spell, {name=null}={}) {
   const label = name ?? `Spell Scroll (${spell.name})`;
   return {name: label, type: "gear", img: "icons/sundries/scrolls/scroll-bound-sealed-red.webp",
     system: {quantity: 1, weight: 0, description: spell.system.description ?? ""},
-    flags: {wildpath: {grantedActions: [{name: `${spell.name} (Scroll)`, type: "action", img: spell.img,
+    flags: {wildpath: {scrollLevel: spellLevelOf(spell.system.definition), grantedActions: [{name: `${spell.name} (Scroll)`, type: "action", img: spell.img,
       system: {active: true, description: spell.system.description ?? "", definition: {...definition, label: `${spell.name} (Scroll)`},
         ruleElements: []}}]}}};
 }

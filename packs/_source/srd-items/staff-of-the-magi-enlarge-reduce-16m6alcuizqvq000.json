@@ -269,7 +269,9 @@
           "effect: \"Reduced\" change system.rolls.damage.rwak.bonus (subtract) not converted",
           "effect: \"Reduced\" change system.traits.size (subtract) not converted"
         ]
-      }
+      },
+      "price": 200000,
+      "rarity": "legendary"
     }
   }
 }

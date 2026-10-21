@@ -46,7 +46,9 @@
       }
     ],
     "attunement": "",
-    "armor": "heavy"
+    "armor": "heavy",
+    "price": 40000,
+    "rarity": "veryRare"
   },
   "flags": {
     "wildpath": {

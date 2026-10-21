@@ -216,7 +216,9 @@
           "effect: flying is not a WildPath condition yet",
           "effect: flying is not a WildPath condition yet"
         ]
-      }
+      },
+      "price": 400,
+      "rarity": "uncommon"
     }
   }
 }

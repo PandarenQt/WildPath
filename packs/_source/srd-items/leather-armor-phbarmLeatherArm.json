@@ -35,7 +35,8 @@
       }
     ],
     "attunement": "",
-    "armor": "light"
+    "armor": "light",
+    "price": 10
   },
   "flags": {
     "wildpath": {

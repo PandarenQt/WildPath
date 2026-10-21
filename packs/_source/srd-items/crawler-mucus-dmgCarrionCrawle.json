@@ -84,7 +84,8 @@
         "notes": [
           "save: a failure gives poisoned (its text); the rest is by hand"
         ]
-      }
+      },
+      "price": 200
     }
   }
 }

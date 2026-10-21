@@ -65,7 +65,9 @@
       },
       "conversion": {
         "notes": []
-      }
+      },
+      "price": 0,
+      "rarity": "uncommon"
     }
   }
 }

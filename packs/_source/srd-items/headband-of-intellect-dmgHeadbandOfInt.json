@@ -23,7 +23,9 @@
       }
     ],
     "attunement": "required",
-    "armor": ""
+    "armor": "",
+    "price": 0,
+    "rarity": "uncommon"
   },
   "flags": {
     "wildpath": {

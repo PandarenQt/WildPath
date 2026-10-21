@@ -24,7 +24,9 @@
       }
     ],
     "attunement": "",
-    "armor": ""
+    "armor": "",
+    "price": 400,
+    "rarity": "uncommon"
   },
   "flags": {
     "wildpath": {

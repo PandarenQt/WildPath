@@ -76,7 +76,9 @@
           "consumption: itemUses 2 not converted",
           "effect: \"Protection from Death\" marks its creature only; its rules are by hand"
         ]
-      }
+      },
+      "price": 0,
+      "rarity": "artifact"
     }
   }
 }

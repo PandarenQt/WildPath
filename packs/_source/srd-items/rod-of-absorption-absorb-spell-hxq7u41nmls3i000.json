@@ -61,7 +61,9 @@
         "notes": [
           "not automated (utility): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

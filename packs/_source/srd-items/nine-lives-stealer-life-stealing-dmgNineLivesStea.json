@@ -86,7 +86,9 @@
         "notes": [
           "rolled (save); what it does is by hand"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

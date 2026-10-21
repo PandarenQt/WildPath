@@ -12,7 +12,8 @@
     "slot": "",
     "ruleElements": [],
     "attunement": "required",
-    "armor": ""
+    "armor": "",
+    "price": 0
   },
   "flags": {
     "wildpath": {

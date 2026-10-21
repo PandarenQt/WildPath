@@ -75,7 +75,9 @@
           "damage 1: bonus \"@scaling\" not converted",
           "rolled (save); what it does is by hand"
         ]
-      }
+      },
+      "price": 0,
+      "rarity": "veryRare"
     }
   }
 }

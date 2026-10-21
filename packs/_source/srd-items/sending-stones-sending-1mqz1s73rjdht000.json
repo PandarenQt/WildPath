@@ -69,7 +69,9 @@
         "notes": [
           "not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "price": 400,
+      "rarity": "uncommon"
     }
   }
 }

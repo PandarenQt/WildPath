@@ -25,7 +25,9 @@
       }
     ],
     "attunement": "required",
-    "armor": "shield"
+    "armor": "shield",
+    "price": 4000,
+    "rarity": "rare"
   },
   "flags": {
     "wildpath": {

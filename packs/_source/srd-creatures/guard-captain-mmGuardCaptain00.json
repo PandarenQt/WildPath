@@ -154,7 +154,8 @@
           },
           "conversion": {
             "notes": []
-          }
+          },
+          "price": 0.5
         }
       }
     },
@@ -240,7 +241,8 @@
           },
           "conversion": {
             "notes": []
-          }
+          },
+          "price": 15
         }
       }
     },

@@ -59,7 +59,9 @@
           "consumption: itemUses 1d3 not converted",
           "consumption: itemUses 1d3 not converted"
         ]
-      }
+      },
+      "price": 20000,
+      "rarity": "veryRare"
     }
   }
 }

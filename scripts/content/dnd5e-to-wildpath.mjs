@@ -1399,6 +1399,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       system: {active: false, description, quantity: Math.max(0, Math.round(number(system.quantity) ?? 1)),
         weight: number(system.weight?.value ?? system.weight) ?? 0, slot: "", ruleElements: [...armorRules(document, allNotes), ...passive],
         attunement: (system.attunement === "required") ? "required" : "", armor: (document.type === "equipment" ? armorKind(system) : null) ?? "",
+        // Its price in gold, and its rarity (crafting it).
+        price: priceInGold(system.price), ...(system.rarity ? {rarity: system.rarity} : {}),
         // What it looks like before it is identified (dnd5e's own), for its GM to hand out unidentified.
         ...(system.unidentified?.name ? {unidentified: {name: system.unidentified.name, description: system.unidentified.description ?? ""}} : {})},
       // Its Actions come with it when it is added to a creature (WildPathItem).
@@ -1466,6 +1468,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         targeting: {type: "self"}, effects: structuredClone(featureAction.effects ?? []),
         ...(featureAction.requires ? {requires: structuredClone(featureAction.requires)} : {})}, ruleElements: [pool?.rule].filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: []}}}});
+  }
+  // What it costs and how rare it is, on Actions that stand for it with no gear (an SRD Longbow, a Potion of Healing).
+  const price = priceInGold(system.price);
+  if ( price || system.rarity ) for ( const item of items.filter(entry => entry.type === "action") ) {
+    item.flags.wildpath = {...item.flags.wildpath, price, ...(system.rarity ? {rarity: system.rarity} : {})};
   }
   // What it asks of its creature (a feat's, an Invocation's), on each Item it became (the level-up dialog offers it only then).
   const chosen = (system.type?.value === "feat") || ["eldritchInvocation", "artificerInfusion", "maneuver", "metamagic", "fightingStyle"]
@@ -2267,6 +2274,9 @@ export function convertTable(table, {uuidOf, source}) {
     }),
     flags: {wildpath: {source}}};
 }
+
+/** A dnd5e price (`{value, denomination}`) in gold. */
+const priceInGold = price => Math.max(0, (Number(price?.value) || 0) * ({pp: 10, gp: 1, ep: 0.5, sp: 0.1, cp: 0.01}[price?.denomination ?? "gp"] ?? 1));
 
 /** A creature id's name part: `phbmobWeasel0000` and `mmWeasel00000000` are both `weasel`; a random id has none. */
 const creatureKey = id => (/^(?:phbmob|mm|dmg|phb)[A-Z]/u.test(id) ? id.replace(/^(?:phbmob|mm|dmg|phb)/u, "").replace(/0+$/u, "").toLowerCase() : "");

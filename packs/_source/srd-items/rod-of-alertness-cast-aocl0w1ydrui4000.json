@@ -58,7 +58,9 @@
           "not automated (cast): using it spends its cost; its description says the rest",
           "cast: its spell was not found among the converted spells"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

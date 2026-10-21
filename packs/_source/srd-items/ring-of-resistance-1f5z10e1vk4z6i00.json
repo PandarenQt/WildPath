@@ -113,7 +113,9 @@
       }
     ],
     "attunement": "",
-    "armor": ""
+    "armor": "",
+    "price": 0,
+    "rarity": "rare"
   },
   "flags": {
     "wildpath": {

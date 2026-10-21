@@ -90,7 +90,9 @@
       },
       "conversion": {
         "notes": []
-      }
+      },
+      "price": 2000,
+      "rarity": "rare"
     }
   }
 }
