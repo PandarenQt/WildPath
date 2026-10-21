@@ -8,6 +8,16 @@ import {abilityScoreAfter} from "../../helpers/rule-elements.mjs";
 import {movementTracked} from "../../helpers/combat.mjs";
 import {mergeTraining} from "../../helpers/level-up.mjs";
 import {bestSenses, brightestLight} from "../../helpers/senses.mjs";
+import {carryingLoad, carryingSizeFactor} from "../../helpers/carrying.mjs";
+
+/** The world's carrying rule (`encumbrance`), "capacity" before settings exist. */
+function carryingMode() {
+  try {
+    return globalThis.game?.settings?.get?.("wildpath", "encumbrance") ?? "capacity";
+  } catch {
+    return "capacity";
+  }
+}
 
 /**
  * A pool's name in the reader's language: a system pool's from its id (its stored label is in the language it was made
@@ -242,6 +252,12 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     }
     // First: hit points, saves, AC and every modifier read the scores.
     this.#applyAbilityScores();
+    // What it carries, against its Might (helpers/carrying.mjs): its load's rules join its own (actor.mjs grantOwners).
+    this.carrying = (this.parent?.type === "character") ? carryingLoad({
+      weight: [...(this.parent?.items ?? [])].filter(item => item.type === "gear")
+        .reduce((total, item) => total + ((Number(item.system?.quantity) || 1) * (Number(item.system?.weight) || 0)), 0),
+      might: this.abilities?.might?.value, sizeFactor: carryingSizeFactor(this.parent?.prototypeToken?.width),
+      mode: carryingMode()}) : null;
     this.#deriveClasses();
     this.#applyResourceModifiers();
     this.#finalizeResources();

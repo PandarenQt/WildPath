@@ -70,6 +70,13 @@
         "Hint": "Which edition's conditions apply in this world: the 2024 rules, or the 2014 rules (Exhaustion's six levels, Grappled, Incapacitated, Invisible). Takes effect after a reload, for conditions applied from then on.",
         "Modern": "2024 rules",
         "Legacy": "2014 rules"
+      },
+      "Encumbrance": {
+        "Name": "Carrying",
+        "Hint": "2024: a character carries up to its Might score × 15 lb (by size); carrying more, its Speed is at most 5 feet. The variant adds −10 ft over 5 × Might and −20 ft with Disadvantage on Might, Agility and Fortitude d20 tests over 10 × Might.",
+        "Capacity": "Carrying capacity (2024)",
+        "Variant": "Variant encumbrance",
+        "Off": "Off"
       }
     },
     "ABILITIES": {
@@ -1126,7 +1133,11 @@
         "Unavailable": "Not usable now"
       },
       "BrokenRules": "Some rules can't be read and are skipped; open these to fix them:",
-      "PipCount": "{count} of 3"
+      "PipCount": "{count} of 3",
+      "CarriedOf": "Carried: {weight} / {capacity} lb",
+      "OverCapacity": "Over capacity: Speed at most 5 ft",
+      "Encumbered": "Encumbered: Speed −10 ft",
+      "HeavilyEncumbered": "Heavily encumbered: Speed −20 ft, Disadvantage on Might, Agility and Fortitude tests"
     },
     "PACKS": {
       "Actions": "WildPath Actions",
