@@ -1830,7 +1830,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (teleport): using it spends its cost; its description says the rest"
+              "not automated (teleport, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1906,7 +1906,7 @@
           "Spellcasting: cast: Cone of Cold at level 9 is cast at its own level",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
-          "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest"
+          "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

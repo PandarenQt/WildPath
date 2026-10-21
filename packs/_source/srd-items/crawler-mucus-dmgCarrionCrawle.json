@@ -2,17 +2,70 @@
   "_id": "dmgCarrionCrawle",
   "_key": "!items!dmgCarrionCrawle",
   "name": "Crawler Mucus",
-  "type": "gear",
+  "type": "action",
   "img": "icons/consumables/potions/vial-cork-green.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p><em>Contact Poison</em></p><p>A creature subjected to Carrion Crawler Mucus must succeed on a DC 13 Constitution saving throw or have the Poisoned condition for 1 minute. The creature also has the Paralyzed condition while Poisoned in this way. The creature repeats the save at the end of each of its turns, ending the effect on itself on a success.</p>",
-    "quantity": 1,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [],
-    "attunement": "",
-    "armor": ""
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-crawler-mucus-use-poison",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "crawler-mucus",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 13
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "poisoned",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
+      "label": "Crawler Mucus"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "crawler-mucus-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "crawler-mucus",
+          "label": "Crawler Mucus",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -29,7 +82,7 @@
       },
       "conversion": {
         "notes": [
-          "\"Use Poison\" is passive or triggered: not automated"
+          "save: a failure gives poisoned (its text); the rest is by hand"
         ]
       }
     }

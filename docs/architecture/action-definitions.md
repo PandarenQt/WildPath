@@ -122,7 +122,9 @@ debuff with its own rules.
   `"attackedBySource"` ends it only when the creature that applied it attacks its creature (Vex), `"attackedByOther"`
   when any other creature does (Sundering Blow), `"attacks"` when its own creature makes an attack roll (Sap), and
   `"saves"` once its creature makes a saving throw in an Action (Staggering Blow, 2026-10-19). An effect the same attack has just applied to a creature it hit
-  stays (2026-10-15).
+  stays (2026-10-15). `"hits"` (2026-10-21) ends it once its own creature's attack hits: an injury poison's coat, whose
+  reaction (a Trigger carrying the poison's save) makes the creature hit take it. The converter makes a poison's "Use
+  Poison" the Utilize action on a creature within 5 feet, or for an injury poison that coat on its user for 1 minute.
 - **Validation.** A custom effect needs a name, rules the engine knows, a slug that isn't a built-in condition,
   and V14 duration units. **Effects by reference (`type: "ref"`) are refused**: they used to validate and then be
   dropped when the Action ran.

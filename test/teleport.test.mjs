@@ -65,5 +65,5 @@ test("Misty Step converts to a self teleport of 30 feet; a teleport anywhere (Te
   assert.deepEqual(misty.flags.wildpath.conversion.notes, []);
   const [far] = convertItem(spell("testTeleport0001", "Teleport", {override: true, units: "ft"})).items;
   assert.equal(far.system.definition.teleport, undefined);
-  assert.match(far.flags.wildpath.conversion.notes[0], /not automated \(teleport\)/u);
+  assert.match(far.flags.wildpath.conversion.notes[0], /not automated \(teleport, narrative\)/u, "it leaves the Scene: narrative");
 });

@@ -1060,7 +1060,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (teleport): using it spends its cost; its description says the rest"
+              "not automated (teleport, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1411,7 +1411,7 @@
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: effect: transformed is not a WildPath condition yet",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
-          "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: cast: Wall of Fire at level 7 is cast at its own level",
           "Spellcasting: \"damage\" is passive or triggered: not automated"
         ]

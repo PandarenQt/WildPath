@@ -2,17 +2,86 @@
   "_id": "dmgEssenceOfEthe",
   "_key": "!items!dmgEssenceOfEthe",
   "name": "Essence of Ether",
-  "type": "gear",
+  "type": "action",
   "img": "icons/magic/air/fog-gas-smoke-brown.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p><em>Inhaled Poison</em></p><p>A creature subjected to Essence of Ether must succeed on a DC 15 Constitution saving throw or have the Poisoned condition for 8 hours. The creature also has the Unconscious condition while Poisoned in this way. The creature wakes up if it takes damage or if another creature takes an action to shake it awake.</p>",
-    "quantity": 1,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [],
-    "attunement": "",
-    "armor": ""
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-essence-of-ether-use-poison",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "essence-of-ether",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 15
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "poisoned",
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-2",
+          "type": "condition",
+          "conditionId": "unconscious",
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
+      "label": "Essence of Ether"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "essence-of-ether-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "essence-of-ether",
+          "label": "Essence of Ether",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -28,9 +97,7 @@
         "subtype": "inhaled"
       },
       "conversion": {
-        "notes": [
-          "\"Use Poison\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

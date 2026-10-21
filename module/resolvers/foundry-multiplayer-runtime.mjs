@@ -1787,7 +1787,8 @@ async function foundryActionController({action, actor, intent, sender, game}) {
 /**
  * After an attack Action, the effects that end on an attack, now that the attack has had them (`endsWhen`): each
  * attacked creature's `attacked` effects (Help's Distracted) and those from the attacker (`attackedBySource`, a Vex),
- * and the attacker's own `attacks` effects (a Sap). An effect this Action has just applied to a creature it hit stays.
+ * and the attacker's own `attacks` effects (a Sap), and its `hits` effects on a hit. An effect this Action has just applied to a
+ * creature it hit stays.
  */
 /** Effects that end once their creature makes a saving throw (`endsWhen: "saves"`: Staggering Blow), after an Action's save. */
 export async function endEffectsWhenSaved({state}, {fromUuid}) {
@@ -1873,7 +1874,9 @@ export async function endEffectsWhenAttacked({state}, {fromUuid}) {
         // Help's: only its helper's ally's attack uses it up.
         || ((endsWhen(effect) === "attackedByAllyOfSource") && alliedTokens(sourceToken, effectGiver(effect, actor, scene))))));
   }
-  if ( attacker ) await end(attacker, [...attacker.effects].filter(effect => endsWhen(effect) === "attacks"));
+  // ... and its `hits` ones once it hit (an injury poison's coat, delivered).
+  const hitAny = [...attacked.values()].some(Boolean);
+  if ( attacker ) await end(attacker, [...attacker.effects].filter(effect => (endsWhen(effect) === "attacks") || (hitAny && (endsWhen(effect) === "hits"))));
   return ended;
 }
 

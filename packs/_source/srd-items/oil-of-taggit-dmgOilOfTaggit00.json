@@ -2,17 +2,86 @@
   "_id": "dmgOilOfTaggit00",
   "_key": "!items!dmgOilOfTaggit00",
   "name": "Oil of Taggit",
-  "type": "gear",
+  "type": "action",
   "img": "icons/consumables/potions/potion-bottle-labeled-medicine-capped-red-black.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p><em>Contact Poison</em></p><p>A creature subjected to Oil of Taggit must succeed on a DC 13 Constitution saving throw or have the Poisoned condition for 24 hours. The creature also has the Unconscious condition while Poisoned in this way. It wakes up if it takes damage.</p>",
-    "quantity": 1,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [],
-    "attunement": "",
-    "armor": ""
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-oil-of-taggit-use-poison",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "oil-of-taggit",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 13
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "poisoned",
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 86400,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-2",
+          "type": "condition",
+          "conditionId": "unconscious",
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 86400,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
+      "label": "Oil of Taggit"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "oil-of-taggit-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "oil-of-taggit",
+          "label": "Oil of Taggit",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -28,9 +97,7 @@
         "subtype": "contact"
       },
       "conversion": {
-        "notes": [
-          "\"Use Poison\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

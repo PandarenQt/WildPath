@@ -2,17 +2,70 @@
   "_id": "dmgTorpor0000000",
   "_key": "!items!dmgTorpor0000000",
   "name": "Torpor",
-  "type": "gear",
+  "type": "action",
   "img": "icons/consumables/potions/potion-jar-corked-labeled-poison-skull-green.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p><em>Ingested Poison</em></p><p>A creature subjected to Torpor poison must succeed on a DC 15 Constitution saving throw or have the Poisoned condition for 4d6 hours. The creature's Speed is halved while the creature is Poisoned in this way.</p>",
-    "quantity": 1,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [],
-    "attunement": "",
-    "armor": ""
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-torpor-use-poison",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "torpor",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 15
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "poisoned",
+          "saveOutcomePolicy": "failure"
+        }
+      ],
+      "label": "Torpor"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "torpor-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "torpor",
+          "label": "Torpor",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -28,9 +81,7 @@
         "subtype": "ingested"
       },
       "conversion": {
-        "notes": [
-          "\"Use Poison\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

@@ -2,17 +2,78 @@
   "_id": "dmgMidnightTears",
   "_key": "!items!dmgMidnightTears",
   "name": "Midnight Tears",
-  "type": "gear",
+  "type": "action",
   "img": "icons/consumables/potions/flask-ornate-skull-green.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p><em>Ingested Poison</em></p><p>A creature that ingests Midnight Tears suffers no effect until the stroke of midnight. Any effect that ends the Poisoned condition neutralizes this poison. If the poison hasn't been neutralized before midnight, the creature makes a DC 17 Constitution saving throw, taking 31 (9d6) Poison damage on a failed save or half as much damage on a successful one.</p>",
-    "quantity": 1,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [],
-    "attunement": "",
-    "armor": ""
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-midnight-tears-use-poison",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "midnight-tears",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 17
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 9,
+            "faces": 6
+          },
+          "damageType": "poison",
+          "provenance": "additional",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "label": "Midnight Tears"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "midnight-tears-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "midnight-tears",
+          "label": "Midnight Tears",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -28,9 +89,7 @@
         "subtype": "ingested"
       },
       "conversion": {
-        "notes": [
-          "\"Use Poison\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }
