@@ -81,7 +81,9 @@
         "notes": [
           "effect: \"Climber\" marks its creature only; its rules are by hand"
         ]
-      }
+      },
+      "price": 50,
+      "rarity": "common"
     }
   }
 }

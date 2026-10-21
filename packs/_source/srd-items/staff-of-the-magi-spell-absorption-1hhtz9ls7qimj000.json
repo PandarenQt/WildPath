@@ -75,7 +75,9 @@
           "consumption: itemUses -1 not converted",
           "consumption: itemUses -1 not converted"
         ]
-      }
+      },
+      "price": 200000,
+      "rarity": "legendary"
     }
   }
 }

@@ -18,6 +18,9 @@ export default class WildPathGear extends WildPathBaseItem {
       attunement: new StringField({required: true, blank: true, initial: "", choices: ["", "required", "attuned"]}),
       // Armor's kind, which a character's armor training must name (G8): worn untrained, it hinders; a Shield protects not.
       armor: new StringField({required: true, blank: true, initial: "", choices: ["", "light", "medium", "heavy", "shield"]}),
+      // Its price in gold, and a magic item's rarity (crafting and buying: helpers/crafting.mjs).
+      price: new NumberField({required: false, initial: 0, min: 0}),
+      rarity: new StringField({required: false, blank: true, initial: ""}),
       // A magic item not yet identified: its players see only what it looks like (documents/item.mjs). The GM decides.
       identified: new BooleanField({required: false, initial: true}),
       unidentified: new SchemaField({

@@ -87,7 +87,9 @@
         "notes": [
           "effect: \"Feather Token: Fan\" marks its creature only; its rules are by hand"
         ]
-      }
+      },
+      "price": 200,
+      "rarity": "uncommon"
     }
   }
 }

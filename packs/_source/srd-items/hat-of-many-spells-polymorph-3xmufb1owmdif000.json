@@ -477,7 +477,9 @@
         "notes": [
           "transform: a Beast the caster chooses; what the creature may do in its form is by hand"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

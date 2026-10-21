@@ -63,7 +63,9 @@
         "notes": [
           "effect: \"Dimensionally Bound\" marks its creature only; its rules are by hand"
         ]
-      }
+      },
+      "price": 4000,
+      "rarity": "rare"
     }
   }
 }

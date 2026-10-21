@@ -99,7 +99,9 @@
         "notes": [
           "cast: Cure Wounds at level 2 is cast at its own level"
         ]
-      }
+      },
+      "price": 4000,
+      "rarity": "rare"
     }
   }
 }

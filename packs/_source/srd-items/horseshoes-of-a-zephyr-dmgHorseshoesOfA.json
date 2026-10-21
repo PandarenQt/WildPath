@@ -64,7 +64,9 @@
           "effect: \"Ignore Difficult Terrain\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted",
           "effect: \"Ignore Difficult Terrain\" marks its creature only; its rules are by hand"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

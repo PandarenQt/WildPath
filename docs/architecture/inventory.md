@@ -160,6 +160,22 @@ block's Speed is its own. The sheet shows "Carried: 200 / 150 lb" and what the l
 
 Live (14.369): a Might 10 character carried up to 150 lb; a 200 lb anvil made its Speed 5 ft, and 40 lb gave 30 back.
 
+## Coins, prices and crafting (2026-10-22)
+
+A character has coins (`system.currency`: pp, gp, ep, sp, cp; shown with its gear), and gear a price in gold and a
+rarity (`system.price`, `system.rarity`; the converter's from dnd5e, also kept in the flags of an Action standing for an
+item with no gear, as an SRD Longbow or a Potion of Healing does). `helpers/crafting.mjs` holds the 2024 rules:
+- a mundane item takes raw materials worth half its price and a day's work for each 10 GP of it;
+- a magic item its rarity's days and gold (Common 5 days, 50 GP; Uncommon 10, 200; Rare 50, 2,000; Very Rare 125,
+  20,000; Legendary 250, 100,000), half of each for a consumable; a Spell Scroll its spell level's (1 day and 15 GP for
+  a cantrip to 120 days and 50,000 GP at 9th);
+- paying makes change from the largest coins down (its coins are then gp, sp, cp and pp, no ep).
+
+The GM's "Craft for a character" button on an item's sheet asks which player character crafts it, spends the materials
+from its coins (or says it can't pay), gives it the item, and says in the chat how many days it worked. shortcut: the
+tool proficiency, formula and rare ingredients are the GM's to check; the days are not taken from anyone's calendar.
+Live (14.369): a character with 30 GP crafted the SRD Longbow: 5 days, 25 GP; it had 5 GP and the Longbow after.
+
 ## Spell Scrolls (2026-10-21)
 
 A GM makes a Spell Scroll from any spell's Action (its item sheet's "Make Spell Scroll"): gear named "Spell Scroll

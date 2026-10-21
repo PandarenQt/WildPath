@@ -196,7 +196,9 @@
         "notes": [
           "\"Traversal Save\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "price": 4000,
+      "rarity": "rare"
     }
   }
 }

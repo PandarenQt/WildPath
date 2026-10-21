@@ -114,7 +114,9 @@
         "notes": [
           "cast: Animal Friendship at level 3 is cast at its own level"
         ]
-      }
+      },
+      "price": 200,
+      "rarity": "uncommon"
     }
   }
 }

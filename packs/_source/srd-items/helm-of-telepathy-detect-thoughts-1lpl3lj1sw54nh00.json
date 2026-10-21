@@ -58,7 +58,9 @@
           "concentration: its caster concentrates; what it sustains is by hand",
           "save: a failure marks its creature (narrative)"
         ]
-      }
+      },
+      "price": 400,
+      "rarity": "uncommon"
     }
   }
 }

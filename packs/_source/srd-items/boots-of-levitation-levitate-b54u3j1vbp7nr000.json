@@ -98,7 +98,9 @@
         "notes": [
           "effect: \"Levitating\" marks its creature only; its rules are by hand"
         ]
-      }
+      },
+      "price": 4000,
+      "rarity": "rare"
     }
   }
 }

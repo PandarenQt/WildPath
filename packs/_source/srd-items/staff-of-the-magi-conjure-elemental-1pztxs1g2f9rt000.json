@@ -124,7 +124,9 @@
         "notes": [
           "summon: what it gains with the spell's level (saveDamage) is not added"
         ]
-      }
+      },
+      "price": 200000,
+      "rarity": "legendary"
     }
   }
 }

@@ -132,7 +132,9 @@
           "concentration: its caster concentrates; what it sustains is by hand",
           "\"Frigid Air\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "price": 200000,
+      "rarity": "legendary"
     }
   }
 }

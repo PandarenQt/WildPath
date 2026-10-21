@@ -79,7 +79,9 @@
         "notes": [
           "effect: \"Water Walking\" marks its creature (narrative)"
         ]
-      }
+      },
+      "price": 400,
+      "rarity": "uncommon"
     }
   }
 }

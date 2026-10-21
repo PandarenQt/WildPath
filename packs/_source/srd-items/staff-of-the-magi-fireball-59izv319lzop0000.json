@@ -139,7 +139,9 @@
         "notes": [
           "cast: Fireball at level 7 is cast at its own level"
         ]
-      }
+      },
+      "price": 200000,
+      "rarity": "legendary"
     }
   }
 }

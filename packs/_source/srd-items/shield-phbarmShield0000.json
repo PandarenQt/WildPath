@@ -25,7 +25,8 @@
       }
     ],
     "attunement": "",
-    "armor": "shield"
+    "armor": "shield",
+    "price": 10
   },
   "flags": {
     "wildpath": {

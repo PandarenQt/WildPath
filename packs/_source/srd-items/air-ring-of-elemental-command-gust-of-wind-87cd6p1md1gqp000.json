@@ -118,7 +118,9 @@
           "rolled (save); what it does is by hand",
           "concentration: its caster concentrates; what it sustains is by hand"
         ]
-      }
+      },
+      "price": 200000,
+      "rarity": "legendary"
     }
   }
 }

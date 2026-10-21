@@ -264,6 +264,8 @@
               <span class="row-detail">{{localize "WILDPATH.SHEET.Carried" weight=summary.carriedWeight}}</span>
             {{/if}}
             {{#if summary.carryingStatus}}<span class="row-detail wp-warning">{{localize summary.carryingStatus}}</span>{{/if}}
+            {{#if coins}}<span class="wp-coins">{{#each coins as |coin|}}<label>{{localize coin.label}}
+              <input type="number" name="system.currency.{{coin.id}}" value="{{coin.value}}" min="0" step="1" {{disabled (not ../editable)}}></label>{{/each}}</span>{{/if}}
             <button type="button" class="row-command" data-action="createItem" data-type="gear">{{localize "WILDPATH.SHEET.Create"}}</button>
           </h4>
           <ol class="sheet-list">

@@ -69,7 +69,9 @@
         "notes": [
           "teleport: a creature it brings along is moved by hand"
         ]
-      }
+      },
+      "price": 4000,
+      "rarity": "rare"
     }
   }
 }

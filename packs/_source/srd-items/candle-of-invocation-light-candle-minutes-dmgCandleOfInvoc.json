@@ -81,7 +81,9 @@
         "notes": [
           "effect: \"Lit Candle of Invocation\" marks its creature only; its rules are by hand"
         ]
-      }
+      },
+      "price": 20000,
+      "rarity": "veryRare"
     }
   }
 }

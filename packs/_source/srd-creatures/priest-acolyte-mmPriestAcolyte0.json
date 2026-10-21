@@ -152,7 +152,8 @@
           },
           "conversion": {
             "notes": []
-          }
+          },
+          "price": 5
         }
       }
     },
@@ -741,7 +742,8 @@
         "slot": "",
         "ruleElements": [],
         "attunement": "",
-        "armor": ""
+        "armor": "",
+        "price": 0
       },
       "flags": {
         "wildpath": {

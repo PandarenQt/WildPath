@@ -164,7 +164,9 @@
         "notes": [
           "save: a failure gives prone (its text); the rest is by hand"
         ]
-      }
+      },
+      "price": 200,
+      "rarity": "uncommon"
     }
   }
 }

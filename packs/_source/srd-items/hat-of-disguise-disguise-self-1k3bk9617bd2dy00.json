@@ -69,7 +69,9 @@
         "notes": [
           "effect: \"Disguised\" marks its creature (narrative)"
         ]
-      }
+      },
+      "price": 400,
+      "rarity": "uncommon"
     }
   }
 }

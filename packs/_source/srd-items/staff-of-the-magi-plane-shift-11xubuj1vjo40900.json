@@ -85,7 +85,9 @@
         "notes": [
           "not automated (teleport, narrative): using it spends its cost; its description says the rest"
         ]
-      }
+      },
+      "price": 200000,
+      "rarity": "legendary"
     }
   }
 }

@@ -59,7 +59,9 @@
           "activation: 10 minute is not an action-economy cost",
           "activation: 10 minute is not an action-economy cost"
         ]
-      }
+      },
+      "price": 20000,
+      "rarity": "veryRare"
     }
   }
 }

@@ -81,7 +81,9 @@
         "notes": [
           "effect: \"Anchor\" marks its creature only; its rules are by hand"
         ]
-      }
+      },
+      "price": 200,
+      "rarity": "uncommon"
     }
   }
 }

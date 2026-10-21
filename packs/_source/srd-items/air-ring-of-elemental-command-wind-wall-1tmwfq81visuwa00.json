@@ -135,7 +135,9 @@
         "notes": [
           "concentration: its caster concentrates; what it sustains is by hand"
         ]
-      }
+      },
+      "price": 200000,
+      "rarity": "legendary"
     }
   }
 }

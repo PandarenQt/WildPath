@@ -177,7 +177,9 @@
         "notes": [
           "\"damage\" is passive or triggered: not automated"
         ]
-      }
+      },
+      "price": 200000,
+      "rarity": "legendary"
     }
   }
 }

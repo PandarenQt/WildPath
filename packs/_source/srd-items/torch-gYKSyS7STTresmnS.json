@@ -70,7 +70,8 @@
         "notes": [
           "consumption: itemUses 1 not converted"
         ]
-      }
+      },
+      "price": 0.01
     }
   }
 }

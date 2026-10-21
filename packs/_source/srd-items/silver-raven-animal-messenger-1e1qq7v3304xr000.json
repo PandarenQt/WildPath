@@ -115,7 +115,9 @@
         "notes": [
           "effect: \"Carrying Message\" marks its creature (narrative)"
         ]
-      }
+      },
+      "price": 0,
+      "rarity": "uncommon"
     }
   }
 }

@@ -79,7 +79,9 @@
       },
       "conversion": {
         "notes": []
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

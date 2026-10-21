@@ -53,7 +53,9 @@
         "notes": [
           "summon: what it gains with the spell's level (attackDamage) is not added"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

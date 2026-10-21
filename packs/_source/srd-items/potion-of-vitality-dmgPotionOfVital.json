@@ -81,7 +81,9 @@
         "notes": [
           "effect: \"Full of Vitality\" marks its creature only; its rules are by hand"
         ]
-      }
+      },
+      "price": 20000,
+      "rarity": "veryRare"
     }
   }
 }

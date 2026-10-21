@@ -99,7 +99,9 @@
         "notes": [
           "damage 1: custom formula \"(@scaling)d6\" not converted"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }

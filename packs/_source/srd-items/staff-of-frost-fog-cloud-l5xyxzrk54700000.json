@@ -92,7 +92,9 @@
           "area: 20 * @item.level-ft sphere is not supported; the user picks the targets",
           "concentration: its caster concentrates; what it sustains is by hand"
         ]
-      }
+      },
+      "price": 40000,
+      "rarity": "veryRare"
     }
   }
 }
