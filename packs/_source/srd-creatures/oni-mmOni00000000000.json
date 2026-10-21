@@ -515,7 +515,12 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "charmed",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
             }
           ],
           "metadata": {
@@ -950,6 +955,11 @@
               "type": "condition",
               "conditionId": "incapacitated",
               "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
               "concentration": true
             }
           ],
@@ -1055,6 +1065,11 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "invisible",
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
               "concentration": true
             }
           ],

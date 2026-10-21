@@ -62,7 +62,12 @@
           "id": "effect-1",
           "type": "condition",
           "conditionId": "deafened",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
         }
       ],
       "label": "Staff of Thunder and Lightning (Thunderclap)"

@@ -494,7 +494,12 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "incapacitated",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 28800,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
             },
             {
               "id": "effect-2",
@@ -625,6 +630,11 @@
               "type": "condition",
               "conditionId": "charmed",
               "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
               "concentration": true
             },
             {
@@ -632,6 +642,11 @@
               "type": "condition",
               "conditionId": "incapacitated",
               "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
               "concentration": true
             },
             {
@@ -766,7 +781,12 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "unconscious",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
             }
           ],
           "label": "Nightmare"

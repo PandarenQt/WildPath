@@ -118,7 +118,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Awakened Shrub | actors24 | Awakened Shrub (2 items) | — |
 | Awakened Tree | actors24 | Awakened Tree (2 items) | — |
 | Axe Beak | actors24 | Axe Beak (1 items) | — |
-| Azer Sentinel | actors24 | Azer Sentinel (4 items) | Fire Aura: "damage" is passive or triggered: not automated |
+| Azer Sentinel | actors24 | Azer Sentinel (4 items) | — |
 | Baboon | actors24 | Baboon (3 items) | — |
 | Backpack | equipment24 | Backpack (gear) | — |
 | Badger | actors24 | Badger (2 items) | — |
@@ -650,7 +650,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Gem of Brightness | equipment24 | Gem of Brightness (gear), Gem of Brightness (First Command Word) (manual), Gem of Brightness (Second Command Word) (automated), Gem of Brightness (Third Command Word) (automated) | not automated (utility): using it spends its cost; its description says the rest |
 | Gem of Seeing | equipment24 | Gem of Seeing (gear), Gem of Seeing (automated) | — |
 | Gentle Repose | spells24 | Gentle Repose (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Ghast | actors24 | Ghast (5 items) | Stench: "save" is passive or triggered: not automated |
+| Ghast | actors24 | Ghast (5 items) | — |
 | Ghost | actors24 | Ghost (8 items) | Etherealness: effect: ethereal is not a WildPath condition yet; Etherealness: effect: "Etherealness" marks its creature only; its rules are by hand |
 | Ghoul | actors24 | Ghoul (4 items) | Claw: "save" is passive or triggered: not automated |
 | Giant Ancestry | origins24 | Giant Ancestry (feature) | — |
@@ -768,7 +768,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Heightened Spell | classes24 | Heightened Spell (feature) | — |
 | Hell Hound | actors24 | Hell Hound (5 items) | — |
 | Hellish Rebuke | spells24 | Hellish Rebuke (automated) | — |
-| Helm of Brilliance | equipment24 | Helm of Brilliance (gear), Helm of Brilliance (Fire Opal Flames) (manual), Helm of Brilliance: Daylight (automated), Helm of Brilliance: Fireball (automated), Helm of Brilliance: Prismatic Spray (automated), Helm of Brilliance: Wall of Fire (automated) | "Diamond Light" is passive or triggered: not automated; not automated (enchant): using it spends its cost; its description says the rest; rolled (save); what it does is by hand; "damage" is passive or triggered: not automated; "Explosive Emanation" is passive or triggered: not automated; armor: of any kind; give it its armor's AC by hand |
+| Helm of Brilliance | equipment24 | Helm of Brilliance (gear), Helm of Brilliance (Fire Opal Flames) (manual), Helm of Brilliance: Daylight (automated), Helm of Brilliance: Fireball (automated), Helm of Brilliance: Prismatic Spray (automated), Helm of Brilliance: Wall of Fire (automated) | not automated (enchant): using it spends its cost; its description says the rest; rolled (save); what it does is by hand; "damage" is passive or triggered: not automated; "Explosive Emanation" is passive or triggered: not automated; armor: of any kind; give it its armor's AC by hand |
 | Helm of Comprehending Languages | equipment24 | Helm of Comprehending Languages (gear), Helm of Comprehending Languages: Comprehend Languages (automated) | — |
 | Helm of Telepathy | equipment24 | Helm of Telepathy (gear), Helm of Telepathy: Detect Thoughts (manual), Helm of Telepathy: Suggestion (automated) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; save: a failure marks its creature only; what it does is by hand |
 | Helm of Teleportation | equipment24 | Helm of Teleportation (gear), Helm of Teleportation: Teleport (manual) | not automated (teleport): using it spends its cost; its description says the rest |
@@ -777,7 +777,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Heroic Warrior | classes24 | Heroic Warrior (feature) | — |
 | Heroism | spells24 | Heroism (automated) | — |
 | Hex | spells24 | Hex (Place Curse) (automated), Hex (Curse New Creature) (automated) | — |
-| Hezrou | actors24 | Hezrou (7 items) | Stench: "save" is passive or triggered: not automated; Leap: not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Hezrou | actors24 | Hezrou (7 items) | Leap: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Hidden Pit | equipment24 | Hidden Pit (gear) | "Trigger (1-4)" is passive or triggered: not automated; "Trigger (5-10)" is passive or triggered: not automated; "Trigger (11-16)" is passive or triggered: not automated; "Trigger (17-20)" is passive or triggered: not automated |
 | Hide Armor | equipment24 | Hide Armor (gear) | — |
 | Hideous Laughter | spells24 | Hideous Laughter (automated) | — |
@@ -1112,7 +1112,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Pirate | actors24 | Pirate (4 items) | — |
 | Pirate Captain | actors24 | Pirate Captain (6 items) | — |
 | Pistol | equipment24 | Pistol (automated) | — |
-| Pit Fiend | actors24 | Pit Fiend (13 items) | Fear Aura: "save" is passive or triggered: not automated; Bite: "save" is passive or triggered: not automated; Bite: activation: turnStart is not an action-economy cost; Hellfire Spellcasting: cast: Fireball at level 5 is cast at its own level; Hellfire Spellcasting: cast: Hold Monster at level 7 is cast at its own level; Hellfire Spellcasting: "damage" is passive or triggered: not automated |
+| Pit Fiend | actors24 | Pit Fiend (13 items) | Bite: "save" is passive or triggered: not automated; Bite: activation: turnStart is not an action-economy cost; Hellfire Spellcasting: cast: Fireball at level 5 is cast at its own level; Hellfire Spellcasting: cast: Hold Monster at level 7 is cast at its own level; Hellfire Spellcasting: "damage" is passive or triggered: not automated |
 | Planar Ally | spells24 | Planar Ally (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
 | Planar Binding | spells24 | Planar Binding (automated) | activation: 1 hour is not an action-economy cost; effect: "Bound to Service" marks its creature only; its rules are by hand |
 | Plane Shift | spells24 | Plane Shift (manual) | not automated (teleport): using it spends its cost; its description says the rest |

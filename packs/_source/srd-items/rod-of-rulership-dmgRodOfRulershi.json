@@ -48,7 +48,12 @@
           "id": "effect-1",
           "type": "condition",
           "conditionId": "charmed",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 28800,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
         }
       ],
       "label": "Rod of Rulership"

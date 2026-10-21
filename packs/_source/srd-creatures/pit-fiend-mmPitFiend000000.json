@@ -109,7 +109,66 @@
       "system": {
         "active": true,
         "description": "<p class=\"feature\">The pit fiend emanates an aura in a 20-foot Emanation while it doesn't have the Incapacitated condition.</p><p class=\"feature\"><em>Wisdom Saving Throw:</em> DC 21, any enemy that starts its turn in the aura.</p><p class=\"feature\"><em>Failure:</em> The target has the Frightened condition until the start of its next turn.</p><p class=\"feature\"><em>Success:</em> The target is immune to this pit fiend's aura for 24 hours.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "turn-fear-aura",
+            "type": "Trigger",
+            "data": {
+              "kind": "automation",
+              "event": "turn.started",
+              "predicate": {
+                "missingCondition": "incapacitated"
+              },
+              "around": {
+                "radius": 20,
+                "affects": "enemies",
+                "on": "others"
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-fear-aura",
+                "label": "Fear Aura",
+                "costs": {
+                  "allOf": []
+                },
+                "save": {
+                  "ability": "wits",
+                  "dc": {
+                    "value": 21
+                  }
+                },
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "condition",
+                    "conditionId": "frightened",
+                    "saveOutcomePolicy": "failure",
+                    "duration": {
+                      "value": 1,
+                      "units": "turns",
+                      "expiry": "turnStart"
+                    }
+                  },
+                  {
+                    "id": "effect-2",
+                    "type": "effect",
+                    "name": "Fear Aura: immune",
+                    "ruleElements": [],
+                    "duration": {
+                      "value": 24,
+                      "units": "hours"
+                    },
+                    "saveOutcomePolicy": "success",
+                    "metadata": {
+                      "immuneTo": "action:srd-fear-aura"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -125,9 +184,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"save\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -807,6 +864,11 @@
               "type": "condition",
               "conditionId": "paralyzed",
               "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
               "concentration": true,
               "repeatSave": "turnEnd"
             }
@@ -1140,7 +1202,6 @@
       },
       "conversion": {
         "notes": [
-          "Fear Aura: \"save\" is passive or triggered: not automated",
           "Bite: \"save\" is passive or triggered: not automated",
           "Bite: activation: turnStart is not an action-economy cost",
           "Hellfire Spellcasting: cast: Fireball at level 5 is cast at its own level",

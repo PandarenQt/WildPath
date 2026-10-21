@@ -32,7 +32,12 @@
         {
           "id": "effect-1",
           "type": "condition",
-          "conditionId": "invisible"
+          "conditionId": "invisible",
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
         }
       ],
       "label": "Nature's Veil"

@@ -64,7 +64,12 @@
           "id": "effect-1",
           "type": "condition",
           "conditionId": "poisoned",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
         }
       ],
       "label": "Dagger of Venom (Poison Save)"

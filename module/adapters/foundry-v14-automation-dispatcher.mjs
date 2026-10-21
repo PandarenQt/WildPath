@@ -1,6 +1,10 @@
 import { actionDefinitionFromAction } from "../helpers/action-definitions.mjs";
 import { createAutomationEvent, createTriggerDefinition, evaluateTrigger, reactionPolicyOf } from "../helpers/automation-events.mjs";
 import { sunlightContext } from "./foundry-v14-sunlight.mjs";
+import { tokensAround } from "./foundry-v14-auras.mjs";
+/** Whether a creature is immune to an Action for now (a success's "immune to this Fear Aura for 24 hours"). */
+const immuneTo = (actor, actionId) => [...(actor?.effects ?? [])].some(effect => !effect.disabled && (effect.flags?.wildpath?.conditionEffect?.metadata
+    ?.immuneTo === actionId));
 /** The query a Player's client uses to report an event on an Actor it owns to the active GM. */
 export const AUTOMATION_QUERY = "wildpath.automationEvent";
 // Events a client may report, with the only data the GM takes from it. The GM raises turn and initiative events itself.
@@ -83,9 +87,10 @@ export function automationTriggers(actor, event, context = {}) {
         const actionItem = owner.type === "action" ? owner
             : items.find(entry => (entry.type === "action") && (entry.system?.definition?.id === data.actionId));
         const definition = data.action ?? (actionItem ? definitionFor(actionItem).definition : null);
-        // Its Item's reaction setting (Always, Never, Ask) answers a "you can" (`use`) choice.
+        // Its Item's reaction setting (Always, Never, Ask) answers a "you can" (`use`) choice. `around` (`{radius, affects}`):
+        // it acts on each creature in its creature's Emanation instead of on its creature.
         return definition ? [{ id: String(trigger.id), definition, label: owner.name ?? String(definition.label ?? ""),
-                policy: reactionPolicyOf(owner) }] : [];
+                policy: reactionPolicyOf(owner), around: data.around ?? null }] : [];
     }));
 }
 /**
@@ -103,17 +108,44 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
             tokenId: token?.id ?? null, data });
         const self = { actorRef: actor.uuid, ...(token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {}) };
         const states = [];
-        for (const { id, definition, label, policy } of automationTriggers(actor, event, sunlightContext(token))) {
+        // Predicates see its conditions too ("unless the azer has the Incapacitated condition").
+        const context = { ...sunlightContext(token), conditions: [...(actor.statuses ?? [])] };
+        for (const { id, definition, label, policy, around } of automationTriggers(actor, event, context)) {
+            if (around?.on === "others")
+                continue;
             // A "you can" (Persistent Rage when initiative is rolled): Never skips it, Always uses it, Ask asks its controller.
             const optional = (definition.configuration ?? []).some(choice => choice.id === "use");
             if (optional && (policy === "never"))
                 continue;
-            const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
-                resolutionId: `${id}:${sequence}`, definition, label, actorRef: actor.uuid,
-                source: token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {}, target: self,
-                ...((optional && (policy === "always")) ? { configuration: { choices: { use: "use" } } } : {}) });
-            if (state)
-                states.push(state);
+            // shortcut: each creature in the Emanation is its own Action (its own damage roll), as a lasting area's are; upgrade
+            // when an authority Action takes several targets.
+            const targets = around ? tokensAround(token, around).filter(other => !immuneTo(other.actor, definition.id))
+                .map(other => ({ actorRef: other.actor?.uuid ?? null, tokenId: other.id, sceneId: token?.parent?.id })) : [self];
+            for (const [index, target] of targets.entries()) {
+                const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
+                    resolutionId: `${id}:${sequence}${around ? `:${index}` : ""}`, definition, label, actorRef: actor.uuid,
+                    source: token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {}, target: target,
+                    ...((optional && (policy === "always")) ? { configuration: { choices: { use: "use" } } } : {}) });
+                if (state)
+                    states.push(state);
+            }
+        }
+        // Others' auras around it (a Pit Fiend's Fear Aura: "any enemy that starts its turn in the aura").
+        const placed = token;
+        for (const bearer of (["turn.started", "turn.ended"].includes(type) && placed?.parent?.tokens) ? [...placed.parent.tokens] : []) {
+            if ((bearer.id === placed?.id) || !bearer.actor)
+                continue;
+            const theirs = { ...sunlightContext(bearer), conditions: [...(bearer.actor.statuses ?? [])] };
+            for (const { id, definition, label, around } of automationTriggers(bearer.actor, event, theirs)) {
+                if ((around?.on !== "others") || immuneTo(actor, definition.id)
+                    || !tokensAround(bearer, around).some(other => other.id === placed?.id))
+                    continue;
+                const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
+                    resolutionId: `${id}:${sequence}:${actor.id}`, definition, label, actorRef: bearer.actor.uuid,
+                    source: { tokenId: bearer.id, sceneId: placed?.parent?.id }, target: self });
+                if (state)
+                    states.push(state);
+            }
         }
         // Repeated saves: the creature rolls each again as its own Action; a success ends what that save let in.
         for (const group of repeatSaveGroups((actor.effects ?? []), type)) {

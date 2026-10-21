@@ -55,7 +55,12 @@
         {
           "id": "effect-1",
           "type": "condition",
-          "conditionId": "stunned"
+          "conditionId": "stunned",
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
         }
       ],
       "label": "Hammer of Thunderbolts (Hurl Hammer)"

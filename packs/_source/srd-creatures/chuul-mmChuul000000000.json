@@ -261,6 +261,11 @@
               "type": "condition",
               "conditionId": "paralyzed",
               "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
               "repeatSave": "turnEnd"
             },
             {
@@ -268,6 +273,11 @@
               "type": "condition",
               "conditionId": "poisoned",
               "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
               "repeatSave": "turnEnd"
             }
           ],

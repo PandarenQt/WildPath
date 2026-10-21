@@ -1172,7 +1172,12 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "incapacitated",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              }
             }
           ],
           "label": "Banish"

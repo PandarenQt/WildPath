@@ -334,12 +334,22 @@
             {
               "id": "effect-1",
               "type": "condition",
-              "conditionId": "blinded"
+              "conditionId": "blinded",
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              }
             },
             {
               "id": "effect-2",
               "type": "condition",
-              "conditionId": "deafened"
+              "conditionId": "deafened",
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              }
             }
           ],
           "label": "Thunderbolt"

@@ -560,6 +560,11 @@
               "type": "condition",
               "conditionId": "frightened",
               "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
               "concentration": true
             }
           ],
@@ -1136,6 +1141,11 @@
               "type": "condition",
               "conditionId": "frightened",
               "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
               "concentration": true
             }
           ],

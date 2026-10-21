@@ -1466,7 +1466,12 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "incapacitated",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 28800,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
             },
             {
               "id": "effect-2",

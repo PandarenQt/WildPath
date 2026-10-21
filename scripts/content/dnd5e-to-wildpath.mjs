@@ -1081,6 +1081,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         initiativeRules.push(recharge);
         continue;
       }
+      // What it does to those around it when its own turn starts or ends (an Azer Sentinel's Fire Aura): automatic.
+      const turnArea = turnAreaTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature,
+        beasts});
+      if ( turnArea ) {
+        initiativeRules.push(turnArea);
+        continue;
+      }
       // A die the engine offers on a failed test (Peerless Skill): its feature's flag, paid from the pool it names.
       const offered = TEST_OFFERS[identifierOf(document)];
       const faces = offered ? testOfferFaces(activity.roll?.formula, scales) : null;
@@ -2398,6 +2405,51 @@ function initiativeTrigger({document, activity, system, spell, level, scales, no
 }
 
 /**
+ * A save or damage its creature deals around itself when its own turn starts or ends (2024 Azer Sentinel's Fire Aura:
+ * "At the end of each of the azer's turns, each creature of the azer's choice in a 5-foot Emanation originating from the
+ * azer takes 5 (1d10) Fire damage unless the azer has the Incapacitated condition"), as an automatic Trigger whose
+ * Action reaches each creature in that Emanation (`around`): only its enemies when it chooses ("of its choice").
+ * Or one that reaches a creature whose own turn starts or ends in its Emanation (a Pit Fiend's Fear Aura: "any enemy
+ * that starts its turn in the aura"; `around.on: "others"`). A success that makes it immune for 24 hours marks it so
+ * (`metadata.immuneTo`). Not one that works only somewhere ("While underwater", an Aboleth's Mucus Cloud), nor a
+ * target's next turn.
+ */
+function turnAreaTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature, beasts}) {
+  if ( !["save", "damage"].includes(activity?.type) ) return null;
+  // dnd5e keeps who it reaches ("any enemy that starts its turn in the aura") on the activity.
+  const text = `${plainText(document)} ${activity.target?.affects?.special ?? ""}`;
+  const others = /\b(?:any|each) ([^.]{1,80}?) that (starts|ends) its turn (?:in|within)\b/iu.exec(text);
+  const own = others ? null : /\b(?:at|by) the (start|end) of (?:each of )?(?:its|their|your|the (?!target)[^.,]{1,60}?'s) turns?\b/iu.exec(text);
+  const when = others ? others[2].replace(/s$/u, "") : own?.[1];
+  if ( !when || /\bnext\b/iu.test(own?.[0] ?? "") || /^\s*While\b/u.test(text) ) return null;
+  const template = activity.target?.template ?? {};
+  const size = ["radius", "emanation", "sphere"].includes(template.type) ? Number(template.size)
+    : Number(/\b(\d+)-foot(?:-radius)? Emanation\b/iu.exec(text)?.[1]);
+  if ( !(size > 0) ) return null;
+  const its = [];
+  const definition = convertActivity({document, activity, system, spell, level, scales, notes: its, pool, saveDC, spellDC, creature, beasts,
+    names});
+  if ( !definition || !(definition.damage?.length || definition.effects?.length) ) return null;
+  notes.push(...its.filter(note => !note.startsWith("area")));
+  const immunity = definition.save ? /\bSuccess:[^.]*\bimmune to (?:this|the|its)\b[^.]*\bfor (\d+|an?|one) (hour|minute|day)s?\b/iu.exec(text) : null;
+  const immune = immunity ? [{id: `effect-${(definition.effects?.length ?? 0) + 1}`, type: "effect", name: `${document.name}: immune`,
+    ruleElements: [], duration: {value: (Number(immunity[1]) || 1) * ({day: 24}[immunity[2].toLowerCase()] ?? 1),
+      units: immunity[2].toLowerCase() === "minute" ? "minutes" : "hours"},
+    saveOutcomePolicy: "success", metadata: {immuneTo: definition.id}}] : [];
+  const enemies = others ? (/\benem(?:y|ies)\b/iu.test(others[1]) || (activity.target?.affects?.type === "enemy"))
+    : /\bof (?:its|their|your|the [^.,]{1,60}?'s) choice\b/iu.test(text);
+  // "unless the azer has the Incapacitated condition", "while it doesn't have the Incapacitated condition".
+  const predicate = /\b(?:unless (?:the|it|its) [^.]{0,60}?|while (?:it|the [^.]{0,60}?) (?:doesn't|does not) have the )Incapacitated\b/iu.test(text)
+    ? {missingCondition: "incapacitated"} : null;
+  return {schemaVersion: 1, id: `turn-${slugify(activity.name || document.name)}`, type: "Trigger", data: {kind: "automation",
+    event: when.toLowerCase() === "start" ? "turn.started" : "turn.ended", ...(predicate ? {predicate} : {}),
+    around: {radius: size, affects: enemies ? "enemies" : "others", ...(others ? {on: "others"} : {})},
+    action: {schemaVersion: 1, id: definition.id, label: document.name, costs: {allOf: []}, ...(definition.tags ? {tags: definition.tags} : {}),
+      ...(definition.save ? {save: definition.save} : {}), ...(definition.damage?.length ? {damage: definition.damage} : {}),
+      ...((definition.effects?.length || immune.length) ? {effects: [...(definition.effects ?? []), ...immune]} : {})}}};
+}
+
+/**
  * What a feature does when its creature finishes a rest, as an automatic Trigger on `rest.completed`. 2024 Tireless:
  * "Whenever you finish a Short Rest, your Exhaustion level, if any, decreases by 1."
  */
@@ -2700,9 +2752,12 @@ function convertActivity({document, activity, system, spell, level, scales, note
     if ( !byHand?.slug ) for ( const status of statuses.filter(status => !CONDITION_MAP[status] && (status !== "marked")) ) {
       notes.push(`effect: ${status} is not a WildPath condition yet`);
     }
+    // As long as its dnd5e effect says ("until the start of its next turn"); none lasts until it is ended.
+    const lasts = effect ? effectDuration(effect.duration) : null;
     for ( const status of known ) {
       const escapes = (escapeDC != null) && ["grappled", "restrained"].includes(CONDITION_MAP[status]);
       effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId: CONDITION_MAP[status], ...onFailure,
+        ...(lasts ? {duration: lasts} : {}),
         ...(concentration ? {concentration: true} : {}), ...(escapes ? {metadata: {escapeDC}} : {})});
     }
     // Its own changes (Bless, Shield of Faith, Haste) become a custom effect with the rules they map to; an effect dnd5e

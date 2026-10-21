@@ -61,6 +61,11 @@
           "type": "condition",
           "conditionId": "blinded",
           "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
           "repeatSave": "turnEnd"
         },
         {
@@ -68,6 +73,11 @@
           "type": "condition",
           "conditionId": "deafened",
           "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
           "repeatSave": "turnEnd"
         }
       ],

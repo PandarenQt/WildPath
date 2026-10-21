@@ -295,7 +295,12 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "charmed",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              }
             }
           ],
           "label": "Enthralling Panache"

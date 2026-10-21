@@ -20,6 +20,43 @@
             "fire"
           ]
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "turn-diamond-light",
+        "type": "Trigger",
+        "data": {
+          "kind": "automation",
+          "event": "turn.started",
+          "around": {
+            "radius": 30,
+            "affects": "others",
+            "on": "others"
+          },
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-helm-of-brilliance-diamond-light",
+            "label": "Helm of Brilliance",
+            "costs": {
+              "allOf": []
+            },
+            "tags": [
+              "magical"
+            ],
+            "damage": [
+              {
+                "id": "damage-1",
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 6
+                },
+                "damageType": "radiant",
+                "provenance": "additional"
+              }
+            ]
+          }
+        }
       }
     ],
     "attunement": "required",
@@ -40,7 +77,6 @@
       },
       "conversion": {
         "notes": [
-          "\"Diamond Light\" is passive or triggered: not automated",
           "not automated (enchant): using it spends its cost; its description says the rest",
           "rolled (save); what it does is by hand",
           "\"damage\" is passive or triggered: not automated",

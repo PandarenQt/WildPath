@@ -380,7 +380,12 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "stunned",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
             }
           ],
           "label": "Tentacle Slam"
