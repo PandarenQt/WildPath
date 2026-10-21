@@ -54,6 +54,7 @@ export function actionCover({definition, sourceToken, targetToken, points=[]}) {
 }
 import {createFoundryWeaponMastery} from "../adapters/foundry-v14-weapon-mastery.mjs";
 import {lacksAmmunition, offerAmmunitionRecovery, spendAmmunition} from "../adapters/foundry-v14-ammunition.mjs";
+import {consumeScrollOf} from "../helpers/spell-scrolls.mjs";
 import {
   buildFoundryMovementCompletion,
   buildFoundryMovementProgressObservation,
@@ -166,6 +167,10 @@ export function registerFoundryV14MultiplayerResolution({
       await summons.afterResolution(event);
       await enchantments.afterResolution(event);
       await spendAmmunition(event, {game});
+      // A Spell Scroll read crumbles.
+      if ( event.state?.actionDefinition?.scroll ) {
+        if ( event.options?.action ) await consumeScrollOf(event.options.action);
+      }
       await pushes.afterResolution(event);
       await areas.move(event);
       await teleports.afterResolution(event);

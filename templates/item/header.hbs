@@ -33,6 +33,9 @@
 </ol>
 {{/if}}
 {{/if}}
+{{#if canMakeScroll}}
+<button type="button" data-action="makeScroll">{{localize "WILDPATH.SCROLL.Make"}}</button>
+{{/if}}
 {{#if isGear}}
 <div class="gear-fields">
   <label>{{localize "WILDPATH.SHEET.Quantity"}} <input type="number" name="system.quantity" value="{{system.quantity}}" min="0" step="1"></label>

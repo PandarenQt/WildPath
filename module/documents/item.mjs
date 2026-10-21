@@ -9,6 +9,7 @@ import {isUnprepared} from "../helpers/spellcasting.mjs";
 import {resolveActorCheckStatistic} from "../helpers/combat-statistics.mjs";
 import {traitUpdates} from "../helpers/level-up.mjs";
 import {refuseBrokenRules} from "../helpers/rule-guard.mjs";
+import {consumeScrollOf, highestSpellLevel, spellLevelOf} from "../helpers/spell-scrolls.mjs";
 
 /** Which of `skills` the creature checks (Search, Study, Influence), each with its bonus; null when closed. */
 async function chooseTestSkill(actor, skills, name) {
@@ -85,12 +86,34 @@ export default class WildPathItem extends Item {
    * added to its owner and marked as brought by it.
    */
   async #addGrantedActions() {
+    // Its own Actions carried with it (a Spell Scroll's), wherever it came from.
+    const carried = this.flags?.wildpath?.grantedActions;
+    if ( this.actor && Array.isArray(carried) && carried.length ) {
+      await this.actor.createEmbeddedDocuments("Item", carried.map(action => foundry.utils.mergeObject(foundry.utils.deepClone(action),
+        {"flags.wildpath.grantedBy": this.id})));
+    }
     const ids = this.flags?.wildpath?.grants;
     const pack = this.actor && ids?.length ? foundry.utils.parseUuid(this._stats?.compendiumSource ?? "")?.collection : null;
     if ( !pack?.getDocuments ) return;
     const actions = await pack.getDocuments({_id__in: ids});
     if ( actions.length ) await this.actor.createEmbeddedDocuments("Item", actions.map(action => foundry.utils.mergeObject(action.toObject(),
       {"flags.wildpath.grantedBy": this.id, "_stats.compendiumSource": action.uuid})));
+  }
+
+  /** Whether its creature reads a Spell Scroll's spell: false when it can't, or its check fails (the scroll then crumbles). */
+  async #readScroll(definition) {
+    const ability = this.actor.system?.spellcasting?.ability || this.actor.system?.details?.spellcastingAbility || null;
+    const level = spellLevelOf(definition);
+    if ( !ability ) {
+      globalThis.ui?.notifications?.warn?.(game.i18n.format("WILDPATH.SCROLL.CannotRead", {name: this.actor.name}));
+      return false;
+    }
+    if ( (level <= 0) || (level <= highestSpellLevel(this.actor)) ) return true;
+    const total = await this.actor.rollTest?.({ability});
+    if ( Number(total) >= (10 + level) ) return true;
+    globalThis.ui?.notifications?.warn?.(game.i18n.format("WILDPATH.SCROLL.Lost", {name: this.name, dc: 10 + level}));
+    await consumeScrollOf(this);
+    return false;
   }
 
   /**
@@ -123,6 +146,9 @@ export default class WildPathItem extends Item {
       return false;
     }
     const definition = actionDefinitionFromAction(this, {actorSystem: this.actor.system});
+    // A Spell Scroll (helpers/spell-scrolls.mjs): a creature that casts no spells can't read it; above its highest level
+    // it rolls its spellcasting ability, DC 10 + the spell's level, and a failure loses the spell (the scroll crumbles).
+    if ( definition.ok && definition.definition?.scroll && !(await this.#readScroll(definition.definition)) ) return false;
     // Search, Study, Influence: the skill is chosen first, and checked once the Action is taken.
     const test = definition.ok ? definition.definition?.metadata?.test : null;
     const skill = test?.skills?.length ? await chooseTestSkill(this.actor, test.skills, this.name) : null;
