@@ -450,9 +450,11 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     Its Redirect is a new attack and stays a manual Action.
   - **Interception** (PHB): a creature it sees hits another creature within 5 ft of it. 1d10 + its Proficiency Bonus
     comes off that creature's damage. shortcut: its "holding a Shield or a weapon" isn't checked.
-  - **Cloud Rune** (Tasha's): it or a creature it sees within 30 ft is hit. The damage goes to another creature within
-    30 ft of it. shortcut: the attack isn't checked again against the new creature's AC, the attack's other effects
-    stay, and the new creature makes no concentration check.
+  - **Cloud Rune** (Tasha's): it or a creature it sees within 30 ft is hit. The attack becomes another creature's within
+    30 ft of it, with the same roll (`sameRoll`, 2026-10-21): against that creature's AC, so a roll below it misses and
+    nobody takes the damage. The new creature makes a concentration check like a target (every concentrating creature
+    on the Scene but the attacker is in the concentration input; only one that takes damage is checked). Protective
+    Bond's damage is taken, not rolled against. shortcut: the attack's other effects stay with the first target.
 
   - **Protective Bond** (Tasha's): Emboldening Bond's "Bonded" effect carries a Trigger with its own Action
     (`data.action`). The provider offers it as an Item of its creature (`effectReactionItems`), only while the cleric
