@@ -1,3 +1,4 @@
+import {gmNotice} from "../helpers/gm-notice.mjs";
 import {movementMessage, refusalMessage} from "../helpers/refusal-messages.mjs";
 export {refusalMessage};
 import {createFoundryEnchantments} from "../adapters/foundry-v14-enchantments.mjs";
@@ -208,7 +209,7 @@ export function registerFoundryV14MultiplayerResolution({
   globalThis.Hooks?.on?.("deleteRegion", region => areas.onRegionDeleted(region));
   // The GM dragging a lasting area's Region moves the area itself (its fields follow its cells).
   globalThis.Hooks?.on?.("updateRegion", (region, changed, operation) => void areas.onRegionUpdated(region, changed, operation)
-    .catch(error => logger?.warn?.("Wild Path | A moved area could not update", error)));
+    .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.AreaMove") ?? "AreaMove"}, error)));
   // Items' and effects' automatic triggers: turns and rests reach them from Combat and Actor#rest.
   const automation = createFoundryAutomationDispatcher({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? null,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
@@ -221,20 +222,20 @@ export function registerFoundryV14MultiplayerResolution({
   const falling = createFoundryFalling({game, coordinator, logger,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   globalThis.Hooks?.on?.("createActiveEffect", effect => void falling.onEffectCreated(effect)
-    .catch(error => logger?.warn?.("Wild Path | A fall could not resolve", error)));
+    .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Fall") ?? "Fall"}, error)));
   // Weapon Mastery that follows an attack (Topple, Graze), each as its own authority Action.
   const masteries = createFoundryWeaponMastery({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? (() => null),
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   // 2024: a stable creature regains 1 health after 1d4 hours; world time moving on (or a rest, Actor#rest) counts.
   globalThis.Hooks?.on?.("updateWorldTime", worldTime => void dying.onWorldTime(worldTime)
-    .catch(error => logger?.warn?.("Wild Path | Stable recovery failed", error)));
+    .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.StableRecovery") ?? "StableRecovery"}, error)));
   // A condition's damage at turn start (Bleeding), resolved like any other damage (reactions, rescue, dying).
   const turnDamage = createFoundryTurnDamage({game, coordinator, logger,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   game.wildpath = {...(game.wildpath ?? {}), dying, turnDamage, endEffectsWhenChecked};
   // 2024: an Incapacitated creature's concentration ends; everything it sustains ends with it (active GM).
   globalThis.Hooks?.on?.("createActiveEffect", effect => void endConcentrationOnIncapacitation(effect, game)
-    .catch(error => logger?.warn?.("Wild Path | Ending concentration failed", error)));
+    .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.EndConcentration") ?? "EndConcentration"}, error)));
   globalThis.Hooks?.on?.("updateActiveEffect", effect => void dying.onEffectChanged(effect));
   // Shared control of companions and summons: ownership follows their controllers (only a GM may change it).
   const companions = createFoundryCompanions({game, fromUuid: globalThis.fromUuid ?? (() => null)});
@@ -244,7 +245,7 @@ export function registerFoundryV14MultiplayerResolution({
   globalThis.Hooks?.on?.("deleteActiveEffect", effect => void summons.onEffectDeleted(effect));
   // Its caster's death takes the summons that go with it (a Homunculus Servant).
   globalThis.Hooks?.on?.("createActiveEffect", effect => void summons.onCasterDead(effect)
-    .catch(error => logger?.warn?.("Wild Path | Dismissing a dead caster's summons failed", error)));
+    .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.DismissSummons") ?? "DismissSummons"}, error)));
   // Pushes and pulls: the GM moves each creature an Action forces, as forced movement.
   const pushes = createFoundryForcedMovement({game, logger, fromUuid: globalThis.fromUuid ?? (() => null)});
   const teleports = createFoundryTeleports({game});
@@ -254,14 +255,14 @@ export function registerFoundryV14MultiplayerResolution({
   globalThis.Hooks?.on?.("updateCombatant", (combatant, changed) => {
     if ( !Number.isFinite(changed?.initiative) ) return;
     void automation.dispatch("initiative.rolled", {actor: combatant.actor, token: combatant.token,
-      data: {initiative: changed.initiative}}).catch(error => logger?.warn?.("Wild Path | initiative.rolled automation failed", error));
+      data: {initiative: changed.initiative}}).catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Initiative") ?? "Initiative"}, error));
   });
   // An encounter's end leaves its creatures' movement full again (it is not tracked outside one); the active GM writes.
   const refillMovement = actors => {
     if ( !game.user?.isGM || (game.users?.activeGM && (game.users.activeGM.id !== game.user.id)) ) return;
     for ( const actor of new Set(actors.filter(Boolean)) ) {
       if ( Number(actor.system?.resources?.movement?.spent) > 0 ) void actor.update({"system.resources.movement.spent": 0})
-        .catch(error => logger?.warn?.("Wild Path | Refilling movement failed", error));
+        .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.RefillMovement") ?? "RefillMovement"}, error));
     }
   };
   globalThis.Hooks?.on?.("deleteCombat", combat => refillMovement([...(combat.combatants ?? [])].map(combatant => combatant.actor)));
@@ -1098,7 +1099,7 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
   const formRef = chosenFormRef(spec, state.configuration?.choices);
   const form = formRef ? await fromUuid?.(formRef) : null;
   if ( !form ) {
-    logger?.warn?.("Wild Path | The form an Action named could not be found", formRef);
+    gmNotice("WILDPATH.NOTICE.FormMissing", {}, formRef);
     return null;
   }
   const policy = {...(spec.takes ? {takes: spec.takes} : {}), ...(spec.keepItemTypes ? {keepItemTypes: spec.keepItemTypes} : {})};
@@ -1119,7 +1120,7 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
     const target = (entry.ok && (entry.success === false)) ? scene?.tokens?.get?.(String(entry.target?.tokenId ?? ""))?.actor : null;
     if ( !target?.transform ) continue;
     if ( rank(form) > Math.max(rank(target), 0) ) {
-      logger?.warn?.(`Wild Path | ${form.name} is beyond ${target.name}'s Challenge Rating or level; it is not transformed.`);
+      gmNotice("WILDPATH.NOTICE.FormTooStrong", {form: form.name ?? "", name: target.name ?? ""});
       globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.format?.("WILDPATH.TRANSFORMATION.TooMighty",
         {form: form.name, target: target.name}) ?? `${form.name} is beyond ${target.name}.`);
       continue;

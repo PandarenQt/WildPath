@@ -1,3 +1,4 @@
+import {gmNotice} from "../helpers/gm-notice.mjs";
 /**
  * Forced movement (G6, areas.md): when an Action with `push` completes, the active GM moves each creature it pushed
  * (a hit, or a failed save) straight away from its source, or toward it (`toward`: a pull), a field at a time. The
@@ -73,7 +74,7 @@ export function createFoundryForcedMovement({game, logger=console, fromUuid}: {g
     const source = await fromUuid(String((state.source as Data | undefined)?.tokenRef ?? "")) as PushToken | null;
     const scene = source?.parent ?? null;
     if ( !source || !scene ) {
-      logger.warn("Wild Path | A push needs its source's Token on a Scene.");
+      gmNotice("WILDPATH.NOTICE.PushNoToken", {}, undefined, {logger});
       return [];
     }
     const fields = Math.floor((Number(spec.distance) || 0) / (Number(scene.grid.distance) || 5));

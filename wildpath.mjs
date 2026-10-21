@@ -1,3 +1,4 @@
+import {gmNotice} from "./module/helpers/gm-notice.mjs";
 import {WILDPATH} from "./module/config.mjs";
 import {registerFoundryV14ConditionStatuses} from "./module/adapters/foundry-v14-status-effects-adapter.mjs";
 import {registerBlindsight, registerDarknessSight} from "./module/adapters/foundry-v14-senses.mjs";
@@ -258,7 +259,7 @@ Hooks.once("init", () => {
 Hooks.once("ready", async () => {
   const registration = registerFoundryV14MultiplayerResolution();
   if ( !registration.ok ) {
-    console.warn("Wild Path | Multiplayer resolution socket registration failed", registration);
+    gmNotice("WILDPATH.NOTICE.SocketFailed", {}, registration);
   }
   // The in-play action bar needs Foundry's application classes, so it loads only in a running game.
   const {registerActionBar} = await import("./module/applications/action-bar.mjs");

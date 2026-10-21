@@ -1105,7 +1105,8 @@
         "Spent": "Nothing left to pay with",
         "NoResource": "Needs a resource it doesn't have",
         "Unavailable": "Not usable now"
-      }
+      },
+      "BrokenRules": "Some rules can't be read and are skipped; open these to fix them:"
     },
     "PACKS": {
       "Actions": "WildPath Actions",
@@ -1163,6 +1164,26 @@
       "ReactionStopped": "A reaction stopped the move.",
       "Displaced": "A reaction moved the creature; its move ends there.",
       "Blocked": "Something blocks that path."
+    },
+    "NOTICE": {
+      "StepFailed": "WildPath: {step} failed. The console has the details.",
+      "Step": {
+        "AreaMove": "moving a lasting area",
+        "Fall": "a fall",
+        "StableRecovery": "a stable creature's recovery",
+        "EndConcentration": "ending concentration",
+        "DismissSummons": "dismissing a dead caster's summons",
+        "Initiative": "an initiative trigger",
+        "RefillMovement": "refilling movement"
+      },
+      "FormMissing": "WildPath: the form this Action names can't be found, so nothing was transformed.",
+      "FormTooStrong": "{form} is beyond {name}'s Challenge Rating or level, so it wasn't transformed.",
+      "SummonNoToken": "WildPath: a summon needs its caster's Token on a Scene.",
+      "SummonMissing": "WildPath: the creature this Action summons can't be found (is its compendium enabled?).",
+      "SummonNone": "{name} summons no creature at this level.",
+      "PushNoToken": "WildPath: a push needs its source's Token on a Scene.",
+      "SocketFailed": "WildPath couldn't set up its multiplayer channel; players' Actions won't resolve. Reload the world.",
+      "BrokenRules": "WildPath: some rules on {name} ({actor}) can't be read and are skipped. Open it to see which."
     }
   },
   "TYPES": {
