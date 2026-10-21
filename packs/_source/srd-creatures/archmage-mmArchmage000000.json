@@ -471,9 +471,7 @@
             "castBy": "Protective Magic"
           },
           "conversion": {
-            "notes": [
-              "rolled (save); what it does is by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1896,7 +1894,6 @@
       },
       "conversion": {
         "notes": [
-          "Protective Magic: rolled (save); what it does is by hand",
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",

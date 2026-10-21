@@ -1288,7 +1288,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const title = common => ` (${common.charAt(0).toUpperCase()}${common.slice(1)})`;
     // A reaction its 2024 text triggers (Shield, Parry, Counterspell): a Trigger on its Action, which the engine offers.
     const reaction = (activation === "reaction") ? REACTIONS[identifierOf(document)] : null;
-    if ( reaction?.counters ) definition = {...definition, counters: true};
+    // Its failed save cancels the spell it answers: that is what it does.
+    if ( reaction?.counters ) {
+      definition = {...definition, counters: true};
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("rolled (save)")));
+    }
     // Cutting Words: on the attacker within its range, rolling its die (`@scale.bard.inspiration`) off that attack roll.
     const penaltyDie = reaction?.attackPenalty ? formulaExpression(String(activity.roll?.formula ?? ""), {scales}) : null;
     if ( penaltyDie ) {

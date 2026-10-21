@@ -1231,9 +1231,7 @@
             "castBy": "Protective Magic"
           },
           "conversion": {
-            "notes": [
-              "rolled (save); what it does is by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1368,8 +1366,7 @@
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: cast: Fireball at level 4 is cast at its own level",
-          "Protective Magic: rolled (save); what it does is by hand"
+          "Spellcasting: cast: Fireball at level 4 is cast at its own level"
         ]
       }
     }
