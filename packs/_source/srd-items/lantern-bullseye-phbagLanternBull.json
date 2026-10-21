@@ -22,6 +22,36 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Lantern, Bullseye (lit)",
+          "img": "icons/sundries/lights/lantern-bullseye-signal-copper.webp",
+          "duration": {
+            "value": 6,
+            "units": "hours"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "light",
+              "type": "GrantLight",
+              "data": {
+                "bright": 60,
+                "dim": 120,
+                "angle": 60
+              }
+            }
+          ]
+        }
+      ],
       "label": "Lantern, Bullseye"
     },
     "ruleElements": [
@@ -55,9 +85,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

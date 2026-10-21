@@ -79,7 +79,18 @@ export function attackSight({attacker, target, attackerToken = null, targetToken
 
 /** A key that changes when its creature's senses do (its Token's vision is then prepared again). */
 export function sensesKey(token: SensingToken) {
-  return JSON.stringify(token.actor?.system?.senses ?? null);
+  const system = token.actor?.system as {senses?: unknown; light?: unknown} | null | undefined;
+  return JSON.stringify([system?.senses ?? null, system?.light ?? null]);
+}
+
+/**
+ * Its creature's light on its Token (a lit Torch): the Token's own light, unless its creature's is brighter (by its dim
+ * radius). Prepared, never stored, so putting the Torch out gives the Token its own light back.
+ */
+export function applyLightToToken(token: {light?: Data | null; actor?: {system?: {light?: {bright: number; dim: number; angle?: number} | null} | null} | null}) {
+  const light = token.actor?.system?.light;
+  if ( !light || !token.light || ((Number(token.light.dim) || 0) >= light.dim) ) return;
+  Object.assign(token.light, {bright: light.bright, dim: light.dim, ...(light.angle ? {angle: light.angle} : {})});
 }
 
 /**

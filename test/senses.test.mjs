@@ -49,3 +49,22 @@ test("Invisible and Blinded give their roll modes only while the other creature 
   assert.equal(modes("blinded", ["attack"], {seesTarget: true}), "normal", "Blindsight");
   assert.equal(modes("blinded", ["attacked"], {}), "advantage");
 });
+
+test("light its creature's grants shed: the brightest, on its Token unless the Token's own is brighter", async () => {
+  const {brightestLight} = await import("../module/helpers/senses.mjs");
+  const {applyLightToToken} = await import("../module/adapters/foundry-v14-senses.mjs");
+  const {grantedLightsFromRuleElements} = await import("../module/helpers/rule-elements.mjs");
+  const torch = {schemaVersion: 1, id: "light", type: "GrantLight", data: {bright: 20, dim: 40}};
+  const bullseye = {schemaVersion: 1, id: "cone", type: "GrantLight", data: {bright: 60, dim: 120, angle: 60}};
+  const lights = grantedLightsFromRuleElements([{ruleElements: [torch]}, {ruleElements: [bullseye]}]);
+  assert.deepEqual(lights.map(({source: _source, ...light}) => light), [{bright: 20, dim: 40}, {bright: 60, dim: 120, angle: 60}]);
+  assert.deepEqual(brightestLight(lights), {bright: 60, dim: 120, angle: 60});
+  assert.equal(brightestLight([]), null);
+  const token = light => ({light: {bright: 0, dim: 0, angle: 360}, actor: {system: {light}}});
+  const lit = token({bright: 20, dim: 40});
+  applyLightToToken(lit);
+  assert.deepEqual(lit.light, {bright: 20, dim: 40, angle: 360});
+  const lantern = {light: {bright: 30, dim: 60}, actor: {system: {light: {bright: 20, dim: 40}}}};
+  applyLightToToken(lantern);
+  assert.deepEqual(lantern.light, {bright: 30, dim: 60}, "its own is brighter");
+});

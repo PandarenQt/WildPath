@@ -1187,6 +1187,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
                 ? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales})
                 : null))))));
     if ( definition && trapTier ) definition = trapDefinition(definition, document.name);
+    const light = (activity.name === "Light") ? LIGHT_SOURCES[identifierOf(document)] : null;
+    if ( light ) {
+      definition ??= manualDefinition({document, activity, system, spell, level, notes: [], pool, names, scales});
+      definition = lightDefinition({...definition, ...(["", "none", "special"].includes(activation)
+        ? {costs: {allOf: [{capability: "bonus-action", amount: 1}, ...(definition.costs?.allOf ?? []).filter(cost => cost.capability !== "action")]}}
+        : {})}, light, document, img);
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
+    }
     if ( definition && (system.type?.value === "poison") && (system.type?.subtype === "injury") && (activity.name === "Use Poison") ) {
       definition = coatDefinition(definition, document, img);
     }
@@ -1197,8 +1205,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       // So is a Spellcasting feature's own heading beside the spells it casts (its cast activities are the rules).
       const casts = Object.values(system.activities ?? {}).some(entry => entry.type === "cast");
       // So is a teleport off the Scene (Teleport, Plane Shift, Word of Recall: miles, another plane): its creature leaves.
-      const narrative = ((activity.type === "utility")
-        && (casts || !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`)))
+      const narrative = ((activity.type === "utility") && (casts || NARRATIVE_USES.has(identifierOf(document))
+        || !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`)))
         || ((activity.type === "teleport") && !((number(activity.teleport?.value) > 0) && ((activity.teleport?.units ?? "ft") === "ft")));
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type}${narrative ? ", narrative" : ""})`}: using it spends its cost; its description says the rest`);
       definition = manualDefinition({document, activity, system, spell, level, notes, pool, names, scales});
@@ -1436,6 +1444,15 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   }
   // An Item with Actions carries its automatic triggers on its first (Tireless' Short Rest trigger).
   if ( initiativeRules.length && items.length && (items[0].type !== "feature") ) items[0].system.ruleElements.push(...initiativeRules);
+  // A light source dnd5e gives no Light activity (a Torch): lighting it, a Bonus Action with a Tinderbox.
+  const unlit = LIGHT_SOURCES[identifierOf(document)];
+  if ( unlit && !activities.some(activity => activity.name === "Light") ) {
+    const id = stableId(`${document._id}:light`);
+    items.push({_id: id, _key: `!items!${id}`, name: `${document.name} (Light)`, type: "action", img,
+      system: {active: true, description, definition: lightDefinition({schemaVersion: 1, id: `action:srd-${slugify(document.name)}-light`,
+        label: `${document.name} (Light)`, costs: {allOf: [{capability: "bonus-action", amount: 1}]}}, unlit, document, img), ruleElements: []},
+      flags: {wildpath: {source, conversion: {notes: []}}}});
+  }
   // A feature used on its turn that dnd5e leaves without an Action (Action Surge): its Action, paid from its own pool.
   const featureAction = FEATURE_ACTIONS[identifierOf(document)];
   if ( featureAction && (pool?.rule || featureAction.free || featureAction.costs) && !items.some(item => item.type === "action") ) {
@@ -1469,6 +1486,24 @@ const FEATURE_ACTIONS = Object.freeze({
       {schemaVersion: 1, id: "reckless-attacks", type: "RollMode", data: {domains: ["attack.might"], mode: "advantage"}},
       {schemaVersion: 1, id: "reckless-attacked", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}}]}]},
 });
+
+/**
+ * Light sources (2024 PHB), by identifier: Bright Light out to `bright` feet and Dim Light out to `dim` (a Torch's 20 and
+ * 20 more: 40), for `hours`. Lighting one puts its light on its user (`GrantLight`) for that long; its Token sheds it.
+ * dnd5e gives a Torch no Light activity (only its attack), so its lighting is an Action of its own, a Bonus Action
+ * with a Tinderbox (2024), as a Candle's is. shortcut: a Hooded Lantern's lowered hood (Dim Light 5 feet) is by hand.
+ */
+const LIGHT_SOURCES = Object.freeze({
+  torch: {bright: 20, dim: 40, hours: 1}, candle: {bright: 5, dim: 10, hours: 1}, lamp: {bright: 15, dim: 45, hours: 6},
+  "lantern-hooded": {bright: 30, dim: 60, hours: 6}, "lantern-bullseye": {bright: 60, dim: 120, angle: 60, hours: 6}
+});
+
+/** Lighting a light source (LIGHT_SOURCES): its user sheds its light for its hours. */
+function lightDefinition(definition, light, document, img) {
+  return {...definition, range: {type: "self"}, targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect",
+    name: `${document.name} (lit)`, img, duration: {value: light.hours, units: "hours"}, ruleElements: [{schemaVersion: 1, id: "light",
+      type: "GrantLight", data: {bright: light.bright, dim: light.dim, ...(light.angle ? {angle: light.angle} : {})}}]}]};
+}
 
 /** Each dnd5e base armor's kind. */
 const ARMOR_KINDS = Object.freeze({padded: "light", leather: "light", studded: "light", hide: "medium", chainshirt: "medium",
@@ -1963,6 +1998,9 @@ const NARRATIVE_MARKERS = new Set(["Detect Magic", "Detect Evil and Good", "Dete
  */
 const NARRATIVE_ACTIVITIES = new Set(["Create Sensor", "Revive: Days", "Days to Reform", "Count Beans", "Determine Number of Pots",
   "Count Number of Cards"]);
+
+/** Items whose use only lights or starts something else (a Tinderbox lights a Torch, whose own Action sheds its light). */
+const NARRATIVE_USES = new Set(["tinderbox"]);
 
 /** Words of a game rule in a use's text: one without any is narrative (its cost spent is all there is). */
 const MECHANICAL_TEXT = /\b(damage|saving throw|save\b|DC \d|Advantage|Disadvantage|attack roll|Hit Points?|Armor Class|\bAC\b|Speed|Blinded|Charmed|Deafened|Frightened|Grappled|Incapacitated|Invisible|Paralyzed|Petrified|Poisoned|Prone|Restrained|Stunned|Unconscious|Exhaustion|Resistance|Immunity|teleport|Bright Light|Dim Light|ability check|bonus|darkvision|blindsight|tremorsense|truesight|difficult terrain|reaction|Bonus Action|extra attack|spell slot)/i;

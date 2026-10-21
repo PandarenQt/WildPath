@@ -22,6 +22,35 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Lantern, Hooded (lit)",
+          "img": "icons/sundries/lights/lantern-steel.webp",
+          "duration": {
+            "value": 6,
+            "units": "hours"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "light",
+              "type": "GrantLight",
+              "data": {
+                "bright": 30,
+                "dim": 60
+              }
+            }
+          ]
+        }
+      ],
       "label": "Lantern, Hooded"
     },
     "ruleElements": [
@@ -55,9 +84,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

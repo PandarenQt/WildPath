@@ -7,7 +7,7 @@ import {movementSpeeds} from "../../helpers/movement-modes.mjs";
 import {abilityScoreAfter} from "../../helpers/rule-elements.mjs";
 import {movementTracked} from "../../helpers/combat.mjs";
 import {mergeTraining} from "../../helpers/level-up.mjs";
-import {bestSenses} from "../../helpers/senses.mjs";
+import {bestSenses, brightestLight} from "../../helpers/senses.mjs";
 
 /**
  * A pool's name in the reader's language: a system pool's from its id (its stored label is in the language it was made
@@ -256,6 +256,8 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     this.speeds = movementSpeeds(this.resources.movement.max, grants);
     // Its senses, the best range of each its grants give (GrantSense); its Token's vision follows them.
     this.senses = bestSenses(this.parent?.getGrantedSenses?.() ?? []);
+    // The light it sheds, the brightest its grants give (GrantLight: a lit Torch); its Token's light follows it.
+    this.light = brightestLight(this.parent?.getGrantedLights?.() ?? []);
   }
 
   /* -------------------------------------------- */

@@ -1,0 +1,72 @@
+{
+  "_id": "z8mwql4f78n70000",
+  "_key": "!items!z8mwql4f78n70000",
+  "name": "Torch (Light)",
+  "type": "action",
+  "img": "icons/sundries/lights/torch-brown-lit.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A Torch burns for 1 hour, casting Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. When you take the Attack action, you can attack with the Torch, using it as a Simple Melee weapon. On a hit, the target takes 1 Fire damage.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-torch-light",
+      "label": "Torch (Light)",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Torch (lit)",
+          "img": "icons/sundries/lights/torch-brown-lit.webp",
+          "duration": {
+            "value": 1,
+            "units": "hours"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "light",
+              "type": "GrantLight",
+              "data": {
+                "bright": 20,
+                "dim": 40
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "gYKSyS7STTresmnS",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "torch",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1025,6 +1025,17 @@ test("a magic item template enchants an Item of its kind: a choice of its option
   assert.equal(enchant.enchant.optionChoiceId, "enchantment");
 });
 
+test("a light source is lit by an Action that sheds its light from its user for its hours (a Torch: a Bonus Action)", () => {
+  const torch = {_id: "testTorch0000001", name: "Torch", type: "consumable", effects: [], system: {source: SRD, identifier: "torch",
+    description: {value: ""}, activities: {a: activity("attack", {attack: {ability: "", bonus: "", type: {value: "melee", classification: "weapon"}},
+      damage: {includeBase: false, parts: [{number: 1, denomination: 1, types: ["fire"], bonus: ""}]}})}}};
+  const light = convertItem(torch).items.find(item => item.name === "Torch (Light)");
+  const [lit] = light.system.definition.effects;
+  assert.deepEqual([light.system.definition.costs, lit.duration, lit.ruleElements[0].type, lit.ruleElements[0].data],
+    [{allOf: [{capability: "bonus-action", amount: 1}]}, {value: 1, units: "hours"}, "GrantLight", {bright: 20, dim: 40}]);
+  assert.equal(validateActionDefinition(light.system.definition).ok, true);
+});
+
 test("a trap's tier is an Action that sets it: a lasting 5-foot square anywhere that springs on each creature entering it", () => {
   const roof = {_id: "testTrapRoof0001", name: "Collapsing Roof", type: "equipment", effects: [], system: {source: SRD,
     description: {value: "<p>Deadly Trap.</p>"}, activities: {a: activity("save", {name: "Trigger (5-10)", activation: {type: "", override: false},
