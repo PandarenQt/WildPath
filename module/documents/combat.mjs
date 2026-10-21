@@ -1,3 +1,4 @@
+import {chaseTurnEnded} from "../applications/chases.mjs";
 import {getCombatTurnStartLifecycleEvents} from "../helpers/combat.mjs";
 import {executeEffectLifecycleCommit} from "../resolvers/effect-lifecycle-commit-resolver.mjs";
 
@@ -85,6 +86,12 @@ export default class WildPathCombat extends FoundryCombatDocument {
   async _onEndTurn(combatant, context={}) {
     await super._onEndTurn(combatant, context);
     await this.#applyTurnEvent("turn.ended", combatant);
+    // In a chase, its complication roll (applications/chases.mjs).
+    try {
+      await chaseTurnEnded(combatant);
+    } catch (error) {
+      console.warn("Wild Path | A chase complication roll failed", error);
+    }
     // 2014: a surprised creature's first turn has passed (2024 ends it when its initiative is rolled).
     const actor = combatant?.actor;
     if ( actor?.statuses?.has?.("surprised") && (globalThis.game?.settings?.get?.("wildpath", "rulesVersion") === "2014") ) {

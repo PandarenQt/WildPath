@@ -1301,6 +1301,13 @@
       "Plan": "It takes {days} days of work and {cost} GP of materials.",
       "TooPoor": "{name} can't pay the {cost} GP it takes.",
       "Done": "{name} crafts {item}: {days} days of work and {cost} GP of materials."
+    },
+    "CHASE": {
+      "Title": "Chase",
+      "NoCombat": "Start a combat to run a chase.",
+      "Started": "The chase is on: each creature Dashes 3 + its Fortitude modifier times freely, then a DC 10 Fortitude check each time or 1 Exhaustion level.",
+      "Ended": "The chase is over.",
+      "Complication": "Chase complication for {name} (d20: {total})."
     }
   },
   "TYPES": {

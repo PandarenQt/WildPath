@@ -97,6 +97,13 @@ each character's XP budget by level (Low, Moderate, High; no multiplier for numb
 Live (14.369): an ogre-sized foe (CR 2, 450 XP) against one 1st-level character was "Beyond High"; defeating it and
 ending the combat awarded 450 XP, and the chat said the character may level up.
 
+**Chases (2026-10-22).** The GM's "Chase" tool among the Token controls turns the running combat into a chase
+(`flags.wildpath.chase`, `applications/chases.mjs`; again, it ends it). In a chase each creature Dashes 3 + its
+Fortitude modifier times freely; each Dash beyond takes a DC 10 Fortitude check, and a failure gives it 1 Exhaustion
+level (counted on the creature, cleared when the chase or combat ends). At the end of each creature's turn a d20 is
+rolled, and on 10 or lower the GM is told a complication befalls it. shortcut: what a complication is, and escaping, are
+the GM's. Live (14.369): a character's fourth Dash in a chase called for its check, which failed: Exhaustion.
+
 **Journeys (2026-10-22).** The GM's "Journey" tool among the Token controls (`applications/journey.mjs`) moves the
 party some hours at a pace (2024 DMG): Fast 4, Normal 3, Slow 2 miles an hour. Each player character gets the pace's
 effect for those hours (Fast: Disadvantage on Perception and Survival checks; Slow: Advantage), every hour past 8 is a
