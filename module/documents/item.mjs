@@ -153,6 +153,15 @@ export default class WildPathItem extends Item {
     const test = definition.ok ? definition.definition?.metadata?.test : null;
     const skill = test?.skills?.length ? await chooseTestSkill(this.actor, test.skills, this.name) : null;
     if ( test?.skills?.length && !skill ) return false;
+    // A table it draws (a Bag of Tricks): the result names the option its choice takes.
+    const draw = definition.ok ? definition.definition?.draw : null;
+    if ( !configuration && draw?.table && draw.choiceId ) {
+      const table = await fromUuid(draw.table);
+      const result = table ? (await table.draw({displayChat: true}))?.results?.[0] : null;
+      const choice = (definition.definition.configuration ?? []).find(entry => entry.id === draw.choiceId);
+      const option = (choice?.options ?? []).find(entry => (entry.id === result?.documentUuid) || (entry.label === result?.name));
+      if ( option ) configuration = {choices: {[draw.choiceId]: option.id}};
+    }
     if ( configuration ) built.intent.configuration = configuration;
     else if ( definition.ok && definition.definition?.configuration?.length ) {
       const choices = await promptActionConfiguration({definition: definition.definition, actorSystem: foundryActorSystemSnapshot(this.actor),

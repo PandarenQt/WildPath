@@ -1076,6 +1076,21 @@ test("a RollTable keeps its results, naming WildPath's documents where converted
   assert.deepEqual([converted.img, converted.formula, converted._key], ["icons/svg/d20-black.svg", "1d8", "!tables!dmgGrayBagOfTric"]);
 });
 
+test("a magic item whose table picks its creature draws it when used (a Bag of Tricks), its creatures by name", () => {
+  const bag = {_id: "testBagOfTricks1", name: "Test Bag of Tricks", type: "equipment", effects: [], system: {source: SRD,
+    description: {value: "<p>Roll on the table. @Embed[Compendium.dnd5e.tables24.RollTable.dmgTestBagTable rollable]</p>"},
+    uses: {max: "3", recovery: [{period: "dawn", type: "recoverAll"}]},
+    activities: {a: activity("summon", {profiles: [{_id: "p1", uuid: "Compendium.dnd5e.actors24.Actor.mmWeasel00000000"},
+      {_id: "p2", uuid: "Compendium.dnd5e.actors24.Actor.mmGiantRat000000"}], summon: {mode: ""}})}}};
+  const creatures = {mmWeasel00000000: "Compendium.wildpath.srd-creatures.Actor.mmWeasel00000000",
+    mmGiantRat000000: "Compendium.wildpath.srd-creatures.Actor.mmGiantRat000000"};
+  const action = convertItem(bag, {creatures, names: {mmWeasel00000000: "Weasel", mmGiantRat000000: "Giant Rat"},
+    tables: {dmgTestBagTable: "Compendium.wildpath.srd-tables.RollTable.dmgTestBagTable"}}).items.find(item => item.type === "action");
+  const {draw, configuration} = action.system.definition;
+  assert.deepEqual(draw, {table: "Compendium.wildpath.srd-tables.RollTable.dmgTestBagTable", choiceId: "summon-creature"});
+  assert.deepEqual(configuration.find(choice => choice.id === "summon-creature").options.map(option => option.label), ["Weasel", "Giant Rat"]);
+});
+
 test("a summon's creature by its id, an old id a module redirects, or a PHB appendix id by its name", () => {
   const creatures = withRedirects({mmGriffon0000000: "griffon", mmWeasel00000000: "weasel", mmGiantCentipede: "centipede"},
     'CONFIG.compendium.uuidRedirects["Compendium.dnd-dungeon-masters-guide.actors.Actor.h052EIIUmRwJum65"] = "Compendium.dnd5e.actors24.Actor.mmGriffon0000000";');

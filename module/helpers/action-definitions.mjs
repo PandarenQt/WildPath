@@ -143,6 +143,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     ...(raw.ammunition ? {ammunition: String(raw.ammunition)} : {}),
     // Cast from a Spell Scroll, which reading uses up (helpers/spell-scrolls.mjs).
     ...(raw.scroll === true ? {scroll: true} : {}),
+    // A table its use draws, whose result fills a choice (a Bag of Tricks' creature): {table, choiceId}.
+    ...(raw.draw ? {draw: normalizePlainComponent(raw.draw)} : {}),
     // Enchants one of its creature's Items (an Artificer's infusion: inventory.md): the Item its `choiceId` choice picked
     // gets the effect whose `level` range holds its creature's class level; at most `limit` with its `key` at once.
     ...(raw.enchant ? {enchant: normalizePlainComponent(raw.enchant)} : {}),

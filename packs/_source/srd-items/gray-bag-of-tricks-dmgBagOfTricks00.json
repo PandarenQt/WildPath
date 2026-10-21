@@ -41,35 +41,35 @@
           "options": [
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmWeasel00000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmWeasel00000000"
+              "label": "Weasel"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantRat000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmGiantRat000000"
+              "label": "Giant Rat"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmBadger00000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmBadger00000000"
+              "label": "Badger"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmBoar0000000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmBoar0000000000"
+              "label": "Boar"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmPanther0000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmPanther0000000"
+              "label": "Panther"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantBadger000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmGiantBadger000"
+              "label": "Giant Badger"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmDireWolf000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmDireWolf000000"
+              "label": "Dire Wolf"
             },
             {
               "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantElk000000",
-              "label": "Compendium.wildpath.srd-creatures.Actor.mmGiantElk000000"
+              "label": "Giant Elk"
             }
           ]
         }
@@ -77,6 +77,10 @@
       "summon": {
         "choiceId": "summon-creature",
         "count": 1
+      },
+      "draw": {
+        "table": "Compendium.wildpath.srd-tables.RollTable.dmgGrayBagOfTric",
+        "choiceId": "summon-creature"
       },
       "label": "Gray Bag of Tricks"
     },
