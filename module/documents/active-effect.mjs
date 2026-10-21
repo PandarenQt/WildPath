@@ -7,9 +7,6 @@ import {serializeRuleElementDefinition} from "../helpers/rule-elements.mjs";
  * becomes a properly-typed "condition" effect, with declarative RuleElements copied onto the
  * effect. Legacy `generator()` payloads are still merged for compatibility.
  */
-/** Creatures whose condition immunities are being worked out (their effects' suppression is not asked meanwhile). */
-const READING_IMMUNITIES = new WeakSet();
-
 export default class WildPathActiveEffect extends ActiveEffect {
 
   /**
@@ -25,14 +22,9 @@ export default class WildPathActiveEffect extends ActiveEffect {
       return (system.active === false) || (system.attunement === "required");
     }
     const actor = this.parent;
-    if ( (this.type !== "condition") || !this.system?.type || (typeof actor?.getConditionImmunities !== "function")
-      || READING_IMMUNITIES.has(actor) ) return false;
-    READING_IMMUNITIES.add(actor);
-    try {
-      return actor.getConditionImmunities().includes(this.system.type);
-    } finally {
-      READING_IMMUNITIES.delete(actor);
-    }
+    // While its creature's immunities are worked out, that answers none (WildPathActor#getConditionImmunities).
+    if ( (this.type !== "condition") || !this.system?.type || (typeof actor?.getConditionImmunities !== "function") ) return false;
+    return actor.getConditionImmunities().includes(this.system.type);
   }
 
   /**
