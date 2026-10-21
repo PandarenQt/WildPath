@@ -84,3 +84,8 @@ function sameTarget(left, right) {
 function textOrNull(value) {
     return typeof value === "string" && value.trim() ? value : null;
 }
+/** A roll stays open to a reroll (Portent, Heroic Inspiration) for ten minutes: older cards in the log get no buttons. */
+export const RECENT_ROLL_MS = 10 * 60 * 1000;
+export function isRecentRoll(message, now = Date.now()) {
+    return (now - (Number(message?.timestamp) || 0)) < RECENT_ROLL_MS;
+}

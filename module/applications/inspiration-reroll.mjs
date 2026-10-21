@@ -5,6 +5,7 @@
  * offered its reroll by the pipeline instead, before anything is committed.
  */
 import { WILDPATH } from "../config.mjs";
+import { isRecentRoll } from "../helpers/chat-card-view-model.mjs";
 const globals = () => globalThis;
 const INSPIRATION = WILDPATH.HEROIC_INSPIRATION;
 const points = (actor) => actor.system.pools?.find(pool => pool.id === INSPIRATION.pool)?.value ?? 0;
@@ -52,7 +53,7 @@ async function reroll(message, actor, test, payers) {
 export function registerInspirationRerolls() {
     globals().Hooks.on("renderChatMessageHTML", (message, html) => {
         const test = message.flags?.wildpath?.rollTest;
-        if (!test?.actorUuid || test.rerolled)
+        if (!test?.actorUuid || test.rerolled || !isRecentRoll(message))
             return;
         const actor = globals().fromUuidSync(test.actorUuid);
         const payers = actor ? payersFor(actor) : [];

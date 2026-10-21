@@ -630,7 +630,13 @@ rules to the creatures within `radius` feet of its bearer.
   `valueExpression`s are worked out with the bearer's data when its auras are read (`getAuras`), so Aura of Protection
   adds its paladin's Charisma modifier, not the ally's. A rule `predicate` on the Aura sees the bearer's conditions
   (`missingCondition: "incapacitated"`).
-- **Condition immunity.** `getConditionImmunities` reads the auras around the creature too (Aura of Courage).
+- **Condition immunity.** `getConditionImmunities` reads the auras around the creature too (Aura of Courage), except
+  while that creature is being prepared (a Token being made would build its Actor again for each aura it checks).
+- **Kept between changes (2026-10-21).** A creature's immunities, its auras and the aura owners around it are kept
+  until the rules tick moves (`invalidateRules` in `module/documents/actor.mjs`): any Actor preparation, or a Token,
+  Scene, combat, Combatant, setting or world-time change. The Token ruler keeps a drag's hostile observers the same way
+  (`rulesVersion`). The Quench probe in `wildpath.conditions` times one round of rule reads on 20 Tokens: under 100 ms
+  after a change, under 10 ms between changes.
 - **Suppression (2026-10-20).** A condition its creature is immune to has no effect while that lasts:
   `WildPathActiveEffect#isSuppressed` is true for it, so its rules stop counting. 2024 Aura of Courage: "If a
   Frightened ally enters the aura, that condition has no effect on that ally while there."

@@ -5,6 +5,7 @@
  * offered its reroll by the pipeline instead, before anything is committed.
  */
 import {WILDPATH} from "../config.mjs";
+import {isRecentRoll} from "../helpers/chat-card-view-model.mjs";
 
 type Data = Record<string, unknown>;
 interface Pool {id: string; value: number}
@@ -16,7 +17,7 @@ interface RollActor {
   rollTest(options: Data): Promise<unknown>;
 }
 interface RollTestFlag {actorUuid?: string; ability?: string | null; skill?: string | null; save?: string | null; rerolled?: boolean}
-interface RollMessage {flags?: {wildpath?: {rollTest?: RollTestFlag}}; update(data: Data): Promise<unknown>}
+interface RollMessage {timestamp?: number; flags?: {wildpath?: {rollTest?: RollTestFlag}}; update(data: Data): Promise<unknown>}
 interface Globals {
   canvas?: {scene?: {tokens: Iterable<{actor?: RollActor | null}>} | null};
   game: {user?: {isGM?: boolean}; settings?: {get(scope: string, key: string): unknown};
@@ -76,7 +77,7 @@ async function reroll(message: RollMessage, actor: RollActor, test: RollTestFlag
 export function registerInspirationRerolls() {
   globals().Hooks.on("renderChatMessageHTML", (message, html) => {
     const test = message.flags?.wildpath?.rollTest;
-    if ( !test?.actorUuid || test.rerolled ) return;
+    if ( !test?.actorUuid || test.rerolled || !isRecentRoll(message) ) return;
     const actor = globals().fromUuidSync(test.actorUuid) as RollActor | null;
     const payers = actor ? payersFor(actor) : [];
     if ( !actor || !payers.length ) return;

@@ -1,4 +1,4 @@
-// Optional development integration: registering this hook does not require Quench to be installed.
+// Optional development integration, imported by wildpath.mjs only when Quench is ready.
 import {registerRuntimeSmokeTests} from "./runtime-smoke.mjs";
 import {registerDocumentTests} from "./documents.mjs";
 import {registerResourceTests} from "./resources.mjs";
@@ -13,7 +13,7 @@ import {registerRepresentativeActionTests} from "./representative-actions.mjs";
 import {registerAreaTests} from "./areas.mjs";
 import {registerLanguageTests} from "./languages.mjs";
 
-Hooks.on("quenchReady", quench => {
+export function registerQuenchTests(quench) {
   registerRuntimeSmokeTests(quench);
   registerDocumentTests(quench);
   registerResourceTests(quench);
@@ -27,4 +27,4 @@ Hooks.on("quenchReady", quench => {
   registerRepresentativeActionTests(quench);
   registerAreaTests(quench);
   registerLanguageTests(quench);
-});
+}

@@ -1,6 +1,7 @@
 import { createFoundryV14TacticalGridAdapter } from "../adapters/foundry-v14-tactical-grid-adapter.mjs";
 import { observersLeftBehind } from "../helpers/movement-transition.mjs";
 import { areaCovers, sceneAreas } from "../adapters/foundry-v14-persistent-areas.mjs";
+import { rulesVersion } from "../documents/actor.mjs";
 ;
 const globals = globalThis;
 const leftBehind = observersLeftBehind;
@@ -31,12 +32,32 @@ function areasEntered(token, positions) {
         && (!start || !cover(flag, document, { position: start }))
         && rest.some(position => cover(flag, document, { position }))).map(({ region }) => region.name ?? "?");
 }
+/**
+ * The hostile creatures around a dragged Token and where they stand: the label is redrawn at each mouse move, so they are
+ * kept until a rule moves (a Token moved, a creature prepared: WildPathActor's rules tick).
+ */
+const HOSTILES = new WeakMap();
+function hostilesAround(document) {
+    const version = rulesVersion();
+    const kept = HOSTILES.get(document);
+    if (kept?.version === version)
+        return kept;
+    const observers = (globals.game.wildpath?.reactionServices?.({ scene: document.parent, token: document })?.movement?.observers ?? [])
+        .filter(observer => observer.context?.hostile);
+    const adapter = createFoundryV14TacticalGridAdapter({ scene: document.parent });
+    const footprints = new Map(observers.flatMap(observer => {
+        const result = adapter.tokenToFootprint(observer.token, { position: observer.token.toObject(true) });
+        return result.ok && result.footprint ? [[observer.id, { id: observer.id, footprint: result.footprint, reachFields: observer.reachFields }]] : [];
+    }));
+    const entry = { version, observers, footprints };
+    HOSTILES.set(document, entry);
+    return entry;
+}
 /** The hostile creatures, still with their Reaction, whose reach the path leaves. Hidden ones only for the GM. */
 function opportunityThreats(token, positions) {
     const document = token.document;
-    const observers = (globals.game.wildpath?.reactionServices?.({ scene: document.parent, token: document })?.movement?.observers ?? [])
-        .filter(observer => observer.context?.hostile
-        && (Number(observer.token.actor?.system?.resources?.reaction?.value) > 0)
+    const hostiles = hostilesAround(document);
+    const observers = hostiles.observers.filter(observer => (Number(observer.token.actor?.system?.resources?.reaction?.value) > 0)
         && (globals.game.user?.isGM || (!observer.token.hidden && (observer.token.object?.visible !== false))));
     if (!observers.length)
         return [];
@@ -45,10 +66,7 @@ function opportunityThreats(token, positions) {
         const result = adapter.tokenToFootprint(document, { position });
         return result.ok && result.footprint ? [result.footprint] : [];
     });
-    const footprints = observers.flatMap(observer => {
-        const result = adapter.tokenToFootprint(observer.token, { position: observer.token.toObject(true) });
-        return result.ok && result.footprint ? [{ id: observer.id, footprint: result.footprint, reachFields: observer.reachFields }] : [];
-    });
+    const footprints = observers.flatMap(observer => hostiles.footprints.get(observer.id) ?? []);
     const ids = new Set(leftBehind(path, footprints));
     return observers.filter(observer => ids.has(observer.id)).map(observer => observer.token.name ?? "?");
 }

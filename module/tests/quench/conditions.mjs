@@ -1,6 +1,9 @@
 import {useQuenchFixtures} from "./fixtures.mjs";
 import {collectRuleElementContributions,serializeRuleElementDefinition} from "../../helpers/rule-elements.mjs";
 
+/** One round of every creature's rule reads on a 20-Token Scene, in ms (the Phase 2 speed gate). */
+const PERFORMANCE_BUDGET_MS = 100;
+
 export function registerConditionTests(quench) {
   quench.registerBatch("wildpath.conditions", context => {
     const {describe,it,assert} = context;
@@ -217,6 +220,41 @@ export function registerConditionTests(quench) {
         await ward.delete();
         assert.isFalse(actor.effects.get(effect.id).isSuppressed);
         assert.equal(fear(),1,"back once the immunity ends");
+      });
+
+      it("20 creatures with conditions and auras read their rules within budget", async function () {
+        this.timeout(60000);
+        const scene = await fixtures.createScene({name:"performance"});
+        const paladin = await fixtures.createActor({name:"performance aura"});
+        await paladin.createEmbeddedDocuments("Item",[{name:"Courage",type:"feature",system:{active:true,ruleElements:[{schemaVersion:1,
+          id:"courage",type:"Aura",data:{radius:10,affects:"allies",ruleElements:[{schemaVersion:1,id:"brave",type:"ConditionImmunity",
+            data:{conditions:["frightened"]}}]}}]}}]);
+        const ally = await fixtures.createActor({name:"performance ally"});
+        await ally.toggleCondition("frightened");
+        await ally.toggleCondition("prone");
+        const tokens = [];
+        for ( let index = 0; index < 20; index++ ) tokens.push(await fixtures.createToken(scene,index % 5 ? ally : paladin,
+          {name:`performance ${index}`,x:(index % 5) * 100,y:Math.floor(index / 5) * 100}));
+        const actors = tokens.map(token => token.actor);
+        const round = () => {
+          for ( const actor of actors ) {
+            actor.getConditionImmunities();
+            actor.getRollModes(["attack"]);
+            actor.getStatistic(["check.perception","check.wits","check"],{auras:true});
+          }
+        };
+        // After a change (the rules tick moves) every creature works its rules out again; between changes they are kept.
+        const timed = (fresh) => {
+          const start = performance.now();
+          for ( let repeat = 0; repeat < 5; repeat++ ) { if ( fresh ) Hooks.callAll("updateSetting"); round(); }
+          return (performance.now() - start) / 5;
+        };
+        const fresh = timed(true), kept = timed(false);
+        console.log(`Wild Path | performance probe: 20 Tokens, ${fresh.toFixed(1)} ms after a change, ${kept.toFixed(1)} ms kept`);
+        const frightened = actors[1].effects.find(effect => effect.system?.type === "frightened");
+        assert.isTrue(frightened?.isSuppressed,"an ally beside the aura's bearer is not Frightened");
+        assert.isBelow(fresh,PERFORMANCE_BUDGET_MS,"rules read after a change");
+        assert.isBelow(kept,PERFORMANCE_BUDGET_MS / 10,"rules read between changes");
       });
     });
   }, {displayName:"WILDPATH: Real Foundry Conditions",preSelected:false});

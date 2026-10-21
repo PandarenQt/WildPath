@@ -12,6 +12,7 @@ import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
 import { combatTurnKey } from "../helpers/combat.mjs";
 import { reactionPolicyOf } from "../helpers/automation-events.mjs";
 import { relationsToSource } from "./foundry-v14-reaction-provider.mjs";
+import { isRecentRoll } from "../helpers/chat-card-view-model.mjs";
 export const PORTENT_QUERY = "wildpath.portent";
 /** Its foretelling rolls not yet used, by slot. */
 export function portentDice(actor) {
@@ -156,7 +157,8 @@ export function registerPortent() {
     Hooks.on("renderChatMessageHTML", (message, html) => {
         const game = globalThis.game;
         const flags = message.flags ?? {};
-        if (!((flags.wildpath?.rollTest && !flags.wildpath.rollTest.rerolled) || flags.core?.initiativeRoll) || flags.wildpath?.portentUsed)
+        if (!((flags.wildpath?.rollTest && !flags.wildpath.rollTest.rerolled) || flags.core?.initiativeRoll) || flags.wildpath?.portentUsed
+            || !isRecentRoll(message))
             return;
         // This user's own Diviners (a GM's: those no player owns).
         const mine = portentHolders(rollerTokenOf(message, game), game).filter(({ actor }) => (game.user.isGM ? !actor.hasPlayerOwner : actor.isOwner));
