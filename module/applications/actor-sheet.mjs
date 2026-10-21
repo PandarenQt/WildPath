@@ -40,6 +40,10 @@ const {ActorSheetV2} = foundry.applications.sheets;
  * ActorSheet for the WildPath system's groundwork phase.
  * The sheet stays presentation-focused: action use still routes through the Actor/Item document API.
  */
+/** The 2024 Challenge Ratings. */
+const CHALLENGE_RATINGS = Object.freeze([0, 0.125, 0.25, 0.5, ...Array.from({length: 30}, (_, index) => index + 1)]);
+const challengeLabel = value => ({0.125: "1/8", 0.25: "1/4", 0.5: "1/2"})[value] ?? String(value);
+
 export default class WildPathActorSheet extends HandlebarsApplicationMixin(ActorSheetV2) {
 
   /** @override */
@@ -115,6 +119,21 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       granted: [...named(key, (this.actor.system.training?.[key] ?? []).filter(name => !(own.training?.[key] ?? []).includes(name))),
         ...grants(key)].join(", ")}));
     context.typeLabel = CONFIG.Actor.typeLabels?.[this.actor.type] ?? this.actor.type;
+    // Its biography as read (links, language tags), edited as written.
+    context.enrichedBiography = await foundry.applications.ux.TextEditor.implementation.enrichHTML(this.actor.system.biography ?? "",
+      {relativeTo: this.actor, secrets: this.actor.isOwner});
+    // A creature's Challenge Rating, fractions included (1/8, 1/4, 1/2).
+    if ( this.actor.type === "npc" ) {
+      context.challengeOptions = Object.fromEntries(CHALLENGE_RATINGS.map(value => [String(value), challengeLabel(value)]));
+      context.challenge = String(this.actor.system.details?.threat ?? 0);
+    }
+    // Where each effect came from, by name (never a raw uuid).
+    for ( const entry of context.effects ?? [] ) {
+      const effect = this.actor.effects.get(entry.id);
+      const ref = String(effect?.flags?.wildpath?.conditionEffect?.sourceRef ?? effect?.origin ?? "").replace(/^uuid:/, "");
+      const source = ref ? fromUuidSync(ref, {strict: false}) : null;
+      entry.sourceName = (source && (source !== this.actor)) ? (source.name ?? null) : null;
+    }
     // An Item's enchantments (an Artificer's infusions), each of which can be ended.
     for ( const row of context.gearItems ?? [] ) row.enchantments = [...(this.actor.items.get(row.id)?.effects ?? [])]
       .filter(effect => effect.flags?.wildpath?.enchantment).map(effect => ({id: effect.id, name: effect.name}));
@@ -163,6 +182,12 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     }
     for ( const element of this.element.querySelectorAll("[data-condition-id][data-stacking]") ) {
       element.addEventListener("contextmenu", event => {
+        event.preventDefault();
+        void this.actor.toggleCondition(element.dataset.conditionId, {levels: -1});
+      });
+      // From the keyboard: "-" or Backspace lowers it, as a right-click does.
+      element.addEventListener("keydown", event => {
+        if ( !["-", "Backspace"].includes(event.key) ) return;
         event.preventDefault();
         void this.actor.toggleCondition(element.dataset.conditionId, {levels: -1});
       });

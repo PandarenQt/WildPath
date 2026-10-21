@@ -12,7 +12,8 @@ export default class WildPathNPC extends WildPathBaseActor {
     return {
       ...super.defineSchema(),
       details: new foundry.data.fields.SchemaField({
-        threat: new NumberField({required: true, integer: true, initial: 1, min: 0})
+        // Its Challenge Rating, fractions included (1/8, 1/4, 1/2).
+        threat: new NumberField({required: true, initial: 1, min: 0})
       })
     };
   }

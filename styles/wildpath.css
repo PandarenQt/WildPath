@@ -485,7 +485,15 @@
 .wildpath.actor .death-saves .pip.marked { background: #3a7d44; }
 .wildpath.actor .death-saves .pip.failure.marked { background: #9b2c2c; }
 .wildpath.actor .dying-mode { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem; }
-.wildpath.actor a.row-name { cursor: pointer; }
+/* Names that open their Item or effect: buttons (keyboard-reachable) that read as text. */
+.wildpath.actor button.row-name {
+  background: none; border: none; padding: 0; margin: 0; width: auto; height: auto; line-height: inherit;
+  color: inherit; font: inherit; font-weight: 700; text-align: left; cursor: pointer;
+}
+.wildpath.actor button.row-name:focus-visible, .wildpath.actor button.condition:focus-visible { outline: 2px solid var(--wp-accent, #8a5a14); }
+.wildpath.actor button.condition { background: transparent; padding: 0; line-height: 0; }
+.wildpath.actor .row-detail.suppressed { color: var(--wp-muted); font-style: italic; }
+.wildpath.actor .actor-threat select { width: auto; min-width: 4rem; }
 
 /* The in-play action bar (M6): above the hotbar, centred. */
 #wildpath-action-bar {

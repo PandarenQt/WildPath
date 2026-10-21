@@ -36,11 +36,26 @@
         "Hint": "On: after a monster's d20 (an attack, a save or a check), the GM is asked whether to reroll it by spending a player character's Heroic Inspiration point. Off: only players spend their points, on their own failed rolls."
       },
       "Source": {
-        "Core2014": {"Name": "Offer 2014 core content", "Hint": "Feats and subclasses from the 2014 core books in the level-up dialog."},
-        "Core2024": {"Name": "Offer 2024 core content", "Hint": "Feats and subclasses from the SRD and the 2024 core books in the level-up dialog."},
-        "Supplement": {"Name": "Offer supplements", "Hint": "Feats and subclasses from other official books (Tasha's, Xanathar's, ...) in the level-up dialog."},
-        "Ua": {"Name": "Offer Unearthed Arcana", "Hint": "Playtest feats and subclasses in the level-up dialog."},
-        "ThirdParty": {"Name": "Offer third-party and homebrew content", "Hint": "Feats and subclasses from third-party books and homebrew compendiums in the level-up dialog."}
+        "Core2014": {
+          "Name": "Offer 2014 core content",
+          "Hint": "Feats and subclasses from the 2014 core books in the level-up dialog."
+        },
+        "Core2024": {
+          "Name": "Offer 2024 core content",
+          "Hint": "Feats and subclasses from the SRD and the 2024 core books in the level-up dialog."
+        },
+        "Supplement": {
+          "Name": "Offer supplements",
+          "Hint": "Feats and subclasses from other official books (Tasha's, Xanathar's, ...) in the level-up dialog."
+        },
+        "Ua": {
+          "Name": "Offer Unearthed Arcana",
+          "Hint": "Playtest feats and subclasses in the level-up dialog."
+        },
+        "ThirdParty": {
+          "Name": "Offer third-party and homebrew content",
+          "Hint": "Feats and subclasses from third-party books and homebrew compendiums in the level-up dialog."
+        }
       },
       "RollHitPoints": {
         "Name": "Roll hit points on level up",
@@ -216,8 +231,8 @@
       },
       "Roll": {
         "Natural": "Die result ({formula})",
-      "NaturalAdvantage": "With advantage: roll two d20s and enter the higher ({formula})",
-      "NaturalDisadvantage": "With disadvantage: roll two d20s and enter the lower ({formula})",
+        "NaturalAdvantage": "With advantage: roll two d20s and enter the higher ({formula})",
+        "NaturalDisadvantage": "With disadvantage: roll two d20s and enter the lower ({formula})",
         "Total": "Total rolled ({formula})",
         "TotalWithBonus": "Total, with every die ({formula})"
       },
@@ -1022,7 +1037,7 @@
       "Disable": "Disable",
       "NewItem": "New {type}",
       "NewEffect": "New Effect",
-      "StackingHint": "click adds a level, right-click removes one",
+      "StackingHint": "click adds a level; right-click, \"-\" or Backspace removes one",
       "DeathSaves": "Death Saves",
       "Successes": "Successes",
       "Failures": "Failures",
@@ -1069,7 +1084,9 @@
         "auto": "Default (characters and Player companions make death saves)",
         "deathSaves": "Makes death saves",
         "dies": "Dies"
-      }
+      },
+      "Suppressed": "Suppressed",
+      "EffectSource": "From {name}"
     },
     "PACKS": {
       "Actions": "WildPath Actions",
@@ -1112,7 +1129,8 @@
     },
     "ActiveEffect": {
       "base": "Effect",
-      "condition": "Condition"
+      "condition": "Condition",
+      "effect": "Effect"
     }
   }
 }
