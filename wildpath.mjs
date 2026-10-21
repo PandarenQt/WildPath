@@ -10,7 +10,8 @@ import {registerInspirationRerolls} from "./module/applications/inspiration-rero
 import {registerPortent} from "./module/adapters/foundry-v14-portent.mjs";
 import {SOURCE_GATES} from "./module/helpers/level-up.mjs";
 
-import "./module/tests/quench/index.mjs";
+// The Quench tests load only where Quench runs.
+Hooks.once("quenchReady", quench => import("./module/tests/quench/index.mjs").then(({registerQuenchTests}) => registerQuenchTests(quench)));
 
 import WildPathCharacter from "./module/data/actor/character.mjs";
 import WildPathNPC from "./module/data/actor/npc.mjs";
@@ -56,9 +57,9 @@ Hooks.once("init", () => {
 
   // Document class overrides
   CONFIG.Actor.documentClass = WildPathActor;
-  // A moved Token, a changed Scene, combat or setting may change who stands in which aura.
-  for ( const hook of ["createToken", "updateToken", "deleteToken", "canvasReady", "updateScene", "updateCombat", "deleteCombat", "updateSetting",
-    "updateWorldTime"] ) {
+  // A moved Token, a changed Scene, combat or setting may change who stands in which aura, and who provokes.
+  for ( const hook of ["createToken", "updateToken", "deleteToken", "canvasReady", "updateScene", "createCombat", "updateCombat",
+    "deleteCombat", "createCombatant", "updateCombatant", "deleteCombatant", "updateSetting", "updateWorldTime"] ) {
     Hooks.on(hook, invalidateRules);
   }
   CONFIG.Item.documentClass = WildPathItem;

@@ -4,7 +4,8 @@ import test from "node:test";
 import {
   CHAT_OUTCOME_KEYS,
   chatVisibilityForMode,
-  createResolutionCardViewModel
+  createResolutionCardViewModel,
+  isRecentRoll
 } from "../module/helpers/chat-card-view-model.mjs";
 import {
   RESOLUTION_CARD_TEMPLATE,
@@ -200,4 +201,10 @@ test("a creature kept up at 0 Hit Points shows by what (Relentless Endurance), n
     outcomes: {zeroHp: [{target: orc, name: "Relentless Rage", kept: true, dc: 15, total: 17}]}}, "broadcast-safe");
   assert.deepEqual(projected.outcomes.zeroHp, [{target: {id: "orc", actorRef: "Actor.orc", name: "Orc"}, name: "Relentless Rage", kept: true}]);
   assert.deepEqual(createResolutionCardViewModel(projected).targets[0].staysUp, {label: "WILDPATH.CHAT.Outcome.StaysUp", name: "Relentless Rage"});
+});
+
+test("a roll is open to a reroll for ten minutes", () => {
+  assert.equal(isRecentRoll({timestamp: 1_000_000}, 1_000_000 + 9 * 60_000), true);
+  assert.equal(isRecentRoll({timestamp: 1_000_000}, 1_000_000 + 11 * 60_000), false);
+  assert.equal(isRecentRoll({}, 1_000_000), false);
 });

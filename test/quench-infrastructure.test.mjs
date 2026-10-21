@@ -76,10 +76,9 @@ function fixtureStore(t,{isGM=true}={}) {
 test("Quench entry loads without Quench or Foundry globals and registers the thirteen batches on demand", async t => {
   const hooks = [], batches = [];
   globals(t,{Hooks:{on:(...args) => hooks.push(args)},game:undefined,foundry:undefined,quench:undefined});
-  await import("../module/tests/quench/index.mjs");
-  assert.equal(hooks.length,1);
-  assert.equal(hooks[0][0],"quenchReady");
-  hooks[0][1]({registerBatch:(key,register,options) => batches.push({key,register,options})});
+  const {registerQuenchTests} = await import("../module/tests/quench/index.mjs");
+  assert.equal(hooks.length,0,"Importing the entry registers nothing by itself");
+  registerQuenchTests({registerBatch:(key,register,options) => batches.push({key,register,options})});
   assert.deepEqual(batches.map(b => b.key),["wildpath.runtime-smoke","wildpath.documents","wildpath.resources",
     "wildpath.effects","wildpath.conditions","wildpath.rule-elements","wildpath.combat","wildpath.staged-movement",
     "wildpath.multiplayer-disclosure","wildpath.action-results","wildpath.representative-actions","wildpath.areas","wildpath.languages"]);
@@ -93,7 +92,7 @@ test("Quench entry loads without Quench or Foundry globals and registers the thi
     assert.equal(batch.options.preSelected,false,"Registration must not opt developers into mutation tests");
     return count;
   });
-  assert.deepEqual(counts,[3,13,13,4,10,15,13,7,4,3,8,3,2]);
+  assert.deepEqual(counts,[3,13,13,4,11,15,13,7,4,3,8,3,2]);
   assert.equal(batches.at(-7).options.displayName,"WILDPATH: Real Foundry Combat");
   assert.equal(batches.at(-6).options.displayName,"WILDPATH: Staged Movement");
   assert.equal(batches.at(-5).options.displayName,"WILDPATH: Multiplayer Disclosure");
@@ -105,7 +104,9 @@ test("Quench entry loads without Quench or Foundry globals and registers the thi
     "square/Medium reaction miss","square/Medium reaction hit","square/Medium reaction stop","Large-hex reaction decline",
     "a hostile guard's Trigger RuleElement makes an opportunity attack through the production provider"]);
   const startup = readFileSync(new URL("../wildpath.mjs",import.meta.url),"utf8");
-  assert.deepEqual(startup.match(/import\s+"\.\/module\/tests\/[^"\n]+";/g),['import "./module/tests/quench/index.mjs";']);
+  // The tests load only once Quench is ready, never with the system itself.
+  assert.equal(startup.match(/import\s+"\.\/module\/tests\//g),null);
+  assert.match(startup,/Hooks\.once\("quenchReady", quench => import\("\.\/module\/tests\/quench\/index\.mjs"\)/);
 });
 
 test("Quench fixtures mark real-API creation requests and refuse embedded mutation on unmarked parents", async t => {

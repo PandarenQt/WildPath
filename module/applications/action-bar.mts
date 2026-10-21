@@ -154,7 +154,11 @@ export function registerActionBar() {
   globals.Hooks.on("controlToken", () => refreshActionBar());
   // The odds change with the user's targets, and with where the creatures stand.
   globals.Hooks.on("targetToken", (user: unknown) => { if ( user === globals.game.user ) refreshActionBar(); });
-  globals.Hooks.on("updateToken", () => { if ( [...(globals.game.user?.targets ?? [])].length ) refreshActionBar(); });
+  // Only where a creature stands or how big it is moves range and cover; its other changes come through its Actor.
+  const placement = ["x", "y", "elevation", "width", "height", "shape"];
+  globals.Hooks.on("updateToken", (token: unknown, changes: unknown) => {
+    if ( [...(globals.game.user?.targets ?? [])].length && placement.some(key => key in ((changes as Data) ?? {})) ) refreshActionBar();
+  });
   // The house rule's first change creates its Setting; later ones update it.
   for ( const hook of ["createSetting", "updateSetting"] ) globals.Hooks.on(hook, (setting: unknown) => {
     if ( (setting as {key?: string}).key === "wildpath.playersSeeOdds" ) refreshActionBar();

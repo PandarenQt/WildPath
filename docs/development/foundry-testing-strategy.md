@@ -89,8 +89,8 @@ failures. WildPath neither patches Quench nor suppresses compatibility warnings.
 
 ## Registration and fixtures
 
-`wildpath.mjs` imports only `module/tests/quench/index.mjs` for this layer. That file owns the single
-`quenchReady` subscription and registers exactly eleven batches (61 cases, **61/61 live** on Foundry
+`wildpath.mjs` loads `module/tests/quench/index.mjs` only when Quench fires `quenchReady` (since 2026-10-21; a client
+without Quench never downloads the tests). Its `registerQuenchTests` registers exactly eleven batches (61 cases, **61/61 live** on Foundry
 14.369 on 2026-10-14, including the 4-case `wildpath.multiplayer-disclosure`, 3-case
 `wildpath.action-results` and 8-case `wildpath.representative-actions` batches; orphan check empty).
 Batch modules do

@@ -76,7 +76,11 @@ let rulesTick = 0;
 const RULES_CACHE = new WeakMap();
 /** Creatures whose condition immunities are being worked out: their own conditions are not suppressed meanwhile. */
 const READING_IMMUNITIES = new WeakSet();
+/** Creatures being prepared: the auras around them are left out (a Token being made would build its Actor again). */
+const PREPARING = new WeakSet();
 export function invalidateRules() { rulesTick++; }
+/** Which change rules are at: what is kept for one reading stays good while this is the same. */
+export function rulesVersion() { return rulesTick; }
 function cachedRules(actor, key, compute) {
   let entry = RULES_CACHE.get(actor);
   if ( entry?.tick !== rulesTick ) RULES_CACHE.set(actor, entry = {tick: rulesTick});
@@ -94,7 +98,8 @@ export default class WildPathActor extends Actor {
   /** What it was prepared from may change any creature's immunities or auras; read mid-preparation, they are not kept. */
   prepareData() {
     invalidateRules();
-    try { super.prepareData(); } finally { invalidateRules(); }
+    PREPARING.add(this);
+    try { super.prepareData(); } finally { PREPARING.delete(this); invalidateRules(); }
   }
 
   /* -------------------------------------------- */
@@ -171,7 +176,7 @@ export default class WildPathActor extends Actor {
     }
 
     // Auras around the creature (game.wildpath.auras), when a roll or defense is read; data preparation leaves them out.
-    if ( auras ) for ( const owner of globalThis.game?.wildpath?.auras?.ownersFor?.(this) ?? [] ) {
+    if ( auras ) for ( const owner of this.auraOwners() ) {
       for ( const entry of domains ) modifiers.push(...collectRuleElementModifiers(owner.ruleElements, {actor: this, domain: entry,
         source: owner.source, context: seen}));
     }
@@ -242,20 +247,27 @@ export default class WildPathActor extends Actor {
     return READING_IMMUNITIES.has(this) ? compute() : cachedRules(this, "auras", compute);
   }
 
+  /** The rule owners (`{ruleElements, source}`) the auras around its Tokens grant it (game.wildpath.auras). */
+  auraOwners() {
+    const compute = () => globalThis.game?.wildpath?.auras?.ownersFor?.(this) ?? [];
+    return READING_IMMUNITIES.has(this) ? compute() : cachedRules(this, "auraOwners", compute);
+  }
+
   /** The conditions this creature's features, gear and effects make it immune to (`ConditionImmunity`). */
   getConditionImmunities() {
     if ( READING_IMMUNITIES.has(this) ) return [];
-    return cachedRules(this, "immunities", () => {
+    const preparing = PREPARING.has(this);
+    const compute = () => {
       READING_IMMUNITIES.add(this);
       try {
-        // An aura around it counts too (Aura of Courage: no Frightened while in its paladin's aura).
-        const auras = globalThis.game?.wildpath?.auras?.ownersFor?.(this) ?? [];
-        return conditionImmunitiesFromRuleElements([...grantOwners(this), ...auras], {actor: this, actorSystem: this.system,
-          conditions: [...(this.statuses ?? [])]});
+        // An aura around it counts too (Aura of Courage: no Frightened while in its paladin's aura), once it is prepared.
+        return conditionImmunitiesFromRuleElements([...grantOwners(this), ...(preparing ? [] : this.auraOwners())],
+          {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
       } finally {
         READING_IMMUNITIES.delete(this);
       }
-    });
+    };
+    return preparing ? compute() : cachedRules(this, "immunities", compute);
   }
 
   /** The pools this creature's further attacks of an Attack action are paid from (`ExtraAttack`). */

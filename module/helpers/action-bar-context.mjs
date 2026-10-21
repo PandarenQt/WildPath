@@ -106,14 +106,14 @@ export function actionBarContext({ actor, conditions = [], odds = {}, common = [
         return !source || ((source.system?.active !== false) && (source.system?.attunement !== "required"));
     };
     // What its definition requires of the creature (`requires`: Steady Aim, not moved this turn), as the authority checks.
+    const required = requiresContext(actor);
     const requiresMet = (action) => {
         const definition = rawDefinition(action);
         // Quickened Spell this turn: no other spell of level 1+.
-        if (requiresContext(actor).quickenedThisTurn && definition?.tags?.includes("spell")
-            && (Number(definition.metadata?.spellLevel) >= 1))
+        if (required.quickenedThisTurn && definition?.tags?.includes("spell") && (Number(definition.metadata?.spellLevel) >= 1))
             return false;
         const requires = rawDefinition(action)?.requires;
-        return !requires || evaluatePredicate(requires, { ...requiresContext(actor), tags: rawDefinition(action)?.tags ?? [] }).ok;
+        return !requires || evaluatePredicate(requires, { ...required, tags: rawDefinition(action)?.tags ?? [] }).ok;
     };
     const ready = (action) => itemReady(action) && requiresMet(action);
     const resourceLabels = new Map(bar.resources.map(resource => [resource.id, resource.label]));
