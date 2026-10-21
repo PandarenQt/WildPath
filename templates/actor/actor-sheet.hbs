@@ -4,6 +4,7 @@
     <img class="profile-img" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
 
     <div class="actor-title">
+      {{#if brokenRules.length}}<p class="sheet-warning" role="alert">{{localize "WILDPATH.SHEET.BrokenRules"}} {{#each brokenRules}}<strong>{{this}}</strong>{{#unless @last}}, {{/unless}}{{/each}}</p>{{/if}}
       <input class="actor-name" type="text" name="name" value="{{header.name}}">
       <div class="actor-summary">
         <span class="actor-pill">{{localize typeLabel}}</span>

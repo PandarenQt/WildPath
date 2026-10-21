@@ -1,3 +1,4 @@
+import {gmNotice} from "../helpers/gm-notice.mjs";
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {hostedRules} from "../helpers/effect-sources.mjs";
 import {
@@ -918,7 +919,7 @@ function collectRuleElementModifiers(ruleElements, {actor, domain, source, conte
     },
     source
   });
-  if ( !result.ok ) console.warn("Wild Path | RuleElement modifier collection failed", result);
+  if ( !result.ok ) brokenRules(actor, source, result);
   return result.modifiers.map(modifier => new WildPathModifier(bindings ? {...modifier, bindings} : modifier, bindings ?? {}));
 }
 
@@ -943,6 +944,15 @@ function tokensOf(actor) {
   if ( actor.isToken ) return actor.token ? [actor.token] : [];
   return [...(globalThis.game?.scenes ?? [])].flatMap(scene => [...scene.tokens])
     .filter(token => token.actorLink && (token.actorId === actor.id));
+}
+
+/** Items whose rules can't be read, each told to the GM once a session (the console has the details every time). */
+const TOLD_BROKEN = new Set();
+function brokenRules(actor, source, result) {
+  const key = `${actor?.uuid}:${source?.uuid ?? source?.id ?? ""}`;
+  if ( TOLD_BROKEN.has(key) ) return void console.warn("Wild Path | RuleElement modifier collection failed", result);
+  TOLD_BROKEN.add(key);
+  gmNotice("WILDPATH.NOTICE.BrokenRules", {name: source?.name ?? "", actor: actor?.name ?? ""}, result);
 }
 
 /**

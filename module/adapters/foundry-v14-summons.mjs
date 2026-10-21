@@ -1,3 +1,4 @@
+import { gmNotice } from "../helpers/gm-notice.mjs";
 import { foundryPointInRange } from "./foundry-v14-area-placement.mjs";
 import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
 import { resolveActorAttackStatistic } from "../helpers/combat-statistics.mjs";
@@ -130,7 +131,7 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         const casterToken = await fromUuid(String(state?.source?.tokenRef ?? ""));
         const scene = casterToken?.parent ?? null;
         if (!casterToken || !scene) {
-            logger.warn("Wild Path | A summon needs its caster's Token on a Scene.");
+            gmNotice("WILDPATH.NOTICE.SummonNoToken", {}, undefined, { logger });
             return [];
         }
         const choices = state?.configuration?.choices;
@@ -138,7 +139,7 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         const source = await fromUuid(String(spec.actorRef ?? chosen?.value ?? chosen?.optionId ?? ""));
         const base = source ? await worldActor(source) : null;
         if (!base) {
-            logger.warn("Wild Path | The creature an Action summons could not be found", spec);
+            gmNotice("WILDPATH.NOTICE.SummonMissing", {}, spec, { logger });
             return [];
         }
         const occupied = new Set([...scene.tokens].flatMap(token => (token.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
@@ -171,7 +172,7 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
             : Math.floor(Number((typeof byOption === "object") ? evaluate(atLevel(byOption, castLevel), { actor: caster, actorSystem: caster.system }).value
                 : byOption) || 0);
         if (counted < 1) {
-            logger.warn(`Wild Path | ${definition?.label ?? "A summon"} summons no creature at this level.`);
+            gmNotice("WILDPATH.NOTICE.SummonNone", { name: definition?.label ?? "" }, undefined, { logger });
             return [];
         }
         const count = Math.min(counted, 20);

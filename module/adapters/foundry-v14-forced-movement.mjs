@@ -1,9 +1,4 @@
-/**
- * Forced movement (G6, areas.md): when an Action with `push` completes, the active GM moves each creature it pushed
- * (a hit, or a failed save) straight away from its source, or toward it (`toward`: a pull), a field at a time. The
- * creature stops at a wall, another creature, or the Scene's edge. It moves as `forced` movement, which spends no
- * Speed and (2024) provokes no Opportunity Attack; a lasting area it is pushed into still sees it enter.
- */
+import { gmNotice } from "../helpers/gm-notice.mjs";
 /** The largest Token, in fields, of each size a push may be limited to ("a Large or smaller creature"). */
 const LARGEST = Object.freeze({ tiny: 0.5, small: 1, medium: 1, large: 2, huge: 3, gargantuan: 4 });
 const key = (offset) => `${offset.i}.${offset.j}`;
@@ -52,7 +47,7 @@ export function createFoundryForcedMovement({ game, logger = console, fromUuid }
         const source = await fromUuid(String(state.source?.tokenRef ?? ""));
         const scene = source?.parent ?? null;
         if (!source || !scene) {
-            logger.warn("Wild Path | A push needs its source's Token on a Scene.");
+            gmNotice("WILDPATH.NOTICE.PushNoToken", {}, undefined, { logger });
             return [];
         }
         const fields = Math.floor((Number(spec.distance) || 0) / (Number(scene.grid.distance) || 5));

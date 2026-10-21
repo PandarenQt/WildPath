@@ -644,3 +644,5 @@
 [data-script="oldItalic"] { font-family: "WildPath Old Italic", var(--font-primary); }
 .wildpath-language-gm, .wildpath-language-known { border-bottom: 1px dotted currentColor; }
 .wildpath-language-foreign { letter-spacing: 0.05em; }
+
+.wildpath .sheet-warning { margin: 0 0 0.35rem; padding: 0.3rem 0.5rem; border-left: 3px solid var(--wp-warning, #8a5f23); background: rgba(138, 95, 35, 0.12); font-size: 0.8rem; }
