@@ -30,7 +30,7 @@
       "conversion": {
         "notes": [
           "\"Attunement Save\" is passive or triggered: not automated",
-          "not automated (utility): using it spends its cost; its description says the rest",
+          "not automated (utility, narrative): using it spends its cost; its description says the rest",
           "consumption: itemUses 4 not converted",
           "cast: Cure Wounds at level 9 is cast at its own level",
           "consumption: itemUses 1 not converted",

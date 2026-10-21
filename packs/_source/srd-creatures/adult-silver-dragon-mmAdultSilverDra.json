@@ -215,6 +215,12 @@
             "anyOf": [
               [
                 {
+                  "capability": "move-attack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
                   "capability": "multiattack-rend",
                   "amount": 1
                 }
@@ -1296,9 +1302,52 @@
               }
             ]
           },
-          "label": "Pounce"
+          "label": "Pounce",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "movement",
+              "amount": 1,
+              "amountExpression": {
+                "type": "floor",
+                "value": {
+                  "type": "multiply",
+                  "terms": [
+                    {
+                      "type": "resource-max",
+                      "id": "movement"
+                    },
+                    {
+                      "type": "constant",
+                      "value": 0.5
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "resourceId": "move-attack-rend",
+              "amount": 1
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "move-attack-rend-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "move-attack-rend",
+              "label": "Pounce (Rend)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -1314,9 +1363,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1444,8 +1491,7 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: cast: Ice Storm at level 5 is cast at its own level",
-          "Spellcasting: effect: \"Cannot Lie\" marks its creature only; its rules are by hand",
-          "Pounce: not automated (utility): using it spends its cost; its description says the rest"
+          "Spellcasting: effect: \"Cannot Lie\" marks its creature only; its rules are by hand"
         ]
       }
     }

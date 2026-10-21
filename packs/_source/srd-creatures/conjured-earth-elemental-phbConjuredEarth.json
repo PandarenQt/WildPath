@@ -82,8 +82,8 @@
           },
           "conversion": {
             "notes": [
-              "\"Initial Save\" is passive or triggered: not automated",
-              "\"Save while Restrained\" is passive or triggered: not automated"
+              "\"Initial Save\" is passive or triggered (narrative): not automated",
+              "\"Save while Restrained\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -104,8 +104,8 @@
       },
       "conversion": {
         "notes": [
-          "Earth Element: \"Initial Save\" is passive or triggered: not automated",
-          "Earth Element: \"Save while Restrained\" is passive or triggered: not automated"
+          "Earth Element: \"Initial Save\" is passive or triggered (narrative): not automated",
+          "Earth Element: \"Save while Restrained\" is passive or triggered (narrative): not automated"
         ]
       }
     }

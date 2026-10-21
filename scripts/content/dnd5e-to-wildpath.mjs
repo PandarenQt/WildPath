@@ -1095,7 +1095,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       // own Action (Action Surge: FEATURE_ACTIONS) is not passive.
       const escape = (activity.type === "check") && /escape/i.test(activity.name ?? "");
       if ( !trait && !marked && !metamagic && !escape && !OFFERED_BY_ENGINE.has(identifierOf(document)) && !FEATURE_ACTIONS[identifierOf(document)] ) {
-        allNotes.push(`"${label}" is passive or triggered: not automated`);
+        // A trait whose text names no game rule (an option's heading, a 2014 trait's flavor) is its own description.
+        const narrative = !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`);
+        allNotes.push(`"${label}" is passive or triggered${narrative ? " (narrative)" : ""}: not automated`);
       }
       continue;
     }
@@ -1124,7 +1126,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
       // A use whose text names no game rule (Alarm, Create or Destroy Water, a Tinderbox) is narrative: spending its cost is
       // all there is to automate.
-      const narrative = (activity.type === "utility") && !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`);
+      // So is a Spellcasting feature's own heading beside the spells it casts (its cast activities are the rules).
+      const casts = Object.values(system.activities ?? {}).some(entry => entry.type === "cast");
+      const narrative = (activity.type === "utility")
+        && (casts || !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`));
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type}${narrative ? ", narrative" : ""})`}: using it spends its cost; its description says the rest`);
       definition = manualDefinition({document, activity, system, spell, level, notes, pool, names, scales});
     }
@@ -1871,7 +1876,7 @@ export function moveAreaDefinition(document, definition) {
 const plainText = document => String(document.system?.description?.value ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
 
 /** Words of a game rule in a use's text: one without any is narrative (its cost spent is all there is). */
-const MECHANICAL_TEXT = /\b(damage|saving throw|save\b|DC \d|Advantage|Disadvantage|attack roll|Hit Points?|Armor Class|\bAC\b|Speed|Blinded|Charmed|Deafened|Frightened|Grappled|Incapacitated|Invisible|Paralyzed|Petrified|Poisoned|Prone|Restrained|Stunned|Unconscious|Exhaustion|Resistance|Immunity|teleport|Bright Light|Dim Light|ability check|bonus)/i;
+const MECHANICAL_TEXT = /\b(damage|saving throw|save\b|DC \d|Advantage|Disadvantage|attack roll|Hit Points?|Armor Class|\bAC\b|Speed|Blinded|Charmed|Deafened|Frightened|Grappled|Incapacitated|Invisible|Paralyzed|Petrified|Poisoned|Prone|Restrained|Stunned|Unconscious|Exhaustion|Resistance|Immunity|teleport|Bright Light|Dim Light|ability check|bonus|darkvision|blindsight|tremorsense|truesight|difficult terrain|reaction|Bonus Action|extra attack|spell slot)/i;
 
 /**
  * The push or pull (G6) its text gives an Action that hits or forces a save: "pushed up to 10 feet (straight) away
@@ -2906,6 +2911,7 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
   }
 
   multiattack(items, notes);
+  moveThenAttack(items, notes);
 
   const traits = traitRules(system, notes);
   // Its initiative bonus beyond Agility (2024 stat blocks: proficiency once or twice, "@prof * 2"): an initiative Modifier.
@@ -3272,6 +3278,37 @@ function multiattack(items, notes) {
     for ( const action of extraActions(extras.replace.names) ) {
       payable(action, replaceable.map(pool => [{capability: replacePool.id, amount: 1}, {capability: pool.id, amount: 1}]));
     }
+  }
+}
+
+/**
+ * 2024 "moves up to half its Speed, and it makes one Rend attack" (a dragon's Pounce, a Charge, a Rampage): the Action
+ * gives back that much movement, and fills a one-attack pool its named attack may be paid from (as a Multiattack's), for
+ * the creature to move and strike. Its note goes; what else its text says (extra damage, a push) stays by hand.
+ */
+function moveThenAttack(items, notes) {
+  const attacks = items.filter(action => action.system?.definition?.attack);
+  for ( const action of items.filter(entry => entry.type === "action") ) {
+    const text = String(action.system?.description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+    const match = /moves? (?:up to )?(half )?(?:its|their) Speed(?: or less)?,? (?:and|then) (?:it )?(?:can )?makes? one ([\w' -]+?) attack/i.exec(text);
+    const attack = match ? attacks.find(entry => entry !== action && entry.name.replace(/\s*\(.*\)\s*$/, "").toLowerCase() === match[2].trim().toLowerCase()) : null;
+    if ( !attack ) continue;
+    const pool = `move-attack-${slugify(attack.name.replace(/\s*\(.*\)\s*$/, ""))}`;
+    const movement = {type: "floor", value: {type: "multiply", terms: [{type: "resource-max", id: "movement"}, {type: "constant",
+      value: match[1] ? 0.5 : 1}]}};
+    const definition = action.system.definition;
+    action.system.definition = {...definition, targeting: {type: "none"}, restores: [...(definition.restores ?? []),
+      {resourceId: "movement", amount: 1, amountExpression: movement}, {resourceId: pool, amount: 1}]};
+    action.system.ruleElements = [...(action.system.ruleElements ?? []), {schemaVersion: 1, id: `${pool}-uses`, type: "GrantResource",
+      data: {resourceId: pool, label: `${action.name} (${attack.name})`, maximum: 1, current: 0, recovery: "none", emptiesAtTurnStart: true}}];
+    const costs = attack.system.definition.costs;
+    const options = costs.anyOf ?? [costs.allOf ?? []];
+    // Its other costs (a use) still paid: those beside its Action, not another pool's option (a Multiattack's).
+    const own = options.find(option => option.some(cost => cost.capability === "action")) ?? [];
+    const rest = own.filter(cost => cost.capability !== "action");
+    attack.system.definition.costs = {anyOf: [[{capability: pool, amount: 1}, ...rest], ...options]};
+    action.flags.wildpath.conversion.notes = (action.flags.wildpath.conversion.notes ?? []).filter(note => !note.startsWith("not automated"));
+    notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith(`${action.name}: not automated`)));
   }
 }
 

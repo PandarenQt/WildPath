@@ -73,11 +73,19 @@
           "schemaVersion": 1,
           "id": "action:srd-bite",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "move-attack-bite",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -157,7 +165,36 @@
               }
             ]
           },
-          "label": "Rampage"
+          "label": "Rampage",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "movement",
+              "amount": 1,
+              "amountExpression": {
+                "type": "floor",
+                "value": {
+                  "type": "multiply",
+                  "terms": [
+                    {
+                      "type": "resource-max",
+                      "id": "movement"
+                    },
+                    {
+                      "type": "constant",
+                      "value": 0.5
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "resourceId": "move-attack-bite",
+              "amount": 1
+            }
+          ]
         },
         "ruleElements": [
           {
@@ -172,6 +209,19 @@
                 "value": 1
               },
               "recovery": "longRest"
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "move-attack-bite-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "move-attack-bite",
+              "label": "Rampage (Bite)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
             }
           }
         ]
@@ -190,9 +240,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -240,9 +288,7 @@
         "challenge": 1
       },
       "conversion": {
-        "notes": [
-          "Rampage: not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

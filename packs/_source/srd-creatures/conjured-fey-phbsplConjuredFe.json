@@ -151,7 +151,7 @@
       },
       "conversion": {
         "notes": [
-          "Command: \"attack\" is passive or triggered: not automated"
+          "Command: \"attack\" is passive or triggered (narrative): not automated"
         ]
       }
     }

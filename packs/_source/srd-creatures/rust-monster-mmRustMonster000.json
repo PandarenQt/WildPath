@@ -82,7 +82,7 @@
           },
           "conversion": {
             "notes": [
-              "\"Expend Use\" is passive or triggered: not automated"
+              "\"Expend Use\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -471,7 +471,7 @@
       },
       "conversion": {
         "notes": [
-          "Iron Scent: \"Expend Use\" is passive or triggered: not automated",
+          "Iron Scent: \"Expend Use\" is passive or triggered (narrative): not automated",
           "Antennae: rolled (save); what it does is by hand",
           "Destroy Metal: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Reflexive Antennae: not automated (utility): using it spends its cost; its description says the rest"

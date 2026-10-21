@@ -859,7 +859,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility, narrative): using it spends its cost; its description says the rest",
+              "not automated (utility): using it spends its cost; its description says the rest",
               "activation: 1 minute is not an action-economy cost",
               "area: 5 * @item.level - 20-ft cube is not supported; the user picks the targets"
             ]
@@ -1703,6 +1703,7 @@
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: effect: transformed is not a WildPath condition yet",
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: area: 5 * @item.level - 20-ft cube is not supported; the user picks the targets",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
           "Spellcasting: not automated (teleport): using it spends its cost; its description says the rest"

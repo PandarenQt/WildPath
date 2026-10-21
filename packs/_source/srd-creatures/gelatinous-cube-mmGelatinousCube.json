@@ -116,7 +116,7 @@
           },
           "conversion": {
             "notes": [
-              "\"check\" is passive or triggered: not automated"
+              "\"check\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -352,7 +352,7 @@
           "Ooze Cube: \"Total Cover\" is passive or triggered: not automated",
           "Ooze Cube: \"Pull Check\" is passive or triggered: not automated",
           "Ooze Cube: \"Puller Damage\" is passive or triggered: not automated",
-          "Transparent: \"check\" is passive or triggered: not automated",
+          "Transparent: \"check\" is passive or triggered (narrative): not automated",
           "Engulf: effect: coverTotal is not a WildPath condition yet",
           "Engulf: effect: suffocation is not a WildPath condition yet"
         ]
