@@ -29,7 +29,7 @@ const rowOptions = () => ({field: "wildpath.rules", abilities: Object.keys(globa
  * sheet open with the errors in a notification, and nothing is saved.
  */
 export class WildPathEffectSheet extends ActiveEffectConfig {
-  static override DEFAULT_OPTIONS = {classes: ["wildpath"], actions: {ruleAdd: WildPathEffectSheet.#onRuleAdd,
+  static override DEFAULT_OPTIONS = {classes: ["wildpath", "themed", "theme-light"], actions: {ruleAdd: WildPathEffectSheet.#onRuleAdd,
     ruleRemove: WildPathEffectSheet.#onRuleRemove}};
 
   static override PARTS = {...parts, ruleElements: {template: "systems/wildpath/templates/effect/rule-elements.hbs",

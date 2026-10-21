@@ -703,7 +703,7 @@ export default class WildPathActor extends Actor {
       : game.i18n.format("WILDPATH.ROLL.Check", {ability: abilityLabel});
     let roll;
     if ( game.settings.get("wildpath", "dicePolicy") === "physical" ) {
-      const answer = await foundry.applications.api.DialogV2.input({window: {title: label},
+      const answer = await foundry.applications.api.DialogV2.input({classes: ["wildpath", "themed", "theme-light"], window: {title: label},
         content: `<label>${game.i18n.format("WILDPATH.PROMPT.Roll.Total", {formula})} <input type="number" name="total" autofocus></label>`,
         ok: {label: game.i18n.localize("WILDPATH.PROMPT.Confirm")}, rejectClose: false});
       const total = Number(answer?.total);

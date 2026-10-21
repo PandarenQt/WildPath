@@ -57,7 +57,7 @@ export function createFoundryV14PromptAdapter({
       const viewModel = createPromptViewModel(request, context);
       const shown = localizeViewModel(viewModel);
       const key = promptKey(request.resolutionId, request.id);
-      const response = await Dialog.input({
+      const response = await Dialog.input({classes: ["wildpath", "themed", "theme-light"],
         render: (_event, dialog) => openPrompts.set(key, dialog),
         window: {
           title: shown.title
@@ -107,7 +107,7 @@ export function createFoundryV14PromptAdapter({
         const viewModel = createPromptViewModel(request, context);
         return {request, viewModel, control: localizeViewModel(viewModel).controls[0] ?? {}};
       });
-      const response = await Dialog.input({
+      const response = await Dialog.input({classes: ["wildpath", "themed", "theme-light"],
         window: {title: localize("WILDPATH.PROMPT.Batch.Title")},
         content: renderBatchContent(rows),
         ok: {label: localize("WILDPATH.PROMPT.Batch.RollRest")},
@@ -175,7 +175,7 @@ export async function promptActionConfiguration({definition, actorSystem, name=n
     const choices = actionConfigurationChoicesFromForm(viewModel, new FormData(form).object);
     box.innerHTML = renderConfigurationPreview({definition, actorSystem, choices});
   };
-  const response = await Dialog.input({
+  const response = await Dialog.input({classes: ["wildpath", "themed", "theme-light"],
     window: {title: localize("WILDPATH.PROMPT.Configure.Title", {name: name ?? definition.label ?? ""})},
     content: `${renderPromptContent(shown)}<section class="wildpath-configuration-preview" aria-live="polite"></section>`,
     ok: {label: localize("WILDPATH.PROMPT.Confirm")},

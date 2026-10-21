@@ -11,7 +11,7 @@ const rowOptions = () => ({ field: "wildpath.rules", abilities: Object.keys(glob
  * sheet open with the errors in a notification, and nothing is saved.
  */
 export class WildPathEffectSheet extends ActiveEffectConfig {
-    static DEFAULT_OPTIONS = { classes: ["wildpath"], actions: { ruleAdd: WildPathEffectSheet.#onRuleAdd,
+    static DEFAULT_OPTIONS = { classes: ["wildpath", "themed", "theme-light"], actions: { ruleAdd: WildPathEffectSheet.#onRuleAdd,
             ruleRemove: WildPathEffectSheet.#onRuleRemove } };
     static PARTS = { ...parts, ruleElements: { template: "systems/wildpath/templates/effect/rule-elements.hbs",
             templates: [RULE_ROWS_TEMPLATE], scrollable: [""] }, footer: footer };

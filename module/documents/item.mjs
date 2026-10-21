@@ -16,7 +16,7 @@ async function chooseTestSkill(actor, skills, name) {
     const bonus = resolveActorCheckStatistic(actor, {skill})?.totalModifier ?? 0;
     return `<option value="${skill}">${game.i18n.localize(SKILLS[skill]?.label ?? skill)} (${bonus < 0 ? bonus : `+${bonus}`})</option>`;
   }).join("");
-  const answer = await foundry.applications.api.DialogV2.input({window: {title: game.i18n.format("WILDPATH.COMMON.ChooseSkill", {name})},
+  const answer = await foundry.applications.api.DialogV2.input({classes: ["wildpath", "themed", "theme-light"], window: {title: game.i18n.format("WILDPATH.COMMON.ChooseSkill", {name})},
     content: `<select name="skill">${options}</select>`, ok: {label: game.i18n.localize("WILDPATH.PROMPT.Confirm")}, rejectClose: false});
   return skills.includes(answer?.skill) ? answer.skill : null;
 }

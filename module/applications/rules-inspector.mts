@@ -29,7 +29,7 @@ const RECENT = 25;
 export class WildPathRulesInspector extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     id: "wildpath-rules-inspector",
-    classes: ["wildpath", "rules-inspector"],
+    classes: ["wildpath", "rules-inspector", "themed", "theme-light"],
     window: {title: "WILDPATH.INSPECTOR.Title", resizable: true},
     position: {width: 760, height: 560},
     actions: {select: WildPathRulesInspector.#onSelect, answer: WildPathRulesInspector.#onAnswer}
