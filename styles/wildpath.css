@@ -1,14 +1,67 @@
-.wildpath.sheet,
-.wildpath.actor-sheet {
-  --wp-border: rgba(90, 82, 70, 0.35);
-  --wp-surface: rgba(255, 255, 255, 0.58);
-  --wp-surface-strong: rgba(255, 255, 255, 0.82);
-  --wp-muted: rgba(45, 42, 38, 0.68);
+/*
+ * WildPath's own look (maintainer, 2026-10-21: "own fixed look"): parchment and ink on every WildPath surface (sheets,
+ * dialogs, chat cards), and an ink-dark HUD (action bar, carousel), the same under Foundry's light and dark themes. Every
+ * colour a surface shows is set here, never inherited from the core theme, so text stays readable in both.
+ */
+.wildpath, .application.wildpath, #wildpath-action-bar, #wildpath-combat-carousel {
+  --wp-bg: #f3ead7;
+  --wp-surface: #faf5e9;
+  --wp-surface-strong: #fffdf6;
+  --wp-text: #2a2219;
+  --wp-muted: #6a5d4c;
+  --wp-border: rgba(88, 70, 46, 0.35);
   --wp-accent: #2f6f68;
   --wp-accent-contrast: #ffffff;
   --wp-warning: #8a5f23;
   --wp-danger: #8a3434;
+  --wp-success: #2f6b3a;
+  --wp-focus: #b5822a;
+  --wp-hud-bg: rgba(28, 23, 18, 0.92);
+  --wp-hud-text: #f2e8d5;
+  --wp-hud-muted: rgba(242, 232, 213, 0.7);
+  --wp-hud-accent: #e0b44c;
   font-family: var(--font-primary, sans-serif);
+}
+
+/* Windows: parchment page, ink text, and inputs and buttons of the same family. */
+.application.wildpath .window-content {
+  background: var(--wp-bg);
+  color: var(--wp-text);
+}
+.application.wildpath .window-content :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+  background: var(--wp-surface-strong);
+  color: var(--wp-text);
+  border: 1px solid var(--wp-border);
+}
+.application.wildpath .window-content :is(button, .button):not(.row-name):not(.condition):not(.skill-name) {
+  background: var(--wp-surface);
+  color: var(--wp-text);
+  border: 1px solid var(--wp-border);
+}
+.application.wildpath .window-content :is(button, .button):not(:disabled):hover { border-color: var(--wp-accent); }
+.application.wildpath .window-content :is(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--wp-focus);
+  outline-offset: 1px;
+}
+.application.wildpath .window-content :is(h1, h2, h3, h4, legend, label, dt) { color: inherit; }
+.application.wildpath .window-content :is(.hint, .notes, .row-detail) { color: var(--wp-muted); }
+.application.wildpath .window-content fieldset { border-color: var(--wp-border); }
+.application.wildpath .window-content option { background: var(--wp-surface-strong); color: var(--wp-text); }
+.application.wildpath .window-content .content-link { color: var(--wp-accent); background: var(--wp-surface); }
+
+/* Chat cards: the same parchment and ink inside the chat log, whatever its theme. */
+.chat-message .wildpath:is(.chat-card, .resolution-card) {
+  background: var(--wp-surface);
+  color: var(--wp-text);
+  border: 1px solid var(--wp-border);
+  border-radius: 4px;
+  padding: 4px 6px;
+}
+.chat-message .wildpath:is(.chat-card, .resolution-card) :is(h3, h4, strong, dt, .target-name) { color: inherit; }
+.chat-message :is(.wildpath-inspiration-reroll, .wildpath-portent) {
+  background: var(--wp-surface);
+  color: var(--wp-text);
+  border: 1px solid var(--wp-border);
 }
 
 .wildpath.actor-sheet {
@@ -459,11 +512,11 @@
 .wildpath.actor-sheet .ability > span:first-child { grid-column: 1 / -1; }
 .wildpath.actor-sheet .ability input[type="checkbox"] { width: auto; min-width: 0; }
 .wildpath.actor-sheet .ability .ability-effective { font-weight: 400; color: var(--wp-accent, inherit); }
-.wildpath.actor-sheet .ability .ability-rolls { display: inline-flex; align-items: center; gap: 0.125rem; overflow: visible; justify-self: end; }
+.wildpath.actor-sheet .ability .ability-rolls { display: inline-flex; align-items: center; gap: 0.125rem; overflow: visible; justify-self: end; font-weight: 400; }
 .wildpath.actor .icon-roll { flex: 0 0 auto; width: 1.5rem; height: 1.5rem; padding: 0; line-height: 1; }
 .wildpath.actor button.skill-name { all: unset; cursor: pointer; flex: 1; }
 .wildpath.actor button.skill-name:hover, .wildpath.actor button.skill-name:focus-visible { text-decoration: underline; }
-.wildpath.actor .prepared-count.over-limit { color: var(--color-level-error, #c33); font-weight: bold; }
+.wildpath.actor .prepared-count.over-limit { color: var(--wp-danger); font-weight: bold; }
 .wildpath.ability-scores [hidden] { display: none !important; }
 .wildpath.ability-scores .ability-score-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.25rem 0.75rem; }
 .wildpath.ability-scores .ability-score-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
@@ -481,9 +534,9 @@
   background: #222; color: #fff; font-size: 0.7rem; text-align: center;
 }
 .wildpath.actor .death-saves { display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; }
-.wildpath.actor .death-saves .pip { width: 0.8rem; height: 0.8rem; border: 1px solid #555; border-radius: 50%; }
-.wildpath.actor .death-saves .pip.marked { background: #3a7d44; }
-.wildpath.actor .death-saves .pip.failure.marked { background: #9b2c2c; }
+.wildpath.actor .death-saves .pip { width: 0.8rem; height: 0.8rem; border: 1px solid var(--wp-muted); border-radius: 50%; }
+.wildpath.actor .death-saves .pip.marked { background: var(--wp-success); }
+.wildpath.actor .death-saves .pip.failure.marked { background: var(--wp-danger); }
 .wildpath.actor .dying-mode { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem; }
 /* Names that open their Item or effect: buttons (keyboard-reachable) that read as text. */
 .wildpath.actor button.row-name {
@@ -502,7 +555,7 @@
 }
 #wildpath-action-bar .wildpath-action-bar {
   display: flex; flex-direction: column; gap: 4px; padding: 6px 8px; border-radius: 6px;
-  background: rgba(20, 20, 24, 0.85); color: #eee; font-size: 0.85rem;
+  background: var(--wp-hud-bg); color: var(--wp-hud-text); font-size: 0.85rem;
 }
 #wildpath-action-bar .bar-header { display: flex; align-items: center; gap: 6px; }
 #wildpath-action-bar .bar-header img { border: none; }
@@ -516,7 +569,7 @@
 #wildpath-action-bar .bar-resource.depleted { opacity: 0.5; text-decoration: line-through; }
 #wildpath-action-bar .bar-groups { display: flex; gap: 10px; flex-wrap: wrap; }
 #wildpath-action-bar .bar-group { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
-#wildpath-action-bar .bar-group-label { opacity: 0.7; }
+#wildpath-action-bar .bar-group-label { color: var(--wp-hud-muted); }
 #wildpath-action-bar .bar-action { display: flex; align-items: center; gap: 4px; width: auto; flex: 0 0 auto; white-space: nowrap;
   padding: 2px 6px; }
 /* The actions every creature has show as icons, named in their tooltip (Baldur's Gate 3's common actions). */
@@ -547,7 +600,7 @@
 
 /* Item and effect sheet JSON editors (the first slice of the Homebrew Builder). */
 .wildpath .json-editor { width: 100%; font-family: monospace; font-size: 0.8rem; }
-.wildpath .json-errors { margin: 4px 0; padding-left: 1rem; color: #9b2c2c; font-size: 0.8rem; }
+.wildpath .json-errors { margin: 4px 0; padding-left: 1rem; color: var(--wp-danger); font-size: 0.8rem; }
 .wildpath.item .definition-summary { display: grid; grid-template-columns: max-content 1fr; gap: 0 8px; margin: 4px 0; font-size: 0.85rem; }
 .wildpath.item .definition-summary dt { font-weight: bold; }
 .wildpath.item .definition-summary dd { margin: 0; }
@@ -568,10 +621,10 @@
 .wildpath .builder button { flex: 0 0 auto; width: auto; }
 .wildpath .builder .hint { margin: 0; font-size: 0.85rem; opacity: 0.75; }
 .wildpath .builder-issues { margin: 4px 0; padding-left: 1rem; font-size: 0.85rem; }
-.wildpath .builder-issues .error, .wildpath .field-error { color: #9b2c2c; }
-.wildpath .builder-issues .warning { color: #8a5a00; }
+.wildpath .builder-issues .error, .wildpath .field-error { color: var(--wp-danger); }
+.wildpath .builder-issues .warning { color: var(--wp-warning); }
 .wildpath .field-error { flex-basis: 100%; font-size: 0.8rem; }
-.wildpath [aria-invalid="true"] { outline: 2px solid #9b2c2c; }
+.wildpath [aria-invalid="true"] { outline: 2px solid var(--wp-danger); }
 .wildpath .builder :is(.aura-rules, .effect-rules) { flex-basis: 100%; margin-left: 1.5em; padding-left: 6px; border-left: 2px solid rgba(127, 127, 127, 0.4); }
 .wildpath .builder details.advanced { margin-top: 8px; }
 
@@ -581,14 +634,14 @@
 }
 #wildpath-combat-carousel .wildpath-combat-carousel {
   display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-radius: 6px;
-  background: rgba(20, 20, 24, 0.85); color: #eee; font-size: 0.75rem;
+  background: var(--wp-hud-bg); color: var(--wp-hud-text); font-size: 0.75rem;
 }
 #wildpath-combat-carousel .carousel-turns { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; overflow-x: auto; }
 #wildpath-combat-carousel .carousel-turn {
   display: flex; flex-direction: column; align-items: center; width: 56px; padding: 2px; border: 2px solid transparent;
   border-radius: 4px; cursor: pointer;
 }
-#wildpath-combat-carousel .carousel-turn.active { border-color: #e0b44c; background: rgba(224, 180, 76, 0.15); }
+#wildpath-combat-carousel .carousel-turn.active { border-color: var(--wp-hud-accent); background: rgba(224, 180, 76, 0.15); }
 #wildpath-combat-carousel .carousel-turn.defeated { opacity: 0.4; }
 #wildpath-combat-carousel .carousel-turn.concealed { opacity: 0.6; font-style: italic; } /* "hidden" is core display: none */
 #wildpath-combat-carousel .carousel-turn img { border: none; }
@@ -624,7 +677,7 @@
 .wildpath.sheet .skills-block .skill-ability { opacity: 0.6; font-size: var(--font-size-11, 11px); }
 .wildpath.sheet .skills-block .skill-modifier { font-weight: bold; }
 .wildpath.sheet .skills-block .training { display: grid; grid-template-columns: 7.5em 1fr; gap: 4px; align-items: center; }
-.wildpath.sheet .granted { font-size: var(--font-size-11, 11px); color: var(--color-text-secondary, #666); }
+.wildpath.sheet .granted { font-size: var(--font-size-11, 11px); color: var(--wp-muted); }
 .wildpath.sheet .skills-block .training .granted { grid-column: 2; }
 
 /* Language text (applications/languages.mts): a passage its reader doesn't know shows in its script (Noto, OFL: fonts/). */

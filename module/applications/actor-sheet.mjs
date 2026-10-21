@@ -49,7 +49,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
 
   /** @override */
   static DEFAULT_OPTIONS = {
-    classes: ["wildpath", "sheet", "actor"],
+    classes: ["wildpath", "sheet", "actor", "themed", "theme-light"],
     position: {width: 720, height: 760},
     form: {submitOnChange: true},
     actions: {
@@ -281,7 +281,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     const rows = pools.map(pool => `<label>${game.i18n.format("WILDPATH.REST.HitDiceSpend", {die: pool.id.slice("hit-die.".length),
       value: pool.value, max: pool.max})} <input type="number" name="${pool.id.slice("hit-die.d".length)}" value="0" min="0"
       max="${pool.value}" step="1"></label>`).join("");
-    const answer = await foundry.applications.api.DialogV2.input({
+    const answer = await foundry.applications.api.DialogV2.input({classes: ["wildpath", "themed", "theme-light"],
       window: {title: game.i18n.format("WILDPATH.REST.ShortRestTitle", {name: actor.name})},
       content: `<p>${game.i18n.format("WILDPATH.REST.HitDiceHint", {value: health.value, max: health.max})}</p>${rows}`,
       ok: {label: game.i18n.localize("WILDPATH.SHEET.ShortRest")},

@@ -184,7 +184,7 @@ export function registerPortent() {
 async function chooseDie(dice) {
     const { foundry, game } = globalThis;
     const options = dice.map(die => `<option value="${die.slot}">${die.value}</option>`).join("");
-    const answer = await foundry.applications.api.DialogV2.input({ window: { title: game.i18n.localize("WILDPATH.PORTENT.Title") },
+    const answer = await foundry.applications.api.DialogV2.input({ classes: ["wildpath", "themed", "theme-light"], window: { title: game.i18n.localize("WILDPATH.PORTENT.Title") },
         content: `<label>${game.i18n.localize("WILDPATH.PORTENT.Choose")} <select name="slot">${options}</select></label>`,
         ok: { label: game.i18n.localize("WILDPATH.PORTENT.Replace") }, rejectClose: false });
     return answer?.slot ? String(answer.slot) : null;

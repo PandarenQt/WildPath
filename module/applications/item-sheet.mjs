@@ -40,7 +40,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
 
   /** @override */
   static DEFAULT_OPTIONS = {
-    classes: ["wildpath", "sheet", "item"],
+    classes: ["wildpath", "sheet", "item", "themed", "theme-light"],
     position: {width: 620, height: 720},
     form: {submitOnChange: true},
     actions: {
@@ -333,7 +333,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     const stored = this.item.toObject(true).system.definition;
     const doesSomething = ["range", "targeting", "area", "attack", "save", "check"].some(part => stored[part])
       || ["damage", "healing", "effects", "configuration"].some(part => stored[part]?.length);
-    if ( doesSomething && !(await foundry.applications.api.DialogV2.confirm({window: {title: "WILDPATH.BUILDER.Template.Legend"},
+    if ( doesSomething && !(await foundry.applications.api.DialogV2.confirm({classes: ["wildpath", "themed", "theme-light"], window: {title: "WILDPATH.BUILDER.Template.Legend"},
       content: `<p>${game.i18n.localize("WILDPATH.BUILDER.Template.Confirm")}</p>`})) ) return;
     const definition = applyActionTemplate(stored, key, this.#builderOptions);
     if ( !definition ) return;

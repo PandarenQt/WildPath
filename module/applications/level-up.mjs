@@ -250,7 +250,7 @@ export async function levelUp(actor, item, { level, confirm = true }) {
     if (!confirm && !/<(?:input|select)\b/u.test(sections) && !view.hitPoints)
         return apply(actor, item, { level, steps, form: new FormData(), first, hitDie, fortitude, rolled });
     const content = `<div class="wildpath level-up">${view.hitPoints ? `<p class="level-up-hp">${escape(view.hitPoints)}</p>` : ""}${sections || `<p>${localize("WILDPATH.LEVELUP.Nothing")}</p>`}</div>`;
-    const form = await DialogV2.wait({
+    const form = await DialogV2.wait({ classes: ["wildpath", "themed", "theme-light"],
         window: { title: isClass ? format("WILDPATH.LEVELUP.Title", { name: item.name, level }) : format("WILDPATH.LEVELUP.Origin", { name: item.name }) },
         position: { width: 520 },
         content,
@@ -261,8 +261,7 @@ export async function levelUp(actor, item, { level, confirm = true }) {
             if (element)
                 watchForm(element, element.querySelector('button[data-action="ok"]'));
         },
-        rejectClose: false
-    });
+        rejectClose: false });
     if (!(form instanceof FormData))
         return false;
     return apply(actor, item, { level, steps, form, first, hitDie, fortitude, rolled });

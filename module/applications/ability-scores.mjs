@@ -83,7 +83,7 @@ function watch(form, abilities, actor) {
 /** Ask for a creature's six ability scores and set them; false when the dialog is closed. */
 export async function chooseAbilityScores(actor) {
     const abilities = Object.keys(globals().CONFIG.WILDPATH.ABILITIES);
-    const form = await globals().foundry.applications.api.DialogV2.wait({
+    const form = await globals().foundry.applications.api.DialogV2.wait({ classes: ["wildpath", "themed", "theme-light"],
         window: { title: format("WILDPATH.ABILITYSCORES.Title", { name: actor.name }) },
         content: content(abilities),
         buttons: [{ action: "ok", label: localize("WILDPATH.ABILITYSCORES.Confirm"), default: true,
@@ -93,8 +93,7 @@ export async function chooseAbilityScores(actor) {
             if (element)
                 watch(element, abilities, actor);
         },
-        rejectClose: false
-    });
+        rejectClose: false });
     if (!(form instanceof FormData))
         return false;
     const prefix = form.get("method") === "pointBuy" ? "buy" : "pick";
