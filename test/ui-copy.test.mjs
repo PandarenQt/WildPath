@@ -88,3 +88,59 @@ test("lang/en.json has no duplicate keys (a later one would silently replace the
   }
   assert.deepEqual(duplicates, []);
 });
+
+test("every document type in system.json has its TYPES name", () => {
+  const system = JSON.parse(readFileSync(new URL("system.json", root), "utf8"));
+  const missing = Object.entries(system.documentTypes ?? {}).flatMap(([documentName, types]) => Object.keys(types)
+    .filter(type => typeof lookup(`TYPES.${documentName}.${type}`) !== "string").map(type => `${documentName}.${type}`));
+  assert.deepEqual(missing, []);
+});
+
+test("every WILDPATH key in lang/en.json is shown somewhere", () => {
+  const text = ["wildpath.mjs", "system.json", ...sourceFiles("module/"), ...sourceFiles("templates/")]
+    .map(file => readFileSync(new URL(file, root), "utf8")).join("\n");
+  // A prefix the code completes (`WILDPATH.X.${id}`, "WILDPATH.X." + id) covers every key under it.
+  const prefixes = new Set([...text.matchAll(/(WILDPATH(?:\.[A-Za-z0-9]+)+\.)(?=[$"'`])/gu)].map(match => match[1]));
+  const keys = [];
+  const walk = (node, path) => Object.entries(node).forEach(([key, value]) =>
+    (typeof value === "string") ? keys.push(`${path}.${key}`) : walk(value, `${path}.${key}`));
+  walk(lang.WILDPATH, "WILDPATH");
+  const unused = keys.filter(key => !text.includes(key) && ![...prefixes].some(prefix => key.startsWith(prefix)));
+  assert.deepEqual(unused, []);
+});
+
+test("a select showing lang keys localizes them", () => {
+  // These lists are labels already (Challenge Ratings, die sizes, localized domain names and recharge rows).
+  const ready = new Set(["challengeOptions", "progression.hitDice", "row.appliesToChoices", "../ctx.recharge"]);
+  const bare = sourceFiles("templates/").flatMap(file => [...readFileSync(new URL(file, root), "utf8")
+    .matchAll(/\{\{selectOptions\s+(\S+)([^}]*)\}\}/gu)]
+    .filter(([, list, rest]) => !/localize=true/u.test(rest) && !ready.has(list)).map(([call]) => `${file}: ${call}`));
+  assert.deepEqual(bare, []);
+});
+
+test("templates show no English of their own: text and labels come from lang keys", () => {
+  const found = sourceFiles("templates/").flatMap(file => {
+    const text = readFileSync(new URL(file, root), "utf8").replace(/\{\{!--[\s\S]*?--\}\}/gu, "").replace(/\{\{[\s\S]*?\}\}/gu, " ");
+    // Labels a reader sees; a tooltip may be a lang key (Foundry localizes it). A placeholder may show syntax:
+    // slugs, formulas, a compendium reference.
+    const attributes = [...text.matchAll(/\b(title|aria-label|alt|data-tooltip|placeholder)="([^"]*)"/gu)]
+      .filter(([, name, value]) => {
+        const shown = value.replace(/<[^>]*>/gu, "");
+        if ( !/[A-Za-z]{2,}/u.test(shown) ) return false;
+        if ( (name === "data-tooltip") && /^WILDPATH\.[\w.]+$/u.test(value) ) return false;
+        return !((name === "placeholder") && (/^[a-z0-9.,+*\-\s]*$/u.test(value) || value.startsWith("Compendium.")));
+      }).map(([attribute]) => attribute);
+    // Text between tags, the tags read with their quoted attributes (a tooltip may hold markup).
+    const words = text.replace(/<!--[\s\S]*?-->/gu, "").replace(/<[a-zA-Z/!](?:[^>"']|"[^"]*"|'[^']*')*>/gu, "\n").split("\n")
+      .map(line => line.trim()).filter(line => /[A-Za-z]{2,}/u.test(line));
+    return [...attributes, ...words].map(entry => `${file}: ${entry}`);
+  });
+  assert.deepEqual(found, []);
+});
+
+test("notifications are lang keys, not English typed into the code", () => {
+  const found = sourceFiles("module/").filter(file => file.endsWith(".mjs")).flatMap(file =>
+    [...readFileSync(new URL(file, root), "utf8").matchAll(/notifications\??\.(?:warn|info|error)\??\.?\(\s*(["'`])([A-Za-z][^"'`]*)\1/gu)]
+      .filter(([, , message]) => !message.startsWith("WILDPATH.")).map(([call]) => `${file}: ${call}`));
+  assert.deepEqual(found, []);
+});

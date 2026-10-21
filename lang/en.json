@@ -153,7 +153,6 @@
     "COVER": {
       "half": "Half cover",
       "threeQuarters": "Three-quarters cover",
-      "total": "Total cover",
       "TotalRefused": "That creature is behind Total Cover: it can't be targeted directly."
     },
     "SENSES": {
@@ -248,7 +247,8 @@
         "Save": "{name}'s saving throw",
         "TargetSelection": "Choose targets",
         "TargetRefinement": "Adjust targets",
-        "ReactionChoice": "Reaction"
+        "ReactionChoice": "Reaction",
+        "ReactionAvailable": "Reaction available"
       }
     },
     "AREA": {
@@ -289,7 +289,9 @@
       "WaitingOn": "Waiting on {user} ({type})",
       "AnswerFor": "Answer for them",
       "Open": "Open the Rules Inspector",
-      "Unavailable": "This resolution's details aren't on this client any more: the world was reloaded since, or it is too old. Its chat card still shows what happened."
+      "Unavailable": "This resolution's details aren't on this client any more: the world was reloaded since, or it is too old. Its chat card still shows what happened.",
+      "AgainstAC": "{total} vs AC {defense}",
+      "AgainstDC": "vs DC {dc}"
     },
     "CAROUSEL": {
       "Round": "Round {round}",
@@ -361,7 +363,6 @@
     },
     "PORTENT": {
       "Title": "Portent",
-      "Keep": "Keep the roll",
       "Offer": "{roller} rolled. Replace the d20 with one of {name}'s foretelling rolls?",
       "Use": "Use {value}",
       "Button": "Portent ({name})",
@@ -557,7 +558,6 @@
       "Active": "Active",
       "Cost": "Cost",
       "Modifiers": "Modifiers",
-      "Description": "Description",
       "DomainsPlaceholder": "domains (comma separated, e.g. resources.health.max)",
       "LabelPlaceholder": "label",
       "TypePlaceholder": "type",
@@ -718,7 +718,8 @@
         "attacked": "Attack rolls against you"
       },
       "Issue": "Rule {n}: {text}",
-      "Refused": "{name} was not changed. {problems}"
+      "Refused": "{name} was not changed. {problems}",
+      "ResourceLabelExample": "Spirit Points"
     },
     "BUILDER": {
       "EditInAdvanced": "Edit this on the Advanced tab.",

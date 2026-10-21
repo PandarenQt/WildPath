@@ -87,6 +87,24 @@ emit vendor compatibility warnings. It also has a reported auto-run/UI ordering 
 starts before its Application is rendered. Keep those warnings separate from WildPath assertion
 failures. WildPath neither patches Quench nor suppresses compatibility warnings.
 
+## Guards that keep the polish (2026-10-21)
+
+Node tests:
+- `test/ui-copy.test.mjs`:
+  - every `WILDPATH.*` key the code shows has copy, and every key in `lang/en.json` is shown somewhere (a prefix the code
+    completes covers its keys);
+  - every document type in `system.json` has its `TYPES` name;
+  - a `selectOptions` of lang keys says `localize=true` (four lists of ready labels are named exceptions);
+  - templates have no English of their own in text, `title`, `aria-label`, `alt`, tooltips or placeholders
+    (placeholders may show syntax: slugs, formulas, a compendium reference);
+  - notifications are lang keys.
+- `test/mts-sync.test.mjs` compiles the `.mts` files into a temporary folder and fails when a committed `.mjs` differs
+  (run `npm run build`).
+
+Quench (`wildpath.runtime-smoke`, "Every surface in words"): the character and NPC sheets, every Item type's sheet, an
+effect's and a condition's, the action bar, the combat carousel and a resolution card, rendered with their production
+contexts, show no raw `WILDPATH.`/`TYPES.` text and no tooltip key without copy.
+
 ## Registration and fixtures
 
 `wildpath.mjs` loads `module/tests/quench/index.mjs` only when Quench fires `quenchReady` (since 2026-10-21; a client

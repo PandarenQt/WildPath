@@ -473,9 +473,9 @@ async function movementFinished(movement) {
 }
 
 function notifyMovementHookFailure(result={}, {logger=globalThis.console}={}) {
-  const reason = result.reason ?? result.code ?? "Movement budget commit failed.";
+  // A player is told in words; the GM sees the reason (refusal-messages.mjs).
   if ( typeof globalThis.ui?.notifications?.warn === "function" ) {
-    globalThis.ui.notifications.warn(`Wild Path | ${reason}`);
+    globalThis.ui.notifications.warn(movementMessage(result));
   } else {
     logger?.warn?.("Wild Path | Movement completion observation failed", result);
   }

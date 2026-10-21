@@ -48,5 +48,67 @@ export function registerRuntimeSmokeTests(quench) {
         assert.notExists(game.actors.get(id),"Deleted Actor should be removed from the world collection");
       });
     });
+    describe("Every surface in words (GM)", function () {
+      this.timeout(60000);
+      const fixtures = useQuenchFixtures(context);
+      const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+      // Raw keys a reader would see: in text and labels, or a tooltip key with no copy. The JSON editors show stored
+      // data as it is, so they are left out.
+      function rawKeys(root, where) {
+        const copy = root.cloneNode(true);
+        copy.querySelectorAll("textarea, .json-editor").forEach(element => element.remove());
+        const found = [...(copy.textContent ?? "").matchAll(/\b(?:WILDPATH|TYPES)\.[A-Za-z][\w.]*/gu)].map(match => match[0]);
+        for ( const element of copy.querySelectorAll("*") ) {
+          for ( const name of ["title","aria-label","placeholder","alt"] ) {
+            const value = element.getAttribute(name);
+            if ( value && /\b(?:WILDPATH|TYPES)\./u.test(value) ) found.push(`${name}="${value}"`);
+          }
+          const tooltip = element.getAttribute("data-tooltip");
+          if ( tooltip && /^WILDPATH\.[\w.]+$/u.test(tooltip) && !game.i18n.has(tooltip) ) found.push(`data-tooltip="${tooltip}"`);
+          if ( (element.tagName === "INPUT") && /\b(?:WILDPATH|TYPES)\./u.test(element.value ?? "") ) found.push(`value="${element.value}"`);
+        }
+        return found.map(entry => `${where}: ${entry}`);
+      }
+      async function sheetKeys(document, where) {
+        await document.sheet.render({force:true});
+        await wait(300);
+        const found = rawKeys(document.sheet.element, where);
+        await document.sheet.close();
+        return found;
+      }
+      const html = text => { const element = document.createElement("div"); element.innerHTML = text; return element; };
+
+      it("sheets, the bar, the carousel and a resolution card show no raw lang keys", async function () {
+        const {renderTemplate} = foundry.applications.handlebars;
+        const hero = await fixtures.createActor({name:"surfaces hero"});
+        const foe = await fixtures.createActor({name:"surfaces foe",type:"npc"});
+        const types = ["feature","action","class","subclass","species","background","gear"];
+        const items = await hero.createEmbeddedDocuments("Item",types.map(type => ({name:`surfaces ${type}`,type})));
+        const [effect] = await hero.createEmbeddedDocuments("ActiveEffect",[{name:"surfaces effect",type:"effect"}]);
+        const condition = await hero.toggleCondition("prone");
+        const found = [...await sheetKeys(hero,"character sheet"),...await sheetKeys(foe,"NPC sheet")];
+        for ( const item of items ) found.push(...await sheetKeys(item,`${item.type} sheet`));
+        found.push(...await sheetKeys(effect,"effect sheet"),...await sheetKeys(condition,"condition sheet"));
+
+        const {WildPathActionBar} = await import("../../applications/action-bar.mjs");
+        const bar = new WildPathActionBar();
+        Object.defineProperty(bar,"shownActor",{value:hero});
+        found.push(...rawKeys(html(await renderTemplate("systems/wildpath/templates/hud/action-bar.hbs",await bar._prepareContext())),"action bar"));
+
+        const combat = await fixtures.startEncounter([hero,foe]);
+        const {combatCarouselContext} = await import("../../helpers/combat-carousel-context.mjs");
+        found.push(...rawKeys(html(await renderTemplate("systems/wildpath/templates/hud/combat-carousel.hbs",{shown:true,
+          ...combatCarouselContext({combat,isGM:true,conditions:Object.values(CONFIG.WILDPATH.CONDITIONS)})})),"carousel"));
+
+        const {createResolutionCardViewModel} = await import("../../helpers/chat-card-view-model.mjs");
+        const view = createResolutionCardViewModel({resolutionId:"surfaces",status:"completed",ok:true,
+          action:{id:"strike",name:"Strike"},targets:[{id:"g",actorRef:"Actor.g",name:"Goblin"}],rolls:[],
+          outcomes:{attack:{results:[{target:{actorRef:"Actor.g"},hit:true,critical:false}]},
+            save:{results:[{target:{actorRef:"Actor.g"},success:false}]},damage:{results:[{target:{id:"g"},total:5}]}}});
+        found.push(...rawKeys(html(await renderTemplate("systems/wildpath/templates/chat/resolution-card.hbs",
+          {...view,actionImg:null,rollHtml:""})),"resolution card"));
+        assert.deepEqual(found,[],"every surface shows words, not lang keys");
+      });
+    });
   }, {displayName:"WILDPATH: Foundry V14 Runtime Smoke",preSelected:false});
 }
