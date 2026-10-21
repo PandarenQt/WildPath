@@ -154,6 +154,11 @@
         "htmlFields": [
           "description"
         ]
+      },
+      "facility": {
+        "htmlFields": [
+          "description"
+        ]
       }
     },
     "ActiveEffect": {

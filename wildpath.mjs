@@ -10,6 +10,7 @@ import {registerPartyRest} from "./module/applications/party-rest.mjs";
 import {registerEncounters} from "./module/applications/encounters.mjs";
 import {registerJourney} from "./module/applications/journey.mjs";
 import {registerChases} from "./module/applications/chases.mjs";
+import {registerBastions} from "./module/applications/bastions.mjs";
 import {registerChatCardInteractions} from "./module/adapters/foundry-v14-chat-card-interactions.mjs";
 import {registerInspirationRerolls} from "./module/applications/inspiration-reroll.mjs";
 import {registerPortent} from "./module/adapters/foundry-v14-portent.mjs";
@@ -24,6 +25,7 @@ import WildPathNPC from "./module/data/actor/npc.mjs";
 import WildPathFeature from "./module/data/item/feature.mjs";
 import WildPathAction from "./module/data/item/action.mjs";
 import WildPathGear from "./module/data/item/gear.mjs";
+import WildPathFacility from "./module/data/item/facility.mjs";
 import {WildPathBackground, WildPathClass, WildPathSpecies, WildPathSubclass} from "./module/data/item/progression.mjs";
 
 import WildPathBaseEffect from "./module/data/active-effect/base.mjs";
@@ -90,6 +92,7 @@ Hooks.once("init", () => {
     feature: WildPathFeature,
     action: WildPathAction,
     gear: WildPathGear,
+    facility: WildPathFacility,
     class: WildPathClass,
     subclass: WildPathSubclass,
     species: WildPathSpecies,
@@ -110,6 +113,7 @@ Hooks.once("init", () => {
   registerEncounters();
   registerJourney();
   registerChases();
+  registerBastions();
 
   // Trackable Token attributes
   CONFIG.Actor.trackableAttributes = {
@@ -274,7 +278,7 @@ Hooks.once("init", () => {
   });
 
   DocumentSheetConfig.registerSheet(WildPathItem, "wildpath", WildPathItemSheet, {
-    types: ["feature", "action", "gear", "class", "subclass", "species", "background"],
+    types: ["feature", "action", "gear", "facility", "class", "subclass", "species", "background"],
     makeDefault: true,
     label: "WILDPATH.SheetItem"
   });

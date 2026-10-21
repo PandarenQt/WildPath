@@ -33,6 +33,14 @@
 </ol>
 {{/if}}
 {{/if}}
+{{#if isFacility}}
+<div class="gear-fields">
+  <label>{{localize "WILDPATH.BASTION.Kind"}} <select name="system.kind">{{selectOptions facilityKinds selected=system.kind localize=true}}</select></label>
+  <label>{{localize "WILDPATH.BASTION.Level"}} <input type="number" name="system.level" value="{{system.level}}" min="0" step="1"></label>
+  <label>{{localize "WILDPATH.BASTION.Hirelings"}} <input type="number" name="system.hirelings" value="{{system.hirelings}}" min="0" step="1"></label>
+  <label>{{localize "WILDPATH.BASTION.TakesOrder"}} <select name="system.order">{{selectOptions facilityOrders selected=system.order localize=true}}</select></label>
+</div>
+{{/if}}
 {{#if canCraft}}
 <button type="button" data-action="craft">{{localize "WILDPATH.CRAFT.Button"}}</button>
 {{/if}}

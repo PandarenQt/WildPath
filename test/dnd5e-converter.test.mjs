@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {checkOf, convertActor, convertItem, convertTable, creatureRef, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex,
+import {checkOf, convertActor, convertFacility, convertItem, convertTable, creatureRef, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex,
   scaleTables, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import * as valueExpressions from "../module/helpers/value-expressions.mjs";
@@ -1089,6 +1089,15 @@ test("a magic item whose table picks its creature draws it when used (a Bag of T
   const {draw, configuration} = action.system.definition;
   assert.deepEqual(draw, {table: "Compendium.wildpath.srd-tables.RollTable.dmgTestBagTable", choiceId: "summon-creature"});
   assert.deepEqual(configuration.find(choice => choice.id === "summon-creature").options.map(option => option.label), ["Weasel", "Giant Rat"]);
+});
+
+test("a Bastion facility: special or basic, its level, size, hirelings and the order it takes", () => {
+  const study = {_id: "testArcaneStudy1", name: "Arcane Study", type: "facility", system: {source: SRD, description: {value: "<p>Craft.</p>"},
+    type: {value: "special", subtype: "arcaneStudy"}, level: 5, size: "roomy", hirelings: {max: 1}, order: "craft"}};
+  const {item} = convertFacility(study);
+  assert.deepEqual([item.type, item.system.kind, item.system.level, item.system.size, item.system.hirelings, item.system.order,
+    item.system.current.order], ["facility", "special", 5, "roomy", 1, "craft", "maintain"]);
+  assert.equal(convertFacility({...study, type: "feat"}).ok, false);
 });
 
 test("a summon's creature by its id, an old id a module redirects, or a PHB appendix id by its name", () => {

@@ -97,6 +97,17 @@ each character's XP budget by level (Low, Moderate, High; no multiplier for numb
 Live (14.369): an ogre-sized foe (CR 2, 450 XP) against one 1st-level character was "Beyond High"; defeating it and
 ending the combat awarded 450 XP, and the chat said the character may level up.
 
+**Bastions (2026-10-22).** A Bastion's facilities (2024 DMG) are Items of a new type, `facility`, kept by their
+character (as dnd5e keeps them, not a Bastion Actor): basic or special, the character level it needs, its size,
+hirelings and the order it takes (`data/item/facility.mjs`). The book converter turns the DMG's 35 into them
+(`convertFacility`; local only). A character's sheet lists its facilities in a Bastion section, where each special one is
+issued its order for the turn (or Maintain). The GM's "Bastion Turn" tool among the Token controls
+(`applications/bastions.mjs`) moves the world 7 days on, lists in the chat each facility carrying out its order, rolls a
+Bastion event (d100) for a character whose facilities all maintained, and sets every order back to Maintain. shortcut:
+what an order yields (crafted items, defenders, gold) and the event are the GM's, from the facility's text and the event
+table. Live (14.369): a character's Arcane Study, ordered to Craft from its sheet, carried it out in a Bastion turn 7 days
+long, and its order went back to Maintain.
+
 **Chases (2026-10-22).** The GM's "Chase" tool among the Token controls turns the running combat into a chase
 (`flags.wildpath.chase`, `applications/chases.mjs`; again, it ends it). In a chase each creature Dashes 3 + its
 Fortitude modifier times freely; each Dash beyond takes a DC 10 Fortitude check, and a failure gives it 1 Exhaustion

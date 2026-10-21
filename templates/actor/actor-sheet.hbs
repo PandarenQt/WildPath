@@ -301,6 +301,27 @@
         </div>
       </div>
 
+      {{#if bastion.length}}
+      <div class="field-block bastion">
+        <h4>{{localize "WILDPATH.BASTION.Title"}}</h4>
+        <ol class="sheet-list">
+          {{#each bastion as |facility|}}
+            <li class="sheet-row" data-item-id="{{facility.id}}">
+              <img class="row-image" src="{{facility.img}}" width="28" height="28" alt="{{facility.name}}">
+              <div class="row-main">
+                <button type="button" class="row-name" data-action="openItem">{{facility.name}}</button>
+                <span class="row-detail">{{localize facility.kindLabel}}</span>
+              </div>
+              {{#if facility.orders}}
+                <select data-item-order aria-label="{{localize "WILDPATH.BASTION.IssueOrder"}}" {{disabled (not ../editable)}}>
+                  {{selectOptions facility.orders selected=facility.current localize=true}}</select>
+              {{/if}}
+            </li>
+          {{/each}}
+        </ol>
+      </div>
+      {{/if}}
+
       <div class="field-block other-items">
         <h4>{{localize "WILDPATH.SHEET.Other"}}</h4>
         <ol class="sheet-list">
