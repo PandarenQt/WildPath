@@ -338,7 +338,10 @@ Do not create a second grid representation for movement or reactions later.
 
 ## Deferred Scope
 
-This milestone should not implement:
+This milestone did not implement the following. Most of it has been built since, on this grid: Token movement
+([staged-movement.md](staged-movement.md)), Opportunity Attacks and the reaction pipeline ([reactions.md](reactions.md)),
+lasting areas with turn triggers, auras and emanations ([areas.md](areas.md), [rule-elements.md](rule-elements.md#aura-2026-10-14)),
+and the spell catalog (the converted SRD). The list as the milestone left it:
 
 - Foundry Token movement integration
 - opportunity attacks

@@ -508,15 +508,16 @@ window yet.
 
 ## Current Limits
 
+Built since this list was first written (2026-10-21): reaction windows after an action is declared, after an attack's
+and a check's outcome, and before and after damage, with staged movement's before-transition windows
+([staged-movement.md](staged-movement.md)); production reaction content (Counterspell, Shield, Parry, Cutting Words,
+Protective Bond); Opportunity Attacks for every creature (above); and each reaction's Ask/Always/Never setting on the
+action bar.
+
 Not yet implemented:
 
-- Action reaction windows beyond action-declared and after-attack-outcome timings (staged movement
-  adds before-transition windows with `leavesReach`/`entersReach` relations; see
-  [staged-movement.md](staged-movement.md))
-- production defensive/disruptive reaction content
-- opportunity attacks as production content
+- a window for falling (Feather Fall)
 - full simultaneous reaction ordering
-- final HUD presentation
 
 Automated verification was 729/729 at repair commit
 `ddb26f6591c95db9b5dc21a856d3bfa5f15f90e4`. The generic movement-event path also passed the full

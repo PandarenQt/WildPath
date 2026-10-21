@@ -220,7 +220,7 @@ the smaller product gaps (Phase E).
   shows the effective AC, and the base AC is editable
   ([ui-ux-layer.md](../architecture/ui-ux-layer.md#character-sheet-m6-2026-10-14)).
   Live, a Player equipping a +2 shield took the header from AC 10 to 12, and unequipping it brought it back.
-  Encumbrance, attunement and InventorySpaces are deferred.
+  Encumbrance and InventorySpaces are deferred; attunement has been built since (2026-10-15, at most three).
 - **Choices before use.** `Item.use()` asks an Action's choices first (a spell slot, a damage type), with a live
   preview of what they spend and roll, then sends them with the intent
   ([ui-ux-layer.md](../architecture/ui-ux-layer.md#action-configuration-and-preview)).
