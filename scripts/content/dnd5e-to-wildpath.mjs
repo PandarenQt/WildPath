@@ -2275,6 +2275,23 @@ export function convertTable(table, {uuidOf, source}) {
     flags: {wildpath: {source}}};
 }
 
+/**
+ * A dnd5e Bastion facility (2024 DMG) as WildPath's (`facility`): basic or special, the character level it needs, its
+ * size, hirelings and the order it takes; its text says what each order does.
+ */
+export function convertFacility(document, {licensed=isSrd2024, book="SRD 5.2", images=["icons/"], pack=null, names={}}={}) {
+  if ( !licensed(document) || (document.type !== "facility") ) return {ok: false, reason: "not a licensed facility"};
+  const system = document.system ?? {};
+  return {ok: true, item: {_id: document._id, _key: `!items!${document._id}`, name: document.name, type: "facility",
+    img: kept(document.img, images) ?? "icons/environment/settlement/house-cottage.webp",
+    system: {active: true, description: houseText(document, describe(document, {names})), ruleElements: [],
+      kind: (system.type?.value === "basic") ? "basic" : "special", level: Number(system.level) || 0, size: system.size ?? "",
+      hirelings: Number(system.hirelings?.max) || 0, order: system.order ?? "", current: {order: "maintain"}},
+    flags: {wildpath: {source: {system: "dnd5e", pack, id: document._id, type: document.type, book,
+      license: system.source?.license || null, rules: system.source?.rules || "2024", identifier: identifierOf(document)},
+      conversion: {notes: []}}}}};
+}
+
 /** A dnd5e price (`{value, denomination}`) in gold. */
 const priceInGold = price => Math.max(0, (Number(price?.value) || 0) * ({pp: 10, gp: 1, ep: 0.5, sp: 0.1, cp: 0.01}[price?.denomination ?? "gp"] ?? 1));
 

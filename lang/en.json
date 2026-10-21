@@ -1308,6 +1308,30 @@
       "Started": "The chase is on: each creature Dashes 3 + its Fortitude modifier times freely, then a DC 10 Fortitude check each time or 1 Exhaustion level.",
       "Ended": "The chase is over.",
       "Complication": "Chase complication for {name} (d20: {total})."
+    },
+    "BASTION": {
+      "Title": "Bastion",
+      "Turn": "Bastion Turn",
+      "Kind": "Kind",
+      "Basic": "Basic facility",
+      "Special": "Special facility",
+      "Hirelings": "Hirelings",
+      "TakesOrder": "Its order",
+      "IssueOrder": "Order this Bastion turn",
+      "Orders": {
+        "none": "None",
+        "maintain": "Maintain",
+        "craft": "Craft",
+        "empower": "Empower",
+        "harvest": "Harvest",
+        "recruit": "Recruit",
+        "research": "Research",
+        "trade": "Trade"
+      },
+      "Order": "{name}'s {facility} carries out its {order} order.",
+      "Event": "{name}'s Bastion only maintained: a Bastion event (d100: {total}).",
+      "Nothing": "No Bastion did anything this turn.",
+      "Level": "Character level"
     }
   },
   "TYPES": {
@@ -1322,7 +1346,8 @@
       "class": "Class",
       "subclass": "Subclass",
       "species": "Species",
-      "background": "Background"
+      "background": "Background",
+      "facility": "Facility"
     },
     "ActiveEffect": {
       "base": "Effect",

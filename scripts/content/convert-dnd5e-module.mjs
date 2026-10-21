@@ -2,7 +2,7 @@ import {cpSync, existsSync, mkdtempSync, readFileSync, rmSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {join, relative, resolve} from "node:path";
 import {extractPack} from "@foundryvtt/foundryvtt-cli";
-import {PROGRESSION_TYPES, beastsOf, convertActor, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables,
+import {PROGRESSION_TYPES, beastsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables,
   withRedirects} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 import {writeLocalModule} from "./local-module.mjs";
@@ -75,6 +75,9 @@ for ( const pack of manifest.packs ?? [] ) {
       const gear = result.items.filter(item => item.type === "gear");
       convertedIds.set(document._id, (gear.length ? gear : result.items).map(item => item._id));
       notes.push([document.name, result.notes]);
+    } else if ( (pack.type === "Item") && (document.type === "facility") ) {
+      const result = convertFacility(document, {...options, pack: pack.name});
+      if ( result.ok ) items.push(result.item);
     } else if ( (pack.type === "Actor") && (document.type === "npc") ) {
       const result = convertActor(document, {...options, pack: pack.name});
       if ( !result.ok ) continue;

@@ -95,6 +95,12 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     });
     context.sheet = sheet;
     Object.assign(context, sheet);
+    // Its Bastion's facilities, a special one with the orders it may be issued: its own, or maintain.
+    context.bastion = this.actor.items.filter(item => item.type === "facility").map(item => ({id: item.id, name: item.name, img: item.img,
+      kindLabel: `WILDPATH.BASTION.${item.system.kind === "basic" ? "Basic" : "Special"}`, current: item.system.current?.order ?? "maintain",
+      orders: ((item.system.kind === "special") && item.system.order) ? {maintain: "WILDPATH.BASTION.Orders.maintain",
+        [item.system.order]: `WILDPATH.BASTION.Orders.${item.system.order}`} : null}));
+    context.otherItems = (context.otherItems ?? []).filter(item => item.type !== "facility");
     // A character's coins.
     if ( this.actor.type === "character" ) context.coins = ["pp", "gp", "ep", "sp", "cp"].map(id => ({id, label: `WILDPATH.COINS.${id}`,
       value: Number(this.actor.system.currency?.[id]) || 0}));
@@ -192,6 +198,14 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
         const item = this.actor.items.get(input.closest("[data-item-id]")?.dataset.itemId);
         const value = Number(input.value);
         if ( item && Number.isFinite(value) ) void item.update({[input.dataset.itemField]: Math.max(0, value)});
+      });
+    }
+    // A facility's order for this Bastion turn, saved on the facility.
+    for ( const select of this.element.querySelectorAll("select[data-item-order]") ) {
+      select.addEventListener("change", event => {
+        event.stopPropagation();
+        const item = this.actor.items.get(select.closest("[data-item-id]")?.dataset.itemId);
+        if ( item ) void item.update({"system.current.order": select.value});
       });
     }
     for ( const element of this.element.querySelectorAll("[data-condition-id][data-stacking]") ) {

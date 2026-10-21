@@ -379,6 +379,10 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     context.isGear = this.item.type === "gear";
     context.isGM = game.user.isGM;
     // Gear, or an Action that stands for an item (an SRD Longbow: its price in its flags).
+    context.isFacility = this.item.type === "facility";
+    context.facilityKinds = {basic: "WILDPATH.BASTION.Basic", special: "WILDPATH.BASTION.Special"};
+    context.facilityOrders = Object.fromEntries(["", "craft", "empower", "harvest", "recruit", "research", "trade"]
+      .map(order => [order, order ? `WILDPATH.BASTION.Orders.${order}` : "WILDPATH.BASTION.Orders.none"]));
     context.canCraft = game.user.isGM && ((this.item.type === "gear") || Number.isFinite(Number(this.item.flags?.wildpath?.price)));
     // A spell's Action can be written on a Spell Scroll (GM).
     context.canMakeScroll = game.user.isGM && (this.item.type === "action") && (this.item.system.definition?.tags ?? []).includes("spell")
