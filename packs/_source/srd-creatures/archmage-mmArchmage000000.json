@@ -1757,7 +1757,7 @@
             "notes": [
               "activation: 10 minute is not an action-economy cost",
               "save: a failure marks its creature (narrative)",
-              "\"Create Sensor\" is passive or triggered: not automated"
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -1905,7 +1905,7 @@
           "Spellcasting: cast: Lightning Bolt at level 7 is cast at its own level",
           "Spellcasting: cast: Cone of Cold at level 9 is cast at its own level",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: \"Create Sensor\" is passive or triggered: not automated",
+          "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest"
         ]
       }

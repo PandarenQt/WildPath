@@ -109,7 +109,7 @@
         "notes": [
           "activation: 10 minute is not an action-economy cost",
           "save: a failure marks its creature (narrative)",
-          "\"Create Sensor\" is passive or triggered: not automated"
+          "\"Create Sensor\" is passive or triggered (narrative): not automated"
         ]
       }
     }

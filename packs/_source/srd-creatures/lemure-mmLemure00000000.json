@@ -87,7 +87,7 @@
           },
           "conversion": {
             "notes": [
-              "\"Revive: Days\" is passive or triggered: not automated"
+              "\"Revive: Days\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -243,7 +243,7 @@
       },
       "conversion": {
         "notes": [
-          "Hellish Restoration: \"Revive: Days\" is passive or triggered: not automated"
+          "Hellish Restoration: \"Revive: Days\" is passive or triggered (narrative): not automated"
         ]
       }
     }

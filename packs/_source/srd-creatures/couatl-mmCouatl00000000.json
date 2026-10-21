@@ -1067,7 +1067,7 @@
             "notes": [
               "activation: 10 minute is not an action-economy cost",
               "save: a failure marks its creature (narrative)",
-              "\"Create Sensor\" is passive or triggered: not automated"
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -1267,7 +1267,7 @@
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: \"Create Sensor\" is passive or triggered: not automated"
+          "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated"
         ]
       }
     }

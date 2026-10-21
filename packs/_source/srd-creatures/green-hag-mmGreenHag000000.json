@@ -659,7 +659,7 @@
             "notes": [
               "activation: 10 minute is not an action-economy cost",
               "save: a failure marks its creature (narrative)",
-              "\"Create Sensor\" is passive or triggered: not automated"
+              "\"Create Sensor\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -1449,7 +1449,7 @@
           "Coven Magic: concentration: its caster concentrates; what it sustains is by hand",
           "Coven Magic: activation: 10 minute is not an action-economy cost",
           "Coven Magic: save: a failure marks its creature (narrative)",
-          "Coven Magic: \"Create Sensor\" is passive or triggered: not automated",
+          "Coven Magic: \"Create Sensor\" is passive or triggered (narrative): not automated",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: effect: \"Disguised\" marks its creature (narrative)",
