@@ -131,7 +131,8 @@ Do not implement inventory as only a flat Item table or nested D&D5e-style conta
 **Interim (2026-10-14).** Until InventorySpaces exist, the sheet's gear is a flat list:
 - an equip toggle (`system.active`, which gates the gear's rules);
 - quantity, weight, and a carried-weight total.
-Encumbrance, attunement and InventorySpaces are deferred. The flat list is a stopgap, not the inventory model.
+Encumbrance and InventorySpaces are deferred; attunement was added on 2026-10-15 (an item that needs it gives nothing
+until attuned, at most three at once). The flat list is a stopgap, not the inventory model.
 
 ## Action Economy Integration
 
