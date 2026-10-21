@@ -54,7 +54,7 @@
       }
     },
     "details": {
-      "threat": 0
+      "threat": 0.25
     },
     "dyingMode": "auto"
   },

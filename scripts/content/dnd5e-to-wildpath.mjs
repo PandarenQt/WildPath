@@ -2841,7 +2841,7 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
       ...(creatureLanguages(system.traits?.languages).length ? {training: {languages: creatureLanguages(system.traits?.languages)}} : {}),
       defenses: {ac: {value: armorClass(document, modifier("dex"), notes)}},
       resources: {health: {base: health, value: health}, movement: {base: walk, value: walk}},
-      details: {threat: Math.floor(challenge)},
+      details: {threat: challenge},
       dyingMode: "auto"
     },
     prototypeToken: {name: document.name, width: size, height: size, disposition: -1, actorLink: false,

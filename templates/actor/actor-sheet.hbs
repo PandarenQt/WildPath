@@ -1,7 +1,7 @@
 <div class="wildpath actor-sheet">
 
   <header class="sheet-header actor-header">
-    <img class="profile-img" src="{{actor.img}}" data-edit="img" alt="{{actor.name}}">
+    <img class="profile-img" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
 
     <div class="actor-title">
       <input class="actor-name" type="text" name="name" value="{{header.name}}">
@@ -20,7 +20,10 @@
         {{#if header.ac}}<span title="{{localize "WILDPATH.SHEET.EffectiveAc"}}">{{localize "WILDPATH.SHEET.AC"}} {{header.ac}}</span>{{/if}}
         {{#if header.level}}<span>{{localize "WILDPATH.SHEET.Level"}} {{header.level}}</span>{{/if}}
         {{#if header.proficiency}}<span>{{localize "WILDPATH.SHEET.Proficiency" bonus=header.proficiency}}</span>{{/if}}
-        {{#if header.threat}}<span>{{localize "WILDPATH.SHEET.Threat"}} {{header.threat}}</span>{{/if}}
+        {{#if challengeOptions}}
+          <label class="actor-threat">{{localize "WILDPATH.SHEET.Threat"}}
+            <select name="system.details.threat" {{disabled (not editable)}}>{{selectOptions challengeOptions selected=challenge}}</select></label>
+        {{/if}}
         {{#if portent}}<span>{{localize "WILDPATH.PORTENT.Dice"}} {{portent}}</span>{{/if}}
         <span>{{localize "WILDPATH.SHEET.ActionCount" count=summary.actionCount}}</span>
         <span>{{localize "WILDPATH.SHEET.ConditionCount" count=summary.activeConditionCount}}</span>
@@ -150,12 +153,12 @@
         <h4>{{localize "WILDPATH.SHEET.Conditions"}}</h4>
         <div class="condition-list">
           {{#each conditions as |condition|}}
-            <a class="condition {{#if condition.active}}active{{/if}}" data-action="toggleCondition"
+            <button type="button" class="condition {{#if condition.active}}active{{/if}}" data-action="toggleCondition" aria-pressed="{{#if condition.active}}true{{else}}false{{/if}}"
                data-condition-id="{{condition.id}}" {{#if condition.stacking}}data-stacking{{/if}}
                title="{{localize condition.name}}{{#if condition.stacking}} — {{localize "WILDPATH.SHEET.StackingHint"}}{{/if}}">
               <img src="{{condition.img}}" width="28" height="28" alt="{{localize condition.name}}">
               {{#if condition.level}}<span class="condition-level">{{condition.level}}</span>{{/if}}
-            </a>
+            </button>
           {{/each}}
         </div>
       </div>
@@ -195,7 +198,7 @@
           <li class="sheet-row action-row {{#unless item.availability.enabled}}unavailable{{/unless}}" data-item-id="{{item.id}}">
             <img class="row-image" src="{{item.img}}" width="32" height="32" alt="{{item.name}}">
             <div class="row-main">
-              <a class="row-name" data-action="openItem">{{item.name}}</a>
+              <button type="button" class="row-name" data-action="openItem">{{item.name}}</button>
               <span class="row-detail">{{item.availability.reason}}</span>
             </div>
             {{#if item.arcanum}}
@@ -234,8 +237,8 @@
               <li class="sheet-row" data-item-id="{{item.id}}">
                 <img class="row-image" src="{{item.img}}" width="28" height="28" alt="{{item.name}}">
                 <div class="row-main">
-                  <a class="row-name" data-action="openItem">{{item.name}}</a>
-                  <span class="row-detail">{{item.type}}</span>
+                  <button type="button" class="row-name" data-action="openItem">{{item.name}}</button>
+                  <span class="row-detail">{{localize (concat "TYPES.Item." item.type)}}</span>
                 </div>
                 <button type="button" class="row-command" data-action="deleteItem" title="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
               </li>
@@ -255,7 +258,7 @@
               <li class="sheet-row gear-row {{#unless item.active}}unavailable{{/unless}}" data-item-id="{{item.id}}">
                 <img class="row-image" src="{{item.img}}" width="28" height="28" alt="{{item.name}}">
                 <div class="row-main">
-                  <a class="row-name" data-action="openItem">{{item.name}}</a>
+                  <button type="button" class="row-name" data-action="openItem">{{item.name}}</button>
                   <span class="row-detail">{{localize "WILDPATH.SHEET.Weight" weight=item.weight}}</span>
                   {{#each item.enchantments as |enchantment|}}
                     <span class="row-detail">{{enchantment.name}}
@@ -290,8 +293,8 @@
             <li class="sheet-row" data-item-id="{{item.id}}">
               <img class="row-image" src="{{item.img}}" width="28" height="28" alt="{{item.name}}">
               <div class="row-main">
-                <a class="row-name" data-action="openItem">{{item.name}}</a>
-                <span class="row-detail">{{item.type}}</span>
+                <button type="button" class="row-name" data-action="openItem">{{item.name}}</button>
+                <span class="row-detail">{{localize (concat "TYPES.Item." item.type)}}</span>
               </div>
               <button type="button" class="row-command" data-action="deleteItem" title="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
             </li>
@@ -313,7 +316,11 @@
         {{#each effects as |effect|}}
           <li class="sheet-row effect-row {{#if effect.disabled}}unavailable{{/if}}" data-effect-id="{{effect.id}}">
             <img class="row-image" src="{{effect.img}}" width="28" height="28" alt="{{effect.name}}">
-            <a class="row-name" data-action="openEffect">{{effect.name}}</a>
+            <div class="row-main">
+              <button type="button" class="row-name" data-action="openEffect">{{effect.name}}</button>
+              {{#if effect.suppressed}}<span class="row-detail suppressed">{{localize "WILDPATH.SHEET.Suppressed"}}</span>{{/if}}
+              {{#if effect.sourceName}}<span class="row-detail">{{localize "WILDPATH.SHEET.EffectSource" name=effect.sourceName}}</span>{{/if}}
+            </div>
             <button type="button" class="row-command" data-action="toggleEffect">
               {{#if effect.disabled}}{{localize "WILDPATH.SHEET.Enable"}}{{else}}{{localize "WILDPATH.SHEET.Disable"}}{{/if}}
             </button>
@@ -330,7 +337,7 @@
         <h3>{{localize "WILDPATH.SHEET.Section.Biography"}}</h3>
       </div>
       <div class="sheet-editor">
-        {{editor system.biography target="system.biography" button=true engine="prosemirror"}}
+        <prose-mirror name="system.biography" value="{{system.biography}}" toggled data-document-uuid="{{actor.uuid}}">{{{enrichedBiography}}}</prose-mirror>
       </div>
     </section>
   </div>

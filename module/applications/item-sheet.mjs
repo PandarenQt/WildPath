@@ -350,6 +350,9 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     const source = this.item.toObject(true).system;
     context.item = this.item;
     context.system = this.item.system;
+    // Its description as read (links, language tags), edited as written.
+    context.enrichedDescription = await foundry.applications.ux.TextEditor.implementation.enrichHTML(this.item.system.description ?? "",
+      {relativeTo: this.item, secrets: this.item.isOwner});
     context.isAction = this.item.type === "action";
     context.isGear = this.item.type === "gear";
     context.armorKinds = {"": "WILDPATH.ITEMSHEET.ArmorKind.none", light: "WILDPATH.ITEMSHEET.ArmorKind.light",
