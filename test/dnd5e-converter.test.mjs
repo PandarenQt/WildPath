@@ -977,6 +977,30 @@ test("an effect with nothing WildPath maps still marks its creature, for its dur
   assert.equal(validateActionDefinition(spell.system.definition).ok, true);
 });
 
+test("a feature used as its creature hits, by its text, is offered on its own hits (a maneuver; once a turn when it says)", () => {
+  const feature = (id, name, text, condition) => ({_id: id, name, type: "feat", effects: [], system: {source: SRD, description: {value: text},
+    activities: {a: activity("damage", {activation: {type: "", condition, override: false}, range: {units: "self", override: false},
+      damage: {parts: [{number: 1, denomination: 8, types: ["force"], bonus: ""}]}})}}});
+  const [trip] = convertItem(feature("testTripAttack01", "Trip Attack", "<p>When you hit a creature with an attack roll using a weapon, you "
+    + "can expend one Superiority Die.</p>", "When you hit a creature with an attack roll")).items;
+  assert.equal(trip.type, "action");
+  assert.equal(trip.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), false);
+  const [foe] = convertItem(feature("testFavoredFoe01", "Favored Foe", "<p>Once on each of your turns when you hit a creature with a weapon, "
+    + "you can deal an extra 1d8.</p>", "")).items;
+  assert.equal(foe.type, "action");
+  const all = ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant", "slashing",
+    "thunder"];
+  const menacing = feature("testMenacing0001", "Menacing Attack", "<p>When you hit a creature with an attack roll, add the die to the "
+    + "attack's damage roll.</p>", "");
+  menacing.system.activities.a.damage.parts[0].types = all;
+  const [menace] = convertItem(menacing).items;
+  assert.deepEqual([menace.system.definition.damage, menace.system.definition.rider.damage.map(component => component.damageType)],
+    [[], [undefined]], "any type: the attack's own, as a rider");
+  assert.equal(menace.flags.wildpath.conversion.notes.some(note => /a choice of/.test(note)), false);
+  const [still] = convertItem(feature("testPassive00001", "Thick Hide", "<p>It has resistance.</p>", "")).items;
+  assert.ok(still.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), "nothing about a hit");
+});
+
 test("a summon's creature by its id, an old id a module redirects, or a PHB appendix id by its name", () => {
   const creatures = withRedirects({mmGriffon0000000: "griffon", mmWeasel00000000: "weasel", mmGiantCentipede: "centipede"},
     'CONFIG.compendium.uuidRedirects["Compendium.dnd-dungeon-masters-guide.actors.Actor.h052EIIUmRwJum65"] = "Compendium.dnd5e.actors24.Actor.mmGriffon0000000";');

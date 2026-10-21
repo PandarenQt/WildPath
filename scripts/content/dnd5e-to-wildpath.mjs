@@ -471,6 +471,32 @@ const weaponHit = onceKey => ({tagsAll: ["weapon"], once: "turn", onceKey, defin
 const sizeAtMost = size => ({not: {oneOf: {path: "event.data.targetSize",
   values: ["tiny", "small", "medium", "large", "huge", "gargantuan"].slice(["tiny", "small", "medium", "large", "huge", "gargantuan"].indexOf(size) + 1)}}});
 
+/**
+ * A feature its creature uses as it hits, by its text: "When you hit a creature with an attack roll, you can expend one
+ * Superiority Die" (a Battle Master's maneuvers), "once on each of your turns when you hit a creature with a weapon"
+ * (Favored Foe). Offered on its own hits as OWN_HIT's are: a weapon's when its text says weapon, else any attack's; once
+ * a turn when it says so. Its cost, damage, save and effects are its activity's.
+ */
+function hitOffer(document, activity) {
+  if ( !["damage", "save"].includes(activity?.type) ) return null;
+  const text = `${activity.activation?.condition ?? ""} ${plainText(document)}`;
+  const hit = /\bwhen (?:you|it|the [^.,]{1,40}?) hits? (?:a creature|a target|an enemy|one or more creatures|a creature or an object)? ?with (an attack roll|a weapon|a melee weapon|a melee attack|an attack)/iu
+    .exec(text);
+  if ( !hit ) return null;
+  const once = /\bonce (?:per turn|on each of (?:your|its) turns)\b/iu.test(text);
+  // A part of any type (dnd5e lists every one: "add the die to the attack's damage roll") is the attack's own type: a
+  // rider on the attack it answers, whose type is the attack's.
+  const anyType = (activity.damage?.parts ?? []).map(part => (part.types ?? []).length >= DAMAGE_TYPES.length);
+  const riding = definition => {
+    const ride = (definition.damage ?? []).filter((_, index) => anyType[index]);
+    return ride.length ? {...definition, damage: (definition.damage ?? []).filter((_, index) => !anyType[index]),
+      rider: {...(definition.rider ?? {}), damage: ride.map(({damageType: _type, ...component}) => component)}} : definition;
+  };
+  return {...(/weapon/iu.test(hit[1]) ? {tagsAll: ["weapon"]} : {spell: true, tagsAll: []}),
+    ...(once ? {once: "turn", onceKey: slugify(document.name)} : {}), ...(anyType.some(Boolean) ? {dropNotes: /: a choice of acid\//u} : {}),
+    definition: riding};
+}
+
 const OWN_HIT = Object.freeze({
   // 2024 Blessed Strikes: Divine Strike, 1d8 (2d8 from cleric level 14, its scale).
   "blessed-strikes-divine-strike/Necrotic Divine Strike": weaponHit("divine-strike"),
@@ -1080,7 +1106,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A passive or triggered ability is not something a creature uses on its turn; its feature carries its text.
     const activation = pick(activity, system, "activation").type ?? "";
     // A feature used when its creature hits (Stunning Strike): offered on that hit, though dnd5e leaves it passive.
-    const onHit = OWN_HIT[`${identifierOf(document)}/${activity.name}`] ?? OWN_HIT[identifierOf(document)] ?? null;
+    const onHit = OWN_HIT[`${identifierOf(document)}/${activity.name}`] ?? OWN_HIT[identifierOf(document)] ?? hitOffer(document, activity);
     // An enchantment of one of its creature's weapons (Magic Weapon, Sacred Weapon): its weapon's attacks change instead.
     const enchant = ENCHANTS[identifierOf(document)] ?? null;
     if ( enchant && (activity.type !== "enchant") ) continue;

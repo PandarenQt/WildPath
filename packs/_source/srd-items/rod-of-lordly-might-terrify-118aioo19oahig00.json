@@ -26,7 +26,9 @@
         ]
       },
       "targeting": {
-        "type": "area"
+        "type": "single",
+        "required": true,
+        "count": 1
       },
       "area": {
         "shape": "radial",
@@ -55,6 +57,9 @@
           "repeatSave": "turnEnd"
         }
       ],
+      "range": {
+        "type": "special"
+      },
       "label": "Rod of Lordly Might (Terrify)"
     },
     "ruleElements": [
@@ -70,6 +75,20 @@
             "value": 1
           },
           "recovery": "longRest"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": []
+          }
         }
       }
     ]

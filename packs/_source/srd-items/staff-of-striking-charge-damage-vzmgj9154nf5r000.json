@@ -25,6 +25,14 @@
           }
         ]
       },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
       "label": "Staff of Striking (Charge Damage)"
     },
     "ruleElements": [
@@ -57,6 +65,20 @@
             }
           }
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": []
+          }
+        }
       }
     ]
   },
@@ -75,7 +97,6 @@
       },
       "conversion": {
         "notes": [
-          "not automated (damage): using it spends its cost; its description says the rest",
           "damage 1: custom formula \"(@scaling)d6\" not converted"
         ]
       }
