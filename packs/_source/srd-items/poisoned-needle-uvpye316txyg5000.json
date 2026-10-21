@@ -1,6 +1,6 @@
 {
-  "_id": "dmgPoisonedNeedl",
-  "_key": "!items!dmgPoisonedNeedl",
+  "_id": "uvpye316txyg5000",
+  "_key": "!items!uvpye316txyg5000",
   "name": "Poisoned Needle",
   "type": "gear",
   "img": "icons/magic/acid/dissolve-drip-droplet-smoke.webp",
@@ -29,12 +29,15 @@
       },
       "conversion": {
         "notes": [
-          "\"Trigger (1-4)\" is passive or triggered: not automated",
-          "\"Trigger (5-10)\" is passive or triggered: not automated",
-          "\"Trigger (11-16)\" is passive or triggered: not automated",
-          "\"Trigger (17-20)\" is passive or triggered: not automated"
+          "effect: \"Poisoned Needle\" marks its creature only; its rules are by hand"
         ]
-      }
+      },
+      "grants": [
+        "dmgPoisonedNeedl",
+        "1q4kbffgcs18t000",
+        "1qejx4e1g6fuoi00",
+        "1qojitdgyzm53000"
+      ]
     }
   }
 }

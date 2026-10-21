@@ -276,6 +276,20 @@ Live (two browsers, 14.369): QA Caster's 3rd-level Moonbeam, moved by "Moonbeam 
 Fighter: each saved against 3d10 (the Fighter failed and took 14). A GM update of the Region's cells moved it onto
 three more creatures, and each saved against 3d10.
 
+## Traps (2026-10-21)
+
+A 2024 trap's tiers ("Trigger (1-4)" to "Trigger (17-20)", by the characters' levels) each convert to an Action
+(`trapDefinition` in the converter) the GM uses to set it:
+- a lasting 5-foot square (`area.persistence` with no duration), placed anywhere (`range: {type: "special"}`) from the
+  Token of the creature holding the trap;
+- setting it does nothing else; its one trigger, `area.entered`, springs the trap's save or attack, damage and effects
+  on each creature that enters it.
+
+shortcut: finding it (Wisdom (Perception)), disarming it, and a trap that springs only once are by hand: the GM deletes
+its Region. Upgrade with hazard Regions that hold their DCs (Phase 7).
+
+Live (14.369): a Collapsing Roof (1-4) set on the GM's client made one Region; a creature walking into it took 10 (2d10).
+
 ## Teleport (2026-10-19)
 
 `teleport: {distance}` moves the Action's own creature up to `distance` feet to a space it chooses (Misty Step's 30,

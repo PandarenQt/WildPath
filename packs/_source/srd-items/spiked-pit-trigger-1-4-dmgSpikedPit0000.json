@@ -1,0 +1,92 @@
+{
+  "_id": "dmgSpikedPit0000",
+  "_key": "!items!dmgSpikedPit0000",
+  "name": "Spiked Pit (Trigger (1-4))",
+  "type": "action",
+  "img": "icons/tools/fasteners/pin-spiked.webp",
+  "system": {
+    "active": true,
+    "description": "<div><p><em>Deadly Trap (Levels 1–4)</em></p><p><strong>Trigger:</strong> A creature moves onto the pit's lid</p><p><strong>Duration:</strong> Instantaneous</p><p>A 10-foot-deep pit has a hinged lid constructed from material identical to the surrounding floor. When a creature moves onto the lid, it swings open like a trapdoor, causing the creature to fall into the pit, which has sharpened wooden or metal spikes at the bottom. The lid remains open thereafter.</p><p>A creature that falls into the pit lands at the bottom and takes 3 (1d6) Bludgeoning damage from the fall plus 9 (2d8) Piercing damage from the spikes.</p><p><em><strong>Detect and Disarm.</strong></em> As a Study action, a creature can examine the section of floor that forms the pit's lid and make a (Investigation) check check, detecting the pit on a successful check. Once the hidden pit is detected, an Iron Spike or a similar object can be wedged between the pit's lid and the surrounding floor to prevent the lid from opening, thereby making it safe to cross. The cover can also be held shut using an <em>Arcane Lock</em> spell or similar magic.</p><p><em><strong>Escape.</strong></em> A creature needs a Climb Speed, climbing gear, or magic such as a <em>Spider Climb</em> spell to scale the pit's smooth walls. You can make the pit easier to escape by adding cracks in the walls big enough to serve as handholds and footholds.</p><p><em><strong>At Higher Levels.</strong></em> You can scale the trap for higher levels by increasing the pit's depth and damage, as shown in the following table.</p><table><thead><tr><th><p>Levels</p></th><th><p>Pit Depth</p></th><th><p>Damage</p></th></tr></thead><tbody><tr><td><p>5–10</p></td><td><p>30 feet</p></td><td><p>10 (3d6) Bludgeoning plus 13 (3d8) Piercing</p></td></tr><tr><td><p>11–16</p></td><td><p>60 feet</p></td><td><p>21 (6d6) Bludgeoning plus 36 (8d8) Piercing</p></td></tr><tr><td><p>17–20</p></td><td><p>120 feet</p></td><td><p>42 (12d6) Bludgeoning plus 57 (13d8) Piercing</p></td></tr></tbody></table></div>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-spiked-pit-trigger-1-4",
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "special"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "cube",
+        "size": {
+          "value": 5,
+          "unit": "ft"
+        },
+        "persistence": {
+          "duration": null,
+          "concentration": false,
+          "triggers": [
+            {
+              "on": [
+                "area.entered"
+              ],
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-spiked-pit-trigger-1-4:sprung",
+                "label": "Spiked Pit",
+                "costs": {
+                  "allOf": []
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 1,
+                      "faces": 6
+                    },
+                    "damageType": "bludgeoning",
+                    "provenance": "additional"
+                  },
+                  {
+                    "id": "damage-2",
+                    "expression": {
+                      "type": "dice",
+                      "number": 2,
+                      "faces": 8
+                    },
+                    "damageType": "piercing",
+                    "provenance": "additional"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "label": "Spiked Pit (Trigger (1-4))"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgSpikedPit0000",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "spiked-pit",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

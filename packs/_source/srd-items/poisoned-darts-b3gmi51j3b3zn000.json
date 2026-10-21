@@ -1,0 +1,41 @@
+{
+  "_id": "b3gmi51j3b3zn000",
+  "_key": "!items!b3gmi51j3b3zn000",
+  "name": "Poisoned Darts",
+  "type": "gear",
+  "img": "icons/skills/ranged/dart-thrown-poison-green.webp",
+  "system": {
+    "active": false,
+    "description": "<div><p><em>Deadly Trap (Levels 1–4)</em></p><p><strong>Trigger:</strong> A creature moves onto a pressure plate</p><p><strong>Duration:</strong> Instantaneous, and the trap resets at the start of the next turn if it has activated fewer than three times</p><p>When a creature moves onto this trap's pressure plate for the first time on a turn, poisoned darts shoot from tubes embedded in the surrounding walls. The holes that house these tubes are obscured by dust and cobwebs or skillfully hidden amid bas-reliefs, murals, or frescoes.</p><p>Each creature in the darts' path must succeed on a DC 13 Dexterity saving throw or be struck by 1d3 darts, taking 3 (1d6) Poison damage per dart.</p><p><em><strong>Detect and Disarm.</strong></em> As a Search action, a creature can examine the walls and make a (Perception) check check, detecting the holes on a successful check. Plugging all the holes with wax, cloth, or detritus prevents the darts from firing.</p><p>As a Search action, a creature can examine the section of floor that forms the pressure plate and make a (Perception) check check, detecting the pressure plate on a successful check. Wedging an Iron Spike or a similar object under the pressure plate prevents the trap from triggering.</p><p><em><strong>At Higher Levels.</strong></em> You can scale the trap for higher levels by increasing each dart's Poison damage as follows: 7 (2d6) at levels 5–10, 14 (4d6) at levels 11–16, or 24 (7d6) at levels 17–20.</p></div>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": [],
+    "attunement": "",
+    "armor": ""
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgPoisonedDarts",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "poisoned-darts",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      },
+      "grants": [
+        "dmgPoisonedDarts",
+        "m9oy5516bv577000",
+        "lfq5285vzqv80000",
+        "lppqr715pnkax000"
+      ]
+    }
+  }
+}
