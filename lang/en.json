@@ -1163,7 +1163,8 @@
       "SrdItems": "SRD 5.2: Spells, Equipment and Features",
       "SrdCreatures": "SRD 5.2: Creatures",
       "SrdClasses": "SRD 5.2: Classes and Origins",
-      "SrdTables": "SRD 5.2: Tables"
+      "SrdTables": "SRD 5.2: Tables",
+      "Guide": "WildPath Guide"
     },
     "TRANSFORMATION": {
       "Effect": "Transformed: {form}",
