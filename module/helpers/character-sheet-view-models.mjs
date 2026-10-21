@@ -239,7 +239,9 @@ function summarizeActionAvailability(action) {
     state: action.state,
     code: action.disabledCode ?? action.payment?.code ?? null,
     defaultPaymentOptionId: action.payment?.defaultOptionId ?? null,
-    reason: action.enabled ? "Available" : labelFromCode(action.disabledCode ?? action.payment?.code)
+    // Lang keys (the sheet localizes them): ready, out of what it costs, or not usable now.
+    reason: action.enabled ? "WILDPATH.SHEET.Availability.Ready" : (AVAILABILITY_KEYS[action.disabledCode ?? action.payment?.code]
+      ?? "WILDPATH.SHEET.Availability.Unavailable")
   };
 }
 
@@ -264,10 +266,8 @@ function collectionContents(collection) {
   return [];
 }
 
-function labelFromCode(code) {
-  if ( !code ) return null;
-  return String(code).toLowerCase().split("_").map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
-}
+const AVAILABILITY_KEYS = Object.freeze({INSUFFICIENT_RESOURCE: "WILDPATH.SHEET.Availability.Spent",
+  PAYMENT_UNAVAILABLE: "WILDPATH.SHEET.Availability.Spent", RESOURCE_NOT_FOUND: "WILDPATH.SHEET.Availability.NoResource"});
 
 function clonePlain(value) {
   if ( value == null ) return value;

@@ -44,8 +44,8 @@ export function withMetamagic(raw, actor) {
             ...effects] }));
     if (!options.length && !empowered)
         return raw;
-    return { ...raw, configuration: [...(raw.configuration ?? []), ...(options.length ? [{ id: "metamagic", type: "select-one", label: "Metamagic",
-                    required: true, options: [{ id: "none", label: "None", value: "none" }, ...options] }] : []), ...(empowered ? [empowered] : [])] };
+    return { ...raw, configuration: [...(raw.configuration ?? []), ...(options.length ? [{ id: "metamagic", type: "select-one", label: "WILDPATH.METAMAGIC.Choice",
+                    required: true, options: [{ id: "none", label: "WILDPATH.METAMAGIC.None", value: "none" }, ...options] }] : []), ...(empowered ? [empowered] : [])] };
 }
 /** Empowered Spell's own choice, for a spell that rolls damage dice: 1 point to reroll its lowest dice. */
 function empoweredChoice(raw, actor) {
@@ -57,7 +57,7 @@ function empoweredChoice(raw, actor) {
     const count = evaluateValueExpression({ type: "max",
         terms: [{ type: "constant", value: 1 }, { type: "ability-modifier", ability: "presence" }] }, { actor, actorSystem: actor?.system });
     const most = Math.max(1, Math.trunc(Number(count.value) || 1));
-    return { id: "empowered", type: "select-one", label: "Empowered Spell", required: true, defaultValue: "no",
+    return { id: "empowered", type: "select-one", label: "WILDPATH.METAMAGIC.empowered", required: true, defaultValue: "no",
         options: [{ id: "no", label: "No", value: "no" }, { id: "empowered", value: "empowered",
                 label: `Empowered Spell: reroll up to ${most} damage ${most === 1 ? "die" : "dice"} (1 point)`,
                 effects: [{ type: "add-cost", cost: { allOf: [{ capability: METAMAGIC_POOL, amount: 1 }] } }, { type: "empower-damage", count: most }] }] };

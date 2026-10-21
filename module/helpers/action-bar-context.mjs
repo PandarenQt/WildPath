@@ -16,6 +16,10 @@ const POLICY_VIEWS = {
 };
 // The counters the bar always shows first, in this order; pools follow.
 const ECONOMY_ORDER = ["economy.action", "economy.bonus-action", "economy.reaction", "economy.movement"];
+/** The built-in economy's names (lang keys). */
+const ECONOMY_LABELS = { "economy.action": "WILDPATH.RESOURCES.Action", "economy.bonus-action": "WILDPATH.RESOURCES.BonusAction",
+    "economy.reaction": "WILDPATH.RESOURCES.Reaction", "economy.movement": "WILDPATH.RESOURCES.Movement",
+    "economy.legendary-action": "WILDPATH.RESOURCES.LegendaryAction", "economy.lair-action": "WILDPATH.RESOURCES.LairAction" };
 const GROUP_LABELS = {
     "action": "WILDPATH.ACTIONBAR.Group.action",
     "bonus-action": "WILDPATH.ACTIONBAR.Group.bonus",
@@ -83,8 +87,10 @@ function legendaryPolicy(actor) {
     const id = policyOf({ flags: { wildpath: { reactionPolicy: policies?.["legendary-resistance"] } } });
     return { id, ...POLICY_VIEWS[id] };
 }
-export function actionBarContext({ actor, conditions = [], odds = {}, common = [] }) {
+export function actionBarContext({ actor, conditions = [], odds = {}, common = [], localize = (key) => key }) {
     const bar = viewModel({ actor });
+    for (const resource of bar.resources)
+        resource.label = localize(ECONOMY_LABELS[resource.id] ?? resource.label);
     const order = (resource) => {
         const index = ECONOMY_ORDER.indexOf(resource.id);
         return index < 0 ? ECONOMY_ORDER.length : index;

@@ -199,7 +199,7 @@
             <img class="row-image" src="{{item.img}}" width="32" height="32" alt="{{item.name}}">
             <div class="row-main">
               <button type="button" class="row-name" data-action="openItem">{{item.name}}</button>
-              <span class="row-detail">{{item.availability.reason}}</span>
+              <span class="row-detail">{{localize item.availability.reason}}</span>
             </div>
             {{#if item.arcanum}}
               <button type="button" class="row-command" data-action="toggleArcanum" aria-pressed="{{#if item.arcanum.on}}true{{else}}false{{/if}}"

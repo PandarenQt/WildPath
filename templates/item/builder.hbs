@@ -31,7 +31,7 @@
   <fieldset>
     <legend>{{localize "WILDPATH.BUILDER.Slot.Legend"}}</legend>
     <select name="wildpath.builder.slot.level" aria-label="{{localize "WILDPATH.BUILDER.Slot.Legend"}}">
-      {{selectOptions b.choices.slotLevels selected=b.values.slot.level}}</select>
+      {{selectOptions b.choices.slotLevels selected=b.values.slot.level localize=true}}</select>
     {{#if b.showUpcast}}
       {{#if b.values.upcastReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
       <label>{{localize "WILDPATH.BUILDER.Slot.Upcast"}}

@@ -27,7 +27,7 @@ export function createFoundryTurnDamage({game, coordinator, resolveAction, logge
     if ( !(Number(amount) > 0) ) return false;
     const token = [given, actor.isToken ? actor.token : null, actor.getActiveTokens?.(false, true)?.[0]]
       .find(candidate => candidate?.parent) ?? null;
-    const name = label ?? game.i18n?.localize?.("WILDPATH.CONDITIONS.TurnDamage") ?? "Condition damage";
+    const name = label ? (game.i18n?.localize?.(label) ?? label) : (game.i18n?.localize?.("WILDPATH.CONDITIONS.TurnDamage") ?? "Condition damage");
     const at = token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {};
     await run({coordinator, resolveAction, logger, senderUserId: String(game.user?.id), label: name,
       resolutionId: `turn-damage:${actor.uuid}:${++sequence}`, actorRef: actor.uuid,

@@ -364,10 +364,10 @@ WILDPATH.CONDITIONS = {
   },
   // Poisoned's former damage each turn, kept by the maintainer (2026-10-14) as its own stacking condition.
   envenomed: damageOverTimeCondition({id: "envenomed", name: "WILDPATH.CONDITIONS.Envenomed", summary: "WILDPATH.CONDITIONS.Summary.Envenomed",
-    img: "icons/skills/wounds/blood-cells-disease-green.webp", damageType: "poison", label: "Envenomed Turn Damage"}),
+    img: "icons/skills/wounds/blood-cells-disease-green.webp", damageType: "poison", label: "WILDPATH.CONDITIONS.TurnDamageOf.Envenomed"}),
   bleeding: damageOverTimeCondition({id: "bleeding", name: "WILDPATH.CONDITIONS.Bleeding", summary: "WILDPATH.CONDITIONS.Summary.Bleeding",
     img: "icons/skills/wounds/blood-spurt-spray-red.webp", damageType: "bleeding", stacking: false,
-    label: "Bleeding Turn Damage"})
+    label: "WILDPATH.CONDITIONS.TurnDamageOf.Bleeding"})
 };
 
 /**
