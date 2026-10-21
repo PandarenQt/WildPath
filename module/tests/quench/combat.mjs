@@ -158,6 +158,47 @@ export function registerCombatTests(quench) {
         assert.deepEqual(baseSource(enc).pools,[],"Base world Actor must not receive the synthetic pools");
       });
 
+      it("a 2014 Lair Action comes back when the round passes initiative 20, once a round", async function () {
+        const scene = await fixtures.createScene({name:"lair"});
+        const quick = await fixtures.createActor({name:"lair quick",type:"npc"});
+        const dragon = await fixtures.createActor({name:"lair dragon",type:"npc",system:{pools:[]}});
+        await dragon.createEmbeddedDocuments("Item",[{name:"Lair",type:"feature",system:{active:true,ruleElements:[{schemaVersion:1,
+          id:"lair-actions",type:"GrantResource",data:{resourceId:"lair-action",label:"Lair Action",maximum:1,recovery:"none",
+            refillsAtInitiative:20}}]}}]);
+        await dragon.recordsSettled?.();
+        const quickToken = await fixtures.createToken(scene,quick,{name:"quick",x:100,y:100});
+        const dragonToken = await fixtures.createToken(scene,dragon,{name:"dragon",x:300,y:100});
+        const combat = await fixtures.createCombat(scene,[quickToken,dragonToken]);
+        await combat.setInitiative(combat.combatants.find(entry => entry.tokenId === quickToken.id).id,25);
+        await combat.setInitiative(combat.combatants.find(entry => entry.tokenId === dragonToken.id).id,10);
+        const lair = () => game.scenes.get(scene.id).tokens.get(dragonToken.id).actor.system.pools.find(pool => pool.id === "lair-action");
+        const spend = async () => {
+          const actor = game.scenes.get(scene.id).tokens.get(dragonToken.id).actor;
+          await actor.update({"system.pools":actor.toObject(true).system.pools.map(pool => (pool.id === "lair-action" ? {...pool,value:0} : pool))});
+        };
+        const before = new Set(game.messages.map(message => message.id));
+        try {
+          await transition(combat, () => combat.startCombat());
+          assert.equal(combat.combatant.tokenId,quickToken.id,"initiative 25 goes first");
+          await spend();
+          assert.equal(lair().value,0);
+          await transition(combat, () => combat.nextTurn());
+          assert.equal(combat.combatant.tokenId,dragonToken.id);
+          assert.equal(lair().value,1,"past initiative 20: its Lair Action is back");
+          const told = () => game.messages.some(message => !before.has(message.id) && message.content.includes("dragon")
+            && message.content.includes("Lair Action"));
+          for ( let tries = 0; (tries < 20) && !told(); tries++ ) await new Promise(resolve => setTimeout(resolve, 100));
+          assert.isTrue(told(),"the GM is told who may take one");
+          await spend();
+          await transition(combat, () => combat.nextTurn());
+          assert.equal(lair().value,0,"the next round's initiative 25 turn is before 20: not yet");
+          await transition(combat, () => combat.nextTurn());
+          assert.equal(lair().value,1,"and passing 20 in that round brings it back");
+        } finally {
+          await ChatMessage.deleteDocuments(game.messages.filter(message => !before.has(message.id)).map(message => message.id));
+        }
+      });
+
       it("Combat#nextTurn leaves non-turn resources and pools unchanged", async function () {
         const enc = await encounter({name:"non-turn"});
         await begin(enc);

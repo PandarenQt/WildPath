@@ -19,6 +19,7 @@ export default class WildPathCombat extends FoundryCombatDocument {
    */
   async _onStartTurn(combatant, context={}) {
     await super._onStartTurn(combatant, context);
+    await this.#passInitiativeCounts(combatant);
 
     const actor = combatant?.actor ?? null;
     if ( !actor ) return undefined;
@@ -84,6 +85,29 @@ export default class WildPathCombat extends FoundryCombatDocument {
   async _onEndTurn(combatant, context={}) {
     await super._onEndTurn(combatant, context);
     await this.#applyTurnEvent("turn.ended", combatant);
+  }
+
+  /**
+   * 2014 Lair Actions: the first turn this round below initiative 20 comes after count 20, so every creature in the
+   * combat with a pool refilled there (`refillsAtInitiative`) has it back, and the GM is told who may take one.
+   * Recorded on the combat (`flags.wildpath.lairRound`) so a round passes it once.
+   */
+  async #passInitiativeCounts(combatant) {
+    const count = 20;
+    if ( !(Number(combatant?.initiative) < count) || (this.flags?.wildpath?.lairRound === this.round) ) return;
+    const lairs = [];
+    for ( const actor of new Set([...(this.combatants ?? [])].map(entry => entry.actor).filter(Boolean)) ) {
+      const ids = (actor.getGrantedResources?.() ?? []).filter(grant => grant.refillsAtInitiative === count).map(grant => grant.id);
+      if ( !ids.length ) continue;
+      const pools = actor.toObject(true).system?.pools ?? [];
+      const maximum = id => actor.system?.pools?.find(pool => pool.id === id)?.max ?? 0;
+      const refilled = pools.map(pool => (ids.includes(pool.id) ? {...pool, value: maximum(pool.id)} : pool));
+      if ( JSON.stringify(refilled) !== JSON.stringify(pools) ) await actor.update({"system.pools": refilled});
+      lairs.push(actor.name ?? "");
+    }
+    await this.setFlag?.("wildpath", "lairRound", this.round);
+    if ( lairs.length ) await globalThis.ChatMessage?.create?.({content: globalThis.game?.i18n?.format?.("WILDPATH.COMBAT.LairActions",
+      {names: lairs.join(", ")}) ?? lairs.join(", "), whisper: globalThis.ChatMessage.getWhisperRecipients?.("GM")?.map(user => user.id) ?? []});
   }
 
   async #applyTurnEvent(event, combatant) {

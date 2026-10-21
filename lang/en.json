@@ -1199,6 +1199,9 @@
       "StalePools": "removing pools left by deleted Items",
       "Fortitude": "Hit Points that follow Fortitude",
       "CreatureTypes": "creature types"
+    },
+    "COMBAT": {
+      "LairActions": "Initiative 20: {names} may take a Lair Action."
     }
   },
   "TYPES": {

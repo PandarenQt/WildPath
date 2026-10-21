@@ -519,6 +519,8 @@ function grantResourceRuleElement(ruleElement, context) {
       recovery: data.recovery ?? "none",
       // Multiattack's attacks: the pool is emptied at the start of each of the creature's turns.
       ...(data.emptiesAtTurnStart === true ? {emptiesAtTurnStart: true} : {}),
+      // 2014 Lair Actions: refilled when the round passes this initiative count (20), not on its own turn.
+      ...(Number.isFinite(Number(data.refillsAtInitiative)) ? {refillsAtInitiative: Number(data.refillsAtInitiative)} : {}),
       // Recharge (a breath weapon): at the start of the creature's turn a d6 of this or more refills the pool.
       ...(Number.isInteger(Number(data.recharge)) && (Number(data.recharge) >= 2) && (Number(data.recharge) <= 6)
         ? {recharge: Number(data.recharge)} : {}),
