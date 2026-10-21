@@ -97,7 +97,8 @@ test("every document type in system.json has its TYPES name", () => {
 });
 
 test("every WILDPATH key in lang/en.json is shown somewhere", () => {
-  const text = ["wildpath.mjs", "system.json", ...sourceFiles("module/"), ...sourceFiles("templates/")]
+  // The converter's labels are shown too, from the packs it writes.
+  const text = ["wildpath.mjs", "system.json", "scripts/content/dnd5e-to-wildpath.mjs", ...sourceFiles("module/"), ...sourceFiles("templates/")]
     .map(file => readFileSync(new URL(file, root), "utf8")).join("\n");
   // A prefix the code completes (`WILDPATH.X.${id}`, "WILDPATH.X." + id) covers every key under it.
   const prefixes = new Set([...text.matchAll(/(WILDPATH(?:\.[A-Za-z0-9]+)+\.)(?=[$"'`])/gu)].map(match => match[1]));
