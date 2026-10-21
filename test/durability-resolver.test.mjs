@@ -205,3 +205,14 @@ test("Temporary Hit Points are lost first, never stack, and are rolled back with
   assert.deepEqual(createActorUpdateTransactionOperation({mutationPlan: hit}).rollbackUpdates,
     {"system.resources.health.value": 10, "system.resources.health.temp": 5});
 });
+
+test("healing in a form whose Hit Points are Temporary Hit Points heals the form, up to its own (2014 Wild Shape)", () => {
+  const wolf = (temp) => ({resources: {health: {value: 10, max: 20, temp}}, formHealth: 11});
+  const some = createActorHealingMutationPlan(wolf(3), {amount: 5});
+  assert.equal(some.ok, true);
+  assert.equal(some.updates["system.resources.health.temp"], 8, "the form's 3 healed by 5");
+  assert.equal(some.updates["system.resources.health.value"] ?? 10, 10, "the druid's own Hit Points are untouched");
+  assert.equal(createActorHealingMutationPlan(wolf(3), {amount: 20}).updates["system.resources.health.temp"], 11, "no more than the form's");
+  assert.equal(createActorHealingMutationPlan({resources: {health: {value: 10, max: 20, temp: 3}}}, {amount: 5}).updates["system.resources.health.value"],
+    15, "out of a form, healing is as ever");
+});

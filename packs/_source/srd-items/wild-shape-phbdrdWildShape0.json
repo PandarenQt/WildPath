@@ -344,7 +344,12 @@
             }
           }
         },
-        "temporaryHealth": "form"
+        "temporaryHealth": "form",
+        "duration": {
+          "class": "druid",
+          "perLevel": 0.5,
+          "units": "hours"
+        }
       },
       "label": "Wild Shape"
     },
