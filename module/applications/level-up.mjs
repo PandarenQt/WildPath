@@ -96,7 +96,8 @@ function stepHtml(step, index, actor, view) {
             const inputs = (entry.abilities ?? []).map(ability => `<label class="level-up-ability">${escape(localize(ABILITIES[ability]?.label ?? ability))}
         <span>${actor.system.abilities?.[ability]?.value ?? 10}</span> +
         <input type="number" name="${name}.${ability}" value="0" min="0" max="${entry.cap ?? 2}" step="1"></label>`).join("");
-            const feats = entry.feat ? `<label>${localize("WILDPATH.LEVELUP.Feat")} <select name="${name}.feat"><option value="">${localize("WILDPATH.LEVELUP.NoFeat")}</option>${view.feats.map(feat => `<option value="${escape(feat.uuid)}">${escape(labelOf(feat.uuid, view))}</option>`).join("")}</select></label>` : "";
+            const feats = entry.feat ? `<label>${localize("WILDPATH.LEVELUP.Feat")} <select name="${name}.feat"><option value="">${localize("WILDPATH.LEVELUP.NoFeat")}</option>${view.feats.map(feat => `<option value="${escape((feat.uuids ?? [feat.uuid]).join(","))}">${escape(labelOf(feat.uuid, view)
+                .replace(/ \([^)]*\)$/, (suffix) => ((feat.uuids?.length ?? 1) > 1 ? "" : suffix)))}</option>`).join("")}</select></label>` : "";
             return `<fieldset data-points="${entry.points ?? 0}">${legend}<p class="hint">${format("WILDPATH.LEVELUP.Increase", { points: entry.points ?? 0, cap: entry.cap ?? 2 })}</p><div class="level-up-abilities">${inputs}</div>${feats}</fieldset>`;
         }
         case "subclass": return `<fieldset>${legend}<select name="${name}" required><option value=""></option>${view.subclasses.map(entry => `<option value="${escape(entry.uuid)}">${escape(entry.name)}</option>`).join("")}</select></fieldset>`;
@@ -188,8 +189,17 @@ async function compendiumOptions(item, totalLevel, actor) {
             if (!allowed(entry, pack.metadata?.packageName ?? ""))
                 continue;
             entries.set(entry.uuid, entry);
-            if (categories.includes(entry.flags?.wildpath?.source?.feat ?? "") && !feats.has(entry.name))
-                feats.set(entry.name, entry);
+            // A feat converted into several Items (Chef's Actions) is one option, its Items taken together; by name, the
+            // first package's wins (the SRD's Alert over the PHB's).
+            if (categories.includes(entry.flags?.wildpath?.source?.feat ?? "")) {
+                const name = entry.name.replace(/ \([^)]*\)$/, "");
+                const known = feats.get(name);
+                if (!known)
+                    feats.set(name, { ...entry, name, uuids: [entry.uuid] });
+                else if (known.flags?.wildpath?.source?.id && (known.flags.wildpath.source.id === entry.flags?.wildpath?.source?.id)
+                    && (known.uuid.split(".Item.")[0] === entry.uuid.split(".Item.")[0]))
+                    known.uuids.push(entry.uuid);
+            }
             if ((entry.type === "subclass") && item.system.identifier && (entry.system?.classIdentifier === item.system.identifier)
                 && !subclasses.has(entry.name))
                 subclasses.set(entry.name, entry);
@@ -288,7 +298,7 @@ async function apply(actor, item, { level, steps, form, first, hitDie, fortitude
             }
             const feat = picked(`${name}.feat`)[0];
             if (feat)
-                uuids.push(feat);
+                uuids.push(...feat.split(","));
             else {
                 const chosen = Object.fromEntries((entry.abilities ?? []).map(ability => [ability, Number(form.get(`${name}.${ability}`)) || 0]));
                 for (const [path, value] of Object.entries(improvementUpdates(chosen, { abilities }, { cap: entry.cap ?? 2, points: entry.points ?? 0 }))) {
