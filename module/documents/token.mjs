@@ -1,6 +1,7 @@
 import {
   buildFoundryMovementIntent
 } from "../adapters/foundry-v14-movement-adapter.mjs";
+import {movementMessage} from "../helpers/refusal-messages.mjs";
 import {prepareFoundryReactionCheckpoints} from "../adapters/foundry-v14-reaction-checkpoint-adapter.mjs";
 import {isStagedMovementWrite} from "../adapters/foundry-v14-staged-movement-commit.mjs";
 import {applySensesToToken, sensesKey} from "../adapters/foundry-v14-senses.mjs";
@@ -95,7 +96,7 @@ function currentUser() {
 function notifyMovementFailure(reason) {
   if ( !reason ) return;
   if ( typeof globalThis.ui?.notifications?.warn === "function" ) {
-    globalThis.ui.notifications.warn(`Wild Path | ${reason}`);
+    globalThis.ui.notifications.warn(movementMessage({reason}, globalThis.game));
   } else if ( typeof globalThis.console?.warn === "function" ) {
     globalThis.console.warn("Wild Path | Movement", reason);
   }
