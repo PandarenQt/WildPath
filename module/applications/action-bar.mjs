@@ -68,7 +68,7 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
     static async #onUse(event, target) {
         const id = target.closest("[data-item-id]")?.dataset.itemId;
         const actor = this.shownActor;
-        if (!id || !actor)
+        if (!id || !actor || target.getAttribute("aria-disabled") === "true")
             return;
         // A common action is no Item: Item#use runs on the Action this creature has for it.
         const common = id.startsWith("common-") ? this.#common(actor).find(action => action.id === id) : null;

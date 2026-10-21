@@ -29,7 +29,7 @@
           <span class="bar-group-label">{{localize group.label}}</span>
           {{#each group.actions as |action|}}
             <button type="button" class="bar-action" data-action="use" data-item-id="{{action.id}}"
-                    {{#unless action.enabled}}disabled title="{{action.label}}: {{localize action.reason.key name=action.reason.name}}"{{else}}{{#if action.odds}}data-tooltip="{{action.label}}<br>{{action.odds.tooltip}}"{{else}}data-tooltip="{{action.label}}"{{/if}}{{/unless}}
+                    {{#unless action.enabled}}aria-disabled="true" data-tooltip="{{action.label}}<br>{{localize action.reason.key name=action.reason.name}}"{{else}}{{#if action.odds}}data-tooltip="{{action.label}}<br>{{action.odds.tooltip}}"{{else}}data-tooltip="{{action.label}}"{{/if}}{{/unless}}
                     aria-label="{{action.label}}">
               <img src="{{action.img}}" alt="" width="28" height="28">
               <span class="bar-action-label">{{action.label}}</span>

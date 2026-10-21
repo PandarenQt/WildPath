@@ -1106,7 +1106,8 @@
         "NoResource": "Needs a resource it doesn't have",
         "Unavailable": "Not usable now"
       },
-      "BrokenRules": "Some rules can't be read and are skipped; open these to fix them:"
+      "BrokenRules": "Some rules can't be read and are skipped; open these to fix them:",
+      "PipCount": "{count} of 3"
     },
     "PACKS": {
       "Actions": "WildPath Actions",
