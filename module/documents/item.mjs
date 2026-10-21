@@ -8,6 +8,7 @@ import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-a
 import {isUnprepared} from "../helpers/spellcasting.mjs";
 import {resolveActorCheckStatistic} from "../helpers/combat-statistics.mjs";
 import {traitUpdates} from "../helpers/level-up.mjs";
+import {refuseBrokenRules} from "../helpers/rule-guard.mjs";
 
 /** Which of `skills` the creature checks (Search, Study, Influence), each with its bonus; null when closed. */
 async function chooseTestSkill(actor, skills, name) {
@@ -27,6 +28,12 @@ async function chooseTestSkill(actor, skills, name) {
  * The Item document subclass for the WildPath system.
  */
 export default class WildPathItem extends Item {
+
+  /** An edit adding problems to its RuleElements is refused, with them in words (a macro's too, not only a sheet's). */
+  async _preUpdate(changes, options, user) {
+    if ( refuseBrokenRules(this, foundry.utils.getProperty(changes, "system.ruleElements")) ) return false;
+    return super._preUpdate(changes, options, user);
+  }
 
   /**
    * A granted resource needs its pool on the Actor (`GrantResource`); the user who made the change stores it. A magic

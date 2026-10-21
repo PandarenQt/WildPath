@@ -1,7 +1,7 @@
 import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.mjs";
 import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
 import {levelUp} from "./level-up.mjs";
-import {ruleElementListErrors} from "./item-sheet.mjs";
+import {ruleProblems} from "../helpers/rule-guard.mjs";
 import {portentDice, portentFeature} from "../adapters/foundry-v14-portent.mjs";
 import {LANGUAGES} from "../helpers/level-up.mjs";
 import {chooseAbilityScores} from "./ability-scores.mjs";
@@ -140,7 +140,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       .filter(effect => effect.flags?.wildpath?.enchantment).map(effect => ({id: effect.id, name: effect.name}));
     // Items and effects whose rules can't be read (they are skipped): named, so they can be opened and fixed.
     context.brokenRules = [...this.actor.items, ...this.actor.effects]
-      .filter(document => (document.system?.ruleElements ?? []).length && ruleElementListErrors(document.system.ruleElements).length)
+      .filter(document => (document.system?.ruleElements ?? []).length && ruleProblems(document.system.ruleElements).length)
       .map(document => document.name);
     // A Diviner's foretelling rolls not yet used (Portent).
     context.portent = portentFeature(this.actor) ? portentDice(this.actor).map(die => die.value).join(", ") : "";
