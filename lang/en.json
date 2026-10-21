@@ -77,6 +77,12 @@
         "Capacity": "Carrying capacity (2024)",
         "Variant": "Variant encumbrance",
         "Off": "Off"
+      },
+      "Advancement": {
+        "Name": "Level Advancement",
+        "Hint": "By experience points (awarded when a combat ends) or by the GM's milestones (2024).",
+        "Xp": "Experience points",
+        "Milestone": "Milestones"
       }
     },
     "ABILITIES": {
@@ -1147,7 +1153,9 @@
       "CarriedOf": "Carried: {weight} / {capacity} lb",
       "OverCapacity": "Over capacity: Speed at most 5 ft",
       "Encumbered": "Encumbered: Speed −10 ft",
-      "HeavilyEncumbered": "Heavily encumbered: Speed −20 ft, Disadvantage on Might, Agility and Fortitude tests"
+      "HeavilyEncumbered": "Heavily encumbered: Speed −20 ft, Disadvantage on Might, Agility and Fortitude tests",
+      "Xp": "XP",
+      "XpNext": "next level at {xp}"
     },
     "PACKS": {
       "Actions": "WildPath Actions",
@@ -1255,6 +1263,17 @@
       "Lost": "{name}: the check (DC {dc}) failed, and the spell fades from the scroll.",
       "Make": "Make Spell Scroll",
       "Made": "{name} is in the Items directory."
+    },
+    "ENCOUNTER": {
+      "Difficulty": "Encounter: {difficulty} ({xp} XP; Low {low}, Moderate {moderate}, High {high})",
+      "low": "Low",
+      "moderate": "Moderate",
+      "high": "High",
+      "beyond": "Beyond High",
+      "Award": "Award experience",
+      "AwardHint": "The defeated foes are worth {xp} XP: {each} XP each for {names}.",
+      "Awarded": "{each} XP each: {names}.",
+      "LevelUp": "{names} may now level up."
     }
   },
   "TYPES": {

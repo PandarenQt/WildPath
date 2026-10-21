@@ -85,6 +85,18 @@ supplies rest completion events for the resting Actor. These paths commit result
 condition-removal plans through `EffectLifecycleCommitResolver`, `TargetMutationCommitResolver`,
 and `ResolutionTransaction`.
 
+**Encounters and experience (2026-10-22).** `helpers/encounters.mjs` holds the 2024 tables: XP by Challenge Rating,
+each character's XP budget by level (Low, Moderate, High; no multiplier for numbers) and the XP each level needs.
+`applications/encounters.mjs`, for the GM:
+- The combat tracker names the viewed combat's difficulty: its hostile creatures' XP (Token disposition hostile, NPCs)
+  against its player characters' budgets, e.g. "Encounter: Moderate (750 XP; Low 600, Moderate 900, High 1600)".
+- With the **Level Advancement** setting at experience points (the default; else milestones), a combat's end asks the
+  GM to award the XP of the hostile creatures it defeated, split evenly among its player characters
+  (`system.details.xp`, a new optional field), and the chat names who may now level up. A character's sheet shows its
+  XP and the next level's.
+Live (14.369): an ogre-sized foe (CR 2, 450 XP) against one 1st-level character was "Beyond High"; defeating it and
+ending the combat awarded 450 XP, and the chat said the character may level up.
+
 **Party rest (2026-10-21).** The GM's "Party Rest" tool among the Token controls (`applications/party-rest.mjs`) rests
 every player character at once, a Short Rest (1 hour) or a Long Rest (8 hours), each by `WildPathActor#rest()`, then
 moves the world's time on by those hours, so what lasts hours runs out. Each player spends Hit Dice from its sheet; an

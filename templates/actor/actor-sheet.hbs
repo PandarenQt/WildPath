@@ -20,6 +20,11 @@
         {{/each}}
         {{#if header.ac}}<span title="{{localize "WILDPATH.SHEET.EffectiveAc"}}">{{localize "WILDPATH.SHEET.AC"}} {{header.ac}}</span>{{/if}}
         {{#if header.level}}<span>{{localize "WILDPATH.SHEET.Level"}} {{header.level}}</span>{{/if}}
+        {{#if experience}}
+          <label class="actor-xp">{{localize "WILDPATH.SHEET.Xp"}}
+            <input type="number" name="system.details.xp" value="{{experience.value}}" min="0" step="1" {{disabled (not editable)}}>
+            {{#if experience.next}}<span>{{localize "WILDPATH.SHEET.XpNext" xp=experience.next}}</span>{{/if}}</label>
+        {{/if}}
         {{#if header.proficiency}}<span>{{localize "WILDPATH.SHEET.Proficiency" bonus=header.proficiency}}</span>{{/if}}
         {{#if challengeOptions}}
           <label class="actor-threat">{{localize "WILDPATH.SHEET.Threat"}}
