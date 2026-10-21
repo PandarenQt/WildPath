@@ -18,21 +18,35 @@ import {commonAction} from "../../module/helpers/common-actions.mjs";
 /** dnd5e ability keys to WildPath's. */
 export const ABILITY_MAP = Object.freeze({str: "might", dex: "agility", con: "fortitude", int: "intellect", wis: "wits", cha: "presence"});
 /**
- * The conditions an Item's 2024 text gives on a failed save: "On a failed save, a creature has the Prone condition",
- * "Failure: The target has the Charmed condition", "must succeed on a Dexterity saving throw or have the Restrained
- * condition". Not one put on its user ("on you").
+ * The conditions an Item's text gives on a failed save: 2024 "On a failed save, a creature has the Prone condition",
+ * "Failure: The target has the Charmed condition"; 2014 "or become frightened for 1 minute", with how long the 2014
+ * wording says (`duration`, when every one says the same). Not one put on its user ("on you").
  */
-function failedSaveConditions(document) {
+function failedSaveOutcome(document) {
   const found = new Set();
+  const durations = new Set();
   const text = plainText(document).replace(/&amp;Reference\[(\w+)[^\]]*\]/g, "$1");
   for ( const sentence of text.split(/(?<=[.!?])\s+/) ) {
-    if ( !/on a failed save|failure:|saving throw,? or (?:have|has)\b/i.test(sentence) || /\bon you\b/i.test(sentence) ) continue;
-    for ( const [, name] of sentence.matchAll(/\b(?:has|have) the (\w+) condition/gi) ) {
-      if ( CONDITION_MAP[name.toLowerCase()] ) found.add(CONDITION_MAP[name.toLowerCase()]);
+    if ( !/on a failed save|failure:|saving throw,? or (?:have|has|be|become)\b/i.test(sentence) || /\bon you\b/i.test(sentence) ) continue;
+    for ( const [, named, plain] of sentence.matchAll(/\b(?:(?:has|have) the (\w+) condition|(?:be|becomes?) (\w+)(?= for\b| until\b|[.,;]))/gi) ) {
+      const condition = CONDITION_MAP[String(named ?? plain).toLowerCase()];
+      if ( !condition ) continue;
+      found.add(condition);
+      const lasting = plain ? /\bfor (\d+|one) (round|minute|hour)s?\b/i.exec(sentence) : null;
+      durations.add(lasting ? `${Number(lasting[1]) || 1}:${LASTING_UNITS[lasting[2].toLowerCase()]}` : "");
     }
   }
-  return [...found];
+  const [only] = durations.size === 1 ? [...durations] : [""];
+  const [value, units] = (only ?? "").split(":");
+  return {conditions: [...found], ...(units ? {duration: {value: Number(value), units}} : {})};
 }
+
+/**
+ * Saves whose failure only tells its caster something or hides it (2024 Scrying, Detect Thoughts' probe, Seeming,
+ * Light on a held object): the marker on those that fail, for as long as it lasts, is all there is to automate.
+ */
+const NARRATIVE_SAVES = new Set(["scrying", "detect-thoughts", "seeming", "light", "read-thoughts", "crystal-ball", "crystal-ball-of-mind-reading",
+  "crystal-ball-of-telepathy", "crystal-ball-of-true-seeing", "helm-of-telepathy", "medallion-of-thoughts", "potion-of-mind-reading"]);
 
 /** dnd5e's duration units, as WildPath's. */
 const LASTING_UNITS = Object.freeze({turn: "turns", round: "rounds", minute: "minutes", hour: "hours", day: "days", month: "months",
@@ -2908,10 +2922,11 @@ function convertActivity({document, activity, system, spell, level, scales, note
   }
   // A save with nothing else converted (Grease, Zone of Truth): the conditions its 2024 text gives on a failure, else a
   // marker on the creatures that fail it, for as long as it lasts. What else it does is by hand.
-  if ( definition.save && !damage.length && !healing.length && !effects.length && !definition.check ) {
-    const conditions = failedSaveConditions(document);
+  // A push or pull is its own (forcedMovement, added after: Gust of Wind).
+  if ( definition.save && !damage.length && !healing.length && !effects.length && !definition.check && !forcedMovement(document, definition) ) {
+    const {conditions, duration: lasts} = failedSaveOutcome(document);
     for ( const conditionId of conditions ) effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId,
-      saveOutcomePolicy: "failure", ...(concentration ? {concentration: true} : {})});
+      saveOutcomePolicy: "failure", ...(lasts ? {duration: lasts} : {}), ...(concentration ? {concentration: true} : {})});
     const lasting = conditions.length ? null : lastingDuration(pick(activity, system, "duration"));
     if ( lasting || (!conditions.length && concentration) ) effects.push({id: "effect-1", type: "effect", name: document.name,
       ...(document.img ? {img: document.img} : {}), ruleElements: [], ...(lasting ? {duration: lasting} : {}), saveOutcomePolicy: "failure",
@@ -2919,7 +2934,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
     if ( effects.length ) {
       definition.effects = effects;
       notes.push(conditions.length ? `save: a failure gives ${conditions.join(", ")} (its text); the rest is by hand`
-        : "save: a failure marks its creature only; what it does is by hand");
+        : (NARRATIVE_SAVES.has(identifierOf(document)) ? "save: a failure marks its creature (narrative)"
+          : "save: a failure marks its creature only; what it does is by hand"));
     }
   }
   if ( concentration && !effects.length ) notes.push("concentration: nothing it sustains was converted");

@@ -39,6 +39,7 @@ const RULES = [
   [/concentration: its caster concentrates/, () => "concentration sustained (its effect is noted apart)"],
   [/^not automated \((\w+)\)/, match => `used, not automated: ${match[1]} activity`],
   [/save: a failure gives/, () => "save: conditions from its text (the rest by hand)"],
+  [/save: a failure marks its creature \(narrative\)/, () => "narrative save (it tells or hides; nothing to automate)"],
   [/save: a failure marks its creature only/, () => "save: a failure marks its creature (rules by hand)"],
   [/^rolled \((\w+)\); what it does is by hand/, match => `rolled, consequences by hand: ${match[1]} activity`],
   [/^not automated:/, () => "used, not automated: no activity"],
@@ -60,7 +61,7 @@ const RULES = [
 ];
 /** Reasons that say how something is handled rather than what is missing: counted apart from the real gaps. */
 const INFORMATIONAL = new Set(["narrative use (its cost is all there is)", "passive trait (its text is its rule)",
-  "narrative marker (a reminder, nothing to automate)",
+  "narrative marker (a reminder, nothing to automate)", "narrative save (it tells or hides; nothing to automate)",
   "concentration sustained (its effect is noted apart)",
   "long activation (minutes, hours)", "resistance bypasses"]);
 

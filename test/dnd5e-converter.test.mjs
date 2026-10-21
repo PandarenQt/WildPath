@@ -1059,6 +1059,17 @@ test("a save with nothing else converted: the conditions its text gives on a fai
   assert.equal(counter.system.definition.effects, undefined, "instantaneous: nothing to mark");
   const [orb] = convertItem(spell("testDragonOrb001", "Orb", "<p>On a failed save, the orb imposes the Charmed condition on you.</p>")).items;
   assert.equal(orb.system.definition.effects, undefined, "not a condition on its user");
+
+  const [visage] = convertItem(spell("testVisage000001", "Horrifying Visage", "<p>Each non-undead creature within 60 feet that can see it "
+    + "must succeed on a DC 13 Wisdom saving throw or be frightened for 1 minute.</p>")).items;
+  assert.deepEqual(visage.system.definition.effects.map(effect => [effect.conditionId, effect.duration]), [["frightened", {value: 1, units: "minutes"}]],
+    "2014 wording, and how long");
+  const [gust] = convertItem(spell("testGustOfWind01", "Gust of Wind", "<p>Each creature in the Line must succeed on a Strength saving "
+    + "throw or be pushed 15 feet away from you in a direction following the Line.</p>")).items;
+  assert.deepEqual([gust.system.definition.effects, gust.system.definition.push.distance], [undefined, 15], "its push, no marker");
+  const [scry] = convertItem(spell("testScrying00001", "Scrying", "<p>The target makes a Wisdom saving throw.</p>",
+    {duration: {value: "10", units: "minute"}})).items;
+  assert.ok(scry.flags.wildpath.conversion.notes.includes("save: a failure marks its creature (narrative)"));
 });
 
 test("Polymorph: a failed save transforms the creature into a Beast its caster chooses; a wand casting it keeps the choice", () => {
