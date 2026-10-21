@@ -610,7 +610,12 @@
       "ShortRestTitle": "{name}: Short Rest",
       "HitDiceHint": "Hit points {value} / {max}. Spend Hit Dice to heal: each heals its roll plus your Fortitude modifier.",
       "HitDiceSpend": "{die} ({value} of {max} left)",
-      "HitDice": "{name} spends {count}{die}: regains {amount}"
+      "HitDice": "{name} spends {count}{die}: regains {amount}",
+      "Party": "Party Rest",
+      "PartyHint": "Every player character rests, and the world's time moves on: 1 hour for a Short Rest, 8 for a Long Rest.",
+      "Short": "Short Rest",
+      "Long": "Long Rest",
+      "PartyRested": "{rest}: {names}."
     },
     "TEST": {
       "IntroOwner": "Try the Action as {owner} would use it now, against a sample target; costs are checked against what {owner} has left. Nothing is changed or spent.",

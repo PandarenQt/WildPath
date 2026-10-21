@@ -85,6 +85,12 @@ supplies rest completion events for the resting Actor. These paths commit result
 condition-removal plans through `EffectLifecycleCommitResolver`, `TargetMutationCommitResolver`,
 and `ResolutionTransaction`.
 
+**Party rest (2026-10-21).** The GM's "Party Rest" tool among the Token controls (`applications/party-rest.mjs`) rests
+every player character at once, a Short Rest (1 hour) or a Long Rest (8 hours), each by `WildPathActor#rest()`, then
+moves the world's time on by those hours, so what lasts hours runs out. Each player spends Hit Dice from its sheet; an
+interrupted rest is the GM's call. Live (14.369): a Long Rest took a player's character from 3 to 10 health and the world
+8 hours on.
+
 `ConditionTriggerResolver` also consumes turn-start events for condition Trigger RuleElements. The
 current representative implementation is Bleeding's turn-start durability damage. Since 2026-10-20 that damage is
 resolved by the authority as a damage-only Action on the creature (`game.wildpath.turnDamage`,
