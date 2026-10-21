@@ -9,6 +9,7 @@ import {registerSunlightConfig} from "./module/applications/sunlight-config.mjs"
 import {registerPartyRest} from "./module/applications/party-rest.mjs";
 import {registerEncounters} from "./module/applications/encounters.mjs";
 import {registerJourney} from "./module/applications/journey.mjs";
+import {registerChases} from "./module/applications/chases.mjs";
 import {registerChatCardInteractions} from "./module/adapters/foundry-v14-chat-card-interactions.mjs";
 import {registerInspirationRerolls} from "./module/applications/inspiration-reroll.mjs";
 import {registerPortent} from "./module/adapters/foundry-v14-portent.mjs";
@@ -108,6 +109,7 @@ Hooks.once("init", () => {
   registerPartyRest();
   registerEncounters();
   registerJourney();
+  registerChases();
 
   // Trackable Token attributes
   CONFIG.Actor.trackableAttributes = {
