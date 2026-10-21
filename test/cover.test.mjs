@@ -60,3 +60,11 @@ test("the card shows each target's cover", () => {
   const view = createResolutionCardViewModel({targets: [orc], outcomes: {cover: [{target: {...orc}, degree: "half"}]}});
   assert.equal(view.targets[0].cover.label, "WILDPATH.COVER.half");
 });
+
+test("a cover condition is its creature's cover wherever it stands, unless the walls give more", async () => {
+  const {actionCover} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const target = statuses => ({id: "t", parent: null, actor: {statuses: new Set(statuses)}});
+  assert.equal(actionCover({definition: {}, sourceToken: {id: "s"}, targetToken: target(["coverTotal"])}), "total", "swallowed");
+  assert.equal(actionCover({definition: {}, sourceToken: {id: "s"}, targetToken: target(["coverHalf"])}), "half");
+  assert.equal(actionCover({definition: {}, sourceToken: {id: "s"}, targetToken: target([])}), "none");
+});

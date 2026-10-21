@@ -204,12 +204,25 @@
         "Bleeding": "Bleeding damage at the start of each of your turns.",
         "Stunned2014": "Incapacitated, Speed 0. You fail Might and Agility saves; attacks against you have advantage.",
         "Grappled2014": "Speed 0.",
-        "Exhaustion2014": "Level 1: disadvantage on checks. 2: half Speed. 3: disadvantage on attacks and saves. 4: half Hit Point maximum. 5: Speed 0. 6: death."
+        "Exhaustion2014": "Level 1: disadvantage on checks. 2: half Speed. 3: disadvantage on attacks and saves. 4: half Hit Point maximum. 5: Speed 0. 6: death.",
+        "Burning": "1d4 Fire damage at the start of each of your turns, until the fire is put out.",
+        "Cursed": "A curse is on you; its effect or text says what it does. Remove Curse ends it.",
+        "Ethereal": "You are on the Ethereal Plane: you and creatures that are not can't target each other.",
+        "CoverHalf": "+2 to your AC and Agility saves wherever you stand.",
+        "CoverThreeQuarters": "+5 to your AC and Agility saves wherever you stand.",
+        "CoverTotal": "You can't be targeted directly."
       },
       "TurnDamageOf": {
         "Envenomed": "Envenomed Turn Damage",
-        "Bleeding": "Bleeding Turn Damage"
-      }
+        "Bleeding": "Bleeding Turn Damage",
+        "Burning": "Burning Turn Damage"
+      },
+      "Burning": "Burning",
+      "Cursed": "Cursed",
+      "Ethereal": "Ethereal",
+      "CoverHalf": "Half Cover",
+      "CoverThreeQuarters": "Three-Quarters Cover",
+      "CoverTotal": "Total Cover"
     },
     "PROMPT": {
       "Confirm": "Confirm",
@@ -1171,7 +1184,8 @@
       "MovementMode": "This creature can't move that way.",
       "ReactionStopped": "A reaction stopped the move.",
       "Displaced": "A reaction moved the creature; its move ends there.",
-      "Blocked": "Something blocks that path."
+      "Blocked": "Something blocks that path.",
+      "Ethereal": "A creature on the Ethereal Plane and one that is not can't target each other."
     },
     "NOTICE": {
       "StepFailed": "WildPath: {step} failed. The console has the details.",

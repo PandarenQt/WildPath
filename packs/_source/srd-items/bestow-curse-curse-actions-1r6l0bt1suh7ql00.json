@@ -59,16 +59,14 @@
       "effects": [
         {
           "id": "effect-1",
-          "type": "effect",
-          "name": "Cursed Actions",
-          "img": "icons/magic/control/debuff-chains-shackles-movement-blue.webp",
-          "ruleElements": [],
+          "type": "condition",
+          "conditionId": "cursed",
+          "saveOutcomePolicy": "failure",
           "duration": {
             "value": 60,
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "saveOutcomePolicy": "failure",
           "concentration": true,
           "metadata": {
             "tags": [
@@ -162,10 +160,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: cursed is not a WildPath condition yet",
-          "effect: \"Cursed Actions\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

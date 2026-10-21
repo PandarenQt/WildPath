@@ -2088,6 +2088,17 @@ test("resolution result/error envelopes are rejected unless they come from the e
     "A forged resolution error from a non-authoritative sender must be rejected before being recorded.");
 });
 
+test("an ethereal creature and one that is not can't target each other; two ethereal ones can", async t => {
+  const strike = syntheticRuntimeFixture(t, meleeStrikeDefinition());
+  strike.targetActor.statuses = new Set(["ethereal"]);
+  const refused = await foundryActionIntentToStagedOptions({intent: strike.intent, senderUserId: "player-a", game: strike.game});
+  assert.equal(refused.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED);
+  assert.match(refused.reason, /REFUSAL.Ethereal|Ethereal Plane/);
+  strike.sourceActor.statuses = new Set(["ethereal"]);
+  const both = await foundryActionIntentToStagedOptions({intent: strike.intent, senderUserId: "player-a", game: strike.game});
+  assert.equal(both.ok, true, JSON.stringify(both.reason));
+});
+
 test("a transformed creature can't cast spells, but its other Actions still resolve (2024 Wild Shape)", async t => {
   const spell = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), tags: ["spell"]});
   spell.sourceActor.transformation = {effect: {}, policy: {formRef: "Actor.bear"}};

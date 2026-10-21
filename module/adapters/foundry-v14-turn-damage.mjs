@@ -7,7 +7,7 @@ export function createFoundryTurnDamage({ game, coordinator, resolveAction, logg
      * the combat (`token`), else its own or one on the viewed Scene. Without any, it still resolves on the creature
      * (resistances, rescue and dying; no reactions, which need a position). False only when there is no damage.
      */
-    async function apply(actor, { amount, damageType = null, label = null, token: given = null }) {
+    async function apply(actor, { amount, expression = null, damageType = null, label = null, token: given = null }) {
         if (!(Number(amount) > 0))
             return false;
         const token = [given, actor.isToken ? actor.token : null, actor.getActiveTokens?.(false, true)?.[0]]
@@ -20,7 +20,8 @@ export function createFoundryTurnDamage({ game, coordinator, resolveAction, logg
             // No range: it is always its own creature's (and a creature with no Token has no position to measure from).
             definition: { schemaVersion: 1, id: "action:condition-damage", label: name, costs: { allOf: [] }, tags: ["condition-damage"],
                 targeting: { type: "self" },
-                damage: [{ id: "condition", expression: { type: "constant", value: Number(amount) }, ...(damageType ? { damageType } : {}) }] } });
+                // Its dice, rolled here (Burning's 1d4), else the amount planned.
+                damage: [{ id: "condition", expression: expression ?? { type: "constant", value: Number(amount) }, ...(damageType ? { damageType } : {}) }] } });
         return true;
     }
     return { apply };

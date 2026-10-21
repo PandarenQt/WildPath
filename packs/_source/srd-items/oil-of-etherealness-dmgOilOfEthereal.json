@@ -40,10 +40,8 @@
       "effects": [
         {
           "id": "effect-1",
-          "type": "effect",
-          "name": "Etherealness",
-          "img": "systems/dnd5e/icons/svg/statuses/ethereal.svg",
-          "ruleElements": [],
+          "type": "condition",
+          "conditionId": "ethereal",
           "duration": {
             "value": 3600,
             "units": "seconds",
@@ -84,10 +82,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: ethereal is not a WildPath condition yet",
-          "effect: \"Etherealness\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

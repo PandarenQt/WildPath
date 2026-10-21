@@ -247,6 +247,12 @@
             {
               "id": "effect-1",
               "type": "condition",
+              "conditionId": "coverTotal",
+              "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
               "conditionId": "restrained",
               "saveOutcomePolicy": "failure",
               "metadata": {
@@ -273,7 +279,6 @@
           },
           "conversion": {
             "notes": [
-              "effect: coverTotal is not a WildPath condition yet",
               "effect: suffocation is not a WildPath condition yet"
             ]
           }
@@ -353,7 +358,6 @@
           "Ooze Cube: \"Pull Check\" is passive or triggered: not automated",
           "Ooze Cube: \"Puller Damage\" is passive or triggered: not automated",
           "Transparent: \"check\" is passive or triggered (narrative): not automated",
-          "Engulf: effect: coverTotal is not a WildPath condition yet",
           "Engulf: effect: suffocation is not a WildPath condition yet"
         ]
       }

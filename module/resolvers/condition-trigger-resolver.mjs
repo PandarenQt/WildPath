@@ -176,6 +176,8 @@ function planConditionDispatchPayload(dispatch, {actor, actorSystem, actorRef, e
     });
   }
 
+  // Dice (Burning's 1d4) are rolled by the Action that applies it (turnDamage); planned here at their average.
+  const rolled = JSON.stringify(amountExpression).includes("\"dice\"");
   const amount = evaluateValueExpression(amountExpression, {
     actor,
     actorSystem,
@@ -183,7 +185,8 @@ function planConditionDispatchPayload(dispatch, {actor, actorSystem, actorRef, e
     event,
     dispatch,
     payload,
-    ...context
+    ...context,
+    ...(rolled ? {diceMode: "average"} : {})
   });
   if ( !amount.ok ) {
     return conditionTriggerFailure(CONDITION_TRIGGER_CODES.INVALID_VALUE, amount.reason, {
@@ -209,7 +212,8 @@ function planConditionDispatchPayload(dispatch, {actor, actorSystem, actorRef, e
       payloadType
     },
     damageType: payload.damageType ?? null,
-    tags: uniqueStrings(payload.tags ?? [])
+    tags: uniqueStrings(payload.tags ?? []),
+    ...(rolled ? {amountExpression: structuredClone(amountExpression)} : {})
   };
   const source = {
     type: "conditionTrigger",
@@ -218,7 +222,8 @@ function planConditionDispatchPayload(dispatch, {actor, actorSystem, actorRef, e
     ruleElement: dispatch.metadata?.ruleElement ?? null
   };
   const options = {
-    amount: amount.value,
+    // An average is rounded down, as a stat block's is.
+    amount: rolled ? Math.floor(amount.value) : amount.value,
     resourceId,
     source,
     target: actorRef,

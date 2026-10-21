@@ -925,7 +925,8 @@ export default class WildPathActor extends Actor {
     for ( const plan of result.mutationPlans ) {
       const temporary = Math.max((Number(plan.temporary?.from) || 0) - (Number(plan.temporary?.to) || 0), 0);
       const resolved = (plan.type === "damage") && turnDamage ? await turnDamage.apply(this, {
-        amount: (Number(plan.amount) || 0) + temporary, damageType: plan.metadata?.damageType ?? null, token}) : false;
+        amount: (Number(plan.amount) || 0) + temporary, expression: plan.metadata?.amountExpression ?? null,
+        damageType: plan.metadata?.damageType ?? null, token}) : false;
       if ( !resolved ) committed.push(plan);
     }
     const updates = Object.assign({}, ...committed.map(plan => plan.updates));

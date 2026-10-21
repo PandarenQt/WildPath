@@ -40,10 +40,17 @@ import {COVER_BONUS, coverBetween, foundrySightCollision} from "../adapters/foun
  * origin (a radial area's first point; a cone or line starts at the caster). "none" without walls to test (no canvas).
  */
 export function actionCover({definition, sourceToken, targetToken, points=[]}) {
-  const collides = foundrySightCollision(targetToken?.parent);
-  if ( !collides || !sourceToken || !targetToken || (targetToken.id === sourceToken.id) ) return "none";
+  if ( !sourceToken || !targetToken || (targetToken.id === sourceToken.id) ) return "none";
+  // Its own cover condition (a swallowed creature's Total Cover), else none; the walls' if better.
+  const statuses = targetToken.actor?.statuses;
+  const own = ["coverTotal", "coverThreeQuarters", "coverHalf"].find(status => statuses?.has?.(status));
+  const held = own ? {coverTotal: "total", coverThreeQuarters: "threeQuarters", coverHalf: "half"}[own] : "none";
+  const collides = foundrySightCollision(targetToken.parent);
+  if ( !collides || (held === "total") ) return held;
   const origin = ((definition?.targeting?.type === "area") && (definition.area?.shape === "radial") && points[0]) ? points[0] : null;
-  return coverBetween({source: origin ? null : sourceToken, origin, target: targetToken, collides});
+  const walls = coverBetween({source: origin ? null : sourceToken, origin, target: targetToken, collides});
+  const order = ["none", "half", "threeQuarters", "total"];
+  return order.indexOf(walls) >= order.indexOf(held) ? walls : held;
 }
 import {createFoundryWeaponMastery} from "../adapters/foundry-v14-weapon-mastery.mjs";
 import {
@@ -851,6 +858,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   }
   // 2024 Total Cover: a creature behind it can't be targeted directly (an area's is left out of the area).
   if ( (definition?.targeting?.type !== "area") && targetEntries.some(entry => entry.cover === "total") ) return refused("WILDPATH.COVER.TotalRefused");
+  // On the Ethereal Plane: an ethereal creature and one that is not can't target each other (an area's leaves it out by
+  // hand). shortcut: an area's targets are not filtered; upgrade when areas drop the ones on another plane.
+  const ethereal = creature => Boolean(creature?.statuses?.has?.("ethereal"));
+  if ( !authorityAction && (definition?.targeting?.type !== "area")
+    && targetEntries.some(({actor: target}) => (target !== actor) && (ethereal(target) !== ethereal(actor))) ) return refused("WILDPATH.REFUSAL.Ethereal");
   // 2024 Charmed: a charmed creature can't attack its charmer or target it with damage or harmful effects.
   const harmful = definition && (definition.attack || definition.save || definition.damage.length || definition.effects.length);
   if ( harmful && !authorityAction && targetEntries.some(({actor: target}) => conditionsFrom(actor, target, game).charmed) ) return refused("WILDPATH.REFUSAL.Charmed");

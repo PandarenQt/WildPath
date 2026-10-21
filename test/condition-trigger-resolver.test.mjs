@@ -100,6 +100,16 @@ test("Envenomed stacks: each stack deals 1 poison at turn start, and 2024 Poison
   assert.deepEqual(result.mutationPlans[0].updates, {"system.resources.health.value": 7});
 });
 
+test("Burning: 1d4 Fire at turn start, planned at its average (2) and its dice kept for the Action that rolls them", () => {
+  const result = planConditionTriggerConsequences({actor: actor("actor-a"), actorSystem: actorSystem({health: 10}),
+    effects: [conditionEffect({id: "effect-burning", conditionId: "burning", ruleElements: WILDPATH.CONDITIONS.burning.ruleElements})],
+    events: [turnStart("actor-a")]});
+  assert.equal(result.ok, true, JSON.stringify(result.failures));
+  const [plan] = result.mutationPlans;
+  assert.deepEqual([plan.updates, plan.metadata.damageType, plan.metadata.amountExpression],
+    [{"system.resources.health.value": 8}, "fire", {type: "dice", number: 1, faces: 4}]);
+});
+
 test("condition Trigger RuleElements ignore other actors' turn-start events", () => {
   const result = planConditionTriggerConsequences({
     actor: actor("actor-a"),
