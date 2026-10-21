@@ -2866,6 +2866,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const weapon = weaponOf(document);
     if ( weapon ) attack.weapon = weapon;
     definition.attack = attack;
+    // The ammunition it fires (a Longbow's arrows), which its character's gear supplies.
+    if ( (system.properties ?? []).includes("amm") && system.ammunition?.type ) definition.ammunition = system.ammunition.type;
   }
   const range = rangeOf({activity, system, document, attack});
   if ( range ) definition.range = range;

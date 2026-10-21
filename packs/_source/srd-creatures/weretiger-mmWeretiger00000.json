@@ -108,6 +108,7 @@
               "mastery": "slow"
             }
           },
+          "ammunition": "arrow",
           "range": {
             "type": "ranged",
             "normal": {

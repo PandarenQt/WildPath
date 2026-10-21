@@ -160,6 +160,20 @@ block's Speed is its own. The sheet shows "Carried: 200 / 150 lb" and what the l
 
 Live (14.369): a Might 10 character carried up to 150 lb; a 200 lb anvil made its Speed 5 ft, and 40 lb gave 30 back.
 
+## Ammunition (2026-10-21)
+
+A weapon with the Ammunition property names what it fires (`definition.ammunition`: "arrow", "crossbowBolt",
+"slingBullet", "blowgunNeedle", "firearmBullet"; the converter reads dnd5e's `system.ammunition.type`). Its character's
+gear of that kind (`flags.wildpath.source.subtype`) supplies it (`adapters/foundry-v14-ammunition.mjs`):
+- An attack with none left is refused ("Out of ammunition for that weapon.").
+- Each attack spends one on the authority, after it resolves. In combat it is counted on its creature
+  (`flags.wildpath.ammunitionSpent`, by Item).
+- When the combat ends, the active GM is asked whether its creatures recover half of what they spent (2024: a minute's
+  search, rounded down); the count is cleared either way.
+- Only characters: a stat block's attacks need none.
+
+Live (14.369): a character's Longbow shot spent its one arrow, and the next shot was refused.
+
 ## Item enchantments (2026-10-20)
 
 An Action with `enchant` puts an effect on one of its creature's Items: an Artificer's infusions, from Tasha's, through

@@ -29,6 +29,7 @@
           "mastery": "slow"
         }
       },
+      "ammunition": "firearmBullet",
       "range": {
         "type": "ranged",
         "normal": {

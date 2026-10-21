@@ -139,6 +139,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     ...(raw.moveArea ? {moveArea: normalizePlainComponent(raw.moveArea)} : {}),
     // Teleports its own creature up to `distance` feet to a space it chooses (Misty Step, Dimension Door).
     ...(raw.teleport ? {teleport: normalizePlainComponent(raw.teleport)} : {}),
+    // The ammunition a weapon's attack spends ("arrow": adapters/foundry-v14-ammunition.mjs).
+    ...(raw.ammunition ? {ammunition: String(raw.ammunition)} : {}),
     // Enchants one of its creature's Items (an Artificer's infusion: inventory.md): the Item its `choiceId` choice picked
     // gets the effect whose `level` range holds its creature's class level; at most `limit` with its `key` at once.
     ...(raw.enchant ? {enchant: normalizePlainComponent(raw.enchant)} : {}),
