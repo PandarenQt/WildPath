@@ -1744,9 +1744,7 @@
             "castBy": "Protective Magic"
           },
           "conversion": {
-            "notes": [
-              "rolled (save); what it does is by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -2401,8 +2399,7 @@
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: \"Raise Zombie\" is passive or triggered: not automated",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated",
-          "Protective Magic: rolled (save); what it does is by hand"
+          "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated"
         ]
       }
     }
