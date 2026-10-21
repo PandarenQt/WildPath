@@ -17,7 +17,7 @@ interface ProgressionSystem {
 export interface LevelItem {id: string; name: string; type: string; system: ProgressionSystem; update(data: Data): Promise<unknown>}
 export interface LevelActor {
   name: string; system: Data & {abilities?: Record<string, {value?: number}>; skills?: Record<string, {proficiency?: number}>;
-    training?: Record<string, string[]>; resources: {health: {base: number; value: number}}};
+    training?: Record<string, string[]>; resources: {health: {base: number; value: number; perLevelFortitude?: number | null}}};
   items: {filter(fn: (item: LevelItem) => boolean): LevelItem[]; get?(id: string): {update(data: Data): Promise<unknown>} | undefined};
   toObject(source?: boolean): {system: {pools: Array<{id: string; value: number}>}};
   update(data: Data): Promise<unknown>;
@@ -284,7 +284,7 @@ export async function levelUp(actor: LevelActor, item: LevelItem, {level, confir
     hitPoints: isClass ? (rolled ? format("WILDPATH.LEVELUP.HitPointsRolled", {die: `d${hitDie}`, fortitude})
       : format("WILDPATH.LEVELUP.HitPoints", {value: hitPointsForLevel({hitDie, first, fortitude})})) : null};
   const sections = steps.map((step, index) => stepHtml(step, index, actor, view)).join("");
-  if ( !confirm && !/<(?:input|select)\b/u.test(sections) && !view.hitPoints ) return apply(actor, item, {level, steps, form: new FormData(), first, hitDie, fortitude, rolled});
+  if ( !confirm && !/<(?:input|select)\b/u.test(sections) && !view.hitPoints ) return apply(actor, item, {level, steps, form: new FormData(), first, hitDie, fortitude, rolled, earlier: otherLevels + level - 1});
   const content = `<div class="wildpath level-up">${view.hitPoints ? `<p class="level-up-hp">${escape(view.hitPoints)}</p>` : ""}${
     sections || `<p>${localize("WILDPATH.LEVELUP.Nothing")}</p>`}</div>`;
   const form = await DialogV2.wait({classes: ["wildpath", "themed", "theme-light"],
@@ -300,12 +300,12 @@ export async function levelUp(actor: LevelActor, item: LevelItem, {level, confir
     rejectClose: false
   });
   if ( !(form instanceof FormData) ) return false;
-  return apply(actor, item, {level, steps, form, first, hitDie, fortitude, rolled});
+  return apply(actor, item, {level, steps, form, first, hitDie, fortitude, rolled, earlier: otherLevels + level - 1});
 }
 
 /** What the answered steps change, in order: the class's level, the creature, its new Items, then a subclass's own steps. */
-async function apply(actor: LevelActor, item: LevelItem, {level, steps, form, first, hitDie, fortitude, rolled}: {level: number;
-  steps: LevelStep[]; form: FormData; first: boolean; hitDie: number; fortitude: number; rolled: boolean}): Promise<boolean> {
+async function apply(actor: LevelActor, item: LevelItem, {level, steps, form, first, hitDie, fortitude, rolled, earlier}: {level: number;
+  steps: LevelStep[]; form: FormData; first: boolean; hitDie: number; fortitude: number; rolled: boolean; earlier: number}): Promise<boolean> {
   const picked = (name: string) => form.getAll(name).map(String).filter(Boolean);
   const uuids: string[] = [];
   // What each step's Item gives (its picks too), recorded on that Item (`flags.wildpath.training`), not on the creature.
@@ -352,16 +352,19 @@ async function apply(actor: LevelActor, item: LevelItem, {level, steps, form, fi
   const footprint = size ? TOKEN_SIZES[size] : undefined;
   if ( footprint ) Object.assign(updates, {"prototypeToken.width": footprint, "prototypeToken.height": footprint});
   if ( item.type === "class" ) {
-    // shortcut: a later Fortitude increase does not raise earlier levels' hit points; edit the maximum if it should.
     let gained = hitPointsForLevel({hitDie, first, fortitude});
     if ( rolled ) {
       const roll = await new (globals().Roll)(`1d${hitDie}`).evaluate();
       await roll.toMessage({flavor: format("WILDPATH.LEVELUP.HitPointsRoll", {name: actor.name, class: item.name, level})});
       gained = Math.max(1, roll.total + fortitude);
     }
+    // The base counts one Fortitude modifier for every level (`perLevelFortitude`): this level's. Levels gained with
+    // another are brought to it first, so the maximum (which counts the current modifier) does not change by it.
     const health = actor.system.resources.health;
-    updates["system.resources.health.base"] = first ? gained : health.base + gained;
+    const counted = Number.isInteger(health.perLevelFortitude) ? health.perLevelFortitude! : fortitude;
+    updates["system.resources.health.base"] = first ? gained : health.base + ((fortitude - counted) * Math.max(earlier, 0)) + gained;
     updates["system.resources.health.value"] = first ? gained : health.value + gained;
+    updates["system.resources.health.perLevelFortitude"] = fortitude;
     if ( level > (Number(item.system.levels) || 1) ) await item.update({"system.levels": level});
     // One more Hit Die to spend (a new class's pool starts full; the maximum is its classes' levels), read once the
     // Actor has stored what the new level makes of it (its class records and pools), so this write isn't stale.

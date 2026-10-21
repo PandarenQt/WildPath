@@ -66,7 +66,7 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
         ac: defenseField({initial: null})
       }),
       resources: new SchemaField({
-        health: resourceField({initial: 10, recovery: "none", temporary: true}),
+        health: resourceField({initial: 10, recovery: "none", temporary: true, fortitude: true}),
         action: resourceField({initial: 1, recovery: "turn", counted: true}),
         bonus: resourceField({initial: 1, recovery: "turn", counted: true}),
         reaction: resourceField({initial: 1, recovery: "turn", counted: true}),
@@ -296,6 +296,13 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
   #applyResourceModifiers() {
     for ( const id of Object.keys(this.resources) ) {
       this.resources[id].modifierBonus = this.parent.getStatistic?.(`resources.${id}.max`)?.totalModifier ?? 0;
+    }
+    // 2024: Hit Points count the current Fortitude modifier at every level, not the one each level was gained with.
+    const counted = this.resources.health?.perLevelFortitude;
+    const level = Number(this.details?.level) || 0;
+    if ( Number.isInteger(counted) && level ) {
+      const fortitude = Math.floor(((Number(this.abilities?.fortitude?.value) || 10) - 10) / 2);
+      this.resources.health.modifierBonus += (fortitude - counted) * level;
     }
     // Spell slot pools also hold what the class progression gives at the current caster level, and every
     // pool what its grants give (`GrantResource`).

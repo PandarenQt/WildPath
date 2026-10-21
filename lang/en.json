@@ -1195,7 +1195,8 @@
       "Done": "WildPath finished updating this world's data.",
       "Failed": "WildPath couldn't finish updating this world ({name}). The console has the details; it tries again at the next start.",
       "Threat": "fractional Challenge Ratings",
-      "StalePools": "removing pools left by deleted Items"
+      "StalePools": "removing pools left by deleted Items",
+      "Fortitude": "Hit Points that follow Fortitude"
     }
   },
   "TYPES": {

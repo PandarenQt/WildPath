@@ -10,7 +10,7 @@ const {SchemaField, NumberField, StringField, ArrayField, SetField, BooleanField
  * @param {string} [options.recovery="none"]  Default recovery cadence for this pool.
  * @returns {SchemaField}
  */
-export function resourceField({initial=0, recovery="none", counted=false, temporary=false}={}) {
+export function resourceField({initial=0, recovery="none", counted=false, temporary=false, fortitude=false}={}) {
   return new SchemaField({
     base: new NumberField({required: true, integer: true, initial}),
     bonus: new NumberField({required: true, integer: true, initial: 0}),
@@ -22,6 +22,10 @@ export function resourceField({initial=0, recovery="none", counted=false, tempor
     ...(counted ? {spent: new NumberField({required: true, integer: true, initial: 0, min: 0})} : {}),
     // Temporary Hit Points (2024): lost before `value`, never healed, and gone after a Long Rest.
     ...(temporary ? {temp: new NumberField({required: true, integer: true, initial: 0, min: 0})} : {}),
+    // Hit Points built level by level: the Fortitude modifier its `base` counts for each level. The maximum then counts
+    // the current one instead (2024: a later increase, or an Amulet of Health, counts for every level); null when the
+    // base was not built by level-up.
+    ...(fortitude ? {perLevelFortitude: new NumberField({required: false, nullable: true, integer: true, initial: null})} : {}),
     recovery: new StringField({required: true, initial: recovery,
       choices: ["turn", "shortRest", "longRest", "none"]})
   });

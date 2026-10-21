@@ -35,6 +35,19 @@ export function threatFix(source) {
   return source.system?.details?.threat === challenge ? null : challenge;
 }
 
+/**
+ * The Fortitude modifier a character's Hit Point base counts for each level (`perLevelFortitude`), for one built by
+ * level-up before the base recorded it (it has class records): its stored Fortitude's, as it most likely was. Else null.
+ * @param {{type?: string, system?: {classes?: unknown[], abilities?: {fortitude?: {value?: number}},
+ *   resources?: {health?: {perLevelFortitude?: number|null}}}}} source
+ * @returns {number|null}
+ */
+export function fortitudeFix(source) {
+  const system = source?.system;
+  if ( (source?.type !== "character") || !system?.classes?.length || Number.isInteger(system.resources?.health?.perLevelFortitude) ) return null;
+  return Math.floor(((Number(system.abilities?.fortitude?.value) || 10) - 10) / 2);
+}
+
 /** Every world Actor, then the unlinked Tokens' own Actors on every Scene (after their base, so they see its fix). */
 function* everyActor(game) {
   yield* game.actors ?? [];
@@ -47,6 +60,13 @@ async function migrateThreat(game) {
   for ( const actor of everyActor(game) ) {
     const threat = threatFix(actor.toObject(true));
     if ( threat !== null ) await actor.update({"system.details.threat": threat});
+  }
+}
+
+async function recordFortitude(game) {
+  for ( const actor of everyActor(game) ) {
+    const fortitude = fortitudeFix(actor.toObject(true));
+    if ( fortitude !== null ) await actor.update({"system.resources.health.perLevelFortitude": fortitude});
   }
 }
 
@@ -64,7 +84,8 @@ export async function pruneActorPools(actor) {
 /** The migrations, oldest first. A new one takes the next version. */
 export const MIGRATIONS = Object.freeze([
   {version: 1, name: "WILDPATH.MIGRATION.Threat", run: migrateThreat},
-  {version: 2, name: "WILDPATH.MIGRATION.StalePools", run: pruneStalePools}
+  {version: 2, name: "WILDPATH.MIGRATION.StalePools", run: pruneStalePools},
+  {version: 3, name: "WILDPATH.MIGRATION.Fortitude", run: recordFortitude}
 ]);
 
 /**
