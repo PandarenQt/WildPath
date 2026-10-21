@@ -2,7 +2,8 @@ import {cpSync, existsSync, mkdtempSync, readFileSync, rmSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {join, relative, resolve} from "node:path";
 import {extractPack} from "@foundryvtt/foundryvtt-cli";
-import {PROGRESSION_TYPES, beastsOf, convertActor, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables} from "./dnd5e-to-wildpath.mjs";
+import {PROGRESSION_TYPES, beastsOf, convertActor, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables,
+  withRedirects} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 import {writeLocalModule} from "./local-module.mjs";
 
@@ -43,12 +44,14 @@ const scales = scaleTables([...srdDocuments, ...all]);
 const names = nameIndex([...srdDocuments, ...all]);
 // The spells a creature's Spellcasting casts, by id (the book's own and the SRD's).
 const spells = Object.fromEntries([...srdDocuments, ...all].filter(document => document.type === "spell").map(document => [document._id, document]));
-// The creatures a summon brings, by dnd5e id: the book's own (its creatures pack), else the SRD's.
-const creatures = Object.fromEntries([
+// The creatures a summon brings, by dnd5e id: the book's own (its creatures pack), else the SRD's; an old id the book
+// redirects (its scripts/redirects.mjs) brings the one it points to.
+const redirects = existsSync(join(source, "scripts", "redirects.mjs")) ? readFileSync(join(source, "scripts", "redirects.mjs"), "utf8") : "";
+const creatures = withRedirects(Object.fromEntries([
   ...srdDocuments.filter(document => (document.type === "npc") && isSrd2024(document))
     .map(document => [document._id, `Compendium.wildpath.srd-creatures.Actor.${document._id}`]),
   ...(manifest.packs ?? []).filter(pack => pack.type === "Actor").flatMap(documents).filter(document => document.type === "npc")
-    .map(document => [document._id, `Compendium.wildpath-${moduleId}.creatures.Actor.${document._id}`])]);
+    .map(document => [document._id, `Compendium.wildpath-${moduleId}.creatures.Actor.${document._id}`])]), redirects);
 // The Beasts Polymorph may choose: the SRD's and the book's own.
 const beasts = beastsOf([...srdDocuments.filter(isSrd2024), ...(manifest.packs ?? []).filter(pack => pack.type === "Actor").flatMap(documents)],
   document => creatures[document._id]).filter(beast => beast.uuid);

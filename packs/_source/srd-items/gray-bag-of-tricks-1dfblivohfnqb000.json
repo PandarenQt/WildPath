@@ -28,10 +28,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest",
-          "summon: its creature is not among the converted creatures"
-        ]
+        "notes": []
       },
       "grants": [
         "dmgBagOfTricks00"

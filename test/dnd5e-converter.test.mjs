@@ -1,6 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {checkOf, convertActor, convertItem, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex, scaleTables} from "../scripts/content/dnd5e-to-wildpath.mjs";
+import {checkOf, convertActor, convertItem, creatureRef, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex,
+  scaleTables, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import * as valueExpressions from "../module/helpers/value-expressions.mjs";
 
@@ -974,6 +975,17 @@ test("an effect with nothing WildPath maps still marks its creature, for its dur
   assert.ok(spell.flags.wildpath.conversion.notes.some(note => /marks its creature only/.test(note)));
   assert.equal(spell.flags.wildpath.conversion.notes.some(note => /concentration: nothing/.test(note)), false);
   assert.equal(validateActionDefinition(spell.system.definition).ok, true);
+});
+
+test("a summon's creature by its id, an old id a module redirects, or a PHB appendix id by its name", () => {
+  const creatures = withRedirects({mmGriffon0000000: "griffon", mmWeasel00000000: "weasel", mmGiantCentipede: "centipede"},
+    'CONFIG.compendium.uuidRedirects["Compendium.dnd-dungeon-masters-guide.actors.Actor.h052EIIUmRwJum65"] = "Compendium.dnd5e.actors24.Actor.mmGriffon0000000";');
+  assert.equal(creatureRef(creatures, "Compendium.dnd5e.actors24.Actor.mmGriffon0000000"), "griffon");
+  assert.equal(creatureRef(creatures, "Compendium.dnd5e.actors24.Actor.h052EIIUmRwJum65"), "griffon", "redirected");
+  assert.equal(creatureRef(creatures, "Compendium.dnd5e.actors24.Actor.phbmobWeasel0000"), "weasel", "by name");
+  assert.equal(creatureRef(creatures, "Compendium.dnd5e.actors24.Actor.phbmobGiantCenti"), "centipede", "a name cut short");
+  assert.equal(creatureRef(creatures, "Compendium.dnd5e.monsters.Actor.OBujQLLPSmlJiZnL"), null, "a random id it does not know");
+  assert.equal(creatureRef(withRedirects(creatures, {zzz: "mmGriffon0000000"}), "x.zzz"), "griffon", "a plain id map");
 });
 
 test("what a creature does around itself at a turn boundary is an automatic Emanation Trigger (Fire Aura, Fear Aura)", () => {

@@ -25,6 +25,13 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmAirElemental00",
+        "count": 1
+      },
       "label": "Elemental Gem (Blue Sapphire)"
     },
     "ruleElements": [
@@ -58,10 +65,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest",
-          "summon: its creature is not among the converted creatures"
-        ]
+        "notes": []
       }
     }
   }

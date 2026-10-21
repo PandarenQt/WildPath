@@ -2084,6 +2084,43 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
     flags: {wildpath: {source: {...action.flags.wildpath.source, castBy: document.name}, conversion: {notes: [...notes]}}}};
 }
 
+/** A creature id's name part: `phbmobWeasel0000` and `mmWeasel00000000` are both `weasel`; a random id has none. */
+const creatureKey = id => (/^(?:phbmob|mm|dmg|phb)[A-Z]/u.test(id) ? id.replace(/^(?:phbmob|mm|dmg|phb)/u, "").replace(/0+$/u, "").toLowerCase() : "");
+
+/**
+ * The converted creature a summon's dnd5e uuid names, from `creatures` (dnd5e id to WildPath uuid, with any redirects:
+ * withRedirects). A PHB appendix creature (`phbmobWeasel0000`) is the SRD's own of that name (`mmWeasel00000000`);
+ * a name cut short by the id's 16 characters matches the longer one it starts.
+ */
+export function creatureRef(creatures, uuid) {
+  const id = String(uuid ?? "").split(".").pop();
+  if ( creatures[id] ) return creatures[id];
+  const key = creatureKey(id);
+  if ( key.length < 3 ) return null;
+  const match = Object.keys(creatures).find(other => {
+    const theirs = creatureKey(other);
+    return theirs && ((theirs === key) || ((Math.min(theirs.length, key.length) >= 8) && (theirs.startsWith(key) || key.startsWith(theirs))));
+  });
+  return match ? creatures[match] : null;
+}
+
+/**
+ * `creatures` with a content module's uuid redirects (its `scripts/redirects.mjs`, `CONFIG.compendium.uuidRedirects[old]
+ * = new`, or a plain `{oldId: newId}`) as extra ids: a summon naming an old Actor brings the one it now points to.
+ */
+export function withRedirects(creatures, redirects) {
+  const pairs = typeof redirects === "string"
+    ? [...redirects.matchAll(/uuidRedirects\["([^"]+)"\]\s*=\s*"([^"]+)"/gu)].map(([, from, to]) => [from, to])
+    : Object.entries(redirects ?? {});
+  const aliases = {};
+  for ( const [from, to] of pairs ) {
+    const id = from.split(".").pop();
+    const target = creatures[to.split(".").pop()];
+    if ( target && !creatures[id] && !aliases[id] ) aliases[id] = target;
+  }
+  return {...creatures, ...aliases};
+}
+
 /**
  * A summon activity (G4) as an Action whose creatures appear where its caster chooses, for the spell's duration (in
  * rounds) or while it concentrates: its creature, or a choice of its creatures, from `creatures` (dnd5e Actor id to
@@ -2097,7 +2134,7 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
     ? [...new Map((activity.profiles ?? []).filter(profile => (profile.types ?? []).includes("beast"))
       .flatMap(profile => beasts.filter(beast => beast.cr <= (number(profile.cr) ?? 0))
         .map(beast => [beast.uuid, {profile: {count: profile.count, name: `${beast.name} (CR ${beast.cr})`}, ref: beast.uuid}]))).values()]
-    : (activity.profiles ?? []).map(profile => ({profile, ref: creatures[String(profile.uuid ?? "").split(".").pop()] ?? null}));
+    : (activity.profiles ?? []).map(profile => ({profile, ref: creatureRef(creatures, profile.uuid)}));
   if ( byChallenge && !profiles.length ) {
     notes.push("summon: a creature chosen by Challenge Rating is not converted");
     return null;

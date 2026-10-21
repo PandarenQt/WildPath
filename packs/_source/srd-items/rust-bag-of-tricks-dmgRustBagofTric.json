@@ -25,6 +25,59 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 20,
+          "unit": "ft"
+        }
+      },
+      "configuration": [
+        {
+          "id": "summon-creature",
+          "type": "select-one",
+          "label": "Creature",
+          "required": true,
+          "options": [
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBrownBear00000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmBrownBear00000"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantBoar00000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmGiantBoar00000"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmRat00000000000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmRat00000000000"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmOwl00000000000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmOwl00000000000"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmLion0000000000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmLion0000000000"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGoat0000000000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmGoat0000000000"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmMastiff0000000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmMastiff0000000"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantGoat00000",
+              "label": "Compendium.wildpath.srd-creatures.Actor.mmGiantGoat00000"
+            }
+          ]
+        }
+      ],
+      "summon": {
+        "choiceId": "summon-creature",
+        "count": 1
+      },
       "label": "Rust Bag of Tricks"
     },
     "ruleElements": [
@@ -58,10 +111,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest",
-          "summon: its creature is not among the converted creatures"
-        ]
+        "notes": []
       }
     }
   }
