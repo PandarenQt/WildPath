@@ -1025,14 +1025,16 @@ test("what a creature does around itself at a turn boundary is an automatic Eman
 });
 
 test("an empty effect known by its name gets its 2024 rules (Barkskin, a Morningstar's next attack, See Invisibility)", () => {
+  // dnd5e's own changes for them do not convert (Barkskin's `system.attributes.ac.min`).
   const spell = (id, identifier, effect) => ({_id: id, name: effect, type: "spell", img: "systems/dnd5e/icons/spell.webp",
-    effects: [{_id: "named", name: effect, transfer: false, statuses: [], duration: {value: 1, units: "hours"}, system: {changes: []}}],
+    effects: [{_id: "named", name: effect, transfer: false, statuses: [], duration: {value: 1, units: "hours"},
+      system: {changes: [{key: "system.attributes.ac.min", value: 17, type: "upgrade"}]}}],
     system: {source: SRD, identifier, level: 2, preparation: {mode: "prepared"}, properties: ["vocal"], activation: {type: "action"},
       range: {units: "touch"}, target: {affects: {type: "creature", count: 1}, template: {}},
       activities: {a: activity("utility", {effects: [{_id: "named"}]})}}});
   const rulesOf = (id, identifier, effect) => {
     const [item] = convertItem(spell(id, identifier, effect)).items;
-    assert.equal(item.flags.wildpath.conversion.notes.some(note => /marks its creature/.test(note)), false, effect);
+    assert.equal(item.flags.wildpath.conversion.notes.some(note => /marks its creature|not converted/.test(note)), false, effect);
     return item.system.definition.effects[0];
   };
   assert.deepEqual(rulesOf("testBarkskin0001", "barkskin", "Bark-like Skin").ruleElements[0].data, {value: 17, minimum: true});

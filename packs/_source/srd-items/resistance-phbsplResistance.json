@@ -43,7 +43,18 @@
           "type": "effect",
           "name": "Acid Protection",
           "img": "systems/dnd5e/icons/svg/damage/acid.svg",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "acid-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "acid"
+                ]
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
@@ -56,7 +67,18 @@
           "type": "effect",
           "name": "Bludgeoning Protection",
           "img": "systems/dnd5e/icons/svg/damage/bludgeoning.svg",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "bludgeoning-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "bludgeoning"
+                ]
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
@@ -69,7 +91,18 @@
           "type": "effect",
           "name": "Cold Protection",
           "img": "systems/dnd5e/icons/svg/damage/cold.svg",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "cold-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "cold"
+                ]
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
@@ -82,7 +115,18 @@
           "type": "effect",
           "name": "Fire Protection",
           "img": "systems/dnd5e/icons/svg/damage/fire.svg",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "fire-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "fire"
+                ]
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
@@ -95,7 +139,18 @@
           "type": "effect",
           "name": "Lightning Protection",
           "img": "systems/dnd5e/icons/svg/damage/lightning.svg",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "lightning-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "lightning"
+                ]
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
@@ -108,7 +163,18 @@
           "type": "effect",
           "name": "Necrotic Protection",
           "img": "systems/dnd5e/icons/svg/damage/necrotic.svg",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "necrotic-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "necrotic"
+                ]
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
@@ -121,7 +187,18 @@
           "type": "effect",
           "name": "Piercing Protection",
           "img": "systems/dnd5e/icons/svg/damage/piercing.svg",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "piercing-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "piercing"
+                ]
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
@@ -134,7 +211,18 @@
           "type": "effect",
           "name": "Poison Protection",
           "img": "systems/dnd5e/icons/svg/damage/poison.svg",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "poison-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "poison"
+                ]
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
@@ -147,7 +235,18 @@
           "type": "effect",
           "name": "Radiant Protection",
           "img": "systems/dnd5e/icons/svg/damage/radiant.svg",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "radiant-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "radiant"
+                ]
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
@@ -160,7 +259,18 @@
           "type": "effect",
           "name": "Slashing Protection",
           "img": "systems/dnd5e/icons/svg/damage/slashing.svg",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "slashing-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "slashing"
+                ]
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
@@ -173,7 +283,18 @@
           "type": "effect",
           "name": "Thunder Protection",
           "img": "systems/dnd5e/icons/svg/damage/thunder.svg",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "thunder-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "thunder"
+                ]
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
@@ -321,19 +442,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Acid Protection\" marks its creature only; its rules are by hand",
-          "effect: \"Bludgeoning Protection\" marks its creature only; its rules are by hand",
-          "effect: \"Cold Protection\" marks its creature only; its rules are by hand",
-          "effect: \"Fire Protection\" marks its creature only; its rules are by hand",
-          "effect: \"Lightning Protection\" marks its creature only; its rules are by hand",
-          "effect: \"Necrotic Protection\" marks its creature only; its rules are by hand",
-          "effect: \"Piercing Protection\" marks its creature only; its rules are by hand",
-          "effect: \"Poison Protection\" marks its creature only; its rules are by hand",
-          "effect: \"Radiant Protection\" marks its creature only; its rules are by hand",
-          "effect: \"Slashing Protection\" marks its creature only; its rules are by hand",
-          "effect: \"Thunder Protection\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

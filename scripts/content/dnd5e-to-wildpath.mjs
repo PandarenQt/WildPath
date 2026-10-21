@@ -1083,6 +1083,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // An enchantment of one of its creature's weapons (Magic Weapon, Sacred Weapon): its weapon's attacks change instead.
     const enchant = ENCHANTS[identifierOf(document)] ?? null;
     if ( enchant && (activity.type !== "enchant") ) continue;
+    // Acid Arrow's later damage is its Lingering Acid effect's own (EFFECTS_BY_NAME).
+    if ( (identifierOf(document) === "acid-arrow") && (activity.name === "Lingering Acid Damage") ) continue;
     // Brutal Strike's Actions are its own (brutalStrikeActions), not its dnd5e damage activity.
     if ( ["brutal-strike", "improved-brutal-strike", "elemental-affinity"].includes(identifierOf(document)) ) continue;
     // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use): used, though dnd5e may leave it passive.
@@ -2301,7 +2303,24 @@ const EFFECTS_BY_NAME = Object.freeze({
   "Protected": {ruleElements: [rollModeRule("protected", ["attacked"], "disadvantage", {oneOf: {path: "attack.attackerType",
     values: ["aberration", "celestial", "elemental", "fey", "fiend", "undead"]}})]},
   "See Invisibility": {ruleElements: [{schemaVersion: 1, id: "see-invisibility", type: "GrantSense",
-    data: {sense: "seeInvisibility", range: 5280}}]}
+    data: {sense: "seeInvisibility", range: 5280}}]},
+  "Disadv.: Attacks & Checks": {ruleElements: [rollModeRule("attacks-checks", ["attack", "check"], "disadvantage")]},
+  "Attacks: Disadvantage": {ruleElements: [rollModeRule("attacks", ["attack"], "disadvantage")]},
+  "Adv: Attacks & Saves": {ruleElements: [rollModeRule("attacks-saves", ["attack", "save"], "advantage")]},
+  "Bolstered: Test Advantage": {ruleElements: [rollModeRule("d20-tests", ["attack", "check", "save"], "advantage")]},
+  // Acid Arrow: "2d4 Acid damage at the end of its next turn": at the end of its creature's turn, before the end of its
+  // caster's next one (V14 starts the effect on the caster's turn). shortcut: the later damage does not grow with the
+  // slot (+1d4 a level above 2); upgrade when an effect's trigger reads the cast level it was applied at.
+  "Lingering Acid": {duration: {value: 1, units: "rounds", expiry: "turnEnd"}, ruleElements: [{schemaVersion: 1, id: "lingering-acid",
+    type: "Trigger", data: {kind: "automation", event: "turn.ended", action: {schemaVersion: 1, id: "action:lingering-acid", label: "Lingering Acid",
+      costs: {allOf: []}, damage: [{id: "acid", expression: {type: "dice", number: 2, faces: 4}, damageType: "acid", provenance: "spell-base"}]}}}]},
+  // "can't take Reactions".
+  "No Reaction": {ruleElements: [{schemaVersion: 1, id: "no-reaction", type: "ResourceCap", data: {resources: ["reaction"], maximum: 0}}]},
+  "Cursed: No Reaction": {ruleElements: [{schemaVersion: 1, id: "no-reaction", type: "ResourceCap", data: {resources: ["reaction"], maximum: 0}}]},
+  // "<Type> Protection": Resistance to that damage (an Armor or Potion of Resistance's choice).
+  ...Object.fromEntries(["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant",
+    "slashing", "thunder"].map(type => [`${type[0].toUpperCase()}${type.slice(1)} Protection`,
+    {ruleElements: [{schemaVersion: 1, id: `${type}-resistance`, type: "GrantResistance", data: {damageTypes: [type]}}]}]))
 });
 
 /**
@@ -2816,7 +2835,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     }
     // Its own changes (Bless, Shield of Faith, Haste) become a custom effect with the rules they map to; an effect dnd5e
     // leaves empty (Faerie Fire's) takes its rules from the 2024 text, by hand.
-    const hand = effect && !effectChanges(effect).length ? (byHand ?? EFFECTS_BY_NAME[effect.name] ?? null) : null;
+    const hand = effect && !effectChanges(effect).length ? byHand : null;
     // An effect named as a common action's (Step of the Wind's Disengaged) is that action's own.
     const common = effect && !hand && !effectChanges(effect).length ? COMMON_EFFECTS[effect.name] : null;
     if ( common ) {
@@ -2825,7 +2844,12 @@ function convertActivity({document, activity, system, spell, level, scales, note
       groups.push({label: effect.name, ids: [effects.at(-1).id]});
       continue;
     }
-    const rules = [...(hand?.ruleElements ?? (effect ? effectRules(effect, notes, {scales}) : [])), ...(byHand?.extraRules ?? []),
+    // Its changes, else the rules its name gives when none of them converts (Barkskin's `ac.min`: an AC floor).
+    const changeNotes = [];
+    const converted = hand?.ruleElements ?? (effect ? effectRules(effect, changeNotes, {scales}) : []);
+    const named = (!hand && !converted.length && effect) ? (EFFECTS_BY_NAME[effect.name] ?? null) : null;
+    if ( !named ) notes.push(...changeNotes);
+    const rules = [...(named?.ruleElements ?? converted), ...(byHand?.extraRules ?? []),
       ...structuredClone(EFFECT_REACTIONS[`${identifierOf(document)}/${effect?.name}`] ?? [])];
     // dnd5e's "marked" (Guiding Bolt, Shining Smite): attack rolls against its creature have Advantage; only the next
     // one when its text says so, and the effect then ends after that attack.
@@ -2836,11 +2860,11 @@ function convertActivity({document, activity, system, spell, level, scales, note
       // "before the end of your next turn": a round, from its caster's turn (V14 starts it on the source's Combatant).
       const untilNextTurnEnd = nextAttack && /before the end of your next turn/i.test(plainText(document))
         ? {value: 1, units: "rounds", expiry: "turnEnd"} : null;
-      const duration = hand?.duration ?? effectDuration(effect.duration) ?? untilNextTurnEnd;
+      const duration = (hand ?? named)?.duration ?? effectDuration(effect.duration) ?? untilNextTurnEnd;
       effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(byHand?.slug ? {slug: byHand.slug} : {}),
         ...(effect.img ? {img: effect.img} : {}),
-        ruleElements: rules, ...(duration ? {duration} : {}), ...((hand?.endsWhen ?? (nextAttack ? "attacked" : null))
-          ? {endsWhen: hand?.endsWhen ?? "attacked"} : {}), ...onFailure,
+        ruleElements: rules, ...(duration ? {duration} : {}), ...(((hand ?? named)?.endsWhen ?? (nextAttack ? "attacked" : null))
+          ? {endsWhen: (hand ?? named)?.endsWhen ?? "attacked"} : {}), ...onFailure,
         ...(concentration ? {concentration: true} : {})});
     } else if ( effect && !known.length ) {
       // Nothing of it maps (Alter Self, Acid Arrow's lingering acid): it still marks its creature, for its duration and

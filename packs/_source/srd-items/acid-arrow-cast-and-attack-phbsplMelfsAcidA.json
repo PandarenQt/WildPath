@@ -62,11 +62,41 @@
           "type": "effect",
           "name": "Lingering Acid",
           "img": "icons/magic/acid/dissolve-arm-flesh.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "lingering-acid",
+              "type": "Trigger",
+              "data": {
+                "kind": "automation",
+                "event": "turn.ended",
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:lingering-acid",
+                  "label": "Lingering Acid",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "damage": [
+                    {
+                      "id": "acid",
+                      "expression": {
+                        "type": "dice",
+                        "number": 2,
+                        "faces": 4
+                      },
+                      "damageType": "acid",
+                      "provenance": "spell-base"
+                    }
+                  ]
+                }
+              }
+            }
+          ],
           "duration": {
             "value": 1,
-            "units": "turns",
-            "expiry": "turnStart"
+            "units": "rounds",
+            "expiry": "turnEnd"
           }
         }
       ],
@@ -175,9 +205,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Lingering Acid\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }
