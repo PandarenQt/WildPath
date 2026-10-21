@@ -2468,13 +2468,30 @@ function baseDefinition({document, activity, system, spell, notes, pool, names={
  */
 function slotConfiguration(level, damage, {healing=[], perLevel=0}={}) {
   const levels = Array.from({length: 10 - level}, (_, offset) => level + offset);
-  const scale = (type, components) => components.filter(component => component.scaleDice).map(component => ({type, levelChoiceId: "spell-slot",
-    baseLevel: level, componentIds: [component.id], dice: component.scaleDice}));
-  const scaling = [...scale("scaleDamage", damage), ...scale("scaleHealing", healing),
-    ...(perLevel ? [{type: "scaleTargets", levelChoiceId: "spell-slot", baseLevel: level, perLevel}] : [])];
   return [{id: "spell-slot", type: "resource", label: "Spell slot", required: true,
     cost: {anyOf: levels.map(each => [{capability: `spell-slot.${each}`, amount: 1}])},
-    levelByResourceId: Object.fromEntries(levels.map(each => [`spell-slot.${each}`, each])), effects: scaling}];
+    levelByResourceId: Object.fromEntries(levels.map(each => [`spell-slot.${each}`, each])),
+    effects: levelScaling("spell-slot", level, damage, {healing, perLevel})}];
+}
+
+/** What a higher level adds to a spell's dice and targets, read from the level its choice `choiceId` names. */
+function levelScaling(choiceId, level, damage, {healing=[], perLevel=0}={}) {
+  const scale = (type, components) => components.filter(component => component.scaleDice).map(component => ({type, levelChoiceId: choiceId,
+    baseLevel: level, componentIds: [component.id], dice: component.scaleDice}));
+  return [...scale("scaleDamage", damage), ...scale("scaleHealing", healing),
+    ...(perLevel ? [{type: "scaleTargets", levelChoiceId: choiceId, baseLevel: level, perLevel}] : [])];
+}
+
+/**
+ * A follow-up of a spell already cast (Flame Blade's attack, Hunter's Mark's Move Mark) is at the level the spell was
+ * cast: its `cast-level` choice is `fromCast`, answered by the authority from its caster's record, never asked.
+ */
+function castLevelConfiguration(level, damage, {healing=[], perLevel=0}={}) {
+  const scaling = levelScaling("cast-level", level, damage, {healing, perLevel});
+  if ( !scaling.length ) return [];
+  const levels = Array.from({length: 10 - level}, (_, offset) => level + offset);
+  return [{id: "cast-level", type: "option", label: "WILDPATH.PROMPT.CastLevel", required: true, fromCast: true,
+    options: levels.map(each => ({id: `level-${each}`, label: String(each), value: each})), effects: scaling}];
 }
 
 /** dnd5e's base weapon ids where WildPath's differ (`light-crossbow`, as the training lists name them). */
@@ -2689,10 +2706,13 @@ function convertActivity({document, activity, system, spell, level, scales, note
   if ( effects.length ) definition.effects = effects;
 
   // A spell of level 1 or higher spends a slot of its level or higher; damage dice that scale grow per level above.
-  // A follow-up activity that spends none (Hunter's Mark's Move Mark, Flame Blade's attack) has no slot choice.
-  // shortcut: such a follow-up rolls its base level's dice; upgrade when a follow-up can read its cast's level.
+  // A follow-up activity that spends none (Hunter's Mark's Move Mark, Flame Blade's attack) has no slot choice: it is at
+  // the level its spell was cast (castLevelConfiguration).
   if ( spell && level && SLOT_MODES.has(system.preparation?.mode ?? "prepared") && (activity.consumption?.spellSlot !== false) ) {
     definition.configuration = slotConfiguration(level, damage, {healing, perLevel});
+  } else if ( spell && level && (activity.consumption?.spellSlot === false) ) {
+    const followUp = castLevelConfiguration(level, damage, {healing, perLevel});
+    if ( followUp.length ) definition.configuration = [...(definition.configuration ?? []), ...followUp];
   }
   // Such a follow-up continues its spell's concentration rather than starting one (startsConcentration).
   if ( spell && level && (activity.consumption?.spellSlot === false) ) definition.metadata = {...(definition.metadata ?? {}), followUp: true};

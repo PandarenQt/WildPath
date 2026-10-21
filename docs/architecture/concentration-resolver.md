@@ -87,6 +87,11 @@ third creature ended in the same commit (`wildpath.representative-actions`).
   action-definitions.md).
   - A converted follow-up of the same spell (`metadata.followUp`, an activity spending no slot: Move Mark, Curse
     New Creature) continues its concentration instead.
+  - **At the level it was cast (2026-10-21).** A follow-up whose dice scale (Flame Blade's attack, Acid Arrow's
+    lingering acid, Heat Metal's reheat, Searing Smite's later saves) has a `cast-level` choice marked `fromCast`. The
+    prompt never asks it: the authority answers it from its caster's record (`flags.wildpath.castLevels.<spell>`,
+    written when the spell is cast with a slot: `recordCastLevel`), else the spell's own level (`castLevelChoices`).
+    Live: Flame Blade cast with a 3rd-level slot, then its attack, unasked, rolled 3d6 + 1d6.
 - **When it ends the old one.**
   - When such an Action is declared, the authority notes what its creature sustains (`sustainedEffects`):
     - its spells' effects on any creature (their concentration `sourceRef` names the casting Item);
