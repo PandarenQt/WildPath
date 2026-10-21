@@ -344,6 +344,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       {relativeTo: this.item, secrets: this.item.isOwner});
     context.isAction = this.item.type === "action";
     context.isGear = this.item.type === "gear";
+    context.isGM = game.user.isGM;
     context.armorKinds = {"": "WILDPATH.ITEMSHEET.ArmorKind.none", light: "WILDPATH.ITEMSHEET.ArmorKind.light",
       medium: "WILDPATH.ITEMSHEET.ArmorKind.medium", heavy: "WILDPATH.ITEMSHEET.ArmorKind.heavy", shield: "WILDPATH.ITEMSHEET.ArmorKind.shield"};
     // A class, subclass, species or background (G8): its own fields, and what each level gives.

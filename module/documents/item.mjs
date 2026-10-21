@@ -29,6 +29,20 @@ async function chooseTestSkill(actor, skills, name) {
  */
 export default class WildPathItem extends Item {
 
+  /**
+   * An unidentified magic item (`system.identified: false`) shows players only what it looks like: its unidentified
+   * name and description, on its sheet, its rows and its Actions (theirs take its name too). The GM sees it all.
+   */
+  prepareDerivedData() {
+    super.prepareDerivedData();
+    if ( globalThis.game?.user?.isGM !== false ) return;
+    const gear = (this.type === "gear") ? this : (this.actor?.items?.get?.(this.flags?.wildpath?.grantedBy) ?? null);
+    if ( (gear?.type !== "gear") || (gear._source?.system?.identified !== false) ) return;
+    const hidden = gear._source.system.unidentified ?? {};
+    this.name = hidden.name || globalThis.game.i18n.localize("WILDPATH.ITEM.Unidentified");
+    this.system.description = hidden.description ?? "";
+  }
+
   /** An edit adding problems to its RuleElements is refused, with them in words (a macro's too, not only a sheet's). */
   async _preUpdate(changes, options, user) {
     if ( refuseBrokenRules(this, foundry.utils.getProperty(changes, "system.ruleElements")) ) return false;
