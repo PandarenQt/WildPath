@@ -571,6 +571,24 @@ application adds a stack.
   in a condition's amount are planned at their average, rounded down, and rolled by the Action that applies them
   (`metadata.amountExpression`, `turnDamage`).
 
+**Contagions (2026-10-22).** The 2024 magical contagions (SRD 5.2: Cackle Fever, Sewer Plague, Sight Rot;
+`helpers/contagions.mjs`) are effects naming one (`metadata.contagion`), given on a failed save by an infecting Action
+("Infect: <contagion>" in the WildPath Actions pack, the GM's or a carrier's). The active GM runs them
+(`adapters/foundry-v14-contagions.mjs`):
+- caught, its incubation is rolled (1d4 days) and kept on the effect (`flags.wildpath.contagion.onsetAt`); as world time
+  passes it, its symptoms start: 1 Exhaustion level, or Sight Rot's Blinded at once;
+- after each Long Rest its creature saves (Constitution): Cackle Fever ends after three successes, and the Exhaustion it
+  gave goes with it; Sewer Plague's failure adds an Exhaustion level, a success takes one away, and at none it ends;
+- while one holds them, a Long Rest lowers no Exhaustion (Cackle Fever, Sewer Plague), nor restores Hit Points (Sewer
+  Plague's Restlessness, while exhausted);
+- magic ending Sight Rot's Blinded (Heal, Lesser Restoration) ends it.
+
+shortcut: Cackle Fever's laughter when hurt, Sewer Plague's halved Hit Point Dice and its save at dawn (taken after a Long
+Rest), Sight Rot's ointment, and spreading any of them are by hand.
+
+Live (14.369): Sewer Plague incubated a day, then gave 1 Exhaustion; a Long Rest left Hit Points at 3 and the failed
+save made Exhaustion 2. Sight Rot blinded its creature at once, and ending Blinded ended it.
+
 **Other conditions (2026-10-21).** Cursed, Ethereal and the three cover conditions carry no rules of their own:
 - **Cursed** marks a curse whose rules are its effect's or its text's; the converter tags it `curse`, so Remove Curse
   ends it. dnd5e's "cursed" status becomes it only on an effect with nothing else (Hex's and Bestow Curse's keep their

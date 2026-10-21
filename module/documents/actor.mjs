@@ -1,3 +1,4 @@
+import {startedContagions} from "../adapters/foundry-v14-contagions.mjs";
 import {carryingRules} from "../helpers/carrying.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 import {pruneActorPools} from "../helpers/migrations.mjs";
@@ -816,7 +817,11 @@ export default class WildPathActor extends Actor {
     // 2024: a long rest also restores what a short rest does, and all health.
     const recovers = value => (value === recovery) || (long && (value === "shortRest"));
     const updates = {};
-    if ( long && health && (health.value < health.max) ) updates["system.resources.health.value"] = health.max;
+    // A contagion may hold its Exhaustion through a Long Rest, or its Hit Points too (Sewer Plague's Restlessness).
+    const contagions = long ? startedContagions(this) : [];
+    const exhausted = this.statuses?.has?.("exhaustion");
+    const restless = contagions.some(contagion => contagion.noRestHealing) && exhausted;
+    if ( long && health && (health.value < health.max) && !restless ) updates["system.resources.health.value"] = health.max;
     // 2024: Temporary Hit Points last until a Long Rest.
     if ( long && health?.temp ) updates["system.resources.health.temp"] = 0;
     for ( const [id, resource] of Object.entries(this.system.resources) ) {
@@ -855,8 +860,10 @@ export default class WildPathActor extends Actor {
     if ( long && this.items?.some?.(item => item.flags?.wildpath?.portentDice) ) {
       await (await import("../adapters/foundry-v14-portent.mjs")).rollPortentDice(this, globalThis.game);
     }
-    // 2024: a long rest removes one level of Exhaustion.
-    if ( long && this.statuses?.has?.("exhaustion") ) await this.toggleCondition("exhaustion", {levels: -1});
+    // 2024: a long rest removes one level of Exhaustion, unless a contagion holds it (Cackle Fever, Sewer Plague).
+    if ( long && exhausted && !contagions.some(contagion => contagion.holdsExhaustion) ) await this.toggleCondition("exhaustion", {levels: -1});
+    // Then its save against each contagion it suffers.
+    if ( long ) await globalThis.game?.wildpath?.contagions?.afterLongRest?.(this);
     // The creature's own automatic triggers on a rest (the GM runs them; a Player's client reports the rest).
     await globalThis.game?.wildpath?.automation?.report?.("rest.completed", {actor: this, data: {restType: recovery}});
 

@@ -1,0 +1,50 @@
+{
+  "_id": "wpCackleFever001",
+  "_key": "!items!wpCackleFever001",
+  "name": "Infect: Cackle Fever",
+  "type": "action",
+  "img": "icons/magic/control/hypnosis-mesmerism-swirl.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A creature exposed to Cackle Fever makes a DC 10 Constitution saving throw or is infected. 1d4 days later it gains 1 Exhaustion level, which lasts until the contagion ends. After each Long Rest it makes a DC 13 Constitution saving throw; after three successes the contagion ends. Its laughter when hurt is by hand.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "label": "Infect: Cackle Fever",
+      "id": "action:infect-cackle-fever",
+      "costs": {
+        "allOf": []
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "range": {
+        "type": "special"
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 10
+        }
+      },
+      "effects": [
+        {
+          "id": "contagion",
+          "type": "effect",
+          "name": "Cackle Fever",
+          "img": "icons/magic/control/hypnosis-mesmerism-swirl.webp",
+          "ruleElements": [],
+          "saveOutcomePolicy": "failure",
+          "metadata": {
+            "contagion": "cackle-fever",
+            "tags": [
+              "contagion"
+            ]
+          }
+        }
+      ]
+    },
+    "ruleElements": []
+  }
+}

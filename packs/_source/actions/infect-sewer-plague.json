@@ -1,0 +1,50 @@
+{
+  "_id": "wpSewerPlague001",
+  "_key": "!items!wpSewerPlague001",
+  "name": "Infect: Sewer Plague",
+  "type": "action",
+  "img": "icons/magic/unholy/orb-smoking-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A creature wounded by a carrier or touching contaminated filth makes a DC 11 Constitution saving throw or is infected. 1d4 days later it gains 1 Exhaustion level. While it has Exhaustion, a Long Rest restores no Hit Points and no Exhaustion. After each Long Rest it makes a DC 11 Constitution saving throw: a failure adds 1 Exhaustion level, a success takes one away; at none the contagion ends.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "label": "Infect: Sewer Plague",
+      "id": "action:infect-sewer-plague",
+      "costs": {
+        "allOf": []
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "range": {
+        "type": "special"
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 11
+        }
+      },
+      "effects": [
+        {
+          "id": "contagion",
+          "type": "effect",
+          "name": "Sewer Plague",
+          "img": "icons/magic/unholy/orb-smoking-green.webp",
+          "ruleElements": [],
+          "saveOutcomePolicy": "failure",
+          "metadata": {
+            "contagion": "sewer-plague",
+            "tags": [
+              "contagion"
+            ]
+          }
+        }
+      ]
+    },
+    "ruleElements": []
+  }
+}

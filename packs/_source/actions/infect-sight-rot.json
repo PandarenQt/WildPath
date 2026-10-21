@@ -1,0 +1,50 @@
+{
+  "_id": "wpSightRot000001",
+  "_key": "!items!wpSightRot000001",
+  "name": "Infect: Sight Rot",
+  "type": "action",
+  "img": "icons/magic/perception/eye-ringed-glow-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p>A creature drinking tainted water makes a DC 15 Constitution saving throw or has the Blinded condition until the contagion ends. Magic ending that Blinded (Heal, Lesser Restoration) ends the contagion.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "label": "Infect: Sight Rot",
+      "id": "action:infect-sight-rot",
+      "costs": {
+        "allOf": []
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "range": {
+        "type": "special"
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 15
+        }
+      },
+      "effects": [
+        {
+          "id": "contagion",
+          "type": "effect",
+          "name": "Sight Rot",
+          "img": "icons/magic/perception/eye-ringed-glow-yellow.webp",
+          "ruleElements": [],
+          "saveOutcomePolicy": "failure",
+          "metadata": {
+            "contagion": "sight-rot",
+            "tags": [
+              "contagion"
+            ]
+          }
+        }
+      ]
+    },
+    "ruleElements": []
+  }
+}
