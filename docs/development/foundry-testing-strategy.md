@@ -105,6 +105,12 @@ Quench (`wildpath.runtime-smoke`, "Every surface in words"): the character and N
 effect's and a condition's, the action bar, the combat carousel and a resolution card, rendered with their production
 contexts, show no raw `WILDPATH.`/`TYPES.` text and no tooltip key without copy.
 
+Quench (`wildpath.applications`, 5 cases): the ability-score dialog allows only a legal set and stores it; Heroic
+Inspiration's reroll spends the point and marks the card used; the Rules Inspector says when a resolution is gone and
+picks up a new one by itself; the Token ruler warns of a hostile guard's Opportunity Attack only while it has its
+Reaction; the effect sheet keeps rules with a problem on its tab, unsaved. `test/rule-rows.test.mjs` covers the rule
+rows' names, drafts, errors and copy.
+
 ## Registration and fixtures
 
 `wildpath.mjs` loads `module/tests/quench/index.mjs` only when Quench fires `quenchReady` (since 2026-10-21; a client
