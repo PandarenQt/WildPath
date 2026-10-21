@@ -21,6 +21,211 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "weapon"
+            ]
+          }
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "defender",
+        "effects": [
+          {
+            "name": "Defender",
+            "img": "systems/dnd5e/icons/spell-tiers/spell5.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "defender-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 3
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "defender-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 3
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "transferred-ac-bonus-1-1",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "defense.ac"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "transferred-ac-bonus-1-2",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAny": [
+                    "melee"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "damage.weapon"
+                  ],
+                  "modifierType": "untyped",
+                  "value": -1
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "transferred-ac-bonus-1-3",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAny": [
+                    "melee"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "attack.weapon"
+                  ],
+                  "modifierType": "untyped",
+                  "value": -1
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "transferred-ac-bonus-2-1",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "defense.ac"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 2
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "transferred-ac-bonus-2-2",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAny": [
+                    "melee"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "damage.weapon"
+                  ],
+                  "modifierType": "untyped",
+                  "value": -2
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "transferred-ac-bonus-2-3",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAny": [
+                    "melee"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "attack.weapon"
+                  ],
+                  "modifierType": "untyped",
+                  "value": -2
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "transferred-ac-bonus-3-1",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "defense.ac"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 3
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "transferred-ac-bonus-3-2",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAny": [
+                    "melee"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "damage.weapon"
+                  ],
+                  "modifierType": "untyped",
+                  "value": -3
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "transferred-ac-bonus-3-3",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAny": [
+                    "melee"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "attack.weapon"
+                  ],
+                  "modifierType": "untyped",
+                  "value": -3
+                }
+              }
+            ]
+          }
+        ]
+      },
       "label": "Defender"
     },
     "ruleElements": []
@@ -39,9 +244,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

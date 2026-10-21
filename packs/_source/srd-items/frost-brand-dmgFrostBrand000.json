@@ -21,6 +21,49 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "weapon"
+            ]
+          }
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "frost-brand",
+        "effects": [
+          {
+            "name": "Frost Brand",
+            "img": "systems/dnd5e/icons/spell-tiers/spell4.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "fire-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "fire"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
       "label": "Frost Brand"
     },
     "ruleElements": []
@@ -39,9 +82,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

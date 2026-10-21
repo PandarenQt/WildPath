@@ -48,7 +48,10 @@ export function createFoundryEnchantments({ game, logger = console }) {
         const levelOf = (effect) => (effect.level?.class
             ? Number(evaluateValueExpression({ type: "class-level", class: effect.level.class }, { actor, actorSystem: actor.system }).value) || 0
             : Number(actor.system?.details?.level) || 0);
-        const effect = spec.effects.find(entry => enchantEffectFor([entry], levelOf(entry)) === entry) ?? null;
+        // The one its user chose (`optionChoiceId`: its index), else the one for its creator's level.
+        const option = (spec.optionChoiceId && Array.isArray(choices)) ? choices.find((entry) => entry?.id === spec.optionChoiceId) : null;
+        const effect = option ? (spec.effects[Number(option.value ?? option.optionId)] ?? null)
+            : (spec.effects.find(entry => enchantEffectFor([entry], levelOf(entry)) === entry) ?? null);
         if (!effect)
             return null;
         const key = String(spec.key ?? state?.actionDefinition?.id ?? "enchantment");

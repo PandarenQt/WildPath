@@ -21,6 +21,250 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": []
+          }
+        },
+        {
+          "id": "enchantment",
+          "type": "option",
+          "label": "Ring of Resistance",
+          "required": true,
+          "options": [
+            {
+              "id": "0",
+              "label": "Ring of Resistance (Acid)",
+              "value": "0"
+            },
+            {
+              "id": "1",
+              "label": "Ring of Resistance (Cold)",
+              "value": "1"
+            },
+            {
+              "id": "2",
+              "label": "Ring of Resistance (Fire)",
+              "value": "2"
+            },
+            {
+              "id": "3",
+              "label": "Ring of Resistance (Force)",
+              "value": "3"
+            },
+            {
+              "id": "4",
+              "label": "Ring of Resistance (Lightning)",
+              "value": "4"
+            },
+            {
+              "id": "5",
+              "label": "Ring of Resistance (Necrotic)",
+              "value": "5"
+            },
+            {
+              "id": "6",
+              "label": "Ring of Resistance (Poison)",
+              "value": "6"
+            },
+            {
+              "id": "7",
+              "label": "Ring of Resistance (Psychic)",
+              "value": "7"
+            },
+            {
+              "id": "8",
+              "label": "Ring of Resistance (Radiant)",
+              "value": "8"
+            },
+            {
+              "id": "9",
+              "label": "Ring of Resistance (Thunder)",
+              "value": "9"
+            }
+          ]
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "ring-of-resistance",
+        "optionChoiceId": "enchantment",
+        "effects": [
+          {
+            "name": "Ring of Resistance (Acid)",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "acid-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "acid"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Ring of Resistance (Cold)",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "cold-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "cold"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Ring of Resistance (Fire)",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "fire-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "fire"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Ring of Resistance (Force)",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "force-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "force"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Ring of Resistance (Lightning)",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "lightning-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "lightning"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Ring of Resistance (Necrotic)",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "necrotic-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "necrotic"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Ring of Resistance (Poison)",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "poison-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "poison"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Ring of Resistance (Psychic)",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "psychic-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "psychic"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Ring of Resistance (Radiant)",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "radiant-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "radiant"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Ring of Resistance (Thunder)",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "thunder-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "thunder"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
       "label": "Ring of Resistance"
     },
     "ruleElements": []
@@ -39,9 +283,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

@@ -21,6 +21,253 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "armor",
+              "shield"
+            ]
+          }
+        },
+        {
+          "id": "enchantment",
+          "type": "option",
+          "label": "Armor of Resistance",
+          "required": true,
+          "options": [
+            {
+              "id": "0",
+              "label": "Armor of Acid Resistance",
+              "value": "0"
+            },
+            {
+              "id": "1",
+              "label": "Armor of Cold Resistance",
+              "value": "1"
+            },
+            {
+              "id": "2",
+              "label": "Armor of Fire Resistance",
+              "value": "2"
+            },
+            {
+              "id": "3",
+              "label": "Armor of Force Resistance",
+              "value": "3"
+            },
+            {
+              "id": "4",
+              "label": "Armor of Lightning Resistance",
+              "value": "4"
+            },
+            {
+              "id": "5",
+              "label": "Armor of Necrotic Resistance",
+              "value": "5"
+            },
+            {
+              "id": "6",
+              "label": "Armor of Poison Resistance",
+              "value": "6"
+            },
+            {
+              "id": "7",
+              "label": "Armor of Psychic Resistance",
+              "value": "7"
+            },
+            {
+              "id": "8",
+              "label": "Armor of Radiant Resistance",
+              "value": "8"
+            },
+            {
+              "id": "9",
+              "label": "Armor of Thunder Resistance",
+              "value": "9"
+            }
+          ]
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "armor-of-resistance",
+        "optionChoiceId": "enchantment",
+        "effects": [
+          {
+            "name": "Armor of Acid Resistance",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "acid-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "acid"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Armor of Cold Resistance",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "cold-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "cold"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Armor of Fire Resistance",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "fire-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "fire"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Armor of Force Resistance",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "force-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "force"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Armor of Lightning Resistance",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "lightning-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "lightning"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Armor of Necrotic Resistance",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "necrotic-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "necrotic"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Armor of Poison Resistance",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "poison-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "poison"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Armor of Psychic Resistance",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "psychic-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "psychic"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Armor of Radiant Resistance",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "radiant-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "radiant"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Armor of Thunder Resistance",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "thunder-resistance-1",
+                "type": "GrantResistance",
+                "data": {
+                  "damageTypes": [
+                    "thunder"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
       "label": "Armor of Resistance"
     },
     "ruleElements": []
@@ -39,9 +286,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

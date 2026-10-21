@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 941 automated, 267 manual, 227 features. Creatures: 375.
+Items: 956 automated, 252 manual, 227 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -48,7 +48,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Alter Self | spells24 | Alter Self (Aquatic Adaptation) (automated), Alter Self (Change Appearance) (automated), Alter Self (Natural Weapons) (automated), Alter Self (Attack: Claws) (automated), Alter Self (Attack: Fangs/Horns) (automated), Alter Self (Attack: Hooves) (automated) | effect: "Altered Appearance" marks its creature (narrative); effect: "Natural Weapon" marks its creature only; its rules are by hand; concentration: nothing it sustains was converted |
 | Ammunition (Varies) | equipment24 | Ammunition (Varies) (gear) | — |
 | Ammunition of Slaying | equipment24 | Ammunition of Slaying (Ammunition of Slaying) (manual) | "Slaying Save" is passive or triggered: not automated; not automated (enchant): using it spends its cost; its description says the rest |
-| Ammunition, +1, +2, or +3 | equipment24 | Ammunition, +1, +2, or +3 (manual) | not automated (enchant): using it spends its cost; its description says the rest |
+| Ammunition, +1, +2, or +3 | equipment24 | Ammunition, +1, +2, or +3 (automated) | — |
 | Amulet | equipment24 | Amulet (gear) | — |
 | Amulet of Health | equipment24 | Amulet of Health (gear) | — |
 | Amulet of Proof against Detection and Location | equipment24 | Amulet of Proof against Detection and Location (gear) | — |
@@ -97,7 +97,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Archery | feats24 | Archery (feature) | — |
 | Archmage | actors24 | Archmage (21 items) | Protective Magic: rolled (save); what it does is by hand; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: effect: "Disguised" marks its creature (narrative); Spellcasting: cast: Lightning Bolt at level 7 is cast at its own level; Spellcasting: cast: Cone of Cold at level 9 is cast at its own level; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest |
 | Armor of Invulnerability | equipment24 | Armor of Invulnerability (gear), Armor of Invulnerability (automated) | — |
-| Armor of Resistance | equipment24 | Armor of Resistance (gear), Armor of Resistance (manual) | not automated (enchant): using it spends its cost; its description says the rest |
+| Armor of Resistance | equipment24 | Armor of Resistance (gear), Armor of Resistance (automated) | — |
 | Armor of Shadows | classes24 | Armor of Shadows (automated) | — |
 | Armor of Vulnerability | equipment24 | Armor of Vulnerability (gear) | "Armor of Vulnerability" is passive or triggered: not automated |
 | Armor, +1, +2, or +3 | equipment24 | Armor, +1, +2, or +3 (gear) | "Armor, +1, +2, or +3" is passive or triggered: not automated |
@@ -166,7 +166,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Belt of Giant Strength (stone) | equipment24 | Belt of Giant Strength (stone) (gear) | — |
 | Belt of Giant Strength (storm) | equipment24 | Belt of Giant Strength (storm) (gear) | — |
 | Berserker | actors24 | Berserker (2 items) | — |
-| Berserker Axe | equipment24 | Berserker Axe (manual) | not automated (enchant): using it spends its cost; its description says the rest |
+| Berserker Axe | equipment24 | Berserker Axe (automated) | — |
 | Bestow Curse | spells24 | Bestow Curse (Curse Ability) (automated), Bestow Curse (Curse Attacks) (automated), Bestow Curse (Curse Actions) (automated), Bestow Curse (Curse Resilience) (automated) | — |
 | Black Bear | actors24 | Black Bear (3 items) | — |
 | Black Dragon Wyrmling | actors24 | Black Dragon Wyrmling (5 items) | — |
@@ -387,7 +387,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Decanter of Endless Water | equipment24 | Decanter of Endless Water (gear), Decanter of Endless Water (Splash) (manual), Decanter of Endless Water (Fountain) (manual), Decanter of Endless Water (Geyser) (automated) | not automated (utility): using it spends its cost; its description says the rest |
 | Deck of Illusions | equipment24 | Deck of Illusions (gear), Deck of Illusions (Count Number of Cards) (manual), Deck of Illusions (Draw Card) (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest; consumption: itemUses 1d20 - 1 not converted |
 | Deer | actors24 | Deer (3 items) | — |
-| Defender | equipment24 | Defender (manual) | not automated (enchant): using it spends its cost; its description says the rest |
+| Defender | equipment24 | Defender (automated) | — |
 | Defense | feats24 | Defense (feature) | — |
 | Defensive Tactics | classes24 | Defensive Tactics (feature) | "Multiattack Defense" is passive or triggered: not automated |
 | Deflect Attacks | classes24 | Deflect Attacks (Reduce) (automated) | "Redirect" is passive or triggered: not automated |
@@ -395,7 +395,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Deft Explorer | classes24 | Deft Explorer (feature) | — |
 | Delayed Blast Fireball | spells24 | Delayed Blast Fireball (Create Bead) (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses @item.uses.value not converted; concentration: its caster concentrates; what it sustains is by hand; "Touch Bead" is passive or triggered: not automated; "Turn End Damage Increase" is passive or triggered: not automated; "Trigger Explosion" is passive or triggered: not automated |
 | Demiplane | spells24 | Demiplane (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Demon Armor | equipment24 | Demon Armor (gear), Demon Armor (manual) | not automated (enchant): using it spends its cost; its description says the rest |
+| Demon Armor | equipment24 | Demon Armor (gear), Demon Armor (automated) | — |
 | Detect Evil and Good | spells24 | Detect Evil and Good (automated) | effect: "Detect Evil and Good" marks its creature (narrative) |
 | Detect Magic | spells24 | Detect Magic (automated) | effect: "Detect Magic" marks its creature (narrative) |
 | Detect Poison and Disease | spells24 | Detect Poison and Disease (automated) | effect: "Detect Poison and Disease" marks its creature (narrative) |
@@ -441,7 +441,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dragon Companion | classes24 | Dragon Companion (feature) | "Expend Use" is passive or triggered: not automated |
 | Dragon Orb | equipment24 | Dragon Orb (gear), Dragon Orb (Call Dragons) (manual), Dragon Orb: Suggestion (automated), Dragon Orb: Cure Wounds (automated), Dragon Orb: Daylight (automated), Dragon Orb: Death Ward (automated), Dragon Orb: Detect Magic (automated), Dragon Orb: Scrying (automated) | "Attunement Save" is passive or triggered: not automated; not automated (utility, narrative): using it spends its cost; its description says the rest; consumption: itemUses 4 not converted; cast: Cure Wounds at level 9 is cast at its own level; consumption: itemUses 1 not converted; consumption: itemUses 2 not converted; effect: "Protection from Death" marks its creature only; its rules are by hand; effect: "Detect Magic" marks its creature (narrative); consumption: itemUses 3 not converted; activation: 10 minute is not an action-economy cost; save: a failure marks its creature (narrative); "Create Sensor" is passive or triggered (narrative): not automated |
 | Dragon Scale Mail | equipment24 | Dragon Scale Mail (gear) | "Select Dragon Type" is passive or triggered: not automated |
-| Dragon Slayer | equipment24 | Dragon Slayer (manual) | not automated (enchant): using it spends its cost; its description says the rest |
+| Dragon Slayer | equipment24 | Dragon Slayer (automated) | — |
 | Dragon Turtle | actors24 | Dragon Turtle (6 items) | — |
 | Dragon Wings | classes24 | Dragon Wings (Dragon Wings) (automated), Dragon Wings (Restore Use) (automated) | — |
 | Dragon's Breath | spells24 | Dragon's Breath (Cast) (manual), Dragon's Breath (Exhale) (automated) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; concentration: nothing it sustains was converted |
@@ -501,7 +501,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Elixir of Health | equipment24 | Elixir of Health (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Elk | actors24 | Elk (3 items) | — |
 | Elusive | classes24 | Elusive (feature) | — |
-| Elven Chain | equipment24 | Elven Chain (gear), Elven Chain (manual) | not automated (enchant): using it spends its cost; its description says the rest |
+| Elven Chain | equipment24 | Elven Chain (gear), Elven Chain (automated) | — |
 | Elven Lineage, Drow | origins24 | Elven Lineage, Drow (feature) | — |
 | Elven Lineage, High Elf | origins24 | Elven Lineage, High Elf (feature) | — |
 | Elven Lineage, Wood Elf | origins24 | Elven Lineage, Wood Elf (feature) | — |
@@ -509,7 +509,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Empowered Evocation | classes24 | Empowered Evocation (feature) | — |
 | Empowered Spell | classes24 | Empowered Spell (feature) | — |
 | Empowered Strikes | classes24 | Empowered Strikes (automated) | — |
-| Energy Bow | equipment24 | Energy Bow (attack) (automated), Energy Bow (Arrow of Transport) (manual), Energy Bow (Energy Ladder) (manual), Energy Bow (Energy Bow) (manual) | rolled (attack); what it does is by hand; not automated (utility): using it spends its cost; its description says the rest; "Arrow of Restraint" is passive or triggered: not automated; not automated (enchant): using it spends its cost; its description says the rest |
+| Energy Bow | equipment24 | Energy Bow (attack) (automated), Energy Bow (Arrow of Transport) (manual), Energy Bow (Energy Ladder) (manual), Energy Bow (Energy Bow) (automated) | rolled (attack); what it does is by hand; not automated (utility): using it spends its cost; its description says the rest; "Arrow of Restraint" is passive or triggered: not automated |
 | Enhance Ability | spells24 | Enhance Ability (automated) | — |
 | Enlarge/Reduce | spells24 | Enlarge/Reduce (automated) | effect: "Enlarged" change system.traits.size (add) not converted; effect: "Reduced" change system.rolls.damage.mwak.bonus (subtract) not converted; effect: "Reduced" change system.rolls.damage.rwak.bonus (subtract) not converted; effect: "Reduced" change system.traits.size (subtract) not converted |
 | Ensnaring Strike | spells24 | Ensnaring Strike (save) (automated) | "Start of Turn Damage" is passive or triggered: not automated |
@@ -636,7 +636,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Freezing Sphere | spells24 | Freezing Sphere (Cast and Fire) (automated), Freezing Sphere (Cast and Hold) (manual), Freezing Sphere (Throw Held Globe) (automated) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted; "Freeze Water" is passive or triggered: not automated |
 | Frenzy | classes24 | Frenzy (feature) | — |
 | Frog | actors24 | Frog (4 items) | — |
-| Frost Brand | equipment24 | Frost Brand (manual) | not automated (enchant): using it spends its cost; its description says the rest |
+| Frost Brand | equipment24 | Frost Brand (automated) | — |
 | Frost Giant | actors24 | Frost Giant (5 items) | — |
 | Frost's Chill | origins24 | Frost's Chill (automated) | — |
 | Gargoyle | actors24 | Gargoyle (4 items) | — |
@@ -790,7 +790,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Hold Monster | spells24 | Hold Monster (automated) | — |
 | Hold Person | spells24 | Hold Person (automated) | — |
 | Holy Aura | spells24 | Holy Aura (Create Aura) (automated) | "Fiend/Undead Save" is passive or triggered: not automated |
-| Holy Avenger | equipment24 | Holy Avenger (manual) | not automated (enchant): using it spends its cost; its description says the rest |
+| Holy Avenger | equipment24 | Holy Avenger (automated) | — |
 | Holy Nimbus | classes24 | Holy Nimbus (Holy Nimbus) (automated), Holy Nimbus (Regain Use) (automated) | — |
 | Holy Symbol (Varies) | equipment24 | Holy Symbol (Varies) (gear) | — |
 | Holy Water | equipment24 | Holy Water (automated) | — |
@@ -1054,7 +1054,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Oil | equipment24 | Oil (Throw) (automated), Oil (Douse Space) (automated) | rolled (save); what it does is by hand |
 | Oil | equipment24 | Oil (Throw) (automated), Oil (Douse Space) (automated) | rolled (save); what it does is by hand |
 | Oil of Etherealness | equipment24 | Oil of Etherealness (automated) | — |
-| Oil of Sharpness | equipment24 | Oil of Sharpness (Apply Oil to Weapon) (manual), Oil of Sharpness (Apply Oil to Ammunition) (manual) | not automated (enchant): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
+| Oil of Sharpness | equipment24 | Oil of Sharpness (Apply Oil to Weapon) (automated), Oil of Sharpness (Apply Oil to Ammunition) (automated) | — |
 | Oil of Slipperiness | equipment24 | Oil of Slipperiness: Freedom of Movement (automated), Oil of Slipperiness: Grease (automated) | activation: 10 minute is not an action-economy cost; effect: "Unrestricted Movement" change system.attributes.movement.ignoredDifficultTerrain (add) not converted; save: a failure gives prone (its text); the rest is by hand |
 | Oil of Taggit | equipment24 | Oil of Taggit (automated) | — |
 | One with Shadows | classes24 | One with Shadows (automated) | — |
@@ -1257,7 +1257,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ring of Mind Shielding | equipment24 | Ring of Mind Shielding (gear) | — |
 | Ring of Protection | equipment24 | Ring of Protection (gear) | — |
 | Ring of Regeneration | equipment24 | Ring of Regeneration (gear) | "heal" is passive or triggered: not automated |
-| Ring of Resistance | equipment24 | Ring of Resistance (gear), Ring of Resistance (manual) | not automated (enchant): using it spends its cost; its description says the rest |
+| Ring of Resistance | equipment24 | Ring of Resistance (gear), Ring of Resistance (automated) | — |
 | Ring of Shooting Stars | equipment24 | Ring of Shooting Stars (gear), Ring of Shooting Stars: Faerie Fire (automated), Ring of Shooting Stars (Create Lightning Spheres) (manual), Ring of Shooting Stars (Shooting Stars) (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest; "Lightning Sphere Save" is passive or triggered: not automated |
 | Ring of Spell Storing | equipment24 | Ring of Spell Storing (gear) | — |
 | Ring of Spell Turning | equipment24 | Ring of Spell Turning (gear), Ring of Spell Turning (manual) | not automated (utility): using it spends its cost; its description says the rest |
@@ -1350,7 +1350,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Shield of Faith | spells24 | Shield of Faith (automated) | — |
 | Shield of Missile Attraction | equipment24 | Shield of Missile Attraction (gear) | — |
 | Shield of the Cavalier | equipment24 | Shield of the Cavalier (gear), Shield of the Cavalier (Forceful Bash) (automated), Shield of the Cavalier (Protective Field) (manual) | not automated (utility): using it spends its cost; its description says the rest |
-| Shield, +1, +2, or +3 | equipment24 | Shield, +1, +2, or +3 (gear), Shield, +1, +2, or +3 (manual) | not automated (enchant): using it spends its cost; its description says the rest; armor: of any kind; give it its armor's AC by hand |
+| Shield, +1, +2, or +3 | equipment24 | Shield, +1, +2, or +3 (gear), Shield, +1, +2, or +3 (automated) | armor: of any kind; give it its armor's AC by hand |
 | Shillelagh | spells24 | Shillelagh (Imbue Weapon) (automated) | — |
 | Shining Smite | spells24 | Shining Smite (automated) | — |
 | Shocking Grasp | spells24 | Shocking Grasp (automated) | effect: "Shocked" marks its creature only; its rules are by hand |
@@ -1649,7 +1649,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Weapon Mastery | classes24 | Weapon Mastery (feature) | — |
 | Weapon Mastery | classes24 | Weapon Mastery (feature) | — |
 | Weapon Mastery | classes24 | Weapon Mastery (feature) | — |
-| Weapon of Warning | equipment24 | Weapon of Warning (manual) | not automated (enchant): using it spends its cost; its description says the rest |
+| Weapon of Warning | equipment24 | Weapon of Warning (automated) | — |
 | Weapon, +1, +2, or +3 | equipment24 | Weapon, +1, +2, or +3 (feature) | "Weapon, +1, +2, or +3" is passive or triggered: not automated |
 | Weasel | actors24 | Weasel (2 items) | — |
 | Weaver's Tools | equipment24 | Weaver's Tools (gear), Weaver's Tools (automated) | — |
