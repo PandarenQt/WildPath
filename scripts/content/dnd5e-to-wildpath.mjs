@@ -3363,9 +3363,9 @@ function traitRules(system, notes) {
   const legendary = number(system.resources?.legact?.max);
   if ( legendary ) rules.push({schemaVersion: 1, id: "legendary-actions", type: "GrantResource",
     data: {resourceId: "legendary-action", label: "Legendary Actions", maximum: legendary, recovery: "turn"}});
-  // 2014: in its lair, one Lair Action a round, on initiative count 20 (WildPathCombat refills it then).
+  // 2014: in its lair, one Lair Action a round, at the top of the round (WildPathCombat refills it then).
   if ( system.resources?.lair?.value ) rules.push({schemaVersion: 1, id: "lair-actions", type: "GrantResource",
-    data: {resourceId: "lair-action", label: "Lair Action", maximum: 1, recovery: "none", refillsAtInitiative: 20}});
+    data: {resourceId: "lair-action", label: "Lair Action", maximum: 1, recovery: "none", refillsAtInitiative: 100}});
   return rules;
 }
 

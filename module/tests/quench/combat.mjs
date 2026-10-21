@@ -158,13 +158,13 @@ export function registerCombatTests(quench) {
         assert.deepEqual(baseSource(enc).pools,[],"Base world Actor must not receive the synthetic pools");
       });
 
-      it("a 2014 Lair Action comes back when the round passes initiative 20, once a round", async function () {
+      it("a 2014 Lair Action comes back at the top of the round, once a round", async function () {
         const scene = await fixtures.createScene({name:"lair"});
         const quick = await fixtures.createActor({name:"lair quick",type:"npc"});
         const dragon = await fixtures.createActor({name:"lair dragon",type:"npc",system:{pools:[]}});
         await dragon.createEmbeddedDocuments("Item",[{name:"Lair",type:"feature",system:{active:true,ruleElements:[{schemaVersion:1,
           id:"lair-actions",type:"GrantResource",data:{resourceId:"lair-action",label:"Lair Action",maximum:1,recovery:"none",
-            refillsAtInitiative:20}}]}}]);
+            refillsAtInitiative:100}}]}}]);
         await dragon.recordsSettled?.();
         const quickToken = await fixtures.createToken(scene,quick,{name:"quick",x:100,y:100});
         const dragonToken = await fixtures.createToken(scene,dragon,{name:"dragon",x:300,y:100});
@@ -178,22 +178,21 @@ export function registerCombatTests(quench) {
         };
         const before = new Set(game.messages.map(message => message.id));
         try {
-          await transition(combat, () => combat.startCombat());
-          assert.equal(combat.combatant.tokenId,quickToken.id,"initiative 25 goes first");
           await spend();
           assert.equal(lair().value,0);
-          await transition(combat, () => combat.nextTurn());
-          assert.equal(combat.combatant.tokenId,dragonToken.id);
-          assert.equal(lair().value,1,"past initiative 20: its Lair Action is back");
+          await transition(combat, () => combat.startCombat());
+          assert.equal(combat.combatant.tokenId,quickToken.id,"initiative 25 goes first");
+          assert.equal(lair().value,1,"the top of the round, before anyone: its Lair Action is back");
           const told = () => game.messages.some(message => !before.has(message.id) && message.content.includes("dragon")
             && message.content.includes("Lair Action"));
           for ( let tries = 0; (tries < 20) && !told(); tries++ ) await new Promise(resolve => setTimeout(resolve, 100));
           assert.isTrue(told(),"the GM is told who may take one");
           await spend();
           await transition(combat, () => combat.nextTurn());
-          assert.equal(lair().value,0,"the next round's initiative 25 turn is before 20: not yet");
+          assert.equal(combat.combatant.tokenId,dragonToken.id);
+          assert.equal(lair().value,0,"later in the round: not again");
           await transition(combat, () => combat.nextTurn());
-          assert.equal(lair().value,1,"and passing 20 in that round brings it back");
+          assert.equal(lair().value,1,"the next round's top brings it back");
         } finally {
           await ChatMessage.deleteDocuments(game.messages.filter(message => !before.has(message.id)).map(message => message.id));
         }

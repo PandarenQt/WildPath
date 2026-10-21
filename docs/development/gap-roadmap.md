@@ -335,7 +335,7 @@ WildPath does.
     from Arcane Eye to Summon Dragon). What the creature gains with the spell's level is applied.
   - A summoned spirit's Multiattack by spell level: "Multiattack not automated" fell from 80 documents to 10.
   - Lair Actions (2014): an Action activated "lair" costs a Lair Action, one a round from a pool its lair gives the
-    creature (refilled at the start of its turn, not on initiative 20).
+    creature (refilled at the top of each round, initiative count 100, by the maintainer's choice).
   - Multiattack's named attacks (2026-10-15): "shortcut: named attacks not enforced" fell from 515 documents to 11.
     Each named attack has its own count, and each alternative is an Action of its own. Live: an SRD Brown Bear's
     Multiattack filled Bite 1 and Claw 1; a second Bite was refused, and the Claw went through.
