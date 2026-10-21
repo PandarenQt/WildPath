@@ -3,7 +3,8 @@
  * its total level, original class and spell slots from these; another ruleset replaces this module rather
  * than branching inside callers (AGENTS §10).
  */
-export const SPELLCASTING_PROGRESSIONS = Object.freeze({ NONE: "none", FULL: "full", HALF: "half", PACT: "pact" });
+// A third caster (Eldritch Knight, Arcane Trickster) casts through its subclass: `effectiveSpellcasting`.
+export const SPELLCASTING_PROGRESSIONS = Object.freeze({ NONE: "none", FULL: "full", HALF: "half", THIRD: "third", PACT: "pact" });
 /** The pool that holds slots of one spell level; slot payments name it as their capability. */
 export const spellSlotPoolId = (spellLevel) => `spell-slot.${spellLevel}`;
 /** The pool of Pact Magic slots: it pays for any slot up to its level (action-economy), recovered on a Short Rest. */
@@ -20,10 +21,14 @@ const SLOTS_BY_CASTER_LEVEL = [
     [4, 3, 3, 3, 3, 2, 1, 1, 1], [4, 3, 3, 3, 3, 2, 2, 1, 1]
 ];
 /**
- * 2024 caster level: every level in a full-caster class, plus half the levels in each half-caster class,
- * rounded up per class. A single-class half-caster therefore uses the same table (Paladin 5 = caster 3).
+ * 2024 caster level: every level in a full-caster class, plus half the levels in each half-caster class rounded up,
+ * plus a third of the levels in each third-caster class rounded down. A single-class half caster therefore uses the same
+ * table (Paladin 5 = caster 3). A third caster with no other casting class uses its own table, which is the multiclass
+ * table at a third of its level rounded up, from level 3 (Eldritch Knight 7 = caster 3: four 1st- and two 2nd-level slots).
  */
 export function casterLevel(classes) {
+    const casting = classes.filter(entry => ![undefined, SPELLCASTING_PROGRESSIONS.NONE, SPELLCASTING_PROGRESSIONS.PACT]
+        .includes(entry.spellcasting?.progression));
     return classes.reduce((total, entry) => {
         const level = Math.max(Number(entry.level) || 0, 0);
         const progression = entry.spellcasting?.progression;
@@ -31,8 +36,23 @@ export function casterLevel(classes) {
             return total + level;
         if (progression === SPELLCASTING_PROGRESSIONS.HALF)
             return total + Math.ceil(level / 2);
+        if (progression === SPELLCASTING_PROGRESSIONS.THIRD) {
+            return total + ((casting.length === 1) ? ((level >= 3) ? Math.ceil(level / 3) : 0) : Math.floor(level / 3));
+        }
         return total;
     }, 0);
+}
+/**
+ * A class Item's spellcasting, or its subclass's when the class has none of its own (2024 Eldritch Knight and Arcane
+ * Trickster: the Fighter and Rogue cast through them). `items` are its creature's Items.
+ */
+export function effectiveSpellcasting(classItem, items = []) {
+    const own = classItem.system?.spellcasting;
+    if (own?.progression && (own.progression !== SPELLCASTING_PROGRESSIONS.NONE))
+        return own;
+    const subclass = items.find(entry => (entry.type === "subclass") && (entry.system?.classIdentifier === classItem.system?.identifier)
+        && !!entry.system?.spellcasting?.progression && (entry.system.spellcasting.progression !== SPELLCASTING_PROGRESSIONS.NONE));
+    return subclass?.system?.spellcasting ?? own ?? { progression: SPELLCASTING_PROGRESSIONS.NONE, ability: "" };
 }
 /** Slots for spell levels 1-9 at a caster level (nine entries, zero where none). */
 export function spellSlots(level) {
@@ -103,9 +123,12 @@ export function preparesSpell(item) {
 }
 /** A spell its creature has not prepared, so it can't cast it. */
 export const isUnprepared = (item) => preparesSpell(item) && (item?.system?.prepared === false);
-/** How many spells a creature's classes let it prepare: each class's table at its level, summed; null with none. */
-export function preparedSpellLimit(classes) {
-    const limits = classes.map(entry => entry.system?.spellcasting?.prepared?.[(Number(entry.system?.levels) || 1) - 1])
+/**
+ * How many spells a creature's classes let it prepare: each class's table at its level (or its casting subclass's, among
+ * `items`), summed; null with none.
+ */
+export function preparedSpellLimit(classes, items = []) {
+    const limits = classes.map(entry => effectiveSpellcasting(entry, items).prepared?.[(Number(entry.system?.levels) || 1) - 1])
         .filter((value) => Number.isFinite(value));
     return limits.length ? limits.reduce((sum, value) => sum + value, 0) : null;
 }

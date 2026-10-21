@@ -1578,16 +1578,17 @@ export function convertProgression(document, {uuidOf=() => [], licensed=isSrd202
     }
   });
   const fields = {identifier: system.identifier || slugify(document.name), advancement};
+  // Its spellcasting: the Artificer rounds up like a half caster (2024 and Tasha's), and a third caster's is its subclass's.
+  const progression = system.spellcasting?.progression ?? "none";
+  const mapped = {full: "full", half: "half", artificer: "half", third: "third", pact: "pact"}[progression] ?? "none";
+  if ( !["none", "full", "half", "third", "pact", "artificer"].includes(progression) ) notes.push(`spellcasting: ${progression} is treated as ${mapped}`);
+  const spellcasting = {progression: mapped, ability: ABILITY_MAP[system.spellcasting?.ability] ?? "", prepared: preparedTable(system)};
   if ( type === "class" ) {
-    const progression = system.spellcasting?.progression ?? "none";
-    // shortcut: the Artificer rounds up like a half caster; third casters are not converted.
-    const mapped = {full: "full", half: "half", artificer: "half", pact: "pact"}[progression] ?? "none";
-    if ( !["none", "full", "half", "pact"].includes(progression) ) notes.push(`spellcasting: ${progression} is treated as ${mapped}`);
     Object.assign(fields, {levels: 1, hitDie: Number(String(system.hd?.denomination ?? "d8").slice(1)) || 8, original: false,
       primaryAbility: {abilities: (system.primaryAbility?.value ?? []).map(key => ABILITY_MAP[key] ?? key), all: system.primaryAbility?.all !== false},
-      spellcasting: {progression: mapped, ability: ABILITY_MAP[system.spellcasting?.ability] ?? "", prepared: preparedTable(system)}});
+      spellcasting});
   }
-  if ( type === "subclass" ) fields.classIdentifier = system.classIdentifier ?? "";
+  if ( type === "subclass" ) Object.assign(fields, {classIdentifier: system.classIdentifier ?? "", ...((mapped !== "none") ? {spellcasting} : {})});
   if ( type === "species" ) {
     const sizes = advancement.find(entry => entry.type === "size")?.sizes ?? [];
     fields.size = sizes.includes("medium") ? "medium" : (sizes[0] ?? "medium");

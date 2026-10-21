@@ -10,6 +10,12 @@ const {ArrayField, BooleanField, NumberField, ObjectField, SchemaField, StringFi
  */
 const advancementField = () => new ArrayField(new ObjectField({required: true, initial: () => ({})}));
 const identifierField = () => new StringField({required: true, blank: true, initial: ""});
+const spellcastingField = () => new SchemaField({
+  progression: new StringField({required: true, initial: SPELLCASTING_PROGRESSIONS.NONE, choices: Object.values(SPELLCASTING_PROGRESSIONS)}),
+  ability: new StringField({required: true, blank: true, initial: ""}),
+  // How many spells it prepares at each level of its class (2024 class tables; index 0 is level 1).
+  prepared: new ArrayField(new NumberField({required: true, integer: true, min: 0}))
+});
 
 /** A class (2024): its levels on this creature, its Hit Die, its spellcasting, and what each level gives. */
 export class WildPathClass extends WildPathBaseItem {
@@ -27,22 +33,21 @@ export class WildPathClass extends WildPathBaseItem {
         abilities: new ArrayField(new StringField({required: true, blank: false})),
         all: new BooleanField({required: true, initial: true})
       }),
-      spellcasting: new SchemaField({
-        progression: new StringField({required: true, initial: SPELLCASTING_PROGRESSIONS.NONE, choices: Object.values(SPELLCASTING_PROGRESSIONS)}),
-        ability: new StringField({required: true, blank: true, initial: ""}),
-        // How many spells it prepares at each level (2024 class tables; index 0 is level 1).
-        prepared: new ArrayField(new NumberField({required: true, integer: true, min: 0}))
-      }),
+      spellcasting: spellcastingField(),
       advancement: advancementField()
     };
   }
 }
 
-/** A subclass of one class (`classIdentifier`), and what each of that class's levels gives through it. */
+/**
+ * A subclass of one class (`classIdentifier`), and what each of that class's levels gives through it. A third caster's
+ * spellcasting is its subclass's (Eldritch Knight, Arcane Trickster); for any other it stays "none".
+ */
 export class WildPathSubclass extends WildPathBaseItem {
   /** @inheritDoc */
   static defineSchema() {
-    return {...super.defineSchema(), identifier: identifierField(), classIdentifier: identifierField(), advancement: advancementField()};
+    return {...super.defineSchema(), identifier: identifierField(), classIdentifier: identifierField(), advancement: advancementField(),
+      spellcasting: spellcastingField()};
   }
 }
 
