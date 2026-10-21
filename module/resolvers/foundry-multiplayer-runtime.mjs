@@ -1424,7 +1424,9 @@ function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
     // An ally of the attacker Helped against this target (2024 Help: its Distracted).
     helpedByAlly: helpedByAlly(sourceToken, entry?.actor),
     // What it is (2024: a Mace of Disruption's Fiend or Undead).
-    targetType: entry?.actor?.system?.details?.type || null},
+    targetType: entry?.actor?.system?.details?.type || null,
+    // ... and what attacks it (Protection from Evil and Good).
+    attackerType: attacker?.system?.details?.type || null},
     ...sunlightContext(sourceToken), ...fearContext(sourceToken)};
 }
 

@@ -316,12 +316,25 @@
               "type": "effect",
               "name": "Disadv.: Attacks",
               "img": "icons/weapons/hammers/hammer-double-glowing-yellow.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "next-attack",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "attack"
+                    ],
+                    "mode": "disadvantage"
+                  }
+                }
+              ],
               "duration": {
                 "value": 1,
                 "units": "turns",
                 "expiry": "turnStart"
-              }
+              },
+              "endsWhen": "attacks"
             }
           ],
           "push": {
@@ -345,9 +358,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: \"Disadv.: Attacks\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -410,9 +421,7 @@
         "challenge": 9
       },
       "conversion": {
-        "notes": [
-          "Hammer Throw: effect: \"Disadv.: Attacks\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

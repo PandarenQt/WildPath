@@ -17,7 +17,8 @@ export function applySensesToToken(token) {
     // Its sight stays on or off as its Token is set; its range and mode are its senses'.
     token.sight.range = sight;
     token.sight.visionMode = sight > 0 ? "darkvision" : "basic";
-    const modes = [["seeAll", range("truesight")], ["feelTremor", range("tremorsense")], ["blindsight", range("blindsight")]];
+    const modes = [["seeAll", range("truesight")], ["feelTremor", range("tremorsense")], ["blindsight", range("blindsight")],
+        ["seeInvisibility", range("seeInvisibility")]];
     for (const [id, distance] of modes) {
         if (distance > 0)
             token.detectionModes[id] = { enabled: true, range: distance };

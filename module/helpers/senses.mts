@@ -2,10 +2,11 @@
  * A creature's senses (2024): Darkvision, Blindsight, Tremorsense, Truesight and Devil's Sight (it sees normally in
  * magical and nonmagical Darkness), each with a range in feet, from its
  * grants (`GrantSense` RuleElements on its species, features, gear and effects). Its Token's vision follows them
- * (documents/token.mjs), and the rules read them: Truesight sees the Invisible, Blindsight sees without sight.
+ * (documents/token.mjs), and the rules read them: Truesight sees the Invisible, Blindsight sees without sight. See
+ * Invisibility (the spell) sees the Invisible too, and nothing else.
  */
 
-export const SENSES = Object.freeze(["darkvision", "blindsight", "tremorsense", "truesight", "devilsSight"] as const);
+export const SENSES = Object.freeze(["darkvision", "blindsight", "tremorsense", "truesight", "devilsSight", "seeInvisibility"] as const);
 export type Sense = typeof SENSES[number];
 export type Senses = Record<Sense, number>;
 
@@ -51,7 +52,7 @@ export function obscured(observer: Perceiver | null | undefined, {distance = nul
 
 /**
  * Whether `observer` perceives `observed` despite Blinded and Invisible: a Blinded creature perceives only by
- * Blindsight (or Tremorsense, a creature on the ground) within range; an Invisible creature is perceived by Truesight,
+ * Blindsight (or Tremorsense, a creature on the ground) within range; an Invisible creature is perceived by Truesight, See Invisibility,
  * Blindsight or Tremorsense within range. `distance` in feet (unknown counts as within range); `grounded`: the observed
  * creature touches the ground (Tremorsense; unknown counts as grounded).
  */
@@ -63,5 +64,5 @@ export function perceives(observer: Perceiver | null | undefined, observed: Perc
   const senses = observer?.system?.senses ?? {};
   const reaches = (sense: Sense) => ((Number(senses[sense]) || 0) > 0) && ((distance === null) || (distance <= Number(senses[sense])));
   if ( reaches("blindsight") || (grounded && reaches("tremorsense")) ) return true;
-  return !blinded && reaches("truesight");
+  return !blinded && (reaches("truesight") || reaches("seeInvisibility"));
 }

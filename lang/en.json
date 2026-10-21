@@ -160,7 +160,8 @@
       "blindsight": "Blindsight",
       "tremorsense": "Tremorsense",
       "truesight": "Truesight",
-      "devilsSight": "Devil's Sight"
+      "devilsSight": "Devil's Sight",
+      "seeInvisibility": "See Invisibility"
     },
     "CONDITIONS": {
       "TurnDamage": "Condition damage",

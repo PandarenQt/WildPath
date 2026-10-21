@@ -2,8 +2,8 @@
 
 ## Senses (2026-10-20)
 
-A creature's senses are **Darkvision**, **Blindsight**, **Tremorsense**, **Truesight** and **Devil's Sight**, each with a
-range in feet.
+A creature's senses are **Darkvision**, **Blindsight**, **Tremorsense**, **Truesight**, **Devil's Sight** and **See
+Invisibility** (the spell: it perceives the Invisible, and nothing else; 2026-10-21), each with a range in feet.
 They come from its grants: `GrantSense {sense, range}` RuleElements on its species, features, gear and effects. The
 prepared data keeps the best range of each (`system.senses`, `helpers/senses.mts` `bestSenses`); nothing is stored.
 
@@ -18,6 +18,7 @@ The Homebrew Builder's rule rows have "A sense" (a sense and its range) for writ
 | Truesight, Devil's Sight | the vision source has the highest priority, so magical Darkness neither blinds nor walls it off |
 | Truesight | adds the `seeAll` detection mode within its range |
 | Tremorsense | adds `feelTremor` |
+| See Invisibility | adds Foundry's `seeInvisibility` detection mode within its range |
 | Blindsight | adds `blindsight`, a WildPath detection mode |
 
 - **Blindsight's mode.** It is type OTHER, so Blinded and Invisible don't stop it. Walls block it; darkness doesn't.

@@ -62,7 +62,20 @@
           "type": "effect",
           "name": "Brief Enfeeblement",
           "img": "icons/skills/melee/sword-damaged-broken-glow-red.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "next-attack",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attack"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ],
+          "endsWhen": "attacks",
           "saveOutcomePolicy": "failure",
           "concentration": true,
           "repeatSave": "turnEnd"
@@ -234,7 +247,6 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Brief Enfeeblement\" marks its creature only; its rules are by hand",
           "effect: \"Enervated\" change system.bonuses.mwak.damage (add) not converted",
           "effect: \"Enervated\" change system.bonuses.rwak.damage (add) not converted",
           "effect: \"Enervated\" change system.bonuses.msak.damage (add) not converted",

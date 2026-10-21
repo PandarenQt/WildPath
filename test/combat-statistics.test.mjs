@@ -36,6 +36,17 @@ test("resolveActorDefense combines persisted defense base with WildPathStatistic
   assert.deepEqual(JSON.parse(JSON.stringify(defense)), defense);
 });
 
+test("an Armor Class floor (Barkskin's 17) holds after bonuses, typed or worked out, and is not a way to work it out", () => {
+  const actor = (ac, armorClasses, bonus=0) => ({system: {defenses: {ac: {value: ac}}}, getArmorClasses: () => armorClasses,
+    getStatistic: domains => ([domains].flat().includes("defense.ac") && bonus ? statistic("defense.ac", bonus) : null)});
+  const floor = {value: 17, minimum: true};
+  assert.equal(resolveActorDefense(actor(12, [floor]), "ac").value, 17, "a typed 12");
+  assert.equal(resolveActorDefense(actor(15, [floor], 2), "ac").value, 17, "15 + 2 is not lower");
+  assert.equal(resolveActorDefense(actor(16, [floor], 2), "ac").value, 18);
+  assert.equal(resolveActorDefense(actor(null, [{value: 11}, floor], -2), "ac").value, 17, "worked out: 11 - 2");
+  assert.equal(resolveActorDefense(actor(null, [{value: 11}, floor]), "ac").source.base, 11, "the floor is not its base");
+});
+
 test("resolveActorAttackStatistic snapshots source attack modifiers into plain roll data", () => {
   const actor = {
     id: "actor-attacker",
