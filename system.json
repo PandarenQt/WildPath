@@ -1,15 +1,15 @@
 {
   "id": "wildpath",
   "title": "Wild Path",
-  "description": "A highly customizable Foundry VTT system providing the foundations for conditions, modifiers, resource pools, and BG3-style action economy.",
-  "version": "0.0.1",
+  "description": "A Foundry VTT system for the 2024 fifth-edition rules with Baldur's Gate 3's flow: Actions that resolve themselves, reactions with policies, conditions and auras, and the SRD 5.2.",
+  "version": "0.9.0",
   "compatibility": {
     "minimum": 14,
     "verified": 14
   },
   "authors": [
     {
-      "name": "Wild Path"
+      "name": "Espen"
     }
   ],
   "packs": [
@@ -90,6 +90,17 @@
           "license": "CC-BY-4.0",
           "source": "SRD 5.2"
         }
+      }
+    },
+    {
+      "name": "guide",
+      "label": "WILDPATH.PACKS.Guide",
+      "path": "packs/guide",
+      "type": "JournalEntry",
+      "system": "wildpath",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
       }
     }
   ],
@@ -176,5 +187,7 @@
   "secondaryTokenAttribute": "resources.action",
   "url": "",
   "manifest": "",
-  "download": ""
+  "download": "",
+  "license": "LICENSE",
+  "readme": "README.md"
 }

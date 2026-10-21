@@ -8,7 +8,8 @@
     "build": "npm run typecheck && tsc -p tsconfig.runtime.json",
     "build:packs": "node scripts/build-packs.mjs",
     "test": "node --test test/*.test.mjs",
-    "typecheck": "tsc -p tsconfig.json --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build:guide": "node scripts/content/build-guide.mjs"
   },
   "engines": {
     "node": ">=18"

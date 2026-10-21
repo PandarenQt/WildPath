@@ -3,6 +3,11 @@
 An automated Foundry VTT system focused on BG3-style tactical flow, extensible action economy,
 and configurable automation foundations.
 
+## Guide
+
+The player and GM guide is in `docs/guide/` and, in Foundry, the **WildPath Guide** compendium (`npm run build:guide`
+then `npm run build:packs` rebuild it from the Markdown).
+
 ## SRD 5.2 content
 
 The packs `srd-items` and `srd-creatures` are converted from the 2024 System Reference Document. Each document
