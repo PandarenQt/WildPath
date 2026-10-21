@@ -124,7 +124,7 @@
           },
           "restores": [
             {
-              "resourceId": "multiattack",
+              "resourceId": "multiattack-rend",
               "amount": 4
             },
             {
@@ -136,11 +136,11 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "multiattack-uses",
+            "id": "multiattack-rend-uses",
             "type": "GrantResource",
             "data": {
-              "resourceId": "multiattack",
-              "label": "Multiattack",
+              "resourceId": "multiattack-rend",
+              "label": "Multiattack (Rend)",
               "maximum": {
                 "type": "divide",
                 "numerator": {
@@ -187,9 +187,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -210,7 +208,7 @@
             "anyOf": [
               [
                 {
-                  "capability": "multiattack",
+                  "capability": "multiattack-rend",
                   "amount": 1
                 }
               ],
@@ -494,8 +492,7 @@
           "Shared Resistances: \"Share Cold Resistance\" is passive or triggered: not automated",
           "Shared Resistances: \"Share Fire Resistance\" is passive or triggered: not automated",
           "Shared Resistances: \"Share Lightning Resistance\" is passive or triggered: not automated",
-          "Shared Resistances: \"Share Poison Resistance\" is passive or triggered: not automated",
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+          "Shared Resistances: \"Share Poison Resistance\" is passive or triggered: not automated"
         ]
       }
     }

@@ -163,9 +163,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -544,9 +542,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
-        ]
+        "notes": []
       }
     }
   }
