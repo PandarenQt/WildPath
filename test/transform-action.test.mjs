@@ -89,9 +89,14 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   const state = (ends, castingLevel=3) => ({actionDefinition: {ends}, configuration: {castingLevel}, source: {tokenRef: "Scene.s.Token.caster"},
     targets: [{tokenId: "orc"}]});
   const fromUuid = async () => ({parent: scene});
-  await endEffectsOnTargets({state: state({spells: "slot"})}, {fromUuid, game: {}});
-  assert.deepEqual(deleted, ["bless", "haste", "curse"], "spells up to the slot's level; a spell's curse is a spell too");
-  assert.match(posted[0].content, /fly \(4\)/, "above it: named for the caster's check");
+  // Above the slot's level (Fly, 4): the caster's spellcasting check against DC 14.
+  const caster = total => ({system: {spellcasting: {ability: "intellect"}}, rollTest: async ({ability}) => (ability === "intellect" ? total : 0)});
+  await endEffectsOnTargets({options: {actor: caster(15)}, state: state({spells: "slot"})}, {fromUuid, game: {}});
+  assert.deepEqual(deleted, ["bless", "haste", "curse", "fly"], "spells up to the slot's level, a spell's curse too, and Fly on a 15");
+  assert.match(posted[0].content, /fly/, "the GM is told");
+  deleted.length = 0;
+  await endEffectsOnTargets({options: {actor: caster(13)}, state: state({spells: "slot"})}, {fromUuid, game: {}});
+  assert.equal(deleted.includes("fly"), false, "a 13 leaves it");
   deleted.length = 0;
   await endEffectsOnTargets({state: state({tags: ["curse"]})}, {fromUuid, game: {}});
   assert.deepEqual(deleted, ["curse"], "Remove Curse: only curses");

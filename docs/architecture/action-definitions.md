@@ -429,7 +429,9 @@ mechanical resolver payload.
   `metadata.spellLevel`). One above the limit is named in a GM-only chat line: ending it needs the caster's check (DC
   10 + its level), by hand.
 
-Shortcuts: lasting areas and objects are not targets; Dispel Magic's higher-level check is rolled by hand.
+For a spell above the level it was cast at, its caster makes an ability check with its spellcasting ability against DC
+10 + that spell's level (2026-10-21), rolled as a sheet check (its bonuses and the table's dice policy); the spell ends
+on a success, and the GM is told which ended and which stayed. Shortcut: lasting areas and objects are not targets.
 
 Live (two browsers, 2026-10-19): QA Caster cursed the Bandit Captain (Curse Attacks, tagged `curse`) and then cast Remove
 Curse on it: the curse ended. It blessed QA Fighter and then cast Dispel Magic on it: Blessed ended.

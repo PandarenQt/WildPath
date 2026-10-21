@@ -1033,11 +1033,13 @@ export function redirectCandidates(scene, game, targetActors, {tokenIds=null, ar
 
 /**
  * What an Action with `ends` ends on its targets once it completes (Remove Curse: effects tagged "curse"; Dispel Magic:
- * spells up to the level it was cast at). A spell above that level is named in a chat line, as its ending needs the
- * caster's check (DC 10 + its level). Returns the ids it deleted, by target.
- * shortcut: that check is rolled by hand; a lasting area or an object is not a target. Upgrade with a check stage per spell.
+ * spells up to the level it was cast at). For a spell above that level its caster makes an ability check with its
+ * spellcasting ability, DC 10 + that spell's level (2024 Dispel Magic), rolled as a sheet check (its bonuses, the
+ * table's dice policy), and the spell ends on a success; the GM is told which ended and which stayed. Returns the ids it
+ * deleted, by target.
+ * shortcut: a lasting area or an object is not a target; upgrade when areas can be targeted.
  */
-export async function endEffectsOnTargets({state}={}, {fromUuid=globalThis.fromUuid, game=globalThis.game}={}) {
+export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalThis.fromUuid, game=globalThis.game}={}) {
   const ends = state?.actionDefinition?.ends;
   if ( !ends ) return {};
   const tags = new Set(ends.tags ?? []);
@@ -1059,14 +1061,25 @@ export async function endEffectsOnTargets({state}={}, {fromUuid=globalThis.fromU
       if ( (metadata.tags ?? []).some(tag => tags.has(tag)) ) ids.push(effect.id);
       else if ( Number.isFinite(limit) && Number.isFinite(level) ) {
         if ( level <= limit ) ids.push(effect.id);
-        else beyond.push(`${effect.name} (${level})`);
+        else beyond.push({actor, effect, level});
       }
+    }
+    // Above the level it was cast at: its caster's check for each, DC 10 + that spell's level.
+    const caster = options?.actor ?? null;
+    const ability = caster?.system?.spellcasting?.ability || null;
+    for ( const entry of beyond.filter(entry => entry.actor === actor) ) {
+      const total = (ability && (typeof caster?.rollTest === "function")) ? await caster.rollTest({ability}) : null;
+      entry.total = total;
+      entry.ended = Number.isFinite(Number(total)) && (Number(total) >= (10 + entry.level));
+      if ( entry.ended ) ids.push(entry.effect.id);
     }
     if ( ids.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", ids);
     ended[actor.uuid] = ids;
   }
-  if ( beyond.length ) await globalThis.ChatMessage?.create?.({content: `<p>${game?.i18n?.format?.("WILDPATH.NOTIFY.DispelBeyond",
-    {spells: beyond.join(", ")}) ?? beyond.join(", ")}</p>`, whisper: game?.users?.filter?.(user => user.isGM)?.map?.(user => user.id) ?? []});
+  const line = entry => game?.i18n?.format?.(entry.ended ? "WILDPATH.NOTIFY.DispelEnded" : "WILDPATH.NOTIFY.DispelStayed",
+    {name: entry.effect.name ?? "", level: entry.level, dc: 10 + entry.level, total: entry.total ?? "-"}) ?? entry.effect.name;
+  if ( beyond.length ) await globalThis.ChatMessage?.create?.({content: beyond.map(entry => `<p>${line(entry)}</p>`).join(""),
+    whisper: game?.users?.filter?.(user => user.isGM)?.map?.(user => user.id) ?? []});
   return ended;
 }
 

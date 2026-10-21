@@ -1132,11 +1132,12 @@
       "RollRejected": "That result is not possible for these dice. Check the roll and enter it again.",
       "ActionFailed": "The action could not be completed: {reason}",
       "Countered": "{action} fails. {reason}",
-      "DispelBeyond": "Above the level it was cast at, so each needs the caster's check (DC 10 + its level): {spells}",
       "PaymentUnavailable": "This creature can't pay what this action costs right now.",
       "MovementFailed": "The movement could not be completed: {reason}",
       "MovementStoppedByArea": "You stopped on entering {area}. Your remaining movement is kept.",
-      "AnsweredByGM": "The GM answered this for you."
+      "AnsweredByGM": "The GM answered this for you.",
+      "DispelEnded": "{name} (level {level}) ends: the check was {total} against DC {dc}.",
+      "DispelStayed": "{name} (level {level}) stays: the check was {total} against DC {dc}."
     },
     "ITEM": {
       "RuntimeMissing": "WildPath's action runtime isn't running yet; reload the world.",
