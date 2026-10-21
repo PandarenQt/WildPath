@@ -350,7 +350,12 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "frightened",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
             }
           ],
           "label": "Dreadful Glare"

@@ -79,13 +79,23 @@
           "id": "effect-1",
           "type": "condition",
           "conditionId": "frightened",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
         },
         {
           "id": "effect-2",
           "type": "condition",
           "conditionId": "incapacitated",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
         }
       ],
       "label": "Sear Undead"

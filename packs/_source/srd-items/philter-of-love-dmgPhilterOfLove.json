@@ -35,7 +35,12 @@
         {
           "id": "effect-1",
           "type": "condition",
-          "conditionId": "charmed"
+          "conditionId": "charmed",
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
         }
       ],
       "label": "Philter of Love"

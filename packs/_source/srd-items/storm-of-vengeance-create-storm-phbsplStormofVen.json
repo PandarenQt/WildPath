@@ -81,6 +81,11 @@
           "type": "condition",
           "conditionId": "deafened",
           "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
           "concentration": true
         }
       ],

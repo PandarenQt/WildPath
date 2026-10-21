@@ -361,6 +361,37 @@ export function registerCombatTests(quench) {
         assert.equal(baseSource(enc).resources.health.value, 10, "the base world Actor is untouched");
       });
 
+      it("an Emanation Trigger reaches the creatures around its creature: at its turn's end, and when another's turn starts there", async function () {
+        const scene = await fixtures.createScene({name:"emanation"});
+        const make = async (name, x) => {
+          const actor = await fixtures.createActor({name, type:"npc"});
+          return fixtures.createToken(scene, actor, {name, x, y:100});
+        };
+        const azer = await make("azer", 100);
+        const near = await make("near", 200);
+        const far = await make("far", 600);
+        const burn = (event, amount, around) => ({schemaVersion:1, id:`burn-${amount}`, type:"Trigger", data:{kind:"automation", event, around,
+          action:{schemaVersion:1, id:`action:qa-burn-${amount}`, label:"QA Burn", costs:{allOf:[]},
+            damage:[{id:"burn", expression:{type:"constant", value:amount}, damageType:"fire", provenance:"spell-base"}]}}});
+        const live = token => game.scenes.get(scene.id).tokens.get(token.id).actor;
+        await live(azer).createEmbeddedDocuments("Item", [{name:"Fire Aura", type:"feature", system:{active:true, ruleElements:[
+          burn("turn.ended", 2, {radius:5, affects:"others"}), burn("turn.started", 3, {radius:5, affects:"others", on:"others"})]}}]);
+        const combat = await fixtures.createCombat(scene, [azer, near, far]);
+        for ( const [token, initiative] of [[azer, 20], [near, 10], [far, 5]] ) {
+          await combat.setInitiative(combat.combatants.find(entry => entry.tokenId === token.id).id, initiative);
+        }
+        const health = token => live(token).getResource("health").value;
+        await transition(combat, () => combat.startCombat());
+        assert.equal(combat.combatant.tokenId, azer.id);
+        // One turn change: the azer's turn ends (2 to the creature beside it), and that creature's own turn starts in the aura (3).
+        await transition(combat, () => combat.nextTurn());
+        assert.equal(combat.combatant.tokenId, near.id);
+        await until(() => health(near) === 5, "2 as the azer's turn ends, and 3 as its own starts there");
+        assert.deepEqual([health(azer), health(far)], [10, 10], "not its bearer, nor one 25 feet away");
+        await transition(combat, () => combat.nextTurn());
+        assert.equal(health(far), 10, "the far creature's turn starts outside it");
+      });
+
       it("Actor#rest runs a rest Trigger whose predicate names the rest it answers", async function () {
         const enc = await encounter({name:"rest trigger"});
         await stingFeature(enc.actor, {event:"rest.completed", amount:3,

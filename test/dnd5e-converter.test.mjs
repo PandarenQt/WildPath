@@ -976,6 +976,36 @@ test("an effect with nothing WildPath maps still marks its creature, for its dur
   assert.equal(validateActionDefinition(spell.system.definition).ok, true);
 });
 
+test("what a creature does around itself at a turn boundary is an automatic Emanation Trigger (Fire Aura, Fear Aura)", () => {
+  const passive = (id, name, text, data, effects=[]) => ({_id: id, name, type: "feat", effects, system: {source: SRD,
+    description: {value: text}, activities: {a: activity(data.save ? "save" : "damage", {activation: {type: "", override: false},
+      range: {units: "self", override: false}, ...data})}}});
+  const [fire] = convertItem(passive("testFireAura0001", "Fire Aura", "<p>At the end of each of the azer's turns, each creature of the "
+    + "azer's choice in a 5-foot Emanation originating from the azer takes 5 (1d10) Fire damage unless the azer has the Incapacitated condition.</p>",
+    {target: {template: {type: "radius", size: "5"}, affects: {type: "creature"}, override: false},
+      damage: {parts: [{number: 1, denomination: 10, types: ["fire"], bonus: ""}]}})).items;
+  const [burn] = fire.system.ruleElements;
+  assert.deepEqual([burn.type, burn.data.event, burn.data.around, burn.data.predicate], ["Trigger", "turn.ended",
+    {radius: 5, affects: "enemies"}, {missingCondition: "incapacitated"}]);
+  assert.equal(burn.data.action.damage[0].damageType, "fire");
+  assert.equal(fire.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), false);
+
+  const [fear] = convertItem(passive("testFearAura0001", "Fear Aura", "<p>The fiend emanates an aura in a 20-foot Emanation while it doesn't "
+    + "have the Incapacitated condition.</p><p>Wisdom Saving Throw: DC 21, [[lookup @target.affects.special]].</p><p>Failure: The target "
+    + "has the Frightened condition until the start of its next turn.</p><p>Success: The target is immune to this fiend's Fear Aura for 24 hours.</p>",
+    {target: {template: {type: "radius", size: "20"}, affects: {type: "enemy", special: "any enemy that starts its turn in the aura"}, override: false},
+      save: {ability: ["wis"], dc: {calculation: "", formula: "21"}}, damage: {parts: []}, effects: [{_id: "afraid", onSave: false}]},
+    [{_id: "afraid", name: "Frightened", statuses: ["frightened"], duration: {value: 1, units: "turns", expiry: "turnStart"}}])).items;
+  const [aura] = fear.system.ruleElements;
+  assert.deepEqual([aura.data.event, aura.data.around, aura.data.predicate], ["turn.started",
+    {radius: 20, affects: "enemies", on: "others"}, {missingCondition: "incapacitated"}]);
+  const [frightened, immune] = aura.data.action.effects;
+  assert.deepEqual([frightened.conditionId, frightened.duration], ["frightened", {value: 1, units: "turns", expiry: "turnStart"}],
+    "until the start of its next turn");
+  assert.deepEqual([immune.saveOutcomePolicy, immune.duration, immune.metadata.immuneTo], ["success", {value: 24, units: "hours"},
+    aura.data.action.id]);
+});
+
 test("an empty effect known by its name gets its 2024 rules (Barkskin, a Morningstar's next attack, See Invisibility)", () => {
   const spell = (id, identifier, effect) => ({_id: id, name: effect, type: "spell", img: "systems/dnd5e/icons/spell.webp",
     effects: [{_id: "named", name: effect, transfer: false, statuses: [], duration: {value: 1, units: "hours"}, system: {changes: []}}],

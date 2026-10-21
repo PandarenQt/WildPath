@@ -313,7 +313,12 @@
             {
               "id": "effect-1",
               "type": "condition",
-              "conditionId": "incapacitated"
+              "conditionId": "incapacitated",
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
             }
           ],
           "label": "Thundercloud"

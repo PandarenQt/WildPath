@@ -167,7 +167,12 @@
             {
               "id": "effect-1",
               "type": "condition",
-              "conditionId": "poisoned"
+              "conditionId": "poisoned",
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
             }
           ],
           "label": "Gouge"

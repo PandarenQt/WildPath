@@ -290,7 +290,12 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "deafened",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              }
             }
           ],
           "label": "Cacophony"

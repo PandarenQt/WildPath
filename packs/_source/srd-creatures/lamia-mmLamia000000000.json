@@ -317,13 +317,23 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "charmed",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
             },
             {
               "id": "effect-2",
               "type": "condition",
               "conditionId": "poisoned",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
             }
           ],
           "label": "Corrupting Touch"
@@ -577,7 +587,12 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "charmed",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 2592000,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
             }
           ],
           "metadata": {

@@ -443,7 +443,12 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "charmed",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 86400,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
             }
           ],
           "metadata": {
@@ -530,7 +535,12 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "charmed",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
             }
           ],
           "metadata": {
@@ -695,6 +705,11 @@
               "type": "condition",
               "conditionId": "restrained",
               "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
               "concentration": true
             }
           ],

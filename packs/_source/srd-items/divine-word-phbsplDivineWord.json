@@ -66,19 +66,34 @@
           "id": "effect-2",
           "type": "condition",
           "conditionId": "blinded",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
         },
         {
           "id": "effect-3",
           "type": "condition",
           "conditionId": "deafened",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
         },
         {
           "id": "effect-4",
           "type": "condition",
           "conditionId": "stunned",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
         },
         {
           "id": "effect-5",

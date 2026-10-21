@@ -14,7 +14,7 @@ import {areaCovers} from "./foundry-v14-persistent-areas.mjs";
 type Data = Record<string, unknown>;
 interface Field {[key: string]: unknown}
 interface AuraEntry {id: string; radius: number; affects: "allies" | "enemies" | "all"; ruleElements: Data[]; source?: Data | null}
-interface AuraActor {isToken?: boolean; token?: AuraToken | null; getActiveTokens?(linked?: boolean, document?: boolean): AuraToken[];
+interface AuraActor {uuid?: string; isToken?: boolean; token?: AuraToken | null; getActiveTokens?(linked?: boolean, document?: boolean): AuraToken[];
   getAuras?(): AuraEntry[]}
 interface AuraToken {id: string; parent?: AuraScene | null; actor?: AuraActor | null; disposition?: number; elevation?: number}
 interface AuraScene {id: string; grid: {distance: number}; tokens: Iterable<AuraToken>}
@@ -87,6 +87,31 @@ export function allyDistance(token: AuraToken | null, other: AuraToken | null): 
   return (from && to) ? (footprintDistance as (a: Data, b: Data) => number)(from, to) * scene.grid.distance : null;
 }
 
+/** Whether `token` stands within `radius` feet of `bearer` (its footprint's reach; the lasting-area coverage test). */
+function within(adapter: ReturnType<typeof createFoundryV14TacticalGridAdapter>, topology: string, scene: AuraScene, bearer: AuraToken,
+  token: AuraToken, radius: number) {
+  const footprint = adapter.tokenToFootprint(bearer) as {ok: boolean; footprint?: Data};
+  if ( !footprint.ok || !footprint.footprint ) return false;
+  const fields = reachFootprint({source: footprint.footprint, reachDistance: radius, gridDistance: scene.grid.distance}).fields;
+  const flag = {attached: false, sourceTokenId: bearer.id, topology, size: radius, band: {bottom: null, top: null}, fields};
+  return areaCovers(flag as never, token as never, {fields});
+}
+
+/**
+ * The other Tokens within `radius` feet of `bearer` on its Scene (a creature's own Emanation, 2024): all of them, or
+ * only its enemies (the opposite disposition: "each creature of its choice").
+ */
+export function tokensAround(bearer: AuraToken | null | undefined, {radius, affects="others"}: {radius: number; affects?: string}) {
+  const scene = bearer?.parent;
+  if ( !bearer || !scene || !(Number(radius) > 0) ) return [];
+  const adapter = createFoundryV14TacticalGridAdapter({scene});
+  const context = adapter.getSceneContext() as {ok: boolean; context?: {grid: {topology: string}}};
+  if ( !context.ok || !context.context ) return [];
+  const topology = context.context.grid.topology;
+  return [...scene.tokens].filter(token => (token.id !== bearer.id) && token.actor
+    && ((affects !== "enemies") || affectsToken("enemies", bearer, token)) && within(adapter, topology, scene, bearer, token, Number(radius)));
+}
+
 export function createFoundryAuras() {
   /** Rule owners (`{ruleElements, source}`) the auras around `actor`'s Tokens grant it. */
   function ownersFor(actor: AuraActor) {
@@ -103,14 +128,7 @@ export function createFoundryAuras() {
           if ( !affectsToken(aura.affects, bearer, token) ) continue;
           if ( bearer.id === token.id ) {
             if ( aura.affects === "enemies" ) continue;
-          } else {
-            const footprint = adapter.tokenToFootprint(bearer) as {ok: boolean; footprint?: Data};
-            if ( !footprint.ok || !footprint.footprint ) continue;
-            const fields = reachFootprint({source: footprint.footprint, reachDistance: aura.radius, gridDistance: scene.grid.distance}).fields;
-            const flag = {attached: false, sourceTokenId: bearer.id, topology: context.context.grid.topology, size: aura.radius,
-              band: {bottom: null, top: null}, fields};
-            if ( !areaCovers(flag as never, token as never, {fields}) ) continue;
-          }
+          } else if ( !within(adapter, context.context.grid.topology, scene, bearer, token, aura.radius) ) continue;
           owners.push({ruleElements: aura.ruleElements, source: {...(aura.source ?? {}), aura: aura.id, bearerTokenId: bearer.id}});
         }
       }

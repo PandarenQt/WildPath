@@ -84,7 +84,12 @@
           "id": "effect-1",
           "type": "condition",
           "conditionId": "blinded",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
         }
       ],
       "configuration": [

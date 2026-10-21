@@ -347,7 +347,26 @@ Action heals its creature. Its predicate holds only what its own text says:
 
 A Regeneration that names none of these (the Tarrasque's kind) heals every turn.
 
-Not yet: `once` is ignored (triggers fire every time), and a trigger cannot target anyone but its owner.
+**Around its creature (2026-10-21).** `data.around: {radius, affects, on?}` makes the Action reach the creatures in its
+creature's Emanation instead of the creature itself (`tokensAround` in `foundry-v14-auras.mts`, the aura coverage
+test). `affects` is `others` (everyone else) or `enemies` (the opposite disposition: "of its choice").
+- Without `on`, it runs when its own creature's event happens, on each creature within `radius` feet (2024 Azer
+  Sentinel's Fire Aura: "At the end of each of the azer's turns, each creature of the azer's choice in a 5-foot
+  Emanation ... takes 5 (1d10) Fire damage").
+- With `on: "others"`, it runs when another creature's own turn starts or ends within `radius` feet, on that creature
+  (a Pit Fiend's Fear Aura: "any enemy that starts its turn in the aura"; a Ghast's Stench).
+- Its predicate sees its creature's conditions (`missingCondition: "incapacitated"`: "unless the azer has the
+  Incapacitated condition", "while it doesn't have the Incapacitated condition").
+- A creature carrying an effect whose `metadata.immuneTo` names the Action is skipped. The converter adds one on a
+  success when the text says so ("immune to this pit fiend's Fear Aura for 24 hours").
+- shortcut: each creature is its own Action, with its own damage roll, as a lasting area's are.
+- The converter (`turnAreaTrigger`) writes these for passive save and damage activities whose text names the turn
+  boundary and an Emanation, except one that works only somewhere ("While underwater": an Aboleth's Mucus Cloud).
+
+A converted condition keeps its dnd5e effect's duration ("Frightened until the start of its next turn"); one without a
+duration lasts until it is ended, as before.
+
+Not yet: `once` is ignored (triggers fire every time).
 
 Live (14.369): Quench ran a turn-start trigger once per turn, an initiative trigger when the Combatant
 rolled, and a long-rest trigger that ignored a short rest. In two browsers, Player1's long rest made the GM

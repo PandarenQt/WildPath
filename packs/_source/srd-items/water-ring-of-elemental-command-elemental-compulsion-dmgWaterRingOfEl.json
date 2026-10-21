@@ -44,7 +44,12 @@
           "id": "effect-1",
           "type": "condition",
           "conditionId": "charmed",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 1,
+            "units": "turns",
+            "expiry": "turnStart"
+          }
         }
       ],
       "label": "Water Ring of Elemental Command (Elemental Compulsion)"

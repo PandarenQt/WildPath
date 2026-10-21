@@ -1084,6 +1084,11 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "invisible",
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
               "concentration": true
             }
           ],

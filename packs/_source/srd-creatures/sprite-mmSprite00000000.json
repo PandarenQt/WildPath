@@ -201,7 +201,12 @@
             {
               "id": "effect-1",
               "type": "condition",
-              "conditionId": "charmed"
+              "conditionId": "charmed",
+              "duration": {
+                "value": 1,
+                "units": "rounds",
+                "expiry": "turnStart"
+              }
             }
           ],
           "label": "Enchanting Bow"
@@ -334,6 +339,11 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "invisible",
+              "duration": {
+                "value": 3600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
               "concentration": true
             }
           ],

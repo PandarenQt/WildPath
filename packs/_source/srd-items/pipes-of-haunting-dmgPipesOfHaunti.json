@@ -49,7 +49,12 @@
           "id": "effect-1",
           "type": "condition",
           "conditionId": "frightened",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
         }
       ],
       "label": "Pipes of Haunting"

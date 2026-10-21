@@ -71,7 +71,44 @@
       "system": {
         "active": true,
         "description": "<p>At the end of each of the azer sentinel's turns, each creature of the azer sentinel's choice in a 5-foot Emanation originating from the azer sentinel takes 5 (1d10) Fire damage unless the azer sentinel has the Incapacitated condition.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "turn-fire-aura",
+            "type": "Trigger",
+            "data": {
+              "kind": "automation",
+              "event": "turn.ended",
+              "predicate": {
+                "missingCondition": "incapacitated"
+              },
+              "around": {
+                "radius": 5,
+                "affects": "enemies"
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-fire-aura",
+                "label": "Fire Aura",
+                "costs": {
+                  "allOf": []
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 1,
+                      "faces": 10
+                    },
+                    "damageType": "fire",
+                    "provenance": "additional"
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -87,9 +124,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"damage\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -262,9 +297,7 @@
         "challenge": 2
       },
       "conversion": {
-        "notes": [
-          "Fire Aura: \"damage\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

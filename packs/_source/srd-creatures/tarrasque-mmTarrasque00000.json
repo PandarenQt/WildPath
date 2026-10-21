@@ -614,13 +614,23 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "deafened",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
             },
             {
               "id": "effect-2",
               "type": "condition",
               "conditionId": "frightened",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
             }
           ],
           "label": "Thunderous Bellow"

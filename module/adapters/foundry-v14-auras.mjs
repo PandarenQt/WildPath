@@ -72,6 +72,31 @@ export function allyDistance(token, other) {
     const [from, to] = [footprintOf(token), footprintOf(other)];
     return (from && to) ? footprintDistance(from, to) * scene.grid.distance : null;
 }
+/** Whether `token` stands within `radius` feet of `bearer` (its footprint's reach; the lasting-area coverage test). */
+function within(adapter, topology, scene, bearer, token, radius) {
+    const footprint = adapter.tokenToFootprint(bearer);
+    if (!footprint.ok || !footprint.footprint)
+        return false;
+    const fields = reachFootprint({ source: footprint.footprint, reachDistance: radius, gridDistance: scene.grid.distance }).fields;
+    const flag = { attached: false, sourceTokenId: bearer.id, topology, size: radius, band: { bottom: null, top: null }, fields };
+    return areaCovers(flag, token, { fields });
+}
+/**
+ * The other Tokens within `radius` feet of `bearer` on its Scene (a creature's own Emanation, 2024): all of them, or
+ * only its enemies (the opposite disposition: "each creature of its choice").
+ */
+export function tokensAround(bearer, { radius, affects = "others" }) {
+    const scene = bearer?.parent;
+    if (!bearer || !scene || !(Number(radius) > 0))
+        return [];
+    const adapter = createFoundryV14TacticalGridAdapter({ scene });
+    const context = adapter.getSceneContext();
+    if (!context.ok || !context.context)
+        return [];
+    const topology = context.context.grid.topology;
+    return [...scene.tokens].filter(token => (token.id !== bearer.id) && token.actor
+        && ((affects !== "enemies") || affectsToken("enemies", bearer, token)) && within(adapter, topology, scene, bearer, token, Number(radius)));
+}
 export function createFoundryAuras() {
     /** Rule owners (`{ruleElements, source}`) the auras around `actor`'s Tokens grant it. */
     function ownersFor(actor) {
@@ -93,16 +118,8 @@ export function createFoundryAuras() {
                         if (aura.affects === "enemies")
                             continue;
                     }
-                    else {
-                        const footprint = adapter.tokenToFootprint(bearer);
-                        if (!footprint.ok || !footprint.footprint)
-                            continue;
-                        const fields = reachFootprint({ source: footprint.footprint, reachDistance: aura.radius, gridDistance: scene.grid.distance }).fields;
-                        const flag = { attached: false, sourceTokenId: bearer.id, topology: context.context.grid.topology, size: aura.radius,
-                            band: { bottom: null, top: null }, fields };
-                        if (!areaCovers(flag, token, { fields }))
-                            continue;
-                    }
+                    else if (!within(adapter, context.context.grid.topology, scene, bearer, token, aura.radius))
+                        continue;
                     owners.push({ ruleElements: aura.ruleElements, source: { ...(aura.source ?? {}), aura: aura.id, bearerTokenId: bearer.id } });
                 }
             }
