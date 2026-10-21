@@ -9,6 +9,22 @@ import {movementTracked} from "../../helpers/combat.mjs";
 import {mergeTraining} from "../../helpers/level-up.mjs";
 import {bestSenses} from "../../helpers/senses.mjs";
 
+/**
+ * A pool's name in the reader's language: a system pool's from its id (its stored label is in the language it was made
+ * in), another's stored label, localized when it is a lang key.
+ */
+function poolLabel(id, stored) {
+  const i18n = globalThis.game?.i18n;
+  if ( !i18n ) return stored;
+  const slot = /^spell-slot\.(\d+)$/.exec(id)?.[1];
+  if ( slot ) return i18n.format("WILDPATH.SPELLCASTING.SlotPool", {level: slot});
+  if ( id === PACT_SLOT_POOL ) return i18n.localize("WILDPATH.SPELLCASTING.PactPool");
+  const die = /^hit-die\.(d\d+)$/.exec(id)?.[1];
+  if ( die ) return i18n.format("WILDPATH.HITDICE.Pool", {die});
+  if ( id === WILDPATH.HEROIC_INSPIRATION.pool ) return i18n.localize("WILDPATH.SHEET.HeroicInspiration");
+  return i18n.localize(stored);
+}
+
 /** Action-economy counters: what is spent is stored, what remains is derived from the (modifiable) maximum. */
 const COUNTED_RESOURCES = Object.freeze(["action", "bonus", "reaction", "movement"]);
 
@@ -309,6 +325,7 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
         : clampResourceValue(resource.value, resource.max);
     }
     for ( const pool of this.pools ) {
+      pool.label = poolLabel(pool.id, pool.label);
       pool.max = computeResourceMax(pool, pool.modifierBonus);
       pool.value = clampResourceValue(pool.value, pool.max);
     }

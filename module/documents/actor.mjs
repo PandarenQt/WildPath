@@ -1,4 +1,5 @@
 import {gmNotice} from "../helpers/gm-notice.mjs";
+import {pruneActorPools} from "../helpers/migrations.mjs";
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {hostedRules} from "../helpers/effect-sources.mjs";
 import {
@@ -367,11 +368,12 @@ export default class WildPathActor extends Actor {
   /**
    * Store what its Items and effects make of it: its class records (levels, Hit Dice, spellcasting, subclasses, G8) when
    * `classes` (a class or subclass Item changed; a creature with no such Items keeps the records it was given), with the
-   * class pools the data model's `_preUpdate` adds to that write, then any pool a grant newly needs (`GrantResource`).
-   * Syncs run one after another, so no write starts from a stale copy of the pools.
+   * class pools the data model's `_preUpdate` adds to that write, then any pool a grant newly needs (`GrantResource`),
+   * and, after a deletion (`prune`), drop the pools nothing names any more. Syncs run one after another, so no write
+   * starts from a stale copy of the pools.
    * @returns {Promise<void>} once this sync (and every one before it) is stored
    */
-  syncItemRecords({classes=false}={}) {
+  syncItemRecords({classes=false, prune=false}={}) {
     this.#recordSync = this.#recordSync.then(async () => {
       // Its class records first (their pools come with them), so a granted pool is sized at its new level (a
       // Proficiency Bonus of uses), then full.
@@ -382,6 +384,7 @@ export default class WildPathActor extends Actor {
       const pools = this.toObject(true).system.pools ?? [];
       const missing = this.grantedPoolsMissing(pools);
       if ( missing.length ) await this.update({"system.pools": [...pools, ...missing]});
+      if ( prune ) await pruneActorPools(this);
     }).catch(error => console.error("WildPath | Actor records could not be stored.", error));
     return this.#recordSync;
   }
@@ -406,7 +409,7 @@ export default class WildPathActor extends Actor {
   /** @inheritDoc */
   _onDeleteDescendantDocuments(parent, collection, documents, ids, options, userId) {
     super._onDeleteDescendantDocuments(parent, collection, documents, ids, options, userId);
-    if ( userId === globalThis.game?.user?.id ) void this.syncItemRecords({classes: documents.some(isClassDocument)});
+    if ( userId === globalThis.game?.user?.id ) void this.syncItemRecords({classes: documents.some(isClassDocument), prune: true});
   }
 
   /**
