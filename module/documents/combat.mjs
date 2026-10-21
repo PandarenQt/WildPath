@@ -85,6 +85,11 @@ export default class WildPathCombat extends FoundryCombatDocument {
   async _onEndTurn(combatant, context={}) {
     await super._onEndTurn(combatant, context);
     await this.#applyTurnEvent("turn.ended", combatant);
+    // 2014: a surprised creature's first turn has passed (2024 ends it when its initiative is rolled).
+    const actor = combatant?.actor;
+    if ( actor?.statuses?.has?.("surprised") && (globalThis.game?.settings?.get?.("wildpath", "rulesVersion") === "2014") ) {
+      await actor.toggleCondition?.("surprised", {levels: -1});
+    }
   }
 
   /**

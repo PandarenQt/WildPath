@@ -1,3 +1,4 @@
+import {evaluateValueExpression} from "../module/helpers/value-expressions.mjs";
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -319,8 +320,13 @@ test("vulnerabilities double damage, and condition immunities name the condition
   const context = {actorSystem: {resources: {movement: {base: 30, bonus: 5}, health: {base: 41, bonus: 0}}}};
   const at = level => collectRuleElementContributions({ruleElements: exhaustion, context, source: {type: "effect", level}}).contributions;
   assert.deepEqual(at(1).resourceCaps, []);
-  assert.deepEqual(at(2).resourceCaps.map(cap => [cap.resources[0], cap.maximum]), [["movement", 17]]);
-  assert.deepEqual(at(4).resourceCaps.map(cap => [cap.resources[0], cap.maximum]).sort(), [["health", 20], ["movement", 17]]);
+  // Speed halved: a factor on every Speed, each its own half, by the effect's level.
+  const halving = level => collectRuleElementContributions({ruleElements: exhaustion, context: {...context, effect: {system: {level}}},
+    source: {type: "effect", level}}).contributions.modifiers.filter(modifier => modifier.domains.includes("speed.multiplier"))
+    .map(modifier => evaluateValueExpression(modifier.valueExpression, {effect: {system: {level}}}).value);
+  assert.deepEqual([halving(1), halving(2), halving(4), halving(5)], [[1], [0.5], [0.5], [1]]);
+  assert.deepEqual(at(2).resourceCaps, []);
+  assert.deepEqual(at(4).resourceCaps.map(cap => [cap.resources[0], cap.maximum]), [["health", 20]]);
   assert.deepEqual(at(5).resourceCaps.map(cap => [cap.resources[0], cap.maximum]).sort(), [["health", 20], ["movement", 0]]);
   assert.deepEqual(at(3).rollModes.map(mode => mode.domains.join()).sort(), ["attack,save", "check"]);
 });

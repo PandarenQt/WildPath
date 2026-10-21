@@ -268,7 +268,9 @@ export function registerFoundryV14MultiplayerResolution({
   globalThis.Hooks?.on?.("updateCombatant", (combatant, changed) => {
     if ( !Number.isFinite(changed?.initiative) ) return;
     // Its initiative rolled, Surprised has done its part (2024: Disadvantage on that roll); the active GM ends it.
-    const surprised = combatant.actor?.statuses?.has?.("surprised") && (game.users?.activeGM?.id === game.user?.id);
+    // (2014: it lasts through its first turn instead: documents/combat.mjs.)
+    const surprised = combatant.actor?.statuses?.has?.("surprised") && (game.users?.activeGM?.id === game.user?.id)
+      && (game.settings?.get?.("wildpath", "rulesVersion") !== "2014");
     if ( surprised ) void combatant.actor.toggleCondition?.("surprised", {levels: -1})
       .catch?.(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Initiative") ?? "Initiative"}, error));
     void automation.dispatch("initiative.rolled", {actor: combatant.actor, token: combatant.token,

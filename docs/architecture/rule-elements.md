@@ -117,6 +117,20 @@ Before this, these predicates never matched. Data preparation (resource maxima, 
 
 A rule on an effect also sees that effect's level as `source.level`, wherever it is read, data preparation
 included. The 2014 Exhaustion table gates each of its rules this way: `{oneOf: {path: "source.level", values: [2, 3, 4]}}`.
+A Modifier's predicate does not see it when a statistic is read, so its value reads the level instead: 2014
+Exhaustion's "Speed halved" is a `speed.multiplier` Modifier of `{type: "table", key: effect.system.level, rows: {1: 1,
+2: 0.5, 5: 1}}`, each Speed its own half (2026-10-21; before, every Speed was capped at half the walking Speed).
+
+**The 2014 rule set (2026-10-21).** Besides its conditions (`WILDPATH.CONDITIONS_2014`), the `rulesVersion` setting at
+2014 makes:
+- Surprised mean "can't move or take an action on its first turn, nor a Reaction until that turn ends" (movement,
+  action, Bonus Action and Reaction capped at 0), ending at the end of its first turn (`WildPathCombat#_onEndTurn`)
+  rather than when its initiative is rolled;
+- a Long Rest give back half the creature's Hit Dice (at least one). shortcut: half of each die size, not a choice
+  across a multiclass character's sizes.
+Live (14.369, the world set to 2014 and back): Exhaustion 2 took walking Speed 30 → 15; a level 4 Fighter's Long Rest
+gave back 2 of 4 spent Hit Dice (all 4 under 2024); a Surprised creature had no movement or actions until its first
+turn ended, and Surprised then ended.
 
 **Healing and context (2026-10-20).** Healing reads Modifiers on `healing.spell` (a spell's) and `healing`. Their total
 is added once to the first healing component, as damage's is. `getStatistic` takes a `context`, which predicates and

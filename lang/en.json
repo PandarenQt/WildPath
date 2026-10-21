@@ -218,7 +218,8 @@
         "CoverHalf": "+2 to your AC and Agility saves wherever you stand.",
         "CoverThreeQuarters": "+5 to your AC and Agility saves wherever you stand.",
         "CoverTotal": "You can't be targeted directly.",
-        "Surprised": "Combat caught you unaware: your Initiative roll has Disadvantage. Rolling it ends this."
+        "Surprised": "Combat caught you unaware: your Initiative roll has Disadvantage. Rolling it ends this.",
+        "Surprised2014": "Combat caught you unaware: you can't move or act on your first turn, and can't take Reactions until it ends."
       },
       "TurnDamageOf": {
         "Envenomed": "Envenomed Turn Damage",
