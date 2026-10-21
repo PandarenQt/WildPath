@@ -436,7 +436,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Draconic Resilience | classes24 | Draconic Resilience (feature) | — |
 | Draconic Sorcery | classes24 | Draconic Sorcery (subclass) | — |
 | Draconic Spells | classes24 | Draconic Spells (feature) | — |
-| Draconic Spirit | actors24 | Draconic Spirit (5 items) | Shared Resistances: "Share Acid Resistance" is passive or triggered: not automated; Shared Resistances: "Share Cold Resistance" is passive or triggered: not automated; Shared Resistances: "Share Fire Resistance" is passive or triggered: not automated; Shared Resistances: "Share Lightning Resistance" is passive or triggered: not automated; Shared Resistances: "Share Poison Resistance" is passive or triggered: not automated; Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand |
+| Draconic Spirit | actors24 | Draconic Spirit (5 items) | Shared Resistances: "Share Acid Resistance" is passive or triggered: not automated; Shared Resistances: "Share Cold Resistance" is passive or triggered: not automated; Shared Resistances: "Share Fire Resistance" is passive or triggered: not automated; Shared Resistances: "Share Lightning Resistance" is passive or triggered: not automated; Shared Resistances: "Share Poison Resistance" is passive or triggered: not automated |
 | Draft Horse | actors24 | Draft Horse (1 items) | — |
 | Dragon Companion | classes24 | Dragon Companion (feature) | "Expend Use" is passive or triggered: not automated |
 | Dragon Orb | equipment24 | Dragon Orb (gear), Dragon Orb (Call Dragons) (manual), Dragon Orb: Suggestion (automated), Dragon Orb: Cure Wounds (automated), Dragon Orb: Daylight (automated), Dragon Orb: Death Ward (automated), Dragon Orb: Detect Magic (automated), Dragon Orb: Scrying (automated) | "Attunement Save" is passive or triggered: not automated; not automated (utility, narrative): using it spends its cost; its description says the rest; consumption: itemUses 4 not converted; cast: Cure Wounds at level 9 is cast at its own level; consumption: itemUses 1 not converted; consumption: itemUses 2 not converted; effect: "Protection from Death" marks its creature only; its rules are by hand; effect: "Detect Magic" marks its creature (narrative); consumption: itemUses 3 not converted; activation: 10 minute is not an action-economy cost; save: a failure marks its creature (narrative); "Create Sensor" is passive or triggered (narrative): not automated |
@@ -669,7 +669,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Giant Goat | actors24 | Giant Goat (3 items) | — |
 | Giant Hyena | actors24 | Giant Hyena (3 items) | — |
 | Giant Insect | spells24 | Giant Insect (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; concentration: its caster concentrates; what it sustains is by hand |
-| Giant Insect | actors24 | Giant Insect (6 items) | Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand |
+| Giant Insect | actors24 | Giant Insect (6 items) | — |
 | Giant Lizard | actors24 | Giant Lizard (3 items) | — |
 | Giant Octopus | actors24 | Giant Octopus (4 items) | Ink Cloud: not automated (utility): using it spends its cost; its description says the rest |
 | Giant Owl | actors24 | Giant Owl (6 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: effect: "Detect Magic" marks its creature (narrative) |

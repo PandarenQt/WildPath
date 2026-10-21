@@ -484,6 +484,16 @@ test("Multiattack's named attacks: one pool each, an Action per alternative, and
     path: "actor.flags.wildpath.summonLevel"}, denominator: {type: "constant", value: 2}, round: "floor"}, "half the level it was summoned at");
   assert.deepEqual(spiritAttack.system.definition.restores, [{resourceId: "multiattack", amount: 4}], "filled, whatever its size");
   assert.deepEqual(spirit.items.find(item => item.name === "Claws").system.definition.costs.anyOf[0], [{capability: "multiattack", amount: 1}]);
+  assert.deepEqual(spiritAttack.flags.wildpath.conversion.notes, [], "naming none of them, any of them: the rule, not a shortcut");
+  // "makes a number of Rend attacks equal to half this spell's level": its Rend's own pool, of that size.
+  const render = convertActor({...ogre, _id: "testSpirit000002", name: "Test Rending Spirit", items: [attack("rend000000000001", "Rend"),
+    attack("bite000000000001", "Bite"), {_id: "multiattack00005", name: "Multiattack", type: "feat", system: {source: SRD, description: {value:
+      "<p>The spirit makes a number of Rend attacks equal to half this spell’s level (round down).</p>"}, activities: {a: activity("utility")}}}]}).actor;
+  const rending = render.items.find(item => item.name === "Multiattack");
+  assert.deepEqual([rending.system.definition.restores, rending.system.ruleElements.at(-1).data.maximum.numerator.path, rending.flags.wildpath.conversion.notes],
+    [[{resourceId: "multiattack-rend", amount: 4}], "actor.flags.wildpath.summonLevel", []]);
+  assert.deepEqual(render.items.find(item => item.name === "Bite").system.definition.costs, {allOf: [{capability: "action", amount: 1}]},
+    "an attack it does not name");
 
   // "...and uses Constrict. It can replace the Claw attack with a use of Fire Breath."
   const save = (id, name, extra={}, consumption={targets: []}) => ({_id: id, name, type: "feat", system: {source: SRD, ...extra,

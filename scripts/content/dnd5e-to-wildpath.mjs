@@ -3471,10 +3471,15 @@ function multiattack(items, notes) {
   // A spell the creature casts is not one of its Multiattack's attacks.
   const attacks = items.filter(action => (action !== item) && action.system?.definition?.attack && !action.flags?.wildpath?.source?.castBy
     && (action.system.definition.costs?.allOf ?? []).some(cost => cost.capability === "action"));
-  // At most half of 9th level: a restore that fills the spirit's pool whatever its size.
-  const plans = (byLevel ? null : multiattackPlans(item.system.description, attacks.map(action => action.name)))
-    ?? [[{names: null, amount: count ?? 4}]];
   const bare = name => name.replace(/\s*\(.*\)\s*$/, "");
+  const text = String(item.system.description).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+  // "makes a number of Rend attacks equal to half this spell's level": its Rend.
+  const levelName = byLevel ? /\bmakes a number of ([\w'’ -]+?) attacks equal to half/i.exec(text)?.[1] : null;
+  const levelAttack = levelName ? attacks.find(action => bare(action.name).toLowerCase() === levelName.trim().toLowerCase()) : null;
+  // At most half of 9th level: a restore that fills the spirit's pool whatever its size.
+  const plans = (byLevel ? (levelAttack ? [[{names: [levelAttack.name], amount: 4}]] : null)
+    : multiattackPlans(item.system.description, attacks.map(action => action.name)))
+    ?? [[{names: null, amount: count ?? 4}]];
   const poolOf = group => (group.names?.length === 1 ? `multiattack-${slugify(bare(group.names[0]))}` : "multiattack");
   const labelOf = group => (group.names?.length === 1 ? `Multiattack (${bare(group.names[0])})` : "Multiattack");
   // Each pool is granted once, as large as its largest plan; each plan fills only its own.
@@ -3500,7 +3505,9 @@ function multiattack(items, notes) {
   // Other parts it does not name ("and uses Frightful Presence" when it has no such Action) are used by hand too.
   const rest = /\breplace|\buses?\b/i.test(String(item.system.description).replace(/<[^>]+>/g, " ")) && (extras.unknown
     || !(extras.uses || extras.replace));
-  const note = !named ? "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
+  // A text that names none of its attacks ("makes a number of attacks equal to half this spell's level") means any of them.
+  const mentions = attacks.some(action => nameWord(bare(action.name)).test(text));
+  const note = (!named && mentions) ? "Multiattack: any of its attacks may be each of the attacks; other parts of it are used by hand"
     : (rest ? "Multiattack: its other parts (a replacement, an ability it uses) are used by hand" : null);
   const multiattacks = plans.map((plan, index) => {
     // Alternatives by what they make: "Multiattack (2 Slam)", "Multiattack (3 Slam)".
@@ -3518,7 +3525,8 @@ function multiattack(items, notes) {
     return action;
   });
   multiattacks[0].system.ruleElements.push(...[...pools.values()].map(pool => ({schemaVersion: 1, id: `${pool.id}-uses`,
-    type: "GrantResource", data: {resourceId: pool.id, label: pool.label, maximum: (byLevel && !pool.names) ? HALF_SUMMON_LEVEL : pool.maximum,
+    type: "GrantResource", data: {resourceId: pool.id, label: pool.label,
+      maximum: (byLevel && (!pool.names || ((pool.names.length === 1) && (pool.names[0] === levelAttack?.name)))) ? HALF_SUMMON_LEVEL : pool.maximum,
       current: 0, recovery: "none", emptiesAtTurnStart: true}})));
   items.splice(items.indexOf(item) + 1, 0, ...multiattacks.slice(1));
   notes.splice(0, notes.length, ...notes.filter(entry => !entry.startsWith("Multiattack: not automated")), ...(note ? [`Multiattack: ${note.slice(13)}`] : []));
