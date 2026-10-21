@@ -1,10 +1,4 @@
-/**
- * Cover (2024; worked out as the DMG does on a grid). From the corner of the attacker's space that sees the target
- * best (or from an area's point of origin), lines run to every corner of one of the spaces the target occupies; the
- * share a wall that blocks sight cuts gives its cover: none, Half (at most half), Three-Quarters (more), or Total (every
- * line). A creature in the way gives at least Half. Half is +2 to AC and Dexterity saves, Three-Quarters +5; a target
- * behind Total Cover can't be targeted directly (an area's Total Cover keeps it out of the area).
- */
+import { sceneCollision } from "./foundry-v14-walls.mjs";
 /** What each degree adds to AC and Dexterity (Agility) saves. */
 export const COVER_BONUS = Object.freeze({ none: 0, half: 2, threeQuarters: 5, total: 0 });
 /** Inset `point` toward `center` by a pixel, so a line along a wall's end or a grid edge is not counted as blocked. */
@@ -68,8 +62,13 @@ export function coverBetween({ source = null, origin = null, target, collides })
         .flatMap(token => spaceCorners(token, scene));
     return best.corners.some(corner => crosses(best.from, corner, others)) ? "half" : "none";
 }
-/** Foundry's sight-wall test for `coverBetween`, or null without a canvas configuration (Node tests). */
-export function foundrySightCollision() {
-    const backend = globalThis.CONFIG?.Canvas?.polygonBackends?.sight;
-    return backend?.testCollision ? backend.testCollision.bind(backend) : null;
+/**
+ * The sight-wall test for `coverBetween` on `scene`, whether or not the canvas shows it (foundry-v14-walls.mts); null
+ * with no Scene.
+ */
+export function foundrySightCollision(scene) {
+    if (!scene)
+        return null;
+    const collides = sceneCollision(scene);
+    return (a, b, options) => collides(a, b, { ...options, type: "sight" });
 }

@@ -317,7 +317,7 @@ An Action with `push: {distance, toward?, maxSize?, on?}` moves creatures when i
   Opportunity Attack (2024). A lasting area the creature is pushed into still sees it enter.
 - Shortcuts:
   - "up to N feet" always pushes the whole distance;
-  - walls are tested through the Token's placeable, so only when the GM is viewing that Scene;
+  - (walls stop it on any Scene since 2026-10-21: [senses-and-cover.md](senses-and-cover.md#walls-on-any-scene));
   - "Small or smaller" cannot be told from Medium by Token size;
   - a creature inside its source's own space (an Air Elemental's Whirlwind) has no direction and stays.
 

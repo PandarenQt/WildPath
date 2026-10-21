@@ -377,7 +377,7 @@ Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft
 - A sunlight source is an ambient light or a Token's own light: a sunbeam, or a Daylight spell, whose lasting area
   places its own sunlight (areas.md, "Light"). A plain torch is not.
 - On the viewed Scene, Foundry's own light source decides, walls and elevation included. Elsewhere the light's
-  radius does.
+  radius does, and a wall that stops light between ([senses-and-cover.md](senses-and-cover.md#walls-on-any-scene)).
 - The action bar refreshes its odds when a Scene or a light changes.
 
 Live (GM, 14.369): an SRD Kobold Warrior's Dagger showed 75% at night, and 56% with Disadvantage both with the Scene

@@ -1,3 +1,4 @@
+import {sceneCollision} from "./foundry-v14-walls.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 import {foundryPointInRange} from "./foundry-v14-area-placement.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
@@ -20,7 +21,8 @@ interface Grid {
   sizeX?: number; sizeY?: number;
 }
 interface SummonToken {
-  id: string; uuid: string; x: number; y: number; disposition?: number; hidden?: boolean; actorId?: string | null;
+  id: string; uuid: string; x: number; y: number; width?: number; height?: number; disposition?: number; hidden?: boolean;
+  actorId?: string | null;
   parent?: SummonScene | null;
   actor?: {uuid: string; update?(data: Data): Promise<unknown>; createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown>;
     setFlag?(scope: string, key: string, value: unknown): Promise<unknown>; syncItemRecords?(): Promise<unknown>;
@@ -207,9 +209,12 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
       return cells.length ? cells : [offset];
     };
     // The summon's centre and each of its fields must be in its caster's sight, so it never straddles a wall.
-    // shortcut: walls are tested through the caster's placeable, so only when the GM is viewing the caster's Scene.
-    const collides = casterToken.object?.checkCollision?.bind(casterToken.object);
-    const seen = (point: {x: number; y: number}) => !collides?.(point, {type: "sight", mode: "any"});
+    // Walls count on any Scene, viewed or not (foundry-v14-walls.mts), seen from the caster's centre.
+    const collision = sceneCollision(scene as never);
+    const eye = {x: (Number(casterToken.x) || 0) + (((Number(casterToken.width) || 1) * (scene.grid.sizeX ?? 0)) / 2),
+      y: (Number(casterToken.y) || 0) + (((Number(casterToken.height) || 1) * (scene.grid.sizeY ?? 0)) / 2)};
+    const collides = (point: {x: number; y: number}) => Boolean(collision(eye, point, {type: "sight"}));
+    const seen = (point: {x: number; y: number}) => !collides(point);
     const centre = (offset: Offset) => {
       const {x, y} = scene.grid.getTopLeftPoint(offset);
       return {x: x + (((shape.width ?? 1) * (scene.grid.sizeX ?? 0)) / 2), y: y + (((shape.height ?? 1) * (scene.grid.sizeY ?? 0)) / 2)};

@@ -1,3 +1,5 @@
+import {sceneCollision} from "./foundry-v14-walls.mjs";
+
 /**
  * Cover (2024; worked out as the DMG does on a grid). From the corner of the attacker's space that sees the target
  * best (or from an area's point of origin), lines run to every corner of one of the spaces the target occupies; the
@@ -86,8 +88,12 @@ export function coverBetween({source = null, origin = null, target, collides}: {
   return best.corners.some(corner => crosses(best.from, corner, others)) ? "half" : "none";
 }
 
-/** Foundry's sight-wall test for `coverBetween`, or null without a canvas configuration (Node tests). */
-export function foundrySightCollision(): Collides | null {
-  const backend = (globalThis as {CONFIG?: {Canvas?: {polygonBackends?: {sight?: {testCollision?: Collides}}}}}).CONFIG?.Canvas?.polygonBackends?.sight;
-  return backend?.testCollision ? backend.testCollision.bind(backend) : null;
+/**
+ * The sight-wall test for `coverBetween` on `scene`, whether or not the canvas shows it (foundry-v14-walls.mts); null
+ * with no Scene.
+ */
+export function foundrySightCollision(scene: unknown): Collides | null {
+  if ( !scene ) return null;
+  const collides = sceneCollision(scene as never);
+  return (a, b, options) => collides(a, b, {...(options as object), type: "sight"});
 }
