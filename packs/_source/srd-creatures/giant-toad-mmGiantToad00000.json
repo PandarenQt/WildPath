@@ -42,7 +42,9 @@
       }
     },
     "details": {
-      "threat": 1
+      "threat": 1,
+      "type": "beast",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

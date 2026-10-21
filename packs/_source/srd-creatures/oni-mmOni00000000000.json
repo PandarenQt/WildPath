@@ -62,7 +62,9 @@
       }
     },
     "details": {
-      "threat": 7
+      "threat": 7,
+      "type": "fiend",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

@@ -58,7 +58,9 @@
       }
     },
     "details": {
-      "threat": 23
+      "threat": 23,
+      "type": "monstrosity",
+      "subtype": "titan"
     },
     "dyingMode": "auto"
   },

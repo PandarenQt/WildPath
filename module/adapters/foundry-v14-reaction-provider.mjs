@@ -72,13 +72,15 @@ export function createFoundryReactionProvider({ resolve = defaultResolve } = {})
         }
         // Each reactor's relation to the event's source (`toSource`), and to the first creature it damages or targets
         // (`toTarget`, that creature itself as `self`: Interception, Cloud Rune); and that creature's effects by name
-        // (`targetEffects.<slug>`: Protective Bond's other bonded creature).
+        // (`targetEffects.<slug>`: Protective Bond's other bonded creature) and creature type (`targetType`: a Smite's
+        // Undead or Fiend).
         return triggers.length ? { reactions: { triggers, context: ({ event }) => {
                     const targetId = (event?.targets?.[0]?.tokenId ?? null);
                     const target = targetId ? [...scene.tokens].find(token => token.id === targetId) ?? null : null;
                     return { toSource: relationsToSource(scene, event), toTarget: relationsToSource(scene, { source: { tokenId: targetId } }, { includeSource: true }),
                         targetEffects: Object.fromEntries([...(target?.actor?.effects ?? [])].filter(effect => !effect.disabled && !effect.isSuppressed)
-                            .map(effect => [slug(effect.name), true])) };
+                            .map(effect => [slug(effect.name), true])),
+                        targetType: target?.actor?.system?.details?.type || null };
                 } },
             ...(observers.length ? { movement: { observers } } : {}) } : {};
     };

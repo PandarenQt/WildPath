@@ -57,7 +57,9 @@
       }
     },
     "details": {
-      "threat": 9
+      "threat": 9,
+      "type": "dragon",
+      "subtype": "chromatic"
     },
     "dyingMode": "auto"
   },

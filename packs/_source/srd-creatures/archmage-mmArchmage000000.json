@@ -59,7 +59,9 @@
       }
     },
     "details": {
-      "threat": 12
+      "threat": 12,
+      "type": "humanoid",
+      "subtype": "wizard"
     },
     "dyingMode": "auto"
   },

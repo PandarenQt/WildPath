@@ -43,7 +43,9 @@
       }
     },
     "details": {
-      "threat": 0.5
+      "threat": 0.5,
+      "type": "beast",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

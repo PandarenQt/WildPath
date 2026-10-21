@@ -50,7 +50,9 @@
       }
     },
     "details": {
-      "threat": 6
+      "threat": 6,
+      "type": "fiend",
+      "subtype": "demon"
     },
     "dyingMode": "auto"
   },

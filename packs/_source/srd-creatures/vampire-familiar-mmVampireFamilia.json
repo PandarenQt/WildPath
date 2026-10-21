@@ -59,7 +59,9 @@
       }
     },
     "details": {
-      "threat": 3
+      "threat": 3,
+      "type": "humanoid",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },
@@ -320,6 +322,7 @@
                 "units": "turns",
                 "expiry": "turnEnd"
               },
+              "stack": "separate",
               "ruleElements": [
                 {
                   "schemaVersion": 1,
@@ -327,10 +330,10 @@
                   "type": "Modifier",
                   "data": {
                     "domains": [
-                      "speed.multiplier"
+                      "speed.dash"
                     ],
                     "modifierType": "untyped",
-                    "value": 2
+                    "value": 1
                   }
                 }
               ]

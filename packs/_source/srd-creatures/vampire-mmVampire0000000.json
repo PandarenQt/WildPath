@@ -58,7 +58,9 @@
       }
     },
     "details": {
-      "threat": 13
+      "threat": 13,
+      "type": "undead",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

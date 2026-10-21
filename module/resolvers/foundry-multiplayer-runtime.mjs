@@ -1401,7 +1401,9 @@ function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
     fromTarget: conditionsFrom(attacker, entry?.actor, game), fromAttacker: conditionsFrom(entry?.actor, attacker, game),
     allyNearTarget: allyNearTarget(sourceToken, token), targetDamaged: targetDamaged(entry?.actor),
     // An ally of the attacker Helped against this target (2024 Help: its Distracted).
-    helpedByAlly: helpedByAlly(sourceToken, entry?.actor)},
+    helpedByAlly: helpedByAlly(sourceToken, entry?.actor),
+    // What it is (2024: a Mace of Disruption's Fiend or Undead).
+    targetType: entry?.actor?.system?.details?.type || null},
     ...sunlightContext(sourceToken), ...fearContext(sourceToken)};
 }
 

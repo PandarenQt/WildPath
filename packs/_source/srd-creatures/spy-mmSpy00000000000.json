@@ -66,7 +66,9 @@
       }
     },
     "details": {
-      "threat": 1
+      "threat": 1,
+      "type": "humanoid",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

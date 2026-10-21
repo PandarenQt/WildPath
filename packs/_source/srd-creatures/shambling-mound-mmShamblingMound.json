@@ -42,7 +42,9 @@
       }
     },
     "details": {
-      "threat": 5
+      "threat": 5,
+      "type": "plant",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

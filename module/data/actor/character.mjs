@@ -15,7 +15,9 @@ export default class WildPathCharacter extends WildPathBaseActor {
       details: new foundry.data.fields.SchemaField({
         ancestry: new StringField({required: true, blank: true}),
         background: new StringField({required: true, blank: true}),
-        level: new NumberField({required: true, integer: true, initial: 1, min: 1})
+        level: new NumberField({required: true, integer: true, initial: 1, min: 1}),
+        // Its creature type: every 2024 player species is a Humanoid.
+        type: new StringField({required: false, blank: true, initial: "humanoid"})
       })
     };
   }

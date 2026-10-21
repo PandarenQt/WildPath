@@ -57,7 +57,9 @@
       }
     },
     "details": {
-      "threat": 8
+      "threat": 8,
+      "type": "giant",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

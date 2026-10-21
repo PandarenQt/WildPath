@@ -463,6 +463,12 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
       beside that creature (`teleportNextTo` → `riderTeleport`, `spaceBeside`).
     - shortcut: Expansive Bond's 60 ft and resistance aren't applied.
 
+  - **Creature types (2026-10-21).** An NPC carries its creature type (`details.type`, `details.subtype`, converted from
+    dnd5e; a custom one is its label), a character `humanoid`. A reaction's predicates see the first target's
+    (`targetType`), as an attack's do (`attack.targetType`). Divine Smite's Undead or Fiend version is offered only on
+    such a creature, the plain one only on any other: live, on a Zombie only the first, on a Bandit Captain only the
+    second. World migration 4 gives an NPC converted earlier the type of its compendium creature.
+
   Live (two browsers, 14.369):
   - **Protective Bond.** QA Caster with Emboldening Bond and Protective Bond bonded QA Ally and QA Fighter, the
     Fighter 20 ft from the Ally. The Captain's hit on QA Ally (8) offered Protective Bond. QA Fighter teleported beside

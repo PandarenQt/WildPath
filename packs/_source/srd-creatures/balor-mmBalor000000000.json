@@ -53,7 +53,9 @@
       }
     },
     "details": {
-      "threat": 19
+      "threat": 19,
+      "type": "fiend",
+      "subtype": "demon"
     },
     "dyingMode": "auto"
   },

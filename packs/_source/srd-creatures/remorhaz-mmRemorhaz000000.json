@@ -42,7 +42,9 @@
       }
     },
     "details": {
-      "threat": 11
+      "threat": 11,
+      "type": "monstrosity",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

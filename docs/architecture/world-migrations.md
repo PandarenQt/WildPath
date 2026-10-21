@@ -22,6 +22,7 @@
 | 1 | An NPC converted before Challenge Rating kept fractions (`threat` stored as 0 for 1/4) gets its converted rating back from `flags.wildpath.source.challenge`. |
 | 2 | Pools left by deleted Items are removed (see below). |
 | 3 | A character built by level-up records the Fortitude modifier its Hit Points count for each level (`perLevelFortitude`), its stored Fortitude's, so a later change counts for every level. |
+| 4 | An NPC with no creature type takes its compendium creature's: by its converted source's id, the compendium entry Foundry recorded, its own id, or a name only one compendium creature has. |
 
 ## Stale pools
 

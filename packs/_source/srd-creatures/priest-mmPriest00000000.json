@@ -57,7 +57,9 @@
       }
     },
     "details": {
-      "threat": 2
+      "threat": 2,
+      "type": "humanoid",
+      "subtype": "cleric"
     },
     "dyingMode": "auto"
   },

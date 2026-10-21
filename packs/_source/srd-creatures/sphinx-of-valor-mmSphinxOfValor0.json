@@ -62,7 +62,9 @@
       }
     },
     "details": {
-      "threat": 17
+      "threat": 17,
+      "type": "celestial",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

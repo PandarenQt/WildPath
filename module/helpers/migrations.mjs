@@ -48,6 +48,21 @@ export function fortitudeFix(source) {
   return Math.floor(((Number(system.abilities?.fortitude?.value) || 10) - 10) / 2);
 }
 
+/**
+ * The creature type an NPC converted before creatures carried one takes from the compendium creature it came from: by
+ * its converted source's id, the compendium entry Foundry recorded, its own id, or else its name when exactly one
+ * compendium creature has it (`types` holds them by id and by `name:<name>`, a shared name as null). Null when it has one.
+ * @param {{type?: string, _id?: string, name?: string, system?: {details?: {type?: string}}, flags?: object,
+ *   _stats?: {compendiumSource?: string|null}}} source
+ * @param {Map<string, {type?: string, subtype?: string}|null>} types
+ */
+export function creatureTypeFix(source, types) {
+  if ( (source?.type !== "npc") || source.system?.details?.type ) return null;
+  const ids = [source.flags?.wildpath?.source?.id, String(source._stats?.compendiumSource ?? "").split(".").pop(), source._id];
+  const found = ids.map(id => (id ? types.get(id) : null)).find(Boolean) ?? types.get(`name:${source.name}`);
+  return found?.type ? {"system.details.type": found.type, "system.details.subtype": found.subtype ?? ""} : null;
+}
+
 /** Every world Actor, then the unlinked Tokens' own Actors on every Scene (after their base, so they see its fix). */
 function* everyActor(game) {
   yield* game.actors ?? [];
@@ -70,6 +85,23 @@ async function recordFortitude(game) {
   }
 }
 
+async function recordCreatureTypes(game) {
+  const types = new Map();
+  for ( const pack of game.packs ?? [] ) {
+    if ( pack.documentName !== "Actor" ) continue;
+    for ( const entry of await pack.getIndex({fields: ["system.details.type", "system.details.subtype"]}) ) {
+      if ( !entry.system?.details?.type ) continue;
+      types.set(entry._id, entry.system.details);
+      const name = `name:${entry.name}`;
+      types.set(name, types.has(name) && (types.get(name)?.type !== entry.system.details.type) ? null : entry.system.details);
+    }
+  }
+  for ( const actor of everyActor(game) ) {
+    const fix = creatureTypeFix(actor.toObject(true), types);
+    if ( fix ) await actor.update(fix);
+  }
+}
+
 async function pruneStalePools(game) {
   for ( const actor of everyActor(game) ) await pruneActorPools(actor);
 }
@@ -85,7 +117,8 @@ export async function pruneActorPools(actor) {
 export const MIGRATIONS = Object.freeze([
   {version: 1, name: "WILDPATH.MIGRATION.Threat", run: migrateThreat},
   {version: 2, name: "WILDPATH.MIGRATION.StalePools", run: pruneStalePools},
-  {version: 3, name: "WILDPATH.MIGRATION.Fortitude", run: recordFortitude}
+  {version: 3, name: "WILDPATH.MIGRATION.Fortitude", run: recordFortitude},
+  {version: 4, name: "WILDPATH.MIGRATION.CreatureTypes", run: recordCreatureTypes}
 ]);
 
 /**

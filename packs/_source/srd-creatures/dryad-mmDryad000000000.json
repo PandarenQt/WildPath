@@ -55,7 +55,9 @@
       }
     },
     "details": {
-      "threat": 1
+      "threat": 1,
+      "type": "fey",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

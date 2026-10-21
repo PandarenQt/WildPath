@@ -42,7 +42,9 @@
       }
     },
     "details": {
-      "threat": 0
+      "threat": 0,
+      "type": "magic-item",
+      "subtype": "carpet"
     },
     "dyingMode": "auto"
   },

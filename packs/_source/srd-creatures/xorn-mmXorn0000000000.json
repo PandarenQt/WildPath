@@ -54,7 +54,9 @@
       }
     },
     "details": {
-      "threat": 5
+      "threat": 5,
+      "type": "elemental",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

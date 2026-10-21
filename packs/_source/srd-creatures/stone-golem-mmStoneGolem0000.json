@@ -48,7 +48,9 @@
       }
     },
     "details": {
-      "threat": 10
+      "threat": 10,
+      "type": "construct",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

@@ -47,7 +47,9 @@
       }
     },
     "details": {
-      "threat": 0
+      "threat": 0,
+      "type": "celestial-fey-or-fiend-your-choice",
+      "subtype": ""
     },
     "dyingMode": "auto"
   },

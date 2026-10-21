@@ -61,7 +61,9 @@
       }
     },
     "details": {
-      "threat": 24
+      "threat": 24,
+      "type": "dragon",
+      "subtype": "metallic"
     },
     "dyingMode": "auto"
   },
