@@ -112,6 +112,15 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
                     await combatant.update({ defeated: true });
             }
         }
+        // What it does as it dies (a mephit's Death Burst): its automatic triggers on `creature.died`.
+        const token = actor.isToken ? actor.token : (actor.getActiveTokens?.(false, true)?.[0] ?? null);
+        try {
+            await globalThis.game?.wildpath
+                ?.automation?.dispatch?.("creature.died", { actor, token });
+        }
+        catch (error) {
+            logger.warn("Wild Path | A death trigger failed", error);
+        }
     }
     async function apply(actor, consequence) {
         if (!consequence || isDead(actor))

@@ -88,7 +88,8 @@ export function deathSaveResult({natural, total, deathSaves=RESET}: {natural: nu
 
 interface RegenerationRule {type?: string; enabled?: boolean; data?: {stoppedBy?: string[]; deferDeath?: boolean}}
 interface DyingActor {
-  uuid: string; id: string; type?: string; name?: string; hasPlayerOwner?: boolean;
+  uuid: string; id: string; type?: string; name?: string; hasPlayerOwner?: boolean; isToken?: boolean; token?: unknown;
+  getActiveTokens?(linked?: boolean, document?: boolean): unknown[];
   flags?: {wildpath?: {stableSince?: StableSince; damageTaken?: Record<string, boolean>}};
   items?: Iterable<{system?: {active?: boolean; ruleElements?: RegenerationRule[]}}>;
   setFlag(scope: string, key: string, value: unknown): Promise<unknown>;
@@ -157,6 +158,14 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
       for ( const combatant of combat.combatants ) {
         if ( (combatant.actor?.uuid === actor.uuid) && !combatant.defeated ) await combatant.update({defeated: true});
       }
+    }
+    // What it does as it dies (a mephit's Death Burst): its automatic triggers on `creature.died`.
+    const token = actor.isToken ? actor.token : (actor.getActiveTokens?.(false, true)?.[0] ?? null);
+    try {
+      await (globalThis as {game?: {wildpath?: {automation?: {dispatch?(type: string, data: Data): Promise<unknown>}}}}).game?.wildpath
+        ?.automation?.dispatch?.("creature.died", {actor, token});
+    } catch (error) {
+      logger.warn("Wild Path | A death trigger failed", error);
     }
   }
 

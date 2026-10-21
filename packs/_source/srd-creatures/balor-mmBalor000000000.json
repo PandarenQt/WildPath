@@ -76,7 +76,65 @@
       "system": {
         "active": true,
         "description": "<p class=\"feature\">The balor explodes when it dies.</p><p class=\"feature\"><em>Dexterity Saving Throw:</em> DC 20, each creature in a 30-foot Emanation originating from the balor.</p><p class=\"feature\"><em>Failure:</em> 31 (9d6) Fire plus 31 (9d6) Force damage.</p><p class=\"feature\"><em>Failure or Success:</em> If the balor dies outside the Abyss, it gains a new body instantly, reviving with all its Hit Points somewhere in the Abyss.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "turn-death-throes",
+            "type": "Trigger",
+            "data": {
+              "kind": "automation",
+              "event": "creature.died",
+              "around": {
+                "radius": 30,
+                "affects": "others"
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-death-throes",
+                "label": "Death Throes",
+                "costs": {
+                  "allOf": []
+                },
+                "save": {
+                  "ability": "agility",
+                  "dc": {
+                    "value": 20
+                  }
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "dice",
+                      "number": 9,
+                      "faces": 6
+                    },
+                    "damageType": "fire",
+                    "provenance": "additional",
+                    "saveOutcomePolicy": {
+                      "success": "none",
+                      "failure": "full"
+                    }
+                  },
+                  {
+                    "id": "damage-2",
+                    "expression": {
+                      "type": "dice",
+                      "number": 9,
+                      "faces": 6
+                    },
+                    "damageType": "force",
+                    "provenance": "additional",
+                    "saveOutcomePolicy": {
+                      "success": "none",
+                      "failure": "full"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -92,9 +150,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"save\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -695,7 +751,6 @@
       },
       "conversion": {
         "notes": [
-          "Death Throes: \"save\" is passive or triggered: not automated",
           "Fire Aura: activation: turnEnd is not an action-economy cost",
           "Teleport: not automated (utility): using it spends its cost; its description says the rest"
         ]

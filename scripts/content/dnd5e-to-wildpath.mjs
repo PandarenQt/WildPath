@@ -2460,6 +2460,7 @@ function initiativeTrigger({document, activity, system, spell, level, scales, no
  * "At the end of each of the azer's turns, each creature of the azer's choice in a 5-foot Emanation originating from the
  * azer takes 5 (1d10) Fire damage unless the azer has the Incapacitated condition"), as an automatic Trigger whose
  * Action reaches each creature in that Emanation (`around`): only its enemies when it chooses ("of its choice").
+ * Or one as it dies (a mephit's Death Burst: "explodes when it dies"; `creature.died`).
  * Or one that reaches a creature whose own turn starts or ends in its Emanation (a Pit Fiend's Fear Aura: "any enemy
  * that starts its turn in the aura"; `around.on: "others"`). A success that makes it immune for 24 hours marks it so
  * (`metadata.immuneTo`). Not one that works only somewhere ("While underwater", an Aboleth's Mucus Cloud), nor a
@@ -2467,12 +2468,14 @@ function initiativeTrigger({document, activity, system, spell, level, scales, no
  */
 function turnAreaTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature, beasts}) {
   if ( !["save", "damage"].includes(activity?.type) ) return null;
-  // dnd5e keeps who it reaches ("any enemy that starts its turn in the aura") on the activity.
-  const text = `${plainText(document)} ${activity.target?.affects?.special ?? ""}`;
+  // dnd5e keeps who it reaches ("any enemy that starts its turn in the aura") and when ("when it dies") on the activity.
+  const text = `${plainText(document)} ${activity.target?.affects?.special ?? ""} ${activity.activation?.condition ?? ""}`;
   const others = /\b(?:any|each) ([^.]{1,80}?) that (starts|ends) its turn (?:in|within)\b/iu.exec(text);
   const own = others ? null : /\b(?:at|by) the (start|end) of (?:each of )?(?:its|their|your|the (?!target)[^.,]{1,60}?'s) turns?\b/iu.exec(text);
+  // Or as it dies ("The mephit explodes when it dies": a Death Burst).
+  const dies = !others && !own && /\bwhen (?:it|the [^.,]{1,60}?) dies\b/iu.test(text);
   const when = others ? others[2].replace(/s$/u, "") : own?.[1];
-  if ( !when || /\bnext\b/iu.test(own?.[0] ?? "") || /^\s*While\b/u.test(text) ) return null;
+  if ( (!when && !dies) || /\bnext\b/iu.test(own?.[0] ?? "") || /^\s*While\b/u.test(text) ) return null;
   const template = activity.target?.template ?? {};
   const size = ["radius", "emanation", "sphere"].includes(template.type) ? Number(template.size)
     : Number(/\b(\d+)-foot(?:-radius)? Emanation\b/iu.exec(text)?.[1]);
@@ -2493,7 +2496,7 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
   const predicate = /\b(?:unless (?:the|it|its) [^.]{0,60}?|while (?:it|the [^.]{0,60}?) (?:doesn't|does not) have the )Incapacitated\b/iu.test(text)
     ? {missingCondition: "incapacitated"} : null;
   return {schemaVersion: 1, id: `turn-${slugify(activity.name || document.name)}`, type: "Trigger", data: {kind: "automation",
-    event: when.toLowerCase() === "start" ? "turn.started" : "turn.ended", ...(predicate ? {predicate} : {}),
+    event: dies ? "creature.died" : (when.toLowerCase() === "start" ? "turn.started" : "turn.ended"), ...(predicate ? {predicate} : {}),
     around: {radius: size, affects: enemies ? "enemies" : "others", ...(others ? {on: "others"} : {})},
     action: {schemaVersion: 1, id: definition.id, label: document.name, costs: {allOf: []}, ...(definition.tags ? {tags: definition.tags} : {}),
       ...(definition.save ? {save: definition.save} : {}), ...(definition.damage?.length ? {damage: definition.damage} : {}),

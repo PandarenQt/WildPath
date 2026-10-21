@@ -129,7 +129,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Balance | equipment24 | Balance (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Ball Bearings | equipment24 | Ball Bearings (Spill Ball Bearings) (automated), Ball Bearings (Recover Ball Bearings) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
 | Ball Bearings | equipment24 | Ball Bearings (Spill Ball Bearings) (automated), Ball Bearings (Recover Ball Bearings) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
-| Balor | actors24 | Balor (9 items) | Death Throes: "save" is passive or triggered: not automated; Fire Aura: activation: turnEnd is not an action-economy cost; Teleport: not automated (utility): using it spends its cost; its description says the rest |
+| Balor | actors24 | Balor (9 items) | Fire Aura: activation: turnEnd is not an action-economy cost; Teleport: not automated (utility): using it spends its cost; its description says the rest |
 | Bandit | actors24 | Bandit (2 items) | — |
 | Bandit Captain | actors24 | Bandit Captain (4 items) | — |
 | Bane | spells24 | Bane (automated) | — |
@@ -461,7 +461,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dulcimer | equipment24 | Dulcimer (gear), Dulcimer (Play a Known Tune) (automated), Dulcimer (Improvise a Song) (automated) | — |
 | Dungeoneer's Pack | equipment24 | Dungeoneer's Pack (gear) | — |
 | Duplicate | actors24 | Duplicate (0 items) | — |
-| Dust Mephit | actors24 | Dust Mephit (5 items) | Death Burst: "save" is passive or triggered: not automated |
+| Dust Mephit | actors24 | Dust Mephit (5 items) | — |
 | Dust of Disappearance | equipment24 | Dust of Disappearance (automated) | — |
 | Dust of Dryness | equipment24 | Dust of Dryness (Sprinkle over Water) (manual), Dust of Dryness (Sprinkle on Elemental) (automated) | "Determine Number of Pinches" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest |
 | Dust of Sneezing and Choking | equipment24 | Dust of Sneezing and Choking (automated) | effect: suffocation is not a WildPath condition yet |
@@ -815,7 +815,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Hyena | actors24 | Hyena (3 items) | — |
 | Hypnotic Pattern | spells24 | Hypnotic Pattern (automated) | — |
 | Ice Devil | actors24 | Ice Devil (7 items) | Ice Wall: cast: Wall of Ice at level 8 is cast at its own level; Ice Wall: concentration: its caster concentrates; what it sustains is by hand; Ice Wall: "Frigid Air" is passive or triggered: not automated |
-| Ice Mephit | actors24 | Ice Mephit (5 items) | Death Burst: "save" is passive or triggered: not automated; Fog Cloud: not automated (utility): using it spends its cost; its description says the rest; Fog Cloud: area: 20 * @item.level-ft sphere is not supported; the user picks the targets; Fog Cloud: concentration: its caster concentrates; what it sustains is by hand |
+| Ice Mephit | actors24 | Ice Mephit (5 items) | Fog Cloud: not automated (utility): using it spends its cost; its description says the rest; Fog Cloud: area: 20 * @item.level-ft sphere is not supported; the user picks the targets; Fog Cloud: concentration: its caster concentrates; what it sustains is by hand |
 | Ice Storm | spells24 | Ice Storm (automated) | — |
 | Identify | spells24 | Identify (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
 | Illusory Creature | actors24 | Illusory Creature (0 items) | — |
@@ -951,8 +951,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Magical Cunning | classes24 | Magical Cunning (automated) | — |
 | Magical Discoveries | classes24 | Magical Discoveries (feature) | — |
 | Magical Secrets | classes24 | Magical Secrets (feature) | — |
-| Magma Mephit | actors24 | Magma Mephit (4 items) | Death Burst: "save" is passive or triggered: not automated |
-| Magmin | actors24 | Magmin (4 items) | Death Burst: "save" is passive or triggered: not automated; Ignited Illumination: not automated (utility): using it spends its cost; its description says the rest |
+| Magma Mephit | actors24 | Magma Mephit (4 items) | — |
+| Magmin | actors24 | Magmin (4 items) | Ignited Illumination: not automated (utility): using it spends its cost; its description says the rest |
 | Magnificent Mansion | spells24 | Magnificent Mansion (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
 | Magnifying Glass | equipment24 | Magnifying Glass (gear) | — |
 | Major Image | spells24 | Major Image (automated) | — |
@@ -1452,7 +1452,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Star | equipment24 | Star (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Starry Wisp | spells24 | Starry Wisp (automated) | effect: "Illuminated" marks its creature only; its rules are by hand |
 | Steady Aim | classes24 | Steady Aim (automated) | — |
-| Steam Mephit | actors24 | Steam Mephit (5 items) | Death Burst: "save" is passive or triggered: not automated |
+| Steam Mephit | actors24 | Steam Mephit (5 items) | — |
 | Stinking Cloud | spells24 | Stinking Cloud (Create Cloud) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Start of Turn Save" is passive or triggered: not automated |
 | Stirge | actors24 | Stirge (3 items) | Proboscis: activation: turnStart is not an action-economy cost |
 | Stone Giant | actors24 | Stone Giant (5 items) | Deflect Missile: "Save" is passive or triggered: not automated |

@@ -1008,6 +1008,12 @@ test("what a creature does around itself at a turn boundary is an automatic Eman
     {target: {template: {type: "radius", size: "20"}, affects: {type: "enemy", special: "any enemy that starts its turn in the aura"}, override: false},
       save: {ability: ["wis"], dc: {calculation: "", formula: "21"}}, damage: {parts: []}, effects: [{_id: "afraid", onSave: false}]},
     [{_id: "afraid", name: "Frightened", statuses: ["frightened"], duration: {value: 1, units: "turns", expiry: "turnStart"}}])).items;
+  const [burst] = convertItem(passive("testDeathBurst01", "Death Burst", "<p>The mephit explodes [[lookup @activation.condition]].</p>",
+    {activation: {type: "special", condition: "when it dies", override: false}, target: {template: {type: "radius", size: "5"},
+      affects: {type: "creature"}, override: false}, save: {ability: ["dex"], dc: {calculation: "", formula: "11"}},
+      damage: {parts: [{number: 2, denomination: 6, types: ["fire"], bonus: ""}]}})).items;
+  assert.deepEqual([burst.system.ruleElements[0].data.event, burst.system.ruleElements[0].data.around], ["creature.died",
+    {radius: 5, affects: "others"}], "as it dies");
   const [aura] = fear.system.ruleElements;
   assert.deepEqual([aura.data.event, aura.data.around, aura.data.predicate], ["turn.started",
     {radius: 20, affects: "enemies", on: "others"}, {missingCondition: "incapacitated"}]);

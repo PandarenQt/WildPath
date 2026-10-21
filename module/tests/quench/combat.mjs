@@ -392,6 +392,22 @@ export function registerCombatTests(quench) {
         assert.equal(health(far), 10, "the far creature's turn starts outside it");
       });
 
+      it("a death Trigger reaches the creatures around its creature as it dies (Death Burst)", async function () {
+        const scene = await fixtures.createScene({name:"death burst"});
+        const make = async (name, x) => fixtures.createToken(scene, await fixtures.createActor({name, type:"npc"}), {name, x, y:100});
+        const mephit = await make("mephit", 100);
+        const near = await make("beside it", 200);
+        const live = token => game.scenes.get(scene.id).tokens.get(token.id).actor;
+        await live(mephit).createEmbeddedDocuments("Item", [{name:"Death Burst", type:"feature", system:{active:true, ruleElements:[
+          {schemaVersion:1, id:"burst", type:"Trigger", data:{kind:"automation", event:"creature.died", around:{radius:5, affects:"others"},
+            action:{schemaVersion:1, id:"action:qa-burst", label:"QA Burst", costs:{allOf:[]},
+              damage:[{id:"burst", expression:{type:"constant", value:3}, damageType:"fire", provenance:"spell-base"}]}}}]}}]);
+        await live(mephit).update({"system.resources.health.value":0});
+        await game.wildpath.dying.afterPlans(live(mephit), [{type:"damage", from:4, to:0, max:10, amount:6}]);
+        await until(() => live(near).getResource("health").value === 7, "the creature beside it takes 3");
+        assert.isTrue(live(mephit).effects.some(effect => effect.system?.type === "dead"), "an NPC at 0 dies");
+      });
+
       it("Actor#rest runs a rest Trigger whose predicate names the rest it answers", async function () {
         const enc = await encounter({name:"rest trigger"});
         await stingFeature(enc.actor, {event:"rest.completed", amount:3,
