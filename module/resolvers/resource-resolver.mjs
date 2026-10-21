@@ -186,6 +186,18 @@ export function withResourceRestores(actorSystem, mutationPlan, restores=[]) {
   const payments = (mutationPlan.payments ?? []).map(payment => ({...payment}));
   const restored = [];
   for ( const {resourceId, amount: fixed, amountExpression, refuseWhenFull} of restores ) {
+    const amountOf = () => (amountExpression
+      ? Math.max(Math.trunc(Number(evaluateValueExpression(amountExpression, {actorSystem}).value) || 0), 0) : fixed);
+    // A counted built-in resource (movement: Pounce's "moves up to half its Speed") gives back what was spent.
+    const counted = actorSystem?.resources?.[resourceId];
+    if ( counted && Number.isFinite(Number(counted.spent)) ) {
+      const path = `system.resources.${resourceId}.spent`;
+      const from = Number(updates[path] ?? counted.spent) || 0;
+      updates[path] = Math.max(from - amountOf(), 0);
+      payments.push({resourceId, actorResourceId: resourceId, path, from: Number(counted.spent) || 0, to: updates[path], amount: 0});
+      restored.push({resourceId, path, from, to: updates[path], amount: from - updates[path]});
+      continue;
+    }
     const index = (actorSystem?.pools ?? []).findIndex(pool => pool.id === resourceId);
     if ( index < 0 ) continue;
     const pool = actorSystem.pools[index];
@@ -196,8 +208,7 @@ export function withResourceRestores(actorSystem, mutationPlan, restores=[]) {
     if ( refuseWhenFull && (from >= (Number(pool.max ?? 0) || 0)) ) {
       return {...mutationPlan, ok: false, code: "RESOURCE_FULL", reason: `${resourceId} is full`};
     }
-    const amount = amountExpression
-      ? Math.max(Math.trunc(Number(evaluateValueExpression(amountExpression, {actorSystem}).value) || 0), 0) : fixed;
+    const amount = amountOf();
     updates[path] = Math.min(from + amount, Number(pool.max ?? 0) || 0);
     const paid = payments.find(payment => payment.path === path);
     if ( paid ) paid.to = updates[path];

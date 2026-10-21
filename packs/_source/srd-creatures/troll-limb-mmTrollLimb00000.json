@@ -152,7 +152,7 @@
           },
           "conversion": {
             "notes": [
-              "\"Troll\" is passive or triggered: not automated"
+              "\"Troll\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -275,7 +275,7 @@
       },
       "conversion": {
         "notes": [
-          "Troll Spawn: \"Troll\" is passive or triggered: not automated"
+          "Troll Spawn: \"Troll\" is passive or triggered (narrative): not automated"
         ]
       }
     }

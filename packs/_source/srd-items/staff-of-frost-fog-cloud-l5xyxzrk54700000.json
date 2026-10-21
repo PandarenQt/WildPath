@@ -88,7 +88,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility, narrative): using it spends its cost; its description says the rest",
+          "not automated (utility): using it spends its cost; its description says the rest",
           "area: 20 * @item.level-ft sphere is not supported; the user picks the targets",
           "concentration: its caster concentrates; what it sustains is by hand"
         ]

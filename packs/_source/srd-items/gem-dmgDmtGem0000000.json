@@ -29,8 +29,8 @@
       },
       "conversion": {
         "notes": [
-          "\"Card Effect: Jewelry\" is passive or triggered: not automated",
-          "\"Card Effect: Gems\" is passive or triggered: not automated"
+          "\"Card Effect: Jewelry\" is passive or triggered (narrative): not automated",
+          "\"Card Effect: Gems\" is passive or triggered (narrative): not automated"
         ]
       }
     }

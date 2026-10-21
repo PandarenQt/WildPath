@@ -29,8 +29,8 @@
       },
       "conversion": {
         "notes": [
-          "\"Check Deck Size\" is passive or triggered: not automated",
-          "\"Draw Cards\" is passive or triggered: not automated"
+          "\"Check Deck Size\" is passive or triggered (narrative): not automated",
+          "\"Draw Cards\" is passive or triggered (narrative): not automated"
         ]
       }
     }

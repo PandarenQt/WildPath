@@ -82,8 +82,8 @@
           },
           "conversion": {
             "notes": [
-              "\"Initial Save\" is passive or triggered: not automated",
-              "\"Save while Restrained\" is passive or triggered: not automated"
+              "\"Initial Save\" is passive or triggered (narrative): not automated",
+              "\"Save while Restrained\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -104,8 +104,8 @@
       },
       "conversion": {
         "notes": [
-          "Air Element: \"Initial Save\" is passive or triggered: not automated",
-          "Air Element: \"Save while Restrained\" is passive or triggered: not automated"
+          "Air Element: \"Initial Save\" is passive or triggered (narrative): not automated",
+          "Air Element: \"Save while Restrained\" is passive or triggered (narrative): not automated"
         ]
       }
     }

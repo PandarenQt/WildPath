@@ -27,6 +27,7 @@ const RULES = [
   [/targets: count/, () => "target count from a formula (upcast targets)"],
   [/area: .*-ft (\w+) is not supported/, match => `area shape: ${match[1]}`],
   [/a cylinder's height/, () => "area shape: cylinder height"],
+  [/is passive or triggered \(narrative\)/, () => "passive trait (its text is its rule)"],
   [/is passive or triggered/, () => "passive or triggered ability"],
   [/concentration: nothing it sustains/, () => "concentration effect not converted"],
   [/summon: what it gains with the spell's level/, () => "summon: what it gains with the spell's level (not added)"],
@@ -57,7 +58,8 @@ const RULES = [
   [/healing: temporary/, () => "temporary Hit Points"]
 ];
 /** Reasons that say how something is handled rather than what is missing: counted apart from the real gaps. */
-const INFORMATIONAL = new Set(["narrative use (its cost is all there is)", "concentration sustained (its effect is noted apart)",
+const INFORMATIONAL = new Set(["narrative use (its cost is all there is)", "passive trait (its text is its rule)",
+  "concentration sustained (its effect is noted apart)",
   "long activation (minutes, hours)", "resistance bypasses"]);
 
 const reason = note => {

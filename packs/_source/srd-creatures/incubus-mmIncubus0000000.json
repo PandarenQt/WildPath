@@ -105,7 +105,7 @@
           },
           "conversion": {
             "notes": [
-              "\"Shape-Shift: Succubus\" is passive or triggered: not automated"
+              "\"Shape-Shift: Succubus\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -883,7 +883,7 @@
       },
       "conversion": {
         "notes": [
-          "Succubus Form: \"Shape-Shift: Succubus\" is passive or triggered: not automated",
+          "Succubus Form: \"Shape-Shift: Succubus\" is passive or triggered (narrative): not automated",
           "Restless Touch: effect: cursed is not a WildPath condition yet",
           "Restless Touch: effect: \"Cursed\" marks its creature only; its rules are by hand",
           "Spellcasting: effect: \"Disguised\" marks its creature only; its rules are by hand",

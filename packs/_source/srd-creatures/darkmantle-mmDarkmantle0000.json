@@ -320,7 +320,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility, narrative): using it spends its cost; its description says the rest"
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -394,7 +394,7 @@
       "conversion": {
         "notes": [
           "Crush: effect: suffocation is not a WildPath condition yet",
-          "Darkness Aura: not automated (utility, narrative): using it spends its cost; its description says the rest"
+          "Darkness Aura: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

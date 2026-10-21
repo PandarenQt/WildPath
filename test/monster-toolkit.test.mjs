@@ -73,3 +73,28 @@ test("2024 Extra Attack: a weapon attack paid with the Action fills the pool its
     "and does not refill it");
   assert.equal(pay(resources(0, 0)).ok, false, "a third attack is refused");
 });
+
+test("a restore of movement gives back what was spent: a dragon's Pounce moves it up to half its Speed", () => {
+  const actorSystem = {resources: {movement: {max: 40, spent: 30, value: 10}}, pools: [{id: "move-attack-rend", value: 0, max: 1}]};
+  const half = {type: "floor", value: {type: "multiply", terms: [{type: "resource-max", id: "movement"}, {type: "constant", value: 0.5}]}};
+  const plan = withResourceRestores(actorSystem, {ok: true, updates: {}, payments: []},
+    [{resourceId: "movement", amount: 1, amountExpression: half}, {resourceId: "move-attack-rend", amount: 1}]);
+  assert.equal(plan.updates["system.resources.movement.spent"], 10, "20 of its 30 spent feet back");
+  assert.equal(plan.updates["system.pools.0.value"], 1, "and one Rend to make");
+  const fresh = withResourceRestores({resources: {movement: {max: 40, spent: 0}}}, {ok: true, updates: {}, payments: []},
+    [{resourceId: "movement", amount: 1, amountExpression: half}]);
+  assert.equal(fresh.updates["system.resources.movement.spent"], 0, "never below none spent");
+});
+
+test("converted Pounce: half its Speed back, and one Rend paid from its own pool", async () => {
+  const fs = await import("node:fs");
+  const file = fs.readdirSync("packs/_source/srd-creatures").find(name => name.startsWith("adult-black-dragon"));
+  const dragon = JSON.parse(fs.readFileSync(`packs/_source/srd-creatures/${file}`, "utf8"));
+  const pounce = dragon.items.find(item => item.name === "Pounce");
+  const rend = dragon.items.find(item => item.name === "Rend");
+  assert.deepEqual(pounce.system.definition.restores.map(entry => entry.resourceId), ["movement", "move-attack-rend"]);
+  assert.deepEqual(pounce.system.definition.costs.allOf.map(cost => cost.capability), ["legendary-action"]);
+  assert.deepEqual(rend.system.definition.costs.anyOf[0], [{capability: "move-attack-rend", amount: 1}]);
+  assert.equal(validateActionDefinition(pounce.system.definition).ok, true);
+  assert.deepEqual(pounce.flags.wildpath.conversion.notes, []);
+});

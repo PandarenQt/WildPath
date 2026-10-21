@@ -234,11 +234,19 @@
           "schemaVersion": 1,
           "id": "action:srd-grave-strike-vampire-form-only",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "move-attack-grave-strike",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -891,9 +899,52 @@
               }
             ]
           },
-          "label": "Deathless Strike"
+          "label": "Deathless Strike",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "movement",
+              "amount": 1,
+              "amountExpression": {
+                "type": "floor",
+                "value": {
+                  "type": "multiply",
+                  "terms": [
+                    {
+                      "type": "resource-max",
+                      "id": "movement"
+                    },
+                    {
+                      "type": "constant",
+                      "value": 0.5
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "resourceId": "move-attack-grave-strike",
+              "amount": 1
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "move-attack-grave-strike-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "move-attack-grave-strike",
+              "label": "Deathless Strike (Grave Strike (Vampire Form Only) (attack))",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -909,9 +960,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1061,7 +1110,6 @@
         "notes": [
           "Misty Escape: \"Paralyzed\" is passive or triggered: not automated",
           "Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Deathless Strike: not automated (utility): using it spends its cost; its description says the rest",
           "Vampire Weakness: \"Damage: Running Water\" is passive or triggered: not automated",
           "Vampire Weakness: \"Staked to the Heart\" is passive or triggered: not automated",
           "Vampire Weakness: \"Damage: Sunlight\" is passive or triggered: not automated"

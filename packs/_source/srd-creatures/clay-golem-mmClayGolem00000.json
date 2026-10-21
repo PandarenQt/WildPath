@@ -118,7 +118,7 @@
           },
           "conversion": {
             "notes": [
-              "\"Berserk Check\" is passive or triggered: not automated"
+              "\"Berserk Check\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -618,7 +618,7 @@
       },
       "conversion": {
         "notes": [
-          "Berserk: \"Berserk Check\" is passive or triggered: not automated"
+          "Berserk: \"Berserk Check\" is passive or triggered (narrative): not automated"
         ]
       }
     }
