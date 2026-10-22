@@ -1186,6 +1186,18 @@ test("an area whose size grows with the spell's level scales with its slot (Conf
   assert.equal(confusion.flags.wildpath.conversion.notes.some(note => /not supported/.test(note)), false);
 });
 
+test("what hitting a creature with a melee attack costs the attacker answers that hit at once (Corrosive Form)", () => {
+  const [form] = convertItem({_id: "testCorrosive001", name: "Corrosive Form", type: "feat", effects: [], system: {source: SRD,
+    description: {value: "<p>A creature that hits the pudding with a melee attack roll takes 4 (1d8) Acid damage.</p>"},
+    activities: {a: activity("damage", {activation: {type: "", override: false}, damage: {parts: [{number: 1, denomination: 8,
+      types: ["acid"], bonus: ""}]}})}}}).items;
+  assert.equal(form.type, "action");
+  assert.deepEqual([form.system.definition.costs, form.system.definition.damage[0].damageType], [{allOf: []}, "acid"]);
+  assert.deepEqual(form.system.ruleElements[0].data, {kind: "reaction", event: "attack.hit",
+    match: {phase: "interrupt", targetTokenId: "{self}", tagsAny: ["melee"]}});
+  assert.equal(form.flags.wildpath.reactionPolicy, "always");
+});
+
 test("a passive aura of Advantage is an Aura of RollModes on its allies (Aura of Authority)", () => {
   const [warlord] = convertItem({_id: "testAuthority001", name: "Aura of Authority", type: "feat", effects: [], system: {source: SRD,
     description: {value: "<p>While in a [[lookup @target.template.size activity=x]]-foot Emanation originating from the [[lookup @name "
