@@ -271,6 +271,15 @@ separate slices over the same resolved configuration and resolver contracts.
 `scaleTargets` raises `targeting.count` and keeps `refinementPolicy.minSelections` at the base count: 2024's "you can
 target one additional creature" is optional. Before, Command from a 3rd-level slot needed exactly three targets.
 
+## Areas That Grow With The Slot (2026-10-22)
+
+`{type: "scaleArea", levelChoiceId, baseLevel, perLevel}` adds `perLevel` feet to `area.size` for each level the choice
+names above `baseLevel` (2024 Confusion: a 10-foot Sphere at 4th, 5 feet more per level). The caster's client places
+the area from the configured definition, and the authority finds its targets from it too (`foundryActionArea`), so both
+see the same size. The converter writes it for a dnd5e template size that is a formula of `@item.level`.
+Live (14.369): an Emanation of 5 feet plus 10 per level reached the three adjacent creatures at level 1 and all six
+within 45 feet at level 5.
+
 ## Spending A Chosen Amount (2026-10-19)
 
 A configuration effect `{type: "spendAmount", resourceId, componentIds, collection?, per?}` on a `number` choice adds

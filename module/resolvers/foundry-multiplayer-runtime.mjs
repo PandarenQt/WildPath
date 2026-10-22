@@ -1941,9 +1941,13 @@ function foundryAreaMove({definition, actor, intent, sourceToken}) {
  */
 function foundryActionArea({action, actor, intent, sourceToken}) {
   const result = actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null});
-  const definition = result.ok ? result.definition : null;
-  if ( definition?.targeting?.type !== "area" ) return {ok: true};
+  const own = result.ok ? result.definition : null;
+  if ( own?.targeting?.type !== "area" ) return {ok: true};
   if ( !sourceToken?.parent ) return {ok: false, reason: "An area Action needs its caster's Token on a Scene."};
+  // Its size as chosen (Confusion's radius grows with the slot), as its caster placed it.
+  const chosen = intent.configuration?.choices ? resolveActionConfiguration({definition: own, actorSystem: foundryActorSystemSnapshot(actor),
+    choices: intent.configuration.choices}) : null;
+  const definition = chosen?.ok ? (chosen.configuration?.effectiveDefinition ?? own) : own;
   const placed = foundryAreaFootprint({definition, sourceToken, points: intent.area?.points ?? []});
   if ( !placed.ok ) return placed;
   // A creature behind Total Cover from its point of origin is not in it.

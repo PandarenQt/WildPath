@@ -11,6 +11,7 @@ import {traitUpdates} from "../helpers/level-up.mjs";
 import {refuseBrokenRules} from "../helpers/rule-guard.mjs";
 import {consumeScrollOf, highestSpellLevel, spellLevelOf} from "../helpers/spell-scrolls.mjs";
 import {admitFacility} from "../applications/bastions.mjs";
+import {resolveActionConfiguration} from "../helpers/action-configuration.mjs";
 
 /** Which of `skills` the creature checks (Search, Study, Influence), each with its bonus; null when closed. */
 async function chooseTestSkill(actor, skills, name) {
@@ -204,8 +205,11 @@ export default class WildPathItem extends Item {
         globalThis.ui?.notifications?.warn?.(globalThis.game.i18n.localize("WILDPATH.AREA.NoToken"));
         return false;
       }
-      const area = areaClickCount(definition.definition) ? await placeFoundryArea({definition: definition.definition, sourceToken})
-        : {points: []};
+      // Its size as chosen (Confusion's radius grows with the slot): the configured definition, else its own.
+      const chosen = built.intent.configuration?.choices ? resolveActionConfiguration({definition: definition.definition,
+        actorSystem: foundryActorSystemSnapshot(this.actor), choices: built.intent.configuration.choices}) : null;
+      const placing = chosen?.ok ? (chosen.configuration?.effectiveDefinition ?? definition.definition) : definition.definition;
+      const area = areaClickCount(placing) ? await placeFoundryArea({definition: placing, sourceToken}) : {points: []};
       if ( !area ) return false;
       built.intent.area = area;
       built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};
