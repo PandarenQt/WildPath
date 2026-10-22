@@ -314,7 +314,8 @@
                     "faces": 6
                   },
                   {
-                    "type": "spellcasting-modifier"
+                    "type": "ability-modifier",
+                    "ability": "might"
                   }
                 ]
               },

@@ -163,3 +163,13 @@ test("an artificer's summon: its bonuses from its summoner, its attacks its summ
     .configuration[0].options.map(option => option.id);
   assert.deepEqual([options(2), options(5), options(15)], [[], ["steel"], ["improved"]]);
 });
+
+test("a summoned spirit's damage from its summoning's level and its summoner's modifier, written in as it appears", async () => {
+  const {formulaExpression} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const {withSummonNumbers} = await import("../module/adapters/foundry-v14-summons.mjs");
+  const expression = formulaExpression("(2 * @flags.dnd5e.summon.level - 6)d6 + @flags.dnd5e.summon.mod", {ability: "might"});
+  assert.deepEqual(withSummonNumbers(expression, {level: 4, mod: 3}),
+    {type: "add", terms: [{type: "dice", number: 2, faces: 6}, {type: "constant", value: 3}]}, "4th level, +3: 2d6 + 3");
+  const plain = {type: "dice", number: 1, faces: 8};
+  assert.equal(withSummonNumbers(plain, {level: 4, mod: 3}), plain, "nothing to write in: the same object");
+});

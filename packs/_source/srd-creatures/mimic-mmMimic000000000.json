@@ -243,7 +243,8 @@
                     "faces": 8
                   },
                   {
-                    "type": "spellcasting-modifier"
+                    "type": "ability-modifier",
+                    "ability": "might"
                   }
                 ]
               },

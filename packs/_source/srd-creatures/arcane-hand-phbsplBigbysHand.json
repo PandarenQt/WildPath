@@ -97,6 +97,39 @@
             "required": true,
             "count": 1
           },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": {
+                  "type": "subtract",
+                  "terms": [
+                    {
+                      "type": "multiply",
+                      "terms": [
+                        {
+                          "type": "constant",
+                          "value": 2
+                        },
+                        {
+                          "type": "context",
+                          "path": "summon.level"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "constant",
+                      "value": 5
+                    }
+                  ]
+                },
+                "faces": 8
+              },
+              "damageType": "force",
+              "provenance": "additional"
+            }
+          ],
           "label": "Clenched Fist"
         },
         "ruleElements": []
@@ -115,10 +148,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "damage 1: custom formula \"(2 * @flags.dnd5e.summon.level - 5)d8\" not converted",
-              "rolled (attack); what it does is by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -278,6 +308,60 @@
               }
             ]
           },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": {
+                      "type": "subtract",
+                      "terms": [
+                        {
+                          "type": "multiply",
+                          "terms": [
+                            {
+                              "type": "constant",
+                              "value": 2
+                            },
+                            {
+                              "type": "context",
+                              "path": "summon.level"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "constant",
+                          "value": 6
+                        }
+                      ]
+                    },
+                    "faces": 6
+                  },
+                  {
+                    "type": "context",
+                    "path": "summon.mod"
+                  }
+                ]
+              },
+              "damageType": "bludgeoning",
+              "provenance": "additional"
+            }
+          ],
           "label": "Grasping Hand (Crush)"
         },
         "ruleElements": []
@@ -296,10 +380,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (damage): using it spends its cost; its description says the rest",
-              "damage 1: custom formula \"(2 * @flags.dnd5e.summon.level - 6)d6 + @flags.dnd5e.summon.mod\" not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -461,12 +542,8 @@
       },
       "conversion": {
         "notes": [
-          "Clenched Fist: damage 1: custom formula \"(2 * @flags.dnd5e.summon.level - 5)d8\" not converted",
-          "Clenched Fist: rolled (attack); what it does is by hand",
           "Forceful Hand: rolled (save); what it does is by hand",
           "Grasping Hand: rolled (save); what it does is by hand",
-          "Grasping Hand: not automated (damage): using it spends its cost; its description says the rest",
-          "Grasping Hand: damage 1: custom formula \"(2 * @flags.dnd5e.summon.level - 6)d6 + @flags.dnd5e.summon.mod\" not converted",
           "Interposing Hand: effect: \"Interposed\" marks its creature only; its rules are by hand"
         ]
       }

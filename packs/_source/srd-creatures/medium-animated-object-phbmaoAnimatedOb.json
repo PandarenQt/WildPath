@@ -99,6 +99,39 @@
             "required": true,
             "count": 1
           },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": {
+                      "type": "subtract",
+                      "terms": [
+                        {
+                          "type": "context",
+                          "path": "summon.level"
+                        },
+                        {
+                          "type": "constant",
+                          "value": 4
+                        }
+                      ]
+                    },
+                    "faces": 4
+                  },
+                  {
+                    "type": "ability-modifier",
+                    "ability": "might"
+                  }
+                ]
+              },
+              "damageType": "force",
+              "provenance": "additional"
+            }
+          ],
           "label": "Slam"
         },
         "ruleElements": []
@@ -117,10 +150,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "damage 1: custom formula \"(@flags.dnd5e.summon.level - 4)d4 + @mod\" not converted",
-              "rolled (attack); what it does is by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -193,10 +223,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Slam: damage 1: custom formula \"(@flags.dnd5e.summon.level - 4)d4 + @mod\" not converted",
-          "Slam: rolled (attack); what it does is by hand"
-        ]
+        "notes": []
       }
     }
   }

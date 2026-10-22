@@ -1002,8 +1002,7 @@
             "notes": [
               "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "concentration: its caster concentrates; what it sustains is by hand",
-              "concentration: nothing it sustains was converted"
+              "concentration: its caster concentrates; what it sustains is by hand"
             ]
           }
         }
@@ -1421,7 +1420,6 @@
           "Spellcasting: save: a failure marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: concentration: nothing it sustains was converted",
           "Blazing Light: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]

@@ -67,6 +67,27 @@ function atLevel(expression: unknown, level: number): unknown {
 }
 
 /**
+ * An expression with a summoned spirit's numbers written in (`summon.level`: the level it was summoned at; `summon.mod`:
+ * its summoner's spellcasting modifier), each dice count worked out; the same object when it has none.
+ */
+export function withSummonNumbers(expression: unknown, numbers: {level: number; mod: number}): unknown {
+  if ( !expression || (typeof expression !== "object") ) return expression;
+  const node = expression as Data;
+  if ( (node.type === "context") && ((node.path === "summon.level") || (node.path === "summon.mod")) ) {
+    return {type: "constant", value: node.path === "summon.level" ? numbers.level : numbers.mod};
+  }
+  let changed = false;
+  const next: Data = Object.fromEntries(Object.entries(node).map(([name, value]) => {
+    const filled = Array.isArray(value) ? value.map(entry => withSummonNumbers(entry, numbers)) : withSummonNumbers(value, numbers);
+    if ( Array.isArray(value) ? (filled as unknown[]).some((entry, index) => entry !== value[index]) : (filled !== value) ) changed = true;
+    return [name, filled];
+  }));
+  if ( !changed ) return expression;
+  if ( (next.type === "dice") && next.number && (typeof next.number === "object") ) next.number = Math.max(0, evaluate(next.number, {}).value ?? 0);
+  return next;
+}
+
+/**
  * What a summon gains with the spell's level (2024 Summon spells, dnd5e's bonuses), at `level`: Hit Points and AC as
  * numbers, and rules for its damage, on attacks (`attackDamage`) and on everything else, saves (`saveDamage`): a
  * Modifier for a number, an ExtraDamage for dice.
@@ -278,9 +299,19 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
       if ( spec.match?.attacks ) bonuses.rules.push(...matchedAttack(caster as unknown as Data, token.actor as unknown as Data));
       await applySummonBonuses(token, bonuses, level);
     }
-    // The level it was summoned at, which a spirit's own rules read (its Multiattack: half this spell's level).
+    // The level it was summoned at, which a spirit's own rules read (its Multiattack: half this spell's level), and its
+    // Actions' damage with that level and its summoner's spellcasting modifier written in (withSummonNumbers).
+    const mod = Number(evaluate({type: "spellcasting-modifier"}, {actor: caster, actorSystem: caster.system}).value) || 0;
     if ( level ) for ( const token of tokens ) {
       await token.actor?.setFlag?.("wildpath", "summonLevel", level);
+      const items = [...((token.actor as unknown as {items?: Iterable<Data>})?.items ?? [])];
+      const updates = items.filter(item => item.type === "action").flatMap(item => {
+        const definition = (item.system as Data | undefined)?.definition;
+        const filled = withSummonNumbers(definition, {level, mod});
+        return (filled !== definition) ? [{_id: item.id, "system.definition": filled}] : [];
+      });
+      if ( updates.length ) await (token.actor as unknown as {updateEmbeddedDocuments(type: string, data: Data[]): Promise<unknown>})
+        .updateEmbeddedDocuments("Item", updates);
       await token.actor?.syncItemRecords?.();
     }
     // 2024: in combat a summon shares its caster's Initiative and takes its turn right after the caster's.
