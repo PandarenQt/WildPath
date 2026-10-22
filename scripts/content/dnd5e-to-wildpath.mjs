@@ -893,7 +893,16 @@ export function formulaExpression(formula, {spell=false, ability=null, scales={}
     return {type: "table", key: rows.key ?? {type: "class-level", class: owner}, rows: Object.fromEntries(Object.entries(rows)
       .map(([level, value]) => [level, row(value)]))};
   };
+  // A summoned spirit's numbers (2024 Summon Beast's "1d8 + 4 + the spell's level"): the level it was summoned at and its
+  // summoner's spellcasting modifier, which the summons adapter writes in as numbers when it appears (`summon.level`).
+  const summonLevel = {type: "context", path: "summon.level"};
   text = text
+    .replace(/\(([^()]*@flags\.dnd5e\.summon\.level[^()]*)\)\s*d\s*(\d+)/gi, (match, inner, faces) => {
+      const count = parseFormula(inner.replace(/@flags\.dnd5e\.summon\.level/g, " summonlevelx ").trim(), {variables: {summonlevelx: summonLevel}});
+      return count.ok ? variable({type: "dice", number: count.expression, faces: Number(faces)}) : match;
+    })
+    .replace(/@flags\.dnd5e\.summon\.level/g, () => variable(summonLevel))
+    .replace(/@flags\.dnd5e\.summon\.mod/g, () => variable({type: "context", path: "summon.mod"}))
     // "(@scale.channel-divinity-cleric.spark)d8": dice whose count is the scale (Divine Spark's 1d8 to 4d8).
     .replace(/\(@scale\.([a-z0-9-]+)\.([a-z0-9-]+)\)\s*d\s*(\d+)/gi, (match, owner, id, faces) => {
       const count = table(owner, id, "value", "");
@@ -3102,10 +3111,13 @@ function convertActivity({document, activity, system, spell, level, scales, note
   } else if ( activity.damage?.includeBase && baseExpression ) {
     notes.push("damage: the item's base damage not converted");
   }
-  // A part of several types is the user's choice when used (Dragonborn's Breath Weapon, Chromatic Orb).
+  // A part of several types is the user's choice when used (Dragonborn's Breath Weapon, Chromatic Orb). A weapon attack's
+  // `@mod` is its ability's (dnd5e's blank one: Strength in melee, Dexterity at range), not a spellcasting modifier.
   const typeChoices = [];
+  const attackAbility = (!spell && definition.attack) ? (ABILITY_MAP[activity.attack?.ability]
+    ?? (definition.attack.type === "ranged" ? "agility" : "might")) : null;
   for ( const [index, part] of (activity.damage?.parts ?? []).entries() ) {
-    const expression = partExpression(part, {spell, ability: null, scales, notes, label: `damage ${index + 1}`});
+    const expression = partExpression(part, {spell, ability: attackAbility, scales, notes, label: `damage ${index + 1}`});
     if ( !expression ) continue;
     const types = (part.types ?? []).filter(type => DAMAGE_TYPES.includes(type));
     if ( types.length > 1 ) typeChoices.push({id: `damage-type-${index + 1}`, type: "damage-type", label: "Damage type", required: true,
@@ -3295,7 +3307,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
           : "save: a failure marks its creature only; what it does is by hand"));
     }
   }
-  if ( concentration && !effects.length ) notes.push("concentration: nothing it sustains was converted");
+  // A follow-up (Flame Blade's attack, Heat Metal's reheat) goes on with its spell's concentration; it sustains nothing.
+  if ( concentration && !effects.length && (activity.consumption?.spellSlot !== false) ) notes.push("concentration: nothing it sustains was converted");
   if ( damage.length || healing.length || effects.length || definition.check ) return definition;
   // An attack or save with nothing converted on it still rolls (Command, Counterspell, a Net): the card shows who
   // saved or was hit, and the description says what follows.

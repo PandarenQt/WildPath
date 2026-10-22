@@ -97,6 +97,39 @@
             "required": true,
             "count": 1
           },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": {
+                      "type": "subtract",
+                      "terms": [
+                        {
+                          "type": "context",
+                          "path": "summon.level"
+                        },
+                        {
+                          "type": "constant",
+                          "value": 1
+                        }
+                      ]
+                    },
+                    "faces": 8
+                  },
+                  {
+                    "type": "context",
+                    "path": "summon.mod"
+                  }
+                ]
+              },
+              "damageType": "force",
+              "provenance": "additional"
+            }
+          ],
           "label": "Move and Attack"
         },
         "ruleElements": []
@@ -115,10 +148,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "damage 1: custom formula \"(@flags.dnd5e.summon.level - 1)d8 + @flags.dnd5e.summon.mod\" not converted",
-              "rolled (attack); what it does is by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -137,10 +167,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Move and Attack: damage 1: custom formula \"(@flags.dnd5e.summon.level - 1)d8 + @flags.dnd5e.summon.mod\" not converted",
-          "Move and Attack: rolled (attack); what it does is by hand"
-        ]
+        "notes": []
       }
     }
   }

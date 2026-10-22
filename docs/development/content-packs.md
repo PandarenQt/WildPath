@@ -220,6 +220,13 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
     Elemental's 1d8 per level). A sum ("modifier + 2d12", Conjure Fey's) becomes a Modifier worked out with the caster's
     numbers and an ExtraDamage for its dice. A Dancing Sword's wielder modifier and Find Steed's Hit Dice and healing
     stay by hand.
+  - A summoned creature's own damage may name the level it was summoned at and its summoner's spellcasting modifier
+    (dnd5e's `@flags.dnd5e.summon.level` and `.mod`: an Animated Object's Slam, "(level − 3)d6 + Strength + the
+    summoner's modifier"). They convert to `summon.level` and `summon.mod`, which the summons adapter writes in as
+    numbers on its Actions when it appears (`withSummonNumbers`). Live: a Large Animated Object summoned at 6th by QA
+    Wizard (+2) had a Slam of 3d6 + Strength + 2.
+  - A weapon attack's `@mod` is its own ability's (dnd5e's blank: Strength in melee, Dexterity at range), never a
+    spellcasting modifier (a Chimera's had read one it doesn't have).
   - Left by hand:
     - a creature chosen by Challenge Rating (Find Familiar);
     - a count from a formula;
