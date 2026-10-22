@@ -1,11 +1,11 @@
 import {cpSync, existsSync, mkdtempSync, readFileSync, rmSync} from "node:fs";
 import {tmpdir} from "node:os";
-import {join, relative, resolve} from "node:path";
+import {join, resolve} from "node:path";
 import {extractPack} from "@foundryvtt/foundryvtt-cli";
 import {spellListsOf, convertTable, PROGRESSION_TYPES, beastsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables,
   withRedirects} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
-import {writeLocalModule} from "./local-module.mjs";
+import {insideRepository, writeLocalModule} from "./local-module.mjs";
 
 /**
  * Convert a dnd5e content module the maintainer owns (a Player's Handbook, a Monster Manual) into a local WildPath
@@ -25,11 +25,13 @@ const option = name => (rest.includes(name) ? rest[rest.indexOf(name) + 1] : nul
 const data = resolve(option("--data") ?? join(process.env.LOCALAPPDATA ?? "", "FoundryVTT", "Data"));
 const source = join(data, "modules", moduleId);
 const target = join(data, "modules", `wildpath-${moduleId}`);
-if ( !relative(process.cwd(), target).startsWith("..") ) throw new Error(`Refusing to write ${target}: it is inside this repository.`);
+if ( insideRepository(target) ) throw new Error(`Refusing to write ${target}: it is inside this repository.`);
 const manifest = JSON.parse(readFileSync(join(source, "module.json"), "utf8"));
 
 // Copy and extract every pack: opening a LevelDB pack writes to it, so the source module is never opened.
 const work = mkdtempSync(join(tmpdir(), `wildpath-${moduleId}-`));
+// The extracted book is removed however the run ends, a failed one too.
+process.on("exit", () => rmSync(work, {recursive: true, force: true}));
 const extracted = join(work, "json");
 for ( const pack of manifest.packs ?? [] ) {
   if ( !["Item", "Actor", "JournalEntry", "RollTable"].includes(pack.type) ) continue;
@@ -132,7 +134,6 @@ await writeLocalModule({target, id: `wildpath-${moduleId}`, title: `WildPath: ${
   packs: [["items", "Item", items, `${manifest.title}: Spells, Equipment and Features`], ["creatures", "Actor", actors, `${manifest.title}: Creatures`],
     ["classes", "Item", progressions, `${manifest.title}: Classes and Origins`], ["tables", "RollTable", tables, `${manifest.title}: Tables`]],
   flags: {convertedFrom: moduleId, sourceVersion: manifest.version ?? null}, notes});
-rmSync(work, {recursive: true, force: true});
 const kinds = items.reduce((total, item) => {
   const kind = ["feature", "gear"].includes(item.type) ? item.type : (item.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")) ? "manual" : "automated");
   return {...total, [kind]: (total[kind] ?? 0) + 1};

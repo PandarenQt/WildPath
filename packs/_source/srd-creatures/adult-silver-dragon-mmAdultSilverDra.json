@@ -144,10 +144,6 @@
             {
               "resourceId": "multiattack-rend",
               "amount": 3
-            },
-            {
-              "resourceId": "multiattack-replace",
-              "amount": 1
             }
           ]
         },
@@ -160,19 +156,6 @@
               "resourceId": "multiattack-rend",
               "label": "Multiattack (Rend)",
               "maximum": 3,
-              "current": 0,
-              "recovery": "none",
-              "emptiesAtTurnStart": true
-            }
-          },
-          {
-            "schemaVersion": 1,
-            "id": "multiattack-replace-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "multiattack-replace",
-              "label": "Multiattack (replace an attack)",
-              "maximum": 1,
               "current": 0,
               "recovery": "none",
               "emptiesAtTurnStart": true
@@ -194,7 +177,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+            ]
           }
         }
       }
@@ -407,23 +392,11 @@
           "schemaVersion": 1,
           "id": "action:srd-paralyzing-breath-save",
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
           "range": {
@@ -702,79 +675,26 @@
       }
     },
     {
-      "_id": "1t16z3j1um8ajv00",
-      "_key": "!actors.items!mmAdultSilverDra.1t16z3j1um8ajv00",
-      "name": "Ice Knife",
+      "_id": "16ywmso1mzul9w00",
+      "_key": "!actors.items!mmAdultSilverDra.16ywmso1mzul9w00",
+      "name": "Spellcasting (cast)",
       "type": "action",
-      "img": "icons/magic/water/projectile-ice-shard.webp",
+      "img": "icons/magic/symbols/circled-gem-pink.webp",
       "system": {
         "active": true,
-        "description": "<p>You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take 2d6 Cold damage.</p><p><strong>Using a Higher-Level Spell Slot. </strong>The Cold damage increases by 1d6 for each spell slot level above 1.</p>",
+        "description": "<p class=\"feature\">The adult silver dragon casts one of the following spells, requiring no Material components and using Charisma as the spellcasting ability (spell save DC , +11 to hit with spell attacks):</p><p class=\"feature-trait\"><strong>At Will:</strong> <em>Detect Magic</em>, <em>Hold Monster</em>, <em>Ice Knife</em>, <em>Shapechange</em> (Beast or Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p><p class=\"feature-trait\"><strong>1/Day Each:</strong> <em>Ice Storm</em> (level 5 version), <em>Zone of Truth</em></p>",
         "definition": {
           "schemaVersion": 1,
-          "id": "action:srd-spellcasting-ice-knife",
-          "tags": [
-            "spell",
-            "school:conjuration",
-            "component:somatic",
-            "component:material",
-            "damage:piercing"
-          ],
+          "id": "action:srd-spellcasting",
           "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-rend",
-                  "amount": 1
-                }
-              ],
-              [
-                {
-                  "capability": "action",
-                  "amount": 1
-                }
-              ]
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
             ]
           },
-          "attack": {
-            "type": "ranged",
-            "statistic": "spell",
-            "defenseKey": "ac",
-            "proficient": true,
-            "ability": "presence"
-          },
-          "range": {
-            "type": "ranged",
-            "normal": {
-              "value": 60,
-              "unit": "ft"
-            }
-          },
-          "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "damage": [
-            {
-              "id": "damage-1",
-              "expression": {
-                "type": "dice",
-                "number": 1,
-                "faces": 10
-              },
-              "damageType": "piercing",
-              "provenance": "spell-base"
-            }
-          ],
-          "metadata": {
-            "spellLevel": 1
-          },
-          "label": "Ice Knife"
+          "label": "Spellcasting (cast)"
         },
         "ruleElements": []
       },
@@ -783,18 +703,18 @@
           "source": {
             "system": "dnd5e",
             "pack": "actors24",
-            "id": "phbsplIceKnife00",
-            "type": "spell",
+            "id": "mmSpellcasting00",
+            "type": "feat",
             "book": "SRD 5.2",
-            "license": null,
+            "license": "CC-BY-4.0",
             "rules": "2024",
-            "identifier": "ice-knife",
-            "subtype": null,
-            "castBy": "Spellcasting"
+            "identifier": "spellcasting",
+            "subtype": null
           },
           "conversion": {
             "notes": [
-              "\"Shard Explosion\" is passive or triggered: not automated"
+              "not automated (cast): using it spends its cost; its description says the rest",
+              "cast: its spell was not found among the converted spells"
             ]
           }
         }
@@ -1550,10 +1470,12 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: \"Shard Explosion\" is passive or triggered: not automated",
+          "Spellcasting: not automated (cast): using it spends its cost; its description says the rest",
+          "Spellcasting: cast: its spell was not found among the converted spells",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
-          "Spellcasting: effect: \"Cannot Lie\" marks its creature (narrative)"
+          "Spellcasting: effect: \"Cannot Lie\" marks its creature (narrative)",
+          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]
       }
     }
