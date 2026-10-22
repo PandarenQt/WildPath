@@ -1156,6 +1156,13 @@ test("what a creature does around itself at a turn boundary is an automatic Eman
     {name: "Damage: Swallowed", target: {affects: {type: "creature", special: "Swallowed by the behir"}, template: {}, override: false},
       damage: {parts: [{number: 5, denomination: 6, types: ["acid"], bonus: ""}]}})).items;
   const [digest] = worm.system.ruleElements;
+  const [spit] = convertItem(passive("testRegurgitat01", "Swallow", "<p>If the purple worm takes 30 damage or more on a single turn from a "
+    + "creature inside it, the purple worm must succeed on a DC 22 Constitution saving throw at the end of that turn or regurgitate all "
+    + "swallowed creatures.</p>", {name: "Regurgitate: Save", save: {ability: ["con"], dc: {calculation: "", formula: "22"}},
+    target: {affects: {type: "creature"}, template: {}, override: false}, damage: {parts: []}})).items;
+  const [regurgitate] = spit.system.ruleElements;
+  assert.deepEqual([regurgitate.data.event, regurgitate.data.around, regurgitate.data.action.save, regurgitate.data.action.effects],
+    ["turn.ended", {on: "swallowed", threshold: 30}, {ability: "fortitude", dc: {value: 22}}, undefined], "only the save; the rest is the dispatcher's");
   assert.deepEqual([digest.data.event, digest.data.around, digest.data.action.damage[0].damageType], ["turn.started", {swallowed: true}, "acid"],
     "a swallow's damage reaches those it holds");
   const [aura] = fear.system.ruleElements;

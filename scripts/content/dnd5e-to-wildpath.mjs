@@ -1146,6 +1146,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         initiativeRules.push(recharge);
         continue;
       }
+      // A swallower's regurgitating save (a Purple Worm's): the dispatcher's, after a turn that cost it enough.
+      const regurgitation = regurgitateTrigger({document, activity, system, spell, level, scales, pool, names, saveDC, spellDC, creature,
+        beasts});
+      if ( regurgitation ) {
+        initiativeRules.push(regurgitation);
+        continue;
+      }
       // Advantage it gives those around it (Aura of Authority): an Aura of roll modes.
       const aura = rollModeAura(document, activity);
       if ( aura ) {
@@ -2783,6 +2790,24 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
     action: {schemaVersion: 1, id: definition.id, label: document.name, costs: {allOf: []}, ...(definition.tags ? {tags: definition.tags} : {}),
       ...(definition.save ? {save: definition.save} : {}), ...(definition.damage?.length ? {damage: definition.damage} : {}),
       ...((definition.effects?.length || immune.length) ? {effects: [...(definition.effects ?? []), ...immune]} : {})}}};
+}
+
+/**
+ * A swallower's regurgitating save (2024 Purple Worm: "If the purple worm takes 30 damage or more on a single turn from a
+ * creature inside it, the purple worm must succeed on a DC 22 Constitution saving throw at the end of that turn or
+ * regurgitate all swallowed creatures"): a Trigger the dispatcher runs after a swallowed creature's turn (`around: {on:
+ * "swallowed", threshold}`), with only the save; what a failure does (out, Prone, beside it) is the dispatcher's.
+ */
+function regurgitateTrigger({document, activity, system, spell, level, scales, pool, names, saveDC, spellDC, creature, beasts}) {
+  if ( (activity?.type !== "save") || !/regurgitate/iu.test(activity.name ?? "") ) return null;
+  const threshold = Number(/\btakes (\d+) damage or more on a single turn\b/iu.exec(plainText(document))?.[1]);
+  if ( !(threshold > 0) ) return null;
+  const definition = convertActivity({document, activity, system, spell, level, scales, notes: [], pool, saveDC, spellDC, creature, beasts,
+    names});
+  if ( !definition?.save ) return null;
+  return {schemaVersion: 1, id: `regurgitate-${slugify(document.name)}`, type: "Trigger", data: {kind: "automation", event: "turn.ended",
+    around: {on: "swallowed", threshold}, action: {schemaVersion: 1, id: definition.id, label: `${document.name}: Regurgitate`,
+      costs: {allOf: []}, save: definition.save}}};
 }
 
 /**

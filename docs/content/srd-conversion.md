@@ -153,7 +153,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Bedroll | equipment24 | Bedroll (gear) | — |
 | Bedroll | equipment24 | Bedroll (gear) | — |
 | Befuddlement | spells24 | Befuddlement (automated) | effect: "Befuddled" marks its creature only; its rules are by hand |
-| Behir | actors24 | Behir (6 items) | Swallow: "Regurgitate: Save" is passive or triggered: not automated |
+| Behir | actors24 | Behir (6 items) | — |
 | Bell | equipment24 | Bell (gear) | — |
 | Bell | equipment24 | Bell (gear) | — |
 | Bell | equipment24 | Bell (gear) | — |
@@ -889,7 +889,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Knight | actors24 | Knight (4 items) | — |
 | Knock | spells24 | Knock (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Kobold Warrior | actors24 | Kobold Warrior (4 items) | — |
-| Kraken | actors24 | Kraken (12 items) | Swallow: "Regurgitate: Save" is passive or triggered: not automated; Storm Bolt: not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Kraken | actors24 | Kraken (12 items) | Storm Bolt: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Ladder | equipment24 | Ladder (gear) | — |
 | Lamia | actors24 | Lamia (10 items) | Spellcasting: effect: "Disguised" marks its creature (narrative); Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated; Leap: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Lamp | equipment24 | Lamp (gear), Lamp (automated) | — |
@@ -1193,7 +1193,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Pseudodragon | actors24 | Pseudodragon (5 items) | — |
 | Pteranodon | actors24 | Pteranodon (3 items) | — |
 | Purify Food and Drink | spells24 | Purify Food and Drink (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Purple Worm | actors24 | Purple Worm (6 items) | Swallow: "Regurgitate: Save" is passive or triggered: not automated |
+| Purple Worm | actors24 | Purple Worm (6 items) | — |
 | Purple Worm Poison | equipment24 | Purple Worm Poison (automated) | — |
 | Puzzle | equipment24 | Puzzle (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Quarterstaff | equipment24 | Quarterstaff (automated), Quarterstaff (Two-Handed) (automated) | — |
@@ -1231,7 +1231,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Reliable Talent | classes24 | Reliable Talent (feature) | — |
 | Reliquary | equipment24 | Reliquary (gear) | — |
 | Remarkable Athlete | classes24 | Remarkable Athlete (feature) | — |
-| Remorhaz | actors24 | Remorhaz (4 items) | Swallow: "Regurgitate: Save" is passive or triggered: not automated |
+| Remorhaz | actors24 | Remorhaz (4 items) | — |
 | Remove Curse | spells24 | Remove Curse (automated) | — |
 | Repelling Blast | classes24 | Repelling Blast (automated) | — |
 | Resilient Sphere | spells24 | Resilient Sphere (automated) | effect: "Enclosed in Sphere" marks its creature only; its rules are by hand |
@@ -1506,7 +1506,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Talisman of Ultimate Evil | equipment24 | Talisman of Ultimate Evil (gear), Talisman of Ultimate Evil (Ultimate End) (automated) | "Non-Fiend or Undead Damage" is passive or triggered: not automated |
 | Talons | equipment24 | Talons (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Tan Bag of Tricks | equipment24 | Tan Bag of Tricks (gear), Tan Bag of Tricks (automated) | — |
-| Tarrasque | actors24 | Tarrasque (13 items) | Reflective Carapace: "Roll d6" is passive or triggered: not automated; Swallow: "Regurgitate: Save" is passive or triggered: not automated; Onslaught: not automated (utility): using it spends its cost; its description says the rest |
+| Tarrasque | actors24 | Tarrasque (13 items) | Reflective Carapace: "Roll d6" is passive or triggered: not automated; Onslaught: not automated (utility): using it spends its cost; its description says the rest |
 | Telekinesis | spells24 | Telekinesis (automated) | save: a failure marks its creature only; what it does is by hand |
 | Telepathic Bond | spells24 | Telepathic Bond (automated) | — |
 | Teleport | spells24 | Teleport (manual) | not automated (teleport, narrative): using it spends its cost; its description says the rest |

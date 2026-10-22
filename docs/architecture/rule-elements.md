@@ -375,8 +375,15 @@ test). `affects` is `others` (everyone else) or `enemies` (the opposite disposit
   creature gave it (`conditionsFrom`), once per creature (2024 Purple Worm: "takes 17 (5d6) Acid damage at the start of
   each of the purple worm's turns"; the converter reads dnd5e's "Damage: Swallowed" activity). That Total Cover is
   "against attacks and other effects outside" the swallower, so `actionCover` leaves out cover a creature's source gave
-  it when that source acts on it. shortcut: regurgitating (30 damage in a turn from inside) is the GM's; upgrade when
-  damage is tallied per turn and source.
+  it when that source acts on it.
+- With `on: "swallowed"` and `threshold` (2026-10-22), it is a swallower's regurgitating save (2024 Purple Worm: "takes
+  30 damage or more on a single turn from a creature inside it ... a DC 22 Constitution saving throw at the end of that
+  turn or regurgitate all swallowed creatures"). As a creature it swallowed starts its turn, the dispatcher notes the
+  swallower's Hit Points; as that turn ends, a loss of `threshold` or more runs the save (the Action holds only the
+  save). On a failure every creature it swallowed loses the effects it gave them, becomes Prone and is placed beside it
+  ("falls in a space within 5 feet": down its right side). shortcut: any damage it took on that creature's turn counts,
+  not only that creature's. Live (14.369): a Purple Worm that lost 35 Hit Points on QA Failer's turn failed and
+  QA Failer came out Prone beside it, no longer Blinded, Restrained or behind Total Cover.
 - Its predicate sees its creature's conditions (`missingCondition: "incapacitated"`: "unless the azer has the
   Incapacitated condition", "while it doesn't have the Incapacitated condition").
 - A creature carrying an effect whose `metadata.immuneTo` names the Action is skipped. The converter adds one on a

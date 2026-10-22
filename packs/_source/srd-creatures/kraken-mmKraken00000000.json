@@ -650,6 +650,33 @@
                 ]
               }
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "regurgitate-swallow",
+            "type": "Trigger",
+            "data": {
+              "kind": "automation",
+              "event": "turn.ended",
+              "around": {
+                "on": "swallowed",
+                "threshold": 50
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-swallow-regurgitate-save",
+                "label": "Swallow: Regurgitate",
+                "costs": {
+                  "allOf": []
+                },
+                "save": {
+                  "ability": "fortitude",
+                  "dc": {
+                    "value": 25
+                  }
+                }
+              }
+            }
           }
         ]
       },
@@ -999,7 +1026,6 @@
       },
       "conversion": {
         "notes": [
-          "Swallow: \"Regurgitate: Save\" is passive or triggered: not automated",
           "Storm Bolt: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }
