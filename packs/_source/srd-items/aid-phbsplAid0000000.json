@@ -413,7 +413,16 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "life",
+          "devotion",
+          "bard",
+          "cleric",
+          "druid",
+          "paladin",
+          "ranger"
+        ]
       },
       "label": "Aid"
     },

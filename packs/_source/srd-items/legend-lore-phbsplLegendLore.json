@@ -72,7 +72,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "draconic",
+          "bard",
+          "cleric",
+          "wizard"
+        ]
       },
       "label": "Legend Lore"
     },

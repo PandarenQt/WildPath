@@ -101,7 +101,13 @@
         "distance": 30
       },
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "land-temperate",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Misty Step"
     },

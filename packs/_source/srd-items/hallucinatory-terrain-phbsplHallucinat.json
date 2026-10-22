@@ -78,7 +78,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "bard",
+          "druid",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Hallucinatory Terrain"
     },

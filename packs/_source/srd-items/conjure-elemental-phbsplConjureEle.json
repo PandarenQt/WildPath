@@ -130,7 +130,11 @@
         "spellLevel": 5
       },
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "druid",
+          "wizard"
+        ]
       },
       "label": "Conjure Elemental"
     },

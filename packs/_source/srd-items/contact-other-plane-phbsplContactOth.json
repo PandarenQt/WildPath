@@ -98,7 +98,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Contact Other Plane"
     },

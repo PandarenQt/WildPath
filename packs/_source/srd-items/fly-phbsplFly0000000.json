@@ -135,7 +135,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "draconic",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Fly"
     },

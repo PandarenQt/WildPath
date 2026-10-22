@@ -95,7 +95,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 9
+        "spellLevel": 9,
+        "spellLists": [
+          "bard",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "True Polymorph"
     },

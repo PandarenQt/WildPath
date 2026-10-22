@@ -92,7 +92,13 @@
         "spellLevel": 3
       },
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Clairvoyance"
     },

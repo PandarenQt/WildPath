@@ -331,7 +331,14 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "draconic",
+          "fiend",
+          "bard",
+          "cleric",
+          "paladin"
+        ]
       },
       "label": "Command"
     },

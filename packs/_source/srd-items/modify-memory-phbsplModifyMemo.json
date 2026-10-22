@@ -133,7 +133,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "bard",
+          "wizard"
+        ]
       },
       "label": "Modify Memory"
     },

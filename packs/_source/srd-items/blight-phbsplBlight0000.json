@@ -144,7 +144,14 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "land-arid",
+          "druid",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Blight"
     },

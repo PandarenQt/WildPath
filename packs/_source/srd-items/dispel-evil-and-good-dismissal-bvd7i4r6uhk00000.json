@@ -59,7 +59,11 @@
       },
       "metadata": {
         "followUp": true,
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "cleric",
+          "paladin"
+        ]
       },
       "effects": [
         {

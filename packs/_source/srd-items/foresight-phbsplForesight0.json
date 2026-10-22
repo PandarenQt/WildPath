@@ -202,7 +202,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 9
+        "spellLevel": 9,
+        "spellLists": [
+          "bard",
+          "druid",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Foresight"
     },

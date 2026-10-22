@@ -170,7 +170,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 8
+        "spellLevel": 8,
+        "spellLists": [
+          "druid",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Incendiary Cloud (Create Cloud)"
     },

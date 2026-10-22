@@ -126,7 +126,12 @@
       ],
       "metadata": {
         "followUp": true,
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "druid"
+        ]
       },
       "label": "Heroes' Feast (Consume Feast)"
     },

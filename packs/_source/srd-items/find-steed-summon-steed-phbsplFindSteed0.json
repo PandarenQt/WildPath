@@ -154,7 +154,10 @@
         }
       },
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "paladin"
+        ]
       },
       "label": "Find Steed (Summon Steed)"
     },

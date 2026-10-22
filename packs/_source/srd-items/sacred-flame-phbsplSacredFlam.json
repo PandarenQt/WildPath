@@ -98,7 +98,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "cleric"
+        ]
       },
       "label": "Sacred Flame"
     },

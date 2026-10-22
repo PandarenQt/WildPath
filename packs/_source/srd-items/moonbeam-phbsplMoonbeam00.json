@@ -226,7 +226,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "druid"
+        ]
       },
       "label": "Moonbeam"
     },

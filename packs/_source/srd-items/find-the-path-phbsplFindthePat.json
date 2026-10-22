@@ -70,7 +70,12 @@
         }
       },
       "metadata": {
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "druid"
+        ]
       },
       "label": "Find the Path"
     },

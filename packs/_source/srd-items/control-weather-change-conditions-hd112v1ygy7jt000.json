@@ -22,7 +22,12 @@
       },
       "metadata": {
         "followUp": true,
-        "spellLevel": 8
+        "spellLevel": 8,
+        "spellLists": [
+          "cleric",
+          "druid",
+          "wizard"
+        ]
       },
       "label": "Control Weather (Change Conditions)"
     },

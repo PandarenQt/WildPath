@@ -68,7 +68,11 @@
         }
       },
       "metadata": {
-        "spellLevel": 7
+        "spellLevel": 7,
+        "spellLists": [
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Delayed Blast Fireball (Create Bead)"
     },

@@ -89,7 +89,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "cleric",
+          "paladin",
+          "warlock",
+          "wizard"
+        ]
       },
       "ends": {
         "tags": [

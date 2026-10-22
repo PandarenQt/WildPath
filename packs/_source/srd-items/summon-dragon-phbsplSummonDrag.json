@@ -125,7 +125,11 @@
         }
       },
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "draconic",
+          "wizard"
+        ]
       },
       "label": "Summon Dragon"
     },

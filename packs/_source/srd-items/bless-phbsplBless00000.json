@@ -174,7 +174,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "life",
+          "cleric",
+          "paladin"
+        ]
       },
       "label": "Bless"
     },

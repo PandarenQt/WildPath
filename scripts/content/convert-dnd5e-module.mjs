@@ -2,7 +2,7 @@ import {cpSync, existsSync, mkdtempSync, readFileSync, rmSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {join, relative, resolve} from "node:path";
 import {extractPack} from "@foundryvtt/foundryvtt-cli";
-import {convertTable, PROGRESSION_TYPES, beastsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables,
+import {spellListsOf, convertTable, PROGRESSION_TYPES, beastsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables,
   withRedirects} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 import {writeLocalModule} from "./local-module.mjs";
@@ -72,8 +72,10 @@ const beasts = beastsOf([...srdDocuments.filter(isSrd2024), ...(manifest.packs ?
 // Each document's uses by id (a formula): an enchantment's limit is the uses of the Item it spends (Infuse Item).
 const usesOf = Object.fromEntries(all.filter(document => (typeof document.system?.uses?.max === "string") && document.system.uses.max)
   .map(document => [document._id, document.system.uses.max]));
+// The class spell lists each spell is on: the SRD's, and the book's own pages (a Player's Handbook's).
+const spellLists = spellListsOf([...(srd ? readPack(srd, "content24") : []), ...all.filter(document => Array.isArray(document.pages))]);
 const options = {scales, names, licensed: () => true, book: manifest.title, images: ["icons/", `modules/${moduleId}/`], spells, creatures, beasts,
-  usesOf};
+  usesOf, spellLists};
 
 const items = [];
 const actors = [];

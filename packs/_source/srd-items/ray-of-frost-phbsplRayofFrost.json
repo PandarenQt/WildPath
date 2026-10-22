@@ -89,7 +89,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "land-polar",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Ray of Frost"
     },

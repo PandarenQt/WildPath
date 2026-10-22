@@ -138,7 +138,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "cleric",
+          "paladin"
+        ]
       },
       "label": "Prayer of Healing"
     },

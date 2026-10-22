@@ -157,7 +157,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "land-temperate",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Lightning Bolt"
     },

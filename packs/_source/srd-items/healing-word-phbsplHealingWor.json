@@ -146,7 +146,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "druid"
+        ]
       },
       "label": "Healing Word"
     },

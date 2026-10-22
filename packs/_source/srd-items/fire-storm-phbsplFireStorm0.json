@@ -115,7 +115,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 7
+        "spellLevel": 7,
+        "spellLists": [
+          "cleric",
+          "druid",
+          "sorcerer"
+        ]
       },
       "label": "Fire Storm"
     },

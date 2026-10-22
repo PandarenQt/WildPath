@@ -187,7 +187,15 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "life",
+          "bard",
+          "cleric",
+          "druid",
+          "paladin",
+          "ranger"
+        ]
       },
       "label": "Lesser Restoration"
     },

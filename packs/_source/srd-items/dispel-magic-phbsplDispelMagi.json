@@ -89,7 +89,18 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "devotion",
+          "bard",
+          "cleric",
+          "druid",
+          "paladin",
+          "ranger",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "ends": {
         "spells": "slot"

@@ -76,7 +76,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "wizard"
+        ]
       },
       "label": "Passwall"
     },

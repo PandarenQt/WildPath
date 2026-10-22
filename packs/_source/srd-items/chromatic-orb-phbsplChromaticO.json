@@ -171,7 +171,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "draconic",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Chromatic Orb"
     },

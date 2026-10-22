@@ -79,7 +79,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "wizard"
+        ]
       },
       "label": "Magic Jar (Cast and Transfer Soul)"
     },

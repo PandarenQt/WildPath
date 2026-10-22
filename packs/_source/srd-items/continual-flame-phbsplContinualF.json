@@ -110,7 +110,12 @@
         "spellLevel": 2
       },
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "cleric",
+          "druid",
+          "wizard"
+        ]
       },
       "label": "Continual Flame"
     },

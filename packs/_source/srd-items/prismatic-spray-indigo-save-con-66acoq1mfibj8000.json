@@ -54,7 +54,12 @@
       },
       "metadata": {
         "followUp": true,
-        "spellLevel": 7
+        "spellLevel": 7,
+        "spellLists": [
+          "bard",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Prismatic Spray (Indigo Save (Con))"
     },

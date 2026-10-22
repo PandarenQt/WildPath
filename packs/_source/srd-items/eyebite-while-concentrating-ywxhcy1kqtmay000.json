@@ -96,7 +96,13 @@
       ],
       "metadata": {
         "followUp": true,
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "bard",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "configuration": [
         {

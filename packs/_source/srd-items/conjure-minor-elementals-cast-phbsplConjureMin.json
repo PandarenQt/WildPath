@@ -88,7 +88,11 @@
         }
       },
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "druid",
+          "wizard"
+        ]
       },
       "label": "Conjure Minor Elementals (Cast)"
     },

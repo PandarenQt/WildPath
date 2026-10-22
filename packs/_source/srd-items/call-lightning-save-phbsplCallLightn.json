@@ -162,7 +162,10 @@
         }
       },
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "druid"
+        ]
       },
       "label": "Call Lightning (save)"
     },

@@ -100,7 +100,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 9
+        "spellLevel": 9,
+        "spellLists": [
+          "bard",
+          "cleric"
+        ]
       },
       "label": "Power Word Heal"
     },

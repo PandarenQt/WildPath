@@ -80,7 +80,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "land-arid",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Fire Bolt"
     },

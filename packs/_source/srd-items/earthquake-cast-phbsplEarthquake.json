@@ -105,7 +105,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 8
+        "spellLevel": 8,
+        "spellLists": [
+          "cleric",
+          "druid",
+          "sorcerer"
+        ]
       },
       "label": "Earthquake (Cast)"
     },

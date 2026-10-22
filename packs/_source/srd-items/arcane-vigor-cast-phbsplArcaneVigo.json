@@ -96,7 +96,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Arcane Vigor (Cast)"
     },

@@ -103,7 +103,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "land-tropical",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Acid Splash"
     },

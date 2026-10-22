@@ -190,7 +190,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "land-polar",
+          "druid",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Sleet Storm"
     },

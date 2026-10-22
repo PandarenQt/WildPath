@@ -205,7 +205,14 @@
         }
       ],
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "land-tropical",
+          "fiend",
+          "cleric",
+          "druid",
+          "sorcerer"
+        ]
       },
       "label": "Insect Plague"
     },

@@ -117,7 +117,11 @@
       ],
       "metadata": {
         "followUp": true,
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "bard",
+          "druid"
+        ]
       },
       "label": "Heat Metal (Reheat)"
     },

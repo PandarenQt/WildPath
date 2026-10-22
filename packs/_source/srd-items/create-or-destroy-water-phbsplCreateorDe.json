@@ -104,7 +104,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "cleric",
+          "druid"
+        ]
       },
       "label": "Create or Destroy Water"
     },

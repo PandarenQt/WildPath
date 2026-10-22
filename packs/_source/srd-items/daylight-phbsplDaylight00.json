@@ -126,7 +126,14 @@
         }
       },
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "cleric",
+          "druid",
+          "paladin",
+          "ranger",
+          "sorcerer"
+        ]
       },
       "label": "Daylight"
     },

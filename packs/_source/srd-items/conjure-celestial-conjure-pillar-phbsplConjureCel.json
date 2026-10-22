@@ -67,7 +67,10 @@
         }
       },
       "metadata": {
-        "spellLevel": 7
+        "spellLevel": 7,
+        "spellLists": [
+          "cleric"
+        ]
       },
       "label": "Conjure Celestial (Conjure Pillar)"
     },

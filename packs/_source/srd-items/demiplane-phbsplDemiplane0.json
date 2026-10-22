@@ -53,7 +53,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 8
+        "spellLevel": 8,
+        "spellLists": [
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Demiplane"
     },

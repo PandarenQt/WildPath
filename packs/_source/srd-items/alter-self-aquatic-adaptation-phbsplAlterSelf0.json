@@ -130,7 +130,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "draconic",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Alter Self (Aquatic Adaptation)"
     },

@@ -370,7 +370,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 7
+        "spellLevel": 7,
+        "spellLists": [
+          "bard",
+          "cleric"
+        ]
       },
       "label": "Resurrection (Taxing Cast)"
     },

@@ -216,7 +216,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "fiend",
+          "druid",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Wall of Fire (Create Wall)"
     },

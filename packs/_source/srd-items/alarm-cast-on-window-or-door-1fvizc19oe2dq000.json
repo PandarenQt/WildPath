@@ -99,7 +99,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "ranger",
+          "wizard"
+        ]
       },
       "label": "Alarm (Cast on Window or Door)"
     },

@@ -125,7 +125,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "bard"
+        ]
       },
       "label": "Vicious Mockery"
     },

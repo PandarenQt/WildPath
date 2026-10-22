@@ -170,7 +170,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "wizard"
+        ]
       },
       "label": "Glyph of Warding (Explosive Rune)"
     },

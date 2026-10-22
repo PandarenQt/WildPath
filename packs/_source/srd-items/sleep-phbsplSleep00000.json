@@ -155,7 +155,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "land-temperate",
+          "bard",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Sleep"
     },

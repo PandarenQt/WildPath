@@ -166,7 +166,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "land-arid",
+          "fiend",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Burning Hands"
     },

@@ -130,7 +130,11 @@
       ],
       "metadata": {
         "followUp": true,
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Freezing Sphere (Throw Held Globe)"
     },

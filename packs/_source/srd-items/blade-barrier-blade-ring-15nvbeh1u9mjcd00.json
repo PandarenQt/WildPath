@@ -139,7 +139,10 @@
         }
       },
       "metadata": {
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "cleric"
+        ]
       },
       "label": "Blade Barrier (Blade Ring)"
     },

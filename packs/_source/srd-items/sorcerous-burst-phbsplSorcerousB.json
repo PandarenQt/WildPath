@@ -44,7 +44,10 @@
         "count": 1
       },
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "sorcerer"
+        ]
       },
       "label": "Sorcerous Burst"
     },

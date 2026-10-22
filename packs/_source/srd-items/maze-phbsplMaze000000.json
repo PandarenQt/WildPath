@@ -60,7 +60,10 @@
         }
       },
       "metadata": {
-        "spellLevel": 8
+        "spellLevel": 8,
+        "spellLists": [
+          "wizard"
+        ]
       },
       "label": "Maze"
     },

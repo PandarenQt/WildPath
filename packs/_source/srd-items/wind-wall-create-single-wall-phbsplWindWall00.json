@@ -154,7 +154,11 @@
         }
       },
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "druid",
+          "ranger"
+        ]
       },
       "label": "Wind Wall (Create Single Wall)"
     },

@@ -103,7 +103,15 @@
         }
       },
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "druid",
+          "paladin",
+          "ranger",
+          "wizard"
+        ]
       },
       "label": "Locate Object"
     },

@@ -150,7 +150,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 8
+        "spellLevel": 8,
+        "spellLists": [
+          "cleric"
+        ]
       },
       "label": "Holy Aura (Create Aura)"
     },

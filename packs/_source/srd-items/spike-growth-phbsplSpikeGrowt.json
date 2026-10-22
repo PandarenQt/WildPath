@@ -146,7 +146,11 @@
         }
       },
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "druid",
+          "ranger"
+        ]
       },
       "label": "Spike Growth"
     },

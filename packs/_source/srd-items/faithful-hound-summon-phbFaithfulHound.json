@@ -96,7 +96,10 @@
         "spellLevel": 4
       },
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "wizard"
+        ]
       },
       "label": "Faithful Hound (summon)"
     },

@@ -68,7 +68,11 @@
         "spellLevel": 7
       },
       "metadata": {
-        "spellLevel": 7
+        "spellLevel": 7,
+        "spellLists": [
+          "bard",
+          "wizard"
+        ]
       },
       "label": "Project Image"
     },

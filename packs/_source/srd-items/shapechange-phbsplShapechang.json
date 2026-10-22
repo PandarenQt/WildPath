@@ -54,7 +54,11 @@
         }
       },
       "metadata": {
-        "spellLevel": 9
+        "spellLevel": 9,
+        "spellLists": [
+          "druid",
+          "wizard"
+        ]
       },
       "label": "Shapechange"
     },

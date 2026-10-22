@@ -165,7 +165,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "warlock"
+        ]
       },
       "label": "Hellish Rebuke"
     },

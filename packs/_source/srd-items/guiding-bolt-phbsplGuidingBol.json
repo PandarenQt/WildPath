@@ -174,7 +174,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "cleric"
+        ]
       },
       "label": "Guiding Bolt"
     },

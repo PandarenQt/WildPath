@@ -22,7 +22,14 @@
         "allOf": []
       },
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "druid",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Mending"
     },

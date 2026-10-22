@@ -47,7 +47,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 9
+        "spellLevel": 9,
+        "spellLists": [
+          "bard",
+          "wizard"
+        ]
       },
       "label": "Prismatic Wall (Create Wall)"
     },

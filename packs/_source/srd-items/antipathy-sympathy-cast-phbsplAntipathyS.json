@@ -123,7 +123,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 8
+        "spellLevel": 8,
+        "spellLists": [
+          "bard",
+          "druid",
+          "wizard"
+        ]
       },
       "label": "Antipathy/Sympathy (Cast)"
     },

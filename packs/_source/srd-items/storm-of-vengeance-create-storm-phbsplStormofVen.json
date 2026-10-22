@@ -125,7 +125,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 9
+        "spellLevel": 9,
+        "spellLists": [
+          "druid"
+        ]
       },
       "label": "Storm of Vengeance (Create Storm)"
     },

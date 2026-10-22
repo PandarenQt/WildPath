@@ -166,7 +166,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "bard",
+          "druid",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "push": {
         "distance": 10

@@ -119,7 +119,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "cleric",
+          "druid",
+          "ranger",
+          "sorcerer"
+        ]
       },
       "label": "Water Walk"
     },

@@ -218,7 +218,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "land-tropical",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Web"
     },

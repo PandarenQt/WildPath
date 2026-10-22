@@ -131,7 +131,11 @@
       ],
       "metadata": {
         "followUp": true,
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "druid",
+          "sorcerer"
+        ]
       },
       "label": "Flame Blade (attack)"
     },

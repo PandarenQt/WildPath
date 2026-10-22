@@ -355,7 +355,10 @@
       ],
       "metadata": {
         "followUp": true,
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "warlock"
+        ]
       },
       "configuration": [
         {

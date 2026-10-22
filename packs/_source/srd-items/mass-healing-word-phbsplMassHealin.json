@@ -135,7 +135,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "life",
+          "bard",
+          "cleric"
+        ]
       },
       "label": "Mass Healing Word"
     },

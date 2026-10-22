@@ -138,7 +138,12 @@
         "spellLevel": 1
       },
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "bard",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Silent Image"
     },

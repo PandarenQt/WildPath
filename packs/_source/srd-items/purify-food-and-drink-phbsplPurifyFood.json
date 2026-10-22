@@ -103,7 +103,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "cleric",
+          "druid",
+          "paladin"
+        ]
       },
       "label": "Purify Food and Drink"
     },

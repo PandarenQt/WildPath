@@ -64,7 +64,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "cleric",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Create Undead (Reassert Control)"
     },

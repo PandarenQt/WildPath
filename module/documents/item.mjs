@@ -9,7 +9,7 @@ import {isUnprepared} from "../helpers/spellcasting.mjs";
 import {resolveActorCheckStatistic} from "../helpers/combat-statistics.mjs";
 import {traitUpdates} from "../helpers/level-up.mjs";
 import {refuseBrokenRules} from "../helpers/rule-guard.mjs";
-import {consumeScrollOf, highestSpellLevel, spellLevelOf} from "../helpers/spell-scrolls.mjs";
+import {consumeScrollOf, highestSpellLevel, onSpellList, spellLevelOf} from "../helpers/spell-scrolls.mjs";
 import {admitFacility} from "../applications/bastions.mjs";
 import {resolveActionConfiguration} from "../helpers/action-configuration.mjs";
 
@@ -120,6 +120,11 @@ export default class WildPathItem extends Item {
     const level = spellLevelOf(definition);
     if ( !ability ) {
       globalThis.ui?.notifications?.warn?.(game.i18n.format("WILDPATH.SCROLL.CannotRead", {name: this.actor.name}));
+      return false;
+    }
+    // 2024: "If the spell is on your class's spell list".
+    if ( (this.actor.type === "character") && !onSpellList(this.actor, definition) ) {
+      globalThis.ui?.notifications?.warn?.(game.i18n.format("WILDPATH.SCROLL.NotOnList", {name: this.actor.name}));
       return false;
     }
     if ( (level <= 0) || (level <= highestSpellLevel(this.actor)) ) return true;

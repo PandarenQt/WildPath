@@ -305,7 +305,15 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "druid",
+          "ranger",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Enhance Ability"
     },

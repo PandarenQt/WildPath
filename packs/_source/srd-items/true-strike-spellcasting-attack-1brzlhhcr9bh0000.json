@@ -38,7 +38,13 @@
         "type": "self"
       },
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "bard",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "True Strike (Spellcasting Attack)"
     },

@@ -130,7 +130,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "druid",
+          "ranger",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Jump"
     },

@@ -26,7 +26,11 @@
       },
       "metadata": {
         "followUp": true,
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "druid",
+          "ranger"
+        ]
       },
       "range": {
         "type": "self"

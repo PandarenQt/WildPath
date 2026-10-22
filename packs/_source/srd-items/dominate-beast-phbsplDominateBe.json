@@ -128,7 +128,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "druid",
+          "ranger",
+          "sorcerer"
+        ]
       },
       "label": "Dominate Beast"
     },

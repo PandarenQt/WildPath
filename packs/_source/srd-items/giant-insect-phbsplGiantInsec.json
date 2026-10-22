@@ -88,7 +88,10 @@
         }
       },
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "druid"
+        ]
       },
       "label": "Giant Insect"
     },

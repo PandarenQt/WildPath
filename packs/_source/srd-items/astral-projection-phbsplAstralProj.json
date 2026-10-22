@@ -66,7 +66,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 9
+        "spellLevel": 9,
+        "spellLists": [
+          "cleric",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Astral Projection"
     },

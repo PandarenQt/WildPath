@@ -102,7 +102,12 @@
         }
       },
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "ranger"
+        ]
       },
       "label": "Silence"
     },

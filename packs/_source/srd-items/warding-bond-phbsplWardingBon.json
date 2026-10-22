@@ -170,7 +170,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "cleric",
+          "paladin"
+        ]
       },
       "label": "Warding Bond"
     },
