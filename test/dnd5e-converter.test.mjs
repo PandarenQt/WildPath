@@ -1920,6 +1920,8 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   assert.deepEqual(read("luck-phbspt").flags.wildpath.testOffer, {tests: ["check", "save", "attack"], reroll: true, natural: 1});
   const build = read("powerful-build-").system.ruleElements[0];
   assert.deepEqual([build.type, build.data.domains, build.predicate], ["RollMode", ["check"], {equals: {path: "check.escapes", value: "grappled"}}]);
+  assert.deepEqual(read("powerful-build-").system.ruleElements[1].data, {domains: ["carrying.size"], modifierType: "untyped", valueExpression: 1},
+    "one size larger for carrying");
 });
 
 test("size and range limits on offers: Hill's Tumble, Trip and Repelling Blast Large or smaller; Retaliation within 5 ft", async () => {

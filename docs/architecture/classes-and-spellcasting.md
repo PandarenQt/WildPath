@@ -533,7 +533,8 @@ the Adult Red Dragon Common and Draconic.
   there), and a reroll of a failed save for 1 Focus Point (test offers above).
 - **Luck (halfling):** a free reroll of a natural 1 (test offers above).
 - **Powerful Build:** Advantage on a check to end Grappled: the escape action's check names what it escapes
-  (`check.escapes`), which a predicate reads. shortcut: carrying capacity is not tracked.
+  (`check.escapes`), which a predicate reads. It also counts as one size larger for carrying (2026-10-22): a
+  `carrying.size` Modifier doubles the size factor per step (helpers/carrying.mjs). Live: Might 16, 240 lb became 480.
 
 Live (two browsers, 14.369): QA Caster with Alert went from +0 to +2 Initiative, and with Disciplined Survivor had all
 six saves proficient. Using Innate Sorcery, its Fire Bolt rolled 2d20kh, and as a Sorcerer 5 its Hold Person had DC 12

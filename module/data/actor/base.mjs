@@ -256,7 +256,9 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     this.carrying = (this.parent?.type === "character") ? carryingLoad({
       weight: [...(this.parent?.items ?? [])].filter(item => item.type === "gear")
         .reduce((total, item) => total + ((Number(item.system?.quantity) || 1) * (Number(item.system?.weight) || 0)), 0),
-      might: this.abilities?.might?.value, sizeFactor: carryingSizeFactor(this.parent?.prototypeToken?.width),
+      // Counting as larger (Powerful Build: `carrying.size` +1) doubles it per size.
+      might: this.abilities?.might?.value, sizeFactor: carryingSizeFactor(this.parent?.prototypeToken?.width)
+        * (2 ** Math.max(Number(this.parent?.getStatistic?.(["carrying.size"])?.totalModifier) || 0, 0)),
       mode: carryingMode()}) : null;
     this.#deriveClasses();
     this.#applyResourceModifiers();

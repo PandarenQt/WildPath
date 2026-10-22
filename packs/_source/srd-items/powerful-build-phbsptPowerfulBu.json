@@ -24,6 +24,18 @@
           ],
           "mode": "advantage"
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "powerful-build-2",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "carrying.size"
+          ],
+          "modifierType": "untyped",
+          "valueExpression": 1
+        }
       }
     ]
   },
