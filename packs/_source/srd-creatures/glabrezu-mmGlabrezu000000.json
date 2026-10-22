@@ -730,11 +730,13 @@
             }
           },
           "targeting": {
-            "type": "multiple",
-            "required": true,
-            "count": 20,
-            "refinementPolicy": {
-              "minSelections": 1
+            "type": "area"
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 10,
+              "unit": "ft"
             }
           },
           "save": {
@@ -798,7 +800,6 @@
           },
           "conversion": {
             "notes": [
-              "area: @item.level * 5 - 10-ft sphere is not supported; the user picks the targets",
               "effect: \"Confused\" marks its creature only; its rules are by hand"
             ]
           }
@@ -1187,7 +1188,6 @@
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: dispel: a lasting area or an object is not a target (by hand)",
-          "Spellcasting: area: @item.level * 5 - 10-ft sphere is not supported; the user picks the targets",
           "Spellcasting: effect: \"Confused\" marks its creature only; its rules are by hand"
         ]
       }

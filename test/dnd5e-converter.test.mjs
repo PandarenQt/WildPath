@@ -1168,6 +1168,17 @@ test("what a creature does around itself at a turn boundary is an automatic Eman
     aura.data.action.id]);
 });
 
+test("an area whose size grows with the spell's level scales with its slot (Confusion)", () => {
+  const [confusion] = convertItem({_id: "testConfusion001", name: "Confusion", type: "spell", effects: [], system: {source: SRD, level: 4,
+    preparation: {mode: "prepared"}, properties: ["concentration"], activation: {type: "action"}, range: {value: "90", units: "ft"},
+    target: {template: {type: "sphere", size: "@item.level * 5 - 10"}, affects: {type: "creature"}},
+    activities: {a: activity("save", {save: {ability: ["wis"], dc: {calculation: "spellcasting"}}})}}}).items;
+  assert.deepEqual(confusion.system.definition.area.size, {value: 10, unit: "ft"});
+  assert.deepEqual(confusion.system.definition.configuration[0].effects.find(effect => effect.type === "scaleArea"),
+    {type: "scaleArea", levelChoiceId: "spell-slot", baseLevel: 4, perLevel: 5});
+  assert.equal(confusion.flags.wildpath.conversion.notes.some(note => /not supported/.test(note)), false);
+});
+
 test("a passive aura of Advantage is an Aura of RollModes on its allies (Aura of Authority)", () => {
   const [warlord] = convertItem({_id: "testAuthority001", name: "Aura of Authority", type: "feat", effects: [], system: {source: SRD,
     description: {value: "<p>While in a [[lookup @target.template.size activity=x]]-foot Emanation originating from the [[lookup @name "

@@ -932,6 +932,8 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
       return {ok: true, trace: [appliedTrace(selection, "set-range", {range: effect.range})], errors: []};
     case "scale-duration":
       return applyScaleDurationEffect({definition, effect, selection});
+    case "scale-area":
+      return applyScaleAreaEffect({definition, effect, selection, selectionsById});
     case "replace-damage-type":
       return applyReplaceDamageTypeEffect({definition, effect, selection, selectionsById});
     case "keepEffect":
@@ -973,6 +975,9 @@ function normalizeEffectType(type) {
     case "scaleTargets":
     case "scale-targets":
       return "scale-targets";
+    case "scaleArea":
+    case "scale-area":
+      return "scale-area";
     case "spendAmount":
     case "spend-amount":
       return "spend-amount";
@@ -991,6 +996,18 @@ function normalizeEffectType(type) {
  * option's value to its effects (Blindness/Deafness: one condition each); without it the value is an effect id.
  * Hex: one ability's disadvantage out of six.
  */
+/**
+ * An area that grows with the level chosen (2024 Fog Cloud: "the radius of the fog increases by 20 feet for each spell
+ * slot level above 1"): `{type: "scaleArea", levelChoiceId, baseLevel, perLevel}` adds `perLevel` feet to its size.
+ */
+function applyScaleAreaEffect({definition, effect, selection, selectionsById}) {
+  const level = scalingLevel(effect, selection, selectionsById);
+  const added = Math.max((level ?? 0) - (finiteNumber(effect.baseLevel) ?? 0), 0) * (finiteNumber(effect.perLevel) ?? 0);
+  if ( !(added > 0) || !definition.area?.size ) return {ok: true, trace: [appliedTrace(selection, "area-scaling-noop", {level})], errors: []};
+  definition.area = {...definition.area, size: {...definition.area.size, value: (finiteNumber(definition.area.size.value) ?? 0) + added}};
+  return {ok: true, trace: [appliedTrace(selection, "scaled-area", {added})], errors: []};
+}
+
 /**
  * A choice's value written into the Action's effects wherever `{{<choice id>}}` stands: a chosen weapon's id into its
  * rules' predicates (Magic Weapon's `weapon:{{weapon}}`), a slot choice's casting level where the token stands alone

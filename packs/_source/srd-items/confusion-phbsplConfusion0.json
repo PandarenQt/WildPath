@@ -33,11 +33,13 @@
         }
       },
       "targeting": {
-        "type": "multiple",
-        "required": true,
-        "count": 20,
-        "refinementPolicy": {
-          "minSelections": 1
+        "type": "area"
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 10,
+          "unit": "ft"
         }
       },
       "save": {
@@ -131,7 +133,14 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleArea",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 4,
+              "perLevel": 5
+            }
+          ]
         }
       ],
       "metadata": {
@@ -156,7 +165,6 @@
       },
       "conversion": {
         "notes": [
-          "area: @item.level * 5 - 10-ft sphere is not supported; the user picks the targets",
           "effect: \"Confused\" marks its creature only; its rules are by hand"
         ]
       }

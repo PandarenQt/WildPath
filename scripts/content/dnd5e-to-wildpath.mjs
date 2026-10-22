@@ -973,7 +973,16 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
   const target = pick(activity, system, "target");
   const template = target.template ?? {};
   const affects = target.affects ?? {};
-  const size = number(template.size);
+  // A size that grows with the spell's level (Fog Cloud's "20 * @item.level"): its size at the spell's own level, and
+  // what each level above adds (`areaPerLevel`, a slot choice's scaleArea).
+  const sizeAt = castLevel => {
+    const expression = formulaExpression(template.size, {scales, castLevel});
+    const value = expression ? evaluateValueExpression(expression, {}) : null;
+    return value?.ok ? Number(value.value) : null;
+  };
+  const leveled = /@item\.level/.test(String(template.size ?? "")) && (sizeAt(level) > 0) && (sizeAt(level + 1) != null);
+  const size = number(template.size) ?? (leveled ? sizeAt(level) : null);
+  const areaPerLevel = leveled ? sizeAt(level + 1) - size : 0;
   const rangeUnits = pick(activity, system, "range").units ?? system.range?.units;
   if ( template.type ) {
     // A Cube (or a square) is a block of fields; a circle is radial, as a sphere is.
@@ -986,7 +995,7 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
       const height = (template.type === "circle") ? 0 : (["cylinder", "wall"].includes(template.type) ? number(template.height) : null);
       return {targeting: {type: "area"}, area: {shape, size: {value: length, unit: "ft"},
         ...(shape === "line" ? {width: {value: number(template.width) ?? 5, unit: "ft"}} : {}),
-        ...(height != null ? {height: {value: height, unit: "ft"}} : {})}};
+        ...(height != null ? {height: {value: height, unit: "ft"}} : {})}, ...(areaPerLevel ? {areaPerLevel} : {})};
     }
     notes.push(`area: ${template.size}-ft ${template.type} is not supported; the user picks the targets`);
     return {targeting: {type: "multiple", required: true, count: 20, ...UP_TO}};
@@ -2910,28 +2919,29 @@ function baseDefinition({document, activity, system, spell, notes, pool, names={
  * A spell of `level` spends a slot of that level or higher. Per level above, damage and healing with scaling dice grow,
  * and `perLevel` more creatures can be targeted.
  */
-function slotConfiguration(level, damage, {healing=[], perLevel=0}={}) {
+function slotConfiguration(level, damage, {healing=[], perLevel=0, areaPerLevel=0}={}) {
   const levels = Array.from({length: 10 - level}, (_, offset) => level + offset);
   return [{id: "spell-slot", type: "resource", label: "Spell slot", required: true,
     cost: {anyOf: levels.map(each => [{capability: `spell-slot.${each}`, amount: 1}])},
     levelByResourceId: Object.fromEntries(levels.map(each => [`spell-slot.${each}`, each])),
-    effects: levelScaling("spell-slot", level, damage, {healing, perLevel})}];
+    effects: levelScaling("spell-slot", level, damage, {healing, perLevel, areaPerLevel})}];
 }
 
 /** What a higher level adds to a spell's dice and targets, read from the level its choice `choiceId` names. */
-function levelScaling(choiceId, level, damage, {healing=[], perLevel=0}={}) {
+function levelScaling(choiceId, level, damage, {healing=[], perLevel=0, areaPerLevel=0}={}) {
   const scale = (type, components) => components.filter(component => component.scaleDice).map(component => ({type, levelChoiceId: choiceId,
     baseLevel: level, componentIds: [component.id], dice: component.scaleDice}));
   return [...scale("scaleDamage", damage), ...scale("scaleHealing", healing),
-    ...(perLevel ? [{type: "scaleTargets", levelChoiceId: choiceId, baseLevel: level, perLevel}] : [])];
+    ...(perLevel ? [{type: "scaleTargets", levelChoiceId: choiceId, baseLevel: level, perLevel}] : []),
+    ...(areaPerLevel ? [{type: "scaleArea", levelChoiceId: choiceId, baseLevel: level, perLevel: areaPerLevel}] : [])];
 }
 
 /**
  * A follow-up of a spell already cast (Flame Blade's attack, Hunter's Mark's Move Mark) is at the level the spell was
  * cast: its `cast-level` choice is `fromCast`, answered by the authority from its caster's record, never asked.
  */
-function castLevelConfiguration(level, damage, {healing=[], perLevel=0}={}) {
-  const scaling = levelScaling("cast-level", level, damage, {healing, perLevel});
+function castLevelConfiguration(level, damage, {healing=[], perLevel=0, areaPerLevel=0}={}) {
+  const scaling = levelScaling("cast-level", level, damage, {healing, perLevel, areaPerLevel});
   if ( !scaling.length ) return [];
   const levels = Array.from({length: 10 - level}, (_, offset) => level + offset);
   return [{id: "cast-level", type: "option", label: "WILDPATH.PROMPT.CastLevel", required: true, fromCast: true,
@@ -2976,7 +2986,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
   }
   const range = rangeOf({activity, system, document, attack});
   if ( range ) definition.range = range;
-  const {perLevel=0, ...targets} = targetingOf({activity, system, notes, level, scales});
+  const {perLevel=0, areaPerLevel=0, ...targets} = targetingOf({activity, system, notes, level, scales});
   Object.assign(definition, targets);
 
   if ( activity.type === "save" ) {
@@ -3169,9 +3179,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // A follow-up activity that spends none (Hunter's Mark's Move Mark, Flame Blade's attack) has no slot choice: it is at
   // the level its spell was cast (castLevelConfiguration).
   if ( spell && level && SLOT_MODES.has(system.preparation?.mode ?? "prepared") && (activity.consumption?.spellSlot !== false) ) {
-    definition.configuration = slotConfiguration(level, damage, {healing, perLevel});
+    definition.configuration = slotConfiguration(level, damage, {healing, perLevel, areaPerLevel});
   } else if ( spell && level && (activity.consumption?.spellSlot === false) ) {
-    const followUp = castLevelConfiguration(level, damage, {healing, perLevel});
+    const followUp = castLevelConfiguration(level, damage, {healing, perLevel, areaPerLevel});
     if ( followUp.length ) definition.configuration = [...(definition.configuration ?? []), ...followUp];
   }
   // Such a follow-up continues its spell's concentration rather than starting one (startsConcentration).

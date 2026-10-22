@@ -512,3 +512,14 @@ test("a fixed cast level (a monster's upcast spell) scales its damage and is the
   assert.deepEqual(resolved.configuration.effectiveDefinition.damage[0].expression, {type: "dice", number: 12, faces: 6});
   assert.equal(resolved.configuration.castingLevel, 7);
 });
+
+test("an area that grows with the level chosen (Confusion: 5 feet more per slot level above 4th)", () => {
+  const definition = {schemaVersion: 1, id: "action:confusion", label: "Confusion", costs: {allOf: []}, targeting: {type: "area"},
+    area: {shape: "radial", size: {value: 10, unit: "ft"}},
+    configuration: [{id: "cast-level", type: "option", required: true, options: [4, 5, 6].map(value => ({id: `level-${value}`, value}))
+      .map(option => ({...option, label: String(option.value)})),
+      effects: [{type: "scaleArea", levelChoiceId: "cast-level", baseLevel: 4, perLevel: 5}]}]};
+  const sized = level => resolveActionConfiguration({definition, actorSystem: {}, choices: {"cast-level": level}})
+    .configuration.effectiveDefinition.area.size.value;
+  assert.deepEqual([sized(4), sized(6)], [10, 20]);
+});
