@@ -65,6 +65,45 @@
           "provenance": "spell-base"
         }
       ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "option",
+          "label": "WILDPATH.PROMPT.CastLevel",
+          "required": true,
+          "fromCast": true,
+          "options": [
+            {
+              "id": "level-5",
+              "label": "5",
+              "value": 5,
+              "metadata": {
+                "castingLevel": 5
+              }
+            }
+          ],
+          "effects": [
+            {
+              "type": "scaleDamage",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "componentIds": [
+                "damage-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 4
+              }
+            },
+            {
+              "type": "scaleTargets",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "perLevel": 1
+            }
+          ]
+        }
+      ],
       "metadata": {
         "spellLevel": 1
       },
@@ -109,9 +148,7 @@
         "castBy": "Robe of Stars"
       },
       "conversion": {
-        "notes": [
-          "cast: Magic Missile at level 5 is cast at its own level"
-        ]
+        "notes": []
       },
       "price": 40000,
       "rarity": "veryRare"

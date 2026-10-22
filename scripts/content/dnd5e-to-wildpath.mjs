@@ -2194,13 +2194,17 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   const definition = {...action.system.definition, id: `${base.id}-${slugify(spellDocument.name)}`,
     label: options.creature ? spellDocument.name : `${document.name}: ${spellDocument.name}`,
     tags: [...new Set([...(action.system.definition.tags ?? []), "spell"])], costs: base.costs};
-  // Cast without a slot; its other choices stay (Polymorph's Beast, a damage type, one of its effects).
+  // Cast without a slot; its other choices stay (Polymorph's Beast, a damage type, one of its effects). One cast above its
+  // own level (a Lich's 5th-level Fireball) keeps the slot choice's scaling at that level, a choice the authority answers.
+  const castLevel = Number(activity.spell?.level);
+  const slot = (definition.configuration ?? []).find(choice => choice.id === "spell-slot");
   const choices = (definition.configuration ?? []).filter(choice => choice.id !== "spell-slot");
+  if ( slot?.effects?.length && (castLevel > (Number(spellDocument.system?.level) || 0)) ) choices.push({id: "spell-slot", type: "option",
+    label: "WILDPATH.PROMPT.CastLevel", required: true, fromCast: true,
+    options: [{id: `level-${castLevel}`, label: String(castLevel), value: castLevel, metadata: {castingLevel: castLevel}}], effects: slot.effects});
   if ( choices.length ) definition.configuration = choices;
   else delete definition.configuration;
   if ( definition.attack && casting ) definition.attack = {...definition.attack, ability: casting};
-  const castLevel = Number(activity.spell?.level);
-  if ( castLevel > (Number(spellDocument.system?.level) || 0) ) notes.push(`cast: ${spellDocument.name} at level ${castLevel} is cast at its own level`);
   notes.push(...converted.notes.filter(note => !note.startsWith("uses:")));
   const pool = activityPool({document, activity, scales: options.scales, spellName: spellDocument.name});
   const id = stableId(`${document._id}:cast:${activity._id ?? spellDocument._id}`);

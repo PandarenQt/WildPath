@@ -552,6 +552,39 @@
               "endsWhen": "attacked"
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-4",
+                  "label": "4",
+                  "value": 4,
+                  "metadata": {
+                    "castingLevel": 4
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 1
           },
@@ -574,9 +607,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Guiding Bolt at level 4 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -734,6 +765,51 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-6",
+                  "label": "6",
+                  "value": 6,
+                  "metadata": {
+                    "castingLevel": 6
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 5,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                },
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 5,
+                  "componentIds": [
+                    "damage-2"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 5
           },
@@ -771,9 +847,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Flame Strike at level 6 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1288,6 +1362,39 @@
               "endsWhen": "attacked"
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-2",
+                  "label": "2",
+                  "value": 2,
+                  "metadata": {
+                    "castingLevel": 2
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 1
           },
@@ -1310,9 +1417,7 @@
             "castBy": "Guiding Light"
           },
           "conversion": {
-            "notes": [
-              "cast: Guiding Bolt at level 2 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1509,13 +1614,10 @@
         "notes": [
           "Multiattack: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: cast: Guiding Bolt at level 4 is cast at its own level",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
-          "Spellcasting: cast: Flame Strike at level 6 is cast at its own level",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Cannot Lie\" marks its creature (narrative)",
-          "Guiding Light: cast: Guiding Bolt at level 2 is cast at its own level"
+          "Spellcasting: effect: \"Cannot Lie\" marks its creature (narrative)"
         ]
       }
     }

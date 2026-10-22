@@ -1362,6 +1362,39 @@
               "conditionId": "poisoned"
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-3",
+                  "label": "3",
+                  "value": 3,
+                  "metadata": {
+                    "castingLevel": 3
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 8
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 1
           },
@@ -1384,9 +1417,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Ray of Sickness at level 3 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1452,8 +1483,7 @@
           "Coven Magic: \"Create Sensor\" is passive or triggered (narrative): not automated",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: nothing it sustains was converted",
-          "Spellcasting: effect: \"Disguised\" marks its creature (narrative)",
-          "Spellcasting: cast: Ray of Sickness at level 3 is cast at its own level"
+          "Spellcasting: effect: \"Disguised\" marks its creature (narrative)"
         ]
       }
     }

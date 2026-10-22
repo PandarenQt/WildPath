@@ -949,6 +949,51 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-5",
+                  "label": "5",
+                  "value": 5,
+                  "metadata": {
+                    "castingLevel": 5
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 4,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 10
+                  }
+                },
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 4,
+                  "componentIds": [
+                    "damage-2"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 4
           },
@@ -986,9 +1031,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Ice Storm at level 5 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1510,7 +1553,6 @@
           "Spellcasting: \"Shard Explosion\" is passive or triggered: not automated",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
-          "Spellcasting: cast: Ice Storm at level 5 is cast at its own level",
           "Spellcasting: effect: \"Cannot Lie\" marks its creature (narrative)"
         ]
       }

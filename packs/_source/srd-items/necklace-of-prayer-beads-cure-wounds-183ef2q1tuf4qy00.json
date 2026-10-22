@@ -59,6 +59,39 @@
           "healingType": "healing"
         }
       ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "option",
+          "label": "WILDPATH.PROMPT.CastLevel",
+          "required": true,
+          "fromCast": true,
+          "options": [
+            {
+              "id": "level-2",
+              "label": "2",
+              "value": 2,
+              "metadata": {
+                "castingLevel": 2
+              }
+            }
+          ],
+          "effects": [
+            {
+              "type": "scaleHealing",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "componentIds": [
+                "healing-1"
+              ],
+              "dice": {
+                "number": 2,
+                "faces": 8
+              }
+            }
+          ]
+        }
+      ],
       "metadata": {
         "spellLevel": 1
       },
@@ -96,9 +129,7 @@
         "castBy": "Necklace of Prayer Beads"
       },
       "conversion": {
-        "notes": [
-          "cast: Cure Wounds at level 2 is cast at its own level"
-        ]
+        "notes": []
       },
       "price": 4000,
       "rarity": "rare"

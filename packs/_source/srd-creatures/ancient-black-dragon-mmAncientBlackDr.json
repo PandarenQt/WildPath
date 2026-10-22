@@ -710,6 +710,39 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-4",
+                  "label": "4",
+                  "value": 4,
+                  "metadata": {
+                    "castingLevel": 4
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 4
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 2
           },
@@ -732,9 +765,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Acid Arrow at level 4 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1008,6 +1039,39 @@
               "saveOutcomePolicy": "failure"
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-5",
+                  "label": "5",
+                  "value": 5,
+                  "metadata": {
+                    "castingLevel": 5
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 4,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 2,
+                    "faces": 4
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 4
           },
@@ -1046,7 +1110,6 @@
           },
           "conversion": {
             "notes": [
-              "cast: Vitriolic Sphere at level 5 is cast at its own level",
               "\"End of Turn Damage\" is passive or triggered: not automated"
             ]
           }
@@ -1448,13 +1511,11 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: cast: Acid Arrow at level 4 is cast at its own level",
           "Spellcasting: not automated (summon): using it spends its cost; its description says the rest",
           "Spellcasting: summon: its creature is not among the converted creatures",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: cast: Vitriolic Sphere at level 5 is cast at its own level",
           "Spellcasting: \"End of Turn Damage\" is passive or triggered: not automated",
           "Cloud of Insects: effect: \"Clouded\" marks its creature only; its rules are by hand"
         ]

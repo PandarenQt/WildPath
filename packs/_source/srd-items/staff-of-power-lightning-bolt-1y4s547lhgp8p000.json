@@ -83,6 +83,39 @@
           }
         }
       ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "option",
+          "label": "WILDPATH.PROMPT.CastLevel",
+          "required": true,
+          "fromCast": true,
+          "options": [
+            {
+              "id": "level-5",
+              "label": "5",
+              "value": 5,
+              "metadata": {
+                "castingLevel": 5
+              }
+            }
+          ],
+          "effects": [
+            {
+              "type": "scaleDamage",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 3,
+              "componentIds": [
+                "damage-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 6
+              }
+            }
+          ]
+        }
+      ],
       "metadata": {
         "spellLevel": 3
       },
@@ -136,9 +169,7 @@
         "castBy": "Staff of Power"
       },
       "conversion": {
-        "notes": [
-          "cast: Lightning Bolt at level 5 is cast at its own level"
-        ]
+        "notes": []
       },
       "price": 40000,
       "rarity": "veryRare"

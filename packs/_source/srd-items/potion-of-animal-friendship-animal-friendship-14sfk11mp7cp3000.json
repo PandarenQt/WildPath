@@ -74,6 +74,33 @@
           }
         }
       ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "option",
+          "label": "WILDPATH.PROMPT.CastLevel",
+          "required": true,
+          "fromCast": true,
+          "options": [
+            {
+              "id": "level-3",
+              "label": "3",
+              "value": 3,
+              "metadata": {
+                "castingLevel": 3
+              }
+            }
+          ],
+          "effects": [
+            {
+              "type": "scaleTargets",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "perLevel": 1
+            }
+          ]
+        }
+      ],
       "metadata": {
         "spellLevel": 1
       },
@@ -111,9 +138,7 @@
         "castBy": "Potion of Animal Friendship"
       },
       "conversion": {
-        "notes": [
-          "cast: Animal Friendship at level 3 is cast at its own level"
-        ]
+        "notes": []
       },
       "price": 200,
       "rarity": "uncommon"

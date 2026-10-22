@@ -538,6 +538,39 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-5",
+                  "label": "5",
+                  "value": 5,
+                  "metadata": {
+                    "castingLevel": 5
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 3,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 3
           },
@@ -560,9 +593,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Fireball at level 5 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -713,6 +744,39 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-5",
+                  "label": "5",
+                  "value": 5,
+                  "metadata": {
+                    "castingLevel": 5
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 3,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 3
           },
@@ -735,9 +799,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Lightning Bolt at level 5 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -2394,8 +2456,6 @@
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature (narrative)",
           "Spellcasting: dispel: a lasting area or an object is not a target (by hand)",
-          "Spellcasting: cast: Fireball at level 5 is cast at its own level",
-          "Spellcasting: cast: Lightning Bolt at level 5 is cast at its own level",
           "Spellcasting: teleport: a creature it brings along is moved by hand",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: \"Raise Zombie\" is passive or triggered: not automated",

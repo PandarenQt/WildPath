@@ -693,6 +693,39 @@
               "endsWhen": "attacked"
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-2",
+                  "label": "2",
+                  "value": 2,
+                  "metadata": {
+                    "castingLevel": 2
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 1
           },
@@ -715,9 +748,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Guiding Bolt at level 2 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1247,6 +1278,39 @@
               "endsWhen": "attacked"
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-2",
+                  "label": "2",
+                  "value": 2,
+                  "metadata": {
+                    "castingLevel": 2
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 1
           },
@@ -1269,9 +1333,7 @@
             "castBy": "Guiding Light"
           },
           "conversion": {
-            "notes": [
-              "cast: Guiding Bolt at level 2 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1585,12 +1647,10 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: cast: Guiding Bolt at level 2 is cast at its own level",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature (narrative)",
-          "Spellcasting: effect: \"Water Breathing\" marks its creature (narrative)",
-          "Guiding Light: cast: Guiding Bolt at level 2 is cast at its own level"
+          "Spellcasting: effect: \"Water Breathing\" marks its creature (narrative)"
         ]
       }
     }

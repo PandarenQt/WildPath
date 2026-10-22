@@ -764,6 +764,39 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-5",
+                  "label": "5",
+                  "value": 5,
+                  "metadata": {
+                    "castingLevel": 5
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 3,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 3
           },
@@ -802,9 +835,7 @@
             "castBy": "Hellfire Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Fireball at level 5 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -873,6 +904,33 @@
               "repeatSave": "turnEnd"
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-7",
+                  "label": "7",
+                  "value": 7,
+                  "metadata": {
+                    "castingLevel": 7
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 5,
+                  "perLevel": 1
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 5
           },
@@ -911,9 +969,7 @@
             "castBy": "Hellfire Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Hold Monster at level 7 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1204,8 +1260,6 @@
         "notes": [
           "Bite: \"save\" is passive or triggered: not automated",
           "Bite: activation: turnStart is not an action-economy cost",
-          "Hellfire Spellcasting: cast: Fireball at level 5 is cast at its own level",
-          "Hellfire Spellcasting: cast: Hold Monster at level 7 is cast at its own level",
           "Hellfire Spellcasting: \"damage\" is passive or triggered: not automated"
         ]
       }
