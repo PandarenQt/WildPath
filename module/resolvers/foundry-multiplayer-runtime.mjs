@@ -35,6 +35,9 @@ import {attackSight} from "../adapters/foundry-v14-senses.mjs";
 import {fearContext} from "../adapters/foundry-v14-fear.mjs";
 import {COVER_BONUS, coverBetween, foundrySightCollision} from "../adapters/foundry-v14-cover.mjs";
 
+/** On the Ethereal Plane (Etherealness, Blink). */
+const ethereal = creature => Boolean(creature?.statuses?.has?.("ethereal"));
+
 /**
  * The cover `targetToken` has against an Action of `sourceToken` (2024): from its corners, or from an area's point of
  * origin (a radial area's first point; a cone or line starts at the caster). "none" without walls to test (no canvas).
@@ -889,9 +892,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   if ( (definition?.targeting?.type !== "area") && targetEntries.some(entry => entry.cover === "total") ) return refused("WILDPATH.COVER.TotalRefused");
   // A weapon that fires ammunition its character has none of (2024).
   if ( !authorityAction && lacksAmmunition(actor, definition) ) return refused("WILDPATH.REFUSAL.NoAmmunition");
-  // On the Ethereal Plane: an ethereal creature and one that is not can't target each other (an area's leaves it out by
-  // hand). shortcut: an area's targets are not filtered; upgrade when areas drop the ones on another plane.
-  const ethereal = creature => Boolean(creature?.statuses?.has?.("ethereal"));
+  // On the Ethereal Plane: an ethereal creature and one that is not can't target each other (an area leaves out those on
+  // the other plane: foundryActionArea).
   if ( !authorityAction && (definition?.targeting?.type !== "area")
     && targetEntries.some(({actor: target}) => (target !== actor) && (ethereal(target) !== ethereal(actor))) ) return refused("WILDPATH.REFUSAL.Ethereal");
   // 2024 Charmed: a charmed creature can't attack its charmer or target it with damage or harmful effects.
@@ -1950,9 +1952,10 @@ function foundryActionArea({action, actor, intent, sourceToken}) {
   const definition = chosen?.ok ? (chosen.configuration?.effectiveDefinition ?? own) : own;
   const placed = foundryAreaFootprint({definition, sourceToken, points: intent.area?.points ?? []});
   if ( !placed.ok ) return placed;
-  // A creature behind Total Cover from its point of origin is not in it.
+  // A creature behind Total Cover from its point of origin is not in it, nor one on the other plane (the Ethereal).
   const targetRefs = foundryAreaTargetTokens({sourceToken, footprint: placed.footprint, definition})
     .filter(token => actionCover({definition, sourceToken, targetToken: token, points: intent.area?.points ?? []}) !== "total")
+    .filter(token => (token.id === sourceToken.id) || (ethereal(token.actor) === ethereal(sourceToken.actor)))
     .map(token => ({actorRef: token.actor?.uuid ?? null, tokenId: token.id, sceneId: token.parent?.id ?? null}))
     .filter(ref => ref.actorRef);
   // A lasting area becomes a Region once the Action completes (see createFoundryPersistentAreas).

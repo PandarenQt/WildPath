@@ -381,7 +381,9 @@ test). `affects` is `others` (everyone else) or `enemies` (the opposite disposit
   Incapacitated condition", "while it doesn't have the Incapacitated condition").
 - A creature carrying an effect whose `metadata.immuneTo` names the Action is skipped. The converter adds one on a
   success when the text says so ("immune to this pit fiend's Fear Aura for 24 hours").
-- shortcut: each creature is its own Action, with its own damage roll, as a lasting area's are.
+- Everyone it reaches at once is one Action with one damage roll (2026-10-22; 2024: an effect's damage is rolled once
+  for all its targets). Live: an aura's 1d10 Fire took the same 10 from each of three creatures in one Action. A
+  lasting area still runs once per creature, since each enters or ends its turn there at its own moment.
 - The converter (`turnAreaTrigger`) writes these for passive save and damage activities whose text names the turn
   boundary and an Emanation, except one that works only somewhere ("While underwater": an Aboleth's Mucus Cloud).
 
@@ -603,8 +605,8 @@ save made Exhaustion 2. Sight Rot blinded its creature at once, and ending Blind
 - **Cursed** marks a curse whose rules are its effect's or its text's; the converter tags it `curse`, so Remove Curse
   ends it. dnd5e's "cursed" status becomes it only on an effect with nothing else (Hex's and Bestow Curse's keep their
   own effects).
-- **Ethereal**: it and a creature that is not can't target each other (`WILDPATH.REFUSAL.Ethereal`). shortcut: an
-  area still reaches it.
+- **Ethereal**: it and a creature that is not can't target each other (`WILDPATH.REFUSAL.Ethereal`), and an
+  area leaves out the creatures on the other plane from its caster (2026-10-22, `foundryActionArea`).
 - **Surprised** (2024): its Initiative roll has Disadvantage (`initiative` RollMode). The GM marks it from the Token HUD;
   once its Combatant's initiative is set, the active GM ends it. Live (14.369): a Surprised creature rolled `2d20kl`, and
   Surprised was gone after.

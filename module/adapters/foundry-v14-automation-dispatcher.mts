@@ -53,14 +53,18 @@ const automationEvent = createAutomationEvent as unknown as (options: Data) => D
  * Returns the final state, or null when the Action could not start.
  */
 export async function runAuthorityAction({coordinator, resolveAction, senderUserId, resolutionId, definition, label,
-  actorRef, source, target, configuration=null, logger=globalThis.console}: {
+  actorRef, source, target=null, targets=null, configuration=null, logger=globalThis.console}: {
   coordinator: Coordinator; resolveAction: ResolveAction; senderUserId: string; resolutionId: string;
-  definition: Data; label: string; actorRef: string; source: Data; target: Data; configuration?: Data | null; logger?: Logger;
+  definition: Data; label: string; actorRef: string; source: Data; target?: Data | null; targets?: Data[] | null;
+  configuration?: Data | null; logger?: Logger;
 }) {
+  // Several creatures at once (an aura's): one Action, one damage roll for all of them (2024).
+  const targetRefs = targets?.length ? targets : [target];
   const action = {id: String(definition.id), uuid: null, type: "action", name: String(definition.label ?? label),
-    system: {definition: {...definition, targeting: {type: "single", required: true, count: 1}}}};
+    system: {definition: {...definition, targeting: {type: (targetRefs.length > 1) ? "multiple" : "single", required: true,
+      count: targetRefs.length}}}};
   // Its choices, when already made (a "you can" set to Always); otherwise the authority asks for them.
-  const resolved = await resolveAction({intent: {actorRef, source, targetRefs: [target], ...(configuration ? {configuration} : {})},
+  const resolved = await resolveAction({intent: {actorRef, source, targetRefs, ...(configuration ? {configuration} : {})},
     senderUserId, action});
   if ( !resolved.ok ) {
     logger.warn("Wild Path | An automatic effect could not resolve", resolved.reason ?? resolved);
@@ -159,18 +163,16 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
       // A "you can" (Persistent Rage when initiative is rolled): Never skips it, Always uses it, Ask asks its controller.
       const optional = ((definition.configuration ?? []) as Data[]).some(choice => choice.id === "use");
       if ( optional && (policy === "never") ) continue;
-      // shortcut: each creature in the Emanation is its own Action (its own damage roll), as a lasting area's are; upgrade
-      // when an authority Action takes several targets.
+      // Everyone in the Emanation (or swallowed) at once: one Action, one damage roll (2024).
       const targets = around ? (around.swallowed ? swallowedBy(actor, token as Placed | null)
         : tokensAround(token as never, around as never) as Placed[]).filter(other => !immuneTo(other.actor as never, definition.id))
         .map(other => ({actorRef: other.actor?.uuid ?? null, tokenId: other.id, sceneId: token?.parent?.id})) : [self];
-      for ( const [index, target] of targets.entries() ) {
-        const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
-          resolutionId: `${id}:${sequence}${around ? `:${index}` : ""}`, definition, label, actorRef: actor.uuid,
-          source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, target: target as Data,
-          ...((optional && (policy === "always")) ? {configuration: {choices: {use: "use"}}} : {})});
-        if ( state ) states.push(state);
-      }
+      if ( !targets.length ) continue;
+      const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
+        resolutionId: `${id}:${sequence}`, definition, label, actorRef: actor.uuid,
+        source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, targets: targets as Data[],
+        ...((optional && (policy === "always")) ? {configuration: {choices: {use: "use"}}} : {})});
+      if ( state ) states.push(state);
     }
     // Others' auras around it (a Pit Fiend's Fear Aura: "any enemy that starts its turn in the aura").
     const placed = token as Placed | null;
