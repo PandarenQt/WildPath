@@ -492,7 +492,8 @@ floor), Protection from Evil and Good's "Protected" (`attack.attackerType`, the 
 and "See Invisibility" (the sense, a mile). They apply when none of the effect's own changes converts (Barkskin's
 `ac.min`, See Invisibility's `senses.special`). Also: combined Advantage or Disadvantage ("Adv: Attacks & Saves"), "No
 Reaction" and Shocking Grasp's "Shocked" (a ResourceCap), "Aiming: Attack Advantage" and "Target: Disadvantage" (its next
-attack), "Blocked Healing" and "Healing Restriction" (no healing), "<Type> Protection" (Resistance), and Acid Arrow's
+attack), "Blocked Healing" and "Healing Restriction" (no healing), Dispel Evil and Good's "Dispelling Evil and Good"
+(as "Protected", from five creature types), "<Type> Protection" (Resistance), and Acid Arrow's
 "Lingering Acid": an automatic
 `turn.ended` Trigger on the effect deals its 2d4 Acid, and it lasts until the end of the caster's next turn (an
 effect's Triggers run like an Item's; the spell's separate later-damage Action is dropped).

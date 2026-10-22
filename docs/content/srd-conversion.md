@@ -239,7 +239,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Burnt Othur Fumes | equipment24 | Burnt Othur Fumes (Use Poison) (automated) | "Successive Failed Save Damage" is passive or triggered: not automated |
 | Call Lightning | spells24 | Call Lightning (save) (automated), Call Lightning (damage) (automated) | concentration: its caster concentrates; what it sustains is by hand |
 | Calligrapher's Supplies | equipment24 | Calligrapher's Supplies (gear), Calligrapher's Supplies (automated) | — |
-| Calm Emotions | spells24 | Calm Emotions (automated) | effect: "Indifference" marks its creature only; its rules are by hand |
+| Calm Emotions | spells24 | Calm Emotions (automated) | effect: "Indifference" marks its creature (narrative) |
 | Caltrops | equipment24 | Caltrops (automated) | — |
 | Caltrops | equipment24 | Caltrops (automated) | — |
 | Camel | actors24 | Camel (2 items) | — |
@@ -414,7 +414,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Disguise Kit | equipment24 | Disguise Kit (gear), Disguise Kit (automated) | — |
 | Disguise Self | spells24 | Disguise Self (automated) | effect: "Disguised" marks its creature (narrative) |
 | Disintegrate | spells24 | Disintegrate (automated) | — |
-| Dispel Evil and Good | spells24 | Dispel Evil and Good (Cast) (automated), Dispel Evil and Good (Dismissal) (automated), Dispel Evil and Good (Break Enchantment) (manual) | effect: "Dispelling Evil and Good" marks its creature only; its rules are by hand; save: a failure marks its creature only; what it does is by hand; not automated (utility): using it spends its cost; its description says the rest |
+| Dispel Evil and Good | spells24 | Dispel Evil and Good (Cast) (automated), Dispel Evil and Good (Dismissal) (automated), Dispel Evil and Good (Break Enchantment) (manual) | save: a failure marks its creature only; what it does is by hand; not automated (utility): using it spends its cost; its description says the rest |
 | Dispel Magic | spells24 | Dispel Magic (automated) | dispel: a lasting area or an object is not a target (by hand) |
 | Dissonant Whispers | spells24 | Dissonant Whispers (automated) | — |
 | Distant Spell | classes24 | Distant Spell (feature) | — |
@@ -881,7 +881,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Jester | equipment24 | Jester (gear) | "Card Effect: Advantage" is passive or triggered: not automated; "Card Effect: Draw Two" is passive or triggered: not automated |
 | Jeweler's Tools | equipment24 | Jeweler's Tools (gear), Jeweler's Tools (automated) | — |
 | Jug | equipment24 | Jug (gear) | — |
-| Jump | spells24 | Jump (automated) | effect: "Jump" marks its creature only; its rules are by hand |
+| Jump | spells24 | Jump (automated) | effect: "Jump" marks its creature (narrative) |
 | Keen Senses | origins24 | Keen Senses (feature) | — |
 | Key | equipment24 | Key (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Killer Whale | actors24 | Killer Whale (3 items) | — |
@@ -1063,7 +1063,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Open Hand Technique | classes24 | Open Hand Technique (Addle) (automated), Open Hand Technique (Push) (automated), Open Hand Technique (Topple) (automated) | rolled (save); what it does is by hand |
 | Orb | equipment24 | Orb (gear) | — |
 | Orc | origins24 | Orc (species) | — |
-| Otherworldly Leap | classes24 | Otherworldly Leap (automated) | effect: "Jump" marks its creature only; its rules are by hand |
+| Otherworldly Leap | classes24 | Otherworldly Leap (automated) | effect: "Jump" marks its creature (narrative) |
 | Otherworldly Presence | origins24 | Otherworldly Presence (feature) | — |
 | Otherworldly Steed | actors24 | Otherworldly Steed (3 items) | Fey Step: not SRD 5.2 (CC-BY-4.0); Healing Touch: not SRD 5.2 (CC-BY-4.0) |
 | Otyugh | actors24 | Otyugh (5 items) | Bite: "save" is passive or triggered: not automated |
@@ -1116,7 +1116,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Planar Ally | spells24 | Planar Ally (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
 | Planar Binding | spells24 | Planar Binding (automated) | activation: 1 hour is not an action-economy cost; effect: "Bound to Service" marks its creature only; its rules are by hand |
 | Plane Shift | spells24 | Plane Shift (manual) | not automated (teleport, narrative): using it spends its cost; its description says the rest |
-| Planetar | actors24 | Planetar (20 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: effect: "Dispelling Evil and Good" marks its creature only; its rules are by hand; Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: activation: 1 hour is not an action-economy cost; Divine Aid: dispel: a lasting area or an object is not a target (by hand) |
+| Planetar | actors24 | Planetar (20 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: activation: 1 hour is not an action-economy cost; Divine Aid: dispel: a lasting area or an object is not a target (by hand) |
 | Plant Growth | spells24 | Plant Growth (Enrichment) (manual) | "Overgrowth" is passive or triggered (narrative): not automated; not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 8 hour is not an action-economy cost |
 | Plate Armor | equipment24 | Plate Armor (gear) | — |
 | Plate Armor of Etherealness | equipment24 | Plate Armor of Etherealness (gear), Plate Armor of Etherealness: Etherealness (automated) | "Plate Armor of Etherealness" is passive or triggered (narrative): not automated |
@@ -1253,7 +1253,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ring of Feather Falling | equipment24 | Ring of Feather Falling (gear) | — |
 | Ring of Free Action | equipment24 | Ring of Free Action (gear) | effect: "Free Action" change system.attributes.movement.ignoredDifficultTerrain (add) not converted |
 | Ring of Invisibility | equipment24 | Ring of Invisibility (gear) | — |
-| Ring of Jumping | equipment24 | Ring of Jumping (gear), Ring of Jumping: Jump (automated) | effect: "Jump" marks its creature only; its rules are by hand |
+| Ring of Jumping | equipment24 | Ring of Jumping (gear), Ring of Jumping: Jump (automated) | effect: "Jump" marks its creature (narrative) |
 | Ring of Mind Shielding | equipment24 | Ring of Mind Shielding (gear) | — |
 | Ring of Protection | equipment24 | Ring of Protection (gear) | — |
 | Ring of Regeneration | equipment24 | Ring of Regeneration (gear) | "heal" is passive or triggered: not automated |
@@ -1382,7 +1382,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Smite of Protection | classes24 | Smite of Protection (feature) | — |
 | Smith's Tools | equipment24 | Smith's Tools (gear), Smith's Tools (automated) | — |
 | Sneak Attack | classes24 | Sneak Attack (feature) | — |
-| Solar | actors24 | Solar (18 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: effect: "Dispelling Evil and Good" marks its creature only; its rules are by hand; Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: activation: 1 hour is not an action-economy cost; Spellcasting: effect: "Spell Taxed" marks its creature only; its rules are by hand |
+| Solar | actors24 | Solar (18 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: activation: 1 hour is not an action-economy cost; Spellcasting: effect: "Spell Taxed" marks its creature only; its rules are by hand |
 | Soldier | origins24 | Soldier (background) | — |
 | Sorcerer | classes24 | Sorcerer (class) | — |
 | Sorcerous Burst | spells24 | Sorcerous Burst (automated) | damage 1: custom formula "1d8x@mod=8" not converted; rolled (attack); what it does is by hand |
@@ -1577,7 +1577,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Unarmored Movement | classes24 | Unarmored Movement (feature) | — |
 | Uncanny Dodge | classes24 | Uncanny Dodge (automated) | — |
 | Uncanny Metabolism | classes24 | Uncanny Metabolism (feature) | — |
-| Unicorn | actors24 | Unicorn (17 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Indifference" marks its creature only; its rules are by hand; Spellcasting: effect: "Dispelling Evil and Good" marks its creature only; its rules are by hand; Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Charging Horn: not automated (utility): using it spends its cost; its description says the rest |
+| Unicorn | actors24 | Unicorn (17 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Indifference" marks its creature (narrative); Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Charging Horn: not automated (utility): using it spends its cost; its description says the rest |
 | Universal Solvent | equipment24 | Universal Solvent (gear), Universal Solvent (Apply Glue) (manual) | "Determine Ounces" is passive or triggered (narrative): not automated; not automated (utility, narrative): using it spends its cost; its description says the rest; area: @scaling-ft square is not supported; the user picks the targets |
 | Unseen Servant | spells24 | Unseen Servant (automated) | — |
 | Unseen Servant | actors24 | Unseen Servant (0 items) | — |

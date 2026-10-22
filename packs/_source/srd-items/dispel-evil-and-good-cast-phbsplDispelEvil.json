@@ -37,7 +37,31 @@
           "type": "effect",
           "name": "Dispelling Evil and Good",
           "img": "icons/magic/light/orb-hands-humanoid-yellow.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "dispelling",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "mode": "disadvantage"
+              },
+              "predicate": {
+                "oneOf": {
+                  "path": "attack.attackerType",
+                  "values": [
+                    "celestial",
+                    "elemental",
+                    "fey",
+                    "fiend",
+                    "undead"
+                  ]
+                }
+              }
+            }
+          ],
           "duration": {
             "value": 1,
             "units": "rounds",
@@ -121,9 +145,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

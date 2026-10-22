@@ -2050,8 +2050,8 @@ const plainText = document => String(document.system?.description?.value ?? "").
 const NARRATIVE_MARKERS = new Set(["Detect Magic", "Detect Evil and Good", "Detect Poison and Disease", "Disguised", "Cannot Lie",
   "Water Breathing", "Water Walking", "Speaking with Plants", "Speaking with Animals", "Carrying Message", "Altered Appearance",
   "Hidden from Divination", "Comprehending Languages", "Tongues", "Telepathic Bond", "Scrying",
-  // Mind Spike: "you always know the target's location".
-  "Spiked"]);
+  // Mind Spike: "you always know the target's location"; Calm Emotions' indifference; Jump's 30-foot jumps.
+  "Spiked", "Indifference", "Jump"]);
 
 /**
  * Activities that only tell the table something, by their dnd5e name: Scrying's sensor, a revival or re-forming days
@@ -2576,6 +2576,9 @@ const EFFECTS_BY_NAME = Object.freeze({
   "Bark-like Skin": {ruleElements: [{schemaVersion: 1, id: "barkskin", type: "ArmorClass", data: {value: 17, minimum: true}}]},
   "Protected": {ruleElements: [rollModeRule("protected", ["attacked"], "disadvantage", {oneOf: {path: "attack.attackerType",
     values: ["aberration", "celestial", "elemental", "fey", "fiend", "undead"]}})]},
+  // Dispel Evil and Good: "Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against you".
+  "Dispelling Evil and Good": {ruleElements: [rollModeRule("dispelling", ["attacked"], "disadvantage", {oneOf: {path: "attack.attackerType",
+    values: ["celestial", "elemental", "fey", "fiend", "undead"]}})]},
   "See Invisibility": {ruleElements: [{schemaVersion: 1, id: "see-invisibility", type: "GrantSense",
     data: {sense: "seeInvisibility", range: 5280}}]},
   "Disadv.: Attacks & Checks": {ruleElements: [rollModeRule("attacks-checks", ["attack", "check"], "disadvantage")]},
