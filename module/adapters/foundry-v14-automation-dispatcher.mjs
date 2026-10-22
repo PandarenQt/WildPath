@@ -30,11 +30,14 @@ const automationEvent = createAutomationEvent;
  * its only target, and waits for it to finish. Saves route to that creature's controller, as for any Action.
  * Returns the final state, or null when the Action could not start.
  */
-export async function runAuthorityAction({ coordinator, resolveAction, senderUserId, resolutionId, definition, label, actorRef, source, target, configuration = null, logger = globalThis.console }) {
+export async function runAuthorityAction({ coordinator, resolveAction, senderUserId, resolutionId, definition, label, actorRef, source, target = null, targets = null, configuration = null, logger = globalThis.console }) {
+    // Several creatures at once (an aura's): one Action, one damage roll for all of them (2024).
+    const targetRefs = targets?.length ? targets : [target];
     const action = { id: String(definition.id), uuid: null, type: "action", name: String(definition.label ?? label),
-        system: { definition: { ...definition, targeting: { type: "single", required: true, count: 1 } } } };
+        system: { definition: { ...definition, targeting: { type: (targetRefs.length > 1) ? "multiple" : "single", required: true,
+                    count: targetRefs.length } } } };
     // Its choices, when already made (a "you can" set to Always); otherwise the authority asks for them.
-    const resolved = await resolveAction({ intent: { actorRef, source, targetRefs: [target], ...(configuration ? { configuration } : {}) },
+    const resolved = await resolveAction({ intent: { actorRef, source, targetRefs, ...(configuration ? { configuration } : {}) },
         senderUserId, action });
     if (!resolved.ok) {
         logger.warn("Wild Path | An automatic effect could not resolve", resolved.reason ?? resolved);
@@ -127,19 +130,18 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
             const optional = (definition.configuration ?? []).some(choice => choice.id === "use");
             if (optional && (policy === "never"))
                 continue;
-            // shortcut: each creature in the Emanation is its own Action (its own damage roll), as a lasting area's are; upgrade
-            // when an authority Action takes several targets.
+            // Everyone in the Emanation (or swallowed) at once: one Action, one damage roll (2024).
             const targets = around ? (around.swallowed ? swallowedBy(actor, token)
                 : tokensAround(token, around)).filter(other => !immuneTo(other.actor, definition.id))
                 .map(other => ({ actorRef: other.actor?.uuid ?? null, tokenId: other.id, sceneId: token?.parent?.id })) : [self];
-            for (const [index, target] of targets.entries()) {
-                const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
-                    resolutionId: `${id}:${sequence}${around ? `:${index}` : ""}`, definition, label, actorRef: actor.uuid,
-                    source: token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {}, target: target,
-                    ...((optional && (policy === "always")) ? { configuration: { choices: { use: "use" } } } : {}) });
-                if (state)
-                    states.push(state);
-            }
+            if (!targets.length)
+                continue;
+            const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
+                resolutionId: `${id}:${sequence}`, definition, label, actorRef: actor.uuid,
+                source: token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {}, targets: targets,
+                ...((optional && (policy === "always")) ? { configuration: { choices: { use: "use" } } } : {}) });
+            if (state)
+                states.push(state);
         }
         // Others' auras around it (a Pit Fiend's Fear Aura: "any enemy that starts its turn in the aura").
         const placed = token;
