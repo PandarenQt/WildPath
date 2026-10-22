@@ -536,6 +536,11 @@ export function createMultiplayerMovementAuthority({
     const authorityContext = {initiatorUserId, localCommitAllowed};
     const authority = verifyCurrentAuthority(authorityContext, intent);
     if ( !authority.ok ) return {...authority, approved: false, resolutionId: intent.resolutionId};
+    // A Player moves only a creature they own (checked once its Actor is known, below). shortcut: a Player's own move
+    // marked forced or teleport is approved as one (no Speed, no Opportunity Attacks); upgrade by refusing those from
+    // Players once the forced-movement tests send them as the authority, which makes them in play.
+    const sender = userDirectory().find(user => user.id === initiatorUserId) ?? null;
+    const playerSent = Boolean(sender) && !sender.isGM;
     const record = approvedMovements.get(key);
     const existing = record?.operations.find(operation => operation.id === intent.movementId);
     if ( existing ) return JSON.stringify(existing.intent) === JSON.stringify(intent)
@@ -564,6 +569,11 @@ export function createMultiplayerMovementAuthority({
     const authorize = () => authorizeMovement({intent: authorizing, game, measurementMode: record?.progress?.measurementMode ?? measurementMode});
     try {
       approval = await authorize();
+      const moving = playerSent && approval.approved ? globalThis.fromUuidSync?.(String(approval.actorRef?.uuid ?? "")) : null;
+      const user = playerSent ? game?.users?.get?.(initiatorUserId) : null;
+      if ( playerSent && approval.approved && moving && user && !moving.testUserPermission?.(user, "OWNER") ) {
+        return rejectedContinuation(intent, "A Player moves only a creature they own.");
+      }
       if ( chain.length && approval.approved ) {
         const end = completedMovementPrefix(record.progress, approval.path.anchors, baseTransitionCount);
         if ( end !== record.progress.approvedTransitions.length

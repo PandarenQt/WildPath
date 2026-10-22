@@ -1,3 +1,4 @@
+import {normalizeRollResponseValue} from "../helpers/rolls.mjs";
 import {
   RESOLUTION_REQUEST_TYPES,
   RESOLUTION_STATE_STATUS,
@@ -317,6 +318,15 @@ export function createMultiplayerActionCoordinator({
       duplicate: true
     };
     seenIntents.add(duplicateKey);
+    // Another client's id is only ever one it made (`resolution:`): never one of the authority's own (a reaction child's
+    // `resolution:<n>`, a death save's, an aura's), which would then be skipped as already used.
+    const remoteId = String(envelope.resolutionId ?? "");
+    if ( (envelope.senderUserId !== localUserId) && (!remoteId.startsWith("resolution:") || /^resolution:\d+$/.test(remoteId)) ) return sendError({
+      resolutionId: envelope.resolutionId,
+      recipientUserId: envelope.senderUserId,
+      code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+      reason: "Resolution ID is not a client's own."
+    });
     // Reserve before document resolution awaits. A new intent must not replace a live root
     // (or reuse its request IDs after completion), even if it supplies a different intent ID.
     if ( records.has(envelope.resolutionId) || reservedResolutionIds.has(envelope.resolutionId) ) return sendError({
@@ -360,6 +370,17 @@ export function createMultiplayerActionCoordinator({
     });
 
     const options = resolved.options ?? resolved;
+    // One Action at a time for a creature: a second one while the first waits (a reroll offer, a target's save) would pay
+    // from the same remaining Actions and slots, so both would cost one.
+    const acting = options.actor ?? null;
+    if ( acting && [...records.values()].some(other => (other.options?.actor === acting) && !isTerminalState(other.state)) ) {
+      return sendError({
+        resolutionId: envelope.resolutionId,
+        recipientUserId: envelope.senderUserId,
+        code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
+        reason: "This creature is still resolving another Action."
+      });
+    }
     const record = {
       resolutionId: envelope.resolutionId,
       intentId,
@@ -669,6 +690,19 @@ export function createMultiplayerActionCoordinator({
         data: validation
       });
       return validation;
+    }
+
+    // A roll answered with an impossible result (a save of 999) is refused back to its sender and stays open: it must not
+    // fail the whole Action for everyone else in it.
+    const pending = (execution?.state?.pendingRequests ?? []).find(request => request.id === response.requestId);
+    if ( (pending?.type === "roll") && pending.payload?.rollRequest ) {
+      const checked = normalizeRollResponseValue(response.value, {request: pending.payload.rollRequest});
+      if ( !checked.ok ) {
+        const refusal = failure(MULTIPLAYER_AUTHORITY_CODES.REQUEST_MISMATCH, checked.reason ?? "That roll result is not possible.");
+        await sendError({resolutionId: record.resolutionId, requestId: envelope.requestId, recipientUserId: envelope.senderUserId,
+          code: refusal.code, reason: refusal.reason, data: refusal});
+        return refusal;
+      }
     }
 
     // Its sender's message mode (a reaction's chooser), for the card of what they chose.
