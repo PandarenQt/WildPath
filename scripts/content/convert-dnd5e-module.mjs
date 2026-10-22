@@ -42,8 +42,22 @@ const all = (manifest.packs ?? []).flatMap(documents);
 const srdDocuments = srd ? ["classes24", "spells24", "equipment24", "feats24", "origins24", "actors24", "content24"].flatMap(pack => readPack(srd, pack)) : [];
 const scales = scaleTables([...srdDocuments, ...all]);
 const names = nameIndex([...srdDocuments, ...all]);
-// The spells a creature's Spellcasting casts, by id (the book's own and the SRD's).
-const spells = Object.fromEntries([...srdDocuments, ...all].filter(document => document.type === "spell").map(document => [document._id, document]));
+// The spells the other installed books hold (a Monster Manual creature's Player's Handbook spell), read the same way.
+const otherBooks = ["dnd-players-handbook", "dnd-dungeon-masters-guide", "dnd-monster-manual", "dnd-tashas-cauldron", "dnd-xanathars-guide"]
+  .filter(id => (id !== moduleId) && existsSync(join(data, "modules", id, "module.json")));
+const otherSpells = [];
+for ( const id of otherBooks ) {
+  const other = JSON.parse(readFileSync(join(data, "modules", id, "module.json"), "utf8"));
+  for ( const pack of (other.packs ?? []).filter(entry => entry.type === "Item") ) {
+    const name = `${id}--${pack.name}`;
+    cpSync(join(data, "modules", id, pack.path), join(work, "db", name), {recursive: true});
+    await extractPack(join(work, "db", name), join(extracted, name), {log: false});
+    otherSpells.push(...readPack(extracted, name).filter(document => document.type === "spell"));
+  }
+}
+// The spells a creature's Spellcasting casts, by id (the book's own, the other books' and the SRD's).
+const spells = Object.fromEntries([...otherSpells, ...srdDocuments, ...all].filter(document => document.type === "spell")
+  .map(document => [document._id, document]));
 // The creatures a summon brings, by dnd5e id: the book's own (its creatures pack), else the SRD's; an old id the book
 // redirects (its scripts/redirects.mjs) brings the one it points to.
 const redirects = existsSync(join(source, "scripts", "redirects.mjs")) ? readFileSync(join(source, "scripts", "redirects.mjs"), "utf8") : "";
