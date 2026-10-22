@@ -636,6 +636,31 @@
                   }
                 }
               ]
+            },
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-2",
+                  "label": "2",
+                  "value": 2,
+                  "metadata": {
+                    "castingLevel": 2
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "metadata": {
@@ -660,9 +685,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Command at level 2 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -854,9 +877,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Scorching Ray at level 3 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -948,6 +969,39 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-6",
+                  "label": "6",
+                  "value": 6,
+                  "metadata": {
+                    "castingLevel": 6
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 3,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 3
           },
@@ -985,9 +1039,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Fireball at level 6 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1382,6 +1434,31 @@
                   }
                 }
               ]
+            },
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-2",
+                  "label": "2",
+                  "value": 2,
+                  "metadata": {
+                    "castingLevel": 2
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "metadata": {
@@ -1406,9 +1483,7 @@
             "castBy": "Commanding Presence"
           },
           "conversion": {
-            "notes": [
-              "cast: Command at level 2 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1509,9 +1584,7 @@
             "castBy": "Fiery Rays"
           },
           "conversion": {
-            "notes": [
-              "cast: Scorching Ray at level 3 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1729,15 +1802,10 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: cast: Command at level 2 is cast at its own level",
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: cast: Scorching Ray at level 3 is cast at its own level",
-          "Spellcasting: cast: Fireball at level 6 is cast at its own level",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: save: a failure marks its creature (narrative)",
-          "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated",
-          "Commanding Presence: cast: Command at level 2 is cast at its own level",
-          "Fiery Rays: cast: Scorching Ray at level 3 is cast at its own level"
+          "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated"
         ]
       }
     }

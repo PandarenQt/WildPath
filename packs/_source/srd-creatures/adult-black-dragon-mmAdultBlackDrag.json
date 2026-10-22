@@ -710,6 +710,39 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-3",
+                  "label": "3",
+                  "value": 3,
+                  "metadata": {
+                    "castingLevel": 3
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 4
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 2
           },
@@ -732,9 +765,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Acid Arrow at level 3 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1379,7 +1410,6 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: cast: Acid Arrow at level 3 is cast at its own level",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: \"End of Turn Damage\" is passive or triggered: not automated"
         ]

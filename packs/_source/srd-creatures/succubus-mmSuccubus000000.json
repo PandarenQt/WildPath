@@ -375,9 +375,7 @@
             "castBy": "Charm"
           },
           "conversion": {
-            "notes": [
-              "cast: Dominate Person at level 8 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -579,7 +577,6 @@
       },
       "conversion": {
         "notes": [
-          "Charm: cast: Dominate Person at level 8 is cast at its own level",
           "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
           "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
         ]

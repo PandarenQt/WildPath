@@ -1430,6 +1430,39 @@
               "healingType": "healing"
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-2",
+                  "label": "2",
+                  "value": 2,
+                  "metadata": {
+                    "castingLevel": 2
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleHealing",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "componentIds": [
+                    "healing-1"
+                  ],
+                  "dice": {
+                    "number": 2,
+                    "faces": 8
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 1
           },
@@ -1467,9 +1500,7 @@
             "castBy": "Divine Aid"
           },
           "conversion": {
-            "notes": [
-              "cast: Cure Wounds at level 2 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1850,8 +1881,7 @@
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
-          "Spellcasting: effect: \"Spell Taxed\" marks its creature only; its rules are by hand",
-          "Divine Aid: cast: Cure Wounds at level 2 is cast at its own level"
+          "Spellcasting: effect: \"Spell Taxed\" marks its creature only; its rules are by hand"
         ]
       }
     }

@@ -610,6 +610,39 @@
               "healingType": "healing"
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-6",
+                  "label": "6",
+                  "value": 6,
+                  "metadata": {
+                    "castingLevel": 6
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleHealing",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "componentIds": [
+                    "healing-1"
+                  ],
+                  "dice": {
+                    "number": 2,
+                    "faces": 8
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 1
           },
@@ -647,9 +680,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Cure Wounds at level 6 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -744,6 +775,51 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-6",
+                  "label": "6",
+                  "value": 6,
+                  "metadata": {
+                    "castingLevel": 6
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 5,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                },
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 5,
+                  "componentIds": [
+                    "damage-2"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 5
           },
@@ -781,9 +857,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Flame Strike at level 6 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -865,6 +939,39 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-6",
+                  "label": "6",
+                  "value": 6,
+                  "metadata": {
+                    "castingLevel": 6
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 5,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 10
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 5
           },
@@ -903,7 +1010,6 @@
           },
           "conversion": {
             "notes": [
-              "cast: Geas at level 6 is cast at its own level",
               "activation: 1 minute is not an action-economy cost"
             ]
           }
@@ -1105,9 +1211,6 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: cast: Cure Wounds at level 6 is cast at its own level",
-          "Spellcasting: cast: Flame Strike at level 6 is cast at its own level",
-          "Spellcasting: cast: Geas at level 6 is cast at its own level",
           "Spellcasting: activation: 1 minute is not an action-economy cost"
         ]
       }

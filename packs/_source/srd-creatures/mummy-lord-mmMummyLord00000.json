@@ -980,6 +980,39 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-7",
+                  "label": "7",
+                  "value": 7,
+                  "metadata": {
+                    "castingLevel": 7
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 5,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 10
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 5
           },
@@ -1017,9 +1050,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Insect Plague at level 7 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1526,6 +1557,31 @@
                   }
                 }
               ]
+            },
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-2",
+                  "label": "2",
+                  "value": 2,
+                  "metadata": {
+                    "castingLevel": 2
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "metadata": {
@@ -1550,9 +1606,7 @@
             "castBy": "Dread Command"
           },
           "conversion": {
-            "notes": [
-              "cast: Command at level 2 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1827,9 +1881,7 @@
         "notes": [
           "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: dispel: a lasting area or an object is not a target (by hand)",
-          "Spellcasting: cast: Insect Plague at level 7 is cast at its own level",
           "Glare: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Dread Command: cast: Command at level 2 is cast at its own level",
           "Necrotic Strike: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }

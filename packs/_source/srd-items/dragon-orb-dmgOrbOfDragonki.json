@@ -34,7 +34,6 @@
           "\"Attunement Save\" is passive or triggered: not automated",
           "not automated (utility, narrative): using it spends its cost; its description says the rest",
           "consumption: itemUses 4 not converted",
-          "cast: Cure Wounds at level 9 is cast at its own level",
           "consumption: itemUses 1 not converted",
           "consumption: itemUses 2 not converted",
           "effect: \"Protection from Death\" marks its creature only; its rules are by hand",

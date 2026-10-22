@@ -435,6 +435,19 @@ test("the monster toolkit (G4): Multiattack's attacks, a Spellcasting's spells a
   assert.deepEqual(cast.system.ruleElements[0].data, {resourceId: "spellcasting-phbsplfireball00", label: "Spellcasting (Fireball)",
     maximum: {type: "constant", value: 2}, recovery: "longRest"});
 
+  // A spell cast above its own level (a Lich's 5th-level Fireball): its scaling at that level, answered by the authority.
+  const scaling = {...fireball, system: {...fireball.system, activities: {a: activity("save", {save: {ability: ["dex"], dc: {calculation: "spellcasting"}},
+    damage: {onSave: "half", parts: [{number: 8, denomination: 6, types: ["fire"], scaling: {mode: "whole", number: 1}}]}})}}};
+  const high = {...casting, system: {...casting.system, activities: {a: {...casting.system.activities.a,
+    spell: {...casting.system.activities.a.spell, level: 5}}}}};
+  const {actor: lich} = convertActor({...caster, items: [high]}, {spells: {phbsplFireball00: scaling}});
+  const upcast = lich.items.find(item => item.name === "Fireball");
+  valid(upcast);
+  const [level] = upcast.system.definition.configuration;
+  assert.deepEqual([level.id, level.type, level.fromCast, level.options.map(option => option.value), level.effects[0].baseLevel],
+    ["spell-slot", "option", true, [5], 3]);
+  assert.equal(upcast.flags.wildpath.conversion.notes.some(note => /cast at its own level/.test(note)), false);
+
   const [multiattack] = byName("Multiattack");
   valid(multiattack);
   assert.deepEqual(multiattack.system.definition.restores, [{resourceId: "multiattack-rend", amount: 2}], "the attacks it names");

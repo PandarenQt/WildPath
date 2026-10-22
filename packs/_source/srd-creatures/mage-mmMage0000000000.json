@@ -666,6 +666,39 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-4",
+                  "label": "4",
+                  "value": 4,
+                  "metadata": {
+                    "castingLevel": 4
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 3,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 3
           },
@@ -703,9 +736,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Fireball at level 4 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1365,8 +1396,7 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: cast: Fireball at level 4 is cast at its own level"
+          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

@@ -827,9 +827,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Scorching Ray at level 3 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1243,9 +1241,7 @@
             "castBy": "Blazing Light"
           },
           "conversion": {
-            "notes": [
-              "cast: Scorching Ray at level 3 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1617,14 +1613,12 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: cast: Scorching Ray at level 3 is cast at its own level",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: nothing it sustains was converted",
-          "Spellcasting: save: a failure marks its creature (narrative)",
-          "Blazing Light: cast: Scorching Ray at level 3 is cast at its own level"
+          "Spellcasting: save: a failure marks its creature (narrative)"
         ]
       }
     }

@@ -523,6 +523,33 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-2",
+                  "label": "2",
+                  "value": 2,
+                  "metadata": {
+                    "castingLevel": 2
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 1,
+                  "perLevel": 1
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 1
           },
@@ -560,9 +587,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Charm Person at level 2 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1165,7 +1190,6 @@
       "conversion": {
         "notes": [
           "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: cast: Charm Person at level 2 is cast at its own level",
           "Spellcasting: effect: transformed is not a WildPath condition yet",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted"
         ]

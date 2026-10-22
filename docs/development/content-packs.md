@@ -199,6 +199,9 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
 - **Spellcasting.**
   - A cast activity becomes its spell's Action, converted with the creature's save DC and casting ability.
   - It costs the activity's activation and its own uses ("2/Day each"), or an item's charges, never a slot.
+  - One cast above the spell's level (an Archmage's Lightning Bolt at 7th, 2026-10-22) is cast at that level: its slot
+    choice becomes a single fixed level (`fromCast`, answered by the authority, never asked), so its scaling applies
+    (12d6) and the cast's `castingLevel` is that level (an option's `metadata` now reaches its selection).
   - dnd5e's cached copies of those spells are left out.
 - **Uses.**
   - Each activity with uses has a pool of its own.

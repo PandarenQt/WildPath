@@ -878,6 +878,33 @@
               "repeatSave": "turnEnd"
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-3",
+                  "label": "3",
+                  "value": 3,
+                  "metadata": {
+                    "castingLevel": 3
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "perLevel": 1
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 2
           },
@@ -915,9 +942,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Hold Person at level 3 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -993,6 +1018,39 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-4",
+                  "label": "4",
+                  "value": 4,
+                  "metadata": {
+                    "castingLevel": 4
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 3,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 3
           },
@@ -1030,9 +1088,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "cast: Lightning Bolt at level 4 is cast at its own level"
-            ]
+            "notes": []
           }
         }
       }
@@ -1107,9 +1163,7 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature (narrative)",
-          "Spellcasting: teleport: a creature it brings along is moved by hand",
-          "Spellcasting: cast: Hold Person at level 3 is cast at its own level",
-          "Spellcasting: cast: Lightning Bolt at level 4 is cast at its own level"
+          "Spellcasting: teleport: a creature it brings along is moved by hand"
         ]
       }
     }

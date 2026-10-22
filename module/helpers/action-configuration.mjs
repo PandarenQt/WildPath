@@ -738,6 +738,8 @@ function resolveOneSelection(request, rawResponse) {
     optionId: option.id,
     label: option.label,
     option,
+    // Its option's own metadata (a fixed cast level's `castingLevel`), as a resource option's is.
+    metadata: clonePlain(option.metadata ?? {}),
     active: true
   });
 }

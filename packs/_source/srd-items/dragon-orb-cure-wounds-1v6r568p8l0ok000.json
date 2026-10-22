@@ -55,6 +55,39 @@
           "healingType": "healing"
         }
       ],
+      "configuration": [
+        {
+          "id": "spell-slot",
+          "type": "option",
+          "label": "WILDPATH.PROMPT.CastLevel",
+          "required": true,
+          "fromCast": true,
+          "options": [
+            {
+              "id": "level-9",
+              "label": "9",
+              "value": 9,
+              "metadata": {
+                "castingLevel": 9
+              }
+            }
+          ],
+          "effects": [
+            {
+              "type": "scaleHealing",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "componentIds": [
+                "healing-1"
+              ],
+              "dice": {
+                "number": 2,
+                "faces": 8
+              }
+            }
+          ]
+        }
+      ],
       "metadata": {
         "spellLevel": 1
       },
@@ -78,8 +111,7 @@
       },
       "conversion": {
         "notes": [
-          "consumption: itemUses 4 not converted",
-          "cast: Cure Wounds at level 9 is cast at its own level"
+          "consumption: itemUses 4 not converted"
         ]
       },
       "price": 0,

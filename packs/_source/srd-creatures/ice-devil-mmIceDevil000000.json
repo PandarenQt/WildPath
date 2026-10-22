@@ -401,6 +401,39 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-8",
+                  "label": "8",
+                  "value": 8,
+                  "metadata": {
+                    "castingLevel": 8
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 6,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 2,
+                    "faces": 6
+                  }
+                }
+              ]
+            }
+          ],
           "concentration": {
             "duration": {
               "value": 10,
@@ -446,7 +479,6 @@
           },
           "conversion": {
             "notes": [
-              "cast: Wall of Ice at level 8 is cast at its own level",
               "concentration: its caster concentrates; what it sustains is by hand",
               "\"Frigid Air\" is passive or triggered: not automated"
             ]
@@ -665,7 +697,6 @@
       },
       "conversion": {
         "notes": [
-          "Ice Wall: cast: Wall of Ice at level 8 is cast at its own level",
           "Ice Wall: concentration: its caster concentrates; what it sustains is by hand",
           "Ice Wall: \"Frigid Air\" is passive or triggered: not automated"
         ]

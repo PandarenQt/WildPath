@@ -598,6 +598,39 @@
               "concentration": true
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-3",
+                  "label": "3",
+                  "value": 3,
+                  "metadata": {
+                    "castingLevel": 3
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 8
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 2
           },
@@ -621,7 +654,6 @@
           },
           "conversion": {
             "notes": [
-              "cast: Mind Spike at level 3 is cast at its own level",
               "effect: \"Spiked\" marks its creature (narrative)"
             ]
           }
@@ -841,6 +873,39 @@
               "concentration": true
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-3",
+                  "label": "3",
+                  "value": 3,
+                  "metadata": {
+                    "castingLevel": 3
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 8
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 2
           },
@@ -864,7 +929,6 @@
           },
           "conversion": {
             "notes": [
-              "cast: Mind Spike at level 3 is cast at its own level",
               "effect: \"Spiked\" marks its creature (narrative)"
             ]
           }
@@ -1205,10 +1269,8 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: cast: Mind Spike at level 3 is cast at its own level",
           "Spellcasting: effect: \"Spiked\" marks its creature (narrative)",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
-          "Mind Invasion: cast: Mind Spike at level 3 is cast at its own level",
           "Mind Invasion: effect: \"Spiked\" marks its creature (narrative)"
         ]
       }

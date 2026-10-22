@@ -1298,6 +1298,39 @@
               }
             }
           ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-7",
+                  "label": "7",
+                  "value": 7,
+                  "metadata": {
+                    "castingLevel": 7
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleDamage",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 4,
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 8
+                  }
+                }
+              ]
+            }
+          ],
           "metadata": {
             "spellLevel": 4
           },
@@ -1336,7 +1369,6 @@
           },
           "conversion": {
             "notes": [
-              "cast: Wall of Fire at level 7 is cast at its own level",
               "\"damage\" is passive or triggered: not automated"
             ]
           }
@@ -1412,7 +1444,6 @@
           "Spellcasting: effect: transformed is not a WildPath condition yet",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: cast: Wall of Fire at level 7 is cast at its own level",
           "Spellcasting: \"damage\" is passive or triggered: not automated"
         ]
       }

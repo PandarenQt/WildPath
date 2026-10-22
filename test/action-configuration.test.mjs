@@ -500,3 +500,15 @@ test("Font of Magic: a slot level's own effects cost its points and give back it
   assert.equal(resolveActionConfiguration({definition: convert, actorSystem: system(1), choices: {slot: {resourceId: "spell-slot.3"}}}).ok, false,
     "points full");
 });
+
+test("a fixed cast level (a monster's upcast spell) scales its damage and is the cast's level", () => {
+  const definition = {schemaVersion: 1, id: "action:bolt", label: "Lightning Bolt", costs: {allOf: []},
+    damage: [{id: "damage-1", expression: {type: "dice", number: 8, faces: 6}, damageType: "lightning"}],
+    configuration: [{id: "spell-slot", type: "option", required: true, fromCast: true,
+      options: [{id: "level-7", label: "7", value: 7, metadata: {castingLevel: 7}}],
+      effects: [{type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 3, componentIds: ["damage-1"], dice: {number: 1, faces: 6}}]}]};
+  const resolved = resolveActionConfiguration({definition, actorSystem: {}, choices: {"spell-slot": 7}});
+  assert.equal(resolved.ok, true);
+  assert.deepEqual(resolved.configuration.effectiveDefinition.damage[0].expression, {type: "dice", number: 12, faces: 6});
+  assert.equal(resolved.configuration.castingLevel, 7);
+});
