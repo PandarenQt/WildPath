@@ -73,6 +73,11 @@
         "count": 1,
         "rounds": 10,
         "concentration": true,
+        "bonuses": {
+          "attackDamage": {
+            "type": "spellcasting-modifier"
+          }
+        },
         "spellLevel": 7,
         "match": {
           "attacks": true
@@ -99,9 +104,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "summon: what it gains with the spell's level (attackDamage) is not added"
-        ]
+        "notes": []
       }
     }
   }

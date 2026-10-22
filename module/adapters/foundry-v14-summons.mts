@@ -75,15 +75,24 @@ export function summonBonusesAt(bonuses: Data | null | undefined, level: number,
   // Its caster's own numbers too (`context`: a Steel Defender's Hit Points, Intelligence + 5 per artificer level).
   const number = (name: string) => (bonuses?.[name] ? evaluate(atLevel(bonuses[name], level), context).value ?? 0 : 0);
   const attack = {tagsAny: ["melee", "ranged"]};
+  // A sum ("your spellcasting modifier + 2d12": Conjure Fey's) is its parts: the numbers worked out now with its caster's
+  // own (never the summon's), as a Modifier; each dice part an ExtraDamage.
   const rules = (["attackDamage", "saveDamage"] as const).flatMap((name): Data[] => {
     const expression = bonuses?.[name] ? atLevel(bonuses[name], level) as Data : null;
     if ( !expression ) return [];
     const predicate = name === "attackDamage" ? attack : {not: attack};
-    const value = evaluate(expression, context);
-    return (expression.type !== "dice") && value.ok
-      ? (value.value ? [{schemaVersion: 1, id: `summon-${name}`, type: "Modifier", predicate,
-        data: {domains: ["damage"], modifierType: "untyped", value: value.value}}] : [])
-      : [{schemaVersion: 1, id: `summon-${name}`, type: "ExtraDamage", predicate, data: {domains: ["damage"], expression}}];
+    const parts = ((expression.type === "add") && Array.isArray(expression.terms) ? expression.terms : [expression]) as Data[];
+    let flat = 0;
+    const rolled: Data[] = [];
+    for ( const part of parts ) {
+      const value = (part.type === "dice") ? null : evaluate(part, context);
+      if ( value?.ok ) flat += Number(value.value) || 0;
+      else rolled.push(part);
+    }
+    return [...(flat ? [{schemaVersion: 1, id: `summon-${name}`, type: "Modifier", predicate,
+      data: {domains: ["damage"], modifierType: "untyped", value: flat}}] : []),
+      ...rolled.map((part, index) => ({schemaVersion: 1, id: `summon-${name}${index ? `-${index}` : ""}${flat ? "-dice" : ""}`, type: "ExtraDamage",
+        predicate, data: {domains: ["damage"], expression: part}}))];
   });
   return {hp: number("hp"), ac: number("ac"), rules};
 }

@@ -2400,7 +2400,7 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
     if ( !formula || (String(formula).trim() === "0") ) continue;
     // A spell's by its level; a class feature's by its summoner (a Steel Defender's: Intelligence + 5 per artificer level).
     const expression = ["hp", "ac", "attackDamage", "saveDamage"].includes(name)
-      ? (summonBonus(formula) ?? ((document.type === "feat") ? formulaExpression(formula, {scales}) : null)) : null;
+      ? (summonBonus(formula, level, spell) ?? ((document.type === "feat") ? formulaExpression(formula, {scales}) : null)) : null;
     if ( expression ) bonuses[name] = expression;
     else lost.push(name);
   }
@@ -2597,13 +2597,23 @@ const SUMMON_RULES = Object.freeze({
   "eldritch-cannon": {limit: "uses"}
 });
 
-function summonBonus(formula) {
-  const text = String(formula).replace(/@item\.level/g, "castlevelx").trim();
-  const variables = {castlevelx: {type: "context", path: "castLevel"}};
-  const dice = /^\((.+)\)\s*d\s*(\d+)$/.exec(text);
-  const parsed = parseFormula(dice ? dice[1] : text, {variables});
-  if ( !parsed.ok ) return null;
-  return dice ? {type: "dice", number: parsed.expression, faces: Number(dice[2])} : parsed.expression;
+function summonBonus(formula, level=0, spell=true) {
+  // The summoner's numbers, worked out when cast: its spellcasting modifier (a spell's `@mod`: Conjure Fey's), its Hit
+  // Point maximum (Arcane Hand's), and the levels above the spell's own (`@scaling`: Conjure Elemental's dice).
+  const text = String(formula).replace(/@item\.level/g, "castlevelx").replace(/@scaling\b/g, "scalingx")
+    .replace(spell ? /@attributes\.spell\.mod|@mod\b/g : /@attributes\.spell\.mod/g, "spellmodx")
+    .replace(/@attributes\.hp\.(?:effectiveMax|max)\b/g, "hpmaxx").trim();
+  const variables = {castlevelx: {type: "context", path: "castLevel"},
+    scalingx: {type: "subtract", left: {type: "context", path: "castLevel"}, right: {type: "constant", value: Number(level) || 0}},
+    spellmodx: {type: "spellcasting-modifier"}, hpmaxx: {type: "resource-max", resource: "health"}};
+  const terms = [];
+  for ( const part of text.split(/\s*\+\s*(?![^(]*\))/) ) {
+    const dice = /^\((.+)\)\s*d\s*(\d+)$/.exec(part);
+    const parsed = parseFormula(dice ? dice[1] : part, {variables});
+    if ( !parsed.ok ) return null;
+    terms.push(dice ? {type: "dice", number: parsed.expression, faces: Number(dice[2])} : parsed.expression);
+  }
+  return (terms.length === 1) ? terms[0] : {type: "add", terms};
 }
 
 /** The Action of something used but not automated: its cost, its uses and, for a spell, its slot. */

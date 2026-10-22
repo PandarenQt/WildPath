@@ -215,7 +215,11 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
 - **Summons** (2026-10-15). A summon activity summons its creature from the converted creature packs. Several
   creatures become a choice. It lasts the spell's duration in rounds, or while the caster concentrates.
   - What its creature gains with the spell's level comes too: Hit Points, AC, and attack and save damage
-    (companions.md).
+    (companions.md). Since 2026-10-22 those may use its caster's numbers: its spellcasting modifier (Arcane Sword's
+    damage), its Hit Point maximum (Arcane Hand's Hit Points) and the levels above the spell's (`@scaling`: Conjure
+    Elemental's 1d8 per level). A sum ("modifier + 2d12", Conjure Fey's) becomes a Modifier worked out with the caster's
+    numbers and an ExtraDamage for its dice. A Dancing Sword's wielder modifier and Find Steed's Hit Dice and healing
+    stay by hand.
   - Left by hand:
     - a creature chosen by Challenge Rating (Find Familiar);
     - a count from a formula;
