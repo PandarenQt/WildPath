@@ -706,7 +706,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Indifference\" marks its creature only; its rules are by hand"
+              "effect: \"Indifference\" marks its creature (narrative)"
             ]
           }
         }
@@ -755,7 +755,31 @@
               "type": "effect",
               "name": "Dispelling Evil and Good",
               "img": "icons/magic/light/orb-hands-humanoid-yellow.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "dispelling",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "attacked"
+                    ],
+                    "mode": "disadvantage"
+                  },
+                  "predicate": {
+                    "oneOf": {
+                      "path": "attack.attackerType",
+                      "values": [
+                        "celestial",
+                        "elemental",
+                        "fey",
+                        "fiend",
+                        "undead"
+                      ]
+                    }
+                  }
+                }
+              ],
               "duration": {
                 "value": 1,
                 "units": "rounds",
@@ -802,7 +826,6 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand",
               "save: a failure marks its creature only; what it does is by hand",
               "not automated (utility): using it spends its cost; its description says the rest"
             ]
@@ -1608,8 +1631,7 @@
         "notes": [
           "Spellcasting: effect: \"Detect Evil and Good\" marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: effect: \"Indifference\" marks its creature only; its rules are by hand",
-          "Spellcasting: effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Indifference\" marks its creature (narrative)",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",

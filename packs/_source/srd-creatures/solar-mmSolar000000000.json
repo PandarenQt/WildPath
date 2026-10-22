@@ -786,7 +786,31 @@
               "type": "effect",
               "name": "Dispelling Evil and Good",
               "img": "icons/magic/light/orb-hands-humanoid-yellow.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "dispelling",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "attacked"
+                    ],
+                    "mode": "disadvantage"
+                  },
+                  "predicate": {
+                    "oneOf": {
+                      "path": "attack.attackerType",
+                      "values": [
+                        "celestial",
+                        "elemental",
+                        "fey",
+                        "fiend",
+                        "undead"
+                      ]
+                    }
+                  }
+                }
+              ],
               "duration": {
                 "value": 1,
                 "units": "rounds",
@@ -833,7 +857,6 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand",
               "save: a failure marks its creature only; what it does is by hand",
               "not automated (utility): using it spends its cost; its description says the rest"
             ]
@@ -1874,7 +1897,6 @@
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
-          "Spellcasting: effect: \"Dispelling Evil and Good\" marks its creature only; its rules are by hand",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
