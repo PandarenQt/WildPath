@@ -1,9 +1,25 @@
-import {existsSync, mkdirSync, mkdtempSync, renameSync, rmSync, writeFileSync} from "node:fs";
+import {existsSync, mkdirSync, mkdtempSync, realpathSync, renameSync, rmSync, writeFileSync} from "node:fs";
 import {tmpdir} from "node:os";
-import {join, relative} from "node:path";
+import {dirname, isAbsolute, join, relative, resolve, sep} from "node:path";
+import {fileURLToPath} from "node:url";
 import {compilePack} from "@foundryvtt/foundryvtt-cli";
 import {slugify} from "./dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../../module/helpers/action-definitions.mjs";
+
+/** This repository's root, wherever the script is run from. */
+const REPOSITORY = realpathSync(fileURLToPath(new URL("../../", import.meta.url)));
+
+/**
+ * Whether `target` lies inside this repository, by real paths (a junction or `..` in it counts): its nearest existing
+ * folder is resolved, so a package not yet written is judged by where it would land.
+ */
+export function insideRepository(target) {
+  let existing = resolve(target);
+  while ( !existsSync(existing) && (dirname(existing) !== existing) ) existing = dirname(existing);
+  const real = join(realpathSync(existing), relative(existing, resolve(target)));
+  const path = relative(REPOSITORY, real);
+  return (path === "") || (!isAbsolute(path) && (path !== "..") && !path.startsWith(`..${sep}`));
+}
 
 /**
  * Write a local WildPath module package (a book the maintainer owns: converted from a bought Foundry module, or built
@@ -15,7 +31,7 @@ import {validateActionDefinition} from "../../module/helpers/action-definitions.
  * `packs`: `[name, type ("Item" | "Actor" | "RollTable"), documents, label]`; empty ones are left out.
  */
 export async function writeLocalModule({target, id, title, description, version="1.0.0", packs, flags={}, notes=[]}) {
-  if ( !relative(process.cwd(), target).startsWith("..") ) throw new Error(`Refusing to write ${target}: it is inside this repository.`);
+  if ( insideRepository(target) ) throw new Error(`Refusing to write ${target}: it is inside this repository.`);
   const written = packs.filter(([, , list]) => list.length);
   const actions = written.flatMap(([, , list]) => list.flatMap(document => [document, ...(document.items ?? [])]))
     .filter(item => item.type === "action");
@@ -49,7 +65,11 @@ export async function writeLocalModule({target, id, title, description, version=
       try { renameSync(target, old); }
       catch (error) { throw new Error(`${target} is in use (is Foundry running with it open?); nothing was changed. ${error.message}`); }
     }
-    renameSync(fresh, target);
+    try { renameSync(fresh, target); }
+    catch (error) {
+      if ( existsSync(old) ) renameSync(old, target);
+      throw error;
+    }
     rmSync(old, {recursive: true, force: true});
   } finally {
     rmSync(work, {recursive: true, force: true});
