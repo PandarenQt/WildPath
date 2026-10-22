@@ -771,7 +771,9 @@ rules to the creatures within `radius` feet of its bearer.
     it had Disadvantage again.
 - **Limits.**
   - Data preparation leaves auras out, so an aura does not change Speed or health maxima.
-  - Only Modifier-type rules reach statistics; roll modes from auras are not read yet.
+  - Modifiers and (2026-10-22) RollModes reach those inside: `getRollModes` reads the auras around its creature (2024
+    Aura of Authority: "the warlord and its allies have Advantage on attack rolls and saving throws"; the converter's
+    `rollModeAura` reads that text). Other rule types in an aura (ExtraDamage) are not read yet.
   - Validation requires a radius, a known `affects`, and nested rules the engine knows.
 
 Live (GM browser, 14.369, physical dice): a paladin's +1 AC aura gave an ally 10 ft away AC 15 (14 + 1). A goblin's

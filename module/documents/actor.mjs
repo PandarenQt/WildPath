@@ -226,7 +226,8 @@ export default class WildPathActor extends Actor {
    * @param {{item?: Item|null, context?: object}} [options]
    */
   getRollModes(domains, {item=null, context={}}={}) {
-    const owners = grantOwners(this);
+    // The auras around it too (Aura of Authority): roll modes are read for a roll, never while preparing.
+    const owners = [...grantOwners(this), ...this.auraOwners()];
     if ( item?.system?.ruleElements?.length ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
     return rollModesFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system,
       conditions: [...(this.statuses ?? [])], ...context}});
