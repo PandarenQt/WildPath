@@ -203,6 +203,9 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
     choice becomes a single fixed level (`fromCast`, answered by the authority, never asked), so its scaling applies
     (12d6) and the cast's `castingLevel` is that level (an option's `metadata` now reaches its selection).
   - dnd5e's cached copies of those spells are left out.
+  - A book's creatures and items may cast another installed book's spells (2026-10-22): the book converter reads the
+    spells of every other dnd5e book module found in the Data folder too (a Monster Manual Death Knight's Player's
+    Handbook spells). A spell from a book that is not installed stays a manual Action.
 - **Uses.**
   - Each activity with uses has a pool of its own.
   - "Day" and "dawn" recover on a long rest.
