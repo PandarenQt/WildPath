@@ -106,7 +106,14 @@
         }
       ],
       "metadata": {
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "True Seeing"
     },

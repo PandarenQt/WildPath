@@ -157,7 +157,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "bard",
+          "warlock"
+        ]
       },
       "label": "Enthrall"
     },

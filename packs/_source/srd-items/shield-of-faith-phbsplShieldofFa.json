@@ -144,7 +144,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "devotion",
+          "cleric",
+          "paladin"
+        ]
       },
       "label": "Shield of Faith"
     },

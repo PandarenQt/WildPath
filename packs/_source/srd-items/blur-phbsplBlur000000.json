@@ -128,7 +128,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "land-arid",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Blur"
     },

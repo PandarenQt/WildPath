@@ -131,7 +131,17 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "druid",
+          "paladin",
+          "ranger",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Detect Magic"
     },

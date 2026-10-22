@@ -103,7 +103,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "druid"
+        ]
       },
       "label": "Antilife Shell"
     },

@@ -87,7 +87,12 @@
         }
       },
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "land-temperate",
+          "druid",
+          "ranger"
+        ]
       },
       "label": "Tree Stride"
     },

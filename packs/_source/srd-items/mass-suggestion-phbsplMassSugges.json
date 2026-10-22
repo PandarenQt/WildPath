@@ -116,7 +116,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "bard",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Mass Suggestion"
     },

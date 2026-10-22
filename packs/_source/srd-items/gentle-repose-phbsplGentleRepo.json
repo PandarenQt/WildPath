@@ -98,7 +98,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "cleric",
+          "paladin",
+          "wizard"
+        ]
       },
       "label": "Gentle Repose"
     },

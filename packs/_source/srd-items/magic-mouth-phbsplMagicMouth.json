@@ -93,7 +93,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "bard",
+          "wizard"
+        ]
       },
       "label": "Magic Mouth"
     },

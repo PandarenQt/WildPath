@@ -108,7 +108,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "life",
+          "cleric",
+          "paladin"
+        ]
       },
       "label": "Death Ward"
     },

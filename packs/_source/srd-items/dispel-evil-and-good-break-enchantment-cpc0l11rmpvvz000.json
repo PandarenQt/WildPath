@@ -27,7 +27,11 @@
       },
       "metadata": {
         "followUp": true,
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "cleric",
+          "paladin"
+        ]
       },
       "label": "Dispel Evil and Good (Break Enchantment)"
     },

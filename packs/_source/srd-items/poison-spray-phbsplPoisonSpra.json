@@ -80,7 +80,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "druid",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Poison Spray"
     },

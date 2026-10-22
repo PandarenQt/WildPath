@@ -56,7 +56,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 7
+        "spellLevel": 7,
+        "spellLists": [
+          "bard",
+          "druid",
+          "wizard"
+        ]
       },
       "label": "Mirage Arcane"
     },

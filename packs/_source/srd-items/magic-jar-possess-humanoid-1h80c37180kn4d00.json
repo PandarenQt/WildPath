@@ -87,7 +87,10 @@
       ],
       "metadata": {
         "followUp": true,
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "wizard"
+        ]
       },
       "label": "Magic Jar (Possess Humanoid)"
     },

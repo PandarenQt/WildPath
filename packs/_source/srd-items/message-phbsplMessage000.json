@@ -26,7 +26,13 @@
         ]
       },
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "bard",
+          "druid",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Message"
     },

@@ -144,7 +144,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "paladin"
+        ]
       },
       "label": "Divine Smite"
     },

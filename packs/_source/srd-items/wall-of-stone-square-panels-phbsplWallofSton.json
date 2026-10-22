@@ -82,7 +82,13 @@
         }
       },
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "land-arid",
+          "druid",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Wall of Stone (Square Panels)"
     },

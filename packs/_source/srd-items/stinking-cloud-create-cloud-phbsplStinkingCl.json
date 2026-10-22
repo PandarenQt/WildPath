@@ -96,7 +96,14 @@
         }
       },
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "land-tropical",
+          "fiend",
+          "bard",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Stinking Cloud (Create Cloud)"
     },

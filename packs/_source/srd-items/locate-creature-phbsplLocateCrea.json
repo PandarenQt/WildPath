@@ -89,7 +89,15 @@
         }
       },
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "druid",
+          "paladin",
+          "ranger",
+          "wizard"
+        ]
       },
       "label": "Locate Creature"
     },

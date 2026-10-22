@@ -121,7 +121,12 @@
         "spellLevel": 2
       },
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "druid",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Flaming Sphere (summon)"
     },

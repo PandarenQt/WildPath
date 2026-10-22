@@ -157,7 +157,11 @@
         }
       },
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "druid",
+          "ranger"
+        ]
       },
       "label": "Conjure Animals (save)"
     },

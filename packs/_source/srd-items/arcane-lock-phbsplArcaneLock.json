@@ -98,7 +98,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "wizard"
+        ]
       },
       "label": "Arcane Lock"
     },

@@ -119,7 +119,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 7
+        "spellLevel": 7,
+        "spellLists": [
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Finger of Death (Negative Energy Save)"
     },

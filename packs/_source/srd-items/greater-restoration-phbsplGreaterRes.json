@@ -153,7 +153,15 @@
         }
       ],
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "life",
+          "bard",
+          "cleric",
+          "druid",
+          "paladin",
+          "ranger"
+        ]
       },
       "label": "Greater Restoration"
     },

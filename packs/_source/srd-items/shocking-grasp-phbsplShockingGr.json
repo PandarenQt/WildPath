@@ -101,7 +101,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "land-temperate",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Shocking Grasp"
     },

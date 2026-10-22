@@ -761,7 +761,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "cleric",
+          "druid"
+        ]
       },
       "label": "Guidance"
     },

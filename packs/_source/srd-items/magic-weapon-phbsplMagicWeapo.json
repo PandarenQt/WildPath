@@ -191,7 +191,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "paladin",
+          "ranger",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Magic Weapon"
     },

@@ -150,7 +150,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "bard",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Phantasmal Force (Cast)"
     },

@@ -129,7 +129,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "devotion",
+          "cleric"
+        ]
       },
       "label": "Guardian of Faith (save)"
     },

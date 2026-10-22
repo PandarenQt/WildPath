@@ -97,7 +97,10 @@
         "spellLevel": 3
       },
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "wizard"
+        ]
       },
       "label": "Phantom Steed"
     },

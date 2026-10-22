@@ -117,7 +117,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "bard",
+          "ranger",
+          "wizard"
+        ]
       },
       "label": "Nondetection"
     },

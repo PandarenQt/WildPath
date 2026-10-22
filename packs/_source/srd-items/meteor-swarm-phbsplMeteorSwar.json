@@ -109,7 +109,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 9
+        "spellLevel": 9,
+        "spellLists": [
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Meteor Swarm"
     },

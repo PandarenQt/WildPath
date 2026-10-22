@@ -508,7 +508,14 @@
         "concentration": true
       },
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "land-tropical",
+          "bard",
+          "druid",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Polymorph"
     },

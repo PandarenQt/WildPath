@@ -134,7 +134,15 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "draconic",
+          "bard",
+          "druid",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Charm Monster"
     },

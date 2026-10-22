@@ -85,7 +85,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "bard",
+          "wizard"
+        ]
       },
       "label": "Tiny Hut"
     },

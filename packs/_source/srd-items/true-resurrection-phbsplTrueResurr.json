@@ -44,7 +44,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 9
+        "spellLevel": 9,
+        "spellLists": [
+          "cleric",
+          "druid"
+        ]
       },
       "label": "True Resurrection"
     },

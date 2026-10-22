@@ -153,7 +153,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "ranger"
+        ]
       },
       "label": "Hunter's Mark (Mark Creature)"
     },

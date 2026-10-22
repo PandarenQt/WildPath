@@ -57,7 +57,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 7
+        "spellLevel": 7,
+        "spellLists": [
+          "bard",
+          "wizard"
+        ]
       },
       "label": "Magnificent Mansion"
     },

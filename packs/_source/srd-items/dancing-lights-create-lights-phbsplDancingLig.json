@@ -68,7 +68,12 @@
         "concentration": true
       },
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "bard",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Dancing Lights (Create Lights)"
     },

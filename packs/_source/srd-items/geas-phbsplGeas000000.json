@@ -144,7 +144,15 @@
         }
       ],
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "fiend",
+          "bard",
+          "cleric",
+          "druid",
+          "paladin",
+          "wizard"
+        ]
       },
       "label": "Geas"
     },

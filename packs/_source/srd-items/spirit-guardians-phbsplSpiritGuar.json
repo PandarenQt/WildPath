@@ -290,7 +290,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "cleric"
+        ]
       },
       "label": "Spirit Guardians"
     },

@@ -173,7 +173,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Mind Spike"
     },

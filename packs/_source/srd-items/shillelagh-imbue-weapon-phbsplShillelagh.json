@@ -213,7 +213,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "druid"
+        ]
       },
       "label": "Shillelagh (Imbue Weapon)"
     },

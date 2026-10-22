@@ -126,7 +126,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "druid"
+        ]
       },
       "label": "Wind Walk"
     },

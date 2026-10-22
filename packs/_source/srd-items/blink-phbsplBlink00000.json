@@ -102,7 +102,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Blink"
     },

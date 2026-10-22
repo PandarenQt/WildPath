@@ -115,7 +115,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 9
+        "spellLevel": 9,
+        "spellLists": [
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Weird (save)"
     },

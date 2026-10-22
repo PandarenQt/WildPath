@@ -285,7 +285,14 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "cleric",
+          "druid",
+          "ranger",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Protection from Energy"
     },

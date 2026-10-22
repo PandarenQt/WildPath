@@ -101,7 +101,11 @@
         "spellLevel": 6
       },
       "metadata": {
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "bard",
+          "wizard"
+        ]
       },
       "label": "Programmed Illusion"
     },

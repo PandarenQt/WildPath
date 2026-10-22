@@ -137,7 +137,14 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "draconic",
+          "bard",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Fear"
     },

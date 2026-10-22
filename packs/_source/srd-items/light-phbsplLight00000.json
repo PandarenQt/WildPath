@@ -38,7 +38,13 @@
         "rounds": 600
       },
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Light"
     },

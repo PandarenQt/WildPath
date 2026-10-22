@@ -446,7 +446,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "wizard"
+        ]
       },
       "label": "Bestow Curse (Curse Ability)"
     },

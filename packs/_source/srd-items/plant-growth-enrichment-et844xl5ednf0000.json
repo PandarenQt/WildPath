@@ -84,7 +84,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "bard",
+          "druid",
+          "ranger"
+        ]
       },
       "label": "Plant Growth (Enrichment)"
     },

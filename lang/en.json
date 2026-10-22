@@ -1265,7 +1265,8 @@
       "CannotRead": "{name} casts no spells and can't read the scroll.",
       "Lost": "{name}: the check (DC {dc}) failed, and the spell fades from the scroll.",
       "Make": "Make Spell Scroll",
-      "Made": "{name} is in the Items directory."
+      "Made": "{name} is in the Items directory.",
+      "NotOnList": "{name} can't read this scroll: its spell is not on any of their classes' spell lists."
     },
     "ENCOUNTER": {
       "Difficulty": "Encounter: {difficulty} ({xp} XP; Low {low}, Moderate {moderate}, High {high})",

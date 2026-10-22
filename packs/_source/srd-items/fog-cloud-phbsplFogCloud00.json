@@ -109,7 +109,14 @@
         }
       },
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "land-polar",
+          "druid",
+          "ranger",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Fog Cloud"
     },

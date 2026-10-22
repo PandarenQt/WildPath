@@ -130,7 +130,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "wizard"
+        ]
       },
       "label": "Resilient Sphere"
     },

@@ -38,7 +38,13 @@
         "rounds": 10
       },
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "bard",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Mage Hand"
     },

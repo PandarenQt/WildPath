@@ -127,7 +127,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "fiend",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Scorching Ray"
     },

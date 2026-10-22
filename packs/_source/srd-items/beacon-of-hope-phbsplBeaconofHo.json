@@ -128,7 +128,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "devotion",
+          "cleric"
+        ]
       },
       "label": "Beacon of Hope"
     },

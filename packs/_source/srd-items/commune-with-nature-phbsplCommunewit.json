@@ -70,7 +70,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "druid",
+          "ranger"
+        ]
       },
       "label": "Commune with Nature"
     },

@@ -130,7 +130,14 @@
         }
       ],
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "bard",
+          "cleric",
+          "druid",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Scrying (Firsthand and Garment)"
     },

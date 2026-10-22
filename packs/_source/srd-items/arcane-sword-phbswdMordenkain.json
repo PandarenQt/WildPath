@@ -84,7 +84,11 @@
         }
       },
       "metadata": {
-        "spellLevel": 7
+        "spellLevel": 7,
+        "spellLists": [
+          "bard",
+          "wizard"
+        ]
       },
       "label": "Arcane Sword"
     },

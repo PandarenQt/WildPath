@@ -110,7 +110,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "cleric",
+          "druid"
+        ]
       },
       "label": "Heal"
     },

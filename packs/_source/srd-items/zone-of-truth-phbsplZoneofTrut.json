@@ -209,7 +209,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "devotion",
+          "bard",
+          "cleric",
+          "paladin"
+        ]
       },
       "label": "Zone of Truth"
     },

@@ -216,7 +216,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 7
+        "spellLevel": 7,
+        "spellLists": [
+          "cleric"
+        ]
       },
       "label": "Divine Word"
     },

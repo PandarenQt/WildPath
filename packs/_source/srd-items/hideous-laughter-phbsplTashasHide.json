@@ -169,7 +169,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "bard",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Hideous Laughter"
     },

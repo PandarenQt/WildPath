@@ -154,7 +154,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "land-tropical",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Ray of Sickness"
     },

@@ -224,7 +224,10 @@
         "spellLevel": 1
       },
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "wizard"
+        ]
       },
       "label": "Find Familiar"
     },

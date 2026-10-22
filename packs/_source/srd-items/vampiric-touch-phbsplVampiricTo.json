@@ -133,7 +133,12 @@
         }
       },
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Vampiric Touch"
     },

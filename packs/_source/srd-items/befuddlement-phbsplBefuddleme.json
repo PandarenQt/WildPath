@@ -114,7 +114,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 8
+        "spellLevel": 8,
+        "spellLists": [
+          "bard",
+          "druid",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Befuddlement"
     },

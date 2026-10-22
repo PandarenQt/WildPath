@@ -123,7 +123,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "bard",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Disguise Self"
     },

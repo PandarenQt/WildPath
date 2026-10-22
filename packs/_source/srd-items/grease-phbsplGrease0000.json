@@ -203,7 +203,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Grease"
     },

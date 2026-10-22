@@ -140,7 +140,14 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "land-temperate",
+          "devotion",
+          "cleric",
+          "druid",
+          "ranger"
+        ]
       },
       "label": "Freedom of Movement"
     },

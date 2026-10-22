@@ -147,7 +147,15 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "life",
+          "bard",
+          "cleric",
+          "druid",
+          "paladin",
+          "ranger"
+        ]
       },
       "label": "Cure Wounds"
     },

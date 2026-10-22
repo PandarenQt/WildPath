@@ -1,6 +1,6 @@
 import {mkdirSync, rmSync, writeFileSync} from "node:fs";
 import {join} from "node:path";
-import {PROGRESSION_TYPES, beastsOf, convertActor, convertItem, convertProgression, convertTable, isSrd2024, nameIndex, scaleTables, slugify,
+import {spellListsOf, PROGRESSION_TYPES, beastsOf, convertActor, convertItem, convertProgression, convertTable, isSrd2024, nameIndex, scaleTables, slugify,
   withRedirects} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 
@@ -26,8 +26,9 @@ const ITEM_PACKS = ["equipment24", "spells24", "classes24", "feats24", "origins2
 const scales = scaleTables(["classes24", "origins24", "feats24"].flatMap(pack => readPack(from, pack)));
 const names = nameIndex([...ITEM_PACKS, "actors24", "content24", "tables24"].flatMap(pack => readPack(from, pack)));
 const wanted = document => isSrd2024(document) && (!only || only.has(document.name));
-// The spells a creature's Spellcasting casts, by id.
+// The spells a creature's Spellcasting casts, by id; and the class spell lists each is on (who may read its scroll).
 const spells = Object.fromEntries(readPack(from, "spells24").map(document => [document._id, document]));
+const spellLists = spellListsOf(readPack(from, "content24"));
 // The creatures a summon brings, by dnd5e id: the SRD's own, in this system's creature pack. Some SRD items (a
 // Figurine of Wondrous Power, a Horn of Valhalla) name a creature by an older id; these are the SRD creatures those ids
 // redirect to (ids only, as the DMG module's redirects give them).
@@ -63,7 +64,7 @@ const convertedIds = new Map();
 for ( const pack of ITEM_PACKS ) {
   for ( const document of readPack(from, pack).filter(wanted) ) {
     if ( !["spell", "weapon", "feat", "equipment", "consumable", "tool", "loot", "container"].includes(document.type) ) continue;
-    const result = convertItem(document, {scales, pack, names, creatures, spells, beasts, tables});
+    const result = convertItem(document, {scales, pack, names, creatures, spells, beasts, tables, spellLists});
     items.push(...result.items);
     const gear = result.items.filter(item => item.type === "gear");
     const granting = result.items.filter(item => item.flags?.wildpath?.grants?.length);

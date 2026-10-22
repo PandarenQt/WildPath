@@ -157,7 +157,15 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "devotion",
+          "cleric",
+          "druid",
+          "paladin",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Protection from Evil and Good"
     },

@@ -113,7 +113,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "cleric",
+          "druid",
+          "ranger"
+        ]
       },
       "label": "Meld into Stone (damage)"
     },

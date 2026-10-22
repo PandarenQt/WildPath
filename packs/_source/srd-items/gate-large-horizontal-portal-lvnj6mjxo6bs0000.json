@@ -54,7 +54,13 @@
         }
       },
       "metadata": {
-        "spellLevel": 9
+        "spellLevel": 9,
+        "spellLists": [
+          "cleric",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Gate (Large Horizontal Portal)"
     },

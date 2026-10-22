@@ -52,6 +52,7 @@ On a character's **Bastion map**, the **Make a Scene** button builds a Scene of 
   - a Spell Scroll takes its spell level's.
 - **Make Spell Scroll.** This button is on any spell's sheet. It puts a Spell Scroll of that spell in the Items directory.
   - Its reader casts the spell at its own level, with the scroll's save DC and attack bonus.
+  - Only a character with the spell on one of their classes' spell lists can read it.
   - A reader whose highest spell level is below the spell's first makes a check, DC 10 + the spell's level, and loses the spell on a failure.
   - Either way, the scroll crumbles.
 - **Identified.** A magic item's sheet has an **Identified** box and an unidentified name. While the box is unticked, players see only the item's unidentified name and description.

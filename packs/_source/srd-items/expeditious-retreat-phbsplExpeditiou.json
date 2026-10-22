@@ -109,7 +109,12 @@
         }
       },
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Expeditious Retreat"
     },

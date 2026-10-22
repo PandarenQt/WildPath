@@ -26,7 +26,12 @@
         ]
       },
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "druid",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Elementalism (Beckon Element)"
     },

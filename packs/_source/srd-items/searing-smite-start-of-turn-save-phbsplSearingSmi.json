@@ -136,7 +136,10 @@
       ],
       "metadata": {
         "followUp": true,
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "paladin"
+        ]
       },
       "label": "Searing Smite (Start of Turn Save)"
     },

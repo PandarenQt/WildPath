@@ -27,7 +27,12 @@
       },
       "metadata": {
         "followUp": true,
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "cleric",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Create Undead (Mentally Command)"
     },

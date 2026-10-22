@@ -203,7 +203,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "cleric",
+          "druid",
+          "wizard"
+        ]
       },
       "label": "Control Water (Create Whirlpool)"
     },

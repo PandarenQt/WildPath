@@ -140,7 +140,13 @@
         }
       },
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "druid",
+          "ranger",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "push": {
         "distance": 15

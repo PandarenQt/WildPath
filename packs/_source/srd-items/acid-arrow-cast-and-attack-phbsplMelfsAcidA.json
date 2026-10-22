@@ -185,7 +185,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "wizard"
+        ]
       },
       "label": "Acid Arrow (Cast and Attack)"
     },

@@ -126,7 +126,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 8
+        "spellLevel": 8,
+        "spellLists": [
+          "bard",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Power Word Stun"
     },

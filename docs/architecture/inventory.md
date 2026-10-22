@@ -188,7 +188,10 @@ gear's `grants` are). That Action (`helpers/spell-scrolls.mjs`):
   spellcasting ability, DC 10 + the spell's level, and on a failure the spell fades (`Item#use`);
 - once read, the scroll crumbles: one fewer, and gone with its Action at none.
 
-shortcut: any spellcaster reads any scroll, not only one whose spell is on its class's list.
+Only a character with the spell on one of its classes' spell lists reads it (2026-10-22, `onSpellList`): each converted
+spell carries `metadata.spellLists`, the class (and subclass) lists dnd5e's spell list pages put it on (SRD, and a
+book's own pages); a spell on no list (homebrew) any spellcaster reads. A creature that is not a character is not
+checked (a stat block's spellcasting has no class).
 
 Live (14.369): a non-caster couldn't read a Guiding Bolt scroll; a 1st-level Wizard read it (1d20 + 5) and it crumbled;
 a Hold Person scroll's DC 12 check failed (8), and the scroll was gone.

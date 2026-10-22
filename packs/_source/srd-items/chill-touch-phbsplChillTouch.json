@@ -101,7 +101,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 0
+        "spellLevel": 0,
+        "spellLists": [
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Chill Touch"
     },

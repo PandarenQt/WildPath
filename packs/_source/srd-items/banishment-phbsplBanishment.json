@@ -136,7 +136,14 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "cleric",
+          "paladin",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Banishment"
     },

@@ -64,7 +64,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "cleric"
+        ]
       },
       "label": "Forbiddance (Create Ward)"
     },

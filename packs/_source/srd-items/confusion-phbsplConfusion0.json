@@ -144,7 +144,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "bard",
+          "druid",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Confusion"
     },

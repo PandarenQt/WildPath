@@ -156,7 +156,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "bard",
+          "druid",
+          "ranger"
+        ]
       },
       "label": "Animal Friendship"
     },

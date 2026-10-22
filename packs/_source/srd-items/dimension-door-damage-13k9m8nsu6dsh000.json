@@ -122,7 +122,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "bard",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Dimension Door (damage)"
     },

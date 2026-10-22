@@ -1084,7 +1084,7 @@ export function upgradeLegacy(document) {
  * @returns {{ok: true, items: object[], notes: string[]} | {ok: false, reason: string}}
  */
 export function convertItem(document, {scales={}, pack=null, saveDC=null, spellDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2",
-  images=["icons/"], spells={}, creatures={}, beasts=[], usesOf={}, tables={}}={}) {
+  images=["icons/"], spells={}, creatures={}, beasts=[], usesOf={}, tables={}, spellLists={}}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   document = upgradeLegacy(document);
   const system = document.system ?? {};
@@ -1257,8 +1257,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("concentration: nothing")),
         "concentration: its caster concentrates; what it sustains is by hand");
     }
-    // A spell's level, for what ends spells by level (Dispel Magic); a slot cast at a higher one says so when used.
-    if ( spell && Number.isFinite(Number(level)) ) definition = {...definition, metadata: {...(definition.metadata ?? {}), spellLevel: Number(level)}};
+    // A spell's level, for what ends spells by level (Dispel Magic); a slot cast at a higher one says so when used. And
+    // the class spell lists it is on (`spellLists`: who may read its Spell Scroll).
+    if ( spell && Number.isFinite(Number(level)) ) definition = {...definition, metadata: {...(definition.metadata ?? {}), spellLevel: Number(level),
+      ...(spellLists[document._id]?.length ? {spellLists: [...spellLists[document._id]]} : {})}};
     // A spell's tags say what it is, for rules on spell damage: a cantrip, its school (`school:evocation`: Empowered
     // Evocation), each damage type it deals (`damage:fire`: Elemental Affinity), and its components (Counterspell).
     if ( spell ) definition = {...definition, tags: [...new Set([...(definition.tags ?? []), ...(Number(level) === 0 ? ["cantrip"] : []),
@@ -2294,6 +2296,23 @@ export function convertTable(table, {uuidOf, source}) {
         description: text(result.description), ...(to ? {documentUuid: to} : {})};
     }),
     flags: {wildpath: {source}}};
+}
+
+/**
+ * The class spell lists each spell is on, by its dnd5e id, from dnd5e's spell list pages (a "Wizard Spell List" journal
+ * page: `type: "spells"`, `system.identifier`, `system.spells` uuids): `{phbsplFireball00: ["sorcerer", "wizard"]}`.
+ */
+export function spellListsOf(journals=[]) {
+  const lists = {};
+  for ( const page of journals.flatMap(journal => journal.pages ?? []) ) {
+    const identifier = page?.type === "spells" ? page.system?.identifier : null;
+    if ( !identifier ) continue;
+    for ( const uuid of page.system?.spells ?? [] ) {
+      const id = String(uuid).split(".").pop();
+      (lists[id] ??= []).includes(identifier) || lists[id].push(identifier);
+    }
+  }
+  return lists;
 }
 
 /**

@@ -72,7 +72,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 5
+        "spellLevel": 5,
+        "spellLists": [
+          "bard",
+          "druid"
+        ]
       },
       "label": "Awaken"
     },

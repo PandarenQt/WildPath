@@ -83,7 +83,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "cleric",
+          "druid",
+          "wizard"
+        ]
       },
       "label": "Stone Shape"
     },

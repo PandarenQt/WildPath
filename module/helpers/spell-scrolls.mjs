@@ -4,10 +4,17 @@
  * - at the spell's own level, with no slot, and with the scroll's save DC and attack bonus (by level, below);
  * - a creature that casts no spells can't read it; one whose highest spell level is below the spell's makes an ability
  *   check with its spellcasting ability, DC 10 + the spell's level, and on a failure the spell is gone (Item#use);
- * - either way, once read the scroll crumbles (adapters: consumeScroll).
- * shortcut: any spellcaster can read any scroll, not only one whose spell is on its class's list; upgrade with class
- * spell lists.
+ * - either way, once read the scroll crumbles (adapters: consumeScroll);
+ * - only a creature with the spell on one of its classes' spell lists reads it (`metadata.spellLists`, from dnd5e's
+ *   lists); a spell on no list (homebrew) any spellcaster reads.
  */
+
+/** Whether `actor` has the spell on one of its classes' lists: its class Items' identifiers against the spell's lists. */
+export function onSpellList(actor, definition) {
+  const lists = definition?.metadata?.spellLists ?? [];
+  if ( !lists.length ) return true;
+  return [...(actor?.items ?? [])].some(item => (item.type === "class") && lists.includes(item.system?.identifier));
+}
 
 /** The scroll's save DC and attack bonus by spell level (2024 DMG). */
 export const SCROLL_STATS = Object.freeze([[13, 5], [13, 5], [13, 5], [15, 7], [15, 7], [17, 9], [17, 9], [18, 10], [18, 10], [19, 11]]

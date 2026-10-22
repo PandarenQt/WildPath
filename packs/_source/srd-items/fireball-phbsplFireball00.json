@@ -157,7 +157,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 3
+        "spellLevel": 3,
+        "spellLists": [
+          "land-arid",
+          "fiend",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Fireball"
     },

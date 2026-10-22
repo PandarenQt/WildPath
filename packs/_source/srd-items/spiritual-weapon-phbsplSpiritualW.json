@@ -113,7 +113,10 @@
         }
       },
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "cleric"
+        ]
       },
       "label": "Spiritual Weapon"
     },

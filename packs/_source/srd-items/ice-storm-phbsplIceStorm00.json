@@ -177,7 +177,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 4
+        "spellLevel": 4,
+        "spellLists": [
+          "land-polar",
+          "druid",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Ice Storm"
     },

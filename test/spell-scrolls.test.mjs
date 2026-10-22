@@ -32,3 +32,19 @@ test("its reader's highest spell level, its attack bonus fixed, and reading it u
   await consumeScrollOf(action);
   assert.deepEqual(events, [{"system.quantity": 1}, "gone"]);
 });
+
+test("a scroll is read only by a creature with its spell on one of its classes' spell lists (2024)", async () => {
+  const {onSpellList} = await import("../module/helpers/spell-scrolls.mjs");
+  const {spellListsOf} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const lists = spellListsOf([{name: "Spells", pages: [
+    {type: "spells", system: {identifier: "wizard", spells: ["Compendium.dnd5e.spells24.Item.phbsplFireball00"]}},
+    {type: "spells", system: {identifier: "sorcerer", spells: ["Compendium.dnd5e.spells24.Item.phbsplFireball00"]}},
+    {type: "text", system: {}}]}]);
+  assert.deepEqual(lists, {phbsplFireball00: ["wizard", "sorcerer"]});
+  const fireball = {metadata: {spellLevel: 3, spellLists: lists.phbsplFireball00}};
+  const caster = classes => ({items: classes.map(identifier => ({type: "class", system: {identifier}}))});
+  assert.equal(onSpellList(caster(["wizard"]), fireball), true);
+  assert.equal(onSpellList(caster(["cleric"]), fireball), false);
+  assert.equal(onSpellList(caster(["cleric", "sorcerer"]), fireball), true, "a multiclass character with the list");
+  assert.equal(onSpellList(caster(["cleric"]), {metadata: {spellLevel: 3}}), true, "a spell on no list");
+});

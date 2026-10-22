@@ -140,7 +140,11 @@
         }
       ],
       "metadata": {
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Disintegrate"
     },

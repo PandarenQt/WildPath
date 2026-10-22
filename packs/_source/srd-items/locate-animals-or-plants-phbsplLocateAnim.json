@@ -97,7 +97,12 @@
         }
       ],
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "bard",
+          "druid",
+          "ranger"
+        ]
       },
       "label": "Locate Animals or Plants"
     },

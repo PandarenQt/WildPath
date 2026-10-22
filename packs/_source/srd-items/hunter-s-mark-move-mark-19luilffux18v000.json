@@ -72,7 +72,10 @@
       ],
       "metadata": {
         "followUp": true,
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "ranger"
+        ]
       },
       "label": "Hunter's Mark (Move Mark)"
     },

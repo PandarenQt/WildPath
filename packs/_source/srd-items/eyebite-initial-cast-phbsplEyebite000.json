@@ -182,7 +182,13 @@
         }
       ],
       "metadata": {
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "bard",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Eyebite (Initial Cast)"
     },

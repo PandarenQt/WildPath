@@ -67,7 +67,10 @@
         }
       ],
       "metadata": {
-        "spellLevel": 6
+        "spellLevel": 6,
+        "spellLists": [
+          "cleric"
+        ]
       },
       "label": "Word of Recall (Designate Sanctuary)"
     },

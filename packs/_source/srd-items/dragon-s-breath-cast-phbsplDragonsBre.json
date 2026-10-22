@@ -103,7 +103,12 @@
         }
       },
       "metadata": {
-        "spellLevel": 2
+        "spellLevel": 2,
+        "spellLists": [
+          "draconic",
+          "sorcerer",
+          "wizard"
+        ]
       },
       "label": "Dragon's Breath (Cast)"
     },

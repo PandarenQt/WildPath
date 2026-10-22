@@ -155,7 +155,14 @@
         }
       ],
       "metadata": {
-        "spellLevel": 1
+        "spellLevel": 1,
+        "spellLists": [
+          "bard",
+          "druid",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ]
       },
       "label": "Charm Person"
     },
