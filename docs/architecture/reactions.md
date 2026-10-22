@@ -382,6 +382,12 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   Live (two browsers, 14.369): as a Rogue 14, QA Caster's Dagger hits offered Daze; its Sneak Attack rolled 5d6 (7d6
   less 2) and a failed save left the Bandit Captain Dazed. As a Warlock 5, Eldritch Smite spent a pact slot for 4d8
   Force (8d8 on a critical hit) and knocked the Captain Prone; Fire's Burn added 1d10 Fire and spent a use.
+- **What hitting a creature costs the attacker (2026-10-22):** a stat block's "a creature that hits it with a melee
+  attack takes 4 (1d8) Acid damage" (a Black Pudding's Corrosive Form, an Azer's Heated Body) is an Action with no cost
+  and a reaction Trigger on `attack.hit` against its own creature (`tagsAny: ["melee"]`), set to Always: whenever such
+  an attack hits, its damage lands on the attacker, even when the hit itself does nothing (the pudding is immune to
+  Slashing). shortcut: "while within 5 feet" is not measured, and touching it is the GM's. Live (14.369): each
+  Longsword hit on a Black Pudding cost the attacking Token 4 Acid.
 - **Retaliation, Stone's Endurance, Countercharm (2026-10-20):**
   - **Retaliation** (barbarian): `damage.applied` on itself from another creature. Its Trigger names a common Action
     (`commonAction: "opportunity"`), so the provider reacts with its creature's first melee attack or Unarmed Strike at

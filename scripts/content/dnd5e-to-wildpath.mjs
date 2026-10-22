@@ -96,6 +96,15 @@ const DEFLECTION = Object.freeze({dice: {type: "dice", number: 1, faces: 10}, bo
   {type: "ability-modifier", ability: "agility"}, {type: "class-level", class: "monk"}]}});
 
 /**
+ * What hitting its creature with a melee attack costs the attacker (2024 Black Pudding's Corrosive Form: "A creature that
+ * hits the pudding with a melee attack roll takes 4 (1d8) Acid damage"; an Azer's Heated Body, "touches ... or hits it
+ * with a melee attack"): its damage on the attacker, at once, whenever such an attack hits. shortcut: "while within 5
+ * feet of it" is not measured (a reach weapon's hit counts too), and touching it is the GM's.
+ */
+const RETALIATION_TEXT = /\b(?:a|any) creature that (?:touches [^.]{0,60}? or )?hits (?:it|the [^.,]{1,40}?|[^.,]{1,40}?) with a melee attack\b[^.]*\btakes\b/iu;
+const RETALIATION = Object.freeze({event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}", tagsAny: ["melee"]}});
+
+/**
  * Reactions by their 2024 trigger, as a reaction Trigger on their Action: Shield and a Parry when an attack on their
  * creature hits (the attack is then checked again against its new AC; Parry's only a melee attack), Counterspell when a
  * hostile creature it sees within 60 feet casts a spell with a component (a failed save cancels it, `counters`).
@@ -1138,7 +1147,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const trades = tradesPools({document, activity, pool, names, scales});
     // A trap's tier ("Trigger (5-10)", 2024 DMG) is set by the GM as a lasting area (trapDefinition).
     const trapTier = /^Trigger \(\d+[–-]\d+\)$/u.test(activity.name ?? "") && ["save", "damage", "attack"].includes(activity.type);
-    if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !trades && !trapTier && !USED_AT_TURN_START.has(identifierOf(document)) ) {
+    // What hitting it costs the attacker (a Black Pudding's Corrosive Form, an Azer's Heated Body): an Action of its own,
+    // answering the hit at once (RETALIATION).
+    const retaliates = (activity.type === "damage") && RETALIATION_TEXT.test(plainText(document));
+    if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !trades && !trapTier && !retaliates
+      && !USED_AT_TURN_START.has(identifierOf(document)) ) {
       // A recharge when its creature rolls Initiative (Persistent Rage, Uncanny Metabolism, Archdruid): automatic.
       const recharge = initiativeTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature,
         beasts}) ?? restTrigger(document, activity);
@@ -1320,7 +1333,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const choices = (activity.type === "utility") ? COMMON_CHOICES[`${identifierOf(document)}/${activity.name}`] : null;
     const title = common => ` (${common.charAt(0).toUpperCase()}${common.slice(1)})`;
     // A reaction its 2024 text triggers (Shield, Parry, Counterspell): a Trigger on its Action, which the engine offers.
-    const reaction = (activation === "reaction") ? REACTIONS[identifierOf(document)] : null;
+    const reaction = (activation === "reaction") ? REACTIONS[identifierOf(document)] : (retaliates ? RETALIATION : null);
+    if ( retaliates ) definition = {...definition, costs: {allOf: []}, range: {type: "special"}, targeting: {type: "single", required: true, count: 1}};
     // Its failed save cancels the spell it answers: that is what it does.
     if ( reaction?.counters ) {
       definition = {...definition, counters: true};
@@ -1384,6 +1398,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...(trigger.once ? {once: trigger.once} : {}),
         ...(trigger.onceKey ? {onceKey: trigger.onceKey} : {}), ...(trigger.uses ? {uses: trigger.uses} : {})}});
     if ( flurry ) reacting.system.ruleElements.push(structuredClone(FLURRY_POOL));
+    // Retaliation is no choice: it happens whenever it is hit (`reactionPolicy: always`).
+    if ( retaliates ) reacting.flags.wildpath.reactionPolicy = "always";
     items.push(reacting);
     // Cutting Words on an ability check (the same die off it, then judged again), and on a damage roll: an Action of its
     // own, which comes with it (`grants`), whose die comes off that roll before anyone's share of it.

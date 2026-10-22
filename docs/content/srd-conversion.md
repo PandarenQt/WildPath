@@ -170,7 +170,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Bestow Curse | spells24 | Bestow Curse (Curse Ability) (automated), Bestow Curse (Curse Attacks) (automated), Bestow Curse (Curse Actions) (automated), Bestow Curse (Curse Resilience) (automated) | — |
 | Black Bear | actors24 | Black Bear (3 items) | — |
 | Black Dragon Wyrmling | actors24 | Black Dragon Wyrmling (5 items) | — |
-| Black Pudding | actors24 | Black Pudding (6 items) | Corrosive Form: "damage" is passive or triggered: not automated; Split: summon: what it gains with the spell's level (hp) is not added |
+| Black Pudding | actors24 | Black Pudding (6 items) | Split: summon: what it gains with the spell's level (hp) is not added |
 | Black Tentacles | spells24 | Black Tentacles (automated) | — |
 | Blade Barrier | spells24 | Blade Barrier (Blade Wall) (automated), Blade Barrier (Blade Ring) (automated) | concentration: its caster concentrates; what it sustains is by hand; area: 30-ft ring is not supported; the user picks the targets |
 | Blanket | equipment24 | Blanket (gear) | — |

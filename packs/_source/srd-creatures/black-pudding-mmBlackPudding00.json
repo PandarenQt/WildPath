@@ -90,12 +90,57 @@
       "_id": "mmCorrosiveForm0",
       "_key": "!actors.items!mmBlackPudding00.mmCorrosiveForm0",
       "name": "Corrosive Form",
-      "type": "feature",
+      "type": "action",
       "img": "icons/skills/melee/sword-damaged-broken-purple.webp",
       "system": {
         "active": true,
         "description": "<p class=\"feature\">A creature that hits the black pudding with a melee attack roll takes 4 (1d8) Acid damage. Nonmagical ammunition is destroyed immediately after hitting the black pudding and dealing any damage. Any nonmagical weapon takes a cumulative −1 penalty to attack rolls immediately after dealing damage to the black pudding and coming into contact with it. The weapon is destroyed if the penalty reaches −5. The penalty can be removed by casting the <em>Mending</em> spell on the weapon.</p><p class=\"feature\">In 1 minute, the black pudding can eat through 2 feet of nonmagical wood or metal.</p><section id=\"secret-NtgKYdQoCuiAaxOa\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This feature provides an <strong>Attack Penalty</strong> active effect that will modify a targeted weapon. Since this penalty can be applied multiple times to multiple nonmagical weapons, this active effect needs to be dragged from this item's Effect tab onto the target Item's weapons.</p></section>",
-        "ruleElements": []
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-corrosive-form",
+          "costs": {
+            "allOf": []
+          },
+          "range": {
+            "type": "special"
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "damageType": "acid",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Corrosive Form"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "reaction",
+            "type": "Trigger",
+            "data": {
+              "kind": "reaction",
+              "event": "attack.hit",
+              "match": {
+                "phase": "interrupt",
+                "targetTokenId": "{self}",
+                "tagsAny": [
+                  "melee"
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -111,10 +156,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"damage\" is passive or triggered: not automated"
-            ]
-          }
+            "notes": []
+          },
+          "reactionPolicy": "always"
         }
       }
     },
@@ -377,7 +421,6 @@
       },
       "conversion": {
         "notes": [
-          "Corrosive Form: \"damage\" is passive or triggered: not automated",
           "Split: summon: what it gains with the spell's level (hp) is not added"
         ]
       }
