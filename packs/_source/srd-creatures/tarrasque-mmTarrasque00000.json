@@ -758,6 +758,33 @@
                 ]
               }
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "regurgitate-swallow",
+            "type": "Trigger",
+            "data": {
+              "kind": "automation",
+              "event": "turn.ended",
+              "around": {
+                "on": "swallowed",
+                "threshold": 60
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-swallow-regurgitate-save",
+                "label": "Swallow: Regurgitate",
+                "costs": {
+                  "allOf": []
+                },
+                "save": {
+                  "ability": "fortitude",
+                  "dc": {
+                    "value": 20
+                  }
+                }
+              }
+            }
           }
         ]
       },
@@ -1052,7 +1079,6 @@
       "conversion": {
         "notes": [
           "Reflective Carapace: \"Roll d6\" is passive or triggered: not automated",
-          "Swallow: \"Regurgitate: Save\" is passive or triggered: not automated",
           "Onslaught: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

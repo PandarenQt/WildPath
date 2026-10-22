@@ -2,7 +2,7 @@ import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
 import {createAutomationEvent, createTriggerDefinition, evaluateTrigger, reactionPolicyOf} from "../helpers/automation-events.mjs";
 import {sunlightContext} from "./foundry-v14-sunlight.mjs";
 import {tokensAround} from "./foundry-v14-auras.mjs";
-import {conditionsFrom} from "../helpers/effect-sources.mjs";
+import {conditionsFrom, effectsFrom} from "../helpers/effect-sources.mjs";
 
 type Data = Record<string, unknown>;
 interface RuleElement {id?: string; type?: string; enabled?: boolean; data?: Data}
@@ -16,8 +16,9 @@ interface Coordinator {resolveAuthorityAction(options: Data): Promise<{ok: boole
 type ResolveAction = (options: Data) => Promise<Data & {ok: boolean; reason?: string}>;
 interface Logger {warn(...args: unknown[]): void}
 /** A trigger acting around its creature: on each creature within `radius` feet, or (`on: "others"`) on another creature
- * whose own turn starts or ends there; or (`swallowed`) on each creature it has swallowed. */
-interface Around {radius?: number; affects?: string; on?: string; swallowed?: boolean}
+ * whose own turn starts or ends there; or (`swallowed`) on each creature it has swallowed; or (`on: "swallowed"`, with
+ * `threshold`) its regurgitating save after a swallowed creature's turn that cost it that many Hit Points. */
+interface Around {radius?: number; affects?: string; on?: string; swallowed?: boolean; threshold?: number}
 interface Placed {id: string; parent?: {id: string; tokens?: Iterable<Placed>} | null; actor?: (AutomationActor & {statuses?: Iterable<string>}) | null}
 
 /**
@@ -147,6 +148,8 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
   fromUuid?: ((uuid: string) => Promise<unknown> | unknown) | null;
 }) {
   let sequence = 0;
+  // A swallower's Hit Points as each creature it swallowed starts its turn (`on: "swallowed"`), by swallower and creature.
+  const swallowerHealth = new Map<string, number>();
   const isActiveGM = () => game.users?.activeGM?.id === game.user.id;
 
   async function dispatch(type: string, {actor, token=null, data={}}: {actor: AutomationActor | null; token?: AutomationToken | null;
@@ -159,7 +162,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     // Predicates see its conditions too ("unless the azer has the Incapacitated condition").
     const context = {...sunlightContext(token as never), conditions: [...((actor as {statuses?: Iterable<string>}).statuses ?? [])]};
     for ( const {id, definition, label, policy, around} of automationTriggers(actor, event, context) ) {
-      if ( around?.on === "others" ) continue;
+      if ( ["others", "swallowed"].includes(String(around?.on)) ) continue;
       // A "you can" (Persistent Rage when initiative is rolled): Never skips it, Always uses it, Ask asks its controller.
       const optional = ((definition.configuration ?? []) as Data[]).some(choice => choice.id === "use");
       if ( optional && (policy === "never") ) continue;
@@ -178,6 +181,17 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     const placed = token as Placed | null;
     for ( const bearer of (["turn.started", "turn.ended"].includes(type) && placed?.parent?.tokens) ? [...placed.parent.tokens] : [] ) {
       if ( (bearer.id === placed?.id) || !bearer.actor ) continue;
+      // Swallowed by it: its Hit Points as this turn starts, and its regurgitating save as it ends (regurgitate).
+      if ( (conditionsFrom as (holder: unknown, source: unknown) => Record<string, boolean>)(actor, bearer.actor).coverTotal ) {
+        const key = `${bearer.actor.uuid}:${actor.uuid}`;
+        const health = Number((bearer.actor as {system?: {resources?: {health?: {value?: number}}}}).system?.resources?.health?.value) || 0;
+        if ( type === "turn.started" ) swallowerHealth.set(key, health);
+        else if ( swallowerHealth.has(key) ) {
+          const lost = (swallowerHealth.get(key) ?? 0) - health;
+          swallowerHealth.delete(key);
+          states.push(...await regurgitate(bearer, lost, `${sequence}:${actor.id}`));
+        }
+      }
       const theirs = {...sunlightContext(bearer as never), conditions: [...(bearer.actor.statuses ?? [])]};
       for ( const {id, definition, label, around} of automationTriggers(bearer.actor, event, theirs) ) {
         if ( (around?.on !== "others") || immuneTo(actor, definition.id)
@@ -201,6 +215,38 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
         const present = group.effectIds.filter(effectId => (actor as {effects?: {get?(id: string): unknown}}).effects?.get?.(effectId));
         if ( present.length ) await (actor as {deleteEmbeddedDocuments?(type: string, ids: string[]): Promise<unknown>})
           .deleteEmbeddedDocuments?.("ActiveEffect", present);
+      }
+    }
+    return states;
+  }
+
+  /**
+   * A swallower that lost `lost` Hit Points on a swallowed creature's turn (2024 Purple Worm: "takes 30 damage or more on
+   * a single turn from a creature inside it"): at its threshold it saves (its `on: "swallowed"` Trigger's Action), and
+   * on a failure every creature it swallowed comes out beside it, Prone, without what the swallow gave it.
+   */
+  async function regurgitate(bearer: Placed, lost: number, key: string) {
+    const states: unknown[] = [];
+    for ( const {id, definition, label, around} of automationTriggers(bearer.actor as AutomationActor, {type: "turn.ended"}, {}) ) {
+      if ( (around?.on !== "swallowed") || !(lost >= (Number(around.threshold) || Infinity)) ) continue;
+      const self = {actorRef: bearer.actor?.uuid, tokenId: bearer.id, sceneId: bearer.parent?.id};
+      const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
+        resolutionId: `${id}:${key}`, definition, label, actorRef: String(bearer.actor?.uuid), source: {tokenId: bearer.id,
+          sceneId: bearer.parent?.id}, target: self}) as {results?: {saveResolution?: {successes?: unknown[]}}} | null;
+      if ( state ) states.push(state);
+      if ( !state || state.results?.saveResolution?.successes?.length ) continue;
+      const held = swallowedBy(bearer.actor as AutomationActor, bearer);
+      const size = Number((bearer.parent as {grid?: {size?: number}} | null)?.grid?.size) || 100;
+      const at = bearer as Placed & {x?: number; y?: number; width?: number};
+      for ( const [index, other] of held.entries() ) {
+        const actor = other.actor as (AutomationActor & {deleteEmbeddedDocuments?(type: string, ids: string[]): Promise<unknown>;
+          toggleCondition?(id: string): Promise<unknown>; statuses?: Set<string>}) | null;
+        const ids = (effectsFrom as (holder: unknown, source: unknown) => {id: string}[])(actor, bearer.actor).map(effect => effect.id);
+        if ( ids.length ) await actor?.deleteEmbeddedDocuments?.("ActiveEffect", ids);
+        if ( !actor?.statuses?.has?.("prone") ) await actor?.toggleCondition?.("prone");
+        // "falls in a space within 5 feet": the next free spaces down its right side.
+        await (other as {move?(waypoints: Data[]): Promise<unknown>}).move?.([{x: (at.x ?? 0) + ((Number(at.width) || 1) * size),
+          y: (at.y ?? 0) + (index * size), action: "displace"}]);
       }
     }
     return states;
