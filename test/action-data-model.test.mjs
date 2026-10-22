@@ -141,3 +141,10 @@ test("a character keeps Heroic Inspiration as a pool of 4; the old checkbox coun
   assert.deepEqual(kept.pools.map(entry => entry.value), [3], "an existing pool is left alone");
   assert.equal(WildPathCharacter.migrateData({resources: {}}, {partial: true}).pools, undefined, "a partial update gains no pools");
 });
+
+test("a stored old counter becomes spent, but an update's value and base together (a sheet's) are left to _preUpdate", async () => {
+  const {default: WildPathCharacter} = await import("../module/data/actor/character.mjs");
+  assert.equal(WildPathCharacter.migrateData({resources: {action: {base: 1, value: 0}}}).resources.action.spent, 1, "stored: 1 of 1 spent");
+  assert.equal(WildPathCharacter.migrateData({resources: {action: {base: 1, value: 1}}}, {partial: true}).resources.action.spent, undefined,
+    "a sheet edit under Haste (1 of 2 left) must not read as nothing spent");
+});
