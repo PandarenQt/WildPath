@@ -512,6 +512,17 @@ test("wrong user, wrong request, and stale responses are rejected before resume"
       }
     }
   }));
+  // An impossible result from its own chooser is refused back and the request stays open (it must not fail the Action).
+  await playerTransport.send(createResolutionSocketEnvelope({
+    messageType: MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE,
+    senderUserId: "player-a",
+    recipientUserId: "gm-a",
+    resolutionId: record.resolutionId,
+    requestId: request.id,
+    payload: {response: {resolutionId: record.resolutionId, requestId: request.id, type: RESOLUTION_REQUEST_TYPES.ROLL,
+      value: {...provided.result, total: 999, natural: 999}}}
+  }));
+  assert.equal(gm.getRecord(record.resolutionId).state.pendingRequests.some(entry => entry.id === request.id), true, "still waiting");
   await playerTransport.send(createResolutionSocketEnvelope({
     messageType: MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE,
     senderUserId: "player-a",
@@ -712,4 +723,20 @@ test("socket envelopes reject non-plain data before transport", () => {
 
   assert.equal(validation.ok, false);
   assert.equal(validation.code, MULTIPLAYER_AUTHORITY_CODES.NON_SERIALIZABLE_MESSAGE);
+});
+
+test("a Player's intent may not take an id the authority makes for itself (a death save's, a reaction child's)", async () => {
+  const fixture = attackFixture();
+  const hub = createTestResolutionTransportHub({users: users()});
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), actionIntentResolver: createFixtureResolver(fixture)});
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "player-a"})});
+  gm.register();
+  player.register();
+  for ( const resolutionId of ["death-save:Actor.qa:1", "resolution:12"] ) {
+    await player.declareActionIntent({intentId: `intent:${resolutionId}`, resolutionId, actorRef: fixture.actor.uuid,
+      actionRef: fixture.action.uuid, targetRefs: [fixture.target.actorRef]});
+    assert.equal(gm.getRecord(resolutionId), null, resolutionId);
+  }
 });

@@ -827,6 +827,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     // Its cover against this Action (walls and creatures between): +2 or +5 to its AC and Dexterity saves.
     const cover = definition ? actionCover({definition, sourceToken, targetToken: targetTokenFor(targetActor, hint, game),
       points: intent.area?.points ?? []}) : "none";
+    // An automatic Action on several creatures (an aura, a death burst) leaves out one behind Total Cover or on the other
+    // plane, rather than failing for all of them.
+    if ( authorityAction && (targetActor !== actor) && ((cover === "total") || (ethereal(targetActor) !== ethereal(actor))) ) continue;
     const target = withActorDefense({
       id: targetActor.id ?? targetRef,
       actorId: targetActor.id ?? null,

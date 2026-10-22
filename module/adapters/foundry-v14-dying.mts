@@ -247,7 +247,9 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
           costs: {allOf: []}, save: {ability: rule.ability, dc: {value: dc}}}}) as Data | null;
       kept = ((state?.results as {saveResolution?: {successes?: unknown[]}} | undefined)?.saveResolution?.successes?.length ?? 0) > 0;
     }
-    if ( kept ) await actor.update({"system.resources.health.value": rule.hitPoints});
+    // Kept up at 1 is no healing: "can't regain Hit Points" (Chill Touch) doesn't stop it.
+    if ( kept ) await (actor.update as (data: Data, options?: Data) => Promise<unknown>).call(actor, {"system.resources.health.value": rule.hitPoints},
+      {wildpath: {notHealing: true}});
     return kept;
   }
 

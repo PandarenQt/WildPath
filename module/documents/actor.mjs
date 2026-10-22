@@ -118,7 +118,8 @@ export default class WildPathActor extends Actor {
     if ( allowed === false ) return false;
     const health = this.system?.resources?.health;
     const raised = foundry.utils.getProperty(changes, "system.resources.health.value");
-    if ( Number.isFinite(raised) && Number.isFinite(health?.value) && (raised > health.value) && (this.system.resourceCaps?.healing === 0) ) {
+    if ( Number.isFinite(raised) && Number.isFinite(health?.value) && (raised > health.value) && (this.system.resourceCaps?.healing === 0)
+      && !options?.wildpath?.notHealing ) {
       foundry.utils.setProperty(changes, "system.resources.health.value", health.value);
       ui.notifications?.info(game.i18n.format("WILDPATH.NOTIFY.NoHealing", {name: this.name}));
     }
