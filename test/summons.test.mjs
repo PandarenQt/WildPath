@@ -109,6 +109,12 @@ test("what a summon gains with the spell's level: Hit Points, AC, and its attack
     ["Modifier", {tagsAny: ["melee", "ranged"]}, 5],
     ["ExtraDamage", {not: {tagsAny: ["melee", "ranged"]}}, {type: "dice", number: 2, faces: 10}]], "+5 on its attacks, 2d10 on its other damage");
   assert.deepEqual(summonBonusesAt({}, 5), {hp: 0, ac: 0, rules: []});
+  // Conjure Fey at 7th: its caster's spellcasting modifier (from the caster, not the spirit) plus 1d12 per level above 6th.
+  const caster = {actorSystem: {abilities: {intellect: {value: 18}}, spellcasting: {ability: "intellect"}}};
+  const fey = summonBonusesAt({attackDamage: {type: "add", terms: [{type: "constant", value: 4},
+    {type: "dice", number: {type: "subtract", left: level, right: {type: "constant", value: 6}}, faces: 12}]}}, 7, caster);
+  assert.deepEqual(fey.rules.map(rule => [rule.type, rule.data.value ?? rule.data.expression]),
+    [["Modifier", 4], ["ExtraDamage", {type: "dice", number: 1, faces: 12}]]);
 });
 
 test("a summon's count from its creature's own formula, at the cast level (Animate Dead), or none below 1", async () => {

@@ -87,6 +87,12 @@
         "count": 1,
         "rounds": 10,
         "concentration": true,
+        "bonuses": {
+          "hp": {
+            "type": "resource-max",
+            "resource": "health"
+          }
+        },
         "spellLevel": 5,
         "match": {
           "attacks": true
@@ -113,9 +119,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "summon: what it gains with the spell's level (hp) is not added"
-        ]
+        "notes": []
       }
     }
   }

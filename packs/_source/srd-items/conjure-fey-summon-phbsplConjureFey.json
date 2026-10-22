@@ -79,6 +79,31 @@
         "count": 1,
         "rounds": 100,
         "concentration": true,
+        "bonuses": {
+          "attackDamage": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "spellcasting-modifier"
+              },
+              {
+                "type": "dice",
+                "number": {
+                  "type": "subtract",
+                  "left": {
+                    "type": "context",
+                    "path": "castLevel"
+                  },
+                  "right": {
+                    "type": "constant",
+                    "value": 6
+                  }
+                },
+                "faces": 12
+              }
+            ]
+          }
+        },
         "spellLevel": 6,
         "match": {
           "attacks": true
@@ -105,9 +130,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "summon: what it gains with the spell's level (attackDamage) is not added"
-        ]
+        "notes": []
       }
     }
   }

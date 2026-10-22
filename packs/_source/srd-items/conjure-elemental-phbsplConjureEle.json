@@ -110,6 +110,23 @@
         "count": 1,
         "rounds": 100,
         "concentration": true,
+        "bonuses": {
+          "saveDamage": {
+            "type": "dice",
+            "number": {
+              "type": "subtract",
+              "left": {
+                "type": "context",
+                "path": "castLevel"
+              },
+              "right": {
+                "type": "constant",
+                "value": 5
+              }
+            },
+            "faces": 8
+          }
+        },
         "spellLevel": 5
       },
       "metadata": {
@@ -133,9 +150,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "summon: what it gains with the spell's level (saveDamage) is not added"
-        ]
+        "notes": []
       }
     }
   }
