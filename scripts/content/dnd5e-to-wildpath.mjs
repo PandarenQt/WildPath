@@ -1137,6 +1137,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         initiativeRules.push(recharge);
         continue;
       }
+      // Advantage it gives those around it (Aura of Authority): an Aura of roll modes.
+      const aura = rollModeAura(document, activity);
+      if ( aura ) {
+        initiativeRules.push(aura);
+        continue;
+      }
       // What it does to those around it when its own turn starts or ends (an Azer Sentinel's Fire Aura): automatic.
       const turnArea = turnAreaTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature,
         beasts});
@@ -2724,6 +2730,26 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
     action: {schemaVersion: 1, id: definition.id, label: document.name, costs: {allOf: []}, ...(definition.tags ? {tags: definition.tags} : {}),
       ...(definition.save ? {save: definition.save} : {}), ...(definition.damage?.length ? {damage: definition.damage} : {}),
       ...((definition.effects?.length || immune.length) ? {effects: [...(definition.effects ?? []), ...immune]} : {})}}};
+}
+
+/**
+ * A passive aura of Advantage or Disadvantage (2024 Aura of Authority: "While in a 10-foot Emanation originating from the
+ * warlord, the warlord and its allies have Advantage on attack rolls and saving throws, provided the warlord doesn't have
+ * the Incapacitated condition"): an `Aura` of RollModes on its allies. Null for any other text.
+ */
+function rollModeAura(document, activity) {
+  const text = plainText(document);
+  const match = /\bWhile in an? (\d+|\[\[lookup [^\]]*\]\])-foot Emanation originating from [^,]+, (?:[^,.]*?\band its allies|its allies) have (Advantage|Disadvantage) on ([^.,]+)/iu
+    .exec(text);
+  if ( !match ) return null;
+  const radius = Number(match[1]) || Number(activity?.target?.template?.size);
+  const domains = [["attack rolls", "attack"], ["saving throws", "save"], ["ability checks", "check"]]
+    .filter(([words]) => match[3].toLowerCase().includes(words)).map(([, domain]) => domain);
+  if ( !(radius > 0) || !domains.length ) return null;
+  const id = `aura-${slugify(document.name)}`;
+  return {schemaVersion: 1, id, type: "Aura",
+    ...(/\b(?:provided|unless|while) [^.]{0,60}?Incapacitated\b/iu.test(text) ? {predicate: {missingCondition: "incapacitated"}} : {}),
+    data: {radius, affects: "allies", ruleElements: [rollModeRule(id, domains, match[2].toLowerCase())]}};
 }
 
 /**

@@ -785,7 +785,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Hill's Tumble | origins24 | Hill's Tumble (automated) | — |
 | Hippogriff | actors24 | Hippogriff (4 items) | — |
 | Hippopotamus | actors24 | Hippopotamus (4 items) | — |
-| Hobgoblin Captain | actors24 | Hobgoblin Captain (5 items) | Aura of Authority: "Expend Use" is passive or triggered: not automated |
+| Hobgoblin Captain | actors24 | Hobgoblin Captain (5 items) | — |
 | Hobgoblin Warrior | actors24 | Hobgoblin Warrior (4 items) | — |
 | Hold Monster | spells24 | Hold Monster (automated) | — |
 | Hold Person | spells24 | Hold Person (automated) | — |

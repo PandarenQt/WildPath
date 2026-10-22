@@ -270,7 +270,31 @@
       "system": {
         "active": true,
         "description": "<p>While in a 10-foot Emanation originating from the hobgoblin captain, the hobgoblin captain and its allies have Advantage on attack rolls and saving throws, provided the hobgoblin captain doesn't have the Incapacitated condition.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "aura-aura-of-authority",
+            "type": "Aura",
+            "data": {
+              "radius": 10,
+              "affects": "allies",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "aura-aura-of-authority",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "attack",
+                      "save"
+                    ],
+                    "mode": "advantage"
+                  }
+                }
+              ]
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -286,9 +310,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"Expend Use\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -416,9 +438,7 @@
         "challenge": 3
       },
       "conversion": {
-        "notes": [
-          "Aura of Authority: \"Expend Use\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

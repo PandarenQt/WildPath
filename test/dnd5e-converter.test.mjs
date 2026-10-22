@@ -1155,6 +1155,19 @@ test("what a creature does around itself at a turn boundary is an automatic Eman
     aura.data.action.id]);
 });
 
+test("a passive aura of Advantage is an Aura of RollModes on its allies (Aura of Authority)", () => {
+  const [warlord] = convertItem({_id: "testAuthority001", name: "Aura of Authority", type: "feat", effects: [], system: {source: SRD,
+    description: {value: "<p>While in a [[lookup @target.template.size activity=x]]-foot Emanation originating from the [[lookup @name "
+      + "lowercase]]{monster}, the [[lookup @name lowercase]]{monster} and its allies have Advantage on attack rolls and saving throws, "
+      + "provided the [[lookup @name lowercase]]{monster} doesn't have the Incapacitated condition.</p>"},
+    activities: {a: activity("utility", {activation: {type: "special", override: false}, target: {template: {type: "radius", size: "10"},
+      affects: {}, override: false}})}}}).items;
+  const [aura] = warlord.system.ruleElements;
+  assert.deepEqual([aura.type, aura.data.radius, aura.data.affects, aura.predicate, aura.data.ruleElements[0].data],
+    ["Aura", 10, "allies", {missingCondition: "incapacitated"}, {domains: ["attack", "save"], mode: "advantage"}]);
+  assert.equal(warlord.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), false);
+});
+
 test("an empty effect known by its name gets its 2024 rules (Barkskin, a Morningstar's next attack, See Invisibility)", () => {
   // dnd5e's own changes for them do not convert (Barkskin's `system.attributes.ac.min`).
   const spell = (id, identifier, effect) => ({_id: id, name: effect, type: "spell", img: "systems/dnd5e/icons/spell.webp",
