@@ -30,6 +30,24 @@ export const hitDiePoolId = (faces: number) => `hit-die.d${faces}`;
 export const hitDiceHealing = (results: readonly number[], modifier: number, {minimum=1}: {minimum?: number}={}) =>
   results.reduce((sum, result) => sum + Math.max(minimum, result + modifier), 0);
 
+/**
+ * 2014: a Long Rest gives back spent Hit Dice up to half of all of them (at least one), the largest dice first (a
+ * multiclass character's d10s before its d6s: what heals most later). `pools` are `{id: "hit-die.d10", value, max}`;
+ * returns each one's new value by id.
+ */
+export function longRestHitDice(pools: readonly {id: string; value?: number; max?: number}[]): Record<string, number> {
+  const dice = pools.filter(pool => String(pool.id).startsWith("hit-die."));
+  let budget = Math.max(1, Math.floor(dice.reduce((total, pool) => total + (Number(pool.max) || 0), 0) / 2));
+  const size = (id: string) => Number(/(\d+)$/.exec(id)?.[1]) || 0;
+  const values: Record<string, number> = {};
+  for ( const pool of [...dice].sort((a, b) => size(b.id) - size(a.id)) ) {
+    const regained = Math.min(budget, Math.max((Number(pool.max) || 0) - (Number(pool.value) || 0), 0));
+    values[pool.id] = (Number(pool.value) || 0) + regained;
+    budget -= regained;
+  }
+  return values;
+}
+
 // Slots per spell level (1st-9th) at each caster level 1-20: the 2024 multiclass spellcaster table.
 const SLOTS_BY_CASTER_LEVEL: readonly (readonly number[])[] = [
   [], [2], [3], [4, 2], [4, 3], [4, 3, 2], [4, 3, 3], [4, 3, 3, 1], [4, 3, 3, 2], [4, 3, 3, 3, 1],
