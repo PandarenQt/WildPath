@@ -85,7 +85,19 @@
           "type": "effect",
           "name": "Shocked",
           "img": "icons/magic/lightning/bolt-strike-wide-white.webp",
-          "ruleElements": []
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "no-reaction",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "reaction"
+                ],
+                "maximum": 0
+              }
+            }
+          ]
         }
       ],
       "metadata": {
@@ -109,9 +121,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Shocked\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

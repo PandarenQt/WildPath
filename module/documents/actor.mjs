@@ -109,11 +109,19 @@ export default class WildPathActor extends Actor {
   /*  Floating combat text                         */
   /* -------------------------------------------- */
 
-  /** The client making a health change records it in the update's options, which reach every client. */
+  /**
+   * The client making a health change records it in the update's options, which reach every client. A creature that
+   * can't regain Hit Points (`ResourceCap` on `healing` at 0: Chill Touch) keeps them where they are.
+   */
   async _preUpdate(changes, options, user) {
     const allowed = await super._preUpdate(changes, options, user);
     if ( allowed === false ) return false;
     const health = this.system?.resources?.health;
+    const raised = foundry.utils.getProperty(changes, "system.resources.health.value");
+    if ( Number.isFinite(raised) && Number.isFinite(health?.value) && (raised > health.value) && (this.system.resourceCaps?.healing === 0) ) {
+      foundry.utils.setProperty(changes, "system.resources.health.value", health.value);
+      ui.notifications?.info(game.i18n.format("WILDPATH.NOTIFY.NoHealing", {name: this.name}));
+    }
     const next = foundry.utils.getProperty(changes, "system.resources.health.value");
     const nextTemp = foundry.utils.getProperty(changes, "system.resources.health.temp");
     // Temporary Hit Points lost to damage show with it; gaining them is no healing.

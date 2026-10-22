@@ -2006,7 +2006,9 @@ const plainText = document => String(document.system?.description?.value ?? "").
  */
 const NARRATIVE_MARKERS = new Set(["Detect Magic", "Detect Evil and Good", "Detect Poison and Disease", "Disguised", "Cannot Lie",
   "Water Breathing", "Water Walking", "Speaking with Plants", "Speaking with Animals", "Carrying Message", "Altered Appearance",
-  "Hidden from Divination", "Comprehending Languages", "Tongues", "Telepathic Bond", "Scrying"]);
+  "Hidden from Divination", "Comprehending Languages", "Tongues", "Telepathic Bond", "Scrying",
+  // Mind Spike: "you always know the target's location".
+  "Spiked"]);
 
 /**
  * Activities that only tell the table something, by their dnd5e name: Scrying's sensor, a revival or re-forming days
@@ -2524,6 +2526,15 @@ const EFFECTS_BY_NAME = Object.freeze({
   // "can't take Reactions".
   "No Reaction": {ruleElements: [{schemaVersion: 1, id: "no-reaction", type: "ResourceCap", data: {resources: ["reaction"], maximum: 0}}]},
   "Cursed: No Reaction": {ruleElements: [{schemaVersion: 1, id: "no-reaction", type: "ResourceCap", data: {resources: ["reaction"], maximum: 0}}]},
+  // Shocking Grasp: "it can't make Opportunity Attacks" (2024; 2014: "can't take reactions").
+  "Shocked": {ruleElements: [{schemaVersion: 1, id: "no-reaction", type: "ResourceCap", data: {resources: ["reaction"], maximum: 0}}]},
+  // Aim, a Scout Captain's: "Advantage on its next attack roll".
+  "Aiming: Attack Advantage": {endsWhen: "attacks", ruleElements: [rollModeRule("next-attack", ["attack"], "advantage")]},
+  // Sap (weapon mastery), Pesky Swarm: "Disadvantage on its next attack roll".
+  "Target: Disadvantage": NEXT_ATTACK_DISADVANTAGE,
+  // Chill Touch, a Death Cultist's scythe: "can't regain Hit Points" (WildPathActor#_preUpdate keeps them where they are).
+  "Blocked Healing": {ruleElements: [{schemaVersion: 1, id: "no-healing", type: "ResourceCap", data: {resources: ["healing"], maximum: 0}}]},
+  "Healing Restriction": {ruleElements: [{schemaVersion: 1, id: "no-healing", type: "ResourceCap", data: {resources: ["healing"], maximum: 0}}]},
   // "<Type> Protection": Resistance to that damage (an Armor or Potion of Resistance's choice).
   ...Object.fromEntries(["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant",
     "slashing", "thunder"].map(type => [`${type[0].toUpperCase()}${type.slice(1)} Protection`,

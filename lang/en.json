@@ -1183,7 +1183,8 @@
       "MovementStoppedByArea": "You stopped on entering {area}. Your remaining movement is kept.",
       "AnsweredByGM": "The GM answered this for you.",
       "DispelEnded": "{name} (level {level}) ends: the check was {total} against DC {dc}.",
-      "DispelStayed": "{name} (level {level}) stays: the check was {total} against DC {dc}."
+      "DispelStayed": "{name} (level {level}) stays: the check was {total} against DC {dc}.",
+      "NoHealing": "{name} can't regain Hit Points right now."
     },
     "ITEM": {
       "RuntimeMissing": "WildPath's action runtime isn't running yet; reload the world.",
