@@ -1253,6 +1253,12 @@ test("a save with nothing else converted: the conditions its text gives on a fai
     [["effect", "Zone of Truth", {value: 10, units: "minutes"}, "failure", []]]);
   assert.equal(validateActionDefinition(truth.system.definition).ok, true);
 
+  // A Net: a DC in parentheses before its consequence, and how to escape it ("a [[/skill ath 10]] check, freeing").
+  const [net] = convertItem(spell("testNetThrown001", "Net", "<p>The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity "
+    + "modifier and Proficiency Bonus) or have the &amp;Reference[Restrained] condition until it escapes. To escape, the target or a creature "
+    + "within 5 feet of it must take an action to make a [[/skill ath 10]] check, freeing the Restrained creature on a success.</p>")).items;
+  assert.deepEqual(net.system.definition.effects.map(effect => [effect.conditionId, effect.metadata?.escapeDC]), [["restrained", 10]]);
+
   const [counter] = convertItem(spell("testCounterspel1", "Counterspell", "<p>The creature's spell fails.</p>")).items;
   assert.equal(counter.system.definition.effects, undefined, "instantaneous: nothing to mark");
   const [orb] = convertItem(spell("testDragonOrb001", "Orb", "<p>On a failed save, the orb imposes the Charmed condition on you.</p>")).items;

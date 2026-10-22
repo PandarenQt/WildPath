@@ -27,7 +27,7 @@ function failedSaveOutcome(document) {
   const durations = new Set();
   const text = plainText(document).replace(/&amp;Reference\[(\w+)[^\]]*\]/g, "$1");
   for ( const sentence of text.split(/(?<=[.!?])\s+/) ) {
-    if ( !/on a failed save|failure:|saving throw,? or (?:have|has|be|become)\b/i.test(sentence) || /\bon you\b/i.test(sentence) ) continue;
+    if ( !/on a failed save|failure:|saving throw,?(?: \([^)]*\))? or (?:have|has|be|become)\b/i.test(sentence) || /\bon you\b/i.test(sentence) ) continue;
     for ( const [, named, plain] of sentence.matchAll(/\b(?:(?:has|have) the (\w+) condition|(?:be|becomes?) (\w+)(?= for\b| until\b|[.,;]))/gi) ) {
       const condition = CONDITION_MAP[String(named ?? plain).toLowerCase()];
       if ( !condition ) continue;
@@ -2540,8 +2540,9 @@ function escapeDCOf(document, {creature=null, saveDC=null}={}) {
   const written = number(dc.formula) ?? (passive ? creature?.passive?.(passive[1]) : null)
     ?? (dc.calculation ? saveDC?.(dc.calculation)?.value : null);
   if ( Number.isFinite(written) ) return written;
-  const text = /\bescape DC (\d+)/i.exec(plainText(document));
-  return text ? Number(text[1]) : null;
+  const text = /\bescape DC (\d+)/i.exec(plainText(document))
+    ?? /(?:\bDC (\d+) Strength \(Athletics\)|\[\[\/skill ath (\d+)\]\]) check,? freeing\b/i.exec(plainText(document));
+  return text ? Number(text[1] ?? text[2]) : null;
 }
 
 /** Effects named as a common action's own (Step of the Wind's "Disengaged"): that action's effect. */
@@ -3294,8 +3295,10 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // A push or pull is its own (forcedMovement, added after: Gust of Wind).
   if ( definition.save && !damage.length && !healing.length && !effects.length && !definition.check && !forcedMovement(document, definition) ) {
     const {conditions, duration: lasts} = failedSaveOutcome(document);
+    const escapeAt = conditions.some(conditionId => ["grappled", "restrained"].includes(conditionId)) ? escapeDCOf(document, {creature, saveDC}) : null;
     for ( const conditionId of conditions ) effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId,
-      saveOutcomePolicy: "failure", ...(lasts ? {duration: lasts} : {}), ...(concentration ? {concentration: true} : {})});
+      saveOutcomePolicy: "failure", ...(lasts ? {duration: lasts} : {}), ...(concentration ? {concentration: true} : {}),
+      ...(((escapeAt != null) && ["grappled", "restrained"].includes(conditionId)) ? {metadata: {escapeDC: escapeAt}} : {})});
     const lasting = conditions.length ? null : lastingDuration(pick(activity, system, "duration"));
     if ( lasting || (!conditions.length && concentration) ) effects.push({id: "effect-1", type: "effect", name: document.name,
       ...(document.img ? {img: document.img} : {}), ruleElements: [], ...(lasting ? {duration: lasting} : {}), saveOutcomePolicy: "failure",

@@ -51,6 +51,17 @@
           }
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "restrained",
+          "saveOutcomePolicy": "failure",
+          "metadata": {
+            "escapeDC": 10
+          }
+        }
+      ],
       "label": "Net"
     },
     "ruleElements": []
@@ -70,7 +81,7 @@
       },
       "conversion": {
         "notes": [
-          "rolled (save); what it does is by hand"
+          "save: a failure gives restrained (its text); the rest is by hand"
         ]
       },
       "price": 1
