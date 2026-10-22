@@ -156,6 +156,18 @@
               ],
               "mode": "advantage"
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "beast-of-burden-2",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "carrying.size"
+              ],
+              "modifierType": "untyped",
+              "valueExpression": 1
+            }
           }
         ]
       },

@@ -3933,8 +3933,9 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
       // Innate Sorcery's +1: the save DC of its creature's spells.
       modifier(["dc.spell"], value);
     } else if ( key === "flags.dnd5e.powerfulBuild" ) {
-      // 2024 Powerful Build: Advantage on a check to end the Grappled condition. shortcut: carrying capacity is not tracked.
+      // 2024 Powerful Build: Advantage on a check to end the Grappled condition, and one size larger for carrying.
       rule("RollMode", {domains: ["check"], mode: "advantage"}, {equals: {path: "check.escapes", value: "grappled"}});
+      modifier(["carrying.size"], 1);
     } else if ( ["flags.dnd5e.diamondSoul", "flags.dnd5e.halflingLucky"].includes(key) ) {
       // Disciplined Survivor's saves are its training (trainingKeys), Luck its test offer (HALFLING_LUCK).
     } else if ( key === "flags.dnd5e.reliableTalent" ) {
