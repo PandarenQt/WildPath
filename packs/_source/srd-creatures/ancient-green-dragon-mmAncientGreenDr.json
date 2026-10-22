@@ -633,7 +633,7 @@
           "conversion": {
             "notes": [
               "cast: Mind Spike at level 5 is cast at its own level",
-              "effect: \"Spiked\" marks its creature only; its rules are by hand"
+              "effect: \"Spiked\" marks its creature (narrative)"
             ]
           }
         }
@@ -1024,7 +1024,7 @@
           "conversion": {
             "notes": [
               "cast: Mind Spike at level 3 is cast at its own level",
-              "effect: \"Spiked\" marks its creature only; its rules are by hand"
+              "effect: \"Spiked\" marks its creature (narrative)"
             ]
           }
         }
@@ -1365,10 +1365,10 @@
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: cast: Mind Spike at level 5 is cast at its own level",
-          "Spellcasting: effect: \"Spiked\" marks its creature only; its rules are by hand",
+          "Spellcasting: effect: \"Spiked\" marks its creature (narrative)",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Mind Invasion: cast: Mind Spike at level 3 is cast at its own level",
-          "Mind Invasion: effect: \"Spiked\" marks its creature only; its rules are by hand"
+          "Mind Invasion: effect: \"Spiked\" marks its creature (narrative)"
         ]
       }
     }

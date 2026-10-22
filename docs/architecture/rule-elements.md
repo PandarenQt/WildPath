@@ -431,6 +431,8 @@ Modifiers").
 - `{resources: ["action", "bonus", "reaction"], maximum: 0}` is Incapacitated: no actions of any kind, so
   nothing can be paid and no reaction offered.
 - `{resources: ["movement"], maximum: 0}` is Speed 0, and it caps every granted Speed too.
+- `{resources: ["healing"], maximum: 0}` (2026-10-22) is "can't regain Hit Points" (Chill Touch): `WildPathActor#_preUpdate`
+  keeps its Hit Points where they are on any raise, and says so. Losing them is unchanged.
 
 **Forced outcomes.** A `RollOutcome` RuleElement forces a roll's outcome:
 - `automatic-failure` on the creature's saves in its domains (`save.might`). No roll is requested, and the
@@ -480,7 +482,9 @@ ends), "Attack: Advantage", "Concentration Disadvantage", "Damaged: −2 AC", Ba
 floor), Protection from Evil and Good's "Protected" (`attack.attackerType`, the attacker's creature type, among six)
 and "See Invisibility" (the sense, a mile). They apply when none of the effect's own changes converts (Barkskin's
 `ac.min`, See Invisibility's `senses.special`). Also: combined Advantage or Disadvantage ("Adv: Attacks & Saves"), "No
-Reaction" (a ResourceCap), "<Type> Protection" (Resistance), and Acid Arrow's "Lingering Acid": an automatic
+Reaction" and Shocking Grasp's "Shocked" (a ResourceCap), "Aiming: Attack Advantage" and "Target: Disadvantage" (its next
+attack), "Blocked Healing" and "Healing Restriction" (no healing), "<Type> Protection" (Resistance), and Acid Arrow's
+"Lingering Acid": an automatic
 `turn.ended` Trigger on the effect deals its 2d4 Acid, and it lasts until the end of the caster's next turn (an
 effect's Triggers run like an Item's; the spell's separate later-damage Action is dropped).
 

@@ -1188,6 +1188,9 @@ test("an empty effect known by its name gets its 2024 rules (Barkskin, a Morning
     {sense: "seeInvisibility", range: 5280});
   assert.deepEqual(rulesOf("testProtection01", "protection-from-evil-and-good", "Protected").ruleElements[0].predicate.oneOf.path,
     "attack.attackerType");
+  assert.deepEqual(rulesOf("testChillTouch01", "chill-touch", "Blocked Healing").ruleElements[0].data, {resources: ["healing"], maximum: 0});
+  const aim = rulesOf("testAimAdvantag1", "aim", "Aiming: Attack Advantage");
+  assert.deepEqual([aim.endsWhen, aim.ruleElements[0].data.mode], ["attacks", "advantage"]);
 });
 
 test("a save with nothing else converted: the conditions its text gives on a failure, else a marker while it lasts", () => {

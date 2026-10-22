@@ -85,7 +85,19 @@
           "type": "effect",
           "name": "Blocked Healing",
           "img": "icons/magic/life/heart-broken-red.webp",
-          "ruleElements": []
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "no-healing",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "healing"
+                ],
+                "maximum": 0
+              }
+            }
+          ]
         }
       ],
       "metadata": {
@@ -109,9 +121,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Blocked Healing\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }
