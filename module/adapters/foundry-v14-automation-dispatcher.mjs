@@ -47,6 +47,9 @@ export async function runAuthorityAction({ coordinator, resolveAction, senderUse
     const finished = new Promise(resolve => { finish = resolve; });
     const hosted = await coordinator.resolveAuthorityAction({ resolutionId, resolved,
         onComplete: ({ state }) => finish(state) });
+    // An id already used is never run again, so nothing would finish it: never wait on one.
+    if (hosted.duplicate)
+        return hosted.state ?? null;
     const terminal = ["completed", "failed", "cancelled"].includes(String(hosted.state?.status));
     return (hosted.ok || terminal) ? await finished : hosted.state ?? { status: "failed" };
 }
@@ -159,7 +162,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
                 else if (swallowerHealth.has(key)) {
                     const lost = (swallowerHealth.get(key) ?? 0) - health;
                     swallowerHealth.delete(key);
-                    states.push(...await regurgitate(bearer, lost, `${sequence}:${actor.id}`));
+                    states.push(...await regurgitate(bearer, lost, `${sequence}:${bearer.id}:${placed?.id}`));
                 }
             }
             const theirs = { ...sunlightContext(bearer), conditions: [...(bearer.actor.statuses ?? [])] };
@@ -168,7 +171,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
                     || !tokensAround(bearer, around).some(other => other.id === placed?.id))
                     continue;
                 const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
-                    resolutionId: `${id}:${sequence}:${actor.id}`, definition, label, actorRef: bearer.actor.uuid,
+                    resolutionId: `${id}:${sequence}:${bearer.id}:${placed?.id}`, definition, label, actorRef: bearer.actor.uuid,
                     source: { tokenId: bearer.id, sceneId: placed?.parent?.id }, target: self });
                 if (state)
                     states.push(state);

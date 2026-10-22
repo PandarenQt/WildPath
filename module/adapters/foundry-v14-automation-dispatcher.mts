@@ -12,7 +12,7 @@ interface AutomationActor {id: string; uuid: string; items?: Iterable<Owner>; ef
   testUserPermission?(user: unknown, level: string): boolean}
 interface AutomationToken {id: string; parent?: {id: string} | null}
 interface QueryUser {id: string; query?(name: string, data: Data, options: {timeout: number}): Promise<unknown>}
-interface Coordinator {resolveAuthorityAction(options: Data): Promise<{ok: boolean; state?: {status?: string}}>}
+interface Coordinator {resolveAuthorityAction(options: Data): Promise<{ok: boolean; duplicate?: boolean; state?: {status?: string}}>}
 type ResolveAction = (options: Data) => Promise<Data & {ok: boolean; reason?: string}>;
 interface Logger {warn(...args: unknown[]): void}
 /** A trigger acting around its creature: on each creature within `radius` feet, or (`on: "others"`) on another creature
@@ -75,6 +75,8 @@ export async function runAuthorityAction({coordinator, resolveAction, senderUser
   const finished = new Promise(resolve => { finish = resolve; });
   const hosted = await coordinator.resolveAuthorityAction({resolutionId, resolved,
     onComplete: ({state}: {state: unknown}) => finish(state)});
+  // An id already used is never run again, so nothing would finish it: never wait on one.
+  if ( hosted.duplicate ) return hosted.state ?? null;
   const terminal = ["completed", "failed", "cancelled"].includes(String(hosted.state?.status));
   return (hosted.ok || terminal) ? await finished : hosted.state ?? {status: "failed"};
 }
@@ -189,7 +191,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
         else if ( swallowerHealth.has(key) ) {
           const lost = (swallowerHealth.get(key) ?? 0) - health;
           swallowerHealth.delete(key);
-          states.push(...await regurgitate(bearer, lost, `${sequence}:${actor.id}`));
+          states.push(...await regurgitate(bearer, lost, `${sequence}:${bearer.id}:${placed?.id}`));
         }
       }
       const theirs = {...sunlightContext(bearer as never), conditions: [...(bearer.actor.statuses ?? [])]};
@@ -197,7 +199,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
         if ( (around?.on !== "others") || immuneTo(actor, definition.id)
           || !tokensAround(bearer as never, around as never).some(other => other.id === placed?.id) ) continue;
         const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
-          resolutionId: `${id}:${sequence}:${actor.id}`, definition, label, actorRef: bearer.actor.uuid,
+          resolutionId: `${id}:${sequence}:${bearer.id}:${placed?.id}`, definition, label, actorRef: bearer.actor.uuid,
           source: {tokenId: bearer.id, sceneId: placed?.parent?.id}, target: self});
         if ( state ) states.push(state);
       }

@@ -123,15 +123,17 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
 
   /**
    * Counters stored before `spent` existed keep their state: spent = (base + bonus) - remaining. Foundry also
-   * migrates partial update data; a write without `base` is not a stored counter, and _preUpdate translates it.
+   * migrates partial update data (a sheet submits `value` and `base` together): that is never a stored counter, and
+   * _preUpdate translates its `value` against the current maximum, modifiers included.
    */
-  static migrateData(source) {
+  static migrateData(source, options) {
+    if ( options?.partial ) return super.migrateData(source, options);
     for ( const id of COUNTED_RESOURCES ) {
       const resource = source.resources?.[id];
       if ( !resource || ("spent" in resource) || !("value" in resource) || !("base" in resource) ) continue;
       resource.spent = spentFromRemaining(resource.base + (resource.bonus ?? 0), resource.value);
     }
-    return super.migrateData(source);
+    return super.migrateData(source, options);
   }
 
   /* -------------------------------------------- */
