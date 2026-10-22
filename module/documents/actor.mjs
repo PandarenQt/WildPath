@@ -15,7 +15,7 @@ import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTr
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {floatHealthChange} from "../applications/floating-text.mjs";
-import {effectiveSpellcasting, hitDiceHealing, hitDiePoolId} from "../helpers/spellcasting.mjs";
+import {effectiveSpellcasting, hitDiceHealing, hitDiePoolId, longRestHitDice} from "../helpers/spellcasting.mjs";
 import {actorAbilityModifier, resolveActorCheckStatistic, resolveActorSaveStatistic} from "../helpers/combat-statistics.mjs";
 import {combineRollModes, d20FormulaWith} from "../helpers/rolls.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
@@ -839,14 +839,18 @@ export default class WildPathActor extends Actor {
     const pools = this.toObject(true).system.pools;
     const grants = new Map(this.getGrantedResources().map(grant => [grant.id, grant]));
     const legacy = globalThis.game?.settings?.get?.("wildpath", "rulesVersion") === "2014";
-    for ( const [index, resource] of this.system.pools.entries() ) {
-      // 2014: a Long Rest gives back spent Hit Dice up to half of them (at least one). shortcut: half of each die size,
-      // not a choice across a multiclass character's sizes; upgrade with a Hit Dice choice on the rest.
-      if ( legacy && long && String(resource.id).startsWith("hit-die.") ) {
-        pools[index].value = Math.min(resource.max, resource.value + Math.max(1, Math.floor(resource.max / 2)));
-        updates["system.pools"] = pools;
-        continue;
+    // 2014: a Long Rest gives back spent Hit Dice up to half of all of them, the largest first (longRestHitDice).
+    if ( legacy && long ) {
+      const values = longRestHitDice(this.system.pools);
+      for ( const [index, resource] of this.system.pools.entries() ) {
+        if ( (resource.id in values) && (values[resource.id] !== resource.value) ) {
+          pools[index].value = values[resource.id];
+          updates["system.pools"] = pools;
+        }
       }
+    }
+    for ( const [index, resource] of this.system.pools.entries() ) {
+      if ( legacy && long && String(resource.id).startsWith("hit-die.") ) continue;
       // Its grant's recovery when one grants it (a stored pool keeps the recovery it was created with).
       if ( recovers(grants.get(resource.id)?.recovery ?? resource.recovery) ) {
         pools[index].value = resource.max;

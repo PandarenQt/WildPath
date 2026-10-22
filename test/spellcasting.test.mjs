@@ -110,3 +110,12 @@ test("a class with no spellcasting of its own casts through its subclass, and pr
   assert.equal(preparedSpellLimit([fighter], [fighter, knight]), 5);
   assert.equal(preparedSpellLimit([fighter], [fighter, champion]), null);
 });
+
+test("2014 Long Rest: spent Hit Dice back up to half of all of them, at least one, the largest dice first", async () => {
+  const {longRestHitDice} = await import("../module/helpers/spellcasting.mjs");
+  assert.deepEqual(longRestHitDice([{id: "hit-die.d10", value: 0, max: 3}, {id: "hit-die.d6", value: 1, max: 4}, {id: "ki", value: 0, max: 2}]),
+    {"hit-die.d10": 3, "hit-die.d6": 1}, "half of 7 is 3, all to the d10s");
+  assert.deepEqual(longRestHitDice([{id: "hit-die.d10", value: 2, max: 3}, {id: "hit-die.d6", value: 0, max: 4}]),
+    {"hit-die.d10": 3, "hit-die.d6": 2}, "one d10 is spent, the rest go to the d6s");
+  assert.deepEqual(longRestHitDice([{id: "hit-die.d8", value: 0, max: 1}]), {"hit-die.d8": 1}, "at least one");
+});

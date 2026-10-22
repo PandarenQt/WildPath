@@ -126,8 +126,8 @@ Exhaustion's "Speed halved" is a `speed.multiplier` Modifier of `{type: "table",
 - Surprised mean "can't move or take an action on its first turn, nor a Reaction until that turn ends" (movement,
   action, Bonus Action and Reaction capped at 0), ending at the end of its first turn (`WildPathCombat#_onEndTurn`)
   rather than when its initiative is rolled;
-- a Long Rest give back half the creature's Hit Dice (at least one). shortcut: half of each die size, not a choice
-  across a multiclass character's sizes.
+- a Long Rest give back spent Hit Dice up to half of all the creature's Hit Dice (at least one); for a multiclass
+  character the largest dice come back first (2026-10-22, `longRestHitDice`), the choice that heals most later.
 Live (14.369, the world set to 2014 and back): Exhaustion 2 took walking Speed 30 → 15; a level 4 Fighter's Long Rest
 gave back 2 of 4 spent Hit Dice (all 4 under 2024); a Surprised creature had no movement or actions until its first
 turn ended, and Surprised then ended.
