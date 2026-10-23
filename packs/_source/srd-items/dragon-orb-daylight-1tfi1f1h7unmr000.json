@@ -21,6 +21,10 @@
           {
             "capability": "action",
             "amount": 1
+          },
+          {
+            "capability": "dragon-orb",
+            "amount": 1
           }
         ]
       },
@@ -68,7 +72,38 @@
       },
       "label": "Dragon Orb: Daylight"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "dragon-orb-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "dragon-orb",
+          "label": "Dragon Orb",
+          "maximum": {
+            "type": "constant",
+            "value": 7
+          },
+          "recovery": "none",
+          "regain": {
+            "longRest": {
+              "type": "add",
+              "terms": [
+                {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                },
+                {
+                  "type": "constant",
+                  "value": 3
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -85,9 +120,7 @@
         "castBy": "Dragon Orb"
       },
       "conversion": {
-        "notes": [
-          "consumption: itemUses 1 not converted"
-        ]
+        "notes": []
       },
       "price": 0,
       "rarity": "artifact"

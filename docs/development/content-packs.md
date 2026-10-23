@@ -505,6 +505,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Regenerating, Climber, Flyer and the Broom of Flying's two (rule-elements.md).
   Healed by Prayer ends on a Long Rest; Masked, Psychic Whispers, Telepathically Linked and Universal Speech are
   narrative markers.
+- **Charges from the text (2026-10-24):** an item whose dnd5e uses are empty though its activities spend them takes its
+  charges from its text (a Dragon Orb's "has 7 charges and regains 1d4 + 3 expended charges daily at dawn").
 - **Reactions (2026-10-20):** Retaliation's Trigger names a common Action; Stone's Endurance reduces the damage of the
   attack on it (`rider.reduceDamage`); Countercharm is a feature with a ranged `testOffer`; Indomitable is a feature
   with its pool, no Action (reactions.md).
