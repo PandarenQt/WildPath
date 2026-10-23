@@ -371,7 +371,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dagger of Venom | equipment24 | Dagger of Venom (attack) (automated), Dagger of Venom (Coat Blade with Poison) (manual), Dagger of Venom (Poison Save) (automated) | not automated (enchant): using it spends its cost; its description says the rest |
 | Dancing Light (Medium) | actors24 | Dancing Light (Medium) (0 items) | — |
 | Dancing Light (Tiny) | actors24 | Dancing Light (Tiny) (0 items) | — |
-| Dancing Lights | spells24 | Dancing Lights (Create Lights) (automated), Dancing Lights (Move Lights) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: nothing it sustains was converted |
+| Dancing Lights | spells24 | Dancing Lights (Create Lights) (automated), Dancing Lights (Move Lights) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Dancing Sword | equipment24 | Dancing Sword (Activate Sword: Stength) (automated), Dancing Sword (Activate Sword: Dexterity) (automated) | "Dancing Sword" is passive or triggered: not automated; summon: what it gains with the spell's level (attackDamage) is not added |
 | Dancing Sword | actors24 | Dancing Sword (6 items) | — |
 | Danger Sense | classes24 | Danger Sense (feature) | — |
@@ -728,7 +728,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Greater Restoration | spells24 | Greater Restoration (automated) | — |
 | Greatsword | equipment24 | Greatsword (automated) | — |
 | Green Dragon Wyrmling | actors24 | Green Dragon Wyrmling (5 items) | — |
-| Green Hag | actors24 | Green Hag (16 items) | Coven Magic: not automated (utility, narrative): using it spends its cost; its description says the rest; Coven Magic: activation: 1 minute is not an action-economy cost; Coven Magic: concentration: its caster concentrates; what it sustains is by hand; Coven Magic: activation: 10 minute is not an action-economy cost; Coven Magic: save: a failure marks its creature (narrative); Coven Magic: "Create Sensor" is passive or triggered (narrative): not automated; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: concentration: nothing it sustains was converted; Spellcasting: effect: "Disguised" marks its creature (narrative) |
+| Green Hag | actors24 | Green Hag (16 items) | Coven Magic: not automated (utility, narrative): using it spends its cost; its description says the rest; Coven Magic: activation: 1 minute is not an action-economy cost; Coven Magic: concentration: its caster concentrates; what it sustains is by hand; Coven Magic: activation: 10 minute is not an action-economy cost; Coven Magic: save: a failure marks its creature (narrative); Coven Magic: "Create Sensor" is passive or triggered (narrative): not automated; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: effect: "Disguised" marks its creature (narrative) |
 | Grick | actors24 | Grick (4 items) | — |
 | Griffon | actors24 | Griffon (3 items) | — |
 | Grimlock | actors24 | Grimlock (2 items) | — |

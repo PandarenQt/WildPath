@@ -2001,6 +2001,10 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   const cast = glabrezu.items.find(item => item.name === "Confusion");
   assert.deepEqual([cast.system.definition.effects[0].drawsAtTurnStart, cast.flags.wildpath.conversion.notes],
     ["Compendium.wildpath.srd-tables.RollTable.phbsplConfusionB", []], "a creature's Confusion draws the table too");
+  const hag = JSON.parse(fs.readFileSync("packs/_source/srd-creatures/green-hag-mmGreenHag000000.json", "utf8"));
+  assert.deepEqual([read("dancing-lights-move-lights-"), hag.items.find(item => item.name === "Dancing Lights")]
+    .map(item => item.flags.wildpath.conversion.notes.some(note => note.startsWith("concentration: nothing"))), [false, false],
+    "a cantrip's later activity goes on with its first's concentration");
   const cube = JSON.parse(fs.readFileSync("packs/_source/srd-creatures/gelatinous-cube-mmGelatinousCube.json", "utf8"));
   const engulf = cube.items.find(item => item.name === "Engulf (Save)").system.definition;
   assert.deepEqual([engulf.targeting.type, engulf.range.type], ["single", "special"], "the engulfed creature saves, not the cube");

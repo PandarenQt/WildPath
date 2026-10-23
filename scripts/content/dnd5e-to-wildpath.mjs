@@ -1343,6 +1343,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("concentration: nothing")),
         "concentration: its caster concentrates; what it sustains is by hand");
     }
+    // A cantrip's later activity (Dancing Lights' Move Lights) goes on with its first's concentration; it sustains nothing itself.
+    else if ( spell && !level && (index > 0) ) notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("concentration: nothing")));
     // A spell's level, for what ends spells by level (Dispel Magic); a slot cast at a higher one says so when used. And
     // the class spell lists it is on (`spellLists`: who may read its Spell Scroll).
     if ( spell && Number.isFinite(Number(level)) ) definition = {...definition, metadata: {...(definition.metadata ?? {}), spellLevel: Number(level),
