@@ -1247,6 +1247,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
                 ? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales})
                 : null))))));
     if ( definition && trapTier ) definition = trapDefinition(definition, document.name);
+    // 2024 Confusion: "must roll 1d10 at the start of each of its turns to determine its behavior for that turn, consulting
+    // the table below": its effect draws that table as each of its creature's turns starts (the dispatcher's).
+    const turnTable = tables[/@(?:UUID|Embed)\[Compendium\.dnd5e\.tables24\.RollTable\.(\w+)/u.exec(String(system.description?.value ?? ""))?.[1]];
+    if ( turnTable && definition?.effects?.length && /\bat the start of each of its turns to determine its behavior\b/iu.test(plainText(document)) ) {
+      const marked = definition.effects.filter(effect => effect.type === "effect").map(effect => effect.name);
+      definition = {...definition, effects: definition.effects.map(effect => ((effect.type === "effect") ? {...effect, drawsAtTurnStart: turnTable} : effect))};
+      notes.splice(0, notes.length, ...notes.filter(note => !marked.some(name => note === `effect: "${name}" marks its creature only; its rules are by hand`)));
+    }
     const light = (activity.name === "Light") ? LIGHT_SOURCES[identifierOf(document)] : null;
     if ( light ) {
       definition ??= manualDefinition({document, activity, system, spell, level, notes: [], pool, names, scales});

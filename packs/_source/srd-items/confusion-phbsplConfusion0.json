@@ -76,7 +76,8 @@
           },
           "saveOutcomePolicy": "failure",
           "concentration": true,
-          "repeatSave": "turnEnd"
+          "repeatSave": "turnEnd",
+          "drawsAtTurnStart": "Compendium.wildpath.srd-tables.RollTable.phbsplConfusionB"
         }
       ],
       "configuration": [
@@ -170,9 +171,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Confused\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

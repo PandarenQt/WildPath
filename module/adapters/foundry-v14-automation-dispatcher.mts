@@ -204,6 +204,8 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
         if ( state ) states.push(state);
       }
     }
+    // A table its effect draws as its turn starts (2024 Confusion's behavior), posted as its creature's.
+    if ( type === "turn.started" ) await drawTurnTables(actor);
     // Repeated saves: the creature rolls each again as its own Action; a success ends what that save let in.
     for ( const group of repeatSaveGroups((actor.effects ?? []) as Iterable<RepeatSaveEffect>, type) ) {
       const definition = {schemaVersion: 1, id: `action:repeat-save:${group.key}`, label: group.name, costs: {allOf: []},
@@ -276,6 +278,23 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     void dispatch(String(payload.type), {actor, data: sanitize((payload.data ?? {}) as Data)})
       .catch(error => logger.warn(`Wild Path | ${String(payload.type)} automation failed`, error));
     return {ok: true};
+  }
+
+  /** Each table its creature's enabled effects draw as its turn starts (`drawsAtTurnStart`), to chat as its creature's. */
+  async function drawTurnTables(actor: AutomationActor) {
+    const drawn = [];
+    for ( const effect of [...(actor.effects ?? [])] as Array<{disabled?: boolean; flags?: {wildpath?: {conditionEffect?: {definition?: Data}}}}> ) {
+      const uuid = effect.flags?.wildpath?.conditionEffect?.definition?.drawsAtTurnStart;
+      if ( effect.disabled || !uuid ) continue;
+      const table = await fromUuid?.(String(uuid)) as {draw?(options: Data): Promise<{results?: unknown[]; roll?: unknown}>;
+        toMessage?(results: unknown[], options: Data): Promise<unknown>} | null;
+      const result = await table?.draw?.({displayChat: false});
+      if ( !result?.results?.length ) continue;
+      const speaker = (globalThis as {ChatMessage?: {getSpeaker?(data: Data): unknown}}).ChatMessage?.getSpeaker?.({actor});
+      await table?.toMessage?.(result.results, {roll: result.roll, messageData: {speaker}});
+      drawn.push(result);
+    }
+    return drawn;
   }
 
   return {dispatch, report, handleQuery};
