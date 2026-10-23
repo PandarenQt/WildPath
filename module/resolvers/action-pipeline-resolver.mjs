@@ -3114,6 +3114,9 @@ function actionDeclaredReactionEvent(state) {
       actionDefinitionId: state.actionDefinition?.id ?? null,
       // Its attack roll's mode and ability, before it is rolled (Brutal Strike: an Advantage on a Strength attack).
       attackRollMode: input.attack?.rollMode ?? null,
+      // An attack roll or a damaging spell (what Sanctuary wards against).
+      harmsTarget: Boolean(state.actionDefinition?.attack) || ((state.actionDefinition?.damage?.length > 0)
+        && (state.actionDefinition?.tags ?? []).includes("spell")),
       attackAbility: input.attack?.statistic?.ability ?? null,
       timing: REACTION_WINDOW_TIMINGS.AFTER_ACTION_DECLARED
     }

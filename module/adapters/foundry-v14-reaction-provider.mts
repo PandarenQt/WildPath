@@ -146,15 +146,25 @@ export function effectReactionItems(actor: ActorLike, {fromUuidSync = (globalThi
   return [...(actor.effects ?? [])].filter(effect => !effect.disabled && !effect.isSuppressed).flatMap(effect =>
     (effect.system?.ruleElements ?? []).filter(element => (element.type === "Trigger") && (element.data as Data | undefined)?.action)
       .flatMap(element => {
-        const {action, giverItem, ...data} = element.data as Data & {action: Data; giverItem?: string};
+        const {action, giverItem, policy, ...data} = element.data as Data & {action: Data; giverItem?: string; policy?: string};
+        const sourceRef = String(effect.flags?.wildpath?.conditionEffect?.sourceRef ?? "").replace(/^uuid:/, "");
+        const giver = (sourceRef && (giverItem || (action.save as Data | undefined)?.dc) ? fromUuidSync?.(sourceRef) : null) as
+          {actor?: ActorLike; items?: Iterable<ItemLike>; system?: Data} | null;
         if ( giverItem ) {
-          const sourceRef = String(effect.flags?.wildpath?.conditionEffect?.sourceRef ?? "").replace(/^uuid:/, "");
-          const giver = (sourceRef ? fromUuidSync?.(sourceRef) : null) as {actor?: ActorLike; items?: Iterable<ItemLike>} | null;
           const items = [...((giver?.items ?? giver?.actor?.items) ?? [])] as Array<ItemLike & {flags?: {wildpath?: {source?: {identifier?: string}}}}>;
           if ( !items.some(item => (item.system?.active !== false) && (item.flags?.wildpath?.source?.identifier === giverItem)) ) return [];
         }
+        // A save at the DC of the creature that gave the effect (Sanctuary's: its caster's spell save DC), worked out now.
+        const dc = ((action.save as Data | undefined)?.dc ?? null) as {valueExpression?: Data; fromSource?: boolean} | null;
+        const source = (giver?.actor ?? giver) as (ActorLike & {system?: Data}) | null;
+        const fixed = (dc?.fromSource && dc.valueExpression && source)
+          ? Number(evaluateValueExpression(dc.valueExpression as never, {actor: source, actorSystem: source.system} as never).value) : null;
+        if ( dc?.fromSource && !Number.isFinite(fixed) ) return [];
+        const definition = Number.isFinite(fixed) ? {...action, save: {...(action.save as Data), dc: {value: fixed}}} : action;
         return [{id: `${effect.id}-${String(element.id ?? "reaction")}`, type: "action", name: String(action.label ?? effect.name ?? ""),
-          system: {active: true, definition: action as {id?: string}, ruleElements: [{...element, data}]}}];
+          system: {active: true, definition: definition as {id?: string}, ruleElements: [{...element, data}]},
+          // One that is no choice (Sanctuary's ward) is used at once (`policy: "always"`).
+          ...(policy ? {flags: {wildpath: {reactionPolicy: policy}}} : {})}];
       }));
 }
 
