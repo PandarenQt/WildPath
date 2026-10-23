@@ -167,6 +167,12 @@
               }
             ]
           },
+          "targeting": {
+            "type": "self"
+          },
+          "teleport": {
+            "distance": 40
+          },
           "label": "Teleport"
         },
         "ruleElements": [
@@ -201,9 +207,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -251,9 +255,7 @@
         "challenge": 0.25
       },
       "conversion": {
-        "notes": [
-          "Teleport: not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }
