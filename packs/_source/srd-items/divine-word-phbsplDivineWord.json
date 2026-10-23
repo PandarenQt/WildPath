@@ -97,29 +97,36 @@
         },
         {
           "id": "effect-5",
-          "type": "effect",
-          "name": "Blinded, Deafened",
-          "img": "systems/dnd5e/icons/svg/statuses/blinded.svg",
-          "ruleElements": [],
+          "type": "condition",
+          "conditionId": "blinded",
+          "saveOutcomePolicy": "failure",
           "duration": {
             "value": 600,
             "units": "seconds",
             "expiry": "turnStart"
-          },
-          "saveOutcomePolicy": "failure"
+          }
         },
         {
           "id": "effect-6",
-          "type": "effect",
-          "name": "Deafened",
-          "img": "systems/dnd5e/icons/svg/statuses/deafened.svg",
-          "ruleElements": [],
+          "type": "condition",
+          "conditionId": "deafened",
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        },
+        {
+          "id": "effect-7",
+          "type": "condition",
+          "conditionId": "deafened",
+          "saveOutcomePolicy": "failure",
           "duration": {
             "value": 60,
             "units": "seconds",
             "expiry": "turnStart"
-          },
-          "saveOutcomePolicy": "failure"
+          }
         }
       ],
       "configuration": [
@@ -193,7 +200,8 @@
                 "effect-3",
                 "effect-4",
                 "effect-5",
-                "effect-6"
+                "effect-6",
+                "effect-7"
               ],
               "keep": {
                 "effect-option-1": [
@@ -205,10 +213,11 @@
                   "effect-4"
                 ],
                 "effect-option-3": [
-                  "effect-5"
+                  "effect-5",
+                  "effect-6"
                 ],
                 "effect-option-4": [
-                  "effect-6"
+                  "effect-7"
                 ]
               }
             }
@@ -239,10 +248,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Blinded, Deafened\" marks its creature only; its rules are by hand",
-          "effect: \"Deafened\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

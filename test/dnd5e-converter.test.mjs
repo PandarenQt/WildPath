@@ -2043,3 +2043,11 @@ test("a feat giving another class's options: its choice from a pool by kind, and
   assert.equal(metamagic.system.advancement[0].count, 2);
   assert.deepEqual(metamagic.system.ruleElements.map(rule => [rule.type, rule.data.resourceId, rule.data.maximum]), [["GrantResource", "font-of-magic", 2]]);
 });
+
+test("an empty effect named for its conditions gives them (Divine Word's \"Blinded, Deafened\")", async () => {
+  const {effectStatuses} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  assert.deepEqual(effectStatuses({name: "Blinded, Deafened", statuses: []}), ["blinded", "deafened"]);
+  assert.deepEqual(effectStatuses({name: "Deafened", statuses: []}), ["deafened"]);
+  assert.deepEqual(effectStatuses({name: "Bark-like Skin", statuses: []}), [], "a name that is no condition");
+  assert.deepEqual(effectStatuses({name: "Deafened", statuses: [], changes: [{key: "system.x", value: 1}]}), [], "an effect with changes keeps them");
+});
