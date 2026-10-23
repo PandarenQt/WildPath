@@ -33,9 +33,9 @@
         "notes": [
           "not automated (utility, narrative): using it spends its cost; its description says the rest",
           "activation: 1 minute is not an action-economy cost",
-          "not automated (utility): using it spends its cost; its description says the rest",
           "activation: 10 minute is not an action-economy cost",
           "effect: \"Enclosed in Sphere\" marks its creature only; its rules are by hand",
+          "not automated (utility): using it spends its cost; its description says the rest",
           "concentration: its caster concentrates; what it sustains is by hand"
         ]
       },

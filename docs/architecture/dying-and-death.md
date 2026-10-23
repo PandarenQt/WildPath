@@ -31,8 +31,9 @@ The rules are in `module/adapters/foundry-v14-dying.mts`: a pure core (`dyingAft
   - A **critical hit** is two. A hit on an Unconscious creature from within 5 ft is a critical hit, so a
     finishing blow counts double.
   - A stable creature that takes damage stops being stable, and its death saves start over from that failure.
-- **Stabilizing (2024).** An Action with `stabilize: true` makes each dying target stable. Spare the Dying does
-  it outright. An ally's Help needs a DC 10 Wits (Medicine) `check` (action-definitions.md), and a failed check
+- **Stabilizing (2024).** An Action with `stabilize: true` makes each dying target stable. Spare the Dying (15 feet)
+  and a Healer's Kit (touch, a use) do it outright; the converter gives them `stabilize` (`STABILIZES`, 2026-10-23;
+  before, Spare the Dying only left a marker). An ally's Help needs a DC 10 Wits (Medicine) `check` (action-definitions.md), and a failed check
   stabilizes no one.
   - Damage of at least the maximum health kills outright.
 - **Healing at 0** wakes the creature, and its death saves reset.
