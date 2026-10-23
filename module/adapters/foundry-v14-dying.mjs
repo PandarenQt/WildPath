@@ -226,6 +226,9 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
         // Kept up at 1 is no healing: "can't regain Hit Points" (Chill Touch) doesn't stop it.
         if (kept)
             await actor.update.call(actor, { "system.resources.health.value": rule.hitPoints }, { wildpath: { notHealing: true } });
+        // A ward from an effect (Death Ward) ends once it has kept its creature up.
+        if (kept && rule.effectUuid)
+            await (await globalThis.fromUuid?.(String(rule.effectUuid)))?.delete?.();
         return kept;
     }
     /** After an Action: each target whose health it changed, a critical hit counting as two failed saves at 0. */

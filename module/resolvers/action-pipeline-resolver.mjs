@@ -2460,7 +2460,8 @@ function zeroHpOutcomes(state, input, durabilityResolution) {
           hitPoints: kept ? rule.hitPoints : 0});
       } else {
         kept = true;
-        records.push({targetKey: key, target: clonePlain(entry.target), name: rule.name, kept, hitPoints: rule.hitPoints});
+        records.push({targetKey: key, target: clonePlain(entry.target), name: rule.name, kept, hitPoints: rule.hitPoints,
+          ...(rule.effectUuid ? {effectUuid: rule.effectUuid} : {})});
       }
       if ( rule.payment ) plans.push({type: "resourcePayment", resolver: "ResourceResolver", plan: rule.payment.plan,
         payerRef: rule.payment.payerRef});

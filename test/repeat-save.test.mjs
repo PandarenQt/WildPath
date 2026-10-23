@@ -380,3 +380,12 @@ test("Heightened Spell: its caster picks one target, which saves with Disadvanta
     .map(entry => [entry.target.tokenId, entry.plan.amount]));
   assert.deepEqual(damage, {"tok-ally": 0, "tok-foe": 8}, "the ally succeeds and takes nothing; the foe fails");
 });
+
+test("zeroHpFor (Death Ward): a ward on an effect drops its creature to 1 instead, naming the effect that then ends", async () => {
+  const {zeroHpFor} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const ward = {uuid: "Actor.x.ActiveEffect.ward", name: "Protection from Death", disabled: false, system: {ruleElements: [{type: "Trigger",
+    data: {kind: "zero-hp", event: "health.zero", zeroHp: {mode: "set", hitPoints: 1}}}]}};
+  const actor = {items: [], effects: [ward]};
+  assert.deepEqual(zeroHpFor(actor, {pools: []}), {name: "Protection from Death", mode: "set", hitPoints: 1, effectUuid: ward.uuid});
+  assert.equal(zeroHpFor({items: [], effects: [{...ward, disabled: true}]}, {pools: []}), null, "a disabled one does nothing");
+});
