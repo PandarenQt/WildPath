@@ -536,7 +536,8 @@ damage rules. A predicate `{tagsAny: ["weapon:<id>"]}` reaches that weapon alone
 
 **A minimum d20 (2026-10-19, Reliable Talent).** `RollOutcome {domains: ["check.proficient"], outcome: "minimum-natural",
 threshold: 10}`: a check with its skill's proficiency reads `check.proficient`, and `resolveActorCheckStatistic` returns the
-highest such threshold as `naturalMinimum`.
+highest such threshold as `naturalMinimum`. Every check also reads `check.<ability>` and `check.<skill>`, proficient or
+not (2026-10-24): Glibness's "Glib" is `{domains: ["check.presence"], threshold: 15}`.
 - **The roll:** an Action's check request puts `min10` on its d20 (kept with Advantage: `2d20min10kh`) and
   `expected.naturalMinimum`. The sheet's roll uses the same formula (`d20FormulaWith`).
 - **Typed dice:** a typed natural below the minimum counts as it, so its total is `max(natural, 10) + modifier`. The

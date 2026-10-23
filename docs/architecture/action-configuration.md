@@ -282,10 +282,11 @@ within 45 feet at level 5.
 
 ## Spending A Chosen Amount (2026-10-19)
 
-A configuration effect `{type: "spendAmount", resourceId, componentIds, collection?, per?}` on a `number` choice adds
+A configuration effect `{type: "spendAmount", resourceId, componentIds, collection?, per?, faces?}` on a `number` choice adds
 that many of the pool to the Action's cost and makes each listed healing (or damage) component that amount (times
 `per`). 2024 Lay on Hands: "restore a number of Hit Points equal to the points spent". Spending more than the pool
-holds is refused at payment, before anything rolls.
+holds is refused at payment, before anything rolls. With `faces` (2026-10-24) each component is that many dice of those
+faces instead: dnd5e's "(@scaling)d6" (2024 Staff of Striking: "1d6 Force damage per charge spent").
 
 ## An option's own effects, and restoring a pool (2026-10-19)
 

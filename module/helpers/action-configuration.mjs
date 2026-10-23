@@ -1060,6 +1060,7 @@ function applyAddCostEffect({definition, effect, selection}) {
  * A number chosen when used is spent from a pool and is the amount (2024 Lay on Hands: "restore a number of Hit Points
  * equal to the points spent"): `{type: "spendAmount", resourceId, componentIds, collection: "healing"}`. Each listed
  * healing (or damage) component becomes that many, times `per`; spending more than the pool holds fails at payment.
+ * With `faces` it is that many dice instead (2024 Staff of Striking: "1d6 Force damage per charge spent").
  */
 function applySpendAmountEffect({definition, effect, selection}) {
   const amount = Math.trunc(finiteNumber(selection.value) ?? 0);
@@ -1069,8 +1070,9 @@ function applySpendAmountEffect({definition, effect, selection}) {
   const collection = effect.collection === "damage" ? "damage" : "healing";
   const ids = new Set(effect.componentIds ?? []);
   const value = amount * (finiteNumber(effect.per) ?? 1);
+  const faces = finiteNumber(effect.faces);
   definition[collection] = (definition[collection] ?? []).map(component => ((!ids.size || ids.has(component.id))
-    ? {...component, expression: {type: "constant", value}} : component));
+    ? {...component, expression: faces ? {type: "dice", number: value, faces} : {type: "constant", value}} : component));
   return {ok: true, trace: [appliedTrace(selection, "spent-amount", {amount, value})], errors: []};
 }
 

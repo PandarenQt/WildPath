@@ -68,3 +68,13 @@ test("a proficient skill check carries its minimum d20 (Reliable Talent); an unp
   assert.equal(resolveActorCheckStatistic(rogue, {skill: "stealth"}).naturalMinimum, 10);
   assert.equal(resolveActorCheckStatistic(rogue, {skill: "acrobatics"}).naturalMinimum, undefined);
 });
+
+test("an ability's minimum d20 applies with or without proficiency (Glibness: a Charisma check's d20 counts as at least 15)", () => {
+  const bard = {system: {abilities: {presence: {value: 16}}, skills: {persuasion: {proficiency: 1}}, proficiencyBonus: 3},
+    getStatistic: () => ({totalModifier: 0}),
+    getRollOutcomes: domains => (domains.includes("check.presence") ? [{outcome: "minimum-natural", threshold: 15}] : [])};
+  assert.equal(resolveActorCheckStatistic(bard, {skill: "deception"}).naturalMinimum, 15, "unproficient");
+  assert.equal(resolveActorCheckStatistic(bard, {skill: "persuasion"}).naturalMinimum, 15, "proficient");
+  assert.equal(resolveActorCheckStatistic(bard, {ability: "presence"}).naturalMinimum, 15, "no skill");
+  assert.equal(resolveActorCheckStatistic(bard, {skill: "stealth"}).naturalMinimum, undefined, "another ability");
+});

@@ -884,6 +884,21 @@ test("charges its text gives when dnd5e leaves its uses empty (a Dragon Orb's 7,
   }
 });
 
+test("\"(@scaling)d6\": as many dice as the uses spent, a number chosen when used (Staff of Striking, Healing Light)", () => {
+  const used = convertItem({_id: "testHealLight001", name: "Test Light", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "test-light", uses: {max: "5", spent: 0, recovery: [{period: "lr", type: "recoverAll"}]},
+      description: {value: ""}, activities: {a: activity("heal", {activation: {type: "bonus", override: false},
+        target: {override: false, template: {}, affects: {type: "creature", count: "1"}}, range: {override: false, units: "ft", value: "60"},
+        healing: {number: null, denomination: null, types: ["healing"], custom: {enabled: true, formula: "(@scaling)d6"}},
+        consumption: {scaling: {allowed: true, max: "3"}, targets: [{type: "itemUses", value: "1", target: "", scaling: {mode: "amount"}}]}})}}}).items.find(item => item.type === "action");
+  const definition = used.system.definition;
+  assert.deepEqual([definition.healing[0].expression, definition.costs.allOf.some(cost => cost.capability === "test-light")],
+    [{type: "dice", number: 1, faces: 6}, false]);
+  assert.deepEqual(definition.configuration, [{id: "spent", type: "number", label: "Test Light", required: true, min: 1, max: 3,
+    effects: [{type: "spendAmount", resourceId: "test-light", componentIds: ["healing-1"], collection: "healing", faces: 6}]}]);
+  assert.deepEqual(used.flags.wildpath.conversion.notes, []);
+});
+
 test("Telepathy and a Proficiency Bonus change convert (a Myconid's Telepathy 30 ft., an Ioun Stone of Mastery)", async () => {
   const {effectRules} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
   const notes = [];
@@ -1358,6 +1373,8 @@ test("an empty effect known by its name gets its 2024 rules (Barkskin, a Morning
   assert.deepEqual([ridden.system.definition.effects[0].ruleElements[0].data.distance,
     ridden.flags.wildpath.conversion.notes.some(note => /not a WildPath condition/.test(note))], [50, false], "its flying is its fly Speed");
   assert.equal(rulesOf("testPrayerHeal01", "prayer-of-healing", "Healed by Prayer").restsLeft, 1, "until a Long Rest");
+  assert.deepEqual(rulesOf("testGlibness0001", "glibness", "Glib").ruleElements[0].data, {domains: ["check.presence"],
+    outcome: "minimum-natural", threshold: 15});
   const [masked] = convertItem(spell("testMaskedAura01", "arcanists-magic-aura", "Masked")).items;
   assert.ok(masked.flags.wildpath.conversion.notes.includes('effect: "Masked" marks its creature (narrative)'));
 });

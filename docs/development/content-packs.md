@@ -509,6 +509,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
   narrative markers.
 - **Charges from the text (2026-10-24):** an item whose dnd5e uses are empty though its activities spend them takes its
   charges from its text (a Dragon Orb's "has 7 charges and regains 1d4 + 3 expended charges daily at dawn").
+- **Glibness (2026-10-24):** its "Glib" effect is a minimum d20 of 15 on Charisma checks (rule-elements.md).
+- **Dice per use spent (2026-10-24):** "(@scaling)d6" on an activity whose uses scale by amount (Staff of Striking's
+  Charge Damage, Healing Light) is a number choice of the uses spent, each a die (`spendAmount` with `faces`).
 - **Enchantment damage dice (2026-10-24):** a weapon enchantment's added damage dice (Flame Tongue's 2d6 Fire, Frost Brand's
   1d6 Cold, a Vicious Weapon's 2d6) are an ExtraDamage on that weapon's hits (`weapon:{{host}}`); only literal dice convert.
 - **Reactions (2026-10-20):** Retaliation's Trigger names a common Action; Stone's Endurance reduces the damage of the
