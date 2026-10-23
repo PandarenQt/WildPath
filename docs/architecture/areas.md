@@ -48,8 +48,9 @@ range, and runs toward the second for its whole length (`createWallFootprint`), 
 wall (Wall of Stone, ten 10-ft panels) is its panels end to end. Shortcut: in one straight line.
 
 Live (GM, 14.369): a 9th-level wizard's SRD Wall of Fire, started at QA Saver and run east, covered 12 fields. QA Saver
-saved (9 of 19 fire) and QA Failer failed (19). What the wall does afterwards (entering it, ending a turn near it)
-stays manual.
+saved (9 of 19 fire) and QA Failer failed (19). Afterwards it is a lasting area (lastingArea): entering it or ending a
+turn in it deals 5d8 Fire with no save (2026-10-23; its unnamed dnd5e damage activity, which before repeated the Dexterity
+save). shortcut: only the wall itself, not the 10 feet beside its burning side.
 
 **Range and areas.** An area Action's range limits its placement (its point, its Cube), not the creatures it covers.
 The pipeline's range check skips area Actions. Before this, every area with a `self` range (a cone, a Cube, an

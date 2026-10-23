@@ -1048,12 +1048,6 @@
                     "tags": [
                       "spell"
                     ],
-                    "save": {
-                      "ability": "agility",
-                      "dc": {
-                        "value": 21
-                      }
-                    },
                     "damage": [
                       {
                         "id": "damage-1",
@@ -1063,11 +1057,7 @@
                           "faces": 8
                         },
                         "damageType": "fire",
-                        "provenance": "spell-base",
-                        "saveOutcomePolicy": {
-                          "success": "half",
-                          "failure": "full"
-                        }
+                        "provenance": "spell-base"
                       }
                     ]
                   }
@@ -1135,9 +1125,7 @@
             "castBy": "Hellfire Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "\"damage\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -1259,8 +1247,7 @@
       "conversion": {
         "notes": [
           "Bite: \"save\" is passive or triggered: not automated",
-          "Bite: activation: turnStart is not an action-economy cost",
-          "Hellfire Spellcasting: \"damage\" is passive or triggered: not automated"
+          "Bite: activation: turnStart is not an action-economy cost"
         ]
       }
     }

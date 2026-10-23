@@ -1158,6 +1158,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // An enchantment of one of its creature's weapons (Magic Weapon, Sacred Weapon): its weapon's attacks change instead.
     const enchant = ENCHANTS[identifierOf(document)] ?? null;
     if ( enchant && (activity.type !== "enchant") ) continue;
+    // Wall of Fire's later damage is its lasting area's repeat (lastingArea).
+    if ( spell && (activity === unsavedRepeat(system)) && LASTING_WORDING.test(plainText(document)) ) continue;
     // Acid Arrow's and Vitriolic Sphere's later damage is their Lingering Acid effect's own (lingeringAcid).
     if ( (activity.type === "damage") && LATER_ACID.test(activity.name ?? "")
       && (document.effects ?? []).some(effect => effect.name === "Lingering Acid") ) continue;
@@ -2027,6 +2029,12 @@ function sheddingArea({document, activity, system, definition}) {
     notes: []};
 }
 
+/** "A creature also makes this save when it enters the spell's area or ends its turn there": an area's repeat. */
+const LASTING_WORDING = /[^.]*\b(?:enters?|moves? into)\b[^.]*?\b(starts|ends) (?:its|their) turn\b/iu;
+/** A lasting area's later damage as an unnamed passive activity with no save (Wall of Fire's): the repeat's, unsaved. */
+const unsavedRepeat = system => Object.values(system.activities ?? {}).find(entry => (entry.type === "damage") && !entry.name
+  && !entry.activation?.type && !entry.save?.ability) ?? null;
+
 /**
  * An area that keeps acting while it lasts, by its 2024 wording ("A creature also makes this save when it enters the
  * spell's area or ends its turn there": Moonbeam, Web, Cloudkill, Wall of Fire): a lasting area whose trigger repeats
@@ -2037,14 +2045,17 @@ function sheddingArea({document, activity, system, definition}) {
 export function lastingArea({document, system, definition}) {
   if ( (definition.targeting?.type !== "area") || !definition.area || definition.area.persistence ) return null;
   if ( !(definition.damage?.length || definition.effects?.length) ) return null;
-  const wording = /[^.]*\b(?:enters?|moves? into)\b[^.]*?\b(starts|ends) (?:its|their) turn\b/iu.exec(plainText(document));
+  const wording = LASTING_WORDING.exec(plainText(document));
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
   // Something with no duration of its own (a flask of Oil) is not a lasting area.
   if ( !wording || !rounds ) return null;
   // The repeat is the same save and outcome on one creature; the area itself holds the concentration.
+  // Its damage with no save of its own (2024 Wall of Fire: "A creature takes the same damage when it enters the wall").
+  const unsaved = Boolean(unsavedRepeat(system));
   const action = {schemaVersion: 1, id: `${definition.id}:lasting`, label: definition.label ?? document.name, costs: {allOf: []},
-    ...(definition.tags ? {tags: definition.tags} : {}), ...(definition.save ? {save: definition.save} : {}),
-    ...(definition.damage?.length ? {damage: definition.damage} : {}),
+    ...(definition.tags ? {tags: definition.tags} : {}), ...((definition.save && !unsaved) ? {save: definition.save} : {}),
+    ...(definition.damage?.length ? {damage: unsaved ? definition.damage.map(({saveOutcomePolicy: _saved, ...part}) => part)
+      : definition.damage} : {}),
     ...(definition.effects?.length ? {effects: definition.effects.map(({concentration: _held, ...effect}) => effect)} : {})};
   return {...definition, area: {...definition.area, persistence: {duration: {unit: "round", value: rounds},
     concentration: (system.properties ?? []).includes("concentration"),

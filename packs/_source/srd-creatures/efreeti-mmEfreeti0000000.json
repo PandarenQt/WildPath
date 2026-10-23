@@ -1249,12 +1249,6 @@
                     "tags": [
                       "spell"
                     ],
-                    "save": {
-                      "ability": "agility",
-                      "dc": {
-                        "value": 16
-                      }
-                    },
                     "damage": [
                       {
                         "id": "damage-1",
@@ -1264,11 +1258,7 @@
                           "faces": 8
                         },
                         "damageType": "fire",
-                        "provenance": "spell-base",
-                        "saveOutcomePolicy": {
-                          "success": "half",
-                          "failure": "full"
-                        }
+                        "provenance": "spell-base"
                       }
                     ]
                   }
@@ -1368,9 +1358,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "\"damage\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -1442,8 +1430,7 @@
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
-          "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: \"damage\" is passive or triggered: not automated"
+          "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

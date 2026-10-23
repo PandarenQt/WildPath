@@ -72,12 +72,6 @@
                 "tags": [
                   "spell"
                 ],
-                "save": {
-                  "ability": "agility",
-                  "dc": {
-                    "value": 18
-                  }
-                },
                 "damage": [
                   {
                     "id": "damage-1",
@@ -87,11 +81,7 @@
                       "faces": 8
                     },
                     "damageType": "fire",
-                    "provenance": "spell-base",
-                    "saveOutcomePolicy": {
-                      "success": "half",
-                      "failure": "full"
-                    }
+                    "provenance": "spell-base"
                   }
                 ]
               }
@@ -174,9 +164,7 @@
         "castBy": "Fire Ring of Elemental Command"
       },
       "conversion": {
-        "notes": [
-          "\"damage\" is passive or triggered: not automated"
-        ]
+        "notes": []
       },
       "price": 200000,
       "rarity": "legendary"
