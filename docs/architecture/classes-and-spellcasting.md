@@ -535,6 +535,12 @@ the Adult Red Dragon Common and Draconic.
 - **Powerful Build:** Advantage on a check to end Grappled: the escape action's check names what it escapes
   (`check.escapes`), which a predicate reads. It also counts as one size larger for carrying (2026-10-22): a
   `carrying.size` Modifier doubles the size factor per step (helpers/carrying.mjs). Live: Might 16, 240 lb became 480.
+- **Enlarge/Reduce (2026-10-23):** dnd5e's `system.traits.size` change is a `size` Modifier (+1, -1). A creature's size
+  is its Token's squares, so the active GM resizes its Tokens while the Modifiers' total is not 0, keeping their own size
+  in `flags.wildpath.ownSize`, and gives it back when they end (adapters/foundry-v14-token-size.mts). The resize is an
+  unmeasured `displace` waypoint, which the movement authority approves as a resize. Its species' size counts: a Small
+  creature enlarged is Medium, still 1 square. Live: QA Fighter grew to 2×2 and was 1×1 again when Enlarged ended;
+  Reduced left it 1 square (Small). Reduced's 1d4 less weapon damage stays a note.
 
 Live (two browsers, 14.369): QA Caster with Alert went from +0 to +2 Initiative, and with Disciplined Survivor had all
 six saves proficient. Using Innate Sorcery, its Fire Bolt rolled 2d20kh, and as a Sorcerer 5 its Hold Person had DC 12

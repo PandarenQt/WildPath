@@ -173,7 +173,8 @@ A feature is matched by its dnd5e identifier (or its name) and gets the rules of
   for one with the Action. Natural weapons and Unarmed Strikes count.
 - **Sunlight Sensitivity, Sunlight Weakness, Sunlight Hypersensitivity:** Disadvantage in sunlight on the rolls the
   text names: attack rolls and ability checks (2014: Perception checks), or all D20 Tests. Hypersensitivity also deals its
-  damage when the creature starts its turn in sunlight. A Vampire's Regeneration does not work in sunlight.
+  damage when the creature starts its turn in sunlight. So does a 2024 Vampire Weakness (2026-10-23); its
+  Running Water damage stays a note (no water on the map). A Vampire's Regeneration does not work in sunlight.
 - **Legendary Resistance:** a pool of the creature's uses ("3/Day", from its stat block). A failed save may succeed
   instead, spending one; its controller is asked unless its setting says Always or Never.
 

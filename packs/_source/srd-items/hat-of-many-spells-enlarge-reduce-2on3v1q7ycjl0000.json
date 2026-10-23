@@ -125,6 +125,18 @@
                 ],
                 "mode": "advantage"
               }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "enlarged-5",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "size"
+                ],
+                "modifierType": "untyped",
+                "value": 1
+              }
             }
           ],
           "duration": {
@@ -161,6 +173,18 @@
                   "save.might"
                 ],
                 "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "reduced-3",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "size"
+                ],
+                "modifierType": "untyped",
+                "value": -1
               }
             }
           ],
@@ -233,10 +257,8 @@
       },
       "conversion": {
         "notes": [
-          "effect: \"Enlarged\" change system.traits.size (add) not converted",
           "effect: \"Reduced\" change system.rolls.damage.mwak.bonus (subtract) not converted",
-          "effect: \"Reduced\" change system.rolls.damage.rwak.bonus (subtract) not converted",
-          "effect: \"Reduced\" change system.traits.size (subtract) not converted"
+          "effect: \"Reduced\" change system.rolls.damage.rwak.bonus (subtract) not converted"
         ]
       },
       "price": 40000,

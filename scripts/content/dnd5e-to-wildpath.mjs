@@ -1954,6 +1954,8 @@ const TRAITS = Object.freeze({
   "sunlight-sensitivity": (document, options) => sunlightTrait(document, options),
   "sunlight-weakness": (document, options) => sunlightTrait(document, options),
   "sunlight-hypersensitivity": (document, options) => sunlightTrait(document, options),
+  // A 2024 Vampire's: "takes 20 Radiant damage if it starts its turn in sunlight"; its Running Water damage stays a note.
+  "vampire-weakness": (document, options) => sunlightTrait(document, options),
   // "Doesn't provoke an Opportunity Attack when it flies out of an enemy's reach."
   flyby: () => ({rules: [{schemaVersion: 1, id: "flyby", type: "AvoidOpportunityAttacks", data: {movementModes: ["fly"]}}], notes: []}),
   "pack-tactics": () => ({rules: [{schemaVersion: 1, id: "pack-tactics", type: "RollMode",
@@ -2130,11 +2132,13 @@ function sunlightTrait(document, {activities, ...options}) {
     ...(/saving throws/i.test(text) ? ["save"] : [])];
   if ( !domains.length ) return null;
   const rules = [{schemaVersion: 1, id: "sunlight", type: "RollMode", predicate: IN_SUNLIGHT, data: {domains, mode: "disadvantage"}}];
-  const activity = activities.find(entry => entry.type === "damage");
+  const damages = activities.filter(entry => entry.type === "damage");
+  const activity = damages.find(entry => /sunlight/i.test(entry.name ?? "")) ?? ((damages.length === 1) ? damages[0] : null);
   const burn = activity ? convertActivity({document, activity, ...options, notes: []}) : null;
   if ( burn?.damage?.length ) rules.push({schemaVersion: 1, id: "sunlight-damage", type: "Trigger", data: {event: "turn.started",
     predicate: IN_SUNLIGHT, action: {...burn, costs: {allOf: []}}}});
-  return {rules, consumes: burn?.damage?.length ? [activity] : [], notes: []};
+  return {rules, consumes: burn?.damage?.length ? [activity] : [], notes: damages.filter(entry => entry !== activity)
+    .map(entry => `"${entry.name || entry.type}" is passive or triggered: not automated`)};
 }
 
 /** Not Incapacitated: none of the conditions that include it. */
@@ -4046,6 +4050,9 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
       // Dice on each hit (Divine Favor's 1d4 Radiant, Enlarge's 1d4): extra damage, of its own type or the attack's.
       const kind = ATTACK_KEYS[match[1] ?? match[2]];
       rule("ExtraDamage", {domains: [`damage.${kind[0]}`], ...extraDamageOf(change.value)}, {tagsAny: [kind[1]]});
+    } else if ( (key === "system.traits.size") && ["add", "subtract"].includes(type) && Number.isInteger(number) && number ) {
+      // Enlarge/Reduce: sizes larger or smaller; its Tokens grow or shrink while it lasts (foundry-v14-token-size).
+      modifier(["size"], {type: "constant", value: (type === "add") ? number : -number});
     } else if ( (match = /^system\.bonuses\.abilities\.(save|check)$/.exec(key)) && (type === "add") && value ) {
       modifier([match[1]], value);
     } else if ( (match = /^system\.abilities\.(\w+)\.bonuses\.(save|check)$/.exec(key)) && ABILITY_MAP[match[1]] && (type === "add") && value ) {
