@@ -19,7 +19,7 @@ computer doing the bookkeeping, which is WildPath's job too. See [Baldur's Gate 
 
 `node scripts/content/gap-census.mjs` counts what is not automated, by reason, in the converted content. That is
 the SRD packs plus the local book packages: Player's Handbook, Dungeon Master's Guide, Monster Manual and
-Tasha's. Each reason counts once per document. Rerun it after each gap closes to see the effect.
+Tasha's. Each reason counts once per document. Rerun it after each gap closes to see the effect. An SRD creature is counted by its own notes, which hold each of its Items' (2026-10-24); before that they were skipped.
 
 Census on 2026-10-14, documents per reason (top rows; the four books are summed):
 

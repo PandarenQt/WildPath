@@ -86,9 +86,11 @@ for ( const folder of ["srd-items", "srd-creatures"] ) {
   if ( !existsSync(path) ) continue;
   for ( const file of readdirSync(path) ) {
     const document = JSON.parse(readFileSync(join(path, file), "utf8"));
-    for ( const entry of [document, ...(document.items ?? [])] ) {
+    // A creature's own notes hold each of its Items' (prefixed with the Item's name), as a book's creatures' do.
+    const entries = (folder === "srd-creatures") ? [document] : [document, ...(document.items ?? [])];
+    for ( const entry of entries ) {
       const notes = entry.flags?.wildpath?.conversion?.notes ?? [];
-      if ( notes.length && (entry !== document || !document.items) ) srd[`${document.name}/${entry.name}`] = notes;
+      if ( notes.length ) srd[`${document.name}/${entry.name}`] = notes;
     }
   }
 }
