@@ -97,7 +97,12 @@
                 "maximum": 0
               }
             }
-          ]
+          ],
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnEnd"
+          }
         }
       ],
       "metadata": {

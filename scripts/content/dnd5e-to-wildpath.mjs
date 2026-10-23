@@ -2577,7 +2577,7 @@ const EFFECTS_BY_NAME = Object.freeze({
   "Protected": {ruleElements: [rollModeRule("protected", ["attacked"], "disadvantage", {oneOf: {path: "attack.attackerType",
     values: ["aberration", "celestial", "elemental", "fey", "fiend", "undead"]}})]},
   // Dispel Evil and Good: "Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against you".
-  "Dispelling Evil and Good": {ruleElements: [rollModeRule("dispelling", ["attacked"], "disadvantage", {oneOf: {path: "attack.attackerType",
+  "Dispelling Evil and Good": {duration: {value: 10, units: "rounds"}, ruleElements: [rollModeRule("dispelling", ["attacked"], "disadvantage", {oneOf: {path: "attack.attackerType",
     values: ["celestial", "elemental", "fey", "fiend", "undead"]}})]},
   "See Invisibility": {ruleElements: [{schemaVersion: 1, id: "see-invisibility", type: "GrantSense",
     data: {sense: "seeInvisibility", range: 5280}}]},
@@ -2594,14 +2594,15 @@ const EFFECTS_BY_NAME = Object.freeze({
   // "can't take Reactions".
   "No Reaction": {ruleElements: [{schemaVersion: 1, id: "no-reaction", type: "ResourceCap", data: {resources: ["reaction"], maximum: 0}}]},
   "Cursed: No Reaction": {ruleElements: [{schemaVersion: 1, id: "no-reaction", type: "ResourceCap", data: {resources: ["reaction"], maximum: 0}}]},
-  // Shocking Grasp: "it can't make Opportunity Attacks" (2024; 2014: "can't take reactions").
-  "Shocked": {ruleElements: [{schemaVersion: 1, id: "no-reaction", type: "ResourceCap", data: {resources: ["reaction"], maximum: 0}}]},
+  // Shocking Grasp (2024): "it can't make Opportunity Attacks until the start of its next turn" (the engine's own slug).
+  "Shocked": {slug: "no-opportunity-attacks", duration: {value: 1, units: "rounds", expiry: "turnStart"}, ruleElements: []},
   // Aim, a Scout Captain's: "Advantage on its next attack roll".
   "Aiming: Attack Advantage": {endsWhen: "attacks", ruleElements: [rollModeRule("next-attack", ["attack"], "advantage")]},
   // Sap (weapon mastery), Pesky Swarm: "Disadvantage on its next attack roll".
   "Target: Disadvantage": NEXT_ATTACK_DISADVANTAGE,
   // Chill Touch, a Death Cultist's scythe: "can't regain Hit Points" (WildPathActor#_preUpdate keeps them where they are).
-  "Blocked Healing": {ruleElements: [{schemaVersion: 1, id: "no-healing", type: "ResourceCap", data: {resources: ["healing"], maximum: 0}}]},
+  "Blocked Healing": {duration: {value: 1, units: "rounds", expiry: "turnEnd"},
+    ruleElements: [{schemaVersion: 1, id: "no-healing", type: "ResourceCap", data: {resources: ["healing"], maximum: 0}}]},
   "Healing Restriction": {ruleElements: [{schemaVersion: 1, id: "no-healing", type: "ResourceCap", data: {resources: ["healing"], maximum: 0}}]},
   // "<Type> Protection": Resistance to that damage (an Armor or Potion of Resistance's choice).
   ...Object.fromEntries(["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant",
@@ -2793,7 +2794,8 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
   if ( (!when && !dies) || /\bnext\b/iu.test(own?.[0] ?? "") || /^\s*While\b/u.test(text) ) return null;
   // What a swallowing creature does to those inside it ("takes 17 (5d6) Acid damage at the start of each of the purple
   // worm's turns"): a damage activity dnd5e names for the swallowed.
-  const swallowed = own && (activity.type === "damage") && /\bswallowed\b/iu.test(`${activity.name ?? ""} ${activity.target?.affects?.special ?? ""}`);
+  const swallowed = own && /\bthe (?!target)[^.,]{1,60}?'s turns?\b/iu.test(own[0]) && (activity.type === "damage")
+    && /\bswallowed\b/iu.test(`${activity.name ?? ""} ${activity.target?.affects?.special ?? ""}`);
   const template = activity.target?.template ?? {};
   const size = ["radius", "emanation", "sphere"].includes(template.type) ? Number(template.size)
     : Number(/\b(\d+)-foot(?:-radius)? Emanation\b/iu.exec(text)?.[1]);
@@ -2855,7 +2857,8 @@ function rollModeAura(document, activity) {
   if ( !(radius > 0) || !domains.length ) return null;
   const id = `aura-${slugify(document.name)}`;
   return {schemaVersion: 1, id, type: "Aura",
-    ...(/\b(?:provided|unless|while) [^.]{0,60}?Incapacitated\b/iu.test(text) ? {predicate: {missingCondition: "incapacitated"}} : {}),
+    ...(/\b(?:provided|unless|while) [^.]{0,60}?Incapacitated\b/iu.test(text.replace(/\[\[[^\]]*\]\](?:\{[^}]*\})?/g, "it"))
+      ? {predicate: {missingCondition: "incapacitated"}} : {}),
     data: {radius, affects: "allies", ruleElements: [rollModeRule(id, domains, match[2].toLowerCase())]}};
 }
 
@@ -3118,7 +3121,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // A part of several types is the user's choice when used (Dragonborn's Breath Weapon, Chromatic Orb). A weapon attack's
   // `@mod` is its ability's (dnd5e's blank one: Strength in melee, Dexterity at range), not a spellcasting modifier.
   const typeChoices = [];
-  const attackAbility = (!spell && definition.attack) ? (ABILITY_MAP[activity.attack?.ability]
+  const attackAbility = (!spell && definition.attack && (activity.attack?.ability !== "spellcasting")) ? (ABILITY_MAP[activity.attack?.ability]
     ?? (definition.attack.type === "ranged" ? "agility" : "might")) : null;
   for ( const [index, part] of (activity.damage?.parts ?? []).entries() ) {
     const expression = partExpression(part, {spell, ability: attackAbility, scales, notes, label: `damage ${index + 1}`});
@@ -3202,12 +3205,13 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const marked = statuses.includes("marked") && !byHand?.slug;
     if ( marked ) rules.push({schemaVersion: 1, id: "marked", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}});
     const nextAttack = marked && /\bnext attack roll[^.]*against/i.test(plainText(document));
-    if ( rules.length ) {
+    if ( rules.length || named?.slug ) {
       // "before the end of your next turn": a round, from its caster's turn (V14 starts it on the source's Combatant).
       const untilNextTurnEnd = nextAttack && /before the end of your next turn/i.test(plainText(document))
         ? {value: 1, units: "rounds", expiry: "turnEnd"} : null;
       const duration = (hand ?? named)?.duration ?? effectDuration(effect.duration) ?? untilNextTurnEnd;
-      effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(byHand?.slug ? {slug: byHand.slug} : {}),
+      const slug = byHand?.slug ?? named?.slug;
+      effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(slug ? {slug} : {}),
         ...(effect.img ? {img: effect.img} : {}),
         ruleElements: rules, ...(duration ? {duration} : {}), ...(((hand ?? named)?.endsWhen ?? (nextAttack ? "attacked" : null))
           ? {endsWhen: (hand ?? named)?.endsWhen ?? "attacked"} : {}), ...onFailure,

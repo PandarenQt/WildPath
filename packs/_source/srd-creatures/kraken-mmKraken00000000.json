@@ -621,38 +621,6 @@
         "ruleElements": [
           {
             "schemaVersion": 1,
-            "id": "turn-damage-swallowed",
-            "type": "Trigger",
-            "data": {
-              "kind": "automation",
-              "event": "turn.started",
-              "around": {
-                "swallowed": true
-              },
-              "action": {
-                "schemaVersion": 1,
-                "id": "action:srd-swallow-damage-swallowed",
-                "label": "Swallow",
-                "costs": {
-                  "allOf": []
-                },
-                "damage": [
-                  {
-                    "id": "damage-1",
-                    "expression": {
-                      "type": "dice",
-                      "number": 7,
-                      "faces": 6
-                    },
-                    "damageType": "acid",
-                    "provenance": "additional"
-                  }
-                ]
-              }
-            }
-          },
-          {
-            "schemaVersion": 1,
             "id": "regurgitate-swallow",
             "type": "Trigger",
             "data": {
@@ -1026,6 +994,7 @@
       },
       "conversion": {
         "notes": [
+          "Swallow: \"Damage: Swallowed\" is passive or triggered: not automated",
           "Storm Bolt: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }

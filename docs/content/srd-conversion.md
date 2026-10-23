@@ -889,7 +889,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Knight | actors24 | Knight (4 items) | — |
 | Knock | spells24 | Knock (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Kobold Warrior | actors24 | Kobold Warrior (4 items) | — |
-| Kraken | actors24 | Kraken (12 items) | Storm Bolt: not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Kraken | actors24 | Kraken (12 items) | Swallow: "Damage: Swallowed" is passive or triggered: not automated; Storm Bolt: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Ladder | equipment24 | Ladder (gear) | — |
 | Lamia | actors24 | Lamia (10 items) | Spellcasting: effect: "Disguised" marks its creature (narrative); Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated; Leap: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Lamp | equipment24 | Lamp (gear), Lamp (automated) | — |

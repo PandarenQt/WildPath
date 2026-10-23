@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {canAddSpecial, defendersLost, mapProblems, mapSize, recruited, specialSlots, tradeSale} from "../module/helpers/bastions.mjs";
-import {bastionTurn} from "../module/applications/bastions.mjs";
+import {admitFacility, bastionTurn} from "../module/applications/bastions.mjs";
 
 test("a Bastion's special facility slots and map size grow with its character's level", () => {
   assert.deepEqual([4, 5, 8, 9, 13, 17, 20].map(specialSlots), [0, 2, 2, 4, 5, 6, 6]);
@@ -39,4 +39,17 @@ test("a Bastion turn: the orders issued its special facilities, and a quiet one 
   assert.deepEqual([busy.orders.map(entry => [entry.facility.name, entry.order]), busy.quiet], [[["Arcane Study", "craft"]], false]);
   assert.equal(bastionTurn({items: [facility("Garden", "special", "maintain")]}).quiet, true);
   assert.equal(bastionTurn({items: [facility("Bedroom", "basic", "maintain")]}).quiet, false, "no special facility: no Bastion turn");
+});
+
+test("facilities added together count against the slots and the gold, as one at a time would", () => {
+  const actor = gp => ({type: "character", name: "Bastion", items: [], system: {details: {level: 5}, currency: {gp}}});
+  const special = {type: "facility", system: {kind: "special", level: 5}};
+  const basic = size => ({type: "facility", system: {kind: "basic", size}});
+  const batch = {special: 0, basic: 0, cost: 0};
+  const rich = actor(1000);
+  assert.deepEqual([special, special, special].map(data => admitFacility(rich, data, batch).ok), [true, true, false], "2 slots at 5th");
+  assert.deepEqual([basic("cramped"), basic("roomy"), basic("cramped"), basic("cramped")].map(data => admitFacility(rich, data, batch).cost),
+    [0, 0, 500, 500], "the first two are free");
+  assert.equal(batch.cost, 1000);
+  assert.equal(admitFacility(rich, basic("cramped"), batch).ok, false, "the batch already spends all 1,000 gp");
 });

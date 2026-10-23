@@ -13,7 +13,10 @@
 export function onSpellList(actor, definition) {
   const lists = definition?.metadata?.spellLists ?? [];
   if ( !lists.length ) return true;
-  return [...(actor?.items ?? [])].some(item => (item.type === "class") && lists.includes(item.system?.identifier));
+  const items = [...(actor?.items ?? [])];
+  // A third caster (Eldritch Knight, Arcane Trickster) casts from the Wizard's list through its subclass.
+  const thirdCaster = items.some(item => (item.type === "subclass") && (item.system?.spellcasting?.progression === "third"));
+  return items.some(item => (item.type === "class") && lists.includes(item.system?.identifier)) || (thirdCaster && lists.includes("wizard"));
 }
 
 /** The scroll's save DC and attack bonus by spell level (2024 DMG). */

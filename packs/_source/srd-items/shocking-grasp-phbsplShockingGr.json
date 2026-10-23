@@ -84,20 +84,14 @@
           "id": "effect-1",
           "type": "effect",
           "name": "Shocked",
+          "slug": "no-opportunity-attacks",
           "img": "icons/magic/lightning/bolt-strike-wide-white.webp",
-          "ruleElements": [
-            {
-              "schemaVersion": 1,
-              "id": "no-reaction",
-              "type": "ResourceCap",
-              "data": {
-                "resources": [
-                  "reaction"
-                ],
-                "maximum": 0
-              }
-            }
-          ]
+          "ruleElements": [],
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnStart"
+          }
         }
       ],
       "metadata": {

@@ -190,8 +190,10 @@ gear's `grants` are). That Action (`helpers/spell-scrolls.mjs`):
 
 Only a character with the spell on one of its classes' spell lists reads it (2026-10-22, `onSpellList`): each converted
 spell carries `metadata.spellLists`, the class (and subclass) lists dnd5e's spell list pages put it on (SRD, and a
-book's own pages); a spell on no list (homebrew) any spellcaster reads. A creature that is not a character is not
-checked (a stat block's spellcasting has no class).
+book's own pages); a spell on no list (homebrew) any spellcaster reads. A third caster (Eldritch Knight, Arcane
+Trickster: a subclass whose spellcasting progression is `third`) reads from the Wizard's list. A creature that is not a
+character is not checked (a stat block's spellcasting has no class). A check closed unrolled (physical dice) keeps the
+scroll, unread (2026-10-23).
 
 Live (14.369): a non-caster couldn't read a Guiding Bolt scroll; a 1st-level Wizard read it (1d20 + 5) and it crumbled;
 a Hold Person scroll's DC 12 check failed (8), and the scroll was gone.

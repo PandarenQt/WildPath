@@ -236,7 +236,8 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
         resolutionId: `${id}:${key}`, definition, label, actorRef: String(bearer.actor?.uuid), source: {tokenId: bearer.id,
           sceneId: bearer.parent?.id}, target: self}) as {results?: {saveResolution?: {successes?: unknown[]}}} | null;
       if ( state ) states.push(state);
-      if ( !state || state.results?.saveResolution?.successes?.length ) continue;
+      // Only a save it failed lets them out (not a save that never resolved).
+      if ( !(state as {results?: {saveResolution?: {failures?: unknown[]}}} | null)?.results?.saveResolution?.failures?.length ) continue;
       const held = swallowedBy(bearer.actor as AutomationActor, bearer);
       const size = Number((bearer.parent as {grid?: {size?: number}} | null)?.grid?.size) || 100;
       const at = bearer as Placed & {x?: number; y?: number; width?: number};

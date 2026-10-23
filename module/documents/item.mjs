@@ -10,7 +10,7 @@ import {resolveActorCheckStatistic} from "../helpers/combat-statistics.mjs";
 import {traitUpdates} from "../helpers/level-up.mjs";
 import {refuseBrokenRules} from "../helpers/rule-guard.mjs";
 import {consumeScrollOf, highestSpellLevel, onSpellList, spellLevelOf} from "../helpers/spell-scrolls.mjs";
-import {admitFacility} from "../applications/bastions.mjs";
+import {admitFacility, payFacility} from "../applications/bastions.mjs";
 import {resolveActionConfiguration} from "../helpers/action-configuration.mjs";
 
 /** Which of `skills` the creature checks (Search, Study, Influence), each with its bonus; null when closed. */
@@ -53,7 +53,12 @@ export default class WildPathItem extends Item {
   async _preCreate(data, options, user) {
     if ( (await super._preCreate(data, options, user)) === false ) return false;
     if ( (this.type === "facility") && this.actor && !options?.wildpath?.free && (user?.id === globalThis.game?.user?.id) ) {
-      return (await admitFacility(this.actor, data)) ? undefined : false;
+      // One batch shares its options: what it admitted before this one counts toward the slots and the gold.
+      options.wildpath ??= {};
+      const admitted = admitFacility(this.actor, data, options.wildpath.facilityBatch ??= {special: 0, basic: 0, cost: 0});
+      if ( !admitted.ok ) return false;
+      // Its price rides on its own data until it exists (ids are assigned later), then is paid and cleared.
+      if ( admitted.cost ) this.updateSource({"flags.wildpath.buildCost": {cost: admitted.cost, days: admitted.days}});
     }
     return undefined;
   }
@@ -71,6 +76,9 @@ export default class WildPathItem extends Item {
   _onCreate(data, options, userId) {
     super._onCreate(data, options, userId);
     if ( userId !== game.user.id ) return;
+    // A built facility is paid for now that it exists (admitted in _preCreate).
+    const build = this.flags?.wildpath?.buildCost;
+    if ( build && this.actor ) void payFacility(this.actor, this.name, build).then(() => this.unsetFlag("wildpath", "buildCost"));
     // Its pools and class records are the Actor's to store, once per batch (WildPathActor#syncItemRecords).
     void this.#addGrantedActions();
     void this.#addTraining();
@@ -129,6 +137,8 @@ export default class WildPathItem extends Item {
     }
     if ( (level <= 0) || (level <= highestSpellLevel(this.actor)) ) return true;
     const total = await this.actor.rollTest?.({ability});
+    // A check closed unrolled (physical dice) is no failure: the scroll is kept, unread.
+    if ( total == null ) return false;
     if ( Number(total) >= (10 + level) ) return true;
     globalThis.ui?.notifications?.warn?.(game.i18n.format("WILDPATH.SCROLL.Lost", {name: this.name, dc: 10 + level}));
     await consumeScrollOf(this);

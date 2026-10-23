@@ -758,9 +758,8 @@
                 }
               ],
               "duration": {
-                "value": 1,
-                "units": "rounds",
-                "expiry": "turnStart"
+                "value": 10,
+                "units": "rounds"
               },
               "concentration": true
             }

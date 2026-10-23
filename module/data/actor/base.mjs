@@ -257,7 +257,7 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     // What it carries, against its Might (helpers/carrying.mjs): its load's rules join its own (actor.mjs grantOwners).
     this.carrying = (this.parent?.type === "character") ? carryingLoad({
       weight: [...(this.parent?.items ?? [])].filter(item => item.type === "gear")
-        .reduce((total, item) => total + ((Number(item.system?.quantity) || 1) * (Number(item.system?.weight) || 0)), 0),
+        .reduce((total, item) => total + ((Number(item.system?.quantity ?? 1) || 0) * (Number(item.system?.weight) || 0)), 0),
       // Counting as larger (Powerful Build: `carrying.size` +1) doubles it per size.
       might: this.abilities?.might?.value, sizeFactor: carryingSizeFactor(this.parent?.prototypeToken?.width)
         * (2 ** Math.max(Number(this.parent?.getStatistic?.(["carrying.size"])?.totalModifier) || 0, 0)),
