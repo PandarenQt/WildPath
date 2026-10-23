@@ -1328,6 +1328,11 @@ test("reactions by their 2024 trigger: Shield and Parry when hit, Counterspell w
     guard.system.definition.effects[0].ruleElements[0].data], [{type: "self"}, "attacked",
     {domains: ["defense.ac"], modifierType: "untyped", value: 3}], "+3 AC on itself until that attack is over");
   assert.equal(validateActionDefinition(guard.system.definition).ok, true);
+  // The 2024 Monster Manual's: "adds its Proficiency Bonus" (`@prof`).
+  const [proficient] = convertItem({...parry, _id: "testParryProf001", system: {...parry.system,
+    activities: {a: activity("utility", {activation: {type: "reaction", override: false}, roll: {formula: "@prof"}})}}}).items;
+  assert.deepEqual(proficient.system.definition.effects[0].ruleElements[0].data, {domains: ["defense.ac"], modifierType: "untyped",
+    valueExpression: {type: "proficiency-bonus"}});
 
   const [dodge] = convertItem({...parry, _id: "testUncannyDodg1", name: "Uncanny Dodge", system: {...parry.system, identifier: "uncanny-dodge",
     description: {value: "<p>Halve the attack's damage against you.</p>"}}}).items;
