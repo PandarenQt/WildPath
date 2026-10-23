@@ -2890,7 +2890,10 @@ function initiativeTrigger({document, activity, system, spell, level, scales, no
 function turnAreaTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature, beasts}) {
   if ( !["save", "damage"].includes(activity?.type) ) return null;
   // dnd5e keeps who it reaches ("any enemy that starts its turn in the aura") and when ("when it dies") on the activity.
-  const text = `${plainText(document)} ${activity.target?.affects?.special ?? ""} ${activity.activation?.condition ?? ""}`;
+  // Its 2024 stat block's lookups ("any [[lookup @target.affects.type]] that starts its turn within [[lookup
+  // @target.template.size]] feet") read as words, so their dots end no sentence.
+  const raw = `${plainText(document)} ${activity.target?.affects?.special ?? ""} ${activity.activation?.condition ?? ""}`;
+  const text = raw.replace(/\[\[lookup [^\]]*\]\](?:\{[^}]*\})?/gu, "it");
   const others = /\b(?:any|each) ([^.]{1,80}?) that (starts|ends) its turn (?:in|within)\b/iu.exec(text);
   const own = others ? null : /\b(?:at|by) the (start|end) of (?:each of )?(?:its|their|your|the (?!target)[^.,]{1,60}?'s) turns?\b/iu.exec(text);
   // Or as it dies ("The mephit explodes when it dies": a Death Burst).
@@ -2902,8 +2905,12 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
   const swallowed = own && /\bthe (?!target)[^.,]{1,60}?'s turns?\b/iu.test(own[0]) && (activity.type === "damage")
     && /\bswallowed\b/iu.test(`${activity.name ?? ""} ${activity.target?.affects?.special ?? ""}`);
   const template = activity.target?.template ?? {};
+  // Its template's, its text's ("a 10-foot Emanation", "ends its turn within 5 feet of the sphere"), or its range's
+  // ("within [[lookup @range.value]] feet": a Sea Hag's Vile Appearance).
   const size = ["radius", "emanation", "sphere"].includes(template.type) ? Number(template.size)
-    : Number(/\b(\d+)-foot(?:-radius)? Emanation\b/iu.exec(text)?.[1]);
+    : (Number(/\b(\d+)-foot(?:-radius)? Emanation\b/iu.exec(text)?.[1])
+      || Number(/\bthat (?:starts|ends) its turn within (\d+) feet\b/iu.exec(text)?.[1])
+      || (/\bwithin \[\[lookup @range\.value\b/u.test(raw) ? Number(pick(activity, system, "range").value) : 0));
   if ( !(size > 0) && !swallowed ) return null;
   const its = [];
   const definition = convertActivity({document, activity, system, spell, level, scales, notes: its, pool, saveDC, spellDC, creature, beasts,

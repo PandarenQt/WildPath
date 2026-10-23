@@ -1197,6 +1197,14 @@ test("what a creature does around itself at a turn boundary is an automatic Eman
     "until the start of its next turn");
   assert.deepEqual([immune.saveOutcomePolicy, immune.duration, immune.metadata.immuneTo], ["success", {value: 24, units: "hours"},
     aura.data.action.id]);
+  // Lookups in its text (a 2024 Sea Hag's), and its range as the distance.
+  const [hag] = convertItem(passive("testVileAppear01", "Vile Appearance", "<p>Wisdom Saving Throw: DC 11, any [[lookup "
+    + "@target.affects.special activity=x]] that starts its turn within [[lookup @range.value activity=x]] feet of the hag.</p>"
+    + "<p>Failure: The target has the Frightened condition until the start of its next turn.</p>",
+    {range: {value: "30", units: "ft", override: false}, target: {template: {type: ""}, affects: {type: "creature"}, override: false},
+      save: {ability: ["wis"], dc: {calculation: "", formula: "11"}}, damage: {parts: []}, effects: [{_id: "afraid", onSave: false}]},
+    [{_id: "afraid", name: "Frightened", statuses: ["frightened"], duration: {value: 1, units: "turns", expiry: "turnStart"}}])).items;
+  assert.deepEqual(hag.system.ruleElements[0].data.around, {radius: 30, affects: "others", on: "others"});
 });
 
 test("an area whose size grows with the spell's level scales with its slot (Confusion)", () => {

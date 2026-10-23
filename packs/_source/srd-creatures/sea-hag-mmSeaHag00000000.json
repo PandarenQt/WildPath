@@ -747,7 +747,58 @@
       "system": {
         "active": true,
         "description": "<p class=\"feature\"><em>Wisdom Saving Throw:</em> DC 11, any Beast or Humanoid that starts its turn within 30 feet of the sea hag and can see the sea hag's true form.</p><p class=\"feature\"><em>Failure:</em> The target has the Frightened condition until the start of its next turn.</p><p class=\"feature\"><em>Success:</em> The target is immune to this sea hag's Horrific Appearance for 24 hours.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "turn-vile-appearance",
+            "type": "Trigger",
+            "data": {
+              "kind": "automation",
+              "event": "turn.started",
+              "around": {
+                "radius": 30,
+                "affects": "others",
+                "on": "others"
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-vile-appearance",
+                "label": "Vile Appearance",
+                "costs": {
+                  "allOf": []
+                },
+                "save": {
+                  "ability": "wits",
+                  "dc": {
+                    "value": 11
+                  }
+                },
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "condition",
+                    "conditionId": "frightened",
+                    "saveOutcomePolicy": "failure"
+                  },
+                  {
+                    "id": "effect-2",
+                    "type": "effect",
+                    "name": "Vile Appearance: immune",
+                    "ruleElements": [],
+                    "duration": {
+                      "value": 24,
+                      "units": "hours"
+                    },
+                    "saveOutcomePolicy": "success",
+                    "metadata": {
+                      "immuneTo": "action:srd-vile-appearance"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -763,9 +814,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"save\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -1074,7 +1123,6 @@
           "Coven Magic: activation: 10 minute is not an action-economy cost",
           "Coven Magic: save: a failure marks its creature (narrative)",
           "Coven Magic: \"Create Sensor\" is passive or triggered (narrative): not automated",
-          "Vile Appearance: \"save\" is passive or triggered: not automated",
           "Illusory Appearance: effect: \"Disguised\" marks its creature (narrative)"
         ]
       }
