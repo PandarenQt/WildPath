@@ -451,6 +451,20 @@ test("a number chosen when used is spent from a pool and is the amount (Lay on H
   assert.ok(costs.includes("lay-on-hands") && costs.includes("7"), costs);
 });
 
+test("a number chosen when used with `faces` is that many dice (Staff of Striking: 1d6 per charge spent)", () => {
+  const definition = {schemaVersion: 1, id: "action:staff-charge", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, healing: [{id: "healing-1", expression: {type: "constant", value: 1}, healingType: "healing"}],
+    configuration: [{id: "points", type: ACTION_CHOICE_TYPES.NUMBER, label: "Charges", required: true, min: 1,
+      effects: [{type: "spendAmount", resourceId: "staff", componentIds: ["healing-1"], faces: 6}]}]};
+  const system = actorSystem();
+  const result = resolveActionConfiguration({definition, actorSystem: {...system, pools: [...(system.pools ?? []),
+    {id: "staff", value: 10, max: 10}]}, choices: {points: 3}});
+  assert.equal(result.ok, true, JSON.stringify(result.errors));
+  assert.deepEqual(result.configuration.effectiveDefinition.healing[0].expression, {type: "dice", number: 3, faces: 6});
+  const costs = JSON.stringify(result.configuration.effectiveDefinition.costs);
+  assert.ok(costs.includes("staff") && costs.includes("3"), costs);
+});
+
 test("an enchantment picks one of its creature's own weapons, and binds it and the slot's level into its effect (Magic Weapon)", async () => {
   const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
   const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");

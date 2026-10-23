@@ -339,12 +339,16 @@ export function resolveActorCheckStatistic(actor, {ability=null, skill=null}={})
   const check = withAbilityModifier(resolveActorStatisticModifier(actor, [skill ? `check.${skill}` : null,
     used ? `check.${used}` : null, (skill && !level) ? "check.unproficient" : null, "check"].filter(Boolean),
   {tags: [used, skill].filter(Boolean)}), actor, used);
-  if ( !check || !level ) return check;
-  const proficiency = actorProficiencyBonus(actor) * level;
-  // A check with its proficiency reads `check.proficient` minimums (Reliable Talent: a d20 of 9 or lower counts as 10).
-  const naturalMinimum = Math.max(0, ...(actor?.getRollOutcomes?.(["check.proficient"]) ?? [])
+  if ( !check ) return check;
+  // Its d20's minimums: on its ability or skill (Glibness: a Charisma check's d20 of 14 or lower counts as 15), and with
+  // its proficiency on `check.proficient` (Reliable Talent: a d20 of 9 or lower counts as 10).
+  const naturalMinimum = Math.max(0, ...(actor?.getRollOutcomes?.([used ? `check.${used}` : null, skill ? `check.${skill}` : null,
+    level ? "check.proficient" : null].filter(Boolean)) ?? [])
     .filter(outcome => outcome.outcome === "minimum-natural").map(outcome => Number(outcome.threshold) || 0));
-  return {...check, totalModifier: check.totalModifier + proficiency, proficiency, ...(naturalMinimum > 1 ? {naturalMinimum} : {})};
+  const minimum = naturalMinimum > 1 ? {naturalMinimum} : {};
+  if ( !level ) return {...check, ...minimum};
+  const proficiency = actorProficiencyBonus(actor) * level;
+  return {...check, totalModifier: check.totalModifier + proficiency, proficiency, ...minimum};
 }
 
 function withAbilityModifier(statistic, actor, ability) {

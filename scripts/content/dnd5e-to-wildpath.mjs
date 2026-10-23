@@ -2800,6 +2800,9 @@ const EFFECTS_BY_NAME = Object.freeze({
   // Prayer of Healing: "a target can't regain Hit Points from it again until it finishes a Long Rest" (dnd5e gives it no
   // duration). shortcut: refusing the spell on a creature that has it is by hand.
   "Healed by Prayer": {restsLeft: 1, ruleElements: []},
+  // Glibness: "When you make a Charisma check, you can replace the number you roll with 15".
+  "Glib": {ruleElements: [{schemaVersion: 1, id: "glib", type: "RollOutcome", data: {domains: ["check.presence"], outcome: "minimum-natural",
+    threshold: 15}}]},
   "Riding Broom (High Weight)": {ruleElements: [{schemaVersion: 1, id: "broom", type: "GrantMovement", data: {mode: "fly", distance: 30, hover: true}}]}
 });
 
@@ -3367,10 +3370,20 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // A part of several types is the user's choice when used (Dragonborn's Breath Weapon, Chromatic Orb). A weapon attack's
   // `@mod` is its ability's (dnd5e's blank one: Strength in melee, Dexterity at range), not a spellcasting modifier.
   const typeChoices = [];
+  // "(@scaling)d6": as many dice as the uses its user spends (2024 Staff of Striking: "1d6 Force damage per charge
+  // spent"), a number chosen when used (`spendAmount` with `faces`).
+  const spending = activity.consumption?.scaling?.allowed ? (activity.consumption.targets ?? [])
+    .find(target => (target.type === "itemUses") && (target.scaling?.mode === "amount")) : null;
+  const spendId = spending ? targetPoolId(spending, pool, names) : null;
+  const perUse = part => (spendId ? /^\(\s*@scaling\s*\)\s*d\s*(\d+)$/iu.exec(String(part?.custom?.enabled ? part.custom.formula : "").trim()) : null);
+  let spent = null;
   const attackAbility = (!spell && definition.attack && (activity.attack?.ability !== "spellcasting")) ? (ABILITY_MAP[activity.attack?.ability]
     ?? (definition.attack.type === "ranged" ? "agility" : "might")) : null;
   for ( const [index, part] of (activity.damage?.parts ?? []).entries() ) {
-    const expression = partExpression(part, {spell, ability: attackAbility, scales, notes, label: `damage ${index + 1}`});
+    const faces = perUse(part)?.[1];
+    if ( faces ) spent = {id: `damage-${index + 1}`, faces: Number(faces), collection: "damage"};
+    const expression = faces ? dice(1, Number(faces))
+      : partExpression(part, {spell, ability: attackAbility, scales, notes, label: `damage ${index + 1}`});
     if ( !expression ) continue;
     const types = (part.types ?? []).filter(type => DAMAGE_TYPES.includes(type));
     if ( types.length > 1 ) typeChoices.push({id: `damage-type-${index + 1}`, type: "damage-type", label: "Damage type", required: true,
@@ -3389,7 +3402,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
 
   const healing = [];
   if ( activity.type === "heal" && activity.healing ) {
-    const expression = partExpression(activity.healing, {spell, ability: null, scales, notes, label: "healing"});
+    const faces = perUse(activity.healing)?.[1];
+    if ( faces ) spent = {id: "healing-1", faces: Number(faces), collection: "healing"};
+    const expression = faces ? dice(1, Number(faces)) : partExpression(activity.healing, {spell, ability: null, scales, notes, label: "healing"});
     const scale = scaledDice(activity.healing, {spell, level});
     // Temporary Hit Points (False Life, Inspiring Leader) are their own healing type.
     const healingType = (activity.healing.types ?? []).includes("temphp") ? "temporary" : "healing";
@@ -3535,6 +3550,17 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // Such a follow-up continues its spell's concentration rather than starting one (startsConcentration).
   if ( spell && level && (activity.consumption?.spellSlot === false) ) definition.metadata = {...(definition.metadata ?? {}), followUp: true};
   if ( typeChoices.length ) definition.configuration = [...(definition.configuration ?? []), ...typeChoices];
+  // The uses spent are chosen when used, and `spendAmount` spends them (so the pool's fixed cost goes).
+  // shortcut: a maximum that reads its creature (Healing Light's Charisma modifier) is not set; upgrade when a choice's max can.
+  // shortcut: a hit offer keeps dnd5e's activation cost (Staff of Striking's Charge Damage asks for the Action); upgrade
+  // when hit offers drop their activation.
+  if ( spent ) {
+    const max = number(activity.consumption.scaling.max);
+    definition.costs = {...definition.costs, allOf: (definition.costs?.allOf ?? []).filter(cost => cost.capability !== spendId)};
+    definition.configuration = [...(definition.configuration ?? []), {id: "spent", type: "number",
+      label: (pool?.id === spendId ? pool?.rule?.data?.label : null) ?? document.name, required: true, min: 1, ...(max ? {max} : {}),
+      effects: [{type: "spendAmount", resourceId: spendId, componentIds: [spent.id], collection: spent.collection, faces: spent.faces}]}];
+  }
   // dnd5e lists an activity's effects as options its user applies (Blindness or Deafness, one of Hex's abilities, a
   // Shadow's -1 to -4): a choice keeps one, with every condition it brings.
   if ( groups.length > 1 ) {

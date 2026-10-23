@@ -18,20 +18,49 @@
           {
             "capability": "action",
             "amount": 1
-          },
-          {
-            "capability": "staff-of-striking",
-            "amount": 1
           }
         ]
-      },
-      "range": {
-        "type": "special"
       },
       "targeting": {
         "type": "single",
         "required": true,
         "count": 1
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 6
+          },
+          "damageType": "force",
+          "provenance": "additional"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "spent",
+          "type": "number",
+          "label": "Staff of Striking",
+          "required": true,
+          "min": 1,
+          "max": 3,
+          "effects": [
+            {
+              "type": "spendAmount",
+              "resourceId": "staff-of-striking",
+              "componentIds": [
+                "damage-1"
+              ],
+              "collection": "damage",
+              "faces": 6
+            }
+          ]
+        }
+      ],
+      "range": {
+        "type": "special"
       },
       "label": "Staff of Striking (Charge Damage)"
     },
@@ -96,9 +125,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "damage 1: custom formula \"(@scaling)d6\" not converted"
-        ]
+        "notes": []
       },
       "price": 40000,
       "rarity": "veryRare"
