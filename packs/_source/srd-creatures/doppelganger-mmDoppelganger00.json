@@ -289,7 +289,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "concentration: its caster concentrates; what it sustains is by hand",
               "save: a failure marks its creature (narrative)"
             ]
@@ -504,7 +504,7 @@
       },
       "conversion": {
         "notes": [
-          "Read Thoughts: not automated (utility): using it spends its cost; its description says the rest",
+          "Read Thoughts: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Read Thoughts: concentration: its caster concentrates; what it sustains is by hand",
           "Read Thoughts: save: a failure marks its creature (narrative)",
           "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"

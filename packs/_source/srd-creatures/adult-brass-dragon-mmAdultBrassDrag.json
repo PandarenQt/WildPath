@@ -917,7 +917,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "concentration: its caster concentrates; what it sustains is by hand",
               "save: a failure marks its creature (narrative)"
             ]
@@ -1417,8 +1417,8 @@
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
-          "Spellcasting: save: a failure marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
+          "Spellcasting: save: a failure marks its creature (narrative)",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Blazing Light: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"

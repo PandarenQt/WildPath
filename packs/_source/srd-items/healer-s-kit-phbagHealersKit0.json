@@ -22,6 +22,19 @@
           }
         ]
       },
+      "stabilize": true,
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
       "label": "Healer's Kit"
     },
     "ruleElements": [
@@ -55,9 +68,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "price": 5
     }

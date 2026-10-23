@@ -920,7 +920,7 @@
           "conversion": {
             "notes": [
               "not automated (teleport, narrative): using it spends its cost; its description says the rest",
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility, narrative): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1617,6 +1617,7 @@
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Cannot Lie\" marks its creature (narrative)"
         ]
       }

@@ -2051,3 +2051,11 @@ test("an empty effect named for its conditions gives them (Divine Word's \"Blind
   assert.deepEqual(effectStatuses({name: "Bark-like Skin", statuses: []}), [], "a name that is no condition");
   assert.deepEqual(effectStatuses({name: "Deafened", statuses: [], changes: [{key: "system.x", value: 1}]}), [], "an effect with changes keeps them");
 });
+
+test("Spare the Dying and a Healer's Kit make a creature at 0 Hit Points Stable", () => {
+  const [spare] = convertItem({_id: "testSpareDying01", name: "Spare the Dying", type: "spell", effects: [{_id: "stab", name: "Stabilized", statuses: ["stable"]}],
+    system: {source: SRD, identifier: "spare-the-dying", level: 0, preparation: {mode: "prepared"}, activation: {type: "action"},
+      range: {units: "ft", value: "15 * pow(2, @scaling.increase)"}, target: {affects: {type: "creature", count: 1}, template: {}},
+      activities: {a: activity("utility", {effects: [{_id: "stab"}]})}}}).items;
+  assert.deepEqual([spare.system.definition.stabilize, spare.system.definition.effects, spare.flags.wildpath.conversion.notes], [true, undefined, []]);
+});

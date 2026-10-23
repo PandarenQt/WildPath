@@ -30,15 +30,14 @@
         "required": true,
         "count": 1
       },
-      "effects": [
-        {
-          "id": "effect-1",
-          "type": "effect",
-          "name": "Stabilized",
-          "img": "systems/dnd5e/icons/svg/trait-damage-vulnerabilities.svg",
-          "ruleElements": []
+      "stabilize": true,
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 15,
+          "unit": "ft"
         }
-      ],
+      },
       "metadata": {
         "spellLevel": 0,
         "spellLists": [
@@ -64,10 +63,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: stable is not a WildPath condition yet",
-          "effect: \"Stabilized\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

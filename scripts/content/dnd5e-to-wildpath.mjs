@@ -1261,6 +1261,17 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type}${narrative ? ", narrative" : ""})`}: using it spends its cost; its description says the rest`);
       definition = manualDefinition({document, activity, system, spell, level, notes, pool, names, scales});
     }
+    // Spare the Dying, a Healer's Kit: the creature it touches at 0 Hit Points becomes Stable (the dying adapter's
+    // `stabilize`), not a marker beside it.
+    if ( STABILIZES.has(identifierOf(document)) ) {
+      // shortcut: Spare the Dying's range is its base 15 feet (it doubles at 5th, 11th and 17th level); upgrade when a range
+      // can be a ValueExpression.
+      definition = {...definition, stabilize: true, targeting: {type: "single", required: true, count: 1},
+        range: spell ? {type: "ranged", normal: {value: 15, unit: "ft"}} : {type: "touch", distance: {value: 5, unit: "ft"}},
+        effects: (definition.effects ?? []).filter(effect => effect.name !== "Stabilized")};
+      if ( !definition.effects.length ) delete definition.effects;
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated") && !/^effect: (?:"Stabilized"|stable )/.test(note)));
+    }
     const selfEffects = SELF_EFFECTS[identifierOf(document)];
     if ( selfEffects || USED_AT_TURN_START.has(identifierOf(document)) ) {
       definition = {...definition, range: {type: "self"}, targeting: {type: "self"},
@@ -2067,8 +2078,19 @@ const NARRATIVE_MARKERS = new Set(["Detect Magic", "Detect Evil and Good", "Dete
 const NARRATIVE_ACTIVITIES = new Set(["Create Sensor", "Revive: Days", "Days to Reform", "Count Beans", "Determine Number of Pots",
   "Count Number of Cards"]);
 
-/** Items whose use only lights or starts something else (a Tinderbox lights a Torch, whose own Action sheds its light). */
-const NARRATIVE_USES = new Set(["tinderbox"]);
+/**
+ * Items and spells whose use only lights or starts something else (a Tinderbox lights a Torch, whose own Action sheds its
+ * light), or whose effect is the table's to describe (Prestidigitation, Mending, a Portable Hole, reading thoughts).
+ */
+const NARRATIVE_USES = new Set(["tinderbox", "prestidigitation", "mending", "illusory-script", "rope-trick", "find-traps", "creation",
+  "demiplane", "mirage-arcane", "hallucinatory-terrain", "private-sanctum", "control-water", "create-or-destroy-water",
+  "decanter-of-endless-water", "boat-utility", "swan-boat-feather-token", "portable-hole", "rope-of-climbing", "instant-fortress",
+  "immovable-rod", "instant-summons", "dust-of-dryness", "detect-thoughts", "helm-of-telepathy", "medallion-of-thoughts",
+  "mind-reading-crystal-ball-of", "gaze-of-two-minds", "whispers-of-the-grave", "word-of-recall", "awaken", "divine-intervention",
+  "gift-of-the-protectors", "true-resurrection", "apparatus-of-the-crab"]);
+
+/** What makes a creature at 0 Hit Points Stable when it touches it (`stabilize`). */
+const STABILIZES = new Set(["spare-the-dying", "healers-kit"]);
 
 /** Words of a game rule in a use's text: one without any is narrative (its cost spent is all there is). */
 const MECHANICAL_TEXT = /\b(damage|saving throw|save\b|DC \d|Advantage|Disadvantage|attack roll|Hit Points?|Armor Class|\bAC\b|Speed|Blinded|Charmed|Deafened|Frightened|Grappled|Incapacitated|Invisible|Paralyzed|Petrified|Poisoned|Prone|Restrained|Stunned|Unconscious|Exhaustion|Resistance|Immunity|teleport|Bright Light|Dim Light|ability check|bonus|darkvision|blindsight|tremorsense|truesight|difficult terrain|reaction|Bonus Action|extra attack|spell slot)/i;
