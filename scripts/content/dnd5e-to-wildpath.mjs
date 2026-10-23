@@ -832,7 +832,7 @@ export function effectStatuses(effect) {
   const statuses = effect?.statuses ?? [];
   // An empty effect named for its conditions ("Deafened", "Blinded, Deafened": Blindness/Deafness's) gives them.
   if ( !statuses.length && !effectChanges(effect).length ) {
-    const names = String(effect?.name ?? "").toLowerCase().split(/\s*(?:,|\band\b)\s*/u).filter(Boolean);
+    const names = String(effect?.name ?? "").toLowerCase().replace(/[.!]+$/u, "").split(/\s*(?:,|\band\b)\s*/u).filter(Boolean);
     if ( names.length && names.every(name => CONDITION_MAP[name]) ) return names;
   }
   const slugs = statuses.filter(status => /^[a-z][\w-]*$/u.test(status));
