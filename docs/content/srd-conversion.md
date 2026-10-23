@@ -41,7 +41,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Air Elemental | actors24 | Air Elemental (5 items) | — |
 | Air Ring of Elemental Command | equipment24 | Air Ring of Elemental Command (gear), Air Ring of Elemental Command (Elemental Compulsion) (automated), Air Ring of Elemental Command: Chain Lightning (automated), Air Ring of Elemental Command: Feather Fall (manual), Air Ring of Elemental Command: Gust of Wind (automated), Air Ring of Elemental Command: Wind Wall (automated) | not automated (utility): using it spends its cost; its description says the rest; rolled (save); what it does is by hand; concentration: its caster concentrates; what it sustains is by hand |
 | Alarm | spells24 | Alarm (Cast over Area) (manual), Alarm (Cast on Window or Door) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
-| Alchemist's Fire | equipment24 | Alchemist's Fire (automated) | effect: "Burning." marks its creature only; its rules are by hand |
+| Alchemist's Fire | equipment24 | Alchemist's Fire (automated) | — |
 | Alchemist's Supplies | equipment24 | Alchemist's Supplies (gear), Alchemist's Supplies (automated) | — |
 | Alert | feats24 | Alert (feature) | — |
 | Allosaurus | actors24 | Allosaurus (2 items) | — |
