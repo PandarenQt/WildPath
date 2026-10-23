@@ -37,7 +37,20 @@
           "type": "effect",
           "name": "Climber",
           "img": "icons/consumables/potions/vial-cork-empty.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "climber",
+              "type": "GrantMovement",
+              "data": {
+                "mode": "climb",
+                "distance": {
+                  "type": "context",
+                  "path": "actorSystem.resources.movement.max"
+                }
+              }
+            }
+          ],
           "duration": {
             "value": 3600,
             "units": "seconds",
@@ -78,9 +91,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Climber\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       },
       "price": 50,
       "rarity": "common"

@@ -2745,7 +2745,30 @@ const EFFECTS_BY_NAME = Object.freeze({
   // "<Type> Protection": Resistance to that damage (an Armor or Potion of Resistance's choice).
   ...Object.fromEntries(["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant",
     "slashing", "thunder"].map(type => [`${type[0].toUpperCase()}${type.slice(1)} Protection`,
-    {ruleElements: [{schemaVersion: 1, id: `${type}-resistance`, type: "GrantResistance", data: {damageTypes: [type]}}]}]))
+    {ruleElements: [{schemaVersion: 1, id: `${type}-resistance`, type: "GrantResistance", data: {damageTypes: [type]}}]}])),
+  // An Ancient Black Dragon's Cloud of Insects: "Disadvantage on saving throws to maintain Concentration".
+  "Clouded": {ruleElements: [rollModeRule("concentration-disadvantage", ["concentration"], "disadvantage")]},
+  // Arms of Hadar: "it can't take Reactions until the start of its next turn".
+  "No Reactions": {ruleElements: [{schemaVersion: 1, id: "no-reaction", type: "ResourceCap", data: {resources: ["reaction"], maximum: 0}}]},
+  // A Kuo-toa Monitor's, a Bone Whip's: "it can't make Opportunity Attacks" (dnd5e's duration).
+  "Whipped: No Opportunity Attacks": {slug: "no-opportunity-attacks", ruleElements: []},
+  "No Opportunity Attacks": {slug: "no-opportunity-attacks", ruleElements: []},
+  // A Psychic Gray Ooze's: "Disadvantage on Intelligence saving throws".
+  "Save Disadvantage: Intelligence": {ruleElements: [rollModeRule("int-saves", ["save.intellect"], "disadvantage")]},
+  // Regenerate: "regains 1 Hit Point at the start of each of its turns".
+  "Regenerating": {ruleElements: [{schemaVersion: 1, id: "regenerating", type: "Trigger", data: {kind: "automation", event: "turn.started",
+    action: {schemaVersion: 1, id: "action:regenerating", label: "Regenerate", costs: {allOf: []},
+      healing: [{id: "healing-1", expression: {type: "constant", value: 1}, healingType: "healing"}]}}}]},
+  // A Potion of Climbing: "a Climb Speed equal to your Speed". shortcut: its Advantage on Athletics checks to climb is by
+  // hand; upgrade when a check knows it is a climb.
+  "Climber": {ruleElements: [{schemaVersion: 1, id: "climber", type: "GrantMovement",
+    data: {mode: "climb", distance: {type: "context", path: "actorSystem.resources.movement.max"}}}]},
+  // A Potion of Flying: "a Fly Speed equal to your Speed and can hover".
+  "Flyer": {ruleElements: [{schemaVersion: 1, id: "flyer", type: "GrantMovement",
+    data: {mode: "fly", distance: {type: "context", path: "actorSystem.resources.movement.max"}, hover: true}}]},
+  // A Broom of Flying: "a Fly Speed of 50 feet"; 30 feet carrying over 200 pounds. It hovers.
+  "Riding Broom (Low Weight)": {ruleElements: [{schemaVersion: 1, id: "broom", type: "GrantMovement", data: {mode: "fly", distance: 50, hover: true}}]},
+  "Riding Broom (High Weight)": {ruleElements: [{schemaVersion: 1, id: "broom", type: "GrantMovement", data: {mode: "fly", distance: 30, hover: true}}]}
 });
 
 /**
@@ -3351,8 +3374,10 @@ function convertActivity({document, activity, system, spell, level, scales, note
     // A mark given by hand (its slug) is its own status ("marked", "cursed").
     // dnd5e's "transformed" on a misty or cloud form (Gaseous Form, Wind Walk): `gaseous`, which can't attack or cast spells.
     const gaseous = statuses.includes("transformed") && /\b(?:gaseous|cloud form|misty cloud)\b/i.test(plainText(document));
+    // dnd5e's "flying" on an effect that gives a fly Speed (a Broom of Flying's) is that Speed in use.
+    const flies = (EFFECTS_BY_NAME[effect?.name]?.ruleElements ?? []).some(rule => (rule.type === "GrantMovement") && (rule.data?.mode === "fly"));
     if ( !byHand?.slug ) for ( const status of statuses.filter(status => !CONDITION_MAP[status] && !["marked", "suffocation"].includes(status)
-      && !(gaseous && (status === "transformed"))) ) {
+      && !(gaseous && (status === "transformed")) && !((status === "flying") && flies)) ) {
       notes.push(`effect: ${status} is not a WildPath condition yet`);
     }
     // As long as its dnd5e effect says ("until the start of its next turn"); none lasts until it is ended.
