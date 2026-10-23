@@ -33,11 +33,7 @@
         "notes": [
           "\"Attunement Save\" is passive or triggered: not automated",
           "not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "consumption: itemUses 4 not converted",
-          "consumption: itemUses 1 not converted",
-          "consumption: itemUses 2 not converted",
           "effect: \"Detect Magic\" marks its creature (narrative)",
-          "consumption: itemUses 3 not converted",
           "activation: 10 minute is not an action-economy cost",
           "save: a failure marks its creature (narrative)",
           "\"Create Sensor\" is passive or triggered (narrative): not automated"

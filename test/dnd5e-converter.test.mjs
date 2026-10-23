@@ -868,6 +868,22 @@ test("ability score changes become AbilityScore rules: a Belt's at-least, an Iou
   assert.equal(notes.length, 1, "a rolled change is left by hand");
 });
 
+test("charges its text gives when dnd5e leaves its uses empty (a Dragon Orb's 7, regaining 1d4 + 3 at dawn)", async () => {
+  const fs = await import("node:fs");
+  const [, used] = convertItem({_id: "testOrbCharges01", name: "Test Orb", type: "equipment", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "test-orb", uses: {max: "", spent: 0, recovery: []},
+      description: {value: "<p>The orb has 7 charges and regains 1d4 + 3 expended charges daily at dawn.</p>"},
+      activities: {a: activity("utility", {consumption: {targets: [{type: "itemUses", value: "2", target: ""}]}})}}}).items;
+  assert.ok(used.system.definition.costs.allOf.some(cost => (cost.capability === "test-orb") && (cost.amount === 2)));
+  const pool = used.system.ruleElements.find(rule => rule.type === "GrantResource").data;
+  assert.deepEqual([pool.maximum, pool.regain.longRest.terms[0]], [{type: "constant", value: 7}, {type: "dice", number: 1, faces: 4}]);
+  assert.equal(used.flags.wildpath.conversion.notes.some(note => note.startsWith("consumption: itemUses")), false);
+  for ( const file of fs.readdirSync("packs/_source/srd-items").filter(file => file.startsWith("dragon-orb")) ) {
+    const orb = JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}`, "utf8"));
+    assert.equal(orb.flags.wildpath.conversion.notes.some(note => note.startsWith("consumption: itemUses")), false, file);
+  }
+});
+
 test("Telepathy and a Proficiency Bonus change convert (a Myconid's Telepathy 30 ft., an Ioun Stone of Mastery)", async () => {
   const {effectRules} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
   const notes = [];

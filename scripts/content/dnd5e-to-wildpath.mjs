@@ -2884,8 +2884,21 @@ function sustainsConcentration(definition) {
 
 /** An item's limited uses as a resource pool its Actions spend, with the dnd5e recovery. */
 function usesPool({document, scales}) {
-  const uses = (identifierOf(document) === "wild-shape") ? WILD_SHAPE_2014.uses : document.system?.uses;
+  const uses = (identifierOf(document) === "wild-shape") ? WILD_SHAPE_2014.uses
+    : (document.system?.uses?.max ? document.system.uses : (chargesInText(document) ?? document.system?.uses));
   return poolOf(uses, {id: slugify(document.name), label: document.name, scales});
+}
+
+/** Charges its text gives when dnd5e leaves its uses empty though its activities spend them (2024 Dragon Orb: "The orb has 7
+ *  charges and regains 1d4 + 3 expended charges daily at dawn"). Null otherwise. */
+function chargesInText(document) {
+  const spends = Object.values(document.system?.activities ?? {}).some(activity => (activity.consumption?.targets ?? [])
+    .some(target => (target.type === "itemUses") && !target.target && !givesBack(target.value)));
+  const text = spends ? plainText(document) : "";
+  const max = /\bhas (\d+) charges\b/iu.exec(text)?.[1];
+  if ( !max ) return null;
+  const regain = /\bregains? (\d+d\d+(?:\s*[+-]\s*\d+)?|\d+) expended charges daily at dawn\b/iu.exec(text)?.[1];
+  return {max, recovery: regain ? [{period: "dawn", type: "formula", formula: regain}] : []};
 }
 
 /** An activity's own uses ("3/Day each" spells, a once-a-day option) as a pool of its own (G4). */
