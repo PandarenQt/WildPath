@@ -1,6 +1,6 @@
 import {mkdirSync, rmSync, writeFileSync} from "node:fs";
 import {join} from "node:path";
-import {spellListsOf, PROGRESSION_TYPES, beastsOf, convertActor, convertItem, convertProgression, convertTable, isSrd2024, nameIndex, scaleTables, slugify,
+import {spellListsOf, PROGRESSION_TYPES, baseWeapons, beastsOf, convertActor, convertItem, convertProgression, convertTable, isSrd2024, nameIndex, scaleTables, slugify,
   withRedirects} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 
@@ -57,6 +57,8 @@ const ownedTables = readPack(from, "tables24").filter(table => Array.isArray(tab
   return owner ? [{table, owner}] : [];
 });
 // An item drawing its own table when used (a Bag of Tricks): its converted table's uuid, by dnd5e id.
+// The plain weapons' damage, for a magic weapon dnd5e leaves without its own (an Energy Bow's longbow).
+const weapons = baseWeapons(readPack(from, "equipment24").filter(isSrd2024));
 const tables = Object.fromEntries(ownedTables.map(({table}) => [table._id, `Compendium.wildpath.srd-tables.RollTable.${table._id}`]));
 
 const items = [];
@@ -68,7 +70,7 @@ const convertedIds = new Map();
 for ( const pack of ITEM_PACKS ) {
   for ( const document of readPack(from, pack).filter(wanted) ) {
     if ( !["spell", "weapon", "feat", "equipment", "consumable", "tool", "loot", "container"].includes(document.type) ) continue;
-    const result = convertItem(document, {scales, pack, names, creatures, spells, beasts, tables, spellLists});
+    const result = convertItem(document, {scales, pack, names, creatures, spells, beasts, tables, spellLists, weapons});
     items.push(...result.items);
     const gear = result.items.filter(item => item.type === "gear");
     const granting = result.items.filter(item => item.flags?.wildpath?.grants?.length);

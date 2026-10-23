@@ -15,7 +15,8 @@
         "cantrip",
         "school:evocation",
         "component:verbal",
-        "component:somatic"
+        "component:somatic",
+        "damage:acid"
       ],
       "costs": {
         "allOf": [
@@ -43,6 +44,67 @@
         "required": true,
         "count": 1
       },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "table",
+            "key": {
+              "type": "character-level"
+            },
+            "rows": {
+              "1": {
+                "type": "dice",
+                "number": 1,
+                "faces": 8
+              },
+              "5": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "11": {
+                "type": "dice",
+                "number": 3,
+                "faces": 8
+              },
+              "17": {
+                "type": "dice",
+                "number": 4,
+                "faces": 8
+              }
+            }
+          },
+          "damageType": "acid",
+          "provenance": "spell-base"
+        }
+      ],
+      "configuration": [
+        {
+          "id": "damage-type-1",
+          "type": "damage-type",
+          "label": "Damage type",
+          "required": true,
+          "allowedDamageTypes": [
+            "acid",
+            "cold",
+            "fire",
+            "lightning",
+            "poison",
+            "psychic",
+            "thunder"
+          ],
+          "effects": [
+            {
+              "type": "replaceDamageType",
+              "componentIds": [
+                "damage-1"
+              ],
+              "damageTypeChoiceId": "damage-type-1"
+            }
+          ]
+        }
+      ],
       "metadata": {
         "spellLevel": 0,
         "spellLists": [
@@ -68,8 +130,7 @@
       },
       "conversion": {
         "notes": [
-          "damage 1: custom formula \"1d8x@mod=8\" not converted",
-          "rolled (attack); what it does is by hand"
+          "damage 1: its dice don't explode (\"1d8x@mod=8\")"
         ]
       }
     }

@@ -2,7 +2,7 @@ import {cpSync, existsSync, mkdtempSync, readFileSync, rmSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {join, resolve} from "node:path";
 import {extractPack} from "@foundryvtt/foundryvtt-cli";
-import {spellListsOf, convertTable, PROGRESSION_TYPES, beastsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables,
+import {spellListsOf, convertTable, PROGRESSION_TYPES, baseWeapons, beastsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables,
   withRedirects} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 import {insideRepository, writeLocalModule} from "./local-module.mjs";
@@ -77,7 +77,7 @@ const usesOf = Object.fromEntries(all.filter(document => (typeof document.system
 // The class spell lists each spell is on: the SRD's, and the book's own pages (a Player's Handbook's).
 const spellLists = spellListsOf([...(srd ? readPack(srd, "content24") : []), ...all.filter(document => Array.isArray(document.pages))]);
 const options = {scales, names, licensed: () => true, book: manifest.title, images: ["icons/", `modules/${moduleId}/`], spells, creatures, beasts,
-  usesOf, spellLists};
+  usesOf, spellLists, weapons: baseWeapons([...srdDocuments, ...all])};
 
 const items = [];
 const actors = [];
