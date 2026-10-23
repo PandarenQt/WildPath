@@ -406,10 +406,12 @@
             "allOf": []
           },
           "range": {
-            "type": "self"
+            "type": "special"
           },
           "targeting": {
-            "type": "self"
+            "type": "single",
+            "required": true,
+            "count": 1
           },
           "damage": [
             {
