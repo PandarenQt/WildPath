@@ -30,6 +30,7 @@ import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
 import {createFoundrySummons} from "../adapters/foundry-v14-summons.mjs";
 import {createFoundryForcedMovement} from "../adapters/foundry-v14-forced-movement.mjs";
 import {createFoundryFalling} from "../adapters/foundry-v14-falling.mjs";
+import {createFoundryTokenSize} from "../adapters/foundry-v14-token-size.mjs";
 import {createFoundryTurnDamage} from "../adapters/foundry-v14-turn-damage.mjs";
 import {attackSight} from "../adapters/foundry-v14-senses.mjs";
 import {fearContext} from "../adapters/foundry-v14-fear.mjs";
@@ -254,6 +255,12 @@ export function registerFoundryV14MultiplayerResolution({
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   globalThis.Hooks?.on?.("createActiveEffect", effect => void falling.onEffectCreated(effect)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Fall") ?? "Fall"}, error)));
+  // A change of size (Enlarge/Reduce): its creature's Tokens grow or shrink while it lasts.
+  const tokenSize = createFoundryTokenSize({game});
+  for ( const hook of ["createActiveEffect", "updateActiveEffect", "deleteActiveEffect"] ) {
+    globalThis.Hooks?.on?.(hook, effect => void tokenSize.onEffectChanged(effect)
+      .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Size") ?? "Size"}, error)));
+  }
   // Weapon Mastery that follows an attack (Topple, Graze), each as its own authority Action.
   const masteries = createFoundryWeaponMastery({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? (() => null),
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});

@@ -979,7 +979,73 @@
       "system": {
         "active": true,
         "description": "<p class=\"feature\">The vampire has these weaknesses:</p><p class=\"feature-trait\"><strong>Forbiddance.</strong> The vampire can't enter a residence without an invitation from an occupant.</p><p class=\"feature-trait\"><strong>Running Water.</strong> The vampire takes 20 Acid damage if it ends its turn in running water.</p><p class=\"feature-trait\"><strong>Stake to the Heart.</strong> The vampire is destroyed if a weapon that deals Piercing damage is driven into the vampire's heart while the vampire has the Incapacitated condition.</p><p class=\"feature-trait\"><strong>Sunlight.</strong> The vampire takes 20 Radiant damage if it starts its turn in sunlight. While in sunlight, it has Disadvantage on attack rolls and ability checks.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "sunlight",
+            "type": "RollMode",
+            "predicate": {
+              "equals": {
+                "path": "inSunlight",
+                "value": true
+              }
+            },
+            "data": {
+              "domains": [
+                "attack",
+                "check"
+              ],
+              "mode": "disadvantage"
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "sunlight-damage",
+            "type": "Trigger",
+            "data": {
+              "event": "turn.started",
+              "predicate": {
+                "equals": {
+                  "path": "inSunlight",
+                  "value": true
+                }
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-vampire-weakness-damage-sunlight",
+                "costs": {
+                  "allOf": []
+                },
+                "range": {
+                  "type": "self"
+                },
+                "targeting": {
+                  "type": "self"
+                },
+                "damage": [
+                  {
+                    "id": "damage-1",
+                    "expression": {
+                      "type": "constant",
+                      "value": 20
+                    },
+                    "damageType": "radiant",
+                    "provenance": "additional"
+                  }
+                ],
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "effect",
+                    "name": "Disadv. Attacks & Checks",
+                    "img": "icons/magic/light/explosion-star-glow-orange.webp",
+                    "ruleElements": []
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -996,9 +1062,7 @@
           },
           "conversion": {
             "notes": [
-              "\"Damage: Running Water\" is passive or triggered: not automated",
-              "\"Staked to the Heart\" is passive or triggered: not automated",
-              "\"Damage: Sunlight\" is passive or triggered: not automated"
+              "\"Damage: Running Water\" is passive or triggered: not automated"
             ]
           }
         }
@@ -1115,9 +1179,7 @@
         "notes": [
           "Misty Escape: \"Paralyzed\" is passive or triggered: not automated",
           "Multiattack (Vampire Form Only): not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Vampire Weakness: \"Damage: Running Water\" is passive or triggered: not automated",
-          "Vampire Weakness: \"Staked to the Heart\" is passive or triggered: not automated",
-          "Vampire Weakness: \"Damage: Sunlight\" is passive or triggered: not automated"
+          "Vampire Weakness: \"Damage: Running Water\" is passive or triggered: not automated"
         ]
       }
     }

@@ -1228,6 +1228,7 @@
         "AreaMove": "moving a lasting area",
         "Fall": "a fall",
         "StableRecovery": "a stable creature's recovery",
+        "Size": "a change of size",
         "EndConcentration": "ending concentration",
         "DismissSummons": "dismissing a dead caster's summons",
         "Initiative": "an initiative trigger",
