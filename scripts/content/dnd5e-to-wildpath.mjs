@@ -3330,7 +3330,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     // A mark given by hand (its slug) is its own status ("marked", "cursed").
     // dnd5e's "transformed" on a misty or cloud form (Gaseous Form, Wind Walk): `gaseous`, which can't attack or cast spells.
     const gaseous = statuses.includes("transformed") && /\b(?:gaseous|cloud form|misty cloud)\b/i.test(plainText(document));
-    if ( !byHand?.slug ) for ( const status of statuses.filter(status => !CONDITION_MAP[status] && (status !== "marked")
+    if ( !byHand?.slug ) for ( const status of statuses.filter(status => !CONDITION_MAP[status] && !["marked", "suffocation"].includes(status)
       && !(gaseous && (status === "transformed"))) ) {
       notes.push(`effect: ${status} is not a WildPath condition yet`);
     }
@@ -3342,6 +3342,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
         ...(lasts ? {duration: lasts} : {}),
         ...(concentration ? {concentration: true} : {}), ...(escapes ? {metadata: {escapeDC}} : {})});
     }
+    // dnd5e's "suffocation": it can't breathe (`suffocating`: out of breath, it gains Exhaustion; the automation dispatcher).
+    if ( statuses.includes("suffocation") ) effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: "Suffocating",
+      slug: "suffocating", ruleElements: [], ...onFailure, ...(lasts ? {duration: lasts} : {}), ...(concentration ? {concentration: true} : {})});
     // Its own changes (Bless, Shield of Faith, Haste) become a custom effect with the rules they map to; an effect dnd5e
     // leaves empty (Faerie Fire's) takes its rules from the 2024 text, by hand.
     const hand = effect && !effectChanges(effect).length ? byHand : null;

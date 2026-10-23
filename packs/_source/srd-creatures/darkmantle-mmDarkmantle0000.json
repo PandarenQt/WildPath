@@ -119,6 +119,13 @@
             {
               "id": "effect-2",
               "type": "effect",
+              "name": "Suffocating",
+              "slug": "suffocating",
+              "ruleElements": []
+            },
+            {
+              "id": "effect-3",
+              "type": "effect",
               "name": "Self: Attack Adv./0 Speed",
               "img": "icons/skills/movement/figure-running-gray.webp",
               "ruleElements": [
@@ -171,14 +178,16 @@
                   "type": "keepEffect",
                   "effectIds": [
                     "effect-1",
-                    "effect-2"
+                    "effect-2",
+                    "effect-3"
                   ],
                   "keep": {
                     "effect-option-1": [
-                      "effect-1"
+                      "effect-1",
+                      "effect-2"
                     ],
                     "effect-option-2": [
-                      "effect-2"
+                      "effect-3"
                     ]
                   }
                 }
@@ -203,9 +212,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: suffocation is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -393,7 +400,6 @@
       },
       "conversion": {
         "notes": [
-          "Crush: effect: suffocation is not a WildPath condition yet",
           "Darkness Aura: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

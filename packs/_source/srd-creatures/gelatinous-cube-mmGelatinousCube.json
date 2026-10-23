@@ -260,6 +260,14 @@
               "metadata": {
                 "escapeDC": 12
               }
+            },
+            {
+              "id": "effect-3",
+              "type": "effect",
+              "name": "Suffocating",
+              "slug": "suffocating",
+              "ruleElements": [],
+              "saveOutcomePolicy": "failure"
             }
           ],
           "label": "Engulf (Save)"
@@ -280,9 +288,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: suffocation is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -359,8 +365,7 @@
           "Ooze Cube: \"Total Cover\" is passive or triggered: not automated",
           "Ooze Cube: \"Pull Check\" is passive or triggered: not automated",
           "Ooze Cube: \"Puller Damage\" is passive or triggered: not automated",
-          "Transparent: \"check\" is passive or triggered (narrative): not automated",
-          "Engulf: effect: suffocation is not a WildPath condition yet"
+          "Transparent: \"check\" is passive or triggered (narrative): not automated"
         ]
       }
     }
