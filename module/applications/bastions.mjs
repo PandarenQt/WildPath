@@ -148,29 +148,43 @@ export async function runBastionTurn() {
 
 /**
  * Whether a facility may join a character's Bastion (WildPathItem#_preCreate): a special one needs its level and a free
- * slot; a basic one past the first two free costs its space's gold (paid from the character's coins). Returns false to
- * refuse, after saying why.
+ * slot; a basic one past the first two free costs its space's gold. `batch` counts the facilities admitted earlier in
+ * the same creation (none exists yet), and the gold they will cost. Returns `{ok, cost, days}`; refused, after saying
+ * why. Nothing is paid here: payFacility does that once the facility exists.
  */
-export async function admitFacility(actor, data) {
-  if ( (actor?.type !== "character") || (data?.type !== "facility") ) return true;
+export function admitFacility(actor, data, batch={special: 0, basic: 0, cost: 0}) {
+  if ( (actor?.type !== "character") || (data?.type !== "facility") ) return {ok: true, cost: 0};
   const level = Number(actor.system?.details?.level) || 0;
   const system = data.system ?? {};
   const facilities = facilitiesOf(actor);
   if ( (system.kind ?? "special") === "special" ) {
-    const refusal = canAddSpecial({level, facilityLevel: system.level, specialCount: facilities.filter(item => item.system?.kind === "special").length});
+    const refusal = canAddSpecial({level, facilityLevel: system.level,
+      specialCount: facilities.filter(item => item.system?.kind === "special").length + batch.special});
     if ( refusal ) globalThis.ui?.notifications?.warn?.(format(refusal.key, refusal.data));
-    return !refusal;
+    if ( !refusal ) batch.special++;
+    return {ok: !refusal, cost: 0};
   }
-  if ( facilities.filter(item => item.system?.kind === "basic").length < 2 ) return true;
-  const [cost, days] = BUILD_COST[system.size] ?? BUILD_COST.cramped;
-  const coins = spendGold(actor.system?.currency ?? {}, cost);
-  if ( !coins ) {
+  const basics = facilities.filter(item => item.system?.kind === "basic").length + batch.basic;
+  if ( basics < 2 ) {
+    batch.basic++;
+    return {ok: true, cost: 0};
+  }
+  const [cost, days] = BUILD_COST[system.size || "cramped"] ?? BUILD_COST.cramped;
+  if ( !spendGold(actor.system?.currency ?? {}, batch.cost + cost) ) {
     globalThis.ui?.notifications?.warn?.(format("WILDPATH.BASTION.CantBuild", {name: actor.name, cost}));
-    return false;
+    return {ok: false, cost};
   }
+  batch.basic++;
+  batch.cost += cost;
+  return {ok: true, cost, days};
+}
+
+/** A built facility's gold, paid once it exists (WildPathItem#_onCreate), and the chat saying so. */
+export async function payFacility(actor, name, {cost=0, days=0}={}) {
+  const coins = cost ? spendGold(actor.system?.currency ?? {}, cost) : null;
+  if ( !coins ) return;
   await actor.update({"system.currency": coins});
-  await ChatMessage.create({content: format("WILDPATH.BASTION.Built", {name: actor.name, facility: data.name, cost, days})});
-  return true;
+  await ChatMessage.create({content: format("WILDPATH.BASTION.Built", {name: actor.name, facility: name, cost, days})});
 }
 
 /** Enlarge a basic facility one space, paid from its character's coins (Cramped to Roomy, Roomy to Vast). */

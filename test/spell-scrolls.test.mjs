@@ -47,4 +47,6 @@ test("a scroll is read only by a creature with its spell on one of its classes' 
   assert.equal(onSpellList(caster(["cleric"]), fireball), false);
   assert.equal(onSpellList(caster(["cleric", "sorcerer"]), fireball), true, "a multiclass character with the list");
   assert.equal(onSpellList(caster(["cleric"]), {metadata: {spellLevel: 3}}), true, "a spell on no list");
+  const knight = {items: [{type: "class", system: {identifier: "fighter"}}, {type: "subclass", system: {spellcasting: {progression: "third"}}}]};
+  assert.equal(onSpellList(knight, fireball), true, "an Eldritch Knight casts from the Wizard's list");
 });

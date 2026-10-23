@@ -1666,8 +1666,9 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
     for ( const item of bearer?.items ?? [] ) {
       const spec = item?.flags?.wildpath?.testOffer;
       if ( !spec?.range || !spec.tests?.includes(test) || (item.system?.active === false) ) continue;
-      // One for its allies only (Bountiful Luck: "an ally you can see"), not its own rolls.
+      // One for its allies only (Bountiful Luck: "an ally you can see"), not its own rolls; never an enemy's offer.
       if ( spec.others && (token.id === saverToken.id) ) continue;
+      if ( (token.id !== saverToken.id) && hostileTo(token, saverToken) ) continue;
       // Countercharm answers only saves against its conditions; Flash of Genius any check or save.
       if ( spec.against && !spec.against.some(condition => conditions.has(condition)) ) continue;
       const distance = allyDistance(saverToken, token);

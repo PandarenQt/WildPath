@@ -48,8 +48,7 @@
                 "faces": 6
               },
               {
-                "type": "ability-modifier",
-                "ability": "might"
+                "type": "spellcasting-modifier"
               }
             ]
           },

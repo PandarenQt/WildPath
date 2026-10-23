@@ -275,6 +275,9 @@
             "schemaVersion": 1,
             "id": "aura-aura-of-authority",
             "type": "Aura",
+            "predicate": {
+              "missingCondition": "incapacitated"
+            },
             "data": {
               "radius": 10,
               "affects": "allies",

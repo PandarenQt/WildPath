@@ -122,9 +122,14 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
             logger.warn("Wild Path | A death trigger failed", error);
         }
     }
-    async function apply(actor, consequence) {
-        if (!consequence || isDead(actor))
+    async function apply(actor, given) {
+        if (!given || isDead(actor))
             return;
+        // A creature that can't regain Hit Points (Chill Touch) neither heals nor wakes, and its death saves don't start over.
+        const blocked = (actor.system?.resourceCaps?.healing === 0)
+            && Boolean(given.heal || given.wake);
+        const { deathSaves: _reset, ...kept } = given;
+        const consequence = blocked ? { ...kept, heal: 0, wake: false } : given;
         if (consequence.die)
             return die(actor);
         const update = {};

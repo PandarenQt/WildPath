@@ -103,11 +103,14 @@ hirelings and the order it takes (`data/item/facility.mjs`). The book converter 
 (`convertFacility`; local only). A character's sheet lists its facilities in a Bastion section, where each special one is
 issued its order for the turn (or Maintain). The GM's "Bastion Turn" tool among the Token controls
 (`applications/bastions.mjs`) moves the world 7 days on, carries out each order and lists it in the chat, and sets every
-order back to Maintain. The rules are pure, in `helpers/bastions.mjs`:
+order back to Maintain, each one as soon as it is carried out; a second click while a turn runs does nothing
+(2026-10-23). The rules are pure, in `helpers/bastions.mjs`:
 - **Joining.** A facility added to a character is checked (`WildPathItem#_preCreate`, `admitFacility`): a special one needs
   character level 5, its own level, and a free slot (2 at 5th, 4 at 9th, 5 at 13th, 6 at 17th; the sheet shows them); a
-  basic one past the first two costs its space's gold (500, 1,000 or 3,000 gp), paid from the character's coins. A basic
-  facility is enlarged from the sheet (500 gp to Roomy, 2,000 gp to Vast). Build days are stated, not tracked.
+  basic one past the first two costs its space's gold (500, 1,000 or 3,000 gp), paid from the character's coins once the
+  facility exists (`_onCreate`, `payFacility`; the price rides on `flags.wildpath.buildCost` until then). Several added
+  at once count together (`options.wildpath.facilityBatch`). A facility made with no space is Cramped. A basic facility
+  is enlarged from the sheet (500 gp to Roomy, 2,000 gp to Vast). Build days are stated, not tracked.
 - **Orders.** Craft works on the Item dropped on the facility in the sheet, 7 days a turn against its crafting time
   (`helpers/crafting.mjs`), and pays its materials when done; Trade buys stock up to the facility's limit (a Storehouse's
   500 gp) or sells it at its profit; Recruit adds up to 4 Bastion Defenders, no more than the facilities house (a
@@ -115,8 +118,9 @@ order back to Maintain. The rules are pure, in `helpers/bastions.mjs`:
   and Research post their line; the facility's text says what the GM gives.
 - **Events.** A character whose facilities all maintained draws the "Bastion Events" table a converted book provides
   (the book converter now converts each book's roll tables, locally), else rolls a d100. An Attack costs a defender for
-  each 1 on 6d6. shortcut: an Armory's 2 fewer dice and the other events' effects are the GM's, until events are
-  automated one by one.
+  each 1 on 6d6, or on 6d8 while an Armory is stocked (a Trade order: 100 GP plus 100 per defender, half with a Smithy),
+  whose stock the attack then spends. shortcut: Defensive Walls' 2 fewer dice and the other events' effects are the GM's,
+  until events are automated one by one.
 - **The Bastion Map** (`applications/bastion-map.mjs`, opened from the sheet's Bastion section). Its owner lays out the
   facilities on a grid of 5-foot squares sized by level (12 at 5th, 16 at 9th, 20 at 13th, 24 at 17th): pick a
   facility, then click or drag; right-click clears. A facility covers at most its space (Cramped 4, Roomy 16, Vast 36

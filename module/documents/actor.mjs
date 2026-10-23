@@ -187,6 +187,10 @@ export default class WildPathActor extends Actor {
       }));
     }
 
+    // What it carries (variant encumbrance: Speed -10 or -20); its other carrying rules are read with its own (grantOwners).
+    for ( const entry of domains ) modifiers.push(...collectRuleElementModifiers(carryingRules(this.system?.carrying), {actor: this,
+      domain: entry, source: null, context: seen}));
+
     // Auras around the creature (game.wildpath.auras), when a roll or defense is read; data preparation leaves them out.
     if ( auras ) for ( const owner of this.auraOwners() ) {
       for ( const entry of domains ) modifiers.push(...collectRuleElementModifiers(owner.ruleElements, {actor: this, domain: entry,

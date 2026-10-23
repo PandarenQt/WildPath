@@ -211,7 +211,8 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
                     sceneId: bearer.parent?.id }, target: self });
             if (state)
                 states.push(state);
-            if (!state || state.results?.saveResolution?.successes?.length)
+            // Only a save it failed lets them out (not a save that never resolved).
+            if (!state?.results?.saveResolution?.failures?.length)
                 continue;
             const held = swallowedBy(bearer.actor, bearer);
             const size = Number(bearer.parent?.grid?.size) || 100;
