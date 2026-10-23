@@ -1,4 +1,4 @@
-import {cpSync, existsSync, mkdtempSync, readFileSync, rmSync} from "node:fs";
+import {cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {join, resolve} from "node:path";
 import {extractPack} from "@foundryvtt/foundryvtt-cli";
@@ -76,8 +76,13 @@ const usesOf = Object.fromEntries(all.filter(document => (typeof document.system
   .map(document => [document._id, document.system.uses.max]));
 // The class spell lists each spell is on: the SRD's, and the book's own pages (a Player's Handbook's).
 const spellLists = spellListsOf([...(srd ? readPack(srd, "content24") : []), ...all.filter(document => Array.isArray(document.pages))]);
+// The tables its spells and items link (Confusion's behavior), by dnd5e id: the SRD's converted ones, then the book's own.
+const srdTables = existsSync("packs/_source/srd-tables") ? readdirSync("packs/_source/srd-tables").map(file =>
+  JSON.parse(readFileSync(join("packs/_source/srd-tables", file), "utf8"))._id).map(id => [id, `Compendium.wildpath.srd-tables.RollTable.${id}`]) : [];
+const tableIds = Object.fromEntries([...srdTables, ...(manifest.packs ?? []).filter(pack => pack.type === "RollTable").flatMap(documents)
+  .filter(table => table.results?.length).map(table => [table._id, `Compendium.wildpath-${moduleId}.tables.RollTable.${table._id}`])]);
 const options = {scales, names, licensed: () => true, book: manifest.title, images: ["icons/", `modules/${moduleId}/`], spells, creatures, beasts,
-  usesOf, spellLists, weapons: baseWeapons([...srdDocuments, ...all])};
+  usesOf, spellLists, weapons: baseWeapons([...srdDocuments, ...all]), tables: tableIds};
 
 const items = [];
 const actors = [];

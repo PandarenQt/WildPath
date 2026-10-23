@@ -1052,6 +1052,9 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
   return {targeting: {type: "single", required: true, count: 1}};
 }
 
+/** A roll table its text links or embeds: the SRD's (`dnd5e.tables24`) or a book's (`dnd-players-handbook.tables`), by id. */
+const TABLE_LINK = /@(?:UUID|Embed)\[Compendium\.[\w-]+\.tables(?:24)?\.RollTable\.(\w+)/u;
+
 /** dnd5e's target types that are another creature, not its own (`self`) nor a space or an object. */
 const CREATURE_TARGETS = new Set(["creature", "enemy", "ally", "creatureOrObject"]);
 
@@ -1269,7 +1272,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( definition && trapTier ) definition = trapDefinition(definition, document.name);
     // 2024 Confusion: "must roll 1d10 at the start of each of its turns to determine its behavior for that turn, consulting
     // the table below": its effect draws that table as each of its creature's turns starts (the dispatcher's).
-    const turnTable = tables[/@(?:UUID|Embed)\[Compendium\.dnd5e\.tables24\.RollTable\.(\w+)/u.exec(String(system.description?.value ?? ""))?.[1]];
+    const turnTable = tables[TABLE_LINK.exec(String(system.description?.value ?? ""))?.[1]];
     if ( turnTable && definition?.effects?.length && /\bat the start of each of its turns to determine its behavior\b/iu.test(plainText(document)) ) {
       const marked = definition.effects.filter(effect => effect.type === "effect").map(effect => effect.name);
       definition = {...definition, effects: definition.effects.map(effect => ((effect.type === "effect") ? {...effect, drawsAtTurnStart: turnTable} : effect))};
@@ -2577,7 +2580,7 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
       // A spell's profile level is its slot's (Find Steed): not its creature's level.
       ...(spell ? {} : levelOf(profile))}))};
   // A magic item whose table picks the creature (a Bag of Tricks): its use draws it (`draw`, Item#use).
-  const table = /@(?:UUID|Embed)\[Compendium\.dnd5e\.tables24\.RollTable\.(\w+)/.exec(String(system.description?.value ?? ""))?.[1];
+  const table = TABLE_LINK.exec(String(system.description?.value ?? ""))?.[1];
   const drawn = table && tables[table] ? {draw: {table: tables[table], choiceId: choice.id}} : {};
   return {...definition, ...(range ? {range} : {}), configuration: [...(definition.configuration ?? []), choice],
     summon: {choiceId: choice.id, ...timing}, ...drawn};
