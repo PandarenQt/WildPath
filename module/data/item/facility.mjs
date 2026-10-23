@@ -29,4 +29,10 @@ export default class WildPathFacility extends WildPathBaseItem {
         craft: new StringField({required: true, blank: true, initial: ""}), progress: amount()})
     };
   }
+
+  /** A facility made with no space (from the Items directory) is Cramped, as the sheet, map and costs read it. */
+  prepareDerivedData() {
+    super.prepareDerivedData?.();
+    this.size ||= "cramped";
+  }
 }

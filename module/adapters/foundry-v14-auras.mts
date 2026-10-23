@@ -14,7 +14,7 @@ import {areaCovers} from "./foundry-v14-persistent-areas.mjs";
 type Data = Record<string, unknown>;
 interface Field {[key: string]: unknown}
 interface AuraEntry {id: string; radius: number; affects: "allies" | "enemies" | "all"; ruleElements: Data[]; source?: Data | null}
-interface AuraActor {uuid?: string; isToken?: boolean; token?: AuraToken | null; getActiveTokens?(linked?: boolean, document?: boolean): AuraToken[];
+interface AuraActor {uuid?: string; isToken?: boolean; token?: AuraToken | null; getActiveTokens?(linked?: boolean, document?: boolean): AuraToken[]; getDependentTokens?(options?: {linked?: boolean}): AuraToken[];
   getAuras?(): AuraEntry[]}
 interface AuraToken {id: string; parent?: AuraScene | null; actor?: AuraActor | null; disposition?: number; elevation?: number}
 interface AuraScene {id: string; grid: {distance: number}; tokens: Iterable<AuraToken>}
@@ -115,7 +115,8 @@ export function tokensAround(bearer: AuraToken | null | undefined, {radius, affe
 export function createFoundryAuras() {
   /** Rule owners (`{ruleElements, source}`) the auras around `actor`'s Tokens grant it. */
   function ownersFor(actor: AuraActor) {
-    const tokens = actor.isToken ? [actor.token].filter(Boolean) as AuraToken[] : (actor.getActiveTokens?.(false, true) ?? []);
+    const tokens = actor.isToken ? [actor.token].filter(Boolean) as AuraToken[]
+      : (actor.getDependentTokens?.({linked: true}) ?? actor.getActiveTokens?.(false, true) ?? []);
     const owners: Array<{ruleElements: Data[]; source: Data}> = [];
     for ( const token of tokens ) {
       const scene = token.parent;
