@@ -740,3 +740,28 @@ test("a Player's intent may not take an id the authority makes for itself (a dea
     assert.equal(gm.getRecord(resolutionId), null, resolutionId);
   }
 });
+
+test("a Player closing their prompt ends the Action on the authority, so their creature can act again", async () => {
+  const fixture = attackFixture();
+  const hub = createTestResolutionTransportHub({users: users()});
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), actionIntentResolver: createFixtureResolver(fixture)});
+  const playerTransport = hub.createEndpoint({userId: "player-a"});
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: playerTransport});
+  gm.register();
+  player.register();
+  const declare = id => player.declareActionIntent({intentId: `intent:${id}`, resolutionId: `resolution:${id}`, actorRef: fixture.actor.uuid,
+    actionRef: fixture.action.uuid, targetRefs: [fixture.target.actorRef]});
+  await declare("closed");
+  const record = gm.getRecord("resolution:closed");
+  assert.equal(record.state.pendingRequests.length > 0, true, "waiting on the Player's roll");
+  await declare("refused");
+  assert.equal(gm.getRecord("resolution:refused"), null, "one Action at a time");
+  await playerTransport.send(createResolutionSocketEnvelope({messageType: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_ERROR, senderUserId: "player-a",
+    recipientUserId: "gm-a", resolutionId: record.resolutionId, requestId: record.state.pendingRequests[0].id,
+    payload: {code: "PROMPT_CANCELLED", reason: "closed"}}));
+  assert.equal(gm.getRecord("resolution:closed").state.status, RESOLUTION_STATE_STATUS.CANCELLED);
+  await declare("again");
+  assert.notEqual(gm.getRecord("resolution:again"), null, "it may act again");
+});

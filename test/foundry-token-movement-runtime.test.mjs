@@ -103,11 +103,14 @@ async function openMovementReaction(fixture, {authorityFirst=false, expectedObse
     offsets, kind: fixture.kind});
   await approveCheckpoint(fixture, operation);
   fixture.token.setOffset(offsets[0]);
-  fixture.token.movement = {...operation, user: PLAYER, state: "pending"};
-  const observe = game => onFoundryV14MoveToken(fixture.token, operation, {}, PLAYER, {game});
+  fixture.token.movement = {...operation, user: moverOf(operation), state: "pending"};
+  const observe = game => onFoundryV14MoveToken(fixture.token, operation, {}, moverOf(operation), {game});
   if ( authorityFirst ) {
     assert.equal((await observe(fixture.gmGame)).ok, expectedObservationOK);
     await observe(fixture.playerGame);
+  } else if ( forcedKind(operation) ) {
+    // The GM moves it (a push, a teleport): it is the initiator and the authority at once.
+    assert.equal((await observe(fixture.gmGame)).ok, expectedObservationOK);
   } else {
     const local = observe(fixture.playerGame);
     assert.equal(fixture.token.movement.state, "paused", "initiator establishes pause synchronously");
@@ -1098,6 +1101,8 @@ function createMovementRuntimeFixture({
     userId: GM.id,
     transport: gmTransport,
     game: gmGame,
+    // As in play, where every client (the GM's too) pauses the moves it makes (a push, a teleport).
+    reactionPauseAdapter: pauseAdapter,
     ...(reactionServices ? {reactionServices, actionCoordinator: coordinator} : {}),
     ...(beforeStepReaction ? {beforeStepReaction} : {}),
     ...(areas ? {areas} : {}),
@@ -1405,7 +1410,7 @@ function checkpointOperation(token, {id="checkpoint-root", offsets=null, passedC
   const start = token.parent.grid.getOffset(origin);
   const route = offsets ?? [1, 2, 3].map(step => ({i: start.i + step, j: start.j}));
   const waypoints = route.map((offset, index) => ({...pointForOffset(token.parent, offset),
-    checkpoint: true, movementId: index < passedCount ? id : null, subpathId, userId: PLAYER.id}));
+    checkpoint: true, movementId: index < passedCount ? id : null, subpathId, userId: ((kind ?? "voluntary") === "voluntary" ? PLAYER : GM).id}));
   return {id, chain, subpathId, split: false, origin,
     destination: waypoints[passedCount - 1] ?? origin, method: "drag", constrained: false,
     passed: {waypoints: waypoints.slice(0, passedCount)}, pending: {waypoints: waypoints.slice(passedCount)},
@@ -1413,16 +1418,21 @@ function checkpointOperation(token, {id="checkpoint-root", offsets=null, passedC
     ...(kind ? {wildpath: {movementKind: kind}} : {})};
 }
 
+/** A forced move or a teleport is the GM's to make (a push, Misty Step); a Player's own is refused. */
+const forcedKind = movement => (movement?.wildpath?.movementKind ?? "voluntary") !== "voluntary";
+const moverGame = (fixture, movement) => (forcedKind(movement) ? fixture.gmGame : fixture.playerGame);
+const moverOf = movement => (forcedKind(movement) ? GM : PLAYER);
+
 async function approveCheckpoint(fixture, movement) {
   await withFoundryGlobals(fixture, async () => {
     assert.notEqual(await fixture.token._preUpdateMovement(movement, {}), false, fixture.warnings.at(-1));
-  });
+  }, {game: moverGame(fixture, movement)});
 }
 
 function checkpointSnapshot(fixture, movement, state="pending") {
   const offset = fixture.scene.grid.getOffset(movement.passed.waypoints.at(-1) ?? movement.origin);
   const document = observedTokenAtOffset(fixture.token, offset);
-  document.movement = {...movement, state, user: PLAYER,
+  document.movement = {...movement, state, user: moverOf(movement),
     pending: state === "stopped" ? {waypoints: []} : movement.pending};
   return document;
 }
@@ -3248,13 +3258,13 @@ test("explicit forced and teleport movement preserve no-ordinary-budget semantic
   });
   await withFoundryGlobals(fixture, async () => {
     assert.notEqual(await token._preUpdateMovement(forced, {}), false);
-  });
+  }, {game: fixture.gmGame});
   moveTokenToOffset(token, {i: 1, j: 0});
-  await fixture.playerAuthority.commitMovementCompletion(buildFoundryMovementCompletion({
+  await fixture.gmAuthority.commitMovementCompletion(buildFoundryMovementCompletion({
     tokenDocument: token,
     movement: forced,
-    user: PLAYER,
-    game: fixture.playerGame
+    user: GM,
+    game: fixture.gmGame
   }).completion);
 
   const teleport = movementOperation(token, {
@@ -3265,13 +3275,13 @@ test("explicit forced and teleport movement preserve no-ordinary-budget semantic
   });
   await withFoundryGlobals(fixture, async () => {
     assert.notEqual(await token._preUpdateMovement(teleport, {}), false);
-  });
+  }, {game: fixture.gmGame});
   moveTokenToOffset(token, {i: 6, j: 0});
-  await fixture.playerAuthority.commitMovementCompletion(buildFoundryMovementCompletion({
+  await fixture.gmAuthority.commitMovementCompletion(buildFoundryMovementCompletion({
     tokenDocument: token,
     movement: teleport,
-    user: PLAYER,
-    game: fixture.playerGame
+    user: GM,
+    game: fixture.gmGame
   }).completion);
 
   assert.equal(actor.system.resources.movement.value, 30);
@@ -3464,9 +3474,9 @@ for ( const kind of ["forced", "teleport"] ) {
     const movement = movementOperation(fixture.token, {kind, offsets: [{i: 6, j: 0}]});
     await withFoundryGlobals(fixture, async () => {
       assert.notEqual(await fixture.token._preUpdateMovement(movement, {}), false);
-    });
+    }, {game: fixture.gmGame});
     fixture.token.setSourceOffset({i: 6, j: 0});
-    assert.equal((await fireMoveTokenHook(fixture, {movement})).spent, false);
+    assert.equal((await fireMoveTokenHook(fixture, {movement, user: GM})).spent, false);
     const events = fixture.semanticEvents.gm;
     const transitions = events.filter(event => event.type === "movement.transition");
     assert.equal(transitions.length, kind === "teleport" ? 1 : 6);
