@@ -4291,6 +4291,12 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
       && ((match[2] === "value") ? ["add", "upgrade", "downgrade", "override"].includes(type) : (type === "upgrade")) ) {
       // A Belt of Giant Strength (upgrade), an Ioun Stone (add, with a downgrade as its cap), a Tome (add, with a raised max).
       (scores[ABILITY_MAP[match[1]]] ??= {})[match[2] === "max" ? "max" : type] = number;
+    } else if ( (key === "system.traits.languages.communication.telepathy.value") && ["upgrade", "add"].includes(type) && (number > 0) ) {
+      // A Myconid's "Telepathy 30 ft.", a Mind Flayer Tooth's: Telepathy with its range.
+      rule("GrantLanguage", {language: "telepathy", range: number});
+    } else if ( (key === "system.attributes.prof") && (type === "add") && value ) {
+      // An Ioun Stone of Mastery: "Your Proficiency Bonus increases by 1."
+      modifier(["proficiency"], value);
     } else unmapped();
   }
   if ( hover ) {

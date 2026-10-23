@@ -862,7 +862,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ioun Stone of Insight | equipment24 | Ioun Stone of Insight (gear) | — |
 | Ioun Stone of Intellect | equipment24 | Ioun Stone of Intellect (gear) | — |
 | Ioun Stone of Leadership | equipment24 | Ioun Stone of Leadership (gear) | — |
-| Ioun Stone of Mastery | equipment24 | Ioun Stone of Mastery (gear) | effect: "Enhanced Mastery: Proficiency Bonus" change system.attributes.prof (add) not converted |
+| Ioun Stone of Mastery | equipment24 | Ioun Stone of Mastery (gear) | — |
 | Ioun Stone of Protection | equipment24 | Ioun Stone of Protection (gear) | — |
 | Ioun Stone of Regeneration | equipment24 | Ioun Stone of Regeneration (gear) | "Regeneration" is passive or triggered: not automated |
 | Ioun Stone of Reserve | equipment24 | Ioun Stone of Reserve (gear), Ioun Stone of Reserve (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted |

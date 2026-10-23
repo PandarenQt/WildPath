@@ -499,7 +499,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Prone, and its Prone (like Trip's) has a `maxSize` (reactions.md).
 - **Small rules (2026-10-20):** Alert, Innate Sorcery's +1 DC (and the Robe of the Archmagi's +2), Powerful Build (and
   a Mule's Beast of Burden), Disciplined Survivor's saves and reroll, and Halfling Luck convert from their dnd5e flags
-  (classes-and-spellcasting.md).
+  (classes-and-spellcasting.md). An effect's Telepathy change (a Myconid's 30 ft.) and a Proficiency Bonus change (an Ioun
+  Stone of Mastery's +1) convert too (2026-10-24).
 - **Reactions (2026-10-20):** Retaliation's Trigger names a common Action; Stone's Endurance reduces the damage of the
   attack on it (`rider.reduceDamage`); Countercharm is a feature with a ranged `testOffer`; Indomitable is a feature
   with its pool, no Action (reactions.md).
