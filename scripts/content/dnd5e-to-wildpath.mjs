@@ -830,6 +830,11 @@ export function effectChanges(effect) {
  */
 export function effectStatuses(effect) {
   const statuses = effect?.statuses ?? [];
+  // An empty effect named for its conditions ("Deafened", "Blinded, Deafened": Blindness/Deafness's) gives them.
+  if ( !statuses.length && !effectChanges(effect).length ) {
+    const names = String(effect?.name ?? "").toLowerCase().split(/\s*(?:,|\band\b)\s*/u).filter(Boolean);
+    if ( names.length && names.every(name => CONDITION_MAP[name]) ) return names;
+  }
   const slugs = statuses.filter(status => /^[a-z][\w-]*$/u.test(status));
   if ( slugs.length === statuses.length ) return statuses;
   const named = String(effect?.name ?? "").toLowerCase().match(/^[a-z]+/u)?.[0];
@@ -2051,7 +2056,9 @@ const NARRATIVE_MARKERS = new Set(["Detect Magic", "Detect Evil and Good", "Dete
   "Water Breathing", "Water Walking", "Speaking with Plants", "Speaking with Animals", "Carrying Message", "Altered Appearance",
   "Hidden from Divination", "Comprehending Languages", "Tongues", "Telepathic Bond", "Scrying",
   // Mind Spike: "you always know the target's location"; Calm Emotions' indifference; Jump's 30-foot jumps.
-  "Spiked", "Indifference", "Jump"]);
+  "Spiked", "Indifference", "Jump",
+  // Levitate's hovering (heights are not tracked), Divine Sense, a cloak's water breathing, a changed look, a ring's sight.
+  "Levitating", "Divine Sense", "Water Breather", "Changed Appearance", "X-Ray Vision"]);
 
 /**
  * Activities that only tell the table something, by their dnd5e name: Scrying's sensor, a revival or re-forming days
