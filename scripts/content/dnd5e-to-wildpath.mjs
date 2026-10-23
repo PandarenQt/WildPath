@@ -1046,6 +1046,9 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
   return {targeting: {type: "single", required: true, count: 1}};
 }
 
+/** dnd5e's target types that are another creature, not its own (`self`) nor a space or an object. */
+const CREATURE_TARGETS = new Set(["creature", "enemy", "ally", "creatureOrObject"]);
+
 /** dnd5e's "up to three creatures": at least one, at most the count. */
 const UP_TO = Object.freeze({refinementPolicy: {minSelections: 1}});
 
@@ -3199,11 +3202,13 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // A melee attack dnd5e leaves at "self" (a Torch's) is one creature within its reach.
   if ( (attack?.type === "melee") && (definition.targeting?.type === "self") ) Object.assign(definition,
     {range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1}});
-  // A feature's save forced on a creature at "self" range (a Gelatinous Cube's Engulf, a Basilisk's second Petrifying Gaze
-  // save, Quivering Palm's end): that creature makes it, wherever it is.
+  // Something done to another creature that dnd5e leaves at "self" range (a Gelatinous Cube's Engulf save, a Basilisk's
+  // second Petrifying Gaze save, Raise Dead's dead creature, a smite's creature hit): that creature, wherever it is.
+  // A heal stays its user's unless it is a spell's (a potion is drunk; an Aboleth's Psychic Drain heals the aboleth).
   const affected = pick(activity, system, "target").affects?.type ?? "";
-  if ( (activity.type === "save") && (definition.targeting?.type === "self") && (document.type === "feat") && affected
-    && (affected !== "self") ) Object.assign(definition, {range: {type: "special"}, targeting: {type: "single", required: true, count: 1}});
+  if ( (definition.targeting?.type === "self") && CREATURE_TARGETS.has(affected) && !["utility", "summon", "transform"].includes(activity.type)
+    && ((activity.type !== "heal") || spell) )
+    Object.assign(definition, {range: {type: "special"}, targeting: {type: "single", required: true, count: 1}});
 
   if ( activity.type === "save" ) {
     const abilities = [].concat(activity.save?.ability ?? []).filter(Boolean);
