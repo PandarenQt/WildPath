@@ -138,6 +138,38 @@ export function automationTriggers(actor: AutomationActor, event: Data, context:
   }));
 }
 
+type SuffocatingActor = AutomationActor & {system?: {abilities?: {fortitude?: {value?: number}}};
+  toggleCondition?(type: string, options: {levels: number}): Promise<unknown>};
+interface SuffocatingEffect {disabled?: boolean; statuses?: Set<string>; parent?: unknown;
+  flags?: {wildpath?: {breathLeft?: number; exhaustionGained?: number}}; setFlag?(scope: string, key: string, value: unknown): Promise<unknown>}
+
+/**
+ * 2024 Suffocating: a creature holds its breath for 1 + its Constitution modifier minutes (30 seconds at least), counted
+ * in its turns (`flags.wildpath.breathLeft` on its `suffocating` effect); out of breath, it gains a level of Exhaustion at
+ * the end of each of its turns (`exhaustionGained`).
+ */
+export async function suffocate(actor: SuffocatingActor) {
+  const effect = [...(actor.effects ?? [])].find(entry => !(entry as SuffocatingEffect).disabled
+    && (entry as SuffocatingEffect).statuses?.has?.("suffocating")) as SuffocatingEffect | undefined;
+  if ( !effect?.setFlag ) return false;
+  const fortitude = Math.floor(((Number(actor.system?.abilities?.fortitude?.value) || 10) - 10) / 2);
+  const breath = effect.flags?.wildpath?.breathLeft ?? Math.max(10 * (1 + fortitude), 3);
+  if ( breath > 0 ) {
+    await effect.setFlag("wildpath", "breathLeft", breath - 1);
+    return false;
+  }
+  await actor.toggleCondition?.("exhaustion", {levels: 1});
+  await effect.setFlag("wildpath", "exhaustionGained", (effect.flags?.wildpath?.exhaustionGained ?? 0) + 1);
+  return true;
+}
+
+/** "When it can breathe again, it removes all levels of Exhaustion it gained from suffocating" (2024). */
+export async function breatheAgain(effect: SuffocatingEffect) {
+  const gained = Number(effect.flags?.wildpath?.exhaustionGained) || 0;
+  const actor = effect.parent as SuffocatingActor | null;
+  if ( gained && effect.statuses?.has?.("suffocating") ) await actor?.toggleCondition?.("exhaustion", {levels: -gained});
+}
+
 /**
  * The general automation dispatcher: an event on a creature (its turn starts or ends, it rolls initiative, it
  * finishes a rest) runs each of its automatic triggers as an authority Action on that creature. Only the active
@@ -206,6 +238,8 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     }
     // A table its effect draws as its turn starts (2024 Confusion's behavior), posted as its creature's.
     if ( type === "turn.started" ) await drawTurnTables(actor);
+    // Suffocating, out of breath: a level of Exhaustion as its turn ends.
+    if ( type === "turn.ended" ) await suffocate(actor as SuffocatingActor);
     // Repeated saves: the creature rolls each again as its own Action; a success ends what that save let in.
     for ( const group of repeatSaveGroups((actor.effects ?? []) as Iterable<RepeatSaveEffect>, type) ) {
       const definition = {schemaVersion: 1, id: `action:repeat-save:${group.key}`, label: group.name, costs: {allOf: []},

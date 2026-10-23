@@ -70,7 +70,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Animate Objects | spells24 | Animate Objects (automated) | — |
 | Animated Armor | actors24 | Animated Armor (3 items) | — |
 | Animated Flying Sword | actors24 | Animated Flying Sword (2 items) | — |
-| Animated Rug of Smothering | actors24 | Animated Rug of Smothering (3 items) | Smother: effect: suffocation is not a WildPath condition yet |
+| Animated Rug of Smothering | actors24 | Animated Rug of Smothering (3 items) | — |
 | Animated Shield | equipment24 | Animated Shield (gear), Animated Shield (automated) | effect: "Animated Shield" marks its creature only; its rules are by hand |
 | Ankheg | actors24 | Ankheg (4 items) | — |
 | Ankylosaurus | actors24 | Ankylosaurus (2 items) | — |
@@ -377,7 +377,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Danger Sense | classes24 | Danger Sense (feature) | — |
 | Dark One's Blessing | classes24 | Dark One's Blessing (feature) | — |
 | Dark One's Own Luck | classes24 | Dark One's Own Luck (feature) | — |
-| Darkmantle | actors24 | Darkmantle (4 items) | Crush: effect: suffocation is not a WildPath condition yet; Darkness Aura: not automated (utility): using it spends its cost; its description says the rest |
+| Darkmantle | actors24 | Darkmantle (4 items) | Darkness Aura: not automated (utility): using it spends its cost; its description says the rest |
 | Darkness | spells24 | Darkness (automated) | — |
 | Darkvision | spells24 | Darkvision (automated) | — |
 | Dart | equipment24 | Dart (automated) | — |
@@ -464,7 +464,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dust Mephit | actors24 | Dust Mephit (5 items) | — |
 | Dust of Disappearance | equipment24 | Dust of Disappearance (automated) | — |
 | Dust of Dryness | equipment24 | Dust of Dryness (Sprinkle over Water) (manual), Dust of Dryness (Sprinkle on Elemental) (automated) | "Determine Number of Pinches" is passive or triggered: not automated; not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Dust of Sneezing and Choking | equipment24 | Dust of Sneezing and Choking (automated) | effect: suffocation is not a WildPath condition yet |
+| Dust of Sneezing and Choking | equipment24 | Dust of Sneezing and Choking (automated) | — |
 | Dwarf | origins24 | Dwarf (species) | — |
 | Dwarven Plate | equipment24 | Dwarven Plate (gear), Dwarven Plate (Reduce Unwilling Movement) (manual) | "Dwarven Plate" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest |
 | Dwarven Resilience | origins24 | Dwarven Resilience (feature) | — |
@@ -645,7 +645,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Gauntlets of Ogre Power | equipment24 | Gauntlets of Ogre Power (gear) | — |
 | Gaze of Two Minds | classes24 | Gaze of Two Minds (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Geas | spells24 | Geas (automated) | activation: 1 minute is not an action-economy cost |
-| Gelatinous Cube | actors24 | Gelatinous Cube (5 items) | Ooze Cube: "Total Cover" is passive or triggered: not automated; Ooze Cube: "Pull Check" is passive or triggered: not automated; Ooze Cube: "Puller Damage" is passive or triggered: not automated; Transparent: "check" is passive or triggered (narrative): not automated; Engulf: effect: suffocation is not a WildPath condition yet |
+| Gelatinous Cube | actors24 | Gelatinous Cube (5 items) | Ooze Cube: "Total Cover" is passive or triggered: not automated; Ooze Cube: "Pull Check" is passive or triggered: not automated; Ooze Cube: "Puller Damage" is passive or triggered: not automated; Transparent: "check" is passive or triggered (narrative): not automated |
 | Gem | equipment24 | Gem (gear) | "Card Effect: Jewelry" is passive or triggered (narrative): not automated; "Card Effect: Gems" is passive or triggered (narrative): not automated |
 | Gem of Brightness | equipment24 | Gem of Brightness (gear), Gem of Brightness (First Command Word) (manual), Gem of Brightness (Second Command Word) (automated), Gem of Brightness (Third Command Word) (automated) | not automated (utility): using it spends its cost; its description says the rest |
 | Gem of Seeing | equipment24 | Gem of Seeing (gear), Gem of Seeing (automated) | — |

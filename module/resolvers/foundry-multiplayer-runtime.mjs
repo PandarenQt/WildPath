@@ -24,7 +24,7 @@ import {combatTurnKey, requiresContext} from "../helpers/combat.mjs";
 import {createFoundryTeleports, teleportDestination} from "../adapters/foundry-v14-teleport.mjs";
 import {alliedTokens, allyDistance, allyNearTarget, createFoundryAuras, effectGiver, helpedByAlly} from "../adapters/foundry-v14-auras.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
-import {AUTOMATION_QUERY, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
+import {AUTOMATION_QUERY, breatheAgain, createFoundryAutomationDispatcher} from "../adapters/foundry-v14-automation-dispatcher.mjs";
 import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-companions.mjs";
 import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
 import {createFoundrySummons} from "../adapters/foundry-v14-summons.mjs";
@@ -255,6 +255,8 @@ export function registerFoundryV14MultiplayerResolution({
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   globalThis.Hooks?.on?.("createActiveEffect", effect => void falling.onEffectCreated(effect)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Fall") ?? "Fall"}, error)));
+  // Breathing again gives back the Exhaustion suffocating cost (active GM).
+  globalThis.Hooks?.on?.("deleteActiveEffect", effect => void ((game.users?.activeGM?.id === game.user?.id) ? breatheAgain(effect) : null));
   // A change of size (Enlarge/Reduce): its creature's Tokens grow or shrink while it lasts.
   const tokenSize = createFoundryTokenSize({game});
   for ( const hook of ["createActiveEffect", "updateActiveEffect", "deleteActiveEffect"] ) {

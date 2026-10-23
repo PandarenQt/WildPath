@@ -122,6 +122,13 @@
               "id": "effect-3",
               "type": "condition",
               "conditionId": "restrained"
+            },
+            {
+              "id": "effect-4",
+              "type": "effect",
+              "name": "Suffocating",
+              "slug": "suffocating",
+              "ruleElements": []
             }
           ],
           "label": "Smother (attack)"
@@ -142,9 +149,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: suffocation is not a WildPath condition yet"
-            ]
+            "notes": []
           }
         }
       }
@@ -302,9 +307,7 @@
         "challenge": 2
       },
       "conversion": {
-        "notes": [
-          "Smother: effect: suffocation is not a WildPath condition yet"
-        ]
+        "notes": []
       }
     }
   }

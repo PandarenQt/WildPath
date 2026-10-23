@@ -110,6 +110,33 @@ export function automationTriggers(actor, event, context = {}) {
     }));
 }
 /**
+ * 2024 Suffocating: a creature holds its breath for 1 + its Constitution modifier minutes (30 seconds at least), counted
+ * in its turns (`flags.wildpath.breathLeft` on its `suffocating` effect); out of breath, it gains a level of Exhaustion at
+ * the end of each of its turns (`exhaustionGained`).
+ */
+export async function suffocate(actor) {
+    const effect = [...(actor.effects ?? [])].find(entry => !entry.disabled
+        && entry.statuses?.has?.("suffocating"));
+    if (!effect?.setFlag)
+        return false;
+    const fortitude = Math.floor(((Number(actor.system?.abilities?.fortitude?.value) || 10) - 10) / 2);
+    const breath = effect.flags?.wildpath?.breathLeft ?? Math.max(10 * (1 + fortitude), 3);
+    if (breath > 0) {
+        await effect.setFlag("wildpath", "breathLeft", breath - 1);
+        return false;
+    }
+    await actor.toggleCondition?.("exhaustion", { levels: 1 });
+    await effect.setFlag("wildpath", "exhaustionGained", (effect.flags?.wildpath?.exhaustionGained ?? 0) + 1);
+    return true;
+}
+/** "When it can breathe again, it removes all levels of Exhaustion it gained from suffocating" (2024). */
+export async function breatheAgain(effect) {
+    const gained = Number(effect.flags?.wildpath?.exhaustionGained) || 0;
+    const actor = effect.parent;
+    if (gained && effect.statuses?.has?.("suffocating"))
+        await actor?.toggleCondition?.("exhaustion", { levels: -gained });
+}
+/**
  * The general automation dispatcher: an event on a creature (its turn starts or ends, it rolls initiative, it
  * finishes a rest) runs each of its automatic triggers as an authority Action on that creature. Only the active
  * GM dispatches; another client reports a rest through a user query, which the GM accepts for an owned Actor.
@@ -180,6 +207,9 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
         // A table its effect draws as its turn starts (2024 Confusion's behavior), posted as its creature's.
         if (type === "turn.started")
             await drawTurnTables(actor);
+        // Suffocating, out of breath: a level of Exhaustion as its turn ends.
+        if (type === "turn.ended")
+            await suffocate(actor);
         // Repeated saves: the creature rolls each again as its own Action; a success ends what that save let in.
         for (const group of repeatSaveGroups((actor.effects ?? []), type)) {
             const definition = { schemaVersion: 1, id: `action:repeat-save:${group.key}`, label: group.name, costs: { allOf: [] },

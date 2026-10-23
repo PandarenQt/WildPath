@@ -50,6 +50,14 @@
           "type": "condition",
           "conditionId": "incapacitated",
           "saveOutcomePolicy": "failure"
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Suffocating",
+          "slug": "suffocating",
+          "ruleElements": [],
+          "saveOutcomePolicy": "failure"
         }
       ],
       "label": "Dust of Sneezing and Choking"
@@ -85,9 +93,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: suffocation is not a WildPath condition yet"
-        ]
+        "notes": []
       },
       "price": 200,
       "rarity": "uncommon"

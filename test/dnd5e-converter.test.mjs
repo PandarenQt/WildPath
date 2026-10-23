@@ -2000,6 +2000,8 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   const cube = JSON.parse(fs.readFileSync("packs/_source/srd-creatures/gelatinous-cube-mmGelatinousCube.json", "utf8"));
   const engulf = cube.items.find(item => item.name === "Engulf (Save)").system.definition;
   assert.deepEqual([engulf.targeting.type, engulf.range.type], ["single", "special"], "the engulfed creature saves, not the cube");
+  assert.deepEqual(engulf.effects.map(effect => effect.conditionId ?? effect.slug), ["coverTotal", "restrained", "suffocating"],
+    "an engulfed creature can't breathe");
   assert.deepEqual(["raise-dead-phbspl", "shining-smite-phbspl", "potion-of-healing-dmg"].map(prefix => read(prefix).system.definition.targeting.type),
     ["single", "single", "self"], "Raise Dead's dead creature, a smite's creature hit; a potion is drunk");
   assert.deepEqual(read("energy-bow-attack-").system.definition.damage[0].expression, {type: "dice", number: 1, faces: 8},

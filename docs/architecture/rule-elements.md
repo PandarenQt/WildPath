@@ -628,6 +628,11 @@ save made Exhaustion 2. Sight Rot blinded its creature at once, and ending Blind
 - **Gaseous** (2026-10-23, an effect status, not a condition): Gaseous Form's misty cloud and Wind Walk's cloud form
   (dnd5e's "transformed" on such an effect). Its creature can't attack or cast spells (`WILDPATH.REFUSAL.Gaseous`).
   shortcut: Wind Walk's "only Dash or a Magic action" is not enforced beyond that, nor Gaseous Form's "only a Fly Speed".
+- **Suffocating** (2026-10-23, an effect status): dnd5e's "suffocation" (a Gelatinous Cube's Engulf, a Darkmantle's
+  Crush). It holds its breath for 1 + its Constitution modifier minutes, 3 turns at least, counted at the end of its turns
+  (`flags.wildpath.breathLeft`); then each turn's end gives it a level of Exhaustion, and when the effect ends those
+  levels go (`suffocate`, `breatheAgain`). Live (14.369): QA Fighter held one turn, reached Exhaustion 2, and was back to
+  0 once it could breathe. shortcut: its breath is counted in its turns, not in time out of combat.
 
 Another damage type is one more entry. Poisoned is now the 2024 condition only: disadvantage on attack
 rolls and ability checks, and no damage.
