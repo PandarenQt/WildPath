@@ -1997,6 +1997,10 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   const confused = read("confusion-phbspl");
   assert.deepEqual([confused.system.definition.effects[0].drawsAtTurnStart, confused.flags.wildpath.conversion.notes],
     ["Compendium.wildpath.srd-tables.RollTable.phbsplConfusionB", []], "Confusion draws its behavior table each turn");
+  const torch = read("torch-phbagTorch").system.definition;
+  assert.deepEqual([torch.targeting.type, torch.range, torch.area], ["single", {type: "reach", distance: {value: 5, unit: "ft"}}, undefined],
+    "a Torch hits one creature in reach; its 40-foot template is its light");
+  assert.equal(read("vampiric-touch-phbspl").system.definition.targeting.type, "single", "a melee spell attack at \"self\" range");
   const wall = read("wall-of-fire-create-wall-").system.definition;
   const repeat = wall.area.persistence.triggers[0].action;
   assert.deepEqual([Boolean(wall.save), repeat.save, repeat.damage[0].saveOutcomePolicy], [true, undefined, undefined],

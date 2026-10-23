@@ -26,17 +26,16 @@
         "ability": "might"
       },
       "range": {
-        "type": "self"
-      },
-      "targeting": {
-        "type": "area"
-      },
-      "area": {
-        "shape": "emanation",
-        "size": {
-          "value": 40,
+        "type": "reach",
+        "distance": {
+          "value": 5,
           "unit": "ft"
         }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
       },
       "damage": [
         {

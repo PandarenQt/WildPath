@@ -32,10 +32,16 @@
         "proficient": true
       },
       "range": {
-        "type": "self"
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
       },
       "targeting": {
-        "type": "self"
+        "type": "single",
+        "required": true,
+        "count": 1
       },
       "metadata": {
         "spellLevel": 0,

@@ -39,7 +39,9 @@
         }
       },
       "targeting": {
-        "type": "self"
+        "type": "single",
+        "required": true,
+        "count": 1
       },
       "damage": [
         {
