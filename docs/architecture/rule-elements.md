@@ -494,7 +494,9 @@ and "See Invisibility" (the sense, a mile). They apply when none of the effect's
 Reaction" (a ResourceCap), Shocking Grasp's "Shocked" (no Opportunity Attacks until the start of its next turn: the
 engine's `no-opportunity-attacks` slug), "Aiming: Attack Advantage" and "Target: Disadvantage" (its next attack),
 "Blocked Healing" (no healing until the end of the caster's next turn) and "Healing Restriction", Dispel Evil and
-Good's "Dispelling Evil and Good" (as "Protected", from five creature types, for its minute), "<Type> Protection" (Resistance), and Acid Arrow's
+Good's "Dispelling Evil and Good" (as "Protected", from five creature types, for its minute), Death Ward's "Protection
+from Death" (a `health.zero` rule on the effect: dropped to 0, its creature is at 1 instead and the effect ends;
+`zeroHpFor` reads effects too, 2026-10-23), "<Type> Protection" (Resistance), and Acid Arrow's
 "Lingering Acid": an automatic
 `turn.ended` Trigger on the effect deals its 2d4 Acid, and it lasts until the end of the caster's next turn (an
 effect's Triggers run like an Item's; the spell's separate later-damage Action is dropped).

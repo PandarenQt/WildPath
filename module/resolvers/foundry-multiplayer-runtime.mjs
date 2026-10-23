@@ -187,6 +187,10 @@ export function registerFoundryV14MultiplayerResolution({
       await endEffectsOnTargets(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenSaved(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenDamaged(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
+      // A ward that kept a creature up (Death Ward) ends.
+      for ( const record of event.state?.results?.zeroHp ?? [] ) {
+        if ( record.kept && record.effectUuid ) await (await globalThis.fromUuid?.(record.effectUuid))?.delete?.();
+      }
       await endEffectsWhenChecked(event.options?.actor, event.state?.input?.check ?? null);
       await recordSlotSpell(event, {game});
       await recordCastLevel(event);

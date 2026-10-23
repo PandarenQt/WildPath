@@ -12,8 +12,11 @@ type Data = Record<string, any>;
  */
 export function zeroHpFor(actor: Data | null | undefined, actorSystem: Data | null | undefined): Data | null {
   if ( !actor ) return null;
-  for ( const item of actor.items ?? [] ) {
-    if ( item?.system?.active === false ) continue;
+  // Its features' rules, and its effects' (2024 Death Ward: "the target instead drops to 1 Hit Point, and the spell
+  // ends"): one from an effect names it (`effectUuid`), which ends once it is used.
+  const owners = [...[...(actor.items ?? [])].filter((item: Data) => item?.system?.active !== false).map((item: Data) => ({item, effect: null})),
+    ...[...(actor.effects ?? [])].filter((effect: Data) => !effect?.disabled).map((effect: Data) => ({item: effect, effect}))];
+  for ( const {item, effect} of owners ) {
     for ( const rule of item?.system?.ruleElements ?? [] ) {
       const spec = ((rule?.type === "Trigger") && (rule.data?.event === "health.zero")) ? rule.data.zeroHp : null;
       if ( !spec || (spec.whileStatus && !actor.statuses?.has?.(spec.whileStatus)) ) continue;
@@ -26,6 +29,7 @@ export function zeroHpFor(actor: Data | null | undefined, actorSystem: Data | nu
       const ability = spec.ability ?? null;
       const rollMode = ability ? combineRollModes(actor.getRollModes?.(["save", `save.${ability}`], {}) ?? []) : null;
       return {name: item.name ?? "", mode: (spec.mode === "save") ? "save" : "set", hitPoints: Math.max(Math.trunc(value(spec.hitPoints ?? 1) || 1), 1),
+        ...(effect?.uuid ? {effectUuid: effect.uuid} : {}),
         ...(ability ? {ability, saveBonus: resolveActorSaveStatistic(actor, ability)?.totalModifier ?? 0,
           ...((rollMode && (rollMode !== "normal")) ? {rollMode} : {})} : {}),
         ...((spec.dc?.base != null) ? {dc: Number(spec.dc.base)

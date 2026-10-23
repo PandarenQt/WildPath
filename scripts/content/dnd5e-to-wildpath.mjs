@@ -2600,6 +2600,10 @@ const EFFECTS_BY_NAME = Object.freeze({
   "Aiming: Attack Advantage": {endsWhen: "attacks", ruleElements: [rollModeRule("next-attack", ["attack"], "advantage")]},
   // Sap (weapon mastery), Pesky Swarm: "Disadvantage on its next attack roll".
   "Target: Disadvantage": NEXT_ATTACK_DISADVANTAGE,
+  // Death Ward (2024): "The first time the target would drop to 0 Hit Points before the spell ends, the target instead drops
+  // to 1 Hit Point, and the spell ends" (zeroHpFor reads it from the effect, which then ends).
+  "Protection from Death": {ruleElements: [{schemaVersion: 1, id: "death-ward", type: "Trigger",
+    data: {kind: "zero-hp", event: "health.zero", zeroHp: {mode: "set", hitPoints: 1}}}]},
   // Chill Touch, a Death Cultist's scythe: "can't regain Hit Points" (WildPathActor#_preUpdate keeps them where they are).
   "Blocked Healing": {duration: {value: 1, units: "rounds", expiry: "turnEnd"},
     ruleElements: [{schemaVersion: 1, id: "no-healing", type: "ResourceCap", data: {resources: ["healing"], maximum: 0}}]},

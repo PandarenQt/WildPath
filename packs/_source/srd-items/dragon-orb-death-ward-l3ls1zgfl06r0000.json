@@ -42,7 +42,21 @@
           "type": "effect",
           "name": "Protection from Death",
           "img": "icons/magic/death/skull-horned-worn-fire-blue.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "death-ward",
+              "type": "Trigger",
+              "data": {
+                "kind": "zero-hp",
+                "event": "health.zero",
+                "zeroHp": {
+                  "mode": "set",
+                  "hitPoints": 1
+                }
+              }
+            }
+          ],
           "duration": {
             "value": 28800,
             "units": "seconds",
@@ -73,8 +87,7 @@
       },
       "conversion": {
         "notes": [
-          "consumption: itemUses 2 not converted",
-          "effect: \"Protection from Death\" marks its creature only; its rules are by hand"
+          "consumption: itemUses 2 not converted"
         ]
       },
       "price": 0,
