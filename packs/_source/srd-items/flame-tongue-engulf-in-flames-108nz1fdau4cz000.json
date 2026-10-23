@@ -21,6 +21,60 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "weapon"
+            ]
+          }
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "flame-tongue",
+        "effects": [
+          {
+            "name": "Ablaze",
+            "img": "icons/weapons/swords/greatsword-crossguard-flanged-red.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "ablaze-damage",
+                "type": "ExtraDamage",
+                "data": {
+                  "domains": [
+                    "damage.weapon"
+                  ],
+                  "expression": {
+                    "type": "dice",
+                    "number": 2,
+                    "faces": 6
+                  },
+                  "damageType": "fire"
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
       "label": "Flame Tongue (Engulf in Flames)"
     },
     "ruleElements": []
@@ -39,9 +93,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "price": 4000,
       "rarity": "rare"

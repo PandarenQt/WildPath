@@ -1088,6 +1088,25 @@ test("a magic item template enchants an Item of its kind: a choice of its option
   assert.equal(enchant.enchant.optionChoiceId, "enchantment");
 });
 
+test("a weapon enchantment adds its damage dice on each hit (Flame Tongue's 2d6 Fire, a Vicious Weapon's 2d6)", async () => {
+  const fs = await import("node:fs");
+  const enchanted = (key, value) => convertItem({_id: "testFlameTongue1", name: "Test Tongue", type: "weapon", system: {source: SRD,
+    description: {value: ""}, activities: {a: activity("enchant", {effects: [{_id: "engulf"}]})}},
+    effects: [{_id: "engulf", name: "Engulf in Flames", type: "enchantment", system: {changes: [{key, value, type: "add"}]}}]})
+    .items.find(item => item.type === "action")?.system.definition.enchant?.effects[0].ruleElements[0] ?? null;
+  assert.deepEqual(enchanted("system.damage.parts", "2d6,fire"), {schemaVersion: 1, id: "engulf-in-flames-damage", type: "ExtraDamage",
+    data: {domains: ["damage.weapon"], expression: {type: "dice", number: 2, faces: 6}, damageType: "fire"},
+    predicate: {tagsAny: ["weapon:{{host}}"]}});
+  assert.equal(enchanted("system.damage.base.bonus", "2d6").data.damageType, undefined, "the weapon's own type");
+  assert.equal(enchanted("system.damage.parts", "(floor(@details.level / 6))d6"), null, "not literal dice");
+  const read = prefix => fs.readdirSync("packs/_source/srd-items").filter(file => file.startsWith(prefix))
+    .map(file => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}`, "utf8")));
+  assert.ok(JSON.stringify(read("frost-brand")).includes('"damageType":"cold"'), "Frost Brand's 1d6 Cold");
+  for ( const item of [...read("flame-tongue-engulf"), ...read("vicious-weapon")] ) {
+    assert.equal(item.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")), false, item.name);
+  }
+});
+
 test("a weapon with the Ammunition property names the ammunition its attack spends (a Longbow's arrows)", () => {
   const bow = {...weapon, _id: "testLongbow00001", name: "Test Longbow", system: {...weapon.system, properties: ["amm", "two"],
     ammunition: {type: "arrow"}}};
