@@ -72,26 +72,6 @@
                 "tags": [
                   "spell"
                 ],
-                "save": {
-                  "ability": "agility",
-                  "dc": {
-                    "valueExpression": {
-                      "type": "add",
-                      "terms": [
-                        {
-                          "type": "constant",
-                          "value": 8
-                        },
-                        {
-                          "type": "proficiency-bonus"
-                        },
-                        {
-                          "type": "spellcasting-modifier"
-                        }
-                      ]
-                    }
-                  }
-                },
                 "damage": [
                   {
                     "id": "damage-1",
@@ -101,11 +81,7 @@
                       "faces": 8
                     },
                     "damageType": "fire",
-                    "provenance": "spell-base",
-                    "saveOutcomePolicy": {
-                      "success": "half",
-                      "failure": "full"
-                    }
+                    "provenance": "spell-base"
                   }
                 ]
               }
@@ -202,9 +178,7 @@
         "castBy": "Staff of Fire"
       },
       "conversion": {
-        "notes": [
-          "\"damage\" is passive or triggered: not automated"
-        ]
+        "notes": []
       },
       "price": 40000,
       "rarity": "veryRare"

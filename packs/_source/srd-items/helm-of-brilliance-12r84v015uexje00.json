@@ -44,7 +44,6 @@
         "notes": [
           "not automated (enchant): using it spends its cost; its description says the rest",
           "rolled (save); what it does is by hand",
-          "\"damage\" is passive or triggered: not automated",
           "activation: special is not an action-economy cost",
           "damage 1: bonus \"@scaling\" not converted",
           "armor: of any kind; give it its armor's AC by hand"

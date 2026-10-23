@@ -1984,6 +1984,10 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
     ["gaseous", false], "a misty cloud: it can't attack or cast spells (the runtime's refusal)");
   const later = prefix => read(prefix).system.definition.effects[0].ruleElements[0].data.action.damage[0].expression.number;
   assert.deepEqual([later("vitriolic-sphere-"), later("acid-arrow-")], [5, 2], "each spell's own Lingering Acid damage");
+  const wall = read("wall-of-fire-create-wall-").system.definition;
+  const repeat = wall.area.persistence.triggers[0].action;
+  assert.deepEqual([Boolean(wall.save), repeat.save, repeat.damage[0].saveOutcomePolicy], [true, undefined, undefined],
+    "Wall of Fire: a save when it appears, none for entering it or ending a turn there");
 });
 
 test("size and range limits on offers: Hill's Tumble, Trip and Repelling Blast Large or smaller; Retaliation within 5 ft", async () => {

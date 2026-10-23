@@ -68,12 +68,6 @@
                 "tags": [
                   "spell"
                 ],
-                "save": {
-                  "ability": "agility",
-                  "dc": {
-                    "value": 18
-                  }
-                },
                 "damage": [
                   {
                     "id": "damage-1",
@@ -83,11 +77,7 @@
                       "faces": 8
                     },
                     "damageType": "fire",
-                    "provenance": "spell-base",
-                    "saveOutcomePolicy": {
-                      "success": "half",
-                      "failure": "full"
-                    }
+                    "provenance": "spell-base"
                   }
                 ]
               }
@@ -139,9 +129,7 @@
         "castBy": "Helm of Brilliance"
       },
       "conversion": {
-        "notes": [
-          "\"damage\" is passive or triggered: not automated"
-        ]
+        "notes": []
       },
       "price": 0,
       "rarity": "veryRare"
