@@ -1107,6 +1107,34 @@ test("a weapon enchantment adds its damage dice on each hit (Flame Tongue's 2d6 
   }
 });
 
+test("a stat block attack's save happens on its hit (a Ghoul's Claw: \"it is subjected to the following effect\")", async () => {
+  const fs = await import("node:fs");
+  const claw = condition => ({_id: "testGhoulClaw001", name: "Claw", type: "weapon", img: "icons/svg/item-bag.svg", system: {source: SRD,
+    identifier: "claw", type: {value: "natural"}, properties: [], range: {value: null, long: null, units: "ft", reach: 5},
+    damage: {base: {number: 1, denomination: 4, types: ["slashing"], bonus: ""}},
+    description: {value: "<p>Melee Attack Roll: +4, reach 5 ft. Hit: 5 Slashing damage. If the target is a creature, it is subjected to the "
+      + "following effect. Constitution Saving Throw: DC 10. Failure: The target has the Paralyzed condition until the end of its next turn.</p>"},
+    activities: {a: activity("attack", {attack: {ability: "", bonus: "", flat: false, type: {value: "melee", classification: "weapon"}},
+      damage: {includeBase: true, parts: []}}),
+    b: activity("save", {_id: "actsave2", activation: {type: "", condition, override: false}, effects: [{_id: "para"}],
+      save: {ability: ["con"], dc: {calculation: "", formula: "10"}}})}},
+    effects: [{_id: "para", name: "Paralyzed", transfer: false, statuses: ["paralyzed"], system: {changes: []}, duration: {}}]});
+  const actions = convertItem(claw("")).items.filter(item => item.type === "action");
+  const attack = actions.find(item => item.system.definition.attack);
+  const rider = actions.find(item => item.system.definition.save);
+  assert.ok(attack.system.definition.tags.includes("hit:claw"));
+  const trigger = rider.system.ruleElements.find(rule => rule.type === "Trigger").data;
+  assert.deepEqual([trigger.event, trigger.match.sourceTokenId, trigger.match.tagsAll], ["attack.hit", "{self}", ["hit:claw"]]);
+  assert.deepEqual([rider.flags.wildpath.reactionPolicy, rider.system.definition.save.ability, rider.system.definition.effects[0].conditionId,
+    rider.system.definition.targeting.type, rider.system.definition.costs], ["always", "fortitude", "paralyzed", "single", {allOf: []}]);
+  assert.equal(rider.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), false);
+  const after = convertItem(claw("Whenever the Poisoned target finishes a Long Rest"));
+  assert.ok(after.notes.some(note => /passive or triggered/.test(note)), "a save with its own condition stays passive");
+  const ghoul = JSON.parse(fs.readFileSync(`packs/_source/srd-creatures/${fs.readdirSync("packs/_source/srd-creatures")
+    .find(file => file.startsWith("ghoul-"))}`, "utf8"));
+  assert.equal(ghoul.flags.wildpath.conversion.notes.some(note => note.startsWith('Claw: "save" is passive')), false);
+});
+
 test("a weapon with the Ammunition property names the ammunition its attack spends (a Longbow's arrows)", () => {
   const bow = {...weapon, _id: "testLongbow00001", name: "Test Longbow", system: {...weapon.system, properties: ["amm", "two"],
     ammunition: {type: "arrow"}}};

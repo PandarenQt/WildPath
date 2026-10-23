@@ -395,6 +395,12 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   an attack hits, its damage lands on the attacker, even when the hit itself does nothing (the pudding is immune to
   Slashing). shortcut: "while within 5 feet" is not measured, and touching it is the GM's. Live (14.369): each
   Longsword hit on a Black Pudding cost the attacking Token 4 Acid.
+- **A stat block attack's save (2026-10-24):** a 2024 attack whose hit "is subjected to the following effect" or "must
+  make the following saving throw" (a Ghoul's Claw, a Cockatrice's Petrifying Bite) keeps that save in an activity with
+  no activation. It is an Action with no cost and a reaction Trigger on `attack.hit` by its own creature, matching the
+  tag `hit:<item>` its attack's Action carries, set to Always: each hit with that attack rolls the save. A save with a
+  condition of its own (an Otyugh's after a Long Rest) or with no ability stays passive. shortcut: a clause on who is
+  spared ("unless it is an Undead or an Elf") is by hand; a Homunculus's two outcomes are still an effect choice.
 - **Retaliation, Stone's Endurance, Countercharm (2026-10-20):**
   - **Retaliation** (barbarian): `damage.applied` on itself from another creature. Its Trigger names a common Action
     (`commonAction: "opportunity"`), so the provider reacts with its creature's first melee attack or Unarmed Strike at

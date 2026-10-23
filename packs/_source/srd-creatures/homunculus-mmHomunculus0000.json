@@ -144,6 +144,9 @@
               "provenance": "weapon-base"
             }
           ],
+          "tags": [
+            "hit:bite"
+          ],
           "label": "Bite (attack)"
         },
         "ruleElements": []
@@ -164,6 +167,132 @@
           "conversion": {
             "notes": []
           }
+        }
+      }
+    },
+    {
+      "_id": "2yhunondknwq0000",
+      "_key": "!actors.items!mmHomunculus0000.2yhunondknwq0000",
+      "name": "Bite (save)",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +4, reach 5 ft. <em>Hit:</em>  damage, and the target is subjected to the following effect.</p><p><em>Constitution Saving Throw:</em> DC 12.</p><p><em>Failure:</em> The target has the Poisoned condition until the end of the homunculus's next turn.</p><p><em>Failure by 5 or More:</em> The target has the Poisoned condition for 1 minute. While Poisoned, the target has the Unconscious condition, which ends early if the target takes any damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite",
+          "costs": {
+            "allOf": []
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 12
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "poisoned",
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "unconscious",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
+          "configuration": [
+            {
+              "id": "effect-choice",
+              "type": "option",
+              "label": "Effect",
+              "required": true,
+              "options": [
+                {
+                  "id": "effect-option-1",
+                  "label": "Poisoned",
+                  "value": "effect-option-1"
+                },
+                {
+                  "id": "effect-option-2",
+                  "label": "Unconscious",
+                  "value": "effect-option-2"
+                }
+              ],
+              "effects": [
+                {
+                  "type": "keepEffect",
+                  "effectIds": [
+                    "effect-1",
+                    "effect-2"
+                  ],
+                  "keep": {
+                    "effect-option-1": [
+                      "effect-1"
+                    ],
+                    "effect-option-2": [
+                      "effect-2"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "range": {
+            "type": "special"
+          },
+          "label": "Bite (save)"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "reaction",
+            "type": "Trigger",
+            "data": {
+              "kind": "reaction",
+              "event": "attack.hit",
+              "match": {
+                "phase": "interrupt",
+                "sourceTokenId": "{self}",
+                "tagsAll": [
+                  "hit:bite"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "bite",
+            "subtype": null
+          },
+          "conversion": {
+            "notes": []
+          },
+          "reactionPolicy": "always"
         }
       }
     },
@@ -240,9 +369,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Bite: \"save\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

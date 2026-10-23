@@ -525,6 +525,20 @@ function hitOffer(document, activity) {
     definition: riding};
 }
 
+/**
+ * A stat block attack's save on the creature it hits (2024 Ghoul's Claw: "it is subjected to the following effect"): an
+ * automatic offer on this Item's own hits (its attack's Action carries `hit:<item>`). Not one with a condition of its own
+ * (an Otyugh's after a Long Rest). shortcut: a clause on who is spared ("unless it is an Undead or an Elf") is by hand;
+ * upgrade when an offer reads its text's creature types.
+ */
+function attackRider(document, activity, activities) {
+  if ( (activity?.type !== "save") || !["", "none", "special"].includes(activity.activation?.type ?? "") || activity.activation?.condition
+    || !activities.some(entry => entry.type === "attack") || ![].concat(activity.save?.ability ?? []).filter(Boolean).length
+    || !/\b(?:is )?subject(?:ed)? to the following effect\b|\bmust make the following saving throw\b/iu.test(plainText(document)) ) return null;
+  return {spell: true, tagsAll: [`hit:${slugify(document.name)}`], always: true, keepNotes: true,
+    definition: definition => ({...definition, costs: {allOf: []}})};
+}
+
 const OWN_HIT = Object.freeze({
   // 2024 Blessed Strikes: Divine Strike, 1d8 (2d8 from cleric level 14, its scale).
   "blessed-strikes-divine-strike/Necrotic Divine Strike": weaponHit("divine-strike"),
@@ -1171,6 +1185,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   if ( trait ) allNotes.push(...trait.notes);
   // A spell without activities is still cast: it spends its slot like any other.
   const usable = activities.length ? activities : (spell ? [{type: "manual", activation: {override: false}}] : []);
+  // The tag a stat block attack's own save answers (attackRider), on that attack's Action.
+  const riderTag = activities.map(entry => attackRider(document, entry, activities)).find(Boolean)?.tagsAll[0] ?? null;
   for ( const [index, activity] of usable.entries() ) {
     const notes = [...(pool?.notes ?? [])];
     const label = activity.name || activity.type;
@@ -1185,7 +1201,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A passive or triggered ability is not something a creature uses on its turn; its feature carries its text.
     const activation = pick(activity, system, "activation").type ?? "";
     // A feature used when its creature hits (Stunning Strike): offered on that hit, though dnd5e leaves it passive.
-    const onHit = OWN_HIT[`${identifierOf(document)}/${activity.name}`] ?? OWN_HIT[identifierOf(document)] ?? hitOffer(document, activity);
+    const onHit = OWN_HIT[`${identifierOf(document)}/${activity.name}`] ?? OWN_HIT[identifierOf(document)] ?? hitOffer(document, activity)
+      ?? attackRider(document, activity, activities);
     // An enchantment of one of its creature's weapons (Magic Weapon, Sacred Weapon): its weapon's attacks change instead.
     const enchant = ENCHANTS[identifierOf(document)] ?? null;
     if ( enchant && (activity.type !== "enchant") ) continue;
@@ -1458,10 +1475,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       definition = {...onHit.definition(definition), ...(onHit.self ? {range: {type: "self"}, targeting: {type: "self"}}
         : {range: {type: "special"}, targeting: {type: "single", required: true, count: 1}}),
       ...(onHit.rider ? {rider: structuredClone(onHit.rider)} : {})};
-      // Its effects are its own now, not dnd5e's.
-      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("effect: ") && !note.startsWith("not automated")
-        && !note.startsWith("save: a failure gives") && !onHit.dropNotes?.test(note)));
+      // Its effects are its own now, not dnd5e's; a stat block's rider keeps what its effects still leave by hand.
+      notes.splice(0, notes.length, ...notes.filter(note => onHit.keepNotes ? !/^(?:not automated|activation:)/u.test(note)
+        : (!note.startsWith("effect: ") && !note.startsWith("not automated") && !note.startsWith("save: a failure gives")
+          && !onHit.dropNotes?.test(note))));
     }
+    if ( riderTag && (activity.type === "attack") ) definition = {...definition, tags: [...new Set([...(definition.tags ?? []), riderTag])]};
     const named = smite ? (/unholy/i.test(activity.name ?? "") ? " (Undead or Fiend)" : "") : suffix;
     const reacting = action(id, `${document.name}${named}${choices ? title(choices[0]) : ""}`, definition);
     // A spell's hit too, for an offer marked `spell` (Repelling Blast on Eldritch Blast).
@@ -1477,7 +1496,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...(trigger.onceKey ? {onceKey: trigger.onceKey} : {}), ...(trigger.uses ? {uses: trigger.uses} : {})}});
     if ( flurry ) reacting.system.ruleElements.push(structuredClone(FLURRY_POOL));
     // Retaliation is no choice: it happens whenever it is hit (`reactionPolicy: always`).
-    if ( retaliates ) reacting.flags.wildpath.reactionPolicy = "always";
+    if ( retaliates || onHit?.always ) reacting.flags.wildpath.reactionPolicy = "always";
     items.push(reacting);
     // Cutting Words on an ability check (the same die off it, then judged again), and on a damage roll: an Action of its
     // own, which comes with it (`grants`), whose die comes off that roll before anyone's share of it.

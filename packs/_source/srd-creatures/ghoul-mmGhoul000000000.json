@@ -270,6 +270,9 @@
               "provenance": "weapon-base"
             }
           ],
+          "tags": [
+            "hit:claw"
+          ],
           "label": "Claw (attack)"
         },
         "ruleElements": []
@@ -290,6 +293,89 @@
           "conversion": {
             "notes": []
           }
+        }
+      }
+    },
+    {
+      "_id": "98nxu11lunnbr000",
+      "_key": "!actors.items!mmGhoul000000000.98nxu11lunnbr000",
+      "name": "Claw (save)",
+      "type": "action",
+      "img": "icons/skills/melee/blood-slash-foam-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Melee Attack Roll: +4, reach 5 ft. Hit: 4 (1d4 + 2) Slashing damage. If the target is a creature that isn’t an Undead or elf, it is subjected to the following effect.</p><p><em>Constitution Saving Throw:</em> DC 10.</p><p><em>Failure:</em> The target has the Paralyzed condition until the end of its next turn.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-claw",
+          "costs": {
+            "allOf": []
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 10
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "paralyzed",
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnStart"
+              }
+            }
+          ],
+          "range": {
+            "type": "special"
+          },
+          "label": "Claw (save)"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "reaction",
+            "type": "Trigger",
+            "data": {
+              "kind": "reaction",
+              "event": "attack.hit",
+              "match": {
+                "phase": "interrupt",
+                "sourceTokenId": "{self}",
+                "tagsAll": [
+                  "hit:claw"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "tiNmukdjtTyjqq9S",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "claw",
+            "subtype": null
+          },
+          "conversion": {
+            "notes": []
+          },
+          "reactionPolicy": "always"
         }
       }
     },
@@ -358,9 +444,7 @@
         "challenge": 1
       },
       "conversion": {
-        "notes": [
-          "Claw: \"save\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }
