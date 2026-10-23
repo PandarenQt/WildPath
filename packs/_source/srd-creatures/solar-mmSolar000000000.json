@@ -912,6 +912,7 @@
               "id": "effect-1",
               "type": "effect",
               "name": "Resurrection Sickness (Day 1)",
+              "restsLeft": 1,
               "img": "icons/svg/stoned.svg",
               "ruleElements": [
                 {
@@ -968,6 +969,7 @@
               "id": "effect-2",
               "type": "effect",
               "name": "Resurrection Sickness (Day 2)",
+              "restsLeft": 2,
               "img": "icons/svg/stoned.svg",
               "ruleElements": [
                 {
@@ -1024,6 +1026,7 @@
               "id": "effect-3",
               "type": "effect",
               "name": "Resurrection Sickness (Day 3)",
+              "restsLeft": 3,
               "img": "icons/svg/stoned.svg",
               "ruleElements": [
                 {
@@ -1080,6 +1083,7 @@
               "id": "effect-4",
               "type": "effect",
               "name": "Resurrection Sickness (Day 4)",
+              "restsLeft": 4,
               "img": "icons/svg/stoned.svg",
               "ruleElements": [
                 {

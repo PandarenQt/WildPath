@@ -3332,7 +3332,10 @@ function convertActivity({document, activity, system, spell, level, scales, note
         ? {value: 1, units: "rounds", expiry: "turnEnd"} : null;
       const duration = (hand ?? named)?.duration ?? effectDuration(effect.duration) ?? untilNextTurnEnd;
       const slug = byHand?.slug ?? named?.slug ?? (gaseous ? "gaseous" : null);
+      // As many Long Rests as it lasts: Raise Dead's "Resurrection Sickness (Day 3)" (each rest lifts 1 of its -4).
+      const restsLeft = (hand ?? named)?.restsLeft ?? (Number(/\(Day (\d+)\)$/u.exec(effect.name ?? "")?.[1]) || null);
       effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(slug ? {slug} : {}),
+        ...(restsLeft ? {restsLeft} : {}),
         ...(effect.img ? {img: effect.img} : {}),
         ruleElements: rules, ...(duration ? {duration} : {}), ...(((hand ?? named)?.endsWhen ?? (nextAttack ? "attacked" : null))
           ? {endsWhen: (hand ?? named)?.endsWhen ?? "attacked"} : {}), ...onFailure,

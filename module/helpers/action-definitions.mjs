@@ -1277,7 +1277,9 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
       ruleElements: normalizeArray(effect.ruleElements).map(clonePlain),
       // It ends after the next attack against its creature (Help, Guiding Bolt), else with its duration.
       ...(effect.endsWhen ? {endsWhen: String(effect.endsWhen)} : {}),
-      ...((effect.stack === "separate") ? {stack: "separate"} : {})} : {}),
+      ...((effect.stack === "separate") ? {stack: "separate"} : {}),
+      // It ends after this many of its creature's Long Rests (Resurrection Sickness): Actor#rest.
+      ...((Number.isInteger(effect.restsLeft) && (effect.restsLeft > 0)) ? {restsLeft: effect.restsLeft} : {})} : {}),
     ...(effect.repeatSave ? {repeatSave: String(effect.repeatSave)} : {}),
     // Only on a creature no bigger than this (Eldritch Smite's Prone: Huge or smaller).
     ...(effect.maxSize ? {maxSize: String(effect.maxSize)} : {}),

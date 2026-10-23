@@ -880,6 +880,13 @@ export default class WildPathActor extends Actor {
     }
     // 2024: a long rest removes one level of Exhaustion, unless a contagion holds it (Cackle Fever, Sewer Plague).
     if ( long && exhausted && !contagions.some(contagion => contagion.holdsExhaustion) ) await this.toggleCondition("exhaustion", {levels: -1});
+    // An effect that lasts some Long Rests (Resurrection Sickness): one fewer, and it ends at none.
+    if ( long ) for ( const effect of [...this.effects] ) {
+      const left = effect.flags?.wildpath?.restsLeft ?? effect.flags?.wildpath?.conditionEffect?.definition?.restsLeft;
+      if ( !left ) continue;
+      if ( left <= 1 ) await effect.delete();
+      else await effect.setFlag("wildpath", "restsLeft", left - 1);
+    }
     // Then its save against each contagion it suffers.
     if ( long ) await globalThis.game?.wildpath?.contagions?.afterLongRest?.(this);
     // The creature's own automatic triggers on a rest (the GM runs them; a Player's client reports the rest).
