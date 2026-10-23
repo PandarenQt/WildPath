@@ -44,6 +44,18 @@
         "required": true,
         "count": 1
       },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 6
+          },
+          "damageType": "bludgeoning",
+          "provenance": "weapon-base"
+        }
+      ],
       "label": "Staff of the Python (attack)"
     },
     "ruleElements": []
@@ -62,9 +74,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "rolled (attack); what it does is by hand"
-        ]
+        "notes": []
       },
       "price": 400,
       "rarity": "uncommon"

@@ -39,6 +39,18 @@
         "required": true,
         "count": 1
       },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 8
+          },
+          "damageType": "piercing",
+          "provenance": "weapon-base"
+        }
+      ],
       "label": "Energy Bow (attack)"
     },
     "ruleElements": [
@@ -82,9 +94,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "rolled (attack); what it does is by hand"
-        ]
+        "notes": []
       },
       "price": 40000,
       "rarity": "veryRare"

@@ -2002,6 +2002,11 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   assert.deepEqual([engulf.targeting.type, engulf.range.type], ["single", "special"], "the engulfed creature saves, not the cube");
   assert.deepEqual(["raise-dead-phbspl", "shining-smite-phbspl", "potion-of-healing-dmg"].map(prefix => read(prefix).system.definition.targeting.type),
     ["single", "single", "self"], "Raise Dead's dead creature, a smite's creature hit; a potion is drunk");
+  assert.deepEqual(read("energy-bow-attack-").system.definition.damage[0].expression, {type: "dice", number: 1, faces: 8},
+    "a magic weapon with no damage of its own has its base weapon's (a longbow)");
+  const burst = read("sorcerous-burst-").system.definition;
+  assert.deepEqual([burst.damage[0].expression.rows[1], burst.configuration[0].type], [{type: "dice", number: 1, faces: 8}, "damage-type"],
+    "Sorcerous Burst: its 1d8 of a chosen type (its dice don't explode)");
   const torch = read("torch-phbagTorch").system.definition;
   assert.deepEqual([torch.targeting.type, torch.range, torch.area], ["single", {type: "reach", distance: {value: 5, unit: "ft"}}, undefined],
     "a Torch hits one creature in reach; its 40-foot template is its light");

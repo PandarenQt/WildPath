@@ -952,6 +952,12 @@ const cantripTable = expression => ({type: "table", key: {type: "character-level
 
 /** A dnd5e damage or healing part as a ValueExpression; notes what it leaves out. */
 function partExpression(part, {spell, ability, scales, notes, label}) {
+  // Exploding dice (2024 Sorcerous Burst's "1d8x@mod=8"): its dice. shortcut: an 8 rolls no extra die; upgrade when dice explode.
+  const exploding = /^\s*(\d+)d(\d+)x/iu.exec(String(part?.custom?.formula ?? ""));
+  if ( part?.custom?.enabled && exploding ) {
+    notes.push(`${label}: its dice don't explode ("${part.custom.formula}")`);
+    return dice(Number(exploding[1]), Number(exploding[2]));
+  }
   if ( part?.custom?.enabled ) {
     const custom = formulaExpression(part.custom.formula, {spell, ability, scales});
     if ( !custom ) notes.push(`${label}: custom formula "${part.custom.formula}" not converted`);
@@ -1109,15 +1115,26 @@ export function upgradeLegacy(document) {
   return upgraded;
 }
 
+/** The SRD's plain weapons' damage by their base-weapon id (`longbow`, `lightcrossbow`), for magic weapons that name one. */
+export function baseWeapons(documents) {
+  return Object.fromEntries(documents.filter(document => (document.type === "weapon") && document.system?.type?.baseItem
+    && number(document.system?.damage?.base?.denomination) && !document.system?.magicalBonus && !(document.system?.properties ?? []).includes("mgc"))
+    .map(document => [document.system.type.baseItem, document.system.damage.base]));
+}
+
 /**
  * Convert one dnd5e Item (spell, weapon, feat) to WildPath Action Items, one per activity.
  * `scales` maps `<class>.<scale>` to `{level: value}` rows (from the class's ScaleValue advancements).
  * @returns {{ok: true, items: object[], notes: string[]} | {ok: false, reason: string}}
  */
 export function convertItem(document, {scales={}, pack=null, saveDC=null, spellDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2",
-  images=["icons/"], spells={}, creatures={}, beasts=[], usesOf={}, tables={}, spellLists={}}={}) {
+  images=["icons/"], spells={}, creatures={}, beasts=[], usesOf={}, tables={}, spellLists={}, weapons={}}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   document = upgradeLegacy(document);
+  // A magic weapon dnd5e leaves without damage of its own (an Energy Bow): its base weapon's, as dnd5e fills it when used.
+  const baseWeapon = ((document.type === "weapon") && !number(document.system?.damage?.base?.denomination))
+    ? weapons[document.system?.type?.baseItem] : null;
+  if ( baseWeapon ) document = {...document, system: {...document.system, damage: {...document.system.damage, base: baseWeapon}}};
   const system = document.system ?? {};
   // An activity with no type is a stale leftover (Tasha's infusions carry one), not something it does.
   const activities = Object.values(system.activities ?? {}).filter(activity => activity?.type)
