@@ -1294,6 +1294,9 @@ test("an empty effect known by its name gets its 2024 rules (Barkskin, a Morning
   const [ridden] = convertItem(broom).items;
   assert.deepEqual([ridden.system.definition.effects[0].ruleElements[0].data.distance,
     ridden.flags.wildpath.conversion.notes.some(note => /not a WildPath condition/.test(note))], [50, false], "its flying is its fly Speed");
+  assert.equal(rulesOf("testPrayerHeal01", "prayer-of-healing", "Healed by Prayer").restsLeft, 1, "until a Long Rest");
+  const [masked] = convertItem(spell("testMaskedAura01", "arcanists-magic-aura", "Masked")).items;
+  assert.ok(masked.flags.wildpath.conversion.notes.includes('effect: "Masked" marks its creature (narrative)'));
 });
 
 test("a save with nothing else converted: the conditions its text gives on a failure, else a marker while it lasts", () => {

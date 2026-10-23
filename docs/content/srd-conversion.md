@@ -91,7 +91,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Arcane Sword | spells24 | Arcane Sword (automated) | — |
 | Arcane Sword | actors24 | Arcane Sword (1 items) | — |
 | Arcane Vigor | spells24 | Arcane Vigor (Cast) (manual) | not automated (utility): using it spends its cost; its description says the rest; "Expend d6 Hit Dice" is passive or triggered: not automated; "Expend d8 Hit Dice" is passive or triggered: not automated; "Expend d10 Hit Dice" is passive or triggered: not automated; "Expend d12 Hit Dice" is passive or triggered: not automated |
-| Arcanist's Magic Aura | spells24 | Arcanist's Magic Aura (automated) | effect: "Masked" marks its creature only; its rules are by hand |
+| Arcanist's Magic Aura | spells24 | Arcanist's Magic Aura (automated) | effect: "Masked" marks its creature (narrative) |
 | Archdruid | classes24 | Archdruid (feature) | "Nature Magician" is passive or triggered: not automated |
 | Archelon | actors24 | Archelon (4 items) | — |
 | Archery | feats24 | Archery (feature) | — |
@@ -1169,7 +1169,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Power Word Kill | spells24 | Power Word Kill (automated) | — |
 | Power Word Stun | spells24 | Power Word Stun (automated) | — |
 | Powerful Build | origins24 | Powerful Build (feature) | — |
-| Prayer of Healing | spells24 | Prayer of Healing (automated) | activation: 10 minute is not an action-economy cost; effect: "Healed by Prayer" marks its creature only; its rules are by hand |
+| Prayer of Healing | spells24 | Prayer of Healing (automated) | activation: 10 minute is not an action-economy cost |
 | Precise Hunter | classes24 | Precise Hunter (feature) | — |
 | Preserve Life | classes24 | Preserve Life (automated) | — |
 | Prestidigitation | spells24 | Prestidigitation (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |

@@ -506,7 +506,8 @@ Added 2026-10-24: "Clouded" (Concentration Disadvantage), "No Reactions", "Whipp
 Opportunity Attacks" (the slug, for dnd5e's duration), "Save Disadvantage: Intelligence", Regenerate's "Regenerating"
 (a `turn.started` Trigger healing 1), the Potions of Climbing's "Climber" and Flying's "Flyer" (a Speed equal to its
 walking Speed; the Flyer hovers) and the Broom of Flying's "Riding Broom (Low Weight)" and "(High Weight)" (a hovering
-Fly Speed of 50 or 30 feet; dnd5e's "flying" status on it is that Speed, so it gets no note).
+Fly Speed of 50 or 30 feet; dnd5e's "flying" status on it is that Speed, so it gets no note). Prayer of Healing's "Healed by
+Prayer" lasts until its creature's next Long Rest (`restsLeft: 1`); refusing the spell on it is by hand.
 
 **Light (2026-10-21).** `GrantLight {bright, dim, angle?}` sheds light from its creature: Bright Light out to `bright`
 feet and Dim Light out to `dim` (counted from the creature: a Torch is 20 and 40), in a cone of `angle` degrees when
