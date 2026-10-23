@@ -761,7 +761,8 @@
               },
               "saveOutcomePolicy": "failure",
               "concentration": true,
-              "repeatSave": "turnEnd"
+              "repeatSave": "turnEnd",
+              "drawsAtTurnStart": "Compendium.wildpath.srd-tables.RollTable.phbsplConfusionB"
             }
           ],
           "metadata": {
@@ -801,9 +802,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "effect: \"Confused\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1189,8 +1188,7 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: dispel: a lasting area or an object is not a target (by hand)",
-          "Spellcasting: effect: \"Confused\" marks its creature only; its rules are by hand"
+          "Spellcasting: dispel: a lasting area or an object is not a target (by hand)"
         ]
       }
     }

@@ -687,7 +687,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Gibbering Mouther | actors24 | Gibbering Mouther (5 items) | Aberrant Ground: "Place Emanation" is passive or triggered: not automated; Gibbering: "save" is passive or triggered: not automated; Gibbering: "Roll d8" is passive or triggered: not automated |
 | Gift of the Depths | classes24 | Gift of the Depths (automated) | effect: "Water Breathing" marks its creature (narrative) |
 | Gift of the Protectors | classes24 | Gift of the Protectors (Write Name) (manual), Gift of the Protectors (Erase Name) (manual) | "Protect" is passive or triggered: not automated; not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Glabrezu | actors24 | Glabrezu (12 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: dispel: a lasting area or an object is not a target (by hand); Spellcasting: effect: "Confused" marks its creature only; its rules are by hand |
+| Glabrezu | actors24 | Glabrezu (12 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: dispel: a lasting area or an object is not a target (by hand) |
 | Gladiator | actors24 | Gladiator (6 items) | — |
 | Glaive | equipment24 | Glaive (automated) | — |
 | Glamoured Studded Leather | equipment24 | Glamoured Studded Leather (gear) | — |

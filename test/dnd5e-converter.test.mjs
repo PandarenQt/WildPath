@@ -1997,6 +1997,10 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   const confused = read("confusion-phbspl");
   assert.deepEqual([confused.system.definition.effects[0].drawsAtTurnStart, confused.flags.wildpath.conversion.notes],
     ["Compendium.wildpath.srd-tables.RollTable.phbsplConfusionB", []], "Confusion draws its behavior table each turn");
+  const glabrezu = JSON.parse(fs.readFileSync("packs/_source/srd-creatures/glabrezu-mmGlabrezu000000.json", "utf8"));
+  const cast = glabrezu.items.find(item => item.name === "Confusion");
+  assert.deepEqual([cast.system.definition.effects[0].drawsAtTurnStart, cast.flags.wildpath.conversion.notes],
+    ["Compendium.wildpath.srd-tables.RollTable.phbsplConfusionB", []], "a creature's Confusion draws the table too");
   const cube = JSON.parse(fs.readFileSync("packs/_source/srd-creatures/gelatinous-cube-mmGelatinousCube.json", "utf8"));
   const engulf = cube.items.find(item => item.name === "Engulf (Save)").system.definition;
   assert.deepEqual([engulf.targeting.type, engulf.range.type], ["single", "special"], "the engulfed creature saves, not the cube");
