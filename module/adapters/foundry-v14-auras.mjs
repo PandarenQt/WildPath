@@ -100,7 +100,8 @@ export function tokensAround(bearer, { radius, affects = "others" }) {
 export function createFoundryAuras() {
     /** Rule owners (`{ruleElements, source}`) the auras around `actor`'s Tokens grant it. */
     function ownersFor(actor) {
-        const tokens = actor.isToken ? [actor.token].filter(Boolean) : (actor.getActiveTokens?.(false, true) ?? []);
+        const tokens = actor.isToken ? [actor.token].filter(Boolean)
+            : (actor.getDependentTokens?.({ linked: true }) ?? actor.getActiveTokens?.(false, true) ?? []);
         const owners = [];
         for (const token of tokens) {
             const scene = token.parent;

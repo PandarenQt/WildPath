@@ -31,7 +31,8 @@ export function stalePoolIds(pools=[], documents=[]) {
  */
 export function threatFix(source) {
   const challenge = Number(source?.flags?.wildpath?.source?.challenge);
-  if ( (source?.type !== "npc") || !Number.isFinite(challenge) ) return null;
+  // A lost fraction was stored as 0; any other threat is a rating the GM set, kept as it is.
+  if ( (source?.type !== "npc") || !Number.isFinite(challenge) || !(challenge < 1) || (Number(source.system?.details?.threat ?? 0) !== 0) ) return null;
   return source.system?.details?.threat === challenge ? null : challenge;
 }
 

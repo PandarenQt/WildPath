@@ -25,7 +25,8 @@ export async function afterChaseAction({options, state}, {game=globalThis.game}=
   await actor.setFlag("wildpath", "chaseDashes", dashes);
   if ( dashes <= freeDashes(actor) ) return {dashes, free: true};
   const total = await actor.rollTest?.({ability: "fortitude"});
-  const failed = !(Number(total) >= 10);
+  // A roll closed unrolled (physical dice) is no failure.
+  const failed = (total != null) && !(Number(total) >= 10);
   if ( failed ) await actor.toggleCondition?.("exhaustion");
   return {dashes, free: false, failed};
 }

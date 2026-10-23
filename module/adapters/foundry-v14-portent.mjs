@@ -123,13 +123,17 @@ async function applyToCard({ messageId, holderUuid, slot }, user, game, fromUuid
     const rollerToken = rollerTokenOf(message, game);
     const allowed = portentHolders(rollerToken, game).find(entry => entry.actor.uuid === holder?.uuid);
     const die = allowed?.dice.find(entry => entry.slot === String(slot));
-    if (!message || !holder || !die || !holder.testUserPermission?.(user, "OWNER") || message.flags?.wildpath?.portentUsed)
+    const flags = message?.flags ?? {};
+    // As the button allows: an unrerolled roll-test card or an initiative card, rolled just now.
+    const offered = message && ((flags.wildpath?.rollTest && !flags.wildpath.rollTest.rerolled) || flags.core?.initiativeRoll) && isRecentRoll(message);
+    if (!offered || !holder || !die || !holder.testUserPermission?.(user, "OWNER") || flags.wildpath?.portentUsed)
         return { ok: false };
     const total = replacedTotal(message.rolls?.[0], die.value);
     if (total === null)
         return { ok: false };
-    await spendPortent(holder, die.slot, game);
+    // The card is claimed before the die is spent: a second query for it finds it used.
     await message.update({ "flags.wildpath.portentUsed": true, ...(message.flags?.wildpath?.rollTest ? { "flags.wildpath.rollTest.rerolled": true } : {}) });
+    await spendPortent(holder, die.slot, game);
     if (message.flags?.core?.initiativeRoll) {
         const combatant = game.combat?.combatants?.find((entry) => entry.tokenId === rollerToken?.id);
         if (combatant)

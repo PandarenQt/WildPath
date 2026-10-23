@@ -20,6 +20,8 @@ test("an NPC converted before fractional Challenge Ratings gets its fraction bac
   const npc = (threat, challenge) => ({type: "npc", system: {details: {threat}}, flags: {wildpath: {source: {challenge}}}});
   assert.equal(threatFix(npc(0, 0.25)), 0.25);
   assert.equal(threatFix(npc(0.25, 0.25)), null);
+  assert.equal(threatFix(npc(3, 0.25)), null, "a GM-raised Challenge Rating is kept");
+  assert.equal(threatFix(npc(9, 5)), null, "a whole rating lost no fraction");
   assert.equal(threatFix({type: "npc", system: {details: {threat: 3}}}), null, "no converted rating: left as it is");
   assert.equal(threatFix({type: "character", flags: {wildpath: {source: {challenge: 2}}}}), null);
 });

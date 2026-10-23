@@ -19,6 +19,8 @@ import {craftingPlan, spendGold} from "../helpers/crafting.mjs";
 const localize = key => globalThis.game?.i18n?.localize?.(key) ?? key;
 const format = (key, data) => globalThis.game?.i18n?.format?.(key, data) ?? key;
 const facilitiesOf = actor => [...(actor?.items ?? [])].filter(item => item.type === "facility");
+// shortcut: an Armory is known by its English name; upgrade when facilities carry dnd5e's identifier.
+const isArmory = facility => /^armory$/i.test(facility?.name ?? "");
 
 /** A character's special facilities and the orders issued them this turn; `quiet` when every one maintains. */
 export function bastionTurn(actor) {
@@ -49,6 +51,16 @@ export async function carryOut(actor, facility, order) {
     await actor.createEmbeddedDocuments("Item", [{...data, system: {...data.system, ...("quantity" in (data.system ?? {}) ? {quantity: 1} : {})}}]);
     await facility.update({"system.current.craft": "", "system.current.progress": 0});
     return format("WILDPATH.BASTION.Crafted", {name, facility: facility.name, item: made.name, cost: plan.cost});
+  }
+  // Stocking an Armory: 100 GP plus 100 per Bastion Defender, half with a Smithy; stocked, defenders are harder to kill.
+  if ( (order === "trade") && isArmory(facility) ) {
+    const smithy = facilitiesOf(actor).some(item => /^smithy$/i.test(item.name ?? ""));
+    const cost = (100 + (100 * (Number(actor.system.bastion?.defenders) || 0))) / (smithy ? 2 : 1);
+    const coins = spendGold(actor.system.currency ?? {}, cost);
+    if ( !coins ) return format("WILDPATH.BASTION.CraftPoor", {name, item: facility.name, cost});
+    await actor.update({"system.currency": coins});
+    await facility.update({"system.trade.stock": 1});
+    return format("WILDPATH.BASTION.Stocked", {name, facility: facility.name, gold: cost});
   }
   if ( (order === "trade") && (Number(facility.system.trade?.stockMax) > 0) ) {
     const stock = Number(facility.system.trade.stock) || 0;
@@ -94,7 +106,10 @@ async function bastionEvent(actor) {
   const roll = drawn ? null : await new Roll("1d100").evaluate();
   const result = drawn?.name || drawn?.description?.replace(/<[^>]+>/g, " ").trim() || null;
   if ( result && /^Attack/i.test(result) ) {
-    const dice = await new Roll("6d6").evaluate();
+    // A stocked Armory: d8s in place of the d6s, and its stock is spent. shortcut: Defensive Walls' 2 fewer dice are the GM's.
+    const armory = facilitiesOf(actor).find(item => isArmory(item) && (Number(item.system?.trade?.stock) > 0));
+    const dice = await new Roll(armory ? "6d8" : "6d6").evaluate();
+    if ( armory ) await armory.update({"system.trade.stock": 0});
     const lost = Math.min(defendersLost(dice.dice[0].results.map(entry => entry.result)), Number(actor.system.bastion?.defenders) || 0);
     if ( lost ) await actor.update({"system.bastion.defenders": (Number(actor.system.bastion?.defenders) || 0) - lost});
     return format("WILDPATH.BASTION.Attack", {name: actor.name, lost});
@@ -103,20 +118,32 @@ async function bastionEvent(actor) {
     : format("WILDPATH.BASTION.Event", {name: actor.name, total: roll.total});
 }
 
+/** A Bastion turn in progress: a second click (or a second GM's) while it runs does nothing. */
+let running = false;
+
 export async function runBastionTurn() {
-  const game = globalThis.game;
-  const characters = [...game.actors].filter(actor => (actor.type === "character") && actor.hasPlayerOwner);
-  const lines = [];
-  for ( const actor of characters ) {
-    const {special, orders, quiet} = bastionTurn(actor);
-    if ( !special.length ) continue;
-    for ( const {facility, order} of orders ) lines.push(await carryOut(actor, facility, order));
-    if ( quiet ) lines.push(await bastionEvent(actor));
-    for ( const {facility} of orders ) await facility.update({"system.current.order": "maintain"});
+  if ( running ) return;
+  running = true;
+  try {
+    const game = globalThis.game;
+    const characters = [...game.actors].filter(actor => (actor.type === "character") && actor.hasPlayerOwner);
+    const lines = [];
+    for ( const actor of characters ) {
+      const {special, orders, quiet} = bastionTurn(actor);
+      if ( !special.length ) continue;
+      // Each order back to Maintain as soon as it is carried out: an error later never repeats it.
+      for ( const {facility, order} of orders ) {
+        lines.push(await carryOut(actor, facility, order));
+        await facility.update({"system.current.order": "maintain"});
+      }
+      if ( quiet ) lines.push(await bastionEvent(actor));
+    }
+    await game.time?.advance?.(7 * 86400);
+    await ChatMessage.create({content: `<h3>${localize("WILDPATH.BASTION.Turn")}</h3>${lines.length
+      ? `<ul>${lines.map(line => `<li>${line}</li>`).join("")}</ul>` : `<p>${localize("WILDPATH.BASTION.Nothing")}</p>`}`});
+  } finally {
+    running = false;
   }
-  await game.time?.advance?.(7 * 86400);
-  await ChatMessage.create({content: `<h3>${localize("WILDPATH.BASTION.Turn")}</h3>${lines.length
-    ? `<ul>${lines.map(line => `<li>${line}</li>`).join("")}</ul>` : `<p>${localize("WILDPATH.BASTION.Nothing")}</p>`}`});
 }
 
 /**

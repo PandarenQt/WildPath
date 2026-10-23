@@ -26,7 +26,10 @@ export class WildPathBastionMap extends HandlebarsApplicationMixin(ApplicationV2
   constructor(actor, options={}) {
     super({...options, id: `wildpath-bastion-map-${actor.id}`});
     this.actor = actor;
-    this.cells = new Map((actor.system.bastion?.map?.cells ?? []).map(cell => [`${cell.x},${cell.y}`, cell.facilityId]));
+    // Squares outside the grid it has now (a character that lost levels) are dropped, so the map can still be saved.
+    const size = mapSize(actor.system.details?.level);
+    this.cells = new Map((actor.system.bastion?.map?.cells ?? []).filter(cell => (cell.x < size) && (cell.y < size))
+      .map(cell => [`${cell.x},${cell.y}`, cell.facilityId]));
     this.selected = null;
   }
 
