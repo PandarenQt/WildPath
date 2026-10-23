@@ -294,6 +294,14 @@ const SUBTYPE_CLASS = Object.freeze({artificerInfusion: "artificer"});
 function enchantmentRules(effect) {
   const id = slugify(effect.name);
   return effectChanges(effect).flatMap(change => {
+    // Dice its weapon adds on each hit (Flame Tongue's 2d6 Fire, Frost Brand's 1d6 Cold; a Vicious Weapon's 2d6 of the
+    // weapon's type). Only literal dice: True Strike's formula is not a bonus.
+    if ( (change.type === "add") && ["system.damage.parts", "system.damage.base.bonus"].includes(change.key) ) {
+      const [formula, type] = String(change.value ?? "").split(",").map(part => part.trim());
+      const extra = /^\d+d\d+$/u.test(formula) ? extraDamageOf(type ? `${formula}[${type}]` : formula) : null;
+      return extra ? [{schemaVersion: 1, id: `${id}-damage`, type: "ExtraDamage", data: {domains: ["damage.weapon"], ...extra},
+        predicate: {tagsAny: ["weapon:{{host}}"]}}] : [];
+    }
     const value = number(change.value);
     // A magic bonus is added, or raised to (`upgrade`: a +1 Shield, a +2 Weapon).
     if ( !value || !["add", "upgrade"].includes(change.type) ) return [];

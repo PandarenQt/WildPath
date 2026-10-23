@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 967 automated, 244 manual, 227 features. Creatures: 375.
+Items: 969 automated, 242 manual, 227 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -608,7 +608,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Flail | equipment24 | Flail (automated) | — |
 | Flame Blade | spells24 | Flame Blade (Evoke Blade) (manual), Flame Blade (attack) (automated) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
 | Flame Strike | spells24 | Flame Strike (automated) | — |
-| Flame Tongue | equipment24 | Flame Tongue (Engulf in Flames) (manual) | "Flame Tongue" is passive or triggered: not automated; not automated (enchant): using it spends its cost; its description says the rest |
+| Flame Tongue | equipment24 | Flame Tongue (Engulf in Flames) (automated) | "Flame Tongue" is passive or triggered: not automated |
 | Flames | equipment24 | Flames (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Flaming Sphere | spells24 | Flaming Sphere (summon) (automated), Flaming Sphere (save) (automated) | concentration: its caster concentrates; what it sustains is by hand |
 | Flaming Sphere | actors24 | Flaming Sphere (2 items) | Flames: "save" is passive or triggered: not automated; Roll: rolled (save); what it does is by hand |
@@ -1590,7 +1590,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Versatile | origins24 | Versatile (feature) | — |
 | Vial | equipment24 | Vial (gear) | — |
 | Vicious Mockery | spells24 | Vicious Mockery (automated) | — |
-| Vicious Weapon | equipment24 | Vicious Weapon (manual) | not automated (enchant): using it spends its cost; its description says the rest |
+| Vicious Weapon | equipment24 | Vicious Weapon (automated) | — |
 | Viol | equipment24 | Viol (gear), Viol (Play a Known Tune) (automated), Viol (Improvise a Song) (automated) | — |
 | Violet Fungus | actors24 | Violet Fungus (3 items) | — |
 | Visions of Distant Realms | classes24 | Visions of Distant Realms (automated) | — |

@@ -507,6 +507,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
   narrative markers.
 - **Charges from the text (2026-10-24):** an item whose dnd5e uses are empty though its activities spend them takes its
   charges from its text (a Dragon Orb's "has 7 charges and regains 1d4 + 3 expended charges daily at dawn").
+- **Enchantment damage dice (2026-10-24):** a weapon enchantment's added damage dice (Flame Tongue's 2d6 Fire, Frost Brand's
+  1d6 Cold, a Vicious Weapon's 2d6) are an ExtraDamage on that weapon's hits (`weapon:{{host}}`); only literal dice convert.
 - **Reactions (2026-10-20):** Retaliation's Trigger names a common Action; Stone's Endurance reduces the damage of the
   attack on it (`rider.reduceDamage`); Countercharm is a feature with a ranged `testOffer`; Indomitable is a feature
   with its pool, no Action (reactions.md).
