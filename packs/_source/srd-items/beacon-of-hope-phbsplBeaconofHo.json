@@ -53,6 +53,17 @@
                 ],
                 "mode": "advantage"
               }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hopeful-2",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.death"
+                ],
+                "mode": "advantage"
+              }
             }
           ],
           "duration": {
@@ -152,9 +163,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Hopeful\" change system.attributes.death.roll.mode (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

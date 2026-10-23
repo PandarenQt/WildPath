@@ -929,6 +929,11 @@ export function formulaExpression(formula, {spell=false, ability=null, scales={}
     .replace(/@details\.level/g, "level")
     .replace(/@item\.level/g, castLevel == null ? "@item.level" : String(castLevel))
     .replace(/@details\.cr/g, challenge == null ? "@details.cr" : String(challenge));
+  // "(max(1,@abilities.wis.mod))d6", "(@prof)d4": dice as many as the parentheses work out to.
+  text = text.replace(/\(((?:[^()]|\((?:[^()]|\([^()]*\))*\))*)\)\s*d\s*(\d+)/g, (match, inner, faces) => {
+    const count = inner.includes("@") ? null : parseFormula(inner.trim(), {variables});
+    return count?.ok ? variable({type: "dice", number: count.expression, faces: Number(faces)}) : match;
+  });
   if ( text.includes("@") ) return null;
   const result = parseFormula(text, {variables});
   return result.ok ? result.expression : null;
@@ -4081,6 +4086,11 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
       // 2024 Jack of All Trades: half the Proficiency Bonus (round down) on a skill check without that skill's proficiency.
       modifier(["check.unproficient"], {type: "floor", value: {type: "divide", numerator: {type: "proficiency-bonus"},
         denominator: {type: "constant", value: 2}}});
+    } else if ( (key === "system.attributes.death.roll.mode") && number ) {
+      // Beacon of Hope: Advantage on Death Saving Throws.
+      rule("RollMode", {domains: ["save.death"], mode: number > 0 ? "advantage" : "disadvantage"});
+    } else if ( key === "flags.dnd5e.initiativeAdv" ) {
+      rule("RollMode", {domains: ["initiative"], mode: "advantage"});
     } else if ( key === "flags.dnd5e.initiativeAlert" ) {
       // 2024 Alert: its Proficiency Bonus on Initiative. shortcut: swapping Initiative with an ally is by hand.
       modifier(["initiative"], {type: "proficiency-bonus"});
@@ -4117,6 +4127,9 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
       rule("ResourceCap", {resources: ["movement"], maximum: Math.max(number, 0)});
     } else if ( (key === "system.attributes.movement.walk") && (type === "add") && value ) {
       modifier(["resources.movement.max"], value);
+    } else if ( (key === "system.attributes.movement.bonus") && (type === "add") && value ) {
+      // Every Speed (Ray of Frost's -10), as Exhaustion's.
+      modifier(["resources.movement.max", "speed"], value);
     } else if ( (key === "system.attributes.movement.multiplier") && (number === 0) && ["override", "multiply"].includes(type) ) {
       // Every Speed 0 (Power Word Stun, Haste's Lethargy): movement capped at 0, which caps the other Speeds too.
       rule("ResourceCap", {resources: ["movement"], maximum: 0});
