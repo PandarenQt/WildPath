@@ -373,7 +373,7 @@ export function createMultiplayerActionCoordinator({
     // One Action at a time for a creature: a second one while the first waits (a reroll offer, a target's save) would pay
     // from the same remaining Actions and slots, so both would cost one.
     const acting = options.actor ?? null;
-    if ( acting && [...records.values()].some(other => (other.options?.actor === acting) && !isTerminalState(other.state)) ) {
+    if ( acting && [...records.values()].some(other => other.intentId && (other.options?.actor === acting) && !isTerminalState(other.state)) ) {
       return sendError({
         resolutionId: envelope.resolutionId,
         recipientUserId: envelope.senderUserId,
@@ -808,6 +808,15 @@ export function createMultiplayerActionCoordinator({
   }
 
   function receiveResolutionError(envelope) {
+    // A user this authority waits on closed its prompt (a physical roll, a choice): the Action ends here too, rather than
+    // waiting for an answer that will not come.
+    const hosted = findRecordForResolutionId(stringOrNull(envelope.resolutionId));
+    const code = envelope.payload?.code ?? null;
+    if ( hosted && ["PROMPT_CANCELLED", "REQUIRED_REQUEST_CANCELLED"].includes(code) && (hosted.authorityUserId === localUserId)
+      && (envelope.senderUserId !== localUserId) && !isTerminalState(hosted.state)
+      && [...hosted.requestExpectations.values()].some(expected => expected.expectedUserId === envelope.senderUserId) ) {
+      return sendAuthorityError(hosted, {code, reason: envelope.payload?.reason ?? "The prompt was closed."});
+    }
     const expectedAuthorityUserId = expectedAuthorityForResolution(envelope.resolutionId);
     if ( expectedAuthorityUserId && (envelope.senderUserId !== expectedAuthorityUserId) ) return {
       ok: false,
@@ -965,6 +974,11 @@ export function createMultiplayerActionCoordinator({
       reason: payload.reason,
       data: payload
     });
+    // A failure that stopped the Action (a closed prompt, a failed stage) ends it: an open record would wait forever and
+    // keep its creature from acting again.
+    if ( record.state && !isTerminalState(record.state) ) {
+      record.state = cancelResolutionState(record.state, {code: payload.code, reason: payload.reason});
+    }
     if ( record.state && isTerminalState(record.state) ) {
       await sendResolutionResult(record, {ok: false, code: payload.code});
     }

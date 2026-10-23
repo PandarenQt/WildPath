@@ -1,3 +1,4 @@
+import {MOVEMENT_KINDS} from "../helpers/movement.mjs";
 import {movementTracked} from "../helpers/combat.mjs";
 import {
   MULTIPLAYER_AUTHORITY_CODES,
@@ -26,7 +27,7 @@ import {
   commitActorResourceMutationPlan,
   createActorResourceMutationPlan
 } from "./resource-resolver.mjs";
-import {
+import {resolveFoundryMovementDocuments,
   FOUNDRY_MOVEMENT_CODES,
   authorizeFoundryMovementIntent,
   createMovementPaymentPlan,
@@ -536,11 +537,13 @@ export function createMultiplayerMovementAuthority({
     const authorityContext = {initiatorUserId, localCommitAllowed};
     const authority = verifyCurrentAuthority(authorityContext, intent);
     if ( !authority.ok ) return {...authority, approved: false, resolutionId: intent.resolutionId};
-    // A Player moves only a creature they own (checked once its Actor is known, below). shortcut: a Player's own move
-    // marked forced or teleport is approved as one (no Speed, no Opportunity Attacks); upgrade by refusing those from
-    // Players once the forced-movement tests send them as the authority, which makes them in play.
+    // A Player moves only a creature they own (checked once its Actor is known, below), and only by its own movement: a
+    // forced move or a teleport (a push, Misty Step) is the authority's to make, never a Player's to claim for free.
     const sender = userDirectory().find(user => user.id === initiatorUserId) ?? null;
     const playerSent = Boolean(sender) && !sender.isGM;
+    if ( playerSent && ((intent.movementKind ?? MOVEMENT_KINDS.VOLUNTARY) !== MOVEMENT_KINDS.VOLUNTARY) ) {
+      return rejectedContinuation(intent, "Only the authority moves a creature by force or teleport.");
+    }
     const record = approvedMovements.get(key);
     const existing = record?.operations.find(operation => operation.id === intent.movementId);
     if ( existing ) return JSON.stringify(existing.intent) === JSON.stringify(intent)
@@ -569,9 +572,11 @@ export function createMultiplayerMovementAuthority({
     const authorize = () => authorizeMovement({intent: authorizing, game, measurementMode: record?.progress?.measurementMode ?? measurementMode});
     try {
       approval = await authorize();
-      const moving = playerSent && approval.approved ? globalThis.fromUuidSync?.(String(approval.actorRef?.uuid ?? "")) : null;
+      // The creature of the Token actually moved (never an Actor the client names), owned by the Player.
+      const documents = playerSent && approval.approved ? await resolveFoundryMovementDocuments({intent, game}) : null;
+      const moving = documents?.ok ? (documents.token?.actor ?? null) : null;
       const user = playerSent ? game?.users?.get?.(initiatorUserId) : null;
-      if ( playerSent && approval.approved && moving && user && !moving.testUserPermission?.(user, "OWNER") ) {
+      if ( playerSent && approval.approved && (!moving || (user && (moving.testUserPermission?.(user, "OWNER") === false))) ) {
         return rejectedContinuation(intent, "A Player moves only a creature they own.");
       }
       if ( chain.length && approval.approved ) {
