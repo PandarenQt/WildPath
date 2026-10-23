@@ -116,6 +116,10 @@ debuff with its own rules.
   - The active GM also registers unlinked Tokens' effects for expiry after a reload. V14 itself misses them until
     a Token's delta materializes.
   - Concentration still ends it. WildPath's own turn-based expiry leaves it alone.
+- **A table each turn (2026-10-23).** `drawsAtTurnStart: <RollTable UUID>`: as its creature's turn starts, the
+  automation dispatcher draws that table and posts the result as its creature's (2024 Confusion's "Behavior for the
+  Turn"; the converter reads the table its spell embeds). Live (14.369): Confused QA Fighter's turn start posted "8: ...
+  one melee attack against a random creature within reach". What the result says is the table's to follow.
 - **Lasting some Long Rests (2026-10-23).** `restsLeft: N` ends it after its creature's Nth Long Rest; each one counts
   down `flags.wildpath.restsLeft` (`WildPathActor#rest`). The converter gives Raise Dead's four "Resurrection Sickness
   (Day N)" effects (−1 each to D20 Tests) N, so the −4 eases by 1 a rest. Live (14.369): two of them on QA Fighter read

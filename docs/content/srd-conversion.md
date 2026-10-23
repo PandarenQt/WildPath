@@ -315,7 +315,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Comprehend Languages | spells24 | Comprehend Languages (automated) | — |
 | Compulsion | spells24 | Compulsion (automated) | — |
 | Cone of Cold | spells24 | Cone of Cold (automated) | — |
-| Confusion | spells24 | Confusion (automated) | effect: "Confused" marks its creature only; its rules are by hand |
+| Confusion | spells24 | Confusion (automated) | — |
 | Conjure Animals | spells24 | Conjure Animals (summon) (automated), Conjure Animals (save) (automated) | concentration: its caster concentrates; what it sustains is by hand |
 | Conjure Celestial | spells24 | Conjure Celestial (Conjure Pillar) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Healing Light" is passive or triggered: not automated; "Searing Light" is passive or triggered: not automated |
 | Conjure Elemental | spells24 | Conjure Elemental (automated) | — |

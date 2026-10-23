@@ -1994,6 +1994,9 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   assert.deepEqual([later("vitriolic-sphere-"), later("acid-arrow-")], [5, 2], "each spell's own Lingering Acid damage");
   assert.deepEqual(read("raise-dead-phbspl").system.definition.effects.map(effect => effect.restsLeft), [1, 2, 3, 4],
     "Resurrection Sickness: each Long Rest lifts 1 of the -4");
+  const confused = read("confusion-phbspl");
+  assert.deepEqual([confused.system.definition.effects[0].drawsAtTurnStart, confused.flags.wildpath.conversion.notes],
+    ["Compendium.wildpath.srd-tables.RollTable.phbsplConfusionB", []], "Confusion draws its behavior table each turn");
   const wall = read("wall-of-fire-create-wall-").system.definition;
   const repeat = wall.area.persistence.triggers[0].action;
   assert.deepEqual([Boolean(wall.save), repeat.save, repeat.damage[0].saveOutcomePolicy], [true, undefined, undefined],
