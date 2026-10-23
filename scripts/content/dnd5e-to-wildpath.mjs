@@ -1224,8 +1224,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         continue;
       }
     }
+    const ownTeleport = utilityTeleport(document, activity, system);
     let definition = ((trades && (activity.type === "utility")) ? {...manualDefinition({document, activity, system, spell, level, notes,
       pool, names, scales}), range: {type: "self"}, targeting: {type: "self"}} : null)
+      ?? (ownTeleport ? teleportDefinition({document, activity: ownTeleport, system, spell, level, notes, pool}) : null)
       ?? commonActivity({document, activity, system, spell, level, pool}) ?? (ACTIVITIES.has(activity.type)
       ? convertActivity({document, activity, system, spell, level, scales, notes, pool, saveDC, spellDC, creature, beasts, names})
       : ((activity.type === "summon") ? summonDefinition({document, activity, system, spell, level, notes, pool, creatures, names, beasts, scales,
@@ -2656,6 +2658,22 @@ const EFFECTS_BY_NAME = Object.freeze({
     "slashing", "thunder"].map(type => [`${type[0].toUpperCase()}${type.slice(1)} Protection`,
     {ruleElements: [{schemaVersion: 1, id: `${type}-resistance`, type: "GrantResistance", data: {damageTypes: [type]}}]}]))
 });
+
+/**
+ * A creature's own teleport written as a utility use (2024 Blink Dog: "teleports up to 40 feet to an unoccupied space it
+ * can see"; its range is the distance), as a teleport activity. Null for anything else, and for one that moves others too
+ * ("teleports itself or a willing demon": a Balor's).
+ */
+function utilityTeleport(document, activity, system) {
+  if ( activity?.type !== "utility" ) return null;
+  // Only a teleport alone: not a reaction that does more (a Mummy Lord's Whirlwind of Sand), nor an area or damage.
+  if ( (pick(activity, system, "activation").type === "reaction") || pick(activity, system, "target").template?.type
+    || activity.damage?.parts?.length ) return null;
+  const text = plainText(document);
+  if ( !/\bteleports up to (?:\[\[lookup @range\.value[^\]]*\]\]|\d+)/iu.test(text) ) return null;
+  const value = number(pick(activity, system, "range").value) ?? number(/\bteleports up to (\d+) feet/iu.exec(text)?.[1]);
+  return (value > 0) ? {...activity, teleport: {value, units: "ft"}} : null;
+}
 
 /**
  * A teleport of its own creature to a space within a distance (Misty Step's 30 feet, Dimension Door's 500): its cost

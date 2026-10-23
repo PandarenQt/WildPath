@@ -2064,3 +2064,11 @@ test("Spare the Dying and a Healer's Kit make a creature at 0 Hit Points Stable"
       activities: {a: activity("utility", {effects: [{_id: "stab"}]})}}}).items;
   assert.deepEqual([spare.system.definition.stabilize, spare.system.definition.effects, spare.flags.wildpath.conversion.notes], [true, undefined, []]);
 });
+
+test("a creature's own teleport written as a utility use is a teleport (a Blink Dog's), not one that does more", () => {
+  const blink = (data={}) => convertItem({_id: "testBlinkDogTp01", name: "Teleport", type: "feat", effects: [], system: {source: SRD,
+    description: {value: "<p>The blink dog teleports up to [[lookup @range.value activity=x]] feet to an unoccupied space it can see.</p>"},
+    activities: {a: activity("utility", {activation: {type: "bonus", override: false}, range: {value: "40", units: "ft", override: true}, ...data})}}}).items[0];
+  assert.deepEqual([blink().system.definition.teleport, blink().system.definition.targeting], [{distance: 40}, {type: "self"}]);
+  assert.equal(blink({activation: {type: "reaction", override: false}}).system.definition.teleport, undefined, "a reaction that does more");
+});

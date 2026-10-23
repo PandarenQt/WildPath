@@ -184,7 +184,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Blight | spells24 | Blight (automated) | — |
 | Blindness/Deafness | spells24 | Blindness/Deafness (automated) | — |
 | Blink | spells24 | Blink (automated) | — |
-| Blink Dog | actors24 | Blink Dog (3 items) | Teleport: not automated (utility): using it spends its cost; its description says the rest |
+| Blink Dog | actors24 | Blink Dog (3 items) | — |
 | Block and Tackle | equipment24 | Block and Tackle (gear) | — |
 | Blood Hawk | actors24 | Blood Hawk (4 items) | — |
 | Blowgun | equipment24 | Blowgun (automated) | — |
@@ -967,7 +967,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Manual of Quickness of Action | equipment24 | Manual of Quickness of Action (gear), Manual of Quickness of Action (Read) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; "Reset Progress" is passive or triggered (narrative): not automated |
 | Map | equipment24 | Map (gear) | — |
 | Marble Elephant | equipment24 | Marble Elephant (gear), Marble Elephant (automated) | — |
-| Marilith | actors24 | Marilith (10 items) | Teleport: not automated (utility): using it spends its cost; its description says the rest |
+| Marilith | actors24 | Marilith (10 items) | — |
 | Martial Arts | classes24 | Martial Arts (feature), Martial Arts (Unarmed Strike) (automated), Martial Arts (Bonus Unarmed Strike) (automated), Martial Arts (Flurry of Blows Strike) (automated) | "Master Simple Weapon" is passive or triggered: not automated; "Master Light Martial Weapon" is passive or triggered: not automated |
 | Marvelous Pigments | equipment24 | Marvelous Pigments (gear), Marvelous Pigments (Determine Number of Pots) (manual), Marvelous Pigments (Paint) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; consumption: itemUses 1d3 not converted; activation: 10 minute is not an action-economy cost |
 | Mask of Many Faces | classes24 | Mask of Many Faces (automated) | effect: "Disguised" marks its creature (narrative) |
@@ -1021,7 +1021,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Musket | equipment24 | Musket (automated) | — |
 | Mysterious Deck | equipment24 | Mysterious Deck (gear) | "Check Deck Size" is passive or triggered (narrative): not automated; "Draw Cards" is passive or triggered (narrative): not automated |
 | Mystic Arcanum | classes24 | Mystic Arcanum (feature) | — |
-| Nalfeshnee | actors24 | Nalfeshnee (8 items) | Teleport: not automated (utility): using it spends its cost; its description says the rest; Pursuit: not automated (utility): using it spends its cost; its description says the rest |
+| Nalfeshnee | actors24 | Nalfeshnee (8 items) | Pursuit: not automated (utility): using it spends its cost; its description says the rest |
 | Natural Recovery | classes24 | Natural Recovery (feature) | "Cast Spell" is passive or triggered: not automated; "Recover Spell Slots" is passive or triggered: not automated |
 | Naturally Stealthy | origins24 | Naturally Stealthy (feature) | — |
 | Nature's Sanctuary | classes24 | Nature's Sanctuary (Spectral Trees and Vines) (automated), Nature's Sanctuary (Move) (manual) | not automated (utility): using it spends its cost; its description says the rest |
