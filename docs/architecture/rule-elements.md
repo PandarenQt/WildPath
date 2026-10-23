@@ -623,6 +623,9 @@ save made Exhaustion 2. Sight Rot blinded its creature at once, and ending Blind
   Surprised was gone after.
 - **Half, Three-Quarters and Total Cover**: its creature's cover wherever it stands, the better of this and the walls'
   (`actionCover`); a swallowed creature's Total Cover means it can't be targeted directly.
+- **Gaseous** (2026-10-23, an effect status, not a condition): Gaseous Form's misty cloud and Wind Walk's cloud form
+  (dnd5e's "transformed" on such an effect). Its creature can't attack or cast spells (`WILDPATH.REFUSAL.Gaseous`).
+  shortcut: Wind Walk's "only Dash or a Magic action" is not enforced beyond that, nor Gaseous Form's "only a Fly Speed".
 
 Another damage type is one more entry. Poisoned is now the 2024 condition only: disadvantage on attack
 rolls and ability checks, and no damage.

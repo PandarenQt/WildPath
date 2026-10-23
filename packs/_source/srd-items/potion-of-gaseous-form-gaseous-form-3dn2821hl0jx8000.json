@@ -46,6 +46,7 @@
           "id": "effect-1",
           "type": "effect",
           "name": "Gaseous Form",
+          "slug": "gaseous",
           "img": "icons/magic/air/wind-vortex-swirl-blue-purple.webp",
           "ruleElements": [
             {
@@ -160,7 +161,6 @@
       },
       "conversion": {
         "notes": [
-          "effect: transformed is not a WildPath condition yet",
           "effect: \"Gaseous Form\" change img (override) not converted"
         ]
       },

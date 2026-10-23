@@ -754,6 +754,7 @@
               "id": "effect-1",
               "type": "effect",
               "name": "Gaseous Form",
+              "slug": "gaseous",
               "img": "icons/magic/air/wind-vortex-swirl-blue-purple.webp",
               "ruleElements": [
                 {
@@ -868,7 +869,6 @@
           },
           "conversion": {
             "notes": [
-              "effect: transformed is not a WildPath condition yet",
               "effect: \"Gaseous Form\" change img (override) not converted"
             ]
           }
@@ -1138,7 +1138,6 @@
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: effect: transformed is not a WildPath condition yet",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Misty Step: consumption: itemUses 1 not converted"

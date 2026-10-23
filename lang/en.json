@@ -1198,6 +1198,7 @@
     "REFUSAL": {
       "Generic": "That can't be done right now. The GM can see why.",
       "Transformed": "A transformed creature can't cast spells.",
+      "Gaseous": "{name} is a cloud of mist: it can't attack or cast spells.",
       "ArmorCasting": "{name} can't cast spells while wearing {armor} without training in it.",
       "Quickened": "{name} cast a Quickened spell this turn: no other spell of level 1 or higher.",
       "Flee": "{name} was Commanded to flee: only Dash or Disengage.",
