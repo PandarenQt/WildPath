@@ -14,7 +14,8 @@
         "spell",
         "school:illusion",
         "component:verbal",
-        "component:somatic"
+        "component:somatic",
+        "damage:psychic"
       ],
       "costs": {
         "allOf": [
@@ -24,6 +25,70 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "valueExpression": {
+            "type": "add",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 8
+              },
+              {
+                "type": "proficiency-bonus"
+              },
+              {
+                "type": "spellcasting-modifier"
+              }
+            ]
+          }
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 4,
+            "faces": 10
+          },
+          "damageType": "psychic",
+          "provenance": "spell-base",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Fears Manifested",
+          "img": "icons/magic/death/skull-horned-white-purple.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -78,15 +143,22 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleDamage",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 4,
+              "componentIds": [
+                "damage-1"
+              ],
+              "dice": {
+                "number": 1,
+                "faces": 10
+              }
+            }
+          ]
         }
       ],
-      "concentration": {
-        "duration": {
-          "value": 1,
-          "units": "minutes"
-        }
-      },
       "metadata": {
         "spellLevel": 4,
         "spellLists": [
@@ -113,9 +185,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (save): using it spends its cost; its description says the rest",
-          "save: ? DC (spellcasting) not converted",
-          "concentration: its caster concentrates; what it sustains is by hand"
+          "effect: \"Fears Manifested\" marks its creature only; its rules are by hand"
         ]
       }
     }
