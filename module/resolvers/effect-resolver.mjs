@@ -3,6 +3,7 @@ import {
   createEntityRef,
   normalizeEntityRef
 } from "../helpers/entity-refs.mjs";
+import {collectionContents} from "../helpers/collections.mjs";
 
 export const EFFECT_RESOLVER_CODES = Object.freeze({
   OK: "OK",
@@ -416,14 +417,6 @@ function conditionCommitFailure(reason, conditionPlan) {
   };
 }
 
-function collectionContents(collection) {
-  if ( collection == null ) return [];
-  if ( Array.isArray(collection) ) return collection;
-  if ( collection instanceof Map ) return [...collection.values()];
-  if ( typeof collection.values === "function" ) return [...collection.values()];
-  if ( typeof collection === "object" ) return Object.values(collection);
-  return [];
-}
 
 function clonePlain(value) {
   if ( value == null ) return value;

@@ -51,6 +51,7 @@ import {
   onFoundryV14StopToken,
   registerFoundryV14MultiplayerResolution
 } from "./module/resolvers/foundry-multiplayer-runtime.mjs";
+import {collectionContents} from "./module/helpers/collections.mjs";
 
 /* -------------------------------------------- */
 /*  Init                                         */
@@ -368,14 +369,6 @@ function combatActors(combat) {
     .filter(Boolean);
 }
 
-function collectionContents(collection) {
-  if ( collection == null ) return [];
-  if ( Array.isArray(collection) ) return collection;
-  if ( collection instanceof Map ) return [...collection.values()];
-  if ( typeof collection.values === "function" ) return [...collection.values()];
-  if ( typeof collection === "object" ) return Object.values(collection);
-  return [];
-}
 
 Hooks.on("deleteCombat", combat => onCombatEnd(combat));
 registerChatCardInteractions();

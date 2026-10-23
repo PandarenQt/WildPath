@@ -29,6 +29,7 @@ import {
   clonePlainData,
   isPlainSerializableData
 } from "../helpers/multiplayer-authority.mjs";
+import {collectionContents} from "../helpers/collections.mjs";
 
 export const FOUNDRY_MOVEMENT_CODES = Object.freeze({
   OK: "OK",
@@ -1677,14 +1678,6 @@ function failure(code, reason=null, data={}) {
   };
 }
 
-function collectionContents(collection) {
-  if ( collection == null ) return [];
-  if ( Array.isArray(collection) ) return collection;
-  if ( collection instanceof Map ) return [...collection.values()];
-  if ( typeof collection.values === "function" ) return [...collection.values()];
-  if ( typeof collection === "object" ) return Object.values(collection);
-  return [];
-}
 
 function normalizeArray(value) {
   if ( value == null ) return [];
