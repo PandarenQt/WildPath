@@ -389,3 +389,12 @@ test("`requires` is kept as a predicate, and an invalid one is refused", async (
   assert.deepEqual(ok.definition.requires, requires);
   assert.equal(validateActionDefinition({schemaVersion: 1, id: "action:aim", costs: {allOf: []}, requires: {bogus: 1}}).ok, false);
 });
+
+test("a custom effect may last some Long Rests (Resurrection Sickness): restsLeft is kept, a non-count dropped", () => {
+  const definition = restsLeft => ({schemaVersion: 1, id: "action:raise-dead", label: "Raise Dead", costs: {allOf: []},
+    effects: [{id: "sick", type: "effect", name: "Resurrection Sickness (Day 3)", ruleElements: [], restsLeft}]});
+  const kept = actionDefinitionFromItem({type: "action", name: "Raise Dead", system: {definition: definition(3)}});
+  assert.equal(kept.definition.effects[0].restsLeft, 3);
+  const dropped = actionDefinitionFromItem({type: "action", name: "Raise Dead", system: {definition: definition("3")}});
+  assert.equal(dropped.definition.effects[0].restsLeft, undefined);
+});
