@@ -10,7 +10,20 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "free-action-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "terrain.ignore"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
+      }
+    ],
     "attunement": "required",
     "armor": "",
     "price": 4000,
@@ -30,9 +43,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Free Action\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

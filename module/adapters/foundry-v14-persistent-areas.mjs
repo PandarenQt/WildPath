@@ -2,6 +2,7 @@ import { createFoundryV14TacticalGridAdapter, foundryOffsetToGridField, gridFiel
 import { createReachFootprint, fieldKey } from "../helpers/grid-footprints.mjs";
 import { AREA_SHAPES } from "../helpers/tactical-areas.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
+import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
 /** The Token an attached area surrounds and follows: the object it was cast on, else its caster. */
 const anchorOf = (flag) => flag.anchorTokenId ?? flag.sourceTokenId;
 export const AREA_EVENTS = Object.freeze({ ENTERED: "area.entered", EXITED: "area.exited", TURN_STARTED: "turn.started",
@@ -37,12 +38,15 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
             duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
             ...(persistence.affects === "enemies" ? { affects: "enemies" } : {}) },
         createdAt: combat ? { combatId: combat.id, round: combat.round, turn: combat.turn } : null,
-        applied: {}
+        applied: {},
+        ...(persistence.difficultTerrain ? { difficultTerrain: { types: [...(persistence.difficultTerrain.types ?? [])] } } : {})
     };
     return {
         name: flag.label,
         ...(color === undefined ? {} : { color }),
         shapes: [{ type: "grid", offsets }],
+        // Difficult Terrain costs its movement twice over (foundry-v14-terrain.mts); Foundry's ruler shows that too.
+        ...(flag.difficultTerrain ? { behaviors: [difficultTerrainBehavior()] } : {}),
         elevation: { bottom: band.bottom, top: band.top },
         ...(sourceToken.level ? { levels: [sourceToken.level] } : {}),
         attachment: { token: attached ? sourceToken.id : null },

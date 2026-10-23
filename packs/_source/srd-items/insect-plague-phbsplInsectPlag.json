@@ -48,6 +48,9 @@
             "value": 100
           },
           "concentration": true,
+          "difficultTerrain": {
+            "types": []
+          },
           "triggers": [
             {
               "on": [

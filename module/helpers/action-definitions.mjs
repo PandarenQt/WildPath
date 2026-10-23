@@ -857,6 +857,11 @@ function validateAreaPersistence(persistence, errors) {
   }
   // Whom its triggers affect: everyone in it (the default), or only its caster's enemies (Spirit Guardians).
   if ( (persistence.affects != null) && (persistence.affects !== "enemies") ) fail(".affects", "A lasting area affects everyone or \"enemies\".");
+  // Difficult Terrain of some kinds (`{types: ["web"]}`), or of none named.
+  const terrain = persistence.difficultTerrain;
+  if ( (terrain != null) && (!isPlainObject(terrain) || ((terrain.types != null) && !Array.isArray(terrain.types))) ) {
+    fail(".difficultTerrain", "Difficult Terrain is {types: [its kinds]}.");
+  }
   const light = persistence.light;
   if ( (light != null) && (!isPlainObject(light) || ["bright", "dim"].some(key => (light[key] != null)
     && !(Number.isFinite(Number(light[key])) && (Number(light[key]) >= 0)))) ) {

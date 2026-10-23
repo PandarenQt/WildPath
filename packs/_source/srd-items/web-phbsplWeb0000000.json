@@ -48,6 +48,11 @@
             "value": 600
           },
           "concentration": true,
+          "difficultTerrain": {
+            "types": [
+              "web"
+            ]
+          },
           "triggers": [
             {
               "on": [
