@@ -2125,6 +2125,13 @@ function forcedMovement(document, definition) {
     ...((definition.save && ["success", "on a successful save"].includes(outcome)) ? {on: "success"} : {})};
 }
 
+/** A DC dnd5e leaves unset (no calculation, no formula) that its text states once: a 2014 stat block's "DC 21". */
+function textDC(document, dc) {
+  if ( dc.calculation || dc.formula ) return null;
+  const values = [...new Set([...plainText(document).matchAll(/\bDC (\d+)\b/g)].map(match => Number(match[1])))];
+  return (values.length === 1) ? {value: values[0]} : null;
+}
+
 /** The creature stands in sunlight: its Scene is tagged sunlit, or a light tagged as sunlight reaches it. */
 const IN_SUNLIGHT = Object.freeze({equals: {path: "inSunlight", value: true}});
 
@@ -3150,7 +3157,11 @@ function convertActivity({document, activity, system, spell, level, scales, note
   Object.assign(definition, targets);
 
   if ( activity.type === "save" ) {
-    const abilities = [].concat(activity.save?.ability ?? []);
+    const abilities = [].concat(activity.save?.ability ?? []).filter(Boolean);
+    // None set: the one its text names ("a Dexterity saving throw": 2024 Lightning Arrow).
+    const named = [...new Set([...plainText(document).matchAll(/\b(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma) saving throw/g)]
+      .map(match => match[1].slice(0, 3).toLowerCase()))];
+    if ( !abilities.length && (named.length === 1) ) abilities.push(named[0]);
     const ability = ABILITY_MAP[abilities[0]] ?? null;
     if ( abilities.length > 1 ) notes.push(`save: a choice of ${abilities.join("/")} uses ${abilities[0]}`);
     const dc = activity.save?.dc ?? {};
@@ -3162,7 +3173,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const fixed = spellDC ?? creature?.spellDC;
     const written = dc.formula ? formulaExpression(dc.formula, {spell, scales, spellDC: fixed, challenge: creature?.challenge}) : null;
     const value = dc.calculation === "spellcasting" ? (fixed ? {value: fixed} : {valueExpression: SPELL_DC})
-      : (fromAbility ?? (written ? (written.type === "constant" ? {value: written.value} : {valueExpression: written}) : null));
+      : (fromAbility ?? (written ? (written.type === "constant" ? {value: written.value} : {valueExpression: written}) : null)
+        ?? textDC(document, dc));
     if ( !ability || !value ) {
       notes.push(`save: ${abilities.join("/") || "?"} DC (${dc.calculation || dc.formula || "?"}) not converted`);
       return null;

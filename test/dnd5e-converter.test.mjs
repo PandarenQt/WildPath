@@ -709,6 +709,11 @@ test("a save with nothing converted on it still rolls: its consequences are the 
   const [item] = convertItem(command).items;
   assert.deepEqual([item.type, item.system.definition.save.ability, item.system.definition.damage ?? []], ["action", "wits", []]);
   assert.ok(item.flags.wildpath.conversion.notes.includes("rolled (save); what it does is by hand"));
+  // Nothing set: the ability and DC its text states once (a 2014 stat block's).
+  const [kiss] = convertItem({...command, _id: "testKiss00000001", name: "Draining Kiss", system: {...command.system,
+    description: {value: "<p>The target must make a DC 15 Constitution saving throw against this magic.</p>"},
+    activities: {a: activity("save", {save: {ability: [], dc: {calculation: "", formula: ""}}, damage: {parts: []}})}}}).items;
+  assert.deepEqual(kiss.system.definition.save, {ability: "fortitude", dc: {value: 15}});
 });
 
 test("2024 Speed multipliers: Haste doubles, Slow halves every Speed or one mode's, and 0 stops every Speed", async () => {
