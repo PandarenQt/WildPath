@@ -3,6 +3,7 @@ import {
   createFoundryV14EffectPersistenceAdapter
 } from "../adapters/foundry-v14-persistence-adapter.mjs";
 import {CONDITION_EFFECT_ACTIONS} from "./effect-resolver.mjs";
+import {collectionContents} from "../helpers/collections.mjs";
 
 export const CONDITION_EFFECT_COMMIT_CODES = Object.freeze({
   OK: "OK",
@@ -388,15 +389,6 @@ function commitFailure(code, reason, plan) {
   };
 }
 
-function collectionContents(collection) {
-  if ( collection == null ) return [];
-  if ( Array.isArray(collection) ) return collection;
-  if ( collection instanceof Set ) return [...collection.values()];
-  if ( collection instanceof Map ) return [...collection.values()];
-  if ( typeof collection.values === "function" ) return [...collection.values()];
-  if ( typeof collection === "object" ) return Object.values(collection);
-  return [];
-}
 
 function clonePlain(value) {
   if ( value == null ) return value;

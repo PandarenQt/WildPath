@@ -6,6 +6,7 @@ import {
   defaultDisclosureForMessageType,
   normalizeDisclosure
 } from "./multiplayer-disclosure.mjs";
+import {collectionContents} from "./collections.mjs";
 
 export const MULTIPLAYER_PROTOCOL_VERSION = 1;
 
@@ -912,14 +913,6 @@ function firstNonPlainData(value, path, seen) {
   return null;
 }
 
-function collectionContents(collection) {
-  if ( collection == null ) return [];
-  if ( Array.isArray(collection) ) return collection;
-  if ( collection instanceof Map ) return [...collection.values()];
-  if ( typeof collection.values === "function" ) return [...collection.values()];
-  if ( typeof collection === "object" ) return Object.values(collection);
-  return [];
-}
 
 function normalizeArray(value) {
   if ( value == null ) return [];

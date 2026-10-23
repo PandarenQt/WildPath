@@ -15,6 +15,7 @@ import {
   createActorDamageMutationPlan,
   createActorHealingMutationPlan
 } from "./durability-resolver.mjs";
+import {collectionContents} from "../helpers/collections.mjs";
 
 export const CONDITION_TRIGGER_CODES = Object.freeze({
   OK: "OK",
@@ -397,14 +398,6 @@ function conditionTriggerFailure(code, reason, data={}) {
   };
 }
 
-function collectionContents(collection) {
-  if ( collection == null ) return [];
-  if ( Array.isArray(collection) ) return collection;
-  if ( collection instanceof Map ) return [...collection.values()];
-  if ( typeof collection.values === "function" ) return [...collection.values()];
-  if ( typeof collection === "object" ) return Object.values(collection);
-  return [];
-}
 
 function uniqueStrings(values) {
   const array = Array.isArray(values) ? values : values == null ? [] : [values];

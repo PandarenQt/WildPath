@@ -104,6 +104,7 @@ import {evaluatePredicate} from "../helpers/predicates.mjs";
 import {createMultiplayerMovementAuthority} from "./multiplayer-movement-authority.mjs";
 import {createFoundryV14ReactionPauseAdapter} from "../adapters/foundry-v14-reaction-pause-adapter.mjs";
 import {foundryMovementIntentToStagedOptions} from "../adapters/foundry-v14-staged-movement-adapter.mjs";
+import {collectionContents} from "../helpers/collections.mjs";
 
 export function registerFoundryV14MultiplayerResolution({
   game=globalThis.game,
@@ -2263,14 +2264,6 @@ function targetActorRefFromIntent(value) {
   return value?.actorRef ?? value?.uuid ?? value?.actorUuid ?? value?.actorId ?? value?.id ?? null;
 }
 
-function collectionContents(collection) {
-  if ( collection == null ) return [];
-  if ( Array.isArray(collection) ) return collection;
-  if ( collection instanceof Map ) return [...collection.values()];
-  if ( typeof collection.values === "function" ) return [...collection.values()];
-  if ( typeof collection === "object" ) return Object.values(collection);
-  return [];
-}
 
 function normalizeArray(value) {
   if ( value == null ) return [];

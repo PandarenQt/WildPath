@@ -1,3 +1,4 @@
+import {collectionContents} from "./collections.mjs";
 import {collectRuleElementContributions} from "./rule-elements.mjs";
 
 /**
@@ -8,7 +9,7 @@ import {collectRuleElementContributions} from "./rule-elements.mjs";
 
 /** Every ref a creature's effects may name it by: its Actor and each of its Tokens on any Scene. */
 export function creatureRefs(actor, game=globalThis.game) {
-  const tokens = contents(game?.scenes).flatMap(scene => contents(scene.tokens))
+  const tokens = collectionContents(game?.scenes).flatMap(scene => collectionContents(scene.tokens))
     .filter(token => (token.actor?.uuid === actor.uuid) || (token.actorLink && (token.actorId === actor.id)));
   return new Set([actor.uuid, `actor:${actor.id}`, ...tokens.flatMap(token => [token.uuid, `token:${token.id}`,
     `token:${token.parent?.id}.${token.id}`])]);
@@ -18,7 +19,7 @@ export function creatureRefs(actor, game=globalThis.game) {
 export function effectsFrom(holder, source, game=globalThis.game) {
   if ( !holder?.effects || !source?.uuid ) return [];
   const refs = creatureRefs(source, game);
-  return contents(holder.effects).filter(effect => {
+  return collectionContents(holder.effects).filter(effect => {
     const flag = effect?.flags?.wildpath?.conditionEffect ?? {};
     const ref = String(flag.sourceRef ?? flag.originRef ?? effect?.origin ?? "").replace(/^uuid:/, "");
     return ref && !effect.disabled && (refs.has(ref) || [...refs].some(owner => ref.startsWith(`${owner}.`)));
@@ -41,12 +42,6 @@ export function revealedTo(target, viewer, detail="defenses", game=globalThis.ga
     context: {actor: target, actorSystem: target.system}}).contributions.reveals.includes(detail));
 }
 
-function contents(collection) {
-  if ( collection == null ) return [];
-  if ( Array.isArray(collection) ) return collection;
-  if ( typeof collection.values === "function" ) return [...collection.values()];
-  return typeof collection === "object" ? Object.values(collection) : [];
-}
 
 /** Rules already bound to their host Item, by their rules array (so each read doesn't bind them again). */
 const HOSTED = new WeakMap();

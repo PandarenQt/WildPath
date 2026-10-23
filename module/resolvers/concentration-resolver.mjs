@@ -9,6 +9,7 @@ import {
 } from "../helpers/target-actor-refs.mjs";
 import {rollResultToResolverRoll} from "../helpers/rolls.mjs";
 import {resolveSaveAgainstDC} from "./save-resolver.mjs";
+import {collectionContents} from "../helpers/collections.mjs";
 
 export const CONCENTRATION_EVENT_TYPES = Object.freeze({
   SAVE_RESOLVED: "concentration.saveResolved",
@@ -895,15 +896,6 @@ function finiteNumber(value) {
   return Number.isFinite(number) ? number : null;
 }
 
-function collectionContents(collection) {
-  if ( collection == null ) return [];
-  if ( Array.isArray(collection) ) return collection;
-  if ( collection instanceof Set ) return [...collection.values()];
-  if ( collection instanceof Map ) return [...collection.values()];
-  if ( typeof collection.values === "function" ) return [...collection.values()];
-  if ( typeof collection === "object" ) return Object.values(collection);
-  return [];
-}
 
 function uniqueStrings(values) {
   return [...new Set(values.filter(value => value != null && value !== "").map(String))];

@@ -2,6 +2,7 @@ import {createTriggerDefinition} from "./automation-events.mjs";
 import {createMovementCapability} from "./movement.mjs";
 import {PREDICATE_CODES, evaluatePredicate} from "./predicates.mjs";
 import {evaluateValueExpression} from "./value-expressions.mjs";
+import {collectionContents} from "./collections.mjs";
 
 export const RULE_ELEMENT_TYPES = Object.freeze({
   MODIFIER: "Modifier",
@@ -1074,14 +1075,6 @@ function normalizeArray(value) {
   return [value];
 }
 
-function collectionContents(collection) {
-  if ( collection == null ) return [];
-  if ( Array.isArray(collection) ) return collection;
-  if ( collection instanceof Map ) return [...collection.values()];
-  if ( typeof collection.values === "function" ) return [...collection.values()];
-  if ( typeof collection === "object" ) return Object.values(collection);
-  return [];
-}
 
 function directPayload(raw) {
   const ignored = new Set(["schemaVersion", "id", "slug", "type", "key", "rule", "label", "name", "predicate", "priority", "order", "enabled", "suppressed", "source", "metadata", "data"]);
