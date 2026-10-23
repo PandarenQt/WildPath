@@ -942,7 +942,7 @@
                           "id": "acid",
                           "expression": {
                             "type": "dice",
-                            "number": 2,
+                            "number": 5,
                             "faces": 4
                           },
                           "damageType": "acid",
@@ -998,9 +998,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "\"End of Turn Damage\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -1410,8 +1408,7 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: \"End of Turn Damage\" is passive or triggered: not automated"
+          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

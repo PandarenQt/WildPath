@@ -1158,8 +1158,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // An enchantment of one of its creature's weapons (Magic Weapon, Sacred Weapon): its weapon's attacks change instead.
     const enchant = ENCHANTS[identifierOf(document)] ?? null;
     if ( enchant && (activity.type !== "enchant") ) continue;
-    // Acid Arrow's later damage is its Lingering Acid effect's own (EFFECTS_BY_NAME).
-    if ( (identifierOf(document) === "acid-arrow") && (activity.name === "Lingering Acid Damage") ) continue;
+    // Acid Arrow's and Vitriolic Sphere's later damage is their Lingering Acid effect's own (lingeringAcid).
+    if ( (activity.type === "damage") && LATER_ACID.test(activity.name ?? "")
+      && (document.effects ?? []).some(effect => effect.name === "Lingering Acid") ) continue;
     // Brutal Strike's Actions are its own (brutalStrikeActions), not its dnd5e damage activity.
     if ( ["brutal-strike", "improved-brutal-strike", "elemental-affinity"].includes(identifierOf(document)) ) continue;
     // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use): used, though dnd5e may leave it passive.
@@ -2123,6 +2124,18 @@ function forcedMovement(document, definition) {
     .at(-1)?.[1].toLowerCase();
   return {distance: Number(feet), ...(way.toLowerCase().startsWith("toward") ? {toward: true} : {}), ...(size ? {maxSize: size} : {}),
     ...((definition.save && ["success", "on a successful save"].includes(outcome)) ? {on: "success"} : {})};
+}
+
+/** A spell's damage at the end of its target's next turn (Acid Arrow's "Lingering Acid Damage"). */
+const LATER_ACID = /^(?:Lingering Acid Damage|End of Turn Damage)$/;
+
+/** Its Lingering Acid effect, dealing its spell's own later damage: Vitriolic Sphere's 5d4, Acid Arrow's 2d4. */
+function lingeringAcid(document) {
+  const later = Object.values(document.system?.activities ?? {}).find(entry => (entry.type === "damage") && LATER_ACID.test(entry.name ?? ""));
+  const [count, faces] = [number(later?.damage?.parts?.[0]?.number), number(later?.damage?.parts?.[0]?.denomination)];
+  const acid = structuredClone(EFFECTS_BY_NAME["Lingering Acid"]);
+  if ( count && faces ) acid.ruleElements[0].data.action.damage[0].expression = dice(count, faces);
+  return acid;
 }
 
 /** A DC dnd5e leaves unset (no calculation, no formula) that its text states once: a 2014 stat block's "DC 21". */
@@ -3285,7 +3298,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
     // Its changes, else the rules its name gives when none of them converts (Barkskin's `ac.min`: an AC floor).
     const changeNotes = [];
     const converted = hand?.ruleElements ?? (effect ? effectRules(effect, changeNotes, {scales}) : []);
-    const named = (!hand && !converted.length && effect) ? (EFFECTS_BY_NAME[effect.name] ?? null) : null;
+    const named = (!hand && !converted.length && effect) ? ((effect.name === "Lingering Acid") ? lingeringAcid(document)
+      : (EFFECTS_BY_NAME[effect.name] ?? null)) : null;
     if ( !named ) notes.push(...changeNotes);
     const rules = [...(named?.ruleElements ?? converted), ...(byHand?.extraRules ?? []),
       ...structuredClone(EFFECT_REACTIONS[`${identifierOf(document)}/${effect?.name}`] ?? [])];
