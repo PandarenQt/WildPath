@@ -3199,6 +3199,11 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // A melee attack dnd5e leaves at "self" (a Torch's) is one creature within its reach.
   if ( (attack?.type === "melee") && (definition.targeting?.type === "self") ) Object.assign(definition,
     {range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1}});
+  // A feature's save forced on a creature at "self" range (a Gelatinous Cube's Engulf, a Basilisk's second Petrifying Gaze
+  // save, Quivering Palm's end): that creature makes it, wherever it is.
+  const affected = pick(activity, system, "target").affects?.type ?? "";
+  if ( (activity.type === "save") && (definition.targeting?.type === "self") && (document.type === "feat") && affected
+    && (affected !== "self") ) Object.assign(definition, {range: {type: "special"}, targeting: {type: "single", required: true, count: 1}});
 
   if ( activity.type === "save" ) {
     const abilities = [].concat(activity.save?.ability ?? []).filter(Boolean);

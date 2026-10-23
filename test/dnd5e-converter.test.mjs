@@ -1997,6 +1997,9 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   const confused = read("confusion-phbspl");
   assert.deepEqual([confused.system.definition.effects[0].drawsAtTurnStart, confused.flags.wildpath.conversion.notes],
     ["Compendium.wildpath.srd-tables.RollTable.phbsplConfusionB", []], "Confusion draws its behavior table each turn");
+  const cube = JSON.parse(fs.readFileSync("packs/_source/srd-creatures/gelatinous-cube-mmGelatinousCube.json", "utf8"));
+  const engulf = cube.items.find(item => item.name === "Engulf (Save)").system.definition;
+  assert.deepEqual([engulf.targeting.type, engulf.range.type], ["single", "special"], "the engulfed creature saves, not the cube");
   const torch = read("torch-phbagTorch").system.definition;
   assert.deepEqual([torch.targeting.type, torch.range, torch.area], ["single", {type: "reach", distance: {value: 5, unit: "ft"}}, undefined],
     "a Torch hits one creature in reach; its 40-foot template is its light");
