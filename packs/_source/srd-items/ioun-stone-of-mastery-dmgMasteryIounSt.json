@@ -10,7 +10,20 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "enhanced-mastery-proficiency-bonus-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "proficiency"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
+      }
+    ],
     "attunement": "required",
     "armor": "",
     "price": 200000,
@@ -30,9 +43,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Enhanced Mastery: Proficiency Bonus\" change system.attributes.prof (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

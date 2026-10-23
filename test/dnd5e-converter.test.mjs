@@ -868,6 +868,16 @@ test("ability score changes become AbilityScore rules: a Belt's at-least, an Iou
   assert.equal(notes.length, 1, "a rolled change is left by hand");
 });
 
+test("Telepathy and a Proficiency Bonus change convert (a Myconid's Telepathy 30 ft., an Ioun Stone of Mastery)", async () => {
+  const {effectRules} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const notes = [];
+  const telepathy = effectRules({name: "T", changes: [{key: "system.traits.languages.communication.telepathy.value", type: "upgrade", value: 30}]}, notes);
+  const mastery = effectRules({name: "M", changes: [{key: "system.attributes.prof", type: "add", value: "1"}]}, notes);
+  assert.deepEqual([telepathy.map(rule => rule.data), mastery.map(rule => [rule.type, rule.data])], [[{language: "telepathy", range: 30}],
+    [["Modifier", {domains: ["proficiency"], modifierType: "untyped", value: 1}]]]);
+  assert.deepEqual(notes, []);
+});
+
 test("an activity's several dnd5e effects are a choice of one: Blindness or Deafness, never both", () => {
   const blindness = {_id: "testBlindDeaf001", name: "Blindness/Deafness", type: "spell", img: "systems/dnd5e/icons/spell.webp",
     effects: [{_id: "blind", name: "Blindness", transfer: false, statuses: ["blinded"], system: {changes: []}},
