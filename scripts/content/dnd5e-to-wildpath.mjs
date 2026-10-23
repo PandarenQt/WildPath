@@ -1375,8 +1375,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     // "adds 2 to its AC against that attack" (a Parry; dnd5e keeps the 2 in its activity's roll): that much AC on itself
     // until the attack is over.
+    // A number, or a formula (the 2024 Monster Manual's "adds its Proficiency Bonus": `@prof`).
     const bonusAC = reaction?.acFromText ? (number(activity.roll?.formula)
-      ?? number(/\badds (\d+) to its AC against that attack/i.exec(plainText(document))?.[1])) : null;
+      ?? number(/\badds (\d+) to its AC against that attack/i.exec(plainText(document))?.[1])
+      ?? formulaExpression(String(activity.roll?.formula ?? ""), {scales})) : null;
     if ( reaction?.halves && !definition.effects?.length ) {
       definition = {...definition, range: {type: "self"}, targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect",
         name: document.name, ...(img ? {img} : {}), endsWhen: "attacked", ruleElements: [{schemaVersion: 1, id: "halved",
@@ -1396,7 +1398,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( bonusAC && !definition.effects?.length ) {
       definition = {...definition, range: {type: "self"}, targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect",
         name: document.name, ...(img ? {img} : {}), endsWhen: "attacked", ruleElements: [{schemaVersion: 1, id: "parry", type: "Modifier",
-          data: {domains: ["defense.ac"], modifierType: "untyped", value: bonusAC}}]}]};
+          data: {domains: ["defense.ac"], modifierType: "untyped", ...((typeof bonusAC === "number") ? {value: bonusAC} : {valueExpression: bonusAC})}}]}]};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
     const smite = (identifierOf(document) === "divine-smite") ? SMITE_TRIGGER : null;
