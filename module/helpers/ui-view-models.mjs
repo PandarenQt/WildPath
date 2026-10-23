@@ -5,6 +5,7 @@ import {
   selectDefaultPaymentOption
 } from "./action-economy.mjs";
 import {computeActivationCost} from "./actions.mjs";
+import {clamp} from "./resources.mjs";
 import {
   actorRef as createActorRef,
   createEntityRef,
@@ -707,10 +708,6 @@ function labelFromId(id) {
     .filter(Boolean)
     .map(part => part.charAt(0).toUpperCase() + part.slice(1))
     .join(" ");
-}
-
-function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max);
 }
 
 function finiteNumber(value) {
