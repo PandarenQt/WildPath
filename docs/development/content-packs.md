@@ -501,6 +501,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
   a Mule's Beast of Burden), Disciplined Survivor's saves and reroll, and Halfling Luck convert from their dnd5e flags
   (classes-and-spellcasting.md). An effect's Telepathy change (a Myconid's 30 ft.) and a Proficiency Bonus change (an Ioun
   Stone of Mastery's +1) convert too (2026-10-24).
+- **Effects known by name (2026-10-24):** Clouded, No Reactions, No Opportunity Attacks, Intelligence save Disadvantage,
+  Regenerating, Climber, Flyer and the Broom of Flying's two (rule-elements.md).
 - **Reactions (2026-10-20):** Retaliation's Trigger names a common Action; Stone's Endurance reduces the damage of the
   attack on it (`rider.reduceDamage`); Countercharm is a feature with a ranged `testOffer`; Indomitable is a feature
   with its pool, no Action (reactions.md).

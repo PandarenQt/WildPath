@@ -1276,6 +1276,24 @@ test("an empty effect known by its name gets its 2024 rules (Barkskin, a Morning
   assert.deepEqual(rulesOf("testChillTouch01", "chill-touch", "Blocked Healing").ruleElements[0].data, {resources: ["healing"], maximum: 0});
   const aim = rulesOf("testAimAdvantag1", "aim", "Aiming: Attack Advantage");
   assert.deepEqual([aim.endsWhen, aim.ruleElements[0].data.mode], ["attacks", "advantage"]);
+  assert.deepEqual(rulesOf("testClouded00001", "cloud-of-insects", "Clouded").ruleElements[0].data, {domains: ["concentration"], mode: "disadvantage"});
+  assert.deepEqual(rulesOf("testNoReactions1", "arms-of-hadar", "No Reactions").ruleElements[0].data, {resources: ["reaction"], maximum: 0});
+  assert.equal(rulesOf("testWhipped00001", "bone-whip", "Whipped: No Opportunity Attacks").slug, "no-opportunity-attacks");
+  assert.equal(rulesOf("testNoOpportun01", "bone-whip", "No Opportunity Attacks").slug, "no-opportunity-attacks");
+  assert.deepEqual(rulesOf("testIntSaveDis01", "psychic-ooze", "Save Disadvantage: Intelligence").ruleElements[0].data,
+    {domains: ["save.intellect"], mode: "disadvantage"});
+  const regenerating = rulesOf("testRegenerate01", "regenerate", "Regenerating").ruleElements[0].data;
+  assert.deepEqual([regenerating.event, regenerating.action.healing[0].expression], ["turn.started", {type: "constant", value: 1}]);
+  assert.deepEqual(rulesOf("testClimber00001", "potion-of-climbing", "Climber").ruleElements[0].data,
+    {mode: "climb", distance: {type: "context", path: "actorSystem.resources.movement.max"}});
+  assert.equal(rulesOf("testFlyer0000001", "potion-of-flying", "Flyer").ruleElements[0].data.hover, true);
+  assert.deepEqual(rulesOf("testBroomHigh001", "broom-of-flying", "Riding Broom (High Weight)").ruleElements[0].data,
+    {mode: "fly", distance: 30, hover: true});
+  const broom = spell("testBroomLow0001", "broom-of-flying", "Riding Broom (Low Weight)");
+  broom.effects[0].statuses = ["flying"];
+  const [ridden] = convertItem(broom).items;
+  assert.deepEqual([ridden.system.definition.effects[0].ruleElements[0].data.distance,
+    ridden.flags.wildpath.conversion.notes.some(note => /not a WildPath condition/.test(note))], [50, false], "its flying is its fly Speed");
 });
 
 test("a save with nothing else converted: the conditions its text gives on a failure, else a marker while it lasts", () => {

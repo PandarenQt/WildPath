@@ -58,7 +58,35 @@
           "type": "effect",
           "name": "Regenerating",
           "img": "icons/magic/life/cross-yellow-green.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "regenerating",
+              "type": "Trigger",
+              "data": {
+                "kind": "automation",
+                "event": "turn.started",
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:regenerating",
+                  "label": "Regenerate",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "healing": [
+                    {
+                      "id": "healing-1",
+                      "expression": {
+                        "type": "constant",
+                        "value": 1
+                      },
+                      "healingType": "healing"
+                    }
+                  ]
+                }
+              }
+            }
+          ],
           "duration": {
             "value": 3600,
             "units": "seconds",
@@ -142,8 +170,7 @@
       },
       "conversion": {
         "notes": [
-          "activation: 1 minute is not an action-economy cost",
-          "effect: \"Regenerating\" marks its creature only; its rules are by hand"
+          "activation: 1 minute is not an action-economy cost"
         ]
       }
     }

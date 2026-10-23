@@ -502,6 +502,11 @@ from Death" (a `health.zero` rule on the effect: dropped to 0, its creature is a
 "Lingering Acid": an automatic
 `turn.ended` Trigger on the effect deals its 2d4 Acid, and it lasts until the end of the caster's next turn (an
 effect's Triggers run like an Item's; the spell's separate later-damage Action is dropped).
+Added 2026-10-24: "Clouded" (Concentration Disadvantage), "No Reactions", "Whipped: No Opportunity Attacks" and "No
+Opportunity Attacks" (the slug, for dnd5e's duration), "Save Disadvantage: Intelligence", Regenerate's "Regenerating"
+(a `turn.started` Trigger healing 1), the Potions of Climbing's "Climber" and Flying's "Flyer" (a Speed equal to its
+walking Speed; the Flyer hovers) and the Broom of Flying's "Riding Broom (Low Weight)" and "(High Weight)" (a hovering
+Fly Speed of 50 or 30 feet; dnd5e's "flying" status on it is that Speed, so it gets no note).
 
 **Light (2026-10-21).** `GrantLight {bright, dim, angle?}` sheds light from its creature: Bright Light out to `bright`
 feet and Dim Light out to `dim` (counted from the creature: a Torch is 20 and 40), in a cone of `angle` degrees when

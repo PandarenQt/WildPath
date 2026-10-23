@@ -53,7 +53,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Amulet of Health | equipment24 | Amulet of Health (gear) | — |
 | Amulet of Proof against Detection and Location | equipment24 | Amulet of Proof against Detection and Location (gear) | — |
 | Amulet of the Planes | equipment24 | Amulet of the Planes (gear), Amulet of the Planes (automated) | — |
-| Ancient Black Dragon | actors24 | Ancient Black Dragon (15 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (summon): using it spends its cost; its description says the rest; Spellcasting: summon: its creature is not among the converted creatures; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Cloud of Insects: effect: "Clouded" marks its creature only; its rules are by hand |
+| Ancient Black Dragon | actors24 | Ancient Black Dragon (15 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (summon): using it spends its cost; its description says the rest; Spellcasting: summon: its creature is not among the converted creatures; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Ancient Blue Dragon | actors24 | Ancient Blue Dragon (14 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated; Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Tail Swipe: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Ancient Brass Dragon | actors24 | Ancient Brass Dragon (17 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: save: a failure marks its creature (narrative) |
 | Ancient Bronze Dragon | actors24 | Ancient Bronze Dragon (19 items) | Multiattack: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated; Spellcasting: effect: "Water Breathing" marks its creature (narrative) |
@@ -225,7 +225,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Bronze Griffon | equipment24 | Bronze Griffon (gear), Bronze Griffon (automated) | — |
 | Bronze Horn of Valhalla | equipment24 | Bronze Horn of Valhalla (gear), Bronze Horn of Valhalla (automated) | — |
 | Brooch of Shielding | equipment24 | Brooch of Shielding (gear) | — |
-| Broom of Flying | equipment24 | Broom of Flying (gear), Broom of Flying (Activate Broom) (automated), Broom of Flying (Send Alone or Recall) (manual) | effect: flying is not a WildPath condition yet; not automated (utility): using it spends its cost; its description says the rest |
+| Broom of Flying | equipment24 | Broom of Flying (gear), Broom of Flying (Activate Broom) (automated), Broom of Flying (Send Alone or Recall) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Brown Bear | actors24 | Brown Bear (4 items) | — |
 | Brutal Strike | classes24 | Brutal Strike (feature), Brutal Strike (automated), Brutal Strike (Forceful Blow) (automated), Brutal Strike (Hamstring Blow) (automated) | — |
 | Bucket | equipment24 | Bucket (gear) | — |
@@ -1136,7 +1136,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Potent Cantrip | classes24 | Potent Cantrip (feature) | — |
 | Potion of Animal Friendship | equipment24 | Potion of Animal Friendship: Animal Friendship (automated) | — |
 | Potion of Clairvoyance | equipment24 | Potion of Clairvoyance: Clairvoyance (automated) | — |
-| Potion of Climbing | equipment24 | Potion of Climbing (automated) | effect: "Climber" marks its creature only; its rules are by hand |
+| Potion of Climbing | equipment24 | Potion of Climbing (automated) | — |
 | Potion of Diminution | equipment24 | Potion of Diminution: Enlarge/Reduce (automated) | effect: "Reduced" change system.rolls.damage.mwak.bonus (subtract) not converted; effect: "Reduced" change system.rolls.damage.rwak.bonus (subtract) not converted |
 | Potion of Flying | equipment24 | Potion of Flying (automated) | — |
 | Potion of Gaseous Form | equipment24 | Potion of Gaseous Form: Gaseous Form (automated) | effect: "Gaseous Form" change img (override) not converted |
@@ -1223,7 +1223,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Reckless Attack | classes24 | Reckless Attack (feature), Reckless Attack (automated) | — |
 | Red Dragon Wyrmling | actors24 | Red Dragon Wyrmling (4 items) | — |
 | Reef Shark | actors24 | Reef Shark (4 items) | — |
-| Regenerate | spells24 | Regenerate (automated) | activation: 1 minute is not an action-economy cost; effect: "Regenerating" marks its creature only; its rules are by hand |
+| Regenerate | spells24 | Regenerate (automated) | activation: 1 minute is not an action-economy cost |
 | Reincarnate | spells24 | Reincarnate (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 hour is not an action-economy cost |
 | Relentless Endurance | origins24 | Relentless Endurance (feature) | — |
 | Relentless Hunter | classes24 | Relentless Hunter (feature) | — |

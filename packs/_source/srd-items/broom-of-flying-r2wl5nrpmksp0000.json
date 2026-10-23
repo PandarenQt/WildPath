@@ -31,7 +31,6 @@
       },
       "conversion": {
         "notes": [
-          "effect: flying is not a WildPath condition yet",
           "not automated (utility): using it spends its cost; its description says the rest"
         ]
       },

@@ -1174,7 +1174,19 @@
               "type": "effect",
               "name": "Clouded",
               "img": "icons/creatures/invertebrates/fly-wasp-mosquito-green.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "concentration-disadvantage",
+                  "type": "RollMode",
+                  "data": {
+                    "domains": [
+                      "concentration"
+                    ],
+                    "mode": "disadvantage"
+                  }
+                }
+              ],
               "duration": {
                 "value": 1,
                 "units": "rounds",
@@ -1201,9 +1213,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "effect: \"Clouded\" marks its creature only; its rules are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1513,8 +1523,7 @@
           "Spellcasting: summon: its creature is not among the converted creatures",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Cloud of Insects: effect: \"Clouded\" marks its creature only; its rules are by hand"
+          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }
