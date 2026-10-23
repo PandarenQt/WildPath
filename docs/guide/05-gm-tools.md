@@ -2,6 +2,10 @@
 
 These are for the GM. Most sit among the Token controls on the left of the canvas, as buttons.
 
+## Difficult Terrain
+
+Paint a Region and give it the **Modify Movement Cost** behavior: a difficulty of 2 is Difficult Terrain, where each foot of movement costs 2. Spells that make Difficult Terrain (Web, Spike Growth, Grease) do the same with their area. Freedom of Movement and the like ignore it.
+
 ## Party Rest
 
 Rests every player character at once: a **Short Rest** (1 hour) or a **Long Rest** (8 hours). Each character rests by its own rules: a Long Rest at 0 Hit Points gives no benefit, and a contagion may hold its Exhaustion. The world's time then moves on by those hours, so lit torches and other timed effects run out. Players spend their Hit Dice from their own sheets. If a rest is interrupted, decide whether to rest again.

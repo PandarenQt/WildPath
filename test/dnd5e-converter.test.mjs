@@ -2009,6 +2009,14 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   const burst = read("sorcerous-burst-").system.definition;
   assert.deepEqual([burst.damage[0].expression.rows[1], burst.configuration[0].type], [{type: "dice", number: 1, faces: 8}, "damage-type"],
     "Sorcerous Burst: its 1d8 of a chosen type (its dice don't explode)");
+  // Difficult Terrain: dnd5e's region behavior (Web's webs), the text's (Grease), not an optional one (Speak with Plants).
+  const terrain = prefix => read(prefix).system.definition.area?.persistence?.difficultTerrain ?? null;
+  assert.deepEqual([terrain("web-phbspl"), terrain("grease-phbspl"), terrain("speak-with-plants-phbspl")],
+    [{types: ["web"]}, {types: []}, null]);
+  assert.deepEqual(read("entangle-phbspl").system.definition.area.persistence.triggers, [], "Entangle lasts for its terrain alone");
+  assert.deepEqual(read("freedom-of-movement-phbspl").system.definition.effects[0].ruleElements
+    .filter(rule => rule.data.domains?.[0]?.startsWith("terrain")).map(rule => rule.data), [{domains: ["terrain.ignore"],
+    modifierType: "untyped", value: 1}], "it ignores all Difficult Terrain");
   const torch = read("torch-phbagTorch").system.definition;
   assert.deepEqual([torch.targeting.type, torch.range, torch.area], ["single", {type: "reach", distance: {value: 5, unit: "ft"}}, undefined],
     "a Torch hits one creature in reach; its 40-foot template is its light");

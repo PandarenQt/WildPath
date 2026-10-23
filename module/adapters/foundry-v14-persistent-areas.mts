@@ -3,6 +3,7 @@ import {createFoundryV14TacticalGridAdapter, foundryOffsetToGridField, gridField
 import {createReachFootprint, fieldKey} from "../helpers/grid-footprints.mjs";
 import {AREA_SHAPES} from "../helpers/tactical-areas.mjs";
 import {runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
+import {difficultTerrainBehavior} from "./foundry-v14-terrain.mjs";
 
 type Data = Record<string, unknown>;
 interface Field {[key: string]: unknown}
@@ -41,6 +42,8 @@ export interface AreaFlag {
   band: {bottom: number | null; top: number | null};
   persistence: {oncePerTurn: boolean; concentration: boolean; duration: {unit: string; value: number} | null; triggers: Trigger[];
     light?: AreaLight | null; affects?: "enemies" | null};
+  /** Its space is Difficult Terrain (Web, Spike Growth), of these kinds (`web`, `ice`): its Region's movement cost. */
+  difficultTerrain?: {types: string[]} | null;
   createdAt: {combatId: string; round: number; turn: number | null} | null;
   applied: Record<string, string>;
   /** The caster's concentration marker, for a concentration area (its uuid). */
@@ -86,7 +89,7 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
   const area = definition.area ?? {};
   const persistence = (area.persistence ?? {}) as {oncePerTurn?: boolean; concentration?: boolean;
     duration?: {unit: string; value: number}; elevation?: {bottom?: number | null; top?: number | null}; triggers?: Trigger[];
-    light?: AreaLight; affects?: string};
+    light?: AreaLight; affects?: string; difficultTerrain?: {types?: string[]}};
   const scene = sourceToken.parent;
   // Bands are authored relative to the floor of the caster's Level; a missing bound is open.
   const floor = Number(scene.levels?.get(String(sourceToken.level))?.elevation?.bottom) || 0;
@@ -104,12 +107,15 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
       duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
       ...(persistence.affects === "enemies" ? {affects: "enemies" as const} : {})},
     createdAt: combat ? {combatId: combat.id, round: combat.round, turn: combat.turn} : null,
-    applied: {}
+    applied: {},
+    ...(persistence.difficultTerrain ? {difficultTerrain: {types: [...(persistence.difficultTerrain.types ?? [])]}} : {})
   };
   return {
     name: flag.label,
     ...(color === undefined ? {} : {color}),
     shapes: [{type: "grid", offsets}],
+    // Difficult Terrain costs its movement twice over (foundry-v14-terrain.mts); Foundry's ruler shows that too.
+    ...(flag.difficultTerrain ? {behaviors: [difficultTerrainBehavior()]} : {}),
     elevation: {bottom: band.bottom, top: band.top},
     ...(sourceToken.level ? {levels: [sourceToken.level]} : {}),
     attachment: {token: attached ? sourceToken.id : null},

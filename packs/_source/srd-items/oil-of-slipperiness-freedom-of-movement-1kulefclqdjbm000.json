@@ -59,6 +59,18 @@
             {
               "schemaVersion": 1,
               "id": "unrestricted-movement-2",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "terrain.ignore"
+                ],
+                "modifierType": "untyped",
+                "value": 1
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "unrestricted-movement-3",
               "type": "ConditionImmunity",
               "data": {
                 "conditions": [
@@ -113,8 +125,7 @@
       },
       "conversion": {
         "notes": [
-          "activation: 10 minute is not an action-economy cost",
-          "effect: \"Unrestricted Movement\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted"
+          "activation: 10 minute is not an action-economy cost"
         ]
       },
       "price": 200,

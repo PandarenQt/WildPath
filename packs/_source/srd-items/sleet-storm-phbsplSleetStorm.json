@@ -47,6 +47,11 @@
             "value": 10
           },
           "concentration": true,
+          "difficultTerrain": {
+            "types": [
+              "ice"
+            ]
+          },
           "triggers": [
             {
               "on": [

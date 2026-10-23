@@ -59,6 +59,18 @@
             {
               "schemaVersion": 1,
               "id": "unrestricted-movement-2",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "terrain.ignore"
+                ],
+                "modifierType": "untyped",
+                "value": 1
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "unrestricted-movement-3",
               "type": "ConditionImmunity",
               "data": {
                 "conditions": [
@@ -167,9 +179,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Unrestricted Movement\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted"
-        ]
+        "notes": []
       }
     }
   }

@@ -172,7 +172,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Black Dragon Wyrmling | actors24 | Black Dragon Wyrmling (5 items) | — |
 | Black Pudding | actors24 | Black Pudding (6 items) | Split: summon: what it gains with the spell's level (hp) is not added |
 | Black Tentacles | spells24 | Black Tentacles (automated) | — |
-| Blade Barrier | spells24 | Blade Barrier (Blade Wall) (automated), Blade Barrier (Blade Ring) (automated) | concentration: its caster concentrates; what it sustains is by hand; area: 30-ft ring is not supported; the user picks the targets |
+| Blade Barrier | spells24 | Blade Barrier (Blade Wall) (automated), Blade Barrier (Blade Ring) (automated) | area: 30-ft ring is not supported; the user picks the targets; concentration: its caster concentrates; what it sustains is by hand |
 | Blanket | equipment24 | Blanket (gear) | — |
 | Blanket | equipment24 | Blanket (gear) | — |
 | Bless | spells24 | Bless (automated) | — |
@@ -209,7 +209,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Boots of Levitation | equipment24 | Boots of Levitation (gear), Boots of Levitation: Levitate (automated) | effect: "Levitating" marks its creature (narrative) |
 | Boots of Speed | equipment24 | Boots of Speed (gear), Boots of Speed (automated) | — |
 | Boots of Striding and Springing | equipment24 | Boots of Striding and Springing (gear) | effect: "Unburdened Movement" change system.attributes.movement.walk (upgrade) not converted |
-| Boots of the Winterlands | equipment24 | Boots of the Winterlands (gear) | effect: "Winter Strider" change system.attributes.movement.ignoredDifficultTerrain (add) not converted |
+| Boots of the Winterlands | equipment24 | Boots of the Winterlands (gear) | — |
 | Bottle, Glass | equipment24 | Bottle, Glass (gear) | — |
 | Bowl of Commanding Water Elementals | equipment24 | Bowl of Commanding Water Elementals (gear), Bowl of Commanding Water Elementals (automated) | — |
 | Bracers of Archery | equipment24 | Bracers of Archery (gear) | — |
@@ -472,7 +472,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dwarven Toughness | origins24 | Dwarven Toughness (feature) | — |
 | Eagle | actors24 | Eagle (2 items) | — |
 | Earth Elemental | actors24 | Earth Elemental (6 items) | — |
-| Earth Ring of Elemental Command | equipment24 | Earth Ring of Elemental Command (gear), Earth Ring of Elemental Command (Elemental Compulsion) (automated), Earth Ring of Elemental Command: Earthquake (automated), Earth Ring of Elemental Command: Stone Shape (manual), Earth Ring of Elemental Command: Stoneskin (automated), Earth Ring of Elemental Command: Wall of Stone (manual) | save: a failure gives prone (its text); the rest is by hand; "End of Turn Fissures" is passive or triggered: not automated; "Collapsing Structure Save" is passive or triggered: not automated; not automated (utility, narrative): using it spends its cost; its description says the rest; not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; effect: "Earth Focus" change system.attributes.movement.ignoredDifficultTerrain (add) not converted |
+| Earth Ring of Elemental Command | equipment24 | Earth Ring of Elemental Command (gear), Earth Ring of Elemental Command (Elemental Compulsion) (automated), Earth Ring of Elemental Command: Earthquake (automated), Earth Ring of Elemental Command: Stone Shape (manual), Earth Ring of Elemental Command: Stoneskin (automated), Earth Ring of Elemental Command: Wall of Stone (manual) | save: a failure gives prone (its text); the rest is by hand; "End of Turn Fissures" is passive or triggered: not automated; "Collapsing Structure Save" is passive or triggered: not automated; not automated (utility, narrative): using it spends its cost; its description says the rest; not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
 | Earthquake | spells24 | Earthquake (Cast) (automated) | save: a failure gives prone (its text); the rest is by hand; "End of Turn Fissures" is passive or triggered: not automated; "Collapsing Structure Save" is passive or triggered: not automated |
 | Ebony Fly | equipment24 | Ebony Fly (gear), Ebony Fly (automated) | — |
 | Efficient Quiver | equipment24 | Efficient Quiver (gear) | — |
@@ -632,7 +632,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Forcecage | spells24 | Forcecage (Create Cage) (manual), Forcecage (Create Solid Box) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
 | Foresight | spells24 | Foresight (automated) | activation: 1 minute is not an action-economy cost |
 | Forgery Kit | equipment24 | Forgery Kit (gear), Forgery Kit (Mimic Handwriting) (automated), Forgery Kit (Duplicate Wax Seal) (automated) | — |
-| Freedom of Movement | spells24 | Freedom of Movement (automated) | effect: "Unrestricted Movement" change system.attributes.movement.ignoredDifficultTerrain (add) not converted |
+| Freedom of Movement | spells24 | Freedom of Movement (automated) | — |
 | Freezing Sphere | spells24 | Freezing Sphere (Cast and Fire) (automated), Freezing Sphere (Cast and Hold) (manual), Freezing Sphere (Throw Held Globe) (automated) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted; "Freeze Water" is passive or triggered: not automated |
 | Frenzy | classes24 | Frenzy (feature) | — |
 | Frog | actors24 | Frog (4 items) | — |
@@ -800,7 +800,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Horn of Blasting | equipment24 | Horn of Blasting (gear), Horn of Blasting (Blow Horn) (automated), Horn of Blasting (Explosion Damage) (automated) | "Object Damage" is passive or triggered: not automated; "Roll for Explosion Chance" is passive or triggered: not automated |
 | Horn of Valhalla | equipment24 | Horn of Valhalla (gear), Horn of Valhalla (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: a count of "@scaling" is not converted; consumption: itemUses @item.uses.max not converted |
 | Horned Devil | actors24 | Horned Devil (7 items) | Infernal Tail: "Target: HP Loss" is passive or triggered: not automated; Infernal Tail: "Stanch Wound Check" is passive or triggered: not automated |
-| Horseshoes of a Zephyr | equipment24 | Horseshoes of a Zephyr (gear), Horseshoes of a Zephyr (automated) | effect: "Ignore Difficult Terrain" change system.attributes.movement.ignoredDifficultTerrain (add) not converted; effect: "Ignore Difficult Terrain" marks its creature only; its rules are by hand |
+| Horseshoes of a Zephyr | equipment24 | Horseshoes of a Zephyr (gear), Horseshoes of a Zephyr (automated) | — |
 | Horseshoes of Speed | equipment24 | Horseshoes of Speed (gear), Horseshoes of Speed (automated) | — |
 | Huge Animated Object | actors24 | Huge Animated Object (2 items) | — |
 | Human | origins24 | Human (species) | — |
@@ -1055,7 +1055,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Oil | equipment24 | Oil (Throw) (automated), Oil (Douse Space) (automated) | rolled (save); what it does is by hand |
 | Oil of Etherealness | equipment24 | Oil of Etherealness (automated) | — |
 | Oil of Sharpness | equipment24 | Oil of Sharpness (Apply Oil to Weapon) (automated), Oil of Sharpness (Apply Oil to Ammunition) (automated) | — |
-| Oil of Slipperiness | equipment24 | Oil of Slipperiness: Freedom of Movement (automated), Oil of Slipperiness: Grease (automated) | activation: 10 minute is not an action-economy cost; effect: "Unrestricted Movement" change system.attributes.movement.ignoredDifficultTerrain (add) not converted; save: a failure gives prone (its text); the rest is by hand |
+| Oil of Slipperiness | equipment24 | Oil of Slipperiness: Freedom of Movement (automated), Oil of Slipperiness: Grease (automated) | activation: 10 minute is not an action-economy cost; save: a failure gives prone (its text); the rest is by hand |
 | Oil of Taggit | equipment24 | Oil of Taggit (automated) | — |
 | One with Shadows | classes24 | One with Shadows (automated) | — |
 | Oni | actors24 | Oni (11 items) | Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Gaseous Form" change img (override) not converted |
@@ -1251,7 +1251,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ring of Elemental Command | equipment24 | Ring of Elemental Command (gear) | — |
 | Ring of Evasion | equipment24 | Ring of Evasion (gear), Ring of Evasion (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Ring of Feather Falling | equipment24 | Ring of Feather Falling (gear) | — |
-| Ring of Free Action | equipment24 | Ring of Free Action (gear) | effect: "Free Action" change system.attributes.movement.ignoredDifficultTerrain (add) not converted |
+| Ring of Free Action | equipment24 | Ring of Free Action (gear) | — |
 | Ring of Invisibility | equipment24 | Ring of Invisibility (gear) | — |
 | Ring of Jumping | equipment24 | Ring of Jumping (gear), Ring of Jumping: Jump (automated) | effect: "Jump" marks its creature (narrative) |
 | Ring of Mind Shielding | equipment24 | Ring of Mind Shielding (gear) | — |
@@ -1424,7 +1424,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Spider | actors24 | Spider (4 items) | — |
 | Spider Climb | spells24 | Spider Climb (automated) | — |
 | Spider's Sting | equipment24 | Spider's Sting (automated) | — |
-| Spike Growth | spells24 | Spike Growth (automated) | concentration: its caster concentrates; what it sustains is by hand |
+| Spike Growth | spells24 | Spike Growth (automated) | — |
 | Spiked Pit | equipment24 | Spiked Pit (gear), Spiked Pit (Trigger (1-4)) (automated), Spiked Pit (Trigger (5-10)) (automated), Spiked Pit (Trigger (11-16)) (automated), Spiked Pit (Trigger (17-20)) (automated) | — |
 | Spikes, Iron | equipment24 | Spikes, Iron (gear) | — |
 | Spirit Guardians | spells24 | Spirit Guardians (automated) | — |

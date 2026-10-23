@@ -1328,7 +1328,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...shedding.notes);
     }
     // An area that keeps acting while it lasts (Moonbeam, Web, Cloudkill): a lasting area whose trigger repeats it.
-    const lasting = shedding ? null : lastingArea({document, system, definition});
+    const lasting = shedding ? null : lastingArea({document, system, definition, activity});
     if ( lasting ) {
       definition = lasting;
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("concentration: nothing")));
@@ -2073,13 +2073,16 @@ const unsavedRepeat = system => Object.values(system.activities ?? {}).find(entr
  * creature once per turn. Null for an area without that wording, or with nothing to repeat. Its damage keeps the ids of
  * the Action's own, so a higher slot's dice reach the repeat too (action-configuration.mjs `applyScaleDamageEffect`).
  */
-export function lastingArea({document, system, definition}) {
+export function lastingArea({document, system, definition, activity=null}) {
   if ( (definition.targeting?.type !== "area") || !definition.area || definition.area.persistence ) return null;
-  if ( !(definition.damage?.length || definition.effects?.length) ) return null;
+  // An area that is Difficult Terrain lasts for that alone (Spike Growth, Entangle).
+  const terrain = difficultTerrainOf(document, activity);
+  if ( !(definition.damage?.length || definition.effects?.length || terrain) ) return null;
   const wording = LASTING_WORDING.exec(plainText(document));
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
-  // Something with no duration of its own (a flask of Oil) is not a lasting area.
-  if ( !wording || !rounds ) return null;
+  // Something with no duration of its own (a flask of Oil; Ice Storm's terrain "until the end of your next turn") is not
+  // a lasting area. shortcut: Ice Storm's Difficult Terrain is by hand.
+  if ( !(wording || terrain) || !rounds ) return null;
   // The repeat is the same save and outcome on one creature; the area itself holds the concentration.
   // Its damage with no save of its own (2024 Wall of Fire: "A creature takes the same damage when it enters the wall").
   const unsaved = Boolean(unsavedRepeat(system));
@@ -2092,9 +2095,22 @@ export function lastingArea({document, system, definition}) {
     concentration: (system.properties ?? []).includes("concentration"),
     // "Whenever an enemy you can see enters", or "you can designate creatures to be unaffected" (Spirit Guardians): its
     // caster's side is spared. shortcut: the designated creatures are always the caster's allies.
-    ...((/\benem(?:y|ies)\b/iu.test(wording[0]) || /designate creatures to be unaffected/iu.test(plainText(document)))
+    ...((/\benem(?:y|ies)\b/iu.test(wording?.[0] ?? "") || /designate creatures to be unaffected/iu.test(plainText(document)))
       ? {affects: "enemies"} : {}),
-    triggers: [{on: ["area.entered", wording[1].toLowerCase() === "starts" ? "turn.started" : "turn.ended"], action}]}}};
+    ...(terrain ? {difficultTerrain: terrain} : {}),
+    triggers: wording ? [{on: ["area.entered", wording[1].toLowerCase() === "starts" ? "turn.started" : "turn.ended"], action}] : []}}};
+}
+
+/** "Its space is Difficult Terrain", "turns it into Difficult Terrain" (2024 Grease, Blade Barrier, Earthquake). */
+const DIFFICULT_TEXT = /\b(?:is|are|becomes?|into)\s+(?:&(?:amp;)?Reference\[difficult ?terrain[^\]]*\]|Difficult Terrain\b)/iu;
+
+/** The Difficult Terrain an area makes: dnd5e's region behavior on its activity (Web's `web`), else its text's; or null. */
+function difficultTerrainOf(document, activity) {
+  const behaviors = (activity?.behaviors ?? []).filter(behavior => behavior?.type === "difficultTerrain");
+  if ( behaviors.length ) return {types: [...new Set(behaviors.flatMap(behavior => behavior.config?.types ?? []))]};
+  // Not one its caster only may make ("you can turn ordinary terrain ... into Difficult Terrain": Speak with Plants).
+  const sentence = plainText(document).split(/(?<=\.)\s/u).find(text => DIFFICULT_TEXT.test(text));
+  return (sentence && !/\bcan\b/iu.test(sentence)) ? {types: []} : null;
 }
 
 /**
@@ -4223,6 +4239,10 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
       rule("ResourceCap", {resources: ["movement"], maximum: Math.max(number, 0)});
     } else if ( (key === "system.attributes.movement.walk") && (type === "add") && value ) {
       modifier(["resources.movement.max"], value);
+    } else if ( (key === "system.attributes.movement.ignoredDifficultTerrain") && (type === "add") && slugify(change.value) ) {
+      // Freedom of Movement ("all"), Boots of the Winterlands ("ice", "snow"): that Difficult Terrain costs nothing extra.
+      const kind = slugify(change.value);
+      modifier([(kind === "all") ? "terrain.ignore" : `terrain.ignore.${kind}`], {type: "constant", value: 1});
     } else if ( (key === "system.attributes.movement.bonus") && (type === "add") && value ) {
       // Every Speed (Ray of Frost's -10), as Exhaustion's.
       modifier(["resources.movement.max", "speed"], value);

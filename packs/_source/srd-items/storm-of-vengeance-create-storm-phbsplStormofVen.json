@@ -37,6 +37,17 @@
         "height": {
           "value": 0,
           "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 10
+          },
+          "concentration": true,
+          "difficultTerrain": {
+            "types": []
+          },
+          "triggers": []
         }
       },
       "save": {

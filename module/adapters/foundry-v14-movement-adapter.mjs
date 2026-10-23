@@ -16,6 +16,7 @@ import {
 import {movementAllowance} from "../helpers/movement-modes.mjs";
 import {movementTracked} from "../helpers/combat.mjs";
 import {directedMovementPolicy} from "./foundry-v14-fear.mjs";
+import {difficultTerrainPolicy} from "./foundry-v14-terrain.mjs";
 import {
   createMovementPath,
   evaluateMovementPath
@@ -497,6 +498,10 @@ export async function authorizeFoundryMovementIntent({
   // 2024 Frightened (and a Command to flee or approach): a willing step toward (or away from) its source is refused.
   if ( !transitionPolicy && (documents.intent.movementKind === MOVEMENT_KINDS.VOLUNTARY) ) {
     transitionPolicy = directedMovementPolicy(documents.token);
+  }
+  // 2024 Difficult Terrain: a step into it costs 1 extra foot per foot (foundry-v14-terrain.mts).
+  if ( !stepCostPolicy && (documents.intent.movementKind === MOVEMENT_KINDS.VOLUNTARY) ) {
+    stepCostPolicy = difficultTerrainPolicy(documents.token);
   }
   const resolvedMode = resolveMovementMeasurementMode({game, measurementMode});
   const budgetResult = movementBudgetForActor({

@@ -16,6 +16,10 @@ WildPath plays by the 2024 rules unless your GM sets **Rules** to 2014. Conditio
 - **Resurrection Sickness**: after Raise Dead, −4 to your D20 Tests; each Long Rest lifts 1.
 - **Enlarged or Reduced**: your Token grows or shrinks one size while it lasts, and goes back afterwards.
 
+## Difficult Terrain
+
+Moving into Difficult Terrain costs twice the distance: 10 feet for a 5-foot square. Web, Spike Growth, Grease and similar spells make it, and your GM can paint it on the map. Freedom of Movement and a Ring of Free Action let you ignore it; Boots of the Winterlands ignore only ice and snow.
+
 ## Contagions
 
 A contagion you catch shows on your sheet. Its symptoms start days later, as the world's time passes: Exhaustion, or Blindness for Sight Rot.

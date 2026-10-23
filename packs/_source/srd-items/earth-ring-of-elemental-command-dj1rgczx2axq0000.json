@@ -14,6 +14,18 @@
       {
         "schemaVersion": 1,
         "id": "earth-focus-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "terrain.ignore.rocks"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "earth-focus-2",
         "type": "GrantResistance",
         "data": {
           "damageTypes": [
@@ -47,8 +59,7 @@
           "\"Collapsing Structure Save\" is passive or triggered: not automated",
           "not automated (utility, narrative): using it spends its cost; its description says the rest",
           "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: its caster concentrates; what it sustains is by hand",
-          "effect: \"Earth Focus\" change system.attributes.movement.ignoredDifficultTerrain (add) not converted"
+          "concentration: its caster concentrates; what it sustains is by hand"
         ]
       },
       "grants": [

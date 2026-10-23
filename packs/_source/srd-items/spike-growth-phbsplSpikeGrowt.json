@@ -41,6 +41,19 @@
         "size": {
           "value": 20,
           "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 100
+          },
+          "concentration": true,
+          "difficultTerrain": {
+            "types": [
+              "plants"
+            ]
+          },
+          "triggers": []
         }
       },
       "damage": [
@@ -139,12 +152,6 @@
           ]
         }
       ],
-      "concentration": {
-        "duration": {
-          "value": 10,
-          "units": "minutes"
-        }
-      },
       "metadata": {
         "spellLevel": 2,
         "spellLists": [
@@ -170,9 +177,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "concentration: its caster concentrates; what it sustains is by hand"
-        ]
+        "notes": []
       }
     }
   }

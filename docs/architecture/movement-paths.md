@@ -683,3 +683,28 @@ and it "can't willingly move closer to the source of its fear" (`adapters/foundr
 
 Live (GM browser, 14.369): QA Ally Frightened of the Bandit Captain could not step toward it, but stepped away. With a
 wall between them its attacks had no Disadvantage.
+
+## Difficult Terrain (2026-10-23)
+
+2024: "every foot of movement in Difficult Terrain costs 1 extra foot" (`adapters/foundry-v14-terrain.mts`).
+- **Where it is.** A Region with V14's core "Modify Movement Cost" behavior (`modifyMovementCost`, its `difficulties`
+  by movement action). The GM paints one; a lasting area that makes Difficult Terrain gets one with difficulty 2 for
+  each base action (walk, fly, swim, burrow; crawl, climb and jump derive theirs, teleports stay 1), so Foundry's ruler
+  shows the same cost.
+- **The cost.** The movement authority's step cost policy (`difficultTerrainPolicy`, for voluntary movement) makes a
+  step whose destination fields' centers lie in such a Region, at its creature's elevation, cost its default times the
+  highest difficulty there for its movement mode. Difficulties don't stack (5e), and below 1 counts as 1. Forced
+  movement and teleports cost no movement anyway.
+- **Ignoring it.** A `terrain.ignore` Modifier (value 1) ignores all of it: the converter writes one for dnd5e's
+  `ignoredDifficultTerrain` "all" (Freedom of Movement, Ring of Free Action). `terrain.ignore.<kind>` ignores only a
+  lasting area's terrain of that kind (`flags.wildpath.area.difficultTerrain.types`: Boots of the Winterlands' ice and
+  snow against Sleet Storm's ice). Terrain the GM paints has no kind, so only "all" ignores it.
+- **Which areas.** The converter reads dnd5e's `difficultTerrain` region behavior on an activity (Web's `web`, Entangle
+  and Spike Growth's `plants`, Sleet Storm's `ice`), else 2024 text such as "its space is Difficult Terrain" (Grease,
+  Blade Barrier, Earthquake), but not one its caster only may make ("you can turn": Speak with Plants). Such an area
+  lasts for its duration even when nothing in it repeats (`persistence.difficultTerrain`). shortcut: Ice Storm's terrain
+  "until the end of your next turn" is by hand (an instantaneous spell leaves no lasting area).
+
+Live (two browsers, 14.369): in combat, Player1's QA Caster walked two squares into a painted Region (walk 2) for 10 ft
+each and one square out of it for 5. With a `terrain.ignore` effect, a square into it cost 5. A Web area's Region had
+walk, fly, swim, burrow, crawl, climb and jump at 2 and blink and displace at 1.

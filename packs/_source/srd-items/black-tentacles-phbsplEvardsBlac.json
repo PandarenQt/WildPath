@@ -41,6 +41,17 @@
         "size": {
           "value": 20,
           "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 10
+          },
+          "concentration": true,
+          "difficultTerrain": {
+            "types": []
+          },
+          "triggers": []
         }
       },
       "save": {
