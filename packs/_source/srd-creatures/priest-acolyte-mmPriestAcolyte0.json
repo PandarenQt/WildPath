@@ -675,12 +675,73 @@
               "type": "effect",
               "name": "Warded",
               "img": "icons/skills/social/peace-luck-insult.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "sanctuary",
+                  "type": "Trigger",
+                  "data": {
+                    "kind": "reaction",
+                    "event": "action.declared",
+                    "match": {
+                      "phase": "interrupt",
+                      "targetTokenId": "{self}",
+                      "notSourceTokenId": "{self}"
+                    },
+                    "triggerPredicate": {
+                      "equals": {
+                        "path": "event.data.harmsTarget",
+                        "value": true
+                      }
+                    },
+                    "policy": "always",
+                    "action": {
+                      "schemaVersion": 1,
+                      "id": "action:sanctuary-ward",
+                      "label": "Sanctuary",
+                      "costs": {
+                        "allOf": []
+                      },
+                      "range": {
+                        "type": "special"
+                      },
+                      "targeting": {
+                        "type": "single",
+                        "required": true,
+                        "count": 1
+                      },
+                      "counters": true,
+                      "save": {
+                        "ability": "wits",
+                        "dc": {
+                          "fromSource": true,
+                          "valueExpression": {
+                            "type": "add",
+                            "terms": [
+                              {
+                                "type": "constant",
+                                "value": 8
+                              },
+                              {
+                                "type": "proficiency-bonus"
+                              },
+                              {
+                                "type": "spellcasting-modifier"
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
               "duration": {
                 "value": 60,
                 "units": "seconds",
                 "expiry": "turnStart"
-              }
+              },
+              "endsWhen": "attacks"
             }
           ],
           "metadata": {
@@ -721,7 +782,6 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Warded\" marks its creature only; its rules are by hand",
               "\"Save on Target\" is passive or triggered: not automated"
             ]
           }
@@ -779,7 +839,6 @@
       },
       "conversion": {
         "notes": [
-          "Divine Aid: effect: \"Warded\" marks its creature only; its rules are by hand",
           "Divine Aid: \"Save on Target\" is passive or triggered: not automated"
         ]
       }

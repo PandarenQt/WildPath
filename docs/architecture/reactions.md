@@ -382,6 +382,13 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   Live (two browsers, 14.369): as a Rogue 14, QA Caster's Dagger hits offered Daze; its Sneak Attack rolled 5d6 (7d6
   less 2) and a failed save left the Bandit Captain Dazed. As a Warlock 5, Eldritch Smite spent a pact slot for 4d8
   Force (8d8 on a critical hit) and knocked the Captain Prone; Fire's Burn added 1d10 Fire and spent a use.
+- **Sanctuary (2026-10-23):** its "Warded" effect carries a reaction Trigger on `action.declared` against its creature,
+  for an attack roll or a damaging spell (`event.data.harmsTarget`). Its Action is the attacker's Wisdom save at the
+  DC of the creature that gave the effect: `save.dc.fromSource` is worked out with that creature's numbers when the
+  reaction is offered (`effectReactionItems`). `policy: "always"` makes it no choice, and `counters` makes a failure
+  lose the attack ("Scimitar fails. Sanctuary stopped it."). The ward ends when its creature attacks. shortcut:
+  choosing a new target is losing the attack, and casting a spell or dealing damage don't end it. Live (14.369): QA
+  Ally warded by QA Wizard (DC 12); the Bandit Captain saved and hit, and with an unreachable DC failed and lost it.
 - **What hitting a creature costs the attacker (2026-10-22):** a stat block's "a creature that hits it with a melee
   attack takes 4 (1d8) Acid damage" (a Black Pudding's Corrosive Form, an Azer's Heated Body) is an Action with no cost
   and a reaction Trigger on `attack.hit` against its own creature (`tagsAny: ["melee"]`), set to Always: whenever such

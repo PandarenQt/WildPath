@@ -1174,7 +1174,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Preserve Life | classes24 | Preserve Life (automated) | — |
 | Prestidigitation | spells24 | Prestidigitation (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Priest | actors24 | Priest (11 items) | Divine Aid: dispel: a lasting area or an object is not a target (by hand) |
-| Priest Acolyte | actors24 | Priest Acolyte (8 items) | Divine Aid: effect: "Warded" marks its creature only; its rules are by hand; Divine Aid: "Save on Target" is passive or triggered: not automated |
+| Priest Acolyte | actors24 | Priest Acolyte (8 items) | Divine Aid: "Save on Target" is passive or triggered: not automated |
 | Priest's Pack | equipment24 | Priest's Pack (gear) | — |
 | Primal Champion | classes24 | Primal Champion (feature) | — |
 | Primal Knowledge | classes24 | Primal Knowledge (feature) | — |
@@ -1307,7 +1307,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Sage | origins24 | Sage (background) | — |
 | Sahuagin Warrior | actors24 | Sahuagin Warrior (7 items) | Aquatic Charge: not automated (utility): using it spends its cost; its description says the rest |
 | Salamander | actors24 | Salamander (5 items) | Fire Aura: activation: turnEnd is not an action-economy cost |
-| Sanctuary | spells24 | Sanctuary (Cast) (automated) | effect: "Warded" marks its creature only; its rules are by hand; "Save on Target" is passive or triggered: not automated |
+| Sanctuary | spells24 | Sanctuary (Cast) (automated) | "Save on Target" is passive or triggered: not automated |
 | Satyr | actors24 | Satyr (3 items) | — |
 | Savage Attacker | feats24 | Savage Attacker (feature) | — |
 | Scale Mail | equipment24 | Scale Mail (gear) | — |

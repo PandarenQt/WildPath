@@ -2629,6 +2629,18 @@ const EFFECTS_BY_NAME = Object.freeze({
   "Aiming: Attack Advantage": {endsWhen: "attacks", ruleElements: [rollModeRule("next-attack", ["attack"], "advantage")]},
   // Sap (weapon mastery), Pesky Swarm: "Disadvantage on its next attack roll".
   "Target: Disadvantage": NEXT_ATTACK_DISADVANTAGE,
+  // Sanctuary (2024): "any creature who targets the warded creature with an attack roll or a damaging spell must succeed
+  // on a Wisdom saving throw or either choose a new target or lose the attack or spell"; it ends when the warded creature
+  // attacks. The save is at its caster's spell save DC (`fromSource`), and a failure loses the attack (`counters`).
+  // shortcut: choosing a new target is losing it, and casting a spell or dealing damage do not end it; upgrade when an
+  // Action can be redirected.
+  "Warded": {endsWhen: "attacks", ruleElements: [{schemaVersion: 1, id: "sanctuary", type: "Trigger", data: {kind: "reaction",
+    event: "action.declared", match: {phase: "interrupt", targetTokenId: "{self}", notSourceTokenId: "{self}"},
+    triggerPredicate: {equals: {path: "event.data.harmsTarget", value: true}}, policy: "always",
+    action: {schemaVersion: 1, id: "action:sanctuary-ward", label: "Sanctuary", costs: {allOf: []}, range: {type: "special"},
+      targeting: {type: "single", required: true, count: 1}, counters: true,
+      save: {ability: "wits", dc: {fromSource: true, valueExpression: {type: "add", terms: [{type: "constant", value: 8},
+        {type: "proficiency-bonus"}, {type: "spellcasting-modifier"}]}}}}}}]},
   // Death Ward (2024): "The first time the target would drop to 0 Hit Points before the spell ends, the target instead drops
   // to 1 Hit Point, and the spell ends" (zeroHpFor reads it from the effect, which then ends).
   "Protection from Death": {ruleElements: [{schemaVersion: 1, id: "death-ward", type: "Trigger",

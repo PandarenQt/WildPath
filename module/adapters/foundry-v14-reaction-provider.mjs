@@ -95,16 +95,26 @@ const slug = (name) => String(name ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "
 export function effectReactionItems(actor, { fromUuidSync = globalThis.fromUuidSync } = {}) {
     return [...(actor.effects ?? [])].filter(effect => !effect.disabled && !effect.isSuppressed).flatMap(effect => (effect.system?.ruleElements ?? []).filter(element => (element.type === "Trigger") && element.data?.action)
         .flatMap(element => {
-        const { action, giverItem, ...data } = element.data;
+        const { action, giverItem, policy, ...data } = element.data;
+        const sourceRef = String(effect.flags?.wildpath?.conditionEffect?.sourceRef ?? "").replace(/^uuid:/, "");
+        const giver = (sourceRef && (giverItem || action.save?.dc) ? fromUuidSync?.(sourceRef) : null);
         if (giverItem) {
-            const sourceRef = String(effect.flags?.wildpath?.conditionEffect?.sourceRef ?? "").replace(/^uuid:/, "");
-            const giver = (sourceRef ? fromUuidSync?.(sourceRef) : null);
             const items = [...((giver?.items ?? giver?.actor?.items) ?? [])];
             if (!items.some(item => (item.system?.active !== false) && (item.flags?.wildpath?.source?.identifier === giverItem)))
                 return [];
         }
+        // A save at the DC of the creature that gave the effect (Sanctuary's: its caster's spell save DC), worked out now.
+        const dc = (action.save?.dc ?? null);
+        const source = (giver?.actor ?? giver);
+        const fixed = (dc?.fromSource && dc.valueExpression && source)
+            ? Number(evaluateValueExpression(dc.valueExpression, { actor: source, actorSystem: source.system }).value) : null;
+        if (dc?.fromSource && !Number.isFinite(fixed))
+            return [];
+        const definition = Number.isFinite(fixed) ? { ...action, save: { ...action.save, dc: { value: fixed } } } : action;
         return [{ id: `${effect.id}-${String(element.id ?? "reaction")}`, type: "action", name: String(action.label ?? effect.name ?? ""),
-                system: { active: true, definition: action, ruleElements: [{ ...element, data }] } }];
+                system: { active: true, definition: definition, ruleElements: [{ ...element, data }] },
+                // One that is no choice (Sanctuary's ward) is used at once (`policy: "always"`).
+                ...(policy ? { flags: { wildpath: { reactionPolicy: policy } } } : {}) }];
     }));
 }
 function tokenReactions(token) {
