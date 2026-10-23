@@ -144,7 +144,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Basket | equipment24 | Basket (gear) | — |
 | Bat | actors24 | Bat (2 items) | — |
 | Battleaxe | equipment24 | Battleaxe (automated), Battleaxe (Two-Handed) (automated) | — |
-| Beacon of Hope | spells24 | Beacon of Hope (automated) | effect: "Hopeful" change system.attributes.death.roll.mode (add) not converted |
+| Beacon of Hope | spells24 | Beacon of Hope (automated) | — |
 | Bead of Force | equipment24 | Bead of Force (automated) | — |
 | Bead of Nourishment | equipment24 | Bead of Nourishment (gear) | "Consume" is passive or triggered (narrative): not automated |
 | Bearded Devil | actors24 | Bearded Devil (6 items) | Infernal Glaive: "save" is passive or triggered: not automated; Infernal Glaive: "Damage: Infernal Wound" is passive or triggered: not automated |
@@ -1218,7 +1218,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Rations | equipment24 | Rations (gear) | — |
 | Raven | actors24 | Raven (3 items) | — |
 | Ray of Enfeeblement | spells24 | Ray of Enfeeblement (automated) | effect: "Enervated" change system.bonuses.mwak.damage (add) not converted; effect: "Enervated" change system.bonuses.rwak.damage (add) not converted; effect: "Enervated" change system.bonuses.msak.damage (add) not converted; effect: "Enervated" change system.bonuses.rsak.damage (add) not converted |
-| Ray of Frost | spells24 | Ray of Frost (automated) | effect: "Reduced Movement" change system.attributes.movement.bonus (add) not converted; effect: "Reduced Movement" marks its creature only; its rules are by hand |
+| Ray of Frost | spells24 | Ray of Frost (automated) | — |
 | Ray of Sickness | spells24 | Ray of Sickness (automated) | — |
 | Reckless Attack | classes24 | Reckless Attack (feature), Reckless Attack (automated) | — |
 | Red Dragon Wyrmling | actors24 | Red Dragon Wyrmling (4 items) | — |

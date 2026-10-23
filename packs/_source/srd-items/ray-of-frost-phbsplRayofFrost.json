@@ -85,7 +85,21 @@
           "type": "effect",
           "name": "Reduced Movement",
           "img": "icons/magic/water/projectile-icecicle-glowing.webp",
-          "ruleElements": []
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "reduced-movement-1",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "resources.movement.max",
+                  "speed"
+                ],
+                "modifierType": "untyped",
+                "value": -10
+              }
+            }
+          ]
         }
       ],
       "metadata": {
@@ -114,10 +128,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Reduced Movement\" change system.attributes.movement.bonus (add) not converted",
-          "effect: \"Reduced Movement\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

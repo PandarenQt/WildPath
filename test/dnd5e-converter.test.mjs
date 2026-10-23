@@ -151,6 +151,10 @@ test("what WildPath cannot automate is a manual Action that spends its cost, nam
     {type: "ability-modifier", ability: "presence"}]});
   assert.deepEqual(formulaExpression("1d8 + @prof"), {type: "add", terms: [{type: "dice", number: 1, faces: 8}, {type: "proficiency-bonus"}]});
   assert.equal(formulaExpression("@abilities.str.value"), null, "what WildPath cannot read stays out");
+  assert.deepEqual(formulaExpression("(max(1,@abilities.wis.mod))d6"), {type: "dice", number: {type: "max", terms: [
+    {type: "constant", value: 1}, {type: "ability-modifier", ability: "wits"}]}, faces: 6}, "dice counted by an expression (Stormborn)");
+  assert.deepEqual(formulaExpression("(@prof)d4"), {type: "dice", number: {type: "proficiency-bonus"}, faces: 4});
+  assert.equal(formulaExpression("(@scaling)d6"), null);
   const scales = {"rogue.sneak-attack": {1: {number: 1, faces: 6}, 3: {number: 2, faces: 6}}, "monk.martial-arts": {1: {number: 1, faces: 6}, 5: {number: 1, faces: 8}}};
   assert.deepEqual(formulaExpression("@scale.rogue.sneak-attack", {scales}), {type: "table", key: {type: "class-level", class: "rogue"},
     rows: {1: {type: "dice", number: 1, faces: 6}, 3: {type: "dice", number: 2, faces: 6}}});
@@ -722,6 +726,12 @@ test("2024 Speed multipliers: Haste doubles, Slow halves every Speed or one mode
   const notes = [];
   assert.deepEqual(effectRules(multiplier(0, "override"), notes).map(rule => [rule.type, rule.data.maximum]), [["ResourceCap", 0]]);
   assert.deepEqual(notes, []);
+  assert.deepEqual(effectRules(multiplier("-10", "add", "system.attributes.movement.bonus"))[0].data.domains,
+    ["resources.movement.max", "speed"], "Ray of Frost: every Speed");
+  assert.deepEqual(effectRules(multiplier(1, "add", "system.attributes.death.roll.mode"))[0].data, {domains: ["save.death"],
+    mode: "advantage"}, "Beacon of Hope");
+  assert.deepEqual(effectRules(multiplier("1", "override", "flags.dnd5e.initiativeAdv"))[0].data, {domains: ["initiative"],
+    mode: "advantage"});
 });
 
 test("a damage bonus with dice is extra damage on each hit: its own type, or the attack's", async () => {
