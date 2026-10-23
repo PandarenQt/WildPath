@@ -1020,7 +1020,7 @@
                           "id": "acid",
                           "expression": {
                             "type": "dice",
-                            "number": 2,
+                            "number": 5,
                             "faces": 4
                           },
                           "damageType": "acid",
@@ -1109,9 +1109,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "\"End of Turn Damage\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -1516,7 +1514,6 @@
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: \"End of Turn Damage\" is passive or triggered: not automated",
           "Cloud of Insects: effect: \"Clouded\" marks its creature only; its rules are by hand"
         ]
       }
