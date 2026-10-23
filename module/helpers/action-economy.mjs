@@ -10,6 +10,7 @@
 
 import {evaluatePredicate} from "./predicates.mjs";
 import {PACT_SLOT_POOL, pactMagic, spellSlotPoolId} from "./spellcasting.mjs";
+import {clamp} from "./resources.mjs";
 
 export const ECONOMY_UNITS = Object.freeze({
   USES: "uses",
@@ -533,8 +534,4 @@ function withoutInternalFields(candidate) {
 
 function clonePlain(value) {
   return JSON.parse(JSON.stringify(value));
-}
-
-function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max);
 }
