@@ -90,7 +90,7 @@ for ( const pack of ITEM_PACKS ) {
   }
 }
 for ( const document of readPack(from, "actors24").filter(wanted) ) {
-  const result = convertActor(document, {scales, pack: "actors24", names, spells, creatures, beasts});
+  const result = convertActor(document, {scales, pack: "actors24", names, spells, creatures, beasts, tables});
   if ( !result.ok ) continue;
   actors.push(result.actor);
   report.push({pack: "actors24", name: document.name, converted: [`${result.actor.name} (${result.actor.items.length} items)`], notes: result.notes});

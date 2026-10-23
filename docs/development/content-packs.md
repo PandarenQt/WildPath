@@ -208,6 +208,7 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
   - A book's creatures and items may cast another installed book's spells (2026-10-22): the book converter reads the
     spells of every other dnd5e book module found in the Data folder too (a Monster Manual Death Knight's Player's
     Handbook spells). A spell from a book that is not installed stays a manual Action.
+  - A creature's spell finds the tables its text links (2026-10-24): a Glabrezu's Confusion draws its behavior each turn.
 - **Uses.**
   - Each activity with uses has a pool of its own.
   - "Day" and "dawn" recover on a long rest.

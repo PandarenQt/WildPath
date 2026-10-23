@@ -1248,7 +1248,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Monster spellcasting (G4): a cast activity is its spell, at the activity's cost and uses rather than a slot.
     if ( activity.type === "cast" ) {
       const cast = castSpell({document, activity, system, notes, pool, options: {scales, pack, saveDC, names, creature, book, images, spells,
-        creatures, beasts}});
+        creatures, beasts, tables}});
       if ( cast ) {
         items.push(cast);
         allNotes.push(...notes);
@@ -3584,7 +3584,7 @@ export const proficiencyForChallenge = challenge => Math.max(2, Math.floor((Math
  * @returns {{ok: true, actor: object, notes: string[]} | {ok: false, reason: string}}
  */
 export function convertActor(document, {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2", images=["icons/"], spells={},
-  creatures={}, beasts=[]}={}) {
+  creatures={}, beasts=[], tables={}}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   if ( document.type !== "npc" ) return {ok: false, reason: `a ${document.type} is not converted`};
   const system = document.system ?? {};
@@ -3611,7 +3611,7 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
   for ( const item of document.items ?? [] ) {
     // dnd5e's cached copy of a spell a cast activity casts: the cast activity converts it.
     if ( (item.type === "equipment") || item.flags?.dnd5e?.cachedFor ) continue;
-    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images, spells, creatures, beasts});
+    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images, spells, creatures, beasts, tables});
     if ( !result.ok ) {
       notes.push(`${item.name}: ${result.reason}`);
       continue;
