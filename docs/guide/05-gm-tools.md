@@ -72,6 +72,10 @@ On a character's **Bastion map**, the **Make a Scene** button builds a Scene of 
   - After each Long Rest its creature saves against it.
 - **Surprised.** Mark a creature Surprised from its Token HUD. It rolls initiative with Disadvantage, and the condition ends after that roll.
 
+## Monster attack riders
+
+A monster attack whose hit forces a save (a Ghoul's Claw, a Cockatrice's Petrifying Bite) now rolls that save on each hit by itself.
+
 ## Lair Actions
 
 A creature with Lair Actions gets its Lair Action back at the top of each round, before anyone acts, and you are whispered who may take one.

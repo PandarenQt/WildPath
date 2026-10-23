@@ -147,7 +147,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Beacon of Hope | spells24 | Beacon of Hope (automated) | — |
 | Bead of Force | equipment24 | Bead of Force (automated) | — |
 | Bead of Nourishment | equipment24 | Bead of Nourishment (gear) | "Consume" is passive or triggered (narrative): not automated |
-| Bearded Devil | actors24 | Bearded Devil (6 items) | Infernal Glaive: "save" is passive or triggered: not automated; Infernal Glaive: "Damage: Infernal Wound" is passive or triggered: not automated |
+| Bearded Devil | actors24 | Bearded Devil (7 items) | Infernal Glaive: save: a failure marks its creature only; what it does is by hand; Infernal Glaive: "Damage: Infernal Wound" is passive or triggered: not automated |
 | Beast Spells | classes24 | Beast Spells (feature) | — |
 | Bedroll | equipment24 | Bedroll (gear) | — |
 | Bedroll | equipment24 | Bedroll (gear) | — |
@@ -302,7 +302,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Cloudkill | spells24 | Cloudkill (automated) | — |
 | Club | equipment24 | Club (automated) | — |
 | Cobbler's Tools | equipment24 | Cobbler's Tools (gear), Cobbler's Tools (automated) | — |
-| Cockatrice | actors24 | Cockatrice (3 items) | Petrifying Bite: "First Save" is passive or triggered: not automated; Petrifying Bite: activation: turnEnd is not an action-economy cost |
+| Cockatrice | actors24 | Cockatrice (4 items) | Petrifying Bite: activation: turnEnd is not an action-economy cost |
 | Collapsing Roof | equipment24 | Collapsing Roof (gear), Collapsing Roof (Trigger (1-4)) (automated), Collapsing Roof (Trigger (5-10)) (automated), Collapsing Roof (Trigger (11-16)) (automated), Collapsing Roof (Trigger (17-20)) (automated) | — |
 | College of Lore | classes24 | College of Lore (subclass) | — |
 | Color Spray | spells24 | Color Spray (automated) | — |
@@ -652,7 +652,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Gentle Repose | spells24 | Gentle Repose (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Ghast | actors24 | Ghast (5 items) | — |
 | Ghost | actors24 | Ghost (8 items) | — |
-| Ghoul | actors24 | Ghoul (4 items) | Claw: "save" is passive or triggered: not automated |
+| Ghoul | actors24 | Ghoul (5 items) | — |
 | Giant Ancestry | origins24 | Giant Ancestry (feature) | — |
 | Giant Ape | actors24 | Giant Ape (5 items) | Leap: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Giant Badger | actors24 | Giant Badger (2 items) | — |
@@ -795,7 +795,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Holy Symbol (Varies) | equipment24 | Holy Symbol (Varies) (gear) | — |
 | Holy Water | equipment24 | Holy Water (automated) | — |
 | Holy Water | equipment24 | Holy Water (automated) | — |
-| Homunculus | actors24 | Homunculus (3 items) | Bite: "save" is passive or triggered: not automated |
+| Homunculus | actors24 | Homunculus (4 items) | — |
 | Horn | equipment24 | Horn (gear), Horn (Play a Known Tune) (automated), Horn (Improvise a Song) (automated) | — |
 | Horn of Blasting | equipment24 | Horn of Blasting (gear), Horn of Blasting (Blow Horn) (automated), Horn of Blasting (Explosion Damage) (automated) | "Object Damage" is passive or triggered: not automated; "Roll for Explosion Chance" is passive or triggered: not automated |
 | Horn of Valhalla | equipment24 | Horn of Valhalla (gear), Horn of Valhalla (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: a count of "@scaling" is not converted; consumption: itemUses @item.uses.max not converted |

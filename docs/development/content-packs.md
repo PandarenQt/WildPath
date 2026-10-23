@@ -183,6 +183,8 @@ Flyby on 6 and Regeneration on 4. The book packages convert the same way.
 
 ### The monster toolkit (G4)
 
+- **Attack riders (2026-10-24):** an attack's own save on the creature it hits ("it is subjected to the following
+  effect": a Ghoul's Claw) rolls on each hit, automatically (reactions.md).
 - **Multiattack** (named attacks, 2026-10-15).
   - Its text names its attacks: "makes three Rend attacks", "one Bite attack and two Claw attacks", 2014's "three
     attacks: one with its bite and two with its claws".

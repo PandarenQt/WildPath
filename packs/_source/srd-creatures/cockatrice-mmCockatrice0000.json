@@ -107,6 +107,9 @@
               "provenance": "weapon-base"
             }
           ],
+          "tags": [
+            "hit:petrifying-bite"
+          ],
           "label": "Petrifying Bite (attack)"
         },
         "ruleElements": []
@@ -127,6 +130,84 @@
           "conversion": {
             "notes": []
           }
+        }
+      }
+    },
+    {
+      "_id": "yj5tmftd4caj0000",
+      "_key": "!actors.items!mmCockatrice0000.yj5tmftd4caj0000",
+      "name": "Petrifying Bite (First Save)",
+      "type": "action",
+      "img": "icons/magic/defensive/armor-stone-skin.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +3, reach 5 ft. Hit: 3 (1d4 + 1) Piercing damage. If the target is a creature, it is subjected to the following effect.</p><p class=\"feature\"><em>Constitution Saving Throw:</em> DC 11.</p><p class=\"feature\"><em>First Failure:</em> The target has the Restrained condition and repeats the save at the end of its next turn if it is still Restrained, ending the effect on itself on a success.</p><p class=\"feature\"><em>Second Failure:</em> The target has the Petrified condition instead of the Restrained condition.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-petrifying-bite-first-save",
+          "costs": {
+            "allOf": []
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 11
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "restrained",
+              "saveOutcomePolicy": "failure"
+            }
+          ],
+          "range": {
+            "type": "special"
+          },
+          "label": "Petrifying Bite (First Save)"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "reaction",
+            "type": "Trigger",
+            "data": {
+              "kind": "reaction",
+              "event": "attack.hit",
+              "match": {
+                "phase": "interrupt",
+                "sourceTokenId": "{self}",
+                "tagsAll": [
+                  "hit:petrifying-bite"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmPetrifyingBite",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "petrifying-bite",
+            "subtype": null
+          },
+          "conversion": {
+            "notes": []
+          },
+          "reactionPolicy": "always"
         }
       }
     },
@@ -242,7 +323,6 @@
       },
       "conversion": {
         "notes": [
-          "Petrifying Bite: \"First Save\" is passive or triggered: not automated",
           "Petrifying Bite: activation: turnEnd is not an action-economy cost"
         ]
       }
