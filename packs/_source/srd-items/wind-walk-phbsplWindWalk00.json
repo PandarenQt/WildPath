@@ -40,6 +40,7 @@
           "id": "effect-1",
           "type": "effect",
           "name": "Cloud Form",
+          "slug": "gaseous",
           "img": "icons/magic/air/weather-clouds.webp",
           "ruleElements": [
             {
@@ -150,8 +151,7 @@
       },
       "conversion": {
         "notes": [
-          "activation: 1 minute is not an action-economy cost",
-          "effect: transformed is not a WildPath condition yet"
+          "activation: 1 minute is not an action-economy cost"
         ]
       }
     }

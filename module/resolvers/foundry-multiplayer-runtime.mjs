@@ -731,6 +731,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // 2024 Wild Shape and Polymorph: a transformed creature can't cast spells. Spells it already cast (their lasting
   // areas, which run as authority Actions) go on.
   if ( !authorityAction && actor.transformation && definition?.tags?.includes("spell") ) return refused("WILDPATH.REFUSAL.Transformed");
+  // 2024 Gaseous Form (and Wind Walk's cloud form): "the target can't attack or cast spells".
+  if ( !authorityAction && actor.statuses?.has?.("gaseous") && (definition?.tags?.includes("spell") || definition?.attack) ) {
+    return refused("WILDPATH.REFUSAL.Gaseous", {name: actor.name ?? ""});
+  }
   // 2024: a spell of 1st level or higher is cast only while prepared.
   if ( !authorityAction && isUnprepared(action) ) return refused("WILDPATH.ITEM.NotPrepared", {name: action.name ?? ""});
   // 2024: a creature wearing armor it isn't trained with can't cast spells.

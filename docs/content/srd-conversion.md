@@ -297,7 +297,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Clone | spells24 | Clone (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 hour is not an action-economy cost |
 | Clothes, Fine | equipment24 | Clothes, Fine (gear) | — |
 | Clothes, Traveler's | equipment24 | Clothes, Traveler's (gear) | — |
-| Cloud Giant | actors24 | Cloud Giant (11 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: effect: transformed is not a WildPath condition yet; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: save: a failure marks its creature only; what it does is by hand; Misty Step: consumption: itemUses 1 not converted |
+| Cloud Giant | actors24 | Cloud Giant (11 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: save: a failure marks its creature only; what it does is by hand; Misty Step: consumption: itemUses 1 not converted |
 | Cloud's Jaunt | origins24 | Cloud's Jaunt (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Cloudkill | spells24 | Cloudkill (automated) | — |
 | Club | equipment24 | Club (automated) | — |
@@ -426,7 +426,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Divine Order: Thaumaturge | classes24 | Divine Order: Thaumaturge (feature) | effect: "Thaumaturge" change system.scale.cleric.cantrips-known.value (add) not converted |
 | Divine Smite | spells24 | Divine Smite (automated), Divine Smite (Undead or Fiend) (automated) | — |
 | Divine Word | spells24 | Divine Word (automated) | — |
-| Djinni | actors24 | Djinni (19 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: effect: transformed is not a WildPath condition yet; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest |
+| Djinni | actors24 | Djinni (19 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest |
 | Dominate Beast | spells24 | Dominate Beast (automated) | — |
 | Dominate Monster | spells24 | Dominate Monster (automated) | — |
 | Dominate Person | spells24 | Dominate Person (automated) | — |
@@ -476,7 +476,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Earthquake | spells24 | Earthquake (Cast) (automated) | save: a failure gives prone (its text); the rest is by hand; "End of Turn Fissures" is passive or triggered: not automated; "Collapsing Structure Save" is passive or triggered: not automated |
 | Ebony Fly | equipment24 | Ebony Fly (gear), Ebony Fly (automated) | — |
 | Efficient Quiver | equipment24 | Efficient Quiver (gear) | — |
-| Efreeti | actors24 | Efreeti (15 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: transformed is not a WildPath condition yet; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Spellcasting: "damage" is passive or triggered: not automated |
+| Efreeti | actors24 | Efreeti (15 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Spellcasting: "damage" is passive or triggered: not automated |
 | Efreeti Bottle | equipment24 | Efreeti Bottle (Remove Stopper) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; "1: Attacks You" is passive or triggered (narrative): not automated; "2—9: Obeys Commands" is passive or triggered (narrative): not automated; "10: Casts Wish" is passive or triggered (narrative): not automated |
 | Eldritch Blast | spells24 | Eldritch Blast (automated) | — |
 | Eldritch Invocations | classes24 | Eldritch Invocations (feature) | — |
@@ -640,7 +640,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Frost Giant | actors24 | Frost Giant (5 items) | — |
 | Frost's Chill | origins24 | Frost's Chill (automated) | — |
 | Gargoyle | actors24 | Gargoyle (4 items) | — |
-| Gaseous Form | spells24 | Gaseous Form (automated) | effect: transformed is not a WildPath condition yet; effect: "Gaseous Form" change img (override) not converted |
+| Gaseous Form | spells24 | Gaseous Form (automated) | effect: "Gaseous Form" change img (override) not converted |
 | Gate | spells24 | Gate (Small Vertical Portal) (manual), Gate (Large Vertical Portal) (manual), Gate (Small Horizontal Portal) (manual), Gate (Large Horizontal Portal) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
 | Gauntlets of Ogre Power | equipment24 | Gauntlets of Ogre Power (gear) | — |
 | Gaze of Two Minds | classes24 | Gaze of Two Minds (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
@@ -1030,7 +1030,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Navigator's Tools | equipment24 | Navigator's Tools (gear), Navigator's Tools (Plot a Course) (automated), Navigator's Tools (Determine Position by Stargazing) (automated) | — |
 | Necklace of Adaptation | equipment24 | Necklace of Adaptation (gear) | — |
 | Necklace of Fireballs | equipment24 | Necklace of Fireballs (gear), Necklace of Fireballs: Fireball (automated) | "Determine Number of Beads" is passive or triggered: not automated |
-| Necklace of Prayer Beads | equipment24 | Necklace of Prayer Beads (gear), Necklace of Prayer Beads: Bless (automated), Necklace of Prayer Beads: Cure Wounds (automated), Necklace of Prayer Beads: Greater Restoration (automated), Necklace of Prayer Beads: Shining Smite (automated), Necklace of Prayer Beads: Guardian of Faith (automated), Necklace of Prayer Beads: Wind Walk (automated) | activation: 1 minute is not an action-economy cost; effect: transformed is not a WildPath condition yet |
+| Necklace of Prayer Beads | equipment24 | Necklace of Prayer Beads (gear), Necklace of Prayer Beads: Bless (automated), Necklace of Prayer Beads: Cure Wounds (automated), Necklace of Prayer Beads: Greater Restoration (automated), Necklace of Prayer Beads: Shining Smite (automated), Necklace of Prayer Beads: Guardian of Faith (automated), Necklace of Prayer Beads: Wind Walk (automated) | activation: 1 minute is not an action-economy cost |
 | Needles | equipment24 | Needles (gear) | — |
 | Net | equipment24 | Net (gear), Net (automated) | save: a failure gives restrained (its text); the rest is by hand |
 | Night Hag | actors24 | Night Hag (18 items) | Coven Magic: not automated (utility, narrative): using it spends its cost; its description says the rest; Coven Magic: activation: 1 minute is not an action-economy cost; Coven Magic: concentration: its caster concentrates; what it sustains is by hand; Coven Magic: activation: 10 minute is not an action-economy cost; Coven Magic: save: a failure marks its creature (narrative); Coven Magic: "Create Sensor" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (save): using it spends its cost; its description says the rest; Spellcasting: save: ? DC (spellcasting) not converted; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Nightmare Haunting: activation: 1 minute is not an action-economy cost |
@@ -1058,7 +1058,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Oil of Slipperiness | equipment24 | Oil of Slipperiness: Freedom of Movement (automated), Oil of Slipperiness: Grease (automated) | activation: 10 minute is not an action-economy cost; effect: "Unrestricted Movement" change system.attributes.movement.ignoredDifficultTerrain (add) not converted; save: a failure gives prone (its text); the rest is by hand |
 | Oil of Taggit | equipment24 | Oil of Taggit (automated) | — |
 | One with Shadows | classes24 | One with Shadows (automated) | — |
-| Oni | actors24 | Oni (11 items) | Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: transformed is not a WildPath condition yet; Spellcasting: effect: "Gaseous Form" change img (override) not converted |
+| Oni | actors24 | Oni (11 items) | Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Gaseous Form" change img (override) not converted |
 | Onyx Dog | equipment24 | Onyx Dog (gear), Onyx Dog (automated) | — |
 | Open Hand Technique | classes24 | Open Hand Technique (Addle) (automated), Open Hand Technique (Push) (automated), Open Hand Technique (Topple) (automated) | rolled (save); what it does is by hand |
 | Orb | equipment24 | Orb (gear) | — |
@@ -1139,7 +1139,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Potion of Climbing | equipment24 | Potion of Climbing (automated) | effect: "Climber" marks its creature only; its rules are by hand |
 | Potion of Diminution | equipment24 | Potion of Diminution: Enlarge/Reduce (automated) | effect: "Reduced" change system.rolls.damage.mwak.bonus (subtract) not converted; effect: "Reduced" change system.rolls.damage.rwak.bonus (subtract) not converted |
 | Potion of Flying | equipment24 | Potion of Flying (automated) | — |
-| Potion of Gaseous Form | equipment24 | Potion of Gaseous Form: Gaseous Form (automated) | effect: transformed is not a WildPath condition yet; effect: "Gaseous Form" change img (override) not converted |
+| Potion of Gaseous Form | equipment24 | Potion of Gaseous Form: Gaseous Form (automated) | effect: "Gaseous Form" change img (override) not converted |
 | Potion of Giant Strength | equipment24 | Potion of Giant Strength (gear) | — |
 | Potion of Giant Strength (Cloud) | equipment24 | Potion of Giant Strength (Cloud) (automated) | — |
 | Potion of Giant Strength (Fire) | equipment24 | Potion of Giant Strength (Fire) (automated) | — |
@@ -1671,7 +1671,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Wild Shape | classes24 | Wild Shape (automated), Wild Shape (Revert) (automated) | — |
 | Will-o'-Wisp | actors24 | Will-o'-Wisp (7 items) | Consume Life: "Wisp: Healing" is passive or triggered: not automated |
 | Wind Fan | equipment24 | Wind Fan (gear), Wind Fan: Gust of Wind (automated) | rolled (save); what it does is by hand; concentration: its caster concentrates; what it sustains is by hand |
-| Wind Walk | spells24 | Wind Walk (automated) | activation: 1 minute is not an action-economy cost; effect: transformed is not a WildPath condition yet |
+| Wind Walk | spells24 | Wind Walk (automated) | activation: 1 minute is not an action-economy cost |
 | Wind Wall | spells24 | Wind Wall (Create Single Wall) (automated), Wind Wall (Create Segmented Wall) (automated) | concentration: its caster concentrates; what it sustains is by hand |
 | Winged Boots | equipment24 | Winged Boots (gear), Winged Boots (automated) | — |
 | Wings of Flying | equipment24 | Wings of Flying (gear), Wings of Flying (automated) | — |

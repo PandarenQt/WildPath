@@ -2114,6 +2114,18 @@ test("an ethereal creature and one that is not can't target each other; two ethe
   assert.equal(both.ok, true, JSON.stringify(both.reason));
 });
 
+test("a creature in Gaseous Form can't attack or cast spells; it can still Dash", async t => {
+  const strike = syntheticRuntimeFixture(t);
+  strike.sourceActor.statuses = new Set(["gaseous"]);
+  const refused = await foundryActionIntentToStagedOptions({intent: strike.intent, senderUserId: "player-a", game: strike.game});
+  assert.equal(refused.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED);
+  assert.match(refused.reason, /REFUSAL.Gaseous|can.t attack or cast/);
+  const dash = syntheticRuntimeFixture(t, {schemaVersion: 1, id: "common:dash", label: "Dash", costs: {allOf: []}, targeting: {type: "self"}});
+  dash.sourceActor.statuses = new Set(["gaseous"]);
+  const dashed = await foundryActionIntentToStagedOptions({intent: dash.intent, senderUserId: "player-a", game: dash.game});
+  assert.notEqual(dashed.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED, JSON.stringify(dashed.reason));
+});
+
 test("a transformed creature can't cast spells, but its other Actions still resolve (2024 Wild Shape)", async t => {
   const spell = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), tags: ["spell"]});
   spell.sourceActor.transformation = {effect: {}, policy: {formRef: "Actor.bear"}};

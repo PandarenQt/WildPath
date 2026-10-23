@@ -3245,7 +3245,10 @@ function convertActivity({document, activity, system, spell, level, scales, note
     // dnd5e applies an effect on a successful save only when it says so (`onSave` defaults to false).
     const onFailure = definition.save && (reference.onSave !== true) ? {saveOutcomePolicy: "failure"} : {};
     // A mark given by hand (its slug) is its own status ("marked", "cursed").
-    if ( !byHand?.slug ) for ( const status of statuses.filter(status => !CONDITION_MAP[status] && (status !== "marked")) ) {
+    // dnd5e's "transformed" on a misty or cloud form (Gaseous Form, Wind Walk): `gaseous`, which can't attack or cast spells.
+    const gaseous = statuses.includes("transformed") && /\b(?:gaseous|cloud form|misty cloud)\b/i.test(plainText(document));
+    if ( !byHand?.slug ) for ( const status of statuses.filter(status => !CONDITION_MAP[status] && (status !== "marked")
+      && !(gaseous && (status === "transformed"))) ) {
       notes.push(`effect: ${status} is not a WildPath condition yet`);
     }
     // As long as its dnd5e effect says ("until the start of its next turn"); none lasts until it is ended.
@@ -3284,7 +3287,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
       const untilNextTurnEnd = nextAttack && /before the end of your next turn/i.test(plainText(document))
         ? {value: 1, units: "rounds", expiry: "turnEnd"} : null;
       const duration = (hand ?? named)?.duration ?? effectDuration(effect.duration) ?? untilNextTurnEnd;
-      const slug = byHand?.slug ?? named?.slug;
+      const slug = byHand?.slug ?? named?.slug ?? (gaseous ? "gaseous" : null);
       effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(slug ? {slug} : {}),
         ...(effect.img ? {img: effect.img} : {}),
         ruleElements: rules, ...(duration ? {duration} : {}), ...(((hand ?? named)?.endsWhen ?? (nextAttack ? "attacked" : null))

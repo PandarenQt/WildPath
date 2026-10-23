@@ -1974,6 +1974,9 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   const sizes = read("enlarge-reduce-phbspl").system.definition.effects.map(effect => effect.ruleElements
     .find(rule => rule.data.domains?.includes("size"))?.data.value);
   assert.deepEqual(sizes, [1, -1], "Enlarged one size larger, Reduced one smaller");
+  const gaseous = read("gaseous-form-phbspl");
+  assert.deepEqual([gaseous.system.definition.effects[0].slug, gaseous.flags.wildpath.conversion.notes.some(note => /transformed/.test(note))],
+    ["gaseous", false], "a misty cloud: it can't attack or cast spells (the runtime's refusal)");
 });
 
 test("size and range limits on offers: Hill's Tumble, Trip and Repelling Blast Large or smaller; Retaliation within 5 ft", async () => {
