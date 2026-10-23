@@ -10,6 +10,11 @@ WildPath plays by the 2024 rules unless your GM sets **Rules** to 2014. Conditio
 - **Ethereal**: you are on the Ethereal Plane. You and creatures that are not can't target each other.
 - **Half, Three-Quarters and Total Cover**: cover you have wherever you stand (inside a creature that swallowed you, for instance). Walls between you and an attacker may give more. A creature with Total Cover can't be targeted directly.
 - **Surprised**: your initiative roll has Disadvantage, and rolling it ends this. Under the 2014 rules you instead can't move or act on your first turn, nor take a Reaction until it ends.
+- **Gaseous** (Gaseous Form, Wind Walk): you are a cloud of mist and can't attack or cast spells.
+- **Suffocating**: you can't breathe. You hold your breath for 1 + your Constitution modifier minutes (at least 3 turns); after that you gain a level of Exhaustion at the end of each of your turns. When you can breathe again, those levels go.
+- **Confused**: at the start of each of your turns, your behavior for that turn is rolled and posted to chat.
+- **Resurrection Sickness**: after Raise Dead, −4 to your D20 Tests; each Long Rest lifts 1.
+- **Enlarged or Reduced**: your Token grows or shrinks one size while it lasts, and goes back afterwards.
 
 ## Contagions
 
