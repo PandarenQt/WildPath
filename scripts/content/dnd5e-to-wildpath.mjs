@@ -2140,6 +2140,8 @@ const NARRATIVE_MARKERS = new Set(["Detect Magic", "Detect Evil and Good", "Dete
   "Hidden from Divination", "Comprehending Languages", "Tongues", "Telepathic Bond", "Scrying",
   // Mind Spike: "you always know the target's location"; Calm Emotions' indifference; Jump's 30-foot jumps.
   "Spiked", "Indifference", "Jump",
+  // Arcanist's Magic Aura's "Masked"; telepathy and speech only.
+  "Masked", "Psychic Whispers", "Telepathically Linked", "Universal Speech",
   // Levitate's hovering (heights are not tracked), Divine Sense, a cloak's water breathing, a changed look, a ring's sight.
   "Levitating", "Divine Sense", "Water Breather", "Changed Appearance", "X-Ray Vision"]);
 
@@ -2768,6 +2770,9 @@ const EFFECTS_BY_NAME = Object.freeze({
     data: {mode: "fly", distance: {type: "context", path: "actorSystem.resources.movement.max"}, hover: true}}]},
   // A Broom of Flying: "a Fly Speed of 50 feet"; 30 feet carrying over 200 pounds. It hovers.
   "Riding Broom (Low Weight)": {ruleElements: [{schemaVersion: 1, id: "broom", type: "GrantMovement", data: {mode: "fly", distance: 50, hover: true}}]},
+  // Prayer of Healing: "a target can't regain Hit Points from it again until it finishes a Long Rest" (dnd5e gives it no
+  // duration). shortcut: refusing the spell on a creature that has it is by hand.
+  "Healed by Prayer": {restsLeft: 1, ruleElements: []},
   "Riding Broom (High Weight)": {ruleElements: [{schemaVersion: 1, id: "broom", type: "GrantMovement", data: {mode: "fly", distance: 30, hover: true}}]}
 });
 
@@ -3415,7 +3420,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const marked = statuses.includes("marked") && !byHand?.slug;
     if ( marked ) rules.push({schemaVersion: 1, id: "marked", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}});
     const nextAttack = marked && /\bnext attack roll[^.]*against/i.test(plainText(document));
-    if ( rules.length || named?.slug ) {
+    if ( rules.length || named?.slug || named?.restsLeft ) {
       // "before the end of your next turn": a round, from its caster's turn (V14 starts it on the source's Combatant).
       const untilNextTurnEnd = nextAttack && /before the end of your next turn/i.test(plainText(document))
         ? {value: 1, units: "rounds", expiry: "turnEnd"} : null;

@@ -49,6 +49,7 @@
           "id": "effect-1",
           "type": "effect",
           "name": "Healed by Prayer",
+          "restsLeft": 1,
           "img": "icons/magic/holy/prayer-hands-glowing-yellow.webp",
           "ruleElements": []
         }
@@ -163,8 +164,7 @@
       },
       "conversion": {
         "notes": [
-          "activation: 10 minute is not an action-economy cost",
-          "effect: \"Healed by Prayer\" marks its creature only; its rules are by hand"
+          "activation: 10 minute is not an action-economy cost"
         ]
       }
     }
