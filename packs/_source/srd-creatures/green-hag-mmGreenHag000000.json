@@ -1052,8 +1052,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: nothing it sustains was converted"
+              "not automated (utility): using it spends its cost; its description says the rest"
             ]
           }
         }
@@ -1482,7 +1481,6 @@
           "Coven Magic: save: a failure marks its creature (narrative)",
           "Coven Magic: \"Create Sensor\" is passive or triggered (narrative): not automated",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: concentration: nothing it sustains was converted",
           "Spellcasting: effect: \"Disguised\" marks its creature (narrative)"
         ]
       }
