@@ -762,13 +762,16 @@ export function actionTags(definition) {
   return [...(definition?.tags ?? []), ...(definition?.attack ? ["attack"] : [])];
 }
 
-/** The first rule (`Forbid`) of a creature's owners that bars an Action with `definition`, or null. */
+/**
+ * The first rule (`Forbid`) of a creature's owners that bars an Action with `definition`, or null. It is named after its
+ * owner (the "Silenced" effect, the armor): a condition's rules carry ids as labels.
+ */
 export function forbiddingRule(owners=[], definition=null, context={}) {
   const tags = actionTags(definition);
   for ( const {ruleElements=[], source=null} of owners ) {
     const forbid = collectRuleElementContributions({ruleElements, context, source}).contributions.forbids
       .find(entry => evaluatePredicate(entry.actions, {tags}).ok);
-    if ( forbid ) return {...forbid, name: forbid.label ?? source?.name ?? null};
+    if ( forbid ) return {...forbid, name: source?.name ?? forbid.label ?? null};
   }
   return null;
 }

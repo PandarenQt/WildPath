@@ -43,7 +43,7 @@ test("Spell Taxed: an effect's Forbid bars its creature's spells, named after th
 
 test("Silenced forbids spells with a Verbal component only", () => {
   const silenced = creature({effects: [effect("Silenced", WILDPATH.CONDITIONS.silenced.ruleElements)]});
-  assert.ok(silenced.forbiddingRule(spell("verbal", "somatic")));
+  assert.equal(silenced.forbiddingRule(spell("verbal", "somatic"))?.name, "Silenced", "named after the effect, not its rule's id label");
   assert.equal(silenced.forbiddingRule(spell("somatic", "material")), null);
   assert.equal(silenced.forbiddingRule(strike), null);
 });
