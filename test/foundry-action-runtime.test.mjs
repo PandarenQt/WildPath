@@ -2167,6 +2167,36 @@ test("an effect's Forbid (Spell Taxed) refuses its creature's spells, saying whi
   assert.equal(struck.ok, true, JSON.stringify(struck.reason));
 });
 
+test("Dispel Magic takes a creature or a lasting spell area within its range, never both and never neither", async t => {
+  const dispel = range => ({schemaVersion: 1, id: "action:dispel", label: "Dispel Magic", tags: ["spell"], costs: {allOf: []},
+    range: {type: "ranged", normal: {value: range, unit: "ft"}}, targeting: {type: "single", required: false, count: 1},
+    ends: {spells: "slot", areas: true}});
+  const use = async (range, changes) => {
+    const fixture = syntheticRuntimeFixture(t, dispel(range));
+    // A lasting Web on the target's space (5 ft away), cast at level 2; a lasting area of no known level beside it.
+    const {footprint} = createFoundryV14TacticalGridAdapter({scene: fixture.scene}).tokenToFootprint(fixture.targetToken);
+    const area = (id, castLevel) => ({id, flags: {wildpath: {area: {label: id, castLevel, topology: footprint.topology, fields: footprint.fields,
+      attached: false, band: {bottom: null, top: null}}}}});
+    fixture.scene.regions = [area("web", 2), area("cloud", null)];
+    return foundryActionIntentToStagedOptions({intent: {...fixture.intent, ...changes}, senderUserId: "player-a", game: fixture.game});
+  };
+  const none = {targetRefs: [], targets: []};
+  const chosen = await use(120, {...none, dispelArea: {regionId: "web"}});
+  assert.equal(chosen.ok, true, JSON.stringify(chosen.reason));
+  assert.deepEqual(chosen.options.dispelArea, {sceneId: "scene-models", regionId: "web"});
+  assert.match((await use(0, {...none, dispelArea: {regionId: "web"}})).reason, /DISPEL.OutOfRange|out of range/, "beyond its range");
+  assert.match((await use(120, {...none, dispelArea: {regionId: "cloud"}})).reason, /DISPEL.OutOfRange|out of range/,
+    "an area of no known spell level is not a spell to dispel");
+  assert.match((await use(120, {dispelArea: {regionId: "web"}})).reason, /DISPEL.OneTarget|one target/, "a creature and an area");
+  assert.match((await use(120, none)).reason, /DISPEL.NoTarget|Target a creature/, "neither");
+  const creature = await use(120, {});
+  assert.equal(creature.ok, true, "a targeted creature, as before");
+  assert.equal(creature.options.dispelArea, undefined);
+  // Found live: the transport only passes intent fields it knows; the Region id crosses it, and nothing else of it.
+  assert.deepEqual(sanitizeActionIntentPayload({intent: {dispelArea: {regionId: "web", sceneId: "elsewhere"}}}).dispelArea, {regionId: "web"});
+  assert.equal(sanitizeActionIntentPayload({intent: {dispelArea: {regionId: 7}}}).dispelArea, undefined);
+});
+
 test("a weapon attack adds the attacker's Might to the attack and its damage; a spell attack's damage adds nothing", async t => {
   const weapon = syntheticRuntimeFixture(t);
   weapon.sourceActor.system.abilities = {might: {value: 16}};

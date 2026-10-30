@@ -431,11 +431,12 @@
             "spellLevel": 3
           },
           "ends": {
-            "spells": "slot"
+            "spells": "slot",
+            "areas": true
           },
           "targeting": {
             "type": "single",
-            "required": true,
+            "required": false,
             "count": 1
           },
           "range": {
@@ -465,7 +466,7 @@
           },
           "conversion": {
             "notes": [
-              "dispel: a lasting area or an object is not a target (by hand)"
+              "dispel: an object is not a target (by hand)"
             ]
           }
         }
@@ -2455,7 +2456,7 @@
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature (narrative)",
-          "Spellcasting: dispel: a lasting area or an object is not a target (by hand)",
+          "Spellcasting: dispel: an object is not a target (by hand)",
           "Spellcasting: teleport: a creature it brings along is moved by hand",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: \"Raise Zombie\" is passive or triggered: not automated",

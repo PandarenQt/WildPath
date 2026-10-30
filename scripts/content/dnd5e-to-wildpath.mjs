@@ -190,10 +190,13 @@ const EFFECT_REACTIONS = Object.freeze({
       range: {type: "self"}, targeting: {type: "self"}, rider: {redirectDamage: {to: "self"}, protects: "target", teleportNextTo: true}}}}]
 });
 
-/** What a spell ends on its target, by identifier: curses (effects tagged "curse"), or spells up to its own level. */
+/**
+ * What a spell ends on its target, by identifier: curses (effects tagged "curse"), or spells up to its own level; with
+ * `areas`, a lasting spell area chosen in place of a creature (Dispel Magic's "magical effect").
+ */
 const ENDS = Object.freeze({
   "remove-curse": {tags: ["curse"]},
-  "dispel-magic": {spells: "slot"}
+  "dispel-magic": {spells: "slot", areas: true}
 });
 
 /**
@@ -1394,10 +1397,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const ending = ENDS[identifierOf(document)];
     if ( ending ) {
       const range = definition.range ?? rangeOf({activity, system, document, attack: null});
-      definition = {...definition, ends: structuredClone(ending), targeting: definition.targeting ?? {type: "single", required: true, count: 1},
+      // One that may end an area has no creature to require: the authority asks for a creature or an area.
+      definition = {...definition, ends: structuredClone(ending),
+        targeting: ending.areas ? {type: "single", required: false, count: 1} : (definition.targeting ?? {type: "single", required: true, count: 1}),
         ...(range ? {range} : {})};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")),
-        ...(ending.spells ? ["dispel: a lasting area or an object is not a target (by hand)"] : []));
+        ...(ending.spells ? ["dispel: an object is not a target (by hand)"] : []));
     }
     // Flurry of Blows: its Bonus Action and Focus Point fill the strikes Martial Arts' Flurry strike spends.
     const flurry = (identifierOf(document) === "monks-focus") && (activity.name === "Flurry of Blows");

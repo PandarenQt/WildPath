@@ -100,6 +100,22 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   deleted.length = 0;
   await endEffectsOnTargets({state: state({tags: ["curse"]})}, {fromUuid, game: {}});
   assert.deepEqual(deleted, ["curse"], "Remove Curse: only curses");
+
+  // A lasting spell area chosen in place of a creature: at or below the slot's level it ends; above it, on the check.
+  const regions = new Map();
+  const area = (id, castLevel) => regions.set(id, {id, uuid: `Scene.s.Region.${id}`, flags: {wildpath: {area: {label: id, castLevel}}},
+    async delete() { regions.delete(id); }});
+  const game = {scenes: {get: id => (id === "s" ? {regions} : null)}};
+  const dispelling = (regionId, total) => endEffectsOnTargets({options: {actor: caster(total), dispelArea: {sceneId: "s", regionId}},
+    state: {...state({spells: "slot", areas: true}), targets: []}}, {fromUuid, game});
+  area("web", 2);
+  await dispelling("web", 1);
+  assert.equal(regions.has("web"), false, "Web at level 2: ended, no check");
+  area("wall", 4);
+  await dispelling("wall", 13);
+  assert.equal(regions.has("wall"), true, "Wall of Fire at level 4 stays on a 13");
+  await dispelling("wall", 14);
+  assert.equal(regions.has("wall"), false, "and ends on a 14");
   delete globalThis.ChatMessage;
 });
 

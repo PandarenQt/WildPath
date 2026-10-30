@@ -1358,11 +1358,12 @@
             "spellLevel": 3
           },
           "ends": {
-            "spells": "slot"
+            "spells": "slot",
+            "areas": true
           },
           "targeting": {
             "type": "single",
-            "required": true,
+            "required": false,
             "count": 1
           },
           "range": {
@@ -1407,7 +1408,7 @@
           },
           "conversion": {
             "notes": [
-              "dispel: a lasting area or an object is not a target (by hand)"
+              "dispel: an object is not a target (by hand)"
             ]
           }
         }
@@ -2221,7 +2222,7 @@
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
-          "Divine Aid: dispel: a lasting area or an object is not a target (by hand)"
+          "Divine Aid: dispel: an object is not a target (by hand)"
         ]
       }
     }

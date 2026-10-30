@@ -1,5 +1,5 @@
 import { createFoundryV14TacticalGridAdapter, foundryOffsetToGridField, gridFieldToFoundryCenterPoint, gridFieldToFoundryOffset } from "./foundry-v14-tactical-grid-adapter.mjs";
-import { createReachFootprint, fieldKey } from "../helpers/grid-footprints.mjs";
+import { createReachFootprint, fieldKey, footprintDistance } from "../helpers/grid-footprints.mjs";
 import { AREA_SHAPES } from "../helpers/tactical-areas.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
 import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
@@ -113,6 +113,19 @@ export function sceneAreas(scene) {
 export function ownArea(scene, { of, actorRef }) {
     return sceneAreas(scene).find(({ flag }) => (flag.actionDefinitionId === of) && (flag.sourceActorRef === actorRef)) ?? null;
 }
+/**
+ * The lasting areas of spells (their cast level known) that reach within `feet` of a Token's space: what Dispel Magic
+ * can choose as its "magical effect". Measured as targets are, between the nearest spaces.
+ */
+export function spellAreasWithin(token, feet) {
+    const scene = token.parent;
+    const footprint = createFoundryV14TacticalGridAdapter({ scene }).tokenToFootprint(token);
+    if (!footprint.ok || !footprint.footprint)
+        return [];
+    const grid = Number(scene.grid.distance) || 5;
+    return sceneAreas(scene).filter(({ flag }) => Number.isFinite(flag.castLevel ?? NaN) && (areaFields(flag, scene).length > 0)
+        && ((footprintDistance(footprint.footprint, { topology: flag.topology, fields: areaFields(flag, scene) }) * grid) <= feet));
+}
 /** Where a placed area's fields are centered, in canvas coordinates; null with no fields. */
 export function areaFieldsCenter(fields, scene) {
     return areaCenter({ fields }, scene);
@@ -152,7 +165,10 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const data = persistentAreaRegionData({ placement, sourceToken: token, combat: game.combat ?? null, color: game.user.color });
         const flag = data.flags.wildpath.area;
         const persistence = (placement.definition.area?.persistence ?? {});
-        flag.castLevel = state?.configuration?.castingLevel ?? flag.persistence.light?.spellLevel ?? null;
+        // A spell's, so Dispel Magic can end it: the level it was cast at, else its own.
+        const spellLevel = Number(placement.definition.metadata?.spellLevel);
+        flag.castLevel = state?.configuration?.castingLevel ?? flag.persistence.light?.spellLevel
+            ?? (Number.isFinite(spellLevel) ? spellLevel : null);
         // Cast on an object (Daylight, Darkness): the area surrounds the Token at its center and goes where it goes.
         const chosen = persistence.onObject && (state?.configuration?.choices ?? []).some(choice => (choice.id === persistence.onObject)
             && (choice.value === true));

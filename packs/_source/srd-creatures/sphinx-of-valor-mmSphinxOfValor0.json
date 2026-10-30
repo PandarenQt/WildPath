@@ -954,11 +954,12 @@
             "spellLevel": 3
           },
           "ends": {
-            "spells": "slot"
+            "spells": "slot",
+            "areas": true
           },
           "targeting": {
             "type": "single",
-            "required": true,
+            "required": false,
             "count": 1
           },
           "range": {
@@ -1003,7 +1004,7 @@
           },
           "conversion": {
             "notes": [
-              "dispel: a lasting area or an object is not a target (by hand)"
+              "dispel: an object is not a target (by hand)"
             ]
           }
         }
@@ -1646,7 +1647,7 @@
         "notes": [
           "Spellcasting: effect: \"Detect Evil and Good\" marks its creature (narrative)",
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: dispel: a lasting area or an object is not a target (by hand)",
+          "Spellcasting: dispel: an object is not a target (by hand)",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: consumption: itemUses -12 not converted",

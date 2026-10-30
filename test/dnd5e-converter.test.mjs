@@ -1538,7 +1538,8 @@ test("Command's five commands and Bestow Curse's curses: chosen when used, appli
   const dispel = spell("testDispelMagic1", "dispel-magic", "Dispel Magic", {a: activity("utility")}, [], {level: 3, range: {value: "120", units: "ft"}});
   const [removing, dispelling] = [remove, dispel].map(document => convertItem(document).items[0].system.definition);
   assert.deepEqual([removing.ends, removing.targeting.count, removing.metadata.spellLevel], [{tags: ["curse"]}, 1, 3]);
-  assert.deepEqual([dispelling.ends, dispelling.range.normal.value], [{spells: "slot"}, 120]);
+  assert.deepEqual([dispelling.ends, dispelling.range.normal.value, dispelling.targeting.required], [{spells: "slot", areas: true}, 120, false],
+    "a creature or a lasting area: the authority requires one of them");
   assert.equal(validateActionDefinition(dispelling).ok, true);
 });
 

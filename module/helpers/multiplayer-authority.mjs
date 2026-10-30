@@ -205,6 +205,10 @@ export function sanitizeActionIntentPayload(payload={}) {
   if ( Number.isFinite(Number(intent.teleport?.point?.x)) && Number.isFinite(Number(intent.teleport?.point?.y)) ) {
     projected.teleport = {point: {x: Number(intent.teleport.point.x), y: Number(intent.teleport.point.y)}};
   }
+  // The lasting area Dispel Magic ends in place of a creature: one Region id, which the authority checks again.
+  if ( (typeof intent.dispelArea?.regionId === "string") && intent.dispelArea.regionId ) {
+    projected.dispelArea = {regionId: intent.dispelArea.regionId.slice(0, 64)};
+  }
   // Where a summon's creatures appear: one canvas point each, which the authority checks again.
   if ( Array.isArray(intent.summon?.points) ) projected.summon = {points: intent.summon.points.slice(0, 20)
     .map(point => ({x: Number(point?.x), y: Number(point?.y)}))

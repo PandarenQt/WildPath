@@ -433,6 +433,14 @@
       "OffScene": "That space is off the scene.",
       "NoToken": "Place your Token on this scene to teleport."
     },
+    "DISPEL": {
+      "Choose": "{name}: which lasting area?",
+      "Option": "{label} (level {level})",
+      "NoTarget": "Target a creature, or choose a lasting spell area within range.",
+      "NoArea": "No lasting spell area is within range. Target a creature instead.",
+      "OutOfRange": "That area is out of range.",
+      "OneTarget": "Choose one target: a creature or an area."
+    },
     "MASTERY": {
       "cleave": "Cleave",
       "graze": "Graze",

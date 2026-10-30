@@ -440,12 +440,25 @@ mechanical resolver payload.
   dnd5e's `cursed` status became (Bestow Curse, a lycanthrope's bite) and Hex.
 - `{spells: "slot"}` or a level: spells up to that level (Dispel Magic, the level it is cast at). A spell's effects carry
   `metadata.spellLevel`, the slot it was cast with (else the spell's own level, from the definition's
-  `metadata.spellLevel`). One above the limit is named in a GM-only chat line: ending it needs the caster's check (DC
-  10 + its level), by hand.
+  `metadata.spellLevel`).
+- `areas: true` (2026-10-31): a lasting spell area may be its target in place of a creature (2024 Dispel Magic's
+  "magical effect"). Its targeting then requires no creature; the authority requires one target, a creature or an area.
 
 For a spell above the level it was cast at, its caster makes an ability check with its spellcasting ability against DC
 10 + that spell's level (2026-10-21), rolled as a sheet check (its bonuses and the table's dice policy); the spell ends
-on a success, and the GM is told which ended and which stayed. Shortcut: lasting areas and objects are not targets.
+on a success, and the GM is told which ended and which stayed.
+
+**A lasting area as its target (2026-10-31).** With no creature targeted, `Item#use` lists the lasting spell areas
+within the Action's range (`spellAreasWithin`: measured between the nearest spaces, as targets are) and its player
+picks one. The intent carries `dispelArea: {regionId}`.
+- The authority finds the Region again within range from the caster's own Token, and refuses a Region out of range,
+  one with no known spell level, a creature and an area together, or neither.
+- Once the Action completes, `endEffectsOnTargets` deletes the Region (`options.dispelArea`) if it was cast at the limit
+  or lower. Above it, the same check decides.
+- A lasting area records `castLevel` when it is placed: the slot it was cast with, else its light's level (Daylight,
+  Darkness), else the definition's `metadata.spellLevel`. An area with none is not a spell, and can't be chosen.
+- Shortcut: an object is not a target yet (the converter notes it). The owner decided on 2026-10-30 that dispelling
+  an object asks for a check; the exact rule is to be confirmed.
 
 Live (two browsers, 2026-10-19): QA Caster cursed the Bandit Captain (Curse Attacks, tagged `curse`) and then cast Remove
 Curse on it: the curse ended. It blessed QA Fighter and then cast Dispel Magic on it: Blessed ended.

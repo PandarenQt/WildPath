@@ -19,7 +19,7 @@ import {createFoundryV14ChatCardAdapter} from "../adapters/foundry-v14-chat-card
 import {createFoundryReactionProvider} from "../adapters/foundry-v14-reaction-provider.mjs";
 import {foundryActionReactionServices} from "../adapters/foundry-v14-reaction-services.mjs";
 import {foundryAreaFootprint, foundryAreaTargetTokens} from "../adapters/foundry-v14-area-placement.mjs";
-import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
+import {areaFieldsCenter, createFoundryPersistentAreas, ownArea, spellAreasWithin, turnKey} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {combatTurnKey, requiresContext} from "../helpers/combat.mjs";
 import {createFoundryTeleports, teleportDestination} from "../adapters/foundry-v14-teleport.mjs";
 import {alliedTokens, allyDistance, allyNearTarget, createFoundryAuras, effectGiver, helpedByAlly} from "../adapters/foundry-v14-auras.mjs";
@@ -780,6 +780,15 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const landing = definition?.teleport ? teleportDestination({token: sourceToken ?? null, point: intent.teleport?.point ?? {x: NaN, y: NaN},
     distance: Number(definition.teleport.distance) || 0}) : null;
   if ( landing && !landing.ok ) return refused(`WILDPATH.TELEPORT.${landing.code}`);
+  // Dispel Magic's "magical effect": a lasting spell area chosen in place of a creature, checked to be within its range.
+  // It takes one target, a creature or an area.
+  const dispelling = definition?.ends?.areas === true;
+  const declaredAny = normalizeArray(intent.targetRefs ?? intent.targets).length > 0;
+  const dispelArea = (dispelling && intent.dispelArea && sourceToken) ? (spellAreasWithin(sourceToken,
+    Number(definition.range?.normal?.value ?? definition.range?.distance?.value) || 0).find(({region}) => region.id === String(intent.dispelArea.regionId ?? "")) ?? null) : null;
+  if ( dispelling && intent.dispelArea && !dispelArea ) return refused("WILDPATH.DISPEL.OutOfRange");
+  if ( dispelArea && declaredAny ) return refused("WILDPATH.DISPEL.OneTarget");
+  if ( dispelling && !dispelArea && !declaredAny ) return refused("WILDPATH.DISPEL.NoTarget");
   // A Wild Shape form beyond its druid's level is refused before anything is paid.
   if ( definition?.transform?.limits ) {
     const formRef = chosenFormRef(definition.transform, intent.configuration?.choices);
@@ -1043,6 +1052,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       ...(area.persistentArea ? {persistentArea: area.persistentArea} : {}),
       ...(areaMove ? {areaMove: areaMove.move} : {}),
       ...(landing?.ok ? {teleport: {sceneId: sourceToken.parent.id, tokenId: sourceToken.id, ...landing.position}} : {}),
+      ...(dispelArea ? {dispelArea: {sceneId: sourceToken.parent.id, regionId: dispelArea.region.id}} : {}),
       // A new concentration ends the caster's earlier one once it completes: what it sustains now, by uuid.
       ...(startsConcentration(definition) ? {endsConcentration: sustainedEffects(actor, game).map(({effect}) => effect.uuid)} : {}),
       ...(controller.actor ? {controller: {actorRef: controller.actor.uuid, actorSystem: controllerSystem}} : {}),
@@ -1097,8 +1107,8 @@ export function redirectCandidates(scene, game, targetActors, {tokenIds=null, ar
  * spells up to the level it was cast at). For a spell above that level its caster makes an ability check with its
  * spellcasting ability, DC 10 + that spell's level (2024 Dispel Magic), rolled as a sheet check (its bonuses, the
  * table's dice policy), and the spell ends on a success; the GM is told which ended and which stayed. Returns the ids it
- * deleted, by target.
- * shortcut: a lasting area or an object is not a target; upgrade when areas can be targeted.
+ * deleted, by target. A lasting spell area chosen in its place (`options.dispelArea`) ends the same way, by the level
+ * it was cast at.
  */
 export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalThis.fromUuid, game=globalThis.game}={}) {
   const ends = state?.actionDefinition?.ends;
@@ -1110,6 +1120,15 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
   const scene = source?.parent ?? null;
   const ended = {};
   const beyond = [];
+  // Its caster's check for a spell above the level it was cast at: DC 10 + that spell's level.
+  const caster = options?.actor ?? null;
+  const ability = caster?.system?.spellcasting?.ability || null;
+  const check = async entry => {
+    const total = (ability && (typeof caster?.rollTest === "function")) ? await caster.rollTest({ability}) : null;
+    entry.total = total;
+    entry.ended = Number.isFinite(Number(total)) && (Number(total) >= (10 + entry.level));
+    return entry.ended;
+  };
   const targets = state.targets?.length ? state.targets
     : (state.results?.targetResolution?.targetContexts ?? []).map(context => context?.target?.target ?? context?.target);
   for ( const target of targets ) {
@@ -1125,17 +1144,22 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
         else beyond.push({actor, effect, level});
       }
     }
-    // Above the level it was cast at: its caster's check for each, DC 10 + that spell's level.
-    const caster = options?.actor ?? null;
-    const ability = caster?.system?.spellcasting?.ability || null;
-    for ( const entry of beyond.filter(entry => entry.actor === actor) ) {
-      const total = (ability && (typeof caster?.rollTest === "function")) ? await caster.rollTest({ability}) : null;
-      entry.total = total;
-      entry.ended = Number.isFinite(Number(total)) && (Number(total) >= (10 + entry.level));
-      if ( entry.ended ) ids.push(entry.effect.id);
-    }
+    // Above the level it was cast at: its caster's check for each.
+    for ( const entry of beyond.filter(entry => entry.actor === actor) ) if ( await check(entry) ) ids.push(entry.effect.id);
     if ( ids.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", ids);
     ended[actor.uuid] = ids;
+  }
+  const region = options?.dispelArea ? game?.scenes?.get?.(options.dispelArea.sceneId)?.regions?.get?.(options.dispelArea.regionId) : null;
+  const area = region?.flags?.wildpath?.area ?? null;
+  if ( area && Number.isFinite(Number(area.castLevel)) ) {
+    const level = Number(area.castLevel);
+    const entry = {effect: {name: area.label}, level};
+    const within = Number.isFinite(limit) && (level <= limit);
+    if ( !within ) beyond.push(entry);
+    if ( within || await check(entry) ) {
+      await region.delete();
+      ended[region.uuid] = [region.id];
+    }
   }
   const line = entry => game?.i18n?.format?.(entry.ended ? "WILDPATH.NOTIFY.DispelEnded" : "WILDPATH.NOTIFY.DispelStayed",
     {name: entry.effect.name ?? "", level: entry.level, dc: 10 + entry.level, total: entry.total ?? "-"}) ?? entry.effect.name;

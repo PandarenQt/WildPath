@@ -2,7 +2,7 @@ import {buildFoundryActionUseIntent} from "../resolvers/foundry-multiplayer-runt
 import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
 import {placeFoundryArea, placeFoundrySummons, placeFoundryTeleport} from "../applications/area-placement.mjs";
 import {areaClickCount} from "../adapters/foundry-v14-area-placement.mjs";
-import {ownArea} from "../adapters/foundry-v14-persistent-areas.mjs";
+import {ownArea, spellAreasWithin} from "../adapters/foundry-v14-persistent-areas.mjs";
 import {promptActionConfiguration} from "../adapters/foundry-v14-prompt-adapter.mjs";
 import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-adapter.mjs";
 import {isUnprepared} from "../helpers/spellcasting.mjs";
@@ -23,6 +23,25 @@ async function chooseTestSkill(actor, skills, name) {
   const answer = await foundry.applications.api.DialogV2.input({classes: ["wildpath", "themed", "theme-light"], window: {title: game.i18n.format("WILDPATH.COMMON.ChooseSkill", {name})},
     content: `<select name="skill">${options}</select>`, ok: {label: game.i18n.localize("WILDPATH.PROMPT.Confirm")}, rejectClose: false});
   return skills.includes(answer?.skill) ? answer.skill : null;
+}
+
+/**
+ * Dispel Magic with no creature targeted: the lasting spell area its user picks among those within `feet` of its Token
+ * (2024: "a magical effect"), as `{sceneId, regionId}`; null when there is none or it is cancelled.
+ */
+async function chooseDispelArea(sourceToken, feet, name) {
+  const areas = sourceToken ? spellAreasWithin(sourceToken, feet) : [];
+  if ( !areas.length ) {
+    ui.notifications.warn(game.i18n.localize("WILDPATH.DISPEL.NoArea"));
+    return null;
+  }
+  const options = areas.map(({region, flag}) => `<option value="${region.id}">${foundry.utils.escapeHTML(game.i18n.format("WILDPATH.DISPEL.Option",
+    {label: flag.label, level: flag.castLevel}))}</option>`).join("");
+  const answer = await foundry.applications.api.DialogV2.input({classes: ["wildpath", "themed", "theme-light"],
+    window: {title: game.i18n.format("WILDPATH.DISPEL.Choose", {name})}, content: `<select name="regionId">${options}</select>`,
+    ok: {label: game.i18n.localize("WILDPATH.PROMPT.Confirm")}, rejectClose: false});
+  const chosen = areas.find(({region}) => region.id === answer?.regionId);
+  return chosen ? {sceneId: sourceToken.parent.id, regionId: chosen.region.id} : null;
 }
 
 /** Item types whose changes rebuild their creature's class records (G8). */
@@ -227,6 +246,15 @@ export default class WildPathItem extends Item {
       const area = areaClickCount(placing) ? await placeFoundryArea({definition: placing, sourceToken}) : {points: []};
       if ( !area ) return false;
       built.intent.area = area;
+      built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};
+    }
+    // Dispel Magic with no creature targeted ends a lasting spell area instead, chosen from those within its range.
+    if ( definition.ok && definition.definition?.ends?.areas && !(globalThis.game?.user?.targets?.size) ) {
+      const sourceToken = this.actor.token ?? this.actor.getActiveTokens?.(false, true)?.[0] ?? null;
+      const range = definition.definition.range;
+      const chosen = await chooseDispelArea(sourceToken, Number(range?.normal?.value ?? range?.distance?.value) || 0, this.name);
+      if ( !chosen ) return false;
+      built.intent.dispelArea = chosen;
       built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};
     }
     // A teleport lands where its creature's player clicks (Misty Step).

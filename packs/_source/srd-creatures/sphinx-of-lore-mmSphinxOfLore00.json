@@ -785,11 +785,12 @@
             "spellLevel": 3
           },
           "ends": {
-            "spells": "slot"
+            "spells": "slot",
+            "areas": true
           },
           "targeting": {
             "type": "single",
-            "required": true,
+            "required": false,
             "count": 1
           },
           "range": {
@@ -834,7 +835,7 @@
           },
           "conversion": {
             "notes": [
-              "dispel: a lasting area or an object is not a target (by hand)"
+              "dispel: an object is not a target (by hand)"
             ]
           }
         }
@@ -1520,7 +1521,7 @@
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
-          "Spellcasting: dispel: a lasting area or an object is not a target (by hand)",
+          "Spellcasting: dispel: an object is not a target (by hand)",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
