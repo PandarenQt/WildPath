@@ -48,6 +48,14 @@ test("the release examples are rows: Rage damage, a once-per-turn rider, an AC a
   assert.equal(raging.contributions.extraDamage[0].once, "turn");
 });
 
+test("an extra damage row's Less damage switch makes it a penalty (Reduce), and back", () => {
+  const less = submit([defaultRule("extraDamage", "a")], {0: {lessDamage: true, oncePerTurn: false}}).ruleElements;
+  assert.equal(less[0].data.subtract, true);
+  assert.equal(rulesToRows(less)[0].lessDamage, true);
+  assert.deepEqual(ruleGaps(less), [], "the rows can rebuild it");
+  assert.equal("subtract" in submit(less, {0: {lessDamage: false}}).ruleElements[0].data, false);
+});
+
 test("a changed field is written into the rule's data; what the row does not show survives", () => {
   const stored = [{id: "ward", type: "Modifier", label: "Ward", priority: 50, domains: ["defense.ac"], value: 1, metadata: {note: "kept"}}];
   const result = submit(stored, {0: {amount: "3"}});

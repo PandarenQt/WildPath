@@ -1930,6 +1930,7 @@ function createComponentRollStage({id, kind, rollType, request}) {
           const empowered = (kind === "damage") ? empoweredReroll(current, input, values, id) : null;
           if ( empowered?.wait || empowered?.fail ) return empowered.wait ?? empowered.fail;
           if ( empowered?.values ) ({values, state: current} = empowered);
+          if ( kind === "damage" ) values = lessPenaltyDamage(values);
           return continueResolutionStage({state: updateResolutionState(current, {input: {...input, [kind]: values}})});
         }
         const requestId = requestIdFor(current, index ? `${request}:${index}` : request);
@@ -1985,7 +1986,9 @@ function createComponentRollStage({id, kind, rollType, request}) {
 function empoweredReroll(state, input, values, stageId) {
   const count = Number(state.actionDefinition?.metadata?.empowered) || 0;
   if ( !count || (values?.empowered === "done") ) return null;
-  const picked = normalizeArray(values?.components).flatMap((component, i) => normalizeArray(component?.dice?.results)
+  // A penalty's dice (Reduce's 1d4 less) are not the spell's damage dice.
+  const picked = normalizeArray(values?.components).flatMap((component, i) => (component?.metadata?.subtract ? []
+    : normalizeArray(component?.dice?.results))
     .map((value, j) => ({i, j, value: Number(value), faces: Number(component.dice.faces)})))
     .filter(entry => (entry.faces > 0) && (entry.value < ((entry.faces + 1) / 2)))
     .sort((a, b) => ((a.value - ((a.faces + 1) / 2)) - (b.value - ((b.faces + 1) / 2)))).slice(0, count);
@@ -2916,8 +2919,9 @@ function componentRollRequestForState(state, input, {kind, rollType, requestId, 
   const component = values.components[index];
   // 2024: a critical hit rolls the attack's damage dice twice (flat modifiers once).
   // A reaction's damage added to its creature's own critical hit (2014 Divine Smite) is marked `damage.critical`.
-  const critical = (kind === "damage") && ((state.results?.attackResolution?.hits ?? []).some(hit => hit.outcome === "criticalHit")
-    || (input.damage?.critical === true));
+  // A penalty's dice (Reduce's 1d4 less) are not the attack's damage dice, so they are rolled once.
+  const critical = (kind === "damage") && !component.metadata?.subtract
+    && ((state.results?.attackResolution?.hits ?? []).some(hit => hit.outcome === "criticalHit") || (input.damage?.critical === true));
   const rolled = !critical ? component : {...component,
     ...(component.dice ? {dice: {...component.dice, number: (Number(component.dice.number) || 1) * 2}} : {}),
     ...(component.expression ? {expression: withDoubledDice(component.expression)} : {})};
@@ -3339,6 +3343,27 @@ function lessRolledDamage(components, penalty) {
     left -= taken;
     return {...component, amount: amount - taken};
   });
+}
+
+/**
+ * Penalty dice (`metadata.subtract`: Reduce's 1d4 less damage), once rolled, come off the other components in order, down
+ * to the largest `metadata.minimum` among them (Reduce's 1). A penalty taken is 0 and keeps its roll as
+ * `metadata.subtracted`, so this runs once.
+ */
+function lessPenaltyDamage(values) {
+  const components = normalizeArray(values?.components);
+  const isPenalty = component => component?.metadata?.subtract === true;
+  const rolled = components.filter(component => isPenalty(component) && (Number(component.amount) > 0));
+  if ( !rolled.length ) return values;
+  const dealt = components.filter(component => !isPenalty(component));
+  const total = dealt.reduce((sum, component) => sum + (Number(component.amount) || 0), 0);
+  const floor = Math.max(...rolled.map(component => Number(component.metadata.minimum) || 0));
+  const penalty = Math.min(rolled.reduce((sum, component) => sum + Number(component.amount), 0), Math.max(total - floor, 0));
+  const lessened = lessRolledDamage(dealt, penalty);
+  let next = 0;
+  return {...values, components: components.map(component => (!isPenalty(component) ? lessened[next++]
+    : ((Number(component.amount) > 0) ? {...component, amount: 0, metadata: {...component.metadata, subtracted: Number(component.amount)}}
+      : component)))};
 }
 
 function riderPatch(state, rider, {window, childState}) {

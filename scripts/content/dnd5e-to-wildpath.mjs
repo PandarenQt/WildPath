@@ -1526,7 +1526,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     allNotes.push(...notes);
   }
   // What it gives while it is had (worn, for gear): its passive effects' rules.
-  const passive = [...passiveEffects(document).flatMap(effect => effectRules(effect, allNotes, {scales})), ...emptyPassiveRules(document, allNotes)];
+  const passive = [...passiveEffects(document).flatMap(effect => effectRules(effect, allNotes, {scales, text: plainText(document)})), ...emptyPassiveRules(document, allNotes)];
   // Equipment is gear its owner equips (G7): armor's AC, and its passive effects. A potion or scroll is only its Actions.
   if ( GEAR_TYPES.has(document.type) && !((document.type === "consumable") && items.length) ) {
     const gearId = items.some(item => item._id === document._id) ? stableId(`${document._id}:gear`) : document._id;
@@ -3464,7 +3464,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     }
     // Its changes, else the rules its name gives when none of them converts (Barkskin's `ac.min`: an AC floor).
     const changeNotes = [];
-    const converted = hand?.ruleElements ?? (effect ? effectRules(effect, changeNotes, {scales}) : []);
+    const converted = hand?.ruleElements ?? (effect ? effectRules(effect, changeNotes, {scales, text: plainText(document)}) : []);
     const named = (!hand && !converted.length && effect) ? ((effect.name === "Lingering Acid") ? lingeringAcid(document)
       : (EFFECTS_BY_NAME[effect.name] ?? null)) : null;
     if ( !named ) notes.push(...changeNotes);
@@ -4188,6 +4188,8 @@ function traitRules(system, notes) {
 /** V11-era numeric change modes, as V14's change types. */
 const CHANGE_MODES = Object.freeze({0: "custom", 1: "multiply", 2: "add", 3: "downgrade", 4: "upgrade", 5: "override"});
 /** dnd5e's attack bonus keys: the attack domain, and the attack type a predicate narrows it to. */
+// A damage bonus on one kind of attack: dnd5e's `bonuses.mwak.damage`, or 2024's `rolls.damage.mwak.bonus`.
+const DAMAGE_BONUS_KEY = /^system\.(?:bonuses\.(mwak|rwak|msak|rsak)\.damage|rolls\.damage\.(mwak|rwak|msak|rsak)\.bonus)$/;
 const ATTACK_KEYS = Object.freeze({mwak: ["weapon", "melee"], rwak: ["weapon", "ranged"], msak: ["spell", "melee"], rsak: ["spell", "ranged"]});
 const DURATION_UNITS = new Set(["years", "months", "days", "hours", "minutes", "seconds", "rounds", "turns"]);
 const EXPIRY_EVENTS = new Set(["combatStart", "roundStart", "turnStart", "combatEnd", "roundEnd", "turnEnd"]);
@@ -4202,16 +4204,20 @@ export function changeValue(value, {scales={}}={}) {
 }
 
 /**
- * A damage bonus with dice (`1d4[radiant]`, `1d4`) as ExtraDamage data: `{expression, damageType?}`; null for a negative
- * one (Reduce's `- 1d4`) or one that does not parse.
+ * A damage bonus with dice (`1d4[radiant]`, `1d4`) as ExtraDamage data: `{expression, damageType?}`, null for one that
+ * does not parse. A negative one (`- 1d4`), or one `subtract`ed (Reduce's subtract change of `1d4`), is a penalty:
+ * `{expression, subtract: true}`.
  */
-export function extraDamageOf(value) {
-  const text = String(value ?? "").trim();
-  if ( text.startsWith("-") ) return null;
+export function extraDamageOf(value, {subtract=false}={}) {
+  let text = String(value ?? "").trim();
+  if ( text.startsWith("-") ) {
+    text = text.slice(1).trim();
+    subtract = !subtract;
+  }
   const typed = /\[(\w+)\]/u.exec(text)?.[1]?.toLowerCase();
   const expression = formulaExpression(text.replace(/\[\w+\]/gu, "").replace(/^\+\s*/u, ""));
   if ( !expression || (expression.type === "constant") ) return null;
-  return {expression, ...(DAMAGE_TYPES.includes(typed) ? {damageType: typed} : {})};
+  return {expression, ...(DAMAGE_TYPES.includes(typed) ? {damageType: typed} : {}), ...(subtract ? {subtract: true} : {})};
 }
 
 /** An effect's dnd5e duration as a WildPath custom effect's V14 duration, or null when it has none. */
@@ -4224,9 +4230,10 @@ function effectDuration(duration) {
 /**
  * The rules a dnd5e Active Effect's changes become (G3): bonuses as Modifiers (dice ones roll with the d20),
  * advantage and disadvantage as RollModes, damage adjustments, condition immunities, and Speeds. Each change WildPath
- * has no equivalent for is noted, never approximated.
+ * has no equivalent for is noted, never approximated. `text` is its item's: a penalty its text keeps at 1 damage or more
+ * ("this can't reduce the damage below 1", Reduce) says so.
  */
-export function effectRules(effect, notes=[], {scales={}}={}) {
+export function effectRules(effect, notes=[], {scales={}, text=""}={}) {
   const changes = effectChanges(effect);
   const rules = [];
   const base = slugify(effect?.name) || "effect";
@@ -4242,6 +4249,11 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
   const attackChanges = changes.filter(change => /^system\.bonuses\.(mwak|rwak|msak|rsak)\.attack$/.test(change.key));
   const everyAttack = (attackChanges.length === 4) && (new Set(attackChanges.map(change => String(change.value))).size === 1);
   let everyAttackDone = false;
+  // The same penalty in dice on all four is one on every damage roll (Ray of Enfeeblement's "all its damage rolls").
+  const penalties = changes.filter(change => DAMAGE_BONUS_KEY.test(String(change.key ?? ""))
+    && extraDamageOf(change.value, {subtract: (change.type ?? CHANGE_MODES[change.mode]) === "subtract"})?.subtract);
+  const everyDamage = (penalties.length === 4) && (new Set(penalties.map(change => String(change.value))).size === 1);
+  let everyDamageDone = false;
   for ( const change of changes ) {
     const key = String(change.key ?? "");
     const type = change.type ?? CHANGE_MODES[change.mode] ?? "add";
@@ -4260,11 +4272,17 @@ export function effectRules(effect, notes=[], {scales={}}={}) {
       // A flat bonus, or one on a table (Rage's +2 to +4, on Strength-based attacks only).
       modifier([`damage.${ATTACK_KEYS[match[1]][0]}`], value, (effect?.name === "Rage") ? {tagsAll: [ATTACK_KEYS[match[1]][1], "might"]}
         : {tagsAny: [ATTACK_KEYS[match[1]][1]]});
-    } else if ( (match = /^system\.(?:bonuses\.(mwak|rwak|msak|rsak)\.damage|rolls\.damage\.(mwak|rwak|msak|rsak)\.bonus)$/.exec(key))
-      && (type === "add") && extraDamageOf(change.value) ) {
+    } else if ( (match = DAMAGE_BONUS_KEY.exec(key))
+      && ["add", "subtract"].includes(type) && extraDamageOf(change.value, {subtract: type === "subtract"}) ) {
       // Dice on each hit (Divine Favor's 1d4 Radiant, Enlarge's 1d4): extra damage, of its own type or the attack's.
+      // Taken away (Reduce's 1d4 less), the dice come off the hit's damage instead.
       const kind = ATTACK_KEYS[match[1] ?? match[2]];
-      rule("ExtraDamage", {domains: [`damage.${kind[0]}`], ...extraDamageOf(change.value)}, {tagsAny: [kind[1]]});
+      const extra = extraDamageOf(change.value, {subtract: type === "subtract"});
+      const leavesOne = extra.subtract && /can[’']?t reduce (?:the |its )?damage below 1/iu.test(text);
+      const data = {...extra, ...(leavesOne ? {minimum: 1} : {})};
+      if ( !(extra.subtract && everyDamage) ) rule("ExtraDamage", {domains: [`damage.${kind[0]}`], ...data}, {tagsAny: [kind[1]]});
+      else if ( !everyDamageDone ) rule("ExtraDamage", {domains: ["damage"], ...data});
+      everyDamageDone ||= extra.subtract && everyDamage;
     } else if ( (key === "system.traits.size") && ["add", "subtract"].includes(type) && Number.isInteger(number) && number ) {
       // Enlarge/Reduce: sizes larger or smaller; its Tokens grow or shrink while it lasts (foundry-v14-token-size).
       modifier(["size"], {type: "constant", value: (type === "add") ? number : -number});

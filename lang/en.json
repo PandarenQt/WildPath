@@ -663,6 +663,7 @@
       "Maximum": "Maximum",
       "RecoveryLabel": "Recovers",
       "OncePerTurn": "Once per turn",
+      "LessDamage": "Less damage",
       "Hover": "Can hover",
       "Ability": "Ability",
       "ScoreModeLabel": "How it changes",

@@ -86,6 +86,8 @@
                aria-label="{{localize "WILDPATH.BUILDER.Damage.Type"}}">
         <label class="checkbox"><input type="checkbox" name="{{row.name}}.oncePerTurn" {{checked row.oncePerTurn}}>
           {{localize "WILDPATH.RULES.OncePerTurn"}}</label>
+        <label class="checkbox"><input type="checkbox" name="{{row.name}}.lessDamage" {{checked row.lessDamage}}>
+          {{localize "WILDPATH.RULES.LessDamage"}}</label>
       {{/if}}
       {{#if row.isAbilityScore}}
         <select name="{{row.name}}.ability" aria-label="{{localize "WILDPATH.RULES.Ability"}}">

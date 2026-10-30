@@ -117,6 +117,9 @@ test("extra damage rules join a matching attack's damage, and a once-per-turn ru
   assert.equal(actionCombatStatistics(actor, melee, {turn: "c:1:0"}).damage, null, "used this turn");
   assert.equal(actionCombatStatistics(actor, melee, {turn: "c:1:1"}).damage.extraComponents.length, 1, "the next turn it is back");
   assert.equal(actionCombatStatistics(actor, melee, {turn: null}).damage.extraComponents[0].once, undefined, "no limit outside combat");
+  feature.system.ruleElements = [{...sneak, id: "reduced", data: {...sneak.data, once: undefined, subtract: true}}];
+  assert.equal(actionCombatStatistics(actor, melee, {turn: null}).damage.extraComponents[0].metadata.subtract, true,
+    "a penalty (Reduce) is marked on its component");
 });
 
 test("Sneak Attack: a Finesse or ranged weapon, with Advantage or an ally beside the target, deals extra damage of its own type", async () => {

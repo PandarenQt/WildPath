@@ -714,6 +714,8 @@ function grantMovementRuleElement(ruleElement, context) {
  * "+1d6 fire when you hit with a melee attack" is `{domains: ["damage.melee"], expression: 1d6, damageType: "fire"}`.
  * It joins the Action's own damage (one roll, doubled on a critical); `once: "turn"` limits it to once per turn. With
  * `replacesBase` it is instead rolled in place of the weapon's own die when it is larger (a Monk's Martial Arts die).
+ * With `subtract` it is a penalty (Ray of Enfeeblement's 1d8 less damage): rolled with the rest, then taken off it, down to
+ * `minimum` (Reduce's 1; 0 when unset).
  */
 function extraDamageRuleElement(ruleElement) {
   const data = ruleElement.data;
@@ -728,7 +730,9 @@ function extraDamageRuleElement(ruleElement) {
   }
   return success({
     extraDamage: [{id: data.id ?? ruleElement.id, domains, expression: clonePlain(expression), damageType: data.damageType ?? null,
-      once: data.once ?? null, ...(data.replacesBase === true ? {replacesBase: true} : {}), source: ruleElementSource(ruleElement),
+      once: data.once ?? null, ...(data.replacesBase === true ? {replacesBase: true} : {}),
+      ...(data.subtract === true ? {subtract: true, ...(Number(data.minimum) > 0 ? {minimum: Math.trunc(data.minimum)} : {})} : {}),
+      source: ruleElementSource(ruleElement),
       metadata: contributionMetadata(ruleElement, data.metadata)}]
   });
 }

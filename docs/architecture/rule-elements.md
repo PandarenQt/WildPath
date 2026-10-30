@@ -754,6 +754,19 @@ disadvantage".
 - `actor.getExtraDamage(domains, {item, tags})` collects these rules, including the acting Action's own.
   `actionCombatStatistics` adds them for the runtime and for reaction Actions.
 
+**Less damage: a penalty in dice (2026-10-31).** With `subtract: true` the dice are taken off instead (2024 Reduce's
+"1d4 less damage", Ray of Enfeeblement's "subtracts 1d8 from all its damage rolls"). `minimum` is the least damage
+it leaves: Reduce's text says 1; unset is 0.
+- It is rolled as its own component, like any extra damage, so digital and physical dice work the same. It is not
+  the attack's damage dice: a critical hit doesn't double it, and Empowered Spell doesn't reroll it.
+- Once every component is rolled, its total comes off the others in order (the damage roll stage,
+  `lessPenaltyDamage`), down to the largest `minimum` among the penalties. The penalty component is then 0 and keeps
+  its roll as `metadata.subtracted`.
+- The converter maps dnd5e's `subtract` change of dice, or an `add` of `-1d4`, on `rolls.damage.<kind>.bonus` and
+  `bonuses.<kind>.damage`. The same penalty on all four kinds of attack becomes one rule on `damage`: every damage
+  roll. It sets `minimum: 1` when the item's text says the damage can't go below 1.
+- The rule rows show it as the extra damage row's **Less damage** switch. `minimum` has no field there yet.
+
 **On its target: a mark (2026-10-19).** A rule in the `attacked` domain adds damage to attacks against its bearer.
 - An attack on one target collects the target's own `attacked` and `attacked.<type>` extra damage
   (`actionCombatStatistics` with `target`), as reactions' attacks do.

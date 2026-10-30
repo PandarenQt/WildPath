@@ -746,7 +746,19 @@ test("a damage bonus with dice is extra damage on each hit: its own type, or the
     [["ExtraDamage", ["damage.weapon"], "radiant", {tagsAny: ["melee"]}]]);
   const notes = [];
   const reduced = effectRules({name: "Reduced", system: {changes: [{key: "system.bonuses.rwak.damage", value: "- 1d4", type: "add"}]}}, notes);
-  assert.deepEqual([reduced.length, notes.length], [0, 1], "a penalty in dice is left for the GM");
+  assert.deepEqual(reduced.map(rule => [rule.type, rule.data.domains, rule.data.subtract, rule.data.expression.faces]),
+    [["ExtraDamage", ["damage.weapon"], true, 4]], "a penalty in dice is taken off each hit");
+  // dnd5e 2024's Reduce: a subtract change of 1d4 on its weapon damage rolls.
+  const reduce = {name: "Reduced", system: {changes: [{key: "system.rolls.damage.mwak.bonus", value: "1d4", type: "subtract"}]}};
+  const subtracted = effectRules(reduce, notes, {text: "deal 1d4 less damage on a hit (this can't reduce the damage below 1)."});
+  assert.deepEqual(subtracted.map(rule => [rule.data.subtract, rule.data.minimum, rule.predicate]), [[true, 1, {tagsAny: ["melee"]}]]);
+  assert.equal(effectRules(reduce, notes, {text: "it also subtracts 1d8 from all its damage rolls."})[0].data.minimum, undefined,
+    "Ray of Enfeeblement's text sets no minimum");
+  const enfeebled = effectRules({name: "Enervated", system: {changes: ["mwak", "rwak", "msak", "rsak"].map(kind =>
+    ({key: `system.rolls.damage.${kind}.bonus`, value: "1d8", type: "subtract"}))}}, notes);
+  assert.deepEqual(enfeebled.map(rule => [rule.data.domains, rule.predicate]), [[["damage"], undefined]],
+    "on all four kinds of attack: every damage roll");
+  assert.equal(notes.length, 0);
 });
 
 test("spell effects dnd5e leaves empty take their 2024 rules by hand: Blur, even with no effect named", () => {

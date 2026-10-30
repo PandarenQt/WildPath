@@ -896,6 +896,35 @@ test("extra damage is its own roll, doubled on a critical, and a hit records its
   assert.equal(missed.state.mutationPlans.some(entry => entry.type === "sourceUpdate"), false, "a miss uses nothing");
 });
 
+test("a penalty die is rolled once even on a critical, then taken off the hit's damage, down to its minimum", () => {
+  const definition = {schemaVersion: 1, id: "action:dagger", label: "Dagger", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 4}, damageType: "piercing", provenance: "weapon-base"}]};
+  const strike = (id, minimum) => planStagedActionResolution({id, actorSystem: actorSystem(1), action: definitionAction(definition),
+    source: {actorId: "actor-source"}, damage: {extraComponents: [{id: "extra:reduced", expression: {type: "dice", number: 1, faces: 4},
+      damageType: "piercing", provenance: "additional", metadata: {ruleId: "reduced", subtract: true, ...(minimum ? {minimum} : {})}}]},
+    targeting: {required: true, candidates: [{id: "orc", target: target("orc", {defenses: {ac: {value: 12}}}),
+      actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]}});
+  const answer = (result, value) => {
+    const request = result.state.pendingRequests[0];
+    return {formula: rollFormulaForRequest(request.payload.rollRequest).formula,
+      next: resumeStagedActionResolution({state: result.state, response: {resolutionId: result.state.id, requestId: request.id,
+        type: RESOLUTION_REQUEST_TYPES.ROLL, value}})};
+  };
+  const dealt = state => state.input.damage.components.map(component => component.amount);
+  let step = answer(strike("resolution:reduced-crit"), {total: 20, die: 20});
+  step = answer(step.next, {total: 6});
+  assert.equal(step.formula, "2d4", "the dagger's own dice are doubled");
+  step = answer(step.next, {total: 2});
+  assert.equal(step.formula, "1d4", "the penalty's are not");
+  assert.deepEqual(dealt(step.next.state), [4, 0], "6 less 2");
+  assert.equal(step.next.state.input.damage.components[1].metadata.subtracted, 2);
+  const lessFour = (id, minimum) => dealt(answer(answer(answer(strike(id, minimum), {total: 15, die: 15}).next, {total: 2}).next,
+    {total: 4}).next.state);
+  assert.deepEqual(lessFour("resolution:reduced-floor", 1), [1, 0], "Reduce: 2 less 4 is still 1 damage");
+  assert.deepEqual(lessFour("resolution:enfeebled", undefined), [0, 0], "Ray of Enfeeblement: none");
+});
+
 test("a reaction that counters (Counterspell): its target's failed save asks the parent to be cancelled; a success does not", () => {
   const counterspell = {schemaVersion: 1, id: "action:counterspell", label: "Counterspell", costs: {allOf: []}, counters: true,
     targeting: {type: "single", required: true, count: 1}, save: {ability: "fortitude", dc: {value: 15}}};

@@ -156,6 +156,50 @@
             {
               "schemaVersion": 1,
               "id": "reduced-1",
+              "type": "ExtraDamage",
+              "predicate": {
+                "tagsAny": [
+                  "melee"
+                ]
+              },
+              "data": {
+                "domains": [
+                  "damage.weapon"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                },
+                "subtract": true,
+                "minimum": 1
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "reduced-2",
+              "type": "ExtraDamage",
+              "predicate": {
+                "tagsAny": [
+                  "ranged"
+                ]
+              },
+              "data": {
+                "domains": [
+                  "damage.weapon"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 4
+                },
+                "subtract": true,
+                "minimum": 1
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "reduced-3",
               "type": "RollMode",
               "data": {
                 "domains": [
@@ -166,7 +210,7 @@
             },
             {
               "schemaVersion": 1,
-              "id": "reduced-2",
+              "id": "reduced-4",
               "type": "RollMode",
               "data": {
                 "domains": [
@@ -177,7 +221,7 @@
             },
             {
               "schemaVersion": 1,
-              "id": "reduced-3",
+              "id": "reduced-5",
               "type": "Modifier",
               "data": {
                 "domains": [
@@ -330,10 +374,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Reduced\" change system.rolls.damage.mwak.bonus (subtract) not converted",
-          "effect: \"Reduced\" change system.rolls.damage.rwak.bonus (subtract) not converted"
-        ]
+        "notes": []
       }
     }
   }

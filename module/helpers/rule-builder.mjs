@@ -122,6 +122,7 @@ function ruleToRow(rule, abilities) {
         formula: formatFormula(data.expression ?? data.valueExpression) ?? "",
         damageType: typeof data.damageType === "string" ? data.damageType : "",
         oncePerTurn: data.once === "turn",
+        lessDamage: data.subtract === true,
         radius: number(data.radius),
         ability: typeof data.ability === "string" ? data.ability : "",
         scoreMode: data.mode ?? "add",
@@ -150,7 +151,7 @@ const ROW_DATA = {
     sense: ["sense", "range", "value"],
     language: ["language", "range"],
     resource: ["resourceId", "resource", "label", "maximum", "max", "recovery", "current", "emptiesAtTurnStart", "recharge", "regain"],
-    extraDamage: ["domains", "domain", "selector", "expression", "valueExpression", "damageType", "once"],
+    extraDamage: ["domains", "domain", "selector", "expression", "valueExpression", "damageType", "once", "subtract"],
     abilityScore: ["ability", "mode", "value", "maximum"],
     aura: ["radius", "affects", "ruleElements"]
 };
@@ -382,6 +383,8 @@ function writeRule(stored, row, model, field, errors, options, index, siblings) 
                 set("damageType", String(row.damageType ?? "").trim().toLowerCase() || "untyped");
             if (changed("oncePerTurn"))
                 set("once", row.oncePerTurn ? "turn" : undefined);
+            if (changed("lessDamage"))
+                set("subtract", row.lessDamage ? true : undefined);
             break;
         case "abilityScore":
             if (changed("ability") && row.ability)

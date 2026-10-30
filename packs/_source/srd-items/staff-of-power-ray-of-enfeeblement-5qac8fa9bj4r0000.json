@@ -93,6 +93,22 @@
             {
               "schemaVersion": 1,
               "id": "enervated-1",
+              "type": "ExtraDamage",
+              "data": {
+                "domains": [
+                  "damage"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 8
+                },
+                "subtract": true
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "enervated-2",
               "type": "RollMode",
               "data": {
                 "domains": [
@@ -103,7 +119,7 @@
             },
             {
               "schemaVersion": 1,
-              "id": "enervated-2",
+              "id": "enervated-3",
               "type": "RollMode",
               "data": {
                 "domains": [
@@ -213,12 +229,7 @@
         "castBy": "Staff of Power"
       },
       "conversion": {
-        "notes": [
-          "effect: \"Enervated\" change system.bonuses.mwak.damage (add) not converted",
-          "effect: \"Enervated\" change system.bonuses.rwak.damage (add) not converted",
-          "effect: \"Enervated\" change system.bonuses.msak.damage (add) not converted",
-          "effect: \"Enervated\" change system.bonuses.rsak.damage (add) not converted"
-        ]
+        "notes": []
       },
       "price": 40000,
       "rarity": "veryRare"
