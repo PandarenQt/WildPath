@@ -1647,29 +1647,35 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
   const offer = offered ? {...offered, options: (offered.options ?? []).filter(option => !(Number(option.natural) > 0)
     || (Number(option.natural) === natural))} : offered;
   if ( !offer?.options?.length || (offer.own && !failed) ) return {};
-  const choiceId = requestIdFor(state, `${id}:${key}`);
-  const chosen = getResolutionResponse(state, {requestId: choiceId, type: RESOLUTION_REQUEST_TYPES.CHOICE});
-  if ( !chosen ) return {wait: waitResolutionStage({
-    state: updateResolutionState(state, {input}),
-    request: createResolutionRequest({
-      id: choiceId,
-      resolutionId: state.id,
-      stageId,
-      type: RESOLUTION_REQUEST_TYPES.CHOICE,
-      expectedResponseType: "choice",
-      chooser: offer.chooser,
-      // Named users (a Diviner's player, else the GM: Portent), or the chooser's kind.
-      authority: offer.authority ?? {kind: offer.chooser},
-      payload: {id, label: offer.label ?? "WILDPATH.INSPIRATION.Title",
-        options: [...offer.options.map(option => ({value: option.value, label: option.label})),
-          {value: "keep", label: "WILDPATH.INSPIRATION.Keep"}],
-        defaultValue: "keep", targets},
-      metadata: {title: offer.title ?? "WILDPATH.INSPIRATION.Title"}
-    }),
-    reason: "A d20 may be rerolled with Heroic Inspiration."
-  })};
-  const value = chosen.response?.value;
-  const option = offer.options.find(entry => entry.value === (value?.choices?.[id] ?? value));
+  // Each decider is asked in turn, and the first option taken is used: the offer's chooser for its own options, then
+  // each ally for the options it pays for (`option.authority`: its controller, else the GM; owner's decision, 2026-10-30).
+  let option = null;
+  for ( const [round, decider] of offerDeciders(offer).entries() ) {
+    const choiceId = requestIdFor(state, round ? `${id}:${key}:${round}` : `${id}:${key}`);
+    const chosen = getResolutionResponse(state, {requestId: choiceId, type: RESOLUTION_REQUEST_TYPES.CHOICE});
+    if ( !chosen ) return {wait: waitResolutionStage({
+      state: updateResolutionState(state, {input}),
+      request: createResolutionRequest({
+        id: choiceId,
+        resolutionId: state.id,
+        stageId,
+        type: RESOLUTION_REQUEST_TYPES.CHOICE,
+        expectedResponseType: "choice",
+        chooser: decider.chooser,
+        // Named users (a Diviner's player, else the GM: Portent; an ally's), or the chooser's kind.
+        authority: decider.authority ?? {kind: decider.chooser},
+        payload: {id, label: offer.label ?? "WILDPATH.INSPIRATION.Title",
+          options: [...decider.options.map(entry => ({value: entry.value, label: entry.label})),
+            {value: "keep", label: "WILDPATH.INSPIRATION.Keep"}],
+          defaultValue: "keep", targets},
+        metadata: {title: offer.title ?? "WILDPATH.INSPIRATION.Title"}
+      }),
+      reason: "A d20 may be rerolled with Heroic Inspiration."
+    })};
+    const value = chosen.response?.value;
+    option = decider.options.find(entry => entry.value === (value?.choices?.[id] ?? value)) ?? null;
+    if ( option ) break;
+  }
   if ( !option ) return {};
   // Bardic Inspiration adds a die to the roll instead of rolling it again.
   if ( option.addDice ) return addedDie(state, input, {option, key, stageId, rollKind, makeRollRequest, targets, original});
@@ -1721,6 +1727,25 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
     rollResult: {requestId: accepted.request.id, type: `${rollKind}-roll`, semanticType: normalized.result.type, rollRequest: request,
       rollResult: normalized.result, roll, reroll: true, targetKey: key},
     payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null};
+}
+
+/**
+ * Who decides an offer's options, in the order they are asked: its chooser for the options with no `authority` of
+ * their own, then each distinct `option.authority` (an ally's controller) for its options. Deciders with none are left out.
+ */
+function offerDeciders(offer) {
+  const own = {chooser: offer.chooser, authority: offer.authority ?? null, options: []};
+  const others = new Map();
+  for ( const option of offer.options ) {
+    if ( !option.authority ) {
+      own.options.push(option);
+      continue;
+    }
+    const key = JSON.stringify(option.authority);
+    if ( !others.has(key) ) others.set(key, {chooser: option.authority.kind, authority: option.authority, options: []});
+    others.get(key).options.push(option);
+  }
+  return [own, ...others.values()].filter(decider => decider.options.length);
 }
 
 /**

@@ -23,8 +23,8 @@ export function portentDice(actor) {
 export function portentFeature(actor) {
     return [...(actor?.items ?? [])].find((item) => (item.system?.active !== false) && item.flags?.wildpath?.portentDice) ?? null;
 }
-/** Whoever answers for a Diviner: its active players, else the active GM. */
-export function portentAuthority(actor, game) {
+/** Whoever answers for a creature's choice (a Diviner's Portent, an ally's offer): its active players, and the active GM. */
+export function controllerAuthority(actor, game) {
     const players = [...(game.users?.values?.() ?? [])].filter((user) => user.active && !user.isGM && actor.testUserPermission?.(user, "OWNER"))
         .map((user) => user.id);
     return { kind: "specific", userIds: [...players, game.users?.activeGM?.id].filter(Boolean) };
@@ -65,7 +65,7 @@ export function portentOffer(rollerToken, game) {
     if (!holders.length)
         return null;
     const format = (key, data) => game.i18n?.format?.(key, data) ?? key;
-    return { holders: holders.map(({ actor, dice }) => ({ holderRef: actor.uuid, authority: portentAuthority(actor, game),
+    return { holders: holders.map(({ actor, dice }) => ({ holderRef: actor.uuid, authority: controllerAuthority(actor, game),
             label: format("WILDPATH.PORTENT.Offer", { name: actor.name ?? "", roller: rollerToken?.name ?? "" }),
             dice: dice.map(die => ({ ...die, label: format("WILDPATH.PORTENT.Use", { value: die.value }) })) })) };
 }

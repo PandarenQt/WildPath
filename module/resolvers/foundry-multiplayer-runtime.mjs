@@ -2,7 +2,7 @@ import {gmNotice} from "../helpers/gm-notice.mjs";
 import {movementMessage, refusalMessage} from "../helpers/refusal-messages.mjs";
 export {refusalMessage};
 import {createFoundryEnchantments} from "../adapters/foundry-v14-enchantments.mjs";
-import {consumePortents, portentOffer} from "../adapters/foundry-v14-portent.mjs";
+import {consumePortents, controllerAuthority, portentOffer} from "../adapters/foundry-v14-portent.mjs";
 import {WILDPATH} from "../config.mjs";
 import {createFoundryDigitalRollProvider} from "../adapters/foundry-digital-roll-provider.mjs";
 import {createFoundryV14DocumentPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
@@ -1720,7 +1720,10 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
       // Flash of Genius adds its bearer's modifier (`addAbility`) to the roll; Countercharm rerolls it.
       const added = spec.addAbility ? Math.trunc(Number(evaluateValueExpression({type: "ability-modifier", ability: spec.addAbility},
         {actor: bearer, actorSystem: system}).value) || 0) : 0;
+      // Its bearer decides (its player, else the GM): its resource and Reaction (owner's decision, 2026-10-30).
+      const deciders = (token.id !== saverToken.id) ? controllerAuthority(bearer, game) : null;
       options.push({value: `ally-offer:${bearer.uuid}:${item.id}`, payerRef: bearer.uuid, plan: payment.mutationPlan,
+        ...(deciders ? {authority: deciders.userIds.length ? deciders : {kind: ROLL_AUTHORITY.GM}} : {}),
         ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), ...(spec.addAbility ? {addFlat: added} : {}),
         // Only when the d20 shows this number (Bountiful Luck's 1).
         ...(Number(spec.natural) > 0 ? {natural: Number(spec.natural)} : {}),

@@ -180,6 +180,36 @@ test("Countercharm: an ally's reroll of a failed save rolls with Advantage, and 
   assert.equal(state.mutationPlans.some(entry => entry.conditionId === "charmed"), false);
 });
 
+test("an ally's offer is its own controller's to decide, asked after the saver's own options are kept", () => {
+  const charm = {schemaVersion: 1, id: "action:charm", label: "Charm", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    save: {ability: "wits", dc: {value: 13}}, effects: [{id: "effect-1", type: "condition", conditionId: "charmed", saveOutcomePolicy: "failure"}]};
+  const plan = {ok: true, updates: {}, payments: []};
+  const bard = {kind: "specific", userIds: ["player-b"]};
+  const offer = {own: true, chooser: "target-controller", label: "x", options: [
+    {value: "heroic", payerRef: "Actor.fighter", plan, label: "Heroic Inspiration"},
+    {value: "ally-offer:Actor.bard:cc", payerRef: "Actor.bard", plan, rollMode: "advantage", label: "Bard's Countercharm", authority: bard}]};
+  let state = planStagedActionResolution({id: "resolution:charm-ally", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {id: charm.id, type: "action", name: charm.label, system: {definition: charm}}, source: {actorId: "actor-source"},
+    targets: [{id: "fighter", actorId: "actor-fighter", tokenId: "token-fighter", disposition: "enemy"}],
+    save: {inspirationByTarget: {"token-fighter": offer}}}).state;
+  const answer = value => {
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: typeof value === "function" ? value(request) : value}}).state;
+    return request;
+  };
+  answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: 4, total: 4}));
+  const own = answer("keep");
+  assert.deepEqual([own.chooser, own.payload.options.map(option => option.value)], ["target-controller", ["heroic", "keep"]],
+    "the fighter's player is asked about its own Heroic Inspiration only");
+  const ally = answer("ally-offer:Actor.bard:cc");
+  assert.deepEqual([ally.authority, ally.payload.options.map(option => option.value)], [bard, ["ally-offer:Actor.bard:cc", "keep"]],
+    "then the bard's player, about its Countercharm");
+  answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: 15, total: 15}));
+  assert.equal(state.results.saveResolution.results[0].success, true);
+  assert.ok(state.mutationPlans.some(entry => (entry.type === "resourcePayment") && (entry.payerRef === "Actor.bard")), "the bard pays");
+});
+
 test("rerolls a feature offers: Disciplined Survivor paid from its pool, Halfling Luck free and only on a natural 1", async () => {
   const {withTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
   const roller = items => ({uuid: "Actor.hero", name: "Hero", items});

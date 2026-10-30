@@ -2422,11 +2422,13 @@ test("Countercharm: offered for a save failed against Charmed or Frightened, by 
   bardAt("bard", 6);
   const offer = offerFor(charm);
   assert.deepEqual(offer.options.map(option => [option.payerRef, option.rollMode]), [["Actor.bard", "advantage"]], "30 ft away");
+  assert.deepEqual(offer.options[0].authority, {kind: "gm"}, "an ally's is its controller's to decide; with no one active, the GM's");
   assert.deepEqual(payers, ["bard"], "registered to pay");
   assert.equal(offerFor({effects: [{conditionId: "prone"}]}), null, "a save against Prone");
   targetActor.items = [countercharm];
   for ( const system of [targetSource, targetActor.system] ) system.resources.reaction = {value: 1, max: 1};
-  assert.equal(offerFor({effects: [{conditionId: "frightened"}]}).options.length, 2, "its own too");
+  const both = offerFor({effects: [{conditionId: "frightened"}]});
+  assert.deepEqual(both.options.map(option => option.authority?.kind ?? "saver"), ["saver", "gm"], "its own too, the saver's to decide");
 });
 
 test("Portent (2024 Diviner, replacing a rolled d20): offered to a Diviner who sees the roller, once per turn", async () => {
