@@ -74,6 +74,21 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
   /** The Test tab's sample target and d20, and its last preview (`previewAction`). */
   #test = {ac: 13, health: 30, saveBonus: 0, d20: 10, result: null};
 
+  /** Whether this user may change what the Item does: only a GM (owner's decision, 2026-10-30; the Item refuses it too). */
+  get #mechanicsEditable() {
+    return this.isEditable && (game.user?.isGM === true);
+  }
+
+  /** Its Builder, Rules and Advanced tabs are read-only for a player, with a line saying why. @override */
+  _onRender(context, options) {
+    super._onRender(context, options);
+    if ( !this.isEditable || this.#mechanicsEditable ) return;
+    for ( const part of this.element.querySelectorAll("[data-application-part=builder], [data-application-part=rules], [data-application-part=advanced]") ) {
+      for ( const control of part.querySelectorAll("input, select, textarea, button") ) control.disabled = true;
+      if ( !part.querySelector(".gm-only") ) part.insertAdjacentHTML("afterbegin", `<p class="hint gm-only">${game.i18n.localize("WILDPATH.ITEMSHEET.GmOnly")}</p>`);
+    }
+  }
+
   /** Options the builder reads formulas and fills defaults with. */
   get #builderOptions() {
     return {abilities: Object.keys(CONFIG.WILDPATH.ABILITIES), conditions: Object.keys(CONFIG.WILDPATH.CONDITIONS),
@@ -419,7 +434,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     context.ruleElementErrors = this.#drafts.ruleElements?.errors ?? [];
     const rules = this.#drafts.rules;
     context.r = ruleRowsContext(source.ruleElements, {prefix: "wildpath.rules", list: "item", errors: rules?.errors ?? [],
-      draft: rules?.values, editable: this.isEditable});
+      draft: rules?.values, editable: this.#mechanicsEditable});
     context.rulesIssues = rules ? [game.i18n.localize("WILDPATH.ITEMSHEET.NotSaved"), ...(rules.issues ?? [])]
       : ruleProblems(source.ruleElements);
     return context;
@@ -452,7 +467,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       return game.i18n.has(key) ? game.i18n.localize(key) : gap;
     }))];
     return {
-      editable: this.isEditable,
+      editable: this.#mechanicsEditable,
       listId: this.id,
       values,
       summary: summarizeActionDefinition(definition).map(([label, text]) => ({label, text})),
@@ -485,7 +500,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       effects: values.effects.map((row, index) => ({...row, isCondition: row.kind !== "effect", stacks: Boolean(conditions[row.conditionId]?.stacking),
         r: row.kind === "effect" ? ruleRowsContext(definition.effects[index]?.ruleElements, {prefix: `wildpath.builder.effects.${index}.rules`,
           field: `effects.${index}.rules`, list: `effect:${index}`, errors: draft?.errors ?? [], draft: draft?.values?.effects?.[index]?.rules,
-          editable: this.isEditable}) : null})),
+          editable: this.#mechanicsEditable}) : null})),
       advancedOnly: advancedOnly.join(", "),
       choices: {
         slotLevels: {"": "WILDPATH.BUILDER.Slot.None", ...Object.fromEntries(Array.from({length: 9}, (_, i) => [i + 1,

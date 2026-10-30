@@ -34,3 +34,28 @@ export function refuseBrokenRules(document, next, {game=globalThis.game, ui=glob
   ui?.notifications?.warn?.(game?.i18n?.format?.("WILDPATH.RULES.Refused", {name: document.name ?? "", problems}) ?? problems);
   return true;
 }
+
+/** The fields that say what a document does: an Action's definition, and its RuleElements. */
+const MECHANICS = Object.freeze(["system.definition", "system.ruleElements"]);
+
+/** Whether `changes` (nested, dotted or both, as Foundry takes them) write under `path`. */
+function writes(changes, path) {
+  return Object.entries(changes ?? {}).some(([key, value]) => (key === path) || key.startsWith(`${path}.`)
+    || (path.startsWith(`${key}.`) && value && (typeof value === "object") && writes(value, path.slice(key.length + 1))));
+}
+
+/**
+ * Whether `user`'s edit of what `document` does (its Action definition, its RuleElements) must be refused: only a GM
+ * changes them (owner's decision, 2026-10-30). The player is told so. Creating a document (a compendium drop, a level-up)
+ * is not an edit. Edits from the browser console are not designed against.
+ * @param {{name?: string}} document
+ * @param {object} changes
+ * @param {{isGM?: boolean}|null} user
+ * @param {{game?: any, ui?: any}} [options]
+ * @returns {boolean}
+ */
+export function refusePlayerMechanics(document, changes, user, {game=globalThis.game, ui=globalThis.ui}={}) {
+  if ( !user || user.isGM || !MECHANICS.some(path => writes(changes, path)) ) return false;
+  ui?.notifications?.warn?.(game?.i18n?.format?.("WILDPATH.RULES.GmOnly", {name: document.name ?? ""}) ?? "Only the GM can change that.");
+  return true;
+}

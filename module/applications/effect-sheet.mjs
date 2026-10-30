@@ -26,11 +26,27 @@ export class WildPathEffectSheet extends ActiveEffectConfig {
             const stored = this.document.toObject(true).system?.ruleElements ?? [];
             const draft = this.#draft;
             partContext.ruleElementsJson = draft?.json ?? JSON.stringify(stored, null, 2);
-            partContext.r = ruleRowsContext(stored, { prefix: "wildpath.rules", list: "effect", editable: this.isEditable,
+            // Only a GM changes what it does (the effect refuses a player's edit too).
+            partContext.r = ruleRowsContext(stored, { prefix: "wildpath.rules", list: "effect", editable: this.isEditable && (globals.game.user?.isGM === true),
                 errors: (draft?.errors ?? []), draft: draft?.rules });
             partContext.rulesIssues = draft ? [globals.game.i18n.localize("WILDPATH.ITEMSHEET.NotSaved"), ...draft.problems] : ruleProblems(stored);
         }
         return partContext;
+    }
+    /** Its Rule Elements tab is read-only for a player, with a line saying why: only a GM changes what it does. */
+    _onRender(context, options) {
+        // @ts-expect-error The Foundry base class is typed only as far as this file needs.
+        super._onRender(context, options);
+        if (!this.isEditable || (globals.game.user?.isGM === true))
+            return;
+        const part = this.element.querySelector("[data-application-part=ruleElements]");
+        if (!part)
+            return;
+        for (const control of part.querySelectorAll("input, select, textarea, button"))
+            control.disabled = true;
+        if (!part.querySelector(".gm-only")) {
+            part.insertAdjacentHTML("afterbegin", `<p class="hint gm-only">${globals.game.i18n.localize("WILDPATH.ITEMSHEET.GmOnly")}</p>`);
+        }
     }
     /** The rows' list when they changed, else the JSON's when it differs from the stored list; throws on a mistake. */
     _processFormData(event, form, formData) {

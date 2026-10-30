@@ -26,6 +26,8 @@ An Action's sheet opens on its **Builder** tab, a set of tabletop questions: its
 
 Other items have a **Rules** tab of rows: bonuses, Advantage or Disadvantage, resistances, speeds, light and more. Input that isn't valid isn't saved.
 
+Only the GM changes what an item or effect does. Players see the Builder, Rules and Advanced tabs read-only; they can still rename their items, write their descriptions and equip them.
+
 ## The Rules Inspector (GM)
 
 Press **Shift+I**, or **Inspect** on a chat card, to see how the 25 most recent Actions resolved:

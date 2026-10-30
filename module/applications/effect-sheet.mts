@@ -13,7 +13,7 @@ interface ConfigClass {
 interface Globals {
   foundry: {applications: {sheets: {ActiveEffectConfig: ConfigClass}; ux: {FormDataExtended: new (form: HTMLFormElement) => {object: Data}}};
     utils: {setProperty(object: Data, key: string, value: unknown): boolean; expandObject(object: Data): Data}};
-  game: {i18n: {localize(key: string): string; format(key: string, data: Data): string}};
+  game: {i18n: {localize(key: string): string; format(key: string, data: Data): string}; user?: {isGM?: boolean}};
   ui: {notifications: {warn(message: string, options?: Data): void}};
   CONFIG: {WILDPATH: {ABILITIES: Record<string, unknown>}};
 }
@@ -40,6 +40,7 @@ export class WildPathEffectSheet extends ActiveEffectConfig {
 
   declare document: EffectDocument;
   declare form: HTMLFormElement;
+  declare element: HTMLElement;
   declare isEditable: boolean;
   declare submit: (options?: Data) => Promise<unknown>;
   declare render: (options?: Data) => Promise<unknown>;
@@ -54,11 +55,25 @@ export class WildPathEffectSheet extends ActiveEffectConfig {
       const stored = this.document.toObject(true).system?.ruleElements ?? [];
       const draft = this.#draft;
       partContext.ruleElementsJson = draft?.json ?? JSON.stringify(stored, null, 2);
-      partContext.r = ruleRowsContext(stored, {prefix: "wildpath.rules", list: "effect", editable: this.isEditable,
+      // Only a GM changes what it does (the effect refuses a player's edit too).
+      partContext.r = ruleRowsContext(stored, {prefix: "wildpath.rules", list: "effect", editable: this.isEditable && (globals.game.user?.isGM === true),
         errors: (draft?.errors ?? []) as never[], draft: draft?.rules as never});
       partContext.rulesIssues = draft ? [globals.game.i18n.localize("WILDPATH.ITEMSHEET.NotSaved"), ...draft.problems] : ruleProblems(stored);
     }
     return partContext;
+  }
+
+  /** Its Rule Elements tab is read-only for a player, with a line saying why: only a GM changes what it does. */
+  _onRender(context: Data, options: Data) {
+    // @ts-expect-error The Foundry base class is typed only as far as this file needs.
+    super._onRender(context, options);
+    if ( !this.isEditable || (globals.game.user?.isGM === true) ) return;
+    const part = this.element.querySelector("[data-application-part=ruleElements]");
+    if ( !part ) return;
+    for ( const control of part.querySelectorAll<HTMLInputElement>("input, select, textarea, button") ) control.disabled = true;
+    if ( !part.querySelector(".gm-only") ) {
+      part.insertAdjacentHTML("afterbegin", `<p class="hint gm-only">${globals.game.i18n.localize("WILDPATH.ITEMSHEET.GmOnly")}</p>`);
+    }
   }
 
   /** The rows' list when they changed, else the JSON's when it differs from the stored list; throws on a mistake. */

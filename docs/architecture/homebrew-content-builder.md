@@ -179,6 +179,17 @@ the others.
   rows match stored rules by their posted index, so a rule the form says nothing about is kept. Rules are removed
   only with the row's remove button. Live: after renaming Extra Attack, both of its rules were still there.
 
+## Only the GM edits mechanics (2026-10-31)
+
+The owner decided on 2026-10-30 that players may not edit their Actions or rule elements. An Item's or ActiveEffect's
+`_preUpdate` refuses a non-GM's change to `system.definition` or `system.ruleElements`, written nested or dotted
+(`refusePlayerMechanics`, rule-guard.mjs), and tells the player so. The item sheet shows a player the Builder, Rules
+and Advanced tabs read-only, and the effect sheet its Rule Elements tab, each with a line saying why. Names,
+descriptions, equipping and the reaction setting (a flag) stay the player's.
+- Creating a document is not an edit: compendium drops, level-ups and applied conditions carry their rules.
+- `_preUpdate` runs on the client making the change. A player using the browser console is outside this guard, by the
+  owner's standing decision not to design around it.
+
 ## The homebrew census (2026-10-18)
 
 Every converted effect should be one a GM could build again in the item sheet's Builder and rule rows, without the

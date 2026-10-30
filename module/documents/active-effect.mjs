@@ -1,6 +1,6 @@
 import {WILDPATH} from "../config.mjs";
 import {serializeRuleElementDefinition} from "../helpers/rule-elements.mjs";
-import {refuseBrokenRules} from "../helpers/rule-guard.mjs";
+import {refuseBrokenRules, refusePlayerMechanics} from "../helpers/rule-guard.mjs";
 
 /**
  * The ActiveEffect document subclass for the WildPath system.
@@ -10,8 +10,12 @@ import {refuseBrokenRules} from "../helpers/rule-guard.mjs";
  */
 export default class WildPathActiveEffect extends ActiveEffect {
 
-  /** An edit adding problems to its RuleElements is refused, with them in words (a macro's too, not only a sheet's). */
+  /**
+   * A player's edit of its RuleElements is refused: only a GM changes what it does. An edit adding problems to them is
+   * refused, with them in words (a macro's too, not only a sheet's).
+   */
   async _preUpdate(changes, options, user) {
+    if ( refusePlayerMechanics(this, changes, user) ) return false;
     if ( refuseBrokenRules(this, foundry.utils.getProperty(changes, "system.ruleElements")) ) return false;
     return super._preUpdate(changes, options, user);
   }
