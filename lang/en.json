@@ -193,6 +193,7 @@
       "Petrified": "Petrified",
       "Invisible": "Invisible",
       "Deafened": "Deafened",
+      "Silenced": "Silenced",
       "Frightened": "Frightened",
       "Grappled": "Grappled",
       "Charmed": "Charmed",
@@ -210,6 +211,7 @@
         "Petrified": "Turned to stone: Incapacitated, Speed 0, resistance to all damage, immune to Poisoned. You fail Might and Agility saves; attacks against you have advantage.",
         "Invisible": "Your attacks have advantage; attacks against you have disadvantage. Advantage on initiative.",
         "Deafened": "You can't hear.",
+        "Silenced": "You can't speak: no spells with a Verbal component.",
         "Frightened": "Your attacks and ability checks have disadvantage while the source of your fear is in sight.",
         "Grappled": "Speed 0. Your attacks against anyone but the grappler have disadvantage.",
         "Charmed": "You can't attack or harm the charmer.",
@@ -1198,6 +1200,7 @@
     },
     "REFUSAL": {
       "Generic": "That can't be done right now. The GM can see why.",
+      "Forbidden": "{name} can't do that: {by}.",
       "Transformed": "A transformed creature can't cast spells.",
       "Gaseous": "{name} is a cloud of mist: it can't attack or cast spells.",
       "ArmorCasting": "{name} can't cast spells while wearing {armor} without training in it.",

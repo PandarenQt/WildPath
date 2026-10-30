@@ -152,6 +152,9 @@ function tokenReactions(token) {
             // Only while its creature has a status (Brutal Strike: Reckless Attack's "reckless").
             if (data.whileStatus && !actor.statuses?.has(String(data.whileStatus)))
                 return [];
+            // Not one its rules forbid it (`Forbid`: a Silenced wizard's Shield, a Spell Taxed caster's spells).
+            if (actor.forbiddingRule?.(definition.definition))
+                return [];
             // Once a turn (Stunning Strike): not offered again this combat turn; its use records it (`metadata.once`).
             // Options sharing a key (`onceKey`: Cunning Strike's three) are one use between them.
             const once = (data.once === "turn") ? onceThisTurn(actor, String(data.onceKey ?? `${item.id}-${String(element.id ?? "trigger")}`)) : null;

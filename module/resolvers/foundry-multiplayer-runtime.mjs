@@ -730,18 +730,13 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const fromCast = castLevelChoices(definition, action, actor);
   if ( fromCast ) intent = {...intent, configuration: {...(intent.configuration ?? {}),
     choices: {...(intent.configuration?.choices ?? {}), ...fromCast}}};
-  // 2024 Wild Shape and Polymorph: a transformed creature can't cast spells. Spells it already cast (their lasting
-  // areas, which run as authority Actions) go on.
-  if ( !authorityAction && actor.transformation && definition?.tags?.includes("spell") ) return refused("WILDPATH.REFUSAL.Transformed");
-  // 2024 Gaseous Form (and Wind Walk's cloud form): "the target can't attack or cast spells".
-  if ( !authorityAction && actor.statuses?.has?.("gaseous") && (definition?.tags?.includes("spell") || definition?.attack) ) {
-    return refused("WILDPATH.REFUSAL.Gaseous", {name: actor.name ?? ""});
-  }
+  // What its rules forbid it (`Forbid`): Spell Taxed, Silenced, and its state's (a transformation's spells, Gaseous Form,
+  // armor it isn't trained with). Its Actions run by the authority (a lasting area it already cast) go on.
+  const forbid = authorityAction ? null : actor.forbiddingRule?.(definition) ?? null;
+  if ( forbid ) return refused(forbid.reason ?? "WILDPATH.REFUSAL.Forbidden", {name: actor.name ?? "", by: forbid.name ?? "",
+    armor: forbid.name ?? ""});
   // 2024: a spell of 1st level or higher is cast only while prepared.
   if ( !authorityAction && isUnprepared(action) ) return refused("WILDPATH.ITEM.NotPrepared", {name: action.name ?? ""});
-  // 2024: a creature wearing armor it isn't trained with can't cast spells.
-  const hindering = definition?.tags?.includes("spell") ? actor.getUntrainedArmor?.()?.find(item => item.system.armor !== "shield") : null;
-  if ( !authorityAction && hindering ) return refused("WILDPATH.REFUSAL.ArmorCasting", {name: actor.name ?? "", armor: hindering.name ?? ""});
   // What the Action requires of its creature (`requires`: Steady Aim, not moved this turn).
   if ( !authorityAction && definition?.requires && !evaluatePredicate(definition.requires, {...requiresContext(actor, {game}), actorSystem,
     tags: definition.tags ?? []}).ok ) return refused("WILDPATH.ITEM.CannotUse", {name: action.name ?? ""});

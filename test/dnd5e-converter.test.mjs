@@ -127,18 +127,19 @@ test("what WildPath cannot automate is a manual Action that spends its cost, nam
   assert.deepEqual(paralysis.items[0].system.definition.effects, [{id: "effect-1", type: "condition", conditionId: "paralyzed",
     saveOutcomePolicy: "failure", concentration: true}], "Paralyzed on a failed save, for as long as the caster concentrates");
 
-  const held = convertItem({...hold, _id: "testSilence00001", name: "Test Silence",
-    effects: [{_id: "paralyze", name: "Silenced", statuses: ["silenced"]}]});
+  // dnd5e's "diseased" has no WildPath condition.
+  const held = convertItem({...hold, _id: "testDisease00001", name: "Test Disease",
+    effects: [{_id: "paralyze", name: "Diseased", statuses: ["diseased"]}]});
   const [manual] = held.items;
   assert.equal(manual.type, "action");
   assert.deepEqual(manual.system.definition.costs, {allOf: [{capability: "action", amount: 1}]}, "it still costs an Action");
   assert.equal(manual.system.definition.configuration[0].id, "spell-slot", "and spends its slot");
   assert.equal(manual.system.definition.save.ability, "wits", "its save is still rolled (2026-10-18); what follows is by hand");
   assert.equal(validateActionDefinition(manual.system.definition).ok, true);
-  assert.ok(held.notes.some(note => /"Silenced" marks its creature only/.test(note)));
+  assert.ok(held.notes.some(note => /"Diseased" marks its creature only/.test(note)));
   assert.deepEqual(manual.system.definition.effects.map(effect => [effect.type, effect.name, effect.saveOutcomePolicy, effect.concentration]),
-    [["effect", "Silenced", "failure", true]], "a creature that fails is marked, by its effect's name, while the caster concentrates");
-  assert.ok(held.notes.includes("effect: silenced is not a WildPath condition yet"));
+    [["effect", "Diseased", "failure", true]], "a creature that fails is marked, by its effect's name, while the caster concentrates");
+  assert.ok(held.notes.includes("effect: diseased is not a WildPath condition yet"));
 
   const tripped = convertItem(trip);
   valid(tripped.items[0]);
@@ -752,6 +753,7 @@ test("a damage bonus with dice is extra damage on each hit: its own type, or the
   const reduce = {name: "Reduced", system: {changes: [{key: "system.rolls.damage.mwak.bonus", value: "1d4", type: "subtract"}]}};
   const subtracted = effectRules(reduce, notes, {text: "deal 1d4 less damage on a hit (this can't reduce the damage below 1)."});
   assert.deepEqual(subtracted.map(rule => [rule.data.subtract, rule.data.minimum, rule.predicate]), [[true, 1, {tagsAny: ["melee"]}]]);
+  assert.equal(effectRules(reduce, notes, {text: "deal 1d4 less damage."})[0].data.minimum, undefined);
   assert.equal(effectRules(reduce, notes, {text: "it also subtracts 1d8 from all its damage rolls."})[0].data.minimum, undefined,
     "Ray of Enfeeblement's text sets no minimum");
   const enfeebled = effectRules({name: "Enervated", system: {changes: ["mwak", "rwak", "msak", "rsak"].map(kind =>
@@ -2117,6 +2119,11 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   assert.deepEqual([later("vitriolic-sphere-"), later("acid-arrow-")], [5, 2], "each spell's own Lingering Acid damage");
   assert.deepEqual(read("raise-dead-phbspl").system.definition.effects.map(effect => effect.restsLeft), [1, 2, 3, 4],
     "Resurrection Sickness: each Long Rest lifts 1 of the -4");
+  const taxed = read("resurrection-taxing-cast-").system.definition.effects.find(effect => effect.name === "Spell Taxed");
+  assert.deepEqual([taxed.appliesTo, taxed.restsLeft, taxed.duration, taxed.ruleElements.map(rule => rule.type)],
+    ["source", 1, undefined, ["RollMode", "Forbid"]], "on its caster until a Long Rest: no spells, Disadvantage on D20 Tests");
+  assert.deepEqual(read("magic-jar-cast-").system.definition.effects.map(effect => effect.conditionId), ["silenced"],
+    "dnd5e's silenced status is the Silenced condition");
   const confused = read("confusion-phbspl");
   assert.deepEqual([confused.system.definition.effects[0].drawsAtTurnStart, confused.flags.wildpath.conversion.notes],
     ["Compendium.wildpath.srd-tables.RollTable.phbsplConfusionB", []], "Confusion draws its behavior table each turn");

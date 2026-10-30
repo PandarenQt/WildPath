@@ -1230,8 +1230,7 @@
           },
           "conversion": {
             "notes": [
-              "activation: 1 hour is not an action-economy cost",
-              "effect: \"Spell Taxed\" marks its creature only; its rules are by hand"
+              "activation: 1 hour is not an action-economy cost"
             ]
           }
         }
@@ -1902,8 +1901,7 @@
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: activation: 1 hour is not an action-economy cost",
-          "Spellcasting: effect: \"Spell Taxed\" marks its creature only; its rules are by hand"
+          "Spellcasting: activation: 1 hour is not an action-economy cost"
         ]
       }
     }

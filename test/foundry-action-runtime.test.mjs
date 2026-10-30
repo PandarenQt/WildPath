@@ -39,6 +39,16 @@ import {
   createFoundryV14TacticalGridAdapter
 } from "../module/adapters/foundry-v14-tactical-grid-adapter.mjs";
 
+// The real Actor class, for what the authority asks of its Actor (its rules' Forbids). Only the globals importing it
+// needs, restored once it is loaded so the rest of this file runs without them.
+const {default: WildPathActor} = await (async () => {
+  const saved = {Actor: globalThis.Actor, foundry: globalThis.foundry};
+  globalThis.Actor = class {};
+  globalThis.foundry = {data: {fields: {}, ActiveEffectTypeDataModel: class {}}, utils: {isEmpty: value => !Object.keys(value).length}};
+  try { return await import("../module/documents/actor.mjs"); }
+  finally { Object.assign(globalThis, saved); }
+})();
+
 /*
  * These tests exercise the REAL production wiring between a Foundry Actor/Item Action-use and
  * the modern staged Action pipeline: buildFoundryActionUseIntent(), foundryActionIntentToStagedOptions(),
@@ -160,6 +170,7 @@ function fakeActor(id, {system, size=CREATURE_SIZES.MEDIUM, statistics={}, owner
     getActiveTokens(linked, document) {
       return this.tokens;
     },
+    forbiddingRule: WildPathActor.prototype.forbiddingRule,
     toObject(source) {
       assert.equal(source, true);
       return {system: structuredClone(this.system)};
@@ -2140,6 +2151,20 @@ test("a transformed creature can't cast spells, but its other Actions still reso
   strike.sourceActor.transformation = {effect: {}, policy: {formRef: "Actor.bear"}};
   const bite = await foundryActionIntentToStagedOptions({intent: strike.intent, senderUserId: "player-a", game: strike.game});
   assert.equal(bite.ok, true, JSON.stringify(bite.reason));
+});
+
+test("an effect's Forbid (Spell Taxed) refuses its creature's spells, saying which effect; its attacks still resolve", async t => {
+  const taxed = {name: "Spell Taxed", disabled: false, isSuppressed: false, system: {ruleElements: [{schemaVersion: 1, id: "taxed",
+    type: "Forbid", data: {actions: {tagsAny: ["spell"]}}}]}};
+  const spell = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), tags: ["spell"]});
+  spell.sourceActor.effects = [taxed];
+  const refused = await foundryActionIntentToStagedOptions({intent: spell.intent, senderUserId: "player-a", game: spell.game});
+  assert.equal(refused.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED);
+  assert.match(refused.reason, /REFUSAL.Forbidden|Spell Taxed/);
+  const strike = syntheticRuntimeFixture(t);
+  strike.sourceActor.effects = [taxed];
+  const struck = await foundryActionIntentToStagedOptions({intent: strike.intent, senderUserId: "player-a", game: strike.game});
+  assert.equal(struck.ok, true, JSON.stringify(struck.reason));
 });
 
 test("a weapon attack adds the attacker's Might to the attack and its damage; a spell attack's damage adds nothing", async t => {

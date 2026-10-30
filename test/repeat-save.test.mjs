@@ -302,6 +302,19 @@ test("an effect `whenDamaged` is only on a creature its Action damaged (a fall's
     "damaged: Prone; immune to it: standing; no damage information: as before");
 });
 
+test("an effect `appliesTo: \"source\"` lands on the Action's user, not its target (Resurrection's Spell Taxed)", async () => {
+  const {resolveActionEffects} = await import("../module/resolvers/action-resolver.mjs");
+  const {actionDefinitionToResolverInput} = await import("../module/helpers/action-definitions.mjs");
+  const definition = {schemaVersion: 1, id: "action:taxing", label: "Taxing Cast", costs: {allOf: []}, targeting: {type: "single"},
+    effects: [{id: "taxed", type: "effect", name: "Spell Taxed", appliesTo: "source", ruleElements: []}]};
+  const effects = actionDefinitionToResolverInput(definition).effects;
+  assert.equal(effects.conditions[0].appliesTo, "source", "the definition carries it to the resolver");
+  const targetResolution = {targetContexts: [{target: {id: "dead", tokenId: "dead"}, selected: true}]};
+  const resolved = resolveActionEffects({effects, targetResolution, actionContext: {source: {actorId: "caster", tokenId: "caster-token"}}});
+  assert.deepEqual(resolved.mutationPlans.map(plan => plan.target), ["token:caster-token"]);
+  assert.equal(resolveActionEffects({effects, targetResolution, actionContext: {source: null}}).ok, false, "no user: it fails, never a guess");
+});
+
 test("through the pipeline: a fall's Prone only on a creature it damaged, Eldritch Smite's Prone only on one Huge or smaller", () => {
   const planned = ({amount=4, size=null, effect}) => {
     const definition = {schemaVersion: 1, id: "action:test-effects", label: "Test", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},

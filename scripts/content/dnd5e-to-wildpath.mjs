@@ -827,7 +827,7 @@ const SKILL_MAP = Object.freeze({acr: "acrobatics", ani: "animal-handling", arc:
 
 /** dnd5e statuses WildPath has conditions for. */
 const CONDITION_MAP = Object.freeze(Object.fromEntries(["prone", "blinded", "restrained", "stunned", "unconscious", "poisoned",
-  "exhaustion", "charmed", "deafened", "frightened", "grappled", "incapacitated", "invisible", "paralyzed", "petrified", "dead",
+  "exhaustion", "charmed", "deafened", "silenced", "frightened", "grappled", "incapacitated", "invisible", "paralyzed", "petrified", "dead",
   "burning", "cursed", "ethereal", "coverHalf", "coverThreeQuarters", "coverTotal"]
   // Nature's Ward names the Poisoned condition "poison".
   .map(id => [id, id]).concat([["poison", "poisoned"]])));
@@ -2742,6 +2742,11 @@ const EFFECTS_BY_NAME = Object.freeze({
   "Lingering Acid": {duration: {value: 1, units: "rounds", expiry: "turnEnd"}, ruleElements: [{schemaVersion: 1, id: "lingering-acid",
     type: "Trigger", data: {kind: "automation", event: "turn.ended", action: {schemaVersion: 1, id: "action:lingering-acid", label: "Lingering Acid",
       costs: {allOf: []}, damage: [{id: "acid", expression: {type: "dice", number: 2, faces: 4}, damageType: "acid", provenance: "spell-base"}]}}}]},
+  // Resurrection's Taxing Cast: "Until you finish a Long Rest, you can't cast spells again, and you have Disadvantage on
+  // D20 Tests". On its caster, whoever it revives.
+  "Spell Taxed": {appliesTo: "source", restsLeft: 1, ruleElements: [
+    rollModeRule("spell-taxed", ["attack", "save", "check", "initiative"], "disadvantage"),
+    {schemaVersion: 1, id: "spell-taxed-casting", type: "Forbid", data: {actions: {tagsAny: ["spell"]}}}]},
   // "can't take Reactions".
   "No Reaction": {ruleElements: [{schemaVersion: 1, id: "no-reaction", type: "ResourceCap", data: {resources: ["reaction"], maximum: 0}}]},
   "Cursed: No Reaction": {ruleElements: [{schemaVersion: 1, id: "no-reaction", type: "ResourceCap", data: {resources: ["reaction"], maximum: 0}}]},
@@ -3479,7 +3484,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
       // "before the end of your next turn": a round, from its caster's turn (V14 starts it on the source's Combatant).
       const untilNextTurnEnd = nextAttack && /before the end of your next turn/i.test(plainText(document))
         ? {value: 1, units: "rounds", expiry: "turnEnd"} : null;
-      const duration = (hand ?? named)?.duration ?? effectDuration(effect.duration) ?? untilNextTurnEnd;
+      // One a rest ends by name (Spell Taxed: "until you finish a Long Rest") has no time limit besides.
+      const duration = named?.restsLeft ? null : ((hand ?? named)?.duration ?? effectDuration(effect.duration) ?? untilNextTurnEnd);
+      const onUser = (hand ?? named)?.appliesTo === "source";
       const slug = byHand?.slug ?? named?.slug ?? (gaseous ? "gaseous" : null);
       // As many Long Rests as it lasts: Raise Dead's "Resurrection Sickness (Day 3)" (each rest lifts 1 of its -4).
       const restsLeft = (hand ?? named)?.restsLeft ?? (Number(/\(Day (\d+)\)$/u.exec(effect.name ?? "")?.[1]) || null);
@@ -3487,7 +3494,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
         ...(restsLeft ? {restsLeft} : {}),
         ...(effect.img ? {img: effect.img} : {}),
         ruleElements: rules, ...(duration ? {duration} : {}), ...(((hand ?? named)?.endsWhen ?? (nextAttack ? "attacked" : null))
-          ? {endsWhen: (hand ?? named)?.endsWhen ?? "attacked"} : {}), ...onFailure,
+          ? {endsWhen: (hand ?? named)?.endsWhen ?? "attacked"} : {}), ...(onUser ? {appliesTo: "source"} : onFailure),
         ...(concentration ? {concentration: true} : {})});
     } else if ( effect && !known.length ) {
       // Nothing of it maps (Alter Self, Acid Arrow's lingering acid): it still marks its creature, for its duration and

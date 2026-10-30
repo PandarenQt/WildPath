@@ -45,6 +45,7 @@ import {
   CREATURE_SIZE_ORDER
 } from "../helpers/action-definitions.mjs";
 import {targetLookupRefs} from "../helpers/target-actor-refs.mjs";
+import {normalizeEntityRef} from "../helpers/entity-refs.mjs";
 import {
   resolveActionConfiguration,
   validateResolvedActionConfiguration
@@ -1046,6 +1047,13 @@ function normalizeActionConditionEffectRequests({effects, actionContext}) {
 }
 
 function conditionEffectTargetsForRequest({request, targetResolution, attackResolution, saveResolution, actionContext}) {
+  // An effect on the Action's own user (`appliesTo: "source"`), whatever its targets rolled.
+  if ( request.appliesTo === "source" ) {
+    const target = actionContext.source ? normalizeEntityRef(actionContext.source) : null;
+    return target ? {ok: true, code: ACTION_RESOLVER_CODES.OK, entries: [{target, targetContext: {target, selected: true}, saveResult: null}],
+      skipped: []} : {ok: false, code: "MISSING_SOURCE", reason: "An effect on its Action's user requires the Action's source.",
+      entries: [], skipped: []};
+  }
   const savePolicy = normalizeConditionSaveOutcomePolicy(request.saveOutcomePolicy);
   if ( savePolicy && !saveResolution ) {
     return {

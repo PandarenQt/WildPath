@@ -30,6 +30,7 @@ The default registry currently supports these contribution types:
 - `GrantMovement`
 - `RollMode`, `ResourceCap`, `RollOutcome`
 - `ExtraDamage`, `Aura`
+- `Forbid`
 - `Trigger`
 
 Handlers return contribution bundles only:
@@ -40,6 +41,7 @@ Handlers return contribution bundles only:
 - `movement`
 - `rollModes`, `resourceCaps`, `rollOutcomes`
 - `extraDamage`, `auras`
+- `forbids`
 - `conditionImmunities`
 - `triggers`
 
@@ -874,6 +876,27 @@ Live (two browsers, 14.369): QA Fighter (Might 16) wore and attuned the SRD Belt
 became 21 and their Longsword's attack went from +6 to +8. On Player1's sheet the field still read 16 with "(21)"
 beside it, and toggling the save proficiency saved 16. Quench checks the same on a real Actor, and that removing
 the Item restores the scores.
+
+## Forbid (2026-10-31)
+
+`{type: "Forbid", data: {actions: <predicate>, reason?: <localization key>}}`: while it applies, its creature can't use
+an Action that matches. The predicate sees the Action's tags (`actionTags`): its own, plus `attack` when it makes an
+attack roll. One model replaces the authority's separate refusals:
+
+| What | Its rule | Where it comes from |
+| --- | --- | --- |
+| Spell Taxed (Resurrection) | `{tagsAny: ["spell"]}` | the effect, by name in the converter |
+| Silenced | `{tagsAny: ["component:verbal"]}` | the `silenced` condition (config.mjs) |
+| Gaseous Form, Wind Walk's cloud | `{tagsAny: ["spell", "attack"]}` | the `gaseous` status |
+| A transformed creature (Wild Shape, Polymorph) | `{tagsAny: ["spell"]}` | `actor.transformation` |
+| Armor it isn't trained with (2024) | `{tagsAny: ["spell"]}` | the armor (not a Shield) |
+
+- The last three are state, not stored data: `grantOwners` (actor.mjs) adds their rules while the state holds, as it
+  does for untrained armor's Disadvantage. Existing worlds need no migration.
+- `actor.forbiddingRule(definition)` returns the first match, named after its owner (the effect or armor). The
+  authority refuses the intent with the rule's `reason`, or `WILDPATH.REFUSAL.Forbidden` ("{name} can't do that:
+  {by}"). The reaction provider doesn't offer a forbidden reaction (a Silenced wizard's Shield).
+- Authority Actions (a lasting area's turns, which its caster already cast) are not checked.
 
 ## Future Types
 

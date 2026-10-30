@@ -592,6 +592,7 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
       // Only on a creature no bigger than this (Eldritch Smite's Prone), only on one its Action damaged (a fall's Prone).
       ...(effect.maxSize ? {maxSize: effect.maxSize} : {}),
       ...(effect.whenDamaged ? {whenDamaged: true} : {}),
+      ...(effect.appliesTo === "source" ? {appliesTo: "source"} : {}),
       source: effect.source ?? definition.source,
       origin: effect.origin ?? definition.source,
       metadata: {
@@ -1292,6 +1293,8 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
     ...(effect.maxSize ? {maxSize: String(effect.maxSize)} : {}),
     // Only on a creature its Action damaged (a fall's Prone: "unless it avoids taking damage from the fall").
     ...(effect.whenDamaged === true ? {whenDamaged: true} : {}),
+    // On the creature using the Action, whoever it targets (Resurrection's Taxing Cast: its caster is Spell Taxed).
+    ...(effect.appliesTo === "source" ? {appliesTo: "source"} : {}),
     predicate: clonePlain(effect.predicate ?? null),
     source: clonePlain(effect.source ?? null),
     origin: clonePlain(effect.origin ?? null),

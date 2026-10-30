@@ -29,10 +29,8 @@
       "effects": [
         {
           "id": "effect-1",
-          "type": "effect",
-          "name": "Catatonic",
-          "img": "icons/magic/control/hypnosis-mesmerism-eye-tan.webp",
-          "ruleElements": []
+          "type": "condition",
+          "conditionId": "silenced"
         }
       ],
       "configuration": [
@@ -103,9 +101,7 @@
       },
       "conversion": {
         "notes": [
-          "activation: 1 minute is not an action-economy cost",
-          "effect: silenced is not a WildPath condition yet",
-          "effect: \"Catatonic\" marks its creature only; its rules are by hand"
+          "activation: 1 minute is not an action-economy cost"
         ]
       }
     }

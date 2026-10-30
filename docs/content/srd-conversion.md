@@ -943,7 +943,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Mage Hand | actors24 | Mage Hand (0 items) | — |
 | Magic Circle | spells24 | Magic Circle (automated) | activation: 1 minute is not an action-economy cost; rolled (save); what it does is by hand |
 | Magic Initiate | feats24 | Magic Initiate (feature) | — |
-| Magic Jar | spells24 | Magic Jar (Cast and Transfer Soul) (automated), Magic Jar (Possess Humanoid) (automated), Magic Jar (Return from Host) (manual) | activation: 1 minute is not an action-economy cost; effect: silenced is not a WildPath condition yet; effect: "Catatonic" marks its creature only; its rules are by hand; not automated (utility): using it spends its cost; its description says the rest |
+| Magic Jar | spells24 | Magic Jar (Cast and Transfer Soul) (automated), Magic Jar (Possess Humanoid) (automated), Magic Jar (Return from Host) (manual) | activation: 1 minute is not an action-economy cost; not automated (utility): using it spends its cost; its description says the rest |
 | Magic Missile | spells24 | Magic Missile (automated) | — |
 | Magic Mouth | spells24 | Magic Mouth (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
 | Magic Weapon | spells24 | Magic Weapon (automated) | — |
@@ -1238,7 +1238,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Resistance | spells24 | Resistance (automated) | — |
 | Resourceful | origins24 | Resourceful (feature) | — |
 | Restoring Touch | classes24 | Restoring Touch (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses 5 * @scaling not converted |
-| Resurrection | spells24 | Resurrection (Cast) (automated), Resurrection (Taxing Cast) (automated) | activation: 1 hour is not an action-economy cost; effect: "Spell Taxed" marks its creature only; its rules are by hand |
+| Resurrection | spells24 | Resurrection (Cast) (automated), Resurrection (Taxing Cast) (automated) | activation: 1 hour is not an action-economy cost |
 | Retaliation | classes24 | Retaliation (automated) | — |
 | Reverse Gravity | spells24 | Reverse Gravity (automated) | save: a failure marks its creature only; what it does is by hand |
 | Revivify | spells24 | Revivify (automated) | — |
@@ -1281,7 +1281,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Rod of Absorption | equipment24 | Rod of Absorption (gear), Rod of Absorption (Absorb Spell) (manual) | "Restore Slots" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest |
 | Rod of Alertness | equipment24 | Rod of Alertness (gear), Rod of Alertness (Plant Rod) (automated), Rod of Alertness (cast) (manual), Rod of Alertness: Detect Magic (automated), Rod of Alertness: Detect Poison and Disease (automated), Rod of Alertness: See Invisibility (automated) | not automated (cast): using it spends its cost; its description says the rest; cast: its spell was not found among the converted spells; effect: "Detect Magic" marks its creature (narrative); effect: "Detect Poison and Disease" marks its creature (narrative) |
 | Rod of Lordly Might | equipment24 | Rod of Lordly Might (attack) (automated), Rod of Lordly Might (Button 1 Attack) (automated), Rod of Lordly Might (Button 2 Attack) (automated), Rod of Lordly Might (Button 2 Versatile Attack) (automated), Rod of Lordly Might (Button 3 Attack) (automated), Rod of Lordly Might (Drain Life) (automated), Rod of Lordly Might (Paralyze) (automated), Rod of Lordly Might (Terrify) (automated) | — |
-| Rod of Resurrection | equipment24 | Rod of Resurrection (gear), Rod of Resurrection: Heal (automated), Rod of Resurrection: Resurrection (automated) | activation: 1 hour is not an action-economy cost; effect: "Spell Taxed" marks its creature only; its rules are by hand |
+| Rod of Resurrection | equipment24 | Rod of Resurrection (gear), Rod of Resurrection: Heal (automated), Rod of Resurrection: Resurrection (automated) | activation: 1 hour is not an action-economy cost |
 | Rod of Rulership | equipment24 | Rod of Rulership (gear), Rod of Rulership (automated) | — |
 | Rod of Security | equipment24 | Rod of Security (gear), Rod of Security (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Rogue | equipment24 | Rogue (gear) | "Card Effect" is passive or triggered (narrative): not automated |
@@ -1382,7 +1382,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Smite of Protection | classes24 | Smite of Protection (feature) | — |
 | Smith's Tools | equipment24 | Smith's Tools (gear), Smith's Tools (automated) | — |
 | Sneak Attack | classes24 | Sneak Attack (feature) | — |
-| Solar | actors24 | Solar (18 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: activation: 1 hour is not an action-economy cost; Spellcasting: effect: "Spell Taxed" marks its creature only; its rules are by hand |
+| Solar | actors24 | Solar (18 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature only; what it does is by hand; Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: activation: 1 hour is not an action-economy cost |
 | Soldier | origins24 | Soldier (background) | — |
 | Sorcerer | classes24 | Sorcerer (class) | — |
 | Sorcerous Burst | spells24 | Sorcerous Burst (automated) | damage 1: its dice don't explode ("1d8x@mod=8") |

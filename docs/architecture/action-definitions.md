@@ -123,8 +123,11 @@ debuff with its own rules.
 - **Lasting some Long Rests (2026-10-23).** `restsLeft: N` ends it after its creature's Nth Long Rest; each one counts
   down `flags.wildpath.restsLeft` (`WildPathActor#rest`). The converter gives Raise Dead's four "Resurrection Sickness
   (Day N)" effects (−1 each to D20 Tests) N, so the −4 eases by 1 a rest. Live (14.369): two of them on QA Fighter read
-  −2, then −1, then 0. shortcut: Resurrection's "Spell Taxed" stays a marker; it belongs on the caster, and an Action's
-  effects reach only its targets.
+  −2, then −1, then 0.
+- **On its user (2026-10-31).** `appliesTo: "source"` puts the effect on the creature using the Action, whatever it
+  targets and whatever their rolls (`conditionEffectTargetsForRequest`). Resurrection's Taxing Cast gives its caster
+  "Spell Taxed": `restsLeft: 1`, Disadvantage on D20 Tests, and a `Forbid` on spells (rule-elements.md). With no
+  source it fails rather than pick someone.
 - **Ending when attacked (2026-10-15).** `endsWhen: "attacked"` ends it once an attack against its creature has
   resolved, hit or miss, so it counts for that one attack ("the next attack roll against it has Advantage": Help,
   Guiding Bolt). The authority deletes it after the Action completes (`endEffectsWhenAttacked`).

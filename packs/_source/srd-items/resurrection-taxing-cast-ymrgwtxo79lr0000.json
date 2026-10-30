@@ -266,13 +266,37 @@
           "id": "effect-5",
           "type": "effect",
           "name": "Spell Taxed",
+          "restsLeft": 1,
           "img": "systems/dnd5e/icons/svg/break-concentration.svg",
-          "ruleElements": [],
-          "duration": {
-            "value": 86400,
-            "units": "seconds",
-            "expiry": "turnStart"
-          }
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "spell-taxed",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attack",
+                  "save",
+                  "check",
+                  "initiative"
+                ],
+                "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "spell-taxed-casting",
+              "type": "Forbid",
+              "data": {
+                "actions": {
+                  "tagsAny": [
+                    "spell"
+                  ]
+                }
+              }
+            }
+          ],
+          "appliesTo": "source"
         }
       ],
       "configuration": [
@@ -399,8 +423,7 @@
       },
       "conversion": {
         "notes": [
-          "activation: 1 hour is not an action-economy cost",
-          "effect: \"Spell Taxed\" marks its creature only; its rules are by hand"
+          "activation: 1 hour is not an action-economy cost"
         ]
       }
     }

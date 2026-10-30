@@ -161,6 +161,9 @@ test("a reaction is offered only while its creature has its status (whileStatus:
   assert.equal(offered(), false, "not reckless");
   guard.actor.statuses = new Set(["reckless"]);
   assert.equal(offered(), true);
+  // A reaction its creature's rules forbid (`Forbid`: Gaseous Form's attacks) is not offered.
+  guard.actor.forbiddingRule = definition => (definition?.attack ? {id: "gaseous"} : null);
+  assert.equal(offered(), false, "forbidden");
 });
 
 test("options sharing a onceKey (Cunning Strike's three) are one use a turn between them", t => {

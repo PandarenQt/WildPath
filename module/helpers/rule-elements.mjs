@@ -24,6 +24,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   ABILITY_SCORE: "AbilityScore",
   ROLL_OUTCOME: "RollOutcome",
   EXTRA_DAMAGE: "ExtraDamage",
+  FORBID: "Forbid",
   AURA: "Aura",
   TRIGGER: "Trigger"
 });
@@ -77,6 +78,7 @@ const TYPE_ALIASES = Object.freeze({
   abilityscore: RULE_ELEMENT_TYPES.ABILITY_SCORE,
   rolloutcome: RULE_ELEMENT_TYPES.ROLL_OUTCOME,
   extradamage: RULE_ELEMENT_TYPES.EXTRA_DAMAGE,
+  forbid: RULE_ELEMENT_TYPES.FORBID,
   aura: RULE_ELEMENT_TYPES.AURA,
   trigger: RULE_ELEMENT_TYPES.TRIGGER
 });
@@ -119,6 +121,7 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.ABILITY_SCORE, abilityScoreRuleElement],
     [RULE_ELEMENT_TYPES.ROLL_OUTCOME, rollOutcomeRuleElement],
     [RULE_ELEMENT_TYPES.EXTRA_DAMAGE, extraDamageRuleElement],
+    [RULE_ELEMENT_TYPES.FORBID, forbidRuleElement],
     [RULE_ELEMENT_TYPES.AURA, auraRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESOURCE, grantResourceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESISTANCE, grantResistanceRuleElement],
@@ -737,6 +740,39 @@ function extraDamageRuleElement(ruleElement) {
   });
 }
 
+/**
+ * Actions its creature can't use while it applies: `{actions: <predicate>, reason?: <localization key>}`. The predicate
+ * sees the Action's tags (`actionTags`): Spell Taxed forbids `{tagsAny: ["spell"]}`, Silenced
+ * `{tagsAny: ["component:verbal"]}`, Gaseous Form `{tagsAny: ["spell", "attack"]}`.
+ */
+function forbidRuleElement(ruleElement) {
+  const data = ruleElement.data;
+  const actions = data.actions;
+  if ( !actions || (typeof actions !== "object") || Array.isArray(actions)
+    || (evaluatePredicate(actions, {tags: []}).code === PREDICATE_CODES.INVALID) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "Forbid RuleElement requires an actions predicate.");
+  }
+  return success({forbids: [{id: data.id ?? ruleElement.id, actions: clonePlain(actions),
+    ...(typeof data.reason === "string" ? {reason: data.reason} : {}), label: ruleElement.label ?? null,
+    source: ruleElementSource(ruleElement), metadata: contributionMetadata(ruleElement, data.metadata)}]});
+}
+
+/** The tags a Forbid tests an Action by: its own, and `attack` when it makes an attack roll. */
+export function actionTags(definition) {
+  return [...(definition?.tags ?? []), ...(definition?.attack ? ["attack"] : [])];
+}
+
+/** The first rule (`Forbid`) of a creature's owners that bars an Action with `definition`, or null. */
+export function forbiddingRule(owners=[], definition=null, context={}) {
+  const tags = actionTags(definition);
+  for ( const {ruleElements=[], source=null} of owners ) {
+    const forbid = collectRuleElementContributions({ruleElements, context, source}).contributions.forbids
+      .find(entry => evaluatePredicate(entry.actions, {tags}).ok);
+    if ( forbid ) return {...forbid, name: forbid.label ?? source?.name ?? null};
+  }
+  return null;
+}
+
 const AURA_AFFECTS = Object.freeze(["allies", "enemies", "all"]);
 
 /**
@@ -946,6 +982,7 @@ function emptyContributions() {
     abilityScores: [],
     rollOutcomes: [],
     extraDamage: [],
+    forbids: [],
     auras: [],
     conditionImmunities: [],
     opportunityAttackAvoidance: [],
@@ -974,6 +1011,7 @@ function mergeContributions(target, source={}) {
   target.abilityScores.push(...(source.abilityScores ?? []));
   target.rollOutcomes.push(...(source.rollOutcomes ?? []));
   target.extraDamage.push(...(source.extraDamage ?? []));
+  target.forbids.push(...(source.forbids ?? []));
   target.auras.push(...(source.auras ?? []));
   target.conditionImmunities.push(...(source.conditionImmunities ?? []));
   target.opportunityAttackAvoidance.push(...(source.opportunityAttackAvoidance ?? []));

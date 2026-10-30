@@ -7,7 +7,7 @@ import {hostedRules} from "../helpers/effect-sources.mjs";
 import {
   damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, grantedSensesFromRuleElements, grantedLightsFromRuleElements, grantedLanguagesFromRuleElements,
   modifiersFromRuleElements,
-  resourceCapsFromRuleElements, abilityScoreChangesFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements,
+  resourceCapsFromRuleElements, abilityScoreChangesFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements, forbiddingRule,
   conditionImmunitiesFromRuleElements, opportunityAttackAvoidanceFromRuleElements, extraAttacksFromRuleElements, normalizeRuleElementType,
   armorClassesFromRuleElements
 } from "../helpers/rule-elements.mjs";
@@ -257,6 +257,14 @@ export default class WildPathActor extends Actor {
       conditions: [...(this.statuses ?? [])], ...context}});
   }
 
+  /**
+   * The rule (`Forbid`) that bars this creature from an Action with `definition`, or null: its features', gear's and
+   * effects' (Spell Taxed, Silenced), and its state's (armor it isn't trained with, Gaseous Form, a transformation).
+   */
+  forbiddingRule(definition) {
+    return forbiddingRule(grantOwners(this), definition, {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
+  }
+
   /** The auras this creature's features, gear and effects give it (`Aura`). */
   getAuras() {
     const compute = () => aurasFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
@@ -296,11 +304,6 @@ export default class WildPathActor extends Actor {
    * The ways this creature's features, gear and effects work out its Armor Class (`ArmorClass`): `{value, armor}`,
    * and the 2024 unarmored one, 10 + its Agility modifier. They count when its AC is not typed.
    */
-  /** The armor and Shields this creature wears without the training for them (G8, 2024). */
-  getUntrainedArmor() {
-    return untrainedArmor(this);
-  }
-
   getArmorClasses() {
     const context = {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]};
     return armorClassesFromRuleElements([...grantOwners(this), {ruleElements: [UNARMORED], source: null}], context);
@@ -1068,7 +1071,11 @@ function grantOwners(actor) {
     .map(effect => ({ruleElements: hostedRules(effect), source: documentRuleElementSource(effect, "effect")}));
   const hindering = untrained.find(item => item.system.armor !== "shield");
   const load = carryingRules(actor.system?.carrying);
-  return [...items, ...effects, ...(hindering ? [{ruleElements: [UNTRAINED_ARMOR], source: documentRuleElementSource(hindering, "item")}] : []),
+  const state = (id, rules) => ({ruleElements: rules, source: {type: "rule", uuid: null, id, name: id}});
+  return [...items, ...effects,
+    ...(hindering ? [{ruleElements: [UNTRAINED_ARMOR, UNTRAINED_CASTING], source: documentRuleElementSource(hindering, "item")}] : []),
+    ...(actor.statuses?.has?.("gaseous") ? [state("gaseous", [GASEOUS])] : []),
+    ...(transformation ? [state("transformed", [TRANSFORMED])] : []),
     ...(load.length ? [{ruleElements: load, source: {type: "rule", uuid: null, id: "carrying", name: "Carrying"}}] : []),
     {ruleElements: UNSEEN, source: {type: "rule", uuid: null, id: "unseen", name: "Unseen"}}];
 }
@@ -1088,6 +1095,18 @@ const UNSEEN = Object.freeze([
 /** 2024: armor worn without training gives Disadvantage on D20 Tests with Might or Agility. */
 const UNTRAINED_ARMOR = Object.freeze({schemaVersion: 1, id: "untrained-armor", type: "RollMode", data: {mode: "disadvantage",
   domains: ["attack.might", "attack.agility", "save.might", "save.agility", "check.might", "check.agility"]}});
+/** What a state forbids (`Forbid`). 2024: a creature in armor it isn't trained with can't cast spells. */
+const UNTRAINED_CASTING = Object.freeze({schemaVersion: 1, id: "untrained-armor-casting", type: "Forbid",
+  data: {actions: {tagsAny: ["spell"]}, reason: "WILDPATH.REFUSAL.ArmorCasting"}});
+/** 2024 Gaseous Form (and Wind Walk's cloud form): "the target can't attack or cast spells". */
+const GASEOUS = Object.freeze({schemaVersion: 1, id: "gaseous", type: "Forbid",
+  data: {actions: {tagsAny: ["spell", "attack"]}, reason: "WILDPATH.REFUSAL.Gaseous"}});
+/**
+ * 2024 Wild Shape and Polymorph: a transformed creature can't cast spells. Spells it already cast (their lasting areas,
+ * which run as authority Actions) go on.
+ */
+const TRANSFORMED = Object.freeze({schemaVersion: 1, id: "transformed", type: "Forbid",
+  data: {actions: {tagsAny: ["spell"]}, reason: "WILDPATH.REFUSAL.Transformed"}});
 
 /**
  * The armor and Shields a creature wears without the training for them (G8). A creature with no armor training at

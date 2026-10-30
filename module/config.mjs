@@ -327,6 +327,14 @@ WILDPATH.CONDITIONS = {
     img: "icons/svg/deaf.svg",
     ruleElements: []
   },
+  // It can't speak (dnd5e's "silenced": Magic Jar's empty body, Silence's sphere): no spell with a Verbal component.
+  silenced: {
+    id: "silenced",
+    name: "WILDPATH.CONDITIONS.Silenced",
+    summary: "WILDPATH.CONDITIONS.Summary.Silenced",
+    img: "icons/svg/silenced.svg",
+    ruleElements: [grant("silenced.verbal", "Forbid", {actions: {tagsAny: ["component:verbal"]}})]
+  },
   frightened: {
     id: "frightened",
     name: "WILDPATH.CONDITIONS.Frightened",
