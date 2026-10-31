@@ -258,7 +258,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Case, Crossbow Bolt | equipment24 | Case, Crossbow Bolt (gear) | — |
 | Case, Map or Scroll | equipment24 | Case, Map or Scroll (gear) | — |
 | Cat | actors24 | Cat (3 items) | — |
-| Celestial Steed | actors24 | Celestial Steed (3 items) | — |
+| Celestial Steed | actors24 | Celestial Steed (3 items) | Life Bond: silent: its text names a rule that is not converted (by hand) |
 | Censer of Controlling Air Elementals | equipment24 | Censer of Controlling Air Elementals (gear), Censer of Controlling Air Elementals (automated) | — |
 | Centaur Trooper | actors24 | Centaur Trooper (4 items) | — |
 | Chain | equipment24 | Chain (Wrap Chain Check) (automated), Chain (Escape Check) (automated), Chain (Burst Chain Check) (automated) | — |
@@ -558,7 +558,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Faerie Fire | spells24 | Faerie Fire (automated) | — |
 | Faithful Hound | spells24 | Faithful Hound (summon) (automated), Faithful Hound (Move Hound) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Faithful Hound | actors24 | Faithful Hound (2 items) | Bite: "save" is passive or triggered: not automated |
-| Faithful Steed | classes24 | Faithful Steed (feature) | — |
+| Faithful Steed | classes24 | Faithful Steed (feature) | silent: its text names a rule that is not converted (by hand) |
 | Falling Net | equipment24 | Falling Net (gear), Falling Net (Trigger (1-4)) (automated), Falling Net (Trigger (5-10)) (automated), Falling Net (Trigger (11-16)) (automated), Falling Net (Trigger (17-20)) (automated), Falling Net (Escape Check (1-4)) (automated), Falling Net (Escape Check (5-10)) (automated), Falling Net (Escape Check (11-16)) (automated), Falling Net (Escape Check (17-20)) (automated), Falling Net (Set Trap) (automated) | activation: 10 minute is not an action-economy cost |
 | False Life | spells24 | False Life (automated) | — |
 | Fast Hands | classes24 | Fast Hands (Sleight of Hand) (manual), Fast Hands (Thieves' Tools) (manual), Fast Hands (Use an Object) (manual) | not automated (check): using it spends its cost; its description says the rest; check: slt DC (?) not converted; check: dex DC (?) not converted; not automated (utility): using it spends its cost; its description says the rest |
@@ -577,10 +577,10 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Feral Instinct | classes24 | Feral Instinct (feature) | — |
 | Feral Senses | classes24 | Feral Senses (feature) | — |
 | Fey Ancestry | origins24 | Fey Ancestry (feature) | — |
-| Fey Steed | actors24 | Fey Steed (3 items) | Fey Step: not automated (utility): using it spends its cost; its description says the rest |
+| Fey Steed | actors24 | Fey Steed (3 items) | Life Bond: silent: its text names a rule that is not converted (by hand); Fey Step: not automated (utility): using it spends its cost; its description says the rest |
 | Fiend Patron | classes24 | Fiend Patron (subclass) | — |
 | Fiend Spells | classes24 | Fiend Spells (feature) | — |
-| Fiend Steed | actors24 | Fiend Steed (3 items) | — |
+| Fiend Steed | actors24 | Fiend Steed (3 items) | Life Bond: silent: its text names a rule that is not converted (by hand) |
 | Fiendish Legacy, Abyssal | origins24 | Fiendish Legacy, Abyssal (feature) | — |
 | Fiendish Legacy, Chthonic | origins24 | Fiendish Legacy, Chthonic (feature) | — |
 | Fiendish Legacy, Infernal | origins24 | Fiendish Legacy, Infernal (feature) | — |
@@ -831,11 +831,11 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Improved Brutal Strike (2) | classes24 | Improved Brutal Strike (2) (feature) | — |
 | Improved Critical | classes24 | Improved Critical (feature) | — |
 | Improved Cunning Strike | classes24 | Improved Cunning Strike (feature) | — |
-| Improved Elemental Fury | classes24 | Improved Elemental Fury (feature) | — |
+| Improved Elemental Fury | classes24 | Improved Elemental Fury (feature) | silent: its text names a rule that is not converted (by hand) |
 | Incendiary Cloud | spells24 | Incendiary Cloud (Create Cloud) (automated) | "Per Turn Save" is passive or triggered: not automated |
 | Incubus | actors24 | Incubus (9 items) | Succubus Form: "Shape-Shift: Succubus" is passive or triggered (narrative): not automated; Spellcasting: effect: "Disguised" marks its creature (narrative); Spellcasting: activation: 1 minute is not an action-economy cost |
 | Indomitable | classes24 | Indomitable (feature) | — |
-| Indomitable Might | classes24 | Indomitable Might (feature) | — |
+| Indomitable Might | classes24 | Indomitable Might (feature) | silent: its text names a rule that is not converted (by hand) |
 | Inflict Wounds | spells24 | Inflict Wounds (automated) | — |
 | Ink | equipment24 | Ink (gear) | — |
 | Ink | equipment24 | Ink (gear) | — |
@@ -942,7 +942,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Mage Hand | spells24 | Mage Hand (automated) | — |
 | Mage Hand | actors24 | Mage Hand (0 items) | — |
 | Magic Circle | spells24 | Magic Circle (automated) | activation: 1 minute is not an action-economy cost; rolled (save); what it does is by hand |
-| Magic Initiate | feats24 | Magic Initiate (feature) | — |
+| Magic Initiate | feats24 | Magic Initiate (feature) | silent: its text names a rule that is not converted (by hand) |
 | Magic Jar | spells24 | Magic Jar (Cast and Transfer Soul) (automated), Magic Jar (Possess Humanoid) (automated), Magic Jar (Return from Host) (manual) | activation: 1 minute is not an action-economy cost; not automated (utility): using it spends its cost; its description says the rest |
 | Magic Missile | spells24 | Magic Missile (automated) | — |
 | Magic Mouth | spells24 | Magic Mouth (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
@@ -1065,7 +1065,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Orc | origins24 | Orc (species) | — |
 | Otherworldly Leap | classes24 | Otherworldly Leap (automated) | effect: "Jump" marks its creature (narrative) |
 | Otherworldly Presence | origins24 | Otherworldly Presence (feature) | — |
-| Otherworldly Steed | actors24 | Otherworldly Steed (3 items) | Fey Step: not SRD 5.2 (CC-BY-4.0); Healing Touch: not SRD 5.2 (CC-BY-4.0) |
+| Otherworldly Steed | actors24 | Otherworldly Steed (3 items) | Life Bond: silent: its text names a rule that is not converted (by hand); Fey Step: not SRD 5.2 (CC-BY-4.0); Healing Touch: not SRD 5.2 (CC-BY-4.0) |
 | Otyugh | actors24 | Otyugh (5 items) | Bite: "save" is passive or triggered: not automated |
 | Overchannel | classes24 | Overchannel (feature) | "First Use" is passive or triggered: not automated; "Second+ Use" is passive or triggered: not automated |
 | Owl | actors24 | Owl (3 items) | — |
@@ -1133,7 +1133,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Pony | actors24 | Pony (1 items) | — |
 | Portable Hole | equipment24 | Portable Hole (gear), Portable Hole (Unfold Portable Hole) (manual), Portable Hole (Escape Check) (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Pot, Iron | equipment24 | Pot, Iron (gear) | — |
-| Potent Cantrip | classes24 | Potent Cantrip (feature) | — |
+| Potent Cantrip | classes24 | Potent Cantrip (feature) | silent: its text names a rule that is not converted (by hand) |
 | Potion of Animal Friendship | equipment24 | Potion of Animal Friendship: Animal Friendship (automated) | — |
 | Potion of Clairvoyance | equipment24 | Potion of Clairvoyance: Clairvoyance (automated) | activation: 10 minute is not an action-economy cost |
 | Potion of Climbing | equipment24 | Potion of Climbing (automated) | — |

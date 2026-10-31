@@ -1941,7 +1941,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const [only] = items;
   if ( (items.length === 1) && (only.type === "feature") && !allNotes.length && !only.system.ruleElements.length
     && !only.system.advancement && !Object.keys(only.flags.wildpath).some(key => !["source", "conversion", "prerequisites"].includes(key))
-    && !ENGINE_FEATURES.has(identifierOf(document)) && SILENT_MECHANICS.test(plainText(document)) ) {
+    && !ENGINE_FEATURES.has(identifierOf(document)) && !OFFERED_BY_ENGINE.has(identifierOf(document)) && SILENT_MECHANICS.test(plainText(document)) ) {
     const note = NARRATIVE_FEATURES.has(identifierOf(document)) ? `"${document.name}" is passive or triggered (narrative): not automated`
       : "silent: its text names a rule that is not converted (by hand)";
     allNotes.push(note);
@@ -1957,14 +1957,18 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
 const IGNORES_RESISTANCE = Object.freeze({"boon-of-irresistible-offense": ["bludgeoning", "piercing", "slashing"]});
 
 /** Words that name a rule in a feature's text (silent features, above). */
-const SILENT_MECHANICS = /\b(?:Advantage|Disadvantage|Resistance|Immunity|immune|Speed|bonus to|can't|Hit Point maximum|Armor Class)\b/u;
+// Also what refills, rerolls or changes dice (Perfect Focus, Great Weapon Fighting were missed by the first list).
+const SILENT_MECHANICS = /\b(?:Advantage|Disadvantage|Resistance|Immunity|immune|Speed|bonus to|can't|Hit Point maximum|Armor Class|regain|reroll|roll Initiative|damage die|extra damage|Temporary Hit Points|saving throw)\b/u;
 /**
  * Features whose rule is their class's or species' advancement, which the level-up dialog runs (`improvement`, `choice`),
  * or another feature's rule reading them (Infiltration Expertise: Steady Aim's `hasFeature`): the feature Item is only
  * its name and text.
  */
 const ENGINE_FEATURES = new Set(["ability-score-improvement", "divine-order", "primal-order", "eldritch-invocations", "giant-ancestry",
-  "druidic", "celestial-resistance", "elven-lineage", "fiendish-legacy", "infiltration-expertise"]);
+  "druidic", "celestial-resistance", "elven-lineage", "fiendish-legacy", "infiltration-expertise",
+  // A class's spellcasting and Pact Magic (its slots), a lineage's spells (its species' grants), Improved Brutal Strike's
+  // second option and 2d10 (Brutal Strike's own level tables).
+  "spellcasting", "pact-magic", "elven-lineage-drow", "elven-lineage-high-elf", "gnomish-lineage-forest", "improved-brutal-strike-2"]);
 /**
  * Features whose rule nothing in play exercises, so their text is their rule (an informational note, not a gap): what a
  * creature can't carry (Ephemeral), thoughts no one reads (Shielded Mind, Inscrutable: an Insight check is the GM's call

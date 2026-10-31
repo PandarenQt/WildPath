@@ -86,7 +86,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "silent: its text names a rule that is not converted (by hand)"
+            ]
           }
         }
       }
@@ -243,6 +245,7 @@
       },
       "conversion": {
         "notes": [
+          "Life Bond: silent: its text names a rule that is not converted (by hand)",
           "Fey Step: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
