@@ -1,4 +1,5 @@
 import {test} from "node:test";
+import {readFileSync} from "node:fs";
 import {sanitizeResolutionResultForTransport} from "../module/helpers/multiplayer-authority.mjs";
 import assert from "node:assert/strict";
 import {ECONOMY_CAPABILITIES} from "../module/helpers/action-economy.mjs";
@@ -1025,6 +1026,19 @@ test("Boon of Spell Recall: a Pact Magic slot rolls at its Pact Magic level, eve
     {"system.resources.action.value": 0}, "a 3 keeps a level-3 pact slot");
   assert.equal(paidUpdates(answerRoll(recalledCast("resolution:pact-1", {...warlock, cost: "spell-slot.1"}), {total: 1}).state)["system.pools.0.value"], 0,
     "a 1 does not: the slot is level 3");
+});
+
+test("Boon of Spell Recall: 2024 Wild Companion casts Find Familiar with its slot, so a 1 keeps a level-1 slot", () => {
+  const companion = JSON.parse(readFileSync("packs/_source/srd-items/wild-companion-summon-with-spell-slot-phbdrdWildCompan.json", "utf8"))
+    .system.definition;
+  assert.ok(companion.tags.includes("component:verbal") && !companion.tags.includes("component:material"), "Counterspell sees it; no Material");
+  const plan = planStagedActionResolution({id: "resolution:wild-companion", actorSystem: actorSystem(1, {pools: [{id: "spell-slot.1", value: 1, max: 2}]}),
+    action: definitionAction(companion), source: {actorId: "actor-source"}, slotRecall: {dice: {type: "dice", number: 1, faces: 4}, maxLevel: 4}});
+  const configured = resumeStagedActionResolution({state: plan.state, response: {resolutionId: plan.state.id, requestId: plan.state.pendingRequests[0].id,
+    type: RESOLUTION_REQUEST_TYPES.ACTION_CONFIGURATION,
+    value: {choices: {slot: "spell-slot.1", "summon-creature": companion.configuration[1].options[0].id}}}});
+  assert.equal(configured.state.status, RESOLUTION_STATE_STATUS.AWAITING_ROLL, "its d4 is rolled");
+  assert.deepEqual(paidUpdates(answerRoll(configured, {total: 1}).state), {"system.resources.action.value": 0}, "the slot is kept");
 });
 
 test("Boon of Spell Recall: physical and digital d4s keep the slot alike, and an answered d4 is not asked again", async () => {

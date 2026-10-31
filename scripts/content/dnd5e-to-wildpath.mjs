@@ -237,6 +237,11 @@ const ENDS = Object.freeze({
   "dispel-magic": {spells: "slot", areas: true}
 });
 
+/** The spell a feature casts with a spell slot, as its tags: 2024 Wild Companion's Find Familiar, without its Material component. */
+const SLOT_CASTS = Object.freeze({
+  "wild-companion": ["spell", "school:conjuration", "component:verbal", "component:somatic"]
+});
+
 /**
  * A paladin's auras (2024): what "you and your allies" in the paladin's 10-foot Emanation (30 feet from Aura Expansion,
  * paladin level 18) get, inactive while the paladin has the Incapacitated condition. Aura of Protection adds its
@@ -1660,6 +1665,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       // Sleep magic, which a creature that doesn't sleep shrugs off (2024 Sleep: "Creatures that don't sleep ...").
       ...(/\bdon['’]t sleep\b/iu.test(plainText(document)) ? ["sleep"] : []),
       ...(definition.damage ?? []).map(component => component.damageType).filter(Boolean).map(type => `damage:${type}`)])]};
+    // A feature that casts a spell with a slot is that spell's cast (Boon of Spell Recall's d4, Counterspell): its spell's
+    // tags. Its use paid otherwise (Wild Companion's Wild Shape) has no slot level, so it would sit among cantrips; it stays a feature's.
+    const castsWithSlot = SLOT_CASTS[identifierOf(document)];
+    if ( castsWithSlot && definition && (activity.consumption?.targets ?? []).some(target => target.type === "spellSlots") ) {
+      definition = {...definition, tags: [...new Set([...(definition.tags ?? []), ...castsWithSlot])]};
+    }
     // Lay on Hands: "restore a number of Hit Points equal to the points spent", chosen when used, from its pool.
     if ( (identifierOf(document) === "lay-on-hands") && (activity.type === "heal") && pool ) {
       definition = {...definition, costs: {allOf: (definition.costs?.allOf ?? []).filter(cost => cost.capability !== pool.id)},
