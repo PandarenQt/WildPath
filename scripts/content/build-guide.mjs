@@ -81,7 +81,8 @@ if ( isMain ) {
   const files = readdirSync("docs/guide").filter(file => file.endsWith(".md")).sort();
   const id = "wildpathGuide000";
   const pages = files.map((file, index) => {
-    const markdown = readFileSync(join("docs/guide", file), "utf8");
+    // Whatever line endings the file was saved with (a Windows editor's CRLF).
+    const markdown = readFileSync(join("docs/guide", file), "utf8").replace(/\r\n/gu, "\n");
     const name = /^#\s+(.*)$/m.exec(markdown)?.[1] ?? file.replace(/\.md$/, "");
     const pageId = `wpGuidePage${String(index + 1).padStart(5, "0")}`;
     return {_id: pageId, _key: `!journal.pages!${id}.${pageId}`, name, type: "text", sort: (index + 1) * 100000,
