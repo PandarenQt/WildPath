@@ -258,6 +258,11 @@ needing Warlock levels was offered. Armor of Shadows was added.
     own level (`withMysticArcanum`, as the authority builds its definition), and it is not counted as prepared. Live:
     a Warlock 11 marked Disintegrate (then Eyebite, which unmarked it, then Disintegrate again) and cast it from the
     arcanum (1/1 to 0/1); Eyebite stayed unavailable, its pact slots being level 5.
+  - **Spell Mastery and Signature Spells (wizard 18 and 20, 2026-10-31)** work the same way (`withChosenSpells`). The
+    sheet's Mastered toggle marks one level 1 and one level 2 spell cast with an Action (`flags.wildpath.mastered`,
+    while the wizard has Spell Mastery): its slot choice gains a branch that spends nothing, at the spell's own level
+    (`metadata.freeCastLevel`). The Signature toggle marks two level 3 spells (`flags.wildpath.signature`: 1 or 2),
+    each paid from its own pool `signature-spell.<n>` (1, Short or Long Rest). Marked spells are always prepared.
 - **The pool chosen pays.** A resource choice's option is paid from the pool it named (`resourceId` on the requirement),
   not from another pool with the same capability: Pact Magic slots chosen are not swapped for a level-1 slot.
 

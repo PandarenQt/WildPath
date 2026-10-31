@@ -23,9 +23,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Master Spell\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

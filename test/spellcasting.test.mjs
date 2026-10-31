@@ -88,6 +88,40 @@ test("Mystic Arcanum: only the spell marked as its level's arcanum may spend tha
   assert.deepEqual([preparesSpell(spell(true, arcanumPool)), preparesSpell(spell(false, arcanumPool))], [false, true]);
 });
 
+test("Spell Mastery casts a marked level 1 or 2 Action spell free at its level; Signature Spells casts a marked level 3 one from its pool", async () => {
+  const fs = await import("node:fs");
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const {discoverActionConfigurationChoices, resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const {preparesSpell} = await import("../module/helpers/spellcasting.mjs");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const mastery = read("spell-mastery-phbwzd");
+  const [missile, misty, fireball] = [read("magic-missile-phb"), read("misty-step-phb"), read("fireball-phb")];
+  const pools = [{id: "spell-slot.1", value: 0, max: 4}, {id: "signature-spell.1", value: 1, max: 1}];
+  const owner = (features=[mastery]) => ({items: features, system: {pools}});
+  const slot = (spell, flags, actor=owner()) => actionDefinitionFromItem({...spell, flags: {wildpath: flags}, actor}).definition
+    .configuration.find(choice => choice.id === "spell-slot");
+  const free = choice => choice.cost.anyOf.some(branch => !branch.length);
+  assert.deepEqual([free(slot(missile, {mastered: true})), free(slot(missile, {})), free(slot(missile, {mastered: true}, owner([]))),
+    free(slot(misty, {mastered: true}))], [true, false, false, false], "marked, with the feature, cast with an Action (not Misty Step's Bonus Action)");
+  // With no slot left, the free cast is at the spell's own level.
+  const definition = actionDefinitionFromItem({...missile, flags: {wildpath: {mastered: true}}, actor: owner()}).definition;
+  const actorSystem = {resources: {action: {value: 1, max: 1}}, pools};
+  const [option] = discoverActionConfigurationChoices({definition, actorSystem}).requests.find(request => request.id === "spell-slot").options;
+  const resolved = resolveActionConfiguration({definition, actorSystem, choices: {"spell-slot": {paymentOptionId: option.paymentOptionId}}});
+  assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+  assert.deepEqual([resolved.configuration.castingLevel, option.resources.length], [1, 0], "level 1, no slot");
+  const signature = slot(fireball, {signature: 1});
+  assert.deepEqual([signature.cost.anyOf.some(branch => branch[0]?.capability === "signature-spell.1"), signature.levelByResourceId["signature-spell.1"]],
+    [true, 3]);
+  assert.equal(slot(fireball, {signature: 2}).cost.anyOf.some(branch => branch[0]?.capability === "signature-spell.2"), false, "no such pool");
+  assert.deepEqual([preparesSpell({...missile, flags: {wildpath: {mastered: true}}}), preparesSpell({...fireball, flags: {wildpath: {signature: 1}}}),
+    preparesSpell(missile)], [false, false, true], "always prepared");
+  const signatures = read("signature-spells-phbwzd");
+  assert.deepEqual([signatures.system.ruleElements.map(rule => [rule.data.resourceId, rule.data.recovery]), signatures.flags.wildpath.conversion.notes,
+    mastery.flags.wildpath.conversion.notes], [[["signature-spell.1", "shortRest"], ["signature-spell.2", "shortRest"]], [], []]);
+});
+
 test("third casters: their own table alone (a third of the level, rounded up, from 3rd), a third rounded down beside others", () => {
   const knight = level => ({id: "fighter", level, spellcasting: {progression: "third"}});
   // 2024 Eldritch Knight: 3rd level two 1st-level slots, 7th four and two, 19th 4/3/3/1.

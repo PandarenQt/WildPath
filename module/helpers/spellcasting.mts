@@ -153,7 +153,7 @@ export function spellBaseLevel(definition: {configuration?: Array<{id?: string; 
 export const mysticArcanumPoolId = (level: number) => `mystic-arcanum.${level}`;
 
 interface PreparingItem {
-  type?: string; flags?: {wildpath?: {grantedBy?: string | null; arcanum?: boolean}};
+  type?: string; flags?: {wildpath?: {grantedBy?: string | null; arcanum?: boolean; mastered?: boolean; signature?: number | null}};
   system?: {prepared?: boolean; definition?: {tags?: string[]; configuration?: Array<{id?: string}>}};
 }
 
@@ -163,8 +163,10 @@ interface PreparingItem {
  */
 export function preparesSpell(item: PreparingItem | null | undefined) {
   const definition = item?.system?.definition;
-  // A Mystic Arcanum spell is cast from its arcanum (or a slot), never prepared.
-  return (item?.type === "action") && !item.flags?.wildpath?.grantedBy && !item.flags?.wildpath?.arcanum
+  // A Mystic Arcanum spell is cast from its arcanum (or a slot), never prepared; a wizard's Spell Mastery and Signature
+  // Spells are always prepared.
+  const flags = item?.flags?.wildpath;
+  return (item?.type === "action") && !flags?.grantedBy && !flags?.arcanum && !flags?.mastered && !flags?.signature
     && !!definition?.tags?.includes("spell") && !!definition.configuration?.some(choice => choice?.id === "spell-slot");
 }
 

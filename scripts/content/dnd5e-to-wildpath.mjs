@@ -463,9 +463,11 @@ const CHOICES_FOR = Object.freeze({
 /**
  * Features the engine offers itself when they apply (Tactical Mind: withTacticalMind on a failed check), or that are
  * rows of another feature's Action (Eldritch Master in Magical Cunning; Heightened Focus in Monk's Focus: Flurry's third
- * strike, Patient Defense's Temporary Hit Points). Their dnd5e activities are neither Actions nor notes.
+ * strike, Patient Defense's Temporary Hit Points), or that mark a spell on the sheet (Spell Mastery, Signature Spells:
+ * withChosenSpells). Their dnd5e activities are neither Actions nor notes.
  */
-const OFFERED_BY_ENGINE = new Set(["tactical-mind", "eldritch-master", "indomitable", "heightened-focus"]);
+const OFFERED_BY_ENGINE = new Set(["tactical-mind", "eldritch-master", "indomitable", "heightened-focus", "spell-mastery",
+  "signature-spells"]);
 
 /** The pool of Pact Magic slots (helpers/spellcasting.mts). */
 const PACT_SLOT_POOL = "spell-slot.pact";
@@ -487,6 +489,14 @@ const MAGICAL_CUNNING_RESTORE = Object.freeze({resourceId: PACT_SLOT_POOL, amoun
 const MYSTIC_ARCANUM_POOLS = Object.freeze([[6, 11], [7, 13], [8, 15], [9, 17]].map(([level, from]) => ({schemaVersion: 1,
   id: `mystic-arcanum-${level}`, type: "GrantResource", data: {resourceId: `mystic-arcanum.${level}`, label: `Mystic Arcanum (level ${level})`,
     maximum: {type: "table", key: {type: "class-level", class: "warlock"}, rows: {[from]: 1}, default: 0}, recovery: "longRest"}})));
+
+/**
+ * 2024 Signature Spells (wizard 20): two level 3 spells, each cast at level 3 without a slot once per Short or Long Rest:
+ * a pool for each, which the spell its wizard marks as that signature spell may spend (on the sheet; action-definitions
+ * withChosenSpells). Spell Mastery's spells cost nothing and need no pool.
+ */
+const SIGNATURE_SPELL_POOLS = Object.freeze([1, 2].map(n => ({schemaVersion: 1, id: `signature-spell-${n}`, type: "GrantResource",
+  data: {resourceId: `signature-spell.${n}`, label: `Signature Spell ${n}`, maximum: 1, recovery: "shortRest"}})));
 
 /**
  * A feature dnd5e leaves without automation, as the effects its use puts on its creature. 2024 Steady Aim: Advantage
@@ -1728,6 +1738,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...(PALADIN_AURAS[identifierOf(document)] ? [paladinAura(identifierOf(document))] : passive),
         ...((identifierOf(document) === "paladins-smite") ? [PALADINS_SMITE.pool] : []),
         ...((identifierOf(document) === "mystic-arcanum") ? structuredClone(MYSTIC_ARCANUM_POOLS) : []),
+        ...((identifierOf(document) === "signature-spells") ? structuredClone(SIGNATURE_SPELL_POOLS) : []),
         ...structuredClone(FEAT_ADVANCEMENT[identifierOf(document)]?.rules ?? [])].filter(Boolean),
         ...(FEAT_ADVANCEMENT[identifierOf(document)] ? {advancement: structuredClone(FEAT_ADVANCEMENT[identifierOf(document)].advancement)} : {})},
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(metamagic ? {metamagic} : {}),

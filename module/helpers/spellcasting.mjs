@@ -134,8 +134,10 @@ export const mysticArcanumPoolId = (level) => `mystic-arcanum.${level}`;
  */
 export function preparesSpell(item) {
     const definition = item?.system?.definition;
-    // A Mystic Arcanum spell is cast from its arcanum (or a slot), never prepared.
-    return (item?.type === "action") && !item.flags?.wildpath?.grantedBy && !item.flags?.wildpath?.arcanum
+    // A Mystic Arcanum spell is cast from its arcanum (or a slot), never prepared; a wizard's Spell Mastery and Signature
+    // Spells are always prepared.
+    const flags = item?.flags?.wildpath;
+    return (item?.type === "action") && !flags?.grantedBy && !flags?.arcanum && !flags?.mastered && !flags?.signature
         && !!definition?.tags?.includes("spell") && !!definition.configuration?.some(choice => choice?.id === "spell-slot");
 }
 /** A spell its creature has not prepared, so it can't cast it. */

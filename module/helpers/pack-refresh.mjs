@@ -13,7 +13,7 @@ export const REFRESHED_SYSTEM_FIELDS = Object.freeze(["definition", "ruleElement
  * `flags.wildpath` keys play writes on an Item, never taken from the pack: its reaction setting, the training and
  * Arcanum chosen for it, what replaced it at level-up, what granted it, a facility's build cost.
  */
-export const KEPT_FLAGS = Object.freeze(["reactionPolicy", "training", "arcanum", "replaced", "grantedBy", "buildCost"]);
+export const KEPT_FLAGS = Object.freeze(["reactionPolicy", "training", "arcanum", "mastered", "signature", "replaced", "grantedBy", "buildCost"]);
 
 const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 const clone = value => (value === undefined ? undefined : JSON.parse(JSON.stringify(value)));

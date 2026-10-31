@@ -215,6 +215,18 @@
                 {{#if item.arcanum.on}}{{localize "WILDPATH.SHEET.Arcanum"}}{{else}}{{localize "WILDPATH.SHEET.NotArcanum"}}{{/if}}
               </button>
             {{/if}}
+            {{#if item.mastered}}
+              <button type="button" class="row-command" data-action="toggleMastered" aria-pressed="{{#if item.mastered.on}}true{{else}}false{{/if}}"
+                      title="{{localize "WILDPATH.SHEET.MasteredHint" level=item.mastered.level}}">
+                {{#if item.mastered.on}}{{localize "WILDPATH.SHEET.Mastered"}}{{else}}{{localize "WILDPATH.SHEET.NotMastered"}}{{/if}}
+              </button>
+            {{/if}}
+            {{#if item.signature}}
+              <button type="button" class="row-command" data-action="toggleSignature" aria-pressed="{{#if item.signature.on}}true{{else}}false{{/if}}"
+                      title="{{localize "WILDPATH.SHEET.SignatureHint"}}">
+                {{#if item.signature.on}}{{localize "WILDPATH.SHEET.Signature"}}{{else}}{{localize "WILDPATH.SHEET.NotSignature"}}{{/if}}
+              </button>
+            {{/if}}
             {{#if item.prepares}}
               <button type="button" class="row-command" data-action="togglePrepared" aria-pressed="{{#if item.prepared}}true{{else}}false{{/if}}">
                 {{#if item.prepared}}{{localize "WILDPATH.SHEET.Prepared"}}{{else}}{{localize "WILDPATH.SHEET.NotPrepared"}}{{/if}}

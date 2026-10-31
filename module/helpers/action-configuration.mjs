@@ -624,6 +624,10 @@ function inferResourceOptionMetadata({resources, choiceDefinition, selectedResou
     if ( level != null && metadata.castingLevel == null ) metadata.castingLevel = level;
     if ( resource.resourceMetadata?.slotType && metadata.slotType == null ) metadata.slotType = resource.resourceMetadata.slotType;
   }
+  // A cast that spends nothing (Spell Mastery) is at the level its choice names.
+  if ( !resources.length && (metadata.castingLevel == null) && (finiteNumber(choiceDefinition.metadata?.freeCastLevel) != null) ) {
+    metadata.castingLevel = finiteNumber(choiceDefinition.metadata.freeCastLevel);
+  }
   return metadata;
 }
 

@@ -1360,7 +1360,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Shrieker Fungus | actors24 | Shrieker Fungus (2 items) | Shriek: not automated (utility): using it spends its cost; its description says the rest |
 | Sickle | equipment24 | Sickle (automated) | — |
 | Signal Whistle | equipment24 | Signal Whistle (gear), Signal Whistle (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Signature Spells | classes24 | Signature Spells (feature) | "Make Signature" is passive or triggered: not automated; "Expend First Spell" is passive or triggered: not automated; "Expend Second Spell" is passive or triggered: not automated |
+| Signature Spells | classes24 | Signature Spells (feature) | — |
 | Silence | spells24 | Silence (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
 | Silent Image | spells24 | Silent Image (automated) | — |
 | Silver Dragon Wyrmling | actors24 | Silver Dragon Wyrmling (5 items) | — |
@@ -1395,7 +1395,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Speak with Plants | spells24 | Speak with Plants (automated) | effect: "Speaking with Plants" marks its creature (narrative) |
 | Spear | equipment24 | Spear (automated), Spear (Two-Handed) (automated) | — |
 | Specter | actors24 | Specter (4 items) | — |
-| Spell Mastery | classes24 | Spell Mastery (feature) | "Master Spell" is passive or triggered: not automated |
+| Spell Mastery | classes24 | Spell Mastery (feature) | — |
 | Spell Scroll | equipment24 | Spell Scroll (gear) | — |
 | Spell Scroll, 1st Level | equipment24 | Spell Scroll, 1st Level (gear) | — |
 | Spell Scroll, 2nd Level | equipment24 | Spell Scroll, 2nd Level (gear) | — |

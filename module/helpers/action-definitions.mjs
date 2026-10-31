@@ -268,9 +268,10 @@ export function serializeActionDefinition(rawDefinition={}, options={}) {
 export function actionDefinitionFromItem(item, options={}) {
   const system = item?.system ?? {};
   // Its range bonus before Metamagic, so Distant Spell doubles the longer range.
-  const raw = withContributedChoices(withSummonLevels(withMysticArcanum(withMetamagic(withRangeBonus(withOwnWeapons(withWeaponMastery(
-    withExtraAttacks(system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null, item),
-    item?.actor ?? null), item?.actor ?? null), item), item?.actor ?? null), item), item?.actor ?? null), item);
+  const actor = item?.actor ?? null;
+  const stored = system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null;
+  const ranged = withRangeBonus(withOwnWeapons(withWeaponMastery(withExtraAttacks(stored, item), actor), actor), item);
+  const raw = withContributedChoices(withSummonLevels(withChosenSpells(withMysticArcanum(withMetamagic(ranged, actor), item), item), actor), item);
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
   const legacyActivationCost = options.legacyActivationCost
@@ -409,6 +410,32 @@ function withMysticArcanum(raw, item) {
   return {...raw, configuration: raw.configuration.map(entry => ((entry !== choice) ? entry : {...entry,
     cost: {anyOf: [...(entry.cost?.anyOf ?? []), [{capability, amount: 1}]]},
     levelByResourceId: {...(entry.levelByResourceId ?? {}), [capability]: level}}))};
+}
+
+/**
+ * A wizard's chosen spells (2024): Spell Mastery's level 1 and level 2 spell with a casting time of an Action
+ * (`flags.wildpath.mastered`) is also cast at its own level without a slot, while its creature has Spell Mastery; each of
+ * Signature Spells' two level 3 spells (`flags.wildpath.signature`: 1 or 2) also from its own pool, once per Short or Long
+ * Rest (`signature-spell.<n>`), while its creature has that pool.
+ */
+function withChosenSpells(raw, item) {
+  const {mastered=false, signature=null} = item?.flags?.wildpath ?? {};
+  const choice = (mastered || signature) ? raw?.configuration?.find(entry => entry?.id === "spell-slot") : null;
+  const level = choice ? spellBaseLevel(raw) : null;
+  if ( !level ) return raw;
+  const actor = item.actor;
+  const branch = (cost, extra) => ({...raw, configuration: raw.configuration.map(entry => ((entry !== choice) ? entry
+    : {...entry, cost: {anyOf: [...(entry.cost?.anyOf ?? []), cost]}, ...extra(entry)}))});
+  if ( mastered && [1, 2].includes(level) && (raw.costs?.allOf ?? []).some(cost => cost?.capability === "action")
+    && [...(actor?.items ?? [])].some(entry => (entry?.system?.active !== false)
+      && (entry?.flags?.wildpath?.source?.identifier === "spell-mastery")) ) {
+    return branch([], entry => ({metadata: {...(entry.metadata ?? {}), freeCastLevel: level}}));
+  }
+  const capability = `signature-spell.${signature}`;
+  if ( signature && (level === 3) && (actor?.system?.pools ?? []).some(pool => pool.id === capability) ) {
+    return branch([{capability, amount: 1}], entry => ({levelByResourceId: {...(entry.levelByResourceId ?? {}), [capability]: level}}));
+  }
+  return raw;
 }
 
 function withExtraAttacks(raw, item) {
