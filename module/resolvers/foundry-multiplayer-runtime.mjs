@@ -1099,7 +1099,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         .filter(point => Number.isFinite(point.x) && Number.isFinite(point.y))} : {}),
       // Rules consume plain effective snapshots; commit retains the exact live (possibly synthetic) Actors.
       durability: {targetSystems, ...(Object.keys(targetProfiles).length ? {adjustmentProfiles: targetProfiles} : {}),
-        ...(ignoredResistances(actor).length ? {adjustments: {ignoresResistance: ignoredResistances(actor)}} : {}),
+        ...(ignoredResistances(actor, {tags: definition?.tags ?? []}).length
+          ? {adjustments: {ignoresResistance: ignoredResistances(actor, {tags: definition?.tags ?? []})}} : {}),
         ...(Object.keys(zeroHpByTarget).length ? {zeroHpByTarget} : {}),
         ...(onReduce ? {onReduce: {...onReduce, hostileKeys}} : {}), ...(onHeal ? {onHeal} : {}), ...(lifeBonds.length ? {lifeBonds} : {})},
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),

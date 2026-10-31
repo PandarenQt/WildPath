@@ -1122,6 +1122,7 @@
         "di": "Immunity",
         "dv": "Vulnerability",
         "ci": "Condition immunity",
+      "adept": "Energy Mastery",
         "Hint": {
           "armor": "light, medium, heavy, shield",
           "weapons": "simple, martial, or a weapon",

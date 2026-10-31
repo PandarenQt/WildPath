@@ -499,6 +499,15 @@ test("Potent Cantrip: a cantrip saved against deals half its damage while its ca
   assert.deepEqual([success(caster(true)), success(caster(false))], ["half", "none"]);
 });
 
+test("ignored Resistances: a feature's own, and Energy Mastery's type for spells only", async () => {
+  const {ignoredResistances} = await import("../module/helpers/combat-statistics.mjs");
+  const actor = {items: [{system: {active: true}, flags: {wildpath: {ignoresResistance: ["slashing"]}}},
+    {system: {active: true}, flags: {wildpath: {training: ["adept:fire", "skills:arcana"]}}}]};
+  assert.deepEqual(ignoredResistances(actor, {tags: ["spell"]}), ["slashing", "fire"]);
+  assert.deepEqual(ignoredResistances(actor, {tags: ["weapon"]}), ["slashing"], "a weapon's fire is resisted");
+  assert.deepEqual(ignoredResistances(actor), ["slashing"]);
+});
+
 test("a companion's controller's proficiency bonus is its first controller's (Primal Bond); none without one", () => {
   const ranger = Object.assign(Object.create(WildPathActor.prototype), {id: "ranger", uuid: "Actor.ranger", effects: [], items: [],
     statuses: new Set(), flags: {}, system: {details: {level: 9}}, allApplicableEffects: () => []});

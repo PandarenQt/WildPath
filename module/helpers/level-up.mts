@@ -245,8 +245,12 @@ const TRAIT_RULES: Readonly<Record<string, string>> = Object.freeze({dr: "GrantR
  * damage and condition grants, which it holds like any other rule.
  */
 export function trainingRuleElements(keys: readonly string[] = []) {
-  return keys.flatMap(key => {
+  return keys.flatMap((key): Array<{schemaVersion: number; id: string; type: string; data: Data}> => {
     const [kind, value] = String(key).split(":");
+    // Elemental Adept's Energy Mastery (`adept:<type>`): its spells' dice of that type count a 1 as a 2 (its Resistance
+    // ignored is combat-statistics' ignoredResistances).
+    if ( (kind === "adept") && value && !value.endsWith("*") ) return [{schemaVersion: 1, id: `training-adept-${value}`,
+      type: "DamageDieMinimum", data: {domains: ["damage.spell"], minimum: 2, damageTypes: [value]}}];
     const type = TRAIT_RULES[kind ?? ""];
     if ( !type || !value || value.endsWith("*") ) return [];
     return [{schemaVersion: 1, id: `training-${kind}-${value}`, type,

@@ -359,11 +359,17 @@ function scoreMinimum(actor, domains, ability) {
 
 /**
  * The damage types whose Resistance a creature's damage ignores, from its active features (`flags.wildpath.
- * ignoresResistance`: Boon of Irresistible Offense's Bludgeoning, Piercing and Slashing). Immunity still holds.
+ * ignoresResistance`: Boon of Irresistible Offense's Bludgeoning, Piercing and Slashing), and for a spell (`tags`) the
+ * Energy Mastery type it chose (`adept:<type>` in its Elemental Adept's recorded training). Immunity still holds.
+ * @param {object} actor
+ * @param {{tags?: string[]}} [options]
+ * @returns {string[]}
  */
-export function ignoredResistances(actor) {
+export function ignoredResistances(actor, {tags=[]}={}) {
+  const spell = tags.includes("spell");
   return [...new Set([...(actor?.items ?? [])].filter(item => item?.system?.active !== false)
-    .flatMap(item => item?.flags?.wildpath?.ignoresResistance ?? []))];
+    .flatMap(item => [...(item?.flags?.wildpath?.ignoresResistance ?? []), ...(spell ? (item?.flags?.wildpath?.training ?? [])
+      .filter(key => String(key).startsWith("adept:")).map(key => String(key).slice(6)) : [])]))];
 }
 
 /**

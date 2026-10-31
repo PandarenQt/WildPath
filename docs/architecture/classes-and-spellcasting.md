@@ -225,6 +225,10 @@ gated by sources and prerequisites, and at class level 0. Tasha's feats, through
   Wisdom and Charisma (`flags.wildpath.castingAbilities` on the feat; `withGrantedCastingAbility` pins the spell attack
   and every unnamed spellcasting modifier). Its level 1 spell is cast once per Long Rest from `free-cast.magic-initiate`
   (`freeCast.granted`). shortcut: two copies share that pool, and the same-list rule is not enforced.
+- **Resilient and Elemental Adept (2024, 2026-10-31):** a trait choice at level 0. Resilient's is a saving throw
+  proficiency (`saves:<ability>`). Elemental Adept's is its Energy Mastery type, recorded as `adept:<type>`: its
+  spells' dice of that type count a 1 as a 2 (`trainingRuleElements` gives a `DamageDieMinimum`) and ignore Resistance
+  to it (`ignoredResistances` with the Action's tags). shortcut: every feat's +1 to an ability is by hand.
 - shortcut: Artificer Initiate's cantrip, spell and tool are taken by hand.
 
 Live (14.369): the converted Eldritch Adept on QA Caster offered Armor of Shadows, Eldritch Mind and the Pacts. None

@@ -4748,6 +4748,11 @@ const FEAT_ADVANCEMENT = Object.freeze({
   // by hand, as every feat's ability increase is.
   resilient: {advancement: [{level: 0, type: "trait", title: "Saving Throw Proficiency", grants: [], choices: [{count: 1,
     pool: ["might", "agility", "fortitude", "intellect", "wits", "presence"].map(ability => `saves:${ability}`)}]}]},
+  // 2024 Elemental Adept's Energy Mastery: a damage type its spells' Resistance-ignoring and 1-as-2 dice are for (an
+  // `adept:<type>` trait: level-up trainingRuleElements, combat-statistics ignoredResistances). shortcut: its +1 to an
+  // ability is by hand, as every feat's is.
+  "elemental-adept": {advancement: [{level: 0, type: "trait", title: "Energy Mastery", grants: [], choices: [{count: 1,
+    pool: ["acid", "cold", "fire", "lightning", "thunder"].map(type => `adept:${type}`)}]}]},
   "metamagic-adept": {advancement: [{level: 0, type: "choice", title: "Metamagic", count: 2, pool: {subtype: "metamagic"}}],
     rules: [{schemaVersion: 1, id: "metamagic-adept-points", type: "GrantResource", data: {resourceId: "font-of-magic", label: "Sorcery Points",
       maximum: 2, recovery: "longRest"}}]}
