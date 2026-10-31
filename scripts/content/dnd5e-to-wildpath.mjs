@@ -918,6 +918,12 @@ function slotRecovery({id, poolId, label, classId, ownPool=false}) {
     notes: []};
 }
 
+/** When its creature rolls Initiative, a pool of its own comes back up to `upTo` (an automation Trigger). */
+const refillOnInitiative = (id, poolId, label, upTo) => ({schemaVersion: 1, id, type: "Trigger", data: {kind: "automation",
+  event: "initiative.rolled", predicate: {all: [{poolBelowMax: poolId}]}, action: {schemaVersion: 1, id: `action:srd-${id}`, label,
+    costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"}, restores: [{resourceId: poolId, amount: 0,
+      amountExpression: {type: "subtract", terms: [{type: "constant", value: upTo}, {type: "resource-current", resource: poolId}]}}]}}});
+
 /** A movement mode equal to its creature's Speed (a Climb or Swim Speed "equal to your Speed"). */
 const movementEqualToSpeed = (id, mode) => ({schemaVersion: 1, id, type: "GrantMovement", data: {mode,
   distance: {type: "context", path: "actorSystem.resources.movement.max"}}});
@@ -2527,6 +2533,11 @@ const TRAITS = Object.freeze({
   // 2024 Grappler. Attack Advantage: against a creature it Grappled (`attack.fromAttacker.grappled`). Punch and Grab: once
   // a turn, its Unarmed Strike's hit may also Grapple, free. shortcut: any of its Unarmed Strike hits qualifies, not only
   // one of the Attack action's. Fast Wrestler needs nothing: moving a Grappled creature costs no extra movement here.
+  // 2024 Perfect Focus (monk 15) and Superior Inspiration (bard 18): when it rolls Initiative, its pool comes back up to
+  // 4 Focus Points, or 2 Bardic Inspiration dice. shortcut: Perfect Focus doesn't check that Uncanny Metabolism wasn't used.
+  "perfect-focus": () => ({rules: [refillOnInitiative("perfect-focus", "monk-s-focus", "Perfect Focus", 4)], notes: []}),
+  "superior-inspiration": () => ({rules: [refillOnInitiative("superior-inspiration", "bardic-inspiration", "Superior Inspiration", 2)],
+    notes: []}),
   // 2024 Great Weapon Fighting: a 1 or 2 on a damage die of a melee attack with a weapon held in two hands counts as a 3
   // (a Two-Handed weapon, or a Versatile one's two-handed Action).
   "great-weapon-fighting": () => ({rules: [{schemaVersion: 1, id: "great-weapon-fighting", type: "DamageDieMinimum",

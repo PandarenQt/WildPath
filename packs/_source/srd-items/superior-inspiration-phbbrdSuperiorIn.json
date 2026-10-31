@@ -7,7 +7,57 @@
   "system": {
     "active": true,
     "description": "<p>When you roll Initiative, you regain expended uses of Bardic Inspiration until you have two if you have fewer than that.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "superior-inspiration",
+        "type": "Trigger",
+        "data": {
+          "kind": "automation",
+          "event": "initiative.rolled",
+          "predicate": {
+            "all": [
+              {
+                "poolBelowMax": "bardic-inspiration"
+              }
+            ]
+          },
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-superior-inspiration",
+            "label": "Superior Inspiration",
+            "costs": {
+              "allOf": []
+            },
+            "range": {
+              "type": "self"
+            },
+            "targeting": {
+              "type": "self"
+            },
+            "restores": [
+              {
+                "resourceId": "bardic-inspiration",
+                "amount": 0,
+                "amountExpression": {
+                  "type": "subtract",
+                  "terms": [
+                    {
+                      "type": "constant",
+                      "value": 2
+                    },
+                    {
+                      "type": "resource-current",
+                      "resource": "bardic-inspiration"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
