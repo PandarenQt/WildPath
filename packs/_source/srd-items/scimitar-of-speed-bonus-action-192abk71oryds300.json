@@ -1,0 +1,112 @@
+{
+  "_id": "192abk71oryds300",
+  "_key": "!items!192abk71oryds300",
+  "name": "Scimitar of Speed (Bonus Action)",
+  "type": "action",
+  "img": "icons/weapons/swords/scimitar-guard-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Weapon (Scimitar), Very Rare (Requires Attunement)</em></p><p>You gain a +2 bonus to attack rolls and damage rolls made with this magic weapon. In addition, you can make one attack with it as a Bonus Action on each of your turns.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-scimitar-of-speed-bonus",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "melee",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true,
+        "properties": [
+          "finesse",
+          "light"
+        ],
+        "weapon": {
+          "category": "martial",
+          "base": "scimitar",
+          "mastery": "nick"
+        }
+      },
+      "range": {
+        "type": "reach",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 6
+          },
+          "damageType": "slashing",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Scimitar of Speed (Bonus Action)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "magic-attack",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "attack"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "magic-damage",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "damage"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgScimitarOfSpe",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "scimitar-of-speed",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      },
+      "price": 40025,
+      "rarity": "veryRare"
+    }
+  }
+}

@@ -216,10 +216,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Master Simple Weapon\" is passive or triggered: not automated",
-          "\"Master Light Martial Weapon\" is passive or triggered: not automated"
-        ]
+        "notes": []
       },
       "grants": [
         "s0t7z4eknmc00000",

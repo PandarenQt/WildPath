@@ -457,8 +457,12 @@ const CHOICES_FOR = Object.freeze({
         {type: "add-effects", effects: [{id: `restoring-touch-${conditionId}`, type: "condition", conditionId, levels: -1}]}]}))}}
 });
 
-/** Features the engine offers itself when they apply (Tactical Mind: withTacticalMind on a failed check). */
-const OFFERED_BY_ENGINE = new Set(["tactical-mind", "eldritch-master", "indomitable"]);
+/**
+ * Features the engine offers itself when they apply (Tactical Mind: withTacticalMind on a failed check), or that are
+ * rows of another feature's Action (Eldritch Master in Magical Cunning; Heightened Focus in Monk's Focus: Flurry's third
+ * strike, Patient Defense's Temporary Hit Points). Their dnd5e activities are neither Actions nor notes.
+ */
+const OFFERED_BY_ENGINE = new Set(["tactical-mind", "eldritch-master", "indomitable", "heightened-focus"]);
 
 /** The pool of Pact Magic slots (helpers/spellcasting.mts). */
 const PACT_SLOT_POOL = "spell-slot.pact";
@@ -1272,7 +1276,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const system = document.system ?? {};
   // An activity with no type is a stale leftover (Tasha's infusions carry one), not something it does.
   const activities = Object.values(system.activities ?? {}).filter(activity => activity?.type)
-    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)).map(activity => poisonUse(system, activity));
+    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)).map(activity => poisonUse(system, activity))
+    // "Action or Bonus Action" (2024 Scimitar of Speed: "one attack with it as a Bonus Action on each of your turns"): an
+    // attack that costs the Action, and a copy that costs the Bonus Action.
+    .map(activity => (((activity.type === "attack") && (activity.activation?.type === "special")
+      && /^Action or Bonus Action$/iu.test(activity.activation?.condition ?? ""))
+      ? {...activity, activation: {...activity.activation, type: "action", override: true}, bonusToo: true} : activity));
   const spell = document.type === "spell";
   const level = number(system.level) ?? 0;
   const pool = usesPool({document, scales}) ?? spentPool(activities, names);
@@ -1301,7 +1310,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const label = activity.name || activity.type;
     // An activity a common trait automates (Regeneration's healing) is the trait's, not an Action; one the engine offers
     // itself (Indomitable's reroll) is its feature's.
-    if ( trait?.consumes?.includes(activity) || OFFERED_BY_ENGINE.has(identifierOf(document)) ) continue;
+    // One whose feature's rules the converter writes itself (a paladin's aura; Martial Arts' Monk weapons, which dnd5e
+    // enchants one weapon at a time) is those rules'.
+    if ( trait?.consumes?.includes(activity) || OFFERED_BY_ENGINE.has(identifierOf(document)) || PALADIN_AURAS[identifierOf(document)]
+      || (identifierOf(document) === "martial-arts") ) continue;
     // A test offer naming its own pool (Countercharm's Reaction) is its feature's flag, whatever its activation.
     if ( TEST_OFFERS[identifierOf(document)]?.pool ) {
       testOffer = structuredClone(TEST_OFFERS[identifierOf(document)]);
@@ -1527,6 +1539,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         {resourceId: FLURRY_POOL.data.resourceId, amount: 1, amountExpression: structuredClone(FLURRY_POOL.data.maximum)}]};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
+    // 2024 Heightened Focus (monk 10): Patient Defense with a Focus Point also gives Temporary Hit Points of two rolls of the
+    // Martial Arts die; none below level 10.
+    if ( (identifierOf(document) === "monks-focus") && (activity.name === "Patient Defense (Focus Point)") ) definition = {...definition,
+      healing: [...(definition.healing ?? []), {id: "heightened-focus", healingType: "temporary", expression: {type: "table",
+        key: {type: "class-level", class: "monk"}, rows: {10: formulaExpression("2@scale.monk.die", {scales})},
+        default: {type: "constant", value: 0}}}]};
     if ( identifierOf(document) === "magical-cunning" ) {
       definition = {...definition, range: {type: "self"}, targeting: {type: "self"},
         restores: [...(definition.restores ?? []), structuredClone(MAGICAL_CUNNING_RESTORE)]};
@@ -1641,6 +1659,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( definition.transform?.limits ) items.push(action(stableId(`${id}:revert`), `${document.name}${suffix} (Revert)`,
       {schemaVersion: 1, id: `${definition.id}-revert`, costs: {allOf: [{capability: "bonus-action", amount: 1}]},
         range: {type: "self"}, targeting: {type: "self"}, transform: {revert: true}}));
+    // Its Bonus Action attack (Scimitar of Speed), once a turn as the Bonus Action is.
+    if ( activity.bonusToo ) items.push(action(stableId(`${id}:bonus`), `${document.name}${suffix} (Bonus Action)`,
+      {...definition, id: `${definition.id}-bonus`, costs: {allOf: [{capability: "bonus-action", amount: 1}]}}));
     // 2024 Versatile: the weapon with both hands is its own Action, rolling its larger die.
     const twoHanded = versatileDefinition({document, system, definition});
     if ( twoHanded ) items.push(action(stableId(`${id}:two-handed`), `${document.name}${suffix} (Two-Handed)`, twoHanded));
@@ -1755,6 +1776,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         costs: {allOf: featureAction.costs ?? (featureAction.free ? [] : [{capability: pool.id, amount: 1}])},
         range: structuredClone(featureAction.range ?? {type: "self"}), targeting: structuredClone(featureAction.targeting ?? {type: "self"}),
         effects: structuredClone(featureAction.effects ?? []),
+        ...(featureAction.configuration ? {configuration: structuredClone(featureAction.configuration)} : {}),
         ...(featureAction.requires ? {requires: structuredClone(featureAction.requires)} : {})},
       ruleElements: [pool?.rule ?? structuredClone(featureAction.pool ?? null),
         featureAction.trigger ? {schemaVersion: 1, id: "reaction", type: "Trigger", data: structuredClone(featureAction.trigger)} : null]
@@ -1815,6 +1837,14 @@ const NARRATIVE_FEATURES = new Set(["ephemeral", "shielded-mind", "inscrutable",
 const FEATURE_ACTIONS = Object.freeze({
   "action-surge": {effects: [{id: "effect-1", type: "effect", name: "Action Surge", duration: {value: 0, units: "turns", expiry: "turnEnd"},
     ruleElements: [{schemaVersion: 1, id: "action-surge", type: "Modifier", data: {domains: ["resources.action.max"], modifierType: "untyped", value: 1}}]}]},
+  // 2024 Archdruid, Nature Magician (no action, once per Long Rest: its pool): "convert uses of Wild Shape into a single spell
+  // slot ... each use contributing 2 spell levels". At most 4 uses (level 8). shortcut: a slot level that is full is refused
+  // (as Font of Magic's).
+  "archdruid": {free: true, configuration: [{id: "slot-level", type: "select-one", label: "Spell slot", required: true,
+    options: [1, 2, 3, 4].map(uses => ({id: `level-${2 * uses}`, label: `Level ${2 * uses} (${uses} Wild Shape)`, value: 2 * uses,
+      effects: [{type: "add-cost", cost: {allOf: [{capability: "wild-shape", amount: uses}]}},
+        {type: "restore", resourceId: `spell-slot.${2 * uses}`, amount: 1}]}))}],
+    costs: [{capability: "archdruid", amount: 1}]},
   // 2024 Reckless Attack (free): "when you make your first attack roll on your turn", Advantage on its Strength attack rolls
   // this turn, and attack rolls against it have Advantage until its next turn; its "reckless" status gates Brutal Strike.
   "reckless-attack": {free: true, requires: {not: {equals: {path: "attackedThisTurn", value: true}}}, effects: [{id: "effect-1", type: "effect", name: "Reckless", slug: "reckless",

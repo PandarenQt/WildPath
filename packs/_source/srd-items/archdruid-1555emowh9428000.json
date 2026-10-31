@@ -1,0 +1,167 @@
+{
+  "_id": "1555emowh9428000",
+  "_key": "!items!1555emowh9428000",
+  "name": "Archdruid",
+  "type": "action",
+  "img": "icons/magic/nature/root-vines-face-glow-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>The vitality of nature constantly blooms within you, granting you the following benefits.</p><p><strong>Evergreen Wild Shape.</strong> Whenever you roll Initiative and have no uses of Wild Shape left, you regain one expended use of it.</p><p><strong>Nature Magician.</strong> You can convert uses of Wild Shape into a spell slot (no action required). Choose a number of your unexpended uses of Wild Shape and convert them into a single spell slot, with each use contributing 2 spell levels. For example, if you convert two uses of Wild Shape, you produce a level 4 spell slot. Once you use this benefit, you can't do so again until you finish a Long Rest.</p><p><strong>Longevity.</strong> The primal magic that you wield causes you to age more slowly. For every ten years that pass, your body ages only one year.</p><section class=\"secret\" id=\"secret-qKoW7fFZUwKC0IOG\"><p><strong>Foundry Note</strong></p><p>This feature does not automate regaining a use of Wild Shape when rolling initiative but it does include an activity which will restore a use when activated.</p><p>The <strong>Nature Magician</strong> activity can be used to convert Wild Shape uses to spell slots.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-archdruid",
+      "label": "Archdruid",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "archdruid",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [],
+      "configuration": [
+        {
+          "id": "slot-level",
+          "type": "select-one",
+          "label": "Spell slot",
+          "required": true,
+          "options": [
+            {
+              "id": "level-2",
+              "label": "Level 2 (1 Wild Shape)",
+              "value": 2,
+              "effects": [
+                {
+                  "type": "add-cost",
+                  "cost": {
+                    "allOf": [
+                      {
+                        "capability": "wild-shape",
+                        "amount": 1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "restore",
+                  "resourceId": "spell-slot.2",
+                  "amount": 1
+                }
+              ]
+            },
+            {
+              "id": "level-4",
+              "label": "Level 4 (2 Wild Shape)",
+              "value": 4,
+              "effects": [
+                {
+                  "type": "add-cost",
+                  "cost": {
+                    "allOf": [
+                      {
+                        "capability": "wild-shape",
+                        "amount": 2
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "restore",
+                  "resourceId": "spell-slot.4",
+                  "amount": 1
+                }
+              ]
+            },
+            {
+              "id": "level-6",
+              "label": "Level 6 (3 Wild Shape)",
+              "value": 6,
+              "effects": [
+                {
+                  "type": "add-cost",
+                  "cost": {
+                    "allOf": [
+                      {
+                        "capability": "wild-shape",
+                        "amount": 3
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "restore",
+                  "resourceId": "spell-slot.6",
+                  "amount": 1
+                }
+              ]
+            },
+            {
+              "id": "level-8",
+              "label": "Level 8 (4 Wild Shape)",
+              "value": 8,
+              "effects": [
+                {
+                  "type": "add-cost",
+                  "cost": {
+                    "allOf": [
+                      {
+                        "capability": "wild-shape",
+                        "amount": 4
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "restore",
+                  "resourceId": "spell-slot.8",
+                  "amount": 1
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "archdruid-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "archdruid",
+          "label": "Archdruid",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbdrdArchdruid0",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "archdruid",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

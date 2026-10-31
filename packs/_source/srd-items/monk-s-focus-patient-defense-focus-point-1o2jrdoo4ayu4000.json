@@ -79,6 +79,54 @@
           ]
         }
       ],
+      "healing": [
+        {
+          "id": "heightened-focus",
+          "healingType": "temporary",
+          "expression": {
+            "type": "table",
+            "key": {
+              "type": "class-level",
+              "class": "monk"
+            },
+            "rows": {
+              "10": {
+                "type": "table",
+                "key": {
+                  "type": "class-level",
+                  "class": "monk"
+                },
+                "rows": {
+                  "1": {
+                    "type": "dice",
+                    "number": 2,
+                    "faces": 6
+                  },
+                  "5": {
+                    "type": "dice",
+                    "number": 2,
+                    "faces": 8
+                  },
+                  "11": {
+                    "type": "dice",
+                    "number": 2,
+                    "faces": 10
+                  },
+                  "17": {
+                    "type": "dice",
+                    "number": 2,
+                    "faces": 12
+                  }
+                }
+              }
+            },
+            "default": {
+              "type": "constant",
+              "value": 0
+            }
+          }
+        }
+      ],
       "label": "Monk's Focus (Patient Defense (Focus Point))"
     },
     "ruleElements": [

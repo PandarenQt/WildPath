@@ -393,6 +393,12 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - Draconic Resilience and Dwarven Toughness: Hit Points on `resources.health.max` (overall, or per level).
   - Action Surge (`FEATURE_ACTIONS`): an Action of its own, paid from its uses with no Action, giving one more Action
     this turn.
+  - Archdruid's Nature Magician (2026-10-31, `FEATURE_ACTIONS` with a `configuration`): no action, once per Long Rest;
+    a choice of slot level 2, 4, 6 or 8, each spending 1 to 4 Wild Shape uses and restoring one slot of that level.
+  - Heightened Focus (2026-10-31): Flurry's third strike is the Flurry pool's level-10 row; Patient Defense with a Focus
+    Point gives Temporary Hit Points of two Martial Arts dice from monk level 10 (a class-level table, 0 below).
+  - Scimitar of Speed (2026-10-31): dnd5e's "Action or Bonus Action" attack is two Actions, one per cost.
+  - The paladin auras' and Martial Arts' dnd5e activities are their converted rules, not "passive" notes.
   - Indomitable: a fighter's own failed save may be rerolled with a bonus of its fighter level, from its pool, offered
     with Heroic Inspiration (`withIndomitable`); a reroll option may carry a `bonus`.
   - Lay on Hands: a Bonus Action with a "Points" number chosen when used, spent from its pool and healed

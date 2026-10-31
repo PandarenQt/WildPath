@@ -72,9 +72,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Aura of Protection\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

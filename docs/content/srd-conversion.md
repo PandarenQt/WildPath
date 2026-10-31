@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 977 automated, 237 manual, 228 features. Creatures: 375.
+Items: 980 automated, 237 manual, 227 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -92,7 +92,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Arcane Sword | actors24 | Arcane Sword (1 items) | — |
 | Arcane Vigor | spells24 | Arcane Vigor (Cast) (manual) | not automated (utility): using it spends its cost; its description says the rest; "Expend d6 Hit Dice" is passive or triggered: not automated; "Expend d8 Hit Dice" is passive or triggered: not automated; "Expend d10 Hit Dice" is passive or triggered: not automated; "Expend d12 Hit Dice" is passive or triggered: not automated |
 | Arcanist's Magic Aura | spells24 | Arcanist's Magic Aura (automated) | effect: "Masked" marks its creature (narrative) |
-| Archdruid | classes24 | Archdruid (feature) | "Nature Magician" is passive or triggered: not automated |
+| Archdruid | classes24 | Archdruid (feature), Archdruid (automated) | — |
 | Archelon | actors24 | Archelon (4 items) | — |
 | Archery | feats24 | Archery (feature) | — |
 | Archmage | actors24 | Archmage (21 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: effect: "Disguised" marks its creature (narrative); Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest |
@@ -109,10 +109,10 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Astral Projection | spells24 | Astral Projection (automated) | activation: 1 hour is not an action-economy cost |
 | Augury | spells24 | Augury (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
 | Aura Expansion | classes24 | Aura Expansion (feature) | — |
-| Aura of Courage | classes24 | Aura of Courage (feature) | "Aura of Courage" is passive or triggered: not automated |
+| Aura of Courage | classes24 | Aura of Courage (feature) | — |
 | Aura of Devotion | classes24 | Aura of Devotion (feature) | — |
 | Aura of Life | spells24 | Aura of Life (automated) | concentration: its caster concentrates; what it sustains is by hand |
-| Aura of Protection | classes24 | Aura of Protection (feature) | "Aura of Protection" is passive or triggered: not automated |
+| Aura of Protection | classes24 | Aura of Protection (feature) | — |
 | Avatar of Death | actors24 | Avatar of Death (4 items) | Incorporeal Movement: "Self Damage" is passive or triggered: not automated; Multiattack: not automated (utility): using it spends its cost; its description says the rest |
 | Awaken | spells24 | Awaken (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 8 hour is not an action-economy cost |
 | Awakened Shrub | actors24 | Awakened Shrub (2 items) | — |
@@ -764,7 +764,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Healing Word | spells24 | Healing Word (automated) | — |
 | Heat Metal | spells24 | Heat Metal (Cast and Heat) (automated), Heat Metal (Reheat) (automated) | concentration: its caster concentrates; what it sustains is by hand; "On Damage Save" is passive or triggered: not automated |
 | Heavy Crossbow | equipment24 | Heavy Crossbow (automated) | — |
-| Heightened Focus | classes24 | Heightened Focus (feature) | "Flurry of Blows" is passive or triggered: not automated; "Patient Defense" is passive or triggered: not automated |
+| Heightened Focus | classes24 | Heightened Focus (feature) | — |
 | Heightened Spell | classes24 | Heightened Spell (feature) | — |
 | Hell Hound | actors24 | Hell Hound (5 items) | — |
 | Hellish Rebuke | spells24 | Hellish Rebuke (automated) | — |
@@ -968,7 +968,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Map | equipment24 | Map (gear) | — |
 | Marble Elephant | equipment24 | Marble Elephant (gear), Marble Elephant (automated) | — |
 | Marilith | actors24 | Marilith (10 items) | — |
-| Martial Arts | classes24 | Martial Arts (feature), Martial Arts (Unarmed Strike) (automated), Martial Arts (Bonus Unarmed Strike) (automated), Martial Arts (Flurry of Blows Strike) (automated) | "Master Simple Weapon" is passive or triggered: not automated; "Master Light Martial Weapon" is passive or triggered: not automated |
+| Martial Arts | classes24 | Martial Arts (feature), Martial Arts (Unarmed Strike) (automated), Martial Arts (Bonus Unarmed Strike) (automated), Martial Arts (Flurry of Blows Strike) (automated) | — |
 | Marvelous Pigments | equipment24 | Marvelous Pigments (gear), Marvelous Pigments (Determine Number of Pots) (manual), Marvelous Pigments (Paint) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; consumption: itemUses 1d3 not converted; activation: 10 minute is not an action-economy cost |
 | Mask of Many Faces | classes24 | Mask of Many Faces (automated) | effect: "Disguised" marks its creature (narrative) |
 | Mason's Tools | equipment24 | Mason's Tools (gear), Mason's Tools (automated) | — |
@@ -1315,7 +1315,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Scholar | classes24 | Scholar (feature) | — |
 | Scholar's Pack | equipment24 | Scholar's Pack (gear) | — |
 | Scimitar | equipment24 | Scimitar (automated) | — |
-| Scimitar of Speed | equipment24 | Scimitar of Speed (feature) | "attack" is passive or triggered: not automated |
+| Scimitar of Speed | equipment24 | Scimitar of Speed (automated), Scimitar of Speed (Bonus Action) (automated) | — |
 | Scorching Ray | spells24 | Scorching Ray (automated) | — |
 | Scorpion | actors24 | Scorpion (2 items) | — |
 | Scout | actors24 | Scout (3 items) | — |

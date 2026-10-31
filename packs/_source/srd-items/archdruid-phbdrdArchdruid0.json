@@ -105,9 +105,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Nature Magician\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

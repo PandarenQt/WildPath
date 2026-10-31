@@ -58,9 +58,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Aura of Courage\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

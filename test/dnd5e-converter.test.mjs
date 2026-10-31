@@ -1653,6 +1653,11 @@ test("a paladin's auras are auras: Protection to saves, Courage and Devotion to 
   assert.equal(protection.system.ruleElements.length, 1, "not its dnd5e effect, which gave the paladin alone the bonus");
   const [courage] = convertItem(feature("testAuraCourage1", "aura-of-courage", "Aura of Courage")).items;
   assert.deepEqual(courage.system.ruleElements[0].data.ruleElements[0].data, {conditions: ["frightened"]});
+  // dnd5e gives each aura a utility activity with no activation: the aura is its rule, not a passive note.
+  const withActivity = {...feature("testAuraCourage2", "aura-of-courage", "Aura of Courage"), system: {source: SRD, identifier: "aura-of-courage",
+    type: {value: "class"}, activities: {a: activity("utility", {name: "Aura of Courage", activation: {type: ""}})}}};
+  const converted = convertItem(withActivity).items;
+  assert.deepEqual([converted.length, converted[0].system.ruleElements[0].type, converted[0].flags.wildpath.conversion.notes], [1, "Aura", []]);
 });
 
 test("class features' dnd5e changes: a critical range, Advantage on Initiative and Concentration, Hit Points", async () => {
@@ -2066,6 +2071,16 @@ test("monk: Martial Arts brings three Unarmed Strikes, Flurry of Blows fills its
   assert.equal(read("martial-arts-unarmed-strike").system.definition.costs.allOf[0].capability, "action", "Extra Attack pays it");
   const flurry = read("monk-s-focus-flurry-of-blows").system.definition;
   assert.deepEqual(flurry.restores.map(entry => entry.resourceId), ["flurry-of-blows"]);
+  assert.deepEqual(flurry.restores[0].amountExpression.rows, {1: 2, 10: 3}, "Heightened Focus: three strikes from level 10");
+  assert.deepEqual([feature.flags.wildpath.conversion.notes, read("heightened-focus-phbmnk").flags.wildpath.conversion.notes], [[], []],
+    "Martial Arts' Monk weapons and Heightened Focus are rules, not passive notes");
+  // Heightened Focus: Patient Defense with a Focus Point gives Temporary Hit Points of two Martial Arts dice from level 10.
+  const {selectTableRows} = await import("../module/helpers/value-expressions.mjs");
+  const [shield] = read("monk-s-focus-patient-defense-focus-point").system.definition.healing;
+  const at = level => selectTableRows(shield.expression, {actorSystem: {classes: {monk: {levels: level}}, details: {level}}});
+  assert.equal(shield.healingType, "temporary");
+  assert.deepEqual([at(9), at(10), at(17)].map(expression => [expression.type, expression.number ?? expression.value, expression.faces ?? null]),
+    [["constant", 0, null], ["dice", 2, 8], ["dice", 2, 12]]);
   const push = read("open-hand-technique-push").system;
   const topple = read("open-hand-technique-topple").system;
   assert.deepEqual(push.ruleElements[0].data.match.tagsAll, ["flurry"]);
@@ -2530,4 +2545,24 @@ test("a uses-spent choice whose dnd5e maximum is a formula (Healing Light's @abi
           scaling: {mode: "amount"}}]}})}}}).items.find(item => item.type === "action");
   assert.deepEqual(used.system.definition.configuration[0].max, {type: "max", terms: [{type: "constant", value: 1},
     {type: "ability-modifier", ability: "presence"}]});
+});
+
+test("Scimitar of Speed attacks with the Action or the Bonus Action; Archdruid's Nature Magician turns Wild Shape into a slot", async () => {
+  const fs = await import("node:fs");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const [action, bonus] = [read("scimitar-of-speed-dmg"), read("scimitar-of-speed-bonus-action")].map(item => item.system.definition);
+  assert.deepEqual([action.costs.allOf, bonus.costs.allOf], [[{capability: "action", amount: 1}], [{capability: "bonus-action", amount: 1}]]);
+  assert.deepEqual(bonus.attack, action.attack, "the same attack, +2 and all");
+  assert.equal(read("scimitar-of-speed-dmg").flags.wildpath.conversion.notes.some(note => /passive or triggered/u.test(note)), false);
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const magician = read("archdruid-1555").system.definition;
+  const resolved = (wildShape, value) => resolveActionConfiguration({definition: magician, actorSystem: {resources: {},
+    pools: [{id: "archdruid", value: 1, max: 1}, {id: "wild-shape", value: wildShape, max: 4}, {id: "spell-slot.4", value: 0, max: 3}]},
+    choices: {"slot-level": value}});
+  const four = resolved(3, 4);
+  assert.equal(four.ok, true, JSON.stringify(four.errors));
+  assert.deepEqual([four.configuration.effectiveDefinition.costs.allOf.map(cost => [cost.capability, cost.amount]),
+    four.configuration.effectiveDefinition.restores], [[["archdruid", 1], ["wild-shape", 2]], [{resourceId: "spell-slot.4", amount: 1}]]);
+  assert.equal(read("archdruid-phbdrd").flags.wildpath.conversion.notes.length, 0);
 });
