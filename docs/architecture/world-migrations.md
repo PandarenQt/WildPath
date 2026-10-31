@@ -23,6 +23,28 @@
 | 2 | Pools left by deleted Items are removed (see below). |
 | 3 | A character built by level-up records the Fortitude modifier its Hit Points count for each level (`perLevelFortitude`), its stored Fortitude's, so a later change counts for every level. |
 | 4 | An NPC with no creature type takes its compendium creature's: by its converted source's id, the compendium entry Foundry recorded, its own id, or a name only one compendium creature has. |
+| 5 | Features that used to be engine code keyed on their identifier get their data shapes from their compendium copy (`featureShapeFix`, see below). |
+
+## Feature shapes (migration 5)
+
+Some features were once found by their identifier in engine code (Life Bond, Potent Cantrip, Elemental Adept, Mystic
+Arcanum, Spell Mastery, Signature Spells); they are now data any feature can carry. A stored copy of one has only its
+identifier, so migration 5 adds from its compendium copy, by shape and never by feature:
+
+- the copy's rules whose id the Item lacks, when they are a `half-on-success` or `ignore-resistance` RollOutcome, a
+  `shared-healing` Trigger, or a rule naming a recorded choice (`{training:<kind>}`); nothing it has is replaced;
+- the copy's `flags.wildpath.spellChoice`, when the Item has none.
+
+The copy is the Item's own `_stats.compendiumSource`, or else, on an Actor, the Item of the same converted source id
+(`flags.wildpath.source.id`) on the Actor's compendium copy: a summon's `flags.wildpath.summonSource` (a summoned steed's
+world Actor carries nothing else, and Refresh Items cannot reach its Items), or the Actor's own
+`_stats.compendiumSource`. World Items, world Actors and unlinked Tokens' Actors are walked.
+
+It cannot reach an Item with no compendium copy (homebrew, or a pack no longer installed); such a feature does nothing
+until its rule or flag is added by hand. Elemental Adept is only in the locally converted premium packs, which
+`npm run build:packs` does not regenerate: reconvert them before the world first starts on this version, or the
+migration finds the old copy, adds nothing and is recorded as done. Refresh Items afterwards also copies the rules and
+`spellChoice` for Items that carry a `_stats.compendiumSource` (a feat taken at level-up).
 
 ## Stale pools
 

@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {creatureTypeFix, fortitudeFix, runMigrations, stalePoolIds, threatFix} from "../module/helpers/migrations.mjs";
+import {creatureTypeFix, featureShapeFix, fillFeatureShapes, fortitudeFix, runMigrations, stalePoolIds, threatFix}
+  from "../module/helpers/migrations.mjs";
 
 test("a pool is stale only when nothing names it and it has no base of its own", () => {
   const pools = [
@@ -102,4 +103,46 @@ test("migrations run once, in order, on the active GM only, and stop at a failur
   assert.equal(failing.settings.version, 2);
   assert.ok(!ran.includes(4));
   assert.ok(failing.told.some(([kind, text]) => (kind === "warn") && (text === "WILDPATH.MIGRATION.Failed")));
+});
+
+test("feature shapes (migration 5): an Item takes its compendium copy's generalized rules and spellChoice, additively", () => {
+  const bond = {schemaVersion: 1, id: "life-bond", type: "Trigger", data: {kind: "shared-healing", event: "healing.applied", from: "summoner"}};
+  const other = {schemaVersion: 1, id: "new-modifier", type: "Modifier", data: {domains: ["ac"], value: 1}};
+  const pack = {type: "feature", system: {ruleElements: [bond, other]}, flags: {wildpath: {spellChoice: {flag: "mastered", levels: [1, 2]}}}};
+  const stored = {type: "feature", system: {ruleElements: [{id: "own", type: "Modifier", data: {}}]}, flags: {wildpath: {}}};
+  assert.deepEqual(featureShapeFix(stored, pack), {"system.ruleElements": [{id: "own", type: "Modifier", data: {}}, bond],
+    "flags.wildpath.spellChoice": {flag: "mastered", levels: [1, 2]}}, "the shapes it lacks; an unrelated new pack rule is left out");
+  const done = {type: "feature", system: {ruleElements: [bond]}, flags: {wildpath: {spellChoice: {flag: "own", levels: [3]}}}};
+  assert.equal(featureShapeFix(done, pack), null, "it has them: nothing");
+  const edited = {type: "feature", system: {ruleElements: [{...bond, data: {...bond.data, range: 30}}]}, flags: {wildpath: {}}};
+  assert.deepEqual(Object.keys(featureShapeFix(edited, pack)), ["flags.wildpath.spellChoice"], "a rule with that id is never replaced");
+  const adept = {type: "feature", system: {ruleElements: [{id: "dice", type: "DamageDieMinimum", data: {damageTypes: ["{training:adept}"]}},
+    {id: "potent", type: "RollOutcome", data: {outcome: "half-on-success", domains: ["imposed.save"]}}]}};
+  assert.equal(featureShapeFix({type: "feature", system: {}}, adept)["system.ruleElements"].length, 2, "a recorded choice's rule; half-on-success");
+  assert.equal(featureShapeFix(stored, null), null, "no copy");
+  assert.equal(featureShapeFix({...stored, type: "action"}, pack), null, "another type");
+});
+
+test("feature shapes (migration 5): a summoned steed's Items are found through its summonSource, a feat through its own copy", async () => {
+  const bond = {schemaVersion: 1, id: "life-bond", type: "Trigger", data: {kind: "shared-healing", event: "healing.applied", from: "summoner"}};
+  const potent = {schemaVersion: 1, id: "potent-cantrip", type: "RollOutcome", data: {outcome: "half-on-success", domains: ["imposed.save"]}};
+  const source = id => ({wildpath: {source: {id}}});
+  const packs = {
+    "Compendium.wildpath.srd-creatures.Actor.steed": {toObject: () => ({items: [{type: "feature", flags: source("bond"),
+      system: {ruleElements: [bond]}}]})},
+    "Compendium.wildpath.srd-items.Item.potent": {toObject: () => ({type: "feature", flags: source("potent"), system: {ruleElements: [potent]}})}
+  };
+  const item = (id, data) => ({id, ...data, toObject: () => structuredClone({_id: id, ...data})});
+  const updates = [];
+  const actor = (id, flags, items) => ({id, flags, items,
+    updateEmbeddedDocuments: async (name, changes) => updates.push([id, name, changes])});
+  const steed = actor("steed", {wildpath: {summonSource: "Compendium.wildpath.srd-creatures.Actor.steed"}},
+    [item("b", {type: "feature", flags: source("bond"), system: {ruleElements: []}})]);
+  const wizard = actor("wizard", {}, [item("p", {type: "feature", flags: source("potent"), system: {ruleElements: []},
+    _stats: {compendiumSource: "Compendium.wildpath.srd-items.Item.potent"}}), item("h", {type: "feature", flags: source("homebrew"),
+    system: {ruleElements: []}})]);
+  const game = {items: [], actors: [steed, wizard], scenes: []};
+  await fillFeatureShapes(game, async uuid => packs[uuid] ?? null);
+  assert.deepEqual(updates, [["steed", "Item", [{_id: "b", "system.ruleElements": [bond]}]],
+    ["wizard", "Item", [{_id: "p", "system.ruleElements": [potent]}]]], "the homebrew feature, with no copy, is left as it is");
 });

@@ -65,6 +65,34 @@ export function creatureTypeFix(source, types) {
   return found?.type ? {"system.details.type": found.type, "system.details.subtype": found.subtype ?? ""} : null;
 }
 
+/**
+ * Whether a rule is one of the shapes a feature used to have as engine code keyed on its identifier (2026-10-31): a
+ * `half-on-success` or `ignore-resistance` RollOutcome, a `shared-healing` Trigger, or a rule naming a recorded choice
+ * (`{training:<kind>}`). Named by shape, never by feature.
+ */
+const generalizedShape = rule => ((rule?.type === "RollOutcome") && ["half-on-success", "ignore-resistance"].includes(rule.data?.outcome))
+  || ((rule?.type === "Trigger") && (rule.data?.kind === "shared-healing"))
+  || JSON.stringify(rule?.data ?? null).includes("{training:");
+
+/**
+ * What an Item (stored source) takes from its compendium copy (`packSource`) of those shapes: the pack's rules of them
+ * whose id it lacks, appended, and the pack's `flags.wildpath.spellChoice` when it has none. Additive only: nothing it
+ * has is replaced. Null when it needs nothing.
+ * @param {object} source
+ * @param {object|null} packSource
+ * @returns {object|null}
+ */
+export function featureShapeFix(source, packSource) {
+  if ( !source || !packSource || (source.type !== packSource.type) ) return null;
+  const rules = source.system?.ruleElements ?? [];
+  const ids = new Set(rules.map(rule => rule?.id));
+  const missing = (packSource.system?.ruleElements ?? []).filter(rule => generalizedShape(rule) && !ids.has(rule?.id));
+  const choice = source.flags?.wildpath?.spellChoice ? null : (packSource.flags?.wildpath?.spellChoice ?? null);
+  if ( !missing.length && !choice ) return null;
+  return {...(missing.length ? {"system.ruleElements": structuredClone([...rules, ...missing])} : {}),
+    ...(choice ? {"flags.wildpath.spellChoice": structuredClone(choice)} : {})};
+}
+
 /** Every world Actor, then the unlinked Tokens' own Actors on every Scene (after their base, so they see its fix). */
 function* everyActor(game) {
   yield* game.actors ?? [];
@@ -115,12 +143,49 @@ export async function pruneActorPools(actor) {
   if ( stale.size ) await actor.update({"system.pools": pools.filter(pool => !stale.has(pool.id))});
 }
 
+/**
+ * Fill the generalized feature shapes in (`featureShapeFix`) from each Item's compendium copy: its own
+ * `_stats.compendiumSource`, or else, on an Actor, the Item of the same converted source id on the Actor's compendium
+ * copy (a summon's `flags.wildpath.summonSource`, which is all a summoned steed carries; or the Actor's own
+ * `_stats.compendiumSource`). An Item with no copy found (homebrew, a pack no longer installed) is left as it is.
+ * @param {object} game
+ * @param {(uuid: string) => Promise<object|null>} [fromUuid]
+ */
+export async function fillFeatureShapes(game, fromUuid=globalThis.fromUuid) {
+  const copies = new Map();
+  const copy = uuid => {
+    if ( (typeof uuid !== "string") || !uuid.startsWith("Compendium.") ) return null;
+    // A pack no longer installed (a book module turned off) gives nothing.
+    if ( !copies.has(uuid) ) copies.set(uuid, Promise.resolve().then(() => fromUuid(uuid)).then(document => document?.toObject?.(true) ?? null,
+      () => null));
+    return copies.get(uuid);
+  };
+  for ( const item of game.items ?? [] ) {
+    const fix = featureShapeFix(item.toObject(true), await copy(item._stats?.compendiumSource));
+    if ( fix ) await item.update(fix);
+  }
+  for ( const actor of everyActor(game) ) {
+    const packActor = await copy(actor.flags?.wildpath?.summonSource ?? actor._stats?.compendiumSource);
+    const updates = [];
+    for ( const item of actor.items ?? [] ) {
+      const source = item.toObject(true);
+      const id = source.flags?.wildpath?.source?.id;
+      const packItem = (await copy(source._stats?.compendiumSource))
+        ?? (id ? (packActor?.items ?? []).find(entry => entry?.flags?.wildpath?.source?.id === id) : null) ?? null;
+      const fix = featureShapeFix(source, packItem);
+      if ( fix ) updates.push({_id: item.id, ...fix});
+    }
+    if ( updates.length ) await actor.updateEmbeddedDocuments("Item", updates);
+  }
+}
+
 /** The migrations, oldest first. A new one takes the next version. */
 export const MIGRATIONS = Object.freeze([
   {version: 1, name: "WILDPATH.MIGRATION.Threat", run: migrateThreat},
   {version: 2, name: "WILDPATH.MIGRATION.StalePools", run: pruneStalePools},
   {version: 3, name: "WILDPATH.MIGRATION.Fortitude", run: recordFortitude},
-  {version: 4, name: "WILDPATH.MIGRATION.CreatureTypes", run: recordCreatureTypes}
+  {version: 4, name: "WILDPATH.MIGRATION.CreatureTypes", run: recordCreatureTypes},
+  {version: 5, name: "WILDPATH.MIGRATION.FeatureShapes", run: game => fillFeatureShapes(game)}
 ]);
 
 /**

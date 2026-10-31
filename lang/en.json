@@ -1315,7 +1315,8 @@
       "Threat": "fractional Challenge Ratings",
       "StalePools": "removing pools left by deleted Items",
       "Fortitude": "Hit Points that follow Fortitude",
-      "CreatureTypes": "creature types"
+      "CreatureTypes": "creature types",
+      "FeatureShapes": "features' rules"
     },
     "COMBAT": {
       "LairActions": "Top of the round: {names} may take a Lair Action."
