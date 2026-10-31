@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {activityText, checkOf, convertActor, convertFacility, convertItem, convertTable, creatureRef, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex,
-  failureByMargin, scaleTables, textBoundExpiry, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
+  failureByMargin, healingBlockedWhile, scaleTables, textBoundExpiry, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import * as valueExpressions from "../module/helpers/value-expressions.mjs";
 import {conditionImmunitiesFromRuleElements, rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
@@ -2448,4 +2448,17 @@ test("Fiendish Resilience: once per rest, an Action choosing a damage type other
   const types = choose.system.definition.effects.map(effect => effect.ruleElements[0].data.damageTypes[0]);
   assert.equal(types.includes("force"), false);
   assert.equal(new Set(choose.system.definition.effects.map(effect => effect.slug)).size, 1, "one slug: a new choice replaces the last");
+});
+
+test("can't regain Hit Points while Poisoned or cursed: a cap on healing, only while the creature has that condition", async () => {
+  assert.deepEqual(healingBlockedWhile("Failure: The target has the Poisoned condition. While Poisoned, the target can't regain Hit Points."),
+    ["poisoned"]);
+  assert.deepEqual(healingBlockedWhile("Until this poison ends, the target can’t regain Hit Points."), ["poisoned"]);
+  assert.deepEqual(healingBlockedWhile("While cursed, the target can't regain Hit Points, its Hit Point maximum doesn't return."), ["cursed"]);
+  assert.deepEqual(healingBlockedWhile("The troll can't regain Hit Points if it took acid damage."), [], "its own trait is not a target's");
+  const {resourceCapsFromRuleElements} = await import("../module/helpers/rule-elements.mjs");
+  const cap = [{ruleElements: [{schemaVersion: 1, id: "no-healing", type: "ResourceCap", predicate: {hasCondition: "poisoned"},
+    data: {resources: ["healing"], maximum: 0}}]}];
+  assert.deepEqual(resourceCapsFromRuleElements(cap, {conditions: ["poisoned"]}), {healing: 0});
+  assert.deepEqual(resourceCapsFromRuleElements(cap, {conditions: []}), {}, "cured of the poison, it heals again");
 });

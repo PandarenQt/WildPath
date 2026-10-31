@@ -1943,6 +1943,16 @@ function bearerHealingRules(text, base) {
     data: {resources: ["healing", ...(temporary ? ["temporaryHealth"] : [])], maximum: 0}}];
 }
 
+/**
+ * The conditions a stat block's text says a target can't regain Hit Points while it has ("While Poisoned, the target
+ * can't regain Hit Points", "Until this poison ends, ...", "While cursed, ...").
+ */
+export function healingBlockedWhile(text) {
+  const plain = String(text ?? "").replace(/&(?:amp;)?Reference\[(\w+)[^\]]*\]/gu, "$1");
+  return [...new Set([...plain.matchAll(/\b(?:While (\w+)|Until this (\w+) ends),? the target can[’']t regain Hit Points/giu)]
+    .map(match => CONDITION_MAP[(match[1] ?? (match[2] === "poison" ? "poisoned" : match[2])).toLowerCase()]).filter(Boolean))];
+}
+
 /** The rules an effect with none of its own takes from its item's text (Antitoxin's Advantage on saves against Poisoned). */
 function textEffect(document) {
   const rules = savesAgainstRules(plainText(document), identifierOf(document));
@@ -3903,6 +3913,18 @@ function convertActivity({document, activity, system, spell, level, scales, note
     if ( margined.duration ) effect.duration = margined.duration;
     if ( margined.endsOnDamage ) effect.metadata = {...(effect.metadata ?? {}), endsWhen: "damaged"};
     settled = true;
+  }
+  // "While Poisoned, the target can't regain Hit Points" (a Bone Devil's Sting; "Until this poison ends": a Bearded
+  // Devil's Beard; "While cursed": a Mummy's Rotting Fist): beside the effect bringing that condition, one capping its
+  // healing at 0 for as long as it has the condition (Lesser Restoration ending it ends the cap too).
+  for ( const conditionId of healingBlockedWhile(plainText(document)) ) {
+    const carrier = effects.find(effect => (effect.type === "condition") && (effect.conditionId === conditionId));
+    if ( !carrier ) continue;
+    effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: "Can't Regain Hit Points", slug: `no-healing-while-${conditionId}`,
+      img: "icons/svg/blood.svg", ...(carrier.saveOutcomePolicy ? {saveOutcomePolicy: carrier.saveOutcomePolicy} : {}),
+      ...(carrier.duration ? {duration: structuredClone(carrier.duration)} : {}),
+      ruleElements: [{schemaVersion: 1, id: "no-healing", type: "ResourceCap", predicate: {hasCondition: conditionId},
+        data: {resources: ["healing"], maximum: 0}}]});
   }
   if ( (groups.length > 1) && !settled ) {
     const option = index => `effect-option-${index + 1}`;

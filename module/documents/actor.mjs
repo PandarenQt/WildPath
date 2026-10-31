@@ -330,7 +330,9 @@ export default class WildPathActor extends Actor {
 
   /** Ceilings on this creature's resource maxima (`ResourceCap`): `{action: 0, movement: 0, ...}`. */
   getResourceCaps() {
-    return resourceCapsFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
+    // Its conditions too: a cap may hold only while it has one ("While Poisoned, the target can't regain Hit Points").
+    return resourceCapsFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system,
+      conditions: [...(this.statuses ?? [])]});
   }
 
   /** The changes this creature's features, gear and effects make to its ability scores (`AbilityScore`). */

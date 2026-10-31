@@ -273,6 +273,29 @@
                   "curse"
                 ]
               }
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Can't Regain Hit Points",
+              "slug": "no-healing-while-cursed",
+              "img": "icons/svg/blood.svg",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "no-healing",
+                  "type": "ResourceCap",
+                  "predicate": {
+                    "hasCondition": "cursed"
+                  },
+                  "data": {
+                    "resources": [
+                      "healing"
+                    ],
+                    "maximum": 0
+                  }
+                }
+              ]
             }
           ],
           "label": "Rotting Fist (attack)"

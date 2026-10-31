@@ -500,6 +500,35 @@
                 "expiry": "turnStart"
               },
               "repeatSave": "turnEnd"
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Can't Regain Hit Points",
+              "slug": "no-healing-while-poisoned",
+              "img": "icons/svg/blood.svg",
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "no-healing",
+                  "type": "ResourceCap",
+                  "predicate": {
+                    "hasCondition": "poisoned"
+                  },
+                  "data": {
+                    "resources": [
+                      "healing"
+                    ],
+                    "maximum": 0
+                  }
+                }
+              ]
             }
           ],
           "range": {
