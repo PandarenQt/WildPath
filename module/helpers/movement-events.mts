@@ -232,6 +232,8 @@ export function advanceMovementProgress(progress: MovementProgress, observation:
       origin: endpoint(progress.approvedFootprints[0]),
       actualDestination: endpoint(next.actualFootprint),
       completedTransitionCount: count,
+      // The route walked, as an interruption gives it: what a creature carried along follows (foundry-v14-carry.mts).
+      completedAnchors: progress.approvedPath.anchors.slice(0, count + 1),
       actualTotalCost: cumulativeCost,
       budgetCost: progress.consumesBudget ? cumulativeCost : 0
     }, observation));

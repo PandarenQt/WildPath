@@ -708,3 +708,20 @@ wall between them its attacks had no Disadvantage.
 Live (two browsers, 14.369): in combat, Player1's QA Caster walked two squares into a painted Region (walk 2) for 10 ft
 each and one square out of it for 5. With a `terrain.ignore` effect, a square into it cost 5. A Web area's Region had
 walk, fly, swim, burrow, crawl, climb and jump at 2 and blink and displace at 1.
+
+## Carrying a creature (2026-10-31)
+
+2024 Heightened Focus's Step of the Wind puts a `carried` effect, from the monk, on a willing creature. The active GM's
+carry adapter (`module/adapters/foundry-v14-carry.mts`) is the first consumer of the informational movement events:
+on the carrier's `movement.completed` or `movement.interrupted` (voluntary moves only), it walks each Token whose
+creature has `carried` from the mover through the same steps. Both events carry `completedAnchors`, the route walked.
+Each step is the carrier's anchor delta, applied to the carried Token. It stops at the Scene's edge, a wall or another
+creature's space (forced movement's `forcedStepBlocker`), passes through the carrier's spaces, but never stops on the
+space the carrier ends in. The move is one `forced` update with the steps as waypoints. It spends no Speed, provokes
+no Opportunity Attack, and starts no chain, because only voluntary moves carry. The authority sends each terminal
+event once, so the adapter keeps no state.
+
+shortcuts: the creature's willingness is assumed; out of combat Carried doesn't expire (the GM removes it); the carried
+creature keeps its own elevation and stops at occupied spaces; nothing is carried without an active GM or on a gridless
+Scene. Unverified live: that the authority approves a forced update with walking waypoints (fallback: one forced
+`{x, y}` update to the last free position, as a push).

@@ -26,6 +26,18 @@ export function forcedDestination(token, from, fields, { toward = false, blocked
     }
     return ((position.x === token.x) && (position.y === token.y)) ? null : position;
 }
+/**
+ * Whether a forced step of `token` to `position` (its top left; `origin` to `destination` its centre's path) is stopped:
+ * by the Scene's edge, a wall (on any Scene, viewed or not: foundry-v14-walls.mts), or another creature's space. The
+ * `except` Tokens' spaces don't stop it (a carrier the creature moves along with: foundry-v14-carry.mts).
+ */
+export function forcedStepBlocker(scene, token, { collides = sceneCollision(scene), except = [] } = {}) {
+    const others = new Set([...scene.tokens].filter(other => (other !== token) && !except.includes(other))
+        .flatMap(other => (other.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
+    return (origin, destination, position) => !(scene.dimensions?.sceneRect?.contains(destination.x, destination.y) ?? true)
+        || Boolean(collides(origin, destination, { type: "move" }))
+        || (token.getOccupiedGridSpaceOffsets?.(position) ?? []).some(offset => others.has(key(offset)));
+}
 export function createFoundryForcedMovement({ game, logger = console, fromUuid }) {
     const isActiveGM = () => Boolean(game.user?.id) && (game.users?.activeGM?.id === game.user?.id);
     async function afterResolution({ state }) {
@@ -56,13 +68,7 @@ export function createFoundryForcedMovement({ game, logger = console, fromUuid }
             const fields = Math.floor(Math.max((Number(spec.distance) || 0) - (Number(reduction[token.id]) || 0), 0) / gridDistance);
             if (!fields)
                 continue;
-            const others = new Set([...scene.tokens].filter(other => other !== token)
-                .flatMap(other => (other.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
-            // Walls stop it on any Scene, viewed or not (foundry-v14-walls.mts).
-            const blocked = (origin, destination, position) => !(scene.dimensions?.sceneRect?.contains(destination.x, destination.y) ?? true)
-                || Boolean(collides(origin, destination, { type: "move" }))
-                || (token.getOccupiedGridSpaceOffsets?.(position) ?? []).some(offset => others.has(key(offset)));
-            const destination = forcedDestination(token, from, fields, { toward: spec.toward === true, blocked });
+            const destination = forcedDestination(token, from, fields, { toward: spec.toward === true, blocked: forcedStepBlocker(scene, token, { collides }) });
             if (!destination)
                 continue;
             await token.update({ ...destination }, { wildpath: { movementKind: "forced" } });

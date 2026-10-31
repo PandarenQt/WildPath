@@ -31,6 +31,7 @@ import {COMPANION_QUERY, createFoundryCompanions} from "../adapters/foundry-v14-
 import {createFoundryDying} from "../adapters/foundry-v14-dying.mjs";
 import {createFoundrySummons} from "../adapters/foundry-v14-summons.mjs";
 import {createFoundryForcedMovement} from "../adapters/foundry-v14-forced-movement.mjs";
+import {createFoundryCarry} from "../adapters/foundry-v14-carry.mjs";
 import {createFoundryFalling} from "../adapters/foundry-v14-falling.mjs";
 import {createFoundryTokenSize} from "../adapters/foundry-v14-token-size.mjs";
 import {createFoundryTurnDamage} from "../adapters/foundry-v14-turn-damage.mjs";
@@ -312,6 +313,10 @@ export function registerFoundryV14MultiplayerResolution({
   // Pushes and pulls: the GM moves each creature an Action forces, as forced movement.
   const pushes = createFoundryForcedMovement({game, logger, fromUuid: globalThis.fromUuid ?? (() => null)});
   const teleports = createFoundryTeleports({game});
+  // A creature carried along (Step of the Wind): after its carrier's move, the active GM walks it the same route.
+  const carry = createFoundryCarry({game});
+  globalThis.Hooks?.on?.("wildpath.automationEvent", event => void carry.onMovementEvent(event)
+    .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Carry") ?? "Carry"}, error)));
   // Item enchantments (infusions): the active GM puts an Action's effect on the Item it picked.
   const enchantments = createFoundryEnchantments({game, logger});
   // Whoever rolls, every client sees the Combatant update; the active GM dispatches it.

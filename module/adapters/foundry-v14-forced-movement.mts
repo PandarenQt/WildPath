@@ -13,7 +13,7 @@ import {foundryTokenCreatureSize} from "./foundry-v14-tactical-grid-adapter.mjs"
 type Data = Record<string, unknown>;
 interface Point {x: number; y: number}
 interface Offset {i: number; j: number}
-interface PushToken {
+export interface PushToken {
   id: string; x: number; y: number; width?: number; height?: number;
   parent?: PushScene | null;
   getCenterPoint(position?: Point): Point;
@@ -22,7 +22,7 @@ interface PushToken {
   update(data: Data, operation?: Data): Promise<unknown>;
   object?: {checkCollision?(destination: Point, options: {origin: Point; type: string; mode: string}): boolean} | null;
 }
-interface PushScene {
+export interface PushScene {
   grid: {isSquare?: boolean; sizeX?: number; sizeY?: number; size?: number; distance?: number};
   dimensions?: {sceneRect?: {contains(x: number, y: number): boolean}};
   tokens: Iterable<PushToken> & {get(id: string): PushToken | undefined};
@@ -50,6 +50,21 @@ export function forcedDestination(token: PushToken, from: Point, fields: number,
     position = next;
   }
   return ((position.x === token.x) && (position.y === token.y)) ? null : position;
+}
+
+/**
+ * Whether a forced step of `token` to `position` (its top left; `origin` to `destination` its centre's path) is stopped:
+ * by the Scene's edge, a wall (on any Scene, viewed or not: foundry-v14-walls.mts), or another creature's space. The
+ * `except` Tokens' spaces don't stop it (a carrier the creature moves along with: foundry-v14-carry.mts).
+ */
+export function forcedStepBlocker(scene: PushScene, token: PushToken, {collides=sceneCollision(scene as never), except=[]}:
+  {collides?: ReturnType<typeof sceneCollision>; except?: readonly PushToken[]} = {}) {
+  const others = new Set([...scene.tokens].filter(other => (other !== token) && !except.includes(other))
+    .flatMap(other => (other.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
+  return (origin: Point, destination: Point, position: Point) =>
+    !(scene.dimensions?.sceneRect?.contains(destination.x, destination.y) ?? true)
+    || Boolean(collides(origin, destination, {type: "move"}))
+    || (token.getOccupiedGridSpaceOffsets?.(position) ?? []).some(offset => others.has(key(offset)));
 }
 
 export function createFoundryForcedMovement({game, logger=console, fromUuid}: {game: {users?: {activeGM?: {id?: string} | null};
@@ -82,14 +97,7 @@ export function createFoundryForcedMovement({game, logger=console, fromUuid}: {g
     for ( const token of tokens ) {
       const fields = Math.floor(Math.max((Number(spec.distance) || 0) - (Number(reduction[token.id]) || 0), 0) / gridDistance);
       if ( !fields ) continue;
-      const others = new Set([...scene.tokens].filter(other => other !== token)
-        .flatMap(other => (other.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
-      // Walls stop it on any Scene, viewed or not (foundry-v14-walls.mts).
-      const blocked = (origin: Point, destination: Point, position: Point) =>
-        !(scene.dimensions?.sceneRect?.contains(destination.x, destination.y) ?? true)
-        || Boolean(collides(origin, destination, {type: "move"}))
-        || (token.getOccupiedGridSpaceOffsets?.(position) ?? []).some(offset => others.has(key(offset)));
-      const destination = forcedDestination(token, from, fields, {toward: spec.toward === true, blocked});
+      const destination = forcedDestination(token, from, fields, {toward: spec.toward === true, blocked: forcedStepBlocker(scene, token, {collides})});
       if ( !destination ) continue;
       await token.update({...destination}, {wildpath: {movementKind: "forced"}});
       moved.push(token);

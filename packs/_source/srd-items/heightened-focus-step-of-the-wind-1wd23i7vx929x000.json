@@ -1,0 +1,117 @@
+{
+  "_id": "1wd23i7vx929x000",
+  "_key": "!items!1wd23i7vx929x000",
+  "name": "Heightened Focus (Step of the Wind)",
+  "type": "action",
+  "img": "icons/skills/movement/arrows-up-trio-red.webp",
+  "system": {
+    "active": true,
+    "description": "<p>Your Flurry of Blows, Patient Defense, and Step of the Wind gain the following benefits.</p><p><strong>Flurry of Blows.</strong> You can expend 1 Focus Point to use Flurry of Blows and make three Unarmed Strikes with it instead of two.</p><p><strong>Patient Defense.</strong> When you expend a Focus Point to use Patient Defense, you gain a number of Temporary Hit Points equal to two rolls of your Martial Arts die.</p><p><strong>Step of the Wind.</strong> When you expend a Focus Point to use Step of the Wind, you can choose a willing creature within 5 feet of yourself that is Large or smaller. You move the creature with you until the end of your turn. The creature's movement doesn't provoke Opportunity Attacks.</p><section class=\"secret\" id=\"secret-OnZBuksoGlTtaJJC\"><p><strong>Foundry Note</strong></p><p>The <strong>Flurry of Blows</strong> activity will expend 1 Focus Point and you can then make three Unarmed Strikes.</p><p>The <strong>Patient Defense</strong> activity will roll the Temporary Hit Points for you.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-heightened-focus-step-of-the-wind",
+      "label": "Heightened Focus (Step of the Wind)",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "monk-s-focus",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "effects": [
+        {
+          "id": "disengaged",
+          "type": "effect",
+          "name": "Disengaged",
+          "slug": "disengaged",
+          "img": "icons/svg/walk.svg",
+          "duration": {
+            "value": 0,
+            "units": "turns",
+            "expiry": "turnEnd"
+          },
+          "ruleElements": [],
+          "appliesTo": "source"
+        },
+        {
+          "id": "dashing",
+          "type": "effect",
+          "name": "Dashing",
+          "slug": "dashing",
+          "img": "icons/svg/wingfoot.svg",
+          "duration": {
+            "value": 0,
+            "units": "turns",
+            "expiry": "turnEnd"
+          },
+          "stack": "separate",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "dash",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "speed.dash"
+                ],
+                "modifierType": "untyped",
+                "value": 1
+              }
+            }
+          ],
+          "appliesTo": "source"
+        },
+        {
+          "id": "carried",
+          "type": "effect",
+          "name": "Carried",
+          "slug": "carried",
+          "img": "icons/svg/wingfoot.svg",
+          "maxSize": "large",
+          "duration": {
+            "value": 0,
+            "units": "turns",
+            "expiry": "turnEnd"
+          },
+          "ruleElements": []
+        }
+      ]
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbmnkHeightened",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "heightened-focus",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -478,7 +478,7 @@ const CHOICES_FOR = Object.freeze({
 /**
  * Features the engine offers itself when they apply (Tactical Mind: withTacticalMind on a failed check), or that are
  * rows of another feature's Action (Eldritch Master in Magical Cunning; Heightened Focus in Monk's Focus: Flurry's third
- * strike, Patient Defense's Temporary Hit Points), or that mark a spell on the sheet (Spell Mastery, Signature Spells:
+ * strike, Patient Defense's Temporary Hit Points; its carrying Step of the Wind is its own Action, FEATURE_ACTIONS), or that mark a spell on the sheet (Spell Mastery, Signature Spells:
  * withChosenSpells). Their dnd5e activities are neither Actions nor notes.
  */
 const OFFERED_BY_ENGINE = new Set(["tactical-mind", "eldritch-master", "indomitable", "heightened-focus", "spell-mastery",
@@ -2069,6 +2069,17 @@ const FEATURE_ACTIONS = Object.freeze({
     trigger: {kind: "reaction", event: "attack.hit", match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["opportunity"]}},
     effects: [{id: "effect-1", type: "effect", name: "Halted", img: "icons/svg/net.svg", duration: {value: 0, units: "turns", expiry: "turnEnd"},
       ruleElements: [{schemaVersion: 1, id: "halted", type: "ResourceCap", data: {resources: ["movement"], maximum: 0}}]}]},
+  // 2024 Heightened Focus (monk 10): Step of the Wind with a Focus Point can take a willing Large-or-smaller creature within
+  // 5 feet along; it moves with the monk until the end of the monk's turn, spending none of its own movement and provoking
+  // no Opportunity Attacks. The monk is Disengaged and Dashing as usual; the creature is Carried, which the active GM's carry
+  // adapter follows (foundry-v14-carry.mts). `turnEnd`, as its Disengaged and Dashing: the end of the turn it is used in.
+  // shortcut: willingness is assumed (its owner isn't asked); upgrade with a consent prompt if a hostile pick matters.
+  // shortcut: out of combat, Carried does not expire; the GM removes it.
+  "heightened-focus": {name: "Step of the Wind", costs: [{capability: "bonus-action", amount: 1}, {capability: "monk-s-focus", amount: 1}],
+    range: {type: "touch", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    effects: [...commonRules("disengage").effects, ...commonRules("dash").effects].map(effect => ({...effect, appliesTo: "source"}))
+      .concat({id: "carried", type: "effect", name: "Carried", slug: "carried", img: "icons/svg/wingfoot.svg", maxSize: "large",
+        duration: {value: 0, units: "turns", expiry: "turnEnd"}, ruleElements: []})},
   // 2024 Hunter's Superior Hunter's Prey: once a turn, after its damage lands on a creature carrying its own Hunter's Mark
   // (the after-damage window: nothing is offered when no damage was dealt), the mark's die goes to another creature within
   // 30 feet of that one, its controller's pick (`retarget`). Free; asked, so it can be declined when only an ally is near.

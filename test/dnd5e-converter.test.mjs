@@ -1091,6 +1091,10 @@ test("an activity that takes a common action is that action at its own cost (Cun
   assert.deepEqual(focus.map(item => item.system.definition.effects.map(effect => effect.slug)), [["disengaged", "dodging"], ["disengaged", "dashing"]],
     "2024: with a Focus Point, Disengage and Dodge, or Disengage and Dash");
   assert.deepEqual(focus.map(item => item.flags.wildpath.conversion.notes), [[], []]);
+  const heightened = identifier => convertItem({...feature("testHeightened01", "Heightened Focus", {}),
+    system: {...feature("x", "x", {}).system, identifier, activities: {}}}).items.filter(item => item.type === "action").map(item => item.name);
+  assert.deepEqual([heightened("heightened-focus"), heightened("heightened-other")], [["Heightened Focus (Step of the Wind)"], []],
+    "Heightened Focus brings its carrying Step of the Wind; another feature none");
   const [stealth] = convertItem({...feature("testShadowSteal1", "Shadow Stealth", {a: bonus("Expend Use")}), system: {...feature("x", "x", {}).system,
     identifier: "shadow-stealth", activities: {a: bonus("Expend Use")}}}).items;
   assert.deepEqual([stealth.system.definition.check.skill, stealth.system.definition.effects[0].id], ["stealth", "hidden"], "the Hide action");
@@ -2115,6 +2119,17 @@ test("monk: Martial Arts brings three Unarmed Strikes, Flurry of Blows fills its
   assert.equal(shield.healingType, "temporary");
   assert.deepEqual([at(9), at(10), at(17)].map(expression => [expression.type, expression.number ?? expression.value, expression.faces ?? null]),
     [["constant", 0, null], ["dice", 2, 8], ["dice", 2, 12]]);
+  // Heightened Focus: Step of the Wind with a Focus Point can take a willing creature along (Carried, until the monk's turn ends).
+  const carry = read("heightened-focus-step-of-the-wind").system.definition;
+  assert.deepEqual(carry.costs.allOf, [{capability: "bonus-action", amount: 1}, {capability: "monk-s-focus", amount: 1}]);
+  assert.deepEqual([carry.range, carry.targeting], [{type: "touch", distance: {value: 5, unit: "ft"}}, {type: "single", required: true, count: 1}]);
+  assert.deepEqual(carry.effects.map(effect => [effect.slug, effect.appliesTo ?? null]),
+    [["disengaged", "source"], ["dashing", "source"], ["carried", null]], "the monk Disengages and Dashes; the creature is Carried");
+  const carried = carry.effects.at(-1);
+  assert.deepEqual([carried.maxSize, carried.duration], ["large", {value: 0, units: "turns", expiry: "turnEnd"}],
+    "Large or smaller, until the end of the monk's turn (a custom effect's duration starts on its source's Combatant)");
+  assert.equal(validateActionDefinition(carry).ok, true);
+  assert.deepEqual(read("monk-s-focus-step-of-the-wind").system.definition.targeting, {type: "self"}, "the plain one stays the monk's own");
   const push = read("open-hand-technique-push").system;
   const topple = read("open-hand-technique-topple").system;
   assert.deepEqual(push.ruleElements[0].data.match.tagsAll, ["flurry"]);

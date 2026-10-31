@@ -1298,7 +1298,8 @@
         "Initiative": "an initiative trigger",
         "RefillMovement": "refilling movement",
         "Ammunition": "Ammunition",
-        "Contagion": "Contagion"
+        "Contagion": "Contagion",
+        "Carry": "carrying a creature"
       },
       "FormMissing": "WildPath: the form this Action names can't be found, so nothing was transformed.",
       "FormTooStrong": "{form} is beyond {name}'s Challenge Rating or level, so it wasn't transformed.",

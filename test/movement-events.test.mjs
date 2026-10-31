@@ -62,6 +62,7 @@ test("Medium square completion yields canonical started, transition, and complet
   assert.deepEqual(transition.data.to.anchor, {x: 1, y: 0});
   assert.equal(transition.data.stepCost.amount, 5);
   assert.equal(completed.data.actualTotalCost, 5);
+  assert.deepEqual(completed.data.completedAnchors, [{x: 0, y: 0}, {x: 1, y: 0}], "the route walked, for a creature carried along");
   assert.equal(completed.data.actorRef, "uuid:Scene.scene.Token.token.Actor.actor");
   assert.equal(completed.source.ref, "token:scene.token");
   assert.equal(result.events.every(event => event.phase === "information" && isPlainSerializableData(event)), true);

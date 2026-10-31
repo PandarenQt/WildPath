@@ -449,8 +449,13 @@ while Persistent Rage's use was spent. In a second combat, with Rage at 0 again,
   - Topple: a Dexterity save, or Prone.
 - **Converter:** the Barbarian's and Monk's unlicensed Unarmed Strike grants are dropped without a note; every creature
   has the common Unarmed Strike.
-- **shortcuts:** monk weapons keep their own die and ability. Heightened Focus's Patient Defense and Step of the Wind
-  upgrades are by hand, as is Push's Size limit.
+- **Heightened Focus (monk 10).** Flurry's third strike and Patient Defense's Temporary Hit Points are rows of Monk's
+  Focus's Actions. Its carrying Step of the Wind is an Action of its own, "Heightened Focus (Step of the Wind)" (a Bonus
+  Action and a Focus Point): the monk is Disengaged and Dashing (`appliesTo: "source"`), and one creature within 5 ft,
+  Large or smaller, is Carried until the end of the monk's turn. The active GM walks a Carried creature along its
+  carrier's moves ([movement paths](movement-paths.md#carrying-a-creature-2026-10-31)).
+- **shortcuts:** monk weapons keep their own die and ability. Step of the Wind's doubled jump distance is by hand, as
+  is Push's Size limit.
 - **Live (two browsers, 14.369):** QA Caster as monk 5 used Flurry of Blows (Bonus Action, Focus 5 to 4, 2 strikes).
   A Flurry strike hit the Bandit Captain for 1d8. Open Hand offered Addle, Push and Topple, and Player1 chose Topple;
   the Captain saved.

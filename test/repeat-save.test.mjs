@@ -406,6 +406,25 @@ test("through the pipeline: a fall's Prone only on a creature it damaged, Eldrit
   assert.deepEqual([planned({size: "huge", effect: smiteProne}), planned({size: "gargantuan", effect: smiteProne})], [true, false]);
 });
 
+test("Heightened Focus' Step of the Wind: the monk Disengages and Dashes, the creature it picks is Carried unless it is Huge or bigger", async () => {
+  const fs = await import("node:fs");
+  const file = fs.readdirSync("packs/_source/srd-items").find(name => name.startsWith("heightened-focus-step-of-the-wind"));
+  const definition = JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}`, "utf8")).system.definition;
+  const square = x => ({type: "TokenGridFootprint", topology: "square", size: "medium", effectiveSize: "medium", anchor: {x, y: 0}, fields: [{x, y: 0}]});
+  const effects = size => {
+    const target = {id: "ally", actorId: "actor-ally", tokenId: "ally-token", disposition: "ally", size};
+    const {state} = planStagedActionResolution({id: `resolution:carry-${size}`, actorSystem: {resources: {bonus: {value: 1, max: 1}},
+      pools: [{id: "monk-s-focus", value: 2, max: 2}]}, action: {id: definition.id, type: "action", name: "Step", system: {definition}},
+      source: {actorId: "monk", tokenId: "monk-token"}, targets: [target], targeting: {candidates: [{id: "ally", target, size}]},
+      // Side by side, within its 5-foot reach.
+      context: {spatial: {gridDistance: 5, sourceFootprint: square(0), targetFootprints: [{target, footprint: square(1)}]}}});
+    return state.mutationPlans.filter(plan => plan.type === "conditionEffect").map(plan => [plan.conditionId, String(plan.target?.target?.tokenId ?? plan.target)]).sort();
+  };
+  assert.deepEqual(effects("medium"), [["carried", "ally-token"], ["dashing", "token:monk-token"], ["disengaged", "token:monk-token"]]);
+  assert.deepEqual(effects("huge"), [["dashing", "token:monk-token"], ["disengaged", "token:monk-token"]],
+    "a Huge creature is too big to carry; the monk still Disengages and Dashes");
+});
+
 test("Daze: once its creature moves, acts or takes a Bonus Action, the other two are capped at 0", async () => {
   const fs = await import("node:fs");
   const {resourceCapsFromRuleElements} = await import("../module/helpers/rule-elements.mjs");

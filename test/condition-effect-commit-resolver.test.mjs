@@ -119,6 +119,30 @@ test("a condition lasting until its source's next turn (Stunning Strike) shows V
   assert.equal(actor.effects[0].flags.wildpath.conditionEffect.duration.expiry, "sourceTurnStart");
 });
 
+// An Action's custom effect names its Item as its source, so V14 starts its duration on the turn in progress (the monk's,
+// for Step of the Wind's Bonus Action): `turnEnd` is that turn's end. It must never start on the target's own Combatant.
+test("a custom effect lasting to turnEnd on another creature reaches V14 as turnEnd, never started on that creature's Combatant", async () => {
+  const {planStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
+  const definition = {schemaVersion: 1, id: "action:carry", label: "Carry", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    effects: [{id: "carried", type: "effect", name: "Carried", slug: "carried", duration: {value: 0, units: "turns", expiry: "turnEnd"}, ruleElements: []}]};
+  const mutation = planStagedActionResolution({id: "resolution:carry", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {id: definition.id, type: "action", name: "Carry", system: {definition}}, source: {actorId: "monk", tokenId: "monk-token"},
+    targets: [{id: "ally", actorId: "actor-ally", tokenId: "ally-token"}]}).state.mutationPlans.find(entry => entry.type === "conditionEffect");
+  const previous = globalThis.game;
+  globalThis.game = {combat: {started: true, combatants: [{id: "combatant-ally", tokenId: "ally-token"}, {id: "combatant-monk", tokenId: "monk-token"}]}};
+  try {
+    const actor = actorWithEffects();
+    const created = [];
+    const create = actor.createEmbeddedDocuments;
+    actor.createEmbeddedDocuments = async (name, documents) => { created.push(...structuredClone(documents)); return create(name, documents); };
+    assert.equal((await commitConditionEffectMutationPlan(actor, mutation)).ok, true);
+    assert.deepEqual(created[0].duration, {value: 0, units: "turns", expiry: "turnEnd"}, "a V14 expiry, as written");
+    assert.notEqual(created[0].start?.combatant, "combatant-ally");
+  } finally {
+    globalThis.game = previous;
+  }
+});
+
 test("condition effect commit adapter restores deleted condition snapshots", async () => {
   const actor = actorWithEffects([{
     id: "effect-prone",
