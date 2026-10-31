@@ -287,15 +287,26 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
       && !((spec.once === "turn") && turn && (actor.flags?.wildpath?.onceUsed?.[damageTwiceKey(entry)] === turn))) : [];
   const twice = fitting.find(({spec}) => spec.once === null) ?? fitting[0] ?? null;
   const bestOfTwo = twice ? (((twice.spec.once === "turn") && turn) ? {once: {key: damageTwiceKey(twice.entry), turn}} : {}) : null;
+  // An attack's damage dice rolled again (`reroll-damage-die`: Piercer's Puncture) and a Critical Hit's extra dice
+  // (`critical-dice`), each only for damage of one of its types; a once-a-turn reroll already used this turn is left out.
+  const typed = outcome => !outcome.damageTypes?.length || components.some(entry => outcome.damageTypes.includes(entry.damageType));
+  const outcomes = (attackDefinition && components.length) ? (actor?.getRollOutcomes?.(damageDomains(attackDefinition, tags),
+    {context: {...context, tags: extraTags}}) ?? []).filter(typed) : [];
+  const criticalDice = outcomes.filter(outcome => outcome.outcome === "critical-dice")
+    .map(outcome => ({dice: outcome.dice, damageTypes: outcome.damageTypes ?? []}));
+  const rerollDice = outcomes.filter(outcome => (outcome.outcome === "reroll-damage-die") && unused(outcome))
+    .map(outcome => ({count: outcome.count, ...(((outcome.once === "turn") && turn) ? {once: {key: onceKey(outcome), turn}} : {})}));
   // Healing bonuses (`healing.spell`, `healing`), added once to its first component; their values see `context`
   // (`castLevel`: Disciple of Life).
   const healing = (definition?.healing ?? []).length ? (resolveActorStatisticModifier(actor,
     [tags.includes("spell") ? "healing.spell" : null, "healing"].filter(Boolean), {item, tags, context}).value ?? 0) : 0;
   return {
     defenseKey: attackDefinition ? (attackDefinition.defenseKey ?? "ac") : null,
-    damage: (components.length && (weapon || bonus || extraComponents.length || replaced || dieMinimums.length || bestOfTwo))
+    damage: (components.length && (weapon || bonus || extraComponents.length || replaced || dieMinimums.length || bestOfTwo
+      || criticalDice.length || rerollDice.length))
       ? {modifierTotal, ...(extraComponents.length ? {extraComponents} : {}), ...(replaced ? {baseExpression: replaced} : {}),
-        ...(dieMinimums.length ? {dieMinimums} : {}), ...(bestOfTwo ? {bestOfTwo} : {})} : null,
+        ...(dieMinimums.length ? {dieMinimums} : {}), ...(bestOfTwo ? {bestOfTwo} : {}), ...(criticalDice.length ? {criticalDice} : {}),
+        ...(rerollDice.length ? {rerollDice} : {})} : null,
     ...(healing ? {healing: {modifierTotal: healing}} : {}),
     attack: statistic ? {
       statistic,

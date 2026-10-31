@@ -219,6 +219,9 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
   ally's attack (`endsWhen: "attackedByAllyOfSource"`).
 - **Assist:** its Advantage ends when the ally makes a check with that skill, from an Action or the sheet
   (`endsWhen: "checks"`, `endEffectsWhenChecked`).
+- **Ending on a save against its source (2026-10-31).** `endsWhen: "savedBySource"` ends an effect once its creature
+  saves against an Action of the creature that applied it (`endEffectsWhenSaved`), not one that Action just applied
+  (Eldritch Strike's mark). shortcut: any such save, not only the one its rule changed.
 - Live (two browsers, 14.369):
   - QA Caster's Grapple: the Bandit Captain saved with Agility (+7), not Might.
   - A Huge Hill Giant could not be grappled.

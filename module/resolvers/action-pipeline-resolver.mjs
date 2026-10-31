@@ -2029,7 +2029,7 @@ function createComponentRollStage({id, kind, rollType, request}) {
         const components = values?.components ?? [];
         const index = components.findIndex(component => component?.amount == null);
         if ( index < 0 ) {
-          // Empowered Spell: its lowest damage dice are rolled again, once all are rolled.
+          // Empowered Spell, Piercer's Puncture: its lowest damage dice are rolled again, once all are rolled.
           const empowered = (kind === "damage") ? empoweredReroll(current, input, values, id) : null;
           if ( empowered?.wait || empowered?.fail ) return empowered.wait ?? empowered.fail;
           if ( empowered?.values ) ({values, state: current} = empowered);
@@ -2082,12 +2082,14 @@ function createComponentRollStage({id, kind, rollType, request}) {
 }
 
 /**
- * Empowered Spell (`metadata.empowered`: how many): its damage dice below their die's average, lowest first, up to that
- * many, are rolled again and the new rolls are used. One roll per die size. `{wait}` while rolled, `{values, state}` once
- * done (`empowered: "done"`), null when there is nothing to reroll.
+ * Empowered Spell (`metadata.empowered`: how many) and its creature's `reroll-damage-die` rules (`rerollDice`: Piercer's
+ * Puncture): its damage dice below their die's average, lowest first, up to that many, are rolled again and the new rolls
+ * are used. One roll per die size. `{wait}` while rolled, `{values, state}` once done (`empowered: "done"`), null when
+ * there is nothing to reroll. With no die to reroll, a once-a-turn reroll is not spent (its `rerollDice` is dropped).
  */
 function empoweredReroll(state, input, values, stageId) {
-  const count = Number(state.actionDefinition?.metadata?.empowered) || 0;
+  const count = (Number(state.actionDefinition?.metadata?.empowered) || 0)
+    + normalizeArray(values?.rerollDice).reduce((sum, entry) => sum + (Number(entry?.count) || 0), 0);
   if ( !count || (values?.empowered === "done") ) return null;
   // A penalty's dice (Reduce's 1d4 less) are not the spell's damage dice.
   const picked = normalizeArray(values?.components).flatMap((component, i) => (component?.metadata?.subtract ? []
@@ -2095,7 +2097,10 @@ function empoweredReroll(state, input, values, stageId) {
     .map((value, j) => ({i, j, value: Number(value), faces: Number(component.dice.faces)})))
     .filter(entry => (entry.faces > 0) && (entry.value < ((entry.faces + 1) / 2)))
     .sort((a, b) => ((a.value - ((a.faces + 1) / 2)) - (b.value - ((b.faces + 1) / 2)))).slice(0, count);
-  if ( !picked.length ) return {values: {...values, empowered: "done"}, state};
+  if ( !picked.length ) {
+    const {rerollDice: _unused, ...rest} = values;
+    return {values: {...rest, empowered: "done"}, state};
+  }
   const bySize = new Map();
   for ( const entry of picked ) bySize.set(entry.faces, [...(bySize.get(entry.faces) ?? []), entry]);
   let current = state;
@@ -2112,7 +2117,7 @@ function empoweredReroll(state, input, values, stageId) {
         expectedResponseType: "roll-result", chooser: rollRequest.chooser, authority: rollRequest.authority,
         validation: {rollRequestId: requestId, semanticType: rollRequest.type, requireNatural: false, formula: rollRequest.formula},
         payload: {actionDefinitionId: current.actionDefinition?.id ?? null, rollKind: "damage-empowered", rollRequest, targets: input.targets ?? []}}),
-      reason: "Empowered Spell's dice are rolled again."})};
+      reason: "Damage dice below their average are rolled again."})};
     const request = rollRequestFromAcceptedResponse(accepted, () => rollRequest);
     const normalized = normalizeRollResponseValue(accepted.response.value, {request, completedRequestIds: completedRollRequestIds(current)});
     if ( !normalized.ok ) return {fail: failResolutionStage({state: current, code: normalized.code, reason: normalized.reason,
@@ -3105,9 +3110,11 @@ function componentRollRequestForState(state, input, {kind, rollType, requestId, 
   // A penalty's dice (Reduce's 1d4 less) are not the attack's damage dice, so they are rolled once.
   const critical = (kind === "damage") && !component.metadata?.subtract
     && ((state.results?.attackResolution?.hits ?? []).some(hit => hit.outcome === "criticalHit") || (input.damage?.critical === true));
+  // ... and a rule's extra dice on top (Piercer: `metadata.criticalDice`).
+  const more = critical ? (Number(component.metadata?.criticalDice) || 0) : 0;
   const rolled = !critical ? component : {...component,
-    ...(component.dice ? {dice: {...component.dice, number: (Number(component.dice.number) || 1) * 2}} : {}),
-    ...(component.expression ? {expression: withDoubledDice(component.expression)} : {})};
+    ...(component.dice ? {dice: {...component.dice, number: ((Number(component.dice.number) || 1) * 2) + more}} : {}),
+    ...(component.expression ? {expression: withMoreDice(withDoubledDice(component.expression), more)} : {})};
   const modifier = (Number(component.bonus) || 0)
     + (((index === modifierComponentIndex(values)) && Number.isFinite(values.modifierTotal)
       && !values.modifierApplied) ? values.modifierTotal : 0);
@@ -3140,8 +3147,9 @@ function oncePerTurnPlans(once) {
  */
 function onceUsePlans(damage, damageResolution) {
   if ( !(damageResolution?.results ?? []).some(result => (Number(result.total) || 0) > 0) ) return [];
-  // And its weapon's dice rolled twice (Savage Attacker).
-  return [...(damage?.extraComponents ?? []), damage?.bestOfTwo ?? null].filter(component => component?.once?.key && component.once?.turn)
+  // And its weapon's dice rolled twice (Savage Attacker), and its dice rerolled (Piercer's Puncture).
+  return [...(damage?.extraComponents ?? []), damage?.bestOfTwo ?? null, ...normalizeArray(damage?.rerollDice)]
+    .filter(component => component?.once?.key && component.once?.turn)
     .map(component => {
     const path = `flags.wildpath.onceUsed.${component.once.key}`;
     return {type: "sourceUpdate", resolver: "ActionPipeline", updates: {[path]: component.once.turn}, rollbackUpdates: {[path]: null}};
@@ -3169,6 +3177,22 @@ function withDoubledDice(expression) {
   if ( Array.isArray(expression) ) return expression.map(withDoubledDice);
   const doubled = Object.fromEntries(Object.entries(expression).map(([key, value]) => [key, withDoubledDice(value)]));
   return expression.type === "dice" ? {...doubled, number: (Number(expression.number) || 1) * 2} : doubled;
+}
+
+/** A ValueExpression with `extra` more dice in its first dice term (a Critical Hit's extra die: Piercer). */
+function withMoreDice(expression, extra) {
+  let left = extra;
+  const walk = node => {
+    if ( !left || !node || (typeof node !== "object") ) return node;
+    if ( Array.isArray(node) ) return node.map(walk);
+    if ( node.type === "dice" ) {
+      const added = left;
+      left = 0;
+      return {...node, number: (Number(node.number) || 1) + added};
+    }
+    return Object.fromEntries(Object.entries(node).map(([key, value]) => [key, walk(value)]));
+  };
+  return walk(expression);
 }
 
 /* -------------------------------------------- */

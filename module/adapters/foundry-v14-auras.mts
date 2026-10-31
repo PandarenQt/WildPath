@@ -8,12 +8,14 @@ import {areaCovers} from "./foundry-v14-persistent-areas.mjs";
  * Auras (2024: "you and allies within 10 ft gain +1 AC"): an `Aura` RuleElement on a creature's features, gear or
  * effects grants its nested rules to the creatures within its radius. Who is inside is worked out when a statistic
  * is read, from the Tokens on the Scene, so nothing is written to the affected creatures and it is never stale.
- * `allies` and `all` auras include their bearer; `enemies` auras do not.
+ * `allies` and `all` auras include their bearer; `enemies` auras do not. A `bearerOnly` aura grants its bearer alone,
+ * while another creature it `affects` stands within its radius (Steadfast: no Frightened with an ally near).
  */
 
 type Data = Record<string, unknown>;
 interface Field {[key: string]: unknown}
-interface AuraEntry {id: string; radius: number; affects: "allies" | "enemies" | "all"; ruleElements: Data[]; source?: Data | null}
+interface AuraEntry {id: string; radius: number; affects: "allies" | "enemies" | "all"; bearerOnly?: boolean; ruleElements: Data[];
+  source?: Data | null}
 interface AuraActor {uuid?: string; isToken?: boolean; token?: AuraToken | null; getActiveTokens?(linked?: boolean, document?: boolean): AuraToken[]; getDependentTokens?(options?: {linked?: boolean}): AuraToken[];
   getAuras?(): AuraEntry[]}
 interface AuraToken {id: string; parent?: AuraScene | null; actor?: AuraActor | null; disposition?: number; elevation?: number}
@@ -124,12 +126,15 @@ export function createFoundryAuras() {
       const adapter = createFoundryV14TacticalGridAdapter({scene});
       const context = adapter.getSceneContext() as {ok: boolean; context?: {grid: {topology: string}}};
       if ( !context.ok || !context.context ) continue;
+      const topology = context.context.grid.topology;
       for ( const bearer of scene.tokens ) {
         for ( const aura of bearer.actor?.getAuras?.() ?? [] ) {
-          if ( !affectsToken(aura.affects, bearer, token) ) continue;
-          if ( bearer.id === token.id ) {
-            if ( aura.affects === "enemies" ) continue;
-          } else if ( !within(adapter, context.context.grid.topology, scene, bearer, token, aura.radius) ) continue;
+          const reaches = aura.bearerOnly
+            ? (bearer.id === token.id) && [...scene.tokens].some(other => (other.id !== bearer.id) && !!other.actor
+              && affectsToken(aura.affects, bearer, other) && within(adapter, topology, scene, bearer, other, aura.radius))
+            : affectsToken(aura.affects, bearer, token)
+              && ((bearer.id === token.id) ? (aura.affects !== "enemies") : within(adapter, topology, scene, bearer, token, aura.radius));
+          if ( !reaches ) continue;
           owners.push({ruleElements: aura.ruleElements, source: {...(aura.source ?? {}), aura: aura.id, bearerTokenId: bearer.id}});
         }
       }

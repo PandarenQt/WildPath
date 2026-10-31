@@ -646,6 +646,10 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   Focus Point (its activity's pool). Halfling Luck's names no pool (free) and `natural: 1`: it is offered only when the
   d20 shows a 1 (`inspirationReroll` filters by natural). A reroll may carry its own `rollMode` and `bonus`
   (rolls.md). shortcut: like every test offer, only when the roll failed.
+- **While a status (2026-10-31):** `testOffer.whileStatus` offers it only while its creature has that status. Fanatical
+  Focus: `{tests: ["save"], reroll: true, pool: "fanatical-focus", whileStatus: "raging", bonus: <Rage Damage table>}`.
+  Its pool of 1 is refilled by a free reaction to its creature's own Rage Action (a FEATURE_ACTIONS row whose definition
+  `restores` it), so it is once per Rage. shortcut: a Rage begun without the Rage Action refills nothing.
 
 - **Flash of Genius (Tasha's, 2026-10-20):** a ranged test offer with no `against`: any failed check or save, its own
   or an ally's within 30 ft (`withAllyTestOffers`, now on checks too). `addAbility: "intellect"` adds its modifier

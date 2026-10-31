@@ -148,12 +148,15 @@ function tokenReactions(token) {
             if (((data.kind ?? data.triggerKind) !== "reaction") || !event)
                 return [];
             // A common Action (Retaliation's `commonAction: "opportunity"`: its first melee attack or Unarmed Strike), else
+            // the Action it carries (`data.action`: a feature's reaction that is no Action to use by hand, Fanatical Focus's refill),
             // the Item itself or the Action it names.
             const localize = (key) => globalThis.game?.i18n?.localize(key) ?? key;
             const actionItem = data.commonAction ? common(actor, String(data.commonAction), { localize })
-                : item.type === "action" ? item
-                    : items.find(entry => (entry.type === "action")
-                        && (entry.system?.definition?.id === data.reaction?.actionId));
+                : data.action ? { id: item.id, type: "action", system: { active: true, definition: data.action },
+                    ...(data.policy ? { flags: { wildpath: { reactionPolicy: String(data.policy) } } } : {}) }
+                    : item.type === "action" ? item
+                        : items.find(entry => (entry.type === "action")
+                            && (entry.system?.definition?.id === data.reaction?.actionId));
             const definition = actionItem ? definitionFor(actionItem) : null;
             if (!definition?.ok || !definition.definition)
                 return [];

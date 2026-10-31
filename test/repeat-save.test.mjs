@@ -107,6 +107,23 @@ test("Tactical Mind (a test offer): a failed check may add 1d10 from Second Wind
   assert.equal(failed.mutationPlans.some(plan => plan.payerRef === "Actor.fighter"), false, "the use is kept");
 });
 
+test("Fanatical Focus (a test offer): a failed save rerolled with its Rage Damage bonus, only while raging and with its one use", async () => {
+  const {withTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {convertItem} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const [focus] = convertItem({_id: "fanaticalfocus00", name: "Fanatical Focus", type: "feat", effects: [], system: {
+    source: {license: "CC-BY-4.0", rules: "2024", book: ""}, identifier: "fanatical-focus", activities: {}, description: {value: ""}}},
+  {scales: {"barbarian.rage-damage": {1: 2, 9: 3, 16: 4}}}).items;
+  const system = value => ({classes: [{id: "barbarian", level: 9}], resources: {}, pools: [{id: "fanatical-focus", value, max: 1}]});
+  const roller = statuses => ({uuid: "Actor.barb", name: "Barbarian", statuses: new Set(statuses),
+    items: [{id: focus._id, name: focus.name, flags: focus.flags, system: focus.system}]});
+  const offer = withTestOffers(null, roller(["raging"]), system(1), null, "save");
+  assert.deepEqual(offer.options.map(option => [option.value, option.bonus, option.plan?.ok]), [[`test-offer:${focus._id}`, 3, true]],
+    "its Rage Damage at barbarian 9");
+  assert.equal(withTestOffers(null, roller([]), system(1), null, "save"), null, "not raging");
+  assert.equal(withTestOffers(null, roller(["raging"]), system(0), null, "save"), null, "used this Rage");
+  assert.equal(withTestOffers(null, roller(["raging"]), system(1), null, "check"), null, "saves only");
+});
+
 test("test offers (SRD): Peerless Skill's Bardic Inspiration die on a check or attack, Dark One's Own Luck's d10 on a check or save", async () => {
   const fs = await import("node:fs");
   const {withTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");

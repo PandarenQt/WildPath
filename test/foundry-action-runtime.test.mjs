@@ -2418,6 +2418,33 @@ test("an aura grants its rules to allies within its radius and to its bearer, bu
   assert.deepEqual(granted(enemy), [], "an enemy inside the aura");
 });
 
+test("a bearerOnly aura grants its bearer alone, only while a creature it affects stands within its radius (Steadfast)", async () => {
+  const {createFoundryAuras} = await import("../module/adapters/foundry-v14-auras.mjs");
+  const {evaluateRuleElement} = await import("../module/helpers/rule-elements.mjs");
+  const brave = {schemaVersion: 1, id: "brave", type: "ConditionImmunity", data: {conditions: ["frightened"]}};
+  const rule = {schemaVersion: 1, id: "steadfast", type: "Aura", data: {radius: 30, affects: "allies", bearerOnly: true, ruleElements: [brave]}};
+  const [contribution] = evaluateRuleElement(rule).contributions.auras;
+  assert.equal(contribution.bearerOnly, true);
+  const granted = (others) => {
+    const scene = fakeScene(new FakeSquareGrid(), {id: "steadfast-scene"});
+    const creature = (id, offset, disposition, auras=[]) => {
+      const actor = {id, isToken: true, getAuras: () => auras};
+      actor.token = fakeTokenDocument({id: `token-${id}`, actor, scene, offset, disposition});
+      scene.tokens.push(actor.token);
+      return actor;
+    };
+    const bearer = creature("bearer", {i: 5, j: 5}, 1, [contribution]);
+    const placed = others.map(([id, offset, disposition]) => creature(id, offset, disposition));
+    const auras = createFoundryAuras();
+    const of = actor => auras.ownersFor(actor).flatMap(owner => owner.ruleElements.map(entry => entry.id));
+    return [of(bearer), ...placed.map(of)];
+  };
+  assert.deepEqual(granted([["ally", {i: 7, j: 5}, 1]]), [["brave"], []], "an ally 10 ft away: the bearer only");
+  assert.deepEqual(granted([]), [[]], "alone");
+  assert.deepEqual(granted([["enemy", {i: 6, j: 5}, -1]]), [[], []], "only an enemy near");
+  assert.deepEqual(granted([["far", {i: 12, j: 5}, 1]]), [[], []], "an ally 35 ft away");
+});
+
 test("a creature's conditions from another are the effects naming it, its Tokens or its Items as their source", () => {
   const charmer = {uuid: "Actor.charmer", id: "charmer"};
   const token = {uuid: "Scene.s.Token.t", id: "t", parent: {id: "s"}, actorLink: true, actorId: "charmer", actor: charmer};

@@ -511,6 +511,34 @@ test("an enchantment picks one of its creature's own weapons, and binds it and t
   assert.equal(forged.ok, false, "not one of its weapons");
 });
 
+test("Eldritch Hex adds its marker to Hex (synthetic): the hexed creature's saves of the chosen ability have Disadvantage too", async () => {
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const {convertItem} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const SRD = {license: "CC-BY-4.0", rules: "2024", book: ""};
+  const hexed = (id, name, key) => ({_id: id, name, transfer: false, statuses: ["cursed"], duration: {value: 3600, units: "seconds"},
+    system: {changes: [{key: `system.abilities.${key}.check.roll.mode`, value: -1, type: "add"}]}});
+  const [hex] = convertItem({_id: "testHex000000001", name: "Hex", type: "spell", img: "icons/svg/daze.svg",
+    effects: [hexed("s", "Hexed Strength", "str"), hexed("d", "Hexed Dexterity", "dex")], system: {source: SRD, identifier: "hex", level: 1,
+      preparation: {mode: "prepared"}, properties: ["vocal", "concentration"], activation: {type: "bonus"}, range: {units: "ft", value: 90},
+      target: {affects: {type: "creature", count: 1}, template: {}}, activities: {a: {_id: "actutility", type: "utility", name: "Place Curse",
+        activation: {type: "bonus", override: false}, range: {override: false}, target: {affects: {type: "creature", count: 1}, template: {}},
+        effects: [{_id: "s"}, {_id: "d"}], consumption: {targets: []}}}}}).items;
+  const [feature] = convertItem({_id: "eldritchhex00000", name: "Eldritch Hex", type: "feat", effects: [], system: {source: SRD,
+    identifier: "eldritch-hex", activities: {}, description: {value: ""}}}).items;
+  const read = items => actionDefinitionFromItem({id: "hex", type: "action", name: hex.name, flags: hex.flags, system: hex.system, actor: {items}});
+  assert.equal(read([]).definition.configuration.some(choice => choice.id === "eldritch-hex"), false, "not without the feature");
+  const {definition} = read([feature]);
+  assert.deepEqual(definition.configuration.find(choice => choice.id === "eldritch-hex").defaultValue, "on");
+  // Its own choice beside Hex's (its slot left out here), offered "on".
+  const resolved = resolveActionConfiguration({definition: {...definition, configuration: definition.configuration
+    .filter(choice => choice.id !== "spell-slot")}, actorSystem: actorSystem(), choices: {"effect-choice": "effect-option-2", "eldritch-hex": "on"}});
+  assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+  const {effects} = resolved.configuration.effectiveDefinition;
+  assert.deepEqual(effects.map(effect => effect.slug), ["hex", "hex-saves"], "the chosen hex, and the marker its save rule reads");
+  assert.deepEqual(effects[0].ruleElements.filter(rule => rule.predicate?.hasCondition === "hex-saves").map(rule => rule.data.domains), [["save.agility"]]);
+  assert.equal(effects[1].concentration, true, "it ends with the caster's concentration");
+});
+
 test("Restoring Touch adds its conditions to Lay on Hands: 5 points each, ended on the target, none of them healing", async () => {
   const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
   const fs = await import("node:fs");

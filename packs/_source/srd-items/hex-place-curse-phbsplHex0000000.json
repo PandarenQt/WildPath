@@ -77,6 +77,20 @@
                   "value": true
                 }
               }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hexed-strength-1-save",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.might"
+                ],
+                "mode": "disadvantage"
+              },
+              "predicate": {
+                "hasCondition": "hex-saves"
+              }
             }
           ],
           "duration": {
@@ -129,6 +143,20 @@
                   "path": "attack.fromAttacker.hex",
                   "value": true
                 }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hexed-dexterity-1-save",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.agility"
+                ],
+                "mode": "disadvantage"
+              },
+              "predicate": {
+                "hasCondition": "hex-saves"
               }
             }
           ],
@@ -183,6 +211,20 @@
                   "value": true
                 }
               }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hexed-constitution-1-save",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.fortitude"
+                ],
+                "mode": "disadvantage"
+              },
+              "predicate": {
+                "hasCondition": "hex-saves"
+              }
             }
           ],
           "duration": {
@@ -235,6 +277,20 @@
                   "path": "attack.fromAttacker.hex",
                   "value": true
                 }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hexed-intelligence-1-save",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.intellect"
+                ],
+                "mode": "disadvantage"
+              },
+              "predicate": {
+                "hasCondition": "hex-saves"
               }
             }
           ],
@@ -289,6 +345,20 @@
                   "value": true
                 }
               }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hexed-wisdom-1-save",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.wits"
+                ],
+                "mode": "disadvantage"
+              },
+              "predicate": {
+                "hasCondition": "hex-saves"
+              }
             }
           ],
           "duration": {
@@ -341,6 +411,20 @@
                   "path": "attack.fromAttacker.hex",
                   "value": true
                 }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "hexed-charisma-1-save",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.presence"
+                ],
+                "mode": "disadvantage"
+              },
+              "predicate": {
+                "hasCondition": "hex-saves"
               }
             }
           ],

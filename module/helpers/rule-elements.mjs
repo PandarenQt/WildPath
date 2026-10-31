@@ -840,7 +840,9 @@ function auraRuleElement(ruleElement, context={}) {
     return {...clonePlain(nested), data: {...rest, value: value.value}};
   });
   return success({
-    auras: [{id: data.id ?? ruleElement.id, radius, affects, ruleElements: granted, source: ruleElementSource(ruleElement),
+    // `bearerOnly`: its rules are its bearer's alone, while another creature it `affects` stands within its radius (Steadfast).
+    auras: [{id: data.id ?? ruleElement.id, radius, affects, ruleElements: granted, ...(data.bearerOnly === true ? {bearerOnly: true} : {}),
+      source: ruleElementSource(ruleElement),
       metadata: contributionMetadata(ruleElement, data.metadata)}]
   });
 }
@@ -914,10 +916,25 @@ function rollOutcomeRuleElement(ruleElement) {
   // halved instead (Potent Cantrip): `evasion`'s caster-side mirror.
   // `ignore-resistance`: on `damage.*`, its creature's damage of `damageTypes` ignores Resistance; Immunity still holds
   // (Elemental Adept).
+  // `reroll-damage-die`: on `damage.*`, `count` of its damage dice (default 1) below their average are rolled again, the
+  // lowest first, `once` a turn if set (Piercer's Puncture). `critical-dice`: on `damage.*`, a Critical Hit rolls `dice`
+  // more of its first component's die (Piercer). Both only when the damage has one of `damageTypes`, if any are named.
   if ( !["automatic-failure", "automatic-success", "critical-on-hit", "evasion", "critical-range", "minimum-natural", "no-advantage",
-    "minimum-score", "half-on-success", "ignore-resistance"].includes(data.outcome) ) {
+    "minimum-score", "half-on-success", "ignore-resistance", "reroll-damage-die", "critical-dice"].includes(data.outcome) ) {
     return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement outcome must be automatic-failure, automatic-success, "
-      + "critical-on-hit, evasion, critical-range, minimum-natural, no-advantage, minimum-score, half-on-success or ignore-resistance.");
+      + "critical-on-hit, evasion, critical-range, minimum-natural, no-advantage, minimum-score, half-on-success, ignore-resistance, "
+      + "reroll-damage-die or critical-dice.");
+  }
+  const count = (data.count == null) ? 1 : Number(data.count);
+  if ( (data.outcome === "reroll-damage-die") && !(Number.isInteger(count) && (count >= 1) && (count <= 10)) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A reroll-damage-die RollOutcome needs a count from 1 to 10.");
+  }
+  if ( (data.outcome === "reroll-damage-die") && (data.once != null) && (data.once !== "turn") ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A reroll-damage-die RollOutcome's once must be \"turn\".");
+  }
+  const dice = Number(data.dice);
+  if ( (data.outcome === "critical-dice") && !(Number.isInteger(dice) && (dice >= 1) && (dice <= 10)) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A critical-dice RollOutcome needs dice from 1 to 10.");
   }
   if ( !domains.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement requires domains.");
   const damageTypes = normalizeStrings(data.damageTypes);
@@ -936,7 +953,9 @@ function rollOutcomeRuleElement(ruleElement) {
   const thresholded = ["critical-range", "minimum-natural"].includes(data.outcome) && !widens;
   return success({
     rollOutcomes: [{id: data.id ?? ruleElement.id, outcome: data.outcome, domains, ...(thresholded ? {threshold} : {}), ...(widens ? {widen} : {}),
-      ...((data.outcome === "ignore-resistance") ? {damageTypes} : {}),
+      ...(["ignore-resistance", "reroll-damage-die", "critical-dice"].includes(data.outcome) ? {damageTypes} : {}),
+      ...((data.outcome === "reroll-damage-die") ? {count, once: data.once ?? null} : {}),
+      ...((data.outcome === "critical-dice") ? {dice} : {}),
       source: ruleElementSource(ruleElement),
       metadata: contributionMetadata(ruleElement, data.metadata)}]
   });

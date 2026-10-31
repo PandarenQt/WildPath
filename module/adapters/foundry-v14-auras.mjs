@@ -111,15 +111,15 @@ export function createFoundryAuras() {
             const context = adapter.getSceneContext();
             if (!context.ok || !context.context)
                 continue;
+            const topology = context.context.grid.topology;
             for (const bearer of scene.tokens) {
                 for (const aura of bearer.actor?.getAuras?.() ?? []) {
-                    if (!affectsToken(aura.affects, bearer, token))
-                        continue;
-                    if (bearer.id === token.id) {
-                        if (aura.affects === "enemies")
-                            continue;
-                    }
-                    else if (!within(adapter, context.context.grid.topology, scene, bearer, token, aura.radius))
+                    const reaches = aura.bearerOnly
+                        ? (bearer.id === token.id) && [...scene.tokens].some(other => (other.id !== bearer.id) && !!other.actor
+                            && affectsToken(aura.affects, bearer, other) && within(adapter, topology, scene, bearer, other, aura.radius))
+                        : affectsToken(aura.affects, bearer, token)
+                            && ((bearer.id === token.id) ? (aura.affects !== "enemies") : within(adapter, topology, scene, bearer, token, aura.radius));
+                    if (!reaches)
                         continue;
                     owners.push({ ruleElements: aura.ruleElements, source: { ...(aura.source ?? {}), aura: aura.id, bearerTokenId: bearer.id } });
                 }

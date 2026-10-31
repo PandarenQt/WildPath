@@ -13,9 +13,12 @@ import {withWeaponMastery} from "./weapon-mastery.mjs";
 import {withMetamagic} from "./metamagic.mjs";
 import {fitsSpellChoice, spellBaseLevel, spellChoiceMark, spellChoicePool, spellChoices} from "./spellcasting.mjs";
 
-/** When a custom effect ends early: its creature is attacked, attacked by the creature that applied it, or attacks. */
+/**
+ * When a custom effect ends early: its creature is attacked, attacked by the creature that applied it, or attacks; or it
+ * saves (`saves`), or saves against that creature's Action (`savedBySource`: Eldritch Strike).
+ */
 export const CUSTOM_EFFECT_ENDS_WHEN = Object.freeze(["attacked", "attackedBySource", "attackedByOther", "attackedByAllyOfSource", "attacks",
-  "hits", "saves", "checks"]);
+  "hits", "saves", "savedBySource", "checks"]);
 
 /**
  * When a creature an effect reached repeats the save that let it in (2024: "At the end of each of its turns, the target
@@ -657,12 +660,20 @@ function resolverRequestFromDamageDefinition(definition, runtimeDamage, evaluati
   // Its weapon's dice rolled twice, the higher kept (Savage Attacker: `bestOfTwo`).
   const twice = component => ((runtimeDamage?.bestOfTwo && (component.provenance === "weapon-base") && component.dice)
     ? {...component, dice: {...component.dice, metadata: {...(component.dice.metadata ?? {}), bestOfTwo: true}}} : component);
-  const components = [...own, ...extras].map((component, index) => twice(floored(damageComponentForResolver({
+  const resolved = [...own, ...extras].map((component, index) => twice(floored(damageComponentForResolver({
     component: spell ? {...component, tags: [...new Set([...(component.tags ?? []), "spell"])]} : component,
     index,
     runtimeComponents,
     evaluationContext
   }))));
+  // A Critical Hit's extra dice (Piercer: `criticalDice`), on the first component of a damage type each names.
+  const criticalDice = new Map();
+  for ( const entry of normalizeArray(runtimeDamage?.criticalDice) ) {
+    const index = resolved.findIndex(component => !entry.damageTypes?.length || entry.damageTypes.includes(component.damageType));
+    if ( index >= 0 ) criticalDice.set(index, (criticalDice.get(index) ?? 0) + (Number(entry.dice) || 0));
+  }
+  const components = resolved.map((component, index) => (criticalDice.get(index)
+    ? {...component, metadata: {...(component.metadata ?? {}), criticalDice: criticalDice.get(index)}} : component));
   return mergeResolverRequest({
     components,
     saveOutcomePolicy: firstDefined(definition.damage.map(component => component.outcomePolicy?.saveOutcomePolicy ?? component.saveOutcomePolicy)),

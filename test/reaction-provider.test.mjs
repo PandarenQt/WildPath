@@ -292,6 +292,18 @@ test("Grappler's Punch and Grab: its own Unarmed Strike's hit offers the common 
   assert.match(JSON.stringify(trigger), /"tagsAll":\["unarmed"\]/u, "only on an Unarmed Strike's hit");
 });
 
+test("a feature's Trigger carrying its own Action (data.action) reacts with it, at its own setting: no Action Item to use by hand", () => {
+  const refill = {schemaVersion: 1, id: "action:refill", label: "Refill", costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"},
+    restores: [{resourceId: "focus", amount: 1}]};
+  const feature = {id: "focus", name: "Focus", type: "feature", system: {active: true, ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger",
+    data: {kind: "reaction", event: "action.declared", match: {phase: "interrupt", sourceTokenId: "{self}"}, action: refill, policy: "always"}}]}};
+  const barbarian = token("barbarian", 1, [feature]);
+  const services = createFoundryReactionProvider({resolve: () => null})({scene: {grid: {distance: 5}, tokens: [barbarian]}, token: barbarian});
+  const [trigger] = services.reactions.triggers.filter(entry => entry.id === "reaction:barbarian:focus:reaction");
+  assert.deepEqual([trigger.reaction.action.restores, trigger.reaction.actionId, trigger.metadata.reactionPolicy],
+    [[{resourceId: "focus", amount: 1}], "action:refill", "always"]);
+});
+
 test("each reactor's own effects on the first creature an event names (targetFrom): Superior Hunter's Prey's own Hunter's Mark", () => {
   const prey = {id: "prey", type: "action", system: {active: true, definition: {schemaVersion: 1, id: "action:prey", label: "Prey",
     costs: {allOf: []}, range: {type: "special"}, targeting: {type: "single", required: true, count: 1}},

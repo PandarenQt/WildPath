@@ -901,10 +901,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       const key = target.tokenId ?? target.id;
       const saverToken = targetTokenFor(targetActor, hint, game);
       // A choice of saves (2024 Grapple: Might or Agility): the one it is likelier to pass.
-      const ability = bestSaveAbility({definition, targetActor, saverToken, cover, actor, actorSystem});
+      const ability = bestSaveAbility({definition, targetActor, saverToken, cover, actor, actorSystem, game});
       if ( (definition.save.abilities?.length ?? 0) > 1 ) saveAbilityByTarget[key] = ability;
-      const modes = (targetActor.getRollModes?.(["save", `save.${ability}`], saveContext(definition, ability, saverToken)) ?? [])
-        .map(entry => entry?.mode ?? entry);
+      const modes = saveRollModesFor({targetActor, actor, definition, ability, token: saverToken, game}).map(entry => entry?.mode ?? entry);
       saveRollModes[key] = combineRollModes(modes);
       // Its sources too, so a reroll with a mode of its own (Countercharm's Advantage) cancels source for source.
       if ( modes.length ) saveRollModeSources[key] = modes;
@@ -914,7 +913,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( bonus || covered ) saveModifiers[key] = (bonus?.totalModifier ?? 0) + covered;
       if ( bonus?.dice?.length ) saveDice[key] = bonus.dice;
       if ( bonus?.totalMinimum ) saveTotalMinimums[key] = bonus.totalMinimum;
-      const forced = targetActor.getRollOutcomes?.(["save", `save.${ability}`], saveContext(definition, ability, saverToken)) ?? [];
+      const forced = targetActor.getRollOutcomes?.(["save", `save.${ability}`], saveContext(definition, ability, saverToken,
+        {saver: targetActor, source: actor, game})) ?? [];
       if ( forced.some(entry => entry.outcome === "automatic-failure") ) saveOutcomes[key] = "automatic-failure";
       // A save it can't fail (Trance against sleep magic) wins over one it can't pass.
       if ( forced.some(entry => entry.outcome === "automatic-success") ) saveOutcomes[key] = "automatic-success";
@@ -1795,6 +1795,8 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
     if ( !spec?.tests?.includes(test) || spec.range || (item.system?.active === false) ) continue;
     // Only for an Action with every one of its tags (Seeking Spell: a spell's attack).
     if ( (spec.tagsAll ?? []).some(tag => !tags.includes(tag)) ) continue;
+    // Only while its creature has a status (Fanatical Focus: raging).
+    if ( spec.whileStatus && !roller?.statuses?.has?.(spec.whileStatus) ) continue;
     // A free one (Halfling Luck) names no pool.
     const payment = spec.pool ? resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: spec.pool, amount: 1}]}})
       : {ok: true, mutationPlan: null};
@@ -1911,17 +1913,17 @@ export function monsterRerollPayers(game, scene) {
  * Dexterity saving throw (it chooses)"): the one it is likelier to pass against the Action's DC, from its own bonus,
  * cover, Advantage or Disadvantage and automatic failures. Else the Action's one save.
  */
-export function bestSaveAbility({definition, targetActor, saverToken, cover="none", actor=null, actorSystem=null}) {
+export function bestSaveAbility({definition, targetActor, saverToken, cover="none", actor=null, actorSystem=null, game=globalThis.game}) {
   const save = definition.save ?? {};
   const choices = save.abilities?.length ? save.abilities : [save.ability ?? save.saveKey ?? null];
   if ( choices.length < 2 ) return choices[0];
   const dc = Number(save.dc?.value ?? evaluateValueExpression(save.dc?.valueExpression, {actor, actorSystem}).value) || 10;
   const chance = ability => {
-    const context = saveContext(definition, ability, saverToken);
+    const context = saveContext(definition, ability, saverToken, {saver: targetActor, source: actor, game});
     const forced = (targetActor.getRollOutcomes?.(["save", `save.${ability}`], context) ?? []).map(entry => entry.outcome);
     if ( forced.includes("automatic-success") ) return 1;
     if ( forced.includes("automatic-failure") ) return 0;
-    const modes = (targetActor.getRollModes?.(["save", `save.${ability}`], context) ?? []).map(entry => entry?.mode ?? entry);
+    const modes = saveRollModesFor({targetActor, actor, definition, ability, token: saverToken, game}).map(entry => entry?.mode ?? entry);
     const bonus = resolveActorSaveStatistic(targetActor, ability);
     // A total floor at or above the DC can't fail (Indomitable Might).
     if ( Number(bonus?.totalMinimum) >= dc ) return 1;
@@ -1934,15 +1936,28 @@ export function bestSaveAbility({definition, targetActor, saverToken, cover="non
 /**
  * What a save's RuleElement predicates see: its ability, and the Action's tags. Every spell is `magical` too, so
  * Magic Resistance (`{tagsAny: ["magical"]}`) covers spells and Actions tagged `magical` (a magic item's).
+ * `save.fromSource`: the conditions the saver bears from the Action's user (`{eldritch-struck: true}`: Eldritch Strike).
  */
-function saveContext(definition, ability, token=null) {
+function saveContext(definition, ability, token=null, {saver=null, source=null, game=globalThis.game}={}) {
   const tags = definition?.tags ?? [];
   // What the save is against (`against:poisoned`): the conditions a failure gives, or a repeated save ends
   // (`save.against`), so "Advantage on saves to avoid or end the Poisoned condition" is a RollMode on that tag.
   const against = [...new Set([...(definition?.effects ?? []).map(effect => effect?.conditionId),
     ...(definition?.save?.against ?? [])].filter(Boolean))].map(condition => `against:${condition}`);
-  return {context: {save: {ability}, tags: [...tags, ...(tags.includes("spell") && !tags.includes("magical") ? ["magical"] : []), ...against],
+  return {context: {save: {ability, fromSource: (saver && source) ? conditionsFrom(saver, source, game) : {}},
+    tags: [...tags, ...(tags.includes("spell") && !tags.includes("magical") ? ["magical"] : []), ...against],
     ...sunlightContext(token), ...fearContext(token)}};
+}
+
+/**
+ * The Advantage and Disadvantage on `targetActor`'s save against `definition`: its own (`save`, `save.<ability>`), and
+ * those the Action's user `actor` imposes on the saves its Actions force (`imposed.save`, `imposed.save.<ability>`:
+ * Magical Ambush while Invisible). The target loop, the choice of save and the odds all read it, so they agree.
+ */
+export function saveRollModesFor({targetActor, actor=null, definition, ability, token=null, game=globalThis.game}) {
+  const context = saveContext(definition, ability, token, {saver: targetActor, source: actor, game});
+  return [...(targetActor?.getRollModes?.(["save", `save.${ability}`], context) ?? []),
+    ...(actor?.getRollModes?.(["imposed.save", `imposed.save.${ability}`], context) ?? [])];
 }
 
 /**
@@ -1979,8 +1994,8 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
   const ability = definition.save.ability ?? definition.save.saveKey ?? null;
   if ( !Number.isFinite(dc) ) return [];
   return entries.map(({token, actor: target}) => {
-    const context = saveContext(definition, ability, token);
-    const rollMode = combineRollModes(target.getRollModes?.(["save", `save.${ability}`], context) ?? []);
+    const context = saveContext(definition, ability, token, {saver: target, source: actor, game});
+    const rollMode = combineRollModes(saveRollModesFor({targetActor: target, actor, definition, ability, token, game}));
     const statistic = resolveActorSaveStatistic(target, ability);
     const modifier = (statistic?.totalModifier ?? 0) + ((ability === "agility")
       ? (COVER_BONUS[actionCover({definition, sourceToken, targetToken: token})] ?? 0) : 0);
@@ -2018,17 +2033,27 @@ async function foundryActionController({action, actor, intent, sender, game}) {
  * and the attacker's own `attacks` effects (a Sap), and its `hits` effects on a hit. An effect this Action has just applied to a
  * creature it hit stays.
  */
-/** Effects that end once their creature makes a saving throw (`endsWhen: "saves"`: Staggering Blow), after an Action's save. */
+/**
+ * Effects that end once their creature makes a saving throw (`endsWhen: "saves"`: Staggering Blow), or one against an
+ * Action of the creature that applied them (`savedBySource`: Eldritch Strike), after an Action's save. One this Action
+ * has just applied stays.
+ */
 export async function endEffectsWhenSaved({state}, {fromUuid}) {
   const saved = (state?.results?.saveResolution?.results ?? []).filter(result => result?.ok !== false)
     .map(result => String(result?.target?.tokenId ?? "")).filter(Boolean);
   if ( !saved.length ) return [];
   const sourceToken = await fromUuid(String(state?.source?.tokenRef ?? ""));
   const scene = sourceToken?.parent ?? null;
+  const source = sourceToken?.actor ?? null;
   const ended = [];
   for ( const tokenId of new Set(saved) ) {
     const actor = scene?.tokens?.get(tokenId)?.actor;
-    const effects = [...(actor?.effects ?? [])].filter(effect => effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen === "saves");
+    const fromSource = new Set((actor && source) ? effectsFrom(actor, source).map(effect => effect.id) : []);
+    const effects = [...(actor?.effects ?? [])].filter(effect => {
+      const ends = effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen;
+      return (ends === "saves") || ((ends === "savedBySource") && fromSource.has(effect.id)
+        && !(effect.flags.wildpath.conditionEffect.metadata?.resolutionIds ?? []).includes(state.id));
+    });
     if ( !effects.length ) continue;
     await actor.deleteEmbeddedDocuments("ActiveEffect", effects.map(effect => effect.id));
     ended.push(...effects.map(effect => effect.id));

@@ -472,3 +472,15 @@ test("critical ranges widen and stack: Improved and Superior Critical are 18-20,
   assert.equal(validateRuleElementDefinition(outcome("bad", {widen: 0})).ok, true, "the shape validates; its handler refuses it");
   assert.equal(rollOutcomesFromRuleElements([{ruleElements: [outcome("bad", {widen: 0})]}], {domains: ["attack.weapon"]}).length, 0);
 });
+
+test("damage dice outcomes: reroll-damage-die (count, once a turn) and critical-dice, each limited to its damage types", () => {
+  const outcome = data => evaluateRuleElement({schemaVersion: 1, id: "o", type: "RollOutcome", data: {domains: ["damage.melee"], damageTypes: ["piercing"], ...data}});
+  assert.deepEqual(outcome({outcome: "reroll-damage-die", once: "turn"}).contributions.rollOutcomes.map(entry => [entry.count, entry.once,
+    entry.damageTypes]), [[1, "turn", ["piercing"]]], "one die by default");
+  assert.deepEqual(outcome({outcome: "critical-dice", dice: 2}).contributions.rollOutcomes.map(entry => [entry.dice, entry.damageTypes]),
+    [[2, ["piercing"]]]);
+  assert.equal(outcome({outcome: "critical-dice", dice: 0}).ok, false, "at least one die");
+  assert.equal(outcome({outcome: "critical-dice"}).ok, false, "dice are required");
+  assert.equal(outcome({outcome: "reroll-damage-die", once: "round"}).ok, false, "once a turn or unlimited");
+  assert.equal(outcome({outcome: "reroll-damage-die", count: 11}).ok, false);
+});

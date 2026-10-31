@@ -96,3 +96,23 @@ test("an effect that ends when its creature saves (Staggering Blow) ends after a
   assert.deepEqual(await endEffectsWhenSaved({state}, {fromUuid: async () => ({parent: scene})}), ["staggered"]);
   assert.deepEqual(deleted, ["staggered"]);
 });
+
+test("an effect that ends on a save against its source (Eldritch Strike) ends only on that creature's Action, not on one it just applied", async () => {
+  const deleted = [];
+  const knight = {uuid: "Actor.knight", id: "knight"};
+  const marked = (id, sourceRef, resolutionIds=[]) => ({id, flags: {wildpath: {conditionEffect: {sourceRef, definition: {endsWhen: "savedBySource"},
+    metadata: {resolutionIds}}}}});
+  const actor = {effects: [marked("mine", "Actor.knight"), marked("theirs", "Actor.other"), marked("new", "Actor.knight", ["resolution:now"])],
+    async deleteEmbeddedDocuments(type, ids) { deleted.push(...ids); }};
+  const scene = {tokens: {get: id => (id === "orc-token" ? {actor} : null)}};
+  const state = {id: "resolution:now", source: {tokenRef: "Scene.s.Token.knight"},
+    results: {saveResolution: {results: [{ok: true, success: false, target: {tokenId: "orc-token"}}]}}};
+  const previous = globalThis.game;
+  globalThis.game = {scenes: []};
+  try {
+    assert.deepEqual(await endEffectsWhenSaved({state}, {fromUuid: async () => ({parent: scene, actor: knight})}), ["mine"]);
+  } finally {
+    globalThis.game = previous;
+  }
+  assert.deepEqual(deleted, ["mine"]);
+});

@@ -600,3 +600,67 @@ test("a pack weapon's Action (no \"weapon\" tag) is a weapon attack by its stati
   assert.deepEqual(ignoredResistances(piercer, {tags: longsword.tags, attack: longsword.attack}).sort(), ["fire", "slashing"]);
   assert.deepEqual(ignoredResistances(piercer, {tags: ["spell"], attack: {statistic: "spell"}}), [], "a spell attack: neither");
 });
+
+test("Piercer and Genie's Wrath (converted, synthetic): a crit's extra die and a once-a-turn reroll on piercing hits, PB extra damage", async () => {
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const {convertItem} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const SRD = {license: "CC-BY-4.0", rules: "2024", book: ""};
+  const converted = (identifier, name) => convertItem({_id: identifier.replace(/-/g, "").padEnd(16, "0").slice(0, 16), name, type: "feat",
+    effects: [], system: {source: SRD, identifier, activities: {}, description: {value: ""}}}).items;
+  const creature = rules => Object.assign(Object.create(WildPathActor.prototype), {id: "c", uuid: "Actor.c", effects: [], statuses: new Set(),
+    flags: {wildpath: {onceUsed: {}}}, system: {attributes: {prof: 3}}, allApplicableEffects: () => [],
+    items: [{id: "f", uuid: "Actor.c.Item.f", type: "feature", system: {active: true, modifiers: [], ruleElements: rules}}]});
+  const weapon = damageType => ({attack: {type: "melee", statistic: "weapon", ability: "might"},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType, provenance: "weapon-base"}]});
+  const piercer = creature(converted("piercer", "Piercer")[0].system.ruleElements);
+  const rapier = actionCombatStatistics(piercer, weapon("piercing"), {turn: "c:1:0"}).damage;
+  assert.deepEqual(rapier.criticalDice, [{dice: 1, damageTypes: ["piercing"]}]);
+  assert.deepEqual(rapier.rerollDice, [{count: 1, once: {key: "f-piercer-puncture", turn: "c:1:0"}}]);
+  const sword = actionCombatStatistics(piercer, weapon("slashing"), {turn: "c:1:0"}).damage;
+  assert.deepEqual([sword?.criticalDice, sword?.rerollDice], [undefined, undefined], "slashing: neither");
+  piercer.flags.wildpath.onceUsed["f-piercer-puncture"] = "c:1:0";
+  const again = actionCombatStatistics(piercer, weapon("piercing"), {turn: "c:1:0"}).damage;
+  assert.deepEqual([again.rerollDice, again.criticalDice.length], [undefined, 1], "its reroll used this turn; the crit die stays");
+
+  const fire = converted("genies-wrath", "Genie's Wrath")[1].system.definition.effects.find(effect => effect.id === "fire").ruleElements;
+  const genie = creature(fire);
+  const [extra] = actionCombatStatistics(genie, weapon("slashing"), {turn: "c:1:0"}).damage.extraComponents;
+  assert.deepEqual([extra.damageType, extra.expression, extra.once.turn], ["fire", {type: "proficiency-bonus"}, "c:1:0"]);
+  const {actionDefinitionToResolverInput} = await import("../module/helpers/action-definitions.mjs");
+  const resolved = actionDefinitionToResolverInput(weapon("slashing"), {actorSystem: genie.system,
+    damage: actionCombatStatistics(genie, weapon("slashing"), {turn: "c:1:0"}).damage}).damage.components;
+  assert.deepEqual(resolved.map(component => [component.damageType, component.amount ?? null]), [["slashing", null], ["fire", 3]],
+    "its Proficiency Bonus, a flat 3");
+  const blast = {save: {ability: "agility"}, damage: [{id: "burst", expression: {type: "dice", number: 2, faces: 6}, damageType: "fire"}]};
+  assert.equal(actionCombatStatistics(genie, blast, {turn: "c:1:0"}).damage, null, "a save's damage: no attack roll");
+  genie.flags.wildpath.onceUsed[extra.once.key] = "c:1:0";
+  assert.equal(actionCombatStatistics(genie, weapon("slashing"), {turn: "c:1:0"}).damage?.extraComponents, undefined, "once a turn");
+});
+
+test("a save's roll modes: the caster's own on the saves it imposes (Magical Ambush), and marks the saver bears from it (Eldritch Strike)", async () => {
+  const {saveRollModesFor} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {convertItem} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const SRD = {license: "CC-BY-4.0", rules: "2024", book: ""};
+  const converted = (identifier, name, effects=[]) => convertItem({_id: identifier.replace(/-/g, "").padEnd(16, "0").slice(0, 16), name, type: "feat",
+    effects, system: {source: SRD, identifier, activities: {}, description: {value: ""}}}).items;
+  const creature = (id, rules, {statuses=[], effects=[]}={}) => Object.assign(Object.create(WildPathActor.prototype), {id, uuid: `Actor.${id}`,
+    effects, statuses: new Set(statuses), flags: {}, system: {}, allApplicableEffects: () => [],
+    items: [{id: "f", uuid: `Actor.${id}.Item.f`, type: "feature", system: {active: true, modifiers: [], ruleElements: rules}}]});
+  const game = {scenes: []};
+  const spell = {tags: ["spell"], save: {ability: "agility"}};
+  const mode = (target, actor, definition) => saveRollModesFor({targetActor: target, actor, definition, ability: "agility", game})
+    .map(entry => entry?.mode ?? entry);
+  const ambush = converted("magical-ambush", "Magical Ambush")[0].system.ruleElements;
+  const plain = creature("orc", []);
+  assert.deepEqual(mode(plain, creature("rogue", ambush, {statuses: ["invisible"]}), spell), ["disadvantage"]);
+  assert.deepEqual(mode(plain, creature("rogue", ambush, {statuses: ["invisible"]}), {...spell, tags: ["weapon"]}), [], "not a spell");
+  assert.deepEqual(mode(plain, creature("rogue", ambush), spell), [], "seen");
+
+  const [mark] = converted("eldritch-strike", "Eldritch Strike")[0].system.ruleElements.find(rule => rule.type === "Trigger").data.action.effects;
+  const knight = creature("knight", []);
+  const struckBy = sourceRef => creature("orc", mark.ruleElements, {effects: [{id: "struck", statuses: new Set(["eldritch-struck"]),
+    flags: {wildpath: {conditionEffect: {sourceRef}}}}]});
+  assert.deepEqual(mode(struckBy("Actor.knight"), knight, spell), ["disadvantage"]);
+  assert.deepEqual(mode(struckBy("Actor.knight"), knight, {...spell, tags: ["weapon"]}), [], "not the knight's spell");
+  assert.deepEqual(mode(struckBy("Actor.other"), knight, spell), [], "another creature's mark");
+});

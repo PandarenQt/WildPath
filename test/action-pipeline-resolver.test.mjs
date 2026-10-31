@@ -922,6 +922,38 @@ test("Savage Attacker: a hit's weapon dice are rolled twice, the higher kept, do
   assert.equal(answer(step.next, {total: 12}).formula, "{2d8,2d8}kh + 3", "a critical doubles the dice in both rolls");
 });
 
+test("Piercer: a critical piercing hit rolls one more die; a hit's lowest die below average is rolled again, once a turn", () => {
+  const definition = {schemaVersion: 1, id: "action:spear", label: "Spear", costs: {allOf: []}, tags: ["weapon"],
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "point", expression: {type: "dice", number: 1, faces: 8}, damageType: "piercing", provenance: "weapon-base"}]};
+  const strike = (id, damage) => planStagedActionResolution({id, actorSystem: actorSystem(1), action: definitionAction(definition),
+    source: {actorId: "actor-source"}, damage, targeting: {required: true, candidates: [{id: "orc",
+      target: target("orc", {defenses: {ac: {value: 12}}}), actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]}});
+  const answer = (result, value) => {
+    const request = result.state.pendingRequests[0];
+    return {formula: rollFormulaForRequest(request.payload.rollRequest).formula,
+      next: resumeStagedActionResolution({state: result.state, response: {resolutionId: result.state.id, requestId: request.id,
+        type: RESOLUTION_REQUEST_TYPES.ROLL, value}})};
+  };
+  const dice = results => ({total: results.reduce((sum, value) => sum + value, 0),
+    dice: [{number: results.length, faces: 8, results: results.map(result => ({result, active: true}))}]});
+  const used = state => state.mutationPlans.filter(entry => entry.type === "sourceUpdate").map(entry => entry.updates);
+  const crit = answer(strike("resolution:piercer-crit", {criticalDice: [{dice: 1, damageTypes: ["piercing"]}]}), {total: 20, die: 20});
+  assert.equal(answer(crit.next, dice([5, 5, 5])).formula, "3d8", "doubled, then one more");
+  const puncture = {rerollDice: [{count: 1, once: {key: "f-piercer-puncture", turn: "c:1:0"}}]};
+  let step = answer(strike("resolution:puncture", puncture), {total: 15, die: 15});
+  step = answer(step.next, dice([2]));
+  step = answer(step.next, dice([7]));
+  assert.equal(step.formula, "1d8", "the 2, below the average 4.5, is rolled again");
+  assert.equal(step.next.state.input.damage.components[0].amount, 7);
+  assert.deepEqual(used(step.next.state), [{"flags.wildpath.onceUsed.f-piercer-puncture": "c:1:0"}]);
+  step = answer(strike("resolution:puncture-high", puncture), {total: 15, die: 15});
+  step = answer(step.next, dice([6]));
+  assert.deepEqual([step.next.state.pendingRequests.length, used(step.next.state)], [0, []], "no die to reroll: its use is kept");
+  const missed = answer(strike("resolution:puncture-miss", puncture), {total: 3, die: 3}).next;
+  assert.deepEqual(used(missed.state), [], "a miss rolls nothing");
+});
+
 test("a penalty die is rolled once even on a critical, then taken off the hit's damage, down to its minimum", () => {
   const definition = {schemaVersion: 1, id: "action:dagger", label: "Dagger", costs: {allOf: []},
     targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},

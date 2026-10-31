@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 996 automated, 235 manual, 226 features. Creatures: 375.
+Items: 995 automated, 235 manual, 226 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -1469,7 +1469,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | String | equipment24 | String (gear) | — |
 | Stroke of Luck | classes24 | Stroke of Luck (feature) | — |
 | Studded Leather Armor | equipment24 | Studded Leather Armor (gear) | — |
-| Studied Attacks | classes24 | Studied Attacks (feature), Studied Attacks (automated) | — |
+| Studied Attacks | classes24 | Studied Attacks (feature) | — |
 | Stunning Strike | classes24 | Stunning Strike (automated) | — |
 | Subtle Spell | classes24 | Subtle Spell (feature) | — |
 | Succubus | actors24 | Succubus (7 items) | Shape-Shift: not automated (utility): using it spends its cost; its description says the rest; Multiattack: its other parts (a replacement, an ability it uses) are used by hand |

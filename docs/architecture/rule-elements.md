@@ -326,7 +326,9 @@ turns `Trigger` RuleElements of `kind: "reaction"` on active Items into reaction
 movement steps, staged and native (`event: "movement.transition-proposed"`, phase `interrupt`), and
 ordinary Actions (`action.declared`, `attack.hit`, `attack.miss`, `check.succeeded`, `damage.applied`, `push.applied`):
 
-- The reaction's Action is the Item itself (an Action Item) or the Action named by `data.reaction.actionId`.
+- The reaction's Action is the trigger's inline `data.action` (its setting `data.policy`), the Item itself (an Action
+  Item), or the Action named by `data.reaction.actionId`. An inline Action on a feature is a reaction nobody can use by
+  hand: no Action Item exists to click (Fanatical Focus's refill on its Rage, Studied Attacks' and Eldritch Strike's marks).
 - Each such Token also becomes a movement observer: reach in fields comes from that Action's reach range,
   hostility from opposed Token dispositions.
 - Put the event predicate in `data.triggerPredicate`; `predicate` (or `data.predicate`) is the RuleElement's
@@ -625,7 +627,7 @@ A sheet roll notes it in its chat flavour; a save's odds and a Grapple's choice 
 A golem's Immutable Form is `ConditionImmunity {conditions: ["transformed"]}`: Polymorph skips a creature immune to it
 (`applyActionTransformation`), with a GM notice.
 
-**Damage policies (2026-10-31).** Two `RollOutcome` outcomes change its creature's own damage:
+**Damage policies (2026-10-31).** These `RollOutcome` outcomes change its creature's own damage:
 - `half-on-success` on `imposed.save` (the saves its own Actions force): damage a successful save would reduce to none
   is halved instead, while the predicate holds against the Action's tags. It is `evasion`'s caster-side mirror (2024
   Potent Cantrip: `{tagsAll: ["cantrip"]}`). It is read when the Action's definition is built (`withHalfOnSuccess`).
@@ -634,6 +636,26 @@ A golem's Immutable Form is `ConditionImmunity {conditions: ["transformed"]}`: P
   attack's statistic (`weapon`, `spell`), which also picks the domain (`ignoredResistances(actor, {tags, attack})`,
   combat-statistics): a weapon Action carries no "weapon" tag of its own. The older feature flag `flags.wildpath.ignoresResistance: string[]` (Boon
   of Irresistible Offense) is still read, any Action; the two are joined.
+- `reroll-damage-die` (2026-10-31) on `damage.melee` / `damage.ranged` (an attack's), `{count?: 1-10 (1), once?: "turn",
+  damageTypes?}`: once its damage is rolled, up to `count` of its dice below their die's average, lowest first, are
+  rolled again and the new rolls kept (Empowered Spell's `empoweredReroll`, one roll per die size, so physical dice see
+  it too). `once: "turn"` records its use (`flags.wildpath.onceUsed`) only when a die was rerolled. Piercer's Puncture:
+  `{count: 1, once: "turn", damageTypes: ["piercing"]}`. shortcut: it is applied without asking whenever a die is below
+  average, though a reroll can come out lower.
+- `critical-dice` (2026-10-31) on the same domains, `{dice: 1-10, damageTypes?}`: a Critical Hit rolls `dice` more of
+  the first component of one of `damageTypes` (any type when none is named), on top of its doubled dice
+  (`metadata.criticalDice`, `componentRollRequestForState`). Piercer: `{dice: 1, damageTypes: ["piercing"]}`; 2014 Brutal
+  Critical and Savage Attacks fit the same shape. shortcut: with several components of that type, only the first gains it.
+- Both are read only when the Action's damage has one of `damageTypes` (`actionCombatStatistics`: `criticalDice`,
+  `rerollDice`).
+
+**Saves another creature imposes (2026-10-31).** A `RollMode` on `imposed.save` or `imposed.save.<ability>` gives the
+saves its creature's Actions force Advantage or Disadvantage. Its predicate sees the Action's tags and its own creature's
+conditions (Magical Ambush: `{all: [{tagsAny: ["spell"]}, {hasCondition: "invisible"}]}`, Disadvantage). The target
+loop, the choice of save (`bestSaveAbility`) and the odds read it through one helper (`saveRollModesFor`), with the
+target's own `save` modes, so a reroll still cancels source for source. A save's predicates also see `save.fromSource`:
+the statuses of the effects the saver bears from the Action's user (Eldritch Strike's mark: `{equals: {path:
+"save.fromSource.eldritch-struck", value: true}}`), as `attack.fromAttacker` does for attacks.
 
 **A minimum d20 (2026-10-19, Reliable Talent).** `RollOutcome {domains: ["check.proficient"], outcome: "minimum-natural",
 threshold: 10}`: a check with its skill's proficiency reads `check.proficient`, and `resolveActorCheckStatistic` returns the
@@ -892,10 +914,14 @@ turn.
 
 ## Aura (2026-10-14)
 
-`{type: "Aura", data: {radius, affects: "allies" | "enemies" | "all", ruleElements: [...]}}` grants its nested
+`{type: "Aura", data: {radius, affects: "allies" | "enemies" | "all", bearerOnly?, ruleElements: [...]}}` grants its nested
 rules to the creatures within `radius` feet of its bearer.
 - **Who it covers.** Allies are the same Token disposition and enemies the opposite. `allies` and `all` include
   the bearer (2024 "you and friendly creatures"); `enemies` does not.
+- **Its bearer alone (2026-10-31).** With `bearerOnly: true` its rules are its bearer's alone, and only while another
+  creature it `affects` stands within `radius` (Steadfast: `{radius: 30, affects: "allies", bearerOnly: true}` with a
+  `ConditionImmunity` to Frightened). With `affects: "enemies"` it reads "while an enemy is near". shortcut: sight is
+  not checked.
 - **Example.** "You and allies within 10 ft gain +1 AC" is `{radius: 10, affects: "allies", ruleElements:
   [{type: "Modifier", data: {domains: ["defense.ac"], value: 1}}]}`.
 - **When it is read.** Who is inside is worked out whenever a statistic is read for a roll or a defense:

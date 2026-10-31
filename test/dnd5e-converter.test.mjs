@@ -938,7 +938,10 @@ test("Hunter's Mark and Hex mark their target: extra damage on the caster's hits
     a: activity("utility", {name: "Place Curse", target: markTarget, effects: [{_id: "s"}, {_id: "d"}]})})).items;
   const {effects, configuration} = hex.system.definition;
   assert.deepEqual(effects.map(entry => [entry.slug, entry.ruleElements.map(rule => rule.type)]),
-    [["hex", ["RollMode", "ExtraDamage"]], ["hex", ["RollMode", "ExtraDamage"]]]);
+    [["hex", ["RollMode", "ExtraDamage", "RollMode"]], ["hex", ["RollMode", "ExtraDamage", "RollMode"]]]);
+  // Its checks' roll mode on that ability's saves too, only with Eldritch Hex's marker.
+  assert.deepEqual(effects.map(entry => [entry.ruleElements[2].data.domains, entry.ruleElements[2].data.mode, entry.ruleElements[2].predicate]),
+    [[["save.might"], "disadvantage", {hasCondition: "hex-saves"}], [["save.agility"], "disadvantage", {hasCondition: "hex-saves"}]]);
   const choice = configuration.find(entry => entry.id === "effect-choice");
   assert.deepEqual([choice.type, choice.label, choice.options.map(option => option.label), choice.effects[0]],
     ["option", "Ability", ["Hexed Strength", "Hexed Dexterity"], {type: "keepEffect", effectIds: ["effect-1", "effect-2"],
@@ -2570,10 +2573,13 @@ test("Studied Attacks: a missed attack marks its target, and the fighter's next 
   const studied = convertItem({_id: "studiedattacks00", name: "Studied Attacks", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
     system: {source: SRD, identifier: "studied-attacks", activities: {}, type: {value: "class"},
       description: {value: "<p>If you make an attack roll against a creature and miss, you have Advantage on your next attack roll against that creature.</p>"}}})
-    .items.find(item => item.type === "action");
-  assert.equal(validateActionDefinition(studied.system.definition).ok, true);
-  assert.deepEqual([studied.system.ruleElements[0].data.event, studied.flags.wildpath.reactionPolicy], ["attack.miss", "always"]);
-  const [mark] = studied.system.definition.effects;
+    .items;
+  // Its feature's own Trigger carries the mark: no Action Item to mark a creature by hand.
+  assert.deepEqual(studied.map(item => item.type), ["feature"]);
+  const [{data: reaction}] = studied[0].system.ruleElements;
+  assert.equal(validateActionDefinition(reaction.action).ok, true);
+  assert.deepEqual([reaction.event, reaction.policy], ["attack.miss", "always"]);
+  const [mark] = reaction.action.effects;
   assert.deepEqual([mark.slug, mark.endsWhen, mark.ruleElements[0].predicate], ["studied", "attackedBySource",
     {equals: {path: "attack.fromAttacker.studied", value: true}}]);
 });
@@ -2790,4 +2796,71 @@ test("Stride of the Elements: a Fly and Swim Speed while Elemental Attunement's 
     {a: activity("utility", {name: "Activate Attunement", activation: {type: "action"}})})).items.find(item => item.type === "action");
   assert.deepEqual(attunement.system.definition.effects.map(effect => [effect.slug, effect.duration]),
     [["elemental-attunement", {value: 10, units: "minutes"}]]);
+});
+
+test("silent class features and feats become rules: Eldritch Hex, Eldritch Strike, Fanatical Focus, Magical Ambush, Piercer, Steadfast, "
+  + "Twinkling Constellations, Genie's Wrath", () => {
+  const scales = {"barbarian.rage-damage": {1: 2, 9: 3, 16: 4}};
+  // Synthetic: only words that make the silent check fire (no book text).
+  const feat = (identifier, name, extra={}) => convertItem({_id: identifier.replace(/-/g, "").padEnd(16, "0").slice(0, 16), name, type: "feat",
+    img: "icons/svg/item-bag.svg", effects: [], system: {source: SRD, identifier, activities: {}, type: {value: "class"},
+      description: {value: "<p>Disadvantage on a saving throw, extra damage, a Fly Speed.</p>"}}, ...extra}, {scales});
+  const silent = notes => notes.some(note => note.startsWith("silent"));
+
+  const hex = feat("eldritch-hex", "Eldritch Hex");
+  assert.equal(silent(hex.notes), false);
+  const {choiceFor} = hex.items[0].flags.wildpath;
+  assert.deepEqual([choiceFor.identifier, choiceFor.choice.defaultValue, choiceFor.choice.options[0].effects[0].effects[0].slug],
+    ["hex", "on", "hex-saves"]);
+
+  const strike = feat("eldritch-strike", "Eldritch Strike", {effects: [{_id: "struck", name: "Struck", transfer: false, system: {changes: []}}]});
+  assert.equal(silent(strike.notes), false);
+  // A reaction on its feature alone: no Action Item to mark a creature by hand (nor Fanatical Focus's to refill its pool).
+  assert.deepEqual(strike.items.map(item => item.type), ["feature"]);
+  const struck = strike.items[0].system.ruleElements.find(rule => rule.type === "Trigger").data;
+  assert.equal(validateActionDefinition(struck.action).ok, true);
+  assert.deepEqual([struck.event, struck.match.tagsAll, struck.policy], ["attack.hit", ["weapon"], "always"]);
+  const [mark] = struck.action.effects;
+  assert.deepEqual([mark.slug, mark.endsWhen, mark.ruleElements[0].data, mark.ruleElements[0].predicate.all[1]],
+    ["eldritch-struck", "savedBySource", {domains: ["save"], mode: "disadvantage"},
+      {equals: {path: "save.fromSource.eldritch-struck", value: true}}]);
+
+  const focus = feat("fanatical-focus", "Fanatical Focus");
+  assert.equal(silent(focus.notes), false);
+  assert.deepEqual(focus.items[0].flags.wildpath.testOffer, {tests: ["save"], reroll: true, pool: "fanatical-focus", whileStatus: "raging",
+    bonus: {type: "table", key: {type: "class-level", class: "barbarian"}, rows: {1: 2, 9: 3, 16: 4}}});
+  assert.equal(focus.items.length, 1);
+  const refill = focus.items[0].system.ruleElements;
+  assert.equal(validateActionDefinition(refill[1].data.action).ok, true);
+  assert.deepEqual(refill[1].data.action.restores, [{resourceId: "fanatical-focus", amount: 1}]);
+  assert.deepEqual(refill.map(rule => [rule.type, rule.data.maximum ?? rule.data.triggerPredicate.equals.value]),
+    [["GrantResource", 1], ["Trigger", "action:srd-rage-expend-rage"]]);
+
+  const ambush = feat("magical-ambush", "Magical Ambush");
+  assert.deepEqual([silent(ambush.notes), ambush.items[0].system.ruleElements], [false, [{schemaVersion: 1, id: "magical-ambush",
+    type: "RollMode", predicate: {all: [{tagsAny: ["spell"]}, {hasCondition: "invisible"}]}, data: {domains: ["imposed.save"], mode: "disadvantage"}}]]);
+
+  const piercer = feat("piercer", "Piercer");
+  assert.equal(silent(piercer.notes), false);
+  assert.deepEqual(piercer.items[0].system.ruleElements.map(rule => rule.data), [
+    {domains: ["damage.melee", "damage.ranged"], outcome: "reroll-damage-die", count: 1, once: "turn", damageTypes: ["piercing"]},
+    {domains: ["damage.melee", "damage.ranged"], outcome: "critical-dice", dice: 1, damageTypes: ["piercing"]}]);
+
+  const steadfast = feat("steadfast", "Steadfast");
+  assert.equal(silent(steadfast.notes), false);
+  const [aura] = steadfast.items[0].system.ruleElements;
+  assert.deepEqual([aura.type, aura.data.radius, aura.data.affects, aura.data.bearerOnly, aura.data.ruleElements[0].data.conditions],
+    ["Aura", 30, "allies", true, ["frightened"]]);
+
+  const twinkling = feat("twinkling-constellations", "Twinkling Constellations");
+  assert.deepEqual([silent(twinkling.notes), twinkling.notes.some(note => /Fly Speed.*by hand/u.test(note))], [false, true]);
+
+  const wrath = feat("genies-wrath", "Genie's Wrath");
+  assert.equal(silent(wrath.notes), false);
+  const [genie, choose] = wrath.items;
+  assert.deepEqual(genie.flags.wildpath.grants, [choose._id]);
+  assert.equal(validateActionDefinition(choose.system.definition).ok, true);
+  assert.deepEqual(choose.system.definition.configuration[0].options.map(option => option.value), ["bludgeoning", "thunder", "fire", "cold"]);
+  assert.deepEqual(choose.system.definition.effects.find(effect => effect.id === "fire").ruleElements[0].data,
+    {domains: ["damage.melee", "damage.ranged"], expression: {type: "proficiency-bonus"}, damageType: "fire", once: "turn"});
 });

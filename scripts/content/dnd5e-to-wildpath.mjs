@@ -477,7 +477,14 @@ const CHOICES_FOR = Object.freeze({
     options: ["blinded", "charmed", "deafened", "frightened", "paralyzed", "stunned"].map(conditionId => ({id: conditionId, value: conditionId,
       label: conditionId.charAt(0).toUpperCase() + conditionId.slice(1),
       effects: [{type: "add-cost", cost: {allOf: [{capability: "lay-on-hands", amount: 5}]}},
-        {type: "add-effects", effects: [{id: `restoring-touch-${conditionId}`, type: "condition", conditionId, levels: -1}]}]}))}}
+        {type: "add-effects", effects: [{id: `restoring-touch-${conditionId}`, type: "condition", conditionId, levels: -1}]}]}))}},
+  // Eldritch Hex: Hex also gives its target Disadvantage on saves of Hex's chosen ability, while the curse lasts. The
+  // marker (`hex-saves`, its caster's concentration) switches on Hex's save rules (EFFECTS_BY_HAND.hex `savesToo`).
+  // shortcut: the marker is not tied to its own Hex, so a creature hexed by two warlocks, one with this, has the save
+  // Disadvantage for both abilities; upgrade by reading the marker from the hex's own source.
+  "eldritch-hex": {identifier: "hex", choice: {id: "eldritch-hex", type: "option", label: "Eldritch Hex", required: true, defaultValue: "on",
+    options: [{id: "on", label: "Eldritch Hex", value: "on", effects: [{type: "add-effects", effects: [{id: "hex-saves", type: "effect",
+      name: "Eldritch Hex", slug: "hex-saves", img: "icons/svg/daze.svg", concentration: true, ruleElements: []}]}]}]}}
 });
 
 /**
@@ -600,7 +607,10 @@ const TEST_OFFERS = Object.freeze({
   // 2024 Tactical Mind: a failed check adds its 1d10, paid from Second Wind (its activity's), not spent if it still fails.
   "tactical-mind": {tests: ["check"], refundOnFail: true},
   // 2024 Seeking Spell: a missed spell attack rerolled for a Sorcery Point (its activity's Font of Magic).
-  "seeking-spell": {tests: ["attack"], reroll: true, tagsAll: ["spell"]}
+  "seeking-spell": {tests: ["attack"], reroll: true, tagsAll: ["spell"]},
+  // Fanatical Focus: while raging, a failed save rerolled with its Rage Damage bonus, once per Rage (its own pool, refilled
+  // by its Rage: FEATURE_ACTIONS). dnd5e gives it no activity, so its bonus is a formula here.
+  "fanatical-focus": {tests: ["save"], reroll: true, pool: "fanatical-focus", whileStatus: "raging", bonusFormula: "@scale.barbarian.rage-damage"}
 });
 
 /** 2024 Luck (halfling): a 1 on the d20 of a D20 Test rerolled, free. shortcut: offered only when the roll failed. */
@@ -877,6 +887,27 @@ function elementalAffinityAction(document, img, source) {
     {schemaVersion: 1, id: `affinity-${type}-resistance`, type: "GrantResistance", data: {damageTypes: [type]}}]});
   return {_id: id, _key: `!items!${id}`, name, type: "action", img, system: {active: true, description: "", definition: {schemaVersion: 1,
     id: "action:srd-elemental-affinity", label: name, costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"},
+    effects: types.map(effect), configuration: [{id: "type", type: "select-one", label: "Damage type", required: true,
+      options: types.map(type => ({id: type, label: title(type), value: type})), effects: [{type: "keepEffect", effectIds: types}]}]},
+  ruleElements: []}, flags: {wildpath: {source, conversion: {notes: []}}}};
+}
+
+/**
+ * Genie's Wrath: once a turn, an attack roll's hit deals extra damage equal to its Proficiency Bonus, of its patron's
+ * type: an Action choosing that type once (Elemental Affinity's shape). The `damage.melee`/`damage.ranged` domains are an
+ * attack roll's alone. shortcut: once a turn on any turn, not only its own (no own-turn predicate), as Favored Foe;
+ * upgrade when predicates see whose turn it is.
+ */
+function geniesWrathAction(document, img, source) {
+  const types = ["bludgeoning", "thunder", "fire", "cold"];
+  const title = type => `${type.charAt(0).toUpperCase()}${type.slice(1)}`;
+  const id = stableId(`${document._id}:choose`);
+  const name = `${document.name} (Choose)`;
+  const effect = type => ({id: type, type: "effect", name: `${document.name} (${title(type)})`, slug: "genies-wrath", img,
+    ruleElements: [{schemaVersion: 1, id: `genies-wrath-${type}`, type: "ExtraDamage", data: {domains: ["damage.melee", "damage.ranged"],
+      expression: {type: "proficiency-bonus"}, damageType: type, once: "turn"}}]});
+  return {_id: id, _key: `!items!${id}`, name, type: "action", img, system: {active: true, description: "", definition: {schemaVersion: 1,
+    id: "action:srd-genies-wrath", label: name, costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"},
     effects: types.map(effect), configuration: [{id: "type", type: "select-one", label: "Damage type", required: true,
       options: types.map(type => ({id: type, label: title(type), value: type})), effects: [{type: "keepEffect", effectIds: types}]}]},
   ruleElements: []}, flags: {wildpath: {source, conversion: {notes: []}}}};
@@ -1484,8 +1515,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       const offerPool = offered.pool ?? targetPoolId(activity.consumption?.targets?.[0] ?? {}, pool, names);
       const bonus = (offered.reroll && activity.roll?.formula) ? formulaExpression(activity.roll.formula, {scales}) : null;
       if ( offered.pool || ((faces || offered.setNatural || offered.reroll) && offerPool) ) {
-        testOffer = offered.pool ? structuredClone(offered)
-          : {...offered, pool: offerPool, ...(faces ? {faces} : {}), ...(bonus ? {bonus} : {})};
+        const {bonusFormula: _formula, ...row} = offered;
+        testOffer = offered.pool ? structuredClone(row)
+          : {...row, pool: offerPool, ...(faces ? {faces} : {}), ...(bonus ? {bonus} : {})};
         continue;
       }
     }
@@ -1893,8 +1925,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   // Halfling Luck: its dnd5e flag is its test offer.
   if ( (document.effects ?? []).some(effect => effectChanges(effect)
     .some(change => change.key === "flags.dnd5e.halflingLucky")) ) testOffer ??= structuredClone(HALFLING_LUCK);
-  // A test offer of a feature dnd5e gives no activity (Boon of Combat Prowess): its own entry, its pool its trait's.
-  if ( !activities.length && TEST_OFFERS[identifierOf(document)]?.forceHit ) testOffer ??= structuredClone(TEST_OFFERS[identifierOf(document)]);
+  // A test offer of a feature dnd5e gives no activity (Boon of Combat Prowess, Fanatical Focus): its own entry, its pool
+  // its trait's or its Action's, its bonus its own formula.
+  if ( !activities.length && TEST_OFFERS[identifierOf(document)]?.pool ) {
+    const {bonusFormula, ...row} = TEST_OFFERS[identifierOf(document)];
+    testOffer ??= {...structuredClone(row), ...(bonusFormula ? {bonus: formulaExpression(bonusFormula, {scales})} : {})};
+  }
   // Nothing to use: a passive ability is a feature carrying its text (and any uses its other Actions spend).
   if ( !items.length ) {
     // Its training is its flag (`flags.wildpath.training`), no longer a note.
@@ -1932,8 +1968,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( identifierOf(document) === "brutal-strike" ) items.push(...brutalStrikeActions(document, img, source, scales));
     if ( identifierOf(document) === "improved-brutal-strike" ) items.push(...improvedBrutalStrikeActions(document, img, source));
     // Elemental Affinity brings the Action choosing its type.
-    if ( identifierOf(document) === "elemental-affinity" ) {
-      const choose = elementalAffinityAction(document, img, source);
+    // So does Genie's Wrath.
+    if ( ["elemental-affinity", "genies-wrath"].includes(identifierOf(document)) ) {
+      const choose = ((identifierOf(document) === "genies-wrath") ? geniesWrathAction : elementalAffinityAction)(document, img, source);
       items[0].flags.wildpath.grants = [choose._id];
       items.push(choose);
     }
@@ -1983,16 +2020,26 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const name = featureAction.name ? `${document.name} (${featureAction.name})` : document.name;
     // An entry may bring its own uses (`pool`), reach a creature (`range`, `targeting`), or answer an event of its user's
     // own (`trigger`: Tactical Shift on its Second Wind), offered as its `policy` says.
+    const definition = {schemaVersion: 1, id: `action:srd-${slugify(name)}`, label: name,
+      costs: {allOf: featureAction.costs ?? (featureAction.free ? [] : [{capability: pool.id, amount: 1}])},
+      range: structuredClone(featureAction.range ?? {type: "self"}), targeting: structuredClone(featureAction.targeting ?? {type: "self"}),
+      effects: structuredClone(featureAction.effects ?? []),
+      ...(featureAction.damage ? {damage: structuredClone(featureAction.damage)} : {}),
+      ...(featureAction.retarget ? {retarget: structuredClone(featureAction.retarget)} : {}),
+      ...(featureAction.configuration ? {configuration: structuredClone(featureAction.configuration)} : {}),
+      ...(featureAction.teleport ? {teleport: structuredClone(featureAction.teleport)} : {}),
+      ...(featureAction.requires ? {requires: structuredClone(featureAction.requires)} : {}),
+      ...(featureAction.restores ? {restores: structuredClone(featureAction.restores)} : {})};
+    // One that only answers its event (`reactionOnly`: Fanatical Focus's refill, Studied Attacks' mark) is its feature's
+    // own Trigger carrying the Action, so there is no Action Item to use by hand.
+    if ( featureAction.reactionOnly && (items[0]?.type === "feature") ) {
+      items[0].system.ruleElements.push(...[pool?.rule ? null : structuredClone(featureAction.pool ?? null), {schemaVersion: 1,
+        id: "reaction", type: "Trigger", data: {...structuredClone(featureAction.trigger), action: definition,
+          ...(featureAction.policy ? {policy: featureAction.policy} : {})}}].filter(Boolean));
+      continue;
+    }
     items.push({_id: id, _key: `!items!${id}`, name, type: "action", img,
-      system: {active: true, description, definition: {schemaVersion: 1, id: `action:srd-${slugify(name)}`, label: name,
-        costs: {allOf: featureAction.costs ?? (featureAction.free ? [] : [{capability: pool.id, amount: 1}])},
-        range: structuredClone(featureAction.range ?? {type: "self"}), targeting: structuredClone(featureAction.targeting ?? {type: "self"}),
-        effects: structuredClone(featureAction.effects ?? []),
-        ...(featureAction.damage ? {damage: structuredClone(featureAction.damage)} : {}),
-        ...(featureAction.retarget ? {retarget: structuredClone(featureAction.retarget)} : {}),
-        ...(featureAction.configuration ? {configuration: structuredClone(featureAction.configuration)} : {}),
-        ...(featureAction.teleport ? {teleport: structuredClone(featureAction.teleport)} : {}),
-        ...(featureAction.requires ? {requires: structuredClone(featureAction.requires)} : {})},
+      system: {active: true, description, definition,
       ruleElements: [pool?.rule ?? structuredClone(featureAction.pool ?? null),
         featureAction.trigger ? {schemaVersion: 1, id: "reaction", type: "Trigger", data: structuredClone(featureAction.trigger)} : null]
         .filter(Boolean)},
@@ -2159,12 +2206,27 @@ const FEATURE_ACTIONS = Object.freeze({
     effects: [{...Object.fromEntries(Object.entries(WITHDRAW).filter(([key]) => key !== "slug")), name: "Instinctive Pounce"}]},
   // 2024 Studied Attacks: a missed attack roll marks its target (`studied`, from this fighter); the fighter's next attack
   // roll against it before the end of its next turn has Advantage and spends the mark (Vex's rule, on a miss).
-  "studied-attacks": {free: true, policy: "always", range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+  "studied-attacks": {free: true, reactionOnly: true, policy: "always", range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
     trigger: {kind: "reaction", event: "attack.miss", match: {phase: "interrupt", sourceTokenId: "{self}"}},
     effects: [{id: "effect-1", type: "effect", name: "Studied", slug: "studied", img: "icons/svg/target.svg",
       duration: {value: 1, units: "rounds", expiry: "turnEnd"}, endsWhen: "attackedBySource",
       ruleElements: [{schemaVersion: 1, id: "studied", type: "RollMode", predicate: {equals: {path: "attack.fromAttacker.studied", value: true}},
         data: {domains: ["attacked"], mode: "advantage"}}]}]},
+  // Eldritch Strike: a creature its weapon attack hits is marked (`eldritch-struck`, from this knight) until the end of the
+  // knight's next turn; its next save against one of the knight's spells has Disadvantage, and any save the knight forces
+  // spends the mark (`savedBySource`). shortcut: a save the knight forces that is not a spell's (a Topple) spends it too,
+  // without the Disadvantage; upgrade when `endsWhen` can filter on tags.
+  "eldritch-strike": {free: true, reactionOnly: true, policy: "always", range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+    trigger: {kind: "reaction", event: "attack.hit", match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["weapon"]}},
+    effects: [{id: "effect-1", type: "effect", name: "Eldritch Strike", slug: "eldritch-struck", img: "icons/svg/daze.svg",
+      duration: {value: 1, units: "rounds", expiry: "turnEnd"}, endsWhen: "savedBySource",
+      ruleElements: [{schemaVersion: 1, id: "eldritch-struck", type: "RollMode", predicate: {all: [{tagsAny: ["spell"]},
+        {equals: {path: "save.fromSource.eldritch-struck", value: true}}]}, data: {domains: ["save"], mode: "disadvantage"}}]}]},
+  // Fanatical Focus: its once-per-Rage reroll (TEST_OFFERS) is refilled whenever its barbarian enters a Rage with the Rage
+  // Action. shortcut: a Rage begun another way (an effect giving `raging`) refills nothing.
+  "fanatical-focus": {name: "Rage", free: true, reactionOnly: true, policy: "always", trigger: ownDeclared("action:srd-rage-expend-rage"),
+    restores: [{resourceId: "fanatical-focus", amount: 1}], pool: {schemaVersion: 1, id: "fanatical-focus-uses", type: "GrantResource",
+      data: {resourceId: "fanatical-focus", label: "Fanatical Focus", maximum: 1, recovery: "none"}}},
   // 2024 Contact Patron: once per Long Rest, Contact Other Plane with no slot to contact its patron, its save an automatic
   // success (so no damage): an Action with no save. What the patron answers is the GM's.
   "contact-patron": {costs: [{capability: "contact-patron", amount: 1}], pool: {schemaVersion: 1, id: "contact-patron-uses",
@@ -2721,6 +2783,25 @@ const TRAITS = Object.freeze({
     data: {resourceId: "boon-of-combat-prowess", label: "Peerless Aim", maximum: 1, recovery: "turn"}}], notes: []}),
   // 2024 Boon of Irresistible Offense: its Overcome Defenses is IGNORES_RESISTANCE's; its Overwhelming Strike is by hand.
   "boon-of-irresistible-offense": () => ({rules: [], notes: ["Overwhelming Strike: a 20's extra damage of the attack's type is by hand"]}),
+  // Magical Ambush: while its rogue is Invisible, a creature saving against its spell has Disadvantage (`imposed.save`,
+  // read while that spell resolves, so "this turn" needs nothing more). shortcut: a later save the same spell forces
+  // this turn by another path (its lasting area entered) has none.
+  "magical-ambush": () => ({rules: [{schemaVersion: 1, id: "magical-ambush", type: "RollMode",
+    predicate: {all: [{tagsAny: ["spell"]}, {hasCondition: "invisible"}]}, data: {domains: ["imposed.save"], mode: "disadvantage"}}], notes: []}),
+  // Piercer: once a turn, one die of an attack's Piercing damage rerolled (its lowest below average, as Empowered Spell);
+  // a Critical Hit's Piercing damage rolls one more die. Its +1 ability increase is by hand, as every feat's.
+  piercer: () => ({rules: [{schemaVersion: 1, id: "piercer-puncture", type: "RollOutcome", data: {domains: ["damage.melee", "damage.ranged"],
+    outcome: "reroll-damage-die", count: 1, once: "turn", damageTypes: ["piercing"]}},
+  {schemaVersion: 1, id: "piercer-critical", type: "RollOutcome", data: {domains: ["damage.melee", "damage.ranged"],
+    outcome: "critical-dice", dice: 1, damageTypes: ["piercing"]}}], notes: []}),
+  // Steadfast: no Frightened while an ally stands within 30 feet of it (`bearerOnly`). shortcut: that it can see the ally is
+  // not checked; upgrade when auras have a sight test.
+  steadfast: () => ({rules: [{schemaVersion: 1, id: "steadfast", type: "Aura", data: {radius: 30, affects: "allies", bearerOnly: true,
+    ruleElements: [{schemaVersion: 1, id: "steadfast-frightened", type: "ConditionImmunity", data: {conditions: ["frightened"]}}]}}], notes: []}),
+  // Twinkling Constellations: its 2d8 is Starry Form's die at druid level 10 already. The Dragon's flight waits on Starry
+  // Form's constellations being statuses (then a GrantMovement gated on the Dragon's).
+  "twinkling-constellations": () => ({rules: [], notes: ["Twinkling Constellations: the Dragon constellation's 20 ft Fly Speed (hover) and "
+    + "changing constellation at the start of each turn are by hand"]}),
   // 2024 Boon of Spell Recall: its Free Cast Roll is SLOT_RECALL's.
   "boon-of-spell-recall": (document, {activities}) => ({rules: [], consumes: [...activities], notes: []}),
   // 2024 Commoner's Training: "proficiency in one skill of the DM's choice and ... Advantage whenever it makes an ability
@@ -3195,7 +3276,9 @@ const EFFECTS_BY_HAND = Object.freeze({
   // Rage's effect is the `raging` status (Frenzy reads it).
   "rage": {slug: "raging"},
   // Hex: the same, Necrotic, and Disadvantage on checks of one ability the caster chooses (its six effects, one kept).
-  "hex": {slug: "hex", bonusDamage: "Bonus Hex Damage", extraRules: [markDamage("hex", "necrotic")], chooseOne: "Ability"},
+  // Its check rules apply to saves of that ability too while its creature bears Eldritch Hex's marker (`savesToo`).
+  "hex": {slug: "hex", bonusDamage: "Bonus Hex Damage", extraRules: [markDamage("hex", "necrotic")], chooseOne: "Ability",
+    savesToo: {hasCondition: "hex-saves"}},
   // Bestow Curse, by activity: "Disadvantage on attack rolls against you" (its caster: the curse's source) ...
   "bestow-curse/Curse Attacks": {slug: "cursed-attacks", ruleElements: [{schemaVersion: 1, id: "cursed-attacks", type: "RollMode",
     data: {domains: ["attack"], mode: "disadvantage"}, predicate: {equals: {path: "attack.fromTarget.cursed-attacks", value: true}}}]},
@@ -4390,7 +4473,11 @@ function convertActivity({document, activity, system, spell, level, scales, note
       : (EFFECTS_BY_NAME[effect.name] ?? textEffect(document))) : null;
     if ( !named ) notes.push(...changeNotes);
     const rules = [...(named?.ruleElements ?? converted), ...(byHand?.extraRules ?? []),
-      ...structuredClone(EFFECT_REACTIONS[`${identifierOf(document)}/${effect?.name}`] ?? [])];
+      ...structuredClone(EFFECT_REACTIONS[`${identifierOf(document)}/${effect?.name}`] ?? []),
+      // Each check's roll mode on that ability's saves as well, while `savesToo` holds (Eldritch Hex on Hex).
+      ...(byHand?.savesToo ? converted.filter(rule => (rule.type === "RollMode") && rule.data.domains.some(domain => domain.startsWith("check.")))
+        .map(rule => ({...structuredClone(rule), id: `${rule.id}-save`, predicate: structuredClone(byHand.savesToo),
+          data: {...structuredClone(rule.data), domains: rule.data.domains.map(domain => domain.replace(/^check\./u, "save."))}})) : [])];
     // dnd5e's "marked" (Guiding Bolt, Shining Smite): attack rolls against its creature have Advantage; only the next
     // one when its text says so, and the effect then ends after that attack.
     const marked = statuses.includes("marked") && !byHand?.slug;
