@@ -150,7 +150,9 @@ export async function pruneActorPools(actor) {
  * Fill the generalized feature shapes in (`featureShapeFix`) from each Item's compendium copy: its own
  * `_stats.compendiumSource`, or else, on an Actor, the Item of the same converted source id on the Actor's compendium
  * copy (a summon's `flags.wildpath.summonSource`, which is all a summoned steed carries; or the Actor's own
- * `_stats.compendiumSource`). An Item with no copy found (homebrew, a pack no longer installed) is left as it is.
+ * `_stats.compendiumSource`); else the first WildPath pack Item with its converted source id (`flags.wildpath.source.id`:
+ * one copied without its compendium link, the system's own packs before a book's). An Item with no copy found (homebrew, a
+ * pack no longer installed) is left as it is.
  * @param {object} game
  * @param {(uuid: string) => Promise<object|null>} [fromUuid]
  */
@@ -163,8 +165,11 @@ export async function fillFeatureShapes(game, fromUuid=globalThis.fromUuid) {
       () => null));
     return copies.get(uuid);
   };
+  const bySource = await packItemsBySourceId(game);
+  const sourceCopy = id => ((id && bySource.has(id)) ? copy(bySource.get(id)) : null);
   for ( const item of game.items ?? [] ) {
-    const fix = featureShapeFix(item.toObject(true), await copy(item._stats?.compendiumSource));
+    const fix = featureShapeFix(item.toObject(true), (await copy(item._stats?.compendiumSource))
+      ?? (await sourceCopy(item.flags?.wildpath?.source?.id)));
     if ( fix ) await item.update(fix);
   }
   for ( const actor of everyActor(game) ) {
@@ -174,12 +179,32 @@ export async function fillFeatureShapes(game, fromUuid=globalThis.fromUuid) {
       const source = item.toObject(true);
       const id = source.flags?.wildpath?.source?.id;
       const packItem = (await copy(source._stats?.compendiumSource))
-        ?? (id ? (packActor?.items ?? []).find(entry => entry?.flags?.wildpath?.source?.id === id) : null) ?? null;
+        ?? (id ? (packActor?.items ?? []).find(entry => entry?.flags?.wildpath?.source?.id === id) : null) ?? (await sourceCopy(id)) ?? null;
       const fix = featureShapeFix(source, packItem);
       if ( fix ) updates.push({_id: item.id, ...fix});
     }
     if ( updates.length ) await actor.updateEmbeddedDocuments("Item", updates);
   }
+}
+
+/**
+ * Each converted source id to the uuid of its first Item in a WildPath pack: the system's (`wildpath`) before a converted
+ * book's (`wildpath-` modules), as the level-up dialog prefers the SRD's copy.
+ * @param {object} game
+ * @returns {Promise<Map<string, string>>}
+ */
+async function packItemsBySourceId(game) {
+  const packs = [...(game.packs ?? [])].filter(pack => (pack?.documentName === "Item")
+    && ((pack.metadata?.packageName === "wildpath") || String(pack.metadata?.packageName ?? "").startsWith("wildpath-")))
+    .sort((a, b) => Number(b.metadata?.packageName === "wildpath") - Number(a.metadata?.packageName === "wildpath"));
+  const found = new Map();
+  for ( const pack of packs ) {
+    for ( const entry of await pack.getIndex({fields: ["flags.wildpath.source.id"]}) ) {
+      const id = entry?.flags?.wildpath?.source?.id;
+      if ( id && !found.has(id) ) found.set(id, entry.uuid);
+    }
+  }
+  return found;
 }
 
 /** The migrations, oldest first. A new one takes the next version. */
@@ -188,7 +213,8 @@ export const MIGRATIONS = Object.freeze([
   {version: 2, name: "WILDPATH.MIGRATION.StalePools", run: pruneStalePools},
   {version: 3, name: "WILDPATH.MIGRATION.Fortitude", run: recordFortitude},
   {version: 4, name: "WILDPATH.MIGRATION.CreatureTypes", run: recordCreatureTypes},
-  {version: 5, name: "WILDPATH.MIGRATION.FeatureShapes", run: game => fillFeatureShapes(game), rerun: true}
+  // Revision 2: an Item copied without its compendium link is found by its source id.
+  {version: 5, name: "WILDPATH.MIGRATION.FeatureShapes", run: game => fillFeatureShapes(game), rerun: true, revision: 2}
 ]);
 
 /**
@@ -201,8 +227,10 @@ export async function runMigrations({game=globalThis.game, ui=globalThis.ui, mig
   if ( !game.user?.isGM || (game.users?.activeGM && (game.users.activeGM !== game.user)) ) return done;
   const ordered = [...migrations].sort((a, b) => a.version - b.version);
   const pending = ordered.filter(migration => migration.version > done);
-  // Converted content changed since the re-runnable ones last ran: they run again (once each, not twice this start).
-  const stamp = contentStampOf(game);
+  // Converted content changed since the re-runnable ones last ran, or one of them was improved (its `revision`): they run
+  // again (once each, not twice this start).
+  const stamp = [contentStampOf(game), ...ordered.filter(migration => migration.rerun)
+    .map(migration => `migration-${migration.version}:${migration.revision ?? 1}`)].join("|");
   const changed = stamp !== String(game.settings.get("wildpath", "contentStamp") ?? "");
   const again = changed ? ordered.filter(migration => migration.rerun && (migration.version <= done)) : [];
   if ( !pending.length && !again.length ) {

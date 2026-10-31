@@ -82,14 +82,14 @@ test("a re-runnable migration runs again when the converted content changes, onc
     {version: 2, name: "shapes", rerun: true, run: async () => { ran.push(2); }}];
   const book = stamp => ({id: "wildpath-dnd-players-handbook", active: true, flags: {wildpath: {contentStamp: stamp}}});
   const current = world({version: 2, system: "s1", modules: [book("b1"), {id: "other-module", active: true, flags: {}}]});
-  current.settings.contentStamp = contentStampOf(current.game);
+  current.settings.contentStamp = `${contentStampOf(current.game)}|migration-2:1`;
   assert.equal(contentStampOf(current.game), "system:s1|wildpath-dnd-players-handbook:b1", "the system's and the converted books'");
   await runMigrations({...current, migrations});
   assert.deepEqual(ran, [], "same content: nothing runs");
   current.game.modules[0].flags.wildpath.contentStamp = "b2";
   await runMigrations({...current, migrations});
   assert.deepEqual(ran, [2], "a book reconverted: the re-runnable one runs again, the others don't");
-  assert.equal(current.settings.contentStamp, "system:s1|wildpath-dnd-players-handbook:b2");
+  assert.equal(current.settings.contentStamp, "system:s1|wildpath-dnd-players-handbook:b2|migration-2:1");
   await runMigrations({...current, migrations});
   assert.deepEqual(ran, [2], "and only once");
   // A world on version 1: migration 2 runs as new, once, not again as a re-run.
@@ -104,6 +104,11 @@ test("a re-runnable migration runs again when the converted content changes, onc
     await runMigrations({...failing, migrations: [{version: 2, name: "shapes", rerun: true, run: async () => { throw new Error("pack gone"); }}]});
   } finally { console.warn = logger; }
   assert.equal(failing.settings.contentStamp, "system:s1");
+  // An improved re-runnable migration (its revision) runs again on unchanged content.
+  const improved = world({version: 2, system: "s1", contentStamp: "system:s1|migration-2:1"});
+  const rerun = [];
+  await runMigrations({...improved, migrations: [{version: 2, name: "shapes", rerun: true, revision: 2, run: async () => { rerun.push(2); }}]});
+  assert.deepEqual([rerun, improved.settings.contentStamp], [[2], "system:s1|migration-2:2"]);
 });
 
 test("migrations run once, in order, on the active GM only, and stop at a failure", async () => {
@@ -154,6 +159,24 @@ test("feature shapes (migration 5): an Item takes its compendium copy's generali
   assert.equal(featureShapeFix({type: "feature", system: {}}, adept)["system.ruleElements"].length, 2, "a recorded choice's rule; half-on-success");
   assert.equal(featureShapeFix(stored, null), null, "no copy");
   assert.equal(featureShapeFix({...stored, type: "action"}, pack), null, "another type");
+});
+
+test("feature shapes (migration 5): an Item copied without its compendium link is found by its source id, the system's copy first", async () => {
+  const potent = {schemaVersion: 1, id: "potent-cantrip", type: "RollOutcome", data: {outcome: "half-on-success", domains: ["imposed.save"]}};
+  const docs = {"Compendium.wildpath.srd-items.Item.potent": {toObject: () => ({type: "feature", flags: {wildpath: {source: {id: "potent"}}},
+    system: {ruleElements: [potent]}})}};
+  const pack = (packageName, uuid) => ({documentName: "Item", metadata: {packageName},
+    getIndex: async () => [{uuid, flags: {wildpath: {source: {id: "potent"}}}}]});
+  const updates = [];
+  const wizard = {id: "wizard", flags: {}, items: [{id: "p", type: "feature", toObject: () => ({_id: "p", type: "feature",
+    flags: {wildpath: {source: {id: "potent"}}}, system: {ruleElements: []}})}],
+  updateEmbeddedDocuments: async (name, changes) => updates.push(changes)};
+  const game = {items: [], actors: [wizard], scenes: [], packs: [pack("wildpath-dnd-players-handbook", "Compendium.book.Item.potent"),
+    pack("wildpath", "Compendium.wildpath.srd-items.Item.potent"), pack("some-module", "Compendium.other.Item.potent")]};
+  const asked = [];
+  await fillFeatureShapes(game, async uuid => { asked.push(uuid); return docs[uuid] ?? null; });
+  assert.deepEqual(updates, [[{_id: "p", "system.ruleElements": [potent]}]]);
+  assert.deepEqual(asked, ["Compendium.wildpath.srd-items.Item.potent"], "the system's copy, not the book's or another module's");
 });
 
 test("feature shapes (migration 5): a summoned steed's Items are found through its summonSource, a feat through its own copy", async () => {

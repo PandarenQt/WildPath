@@ -40,7 +40,7 @@ The copy is the Item's own `_stats.compendiumSource`, or else, on an Actor, the 
 world Actor carries nothing else, and Refresh Items cannot reach its Items), or the Actor's own
 `_stats.compendiumSource`. World Items, world Actors and unlinked Tokens' Actors are walked.
 
-It cannot reach an Item with no compendium copy (homebrew, or a pack no longer installed); such a feature does nothing
+It cannot reach an Item with no compendium copy, by link or by source id (homebrew, or a pack no longer installed); such a feature does nothing
 until its rule or flag is added by hand.
 
 **Re-runnable (owner's decision, 2026-10-31).** Migration 5 only adds, so it is marked `rerun`: besides its first run,
@@ -50,7 +50,9 @@ converter into each book module's manifest. At `ready` the active GM compares th
 books' stamps (`contentStampOf`) with the world setting `wildpath.contentStamp`; when they differ, each re-runnable
 migration already done runs again, and the setting is updated only after all succeed. So a world started before its
 books were reconverted (Elemental Adept is only in the locally converted PHB) gets their shapes at its next start, and
-a later converter improvement reaches stored characters too. Refresh Items afterwards also copies the rules and
+a later converter improvement reaches stored characters too. A re-runnable migration also carries a `revision`, part of the stamp: improving one
+(revision 2 of migration 5 finds an Item copied without its compendium link by its converted source id, the system's
+pack copy before a book's) makes it run again on worlds that already ran it. Refresh Items afterwards also copies the rules and
 `spellChoice` for Items that carry a `_stats.compendiumSource` (a feat taken at level-up).
 
 ## Stale pools
