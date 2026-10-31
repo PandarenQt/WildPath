@@ -2474,6 +2474,12 @@ const TRAITS = Object.freeze({
   "spell-sniper": () => ({rules: ["cover.ignored", "range.spell"].map(domain => ({schemaVersion: 1, id: `spell-sniper-${domain.split(".")[0]}`,
     type: "Modifier", predicate: {tagsAll: ["spell", "attack"]}, data: {domains: [domain], modifierType: "untyped",
       value: (domain === "range.spell") ? 60 : 2}})), notes: []}),
+  // 2024 Improved Elemental Fury: with Potent Spellcasting, a cantrip with a range of 10 feet or more reaches 300 feet farther
+  // (withRangeBonus reads only those). Like Potent Spellcasting it reads any cantrip: spells carry no class. Primal Strike's
+  // 2d8 is already its damage table's row at druid level 15.
+  "improved-elemental-fury": () => ({rules: [{schemaVersion: 1, id: "improved-elemental-fury", type: "Modifier",
+    predicate: {all: [{tagsAll: ["cantrip"]}, {hasFeature: "elemental-fury-potent-spellcasting"}]},
+    data: {domains: ["range.spell"], modifierType: "untyped", value: 300}}], notes: []}),
   // +2 damage with a thrown weapon's ranged attack (Thrown Weapon Fighting); drawing it as part of the attack needs nothing.
   "thrown-weapon-fighting": () => ({rules: [{schemaVersion: 1, id: "thrown-weapon-fighting", type: "Modifier",
     predicate: {tagsAll: ["ranged", "thrown"]}, data: {domains: ["damage.weapon"], modifierType: "untyped", value: 2}}], notes: []}),

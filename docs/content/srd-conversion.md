@@ -831,7 +831,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Improved Brutal Strike (2) | classes24 | Improved Brutal Strike (2) (feature) | — |
 | Improved Critical | classes24 | Improved Critical (feature) | — |
 | Improved Cunning Strike | classes24 | Improved Cunning Strike (feature) | — |
-| Improved Elemental Fury | classes24 | Improved Elemental Fury (feature) | silent: its text names a rule that is not converted (by hand) |
+| Improved Elemental Fury | classes24 | Improved Elemental Fury (feature) | — |
 | Incendiary Cloud | spells24 | Incendiary Cloud (Create Cloud) (automated) | "Per Turn Save" is passive or triggered: not automated |
 | Incubus | actors24 | Incubus (9 items) | Succubus Form: "Shape-Shift: Succubus" is passive or triggered (narrative): not automated; Spellcasting: effect: "Disguised" marks its creature (narrative); Spellcasting: activation: 1 minute is not an action-economy cost |
 | Indomitable | classes24 | Indomitable (feature) | — |

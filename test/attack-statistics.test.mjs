@@ -357,6 +357,21 @@ test("Eldritch Spear: a damaging cantrip reaches 30 feet farther per warlock lev
   assert.equal(read(cantrip(["spell", "cantrip", "damage:lightning"], {type: "touch", distance: {value: 5, unit: "ft"}}), warlock()).type, "touch");
 });
 
+test("Improved Elemental Fury: a cantrip reaches 300 feet farther only while its druid chose Potent Spellcasting", async () => {
+  const fs = await import("node:fs");
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const read = file => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}.json`, "utf8"));
+  const improved = read("improved-elemental-fury-phbdrdImprovedEl");
+  const druid = choices => Object.assign(Object.create(WildPathActor.prototype), {id: "druid", uuid: "Actor.druid", effects: [],
+    statuses: new Set(), flags: {}, system: {}, allApplicableEffects: () => [],
+    items: [improved, ...choices].map((item, index) => ({id: `f${index}`, uuid: `Actor.druid.Item.f${index}`, type: "feature", flags: item.flags,
+      system: {active: true, modifiers: [], ruleElements: item.system.ruleElements}}))});
+  const flame = read("produce-flame-hurl-fire-1a4ddlagdzvp0000");
+  const range = actor => actionDefinitionFromItem({id: "flame", type: "action", name: "Hurl", system: flame.system, actor}).definition.range.normal.value;
+  assert.equal(range(druid([read("elemental-fury-potent-spellcasting-phbFuryPotentSpe")])), 360, "60 + 300");
+  assert.equal(range(druid([read("elemental-fury-primal-strike-phbFuryPrimalStr")])), 60, "Primal Strike chosen");
+});
+
 test("Defensive Tactics: Escape the Horde gives Opportunity Attacks against it Disadvantage; Multiattack Defense marks its attacker", async () => {
   const fs = await import("node:fs");
   const {attackRollMode} = await import("../module/helpers/combat-statistics.mjs");

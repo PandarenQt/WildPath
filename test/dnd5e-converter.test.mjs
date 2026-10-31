@@ -412,6 +412,8 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
   assert.deepEqual([evade.type, evade.data, evade.predicate.not.any.length], ["RollOutcome", {domains: ["save.agility"], outcome: "evasion"}, 6]);
   const [might] = convertItem(trait("indomitable-might", "Indomitable Might")).items[0].system.ruleElements;
   assert.deepEqual([might.type, might.data], ["RollOutcome", {domains: ["check.might", "save.might"], outcome: "minimum-score"}]);
+  const [fury] = convertItem(trait("improved-elemental-fury", "Improved Elemental Fury")).items[0].system.ruleElements;
+  assert.deepEqual([fury.data.domains, fury.data.value, fury.predicate.all[1]], [["range.spell"], 300, {hasFeature: "elemental-fury-potent-spellcasting"}]);
   const sneak = convertItem(trait("sneak-attack", "Sneak Attack", {a: activity("damage", {activation: {type: ""},
     damage: {parts: [{custom: {enabled: true, formula: "@scale.rogue.sneak-attack"}, types: ["piercing"]}]}})}),
     {scales: {"rogue.sneak-attack": {1: {number: 1, faces: 6}, 3: {number: 2, faces: 6}}}}).items;
