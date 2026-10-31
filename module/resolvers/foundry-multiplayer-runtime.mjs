@@ -71,7 +71,8 @@ import {
 } from "../adapters/foundry-v14-movement-adapter.mjs";
 import {
   MULTIPLAYER_AUTHORITY_CODES,
-  clonePlainData
+  clonePlainData,
+  sanitizeActionIntentPayload
 } from "../helpers/multiplayer-authority.mjs";
 import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefinitionToResolverInput} from "../helpers/action-definitions.mjs";
 import {tokenRef} from "../helpers/entity-refs.mjs";
@@ -688,6 +689,8 @@ function checkRollModes(sources) {
 
 export async function foundryActionIntentToStagedOptions({intent={}, senderUserId=null, game=globalThis.game, persistencePort=null,
   action: authorityAction=null}={}) {
+  // Only what the transport lets through, whoever calls (an internal Action, a test): a field it drops can't be relied on.
+  intent = sanitizeActionIntentPayload({intent});
   const actorRef = intent.actorRef ?? intent.actorUuid ?? intent.source?.actorRef ?? intent.source?.uuid ?? null;
   const actor = await resolveFoundryDocumentRef(actorRef, {game, kind: "actor"});
   if ( !actor ) return {
