@@ -710,7 +710,9 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
       ...(effect.maxSize ? {maxSize: effect.maxSize} : {}),
       ...(effect.whenDamaged ? {whenDamaged: true} : {}),
       ...(effect.appliesTo === "source" ? {appliesTo: "source"} : {}),
-      source: effect.source ?? definition.source,
+      // Its source is the Action's user (the resolver's), never the Item: "until the start of your next turn" and
+      // "frightened of you" name a creature. The Item is its origin.
+      ...(effect.source ? {source: effect.source} : {}),
       origin: effect.origin ?? definition.source,
       metadata: {
         ...(effect.metadata ?? {}),

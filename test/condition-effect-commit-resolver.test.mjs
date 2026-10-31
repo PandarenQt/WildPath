@@ -137,7 +137,8 @@ test("a custom effect lasting to turnEnd on another creature reaches V14 as turn
     actor.createEmbeddedDocuments = async (name, documents) => { created.push(...structuredClone(documents)); return create(name, documents); };
     assert.equal((await commitConditionEffectMutationPlan(actor, mutation)).ok, true);
     assert.deepEqual(created[0].duration, {value: 0, units: "turns", expiry: "turnEnd"}, "a V14 expiry, as written");
-    assert.notEqual(created[0].start?.combatant, "combatant-ally");
+    // Through the pipeline the plan's source is the Action's user, so its duration starts on the source's Combatant.
+    assert.equal(created[0].start?.combatant, "combatant-monk");
   } finally {
     globalThis.game = previous;
   }
