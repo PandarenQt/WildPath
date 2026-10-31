@@ -111,6 +111,16 @@
       "Proficiency": "Proficiency"
     },
     "CHAT": {
+      "Roll": {
+        "Attack": "Attack",
+        "Save": "Save",
+        "Check": "Check",
+        "Damage": "Damage",
+        "TypedDamage": "{type} damage",
+        "LessDamage": "Less damage",
+        "Healing": "Healing",
+        "Concentration": "Concentration"
+      },
       "Outcome": {
         "Hit": "Hit",
         "Critical": "Critical hit",

@@ -1,4 +1,5 @@
 import {test} from "node:test";
+import {sanitizeResolutionResultForTransport} from "../module/helpers/multiplayer-authority.mjs";
 import assert from "node:assert/strict";
 import {ECONOMY_CAPABILITIES} from "../module/helpers/action-economy.mjs";
 import {ACTION_CHOICE_TYPES} from "../module/helpers/action-configuration.mjs";
@@ -923,6 +924,10 @@ test("a penalty die is rolled once even on a critical, then taken off the hit's 
     {total: 4}).next.state);
   assert.deepEqual(lessFour("resolution:reduced-floor", 1), [1, 0], "Reduce: 2 less 4 is still 1 damage");
   assert.deepEqual(lessFour("resolution:enfeebled", undefined), [0, 0], "Ray of Enfeeblement: none");
+  // The card names each roll from the authority's own requests: the dagger's damage, then the penalty.
+  const labels = sanitizeResolutionResultForTransport({state: step.next.state}).rolls.map(roll => roll.label);
+  assert.deepEqual(labels, [{key: "WILDPATH.CHAT.Roll.Attack"}, {key: "WILDPATH.CHAT.Roll.Damage", damageType: "piercing"},
+    {key: "WILDPATH.CHAT.Roll.LessDamage"}]);
 });
 
 test("a reaction that counters (Counterspell): its target's failed save asks the parent to be cancelled; a success does not", () => {

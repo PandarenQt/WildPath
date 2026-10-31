@@ -28,7 +28,8 @@ function publicResult() {
       {id: "orc", actorRef: "Actor.orc", name: "Orc", defenses: {ac: {value: SECRET}}}
     ],
     rolls: [
-      {requestId: "a", type: "attack-roll", visibility: "public", rollResult: {natural: 18, total: 22, raw: {foundryRoll}}},
+      {requestId: "a", type: "attack-roll", visibility: "public", label: {key: "WILDPATH.CHAT.Roll.Attack"},
+        rollResult: {natural: 18, total: 22, raw: {foundryRoll}}},
       {requestId: "s", type: "save", visibility: "system", rollResult: {total: 9, raw: {foundryRoll: {...foundryRoll, total: 9}}}}
     ],
     outcomes: {
@@ -55,6 +56,7 @@ test("the card view model reads only names, outcomes and public Roll JSON from t
         save: {label: CHAT_OUTCOME_KEYS.saveFailure, tone: "failure"}}
     ],
     rolls: [foundryRoll],
+    rollLabels: [{key: "WILDPATH.CHAT.Roll.Attack"}],
     enteredRolls: []
   });
   assert.equal(JSON.stringify(view).includes(SECRET), false);
@@ -93,10 +95,11 @@ function fakeFoundry() {
       getSpeaker: ({actor}) => ({actor: actor?.id ?? null, alias: actor?.name ?? null})
     },
     Roll: {
-      fromData: data => ({render: async () => `<roll total="${data.total}">`, toJSON: () => data})
+      fromData: data => ({render: async ({flavor}={}) => `<roll total="${data.total}"${flavor ? ` flavor="${flavor}"` : ""}>`, toJSON: () => data})
     },
     renderTemplate: async (path, data) => JSON.stringify({path, data}),
-    game: {users: [{id: "gm-a", isGM: true}, {id: "player-a", isGM: false}]}
+    game: {users: [{id: "gm-a", isGM: true}, {id: "player-a", isGM: false}],
+      i18n: {localize: key => key.split(".").at(-1), format: (key, data) => `${data.type} damage`}}
   };
 }
 
@@ -118,7 +121,7 @@ test("the chat card adapter posts one public card authored by the initiator, wit
     "a critical hit and a miss float over their targets; a failed save shows as the damage taken");
   const rendered = JSON.parse(message.content);
   assert.equal(rendered.path, RESOLUTION_CARD_TEMPLATE);
-  assert.equal(rendered.data.rollHtml, "<roll total=\"22\">");
+  assert.equal(rendered.data.rollHtml, "<roll total=\"22\" flavor=\"Attack\">", "each roll says what it is");
   assert.equal(rendered.data.actionImg, "icons/strike.webp");
   assert.equal(message.content.includes(SECRET), false);
 });

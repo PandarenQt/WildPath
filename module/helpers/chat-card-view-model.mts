@@ -22,8 +22,15 @@ interface ContestEntry {
   readonly succeededInstead?: boolean | null;
 }
 
+/** What a roll is (multiplayer-authority's `rollLabel`): a card key, and a damage type for damage. */
+export interface RollLabel {
+  readonly key: string;
+  readonly damageType?: string;
+}
+
 interface PublicRoll {
   readonly foundryRoll?: Readonly<Record<string, unknown>> | null;
+  readonly label?: RollLabel | null;
   readonly formula?: string | null;
   readonly total?: number | null;
 }
@@ -83,6 +90,8 @@ export interface ResolutionCardView {
   readonly check: CardOutcome | null;
   readonly targets: readonly ResolutionCardTarget[];
   readonly rolls: readonly Readonly<Record<string, unknown>>[];
+  /** Each of `rolls`' label, in the same order (null for one without). */
+  readonly rollLabels: readonly (RollLabel | null)[];
   /** Public rolls entered by hand (physical or manual dice): no Foundry Roll exists to render. */
   readonly enteredRolls: readonly {readonly formula: string | null; readonly total: number}[];
 }
@@ -112,6 +121,7 @@ export function createResolutionCardViewModel(result: PublicResolutionResult): R
       };
     }),
     rolls: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.foundryRoll] : [])),
+    rollLabels: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.label ?? null] : [])),
     enteredRolls: (result.rolls ?? []).flatMap(roll => (!roll.foundryRoll && Number.isFinite(roll.total)
       ? [{formula: textOrNull(roll.formula), total: roll.total as number}] : []))
   };

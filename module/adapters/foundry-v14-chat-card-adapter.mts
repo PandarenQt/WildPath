@@ -2,13 +2,14 @@ import {
   CHAT_OUTCOME_KEYS,
   chatVisibilityForMode,
   createResolutionCardViewModel,
-  type PublicResolutionResult
+  type PublicResolutionResult,
+  type RollLabel
 } from "../helpers/chat-card-view-model.mjs";
 
 export const RESOLUTION_CARD_TEMPLATE = "systems/wildpath/templates/chat/resolution-card.hbs";
 
 interface FoundryRoll {
-  render(): Promise<string>;
+  render(options?: {flavor?: string | undefined}): Promise<string>;
   toJSON(): unknown;
 }
 
@@ -25,6 +26,15 @@ type RenderTemplate = (path: string, data: object) => Promise<string>;
 
 interface GameLike {
   readonly users?: Iterable<{readonly id?: string | null; readonly isGM?: boolean}> | null;
+  readonly i18n?: {localize(key: string): string; format(key: string, data: Record<string, string>): string} | null;
+}
+
+/** A roll's label in words ("Fire damage", "Less damage", "Attack"), or undefined (Foundry then shows none). */
+function rollFlavor(label: RollLabel | null | undefined, i18n: GameLike["i18n"]) {
+  if ( !label || !i18n ) return undefined;
+  if ( !label.damageType ) return i18n.localize(label.key);
+  const type = i18n.localize(`WILDPATH.DAMAGE.${label.damageType.charAt(0).toUpperCase()}${label.damageType.slice(1)}`);
+  return i18n.format("WILDPATH.CHAT.Roll.TypedDamage", {type});
 }
 
 /** What the action coordinator passes to its `publishResult` port. */
@@ -59,7 +69,8 @@ export function createFoundryV14ChatCardAdapter({
     const foundry = foundryGlobals({ChatMessage, Roll, renderTemplate, game});
     const view = createResolutionCardViewModel(result);
     const rolls = view.rolls.map(data => foundry.Roll.fromData(data));
-    const rollHtml = (await Promise.all(rolls.map(roll => roll.render()))).join("");
+    const rollHtml = (await Promise.all(rolls.map((roll, index) => roll.render({flavor: rollFlavor(view.rollLabels[index], foundry.game?.i18n)}))))
+      .join("");
     const actionImg = typeof (action as {img?: unknown}).img === "string" ? (action as {img: string}).img : null;
     const content = await foundry.renderTemplate(RESOLUTION_CARD_TEMPLATE, {...view, actionImg, rollHtml});
     const gmUserIds = [...(foundry.game?.users ?? [])].flatMap(user => (user.isGM && user.id ? [user.id] : []));

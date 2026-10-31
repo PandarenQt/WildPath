@@ -760,7 +760,7 @@ test("result projection: both BROADCAST_SAFE and PARTICIPANT_PRIVATE are allow-l
       check: {success: true},
       movement: {completedTransitionCount: 3, intendedTransitionCount: 3, committed: true}
     },
-    rolls: [{requestId: "r1", type: "attack", visibility: "public", natural: 18, total: 22, formula: null, foundryRoll: null}],
+    rolls: [{requestId: "r1", type: "attack", visibility: "public", natural: 18, total: 22, formula: null, label: null, foundryRoll: null}],
     disclosure: D.BROADCAST_SAFE
   });
   const participant = projectResolutionResultForDisclosure(sample, D.PARTICIPANT_PRIVATE);
@@ -770,9 +770,9 @@ test("result projection: both BROADCAST_SAFE and PARTICIPANT_PRIVATE are allow-l
   assert.deepEqual(participant, {
     ...publicFields,
     rolls: [
-      {requestId: "r1", type: "attack", visibility: "public", rollResult: {natural: 18, total: 22, terms: [{faces: 20}]}},
-      {requestId: "r3", type: "damage", visibility: "system", rollResult: {total: 9}},
-      {requestId: "r4", type: "attack", visibility: "gm-only", rollResult: {natural: 7, total: 11}}
+      {requestId: "r1", type: "attack", visibility: "public", label: null, rollResult: {natural: 18, total: 22, terms: [{faces: 20}]}},
+      {requestId: "r3", type: "damage", visibility: "system", label: null, rollResult: {total: 9}},
+      {requestId: "r4", type: "attack", visibility: "gm-only", label: null, rollResult: {natural: 7, total: 11}}
     ],
     disclosure: D.PARTICIPANT_PRIVATE
   });
@@ -790,6 +790,12 @@ test("public rolls carry the roller's Foundry Roll JSON only when evaluated and 
   assert.deepEqual(publicRoll({natural: 18, total: 22, raw: {foundryRoll}}), foundryRoll);
   assert.equal(publicRoll({natural: 18, total: 22, raw: {foundryRoll: {...foundryRoll, total: 40}}}), null, "forged total");
   assert.equal(publicRoll({natural: 18, total: 22, raw: {foundryRoll: {...foundryRoll, evaluated: false}}}), null, "unevaluated");
+  // A roll's label: a card key and a plain damage type only.
+  const labelOf = label => projectResolutionResultForDisclosure({...sampleResult(),
+    rolls: [{requestId: "r1", type: "damage", visibility: "public", label, rollResult: {total: 9}}]}, D.BROADCAST_SAFE).rolls[0].label;
+  assert.deepEqual(labelOf({key: "WILDPATH.CHAT.Roll.Damage", damageType: "fire", extra: 1}), {key: "WILDPATH.CHAT.Roll.Damage", damageType: "fire"});
+  assert.equal(labelOf({key: "WILDPATH.REFUSAL.Generic"}), null, "only a roll key");
+  assert.deepEqual(labelOf({key: "WILDPATH.CHAT.Roll.Damage", damageType: "<b>fire</b>"}), {key: "WILDPATH.CHAT.Roll.Damage"});
   assert.equal(publicRoll({natural: 18, total: 22}), null, "manual or physical result without Roll JSON");
   const gmOnly = projectResolutionResultForDisclosure({...sampleResult(),
     rolls: [{requestId: "r1", type: "attack", visibility: "gm-only", rollResult: {total: 22, raw: {foundryRoll}}}]}, D.BROADCAST_SAFE);

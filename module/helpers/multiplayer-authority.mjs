@@ -1,5 +1,5 @@
 import {RESOLUTION_REQUEST_TYPES} from "./resolution-state.mjs";
-import {ROLL_AUTHORITY, ROLL_VISIBILITY, normalizeRollVisibility, rollFormulaForRequest} from "./rolls.mjs";
+import {ROLL_AUTHORITY, ROLL_TYPES, ROLL_VISIBILITY, normalizeRollVisibility, rollFormulaForRequest} from "./rolls.mjs";
 
 import {
   DISCLOSURE_CLASSIFICATIONS,
@@ -375,6 +375,7 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
       // A d20 set to a number (Stroke of Luck, Portent) rolls nothing: it shows as entered, seen as the roll it replaced.
       if ( !entry.rollResult && Number.isFinite(entry.roll?.total) && previous ) return [...rolls, {requestId: null,
         type: entry.type ?? null, visibility: previous.visibility, rollerKind: previous.rollerKind,
+        label: previous.label ?? null,
         formula: String(previous.formula ?? "").replace(/^\s*\d*d20(?:min\d+)?(?:k[hl]\d*)?/i, String(entry.roll.natural ?? "")) || null,
         rollResult: {total: entry.roll.total, natural: entry.roll.natural ?? null}}];
       return [...rolls, {
@@ -383,6 +384,7 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
         visibility: rollVisibility(request, entry.rollResult),
         // Who rolls and what was rolled, from the authority's own request; the roller's copies are not trusted.
         rollerKind: request?.authority?.kind ?? null,
+        label: rollLabel(request),
         formula: request ? (rollFormulaForRequest(request).formula ?? null) : null,
         rollResult: entry.rollResult ?? null
       }];
@@ -426,6 +428,32 @@ const MOVEMENT_OUTCOME_KEYS = Object.freeze([
 ]);
 const FOOTPRINT_KEYS = Object.freeze(["type", "topology", "size", "anchor", "fields", "fieldKeys"]);
 
+/**
+ * What a roll is, for its line on the card, from the authority's own request: `{key}` (an attack, a save, a check,
+ * healing), or for damage `{key, damageType}`; a penalty die (Reduce: `metadata.subtract`) is less damage. Null for one
+ * the card names no other way (Empowered Spell's rerolled dice).
+ */
+function rollLabel(request) {
+  const component = request?.definition?.components?.[0] ?? null;
+  const damageType = (typeof component?.damageType === "string") ? component.damageType : null;
+  switch ( request?.type ) {
+    case ROLL_TYPES.ATTACK: return {key: "WILDPATH.CHAT.Roll.Attack"};
+    case ROLL_TYPES.SAVING_THROW: return {key: "WILDPATH.CHAT.Roll.Save"};
+    case ROLL_TYPES.ABILITY_CHECK: case ROLL_TYPES.SKILL_CHECK: return {key: "WILDPATH.CHAT.Roll.Check"};
+    case ROLL_TYPES.DAMAGE: return component?.metadata?.subtract ? {key: "WILDPATH.CHAT.Roll.LessDamage"}
+      : {key: "WILDPATH.CHAT.Roll.Damage", ...(damageType ? {damageType} : {})};
+    case ROLL_TYPES.HEALING: return {key: "WILDPATH.CHAT.Roll.Healing"};
+    case ROLL_TYPES.CONCENTRATION: return {key: "WILDPATH.CHAT.Roll.Concentration"};
+    default: return null;
+  }
+}
+
+/** A roll's label as published: a card key and a damage type of plain letters, or null. */
+function projectRollLabel(label) {
+  if ( (typeof label?.key !== "string") || !label.key.startsWith("WILDPATH.CHAT.Roll.") ) return null;
+  return {key: label.key, ...((typeof label.damageType === "string") && /^[a-z]+$/u.test(label.damageType) ? {damageType: label.damageType} : {})};
+}
+
 export function projectResolutionResultForDisclosure(result, classification) {
   const disclosure = normalizeDisclosure(classification);
   if ( !disclosure ) throw new TypeError("Resolution result projection requires a disclosure classification.");
@@ -440,6 +468,7 @@ export function projectResolutionResultForDisclosure(result, classification) {
         requestId: entry.requestId ?? null,
         type: entry.type ?? null,
         visibility: entry.visibility ?? null,
+        label: projectRollLabel(entry.label),
         rollResult: entry.rollResult ?? null
       }, "resolutionResult.rolls")),
     disclosure
@@ -497,6 +526,7 @@ function projectPublicResolutionResult(data) {
         natural: entry.rollResult?.natural ?? null,
         total: entry.rollResult?.total ?? null,
         formula: entry.formula ?? null,
+        label: projectRollLabel(entry.label),
         foundryRoll: publicFoundryRoll(entry.rollResult)
       }))
   }, "resolutionResult.broadcast");

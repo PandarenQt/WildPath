@@ -42,6 +42,7 @@ export function createResolutionCardViewModel(result) {
             };
         }),
         rolls: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.foundryRoll] : [])),
+        rollLabels: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.label ?? null] : [])),
         enteredRolls: (result.rolls ?? []).flatMap(roll => (!roll.foundryRoll && Number.isFinite(roll.total)
             ? [{ formula: textOrNull(roll.formula), total: roll.total }] : []))
     };
