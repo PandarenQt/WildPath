@@ -428,6 +428,9 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
   assert.deepEqual([evade.type, evade.data, evade.predicate.not.any.length], ["RollOutcome", {domains: ["save.agility"], outcome: "evasion"}, 6]);
   const [might] = convertItem(trait("indomitable-might", "Indomitable Might")).items[0].system.ruleElements;
   assert.deepEqual([might.type, might.data], ["RollOutcome", {domains: ["check.might", "save.might"], outcome: "minimum-score"}]);
+  const [lifeBond] = convertItem(trait("life-bond", "Life Bond")).items[0].system.ruleElements;
+  assert.deepEqual([lifeBond.type, lifeBond.data], ["Trigger", {kind: "shared-healing", event: "healing.applied", from: "summoner", range: 5,
+    minimumCastLevel: 1, tagsAll: ["spell"]}], "Life Bond: a shared-healing Trigger, not an engine feature");
   const adept = convertItem(trait("elemental-adept", "Elemental Adept")).items[0];
   assert.deepEqual(adept.system.advancement[0].choices[0].pool, ["adept:acid", "adept:cold", "adept:fire", "adept:lightning", "adept:thunder"]);
   assert.deepEqual(adept.system.ruleElements.map(rule => [rule.type, rule.data.damageTypes]), [["DamageDieMinimum", ["{training:adept}"]],

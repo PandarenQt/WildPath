@@ -155,13 +155,20 @@ reads it, and no dispatcher runs it.
     - `{plusDamage}` is that + the damage (Undead Fortitude).
   - `notOn` lists damage types, or `critical`, that bar it.
 - **`event: "health.reduced"`** (the source): `temporaryHitPoints` (a ValueExpression), `hostileOnly` (Dark One's Blessing).
-- **`event: "healing.applied"`** (the source, 2026-10-31): `hitPoints` (a ValueExpression with `castLevel` in its
-  context). A spell cast from a slot that restores Hit Points to a creature other than its caster heals the caster that
-  much once, on top of its own healing when the spell heals it too (Blessed Healer: 2 + the slot's level). The runtime
-  reads it before the Action (`durability.onHeal`); the healing stage applies it (`healerReward`).
-- **Life Bond** (an engine feature, by identifier `life-bond`, 2026-10-31): a summoned creature with it, within 5 feet of the
-  summoner a level 1+ spell heals, regains as many Hit Points as its summoner did. The runtime finds such summons by their
-  Token's `flags.wildpath.summon.casterUuid` (`durability.lifeBonds`); the healing stage adds their plans (`lifeBondHealing`).
+- **`event: "healing.applied"`, `kind: "healer"`** (the source, 2026-10-31): `hitPoints` (a ValueExpression with
+  `castLevel` in its context). A spell cast from a slot that restores Hit Points to a creature other than its caster
+  heals the caster that much once, on top of its own healing when the spell heals it too (Blessed Healer: 2 + the
+  slot's level). The runtime reads only this kind (`healedOthersFor`) before the Action (`durability.onHeal`); the
+  healing stage applies it (`healerReward`).
+- **`event: "healing.applied"`, `kind: "shared-healing"`** (a summoned creature, 2026-10-31): `{from: "summoner", range: 5,
+  minimumCastLevel: 1, tagsAll: ["spell"]}` (the defaults). When an Action with every tag in `tagsAll`, cast at
+  `minimumCastLevel` or higher, heals the creature's summoner (its Token's `flags.wildpath.summon.casterUuid`) while it
+  is within `range` feet of it, it regains as many Hit Points as the summoner did (Find Steed's Life Bond). `from` has
+  one value, `summoner`; any other fails the rule (INVALID). The runtime finds such summons (`sharedHealingRule`,
+  `durability.lifeBonds`); the healing stage adds their plans (`lifeBondHealing`).
+- These kinds (`healer`, `shared-healing`) are read by the runtime only, never dispatched: the automation dispatcher
+  answers `kind: "automation"` (the default) alone and the reaction provider `kind: "reaction"` alone, which is what
+  keeps them inert there.
 
 **How it runs:**
 - **The runtime** works these out per target (`durability.zeroHpByTarget`: hit points, DC, save bonus, roll mode, the

@@ -1042,13 +1042,18 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const onHeal = (definition?.healing?.length && definition.tags?.includes("spell")) ? healedOthersFor(actor, actorSystem, healingCastLevel)
     : null;
   if ( onHeal ) targetActors[actor.uuid] ??= actor;
-  // Life Bond (Find Steed): a steed within 5 feet of its summoner regains what a level 1+ spell heals the summoner.
-  const lifeBonds = (definition?.healing?.length && definition.tags?.includes("spell") && (Number(healingCastLevel) >= 1))
+  // Shared healing (Find Steed's Life Bond): a summoned creature near its summoner regains what the Action heals the
+  // summoner, when the Action fits its rule (`sharedHealingRule`: tags, cast level, range).
+  const tags = definition?.tags ?? [];
+  const lifeBonds = definition?.healing?.length
     ? targetEntries.flatMap(({actor: healed, hint}) => {
       const token = targetTokenFor(healed, hint, game);
-      return [...(token?.parent?.tokens ?? [])].filter(steed => steed.actor && (steed.flags?.wildpath?.summon?.casterUuid === healed.uuid)
-        && [...steed.actor.items].some(item => (item.system?.active !== false) && (item.flags?.wildpath?.source?.identifier === "life-bond"))
-        && ((allyDistance(token, steed) ?? Infinity) <= 5))
+      return [...(token?.parent?.tokens ?? [])].filter(steed => {
+        if ( !steed.actor || (steed.flags?.wildpath?.summon?.casterUuid !== healed.uuid) ) return false;
+        const rule = sharedHealingRule(steed.actor);
+        return rule && rule.tagsAll.every(tag => tags.includes(tag)) && ((Number(healingCastLevel) || 0) >= rule.minimumCastLevel)
+          && ((allyDistance(token, steed) ?? Infinity) <= rule.range);
+      })
         .map(steed => {
           targetActors[steed.actor.uuid] ??= steed.actor;
           return {casterTokenId: token.id, sourceRef: steed.actor.uuid, actorSystem: foundryActorSystemSnapshot(steed.actor),
@@ -1776,14 +1781,36 @@ function reducedToZeroFor(actor, actorSystem) {
 }
 
 /** Its reward for healing another creature with a spell cast from a slot (Blessed Healer: 2 + the slot's level), or null. */
-function healedOthersFor(actor, actorSystem, castLevel) {
+export function healedOthersFor(actor, actorSystem, castLevel) {
   if ( !(Number(castLevel) >= 1) ) return null;
   for ( const item of actor?.items ?? [] ) {
     if ( item?.system?.active === false ) continue;
-    const rule = (item?.system?.ruleElements ?? []).find(entry => (entry?.type === "Trigger") && (entry.data?.event === "healing.applied"));
+    const rule = (item?.system?.ruleElements ?? []).find(entry => (entry?.type === "Trigger") && (entry.data?.event === "healing.applied")
+      && (entry.data?.kind === "healer"));
     if ( !rule ) continue;
     const amount = Math.trunc(Number(evaluateValueExpression(rule.data.hitPoints, {actor, actorSystem, castLevel}).value) || 0);
     if ( amount > 0 ) return {name: item.name ?? "", hitPoints: amount, sourceRef: actor.uuid};
+  }
+  return null;
+}
+
+/**
+ * Its shared-healing rule (a Trigger `{kind: "shared-healing", event: "healing.applied", from: "summoner", range,
+ * minimumCastLevel, tagsAll}` on an active Item: Find Steed's Life Bond): it regains what an Action with every tag in
+ * `tagsAll`, cast at `minimumCastLevel` or higher, heals its summoner while within `range` feet of it. Defaults: 5 feet,
+ * level 1, a spell. Null without one.
+ * @param {object} actor
+ * @returns {{name: string, range: number, minimumCastLevel: number, tagsAll: string[]}|null}
+ */
+export function sharedHealingRule(actor) {
+  for ( const item of actor?.items ?? [] ) {
+    if ( item?.system?.active === false ) continue;
+    const rule = (item?.system?.ruleElements ?? []).find(entry => (entry?.type === "Trigger") && (entry.data?.kind === "shared-healing")
+      && (entry.data?.event === "healing.applied") && ((entry.data?.from ?? "summoner") === "summoner"));
+    if ( !rule ) continue;
+    const number = (value, fallback) => (Number.isFinite(Number(value)) && (value !== null) ? Number(value) : fallback);
+    return {name: item.name ?? "", range: number(rule.data.range, 5), minimumCastLevel: number(rule.data.minimumCastLevel, 1),
+      tagsAll: Array.isArray(rule.data.tagsAll) ? rule.data.tagsAll.map(String) : ["spell"]};
   }
   return null;
 }

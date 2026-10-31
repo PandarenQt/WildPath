@@ -949,6 +949,10 @@ function triggerRuleElement(ruleElement) {
   if ( !event && !match.type ) {
     return handlerFailure(RULE_ELEMENT_CODES.INVALID, "Trigger RuleElement requires an event type.");
   }
+  // A shared-healing Trigger (Life Bond) is shared from its creature's summoner; no other source exists yet.
+  if ( ((data.kind ?? data.triggerKind) === "shared-healing") && (data.from != null) && (data.from !== "summoner") ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A shared-healing Trigger's from must be summoner.");
+  }
   return success({
     triggers: [createTriggerDefinition({
       id: data.triggerId ?? data.id ?? ruleElement.id,

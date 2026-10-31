@@ -2038,8 +2038,6 @@ const ENGINE_FEATURES = new Set(["ability-score-improvement", "divine-order", "p
   // A class's spellcasting and Pact Magic (its slots), a lineage's spells (its species' grants), Improved Brutal Strike's
   // second option and 2d10 (Brutal Strike's own level tables).
   "spellcasting", "pact-magic", "elven-lineage-drow", "elven-lineage-high-elf", "gnomish-lineage-forest", "improved-brutal-strike-2",
-  // A Find Steed steed's Life Bond: the runtime finds it beside its healed summoner (durability.lifeBonds).
-  "life-bond",
   // A subclass's Bonus Proficiencies (Order and Twilight Domains, Rune Knight, College of Lore, the sidekicks): its
   // subclass's or class's trait steps give them.
   "bonus-proficiencies",
@@ -2657,6 +2655,10 @@ const TRAITS = Object.freeze({
   // 2024 Grappler. Attack Advantage: against a creature it Grappled (`attack.fromAttacker.grappled`). Punch and Grab: once
   // a turn, its Unarmed Strike's hit may also Grapple, free. shortcut: any of its Unarmed Strike hits qualifies, not only
   // one of the Attack action's. Fast Wrestler needs nothing: moving a Grappled creature costs no extra movement here.
+  // A Find Steed steed's Life Bond: it regains what a level 1+ spell heals its summoner within 5 feet (a shared-healing
+  // Trigger the runtime reads: durability.lifeBonds).
+  "life-bond": () => ({rules: [{schemaVersion: 1, id: "life-bond", type: "Trigger", data: {kind: "shared-healing", event: "healing.applied",
+    from: "summoner", range: 5, minimumCastLevel: 1, tagsAll: ["spell"]}}], notes: []}),
   // 2024 Potent Cantrip: a saved cantrip deals half its damage (a `half-on-success` RollOutcome on the saves it imposes).
   "potent-cantrip": () => ({rules: [{schemaVersion: 1, id: "potent-cantrip", type: "RollOutcome", predicate: {tagsAll: ["cantrip"]},
     data: {outcome: "half-on-success", domains: ["imposed.save"]}}],

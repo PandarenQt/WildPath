@@ -451,6 +451,13 @@ test("RollOutcome half-on-success and ignore-resistance validate; ignore-resista
   assert.deepEqual(found(["weapon"]), [], "a weapon's damage: its predicate fails");
 });
 
+test("a shared-healing Trigger shares from its summoner only: another source fails explicitly", () => {
+  const trigger = from => evaluateRuleElement({schemaVersion: 1, id: "bond", type: "Trigger", data: {kind: "shared-healing",
+    event: "healing.applied", ...(from ? {from} : {})}});
+  assert.deepEqual([trigger(null).ok, trigger("summoner").ok], [true, true]);
+  assert.deepEqual([trigger("ally").ok, trigger("ally").code], [false, RULE_ELEMENT_CODES.INVALID]);
+});
+
 test("critical ranges widen and stack: Improved and Superior Critical are 18-20, and a set threshold is widened from", async () => {
   const {rollOutcomesFromRuleElements, validateRuleElementDefinition} = await import("../module/helpers/rule-elements.mjs");
   const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");

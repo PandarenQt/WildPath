@@ -70,7 +70,23 @@
       "system": {
         "active": true,
         "description": "<p> When you regain Hit Points from a level 1+ spell, the steed regains the same number of Hit Points if you're within 5 feet of it.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "life-bond",
+            "type": "Trigger",
+            "data": {
+              "kind": "shared-healing",
+              "event": "healing.applied",
+              "from": "summoner",
+              "range": 5,
+              "minimumCastLevel": 1,
+              "tagsAll": [
+                "spell"
+              ]
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {

@@ -3006,3 +3006,33 @@ test("a willing creature only (targeting.notHostile): a target hostile to its so
   const enemy = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: fixture.intent, game: fixture.game});
   assert.deepEqual([enemy.ok, enemy.reason], [false, "WILDPATH.COMMON.NotWilling"]);
 });
+
+test("shared healing (a Trigger of kind shared-healing: Life Bond, homebrew): a summoned creature near its healed summoner shares the healing", async t => {
+  const {sharedHealingRule, healedOthersFor} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const trigger = data => ({schemaVersion: 1, id: "t", type: "Trigger", data: {event: "healing.applied", ...data}});
+  const vitality = {id: "sv", name: "Shared Vitality", system: {active: true, ruleElements: [trigger({kind: "shared-healing", from: "summoner",
+    range: 10, minimumCastLevel: 0, tagsAll: ["spell"]})]}};
+  assert.deepEqual(sharedHealingRule({items: [vitality]}), {name: "Shared Vitality", range: 10, minimumCastLevel: 0, tagsAll: ["spell"]});
+  assert.equal(sharedHealingRule({items: [{...vitality, system: {...vitality.system, active: false}}]}), null, "an inactive feature");
+  assert.equal(sharedHealingRule({items: []}), null);
+  assert.deepEqual(sharedHealingRule({items: [{name: "Life Bond", system: {ruleElements: [trigger({kind: "shared-healing"})]}}]}),
+    {name: "Life Bond", range: 5, minimumCastLevel: 1, tagsAll: ["spell"]}, "the defaults");
+  // Blessed Healer's reward reads only its own kind: a shared-healing Trigger is no healer reward.
+  const healer = {name: "Blessed Healer", system: {ruleElements: [trigger({kind: "healer", othersOnly: true, hitPoints: {type: "add",
+    terms: [{type: "constant", value: 2}, {type: "context", path: "castLevel"}]}})]}};
+  assert.equal(healedOthersFor({uuid: "Actor.c", items: [vitality]}, {}, 3), null);
+  assert.equal(healedOthersFor({uuid: "Actor.c", items: [healer]}, {}, 3)?.hitPoints, 5, "2 + the slot's level");
+  // In play: the healed target's summon 5 feet away, with the homebrew rule, shares a spell's healing (no slot needed).
+  const f = syntheticRuntimeFixture(t, {schemaVersion: 1, id: "healing:spell", label: "Healing spell", tags: ["spell"],
+    targeting: {type: "single", required: true, count: 1}, healing: [{id: "fixed", expression: {type: "constant", value: 6}}]});
+  const familiar = withFoundryActorSystem(fakeActor("familiar", {system: targetActorSystem()}));
+  familiar.items = [vitality];
+  const token = fakeTokenDocument({id: "familiar-token", actor: familiar, scene: f.scene, offset: {i: 2, j: 0}, disposition: f.targetToken.disposition});
+  token.flags = {wildpath: {summon: {casterUuid: f.targetActor.uuid}}};
+  f.scene.tokens.push(token);
+  const bonds = async () => (await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: f.intent, game: f.game}))
+    .options.durability.lifeBonds ?? [];
+  assert.deepEqual((await bonds()).map(bond => bond.target.tokenId), ["familiar-token"]);
+  familiar.items = [{...vitality, system: {active: true, ruleElements: [trigger({kind: "shared-healing", tagsAll: ["spell"]})]}}];
+  assert.deepEqual(await bonds(), [], "Life Bond's own defaults: a cantrip-level cast (0) is not level 1+");
+});
