@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 993 automated, 236 manual, 226 features. Creatures: 375.
+Items: 994 automated, 235 manual, 226 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -466,7 +466,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dust of Dryness | equipment24 | Dust of Dryness (Sprinkle over Water) (manual), Dust of Dryness (Sprinkle on Elemental) (automated) | "Determine Number of Pinches" is passive or triggered: not automated; not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Dust of Sneezing and Choking | equipment24 | Dust of Sneezing and Choking (automated) | — |
 | Dwarf | origins24 | Dwarf (species) | — |
-| Dwarven Plate | equipment24 | Dwarven Plate (gear), Dwarven Plate (Reduce Unwilling Movement) (manual) | "Dwarven Plate" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest |
+| Dwarven Plate | equipment24 | Dwarven Plate (gear), Dwarven Plate (Reduce Unwilling Movement) (automated) | "Dwarven Plate" is passive or triggered: not automated |
 | Dwarven Resilience | origins24 | Dwarven Resilience (feature) | — |
 | Dwarven Thrower | equipment24 | Dwarven Thrower (Attack) (automated), Dwarven Thrower (Attack) (Two-Handed) (automated), Dwarven Thrower (Throw) (automated), Dwarven Thrower (Throw) (Two-Handed) (automated) | — |
 | Dwarven Toughness | origins24 | Dwarven Toughness (feature) | — |

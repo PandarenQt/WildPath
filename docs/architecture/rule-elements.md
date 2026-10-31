@@ -299,7 +299,7 @@ legacy dot data is ignored to avoid double application.
 (`module/adapters/foundry-v14-reaction-provider.mts`, installed as `game.wildpath.reactionServices`)
 turns `Trigger` RuleElements of `kind: "reaction"` on active Items into reaction triggers for any event:
 movement steps, staged and native (`event: "movement.transition-proposed"`, phase `interrupt`), and
-ordinary Actions (`action.declared`, `attack.hit`, `attack.miss`, `check.succeeded`, `damage.applied`):
+ordinary Actions (`action.declared`, `attack.hit`, `attack.miss`, `check.succeeded`, `damage.applied`, `push.applied`):
 
 - The reaction's Action is the Item itself (an Action Item) or the Action named by `data.reaction.actionId`.
 - Each such Token also becomes a movement observer: reach in fields comes from that Action's reach range,

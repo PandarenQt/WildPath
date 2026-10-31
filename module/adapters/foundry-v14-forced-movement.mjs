@@ -1,19 +1,7 @@
 import { sceneCollision } from "./foundry-v14-walls.mjs";
 import { gmNotice } from "../helpers/gm-notice.mjs";
-/** The largest Token, in fields, of each size a push may be limited to ("a Large or smaller creature"). */
-const LARGEST = Object.freeze({ tiny: 0.5, small: 1, medium: 1, large: 2, huge: 3, gargantuan: 4 });
+import { pushable, pushedTargets } from "../helpers/forced-movement.mjs";
 const key = (offset) => `${offset.i}.${offset.j}`;
-/** Who an Action pushes: its failed saves (its successes, `on: "success"`), else its hits. */
-function pushedTargets(state, definition) {
-    const results = (state.results ?? {});
-    if (definition.save)
-        return (results.saveResolution?.results ?? [])
-            .filter(entry => entry.ok && (entry.success === (definition.push?.on === "success")))
-            .map(entry => entry.target);
-    if (definition.attack)
-        return (results.attackResolution?.hits ?? []).map(entry => entry.target);
-    return [];
-}
 /**
  * Where `token` ends up, pushed `fields` fields from `from` (or pulled toward it). Each step is one field along the
  * line between them: on a square grid the longer axis moves a whole field, so a diagonal push crosses diagonals.
@@ -51,18 +39,21 @@ export function createFoundryForcedMovement({ game, logger = console, fromUuid }
             gmNotice("WILDPATH.NOTICE.PushNoToken", {}, undefined, { logger });
             return [];
         }
-        const fields = Math.floor((Number(spec.distance) || 0) / (Number(scene.grid.distance) || 5));
-        const largest = spec.maxSize ? (LARGEST[spec.maxSize] ?? Infinity) : Infinity;
+        const gridDistance = Number(scene.grid.distance) || 5;
+        const reduction = state.input?.pushReduction ?? {};
         const from = source.getCenterPoint();
         const distanceOf = (token) => Math.hypot(token.getCenterPoint().x - from.x, token.getCenterPoint().y - from.y);
         const tokens = pushedTargets(state, definition ?? {}).map(target => scene.tokens.get(String(target?.tokenId ?? "")))
             .filter((token) => Boolean(token) && (token !== source)
-            && (Math.max(Number(token.width) || 1, Number(token.height) || 1) <= largest))
+            && pushable(Math.max(Number(token.width) || 1, Number(token.height) || 1), spec.maxSize))
             // The farthest moves first when pushed, the nearest when pulled, so none blocks another needlessly.
             .sort((a, b) => (spec.toward ? 1 : -1) * (distanceOf(a) - distanceOf(b)));
         const moved = [];
         const collides = sceneCollision(scene);
         for (const token of tokens) {
+            const fields = Math.floor(Math.max((Number(spec.distance) || 0) - (Number(reduction[token.id]) || 0), 0) / gridDistance);
+            if (!fields)
+                continue;
             const others = new Set([...scene.tokens].filter(other => other !== token)
                 .flatMap(other => (other.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
             // Walls stop it on any Scene, viewed or not (foundry-v14-walls.mts).

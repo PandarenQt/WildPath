@@ -1,10 +1,12 @@
 import {sceneCollision} from "./foundry-v14-walls.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
+import {pushable, pushedTargets, type PushSpec} from "../helpers/forced-movement.mjs";
 /**
  * Forced movement (G6, areas.md): when an Action with `push` completes, the active GM moves each creature it pushed
  * (a hit, or a failed save) straight away from its source, or toward it (`toward`: a pull), a field at a time. The
  * creature stops at a wall, another creature, or the Scene's edge. It moves as `forced` movement, which spends no
- * Speed and (2024) provokes no Opportunity Attack; a lasting area it is pushed into still sees it enter.
+ * Speed and (2024) provokes no Opportunity Attack; a lasting area it is pushed into still sees it enter. A reaction
+ * may shorten its own creature's push first (Dwarven Plate: `input.pushReduction`, feet by Token id).
  */
 
 type Data = Record<string, unknown>;
@@ -24,22 +26,8 @@ interface PushScene {
   dimensions?: {sceneRect?: {contains(x: number, y: number): boolean}};
   tokens: Iterable<PushToken> & {get(id: string): PushToken | undefined};
 }
-interface PushSpec {distance?: number; toward?: boolean; maxSize?: string; on?: string}
 
-/** The largest Token, in fields, of each size a push may be limited to ("a Large or smaller creature"). */
-const LARGEST = Object.freeze({tiny: 0.5, small: 1, medium: 1, large: 2, huge: 3, gargantuan: 4} as Record<string, number>);
 const key = (offset: Offset) => `${offset.i}.${offset.j}`;
-
-/** Who an Action pushes: its failed saves (its successes, `on: "success"`), else its hits. */
-function pushedTargets(state: Data, definition: {save?: unknown; attack?: unknown; push?: PushSpec}) {
-  const results = (state.results ?? {}) as {saveResolution?: {results?: Array<{ok?: boolean; success?: boolean; target?: Data}>};
-    attackResolution?: {hits?: Array<{target?: Data}>}};
-  if ( definition.save ) return (results.saveResolution?.results ?? [])
-    .filter(entry => entry.ok && (entry.success === (definition.push?.on === "success")))
-    .map(entry => entry.target);
-  if ( definition.attack ) return (results.attackResolution?.hits ?? []).map(entry => entry.target);
-  return [];
-}
 
 /**
  * Where `token` ends up, pushed `fields` fields from `from` (or pulled toward it). Each step is one field along the
@@ -78,18 +66,20 @@ export function createFoundryForcedMovement({game, logger=console, fromUuid}: {g
       gmNotice("WILDPATH.NOTICE.PushNoToken", {}, undefined, {logger});
       return [];
     }
-    const fields = Math.floor((Number(spec.distance) || 0) / (Number(scene.grid.distance) || 5));
-    const largest = spec.maxSize ? (LARGEST[spec.maxSize] ?? Infinity) : Infinity;
+    const gridDistance = Number(scene.grid.distance) || 5;
+    const reduction = (state.input as {pushReduction?: Record<string, number>} | undefined)?.pushReduction ?? {};
     const from = source.getCenterPoint();
     const distanceOf = (token: PushToken) => Math.hypot(token.getCenterPoint().x - from.x, token.getCenterPoint().y - from.y);
     const tokens = pushedTargets(state, definition ?? {}).map(target => scene.tokens.get(String(target?.tokenId ?? "")))
       .filter((token): token is PushToken => Boolean(token) && (token !== source)
-        && (Math.max(Number(token!.width) || 1, Number(token!.height) || 1) <= largest))
+        && pushable(Math.max(Number(token!.width) || 1, Number(token!.height) || 1), spec.maxSize))
       // The farthest moves first when pushed, the nearest when pulled, so none blocks another needlessly.
       .sort((a, b) => (spec.toward ? 1 : -1) * (distanceOf(a) - distanceOf(b)));
     const moved = [];
     const collides = sceneCollision(scene as never);
     for ( const token of tokens ) {
+      const fields = Math.floor(Math.max((Number(spec.distance) || 0) - (Number(reduction[token.id]) || 0), 0) / gridDistance);
+      if ( !fields ) continue;
       const others = new Set([...scene.tokens].filter(other => other !== token)
         .flatMap(other => (other.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
       // Walls stop it on any Scene, viewed or not (foundry-v14-walls.mts).

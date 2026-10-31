@@ -464,6 +464,16 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
 
   Live (two browsers, 14.369): the Bandit Captain with Stone's Endurance saved against Player1's Hellish Rebuke (10,
   halved) and took 4; fell 20 ft for 7 and took 1; and at the start of its turn absorbed all of its Bleeding.
+- **Before a push (2026-10-31).** An Action that pushes or pulls (`push`, or a reaction's `riderPush`: Forceful Blow) has
+  a reaction window after its damage and before the active GM moves its Tokens (`action.reaction.before-push`, timing
+  `before-push`): a `push.applied` event in its `before` phase, tagged `push` or `pull`, with its `distance`. Its targets
+  are the creatures the push will move, by the same rule as the forced-movement adapter (`helpers/forced-movement.mts`):
+  its failed saves or hits, not its source, none above its `maxSize`. Not named `movement.*`, which Action reaction
+  services drop.
+  - **Dwarven Plate** (SRD): its rider `reducePush: 10` takes 10 feet off the push on its own creature
+    (`input.pushReduction`, feet by Token id). shortcut: always the full 10 feet, and "along the ground" isn't checked.
+  - A magic item's reaction is offered only while its item is equipped and, when it needs attunement, attuned (as using
+    it is), so an unattuned Cube of Force or Helm of Brilliance no longer offers its reaction.
 - **Damage for another creature (2026-10-20).** These use the before-damage window.
   - **The event.** Its `damage.applied` event carries `hit` when an attack roll hit, and `damage:<type>` for each type it
     deals.

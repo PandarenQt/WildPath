@@ -517,6 +517,50 @@ test("Mirror Image: a hit is a miss when its duplicates' highest d6 is 3 or more
   assert.deepEqual(await decoyed(5, 20), [ATTACK_OUTCOMES.MISS, true], "even a critical hit lands on a duplicate");
 });
 
+test("Dwarven Plate: a creature an Action pushes may spend its Reaction to take 10 feet off that push (by its Token)", async () => {
+  const plate = {schemaVersion: 1, id: "action:test-dwarven-plate", label: "Dwarven Plate", costs: reactionCost(),
+    targeting: {type: "self"}, rider: {reducePush: 10}};
+  const pushed = ({push={distance: 10}, attackTotal=18, size=null, riderPush=null}={}) => {
+    const fixture = attackFixture({attackTotal});
+    const target = {...fixture.target, tokenId: "defender-token"};
+    const action = {...fixture.action, ...(push ? {push} : {})};
+    const trigger = createReactionTrigger({id: "trigger:test-dwarven-plate", event: AUTOMATION_EVENT_TYPES.PUSH_APPLIED,
+      match: {phase: AUTOMATION_EVENT_PHASES.BEFORE, targetTokenId: "defender-token"}, actorId: fixture.defender.id,
+      tokenId: "defender-token", actionId: plate.id, actionRef: plate.id, action: plate, chooser: {kind: "specific", userId: "player-b"}});
+    const base = guardServices({defender: fixture.defender, targetActors: fixture.targetActors, action: plate});
+    const services = {...base, reactions: {...base.reactions, triggers: [trigger]}};
+    const state = createActionResolutionState({id: "resolution:dwarven-plate", actor: fixture.attacker, action: actionItem(action),
+      source: {actorId: fixture.attacker.id, actorRef: fixture.attacker.uuid, tokenId: "attacker-token"}, targets: [target],
+      attack: {...fixture.attack, targetContexts: [{...fixture.attack.targetContexts[0], target}]}, durability: true,
+      ...(size ? {context: {spatial: {targetFootprints: [{target, size}]}}} : {})});
+    // As a reaction's rider leaves it (Forceful Blow, in the attack's own window).
+    const waiting = planStagedActionResolution({state: riderPush ? updateResolutionState(state, {input: {...state.input, riderPush}}) : state,
+      targetActors: fixture.targetActors, services});
+    return {fixture, services, waiting};
+  };
+  const {fixture, services, waiting} = pushed();
+  assert.equal(waiting.state.currentStageId, ACTION_PIPELINE_STAGE_IDS.REACTION_BEFORE_PUSH, resultDiagnostic(waiting));
+  assert.equal(waiting.state.pendingRequests[0].type, RESOLUTION_REQUEST_TYPES.REACTION_CHOICE);
+  const selected = resumeStagedActionResolution({state: waiting.state, response: acceptResponse(waiting.state.pendingRequests[0]), services});
+  const child = await executeGuardChild({parentState: selected.state, defender: fixture.defender, targetActors: fixture.targetActors,
+    action: plate, persistencePort: fixture.persistencePort});
+  assert.equal(fixture.defender.system.resources.reaction.value, 0, "its Reaction is spent");
+  const resumed = completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services});
+  assert.deepEqual(resumed.state.input.pushReduction, {"defender-token": 10});
+
+  const declined = pushed();
+  const kept = resumeStagedActionResolution({state: declined.waiting.state, response: declineResponse(declined.waiting.state.pendingRequests[0]),
+    services: declined.services});
+  assert.equal(kept.state.input.pushReduction, undefined, "declined: the full push");
+
+  const noWindow = result => !result.state.pendingRequests.some(request => request.type === RESOLUTION_REQUEST_TYPES.REACTION_CHOICE);
+  assert.ok(noWindow(pushed({push: null}).waiting), "no push");
+  assert.ok(noWindow(pushed({attackTotal: 2}).waiting), "a miss pushes nobody");
+  assert.ok(noWindow(pushed({push: {distance: 10, maxSize: "large"}, size: "huge"}).waiting), "too big to be pushed: not asked");
+  // Forceful Blow: a reaction's push on its hit (`riderPush`), set before this window, opens it too.
+  assert.equal(pushed({push: null, riderPush: {distance: 15}}).waiting.state.currentStageId, ACTION_PIPELINE_STAGE_IDS.REACTION_BEFORE_PUSH);
+});
+
 test("Shield raises AC by 5 against the triggering attack, but a natural 20 still hits as a critical", async () => {
   const fixture = attackFixture({attackTotal: 18, natural: 20});
   const guardAction = reactiveGuardDefinition();

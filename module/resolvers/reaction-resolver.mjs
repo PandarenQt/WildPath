@@ -28,6 +28,8 @@ export const REACTION_WINDOW_TIMINGS = Object.freeze({
   AFTER_CHECK_OUTCOME: "after-check-outcome",
   AFTER_OUTCOME: "after-outcome",
   BEFORE_DAMAGE: "before-damage",
+  // Once it is known who an Action pushes, before its Tokens move (Dwarven Plate).
+  BEFORE_PUSH: "before-push",
   // Once its damage is planned: "when you take damage from a creature" (Hellish Rebuke).
   AFTER_DAMAGE: "after-damage",
   BEFORE_COMMIT: "before-commit"

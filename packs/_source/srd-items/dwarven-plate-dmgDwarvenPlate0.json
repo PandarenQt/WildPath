@@ -65,8 +65,7 @@
       },
       "conversion": {
         "notes": [
-          "\"Dwarven Plate\" is passive or triggered: not automated",
-          "not automated (utility): using it spends its cost; its description says the rest"
+          "\"Dwarven Plate\" is passive or triggered: not automated"
         ]
       },
       "grants": [

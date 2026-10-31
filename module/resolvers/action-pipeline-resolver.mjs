@@ -4,6 +4,7 @@ import {
 import {targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {resolveActorDefense} from "../helpers/combat-statistics.mjs";
+import {pushable, pushedTargets} from "../helpers/forced-movement.mjs";
 import {
   actionDefinitionActivationCost,
   actionDefinitionFromAction,
@@ -108,6 +109,7 @@ export const ACTION_PIPELINE_STAGE_IDS = Object.freeze({
   REACTION_AFTER_CHECK_OUTCOME: "action.reaction.after-check-outcome",
   REACTION_BEFORE_DAMAGE: "action.reaction.before-damage",
   REACTION_AFTER_DAMAGE: "action.reaction.after-damage",
+  REACTION_BEFORE_PUSH: "action.reaction.before-push",
   SAVE_ROLL: "action.save-roll",
   SAVE_OUTCOME: "action.save-outcome",
   DAMAGE_ROLL: "action.damage-roll",
@@ -245,6 +247,8 @@ export function createActionResolutionPipeline({reactions=false}={}) {
   if ( reactions ) stages.push(createBeforeDamageReactionStage());
   stages.push(createDamageStage());
   if ( reactions ) stages.push(createDamageReactionStage());
+  // "If an effect moves you against your will" (Dwarven Plate): once a reaction's push is set too (Forceful Blow).
+  if ( reactions ) stages.push(createBeforePushReactionStage());
   stages.push(
     createHealingRollStage(),
     createHealingStage(),
@@ -421,7 +425,8 @@ const REACTION_STAGE_BY_TIMING = Object.freeze({
   [REACTION_WINDOW_TIMINGS.AFTER_OUTCOME]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ATTACK_OUTCOME,
   [REACTION_WINDOW_TIMINGS.AFTER_CHECK_OUTCOME]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_CHECK_OUTCOME,
   [REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE]: ACTION_PIPELINE_STAGE_IDS.REACTION_BEFORE_DAMAGE,
-  [REACTION_WINDOW_TIMINGS.AFTER_DAMAGE]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_DAMAGE
+  [REACTION_WINDOW_TIMINGS.AFTER_DAMAGE]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_DAMAGE,
+  [REACTION_WINDOW_TIMINGS.BEFORE_PUSH]: ACTION_PIPELINE_STAGE_IDS.REACTION_BEFORE_PUSH
 });
 
 /**
@@ -538,6 +543,47 @@ function damageComingReactionEvent(state) {
       action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
       ...targetRelations(input, damaged),
       timing: REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE
+    }
+  });
+}
+
+function createBeforePushReactionStage() {
+  return createActionPipelineReactionStage({
+    id: ACTION_PIPELINE_STAGE_IDS.REACTION_BEFORE_PUSH,
+    timing: REACTION_WINDOW_TIMINGS.BEFORE_PUSH,
+    eventSelector: pushComingReactionEvent
+  });
+}
+
+/**
+ * `push.applied` in its `before` phase: its targets are the creatures the Action's push (or a reaction's, `riderPush`)
+ * will move, as the forced-movement adapter picks them (not its source, none above its `maxSize`). A reaction may
+ * shorten it (Dwarven Plate's `rider.reducePush`). Null when it pushes nobody.
+ * shortcut: like the damage windows, a creature the same Action drops to 0 Hit Points is still asked; upgrade with an
+ * incapacitation check in reaction discovery.
+ */
+function pushComingReactionEvent(state) {
+  const input = preparedResolverInput(state);
+  const spec = state.actionDefinition?.push ?? input.riderPush;
+  if ( !(Number(spec?.distance) > 0) ) return null;
+  const source = state.actionContext?.source ?? input.source ?? state.source ?? null;
+  const candidates = pushedTargets(state, state.actionDefinition ?? {})
+    .filter(target => target && !(source?.tokenId && (target.tokenId === source.tokenId)));
+  const sizes = targetRelations(input, candidates).relations ?? {};
+  const pushed = candidates.filter(target => pushable(sizes[target.tokenId ?? target.id]?.size, spec.maxSize));
+  if ( !pushed.length ) return null;
+  return createAutomationEvent({
+    id: `event:${state.id}:push-coming`,
+    type: AUTOMATION_EVENT_TYPES.PUSH_APPLIED,
+    phase: AUTOMATION_EVENT_PHASES.BEFORE,
+    source,
+    targets: pushed,
+    tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), spec.toward ? "pull" : "push"]),
+    data: {
+      action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
+      distance: Number(spec.distance),
+      ...targetRelations(input, pushed),
+      timing: REACTION_WINDOW_TIMINGS.BEFORE_PUSH
     }
   });
 }
@@ -3531,6 +3577,9 @@ function riderPatch(state, rider, {window, childState}) {
       ...((rider.rollMode && input.attack) ? {attack: {...input.attack, rollMode: rider.rollMode, rollModeSources: [rider.rollMode]}} : {}),
       ...(rider.tags?.length ? {riderTags: uniqueStrings([...(input.riderTags ?? []), ...rider.tags])} : {}),
       ...(rider.push ? {riderPush: clonePlain(rider.push)} : {}),
+      // Dwarven Plate: that many feet off the push on its own creature (adapters/foundry-v14-forced-movement).
+      ...((Number(rider.reducePush) > 0) && childState?.source?.tokenId ? {pushReduction: {...(input.pushReduction ?? {}),
+        [childState.source.tokenId]: Number(rider.reducePush)}} : {}),
       // Protective Bond: its creature teleports beside the creature it protects (adapters/foundry-v14-teleport).
       ...((rider.teleportNextTo && childState?.source?.tokenId && protectedTokenId(childState))
         ? {riderTeleport: {tokenId: childState.source.tokenId, nextTo: protectedTokenId(childState)}} : {}),

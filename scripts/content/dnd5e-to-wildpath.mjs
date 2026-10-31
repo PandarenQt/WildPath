@@ -143,6 +143,11 @@ const REACTIONS = Object.freeze({
   // Deflect Energy, any damage. Its Redirect is a new attack, not this damage (by hand).
   "deflect-attacks": {event: "damage.applied", match: {phase: "before", targetTokenId: "{self}", tagsAll: ["hit"],
     tagsAny: ["damage:bludgeoning", "damage:piercing", "damage:slashing"]}, reduces: DEFLECTION},
+  // Dwarven Plate: "moves you against your will along the ground" is a push or pull, before its Tokens move; it takes off
+  // the full 10 feet (`rider.reducePush`). shortcut: never less than 10 feet (5 is by hand) and "along the ground" isn't
+  // checked; upgrade with a choice on the reaction and an elevation predicate. shortcut: a creature the same Action drops
+  // to 0 Hit Points is still asked, as in every planned-damage window; upgrade with an incapacitation check in discovery.
+  "dwarven-plate": {event: "push.applied", match: {phase: "before", targetTokenId: "{self}"}, reducesPush: 10},
   "deflect-energy": {event: "damage.applied", match: {phase: "before", targetTokenId: "{self}", tagsAll: ["hit"]}, reduces: DEFLECTION},
   // 2024 Interception: "When a creature you can see hits another creature within 5 feet of you with an attack roll": 1d10 +
   // its Proficiency Bonus off the damage that creature takes. shortcut: its "holding a Shield or a Simple or Martial
@@ -1742,10 +1747,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     // Its Trigger brings a common Action (Retaliation's melee attack), so its own utility does nothing more.
     if ( reaction?.commonAction ) notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
-    if ( reaction?.reduces || reaction?.redirect ) {
+    if ( reaction?.reduces || reaction?.redirect || reaction?.reducesPush ) {
       const {healing: _healing, ...rest} = definition;
       definition = {...rest, range: {type: "self"}, targeting: {type: "self"}, rider: {
         ...(reaction.reduces ? {reduceDamage: structuredClone(reaction.reduces)} : {}),
+        ...(reaction.reducesPush ? {reducePush: reaction.reducesPush} : {}),
         ...(reaction.redirect ? {redirectDamage: structuredClone(reaction.redirect)} : {}),
         ...(reaction.protects ? {protects: reaction.protects} : {})}};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));

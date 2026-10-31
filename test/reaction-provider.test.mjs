@@ -235,6 +235,23 @@ test("its own Action's damage to itself (a fall, its Bleeding) offers its own re
   assert.deepEqual(services.reactions.triggers.map(trigger => trigger.id), ["reaction:goliath:stone:reaction"]);
 });
 
+test("a magic item's reaction is offered only while its item is equipped and, when it needs attunement, attuned (Cube of Force)", () => {
+  const shield = {id: "cube-shield", name: "Cube of Force: Shield", type: "action", flags: {wildpath: {grantedBy: "cube"}},
+    system: {active: true, definition: {schemaVersion: 1, id: "action:cube-shield", label: "Cube of Force: Shield",
+      costs: {allOf: [{capability: "reaction", amount: 1}]}, targeting: {type: "self"}},
+    ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", targetTokenId: "{self}"}}}]}};
+  const offered = gear => {
+    const holder = token("holder", 1, [{id: "cube", name: "Cube of Force", type: "gear", system: gear}, shield]);
+    return (createFoundryReactionProvider({resolve: () => null})({scene: {grid: {distance: 5}, tokens: [holder]}, token: holder})
+      .reactions?.triggers ?? []).some(trigger => trigger.id.includes("cube-shield"));
+  };
+  assert.equal(offered({active: true, attunement: "required"}), false, "not attuned");
+  assert.equal(offered({active: false, attunement: "attuned"}), false, "not equipped");
+  assert.equal(offered({active: true, attunement: "attuned"}), true);
+  assert.equal(offered({active: true, attunement: ""}), true, "no attunement needed");
+});
+
 test("each reactor's relation to an event's source: hostile, how far, and whether it sees it", async () => {
   const {relationsToSource} = await import("../module/adapters/foundry-v14-reaction-provider.mjs");
   const at = (id, disposition, x, statuses=[]) => ({...token(id, disposition), x, y: 0, width: 1, height: 1, elevation: 0,

@@ -29,6 +29,9 @@ export const AUTOMATION_EVENT_TYPES = Object.freeze({
   SAVE_SUCCESS: "save.success",
   SAVE_FAILURE: "save.failure",
   DAMAGE_APPLIED: "damage.applied",
+  // A push or pull an Action is about to make, before its Tokens move (Dwarven Plate shortens it). Not "movement.*":
+  // Action reaction services drop those (foundry-v14-reaction-services).
+  PUSH_APPLIED: "push.applied",
   HEALING_APPLIED: "healing.applied",
   EFFECT_APPLIED: "effect.applied",
   MOVEMENT_STARTED: "movement.started",

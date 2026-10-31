@@ -2233,6 +2233,12 @@ test("reactions: Retaliation's common attack, Countercharm's ally reroll, Stone'
     deflect.system.definition.rider.reduceDamage.dice.faces], [["hit"], 3, undefined, 10]);
   assert.equal(trigger(read("deflect-energy-reduce-")).match.tagsAny, undefined, "Deflect Energy: any damage type");
   assert.equal(validateActionDefinition(stone.system.definition).ok, true);
+  // Dwarven Plate: as a push or pull is about to move its wearer, 10 feet off it.
+  const plate = read("dwarven-plate-reduce-");
+  assert.deepEqual([trigger(plate).event, trigger(plate).match, plate.system.definition.rider, plate.system.definition.targeting],
+    ["push.applied", {phase: "before", targetTokenId: "{self}"}, {reducePush: 10}, {type: "self"}]);
+  assert.equal(plate.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")), false);
+  assert.equal(validateActionDefinition(plate.system.definition).ok, true);
   const indomitable = read("indomitable-phbftr");
   assert.deepEqual([indomitable.type, indomitable.system.ruleElements.map(rule => rule.data.resourceId)], ["feature", ["indomitable"]],
     "no Action that does nothing; its pool stays for the engine's reroll");

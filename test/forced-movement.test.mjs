@@ -57,3 +57,25 @@ test("an Action's push moves the creatures it hit or that failed their saves, as
   assert.deepEqual(await createFoundryForcedMovement({game: {user: {id: "player"}, users: {activeGM: {id: "gm"}}},
     fromUuid: () => walled.tokens.get("caster")}).afterResolution({state}), [], "only the active GM moves them");
 });
+
+test("a reaction shortens the push on its own creature only (Dwarven Plate: input.pushReduction by Token id)", async () => {
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}};
+  const push = async (reduction, definition={save: {ability: "fortitude"}, push: {distance: 10}}, input={}) => {
+    const world = scene([["caster", 1000, 1000], ["failed", 1100, 1000], ["other", 1000, 1100]]);
+    const moved = await createFoundryForcedMovement({game, fromUuid: () => world.tokens.get("caster")}).afterResolution({state: {
+      source: {tokenRef: "caster"}, actionDefinition: definition, input: {...input, pushReduction: reduction},
+      results: {saveResolution: {results: [{ok: true, success: false, target: {tokenId: "failed"}},
+        {ok: true, success: false, target: {tokenId: "other"}}]}, attackResolution: {hits: [{target: {tokenId: "failed"}}]}}}});
+    return {world, moved: moved.map(token => token.id).sort()};
+  };
+  const full = await push({failed: 10});
+  assert.deepEqual(full.moved, ["other"], "a 10-foot push shortened by 10 feet moves nobody");
+  assert.deepEqual(full.world.tokens.get("failed").updates, []);
+  assert.deepEqual(full.world.tokens.get("other").updates[0].data, {x: 1000, y: 1300}, "a creature without one still moves two fields");
+  const part = await push({failed: 5});
+  assert.equal(part.world.tokens.get("failed").x, 1200, "5 feet off leaves one field");
+  // Forceful Blow: a reaction's push on its hit (`riderPush`), shortened the same way.
+  const rider = await push({failed: 10}, {attack: {type: "melee"}}, {riderPush: {distance: 15}});
+  assert.deepEqual(rider.moved, ["failed"]);
+  assert.equal(rider.world.tokens.get("failed").x, 1200, "15 feet less 10 is one field");
+});

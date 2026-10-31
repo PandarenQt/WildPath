@@ -2565,6 +2565,22 @@ test("Stone's Endurance: as an attack on it hits, 1d12 + its Fortitude modifier 
   assert.equal(holder.system.pools.find(pool => pool.id === "stone-s-endurance").value, 1);
 });
 
+test("Dwarven Plate: an attack that pushes its wearer offers its Reaction, which takes 10 feet off that push", async t => {
+  const fs = await import("node:fs");
+  const plate = JSON.parse(fs.readFileSync("packs/_source/srd-items/dwarven-plate-reduce-unwilling-movement-gj4f476ga3f70000.json", "utf8"));
+  const gear = {id: "plate-gear", type: "gear", name: "Dwarven Plate", system: {active: true, attunement: ""}};
+  const {targetActor, gm, player, offers, intent, holder, action} = counterattackFixture(t, {
+    holderItems: [gear, {id: plate._id, type: "action", name: plate.name, system: plate.system, flags: {wildpath: {grantedBy: gear.id}}}]});
+  action.system.definition.push = {distance: 10};
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(offers.length, 1, "offered to the creature pushed");
+  assert.equal(holder, targetActor);
+  assert.equal(holder.system.resources.reaction.value, 0);
+  assert.deepEqual(record.state.input.pushReduction, {"target-token": 10});
+});
+
 test("Countercharm: offered for a save failed against Charmed or Frightened, by the creature itself or an ally within 30 ft", async t => {
   const {withAllyTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
   const {scene, targetActor, targetToken, targetSource} = syntheticRuntimeFixture(t);

@@ -126,6 +126,10 @@ function tokenReactions(token) {
     return items.flatMap(item => {
         if (item.system?.active === false)
             return [];
+        // A magic item's reaction needs its item equipped and, when it needs attunement, attuned (2024), as using it does.
+        const gear = item.flags?.wildpath?.grantedBy ? items.find(entry => entry.id === item.flags?.wildpath?.grantedBy) : null;
+        if (gear && ((gear.system?.active === false) || (gear.system?.attunement === "required")))
+            return [];
         return (item.system?.ruleElements ?? []).flatMap(element => {
             const data = (element.data ?? {});
             if ((element.type !== "Trigger") || (element.enabled === false))

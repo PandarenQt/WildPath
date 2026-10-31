@@ -330,6 +330,8 @@ An Action with `push: {distance, toward?, maxSize?, on?}` moves creatures when i
   - When several are pushed, the farthest moves first; when pulled, the nearest.
 - **As forced movement.** The Token update carries `movementKind: "forced"`. It spends no Speed and provokes no
   Opportunity Attack (2024). A lasting area the creature is pushed into still sees it enter.
+- **Shortened by a reaction.** A `push.applied` `before` window lets each creature pushed shorten its own push
+  (Dwarven Plate: `input.pushReduction`, feet by Token id; [reactions.md](reactions.md)).
 - Shortcuts:
   - "up to N feet" always pushes the whole distance;
   - (walls stop it on any Scene since 2026-10-21: [senses-and-cover.md](senses-and-cover.md#walls-on-any-scene));

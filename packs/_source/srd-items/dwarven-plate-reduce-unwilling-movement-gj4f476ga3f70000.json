@@ -21,9 +21,32 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "rider": {
+        "reducePush": 10
+      },
       "label": "Dwarven Plate (Reduce Unwilling Movement)"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "push.applied",
+          "match": {
+            "phase": "before",
+            "targetTokenId": "{self}"
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -39,9 +62,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "price": 40000,
       "rarity": "veryRare"
