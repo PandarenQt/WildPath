@@ -118,23 +118,27 @@ async function bastionEvent(actor) {
     : format("WILDPATH.BASTION.Event", {name: actor.name, total: roll.total});
 }
 
-/** A Bastion turn in progress: a second click (or a second GM's) while it runs does nothing. */
+/** A Bastion turn in progress on this client: a second click while it runs does nothing. */
 let running = false;
 
-export async function runBastionTurn() {
-  if ( running ) return;
+/**
+ * A Bastion turn: each character's orders, then an event for each whose special facilities all maintain. Only the active
+ * GM runs it, so a second GM client (or a second login as the GM) never runs it again.
+ */
+export async function runBastionTurn({game=globalThis.game, ChatMessage=globalThis.ChatMessage}={}) {
+  if ( running || !game?.user?.id || (game.users?.activeGM?.id !== game.user.id) ) return;
   running = true;
   try {
-    const game = globalThis.game;
     const characters = [...game.actors].filter(actor => (actor.type === "character") && actor.hasPlayerOwner);
     const lines = [];
     for ( const actor of characters ) {
       const {special, orders, quiet} = bastionTurn(actor);
       if ( !special.length ) continue;
-      // Each order back to Maintain as soon as it is carried out: an error later never repeats it.
+      // Each order back to Maintain as soon as it is carried out: an error later never repeats it. One its player gave
+      // while the turn ran (no longer the order carried out) stays for the next turn.
       for ( const {facility, order} of orders ) {
         lines.push(await carryOut(actor, facility, order));
-        await facility.update({"system.current.order": "maintain"});
+        if ( facility.system?.current?.order === order ) await facility.update({"system.current.order": "maintain"});
       }
       if ( quiet ) lines.push(await bastionEvent(actor));
     }

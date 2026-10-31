@@ -53,3 +53,29 @@ test("facilities added together count against the slots and the gold, as one at 
   assert.equal(batch.cost, 1000);
   assert.equal(admitFacility(rich, basic("cramped"), batch).ok, false, "the batch already spends all 1,000 gp");
 });
+
+test("a Bastion turn runs only on the active GM, and an order its player gave while it ran stays for the next turn", async () => {
+  const {runBastionTurn} = await import("../module/applications/bastions.mjs");
+  const updates = [];
+  const facility = {name: "Workshop", system: {kind: "special", current: {order: "craft", craft: "Item.boots", progress: 0}},
+    update: async data => {
+      updates.push(data);
+      // The player re-orders while the turn runs: after the craft's progress is written, before the reset.
+      if ( "system.current.progress" in data ) facility.system.current.order = "trade";
+    }};
+  const actor = {type: "character", hasPlayerOwner: true, name: "Hero", items: [{...facility, type: "facility"}], system: {bastion: {}}};
+  actor.items = [facility];
+  facility.type = "facility";
+  const messages = [];
+  const game = (self, active) => ({user: {id: self}, users: {activeGM: {id: active}}, actors: [actor], time: {advance: async () => {}}});
+  const previous = globalThis.fromUuid;
+  globalThis.fromUuid = async () => ({name: "Boots", system: {price: 5000, rarity: "rare"}, flags: {}});
+  try {
+    await runBastionTurn({game: game("gm2", "gm1"), ChatMessage: {create: async data => { messages.push(data); }}});
+    assert.deepEqual([updates.length, messages.length], [0, 0], "not the active GM: nothing runs");
+    await runBastionTurn({game: game("gm1", "gm1"), ChatMessage: {create: async data => { messages.push(data); }}});
+    assert.equal(messages.length, 1);
+    assert.equal(facility.system.current.order, "trade", "the order given mid-turn is not reset to Maintain");
+    assert.equal(updates.some(data => data["system.current.order"] === "maintain"), false);
+  } finally { globalThis.fromUuid = previous; }
+});
