@@ -135,3 +135,14 @@ test("a species' levels follow its creature's: a Tiefling's cantrip at 1st, its 
   assert.deepEqual(titles(stepsForLevel(tiefling, 0, {otherLevels: 4})), [":size", ":Traits", ":Poison Spray", ":Ray of Sickness"],
     "added to a 4th-level character: every level up to 4th");
 });
+
+test("recorded damage and condition traits are rules: a Dwarf's Resistance to Poison, a Dragonborn's chosen one", async () => {
+  const {trainingRuleElements} = await import("../module/helpers/level-up.mjs");
+  const {damageProfileFromRuleElements, conditionImmunitiesFromRuleElements} = await import("../module/helpers/rule-elements.mjs");
+  const rules = trainingRuleElements(["skills:ath", "dr:poison", "di:fire", "dv:cold", "ci:frightened", "dr:*", "languages:dwarvish"]);
+  assert.deepEqual(rules.map(rule => rule.type), ["GrantResistance", "GrantImmunity", "GrantVulnerability", "ConditionImmunity"]);
+  const profile = damageProfileFromRuleElements([{ruleElements: rules}]);
+  assert.deepEqual([profile.resistances, profile.immunities, profile.vulnerabilities].map(entries => entries.flatMap(entry => entry.damageTypes)),
+    [["poison"], ["fire"], ["cold"]]);
+  assert.deepEqual(conditionImmunitiesFromRuleElements([{ruleElements: rules}]), ["frightened"]);
+});

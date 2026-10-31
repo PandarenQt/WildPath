@@ -180,6 +180,24 @@ export function mergeTraining(system, keys) {
             training[kind] = [...new Set([...(training[kind] ?? []), value])];
     }
 }
+/** A recorded trait's damage and condition keys (dnd5e's `dr:`, `di:`, `dv:`, `ci:`) as the rule elements they mean. */
+const TRAIT_RULES = Object.freeze({ dr: "GrantResistance", di: "GrantImmunity", dv: "GrantVulnerability",
+    ci: "ConditionImmunity" });
+/**
+ * The rules an Item's recorded training gives (`flags.wildpath.training`): a Dwarf's Resistance to Poison, a Dragonborn's
+ * chosen Resistance, Draconic Sorcery's. Its skills and proficiencies are `mergeTraining`'s; these are its creature's
+ * damage and condition grants, which it holds like any other rule.
+ */
+export function trainingRuleElements(keys = []) {
+    return keys.flatMap(key => {
+        const [kind, value] = String(key).split(":");
+        const type = TRAIT_RULES[kind ?? ""];
+        if (!type || !value || value.endsWith("*"))
+            return [];
+        return [{ schemaVersion: 1, id: `training-${kind}-${value}`, type,
+                data: type === "ConditionImmunity" ? { conditions: [value] } : { damageTypes: [value] } }];
+    });
+}
 /** An ability increase (2024): each chosen ability raised by its points, never above `cap` points each or 20. */
 export function improvementUpdates(increases, system, { cap = 2, points = 2 } = {}) {
     const updates = {};

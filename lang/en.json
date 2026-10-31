@@ -1092,6 +1092,10 @@
         "tools": "Tools",
         "masteries": "Weapon Mastery",
         "languages": "Languages",
+        "dr": "Resistance",
+        "di": "Immunity",
+        "dv": "Vulnerability",
+        "ci": "Condition immunity",
         "Hint": {
           "armor": "light, medium, heavy, shield",
           "weapons": "simple, martial, or a weapon",

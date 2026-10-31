@@ -12,6 +12,7 @@ import {
   armorClassesFromRuleElements
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
+import {trainingRuleElements} from "../helpers/level-up.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {floatHealthChange} from "../applications/floating-text.mjs";
@@ -1072,7 +1073,9 @@ function grantOwners(actor) {
   const untrained = untrainedArmor(actor);
   const items = [...(actor.items ?? [])].filter(item => contributes(item, untrained) && (item.type !== "action")
     && (!transformation || contributesWhileTransformed(item, transformation)))
-    .map(item => ({ruleElements: item.system?.ruleElements ?? [], source: documentRuleElementSource(item, "item")}));
+    // Its recorded training's damage and condition traits too (a Dwarf's Resistance to Poison, from its species).
+    .map(item => ({ruleElements: [...(item.system?.ruleElements ?? []), ...trainingRuleElements(item.flags?.wildpath?.training ?? [])],
+      source: documentRuleElementSource(item, "item")}));
   const effects = [...(actor.allApplicableEffects?.() ?? actor.effects)].filter(effect => !effect.disabled && !effect.isSuppressed)
     .map(effect => ({ruleElements: hostedRules(effect), source: documentRuleElementSource(effect, "effect")}));
   const hindering = untrained.find(item => item.system.armor !== "shield");
