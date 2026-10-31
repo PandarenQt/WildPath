@@ -123,8 +123,9 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
         durability: { targetSystems: Object.fromEntries(targetKeys.map(key => [key, targetSystem])),
             ...(profile ? { adjustmentProfiles: Object.fromEntries(targetKeys.map(key => [key, structuredClone(profile)])) } : {}),
             // Its own damage's ignored Resistances (an Opportunity Attack with Boon of Irresistible Offense).
-            ...(ignoredResistances(reactor.actor, { tags: [...(definition.tags ?? [])] }).length
-                ? { adjustments: { ignoresResistance: ignoredResistances(reactor.actor, { tags: [...(definition.tags ?? [])] }) } } : {}) } });
+            ...(ignoredResistances(reactor.actor, { tags: [...(definition.tags ?? [])], attack: definition.attack }).length
+                ? { adjustments: { ignoresResistance: ignoredResistances(reactor.actor, { tags: [...(definition.tags ?? [])],
+                            attack: definition.attack }) } } : {}) } });
 }
 /** Whether `reactor`'s own attack, the event it answers, was a critical hit on `target`. */
 function ownCriticalHit(event, reactor, target) {

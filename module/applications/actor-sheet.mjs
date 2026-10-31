@@ -10,7 +10,7 @@ import {portentDice, portentFeature} from "../adapters/foundry-v14-portent.mjs";
 import {LANGUAGES} from "../helpers/level-up.mjs";
 import {chooseAbilityScores} from "./ability-scores.mjs";
 import {fitsSpellChoice, preparedSpellLimit, preparesSpell, spellBaseLevel, spellChoiceMark, spellChoicePool, spellChoiceToggle,
-  spellChoices} from "../helpers/spellcasting.mjs";
+  spellChoiceProblem, spellChoices} from "../helpers/spellcasting.mjs";
 
 /** Item types whose drop opens the level-up dialog (G8): a class's first level, a species or background. */
 const LEVELLED = new Set(["class", "species", "background"]);
@@ -172,8 +172,10 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     for ( const row of context.gearItems ?? [] ) row.enchantments = [...(this.actor.items.get(row.id)?.effects ?? [])]
       .filter(effect => effect.flags?.wildpath?.enchantment).map(effect => ({id: effect.id, name: effect.name}));
     // Items and effects whose rules can't be read (they are skipped): named, so they can be opened and fixed.
+    // A spell choice that can't be read is skipped too (`spellChoices`), so its feature is named here.
     context.brokenRules = [...this.actor.items, ...this.actor.effects]
-      .filter(document => (document.system?.ruleElements ?? []).length && ruleProblems(document.system.ruleElements).length)
+      .filter(document => ((document.system?.ruleElements ?? []).length && ruleProblems(document.system.ruleElements).length)
+        || spellChoiceProblem(document))
       .map(document => document.name);
     // A Diviner's foretelling rolls not yet used (Portent).
     context.portent = portentFeature(this.actor) ? portentDice(this.actor).map(die => die.value).join(", ") : "";

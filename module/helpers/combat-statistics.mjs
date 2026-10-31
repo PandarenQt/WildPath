@@ -277,12 +277,15 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
   const dieMinimums = (components.length && (typeof actor?.getDamageDieMinimums === "function"))
     ? actor.getDamageDieMinimums(damageDomains(attackDefinition, tags), {item, tags: extraTags, context})
       .map(entry => ({minimum: entry.minimum, damageTypes: entry.damageTypes ?? []})) : [];
-  // Its weapon's damage dice rolled twice, the higher kept (2024 Savage Attacker): the first active feature whose
-  // `damageTwice` fits this attack and is unused this turn. Each feature has its own once-a-turn use.
-  const twice = own ? [...(actor?.items ?? [])].filter(entry => entry?.system?.active !== false)
+  // Its weapon's damage dice rolled twice, the higher kept (2024 Savage Attacker): an active feature whose `damageTwice`
+  // fits this attack and is unused this turn, one with no limit first so a once-a-turn use is not spent for nothing.
+  // Each feature has its own once-a-turn use. Its tags add the attack's statistic: a weapon Action carries no "weapon" tag.
+  const twiceTags = [...extraTags, attackDefinition?.statistic].filter(Boolean);
+  const fitting = own ? [...(actor?.items ?? [])].filter(entry => entry?.system?.active !== false)
     .map(entry => ({entry, spec: damageTwiceSpec(entry?.flags?.wildpath?.damageTwice)}))
-    .find(({entry, spec}) => spec && spec.tagsAll.every(tag => extraTags.includes(tag))
-      && !((spec.once === "turn") && turn && (actor.flags?.wildpath?.onceUsed?.[damageTwiceKey(entry)] === turn))) : null;
+    .filter(({entry, spec}) => spec && spec.tagsAll.every(tag => twiceTags.includes(tag))
+      && !((spec.once === "turn") && turn && (actor.flags?.wildpath?.onceUsed?.[damageTwiceKey(entry)] === turn))) : [];
+  const twice = fitting.find(({spec}) => spec.once === null) ?? fitting[0] ?? null;
   const bestOfTwo = twice ? (((twice.spec.once === "turn") && turn) ? {once: {key: damageTwiceKey(twice.entry), turn}} : {}) : null;
   // Healing bonuses (`healing.spell`, `healing`), added once to its first component; their values see `context`
   // (`castLevel`: Disciple of Life).
@@ -377,12 +380,14 @@ function scoreMinimum(actor, domains, ability) {
  * The damage types whose Resistance a creature's damage ignores: its `ignore-resistance` RollOutcomes on the damage
  * domains of an Action with these `tags` (Elemental Adept's chosen type, on `damage.spell`), whose predicates see the
  * tags, and its active features' `flags.wildpath.ignoresResistance` (Boon of Irresistible Offense's Bludgeoning,
- * Piercing and Slashing). Immunity still holds.
+ * Piercing and Slashing). Immunity still holds. `attack`: the Action's attack, whose statistic (`weapon`, `spell`) joins
+ * the tags, since a weapon Action carries no "weapon" tag of its own.
  * @param {object} actor
- * @param {{tags?: string[]}} [options]
+ * @param {{tags?: string[], attack?: {statistic?: string}|null}} [options]
  * @returns {string[]}
  */
-export function ignoredResistances(actor, {tags=[]}={}) {
+export function ignoredResistances(actor, {tags=[], attack=null}={}) {
+  tags = [...new Set([...tags, attack?.statistic].filter(Boolean))];
   const domains = [tags.includes("spell") ? "damage.spell" : null, tags.includes("weapon") ? "damage.weapon" : null, "damage"].filter(Boolean);
   const ruled = (actor?.getRollOutcomes?.(domains, {context: {tags}}) ?? []).filter(outcome => outcome.outcome === "ignore-resistance")
     .flatMap(outcome => outcome.damageTypes ?? []);

@@ -274,9 +274,13 @@ needing Warlock levels was offered. Armor of Shadows was added.
     (`preparesSpell`); without the feature the mark does nothing. The sheet shows a toggle named after the feature on
     each spell that fits (a pool-backed one only while that pool has a maximum above 0); count 1 unmarks the other spell
     of that level, a higher count takes the lowest free number or warns that all are taken (`spellChoiceToggle`).
-    `flag` may not be one the system writes on Items (`RESERVED_SPELL_FLAGS`: `grantedBy`, `source`, `training`,
-    `freeCast`, `conversion`, `replaced`, `reactionPolicy`, `buildCost`, `spellChoice`): such a feature, or one with no
-    levels or a bad count, fails explicitly. The spells' marks are play data (pack-refresh KEPT_FLAGS keeps `arcanum`,
+    `flag` may not be one the system writes or reads on Items (`RESERVED_SPELL_FLAGS`: `grantedBy`, `source`,
+    `training`, `freeCast`, `conversion`, `replaced`, `reactionPolicy`, `buildCost`, `spellChoice`, and the flags read
+    from any active Item, such as `damageTwice`, `ignoresResistance`, `slotRecall`, `choiceFor`, so a marked spell never
+    becomes that feature). Such a choice, or one with no levels or a bad count, fails explicitly at the boundary: an edit
+    storing it is refused with its problem in words (`refuseBrokenSpellChoice`, Item `_preUpdate`), and on a stored or
+    imported Item it is skipped where spells are read (`spellChoices`) and its feature is named on the actor sheet's
+    broken-rules line (`spellChoiceProblem`), so the sheet still opens to fix it. The spells' marks are play data (pack-refresh KEPT_FLAGS keeps `arcanum`,
     `mastered`, `signature`; a homebrew flag is not refreshed onto a spell, which no pack copy carries anyway).
     - **Mystic Arcanum** gives a pool per spell level 6 to 9 (Warlock levels 11, 13, 15 and 17), recovered on a Long
       Rest: `{flag: "arcanum", levels: [6, 7, 8, 9], resourceId: "mystic-arcanum.{level}"}`. Live (before the shape was

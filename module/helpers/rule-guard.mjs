@@ -1,4 +1,5 @@
 import {ruleIssues} from "./rule-builder.mjs";
+import {spellChoiceProblem} from "./spellcasting.mjs";
 
 /** One problem in words: "Rule 2: …" (a list that is no list has no rule number). */
 function describe({index, text}, i18n) {
@@ -32,6 +33,26 @@ export function refuseBrokenRules(document, next, {game=globalThis.game, ui=glob
   if ( !added.length ) return false;
   const problems = added.map(issue => describe(issue, game?.i18n)).join(" ");
   ui?.notifications?.warn?.(game?.i18n?.format?.("WILDPATH.RULES.Refused", {name: document.name ?? "", problems}) ?? problems);
+  return true;
+}
+
+/**
+ * Whether an edit storing `next` as `document`'s spell choice (`flags.wildpath.spellChoice`) must be refused: the choice
+ * it leaves (`next` over the stored one: a partial edit writes some of its fields) cannot be read. The GM or author is
+ * told why. Clearing it (`null`) passes. Like RuleElements, a document being created is not checked: its sheet names it.
+ * @param {{name?: string, flags?: {wildpath?: {spellChoice?: unknown}}}} document
+ * @param {unknown} next
+ * @param {{game?: any, ui?: any}} [options]
+ * @returns {boolean}
+ */
+export function refuseBrokenSpellChoice(document, next, {game=globalThis.game, ui=globalThis.ui}={}) {
+  if ( (next === undefined) || (next === null) ) return false;
+  const stored = document.flags?.wildpath?.spellChoice;
+  const spellChoice = (next && (typeof next === "object") && !Array.isArray(next) && stored && (typeof stored === "object"))
+    ? {...stored, ...next} : next;
+  const problem = spellChoiceProblem({name: document.name, flags: {wildpath: {spellChoice}}});
+  if ( !problem ) return false;
+  ui?.notifications?.warn?.(game?.i18n?.format?.("WILDPATH.RULES.Refused", {name: document.name ?? "", problems: problem}) ?? problem);
   return true;
 }
 

@@ -226,10 +226,12 @@ choice. 2024 Elemental Adept: `DamageDieMinimum {domains: ["damage.spell"], mini
 
 **Weapon damage rolled twice (2026-10-31).** A feature's `flags.wildpath.damageTwice: true | {tagsAll?: string[],
 once?: "turn" | null}` (2024 Savage Attacker: `true`, read as `{tagsAll: ["weapon"], once: "turn"}`) makes the hits of
-attacks with every tag in `tagsAll` (the attack's type, its Action's tags, the weapon's category and properties) carry
-`bestOfTwo` in their damage statistic. With `once: "turn"` each feature has its own use a turn
-(`flags.wildpath.onceUsed.<item id>-damageTwice`, recorded by the hit like a once-per-turn extra); the first fitting
-feature not yet used is taken. `once: null` applies on every hit. It only ever rolls the weapon's own die (its
+attacks with every tag in `tagsAll` (the attack's type and statistic (`weapon`: a weapon Action carries no "weapon"
+tag of its own), its Action's tags, the weapon's category and properties) carry `bestOfTwo` in their damage statistic.
+With `once: "turn"` each feature has its own use a turn (`flags.wildpath.onceUsed.<item id>-damageTwice`, recorded by
+the hit like a once-per-turn extra). A fitting feature with `once: null` is taken before one not yet used this turn, so
+a once-a-turn use is not spent on a hit the unlimited one covers; among those, the first. `once: null` applies on every
+hit. It only ever rolls the weapon's own die (its
 `weapon-base` component), so `tagsAll` can narrow among weapon attacks (`melee`, `category:martial`) but cannot reach a
 spell. The weapon's die is rolled as Foundry's dice pool `{1d8,1d8}kh` (doubled dice in both on a
 critical), the higher total kept; a typed total has the single roll's bounds. Its user would always keep the higher, so
@@ -628,8 +630,9 @@ A golem's Immutable Form is `ConditionImmunity {conditions: ["transformed"]}`: P
   is halved instead, while the predicate holds against the Action's tags. It is `evasion`'s caster-side mirror (2024
   Potent Cantrip: `{tagsAll: ["cantrip"]}`). It is read when the Action's definition is built (`withHalfOnSuccess`).
 - `ignore-resistance` on `damage.spell`, `damage.weapon` or `damage` with `damageTypes` (required): its damage of
-  those types ignores the target's Resistance; Immunity still holds. Its predicate sees the Action's tags
-  (`ignoredResistances`, combat-statistics). The older feature flag `flags.wildpath.ignoresResistance: string[]` (Boon
+  those types ignores the target's Resistance; Immunity still holds. Its predicate sees the Action's tags and its
+  attack's statistic (`weapon`, `spell`), which also picks the domain (`ignoredResistances(actor, {tags, attack})`,
+  combat-statistics): a weapon Action carries no "weapon" tag of its own. The older feature flag `flags.wildpath.ignoresResistance: string[]` (Boon
   of Irresistible Offense) is still read, any Action; the two are joined.
 
 **A minimum d20 (2026-10-19, Reliable Talent).** `RollOutcome {domains: ["check.proficient"], outcome: "minimum-natural",

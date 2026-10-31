@@ -165,6 +165,31 @@ test("a spell choice is data (flags.wildpath.spellChoice): a homebrew feature's 
   assert.throws(bad({flag: "grantedBy", levels: [1]}), /grantedBy/u);
   assert.throws(bad({flag: "mark", levels: []}), /levels/u);
   assert.throws(bad({flag: "mark", levels: [1], count: 0}), /count/u);
+  // A flag the engine reads on any active Item would make the marked spell that feature (a spell rolling damage twice).
+  for ( const flag of ["damageTwice", "ignoresResistance", "slotRecall", "choiceFor", "summonSource"] ) assert.throws(bad({flag, levels: [1]}), /system uses it/u);
+});
+
+test("a malformed spell choice is skipped where spells are read, named by its problem, and refused when written", async () => {
+  const {spellChoiceProblem, spellChoices, preparesSpell} = await import("../module/helpers/spellcasting.mjs");
+  const {refuseBrokenSpellChoice} = await import("../module/helpers/rule-guard.mjs");
+  const typo = {id: "typo", name: "Homebrew Reserve", system: {active: true}, flags: {wildpath: {spellChoice: {flag: "reserve", level: [2]}}}};
+  const good = {id: "good", name: "Arcanum", system: {active: true}, flags: {wildpath: {spellChoice: {flag: "arcanum", levels: [6]}}}};
+  const spell = {type: "action", flags: {wildpath: {}}, system: {definition: {tags: ["spell"], configuration: [{id: "spell-slot"}]}},
+    actor: {items: [typo, good]}};
+  assert.deepEqual(spellChoices(spell.actor).map(choice => choice.id), ["good"], "the readable one still counts");
+  assert.equal(preparesSpell(spell), true, "its creature's spells are still read");
+  assert.match(spellChoiceProblem(typo), /Homebrew Reserve.*levels/u);
+  assert.equal(spellChoiceProblem(good), null);
+  const messages = [];
+  const ui = {notifications: {warn: text => messages.push(text)}};
+  const game = {i18n: {format: (key, data) => `${key} ${JSON.stringify(data)}`}};
+  assert.equal(refuseBrokenSpellChoice(good, {levels: []}, {ui, game}), true, "a partial edit leaving no levels");
+  assert.match(messages[0], /WILDPATH\.RULES\.Refused.*Arcanum/u);
+  assert.equal(refuseBrokenSpellChoice(good, {flag: "damageTwice"}, {ui, game}), true, "a reserved flag");
+  assert.equal(refuseBrokenSpellChoice(typo, {levels: [2]}, {ui, game}), false, "an edit fixing it");
+  assert.equal(refuseBrokenSpellChoice(good, null, {ui, game}), false, "clearing it");
+  assert.equal(refuseBrokenSpellChoice(good, undefined, {ui, game}), false, "not part of the edit");
+  assert.equal(messages.length, 2);
 });
 
 test("Faithful Steed: Find Steed may spend its once-per-Long-Rest pool instead of a slot, at level 2; another spell may not", async () => {

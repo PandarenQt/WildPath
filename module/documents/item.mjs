@@ -9,7 +9,7 @@ import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-a
 import {isUnprepared} from "../helpers/spellcasting.mjs";
 import {resolveActorCheckStatistic} from "../helpers/combat-statistics.mjs";
 import {traitUpdates} from "../helpers/level-up.mjs";
-import {refuseBrokenRules, refusePlayerMechanics} from "../helpers/rule-guard.mjs";
+import {refuseBrokenRules, refuseBrokenSpellChoice, refusePlayerMechanics} from "../helpers/rule-guard.mjs";
 import {consumeScrollOf, highestSpellLevel, onSpellList, spellLevelOf} from "../helpers/spell-scrolls.mjs";
 import {admitFacility, payFacility} from "../applications/bastions.mjs";
 import {resolveActionConfiguration} from "../helpers/action-configuration.mjs";
@@ -91,11 +91,13 @@ export default class WildPathItem extends Item {
 
   /**
    * A player's edit of what it does (its definition, its RuleElements) is refused: only a GM changes them. An edit adding
-   * problems to its RuleElements is refused, with them in words (a macro's too, not only a sheet's).
+   * problems to its RuleElements, or leaving a spell choice that can't be read, is refused, with them in words (a macro's
+   * too, not only a sheet's).
    */
   async _preUpdate(changes, options, user) {
     if ( refusePlayerMechanics(this, changes, user) ) return false;
     if ( refuseBrokenRules(this, foundry.utils.getProperty(changes, "system.ruleElements")) ) return false;
+    if ( refuseBrokenSpellChoice(this, foundry.utils.getProperty(changes, "flags.wildpath.spellChoice")) ) return false;
     return super._preUpdate(changes, options, user);
   }
 

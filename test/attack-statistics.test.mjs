@@ -124,7 +124,10 @@ test("extra damage rules join a matching attack's damage, and a once-per-turn ru
   const axe = {...melee, tags: ["weapon"]};
   // Its use is the feature's own (`<item>-damageTwice`), so two such features never share one.
   assert.deepEqual(actionCombatStatistics(savage, axe, {turn: "c:1:0"}).damage.bestOfTwo, {once: {key: "feat-damageTwice", turn: "c:1:0"}});
-  assert.equal(actionCombatStatistics(savage, melee, {turn: "c:1:0"}).damage?.bestOfTwo, undefined, "not a weapon");
+  // A weapon attack is one by its statistic (a pack weapon's Action has no "weapon" tag); a spell attack is not.
+  assert.deepEqual(actionCombatStatistics(savage, melee, {turn: "c:1:0"}).damage.bestOfTwo, {once: {key: "feat-damageTwice", turn: "c:1:0"}});
+  assert.equal(actionCombatStatistics(savage, {...melee, attack: {type: "melee", statistic: "spell"}, tags: ["spell"]}, {turn: "c:1:0"})
+    .damage?.bestOfTwo, undefined, "not a weapon");
   savage.flags = {wildpath: {onceUsed: {"feat-damageTwice": "c:1:0"}}};
   assert.equal(actionCombatStatistics(savage, axe, {turn: "c:1:0"}).damage?.bestOfTwo, undefined, "used this turn");
   // A homebrew feature with the shape (`{tagsAll, once}`): melee weapon attacks only, its own use.
@@ -570,4 +573,30 @@ test("a pool its base Actor's new Item grants reaches its unlinked Tokens too (t
       {actorLink: true, actor: actorOf("linked")}, {actorLink: false, actor: actorOf("unowned", {isOwner: false})}]});
   await base.syncItemRecords();
   assert.deepEqual(writes, [["unlinked", ["focus"]]]);
+});
+test("a pack weapon's Action (no \"weapon\" tag) is a weapon attack by its statistic: damage rolled twice, ignored Resistances", async () => {
+  const fs = await import("node:fs");
+  const {actionCombatStatistics, ignoredResistances} = await import("../module/helpers/combat-statistics.mjs");
+  const {actionDefinitionFromAction} = await import("../module/helpers/action-definitions.mjs");
+  const read = file => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}.json`, "utf8"));
+  const longsword = actionDefinitionFromAction(read("longsword-phbwepLongsword0")).definition;
+  assert.deepEqual(longsword.tags, [], "no tag added by hand");
+  const feat = (id, flags, ruleElements=[]) => ({id, type: "feature", flags: {wildpath: flags}, system: {active: true, modifiers: [], ruleElements}});
+  const creature = items => Object.assign(Object.create(WildPathActor.prototype), {id: "c", uuid: "Actor.c", effects: [], statuses: new Set(),
+    flags: {}, system: {}, allApplicableEffects: () => [], items});
+  // Savage Attacker as converted (`damageTwice: true`).
+  const fighter = creature([feat("savage", read("savage-attacker-phbftSavageAttac").flags.wildpath)]);
+  assert.deepEqual(actionCombatStatistics(fighter, longsword, {turn: "c:1:0"}).damage.bestOfTwo, {once: {key: "savage-damageTwice", turn: "c:1:0"}});
+  // A homebrew unlimited melee one is taken before a once-a-turn use is spent, so that use is left for a later ranged hit.
+  fighter.items.push(feat("brutal", {damageTwice: {tagsAll: ["melee"], once: null}}));
+  assert.deepEqual(actionCombatStatistics(fighter, longsword, {turn: "c:1:0"}).damage.bestOfTwo, {}, "the unlimited one first");
+  assert.deepEqual(actionCombatStatistics(fighter, {...longsword, attack: {...longsword.attack, type: "ranged"}}, {turn: "c:1:0"}).damage.bestOfTwo,
+    {once: {key: "savage-damageTwice", turn: "c:1:0"}}, "a ranged hit: the once-a-turn one");
+  // A homebrew `ignore-resistance` on `damage.weapon`, and one whose predicate asks for "weapon".
+  const piercer = creature([feat("piercer", {}, [{schemaVersion: 1, id: "pierce", type: "RollOutcome",
+    data: {outcome: "ignore-resistance", domains: ["damage.weapon"], damageTypes: ["slashing"]}},
+  {schemaVersion: 1, id: "edge", type: "RollOutcome", predicate: {tagsAll: ["weapon"]},
+    data: {outcome: "ignore-resistance", domains: ["damage"], damageTypes: ["fire"]}}])]);
+  assert.deepEqual(ignoredResistances(piercer, {tags: longsword.tags, attack: longsword.attack}).sort(), ["fire", "slashing"]);
+  assert.deepEqual(ignoredResistances(piercer, {tags: ["spell"], attack: {statistic: "spell"}}), [], "a spell attack: neither");
 });

@@ -127,35 +127,53 @@ export function spellBaseLevel(definition) {
     return levels.length ? Math.min(...levels) : null;
 }
 /**
- * `flags.wildpath` keys the system writes on an Item itself: a spell choice may not mark spells with one, or marking a
- * spell would change what it was granted by, its source, its training, its free casts.
+ * `flags.wildpath` keys the system writes or reads on an Item itself: a spell choice may not mark spells with one, or
+ * marking a spell would change what it was granted by, its source, its training, its free casts, or make the spell a
+ * feature (`damageTwice`, `ignoresResistance`, `slotRecall`, `choiceFor`: read from any active Item).
  */
 export const RESERVED_SPELL_FLAGS = Object.freeze(["grantedBy", "source", "training", "freeCast", "conversion", "replaced",
-    "reactionPolicy", "buildCost", "spellChoice"]);
-/** A feature's spell choice, or null without one. A malformed one, or one marking a reserved flag, fails explicitly. */
-export function spellChoiceOf(feature) {
+    "reactionPolicy", "buildCost", "spellChoice", "damageTwice", "ignoresResistance", "slotRecall", "choiceFor", "summonSource", "onceUsed",
+    "grants", "grantedActions", "castingAbilities", "metamagic", "trainingPermanent", "prerequisites", "price", "rarity", "scrollLevel"]);
+/** A feature's spell choice read: the choice, the problem that makes it unreadable, or null without one. */
+function readSpellChoice(feature) {
     const raw = feature?.flags?.wildpath?.spellChoice;
     if (!raw)
         return null;
-    const fail = (reason) => new Error(`WildPath | ${feature?.name ?? "A feature"}: flags.wildpath.spellChoice ${reason}`);
+    const fail = (reason) => `WildPath | ${feature?.name ?? "A feature"}: flags.wildpath.spellChoice ${reason}`;
     const flag = (typeof raw.flag === "string") ? raw.flag : "";
     if (!/^[A-Za-z][\w-]*$/u.test(flag))
-        throw fail("needs a flag name (letters, digits, - or _).");
+        return fail("needs a flag name (letters, digits, - or _).");
     if (RESERVED_SPELL_FLAGS.includes(flag))
-        throw fail(`may not mark "${flag}": the system uses it.`);
+        return fail(`may not mark "${flag}": the system uses it.`);
     const levels = Array.isArray(raw.levels) ? raw.levels.map(Number).filter(level => Number.isInteger(level) && (level >= 1) && (level <= 9)) : [];
     if (!levels.length)
-        throw fail("needs levels from 1 to 9.");
+        return fail("needs levels from 1 to 9.");
     const count = (raw.count === undefined) ? 1 : Number(raw.count);
     if (!Number.isInteger(count) || (count < 1))
-        throw fail("count must be a whole number of 1 or more.");
+        return fail("count must be a whole number of 1 or more.");
     return { id: feature?.id ?? "", name: feature?.name ?? "", flag, levels, count,
         costs: Array.isArray(raw.costs) ? raw.costs.map(String) : [], resourceId: (typeof raw.resourceId === "string") ? raw.resourceId : null };
 }
-/** The spell choices of a creature's active features. */
+/** A feature's spell choice, or null without one. A malformed one, or one marking a reserved flag, fails explicitly. */
+export function spellChoiceOf(feature) {
+    const choice = readSpellChoice(feature);
+    if (typeof choice === "string")
+        throw new Error(choice);
+    return choice;
+}
+/** What makes a feature's spell choice unreadable, in words; null when it has none or it reads. */
+export function spellChoiceProblem(feature) {
+    const choice = readSpellChoice(feature);
+    return (typeof choice === "string") ? choice : null;
+}
+/**
+ * The spell choices of a creature's active features. A malformed one is skipped, not thrown: these are read while its
+ * sheet renders and its spells are used, so one bad feature would block both. Its sheet names it (`spellChoiceProblem`)
+ * and an edit storing one is refused.
+ */
 export function spellChoices(actor) {
-    return [...(actor?.items ?? [])].filter(item => item?.system?.active !== false).map(spellChoiceOf)
-        .filter((choice) => choice !== null);
+    return [...(actor?.items ?? [])].filter(item => item?.system?.active !== false).map(readSpellChoice)
+        .filter((choice) => (choice !== null) && (typeof choice !== "string"));
 }
 /** A spell's mark for a choice: `true` (count 1) or its number, 1 to count; null when unmarked. */
 export function spellChoiceMark(choice, spell) {
