@@ -1340,6 +1340,8 @@ function normalizeTargetingDefinition(targeting) {
     // How many sizes larger than its source a target may be (2024 Grapple and Shove: one).
     ...(Number.isFinite(Number(targeting.maxSizeAboveSource)) && (targeting.maxSizeAboveSource !== null)
       ? {maxSizeAboveSource: Number(targeting.maxSizeAboveSource)} : {}),
+    // A target may not be hostile to its source ("a willing creature": Heightened Focus' carry).
+    ...(targeting.notHostile === true ? {notHostile: true} : {}),
     metadata: clonePlain(targeting.metadata ?? {}) ?? {}
   };
 }

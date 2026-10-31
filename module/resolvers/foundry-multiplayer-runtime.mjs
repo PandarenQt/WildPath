@@ -987,6 +987,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const rank = size => CREATURE_SIZE_ORDER.indexOf(String(size ?? ""));
   const sourceRank = rank(spatial?.context?.sourceFootprint?.size);
   if ( Number.isFinite(above) && (sourceRank >= 0) && (spatial?.context?.targetFootprints ?? []).some(entry => rank(entry?.size) > sourceRank + above) ) return refused("WILDPATH.COMMON.TooLarge");
+  // A willing creature only (`targeting.notHostile`): none on the other side from its source.
+  if ( definition?.targeting?.notHostile && sourceToken
+    && targetEntries.some(entry => hostileTo(sourceToken, targetTokenFor(entry.actor, entry.hint, game))) ) return refused("WILDPATH.COMMON.NotWilling");
   const attackRollModeSourceList = definition?.attack ? foundryAttackRollModeSources({actor, action, definition, targetEntries, spatial, game, sourceToken}) : null;
   const attackRollMode = attackRollModeSourceList ? combineRollModes(attackRollModeSourceList) : null;
   const attackOutcomes = definition?.attack ? foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) : null;

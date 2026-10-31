@@ -1095,6 +1095,9 @@ test("an activity that takes a common action is that action at its own cost (Cun
     system: {...feature("x", "x", {}).system, identifier, activities: {}}}).items.filter(item => item.type === "action").map(item => item.name);
   assert.deepEqual([heightened("heightened-focus"), heightened("heightened-other")], [["Heightened Focus (Step of the Wind)"], []],
     "Heightened Focus brings its carrying Step of the Wind; another feature none");
+  assert.equal(convertItem({...feature("testHeightened01", "Heightened Focus", {}), system: {...feature("x", "x", {}).system,
+    identifier: "heightened-focus", activities: {}}}).items.find(item => item.type === "action").system.definition.targeting.notHostile, true,
+    "a willing creature: never one hostile to the monk");
   const [stealth] = convertItem({...feature("testShadowSteal1", "Shadow Stealth", {a: bonus("Expend Use")}), system: {...feature("x", "x", {}).system,
     identifier: "shadow-stealth", activities: {a: bonus("Expend Use")}}}).items;
   assert.deepEqual([stealth.system.definition.check.skill, stealth.system.definition.effects[0].id], ["stealth", "hidden"], "the Hide action");
@@ -2122,7 +2125,8 @@ test("monk: Martial Arts brings three Unarmed Strikes, Flurry of Blows fills its
   // Heightened Focus: Step of the Wind with a Focus Point can take a willing creature along (Carried, until the monk's turn ends).
   const carry = read("heightened-focus-step-of-the-wind").system.definition;
   assert.deepEqual(carry.costs.allOf, [{capability: "bonus-action", amount: 1}, {capability: "monk-s-focus", amount: 1}]);
-  assert.deepEqual([carry.range, carry.targeting], [{type: "touch", distance: {value: 5, unit: "ft"}}, {type: "single", required: true, count: 1}]);
+  assert.deepEqual([carry.range, carry.targeting], [{type: "touch", distance: {value: 5, unit: "ft"}},
+    {type: "single", required: true, count: 1, notHostile: true}], "a willing creature: never one hostile to the monk");
   assert.deepEqual(carry.effects.map(effect => [effect.slug, effect.appliesTo ?? null]),
     [["disengaged", "source"], ["dashing", "source"], ["carried", null]], "the monk Disengages and Dashes; the creature is Carried");
   const carried = carry.effects.at(-1);

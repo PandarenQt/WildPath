@@ -159,6 +159,8 @@ export function advanceMovementProgress(progress, observation) {
     }
     if (observation.status === "interrupted") {
         events.push(movementEvent(next, AUTOMATION_EVENT_TYPES.MOVEMENT_INTERRUPTED, "interrupted", {
+            // Where it set out from, as a completed move gives it (a creature carried along must still be beside it there).
+            origin: endpoint(progress.approvedFootprints[0]),
             approvedDestination: endpoint(progress.approvedFootprints.at(-1)),
             actualDestination: endpoint(next.actualFootprint),
             completedTransitionCount: count,

@@ -719,9 +719,12 @@ Each step is the carrier's anchor delta, applied to the carried Token. It stops 
 creature's space (forced movement's `forcedStepBlocker`), passes through the carrier's spaces, but never stops on the
 space the carrier ends in. The move is one `forced` update with the steps as waypoints. It spends no Speed, provokes
 no Opportunity Attack, and starts no chain, because only voluntary moves carry. The authority sends each terminal
-event once, so the adapter keeps no state.
+event once. Carries run one at a time, so a quick second move starts from where the first left the creature. Only a
+creature still within 5 feet of the carrier's starting space (`origin`, which the interrupted event now carries too)
+is moved: one left behind by a wall, a push or a teleport stays.
 
-shortcuts: the creature's willingness is assumed; out of combat Carried doesn't expire (the GM removes it); the carried
+Willing: the Action's `targeting.notHostile` refuses a creature hostile to the monk. shortcuts: an ally's consent isn't
+asked; out of combat Carried doesn't expire (the GM removes it); the carried
 creature keeps its own elevation and stops at occupied spaces; nothing is carried without an active GM or on a gridless
-Scene. Unverified live: that the authority approves a forced update with walking waypoints (fallback: one forced
-`{x, y}` update to the last free position, as a push).
+Scene. Live (2026-10-31): the authority approved the walking forced update; the QA Fighter moved 2 squares and the
+carried Bandit Captain followed, so the fallback (one forced `{x, y}` update to the last free position) is not needed.

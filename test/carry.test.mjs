@@ -28,6 +28,7 @@ function world(tokens, {wallX=null, gridless=false}={}) {
 function ended(route, {type="movement.completed", kind="voluntary", walked=route.length}={}) {
   const anchors = route.slice(0, walked).map(([x, y]) => ({x, y}));
   return {type, data: {movementKind: kind, tokenRef: "token:scene.monk", completedAnchors: anchors,
+    origin: {anchor: anchors[0], footprint: {fields: [anchors[0]]}},
     actualDestination: {anchor: anchors.at(-1), footprint: {fields: [anchors.at(-1)]}}}};
 }
 const position = token => ({x: token.x, y: token.y});
@@ -74,4 +75,22 @@ test("it passes through the monk's spaces on the way but never stops on the one 
   const {scene, carry} = world([["monk", 10, 10], ["ally", 10, 9, "monk"], ["rock", 11, 11]]);
   await carry.onMovementEvent(ended([[10, 10], [10, 11], [10, 12], [11, 12], [11, 11], [10, 11]]));
   assert.deepEqual(position(scene.tokens.get("ally")), {x: 1000, y: 1000}, "it stops a step short instead");
+});
+
+test("a creature left behind (no longer within 5 feet of where its carrier set out) is not moved with it", async () => {
+  const {scene, carry} = world([["monk", 10, 10], ["ally", 10, 7, "monk"]]);
+  assert.deepEqual(await carry.onMovementEvent(ended([[10, 10], [9, 10], [8, 10]])), []);
+  assert.deepEqual(scene.tokens.get("ally").updates, [], "15 feet away: it stays");
+});
+
+test("two quick moves carry in order: the second starts where the first left the creature", async () => {
+  const {scene, carry} = world([["monk", 10, 10], ["ally", 10, 9, "monk"]]);
+  // As the server does: the position lands only after a round trip.
+  const ally = scene.tokens.get("ally");
+  const write = ally.update;
+  ally.update = async (data, operation) => { await new Promise(resolve => setTimeout(resolve, 20)); return write(data, operation); };
+  const first = carry.onMovementEvent(ended([[10, 10], [10, 11]]));
+  const second = carry.onMovementEvent(ended([[10, 11], [10, 12]]));
+  await Promise.all([first, second]);
+  assert.deepEqual(scene.tokens.get("ally").updates.map(update => update.data), [{x: 1000, y: 1000}, {x: 1100, y: 1000}]);
 });

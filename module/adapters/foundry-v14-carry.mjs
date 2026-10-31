@@ -2,12 +2,20 @@ import { AUTOMATION_EVENT_TYPES } from "../helpers/automation-events.mjs";
 import { effectsFrom } from "../helpers/effect-sources.mjs";
 import { parseEntityRef } from "../helpers/entity-refs.mjs";
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
+import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { forcedStepBlocker } from "./foundry-v14-forced-movement.mjs";
 const ENDS = new Set([AUTOMATION_EVENT_TYPES.MOVEMENT_COMPLETED, AUTOMATION_EVENT_TYPES.MOVEMENT_INTERRUPTED]);
 const key = (offset) => `${offset.i}.${offset.j}`;
 export function createFoundryCarry({ game }) {
     const isActiveGM = () => Boolean(game.user?.id) && (game.users?.activeGM?.id === game.user?.id);
-    async function onMovementEvent(event) {
+    // One carry at a time: each reads its creatures where the one before left them (a monk's quick second move).
+    let queue = Promise.resolve();
+    function onMovementEvent(event) {
+        const run = queue.then(() => carry(event), () => carry(event));
+        queue = run.catch(() => undefined);
+        return run;
+    }
+    async function carry(event) {
         const data = event?.data;
         // Only its own walking carries anyone: the carried creature's forced move never starts a chain.
         if (!ENDS.has(String(event?.type)) || (data?.movementKind !== "voluntary") || !isActiveGM())
@@ -29,9 +37,17 @@ export function createFoundryCarry({ game }) {
         if (points.some(point => !point) || carrierSpace.some(offset => !offset))
             return [];
         const [start] = points;
+        // Only a creature still beside its carrier where the move began: one left behind (a wall stopped it, its carrier was
+        // pushed or teleported) is no longer moved with it.
+        const origin = data.origin?.footprint;
+        const besideOrigin = (token) => {
+            const footprint = adapter.tokenToFootprint(token).footprint;
+            return Boolean(origin && footprint) && ((footprintDistance(origin, footprint)
+                * (Number(scene.grid?.distance) || 5)) <= 5);
+        };
         const occupied = new Set(carrierSpace.map(offset => key(offset)));
         const moved = [];
-        for (const token of carried) {
+        for (const token of carried.filter(besideOrigin)) {
             // It passes through its carrier's spaces on the way, but never stops on the one the carrier ends in.
             const blocked = forcedStepBlocker(scene, token, { except: [carrier] });
             const waypoints = [];

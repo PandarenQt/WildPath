@@ -2995,3 +2995,14 @@ test("Trance: a save against sleep magic succeeds unrolled; Relentless Hunter: d
   assert.match(await checks([]), /token:extra-0/u, "without it, damage would call for a concentration check");
   assert.doesNotMatch(await checks(relentless), /token:extra-0/u, "with it, none on the mark");
 });
+
+test("a willing creature only (targeting.notHostile): a target hostile to its source is refused, one on its side is not", async t => {
+  const definition = {schemaVersion: 1, id: "action:carry", label: "Carry", costs: {allOf: []},
+    range: {type: "touch", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1, notHostile: true}};
+  const fixture = syntheticRuntimeFixture(t, definition);
+  const ally = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: fixture.intent, game: fixture.game});
+  assert.equal(ally.ok, true, JSON.stringify(ally.reason));
+  fixture.targetToken.disposition = 1;
+  const enemy = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: fixture.intent, game: fixture.game});
+  assert.deepEqual([enemy.ok, enemy.reason], [false, "WILDPATH.COMMON.NotWilling"]);
+});

@@ -2,6 +2,7 @@ import {AUTOMATION_EVENT_TYPES} from "../helpers/automation-events.mjs";
 import {effectsFrom} from "../helpers/effect-sources.mjs";
 import {parseEntityRef} from "../helpers/entity-refs.mjs";
 import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-adapter.mjs";
+import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {forcedStepBlocker, type PushScene, type PushToken} from "./foundry-v14-forced-movement.mjs";
 /**
  * Carrying a creature along (2024 Heightened Focus' Step of the Wind: a `carried` effect from the mover). When a creature
@@ -18,10 +19,11 @@ type Data = Record<string, unknown>;
 interface Point {x: number; y: number}
 interface CarryToken extends PushToken {actor?: {uuid?: string; effects?: unknown} | null}
 interface CarryEvent {type?: string; data?: {movementKind?: string; tokenRef?: string; completedAnchors?: Data[];
-  actualDestination?: {footprint?: {fields?: Data[]}}}}
+  origin?: {footprint?: Data}; actualDestination?: {footprint?: {fields?: Data[]}}}}
 interface GridAdapter {
   fieldToCenterPoint(field: Data): {ok: boolean; point?: Point};
   fieldToOffset(field: Data): {ok: boolean; offset?: {i: number; j: number}};
+  tokenToFootprint(token: unknown): {ok: boolean; footprint?: Data};
 }
 
 const ENDS = new Set<string>([AUTOMATION_EVENT_TYPES.MOVEMENT_COMPLETED, AUTOMATION_EVENT_TYPES.MOVEMENT_INTERRUPTED]);
@@ -31,7 +33,15 @@ export function createFoundryCarry({game}: {game: {user?: {id?: string}; users?:
   scenes?: {get(id: string): PushScene | undefined}}}) {
   const isActiveGM = () => Boolean(game.user?.id) && (game.users?.activeGM?.id === game.user?.id);
 
-  async function onMovementEvent(event: CarryEvent) {
+  // One carry at a time: each reads its creatures where the one before left them (a monk's quick second move).
+  let queue: Promise<unknown> = Promise.resolve();
+  function onMovementEvent(event: CarryEvent) {
+    const run = queue.then(() => carry(event), () => carry(event));
+    queue = run.catch(() => undefined);
+    return run;
+  }
+
+  async function carry(event: CarryEvent) {
     const data = event?.data;
     // Only its own walking carries anyone: the carried creature's forced move never starts a chain.
     if ( !ENDS.has(String(event?.type)) || (data?.movementKind !== "voluntary") || !isActiveGM() ) return [];
@@ -49,9 +59,17 @@ export function createFoundryCarry({game}: {game: {user?: {id?: string}; users?:
     const carrierSpace = (data.actualDestination?.footprint?.fields ?? []).map(field => adapter.fieldToOffset(field).offset);
     if ( points.some(point => !point) || carrierSpace.some(offset => !offset) ) return [];
     const [start] = points as Point[];
+    // Only a creature still beside its carrier where the move began: one left behind (a wall stopped it, its carrier was
+    // pushed or teleported) is no longer moved with it.
+    const origin = data.origin?.footprint;
+    const besideOrigin = (token: CarryToken) => {
+      const footprint = adapter.tokenToFootprint(token).footprint;
+      return Boolean(origin && footprint) && ((footprintDistance(origin as never, footprint as never)
+        * (Number((scene as {grid?: {distance?: number}}).grid?.distance) || 5)) <= 5);
+    };
     const occupied = new Set(carrierSpace.map(offset => key(offset!)));
     const moved = [];
-    for ( const token of carried ) {
+    for ( const token of carried.filter(besideOrigin) ) {
       // It passes through its carrier's spaces on the way, but never stops on the one the carrier ends in.
       const blocked = forcedStepBlocker(scene, token, {except: [carrier]});
       const waypoints: Point[] = [];

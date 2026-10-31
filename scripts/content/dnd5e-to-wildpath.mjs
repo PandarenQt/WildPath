@@ -2091,10 +2091,11 @@ const FEATURE_ACTIONS = Object.freeze({
   // 5 feet along; it moves with the monk until the end of the monk's turn, spending none of its own movement and provoking
   // no Opportunity Attacks. The monk is Disengaged and Dashing as usual; the creature is Carried, which the active GM's carry
   // adapter follows (foundry-v14-carry.mts). `turnEnd`, as its Disengaged and Dashing: the end of the turn it is used in.
-  // shortcut: willingness is assumed (its owner isn't asked); upgrade with a consent prompt if a hostile pick matters.
+  // Willing: never a creature hostile to the monk (`targeting.notHostile`). shortcut: an ally's owner isn't asked; upgrade
+  // with a consent prompt if an unwilling ally matters.
   // shortcut: out of combat, Carried does not expire; the GM removes it.
   "heightened-focus": {name: "Step of the Wind", costs: [{capability: "bonus-action", amount: 1}, {capability: "monk-s-focus", amount: 1}],
-    range: {type: "touch", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    range: {type: "touch", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1, notHostile: true},
     effects: [...commonRules("disengage").effects, ...commonRules("dash").effects].map(effect => ({...effect, appliesTo: "source"}))
       .concat({id: "carried", type: "effect", name: "Carried", slug: "carried", img: "icons/svg/wingfoot.svg", maxSize: "large",
         duration: {value: 0, units: "turns", expiry: "turnEnd"}, ruleElements: []})},
