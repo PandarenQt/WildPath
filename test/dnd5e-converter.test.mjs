@@ -2690,3 +2690,15 @@ test("review fixes: Sentinel's attacks are Opportunity Attacks on any Disengage;
     system: {source: SRD, identifier: "slasher", type: {value: "feat"}, activities: {}, description: {value: "<p>Rule text.</p>"}}}).items[1];
   assert.deepEqual(slasher.system.definition.effects[0].ruleElements[0].data.domains, ["resources.movement.max", "speed"], "every Speed");
 });
+
+test("Stride of the Elements: a Fly and Swim Speed while Elemental Attunement's status lasts; its activation sets it", () => {
+  const feature = (identifier, name, activities={}) => ({_id: `${identifier.replace(/-/g, "")}`.padEnd(16, "0").slice(0, 16), name, type: "feat",
+    img: "icons/svg/item-bag.svg", effects: [], system: {source: SRD, identifier, activities, description: {value: "<p>Rule text.</p>"}}});
+  const stride = convertItem(feature("stride-of-the-elements", "Stride of the Elements")).items[0].system.ruleElements;
+  assert.deepEqual(stride.map(rule => [rule.data.mode, rule.predicate]), [["fly", {hasCondition: "elemental-attunement"}],
+    ["swim", {hasCondition: "elemental-attunement"}]]);
+  const attunement = convertItem(feature("elemental-attunement", "Elemental Attunement",
+    {a: activity("utility", {name: "Activate Attunement", activation: {type: "action"}})})).items.find(item => item.type === "action");
+  assert.deepEqual(attunement.system.definition.effects.map(effect => [effect.slug, effect.duration]),
+    [["elemental-attunement", {value: 10, units: "minutes"}]]);
+});

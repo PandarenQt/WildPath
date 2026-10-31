@@ -434,3 +434,12 @@ test("Warrior's Wrath: Advantage on melee attacks against a Bloodied target (att
   const mode = (type, bloodied) => attackRollMode(creature([wrath]), creature([]), {type, context: {attack: {type, targetBloodied: bloodied}}});
   assert.deepEqual([mode("melee", true), mode("melee", false), mode("ranged", true)], ["advantage", "normal", "normal"]);
 });
+
+test("granted movement sees its creature's conditions: Stride of the Elements' Fly Speed only while attuned", () => {
+  const rule = {schemaVersion: 1, id: "stride-fly", type: "GrantMovement", predicate: {hasCondition: "elemental-attunement"},
+    data: {mode: "fly", distance: 30}};
+  const monk = statuses => Object.assign(Object.create(WildPathActor.prototype), {id: "m", uuid: "Actor.m", effects: [], statuses: new Set(statuses),
+    flags: {}, system: {}, allApplicableEffects: () => [], items: [{id: "f", uuid: "Actor.m.Item.f", type: "feature",
+      system: {active: true, modifiers: [], ruleElements: [rule]}}]});
+  assert.deepEqual([monk(["elemental-attunement"]).getGrantedMovement().length, monk([]).getGrantedMovement().length], [1, 0]);
+});

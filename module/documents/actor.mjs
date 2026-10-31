@@ -349,7 +349,8 @@ export default class WildPathActor extends Actor {
 
   /** The Speeds this creature's grants give (`GrantMovement`), as `{mode, distance}`. */
   getGrantedMovement() {
-    return grantedMovementFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
+    // Its conditions too (Stride of the Elements: a Fly and Swim Speed while its Elemental Attunement lasts).
+    return grantedMovementFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
   }
 
   /** The senses this creature's grants give (`GrantSense`): `{sense, range}`. */

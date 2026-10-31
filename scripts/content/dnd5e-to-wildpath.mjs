@@ -516,6 +516,9 @@ const SIGNATURE_SPELL_POOLS = Object.freeze([1, 2].map(n => ({schemaVersion: 1, 
 const NOT_MOVED = Object.freeze({equals: {path: "actorSystem.resources.movement.spent", value: 0}});
 
 const SELF_EFFECTS = Object.freeze({
+  // A monk's Elemental Attunement, 10 minutes: the `elemental-attunement` status Stride of the Elements reads.
+  "elemental-attunement/Activate Attunement": [{id: "effect-1", type: "effect", name: "Elemental Attunement", slug: "elemental-attunement",
+    img: "icons/svg/fire.svg", duration: {value: 10, units: "minutes"}}],
   "steady-aim": [{id: "effect-1", type: "effect", name: "Steady Aim", img: "icons/svg/target.svg", endsWhen: "attacks",
     duration: {value: 0, units: "turns", expiry: "turnEnd"},
     ruleElements: [{schemaVersion: 1, id: "steady-aim", type: "RollMode", data: {domains: ["attack"], mode: "advantage"}}]},
@@ -1575,7 +1578,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // isn't ended by donning Heavy armor.
     if ( USED_WHILE_WEARING[identifierOf(document)] ) definition = {...definition, requires: definition.requires
       ? {all: [definition.requires, {wearing: USED_WHILE_WEARING[identifierOf(document)]}]} : {wearing: USED_WHILE_WEARING[identifierOf(document)]}};
-    const selfEffects = SELF_EFFECTS[identifierOf(document)];
+    // By the activity first (Elemental Attunement's Activate Attunement, not its Elemental Strike), else by the feature.
+    const selfEffects = SELF_EFFECTS[`${identifierOf(document)}/${activity.name}`] ?? SELF_EFFECTS[identifierOf(document)];
     if ( selfEffects || USED_AT_TURN_START.has(identifierOf(document)) ) {
       definition = {...definition, range: {type: "self"}, targeting: {type: "self"},
         ...(selfEffects ? {effects: structuredClone(selfEffects)} : {}),
@@ -2475,6 +2479,9 @@ const TRAITS = Object.freeze({
   "spell-resistance": () => ({rules: [{schemaVersion: 1, id: "spell-resistance-saves", type: "RollMode", predicate: {tagsAny: ["spell"]},
     data: {domains: ["save"], mode: "advantage"}}, {schemaVersion: 1, id: "spell-resistance-damage", type: "GrantResistance",
     data: {tags: ["spell"]}}], notes: []}),
+  // A Fly and a Swim Speed equal to its Speed while its Elemental Attunement lasts (Stride of the Elements).
+  "stride-of-the-elements": () => ({rules: [movementEqualToSpeed("stride-fly", "fly"), movementEqualToSpeed("stride-swim", "swim")]
+    .map(rule => ({...rule, predicate: {hasCondition: "elemental-attunement"}})), notes: []}),
   // Advantage on melee attacks against a Bloodied creature (the DMG's Warrior's Wrath; `attack.targetBloodied`).
   "warriors-wrath": () => ({rules: [{schemaVersion: 1, id: "warriors-wrath", type: "RollMode",
     predicate: {equals: {path: "attack.targetBloodied", value: true}}, data: {domains: ["attack.melee"], mode: "advantage"}}], notes: []}),
