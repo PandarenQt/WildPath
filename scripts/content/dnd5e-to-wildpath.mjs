@@ -3539,7 +3539,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
       notes.push(`effect: ${status} is not a WildPath condition yet`);
     }
     // As long as its dnd5e effect says ("until the start of its next turn"); none lasts until it is ended.
-    const lasts = effect ? effectDuration(effect.duration) : null;
+    const lasts = effect ? textBoundExpiry(effectDuration(effect.duration), plainText(document)) : null;
     for ( const status of known ) {
       const escapes = (escapeDC != null) && ["grappled", "restrained"].includes(CONDITION_MAP[status]);
       effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId: CONDITION_MAP[status], ...onFailure,
@@ -3578,7 +3578,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
       const untilNextTurnEnd = nextAttack && /before the end of your next turn/i.test(plainText(document))
         ? {value: 1, units: "rounds", expiry: "turnEnd"} : null;
       // One a rest ends by name (Spell Taxed: "until you finish a Long Rest") has no time limit besides.
-      const duration = named?.restsLeft ? null : ((hand ?? named)?.duration ?? effectDuration(effect.duration) ?? untilNextTurnEnd);
+      const duration = named?.restsLeft ? null : ((hand ?? named)?.duration ?? textBoundExpiry(effectDuration(effect.duration), plainText(document)) ?? untilNextTurnEnd);
       const onUser = (hand ?? named)?.appliesTo === "source";
       const slug = byHand?.slug ?? named?.slug ?? (gaseous ? "gaseous" : null);
       // As many Long Rests as it lasts: Raise Dead's "Resurrection Sickness (Day 3)" (each rest lifts 1 of its -4).
@@ -4329,6 +4329,19 @@ export function extraDamageOf(value, {subtract=false}={}) {
   const expression = formulaExpression(text.replace(/\[\w+\]/gu, "").replace(/^\+\s*/u, ""));
   if ( !expression || (expression.type === "constant") ) return null;
   return {expression, ...(DAMAGE_TYPES.includes(typed) ? {damageType: typed} : {}), ...(subtract ? {subtract: true} : {})};
+}
+
+/**
+ * A one-turn duration takes the boundary its 2024 text names, "until the end of its next turn" or "... the start of ...":
+ * dnd5e's data often says the start where the text says the end (a Ghoul's Paralyzed). Longer durations keep their
+ * data, whose text names a next turn only in passing (Haste's lethargy).
+ */
+export function textBoundExpiry(duration, text) {
+  if ( !duration || (Number(duration.value) !== 1) || !["turns", "rounds"].includes(duration.units) ) return duration;
+  const ends = new Set([...String(text ?? "").matchAll(/until the (start|end) of (?:its|the target's|that creature's|the creature's) next turn/giu)]
+    .map(match => match[1].toLowerCase()));
+  if ( ends.size !== 1 ) return duration;
+  return {...duration, expiry: ends.has("end") ? "turnEnd" : "turnStart"};
 }
 
 /** An effect's dnd5e duration as a WildPath custom effect's V14 duration, or null when it has none. */

@@ -618,7 +618,7 @@
               "duration": {
                 "value": 1,
                 "units": "turns",
-                "expiry": "turnStart"
+                "expiry": "turnEnd"
               }
             },
             {
@@ -629,7 +629,7 @@
               "duration": {
                 "value": 1,
                 "units": "turns",
-                "expiry": "turnStart"
+                "expiry": "turnEnd"
               }
             }
           ],

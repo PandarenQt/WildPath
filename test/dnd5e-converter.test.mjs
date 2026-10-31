@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {checkOf, convertActor, convertFacility, convertItem, convertTable, creatureRef, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex,
-  scaleTables, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
+  scaleTables, textBoundExpiry, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import * as valueExpressions from "../module/helpers/value-expressions.mjs";
 
@@ -2320,4 +2320,18 @@ test("a creature's own teleport written as a utility use is a teleport (a Blink 
     activities: {a: activity("utility", {activation: {type: "bonus", override: false}, range: {value: "40", units: "ft", override: true}, ...data})}}}).items[0];
   assert.deepEqual([blink().system.definition.teleport, blink().system.definition.targeting], [{distance: 40}, {type: "self"}]);
   assert.equal(blink({activation: {type: "reaction", override: false}}).system.definition.teleport, undefined, "a reaction that does more");
+});
+
+test("a one-turn effect ends where its 2024 text says, whatever dnd5e's data says", () => {
+  const oneTurn = {value: 1, units: "turns", expiry: "turnStart"};
+  const ghoul = "Constitution Saving Throw: DC 10. Failure: The target has the Paralyzed condition until the end of its next turn.";
+  assert.deepEqual(textBoundExpiry(oneTurn, ghoul), {value: 1, units: "turns", expiry: "turnEnd"});
+  assert.deepEqual(textBoundExpiry({value: 1, units: "rounds", expiry: "turnEnd"}, "it can't take Reactions until the start of its next turn"),
+    {value: 1, units: "rounds", expiry: "turnStart"});
+  assert.equal(textBoundExpiry(oneTurn, "until the end of your next turn"), oneTurn, "the caster's turn is not the target's");
+  assert.equal(textBoundExpiry(oneTurn, "until the start of its next turn, then until the end of its next turn"), oneTurn,
+    "two boundaries: the data stands");
+  const minute = {value: 10, units: "rounds", expiry: "turnStart"};
+  assert.equal(textBoundExpiry(minute, "it can't move until the end of its next turn"), minute, "only a one-turn duration");
+  assert.equal(textBoundExpiry(null, ghoul), null);
 });
