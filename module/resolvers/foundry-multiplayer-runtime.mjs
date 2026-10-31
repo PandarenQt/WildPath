@@ -187,6 +187,7 @@ export function registerFoundryV14MultiplayerResolution({
       await teleports.afterResolution(event);
       await masteries.afterResolution(event);
       await endEffectsWhenAttacked(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
+      await spendDecoys(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsOnTargets(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenSaved(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenDamaged(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
@@ -1924,6 +1925,27 @@ export async function endEffectsWhenDamaged({state}, {fromUuid}) {
     ended.push(...effects.map(effect => effect.id));
   }
   return ended;
+}
+
+/**
+ * 2024 Mirror Image: each hit that landed on a duplicate (`decoy`) destroys one. The effect whose reaction rolled for it
+ * (its Trigger's `rider.missChance`) loses a level, and ends with its last. Returns what changed, by effect id.
+ */
+export async function spendDecoys({state}={}, {fromUuid=globalThis.fromUuid}={}) {
+  const decoys = (state?.results?.attackResolution?.results ?? []).filter(result => result?.decoy && result.target?.tokenId);
+  if ( !decoys.length ) return {};
+  const scene = (await fromUuid?.(String(state?.source?.tokenRef ?? "")))?.parent ?? null;
+  const decoying = effect => (effect.system?.ruleElements ?? []).some(rule => (rule?.type === "Trigger") && rule.data?.action?.rider?.missChance);
+  const changed = {};
+  for ( const result of decoys ) {
+    const effect = [...(scene?.tokens?.get?.(result.target.tokenId)?.actor?.effects ?? [])].find(entry => !entry.disabled && decoying(entry));
+    if ( !effect ) continue;
+    const level = Number(effect.system?.level) || 1;
+    if ( level <= 1 ) await effect.delete();
+    else await effect.update({"system.level": level - 1});
+    changed[effect.id] = level - 1;
+  }
+  return changed;
 }
 
 export async function endEffectsWhenAttacked({state}, {fromUuid}) {

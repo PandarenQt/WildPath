@@ -1611,8 +1611,10 @@ function addedDie(state, input, {option, key, stageId, rollKind, makeRollRequest
   const base = makeRollRequest(`${rollKind}-roll:added:${key}`);
   const faces = Number(option.addDice.faces) || 6;
   const number = Number(option.addDice.number) || 1;
-  const rollRequest = createDamageRollRequest({id: base.id, resolutionId: state.id, type: ROLL_TYPES.CUSTOM, formula: `${number}d${faces}`,
-    definition: {dice: [{number, faces}]}, source: base.source, target: base.target, chooser: base.chooser, authority: base.authority,
+  // Only its highest die counts (`keep: "highest"`: Mirror Image's d6 for each duplicate).
+  const highest = option.addDice.keep === "highest";
+  const rollRequest = createDamageRollRequest({id: base.id, resolutionId: state.id, type: ROLL_TYPES.CUSTOM,
+    formula: `${number}d${faces}${highest ? "kh" : ""}`, definition: {dice: [{number, faces, ...(highest ? {modifiers: ["kh"]} : {})}]}, source: base.source, target: base.target, chooser: base.chooser, authority: base.authority,
     metadata: {...(base.metadata ?? {}), rollKind: `${rollKind}-added-die`}});
   const accepted = getResolutionResponse(state, {requestId: rollRequest.id, type: RESOLUTION_REQUEST_TYPES.ROLL});
   if ( !accepted ) return {wait: waitResolutionStage({
@@ -2660,13 +2662,21 @@ function createPaymentStage() {
       // Cutting Words on a damage roll: its die comes off that roll.
       const damagePenalty = riderRoll(state, input, state.actionDefinition?.rider?.damagePenalty, "damage-penalty");
       if ( damagePenalty?.wait ) return damagePenalty.wait;
+      // Mirror Image: its dice for the duplicates; at `atLeast` or more, the hit on its creature lands on a duplicate.
+      const decoy = riderRoll(state, input, state.actionDefinition?.rider?.missChance, "miss-chance");
+      if ( decoy?.wait ) return decoy.wait;
       // Cloud Rune, Protective Bond: the creature that takes the damage instead, its creature's pick when there are several.
       const redirect = redirectChoice(state, services, state.actionDefinition?.rider?.redirectDamage);
       if ( redirect?.wait ) return redirect.wait;
       const rider = state.actionDefinition?.rider
         ? {...clonePlain(state.actionDefinition.rider), ...(penalty ? {attackPenalty: penalty.total} : {}),
           ...(reduction ? {reduceDamage: reduction.total} : {}), ...(damagePenalty ? {damagePenalty: damagePenalty.total} : {}),
-          ...(redirect?.candidate ? {redirectTo: redirect.candidate} : {})} : null;
+          ...(redirect?.candidate ? {redirectTo: redirect.candidate} : {}),
+          ...(decoy ? {missChance: {...clonePlain(state.actionDefinition.rider.missChance), total: decoy.total,
+            missed: decoy.total >= (Number(state.actionDefinition.rider.missChance.atLeast) || 1),
+            // Its creature, keyed as the attack keys its targets.
+            targetKey: rollModeTargetKey(state.source) || String(state.source?.actorId ?? "")}} : {})}
+        : null;
       return continueResolutionStage({
         state: stateWithActionResult(state, {
           input,
@@ -3233,10 +3243,15 @@ function reevaluateParentAfterReaction({parentState, childState, window, service
   // On a successful ability check (its own window), the check is lowered and judged again against its DC.
   if ( (directive?.type === "augment") && Number.isFinite(penalty) && penalty && (window?.timing === REACTION_WINDOW_TIMINGS.AFTER_CHECK_OUTCOME)
     && state.input?.check?.roll ) return recheckAfterPenalty(state, penalty, {window, childState});
+  const decoy = directive?.data?.missChance;
   if ( (directive?.type === "augment") && Number.isFinite(penalty) && penalty && state.input?.attack?.roll ) {
     const roll = state.input.attack.roll;
     state = updateResolutionState(state, {input: {...state.input, attack: {...state.input.attack, roll: {...roll,
       total: (Number(roll.total) || 0) - penalty, modifiers: [...(roll.modifiers ?? []), {id: "attack-penalty", value: -penalty}]}}}});
+  } else if ( (directive?.type === "augment") && decoy?.missed && decoy.targetKey && state.input?.attack ) {
+    // Mirror Image: its creature's hit lands on a duplicate, so the attack is judged again with that hit a miss.
+    state = updateResolutionState(state, {input: {...state.input, attack: {...state.input.attack,
+      outcomesByTarget: {...(state.input.attack.outcomesByTarget ?? {}), [decoy.targetKey]: "decoy"}}}});
   } else if ( directive?.type === "augment" ) return riderPatch(state, directive.data ?? {}, {window, childState});
   if ( window?.timing !== REACTION_WINDOW_TIMINGS.AFTER_OUTCOME && window?.timing !== REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE ) {
     return null;
@@ -3340,7 +3355,8 @@ function riderRoll(state, input, spec, key) {
   // A flat amount (a homebrew rider) needs no roll.
   if ( dice?.type === "constant" ) return {total: Math.max((Number(dice.value) || 0) + bonusOf(), 0)};
   if ( (dice?.type !== "dice") || !(Number(dice.faces) > 0) ) return null;
-  const rolled = addedDie(state, input, {option: {addDice: {number: Number(dice.number) || 1, faces: Number(dice.faces)}, label: state.actionDefinition.label},
+  const rolled = addedDie(state, input, {option: {addDice: {number: Number(dice.number) || 1, faces: Number(dice.faces),
+    ...(spec.keep === "highest" ? {keep: "highest"} : {})}, label: state.actionDefinition.label},
     key, stageId: ACTION_PIPELINE_STAGE_IDS.PAYMENT, rollKind: "rider",
     makeRollRequest: suffix => ({id: requestIdFor(state, suffix), source: state.source ?? input.source ?? null,
       chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, authority: {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER}, metadata: {}}),

@@ -930,6 +930,18 @@ test("a penalty die is rolled once even on a critical, then taken off the hit's 
     {key: "WILDPATH.CHAT.Roll.LessDamage"}]);
 });
 
+test("a rider's dice may keep only their highest (Mirror Image's d6 per duplicate): the roll asked is 2d6kh", () => {
+  const images = {schemaVersion: 1, id: "action:images", label: "Mirror Image", costs: {allOf: []}, targeting: {type: "self"},
+    rider: {missChance: {dice: {type: "dice", number: 2, faces: 6}, keep: "highest", atLeast: 3}}};
+  const plan = planStagedActionResolution({id: "resolution:images", actorSystem: actorSystem(1), action: definitionAction(images),
+    source: {actorId: "actor-source"}});
+  const request = plan.state.pendingRequests[0];
+  assert.equal(rollFormulaForRequest(request.payload.rollRequest).formula, "2d6kh");
+  const done = resumeStagedActionResolution({state: plan.state, response: {resolutionId: plan.state.id, requestId: request.id,
+    type: RESOLUTION_REQUEST_TYPES.ROLL, value: {total: 4}}});
+  assert.deepEqual([done.state.results.parentDirective.data.missChance.total, done.state.results.parentDirective.data.missChance.missed], [4, true]);
+});
+
 test("a reaction that counters (Counterspell): its target's failed save asks the parent to be cancelled; a success does not", () => {
   const counterspell = {schemaVersion: 1, id: "action:counterspell", label: "Counterspell", costs: {allOf: []}, counters: true,
     targeting: {type: "single", required: true, count: 1}, save: {ability: "fortitude", dc: {value: 15}}};

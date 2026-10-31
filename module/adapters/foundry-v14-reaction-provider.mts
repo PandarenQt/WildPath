@@ -23,7 +23,7 @@ interface EffectLike {
   readonly name?: string;
   readonly disabled?: boolean;
   readonly isSuppressed?: boolean;
-  readonly system?: {ruleElements?: readonly Data[]};
+  readonly system?: {ruleElements?: readonly Data[]; level?: number | null};
   readonly flags?: {wildpath?: {conditionEffect?: {sourceRef?: string | null}}};
 }
 
@@ -161,7 +161,9 @@ export function effectReactionItems(actor: ActorLike, {fromUuidSync = (globalThi
         const fixed = (dc?.fromSource && dc.valueExpression && source)
           ? Number(evaluateValueExpression(dc.valueExpression as never, {actor: source, actorSystem: source.system} as never).value) : null;
         if ( dc?.fromSource && !Number.isFinite(fixed) ) return [];
-        const definition = Number.isFinite(fixed) ? {...action, save: {...(action.save as Data), dc: {value: fixed}}} : action;
+        const fixedDC = Number.isFinite(fixed) ? {...action, save: {...(action.save as Data), dc: {value: fixed}}} : action;
+        // Its effect's level where the Action names it (`"{{level}}"`: Mirror Image's d6 for each duplicate left).
+        const definition = JSON.parse(JSON.stringify(fixedDC).replaceAll("\"{{level}}\"", String(Number(effect.system?.level) || 1))) as Data;
         return [{id: `${effect.id}-${String(element.id ?? "reaction")}`, type: "action", name: String(action.label ?? effect.name ?? ""),
           system: {active: true, definition: definition as {id?: string}, ruleElements: [{...element, data}]},
           // One that is no choice (Sanctuary's ward) is used at once (`policy: "always"`).

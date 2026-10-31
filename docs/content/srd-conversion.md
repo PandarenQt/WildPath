@@ -293,7 +293,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Cloak of Protection | equipment24 | Cloak of Protection (gear) | — |
 | Cloak of the Bat | equipment24 | Cloak of the Bat (gear), Cloak of the Bat: Polymorph (automated) | "Grip Edges" is passive or triggered: not automated; transform: a Beast the caster chooses; what the creature may do in its form is by hand |
 | Cloak of the Manta Ray | equipment24 | Cloak of the Manta Ray (gear) | — |
-| Cloaker | actors24 | Cloaker (7 items) | Light Sensitivity: silent: its text names a rule that is not converted (by hand); Attach: "Detach Attempt" is passive or triggered: not automated; Phantasms: effect: "Duplicate A" change flags.dnd-players-handbook.mirrorImages (add) not converted; Phantasms: effect: "Duplicate A" marks its creature only; its rules are by hand; Phantasms: effect: "Duplicate B" change flags.dnd-players-handbook.mirrorImages (add) not converted; Phantasms: effect: "Duplicate B" marks its creature only; its rules are by hand; Phantasms: effect: "Duplicate C" change flags.dnd-players-handbook.mirrorImages (add) not converted; Phantasms: effect: "Duplicate C" marks its creature only; its rules are by hand |
+| Cloaker | actors24 | Cloaker (7 items) | Light Sensitivity: silent: its text names a rule that is not converted (by hand); Attach: "Detach Attempt" is passive or triggered: not automated |
 | Clone | spells24 | Clone (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 hour is not an action-economy cost |
 | Clothes, Fine | equipment24 | Clothes, Fine (gear) | — |
 | Clothes, Traveler's | equipment24 | Clothes, Traveler's (gear) | — |
@@ -1002,7 +1002,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Mirage Arcane | spells24 | Mirage Arcane (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
 | Mirror | equipment24 | Mirror (gear) | — |
 | Mirror | equipment24 | Mirror (gear) | — |
-| Mirror Image | spells24 | Mirror Image (automated) | effect: "Duplicate A" change flags.dnd-players-handbook.mirrorImages (add) not converted; effect: "Duplicate A" marks its creature only; its rules are by hand; effect: "Duplicate B" change flags.dnd-players-handbook.mirrorImages (add) not converted; effect: "Duplicate B" marks its creature only; its rules are by hand; effect: "Duplicate C" change flags.dnd-players-handbook.mirrorImages (add) not converted; effect: "Duplicate C" marks its creature only; its rules are by hand |
+| Mirror Image | spells24 | Mirror Image (automated) | — |
 | Mirror of Life Trapping | equipment24 | Mirror of Life Trapping (gear) | "save" is passive or triggered: not automated; "Add Trapped Creature" is passive or triggered: not automated; "Free Trapped Creature" is passive or triggered: not automated |
 | Mislead | spells24 | Mislead (automated) | — |
 | Misty Step | spells24 | Misty Step (automated) | — |

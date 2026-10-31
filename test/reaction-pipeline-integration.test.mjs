@@ -494,6 +494,29 @@ test("Reactive Guard child action commits effect and reaction payment before par
   }), true);
 });
 
+test("Mirror Image: a hit is a miss when its duplicates' highest d6 is 3 or more; a lower roll leaves the hit", async () => {
+  const decoyed = async (total, natural=13) => {
+    const fixture = attackFixture({attackTotal: 18, natural});
+    // The duplicates' roll as a fixed number here; the converted spell rolls a d6 per duplicate, keeping the highest.
+    const duplicates = {schemaVersion: 1, id: "action:test-mirror-image", label: "Mirror Image", costs: {allOf: []}, targeting: {type: "self"},
+      rider: {missChance: {dice: {type: "constant", value: total}, keep: "highest", atLeast: 3}}};
+    const services = guardServices({defender: fixture.defender, targetActors: fixture.targetActors, action: duplicates});
+    const waiting = planStagedActionResolution({id: `resolution:mirror-${total}-${natural}`, actor: fixture.attacker, action: fixture.actionItem,
+      source: {actorId: fixture.attacker.id, actorRef: fixture.attacker.uuid}, targets: [fixture.target], attack: fixture.attack,
+      durability: true, targetActors: fixture.targetActors, services});
+    const selected = resumeStagedActionResolution({state: waiting.state, response: acceptResponse(waiting.state.pendingRequests[0]), services});
+    const child = await executeGuardChild({parentState: selected.state, defender: fixture.defender, targetActors: fixture.targetActors,
+      action: duplicates, persistencePort: fixture.persistencePort});
+    const [result] = completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services})
+      .state.results.attackResolution.results;
+    return [result.outcome, result.decoy === true];
+  };
+  assert.deepEqual(await decoyed(4), [ATTACK_OUTCOMES.MISS, true], "a 4: a duplicate is hit instead");
+  assert.deepEqual(await decoyed(3), [ATTACK_OUTCOMES.MISS, true], "3 or more");
+  assert.deepEqual(await decoyed(2), [ATTACK_OUTCOMES.HIT, false], "a 2: the hit stands");
+  assert.deepEqual(await decoyed(5, 20), [ATTACK_OUTCOMES.MISS, true], "even a critical hit lands on a duplicate");
+});
+
 test("Shield raises AC by 5 against the triggering attack, but a natural 20 still hits as a critical", async () => {
   const fixture = attackFixture({attackTotal: 18, natural: 20});
   const guardAction = reactiveGuardDefinition();

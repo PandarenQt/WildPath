@@ -504,7 +504,8 @@ function projectPublicResolutionResult(data) {
     source: projectEntityRefForDisclosure(data.source),
     targets: normalizeArray(data.targets).map(projectEntityRefForDisclosure),
     outcomes: {
-      attack: projectContestOutcome(data.outcomes?.attack, ["hit", "critical", "outcome"]),
+      // A hit that landed on a duplicate (Mirror Image) is shown as such.
+      attack: projectContestOutcome(data.outcomes?.attack, ["hit", "critical", "outcome"], ["decoy"]),
       save: projectContestOutcome(data.outcomes?.save, ["success", "critical", "outcome"], ["succeededInstead"]),
       // The acting creature's own check: whether it succeeded, never its DC or margin.
       check: data.outcomes?.check ? {success: data.outcomes.check.success === true} : null,

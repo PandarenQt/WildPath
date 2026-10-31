@@ -191,6 +191,18 @@ const EFFECT_REACTIONS = Object.freeze({
 });
 
 /**
+ * 2024 Mirror Image's duplicates: "Each time a creature hits you with an attack roll ..., roll a d6 for each of your
+ * remaining duplicates. If any of the d6s rolls a 3 or higher, one of the duplicates is hit instead of you, and the
+ * duplicate is destroyed." Its effect's reaction, used at once: the highest of a d6 per level (`"{{level}}"`, filled in
+ * when it is offered) at 3 or more turns the hit into a miss (`missChance`), and spendDecoys takes a level off.
+ * shortcut: an attacker with Blindsight or Truesight is fooled too; upgrade when a reaction's predicate sees the attacker's senses.
+ */
+const MIRROR_IMAGE = Object.freeze({schemaVersion: 1, id: "mirror-image", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+  match: {phase: "interrupt", targetTokenId: "{self}"}, policy: "always",
+  action: {schemaVersion: 1, id: "action:mirror-image-duplicates", label: "Mirror Image", costs: {allOf: []}, range: {type: "self"},
+    targeting: {type: "self"}, rider: {missChance: {dice: {type: "dice", number: "{{level}}", faces: 6}, keep: "highest", atLeast: 3}}}}});
+
+/**
  * What a spell ends on its target, by identifier: curses (effects tagged "curse"), or spells up to its own level; with
  * `areas`, a lasting spell area chosen in place of a creature (Dispel Magic's "magical effect").
  */
@@ -3612,6 +3624,17 @@ function convertActivity({document, activity, system, spell, level, scales, note
 
   if ( damage.length ) definition.damage = damage.map(({scaleDice: _scale, ...component}) => component);
   if ( healing.length ) definition.healing = healing.map(({scaleDice: _scale, ...component}) => component);
+  // 2024 Mirror Image: dnd5e's "Duplicate" effects (each adds 1 to a `mirrorImages` flag) are one effect with a level for
+  // each duplicate, whose reaction rolls a d6 per duplicate left when its creature is hit.
+  const duplicates = (document.effects ?? []).filter(effect => effectChanges(effect).some(change => /\.mirrorImages$/u.test(String(change.key))));
+  if ( duplicates.length > 1 ) {
+    const names = new Set(duplicates.map(effect => effect.name));
+    const first = effects.find(effect => names.has(effect.name));
+    effects.splice(0, effects.length, ...effects.filter(effect => !names.has(effect.name)), {id: first?.id ?? "effect-1", type: "effect",
+      name: document.name, slug: "mirror-image", levels: duplicates.length, ...(first?.img ? {img: first.img} : {}),
+      ...(first?.duration ? {duration: first.duration} : {}), ruleElements: [structuredClone(MIRROR_IMAGE)]});
+    notes.splice(0, notes.length, ...notes.filter(note => ![...names].some(name => note.includes(`"${name}"`))));
+  }
   // Bardic Inspiration: the creature may add the bard's die to a failed d20 test (its size on the bard's level).
   if ( identifierOf(document) === "bardic-inspiration" ) {
     const faces = formulaExpression("@scale.bard.inspiration.faces", {scales});

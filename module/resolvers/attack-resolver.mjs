@@ -186,11 +186,14 @@ function resolveAttackTarget({roll, targetContext, defense, defenseKey, policy, 
     policy,
     context
   });
+  // A hit on this target lands on a decoy instead (Mirror Image's duplicate): a miss on the creature.
+  const decoy = result.ok && result.hit && normalizedContext.overrides.some(override => override?.type === "decoy");
   // A hit on this target is a critical hit (an Unconscious creature struck from within 5 ft).
-  const critical = result.ok && result.hit && normalizedContext.overrides.some(override => override?.type === "critical-on-hit");
+  const critical = !decoy && result.ok && result.hit && normalizedContext.overrides.some(override => override?.type === "critical-on-hit");
   return {
     ...result,
     ...(critical ? {outcome: ATTACK_OUTCOMES.CRITICAL_HIT, critical: true} : {}),
+    ...(decoy ? {outcome: ATTACK_OUTCOMES.MISS, hit: false, critical: false, decoy: true} : {}),
     targetContext: normalizedContext
   };
 }

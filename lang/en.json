@@ -125,6 +125,7 @@
         "Hit": "Hit",
         "Critical": "Critical hit",
         "Miss": "Miss",
+        "Decoy": "Hit a duplicate",
         "SaveSuccess": "Saved",
         "SaveFailure": "Failed save",
         "LegendaryResistance": "Legendary Resistance",

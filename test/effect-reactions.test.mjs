@@ -15,3 +15,37 @@ test("an effect's reaction saves at the DC of the creature that gave it, and one
   assert.equal(item.system.ruleElements[0].data.policy, undefined, "the policy is the item's, not the trigger's");
   assert.deepEqual(effectReactionItems(warded, {fromUuidSync: () => null}), [], "no caster to read: no ward");
 });
+
+test("Mirror Image: its reaction rolls a d6 per duplicate left, its effect's level; a decoyed hit takes a level off", async () => {
+  const fs = await import("node:fs");
+  const {spendDecoys} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {actionDefinitionToResolverInput} = await import("../module/helpers/action-definitions.mjs");
+  const spell = JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith("mirror-image-"))}`, "utf8"));
+  const [effect] = spell.system.definition.effects;
+  assert.deepEqual([effect.name, effect.levels, spell.flags.wildpath.conversion.notes], ["Mirror Image", 3, []], "one effect: three duplicates");
+  // The custom effect starts at three levels.
+  const [condition] = actionDefinitionToResolverInput(spell.system.definition).effects.conditions;
+  assert.deepEqual([condition.levels, Object.values(condition.conditionDefinitions)[0].stacking], [3, true]);
+
+  const imaged = level => ({effects: [{id: "images", name: "Mirror Image", disabled: false, flags: {wildpath: {conditionEffect: {}}},
+    system: {level, ruleElements: effect.ruleElements}}]});
+  const [item] = effectReactionItems(imaged(2));
+  assert.deepEqual(item.system.definition.rider.missChance, {dice: {type: "dice", number: 2, faces: 6}, keep: "highest", atLeast: 3},
+    "two duplicates left: 2d6, the highest");
+  assert.equal(item.flags.wildpath.reactionPolicy, "always", "no choice: rolled at once");
+
+  const changes = [];
+  const bearer = level => {
+    const [images] = imaged(level).effects;
+    images.update = async data => changes.push(["update", data]);
+    images.delete = async () => changes.push(["delete"]);
+    return {effects: [images]};
+  };
+  const scene = actors => ({tokens: {get: id => (actors[id] ? {actor: actors[id]} : null)}});
+  const state = {source: {tokenRef: "Scene.s.Token.orc"}, results: {attackResolution: {results: [{target: {tokenId: "wizard"}, decoy: true},
+    {target: {tokenId: "fighter"}, hit: true}]}}};
+  await spendDecoys({state}, {fromUuid: async () => ({parent: scene({wizard: bearer(3)})})});
+  await spendDecoys({state}, {fromUuid: async () => ({parent: scene({wizard: bearer(1)})})});
+  assert.deepEqual(changes, [["update", {"system.level": 2}], ["delete"]], "three to two; the last one ends the spell");
+});

@@ -1,5 +1,7 @@
 import {modifiersField, ruleElementsField} from "../fields.mjs";
 
+const {NumberField} = foundry.data.fields;
+
 /**
  * Shared schema for every ActiveEffect sub-type in the WildPath system.
  * Adds a declarative `modifiers` array so effects (buffs, debuffs, spells) can contribute
@@ -13,6 +15,8 @@ export default class WildPathBaseEffect extends foundry.data.ActiveEffectTypeDat
     const schema = super.defineSchema();
     schema.modifiers = modifiersField();
     schema.ruleElements = ruleElementsField();
+    // How many of it there are, for a custom effect that counts down (Mirror Image's duplicates); null for the rest.
+    schema.level = new NumberField({nullable: true, integer: true, initial: null, min: 1});
     return schema;
   }
 }

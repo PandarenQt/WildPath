@@ -16,6 +16,8 @@ interface PublicRef {
 interface ContestEntry {
   readonly target?: PublicRef | null;
   readonly hit?: boolean | null;
+  /** A hit that landed on a duplicate instead (Mirror Image). */
+  readonly decoy?: boolean | null;
   readonly critical?: boolean | null;
   readonly success?: boolean | null;
   /** A failure the creature chose to turn into a success (Legendary Resistance). */
@@ -54,6 +56,7 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
   hit: "WILDPATH.CHAT.Outcome.Hit",
   critical: "WILDPATH.CHAT.Outcome.Critical",
   miss: "WILDPATH.CHAT.Outcome.Miss",
+  decoy: "WILDPATH.CHAT.Outcome.Decoy",
   saveSuccess: "WILDPATH.CHAT.Outcome.SaveSuccess",
   saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure",
   legendaryResistance: "WILDPATH.CHAT.Outcome.LegendaryResistance",
@@ -150,6 +153,7 @@ export function chatVisibilityForMode(mode: unknown,
 }
 
 function attackOutcome(entry: ContestEntry): CardOutcome {
+  if ( entry.decoy ) return {label: CHAT_OUTCOME_KEYS.decoy, tone: "failure"};
   if ( !entry.hit ) return {label: CHAT_OUTCOME_KEYS.miss, tone: "failure"};
   return {label: entry.critical ? CHAT_OUTCOME_KEYS.critical : CHAT_OUTCOME_KEYS.hit, tone: "success"};
 }

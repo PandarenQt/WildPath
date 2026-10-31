@@ -7,6 +7,7 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
     hit: "WILDPATH.CHAT.Outcome.Hit",
     critical: "WILDPATH.CHAT.Outcome.Critical",
     miss: "WILDPATH.CHAT.Outcome.Miss",
+    decoy: "WILDPATH.CHAT.Outcome.Decoy",
     saveSuccess: "WILDPATH.CHAT.Outcome.SaveSuccess",
     saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure",
     legendaryResistance: "WILDPATH.CHAT.Outcome.LegendaryResistance",
@@ -61,6 +62,8 @@ export function chatVisibilityForMode(mode, { initiatorUserId = null, gmUserIds 
     }
 }
 function attackOutcome(entry) {
+    if (entry.decoy)
+        return { label: CHAT_OUTCOME_KEYS.decoy, tone: "failure" };
     if (!entry.hit)
         return { label: CHAT_OUTCOME_KEYS.miss, tone: "failure" };
     return { label: entry.critical ? CHAT_OUTCOME_KEYS.critical : CHAT_OUTCOME_KEYS.hit, tone: "success" };

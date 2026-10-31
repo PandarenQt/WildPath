@@ -110,7 +110,9 @@ export function effectReactionItems(actor, { fromUuidSync = globalThis.fromUuidS
             ? Number(evaluateValueExpression(dc.valueExpression, { actor: source, actorSystem: source.system }).value) : null;
         if (dc?.fromSource && !Number.isFinite(fixed))
             return [];
-        const definition = Number.isFinite(fixed) ? { ...action, save: { ...action.save, dc: { value: fixed } } } : action;
+        const fixedDC = Number.isFinite(fixed) ? { ...action, save: { ...action.save, dc: { value: fixed } } } : action;
+        // Its effect's level where the Action names it (`"{{level}}"`: Mirror Image's d6 for each duplicate left).
+        const definition = JSON.parse(JSON.stringify(fixedDC).replaceAll("\"{{level}}\"", String(Number(effect.system?.level) || 1)));
         return [{ id: `${effect.id}-${String(element.id ?? "reaction")}`, type: "action", name: String(action.label ?? effect.name ?? ""),
                 system: { active: true, definition: definition, ruleElements: [{ ...element, data }] },
                 // One that is no choice (Sanctuary's ward) is used at once (`policy: "always"`).

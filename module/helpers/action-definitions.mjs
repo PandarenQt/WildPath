@@ -580,12 +580,14 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
       conditionId: (effect.type === "effect") ? customEffectId(definition.id, effect) : (effect.conditionId ?? effect.ref),
       // A custom effect is a one-off condition: it carries its own definition, and V14 runs its native duration.
       ...((effect.type === "effect") ? {conditionDefinitions: {[customEffectId(definition.id, effect)]: {
-        id: customEffectId(definition.id, effect), name: effect.name, img: effect.img ?? null, custom: true, stacking: false,
+        id: customEffectId(definition.id, effect), name: effect.name, img: effect.img ?? null, custom: true,
+        // One that starts at several levels counts them down (Mirror Image's three duplicates).
+        ...((effect.levels > 1) ? {stacking: true, maxLevel: effect.levels} : {stacking: false}),
         ruleElements: clonePlain(effect.ruleElements ?? []), duration: clonePlain(effect.duration ?? null),
         ...(effect.endsWhen ? {endsWhen: effect.endsWhen} : {}),
         // Applied again, a new one beside it rather than the old one refreshed (a second Dash: `stack: "separate"`).
         ...((effect.stack === "separate") ? {separate: true} : {})}}} : {}),
-      levels: (effect.type === "effect") ? 1 : effect.levels,
+      levels: ((effect.type === "effect") && !(effect.levels > 1)) ? 1 : effect.levels,
       saveOutcomePolicy: effect.application?.saveOutcomePolicy ?? effect.saveOutcomePolicy ?? null,
       duration: (effect.type === "effect") ? null : (effect.duration ?? definition.duration),
       concentration: effect.concentration,

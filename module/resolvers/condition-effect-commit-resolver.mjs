@@ -228,7 +228,8 @@ function customEffectDocumentData(plan, level, actor=null) {
     name: definition.name ?? plan.conditionId,
     img: definition.img ?? undefined,
     statuses: [plan.conditionId],
-    system: {ruleElements},
+    // One that counts down keeps its count (Mirror Image's three duplicates).
+    system: {ruleElements, ...((plan.stacking && (level > 0)) ? {level} : {})},
     ...(definition.duration ? {duration: clonePlain(definition.duration)} : {}),
     ...(combatant ? {start: {combatant: combatant.id}} : {})
   };
