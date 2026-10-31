@@ -1687,12 +1687,18 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const featureAction = FEATURE_ACTIONS[identifierOf(document)];
   if ( featureAction && (pool?.rule || featureAction.free || featureAction.costs) && !items.some(item => item.type === "action") ) {
     const id = stableId(`${document._id}:use`);
+    // An entry may bring its own uses (`pool`), reach a creature (`range`, `targeting`), or answer an event of its user's
+    // own (`trigger`: Tactical Shift on its Second Wind), offered as its `policy` says.
     items.push({_id: id, _key: `!items!${id}`, name: document.name, type: "action", img,
       system: {active: true, description, definition: {schemaVersion: 1, id: `action:srd-${slugify(document.name)}`, label: document.name,
-        costs: {allOf: featureAction.costs ?? (featureAction.free ? [] : [{capability: pool.id, amount: 1}])}, range: {type: "self"},
-        targeting: {type: "self"}, effects: structuredClone(featureAction.effects ?? []),
-        ...(featureAction.requires ? {requires: structuredClone(featureAction.requires)} : {})}, ruleElements: [pool?.rule].filter(Boolean)},
-      flags: {wildpath: {source, conversion: {notes: []}}}});
+        costs: {allOf: featureAction.costs ?? (featureAction.free ? [] : [{capability: pool.id, amount: 1}])},
+        range: structuredClone(featureAction.range ?? {type: "self"}), targeting: structuredClone(featureAction.targeting ?? {type: "self"}),
+        effects: structuredClone(featureAction.effects ?? []),
+        ...(featureAction.requires ? {requires: structuredClone(featureAction.requires)} : {})},
+      ruleElements: [pool?.rule ?? structuredClone(featureAction.pool ?? null),
+        featureAction.trigger ? {schemaVersion: 1, id: "reaction", type: "Trigger", data: structuredClone(featureAction.trigger)} : null]
+        .filter(Boolean)},
+      flags: {wildpath: {source, conversion: {notes: []}, ...(featureAction.policy ? {reactionPolicy: featureAction.policy} : {})}}});
   }
   // What it costs and how rare it is, on Actions that stand for it with no gear (an SRD Longbow, a Potion of Healing).
   const price = priceInGold(system.price);
@@ -1746,7 +1752,32 @@ const FEATURE_ACTIONS = Object.freeze({
     duration: {value: 1, units: "rounds", expiry: "turnStart"}, ruleElements: [
       {schemaVersion: 1, id: "reckless-attacks", type: "RollMode", data: {domains: ["attack.might"], mode: "advantage"}},
       {schemaVersion: 1, id: "reckless-attacked", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}}]}]},
+  // 2024 Tactical Shift: activating Second Wind lets the fighter move up to half its Speed without provoking Opportunity
+  // Attacks this turn (Withdraw's effect), answering its own Second Wind. shortcut: Second Wind paid with an Action under
+  // the Action-for-Bonus-Action rule counts too.
+  "tactical-shift": {free: true, policy: "always", trigger: ownDeclared("action:srd-second-wind"),
+    effects: [{...WITHDRAW, name: "Tactical Shift"}]},
+  // 2024 Instinctive Pounce: "As part of the Bonus Action you take to enter your Rage, you can move up to half your Speed"
+  // (Withdraw's movement, without Disengage), answering its own Rage.
+  "instinctive-pounce": {free: true, policy: "always", trigger: ownDeclared("action:srd-rage-expend-rage"),
+    effects: [{...Object.fromEntries(Object.entries(WITHDRAW).filter(([key]) => key !== "slug")), name: "Instinctive Pounce"}]},
+  // 2024 Contact Patron: once per Long Rest, Contact Other Plane with no slot to contact its patron, its save an automatic
+  // success (so no damage): an Action with no save. What the patron answers is the GM's.
+  "contact-patron": {costs: [{capability: "contact-patron", amount: 1}], pool: {schemaVersion: 1, id: "contact-patron-uses",
+    type: "GrantResource", data: {resourceId: "contact-patron", label: "Contact Patron", maximum: 1, recovery: "longRest"}}},
+  // 2024 Nightmare: "can grant Resistance to Fire damage to a rider while it is on the nightmare". shortcut: there are no
+  // mounts, so it lasts until removed and any creature it touches may have it.
+  "confer-fire-resistance": {free: true, range: {type: "touch", distance: {value: 5, unit: "ft"}},
+    targeting: {type: "single", required: true, count: 1}, effects: [{id: "effect-1", type: "effect", name: "Fire Resistance",
+      img: "icons/svg/fire-shield.svg", ruleElements: [{schemaVersion: 1, id: "confer-fire-resistance", type: "GrantResistance",
+        data: {damageTypes: ["fire"]}}]}]},
 });
+
+/** A reaction to its own Action of `definitionId` as it is declared (Brutal Strike's shape): its user, before it resolves. */
+function ownDeclared(definitionId) {
+  return {kind: "reaction", event: "action.declared", match: {phase: "interrupt", sourceTokenId: "{self}"},
+    triggerPredicate: {equals: {path: "event.data.actionDefinitionId", value: definitionId}}};
+}
 
 /**
  * Light sources (2024 PHB), by identifier: Bright Light out to `bright` feet and Dim Light out to `dim` (a Torch's 20 and

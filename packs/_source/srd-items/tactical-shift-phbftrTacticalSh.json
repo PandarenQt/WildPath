@@ -23,9 +23,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "silent: its text names a rule that is not converted (by hand)"
-        ]
+        "notes": []
       }
     }
   }

@@ -86,9 +86,77 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "silent: its text names a rule that is not converted (by hand)"
-            ]
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "tifvj635twus0000",
+      "_key": "!actors.items!mmNightmare00000.tifvj635twus0000",
+      "name": "Confer Fire Resistance",
+      "type": "action",
+      "img": "icons/magic/fire/barrier-shield-explosion-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">The nightmare can grant Resistance to Fire damage to a rider while it is on the nightmare.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-confer-fire-resistance",
+          "label": "Confer Fire Resistance",
+          "costs": {
+            "allOf": []
+          },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Fire Resistance",
+              "img": "icons/svg/fire-shield.svg",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "confer-fire-resistance",
+                  "type": "GrantResistance",
+                  "data": {
+                    "damageTypes": [
+                      "fire"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmConferFireResi",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "confer-fire-resistance",
+            "subtype": null
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -306,7 +374,6 @@
       },
       "conversion": {
         "notes": [
-          "Confer Fire Resistance: silent: its text names a rule that is not converted (by hand)",
           "Ethereal Stride: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }

@@ -2402,3 +2402,24 @@ test("class and species silent features: Precise Hunter, Mindless Rage, the Wood
   assert.deepEqual(resists.map(rule => [rule.type, rule.data.damageTypes]), [["GrantResistance", ["poison"]], ["GrantResistance", ["necrotic"]],
     ["GrantResistance", ["fire"]]]);
 });
+
+test("features that are Actions of their own: Tactical Shift and Instinctive Pounce answer their own Second Wind or Rage", () => {
+  const actionOf = (identifier, name) => convertItem({_id: `${identifier.replace(/-/g, "")}`.padEnd(16, "0").slice(0, 16), name, type: "feat",
+    img: "icons/svg/item-bag.svg", effects: [], system: {source: SRD, identifier, activities: {}, type: {value: "class"},
+      description: {value: "<p>You can move up to half your Speed.</p>"}}}).items.find(item => item.type === "action");
+  const shift = actionOf("tactical-shift", "Tactical Shift");
+  assert.equal(validateActionDefinition(shift.system.definition).ok, true);
+  assert.deepEqual([shift.system.definition.costs.allOf, shift.flags.wildpath.reactionPolicy, shift.system.ruleElements[0].data.event,
+    shift.system.ruleElements[0].data.triggerPredicate.equals.value], [[], "always", "action.declared", "action:srd-second-wind"]);
+  assert.equal(shift.system.definition.effects[0].slug, "disengaged", "it provokes no Opportunity Attacks");
+  const pounce = actionOf("instinctive-pounce", "Instinctive Pounce");
+  assert.equal(pounce.system.ruleElements[0].data.triggerPredicate.equals.value, "action:srd-rage-expend-rage");
+  assert.equal(pounce.system.definition.effects[0].slug, undefined, "it moves, but may provoke");
+  const patron = actionOf("contact-patron", "Contact Patron");
+  assert.deepEqual([patron.system.definition.costs.allOf, patron.system.ruleElements[0].data.recovery],
+    [[{capability: "contact-patron", amount: 1}], "longRest"], "once per Long Rest, from its own pool");
+  const confer = actionOf("confer-fire-resistance", "Confer Fire Resistance");
+  assert.equal(validateActionDefinition(confer.system.definition).ok, true);
+  assert.deepEqual([confer.system.definition.targeting.type, confer.system.definition.effects[0].ruleElements[0].data.damageTypes],
+    ["single", ["fire"]]);
+});

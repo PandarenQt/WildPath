@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 968 automated, 242 manual, 227 features. Creatures: 375.
+Items: 971 automated, 242 manual, 227 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -330,7 +330,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Conjured Water Elemental | actors24 | Conjured Water Elemental (1 items) | Water Element: "Initial Save" is passive or triggered (narrative): not automated; Water Element: "Save while Restrained" is passive or triggered (narrative): not automated |
 | Constrictor Snake | actors24 | Constrictor Snake (3 items) | — |
 | Contact Other Plane | spells24 | Contact Other Plane (automated) | activation: 1 minute is not an action-economy cost |
-| Contact Patron | classes24 | Contact Patron (feature) | silent: its text names a rule that is not converted (by hand) |
+| Contact Patron | classes24 | Contact Patron (feature), Contact Patron (automated) | — |
 | Contagion | spells24 | Contagion (automated) | — |
 | Contingency | spells24 | Contingency (manual) | not automated (enchant): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
 | Continual Flame | spells24 | Continual Flame (automated) | — |
@@ -847,7 +847,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Insect Plague | spells24 | Insect Plague (automated) | — |
 | Instant Fortress | equipment24 | Instant Fortress (gear), Instant Fortress (Grow Tower) (manual), Instant Fortress (Open Fortress Door) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Instant Summons | spells24 | Instant Summons (Inscribe Mark) (manual), Instant Summons (Recall Object) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost; consumption: itemUses -1 not converted |
-| Instinctive Pounce | classes24 | Instinctive Pounce (feature) | silent: its text names a rule that is not converted (by hand) |
+| Instinctive Pounce | classes24 | Instinctive Pounce (feature), Instinctive Pounce (automated) | — |
 | Intimidating Presence | classes24 | Intimidating Presence (save) (automated), Intimidating Presence (Recharge with Rage) (automated) | — |
 | Investment of the Chain Master | classes24 | Investment of the Chain Master (Find Familiar with Flight) (automated), Investment of the Chain Master (Find Familiar with Swimming) (automated), Investment of the Chain Master (Invest with Resistance) (automated) | — |
 | Invisibility | spells24 | Invisibility (automated) | — |
@@ -1034,7 +1034,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Needles | equipment24 | Needles (gear) | — |
 | Net | equipment24 | Net (gear), Net (automated) | save: a failure gives restrained (its text); the rest is by hand |
 | Night Hag | actors24 | Night Hag (18 items) | Coven Magic: not automated (utility, narrative): using it spends its cost; its description says the rest; Coven Magic: activation: 1 minute is not an action-economy cost; Coven Magic: concentration: its caster concentrates; what it sustains is by hand; Coven Magic: activation: 10 minute is not an action-economy cost; Coven Magic: save: a failure marks its creature (narrative); Coven Magic: "Create Sensor" is passive or triggered (narrative): not automated; Soul Bag: "Soul Bag" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: effect: "Fears Manifested" marks its creature only; its rules are by hand; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Nightmare Haunting: activation: 1 minute is not an action-economy cost |
-| Nightmare | actors24 | Nightmare (5 items) | Confer Fire Resistance: silent: its text names a rule that is not converted (by hand); Ethereal Stride: not automated (utility): using it spends its cost; its description says the rest |
+| Nightmare | actors24 | Nightmare (6 items) | Ethereal Stride: not automated (utility): using it spends its cost; its description says the rest |
 | Nine Lives Stealer | equipment24 | Nine Lives Stealer (Life Stealing) (automated) | rolled (save); what it does is by hand; "Nine Lives Stealer" is passive or triggered: not automated |
 | Noble | actors24 | Noble (2 items) | — |
 | Nondetection | spells24 | Nondetection (automated) | effect: "Hidden from Divination" marks its creature (narrative) |
@@ -1500,7 +1500,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Symbol | spells24 | Symbol (Inscribe Glyph) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost; "Death" is passive or triggered: not automated; "Discord" is passive or triggered: not automated; "Fear" is passive or triggered: not automated; "Pain" is passive or triggered: not automated; "Sleep" is passive or triggered: not automated; "Stunning" is passive or triggered: not automated |
 | Tactical Master | classes24 | Tactical Master (feature) | effect: "Tactial Master" change system.traits.weaponProf.mastery.bonus (add) not converted |
 | Tactical Mind | classes24 | Tactical Mind (feature) | — |
-| Tactical Shift | classes24 | Tactical Shift (feature) | silent: its text names a rule that is not converted (by hand) |
+| Tactical Shift | classes24 | Tactical Shift (feature), Tactical Shift (automated) | — |
 | Talisman of Pure Good | equipment24 | Talisman of Pure Good (gear), Talisman of Pure Good (Pure Rebuke) (automated) | "Fiend and Undead Damage" is passive or triggered: not automated |
 | Talisman of the Sphere | equipment24 | Talisman of the Sphere (gear) | — |
 | Talisman of Ultimate Evil | equipment24 | Talisman of Ultimate Evil (gear), Talisman of Ultimate Evil (Ultimate End) (automated) | "Non-Fiend or Undead Damage" is passive or triggered: not automated |
