@@ -98,3 +98,20 @@ test("converted Pounce: half its Speed back, and one Rend paid from its own pool
   assert.equal(validateActionDefinition(pounce.system.definition).ok, true);
   assert.deepEqual(pounce.flags.wildpath.conversion.notes, []);
 });
+
+test("converted Lash and Tail Swipe: one attack from the pool, no movement; a teleport or a move with more text is left", async () => {
+  const fs = await import("node:fs");
+  const creature = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-creatures/${fs.readdirSync("packs/_source/srd-creatures")
+    .find(name => name.startsWith(prefix))}`, "utf8"));
+  const aboleth = creature("aboleth-");
+  const lash = aboleth.items.find(item => item.name === "Lash");
+  assert.deepEqual(lash.system.definition.restores, [{resourceId: "move-attack-tentacle", amount: 1}]);
+  assert.deepEqual(aboleth.items.find(item => item.name === "Tentacle (attack)").system.definition.costs.anyOf[0],
+    [{capability: "move-attack-tentacle", amount: 1}]);
+  assert.equal(validateActionDefinition(lash.system.definition).ok, true);
+  assert.deepEqual(lash.flags.wildpath.conversion.notes, []);
+  const swipe = creature("adult-blue-dragon-").items.find(item => item.name === "Tail Swipe");
+  assert.deepEqual(swipe.system.definition.restores, [{resourceId: "move-attack-rend", amount: 1}]);
+  assert.equal(creature("sphinx-of-lore-").items.find(item => item.name === "Arcane Prowl").system.definition.restores, undefined,
+    "its teleport is not a plain attack");
+});

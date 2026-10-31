@@ -5094,12 +5094,15 @@ function multiattack(items, notes) {
  * 2024 "moves up to half its Speed, and it makes one Rend attack" (a dragon's Pounce, a Charge, a Rampage): the Action
  * gives back that much movement, and fills a one-attack pool its named attack may be paid from (as a Multiattack's), for
  * the creature to move and strike. Its note goes; what else its text says (extra damage, a push) stays by hand.
+ * One whose whole text is "makes one Tentacle attack" (an Aboleth's Lash, a dragon's Tail Swipe) fills the pool alone.
  */
 function moveThenAttack(items, notes) {
   const attacks = items.filter(action => action.system?.definition?.attack);
   for ( const action of items.filter(entry => entry.type === "action") ) {
     const text = String(action.system?.description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
-    const match = /moves? (?:up to )?(half )?(?:its|their) Speed(?: or less)?,? (?:and|then) (?:it )?(?:can )?makes? one ([\w' -]+?) attack/i.exec(text);
+    const match = /moves? (?:up to )?(half )?(?:its|their) Speed(?: or less)?,? (?:and|then) (?:it )?(?:can )?makes? one ([\w' -]+?) attack/i.exec(text)
+      ?? /^\s*(?:The [\w' -]+?|It) ()makes one ([\w' -]+?) attack\.?\s*$/i.exec(text);
+    const moves = !match || (match[1] !== "");
     const attack = match ? attacks.find(entry => entry !== action && entry.name.replace(/\s*\(.*\)\s*$/, "").toLowerCase() === match[2].trim().toLowerCase()) : null;
     if ( !attack ) continue;
     const pool = `move-attack-${slugify(attack.name.replace(/\s*\(.*\)\s*$/, ""))}`;
@@ -5107,7 +5110,7 @@ function moveThenAttack(items, notes) {
       value: match[1] ? 0.5 : 1}]}};
     const definition = action.system.definition;
     action.system.definition = {...definition, targeting: {type: "none"}, restores: [...(definition.restores ?? []),
-      {resourceId: "movement", amount: 1, amountExpression: movement}, {resourceId: pool, amount: 1}]};
+      ...(moves ? [{resourceId: "movement", amount: 1, amountExpression: movement}] : []), {resourceId: pool, amount: 1}]};
     action.system.ruleElements = [...(action.system.ruleElements ?? []), {schemaVersion: 1, id: `${pool}-uses`, type: "GrantResource",
       data: {resourceId: pool, label: `${action.name} (${attack.name})`, maximum: 1, current: 0, recovery: "none", emptiesAtTurnStart: true}}];
     const costs = attack.system.definition.costs;

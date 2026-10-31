@@ -268,6 +268,12 @@
             "anyOf": [
               [
                 {
+                  "capability": "move-attack-tentacle",
+                  "amount": 1
+                }
+              ],
+              [
+                {
                   "capability": "multiattack-tentacle",
                   "amount": 1
                 }
@@ -638,9 +644,32 @@
               }
             ]
           },
-          "label": "Lash"
+          "label": "Lash",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "move-attack-tentacle",
+              "amount": 1
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "move-attack-tentacle-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "move-attack-tentacle",
+              "label": "Lash (Tentacle (attack))",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -656,9 +685,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility, narrative): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -834,8 +861,7 @@
           "Eldritch Restoration: not automated (utility): using it spends its cost; its description says the rest",
           "Mucus Cloud: \"save\" is passive or triggered: not automated",
           "Mucus Cloud: \"Damage: Outside Water\" is passive or triggered: not automated",
-          "Dominate Mind: save: a failure gives charmed (its text); the rest is by hand",
-          "Lash: not automated (utility, narrative): using it spends its cost; its description says the rest"
+          "Dominate Mind: save: a failure gives charmed (its text); the rest is by hand"
         ]
       }
     }
