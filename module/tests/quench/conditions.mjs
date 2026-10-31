@@ -263,7 +263,7 @@ export function registerConditionTests(quench) {
         // After a change (the rules tick moves) every creature works its rules out again; between changes they are kept.
         const timed = (fresh) => {
           const start = performance.now();
-          for ( let repeat = 0; repeat < 5; repeat++ ) { if ( fresh ) Hooks.callAll("updateSetting"); round(); }
+          for ( let repeat = 0; repeat < 5; repeat++ ) { if ( fresh ) Hooks.callAll("updateSetting", {key: "wildpath.performance-probe"}); round(); }
           return (performance.now() - start) / 5;
         };
         const fresh = timed(true), kept = timed(false);

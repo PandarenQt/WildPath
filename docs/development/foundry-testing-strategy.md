@@ -117,6 +117,9 @@ rows' names, drafts, errors and copy.
 without Quench never downloads the tests). Its `registerQuenchTests` registers exactly eleven batches (61 cases, **61/61 live** on Foundry
 14.369 on 2026-10-14, including the 4-case `wildpath.multiplayer-disclosure`, 3-case
 `wildpath.action-results` and 8-case `wildpath.representative-actions` batches; orphan check empty).
+Latest full run (2026-10-31, Foundry V14 on fresh packs): fourteen batches, **79/79** (`areas`, `languages` and
+`applications` joined since). The conditions batch's performance probe now passes a stand-in Setting with the
+`updateSetting` it fires, so listeners that read `setting.key` (the action bar's) no longer throw during the run.
 Batch modules do
 not add registration hooks. When batches are started programmatically (`quench.runBatches`), render
 the Quench results window first (`quench.app.render({force: true})`); otherwise Quench's reporter
