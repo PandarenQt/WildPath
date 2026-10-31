@@ -129,7 +129,8 @@ test("a custom effect lasting to turnEnd on another creature reaches V14 as turn
     action: {id: definition.id, type: "action", name: "Carry", system: {definition}}, source: {actorId: "monk", tokenId: "monk-token"},
     targets: [{id: "ally", actorId: "actor-ally", tokenId: "ally-token"}]}).state.mutationPlans.find(entry => entry.type === "conditionEffect");
   const previous = globalThis.game;
-  globalThis.game = {combat: {started: true, combatants: [{id: "combatant-ally", tokenId: "ally-token"}, {id: "combatant-monk", tokenId: "monk-token"}]}};
+  globalThis.game = {time: {worldTime: 600}, combat: {id: "combat-1", started: true, round: 2, turn: 1,
+    combatants: [{id: "combatant-ally", tokenId: "ally-token"}, {id: "combatant-monk", tokenId: "monk-token", initiative: 14}]}};
   try {
     const actor = actorWithEffects();
     const created = [];
@@ -137,8 +138,9 @@ test("a custom effect lasting to turnEnd on another creature reaches V14 as turn
     actor.createEmbeddedDocuments = async (name, documents) => { created.push(...structuredClone(documents)); return create(name, documents); };
     assert.equal((await commitConditionEffectMutationPlan(actor, mutation)).ok, true);
     assert.deepEqual(created[0].duration, {value: 0, units: "turns", expiry: "turnEnd"}, "a V14 expiry, as written");
-    // Through the pipeline the plan's source is the Action's user, so its duration starts on the source's Combatant.
-    assert.equal(created[0].start?.combatant, "combatant-monk");
+    // Through the pipeline the plan's source is the Action's user, so its duration starts on the source's Combatant: the
+    // whole start record, as V14 validates `time` on creation and reads `combatant` only with its `combat`.
+    assert.deepEqual(created[0].start, {time: 600, combat: "combat-1", combatant: "combatant-monk", initiative: 14, round: 2, turn: 1});
   } finally {
     globalThis.game = previous;
   }

@@ -246,11 +246,22 @@ function customEffectDocumentData(plan, level, actor=null) {
     // One that counts down keeps its count (Mirror Image's three duplicates).
     system: {ruleElements, ...((plan.stacking && (level > 0)) ? {level} : {})},
     ...(definition.duration ? {duration: clonePlain(definition.duration)} : {}),
-    ...(combatant ? {start: {combatant: combatant.id}} : {})
+    ...(combatant ? {start: sourceStart(combatant)} : {})
   };
   applyUpdatesToData(data, lifecycleUpdates(plan, level));
   data.flags.wildpath.conditionEffect.definition = clonePlain(definition);
   return pruneUndefined(data);
+}
+
+/**
+ * A V14 effect start on the source's Combatant: the whole record, as `ActiveEffect.getEffectStart` gives it but with
+ * the source's Combatant. V14 validates `start.time` when the effect is built (before `_preCreate` fills it), and honours
+ * `start.combatant` only while `start.combat` names the running combat (else it uses the bearer's).
+ */
+function sourceStart(combatant) {
+  const combat = globalThis.game?.combat;
+  return {time: globalThis.game?.time?.worldTime ?? 0, combat: combat?.id ?? null, combatant: combatant.id,
+    initiative: combatant.initiative ?? null, round: combat?.round ?? null, turn: combat?.turn ?? null};
 }
 
 /** The source creature's Combatant in the running combat, if any (by Token, then by Actor). */
@@ -299,7 +310,7 @@ function nativeDuration(plan) {
   const named = /^(source|target)Turn(Start|End)$/.exec(String(duration.expiry ?? ""));
   if ( !named ) return {duration};
   const combatant = (named[1] === "source") ? sourceCombatant(plan.source) : null;
-  return {duration: {...duration, expiry: `turn${named[2]}`}, ...(combatant ? {start: {combatant: combatant.id}} : {})};
+  return {duration: {...duration, expiry: `turn${named[2]}`}, ...(combatant ? {start: sourceStart(combatant)} : {})};
 }
 
 function shouldPersistLifecycleMetadata(plan) {
