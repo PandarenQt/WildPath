@@ -79,8 +79,8 @@ export function choiceOptions(pool, items) {
 }
 /**
  * A spell choice's options (`pool.spellLists`, `pool.spellLevel`: Magic Initiate), one per spell: its Items taken together
- * (Produce Flame's Cast and Hurl Fire), their uuids the option's value, comma-joined; by name. Not one whose Items its
- * creature already has (`owned`: compendium sources).
+ * (Produce Flame's Cast and Hurl Fire) from the first package that has it, their uuids the option's value, comma-joined;
+ * by name. Not one whose Items its creature already has (`owned`: compendium sources).
  */
 export function spellChoiceOptions(entries, pool, owned) {
     const { spellLists = [], spellLevel = 0 } = pool ?? {};
@@ -90,7 +90,11 @@ export function spellChoiceOptions(entries, pool, owned) {
         const id = entry.flags?.wildpath?.source?.id;
         if (!id || (Number(metadata?.spellLevel) !== spellLevel) || !metadata?.spellLists?.some(list => spellLists.includes(list)))
             continue;
-        spells.set(id, [...(spells.get(id) ?? []), entry]);
+        // One package's copy: the first's (the SRD's Fire Bolt, not the PHB's as well).
+        const known = spells.get(id);
+        if (known && (known[0].uuid.split(".Item.")[0] !== entry.uuid.split(".Item.")[0]))
+            continue;
+        spells.set(id, [...(known ?? []), entry]);
     }
     return [...spells.values()].filter(items => !items.some(item => owned.has(item.uuid)))
         .map(items => ({ value: items.map(item => item.uuid).join(","), label: items[0].name.replace(/ \([^)]*\)$/u, "") }))

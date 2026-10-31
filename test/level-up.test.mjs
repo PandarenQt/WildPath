@@ -149,13 +149,16 @@ test("recorded damage and condition traits are rules: a Dwarf's Resistance to Po
 
 test("a spell choice (Magic Initiate): one option per spell on its lists at its level, its Items together; not one it has", async () => {
   const {spellChoiceOptions} = await import("../module/helpers/level-up.mjs");
-  const spell = (uuid, name, id, spellLevel, spellLists) => ({uuid, name, flags: {wildpath: {source: {id}}},
+  const spell = (uuid, name, id, spellLevel, spellLists) => ({uuid: uuid.includes(".") ? uuid : `Compendium.srd.Item.${uuid}`, name, flags: {wildpath: {source: {id}}},
     system: {definition: {metadata: {spellLevel, spellLists}}}});
   const entries = [spell("a", "Produce Flame (Cast)", "flame", 0, ["druid"]), spell("b", "Produce Flame (Hurl Fire)", "flame", 0, ["druid"]),
     spell("c", "Fire Bolt", "bolt", 0, ["sorcerer", "wizard"]), spell("d", "Eldritch Blast", "blast", 0, ["warlock"]),
     spell("e", "Bless", "bless", 1, ["cleric"]), {uuid: "f", name: "Alert", flags: {wildpath: {source: {id: "alert"}}}}];
   const pool = {spellLists: ["cleric", "druid", "wizard"], spellLevel: 0};
-  assert.deepEqual(spellChoiceOptions(entries, pool, new Set()), [{value: "c", label: "Fire Bolt"}, {value: "a,b", label: "Produce Flame"}]);
-  assert.deepEqual(spellChoiceOptions(entries, pool, new Set(["b"])), [{value: "c", label: "Fire Bolt"}], "it has Produce Flame");
-  assert.deepEqual(spellChoiceOptions(entries, {...pool, spellLevel: 1}, new Set()), [{value: "e", label: "Bless"}]);
+  assert.deepEqual(spellChoiceOptions(entries, pool, new Set()), [{value: "Compendium.srd.Item.c", label: "Fire Bolt"},
+    {value: "Compendium.srd.Item.a,Compendium.srd.Item.b", label: "Produce Flame"}]);
+  assert.deepEqual(spellChoiceOptions(entries, pool, new Set(["Compendium.srd.Item.b"])), [{value: "Compendium.srd.Item.c", label: "Fire Bolt"}], "it has Produce Flame");
+  assert.deepEqual(spellChoiceOptions(entries, {...pool, spellLevel: 1}, new Set()), [{value: "Compendium.srd.Item.e", label: "Bless"}]);
+  const copies = [spell("Compendium.srd.Item.x", "Fire Bolt", "bolt", 0, ["wizard"]), spell("Compendium.phb.Item.y", "Fire Bolt", "bolt", 0, ["wizard"])];
+  assert.deepEqual(spellChoiceOptions(copies, pool, new Set()), [{value: "Compendium.srd.Item.x", label: "Fire Bolt"}], "the first package's copy");
 });
