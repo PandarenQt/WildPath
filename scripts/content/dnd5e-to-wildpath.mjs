@@ -515,7 +515,11 @@ const SIGNATURE_SPELL_POOLS = Object.freeze([1, 2].map(n => ({schemaVersion: 1, 
 const FREE_CASTS = Object.freeze({"faithful-steed": {spells: ["find-steed"], recovery: "longRest"},
   // Its level 1 spell, whichever it gave (`granted`). shortcut: a second Magic Initiate shares the pool (2 uses for both
   // spells, not 1 each); give each copy its own pool if that matters.
-  "magic-initiate": {spells: [], granted: true, recovery: "longRest"}});
+  "magic-initiate": {spells: [], granted: true, recovery: "longRest"},
+  // The PHB's Favored Enemy is a feature beside the Hunter's Mark its ranger is granted (the SRD's is a Hunter's Mark
+  // Action with this pool): its free casts by ranger level.
+  "favored-enemy": {spells: ["hunters-mark"], recovery: "longRest",
+    maximum: {type: "table", key: {type: "class-level", class: "ranger"}, rows: {1: 2, 5: 3, 9: 4, 13: 5, 17: 6}}}});
 const freeCastResource = identifier => `free-cast.${identifier}`;
 
 /**
@@ -1872,7 +1876,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...((identifierOf(document) === "mystic-arcanum") ? structuredClone(MYSTIC_ARCANUM_POOLS) : []),
         ...((identifierOf(document) === "signature-spells") ? structuredClone(SIGNATURE_SPELL_POOLS) : []),
         ...(FREE_CASTS[identifierOf(document)] ? [{schemaVersion: 1, id: `${identifierOf(document)}-free-cast`, type: "GrantResource",
-          data: {resourceId: freeCastResource(identifierOf(document)), label: document.name, maximum: 1,
+          data: {resourceId: freeCastResource(identifierOf(document)), label: document.name,
+            maximum: structuredClone(FREE_CASTS[identifierOf(document)].maximum ?? 1),
             recovery: FREE_CASTS[identifierOf(document)].recovery}}] : []),
         ...structuredClone(FEAT_ADVANCEMENT[identifierOf(document)]?.rules ?? [])].filter(Boolean),
         ...(FEAT_ADVANCEMENT[identifierOf(document)] ? {advancement: structuredClone(FEAT_ADVANCEMENT[identifierOf(document)].advancement)} : {})},

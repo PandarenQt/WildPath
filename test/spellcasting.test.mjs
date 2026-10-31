@@ -139,6 +139,13 @@ test("Faithful Steed: Find Steed may spend its once-per-Long-Rest pool instead o
   const has = choice => choice.cost.anyOf.some(branch => branch[0]?.capability === "free-cast.faithful-steed");
   assert.equal(has(slot(read("find-steed-summon-steed-phb"), paladin([]))), false, "no pool");
   assert.equal(has(slot(read("aid-phb"), paladin())), false, "another spell");
+  // The PHB's Favored Enemy (a bare feature there): Hunter's Mark from a pool of 2 to 6 by ranger level.
+  const {convertItem} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const [enemy] = convertItem({_id: "phbrgrFavoredEne", name: "Favored Enemy", type: "feat", system: {identifier: "favored-enemy",
+    source: {book: "SRD 5.2", license: "CC-BY-4.0", rules: "2024"}, type: {value: "class", subtype: ""}, description: {value: "<p>Free casts.</p>"},
+    activities: {}}}).items;
+  assert.deepEqual([enemy.flags.wildpath.freeCast, enemy.system.ruleElements[0].data.maximum.rows[17]],
+    [{spells: ["hunters-mark"], resourceId: "free-cast.favored-enemy"}, 6]);
 });
 
 test("Magic Initiate: the level 1 spell it gave casts free from its pool; its spells use the best of Intelligence, Wisdom and Charisma", async () => {
