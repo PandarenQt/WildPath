@@ -24,6 +24,17 @@
       },
       "conversion": {
         "notes": []
+      },
+      "testOffer": {
+        "tests": [
+          "check"
+        ],
+        "refundOnFail": true,
+        "pool": "second-wind",
+        "faces": {
+          "type": "constant",
+          "value": 10
+        }
       }
     }
   }

@@ -158,6 +158,12 @@ test("feature shapes (migration 5): an Item takes its compendium copy's generali
     {id: "potent", type: "RollOutcome", data: {outcome: "half-on-success", domains: ["imposed.save"]}}]}};
   assert.equal(featureShapeFix({type: "feature", system: {}}, adept)["system.ruleElements"].length, 2, "a recorded choice's rule; half-on-success");
   assert.equal(featureShapeFix(stored, null), null, "no copy");
+  // Revision 3: a test offer (Indomitable's reroll), when it has none.
+  const offer = {tests: ["save"], reroll: true, pool: "indomitable", bonus: {type: "class-level", class: "fighter"}};
+  assert.deepEqual(featureShapeFix({type: "feature", system: {}, flags: {}}, {type: "feature", system: {}, flags: {wildpath: {testOffer: offer}}}),
+    {"flags.wildpath.testOffer": offer});
+  assert.equal(featureShapeFix({type: "feature", system: {}, flags: {wildpath: {testOffer: {tests: ["check"]}}}},
+    {type: "feature", system: {}, flags: {wildpath: {testOffer: offer}}}), null, "its own is kept");
   assert.equal(featureShapeFix({...stored, type: "action"}, pack), null, "another type");
 });
 

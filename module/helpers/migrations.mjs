@@ -79,8 +79,8 @@ const generalizedShape = rule => ((rule?.type === "RollOutcome") && ["half-on-su
 
 /**
  * What an Item (stored source) takes from its compendium copy (`packSource`) of those shapes: the pack's rules of them
- * whose id it lacks, appended, and the pack's `flags.wildpath.spellChoice` when it has none. Additive only: nothing it
- * has is replaced. Null when it needs nothing.
+ * whose id it lacks, appended, and the pack's `flags.wildpath.spellChoice` and `testOffer` when it has none of each.
+ * Additive only: nothing it has is replaced. Null when it needs nothing.
  * @param {object} source
  * @param {object|null} packSource
  * @returns {object|null}
@@ -90,10 +90,13 @@ export function featureShapeFix(source, packSource) {
   const rules = source.system?.ruleElements ?? [];
   const ids = new Set(rules.map(rule => rule?.id));
   const missing = (packSource.system?.ruleElements ?? []).filter(rule => generalizedShape(rule) && !ids.has(rule?.id));
-  const choice = source.flags?.wildpath?.spellChoice ? null : (packSource.flags?.wildpath?.spellChoice ?? null);
-  if ( !missing.length && !choice ) return null;
+  const flag = key => (source.flags?.wildpath?.[key] ? null : (packSource.flags?.wildpath?.[key] ?? null));
+  const choice = flag("spellChoice");
+  const offer = flag("testOffer");
+  if ( !missing.length && !choice && !offer ) return null;
   return {...(missing.length ? {"system.ruleElements": structuredClone([...rules, ...missing])} : {}),
-    ...(choice ? {"flags.wildpath.spellChoice": structuredClone(choice)} : {})};
+    ...(choice ? {"flags.wildpath.spellChoice": structuredClone(choice)} : {}),
+    ...(offer ? {"flags.wildpath.testOffer": structuredClone(offer)} : {})};
 }
 
 /** Every world Actor, then the unlinked Tokens' own Actors on every Scene (after their base, so they see its fix). */
@@ -213,8 +216,9 @@ export const MIGRATIONS = Object.freeze([
   {version: 2, name: "WILDPATH.MIGRATION.StalePools", run: pruneStalePools},
   {version: 3, name: "WILDPATH.MIGRATION.Fortitude", run: recordFortitude},
   {version: 4, name: "WILDPATH.MIGRATION.CreatureTypes", run: recordCreatureTypes},
-  // Revision 2: an Item copied without its compendium link is found by its source id.
-  {version: 5, name: "WILDPATH.MIGRATION.FeatureShapes", run: game => fillFeatureShapes(game), rerun: true, revision: 2}
+  // Revision 2: an Item copied without its compendium link is found by its source id. Revision 3: a feature's test
+  // offer (Indomitable's reroll, Tactical Mind's die: once engine code keyed on the fighter class).
+  {version: 5, name: "WILDPATH.MIGRATION.FeatureShapes", run: game => fillFeatureShapes(game), rerun: true, revision: 3}
 ]);
 
 /**

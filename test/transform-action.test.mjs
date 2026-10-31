@@ -150,18 +150,21 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   delete globalThis.ChatMessage;
 });
 
-test("Indomitable: a fighter's own failed save may be rerolled with its fighter level, from its pool", async () => {
-  const {withIndomitable} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
-  const fighter = {uuid: "Actor.fighter", name: "Fighter"};
+test("Indomitable (a test offer): a failed save may be rerolled with a bonus of its value expression, from its pool", async () => {
+  const {withTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const indomitable = {id: "ind", name: "Indomitable", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["save"], reroll: true,
+    pool: "indomitable", bonus: {type: "class-level", class: "fighter"}}}}};
+  const fighter = {uuid: "Actor.fighter", name: "Fighter", items: [indomitable]};
   const system = uses => ({resources: {}, pools: [{id: "indomitable", value: uses, max: 1}], classes: [{id: "fighter", level: 9}]});
-  const alone = withIndomitable(null, fighter, system(1), {});
-  assert.deepEqual([alone.own, alone.options.map(option => [option.value, option.bonus])], [true, [["indomitable:Actor.fighter", 9]]]);
+  const alone = withTestOffers(null, fighter, system(1), {}, "save", {chooser: "target-controller"});
+  assert.deepEqual([alone.own, alone.options.map(option => [option.value, option.bonus, !!option.plan])], [true, [["test-offer:ind", 9, true]]]);
   const inspired = {own: true, chooser: "target-controller", label: "x", options: [{value: "spend:Actor.fighter"}]};
-  assert.deepEqual(withIndomitable(inspired, fighter, system(1), {}).options.map(option => option.value),
-    ["spend:Actor.fighter", "indomitable:Actor.fighter"], "beside Heroic Inspiration");
-  assert.equal(withIndomitable(null, fighter, system(0), {}), null, "none left");
+  assert.deepEqual(withTestOffers(inspired, fighter, system(1), {}, "save").options.map(option => option.value),
+    ["spend:Actor.fighter", "test-offer:ind"], "beside Heroic Inspiration");
+  assert.equal(withTestOffers(null, fighter, system(0), {}, "save"), null, "none left");
+  assert.equal(withTestOffers(null, fighter, system(1), {}, "check"), null, "a save's only");
   const monster = {own: false, options: []};
-  assert.equal(withIndomitable(monster, fighter, system(1), {}), monster, "never on a monster's GM-chosen reroll");
+  assert.equal(withTestOffers(monster, fighter, system(1), {}, "save"), monster, "never on a monster's GM-chosen reroll");
 });
 
 test("a die an effect lets its creature add (Bardic Inspiration) is offered at its giver's size", async () => {

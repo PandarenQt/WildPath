@@ -481,13 +481,12 @@ const CHOICES_FOR = Object.freeze({
 });
 
 /**
- * Features the engine offers itself when they apply (Tactical Mind: withTacticalMind on a failed check), or that are
+ * Features the engine offers itself when they apply, or that are
  * rows of another feature's Action (Eldritch Master in Magical Cunning; Heightened Focus in Monk's Focus: Flurry's third
  * strike, Patient Defense's Temporary Hit Points; its carrying Step of the Wind is its own Action, FEATURE_ACTIONS), or that mark a spell on the sheet (Spell Mastery, Signature Spells:
  * SPELL_CHOICES). Their dnd5e activities are neither Actions nor notes.
  */
-const OFFERED_BY_ENGINE = new Set(["tactical-mind", "eldritch-master", "indomitable", "heightened-focus", "spell-mastery",
-  "signature-spells"]);
+const OFFERED_BY_ENGINE = new Set(["eldritch-master", "heightened-focus", "spell-mastery", "signature-spells"]);
 
 /** The pool of Pact Magic slots (helpers/spellcasting.mts). */
 const PACT_SLOT_POOL = "spell-slot.pact";
@@ -595,7 +594,11 @@ const TEST_OFFERS = Object.freeze({
   // creature's success is by hand (noted).
   "boon-of-fate": {tests: ["check", "save", "attack"], pool: "boon-of-fate", range: 60, faces: {type: "constant", value: 4}, number: 2},
   // 2024 Disciplined Survivor: a failed save rerolled for 1 Focus Point (its activity's).
-  "disciplined-survivor": {tests: ["save"], reroll: true}
+  "disciplined-survivor": {tests: ["save"], reroll: true},
+  // 2024 Indomitable: a failed save rerolled with a bonus of its activity's roll (its fighter level), from its own uses.
+  indomitable: {tests: ["save"], reroll: true},
+  // 2024 Tactical Mind: a failed check adds its 1d10, paid from Second Wind (its activity's), not spent if it still fails.
+  "tactical-mind": {tests: ["check"], refundOnFail: true}
 });
 
 /** 2024 Luck (halfling): a 1 on the d20 of a D20 Test rerolled, free. shortcut: offered only when the roll failed. */
@@ -1470,10 +1473,19 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // enchants one weapon at a time) is those rules'.
     if ( trait?.consumes?.includes(activity) || OFFERED_BY_ENGINE.has(identifierOf(document)) || PALADIN_AURAS[identifierOf(document)]
       || (identifierOf(document) === "martial-arts") ) continue;
-    // A test offer naming its own pool (Countercharm's Reaction) is its feature's flag, whatever its activation.
-    if ( TEST_OFFERS[identifierOf(document)]?.pool ) {
-      testOffer = structuredClone(TEST_OFFERS[identifierOf(document)]);
-      continue;
+    // A test offer is its feature's flag, whatever its activation: one naming its own pool (Countercharm's Reaction), or
+    // a die (Peerless Skill), a natural, or a reroll paid from the pool its activity spends (its own, else Second Wind for
+    // Tactical Mind). A reroll's roll is its bonus ("@classes.fighter.levels": Indomitable's).
+    const offered = TEST_OFFERS[identifierOf(document)];
+    if ( offered ) {
+      const faces = offered.reroll ? null : testOfferFaces(activity.roll?.formula, scales);
+      const offerPool = offered.pool ?? targetPoolId(activity.consumption?.targets?.[0] ?? {}, pool, names);
+      const bonus = (offered.reroll && activity.roll?.formula) ? formulaExpression(activity.roll.formula, {scales}) : null;
+      if ( offered.pool || ((faces || offered.setNatural || offered.reroll) && offerPool) ) {
+        testOffer = offered.pool ? structuredClone(offered)
+          : {...offered, pool: offerPool, ...(faces ? {faces} : {}), ...(bonus ? {bonus} : {})};
+        continue;
+      }
     }
     // A passive or triggered ability is not something a creature uses on its turn; its feature carries its text.
     const activation = pick(activity, system, "activation").type ?? "";
@@ -1537,17 +1549,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         initiativeRules.push(turnArea);
         continue;
       }
-      // A die the engine offers on a failed test (Peerless Skill): its feature's flag, paid from the pool it names.
-      const offered = TEST_OFFERS[identifierOf(document)];
-      const faces = offered ? testOfferFaces(activity.roll?.formula, scales) : null;
-      const offerPool = offered ? targetPoolId(activity.consumption?.targets?.[0] ?? {}, pool, names) : null;
-      if ( (faces || offered?.setNatural || offered?.reroll) && offerPool ) {
-        testOffer = {...offered, pool: offerPool, ...(faces ? {faces} : {})};
-        continue;
-      }
       // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.
       const marked = (activity.type === "damage") && Object.values(EFFECTS_BY_HAND).some(hand => hand.bonusDamage === label);
-      // A feature the engine offers on its own (Tactical Mind, with a failed check) needs no Action; one that becomes its
+      // A feature the engine offers on its own (Eldritch Master, in Magical Cunning) needs no Action; one that becomes its
       // own Action (Action Surge: FEATURE_ACTIONS) is not passive.
       const escape = (activity.type === "check") && /escape/i.test(activity.name ?? "");
       if ( !trait && !marked && !metamagic && !escape && !OFFERED_BY_ENGINE.has(identifierOf(document)) && !FEATURE_ACTIONS[identifierOf(document)] ) {

@@ -2236,7 +2236,7 @@ test("on-hit features: Devious Strikes, Eldritch Smite (a Pact Magic slot), Hurl
   assert.equal(read("hill-s-tumble").definition.effects[0].conditionId, "prone");
 });
 
-test("reactions: Retaliation's common attack, Countercharm's ally reroll, Stone's Endurance's reduction; Indomitable is the engine's", async () => {
+test("reactions: Retaliation's common attack, Countercharm's ally reroll, Stone's Endurance's reduction; Indomitable is a test offer", async () => {
   const fs = await import("node:fs");
   const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
     .find(file => file.startsWith(prefix))}`, "utf8"));
@@ -2265,7 +2265,13 @@ test("reactions: Retaliation's common attack, Countercharm's ally reroll, Stone'
   assert.equal(validateActionDefinition(plate.system.definition).ok, true);
   const indomitable = read("indomitable-phbftr");
   assert.deepEqual([indomitable.type, indomitable.system.ruleElements.map(rule => rule.data.resourceId)], ["feature", ["indomitable"]],
-    "no Action that does nothing; its pool stays for the engine's reroll");
+    "no Action that does nothing; its pool pays its reroll");
+  // Its reroll is a test offer whose bonus is its activity's roll (its fighter level), paid from its own pool.
+  assert.deepEqual(indomitable.flags.wildpath.testOffer, {tests: ["save"], reroll: true, pool: "indomitable",
+    bonus: {type: "class-level", class: "fighter"}});
+  // Tactical Mind's die is one too, paid from the Second Wind its activity spends.
+  assert.deepEqual(read("tactical-mind-phbftr").flags.wildpath.testOffer, {tests: ["check"], refundOnFail: true, pool: "second-wind",
+    faces: {type: "constant", value: 10}});
 });
 
 test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerful Build", async () => {

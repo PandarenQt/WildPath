@@ -922,9 +922,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( forced.some(entry => entry.outcome === "evasion") ) evasionByTarget[key] = "evasion";
       const legendary = legendaryResistanceFor(targetActor, systemSnapshots.get(targetActor), game);
       if ( legendary ) legendaryByTarget[key] = legendary;
-      const inspiration = withAllyTestOffers(withTestOffers(withAddedDice(withIndomitable(inspirationOffer(targetActor,
-        systemSnapshots.get(targetActor), game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers}), targetActor,
-        systemSnapshots.get(targetActor), game), targetActor, game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, target}), targetActor,
+      const inspiration = withAllyTestOffers(withTestOffers(withAddedDice(inspirationOffer(targetActor,
+        systemSnapshots.get(targetActor), game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers}), targetActor, game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, target}), targetActor,
         systemSnapshots.get(targetActor), game, "save", {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER}), saverToken, definition, game, "save",
         {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, register: payer => { allyPayers.push(payer); }});
       if ( inspiration ) inspirationByTarget[key] = inspiration;
@@ -1021,14 +1020,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     ? withAddedDice(inspirationOffer(actor, actorSystem, game, {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, payers}), actor, game,
       {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, target: {id: actor.id, actorId: actor.id, actorRef: actor.uuid, uuid: actor.uuid,
         tokenId: sourceToken?.id ?? null}}) : null;
-  // A fighter's Tactical Mind joins its own failed checks only.
   // An ally's on its check too (Flash of Genius), each paying creature committed on like a target.
   const ownTest = (definition?.attack || definition?.check) ? withAllyTestOffers(withTestOffers(ownOffer, actor, actorSystem, game,
     definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER}), sourceToken, definition, game,
     definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, register: payer => { allyPayers.push(payer); }})
     : ownOffer;
-  const ownInspiration = definition?.check ? withTacticalMind(ownTest, actor, actorSystem, game)
-    : (definition?.tags?.includes("spell") ? withSeekingSpell(ownTest, actor, actorSystem, game) : ownTest);
+  const ownInspiration = definition?.tags?.includes("spell") ? withSeekingSpell(ownTest, actor, actorSystem, game) : ownTest;
   // Portent: a Diviner who sees the acting creature may replace its attack's or check's d20.
   const ownPortent = (definition?.attack || definition?.check) ? portentOffer(sourceToken, game,
     {register: payer => { allyPayers.push(payer); }}) : null;
@@ -1729,44 +1726,6 @@ export function withAddedDice(offer, roller, game, {chooser, target}={}) {
     : {own: true, chooser, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""}), options};
 }
 
-/**
- * 2024 Indomitable: "If you fail a saving throw, you can reroll it with a bonus equal to your Fighter level", once per use
- * of its pool. Added to the creature's own reroll offer (beside Heroic Inspiration), or its offer alone.
- */
-export function withIndomitable(offer, roller, rollerSystem, game) {
-  const pool = (rollerSystem?.pools ?? []).find(entry => entry.id === "indomitable");
-  if ( !(Number(pool?.value) > 0) || (offer && !offer.own) ) return offer;
-  const payment = resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: "indomitable", amount: 1}]}});
-  if ( !payment.ok ) return offer;
-  const level = (rollerSystem?.classes ?? []).filter(entry => (entry?.id ?? entry?.identifier) === "fighter")
-    .reduce((sum, entry) => sum + (Number(entry.level ?? entry.levels) || 0), 0);
-  const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
-  const option = {value: `indomitable:${roller.uuid}`, payerRef: roller.uuid, plan: payment.mutationPlan, bonus: level,
-    label: format("WILDPATH.INSPIRATION.Indomitable", {bonus: level, value: pool.value})};
-  return offer ? {...offer, options: [...offer.options, option]}
-    : {own: true, chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, label: format("WILDPATH.INSPIRATION.OwnSave", {name: roller?.name ?? ""}),
-      options: [option]};
-}
-
-/**
- * 2024 Tactical Mind (fighter level 2): when it fails an ability check, it may expend a use of Second Wind to roll 1d10
- * and add it; if the check still fails, the use is not expended (`refundOnFail`).
- */
-export function withTacticalMind(offer, roller, rollerSystem, game) {
-  const pool = (rollerSystem?.pools ?? []).find(entry => entry.id === "second-wind");
-  const level = (rollerSystem?.classes ?? []).filter(entry => (entry?.id ?? entry?.identifier) === "fighter")
-    .reduce((sum, entry) => sum + (Number(entry.level ?? entry.levels) || 0), 0);
-  if ( (level < 2) || !(Number(pool?.value) > 0) || (offer && !offer.own) ) return offer;
-  const payment = resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: "second-wind", amount: 1}]}});
-  if ( !payment.ok ) return offer;
-  const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
-  const option = {value: `tactical-mind:${roller.uuid}`, addDice: {number: 1, faces: 10}, payerRef: roller.uuid, plan: payment.mutationPlan,
-    refundOnFail: true, label: format("WILDPATH.INSPIRATION.TacticalMind", {value: pool.value})};
-  return offer ? {...offer, options: [...offer.options, option]}
-    : {own: true, chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""}),
-      options: [option]};
-}
-
 /** Its reward for reducing a creature to 0 Hit Points (Dark One's Blessing: Temporary Hit Points), or null. */
 function reducedToZeroFor(actor, actorSystem) {
   for ( const item of actor?.items ?? [] ) {
@@ -1841,11 +1800,14 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
     if ( !payment.ok ) continue;
     // A plain reroll (Disciplined Survivor; Halfling Luck, only on a natural 1: `natural`).
     if ( spec.reroll ) {
+      // Its own Advantage or bonus on the new roll: a number or a value expression (Indomitable: its fighter level).
+      const bonus = Math.trunc(Number((spec.bonus && (typeof spec.bonus === "object"))
+        ? evaluateValueExpression(spec.bonus, {actor: roller, actorSystem: rollerSystem}).value : spec.bonus) || 0);
       options.push({value: `test-offer:${item.id}`, payerRef: roller.uuid, ...(payment.mutationPlan ? {plan: payment.mutationPlan} : {}),
         ...(Number(spec.natural) > 0 ? {natural: Number(spec.natural)} : {}),
-        // Its own Advantage or bonus on the new roll (a homebrew "reroll with Advantage").
-        ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), ...(Number(spec.bonus) ? {bonus: Number(spec.bonus)} : {}),
-        label: format("WILDPATH.INSPIRATION.RerollWith", {name: item.name ?? ""})});
+        ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), ...(bonus ? {bonus} : {}),
+        label: bonus ? format("WILDPATH.INSPIRATION.RerollWithBonus", {name: item.name ?? "", bonus})
+          : format("WILDPATH.INSPIRATION.RerollWith", {name: item.name ?? ""})});
       continue;
     }
     // Peerless Aim (Boon of Combat Prowess): the missed attack hits instead (`forceHit`).
@@ -1863,7 +1825,8 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
     const faces = evaluateValueExpression(spec.faces, {actor: roller, actorSystem: rollerSystem});
     if ( !faces.ok || !(faces.value > 0) ) continue;
     options.push({value: `test-offer:${item.id}`, addDice: {number: 1, faces: faces.value}, payerRef: roller.uuid, plan: payment.mutationPlan,
-      ...(spec.refundOnFail ? {refundOnFail: true} : {}), label: format("WILDPATH.INSPIRATION.AddDie", {name: item.name ?? "", faces: faces.value})});
+      ...(spec.refundOnFail ? {refundOnFail: true} : {}),
+      label: format(spec.refundOnFail ? "WILDPATH.INSPIRATION.AddDieKept" : "WILDPATH.INSPIRATION.AddDie", {name: item.name ?? "", faces: faces.value})});
   }
   if ( !options.length ) return offer;
   return offer ? {...offer, options: [...offer.options, ...options]}

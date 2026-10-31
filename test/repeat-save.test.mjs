@@ -73,13 +73,15 @@ test("Bardic Inspiration: a failed save may add the die, which can turn it into 
   assert.equal(state.mutationPlans.some(plan => plan.conditionId === "prone"), false, "and no Prone");
 });
 
-test("Tactical Mind: a failed check may add 1d10 from Second Wind, spent only when the check then succeeds", async () => {
-  const {withTacticalMind} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+test("Tactical Mind (a test offer): a failed check may add 1d10 from Second Wind, spent only when the check then succeeds", async () => {
+  const {withTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
   const fighter = level => ({pools: [{id: "second-wind", value: 2, max: 2}], classes: [{id: "fighter", level}], resources: {}});
-  const roller = {uuid: "Actor.fighter", name: "Fighter"};
-  assert.equal(withTacticalMind(null, roller, fighter(1), null), null, "fighter level 2");
-  assert.equal(withTacticalMind(null, roller, {...fighter(2), pools: [{id: "second-wind", value: 0, max: 2}]}, null), null, "a use left");
-  const offer = withTacticalMind(null, roller, fighter(2), null);
+  const tactical = {id: "tm", name: "Tactical Mind", system: {active: true}, flags: {wildpath: {testOffer: {tests: ["check"], refundOnFail: true,
+    pool: "second-wind", faces: {type: "constant", value: 10}}}}};
+  const roller = {uuid: "Actor.fighter", name: "Fighter", items: [tactical]};
+  assert.equal(withTestOffers(null, {...roller, items: []}, fighter(1), null, "check"), null, "only with the feature");
+  assert.equal(withTestOffers(null, roller, {...fighter(2), pools: [{id: "second-wind", value: 0, max: 2}]}, null, "check"), null, "a use left");
+  const offer = withTestOffers(null, roller, fighter(2), null, "check");
   assert.deepEqual([offer.options[0].addDice, offer.options[0].refundOnFail], [{number: 1, faces: 10}, true]);
   const definition = {schemaVersion: 1, id: "action:climb", label: "Climb", costs: {allOf: []}, targeting: {type: "self"},
     check: {skill: "athletics", ability: "might", dc: {value: 15}}};

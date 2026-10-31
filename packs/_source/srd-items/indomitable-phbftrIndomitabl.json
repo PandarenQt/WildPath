@@ -47,6 +47,17 @@
       },
       "conversion": {
         "notes": []
+      },
+      "testOffer": {
+        "tests": [
+          "save"
+        ],
+        "reroll": true,
+        "pool": "indomitable",
+        "bonus": {
+          "type": "class-level",
+          "class": "fighter"
+        }
       }
     }
   }
