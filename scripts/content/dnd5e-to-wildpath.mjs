@@ -2452,6 +2452,10 @@ const TRAITS = Object.freeze({
       match: {phase: "interrupt", notSourceTokenId: "{self}"}, commonAction: "opportunity", triggerPredicate: {all: [
         {equals: {path: "toSource.{self}.hostile", value: true}}, {atMost: {path: "toSource.{self}.distance", value: 5}},
         {not: {equals: {path: "toTarget.{self}.self", value: true}}}]}}}], notes: []}),
+  // Advantage on saves against spells and Resistance to their damage (Spell Resistance; spell damage is tagged "spell").
+  "spell-resistance": () => ({rules: [{schemaVersion: 1, id: "spell-resistance-saves", type: "RollMode", predicate: {tagsAny: ["spell"]},
+    data: {domains: ["save"], mode: "advantage"}}, {schemaVersion: 1, id: "spell-resistance-damage", type: "GrantResistance",
+    data: {tags: ["spell"]}}], notes: []}),
   // Advantage on melee attacks against a Bloodied creature (the DMG's Warrior's Wrath; `attack.targetBloodied`).
   "warriors-wrath": () => ({rules: [{schemaVersion: 1, id: "warriors-wrath", type: "RollMode",
     predicate: {equals: {path: "attack.targetBloodied", value: true}}, data: {domains: ["attack.melee"], mode: "advantage"}}], notes: []}),

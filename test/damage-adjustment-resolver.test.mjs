@@ -136,3 +136,10 @@ test("a Damage Threshold (a ship's 15) ignores a smaller total from one source, 
   assert.equal(adjustDamageResult(damageResult(), ship).damageResult.total, 27, "several types add up as one source");
   assert.equal(mergeDamageAdjustmentProfiles({damageThreshold: 10}, {damageThreshold: 15}, {}).damageThreshold, 15);
 });
+
+test("a Resistance by tag halves only damage carrying it: Spell Resistance against a spell's fire, not a sword's", async () => {
+  const spellDamage = {ok: true, code: "OK", target: {id: "t", actorId: "a"}, components: [{id: "bolt", amount: 10, damageType: "fire", tags: ["spell"]},
+    {id: "sword", amount: 6, damageType: "slashing", tags: ["weapon"]}], total: 16, byDamageType: {fire: 10, slashing: 6}};
+  const result = adjustDamageResult(spellDamage, {resistances: [{tags: ["spell"]}]});
+  assert.deepEqual(result.damageResult.components.map(component => [component.id, component.amount]), [["bolt", 5], ["sword", 6]]);
+});

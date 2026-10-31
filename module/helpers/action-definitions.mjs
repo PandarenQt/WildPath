@@ -601,8 +601,10 @@ function resolverRequestFromDamageDefinition(definition, runtimeDamage, evaluati
   // A larger die rolled in place of the weapon's own (Martial Arts with a Monk weapon: `baseExpression`).
   const own = runtimeDamage?.baseExpression ? definition.damage.map(component => ((component.provenance === "weapon-base")
     ? {...component, expression: clonePlain(runtimeDamage.baseExpression)} : component)) : definition.damage;
+  // A spell's damage says so (Spell Resistance: Resistance to damage from spells).
+  const spell = (definition.tags ?? []).includes("spell");
   const components = [...own, ...extras].map((component, index) => damageComponentForResolver({
-    component,
+    component: spell ? {...component, tags: [...new Set([...(component.tags ?? []), "spell"])]} : component,
     index,
     runtimeComponents,
     evaluationContext
