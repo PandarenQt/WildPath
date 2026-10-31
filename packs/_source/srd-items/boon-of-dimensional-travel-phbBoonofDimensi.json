@@ -24,10 +24,11 @@
         "feat": "epicBoon"
       },
       "conversion": {
-        "notes": [
-          "\"Teleport\" is passive or triggered: not automated"
-        ]
+        "notes": []
       },
+      "grants": [
+        "5nr432zyvqpw0000"
+      ],
       "prerequisites": {
         "level": 19
       }

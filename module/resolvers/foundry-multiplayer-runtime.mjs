@@ -202,6 +202,7 @@ export function registerFoundryV14MultiplayerResolution({
       await recordSlotSpell(event, {game});
       await recordCastLevel(event);
       await recordAttackTurn(event, {game});
+      await recordMagicTurn(event, {game});
       await recordQuickened(event, {game});
       await markCasterConcentration(event, {game});
     },
@@ -1392,6 +1393,20 @@ export async function recordQuickened({options, state}={}, {game=globalThis.game
   const metamagic = Array.isArray(choices) ? choices.find(choice => choice?.id === "metamagic")?.value : choices?.metamagic;
   if ( !turn || (metamagic !== "quickened") || (typeof actor?.setFlag !== "function") ) return;
   if ( actor.flags?.wildpath?.quickenedTurn !== turn ) await actor.setFlag("wildpath", "quickenedTurn", turn);
+}
+
+/**
+ * A Magic action taken this combat turn (2024: casting a spell with the Action): its creature's
+ * `flags.wildpath.magicTurn` becomes that turn (requiresContext's `magicActionThisTurn`: Boon of Dimensional Travel). A
+ * spell Quickened to a Bonus Action is not one.
+ */
+export async function recordMagicTurn({options, state}={}, {game=globalThis.game}={}) {
+  const actor = options?.actor ?? null;
+  const turn = combatTurnKey(game);
+  const definition = state?.configuration?.effectiveDefinition ?? state?.actionDefinition ?? null;
+  if ( !turn || (typeof actor?.setFlag !== "function") || !definition?.tags?.includes("spell")
+    || !(definition.costs?.allOf ?? []).some(cost => cost?.capability === "action") ) return;
+  if ( actor.flags?.wildpath?.magicTurn !== turn ) await actor.setFlag("wildpath", "magicTurn", turn);
 }
 
 /**

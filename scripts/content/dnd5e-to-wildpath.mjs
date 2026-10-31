@@ -1836,11 +1836,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         range: structuredClone(featureAction.range ?? {type: "self"}), targeting: structuredClone(featureAction.targeting ?? {type: "self"}),
         effects: structuredClone(featureAction.effects ?? []),
         ...(featureAction.configuration ? {configuration: structuredClone(featureAction.configuration)} : {}),
+        ...(featureAction.teleport ? {teleport: structuredClone(featureAction.teleport)} : {}),
         ...(featureAction.requires ? {requires: structuredClone(featureAction.requires)} : {})},
       ruleElements: [pool?.rule ?? structuredClone(featureAction.pool ?? null),
         featureAction.trigger ? {schemaVersion: 1, id: "reaction", type: "Trigger", data: structuredClone(featureAction.trigger)} : null]
         .filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: []}, ...(featureAction.policy ? {reactionPolicy: featureAction.policy} : {})}}});
+    // A feat is taken alone (an Epic Boon chosen at level 19), so its feature brings its Action; a class grants both.
+    if ( (system.type?.value === "feat") && (items[0]?.type === "feature") ) items[0].flags.wildpath.grants = [...(items[0].flags.wildpath.grants ?? []), id];
   }
   // What it costs and how rare it is, on Actions that stand for it with no gear (an SRD Longbow, a Potion of Healing).
   const price = priceInGold(system.price);
@@ -1896,6 +1899,13 @@ const NARRATIVE_FEATURES = new Set(["ephemeral", "shielded-mind", "inscrutable",
 const FEATURE_ACTIONS = Object.freeze({
   "action-surge": {effects: [{id: "effect-1", type: "effect", name: "Action Surge", duration: {value: 0, units: "turns", expiry: "turnEnd"},
     ruleElements: [{schemaVersion: 1, id: "action-surge", type: "Modifier", data: {domains: ["resources.action.max"], modifierType: "untyped", value: 1}}]}]},
+  // 2024 Boon of Dimensional Travel (Blink Steps): "Immediately after you take the Attack action or the Magic action, you can
+  // teleport up to 30 feet": once a turn, after an attack roll or a spell cast with the Action this turn. shortcut:
+  // "immediately" is not enforced (later in the same turn works too).
+  "boon-of-dimensional-travel": {costs: [{capability: "boon-of-dimensional-travel", amount: 1}], teleport: {distance: 30},
+    pool: {schemaVersion: 1, id: "boon-of-dimensional-travel-uses", type: "GrantResource", data: {resourceId: "boon-of-dimensional-travel",
+      label: "Blink Steps", maximum: 1, recovery: "turn"}},
+    requires: {any: [{equals: {path: "attackedThisTurn", value: true}}, {equals: {path: "magicActionThisTurn", value: true}}]}},
   // 2024 Archdruid, Nature Magician (no action, once per Long Rest: its pool): "convert uses of Wild Shape into a single spell
   // slot ... each use contributing 2 spell levels". At most 4 uses (level 8). shortcut: a slot level that is full is refused
   // (as Font of Magic's).

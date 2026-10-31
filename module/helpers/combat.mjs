@@ -52,7 +52,9 @@ export function requiresContext(actor, {game=globalThis.game}={}) {
   const turn = combatTurnKey(game);
   return {actorSystem: actor?.system ?? null, attackedThisTurn: (turn !== null) && (actor?.flags?.wildpath?.attackTurn === turn),
     // Quickened Spell this turn: no other spell of level 1+ (`flags.wildpath.quickenedTurn`).
-    quickenedThisTurn: (turn !== null) && (actor?.flags?.wildpath?.quickenedTurn === turn)};
+    quickenedThisTurn: (turn !== null) && (actor?.flags?.wildpath?.quickenedTurn === turn),
+    // A Magic action this turn (`flags.wildpath.magicTurn`: a spell cast with the Action).
+    magicActionThisTurn: (turn !== null) && (actor?.flags?.wildpath?.magicTurn === turn)};
 }
 
 export function getIncomingCombatant(combat, updateData) {

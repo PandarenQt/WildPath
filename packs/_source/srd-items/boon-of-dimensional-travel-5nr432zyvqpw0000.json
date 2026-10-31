@@ -1,0 +1,85 @@
+{
+  "_id": "5nr432zyvqpw0000",
+  "_key": "!items!5nr432zyvqpw0000",
+  "name": "Boon of Dimensional Travel",
+  "type": "action",
+  "img": "icons/magic/movement/portal-vortex-orange.webp",
+  "system": {
+    "active": true,
+    "description": "<p>You gain the following benefits.</p><p><strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30.</p><p><strong>Blink Steps.</strong> Immediately after you take the Attack action or the Magic action, you can teleport up to 30 feet to an unoccupied space you can see.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-boon-of-dimensional-travel",
+      "label": "Boon of Dimensional Travel",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "boon-of-dimensional-travel",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [],
+      "teleport": {
+        "distance": 30
+      },
+      "requires": {
+        "any": [
+          {
+            "equals": {
+              "path": "attackedThisTurn",
+              "value": true
+            }
+          },
+          {
+            "equals": {
+              "path": "magicActionThisTurn",
+              "value": true
+            }
+          }
+        ]
+      }
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "boon-of-dimensional-travel-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "boon-of-dimensional-travel",
+          "label": "Blink Steps",
+          "maximum": 1,
+          "recovery": "turn"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "feats24",
+        "id": "phbBoonofDimensi",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "boon-of-dimensional-travel",
+        "subtype": "epicBoon",
+        "feat": "epicBoon"
+      },
+      "conversion": {
+        "notes": []
+      },
+      "prerequisites": {
+        "level": 19
+      }
+    }
+  }
+}

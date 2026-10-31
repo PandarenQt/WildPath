@@ -311,6 +311,10 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     `recordAttackTurn` sets `flags.wildpath.attackTurn` to the combat turn after any attack roll. The authority and the
     action bar both read it through `requiresContext` (`helpers/combat.mjs`). Live: QA Caster's Reckless Attack greyed
     ("can't be used now") after its Dagger attack.
+  - **After a Magic action (2026-10-31).** `recordMagicTurn` sets `flags.wildpath.magicTurn` when a spell is cast with
+    the Action (not a Bonus Action, nor a Quickened one), read as `magicActionThisTurn`. Boon of Dimensional Travel's
+    Blink Steps (a 30-foot teleport, once a turn) requires it or `attackedThisTurn`; "immediately after" is not enforced.
+    Its Epic Boon feature grants the Action (`flags.wildpath.grants`), as a feat is taken alone.
 
 - **Cunning Strike (2026-10-19):** three own-hit reactions (Poison, Trip, Withdraw) matching `extra:sneak-attack` (the
   hit's planned Sneak Attack), each with `rider: {forgoDice: {ruleId: "sneak-attack", dice: 1}}`, once a turn between them

@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 987 automated, 237 manual, 225 features. Creatures: 375.
+Items: 988 automated, 237 manual, 225 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -199,7 +199,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Book | equipment24 | Book (gear) | — |
 | Book of Shadows | classes24 | Book of Shadows (automated) | rolled (attack); what it does is by hand |
 | Boon of Combat Prowess | feats24 | Boon of Combat Prowess (feature) | — |
-| Boon of Dimensional Travel | feats24 | Boon of Dimensional Travel (feature) | "Teleport" is passive or triggered: not automated |
+| Boon of Dimensional Travel | feats24 | Boon of Dimensional Travel (feature), Boon of Dimensional Travel (automated) | — |
 | Boon of Fate | feats24 | Boon of Fate (feature) | "Improve Fate" is passive or triggered: not automated |
 | Boon of Irresistible Offense | feats24 | Boon of Irresistible Offense (feature) | Overwhelming Strike: a 20's extra damage of the attack's type is by hand |
 | Boon of Spell Recall | feats24 | Boon of Spell Recall (feature) | "Free Cast Roll" is passive or triggered: not automated |
