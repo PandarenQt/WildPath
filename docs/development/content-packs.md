@@ -148,14 +148,16 @@ module packages**. `scripts/content/convert-dnd5e-module.mjs <module-id> --srd <
 - **Enabling them.** Foundry lists a new module only after it scans packages again: return to setup, launch the
   world, and enable the packages under Manage Modules.
 
-Converted on 2026-10-14 (dnd5e 6.0.2 data), as of the monster toolkit (G4):
+Reconverted on 2026-10-31 (plan 6.1; first converted 2026-10-14, dnd5e 6.0.2 data):
 
-| Package | Items: automated / manual / features | Creatures |
-| --- | --- | --- |
-| Player's Handbook (2.1.0) | 320 / 431 / 409 | 127 |
-| Dungeon Master's Guide (2.0.0) | 122 / 124 / 52 | 71 |
-| Monster Manual (1.3.0) | 472 / 146 / 134 | 504 |
-| Tasha's Cauldron of Everything (3.0.0, 2014 rules) | 83 / 158 / 190 | 124 |
+| Package | Items: automated / manual / features / gear | Creatures | Tables |
+| --- | --- | --- | --- |
+| Player's Handbook (2.1.0) | 752 / 202 / 385 / 185 | 127 | 27 |
+| Dungeon Master's Guide (2.0.0) | 608 / 211 / 48 / 348 | 71 | 125 |
+| Monster Manual (1.3.0) | 556 / 69 / 134 / 0 | 504 | 116 |
+| Tasha's Cauldron of Everything (3.0.0, 2014 rules) | 200 / 152 / 182 / 84 | 124 | 71 |
+
+The census across the SRD and the four books then counted 1,910 real gaps.
 
 Each package was read back with the Foundry CLI, and every art path resolves on disk. They have not been opened
 in Foundry yet; that waits for the next world launch.
