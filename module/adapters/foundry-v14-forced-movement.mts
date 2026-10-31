@@ -1,6 +1,7 @@
 import {sceneCollision} from "./foundry-v14-walls.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 import {pushable, pushedTargets, type PushSpec} from "../helpers/forced-movement.mjs";
+import {foundryTokenCreatureSize} from "./foundry-v14-tactical-grid-adapter.mjs";
 /**
  * Forced movement (G6, areas.md): when an Action with `push` completes, the active GM moves each creature it pushed
  * (a hit, or a failed save) straight away from its source, or toward it (`toward`: a pull), a field at a time. The
@@ -72,7 +73,8 @@ export function createFoundryForcedMovement({game, logger=console, fromUuid}: {g
     const distanceOf = (token: PushToken) => Math.hypot(token.getCenterPoint().x - from.x, token.getCenterPoint().y - from.y);
     const tokens = pushedTargets(state, definition ?? {}).map(target => scene.tokens.get(String(target?.tokenId ?? "")))
       .filter((token): token is PushToken => Boolean(token) && (token !== source)
-        && pushable(Math.max(Number(token!.width) || 1, Number(token!.height) || 1), spec.maxSize))
+        // The size the before-push window judged (actor size on a 1x1 Token), so nobody asked is left behind, or moved unasked.
+        && pushable(foundryTokenCreatureSize(token), spec.maxSize))
       // The farthest moves first when pushed, the nearest when pulled, so none blocks another needlessly.
       .sort((a, b) => (spec.toward ? 1 : -1) * (distanceOf(a) - distanceOf(b)));
     const moved = [];

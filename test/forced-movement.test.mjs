@@ -1,6 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {createFoundryForcedMovement, forcedDestination} from "../module/adapters/foundry-v14-forced-movement.mjs";
+import {pushable} from "../module/helpers/forced-movement.mjs";
 
 /** A square 100-px, 5-ft grid Scene of 1x1 Tokens (`[id, x, y, width]`), and a wall document along `wallX` if given. */
 function scene(tokens, {wallX=null}={}) {
@@ -78,4 +79,19 @@ test("a reaction shortens the push on its own creature only (Dwarven Plate: inpu
   const rider = await push({failed: 10}, {attack: {type: "melee"}}, {riderPush: {distance: 15}});
   assert.deepEqual(rider.moved, ["failed"]);
   assert.equal(rider.world.tokens.get("failed").x, 1200, "15 feet less 10 is one field");
+});
+
+test("a push judges size as the before-push window does: an actor's size on a 1x1 Token, not the Token's fields", async () => {
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}};
+  const world = scene([["caster", 1000, 1000], ["giant", 1100, 1000], ["ogre", 900, 1000]]);
+  world.tokens.get("giant").actor = {system: {traits: {size: "huge"}}};
+  world.tokens.get("ogre").actor = {system: {traits: {size: "large"}}};
+  const moved = await createFoundryForcedMovement({game, fromUuid: () => world.tokens.get("caster")}).afterResolution({state: {
+    source: {tokenRef: "caster"}, actionDefinition: {attack: {type: "melee"}, push: {distance: 10, maxSize: "large"}},
+    results: {attackResolution: {hits: [{target: {tokenId: "giant"}}, {target: {tokenId: "ogre"}}]}}}});
+  assert.deepEqual(moved.map(token => token.id), ["ogre"], "a Huge creature on a 1x1 Token is too big to push");
+  assert.deepEqual(world.tokens.get("giant").updates, []);
+  assert.equal(pushable("medium", "small"), false, "a Medium creature is bigger than Small");
+  assert.equal(pushable("small", "medium"), true);
+  assert.equal(pushable(null, "large"), true, "an unknown size is pushed");
 });

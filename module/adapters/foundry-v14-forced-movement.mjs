@@ -1,6 +1,7 @@
 import { sceneCollision } from "./foundry-v14-walls.mjs";
 import { gmNotice } from "../helpers/gm-notice.mjs";
 import { pushable, pushedTargets } from "../helpers/forced-movement.mjs";
+import { foundryTokenCreatureSize } from "./foundry-v14-tactical-grid-adapter.mjs";
 const key = (offset) => `${offset.i}.${offset.j}`;
 /**
  * Where `token` ends up, pushed `fields` fields from `from` (or pulled toward it). Each step is one field along the
@@ -45,7 +46,8 @@ export function createFoundryForcedMovement({ game, logger = console, fromUuid }
         const distanceOf = (token) => Math.hypot(token.getCenterPoint().x - from.x, token.getCenterPoint().y - from.y);
         const tokens = pushedTargets(state, definition ?? {}).map(target => scene.tokens.get(String(target?.tokenId ?? "")))
             .filter((token) => Boolean(token) && (token !== source)
-            && pushable(Math.max(Number(token.width) || 1, Number(token.height) || 1), spec.maxSize))
+            // The size the before-push window judged (actor size on a 1x1 Token), so nobody asked is left behind, or moved unasked.
+            && pushable(foundryTokenCreatureSize(token), spec.maxSize))
             // The farthest moves first when pushed, the nearest when pulled, so none blocks another needlessly.
             .sort((a, b) => (spec.toward ? 1 : -1) * (distanceOf(a) - distanceOf(b)));
         const moved = [];

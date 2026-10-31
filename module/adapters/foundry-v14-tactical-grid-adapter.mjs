@@ -1260,6 +1260,11 @@ function squaredDistance(a, b) {
     + (((Number(a.y) || 0) - (Number(b.y) || 0)) ** 2);
 }
 
+/** A Token's creature size as its TokenGridFootprint resolves it, for a rule that reads size off a bare Token (a push's `maxSize`). */
+export function foundryTokenCreatureSize(token) {
+  return normalizeCreatureSize(defaultTokenSizeResolver(resolveTokenDocument(token)));
+}
+
 function defaultTokenSizeResolver(tokenDocument) {
   const dimensionSize = creatureSizeFromTokenDimensions(tokenDocument);
   return (dimensionSize && dimensionSize !== CREATURE_SIZES.MEDIUM ? dimensionSize : null)

@@ -2,14 +2,18 @@
  * Who an Action's `push` moves (G6, areas.md): one rule for the before-push reaction window (Dwarven Plate) and the
  * adapter that moves the Tokens, so nobody is asked about a push that would not move them.
  */
-/** The largest Token, in fields, of each size a push may be limited to ("a Large or smaller creature"). */
-export const LARGEST = Object.freeze({ tiny: 0.5, small: 1, medium: 1, large: 2, huge: 3, gargantuan: 4 });
-/** Whether a creature of `size` (a size name, or its Token's fields) is small enough for `maxSize`. An unknown size is. */
+import { CREATURE_SIZE_ORDER } from "./grid-footprints.mjs";
+/**
+ * Whether a creature of `size` (its TokenGridFootprint's size name) is small enough for `maxSize` ("a Large or smaller
+ * creature"). An unknown size is.
+ */
 export function pushable(size, maxSize) {
     if (!maxSize)
         return true;
-    const fields = (typeof size === "number") ? size : LARGEST[String(size ?? "")];
-    return (fields === undefined) || (fields <= (LARGEST[maxSize] ?? Infinity));
+    const order = CREATURE_SIZE_ORDER;
+    const rank = order.indexOf(String(size ?? ""));
+    const limit = order.indexOf(maxSize);
+    return (rank < 0) || (limit < 0) || (rank <= limit);
 }
 /** Who an Action pushes: its failed saves (its successes, `on: "success"`), else its hits. */
 export function pushedTargets(state, definition) {

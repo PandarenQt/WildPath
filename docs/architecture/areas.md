@@ -321,7 +321,8 @@ An Action with `push: {distance, toward?, maxSize?, on?}` moves creatures when i
 
 - **Who moves.** The creatures that fail its save, or with `on: "success"` those that succeed (the Bulette's Deadly
   Leap). An Action with no save moves the creatures its attack hits.
-  - `maxSize` skips bigger creatures. The size is read from the Token: 1 field is Medium or smaller, 2 Large, 3 Huge.
+  - `maxSize` skips bigger creatures. The size is the Token's TokenGridFootprint size, as the before-push reaction
+    window reads it: a Token of 2 or more fields gives its size (2 Large, 3 Huge), and a 1x1 Token its actor's size.
   - A Legendary Resistance that turns a failure into a success stops the push.
 - **Where.** The active GM moves each creature a field at a time along the line from the source's center through
   the creature's: away from it, or toward it for a pull. On a square grid each step is one field on the longer axis,
