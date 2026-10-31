@@ -2022,7 +2022,9 @@ export async function endEffectsWhenAttacked({state}, {fromUuid}) {
   const attacker = sourceToken?.actor ?? null;
   const definition = state?.actionDefinition ?? {};
   const applied = new Set((definition.effects ?? []).filter(effect => effect?.type === "effect").map(effect => customEffectId(definition.id, effect)));
-  const endsWhen = effect => effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen;
+  // What this attack, or a reaction within it (Stunning Strike's success), just applied is not spent by it.
+  const appliedNow = effect => (effect.flags?.wildpath?.conditionEffect?.metadata?.resolutionIds ?? []).includes(state.id);
+  const endsWhen = effect => (appliedNow(effect) ? null : effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen);
   const ended = [];
   const end = async (actor, effects) => {
     if ( !effects.length ) return;

@@ -175,3 +175,21 @@ test("Assist's Advantage is used up by the ally's next check with that skill, no
   assert.deepEqual(await endEffectsWhenChecked(ally, {ability: "agility", skill: "stealth"}), ["assisted"]);
   assert.deepEqual(removed, ["assisted"]);
 });
+
+test("an effect a reaction applied during an attack is not spent by that attack (Stunning Strike's success)", async () => {
+  const {endEffectsWhenAttacked} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const deleted = [];
+  const effect = (id, resolutionIds=[]) => ({id, flags: {wildpath: {conditionEffect: {definition: {endsWhen: "attacked"}, metadata: {resolutionIds}}}}});
+  const enemy = {effects: [effect("older"), effect("stunned-success", ["resolution:2", "resolution:attack"])],
+    deleteEmbeddedDocuments: async (type, ids) => {
+      deleted.push(...ids);
+      enemy.effects = enemy.effects.filter(entry => !ids.includes(entry.id));
+    }};
+  const scene = {tokens: {get: id => (id === "enemy" ? {actor: enemy} : null)}};
+  const state = {id: "resolution:attack", source: {tokenRef: "Scene.s.Token.monk"},
+    results: {attackResolution: {results: [{ok: true, hit: true, target: {tokenId: "enemy"}}]}}};
+  await endEffectsWhenAttacked({state}, {fromUuid: async () => ({parent: scene})});
+  assert.deepEqual(deleted, ["older"], "the one applied within this attack (its reaction's, whose ancestry names it) stays");
+  await endEffectsWhenAttacked({state: {...state, id: "resolution:next"}}, {fromUuid: async () => ({parent: scene})});
+  assert.deepEqual(deleted, ["older", "stunned-success"], "the next attack spends it");
+});

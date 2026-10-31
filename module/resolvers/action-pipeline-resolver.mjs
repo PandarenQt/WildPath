@@ -2266,13 +2266,16 @@ function withSpellLevel(effects, state) {
 /**
  * An effect that ends when its creature takes damage (Knock Out: `metadata.endsWhen: "damaged"`) remembers the
  * resolutions that applied it (`metadata.resolutionIds`: this one and its ancestors), so the damage of the very hit that
- * brought it does not end it (endEffectsWhenDamaged).
+ * brought it does not end it (endEffectsWhenDamaged). So does one that ends when its creature is attacked (`endsWhen`:
+ * Stunning Strike's success, applied by a reaction to the very attack that would otherwise spend it: endEffectsWhenAttacked).
  */
 function withResolutionIds(effects, state) {
-  if ( !effects?.conditions?.some(entry => entry?.metadata?.endsWhen === "damaged") ) return effects;
+  const remembers = entry => (entry?.metadata?.endsWhen === "damaged")
+    || Boolean((entry?.definition ?? entry?.conditionDefinitions?.[entry?.conditionId])?.endsWhen);
+  if ( !effects?.conditions?.some(remembers) ) return effects;
   const ids = [state.id, ...normalizeArray(state.ancestry).map(entry => entry?.id)].filter(Boolean);
-  return {...effects, conditions: effects.conditions.map(entry => (entry?.metadata?.endsWhen === "damaged"
-    ? {...entry, metadata: {...entry.metadata, resolutionIds: ids}} : entry))};
+  return {...effects, conditions: effects.conditions.map(entry => (remembers(entry)
+    ? {...entry, metadata: {...(entry.metadata ?? {}), resolutionIds: ids}} : entry))};
 }
 
 function createEffectStage() {

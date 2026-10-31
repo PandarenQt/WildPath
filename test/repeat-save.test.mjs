@@ -494,3 +494,19 @@ test("Failure by 5 or More (a Homunculus's Bite): its condition lands only on a 
   assert.deepEqual(conditionsAfter(8), ["poisoned"], "8 fails by 4");
   assert.deepEqual(conditionsAfter(12), [], "a success");
 });
+
+test("an effect that ends when its creature is attacked remembers the resolution that applied it", () => {
+  const strike = {schemaVersion: 1, id: "action:stun", label: "Stunning Strike", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    save: {ability: "fortitude", dc: {value: 12}}, effects: [{id: "effect-1", type: "effect", name: "Off Balance", saveOutcomePolicy: "success",
+      endsWhen: "attacked", ruleElements: [{schemaVersion: 1, id: "off-balance", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}}]}]};
+  assert.equal(validateActionDefinition(strike).ok, true);
+  let state = planStagedActionResolution({id: "resolution:child", ancestry: [{id: "resolution:attack"}], actorSystem: {resources: {}, pools: []},
+    action: {id: strike.id, type: "action", name: strike.label, system: {definition: strike}}, source: {actorId: "actor-source"},
+    targets: [{id: "fighter", actorId: "actor-fighter", tokenId: "token-fighter", disposition: "enemy"}]}).state;
+  const request = state.pendingRequests[0];
+  state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+    value: {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: 15, total: 15}}}).state;
+  const plan = state.mutationPlans.find(entry => JSON.stringify(entry).includes("attacked"));
+  assert.ok(plan, JSON.stringify(state.mutationPlans).slice(0, 400));
+  assert.match(JSON.stringify(plan), /"resolutionIds":\["resolution:child"/u);
+});
