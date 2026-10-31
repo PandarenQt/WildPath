@@ -101,7 +101,7 @@
           },
           "conversion": {
             "notes": [
-              "silent: its text names a rule that is not converted (by hand)"
+              "\"Inscrutable\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -1518,7 +1518,7 @@
       },
       "conversion": {
         "notes": [
-          "Inscrutable: silent: its text names a rule that is not converted (by hand)",
+          "Inscrutable: \"Inscrutable\" is passive or triggered (narrative): not automated",
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 minute is not an action-economy cost",

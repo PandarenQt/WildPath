@@ -1780,10 +1780,12 @@ const ENGINE_FEATURES = new Set(["ability-score-improvement", "divine-order", "p
   "druidic"]);
 /**
  * Features whose rule nothing in play exercises, so their text is their rule (an informational note, not a gap): what a
- * creature can't carry (Ephemeral), thoughts no one reads (Shielded Mind), rock it tunnels through (Tunneler), an object's
- * own stat block (Magic Rope, Soul Bag), a revival a day later (Undead Restoration).
+ * creature can't carry (Ephemeral), thoughts no one reads (Shielded Mind, Inscrutable: an Insight check is the GM's call
+ * on a self-targeted Search, with no creature to read a rule from), rock it tunnels through (Tunneler), an object's own
+ * stat block (Magic Rope, Soul Bag), a revival a day later (Undead Restoration).
  */
-const NARRATIVE_FEATURES = new Set(["ephemeral", "shielded-mind", "tunneler", "magic-rope", "soul-bag", "undead-restoration"]);
+const NARRATIVE_FEATURES = new Set(["ephemeral", "shielded-mind", "inscrutable", "tunneler", "magic-rope", "soul-bag",
+  "undead-restoration"]);
 
 /**
  * Features dnd5e gives no usable activity that are used on their creature's turn, as an Action of their own (2024 Action
