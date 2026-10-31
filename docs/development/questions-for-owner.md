@@ -65,3 +65,17 @@ end its move in an occupied space. Swarms (and a few others) ignore these.
   another would be refused (forced movement and teleports already avoid occupied spaces).
 - Recommendation: yes, as an `occupancyPolicy` from the runtime, with a world setting "Creatures block movement" (on by
   default), the GM's own drags exempt, and a `swarm` trait (from the stat block's type) that ignores it.
+
+### Q6. Vehicles and mythic phases: four choices before building (plan 5.1) (2026-10-31)
+The design is in `docs/architecture/vehicles-and-mythic.md`. SRD 5.2 has 8 ships (numbers only: AC, HP, Damage
+Threshold, crew, passengers, cargo) and no mythic creature; none of the owned books has one either.
+
+- Question 1: a new `vehicle` Actor type (a new persisted data format), or an `npc` with a vehicle flag?
+  Recommendation: the new type, so ships don't get saves, conditions and death rules they don't have.
+- Question 2: who uses a vehicle's Actions? Recommendation: a creature aboard as crew, with its own Action; the
+  vehicle has no turn.
+- Question 3: should Tokens standing on a vehicle move with it? Recommendation: yes, by the same offset, with no
+  reactions or costs.
+- Question 4: mythic phases have no content to test against. Build the seam now (a `Phase` rule on 0 Hit Points,
+  `mythic` Actions forbidden until then), or wait for content? Recommendation: build the seam with a test creature.
+- Done meanwhile: nothing. Damage Threshold doesn't depend on these answers, so it can be built next.
