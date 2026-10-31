@@ -39,7 +39,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Agonizing Blast | classes24 | Agonizing Blast (feature) | — |
 | Aid | spells24 | Aid (automated) | — |
 | Air Elemental | actors24 | Air Elemental (5 items) | — |
-| Air Ring of Elemental Command | equipment24 | Air Ring of Elemental Command (gear), Air Ring of Elemental Command (Elemental Compulsion) (automated), Air Ring of Elemental Command: Chain Lightning (automated), Air Ring of Elemental Command: Feather Fall (manual), Air Ring of Elemental Command: Gust of Wind (automated), Air Ring of Elemental Command: Wind Wall (automated) | not automated (utility): using it spends its cost; its description says the rest; rolled (save); what it does is by hand; concentration: its caster concentrates; what it sustains is by hand |
+| Air Ring of Elemental Command | equipment24 | Air Ring of Elemental Command (gear), Air Ring of Elemental Command (Elemental Compulsion) (automated), Air Ring of Elemental Command: Chain Lightning (automated), Air Ring of Elemental Command: Feather Fall (manual), Air Ring of Elemental Command: Gust of Wind (automated), Air Ring of Elemental Command: Wind Wall (automated) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
 | Alarm | spells24 | Alarm (Cast over Area) (manual), Alarm (Cast on Window or Door) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
 | Alchemist's Fire | equipment24 | Alchemist's Fire (automated) | — |
 | Alchemist's Supplies | equipment24 | Alchemist's Supplies (gear), Alchemist's Supplies (automated) | — |
@@ -740,7 +740,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Guards and Wards | spells24 | Guards and Wards (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 hour is not an action-economy cost |
 | Guidance | spells24 | Guidance (automated) | — |
 | Guiding Bolt | spells24 | Guiding Bolt (automated) | — |
-| Gust of Wind | spells24 | Gust of Wind (automated) | rolled (save); what it does is by hand; concentration: its caster concentrates; what it sustains is by hand |
+| Gust of Wind | spells24 | Gust of Wind (automated) | concentration: its caster concentrates; what it sustains is by hand |
 | Halberd | equipment24 | Halberd (automated) | — |
 | Half Plate Armor | equipment24 | Half Plate Armor (gear) | — |
 | Half-Dragon | actors24 | Half-Dragon (6 items) | Leap: not automated (utility, narrative): using it spends its cost; its description says the rest |
@@ -1060,7 +1060,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | One with Shadows | classes24 | One with Shadows (automated) | — |
 | Oni | actors24 | Oni (11 items) | Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Gaseous Form" change img (override) not converted |
 | Onyx Dog | equipment24 | Onyx Dog (gear), Onyx Dog (automated) | — |
-| Open Hand Technique | classes24 | Open Hand Technique (Addle) (automated), Open Hand Technique (Push) (automated), Open Hand Technique (Topple) (automated) | rolled (save); what it does is by hand |
+| Open Hand Technique | classes24 | Open Hand Technique (Addle) (automated), Open Hand Technique (Push) (automated), Open Hand Technique (Topple) (automated) | — |
 | Orb | equipment24 | Orb (gear) | — |
 | Orc | origins24 | Orc (species) | — |
 | Otherworldly Leap | classes24 | Otherworldly Leap (automated) | effect: "Jump" marks its creature (narrative) |
@@ -1670,7 +1670,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Wild Resurgence | classes24 | Wild Resurgence (Regain Wild Shape) (automated), Wild Resurgence (Regain Spell Slot) (automated) | — |
 | Wild Shape | classes24 | Wild Shape (automated), Wild Shape (Revert) (automated) | — |
 | Will-o'-Wisp | actors24 | Will-o'-Wisp (7 items) | Ephemeral: "Ephemeral" is passive or triggered (narrative): not automated; Consume Life: "Wisp: Healing" is passive or triggered: not automated |
-| Wind Fan | equipment24 | Wind Fan (gear), Wind Fan: Gust of Wind (automated) | rolled (save); what it does is by hand; concentration: its caster concentrates; what it sustains is by hand |
+| Wind Fan | equipment24 | Wind Fan (gear), Wind Fan: Gust of Wind (automated) | concentration: its caster concentrates; what it sustains is by hand |
 | Wind Walk | spells24 | Wind Walk (automated) | activation: 1 minute is not an action-economy cost |
 | Wind Wall | spells24 | Wind Wall (Create Single Wall) (automated), Wind Wall (Create Segmented Wall) (automated) | concentration: its caster concentrates; what it sustains is by hand |
 | Winged Boots | equipment24 | Winged Boots (gear), Winged Boots (automated) | — |

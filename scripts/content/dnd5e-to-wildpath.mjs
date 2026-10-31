@@ -4028,7 +4028,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // An attack or save with nothing converted on it still rolls (Command, Counterspell, a Net): the card shows who
   // saved or was hit, and the description says what follows.
   if ( definition.save || definition.attack ) {
-    notes.push(`rolled (${activity.type}); what it does is by hand`);
+    // Its push or pull is what follows (Gust of Wind, Open Hand Technique's Push), added after.
+    if ( !forcedMovement(document, definition) ) notes.push(`rolled (${activity.type}); what it does is by hand`);
     return definition;
   }
   return null;
