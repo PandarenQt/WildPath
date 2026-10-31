@@ -162,3 +162,9 @@ test("a spell choice (Magic Initiate): one option per spell on its lists at its 
   const copies = [spell("Compendium.srd.Item.x", "Fire Bolt", "bolt", 0, ["wizard"]), spell("Compendium.phb.Item.y", "Fire Bolt", "bolt", 0, ["wizard"])];
   assert.deepEqual(spellChoiceOptions(copies, pool, new Set()), [{value: "Compendium.srd.Item.x", label: "Fire Bolt"}], "the first package's copy");
 });
+
+test("a choice's options group by source: a rune's Invoke and Inscribe Items are one option", async () => {
+  const {groupedOptions} = await import("../module/helpers/level-up.mjs");
+  const source = {a: "cloud", b: "cloud", c: "fire", d: null};
+  assert.deepEqual(groupedOptions(["a", "c", "b", "d"], uuid => source[uuid]), ["a,b", "c", "d"]);
+});

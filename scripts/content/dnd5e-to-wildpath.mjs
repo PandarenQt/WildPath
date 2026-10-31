@@ -2016,7 +2016,9 @@ const ENGINE_FEATURES = new Set(["ability-score-improvement", "divine-order", "p
   "life-bond",
   // A subclass's Bonus Proficiencies (Order and Twilight Domains, Rune Knight, College of Lore, the sidekicks): its
   // subclass's or class's trait steps give them.
-  "bonus-proficiencies"]);
+  "bonus-proficiencies",
+  // A Rune Knight's Rune Carver: its runes are its subclass's "Runes Known" choices, each rune's Items one option.
+  "rune-carver"]);
 /**
  * Features whose rule nothing in play exercises, so their text is their rule (an informational note, not a gap): what a
  * creature can't carry (Ephemeral), thoughts no one reads (Shielded Mind, Inscrutable: an Insight check is the GM's call

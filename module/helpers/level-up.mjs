@@ -101,6 +101,18 @@ export function spellChoiceOptions(entries, pool, owned) {
         .sort((a, b) => a.label.localeCompare(b.label));
 }
 /**
+ * A choice's options as one per source document (a Rune Knight's Cloud Rune: its Invoke and Inscribe Items together), in
+ * pool order: each group's uuids comma-joined. `sourceOf` names an option's source (its package and source id).
+ */
+export function groupedOptions(uuids, sourceOf) {
+    const groups = new Map();
+    for (const uuid of uuids) {
+        const key = sourceOf(uuid) ?? uuid;
+        groups.set(key, [...(groups.get(key) ?? []), uuid]);
+    }
+    return [...groups.values()].map(group => group.join(","));
+}
+/**
  * The prerequisites a creature doesn't meet, by key (none: it may take it). `level` is its character level for a feat,
  * the class's for a class option (an Invocation: `level` in `facts`). Something it already has is left out unless
  * repeatable (`identifier`). Text it can't check (`text`) is not unmet.

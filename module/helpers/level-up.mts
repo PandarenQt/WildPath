@@ -127,6 +127,19 @@ export function spellChoiceOptions(entries: Iterable<{uuid: string; name: string
     .sort((a, b) => a.label.localeCompare(b.label));
 }
 
+/**
+ * A choice's options as one per source document (a Rune Knight's Cloud Rune: its Invoke and Inscribe Items together), in
+ * pool order: each group's uuids comma-joined. `sourceOf` names an option's source (its package and source id).
+ */
+export function groupedOptions(uuids: readonly string[], sourceOf: (uuid: string) => string | null | undefined): string[] {
+  const groups = new Map<string, string[]>();
+  for ( const uuid of uuids ) {
+    const key = sourceOf(uuid) ?? uuid;
+    groups.set(key, [...(groups.get(key) ?? []), uuid]);
+  }
+  return [...groups.values()].map(group => group.join(","));
+}
+
 /** What a feat or class option may ask (`flags.wildpath.prerequisites`, scripts/content: prerequisitesOf). */
 export interface Prerequisites {level?: number; items?: string[]; abilities?: Array<{ability: string; min: number}>;
   training?: {armor?: string; weapons?: string}; spellcasting?: boolean; classLevel?: {class: string; min: number}; repeatable?: boolean;

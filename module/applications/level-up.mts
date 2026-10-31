@@ -2,7 +2,7 @@
  * The level-up dialog (G8, BG3-style): one form for what a class level (with its subclass's), a species or a
  * background asks; what it grants is added without asking. The rules are helpers/level-up.mts.
  */
-import {choiceOptions, spellChoiceOptions, hitPointsForLevel, improvementUpdates, multiclassShortfalls, ORIGIN_TYPES, poolOptions, sourceGate,
+import {choiceOptions, groupedOptions, spellChoiceOptions, hitPointsForLevel, improvementUpdates, multiclassShortfalls, ORIGIN_TYPES, poolOptions, sourceGate,
   stepsForLevel, unmetPrerequisites} from "../helpers/level-up.mjs";
 import type {AdvancementEntry, LevelStep, PrerequisiteFacts, Prerequisites} from "../helpers/level-up.mjs";
 import {hitDiePoolId} from "../helpers/spellcasting.mjs";
@@ -118,13 +118,19 @@ function stepHtml(step: LevelStep, index: number, actor: LevelActor, view: View)
       const pool = entry.items ?? (entry.pool?.subtype ? [...view.entries.values()].filter(option => option.flags?.wildpath?.source?.subtype
         === entry.pool!.subtype).map(option => option.uuid) : []);
       const {options: all, owned} = choiceOptions(pool, actor.items.filter(() => true) as unknown as Parameters<typeof choiceOptions>[1]);
-      const options = all.filter(uuid => view.allows(uuid, Number(entry.level) || 0));
+      // One option per source: a rune's Items together (its value their uuids, comma-joined).
+      const sourceOf = (uuid: string) => {
+        const id = view.entries.get(uuid)?.flags?.wildpath?.source?.id;
+        return id ? `${uuid.split(".Item.")[0]}:${id}` : null;
+      };
+      const options = groupedOptions(all.filter(uuid => view.allows(uuid, Number(entry.level) || 0)), sourceOf);
       const replace = (entry.replacement && owned.length) ? `<label>${localize("WILDPATH.LEVELUP.Replace")} <select name="${name}.replace" data-replace>
         <option value="">${localize("WILDPATH.LEVELUP.ReplaceNone")}</option>${owned.map(item => `<option value="${escape(item.id)}">${
           escape(item.name)}</option>`).join("")}</select></label>` : "";
       if ( !options.length || (!entry.count && !replace) ) return "";
       return `<fieldset data-count="${entry.count ?? 0}">${legend}<p class="hint">${format("WILDPATH.LEVELUP.Choose", {count: entry.count ?? 0})}</p>
-        ${replace}${options.map(uuid => checkbox(name, uuid, labelOf(uuid, view))).join("")}</fieldset>`;
+        ${replace}${options.map(value => checkbox(name, value, value.includes(",")
+          ? labelOf(value.split(",")[0]!, view).replace(/ \([^)]*\)$/u, "") : labelOf(value, view))).join("")}</fieldset>`;
     }
     case "trait": {
       const skills = Object.keys(globals().CONFIG.WILDPATH.SKILLS);
