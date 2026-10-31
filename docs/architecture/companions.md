@@ -157,8 +157,8 @@ Tasha's Steel Defender, Homunculus Servant and Eldritch Cannon, through the loca
 - **Bonuses from the summoner.** A class feature's bonuses read its summoner: the Steel Defender's Hit Points are its
   Intelligence modifier + 5 per artificer level (`summonBonusesAt(…, {actor: caster})`). A feature's summons get them
   without a spell level.
-- **The summoner's attack bonus** (`match.attacks`, for spells and class features). One Modifier makes the creature's
-  attack bonus its summoner's spell attack modifier (`matchedAttack`). 2024 spirits read it too ("Bonus equals your
+- **The summoner's attack bonus** (`match.attacks`, for spells and class features). Each attack gets a Modifier, on
+  that Action only, making its bonus the summoner's spell attack modifier (`matchedAttacks`). 2024 spirits read it too ("Bonus equals your
   spell attack modifier"). A magic item's creature (the Dancing Sword) keeps its own.
 - **Limits.**
   - `limit`: one Steel Defender, one Homunculus, the Cannons by their uses. The summoner's oldest from that Action are

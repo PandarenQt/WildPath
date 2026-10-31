@@ -145,7 +145,7 @@ test("a summon's count from its creature's own formula, at the cast level (Anima
 });
 
 test("an artificer's summon: its bonuses from its summoner, its attacks its summoner's, its creature by level", async () => {
-  const {summonBonusesAt, matchedAttack} = await import("../module/adapters/foundry-v14-summons.mjs");
+  const {summonBonusesAt, matchedAttacks} = await import("../module/adapters/foundry-v14-summons.mjs");
   const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
   const artificer = level => ({system: {abilities: {intellect: {value: 16}}, classes: [{id: "artificer", name: "artificer", level}],
     details: {level}, spellcasting: {ability: "intellect"}}});
@@ -154,7 +154,15 @@ test("an artificer's summon: its bonuses from its summoner, its attacks its summ
   const caster = artificer(5);
   assert.equal(summonBonusesAt({hp}, 0, {actor: caster, actorSystem: caster.system}).hp, 28, "Intelligence +3 and 5 per artificer level");
   const defender = {system: {details: {level: 1}}};
-  assert.ok(matchedAttack(caster, defender).length <= 1);
+  assert.deepEqual(matchedAttacks(caster, defender), [], "nothing without attacks");
+  // Two attacks with different bonuses (+4 and +2): each made up to the caster's +6 (Intelligence +3, Proficiency +3),
+  // on that Action alone.
+  const attackItem = (id, bonus) => ({id, type: "action", system: {ruleElements: [], definition: {tags: [], attack: {fixedBonus: undefined,
+    statistic: "melee", ability: "might"}}}, bonus});
+  const spirit = {id: "spirit", system: {details: {level: 1}}, items: [attackItem("bite", 4), attackItem("claw", 2)],
+    getStatistic: (domains, {item}) => ({totalModifier: item.bonus})};
+  assert.deepEqual(matchedAttacks(caster, spirit).map(update => [update._id, update["system.ruleElements"][0].data.value]),
+    [["bite", 2], ["claw", 4]]);
   const definition = {schemaVersion: 1, id: "action:steel", label: "Steel Defender", costs: {allOf: []}, targeting: {type: "self"},
     summon: {choiceId: "summon-creature", count: 1},
     configuration: [{id: "summon-creature", type: "select-one", label: "Creature", required: true, options: [

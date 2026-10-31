@@ -77,20 +77,22 @@ export function summonBonusesAt(bonuses, level, context = {}) {
 }
 /**
  * A summon whose attack bonus equals its caster's spell attack modifier (dnd5e `match.attacks`: a Steel Defender's Rend,
- * a 2024 summoning spell's spirit): one Modifier making up the difference between its own attack bonus (its first
- * attack's) and its caster's (spellcasting modifier + Proficiency Bonus). shortcut: a creature whose attacks differ in
- * bonus gets the first one's difference on all; its damage's Proficiency Bonus stays its own.
+ * a 2024 summoning spell's spirit): each of its attacks gains a Modifier, on that Action only (an Action's own rules
+ * apply to it alone), making up the difference between its bonus and its caster's (spellcasting modifier +
+ * Proficiency Bonus). Returns Item updates. shortcut: its damage's Proficiency Bonus stays its own.
  */
-export function matchedAttack(caster, summoned) {
+export function matchedAttacks(caster, summoned) {
     if (!caster || !summoned)
         return [];
     const proficiency = (actor) => Number(evaluate({ type: "proficiency-bonus" }, { actor, actorSystem: actor.system }).value) || 0;
-    const spell = Number(evaluate({ type: "spellcasting-modifier" }, { actor: caster, actorSystem: caster.system }).value) || 0;
-    const attack = [...(summoned.items ?? [])].find(item => item.system?.definition?.attack)?.system?.definition?.attack;
-    const own = attack ? Number(resolveActorAttackStatistic(summoned, attack)?.totalModifier) || 0
-        : proficiency(summoned);
-    const value = spell + proficiency(caster) - own;
-    return value ? [{ schemaVersion: 1, id: "summon-match-attack", type: "Modifier", data: { domains: ["attack"], modifierType: "untyped", value } }] : [];
+    const target = proficiency(caster) + (Number(evaluate({ type: "spellcasting-modifier" }, { actor: caster, actorSystem: caster.system }).value) || 0);
+    const statistic = resolveActorAttackStatistic;
+    return [...(summoned.items ?? [])].filter(item => item.system?.definition?.attack).flatMap(item => {
+        const definition = item.system.definition;
+        const value = target - (Number(statistic(summoned, definition.attack, { item, tags: definition.tags ?? [] })?.totalModifier) || 0);
+        return value ? [{ _id: item.id, "system.ruleElements": [...(item.system.ruleElements ?? []),
+                    { schemaVersion: 1, id: "summon-match-attack", type: "Modifier", data: { domains: ["attack"], modifierType: "untyped", value } }] }] : [];
+    });
 }
 /**
  * The `count` nearest places around `start` where a summon fits, nearest first (a breadth-first search over the
@@ -249,10 +251,11 @@ export function createFoundrySummons({ game, companions, fromUuid, logger = glob
         // What it gains: a spell's by its level, a feature's by its caster (an artificer's level and Intelligence).
         if (spec.bonuses || spec.match?.attacks)
             for (const token of tokens) {
-                const bonuses = summonBonusesAt(spec.bonuses ?? {}, level, { actor: caster, actorSystem: caster.system });
-                if (spec.match?.attacks)
-                    bonuses.rules.push(...matchedAttack(caster, token.actor));
-                await applySummonBonuses(token, bonuses, level);
+                await applySummonBonuses(token, summonBonusesAt(spec.bonuses ?? {}, level, { actor: caster, actorSystem: caster.system }), level);
+                const matched = spec.match?.attacks ? matchedAttacks(caster, token.actor) : [];
+                if (matched.length)
+                    await token.actor
+                        .updateEmbeddedDocuments("Item", matched);
             }
         // The level it was summoned at, which a spirit's own rules read (its Multiattack: half this spell's level), and its
         // Actions' damage with that level and its summoner's spellcasting modifier written in (withSummonNumbers).
