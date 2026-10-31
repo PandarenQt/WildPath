@@ -2673,3 +2673,20 @@ test("Slasher: two Actions of one feat, Hamstring on a Slashing hit once a turn,
     ["turn", ["hit", "critical", "damage:slashing"]]);
   assert.notEqual(hamstring.system.definition.id, critical.system.definition.id);
 });
+
+test("review fixes: Sentinel's attacks are Opportunity Attacks on any Disengage; a Flurry strike needs no unarmored monk; a Dagger is thrown", async () => {
+  const fs = await import("node:fs");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const sentinel = convertItem({_id: "sentinelfeat0000", name: "Sentinel", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "sentinel", type: {value: "feat"}, activities: {}, description: {value: "<p>Rule text.</p>"}}}).items[0];
+  assert.deepEqual(sentinel.system.ruleElements.map(rule => rule.data.opportunity), [true, true]);
+  assert.deepEqual(sentinel.system.ruleElements[0].data.triggerPredicate.all[0], {equals: {path: "event.data.disengages", value: true}});
+  assert.deepEqual([read("martial-arts-flurry-of-blows-strike").system.definition.requires, read("martial-arts-bonus-unarmed-strike").system.definition.requires],
+    [undefined, {wearing: {armor: false, shield: false}}]);
+  const thrown = read("dagger-thrown").system.definition;
+  assert.deepEqual([thrown.attack.type, thrown.attack.properties, thrown.range.normal.value], ["ranged", ["finesse", "light", "thrown"], 20]);
+  const slasher = convertItem({_id: "slasherfeat00000", name: "Slasher", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "slasher", type: {value: "feat"}, activities: {}, description: {value: "<p>Rule text.</p>"}}}).items[1];
+  assert.deepEqual(slasher.system.definition.effects[0].ruleElements[0].data.domains, ["resources.movement.max", "speed"], "every Speed");
+});

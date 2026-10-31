@@ -107,7 +107,9 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
     // Its target's health, as an Action's own attacks see it (Colossus Slayer, Blood Frenzy; Warrior's Wrath).
     ...healthContext(actor),
     // An attack answering a creature's move is an Opportunity Attack (2024 Escape the Horde gives it Disadvantage).
-    opportunity: ((args.baseChildState.sourceEvent ?? args.candidate.event) as {type?: string} | null)?.type === PROPOSED_EVENT},
+    // ... or one a feature makes as one (Sentinel's, tagged "opportunity").
+    opportunity: (((args.baseChildState.sourceEvent ?? args.candidate.event) as {type?: string} | null)?.type === PROPOSED_EVENT)
+      || ((definition as {tags?: readonly string[]}).tags ?? []).includes("opportunity")},
     ...sunlightContext(reactor as never), ...fearContext(reactor as never)};
   const rollMode = definition.attack ? (attackRollMode as unknown as (a: unknown, t: unknown, o: Data) => string)(reactor.actor, actor,
     {type, item: reactionItem, ability: (attackAbility as unknown as (a: unknown, d: unknown) => string | null)(reactor.actor, definition.attack),
@@ -119,7 +121,7 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
   const statistics = actionCombatStatistics(reactor.actor, definition, {item: reactionItem,
     turn: combat?.started ? turnKey(combat) : null, context: {attack: {...context.attack, rollMode}}, target: actor});
   const targetSystem = foundryActorSystemSnapshot(actor);
-  const profile = (actor as {getDamageProfile?(): Data | null}).getDamageProfile?.() ?? null;
+  const profile = (actor as {getDamageProfile?(options?: {token?: unknown}): Data | null}).getDamageProfile?.({token: target}) ?? null;
   const targetKeys = [actor.id, actor.uuid, `actor:${actor.id}`];
   const base = args.baseChildState;
   // A once-a-turn reaction (Stunning Strike) records its use when it pays (`metadata.once`).

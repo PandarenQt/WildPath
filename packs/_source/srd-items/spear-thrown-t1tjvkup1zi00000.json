@@ -1,0 +1,86 @@
+{
+  "_id": "t1tjvkup1zi00000",
+  "_key": "!items!t1tjvkup1zi00000",
+  "name": "Spear (Thrown)",
+  "type": "action",
+  "img": "icons/weapons/polearms/spear-flared-green.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-spear-thrown",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true,
+        "properties": [
+          "thrown"
+        ],
+        "weapon": {
+          "category": "simple",
+          "base": "spear",
+          "mastery": "sap"
+        }
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 20,
+          "unit": "ft"
+        },
+        "long": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 6
+          },
+          "damageType": "piercing",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Spear (Thrown)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbwepSpear00000",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "spear",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      },
+      "price": 1
+    }
+  }
+}

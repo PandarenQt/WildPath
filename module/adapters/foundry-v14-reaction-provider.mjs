@@ -152,6 +152,10 @@ function tokenReactions(token) {
             // Grapple a hit brings, beside its damage).
             if (data.commonAction && data.free)
                 definition.definition = { ...definition.definition, costs: { allOf: [] } };
+            // Only one made as an Opportunity Attack (`opportunity`: Sentinel's) says it is one; Retaliation's melee attack doesn't.
+            if (data.commonAction && (data.opportunity !== true))
+                definition.definition = { ...definition.definition,
+                    tags: (definition.definition.tags ?? []).filter(tag => tag !== "opportunity") };
             // A reaction set to "Never" is not offered; one set to "Always" is used without asking (its Item's setting).
             const policy = policyOf(data.commonAction ? item : actionItem);
             if (policy === "never")

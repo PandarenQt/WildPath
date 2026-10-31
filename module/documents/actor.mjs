@@ -237,10 +237,11 @@ export default class WildPathActor extends Actor {
    * features, gear and effects. An Action Item's RuleElements describe that Action, so they never apply.
    * @returns {object|null}
    */
-  getDamageProfile() {
+  getDamageProfile({token=null}={}) {
     // What its rules' predicates see: its conditions (Starry Form's Resistances) and the light its Token stands in (a
-    // shadow dragon's Living Shadow, outside Bright Light).
-    const token = this.token ?? this.getActiveTokens?.()[0]?.document ?? null;
+    // shadow dragon's Living Shadow, outside Bright Light): the Token its caller names, else its own (an unlinked one's),
+    // else one on the viewed Scene.
+    token ??= this.token ?? this.getActiveTokens?.()[0]?.document ?? null;
     return damageProfileFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])],
       ...(token ? sunlightContext(token) : {})});
   }

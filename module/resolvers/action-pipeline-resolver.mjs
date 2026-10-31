@@ -3215,6 +3215,8 @@ function actionDeclaredReactionEvent(state) {
     data: {
       action,
       actionDefinitionId: state.actionDefinition?.id ?? null,
+      // It disengages (the Disengage action, Cunning Action's, Step of the Wind's): Sentinel answers it.
+      disengages: (state.actionDefinition?.effects ?? []).some(effect => effect?.slug === "disengaged"),
       // Its attack roll's mode and ability, before it is rolled (Brutal Strike: an Advantage on a Strength attack).
       attackRollMode: input.attack?.rollMode ?? null,
       // An attack roll or a damaging spell (what Sanctuary wards against).

@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 988 automated, 236 manual, 226 features. Creatures: 375.
+Items: 993 automated, 236 manual, 226 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -367,7 +367,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Cunning Strike | classes24 | Cunning Strike (Poison) (automated), Cunning Strike (Trip) (automated), Cunning Strike (Withdraw) (automated) | "Cunning Sneak Attack" is passive or triggered: not automated |
 | Cure Wounds | spells24 | Cure Wounds (automated) | — |
 | Cutting Words | classes24 | Cutting Words (automated), Cutting Words (Damage) (automated) | — |
-| Dagger | equipment24 | Dagger (automated) | — |
+| Dagger | equipment24 | Dagger (automated), Dagger (Thrown) (automated) | — |
 | Dagger of Venom | equipment24 | Dagger of Venom (attack) (automated), Dagger of Venom (Coat Blade with Poison) (manual), Dagger of Venom (Poison Save) (automated) | not automated (enchant): using it spends its cost; its description says the rest |
 | Dancing Light (Medium) | actors24 | Dancing Light (Medium) (0 items) | — |
 | Dancing Light (Tiny) | actors24 | Dancing Light (Tiny) (0 items) | — |
@@ -750,7 +750,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Hallucinatory Terrain | spells24 | Hallucinatory Terrain (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
 | Hammer of Thunderbolts | equipment24 | Hammer of Thunderbolts (Hurl Hammer) (automated), Hammer of Thunderbolts (Giants' Bane (On Crit)) (automated) | "Hammer of Thunderbolts" is passive or triggered: not automated |
 | Hand Crossbow | equipment24 | Hand Crossbow (automated) | — |
-| Handaxe | equipment24 | Handaxe (automated) | — |
+| Handaxe | equipment24 | Handaxe (automated), Handaxe (Thrown) (automated) | — |
 | Handy Haversack | equipment24 | Handy Haversack (gear) | — |
 | Harm | spells24 | Harm (automated) | — |
 | Harpy | actors24 | Harpy (3 items) | — |
@@ -918,7 +918,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Light | spells24 | Light (automated) | — |
 | Light | actors24 | Light (0 items) | — |
 | Light Crossbow | equipment24 | Light Crossbow (automated) | — |
-| Light Hammer | equipment24 | Light Hammer (automated) | — |
+| Light Hammer | equipment24 | Light Hammer (automated), Light Hammer (Thrown) (automated) | — |
 | Lightning Bolt | spells24 | Lightning Bolt (automated) | — |
 | Lion | actors24 | Lion (6 items) | — |
 | Lizard | actors24 | Lizard (3 items) | — |
@@ -1393,7 +1393,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Speak with Animals | spells24 | Speak with Animals (automated) | — |
 | Speak with Dead | spells24 | Speak with Dead (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Speak with Plants | spells24 | Speak with Plants (automated) | effect: "Speaking with Plants" marks its creature (narrative) |
-| Spear | equipment24 | Spear (automated), Spear (Two-Handed) (automated) | — |
+| Spear | equipment24 | Spear (automated), Spear (Thrown) (automated), Spear (Two-Handed) (automated) | — |
 | Specter | actors24 | Specter (4 items) | — |
 | Spell Mastery | classes24 | Spell Mastery (feature) | — |
 | Spell Scroll | equipment24 | Spell Scroll (gear) | — |
@@ -1556,7 +1556,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Treant | actors24 | Treant (6 items) | — |
 | Tree Stride | spells24 | Tree Stride (automated) | concentration: its caster concentrates; what it sustains is by hand |
 | Triceratops | actors24 | Triceratops (3 items) | — |
-| Trident | equipment24 | Trident (automated), Trident (Two-Handed) (automated) | — |
+| Trident | equipment24 | Trident (automated), Trident (Thrown) (automated), Trident (Two-Handed) (automated) | — |
 | Trident of Fish Command | equipment24 | Trident of Fish Command (attack) (automated), Trident of Fish Command (attack) (Two-Handed) (automated), Trident of Fish Command: Dominate Beast (automated) | — |
 | Troll | actors24 | Troll (6 items) | Charge: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Troll Limb | actors24 | Troll Limb (4 items) | Troll Spawn: "Troll" is passive or triggered (narrative): not automated |

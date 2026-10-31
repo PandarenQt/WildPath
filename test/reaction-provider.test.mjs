@@ -220,6 +220,7 @@ test("a Trigger naming a common Action (Retaliation) reacts with that Action, at
   assert.equal(triggers[0].reaction.action.id, "common:unarmed", "with no weapon, an Unarmed Strike");
   assert.equal(triggers[0].reaction.action.label, "Retaliation", "offered under its Item's name");
   assert.deepEqual(triggers[0].reaction.action.costs.allOf.map(cost => cost.capability), ["reaction"]);
+  assert.equal((triggers[0].reaction.action.tags ?? []).includes("opportunity"), false, "its melee attack is no Opportunity Attack (Sentinel's Halt)");
   const never = provider({scene: {grid: {distance: 5}, tokens: [mover, token("barbarian", -1, [retaliation("never")])]}, token: mover});
   assert.equal((never.reactions?.triggers ?? []).some(trigger => trigger.id.includes("retaliation")), false, "its Item set to Never");
 });

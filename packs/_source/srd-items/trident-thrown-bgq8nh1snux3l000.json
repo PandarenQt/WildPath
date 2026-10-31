@@ -1,0 +1,86 @@
+{
+  "_id": "bgq8nh1snux3l000",
+  "_key": "!items!bgq8nh1snux3l000",
+  "name": "Trident (Thrown)",
+  "type": "action",
+  "img": "icons/weapons/polearms/trident-silver-blue.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-trident-thrown",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true,
+        "properties": [
+          "thrown"
+        ],
+        "weapon": {
+          "category": "martial",
+          "base": "trident",
+          "mastery": "topple"
+        }
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 20,
+          "unit": "ft"
+        },
+        "long": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 8
+          },
+          "damageType": "piercing",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Trident (Thrown)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbwepTrident000",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "trident",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      },
+      "price": 5
+    }
+  }
+}

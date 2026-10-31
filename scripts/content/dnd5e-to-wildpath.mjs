@@ -768,17 +768,19 @@ function martialArtsActions(document, img, source, scales) {
   const die = formulaExpression("@scale.monk.die", {scales}) ?? {type: "dice", number: 1, faces: 6};
   const strike = {...unarmed, attack: {...unarmed.attack, properties: ["finesse"]},
     damage: unarmed.damage.map(component => ({...component, expression: die}))};
-  const make = (suffix, key, costs, extra={}, ruleElements=[]) => {
+  // The Bonus strike and the Action's need no armor or Shield (Martial Arts); a Flurry strike its Focus already paid for
+  // doesn't. shortcut: an armored monk's Flurry strike keeps the Martial Arts die.
+  const make = (suffix, key, costs, extra={}, ruleElements=[], gated=true) => {
     const id = stableId(`${document._id}:${key}`);
     const name = `${document.name} (${suffix})`;
     return {_id: id, _key: `!items!${id}`, name, type: "action", img, system: {active: true, description: "", definition: {
       schemaVersion: 1, id: `action:srd-martial-arts-${key}`, label: name, costs: {allOf: costs}, ...structuredClone(strike), ...extra,
-      requires: structuredClone(UNARMORED)},
+      ...(gated ? {requires: structuredClone(UNARMORED)} : {})},
     ruleElements}, flags: {wildpath: {source, conversion: {notes: []}}}};
   };
   return [make("Unarmed Strike", "strike", [{capability: "action", amount: 1}]),
     make("Bonus Unarmed Strike", "bonus", [{capability: "bonus-action", amount: 1}]),
-    make("Flurry of Blows Strike", "flurry", [{capability: "flurry-of-blows", amount: 1}], {tags: ["flurry"]}, [structuredClone(FLURRY_POOL)])];
+    make("Flurry of Blows Strike", "flurry", [{capability: "flurry-of-blows", amount: 1}], {tags: ["flurry"]}, [structuredClone(FLURRY_POOL)], false)];
 }
 
 /**
@@ -1770,6 +1772,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Its Bonus Action attack (Scimitar of Speed), once a turn as the Bonus Action is.
     if ( activity.bonusToo ) items.push(action(stableId(`${id}:bonus`), `${document.name}${suffix} (Bonus Action)`,
       {...definition, id: `${definition.id}-bonus`, costs: {allOf: [{capability: "bonus-action", amount: 1}]}}));
+    // Thrown: the weapon thrown is its own Action, a ranged attack at its range.
+    const thrown = thrownDefinition({document, system, definition});
+    if ( thrown ) items.push(action(stableId(`${id}:thrown`), `${document.name}${suffix} (Thrown)`, thrown));
     // 2024 Versatile: the weapon with both hands is its own Action, rolling its larger die.
     const twoHanded = versatileDefinition({document, system, definition});
     if ( twoHanded ) items.push(action(stableId(`${id}:two-handed`), `${document.name}${suffix} (Two-Handed)`, twoHanded));
@@ -1973,7 +1978,7 @@ const FEATURE_ACTIONS = Object.freeze({
     trigger: {kind: "reaction", event: "damage.applied", match: {phase: "before", sourceTokenId: "{self}", tagsAll: ["hit", "damage:slashing"]},
       once: "turn", onceKey: "slasher-hamstring"},
     effects: [{id: "effect-1", type: "effect", name: "Hamstrung", img: "icons/svg/net.svg", duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"},
-      ruleElements: [{schemaVersion: 1, id: "slasher-hamstring", type: "Modifier", data: {domains: ["resources.movement.max"], modifierType: "untyped",
+      ruleElements: [{schemaVersion: 1, id: "slasher-hamstring", type: "Modifier", data: {domains: ["resources.movement.max", "speed"], modifierType: "untyped",
         value: -10}}]}]},
   {name: "Enhanced Critical", free: true, policy: "always", range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
     trigger: {kind: "reaction", event: "damage.applied", match: {phase: "before", sourceTokenId: "{self}",
@@ -2100,6 +2105,18 @@ function versatileDefinition({document, system, definition}) {
   const expression = bonus ? add([dice(count, faces), bonus]) : dice(count, faces);
   return {...definition, id: `${definition.id}-two-handed`, damage: definition.damage.map(entry => (entry === component
     ? {...entry, expression} : entry))};
+}
+
+/**
+ * 2024 Thrown: a melee weapon with the property (a Dagger, a Handaxe) may be thrown at its range: a ranged attack of its
+ * own, the same damage (Thrown Weapon Fighting's +2 reads it). Null for anything else.
+ */
+function thrownDefinition({document, system, definition}) {
+  const normal = number(system.range?.value);
+  if ( (document.type !== "weapon") || !(system.properties ?? []).includes("thr") || (definition.attack?.type !== "melee") || !(normal > 0) ) return null;
+  const long = number(system.range?.long);
+  return {...definition, id: `${definition.id}-thrown`, attack: {...definition.attack, type: "ranged"},
+    range: {type: "ranged", normal: {value: normal, unit: "ft"}, ...(long ? {long: {value: long, unit: "ft"}} : {})}};
 }
 
 /**
@@ -2442,14 +2459,14 @@ const TRAITS = Object.freeze({
   // A creature's Fey Ancestry that says magic can't put it to sleep: Trance's rule (the saves part is SAVES_AGAINST's).
   "fey-ancestry": document => (/\bmagic can[’']t put (?:it|you) to sleep\b/u.test(plainText(document)) ? TRAITS.trance() : null),
   // Sentinel (Guardian): an Opportunity Attack against a hostile creature within 5 feet that takes the Disengage action
-  // (as it declares it: shortcut, not after) or hits a creature other than it. Its Halt is its own Action (FEATURE_ACTIONS).
+  // (any that disengages: Cunning Action's too; as it declares it: shortcut, not after) or hits a creature other than it. Its Halt is its own Action (FEATURE_ACTIONS).
   sentinel: () => ({rules: [
     {schemaVersion: 1, id: "sentinel-disengage", type: "Trigger", data: {kind: "reaction", event: "action.declared",
-      match: {phase: "interrupt", notSourceTokenId: "{self}"}, commonAction: "opportunity", triggerPredicate: {all: [
-        {equals: {path: "event.data.actionDefinitionId", value: "common:disengage"}}, {equals: {path: "toSource.{self}.hostile", value: true}},
+      match: {phase: "interrupt", notSourceTokenId: "{self}"}, commonAction: "opportunity", opportunity: true, triggerPredicate: {all: [
+        {equals: {path: "event.data.disengages", value: true}}, {equals: {path: "toSource.{self}.hostile", value: true}},
         {atMost: {path: "toSource.{self}.distance", value: 5}}]}}},
     {schemaVersion: 1, id: "sentinel-guardian", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
-      match: {phase: "interrupt", notSourceTokenId: "{self}"}, commonAction: "opportunity", triggerPredicate: {all: [
+      match: {phase: "interrupt", notSourceTokenId: "{self}"}, commonAction: "opportunity", opportunity: true, triggerPredicate: {all: [
         {equals: {path: "toSource.{self}.hostile", value: true}}, {atMost: {path: "toSource.{self}.distance", value: 5}},
         {not: {equals: {path: "toTarget.{self}.self", value: true}}}]}}}], notes: []}),
   // Advantage on saves against spells and Resistance to their damage (Spell Resistance; spell damage is tagged "spell").

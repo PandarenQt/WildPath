@@ -936,7 +936,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( targetActors[key] && (targetActors[key] !== targetActor) ) ambiguousKeys.add(key);
       targetActors[key] = targetActor;
       targetSystems[key] = systemSnapshots.get(targetActor);
-      const profile = targetActor.getDamageProfile?.() ?? null;
+      // Read where it stands (Living Shadow: the light at the Token hit, not a guess).
+      const profile = targetActor.getDamageProfile?.({token: targetTokenFor(targetActor, hint, game)}) ?? null;
       if ( profile ) targetProfiles[key] = clonePlainData(profile, "target.damageProfile");
     }
     targetEntries.push({actor: targetActor, hint, cover});
@@ -1104,7 +1105,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     },
     // Damage and healing are planned on fresh snapshots of these Actors (a resolution may wait on a prompt).
     services: {...(reactions?.services ?? {}), targetActors, snapshotActor: foundryActorSystemSnapshot,
-      damageProfileOf: actor => clonePlainData(actor.getDamageProfile?.() ?? null, "target.damageProfile"),
+      damageProfileOf: actor => {
+        const entry = targetEntries.find(candidate => candidate.actor === actor);
+        return clonePlainData(actor.getDamageProfile?.({token: entry ? targetTokenFor(actor, entry.hint, game) : null}) ?? null,
+          "target.damageProfile");
+      },
       redirectCandidates: options => redirectCandidates(scene, game, targetActors, options)}
   };
 }
@@ -1135,7 +1140,7 @@ export function redirectCandidates(scene, game, targetActors, {tokenIds=null, ar
         tokenId: token.id, name: token.name ?? actor.name ?? ""}, keys, actorSystem,
       // Its AC, for an attack that becomes its (Cloud Rune: "using the same roll").
       ac: resolveActorDefense(actor, "ac")?.value ?? null,
-      profile: clonePlainData(actor.getDamageProfile?.() ?? null, "redirect.damageProfile"), zeroHp: zeroHpFor(actor, actorSystem)}];
+      profile: clonePlainData(actor.getDamageProfile?.({token}) ?? null, "redirect.damageProfile"), zeroHp: zeroHpFor(actor, actorSystem)}];
     });
 }
 

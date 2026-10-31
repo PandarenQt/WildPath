@@ -1,0 +1,88 @@
+{
+  "_id": "npjkcz1upixm7000",
+  "_key": "!items!npjkcz1upixm7000",
+  "name": "Dagger (Thrown)",
+  "type": "action",
+  "img": "icons/weapons/daggers/dagger-straight-blue.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-dagger-thrown",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true,
+        "properties": [
+          "finesse",
+          "light",
+          "thrown"
+        ],
+        "weapon": {
+          "category": "simple",
+          "base": "dagger",
+          "mastery": "nick"
+        }
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 20,
+          "unit": "ft"
+        },
+        "long": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 4
+          },
+          "damageType": "piercing",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Dagger (Thrown)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbwepDagger0000",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "dagger",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      },
+      "price": 2
+    }
+  }
+}

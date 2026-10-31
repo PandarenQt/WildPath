@@ -1,0 +1,87 @@
+{
+  "_id": "lr187a1dsqbqi000",
+  "_key": "!items!lr187a1dsqbqi000",
+  "name": "Handaxe (Thrown)",
+  "type": "action",
+  "img": "icons/weapons/axes/axe-broad-black.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-handaxe-thrown",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "attack": {
+        "type": "ranged",
+        "statistic": "weapon",
+        "defenseKey": "ac",
+        "proficient": true,
+        "properties": [
+          "light",
+          "thrown"
+        ],
+        "weapon": {
+          "category": "simple",
+          "base": "handaxe",
+          "mastery": "vex"
+        }
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 20,
+          "unit": "ft"
+        },
+        "long": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "damage": [
+        {
+          "id": "base",
+          "expression": {
+            "type": "dice",
+            "number": 1,
+            "faces": 6
+          },
+          "damageType": "slashing",
+          "provenance": "weapon-base"
+        }
+      ],
+      "label": "Handaxe (Thrown)"
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbwepHandaxe000",
+        "type": "weapon",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "handaxe",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      },
+      "price": 5
+    }
+  }
+}
