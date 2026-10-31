@@ -2492,6 +2492,9 @@ const TRAITS = Object.freeze({
   // instead take no damage if you succeed on the saving throw and only half damage if you fail", unless Incapacitated.
   evasion: () => ({rules: [{schemaVersion: 1, id: "evasion", type: "RollOutcome", predicate: NOT_INCAPACITATED,
     data: {domains: ["save.agility"], outcome: "evasion"}}], notes: []}),
+  // A monster's Avoidance: Evasion on every save, not only Dexterity's, unless Incapacitated.
+  avoidance: () => ({rules: [{schemaVersion: 1, id: "avoidance", type: "RollOutcome", predicate: NOT_INCAPACITATED,
+    data: {domains: ["save"], outcome: "evasion"}}], notes: []}),
   // 2024 Elusive: "No attack roll can have Advantage against you unless you have the Incapacitated condition."
   elusive: () => ({rules: [{schemaVersion: 1, id: "elusive", type: "RollOutcome", predicate: NOT_INCAPACITATED,
     data: {domains: ["attacked"], outcome: "no-advantage"}}], notes: []}),
@@ -4720,6 +4723,10 @@ const FEAT_ADVANCEMENT = Object.freeze({
   "magic-initiate": {advancement: [["Cantrips", 2, 0], ["Level 1 Spell", 1, 1]].map(([title, count, spellLevel]) => ({level: 0,
     type: "choice", title, count, pool: {spellLists: ["cleric", "druid", "wizard"], spellLevel}})),
   castingAbilities: ["intellect", "wits", "presence"]},
+  // 2024 Resilient: saving throw proficiency in one ability it lacks it in. shortcut: the feat's +1 to that ability is
+  // by hand, as every feat's ability increase is.
+  resilient: {advancement: [{level: 0, type: "trait", title: "Saving Throw Proficiency", grants: [], choices: [{count: 1,
+    pool: ["might", "agility", "fortitude", "intellect", "wits", "presence"].map(ability => `saves:${ability}`)}]}]},
   "metamagic-adept": {advancement: [{level: 0, type: "choice", title: "Metamagic", count: 2, pool: {subtype: "metamagic"}}],
     rules: [{schemaVersion: 1, id: "metamagic-adept-points", type: "GrantResource", data: {resourceId: "font-of-magic", label: "Sorcery Points",
       maximum: 2, recovery: "longRest"}}]}
