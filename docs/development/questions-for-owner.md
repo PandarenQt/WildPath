@@ -79,3 +79,39 @@ Threshold, crew, passengers, cargo) and no mythic creature; none of the owned bo
 - Question 4: mythic phases have no content to test against. Build the seam now (a `Phase` rule on 0 Hit Points,
   `mythic` Actions forbidden until then), or wait for content? Recommendation: build the seam with a test creature.
 - Done meanwhile: nothing. Damage Threshold doesn't depend on these answers, so it can be built next.
+
+### Q7. Two paladins' Auras of Protection stack (2026-10-31)
+2024: "a creature can benefit from only one Aura of Protection at a time". Today each aura's save bonus is an untyped
+Modifier, and untyped Modifiers always stack, so a creature inside two paladins' auras gets both bonuses.
+
+- Question: how should the "one at a time" rule be kept?
+  - (a) A modifier type of its own for Aura of Protection, so two of them don't stack (the highest counts). A config
+    entry and a label.
+  - (b) A general "one per aura" rule: a creature benefits from only one copy of the same aura (by its id), whichever
+    is best. Covers future auras too.
+- Done meanwhile: nothing; they stack.
+- Recommendation: (b), since it matches the rule's wording and needs no new modifier type.
+
+### Q8. Potent Spellcasting's Temporary Hit Points to another creature (Cleric 14) (2026-10-31)
+2024 Improved Blessed Strikes: after dealing damage with a cantrip, the cleric can give itself or a creature within 60
+feet Temporary Hit Points equal to twice its Wisdom modifier. A reaction can't pick a creature other than the one hit.
+
+- Question: which shape?
+  - (a) Two steps: the cantrip's damage fills a one-turn pool; a "Potent Spellcasting: Heal" Action (free, single
+    creature within 60 ft) spends it. Uses the normal targeting. Medium.
+  - (b) One step: a new reaction target chooser (the redirect prompt reused) so the reaction itself picks the creature.
+    Larger, but it reuses for other "you or a creature within X" riders.
+- Done meanwhile: nothing; it stays by hand (noted).
+- Recommendation: (a) now; (b) when a second feature needs a reaction target.
+
+### Q9. Circle of the Land spells and Natural Recovery's free cast (2026-10-31)
+Natural Recovery casts one prepared Circle Spell without a slot once per Long Rest. WildPath doesn't know which spells are
+Circle Spells: the land is chosen at each Long Rest, and its spells aren't granted.
+
+- Question: which route?
+  - (a) Automate Circle of the Land Spells first: a land choice at each Long Rest that grants that land's spells,
+    always prepared; then Natural Recovery's free cast reads them.
+  - (b) A stopgap: a sheet toggle marking the circle spells the druid has (as Mystic Arcanum's), and the free cast
+    reads the mark.
+- Done meanwhile: nothing; both stay by hand.
+- Recommendation: (a); it removes two gaps and fits "nothing by hand". (b) only if (a) waits long.
