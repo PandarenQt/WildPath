@@ -144,8 +144,12 @@ export function commonAction(actor, id, { localize = (key) => key, bonusShove = 
     if (creature.uuid)
         definition.source = { type: "actor", ref: `uuid:${creature.uuid}`, uuid: creature.uuid };
     if (held) {
-        // Whichever of Athletics and Acrobatics is better for it (2024 lets it choose), against that escape DC.
-        const bonus = (skill) => resolveActorCheckStatistic(creature, { skill })?.totalModifier ?? -Infinity;
+        // Whichever of Athletics and Acrobatics is better for it (2024 lets it choose), against that escape DC: one whose total
+        // floor reaches the DC can't fail (Indomitable Might's Athletics), else the larger bonus.
+        const bonus = (skill) => {
+            const statistic = resolveActorCheckStatistic(creature, { skill });
+            return (Number(statistic?.totalMinimum) >= held.dc) ? Infinity : (statistic?.totalModifier ?? -Infinity);
+        };
         definition.check = { skill: bonus("acrobatics") > bonus("athletics") ? "acrobatics" : "athletics", dc: { value: held.dc },
             escapes: held.conditionId };
         definition.effects[0].conditionId = held.conditionId;

@@ -152,9 +152,13 @@ export function commonAction(actor: unknown, id: string, {localize=(key: string)
   // What it applies came from its creature, as an Item's Action names its Actor: a Grapple's Grappled names its grappler.
   if ( creature.uuid ) definition.source = {type: "actor", ref: `uuid:${creature.uuid}`, uuid: creature.uuid};
   if ( held ) {
-    // Whichever of Athletics and Acrobatics is better for it (2024 lets it choose), against that escape DC.
-    const bonus = (skill: string) => (resolveActorCheckStatistic as (actor: unknown, options: Data) => {totalModifier?: number} | null)(
-      creature, {skill})?.totalModifier ?? -Infinity;
+    // Whichever of Athletics and Acrobatics is better for it (2024 lets it choose), against that escape DC: one whose total
+    // floor reaches the DC can't fail (Indomitable Might's Athletics), else the larger bonus.
+    const bonus = (skill: string) => {
+      const statistic = (resolveActorCheckStatistic as (actor: unknown, options: Data) => {totalModifier?: number; totalMinimum?: number} | null)(
+        creature, {skill});
+      return (Number(statistic?.totalMinimum) >= held.dc) ? Infinity : (statistic?.totalModifier ?? -Infinity);
+    };
     definition.check = {skill: bonus("acrobatics") > bonus("athletics") ? "acrobatics" : "athletics", dc: {value: held.dc},
       escapes: held.conditionId};
     (definition.effects as Data[])[0]!.conditionId = held.conditionId;

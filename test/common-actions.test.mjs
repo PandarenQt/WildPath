@@ -85,6 +85,11 @@ test("Escape: only while grappled or restrained with an escape DC, its better of
   strong.system.abilities.might.value = 18;
   assert.deepEqual(commonAction(strong, "escape").system.definition.check, {skill: "athletics", dc: {value: 14}, escapes: "restrained"});
   assert.equal(commonAction(strong, "escape").system.definition.effects[0].conditionId, "restrained");
+  // A floor that reaches the DC can't fail (Indomitable Might's Athletics: Might 14 against DC 13), whatever Acrobatics adds.
+  const mighty = {...creature([held("grappled", 13)]), getRollOutcomes: domains => (domains.includes("check.might")
+    ? [{outcome: "minimum-score"}] : [])};
+  mighty.system.abilities.might.value = 14;
+  assert.equal(commonAction(mighty, "escape").system.definition.check.skill, "athletics");
 
   const grappler = {uuid: "Actor.ogre", items: [], system: {abilities: {might: {value: 19}}, details: {level: 5}}};
   assert.deepEqual(commonAction(grappler, "grapple").system.definition.effects[0].metadata, {escapeDC: 8 + 4 + 3},
