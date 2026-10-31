@@ -772,7 +772,8 @@ function martialArtsActions(document, img, source, scales) {
     const id = stableId(`${document._id}:${key}`);
     const name = `${document.name} (${suffix})`;
     return {_id: id, _key: `!items!${id}`, name, type: "action", img, system: {active: true, description: "", definition: {
-      schemaVersion: 1, id: `action:srd-martial-arts-${key}`, label: name, costs: {allOf: costs}, ...structuredClone(strike), ...extra},
+      schemaVersion: 1, id: `action:srd-martial-arts-${key}`, label: name, costs: {allOf: costs}, ...structuredClone(strike), ...extra,
+      requires: structuredClone(UNARMORED)},
     ruleElements}, flags: {wildpath: {source, conversion: {notes: []}}}};
   };
   return [make("Unarmed Strike", "strike", [{capability: "action", amount: 1}]),
@@ -784,7 +785,13 @@ function martialArtsActions(document, img, source, scales) {
  * 2024 Martial Arts with Monk weapons (Simple Melee weapons, and Martial Melee weapons with the Light property): the
  * Martial Arts die in place of the weapon's own when larger, and Dexterity in place of Strength when better.
  */
-const MONK_WEAPON = Object.freeze({all: [{tagsAll: ["melee"]}, {any: [{tagsAll: ["category:simple"]}, {tagsAll: ["category:martial", "light"]}]}]});
+/** Features whose passive rules hold only while their creature wears what their 2024 text allows (`wearing`). */
+const WEARING_GATES = Object.freeze({"unarmored-movement": {armor: false, shield: false}, "fast-movement": {heavy: false}});
+
+/** 2024 Martial Arts and Unarmored Movement: "while you aren't wearing armor or wielding a Shield". */
+const UNARMORED = Object.freeze({wearing: {armor: false, shield: false}});
+const MONK_WEAPON = Object.freeze({all: [{tagsAll: ["melee"]}, {any: [{tagsAll: ["category:simple"]}, {tagsAll: ["category:martial", "light"]}]},
+  UNARMORED]});
 function monkWeaponRules(scales) {
   const die = formulaExpression("@scale.monk.die", {scales}) ?? {type: "dice", number: 1, faces: 6};
   return [{schemaVersion: 1, id: "martial-arts-die", type: "ExtraDamage", predicate: MONK_WEAPON,
@@ -1756,7 +1763,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     allNotes.push(...notes);
   }
   // What it gives while it is had (worn, for gear): its passive effects' rules.
-  const passive = [...passiveEffects(document).flatMap(effect => effectRules(effect, allNotes, {scales, text: plainText(document)})), ...emptyPassiveRules(document, allNotes)];
+  const passive = [...passiveEffects(document).flatMap(effect => effectRules(effect, allNotes, {scales, text: plainText(document)})), ...emptyPassiveRules(document, allNotes)]
+    // Only while its creature wears what its text allows (Unarmored Movement: no armor or Shield; Fast Movement: no Heavy armor).
+    .map(rule => (WEARING_GATES[identifierOf(document)] ? {...rule, predicate: rule.predicate
+      ? {all: [rule.predicate, {wearing: WEARING_GATES[identifierOf(document)]}]} : {wearing: WEARING_GATES[identifierOf(document)]}} : rule));
   // What its 2024 wording gives that dnd5e leaves out (Dwarven Resilience's Advantage on saves against Poisoned), unless
   // its Action's effect already carries it (a vial of Antitoxin, for its hour).
   const onEffect = items.some(item => (item.system?.definition?.effects ?? []).some(effect => (effect.ruleElements ?? [])
@@ -4969,8 +4979,10 @@ export function effectRules(effect, notes=[], {scales={}, text=""}={}) {
       modifier(["defense.ac"], value);
     } else if ( (key === "system.attributes.ac.calc") && UNARMORED_AC[change.value] ) {
       // Mage Armor, Unarmored Defense, Draconic Resilience: a way to work out AC while wearing no armor.
+      // A monk's or a dancing bard's without a Shield too; the others' beside one.
       rule("ArmorClass", {label: effect.name, value: {type: "add", terms: [{type: "constant", value: UNARMORED_AC[change.value][0]},
-        ...UNARMORED_AC[change.value].slice(1).map(ability => ({type: "ability-modifier", ability}))]}});
+        ...UNARMORED_AC[change.value].slice(1).map(ability => ({type: "ability-modifier", ability}))]}},
+      {wearing: {armor: false, ...(["unarmoredMonk", "unarmoredBard"].includes(change.value) ? {shield: false} : {})}});
     } else if ( (key === "system.attributes.init.bonus") && (type === "add") && value ) {
       modifier(["initiative"], value);
     } else if ( (key === "system.attributes.init.roll.mode") && number ) {

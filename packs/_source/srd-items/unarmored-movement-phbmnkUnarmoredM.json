@@ -31,6 +31,12 @@
               "18": 30
             }
           }
+        },
+        "predicate": {
+          "wearing": {
+            "armor": false,
+            "shield": false
+          }
         }
       }
     ]

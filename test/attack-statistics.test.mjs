@@ -377,3 +377,19 @@ test("Defensive Tactics: Escape the Horde gives Opportunity Attacks against it D
   assert.deepEqual([attackRollMode(marked, ranger, {type: "melee", context: {attack: {type: "melee", fromTarget: {"multiattack-defended": true}}}}),
     attackRollMode(marked, orc, {type: "melee", context: {attack: {type: "melee", fromTarget: {}}}})], ["disadvantage", "normal"]);
 });
+
+test("a monk's Unarmored Defense counts without a Shield only; its Martial Arts die is for Monk weapons without armor", async () => {
+  const fs = await import("node:fs");
+  const read = name => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${name}.json`, "utf8"));
+  const defense = read("unarmored-defense-phbmnkUnarmoredD").system.ruleElements;
+  const arts = read("martial-arts-phbmnkMartialArt").system.ruleElements;
+  const monk = gear => Object.assign(Object.create(WildPathActor.prototype), {id: "monk", uuid: "Actor.monk", effects: [], statuses: new Set(),
+    flags: {}, system: {abilities: {agility: {value: 16}, wits: {value: 14}}}, allApplicableEffects: () => [],
+    items: [{id: "features", uuid: "Actor.monk.Item.features", type: "feature", system: {active: true, modifiers: [], ruleElements: [...defense, ...arts]}},
+      ...gear.map((armor, index) => ({id: `gear${index}`, uuid: `Actor.monk.Item.gear${index}`, type: "gear",
+        system: {active: true, armor, modifiers: [], ruleElements: []}}))]});
+  const unarmoredDefense = actor => actor.getArmorClasses().some(formula => formula.label === "Unarmored Defense");
+  assert.deepEqual([unarmoredDefense(monk([])), unarmoredDefense(monk(["shield"]))], [true, false]);
+  const dieOn = actor => actor.getExtraDamage(["damage.weapon"], {tags: ["melee", "category:simple"]}).length > 0;
+  assert.deepEqual([dieOn(monk([])), dieOn(monk(["light"]))], [true, false], "a quarterstaff in leather armor is no Monk weapon strike");
+});

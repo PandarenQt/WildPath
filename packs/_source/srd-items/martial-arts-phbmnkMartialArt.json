@@ -33,6 +33,12 @@
                   ]
                 }
               ]
+            },
+            {
+              "wearing": {
+                "armor": false,
+                "shield": false
+              }
             }
           ]
         },
@@ -99,6 +105,12 @@
                       ]
                     }
                   ]
+                },
+                {
+                  "wearing": {
+                    "armor": false,
+                    "shield": false
+                  }
                 }
               ]
             },
@@ -163,6 +175,12 @@
                       ]
                     }
                   ]
+                },
+                {
+                  "wearing": {
+                    "armor": false,
+                    "shield": false
+                  }
                 }
               ]
             },

@@ -184,6 +184,12 @@ reads it, and no dispatcher runs it.
 **Pools (2026-10-19).** `{poolEmpty: "<id>"}` and `{poolBelowMax: "<id>"}` read a pool of the creature by id (from
 `actorSystem` or `actor.system`). A pool it lacks is neither. Persistent Rage's Trigger uses them.
 
+**Wearing (2026-10-31).** `{wearing: {armor?, shield?, heavy?}}`, each true or false, reads its creature's equipped
+gear (`actor.items`): `armor` is any Light, Medium or Heavy armor, `heavy` Heavy armor only. A monk's (and a dancing
+bard's) Unarmored Defense, Martial Arts' Monk weapon rules and strikes, and Unarmored Movement need no armor and no
+Shield; a barbarian's Unarmored Defense, Mage Armor and Draconic Resilience no armor; Fast Movement no Heavy armor. With
+no creature's Items in its context it holds. `requires` sees the creature (`requiresContext`'s `actor`).
+
 Invalid or unknown RuleElement types fail explicitly in the collector result. Disabled,
 suppressed, or predicate-failed entries fail closed by contributing nothing while remaining visible
 to rules-inspector tooling.

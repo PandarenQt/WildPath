@@ -265,7 +265,8 @@ test("an effect with its own changes becomes a custom effect with the rules they
     {key: "system.attributes.movement.walk", value: "0", type: "override"}, {key: "system.attributes.movement.fly", value: "60", type: "upgrade"},
     {key: "system.attributes.ac.calc", value: "mage", type: "override"}]}}, notes);
   assert.deepEqual(mixed.map(rule => [rule.type, rule.predicate ?? null]), [["Modifier", {tagsAny: ["melee"]}], ["RollMode", null],
-    ["ResourceCap", null], ["GrantMovement", null], ["ArmorClass", null], ["ConditionImmunity", null]]);
+    ["ResourceCap", null], ["GrantMovement", null], ["ArmorClass", {wearing: {armor: false}}], ["ConditionImmunity", null]],
+    "Mage Armor's AC counts while its creature wears no armor");
   assert.deepEqual(mixed[0].data.domains, ["attack.weapon"], "a melee weapon attack bonus");
   assert.deepEqual(mixed[1].data, {domains: ["check.stealth"], mode: "disadvantage"});
   assert.deepEqual(mixed[4].data.value, {type: "add", terms: [{type: "constant", value: 13}, {type: "ability-modifier", ability: "agility"}]},

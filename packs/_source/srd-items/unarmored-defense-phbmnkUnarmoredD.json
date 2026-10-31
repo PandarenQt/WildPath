@@ -12,6 +12,12 @@
         "schemaVersion": 1,
         "id": "unarmored-defense-1",
         "type": "ArmorClass",
+        "predicate": {
+          "wearing": {
+            "armor": false,
+            "shield": false
+          }
+        },
         "data": {
           "label": "Unarmored Defense",
           "value": {

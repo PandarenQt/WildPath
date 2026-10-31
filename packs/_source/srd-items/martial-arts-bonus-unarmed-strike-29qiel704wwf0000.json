@@ -78,7 +78,13 @@
           "damageType": "bludgeoning",
           "provenance": "weapon-base"
         }
-      ]
+      ],
+      "requires": {
+        "wearing": {
+          "armor": false,
+          "shield": false
+        }
+      }
     },
     "ruleElements": []
   },

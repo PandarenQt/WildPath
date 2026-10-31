@@ -18,6 +18,11 @@
           ],
           "modifierType": "untyped",
           "value": 10
+        },
+        "predicate": {
+          "wearing": {
+            "heavy": false
+          }
         }
       }
     ]

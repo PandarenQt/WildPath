@@ -48,3 +48,19 @@ test("bloodied: half its Hit Points or fewer", () => {
   assert.equal(evaluatePredicate({bloodied: true}, {actor: actor(21)}).ok, false);
   assert.equal(evaluatePredicate({bloodied: false}, {actor: actor(40)}).ok, true);
 });
+
+test("wearing: what its creature has equipped (Unarmored Defense and Martial Arts without armor or a Shield)", async () => {
+  const fs = await import("node:fs");
+  const actor = gear => ({items: gear.map(([armor, active=true]) => ({type: "gear", system: {armor, active}}))});
+  const unarmored = {wearing: {armor: false, shield: false}};
+  assert.deepEqual([[], [["light"]], [["shield"]], [["heavy", false]], [[""]]].map(gear => evaluatePredicate(unarmored, {actor: actor(gear)}).ok),
+    [true, false, false, true, true], "an unequipped Plate or a plain item doesn't count");
+  assert.deepEqual([evaluatePredicate({wearing: {heavy: false}}, {actor: actor([["medium"]])}).ok,
+    evaluatePredicate({wearing: {heavy: false}}, {actor: actor([["heavy"]])}).ok], [true, false], "Fast Movement: no Heavy armor");
+  assert.equal(evaluatePredicate(unarmored, {tags: ["melee"]}).ok, true, "no creature to read: it holds");
+  const rules = name => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${name}.json`, "utf8")).system.ruleElements;
+  const [monk] = rules("unarmored-defense-phbmnkUnarmoredD");
+  const [barbarian] = rules("unarmored-defense-phbbrbUnarmoredD");
+  assert.deepEqual([evaluatePredicate(monk.predicate, {actor: actor([["shield"]])}).ok, evaluatePredicate(barbarian.predicate,
+    {actor: actor([["shield"]])}).ok], [false, true], "a monk's Unarmored Defense needs no Shield; a barbarian's allows one");
+});

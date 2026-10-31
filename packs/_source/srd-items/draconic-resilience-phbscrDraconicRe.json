@@ -12,6 +12,12 @@
         "schemaVersion": 1,
         "id": "draconic-resilience-armor-1",
         "type": "ArmorClass",
+        "predicate": {
+          "wearing": {
+            "armor": false,
+            "shield": false
+          }
+        },
         "data": {
           "label": "Draconic Resilience: Armor",
           "value": {

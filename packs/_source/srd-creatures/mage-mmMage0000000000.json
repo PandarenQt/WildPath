@@ -421,6 +421,11 @@
                   "schemaVersion": 1,
                   "id": "mage-armor-1",
                   "type": "ArmorClass",
+                  "predicate": {
+                    "wearing": {
+                      "armor": false
+                    }
+                  },
                   "data": {
                     "label": "Mage Armor",
                     "value": {

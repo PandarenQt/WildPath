@@ -27,7 +27,8 @@ const PREDICATE_KEYS = new Set([
   "atLeast",
   "poolEmpty",
   "poolBelowMax",
-  "bloodied"
+  "bloodied",
+  "wearing"
 ]);
 
 /* -------------------------------------------- */
@@ -68,7 +69,8 @@ export function evaluatePredicate(predicate, context={}) {
     evaluateAtMost(predicate, context),
     evaluateAtLeast(predicate, context),
     evaluatePools(predicate, context),
-    evaluateBloodied(predicate, context)
+    evaluateBloodied(predicate, context),
+    evaluateWearing(predicate, context)
   ];
   return tests.find(result => !result.ok) ?? pass();
 }
@@ -159,6 +161,25 @@ function evaluateOneOf(predicate, context) {
   }
   const value = resolvePath(context, predicate.oneOf.path);
   return predicate.oneOf.values?.includes(value) ? pass() : fail(`${predicate.oneOf.path} was not in allowed values`);
+}
+
+/**
+ * What its creature wears, by its equipped gear (`wearing: {armor?, shield?, heavy?}`, each true or false): 2024 Unarmored
+ * Defense, Martial Arts and Unarmored Movement "while you aren't wearing armor or wielding a Shield". `armor` is any Light,
+ * Medium or Heavy armor; `heavy` Heavy armor only. With no creature's Items to read (a definition checked on its own), it
+ * holds.
+ */
+function evaluateWearing(predicate, context) {
+  if ( predicate.wearing == null ) return pass();
+  const items = context.actor?.items;
+  if ( !items ) return pass();
+  const worn = new Set([...items].filter(item => (item?.type === "gear") && (item.system?.active === true) && item.system?.armor)
+    .map(item => item.system.armor));
+  const has = {armor: ["light", "medium", "heavy"].some(kind => worn.has(kind)), shield: worn.has("shield"), heavy: worn.has("heavy")};
+  for ( const [key, wanted] of Object.entries(predicate.wearing) ) {
+    if ( (key in has) && (has[key] !== Boolean(wanted)) ) return fail(`wearing ${key} is not ${wanted}`);
+  }
+  return pass();
 }
 
 /**
