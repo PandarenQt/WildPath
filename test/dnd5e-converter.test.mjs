@@ -1170,8 +1170,11 @@ test("a stat block attack's save happens on its hit (a Ghoul's Claw: \"it is sub
   assert.equal(named?.system.definition.save.ability, "fortitude");
   const fiend = JSON.parse(fs.readFileSync(`packs/_source/srd-creatures/${fs.readdirSync("packs/_source/srd-creatures")
     .find(file => file.startsWith("pit-fiend-"))}`, "utf8"));
-  assert.deepEqual(fiend.items.find(item => item.name === "Bite (save)")?.system.definition.effects.map(effect => effect.conditionId), ["poisoned"],
+  const bite = fiend.items.find(item => item.name === "Bite (save)")?.system.definition.effects ?? [];
+  assert.deepEqual(bite.filter(effect => effect.type === "condition").map(effect => effect.conditionId), ["poisoned"],
     "the Pit Fiend's Bite poisons on a hit");
+  assert.deepEqual(bite.filter(effect => effect.type === "effect").map(effect => effect.slug), ["no-healing-while-poisoned"],
+    "and while Poisoned, it can't regain Hit Points");
 });
 
 test("a weapon with the Ammunition property names the ammunition its attack spends (a Longbow's arrows)", () => {
