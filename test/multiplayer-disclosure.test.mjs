@@ -110,7 +110,10 @@ function setupClients({playerRollProviders=[]}={}) {
   const playerA = createMultiplayerActionCoordinator({...shared, userId: "player-a", transport: transports.playerA,
     rollProviders: playerRollProviders});
   const playerB = createMultiplayerActionCoordinator({...shared, userId: "player-b", transport: transports.playerB});
-  gm.register(); playerA.register(); playerB.register();
+  gm.register(); playerB.register();
+  // Player A has not answered yet: a request without a roll provider stays open (one their client fails is handed to the GM).
+  transports.playerA.register(envelope => (playerRollProviders.length || (envelope.messageType !== M.PENDING_REQUEST))
+    ? playerA.handleEnvelope(envelope) : {ok: true});
   return {fixture, hub, transports, gm, playerA, playerB};
 }
 

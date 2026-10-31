@@ -289,7 +289,7 @@ Live (two browsers, 14.369):
 
 **Waiting resolutions.** Shift+I opens the Inspector for the GM, including for a resolution with no card yet.
 A running resolution that waits on another user lists who it waits on, with **Answer for them**
-(multiplayer-authority.md).
+(multiplayer-authority.md). Any running resolution has **Cancel Action**, which ends it without applying it.
 
 ## Boundary Rule
 

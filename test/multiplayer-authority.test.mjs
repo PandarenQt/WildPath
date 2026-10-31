@@ -191,6 +191,12 @@ function attackFixture({sourceSystem=actorSystem(), targetHp=20, persistencePort
   };
 }
 
+/** A Player who has not answered yet: their requests stay open (one their client fails is handed to the GM). */
+function registerUnanswering(transport, coordinator) {
+  transport.register(envelope => (envelope.messageType === MULTIPLAYER_MESSAGE_TYPES.PENDING_REQUEST)
+    ? {ok: true} : coordinator.handleEnvelope(envelope));
+}
+
 function users({activeGMId="gm-a", playerAActive=true, gmB=false}={}) {
   return [
     {id: "gm-a", active: activeGMId === "gm-a", isGM: true, isActiveGM: activeGMId === "gm-a"},
@@ -481,7 +487,7 @@ test("wrong user, wrong request, and stale responses are rejected before resume"
     transport: playerTransport
   });
   gm.register();
-  player.register();
+  registerUnanswering(playerTransport, player);
 
   await player.declareActionIntent({
     intentId: "intent:invalid-response",
@@ -750,7 +756,7 @@ test("a Player closing their prompt ends the Action on the authority, so their c
   const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
     transport: playerTransport});
   gm.register();
-  player.register();
+  registerUnanswering(playerTransport, player);
   const declare = id => player.declareActionIntent({intentId: `intent:${id}`, resolutionId: `resolution:${id}`, actorRef: fixture.actor.uuid,
     actionRef: fixture.action.uuid, targetRefs: [fixture.target.actorRef]});
   await declare("closed");
@@ -764,4 +770,39 @@ test("a Player closing their prompt ends the Action on the authority, so their c
   assert.equal(gm.getRecord("resolution:closed").state.status, RESOLUTION_STATE_STATUS.CANCELLED);
   await declare("again");
   assert.notEqual(gm.getRecord("resolution:again"), null, "it may act again");
+});
+
+test("a late cancel or failure for a request already answered leaves the Action running", async () => {
+  const fixture = attackFixture();
+  // Rolled damage, so the Player is asked again after the attack.
+  fixture.action.system.definition.damage[0].expression = {type: "dice", number: 1, faces: 8};
+  const hub = createTestResolutionTransportHub({users: users()});
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), actionIntentResolver: createFixtureResolver(fixture)});
+  const playerTransport = hub.createEndpoint({userId: "player-a"});
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: playerTransport});
+  gm.register();
+  registerUnanswering(playerTransport, player);
+  await player.declareActionIntent({intentId: "intent:late", resolutionId: "resolution:late", actorRef: fixture.actor.uuid,
+    actionRef: fixture.action.uuid, targetRefs: [fixture.target.actorRef]});
+  const record = gm.getRecord("resolution:late");
+  const attack = record.state.pendingRequests[0];
+  const provided = await executeRollRequest({request: attack.payload.rollRequest,
+    providers: [createTestRollProvider({result: {natural: 18, total: 18}})]});
+  await playerTransport.send(createResolutionSocketEnvelope({messageType: MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE,
+    senderUserId: "player-a", recipientUserId: "gm-a", resolutionId: record.resolutionId, requestId: attack.id,
+    payload: {response: {resolutionId: record.resolutionId, requestId: attack.id, type: RESOLUTION_REQUEST_TYPES.ROLL,
+      value: provided.result}}}));
+  const waiting = gm.getRecord("resolution:late").state;
+  assert.equal(waiting.pendingRequests.some(entry => entry.id === attack.id), false, "the attack roll was answered");
+  assert.equal(waiting.pendingRequests.length > 0, true, "the damage roll waits");
+  for ( const code of ["PROMPT_CANCELLED", "PROMPT_FAILED"] ) {
+    await playerTransport.send(createResolutionSocketEnvelope({messageType: MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_ERROR,
+      senderUserId: "player-a", recipientUserId: "gm-a", resolutionId: record.resolutionId, requestId: attack.id,
+      payload: {code, reason: "a second dialog closed"}}));
+  }
+  const after = gm.getRecord("resolution:late").state;
+  assert.equal(after.status, waiting.status, "neither ends nor reroutes the Action");
+  assert.deepEqual(gm.waitingRequests().map(entry => entry.userId), ["player-a"], "the damage roll is still the Player's");
 });

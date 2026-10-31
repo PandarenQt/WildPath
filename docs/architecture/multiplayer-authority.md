@@ -97,6 +97,32 @@ left the dialog open. In the GM's Inspector, opened with Shift+I, the resolution
 (roll)". Answer for them closed Player1's dialog with the notice. The GM entered a 4 and the save failed;
 the hero went from 10 to 7.
 
+**Nothing strands a creature (2026-10-31).** One Action at a time per creature means an open record that
+can never finish locks its creature ("This creature is still resolving another Action"). Found live after a
+Player client's error; only a reload of the GM cleared it. Three changes, all in the coordinator:
+- **`cancelResolution(resolutionId)`** (the Inspector's **Cancel Action**, on any running resolution) ends it
+  as cancelled. Nothing commits, since the commit is the one step that spends, and a cancel is refused while it
+  runs (`RESOLUTION_COMMITTING`). Each open prompt is withdrawn with `RESOLUTION_CANCELLED_BY_GM`; the client
+  closes it and says "The GM cancelled this Action." once. The record is latched (`cancelled`): a plan, a send or
+  a prompt still awaited when the GM cancels has its result dropped, and routing stops, so nothing brings the
+  record back. A record still in its first plan can be cancelled too. One chat line, whispered to the GMs and
+  the Action's user, says the Action was cancelled and nothing was spent.
+- **A late error about a request already answered** (a stray second dialog) changes nothing; only a request
+  still open counts.
+- **An error no step expected** (a throw while planning, resuming or committing) ends its resolution with that
+  error, logged. A record that failed before it had a state is dropped.
+- **A chooser's prompt that fails** (it throws, or the client cannot answer) is reported to the authority as
+  `PROMPT_FAILED`. The authority hands that request to the GM, as for a user who disconnected. Closing the
+  prompt (`PROMPT_CANCELLED`) still ends the Action, and so does a failure when the authority is not a GM (no
+  GM online), which never answers for another Player.
+
+Live (two browsers, 14.369, 2026-10-31): Player1's Longsword with physical dice, roll dialog left open. The
+GM pressed Cancel Action (once with the resolution chosen from its card, once from Shift+I with none chosen).
+Player1's dialog closed with the one notice, the whispered line appeared, and the Fighter attacked again at
+once. That run also showed what two clients logged in as the same GM do: both act as the authority, so every
+request reached the Player twice. Closing the stray dialog then ended the next Action, which the open-request
+check above now prevents. One GM login per world remains a requirement.
+
 ## Socket Envelope
 
 `module/adapters/foundry-v14-resolution-socket-adapter.mjs` isolates Foundry socket access. The

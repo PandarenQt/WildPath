@@ -7,6 +7,7 @@ interface Coordinator {
   records?: Map<string, InspectedRecord>;
   waitingRequests?(): Waiting[];
   answerForUsers?(resolutionId: string): Promise<unknown>;
+  cancelResolution?(resolutionId: string): Promise<unknown>;
 }
 interface AppInstance {render(options?: Data): Promise<unknown>}
 type AppClass = new (options?: Data) => AppInstance;
@@ -32,13 +33,16 @@ export class WildPathRulesInspector extends HandlebarsApplicationMixin(Applicati
     classes: ["wildpath", "rules-inspector", "themed", "theme-light"],
     window: {title: "WILDPATH.INSPECTOR.Title", resizable: true},
     position: {width: 760, height: 560},
-    actions: {select: WildPathRulesInspector.#onSelect, answer: WildPathRulesInspector.#onAnswer}
+    actions: {select: WildPathRulesInspector.#onSelect, answer: WildPathRulesInspector.#onAnswer,
+      cancel: WildPathRulesInspector.#onCancel}
   };
 
   static PARTS = {body: {template: "systems/wildpath/templates/apps/rules-inspector.hbs",
     templates: ["systems/wildpath/templates/apps/resolution-detail.hbs"]}};
 
   selectedId: string | null = null;
+  /** The resolution the window shows: the one chosen, or else the newest. */
+  #shownId: string | null = null;
   #watch: ReturnType<typeof setInterval> | null = null;
   #seen = "";
 
@@ -54,10 +58,12 @@ export class WildPathRulesInspector extends HandlebarsApplicationMixin(Applicati
     const selected = unavailable ? null
       : (entries.find(entry => entry.id === this.selectedId) ?? (named ? inspectResolution(named) : entries[0] ?? null));
     // Who each running resolution waits on, so the GM can answer for a Player who is away.
+    this.#shownId = selected?.id ?? null;
     const waiting = (coordinator?.waitingRequests?.() ?? []).filter(entry => entry.resolutionId === selected?.id)
       .map(entry => ({type: entry.type, user: globals.game.users?.get(entry.userId)?.name ?? entry.userId}));
     return {entries: entries.map(entry => ({id: entry.id, label: entry.label, status: entry.status,
-      active: entry.id === selected?.id})), selected, waiting, unavailable};
+      active: entry.id === selected?.id})), selected, waiting, unavailable,
+      running: !!selected && !["completed", "failed", "cancelled"].includes(String(selected.status))};
   }
 
   /** What the records look like now: each one's id and stage, and who is waited on. */
@@ -91,6 +97,12 @@ export class WildPathRulesInspector extends HandlebarsApplicationMixin(Applicati
       this.selectedId = first?.resolutionId ?? null;
     }
     if ( this.selectedId ) await globals.game.wildpath?.multiplayer?.coordinator?.answerForUsers?.(this.selectedId);
+    await this.render();
+  }
+
+  /** The GM ends the selected resolution: one a client's error left waiting keeps its creature from acting. */
+  static async #onCancel(this: WildPathRulesInspector) {
+    if ( this.#shownId ) await globals.game.wildpath?.multiplayer?.coordinator?.cancelResolution?.(this.#shownId);
     await this.render();
   }
 

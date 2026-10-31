@@ -37,4 +37,4 @@ Press **Shift+I**, or **Inspect** on a chat card, to see how the 25 most recent 
 - attacks against AC and saves against DC;
 - health changes, payments, effects and errors.
 
-It also shows whom an Action is waiting on, with **Answer for them**.
+It also shows whom an Action is waiting on, with **Answer for them**. **Cancel Action** ends a running Action without applying it, if one is stuck: nothing is spent, and its creature can act again.

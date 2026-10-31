@@ -1000,6 +1000,116 @@ test("the GM answers a save a connected Player leaves waiting; the Player is tol
   assert.equal((await gm.answerForUsers(declared.resolutionId)).ok, false, "nothing is left to answer");
 });
 
+/** A GM and a Player, the Player's client wired by `player`; the save of `saveDefinition` waits on the Player. */
+function strandedSaveFixture(t, {player=null, planResolution=undefined}={}) {
+  const saveDefinition = {schemaVersion: 1, id: "action:routed-save", label: "Routed save",
+    costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "single", required: true, count: 1},
+    range: {type: "reach", distance: {value: 5, unit: "ft"}}, save: {ability: "fortitude", dc: {value: 100}},
+    damage: [{id: "venom", expression: {type: "constant", value: 4}, damageType: "poison",
+      saveOutcomePolicy: {success: "half", failure: "full"}}]};
+  const fixture = syntheticRuntimeFixture(t, saveDefinition, {targetHealth: 30});
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), rollProviders: [createTestRollProvider({result: {natural: 5, total: 5}})],
+    logger: {error() {}, warn() {}}, ...(planResolution ? {planResolution} : {}),
+    actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent,
+      senderUserId: envelope.senderUserId, game: fixture.game, persistencePort: createTestDocumentPersistenceAdapter()})});
+  gm.register();
+  const received = [];
+  if ( player ) player(hub, received);
+  else {
+    const away = hub.createEndpoint({userId: "player-a"});
+    away.register(envelope => { received.push(envelope); return {ok: true}; });
+  }
+  const declare = () => gm.declareActionIntent(buildFoundryActionUseIntent({actor: fixture.sourceActor, action: fixture.action,
+    game: {user: {targets: new Set([{document: fixture.targetToken}])}}}).intent);
+  return {...fixture, gm, received, declare};
+}
+
+test("the GM cancels an Action a Player's client left waiting: nothing applies, the prompt is withdrawn, the creature acts again", async t => {
+  const {gm, received, declare, targetActor} = strandedSaveFixture(t);
+  const declared = await declare();
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.AWAITING_ROLL);
+  assert.equal((await declare()).ok, true, "the second intent is sent");
+  assert.equal(gm.errors.at(-1)?.error?.reason, "This creature is still resolving another Action.");
+  const request = received.find(envelope => envelope.messageType === "PENDING_REQUEST");
+
+  const cancelled = await gm.cancelResolution(declared.resolutionId);
+  assert.equal(cancelled.code, "RESOLUTION_CANCELLED_BY_GM");
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.CANCELLED);
+  assert.equal(targetActor.system.resources.health.value, 30, "nothing applied");
+  assert.deepEqual(gm.waitingRequests(), []);
+  const withdrawn = received.find(envelope => (envelope.messageType === "RESOLUTION_ERROR") && envelope.requestId);
+  assert.deepEqual([withdrawn?.payload?.code, withdrawn?.requestId], ["RESOLUTION_CANCELLED_BY_GM", request.requestId]);
+  assert.equal((await gm.cancelResolution(declared.resolutionId)).ok, false, "an ended resolution is not cancelled twice");
+  // The Player's late answer changes nothing.
+  await gm.handleEnvelope(createResolutionSocketEnvelope({messageType: "REQUEST_RESPONSE", senderUserId: "player-a",
+    recipientUserId: "gm-a", resolutionId: request.resolutionId, requestId: request.requestId,
+    payload: {response: {resolutionId: request.resolutionId, requestId: request.requestId, type: "roll", value: {natural: 1, total: 1}}}}));
+  assert.equal(targetActor.system.resources.health.value, 30);
+
+  const again = await declare();
+  assert.equal(gm.getRecord(again.resolutionId)?.state?.status, RESOLUTION_STATE_STATUS.AWAITING_ROLL, "the creature can act again");
+});
+
+test("a Player's prompt that throws is reported, and the GM answers that request so the Action goes on", async t => {
+  const {gm, declare, targetActor} = strandedSaveFixture(t, {player(hub) {
+    const broken = {id: "broken", type: "digital", label: "Broken", canHandle: () => true,
+      request: () => { throw new Error("notification failed"); }};
+    createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+      transport: hub.createEndpoint({userId: "player-a"}), rollProviders: [broken], logger: {error() {}, warn() {}}}).register();
+  }});
+  const declared = await declare();
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors));
+  assert.equal(targetActor.system.resources.health.value, 26, "the GM rolled the save; it failed against DC 100");
+});
+
+test("a cancel while the Action is still being planned sticks: nothing is committed once the plan returns", async t => {
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  let calls = 0;
+  const {gm, declare, sourceActor, targetActor} = strandedSaveFixture(t, {planResolution: async options => {
+    calls += 1;
+    if ( calls === 1 ) await gate;
+    return planStagedActionResolution(options);
+  }});
+  const spent = () => JSON.stringify(sourceActor.system.resources);
+  const before = spent();
+  const declaring = declare();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  const [record] = [...gm.records.values()];
+  assert.equal(record.state, null, "still planning");
+  assert.deepEqual(gm.waitingRequests(), [], "an unplanned record waits on no one");
+  assert.equal((await gm.cancelResolution(record.resolutionId)).code, "RESOLUTION_CANCELLED_BY_GM");
+  release();
+  await declaring;
+  assert.equal(gm.getRecord(record.resolutionId), null);
+  assert.equal(record.state, null, "the plan that returned afterwards is dropped");
+  assert.equal(targetActor.system.resources.health.value, 30);
+  assert.equal(spent(), before, "nothing spent");
+  const again = await declare();
+  assert.equal(gm.getRecord(again.resolutionId)?.state?.status, RESOLUTION_STATE_STATUS.AWAITING_ROLL, "the creature can act again");
+});
+
+test("an error no step expected ends its resolution instead of locking its creature", async t => {
+  let calls = 0;
+  const {gm, declare} = strandedSaveFixture(t, {planResolution: async options => {
+    calls += 1;
+    if ( calls === 1 ) throw new Error("planning broke");
+    return planStagedActionResolution(options);
+  }});
+  const first = await declare();
+  assert.equal(gm.getRecord(first.resolutionId), null, "a resolution with no state is dropped");
+  assert.equal(gm.errors.at(-1)?.error?.reason, "planning broke");
+  const again = await declare();
+  assert.equal(gm.getRecord(again.resolutionId)?.state?.status, RESOLUTION_STATE_STATUS.AWAITING_ROLL, "the creature can act again");
+});
+
 test("a creature's own grants form its damage profile, and nothing granted means no profile", () => {
   const resist = {schemaVersion: 1, id: "hide", type: "GrantResistance", data: {damageTypes: ["slashing"]}};
   const immune = {schemaVersion: 1, id: "ward", type: "GrantImmunity", data: {damageTypes: ["poison"]}};

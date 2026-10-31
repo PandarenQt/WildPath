@@ -77,6 +77,18 @@ test("a countered spell wastes the Action that cast it, never its slot, and says
   delete globalThis.ChatMessage;
 });
 
+test("an Action the GM cancelled leaves one line in chat, for the GMs and its user", async () => {
+  const {noteCancelledByGM} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const posted = [];
+  globalThis.ChatMessage = {create: async data => { posted.push(data); return data; }};
+  const game = {users: [{id: "gm", isGM: true}, {id: "p1", isGM: false}, {id: "p2", isGM: false}]};
+  const state = {warnings: [{code: "RESOLUTION_CANCELLED_BY_GM"}], actionDefinition: {label: "Longsword"}};
+  await noteCancelledByGM({options: {actor: {name: "Fighter"}}, state, initiatorUserId: "p1"}, {game});
+  assert.deepEqual(posted.map(data => [data.whisper, data.content]), [[["gm", "p1"], "<p>Longsword: cancelled by the GM.</p>"]]);
+  assert.equal(await noteCancelledByGM({state: {warnings: [{code: "PROMPT_CANCELLED"}]}}, {game}), null, "only a GM's cancel");
+  delete globalThis.ChatMessage;
+});
+
 test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its targets once it completes", async () => {
   const {endEffectsOnTargets} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
   const effect = (id, metadata) => ({id, name: id, flags: {wildpath: {conditionEffect: {metadata}}}});

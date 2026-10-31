@@ -205,7 +205,10 @@ export function registerFoundryV14MultiplayerResolution({
       await consumePortents(event, {game, fromUuid: globalThis.fromUuid ?? (async () => null)});
       await markCasterConcentration(event, {game});
     },
-    afterCancelled: event => afterCountered(event, {game}),
+    afterCancelled: async event => {
+      await afterCountered(event, {game});
+      await noteCancelledByGM(event, {game});
+    },
     logger
   });
   const registration = coordinator.register();
@@ -632,12 +635,24 @@ function refused(key, data={}) {
   return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED, reason: globalThis.game?.i18n?.format?.(key, data) ?? key};
 }
 
+const toldCancelled = new Set();
+
 function notifyMultiplayerFailure(event={}, {logger=globalThis.console}={}) {
   if ( !event?.error ) return;
   // The GM answered a request this user had open: withdraw its prompt and say so, as news rather than a failure.
   if ( event.error.code === MULTIPLAYER_AUTHORITY_CODES.REQUEST_ANSWERED_BY_GM ) {
     closeFoundryPrompt({resolutionId: event.envelope?.resolutionId ?? null, requestId: event.envelope?.requestId ?? null});
     globalThis.ui?.notifications?.info?.(globalThis.game?.i18n?.localize?.("WILDPATH.NOTIFY.AnsweredByGM") ?? "");
+    return;
+  }
+  // The GM cancelled the Action: each prompt of it open here closes, and the user is told once.
+  if ( event.error.code === MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_CANCELLED_BY_GM ) {
+    const resolutionId = event.envelope?.resolutionId ?? null;
+    if ( event.envelope?.requestId ) closeFoundryPrompt({resolutionId, requestId: event.envelope.requestId});
+    if ( toldCancelled.has(resolutionId) ) return;
+    toldCancelled.add(resolutionId);
+    if ( toldCancelled.size > 50 ) toldCancelled.delete(toldCancelled.values().next().value);
+    globalThis.ui?.notifications?.info?.(globalThis.game?.i18n?.localize?.("WILDPATH.NOTIFY.CancelledByGM") ?? "");
     return;
   }
   const reason = event.error.reason ?? event.error.code ?? "";
@@ -1195,6 +1210,19 @@ const WASTED_RESOURCES = Object.freeze({"action": "action", "bonus-action": "bon
  * wasted", but a spell slot is not expended. Its creature spends those, and a public line says what stopped it.
  * Returns the resources spent, or null for any other cancellation.
  */
+/**
+ * An Action the GM cancelled leaves one line in chat, for the GMs and the user who started it, so the table sees why it
+ * stopped. It names no target and no result: nothing of it was applied.
+ */
+export async function noteCancelledByGM({options, state, initiatorUserId=null}={}, {game=globalThis.game}={}) {
+  if ( !(state?.warnings ?? []).some(warning => warning?.code === MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_CANCELLED_BY_GM) ) return null;
+  const name = options?.action?.name ?? state.actionDefinition?.label ?? "";
+  const whisper = [...new Set([...(game?.users ?? [])].filter(user => user.isGM).map(user => user.id).concat(initiatorUserId ?? []))]
+    .filter(Boolean);
+  return globalThis.ChatMessage?.create?.({speaker: {alias: options?.actor?.name ?? ""}, whisper,
+    content: `<p>${game?.i18n?.format?.("WILDPATH.NOTIFY.CancelledByGMChat", {action: name}) ?? `${name}: cancelled by the GM.`}</p>`}) ?? null;
+}
+
 export async function afterCountered({options, state}={}, {game=globalThis.game}={}) {
   const countered = [...(state?.warnings ?? [])].reverse().find(warning => warning?.code === "COUNTERED");
   const actor = options?.actor ?? null;

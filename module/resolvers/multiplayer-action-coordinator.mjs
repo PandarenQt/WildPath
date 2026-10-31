@@ -125,7 +125,7 @@ export function createMultiplayerActionCoordinator({
       return [...records.values()].filter(record => (record.authorityUserId === localUserId) && !isTerminalState(record.state))
         .flatMap(record => {
           const execution = activeResolutionExecution(record.state);
-          const pending = new Set((execution.state?.pendingRequests ?? []).map(request => requestKey(request, execution.state)));
+          const pending = new Set((execution?.state?.pendingRequests ?? []).map(request => requestKey(request, execution.state)));
           return [...record.requestExpectations.entries()]
             .filter(([key, expectation]) => pending.has(key) && (expectation.expectedUserId !== localUserId))
             .map(([, expectation]) => ({resolutionId: record.resolutionId, requestId: expectation.request?.id ?? null,
@@ -143,7 +143,7 @@ export function createMultiplayerActionCoordinator({
         return failure(MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_NOT_FOUND, "Only the authority can answer for a running resolution.");
       }
       const execution = activeResolutionExecution(record.state);
-      const pending = new Set((execution.state?.pendingRequests ?? []).map(request => requestKey(request, execution.state)));
+      const pending = new Set((execution?.state?.pendingRequests ?? []).map(request => requestKey(request, execution.state)));
       const taken = [];
       for ( const [key, expectation] of record.requestExpectations ) {
         if ( (expectation.expectedUserId === localUserId) || !pending.has(key) ) continue;
@@ -159,6 +159,34 @@ export function createMultiplayerActionCoordinator({
       return advanceRecord(record);
     },
     /**
+     * The GM ends a running resolution that cannot finish on its own (a client's error left it waiting): nothing it
+     * planned is committed, open prompts are withdrawn, and its creature can act again. Refused while it commits, as
+     * the commit is the one step that spends.
+     */
+    async cancelResolution(resolutionId) {
+      const record = findRecordForResolutionId(resolutionId);
+      if ( !record || (record.authorityUserId !== localUserId) || isTerminalState(record.state) || record.cancelled ) {
+        return failure(MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_NOT_FOUND, "Only the authority can cancel a running resolution.");
+      }
+      if ( record.committing ) return failure(MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_COMMITTING, "This resolution is being committed.");
+      const code = MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_CANCELLED_BY_GM;
+      const reason = "The GM cancelled this Action.";
+      const execution = activeResolutionExecution(record.state);
+      const pending = new Set((execution?.state?.pendingRequests ?? []).map(request => requestKey(request, execution.state)));
+      const withdrawn = [...record.requestExpectations.entries()]
+        .filter(([key, expectation]) => pending.has(key) && (expectation.expectedUserId !== localUserId))
+        .map(([, expectation]) => expectation);
+      // Cancelled before anything is awaited, so a step still running (a plan, a send, a prompt) cannot bring it back:
+      // each checks `cancelled` once its await returns.
+      if ( record.state ) record.state = cancelResolutionState(record.state, {code, reason});
+      record.cancelled = true;
+      record.cancelledState = record.state;
+      record.requestExpectations.clear();
+      for ( const expectation of withdrawn ) await sendError({resolutionId: expectation.resolutionId,
+        requestId: expectation.request?.id ?? null, recipientUserId: expectation.expectedUserId, code, reason});
+      return sendAuthorityError(record, {code, reason});
+    },
+    /**
      * A user who disconnected cannot answer: requests still waiting on them are routed again without them
      * (another controller, or the GM fallback). The authority calls this from Foundry's `userConnected` hook.
      */
@@ -167,7 +195,7 @@ export function createMultiplayerActionCoordinator({
       for ( const record of [...records.values()] ) {
         if ( (record.authorityUserId !== localUserId) || isTerminalState(record.state) ) continue;
         const execution = activeResolutionExecution(record.state);
-        const pending = new Set((execution.state?.pendingRequests ?? []).map(request => requestKey(request, execution.state)));
+        const pending = new Set((execution?.state?.pendingRequests ?? []).map(request => requestKey(request, execution.state)));
         let released = false;
         for ( const [key, expectation] of record.requestExpectations ) {
           if ( (expectation.expectedUserId !== userId) || !pending.has(key) ) continue;
@@ -406,12 +434,37 @@ export function createMultiplayerActionCoordinator({
   }
 
   async function advanceRecord(record) {
+    try {
+      return await advanceRecordSteps(record);
+    } catch (error) {
+      return failUnexpectedly(record, error);
+    }
+  }
+
+  /** An error no step expected ends its resolution, reported, rather than leaving it open and its creature unable to act. */
+  async function failUnexpectedly(record, error) {
+    (logger ?? console).error("Wild Path | Resolution failed", error);
+    record.committing = false;
+    return sendAuthorityError(record, {code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_RESOLUTION_FAILED,
+      reason: String(error?.message ?? error).slice(0, 1024)});
+  }
+
+  /** A record the GM cancelled keeps its cancelled state, whatever a step awaited at the time returned. */
+  function cancelledByGM(record) {
+    record.state = record.cancelledState;
+    return failure(MULTIPLAYER_AUTHORITY_CODES.RESOLUTION_CANCELLED_BY_GM, "The GM cancelled this Action.", {state: record.state});
+  }
+
+  async function advanceRecordSteps(record) {
     while ( true ) {
+      // The GM cancelled it while a step was awaited: what that step returned is dropped.
+      if ( record.cancelled ) return cancelledByGM(record);
       if ( record.state == null ) {
         const planned = await planResolution({
           ...record.options,
           services: record.services
         });
+        if ( record.cancelled ) return cancelledByGM(record);
         record.state = planned.state;
         rememberResolutionState(record, record.state);
         if ( !planned.ok && !planned.waiting ) return sendAuthorityError(record, planned);
@@ -423,6 +476,7 @@ export function createMultiplayerActionCoordinator({
 
       if ( execution.state?.pendingRequests?.length ) return routePendingRequests(record, execution);
       if ( execution.state?.status === RESOLUTION_STATE_STATUS.READY_TO_COMMIT ) {
+        record.committing = true;
         const committed = await (record.host && !execution.nested ? record.host.execute : executeResolution)({
           ...optionsForResolutionState(record, execution.state),
           state: execution.state,
@@ -435,6 +489,7 @@ export function createMultiplayerActionCoordinator({
           }),
           persistencePort: record.options.persistencePort
         });
+        record.committing = false;
         record.state = replaceResolutionInTree(record.state, execution.path, committed.state);
         rememberResolutionState(record, committed.state);
         if ( !committed.ok && !execution.nested ) return sendAuthorityError(record, committed);
@@ -464,6 +519,7 @@ export function createMultiplayerActionCoordinator({
           state: execution.state,
           services: record.services
         });
+        if ( record.cancelled ) return cancelledByGM(record);
         record.state = replaceResolutionInTree(record.state, execution.path, planned.state);
         rememberResolutionState(record, planned.state);
         if ( !planned.ok && !planned.waiting && !execution.nested ) return sendAuthorityError(record, planned);
@@ -550,6 +606,7 @@ export function createMultiplayerActionCoordinator({
         }
       });
       const sent = await sendEnvelope(envelope);
+      if ( record.cancelled ) return cancelledByGM(record);
       if ( !sent.ok ) return sendAuthorityError(record, sent, {requestId: request.id, resolutionId: state.id});
     }
     if ( local.length ) return answerLocalRequests(record, state, local);
@@ -566,6 +623,7 @@ export function createMultiplayerActionCoordinator({
     const saves = requests.filter(request => (request.type === RESOLUTION_REQUEST_TYPES.ROLL) && (request.payload?.rollKind === "save"));
     const batch = (saves.length > 1) ? await answerSaveBatchLocally({requests: saves, promptPorts, rollProviders,
       context: localRequestContext(record, saves[0], state)}) : null;
+    if ( record.cancelled ) return cancelledByGM(record);
     if ( batch && !batch.ok ) return sendAuthorityError(record, batch, {requestId: batch.requestId ?? null, resolutionId: state.id});
     let result = null;
     for ( const request of requests ) {
@@ -574,6 +632,7 @@ export function createMultiplayerActionCoordinator({
       if ( !pending.some(entry => entry.id === request.id) ) continue;
       const answered = batch?.responses.has(request.id) ? {ok: true, response: batch.responses.get(request.id)}
         : await answerPendingRequestLocally({request, promptPorts, rollProviders, context: localRequestContext(record, request, state)});
+      if ( record.cancelled ) return cancelledByGM(record);
       if ( !answered.ok ) return sendAuthorityError(record, answered, {requestId: request.id, resolutionId: state.id});
       result = await applyRequestResponse(record, createResolutionSocketEnvelope({
         messageType: MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE,
@@ -604,23 +663,29 @@ export function createMultiplayerActionCoordinator({
     };
 
     let answered;
-    for ( let attempt = 1; attempt <= MAX_PROMPT_ATTEMPTS; attempt++ ) {
-      answered = await answerPendingRequestLocally({
-        request,
-        promptPorts,
-        rollProviders,
-        context: {
-          ...promptContext,
-          ...rollContext,
-          currentUserId: localUserId,
-          users: userDirectory(),
-          expectedChooserUserId
-        }
-      });
-      // A prompted answer the rules reject (a mistyped physical roll) is asked again; cancelling is final.
-      if ( answered.ok || !REPROMPT_CODES.has(answered.code) || (attempt === MAX_PROMPT_ATTEMPTS) ) break;
-      notify?.({type: "answer-rejected", error: {code: answered.code, reason: answered.reason,
-        resolutionId: envelope.resolutionId, requestId: envelope.requestId}});
+    // A prompt that throws (a UI error on this client) is reported to the authority, so the request does not wait forever.
+    try {
+      for ( let attempt = 1; attempt <= MAX_PROMPT_ATTEMPTS; attempt++ ) {
+        answered = await answerPendingRequestLocally({
+          request,
+          promptPorts,
+          rollProviders,
+          context: {
+            ...promptContext,
+            ...rollContext,
+            currentUserId: localUserId,
+            users: userDirectory(),
+            expectedChooserUserId
+          }
+        });
+        // A prompted answer the rules reject (a mistyped physical roll) is asked again; cancelling is final.
+        if ( answered.ok || !REPROMPT_CODES.has(answered.code) || (attempt === MAX_PROMPT_ATTEMPTS) ) break;
+        notify?.({type: "answer-rejected", error: {code: answered.code, reason: answered.reason,
+          resolutionId: envelope.resolutionId, requestId: envelope.requestId}});
+      }
+    } catch (error) {
+      (logger ?? console).error("Wild Path | Prompt failed", error);
+      answered = failure(MULTIPLAYER_AUTHORITY_CODES.PROMPT_FAILED, String(error?.message ?? error).slice(0, 1024));
     }
     if ( !answered.ok ) return sendError({
       resolutionId: envelope.resolutionId,
@@ -711,11 +776,17 @@ export function createMultiplayerActionCoordinator({
     }
     // Claim before yielding: concurrent duplicate envelopes cannot create two children.
     record.processedRequestIds.add(requestKey({id: response.requestId, resolutionId: execution.state.id}, execution.state));
-    const resumed = await (record.host && !execution.nested ? record.host.resume : resumeResolution)({
-      state: execution.state,
-      response,
-      services: record.services
-    });
+    let resumed;
+    try {
+      resumed = await (record.host && !execution.nested ? record.host.resume : resumeResolution)({
+        state: execution.state,
+        response,
+        services: record.services
+      });
+    } catch (error) {
+      return failUnexpectedly(record, error);
+    }
+    if ( record.cancelled ) return cancelledByGM(record);
     record.state = replaceResolutionInTree(record.state, execution.path, resumed.state);
     rememberResolutionState(record, resumed.state);
     if ( !resumed.ok && !resumed.waiting && !execution.nested ) {
@@ -812,10 +883,28 @@ export function createMultiplayerActionCoordinator({
     // waiting for an answer that will not come.
     const hosted = findRecordForResolutionId(stringOrNull(envelope.resolutionId));
     const code = envelope.payload?.code ?? null;
-    if ( hosted && ["PROMPT_CANCELLED", "REQUIRED_REQUEST_CANCELLED"].includes(code) && (hosted.authorityUserId === localUserId)
-      && (envelope.senderUserId !== localUserId) && !isTerminalState(hosted.state)
-      && [...hosted.requestExpectations.values()].some(expected => expected.expectedUserId === envelope.senderUserId) ) {
+    // Only a request still open counts: a late error about one already answered (a stray second dialog) changes nothing.
+    const execution = (hosted && (hosted.authorityUserId === localUserId) && (envelope.senderUserId !== localUserId)
+      && !isTerminalState(hosted.state)) ? activeResolutionExecution(hosted.state) : null;
+    const pending = new Set((execution?.state?.pendingRequests ?? []).map(request => requestKey(request, execution.state)));
+    const awaited = [...(execution ? hosted.requestExpectations.entries() : [])].filter(([key, expected]) => pending.has(key)
+      && (expected.expectedUserId === envelope.senderUserId) && (!envelope.requestId || (expected.request?.id === envelope.requestId)));
+    if ( awaited.length && ["PROMPT_CANCELLED", "REQUIRED_REQUEST_CANCELLED"].includes(code) ) {
       return sendAuthorityError(hosted, {code, reason: envelope.payload?.reason ?? "The prompt was closed."});
+    }
+    // Their prompt failed rather than being closed (an error on their client): the GM answers it instead, as for a user
+    // who disconnected, so the Action goes on. An authority that is not the GM (no GM online) does not answer for another
+    // Player: the Action ends.
+    if ( awaited.length && (activeGMId() !== localUserId) ) {
+      return sendAuthorityError(hosted, {code, reason: envelope.payload?.reason ?? "The prompt failed."});
+    }
+    if ( awaited.length ) {
+      for ( const [key] of awaited ) {
+        hosted.requestExpectations.delete(key);
+        hosted.routedRequestIds.delete(key);
+        (hosted.requestOverrides ??= new Map()).set(key, localUserId);
+      }
+      return advanceRecord(hosted);
     }
     const expectedAuthorityUserId = expectedAuthorityForResolution(envelope.resolutionId);
     if ( expectedAuthorityUserId && (envelope.senderUserId !== expectedAuthorityUserId) ) return {
@@ -940,7 +1029,8 @@ export function createMultiplayerActionCoordinator({
     // An Action a reaction stopped (Counterspell): the authority's consequences of that, once.
     if ( (typeof afterCancelled === "function") && (record.state?.status === RESOLUTION_STATE_STATUS.CANCELLED) ) {
       try {
-        await afterCancelled({resolutionId: record.resolutionId, options: record.options, state: record.state});
+        await afterCancelled({resolutionId: record.resolutionId, options: record.options, state: record.state,
+          initiatorUserId: record.initiatorUserId});
       } catch (error) {
         (logger ?? console).warn("Wild Path | Post-cancellation step failed", error);
       }
@@ -982,6 +1072,8 @@ export function createMultiplayerActionCoordinator({
     if ( record.state && isTerminalState(record.state) ) {
       await sendResolutionResult(record, {ok: false, code: payload.code});
     }
+    // One that failed before it had a state has nothing to finish: dropping it frees its creature.
+    if ( !record.state ) records.delete(record.resolutionId);
     return {
       ok: false,
       code: payload.code,
