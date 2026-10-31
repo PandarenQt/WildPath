@@ -102,7 +102,9 @@ function opportunityDefinition(actor: CommonActor) {
   const weapon = [...(actor.items ?? [])].find(item => (item.type === "action") && (item.system?.active !== false)
     && (definitionOf(item).definition?.attack?.type === "melee"));
   const definition = weapon ? definitionOf(weapon).definition! : {schemaVersion: 1, id: "common:unarmed", ...structuredClone(COMMON.unarmed!.definition)};
-  return {weapon: weapon?.name ?? null, definition: {...definition, costs: {allOf: [{capability: "reaction", amount: 1}]}}};
+  // Tagged as one (Sentinel's Halt answers its hits).
+  return {weapon: weapon?.name ?? null, definition: {...definition, costs: {allOf: [{capability: "reaction", amount: 1}]},
+    tags: [...new Set([...((definition as {tags?: string[]}).tags ?? []), "opportunity"])]}};
 }
 
 /** What the creature can escape: its Grappled (else Restrained) condition with the highest escape DC, or null. */

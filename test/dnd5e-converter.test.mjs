@@ -2644,3 +2644,17 @@ test("the books' silent features, second batch: third-person saves, Fey Ancestry
   const sacred = convertItem({...weapon, _id: "testSacredWeap01", name: "Sacred Weapon", system: {...weapon.system, identifier: "sacred-weapon"}}).items;
   assert.equal(sacred.some(item => item.system?.definition?.attack), true);
 });
+
+test("Sentinel: Opportunity Attacks on a Disengage or a hit on another creature beside it, and its Halt on an Opportunity Attack hit", async () => {
+  const {commonAction} = await import("../module/helpers/common-actions.mjs");
+  const sentinel = {_id: "sentinelfeat0000", name: "Sentinel", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "sentinel", type: {value: "feat"}, activities: {}, description: {value: "<p>Rule text.</p>"}}};
+  const [feature, halt] = convertItem(sentinel).items;
+  assert.deepEqual(feature.system.ruleElements.map(rule => [rule.data.event, rule.data.commonAction]),
+    [["action.declared", "opportunity"], ["attack.hit", "opportunity"]]);
+  assert.deepEqual(feature.flags.wildpath.grants, [halt._id], "the feat brings its Halt");
+  assert.deepEqual([halt.system.ruleElements[0].data.match.tagsAll, halt.system.definition.effects[0].ruleElements[0].data],
+    [["opportunity"], {resources: ["movement"], maximum: 0}]);
+  const attack = commonAction({items: []}, "opportunity").system.definition;
+  assert.equal(attack.tags.includes("opportunity"), true, "an Opportunity Attack says it is one");
+});

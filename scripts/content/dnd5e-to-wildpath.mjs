@@ -1961,6 +1961,11 @@ const NARRATIVE_FEATURES = new Set(["ephemeral", "shielded-mind", "inscrutable",
 const FEATURE_ACTIONS = Object.freeze({
   "action-surge": {effects: [{id: "effect-1", type: "effect", name: "Action Surge", duration: {value: 0, units: "turns", expiry: "turnEnd"},
     ruleElements: [{schemaVersion: 1, id: "action-surge", type: "Modifier", data: {domains: ["resources.action.max"], modifierType: "untyped", value: 1}}]}]},
+  // Sentinel's Halt: a creature its Opportunity Attack hits has a Speed of 0 for the rest of the turn (free, always).
+  sentinel: {free: true, policy: "always", range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+    trigger: {kind: "reaction", event: "attack.hit", match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["opportunity"]}},
+    effects: [{id: "effect-1", type: "effect", name: "Halted", img: "icons/svg/net.svg", duration: {value: 0, units: "turns", expiry: "turnEnd"},
+      ruleElements: [{schemaVersion: 1, id: "halted", type: "ResourceCap", data: {resources: ["movement"], maximum: 0}}]}]},
   // 2024 Boon of Dimensional Travel (Blink Steps): "Immediately after you take the Attack action or the Magic action, you can
   // teleport up to 30 feet": once a turn, after an attack roll or a spell cast with the Action this turn. shortcut:
   // "immediately" is not enforced (later in the same turn works too).
@@ -2417,6 +2422,17 @@ const TRAITS = Object.freeze({
     predicate: {tagsAll: ["ranged", "thrown"]}, data: {domains: ["damage.weapon"], modifierType: "untyped", value: 2}}], notes: []}),
   // A creature's Fey Ancestry that says magic can't put it to sleep: Trance's rule (the saves part is SAVES_AGAINST's).
   "fey-ancestry": document => (/\bmagic can[’']t put (?:it|you) to sleep\b/u.test(plainText(document)) ? TRAITS.trance() : null),
+  // Sentinel (Guardian): an Opportunity Attack against a hostile creature within 5 feet that takes the Disengage action
+  // (as it declares it: shortcut, not after) or hits a creature other than it. Its Halt is its own Action (FEATURE_ACTIONS).
+  sentinel: () => ({rules: [
+    {schemaVersion: 1, id: "sentinel-disengage", type: "Trigger", data: {kind: "reaction", event: "action.declared",
+      match: {phase: "interrupt", notSourceTokenId: "{self}"}, commonAction: "opportunity", triggerPredicate: {all: [
+        {equals: {path: "event.data.actionDefinitionId", value: "common:disengage"}}, {equals: {path: "toSource.{self}.hostile", value: true}},
+        {atMost: {path: "toSource.{self}.distance", value: 5}}]}}},
+    {schemaVersion: 1, id: "sentinel-guardian", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", notSourceTokenId: "{self}"}, commonAction: "opportunity", triggerPredicate: {all: [
+        {equals: {path: "toSource.{self}.hostile", value: true}}, {atMost: {path: "toSource.{self}.distance", value: 5}},
+        {not: {equals: {path: "toTarget.{self}.self", value: true}}}]}}}], notes: []}),
   // Advantage on melee attacks against a Bloodied creature (the DMG's Warrior's Wrath; `attack.targetBloodied`).
   "warriors-wrath": () => ({rules: [{schemaVersion: 1, id: "warriors-wrath", type: "RollMode",
     predicate: {equals: {path: "attack.targetBloodied", value: true}}, data: {domains: ["attack.melee"], mode: "advantage"}}], notes: []}),
