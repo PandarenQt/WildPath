@@ -140,6 +140,11 @@ values see beside `tags` and `conditions`. The runtime passes `castLevel`, the l
 out from the intent's choices. Disciple of Life uses it: `{type: "add", terms: [2, {type: "context", path: "castLevel"}]}`
 while `castLevel` is 1 to 9.
 
+**Range (2026-10-31).** A ranged Action of 10 feet or more reads Modifiers on `range.spell` (a spell's) and `range`, with
+its tags, whenever it is read (`withRangeBonus`, action-definitions.mjs, before Metamagic), and adds their total to its
+normal and long range. Eldritch Spear: `range.spell` +30 x warlock level on a cantrip tagged with a damage type, an
+`item` Modifier so a second copy doesn't stack.
+
 **Dropping to 0 Hit Points (2026-10-20).** A `Trigger` with `kind: "zero-hp"` marks what happens then; the runtime
 reads it, and no dispatcher runs it.
 - **`event: "health.zero"`** (its own creature): `zeroHp: {mode: "set"|"save", hitPoints, pool?, ability?, dc?, whileStatus?,

@@ -2348,6 +2348,12 @@ const TRAITS = Object.freeze({
   // Eldritch Invocation Agonizing Blast: its Charisma modifier on every cantrip's damage (house rule: a feature changing
   // a chosen cantrip changes every cantrip).
   "agonizing-blast": (document, {activities}) => spellDamageBonus(activities, "presence", {tagsAll: ["cantrip"]}),
+  // 2024 Eldritch Spear: a chosen damaging cantrip with a range of 10+ feet reaches 30 feet farther per warlock level (house
+  // rule: every such cantrip). An `item` Modifier, so a second copy adds nothing (withRangeBonus reads `range.spell`).
+  "eldritch-spear": (document, {activities}) => ({rules: [{schemaVersion: 1, id: "eldritch-spear", type: "Modifier",
+    predicate: {tagsAll: ["cantrip"], tagsAny: DAMAGE_TYPES.map(type => `damage:${type}`)}, data: {domains: ["range.spell"], modifierType: "item",
+      valueExpression: {type: "multiply", terms: [{type: "constant", value: 30}, {type: "class-level", class: "warlock"}]}}}],
+  consumes: activities.filter(entry => entry.type === "enchant"), notes: []}),
   // 2024 Empowered Evocation: its Intelligence modifier on one damage roll of an evocation spell.
   "empowered-evocation": (document, {activities}) => spellDamageBonus(activities, "intellect", {tagsAll: ["school:evocation"]}),
   // 2024 Disciple of Life: a spell cast with a slot heals 2 + the slot's level more.

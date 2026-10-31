@@ -267,9 +267,10 @@ export function serializeActionDefinition(rawDefinition={}, options={}) {
 
 export function actionDefinitionFromItem(item, options={}) {
   const system = item?.system ?? {};
-  const raw = withContributedChoices(withSummonLevels(withMysticArcanum(withMetamagic(withOwnWeapons(withWeaponMastery(withExtraAttacks(
-    system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null, item), item?.actor ?? null),
-    item?.actor ?? null), item?.actor ?? null), item), item?.actor ?? null), item);
+  // Its range bonus before Metamagic, so Distant Spell doubles the longer range.
+  const raw = withContributedChoices(withSummonLevels(withMysticArcanum(withMetamagic(withRangeBonus(withOwnWeapons(withWeaponMastery(
+    withExtraAttacks(system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null, item),
+    item?.actor ?? null), item?.actor ?? null), item), item?.actor ?? null), item), item?.actor ?? null), item);
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
   const legacyActivationCost = options.legacyActivationCost
@@ -334,6 +335,21 @@ function withOwnWeapons(raw, actor) {
     }
     return {...choice, options: [...options.values()]};
   })};
+}
+
+/**
+ * A ranged Action's range (10 feet or more) made longer by its creature's `range` Modifiers, and a spell's by `range.spell`
+ * ones, as its tags select (2024 Eldritch Spear: a damaging cantrip's range + 30 feet per warlock level), worked out
+ * whenever the Action is read.
+ */
+function withRangeBonus(raw, item) {
+  const range = raw?.range;
+  if ( (range?.type !== "ranged") || !(Number(range.normal?.value) >= 10) || (typeof item?.actor?.getStatistic !== "function") ) return raw;
+  const tags = raw.tags ?? [];
+  const bonus = Number(item.actor.getStatistic([...(tags.includes("spell") ? ["range.spell"] : []), "range"], {item, tags})?.totalModifier) || 0;
+  if ( !(bonus > 0) ) return raw;
+  const longer = distance => (distance ? {...distance, value: Number(distance.value) + bonus} : distance);
+  return {...raw, range: {...range, normal: longer(range.normal), ...(range.long ? {long: longer(range.long)} : {})}};
 }
 
 /**

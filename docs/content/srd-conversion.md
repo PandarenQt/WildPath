@@ -483,7 +483,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Eldritch Master | classes24 | Eldritch Master (feature) | — |
 | Eldritch Mind | classes24 | Eldritch Mind (feature) | — |
 | Eldritch Smite | classes24 | Eldritch Smite (automated) | — |
-| Eldritch Spear | classes24 | Eldritch Spear (feature) | "Increase Range" is passive or triggered: not automated |
+| Eldritch Spear | classes24 | Eldritch Spear (feature) | — |
 | Elemental Affinity | classes24 | Elemental Affinity (feature), Elemental Affinity (Choose) (automated) | — |
 | Elemental Fury | classes24 | Elemental Fury (feature) | — |
 | Elemental Fury: Potent Spellcasting | classes24 | Elemental Fury: Potent Spellcasting (feature) | — |

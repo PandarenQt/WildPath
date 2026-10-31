@@ -338,3 +338,21 @@ test("cantrip invocations (SRD, house rule): Agonizing Blast adds Charisma to ev
   const match = repelling.ruleElements.find(rule => rule.type === "Trigger").data.match;
   assert.deepEqual([match.tagsAll, match.notTagsAny, repelling.definition.rider], [["cantrip"], undefined, {push: {distance: 10, maxSize: "large"}}]);
 });
+
+test("Eldritch Spear: a damaging cantrip reaches 30 feet farther per warlock level; touch and harmless cantrips don't", async () => {
+  const fs = await import("node:fs");
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const spear = JSON.parse(fs.readFileSync("packs/_source/srd-items/eldritch-spear-phbinvEldritchSp.json", "utf8"));
+  const warlock = (copies=1) => Object.assign(Object.create(WildPathActor.prototype), {id: "lock", uuid: "Actor.lock", effects: [],
+    statuses: new Set(), flags: {}, system: {classes: {warlock: {levels: 5}}}, allApplicableEffects: () => [],
+    items: Array.from({length: copies}, (_, index) => ({id: `spear${index}`, uuid: `Actor.lock.Item.spear${index}`, type: "feature",
+      system: {active: true, modifiers: [], ruleElements: spear.system.ruleElements}}))});
+  const cantrip = (tags, range) => ({id: "cantrip", type: "action", name: "Cantrip", system: {definition: {schemaVersion: 1, id: "action:cantrip",
+    costs: {allOf: [{capability: "action", amount: 1}]}, tags, range, targeting: {type: "single", required: true, count: 1}}}});
+  const read = (item, actor) => actionDefinitionFromItem({...item, actor}).definition.range;
+  const blast = cantrip(["spell", "cantrip", "damage:force"], {type: "ranged", normal: {value: 120, unit: "ft"}});
+  assert.equal(read(blast, warlock()).normal.value, 270, "120 + 30 x 5");
+  assert.equal(read(blast, warlock(2)).normal.value, 270, "a second copy adds nothing");
+  assert.equal(read(cantrip(["spell", "cantrip"], {type: "ranged", normal: {value: 120, unit: "ft"}}), warlock()).normal.value, 120, "no damage");
+  assert.equal(read(cantrip(["spell", "cantrip", "damage:lightning"], {type: "touch", distance: {value: 5, unit: "ft"}}), warlock()).type, "touch");
+});

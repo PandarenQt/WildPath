@@ -7,7 +7,52 @@
   "system": {
     "active": true,
     "description": "<blockquote><p>Prerequisite: Level 2+ Warlock, a Warlock Cantrip That Deals Damage</p></blockquote><p>Choose one of your known Warlock cantrips that deals damage and has a range of 10+ feet. When you cast that spell, its range increases by a number of feet equal to 30 times your Warlock level.</p><p><strong>Repeatable.</strong> You can gain this invocation more than once. Each time you do so, choose a different eligible cantrip.</p><section id=\"secret-7hr3xIfya7IOq7pj\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>Use the <strong>Increase Range</strong> enchantment activity and drag your chosen cantrip to the chat card to increase its range and append \", Eldritch Spear\" for easier identification.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "eldritch-spear",
+        "type": "Modifier",
+        "predicate": {
+          "tagsAll": [
+            "cantrip"
+          ],
+          "tagsAny": [
+            "damage:acid",
+            "damage:bludgeoning",
+            "damage:cold",
+            "damage:fire",
+            "damage:force",
+            "damage:lightning",
+            "damage:necrotic",
+            "damage:piercing",
+            "damage:poison",
+            "damage:psychic",
+            "damage:radiant",
+            "damage:slashing",
+            "damage:thunder"
+          ]
+        },
+        "data": {
+          "domains": [
+            "range.spell"
+          ],
+          "modifierType": "item",
+          "valueExpression": {
+            "type": "multiply",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 30
+              },
+              {
+                "type": "class-level",
+                "class": "warlock"
+              }
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -23,9 +68,7 @@
         "subtype": "eldritchInvocation"
       },
       "conversion": {
-        "notes": [
-          "\"Increase Range\" is passive or triggered: not automated"
-        ]
+        "notes": []
       },
       "prerequisites": {
         "level": 2,
