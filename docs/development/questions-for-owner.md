@@ -50,3 +50,18 @@ to treat the creatures the roller has targeted as the ones the check is about (`
 - Question: is reading the roller's targets in `rollTest` acceptable (the runtime already reads them to build
   intents), or should an Insight check about a creature be an Action of its own with a target?
 - Recommendation: read the targets; it needs no new UI and matches how attacks pick their target.
+
+### Q5. Creature spaces in movement (plan 3.4, swarms) (2026-10-31)
+Plan item 3.4 assumed movement refuses an occupied space and swarms would be exempted through `occupancyPolicy`. It
+does not: the movement pipeline has the seam but the Foundry runtime supplies no policy, so any creature may end its
+move on another, or walk through a hostile one. Swarms already "share" spaces because nobody is blocked.
+
+2024 rules: a creature may move through an ally's space, and through a hostile creature's only if one of them is Tiny
+or the two are two sizes apart; moving through another creature's space is Difficult Terrain; no creature may willingly
+end its move in an occupied space. Swarms (and a few others) ignore these.
+
+- Done meanwhile: nothing; tokens move as before.
+- Question: should movement enforce these rules now? It changes how every token moves, so a GM dragging a token over
+  another would be refused (forced movement and teleports already avoid occupied spaces).
+- Recommendation: yes, as an `occupancyPolicy` from the runtime, with a world setting "Creatures block movement" (on by
+  default), the GM's own drags exempt, and a `swarm` trait (from the stat block's type) that ignores it.
