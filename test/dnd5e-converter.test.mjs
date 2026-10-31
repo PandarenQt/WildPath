@@ -2469,3 +2469,15 @@ test("can't regain Hit Points while Poisoned or cursed: a cap on healing, only w
   assert.deepEqual(resourceCapsFromRuleElements(cap, {conditions: ["poisoned"]}), {healing: 0});
   assert.deepEqual(resourceCapsFromRuleElements(cap, {conditions: []}), {}, "cured of the poison, it heals again");
 });
+
+test("a uses-spent choice whose dnd5e maximum is a formula (Healing Light's @abilities.cha.mod) keeps it, never below 1", () => {
+  const used = convertItem({_id: "testHealLight002", name: "Test Light", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "test-light", uses: {max: "5", spent: 0, recovery: [{period: "lr", type: "recoverAll"}]},
+      description: {value: ""}, activities: {a: activity("heal", {activation: {type: "bonus", override: false},
+        target: {override: false, template: {}, affects: {type: "creature", count: "1"}}, range: {override: false, units: "ft", value: "60"},
+        healing: {number: null, denomination: null, types: ["healing"], custom: {enabled: true, formula: "(@scaling)d6"}},
+        consumption: {scaling: {allowed: true, max: "@abilities.cha.mod"}, targets: [{type: "itemUses", value: "1", target: "",
+          scaling: {mode: "amount"}}]}})}}}).items.find(item => item.type === "action");
+  assert.deepEqual(used.system.definition.configuration[0].max, {type: "max", terms: [{type: "constant", value: 1},
+    {type: "ability-modifier", ability: "presence"}]});
+});

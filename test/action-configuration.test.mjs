@@ -537,3 +537,17 @@ test("an area that grows with the level chosen (Confusion: 5 feet more per slot 
     .configuration.effectiveDefinition.area.size.value;
   assert.deepEqual([sized(4), sized(6)], [10, 20]);
 });
+
+test("a number choice's maximum may read its creature (Healing Light: up to its Charisma modifier, at least 1)", () => {
+  const max = {type: "max", terms: [{type: "constant", value: 1}, {type: "ability-modifier", ability: "presence"}]};
+  const definition = {schemaVersion: 1, id: "action:healing-light", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, healing: [{id: "healing-1", expression: {type: "constant", value: 1}, healingType: "healing"}],
+    configuration: [{id: "spent", type: ACTION_CHOICE_TYPES.NUMBER, label: "Dice", required: true, min: 1, max,
+      effects: [{type: "spendAmount", resourceId: "light", componentIds: ["healing-1"], faces: 6}]}]};
+  const system = actorSystem();
+  const withPresence = score => ({...system, abilities: {...(system.abilities ?? {}), presence: {value: score}},
+    pools: [...(system.pools ?? []), {id: "light", value: 9, max: 9}]});
+  assert.equal(resolveActionConfiguration({definition, actorSystem: withPresence(16), choices: {spent: 3}}).ok, true, "Presence 16: up to 3");
+  assert.equal(resolveActionConfiguration({definition, actorSystem: withPresence(16), choices: {spent: 4}}).ok, false, "not 4");
+  assert.equal(resolveActionConfiguration({definition, actorSystem: withPresence(8), choices: {spent: 1}}).ok, true, "at least 1");
+});

@@ -174,7 +174,7 @@ export function resolveActionConfiguration({
       continue;
     }
 
-    const selection = resolveChoiceSelection(request, responseMap.get(request.id));
+    const selection = resolveChoiceSelection(request, responseMap.get(request.id), {actorSystem});
     if ( !selection.ok ) errors.push(...selection.errors);
     else selections.push(selection.selection);
   }
@@ -682,12 +682,12 @@ function evaluateChoiceActivation({
   return {active: true, status: "active", code: ACTION_CONFIGURATION_CODES.OK, reason: null};
 }
 
-function resolveChoiceSelection(request, rawResponse) {
+function resolveChoiceSelection(request, rawResponse, context={}) {
   switch ( request.type ) {
     case ACTION_CHOICE_TYPES.BOOLEAN:
       return resolveBooleanSelection(request, rawResponse);
     case ACTION_CHOICE_TYPES.NUMBER:
-      return resolveNumberSelection(request, rawResponse);
+      return resolveNumberSelection(request, rawResponse, context);
     case ACTION_CHOICE_TYPES.SELECT_MANY:
       return resolveManySelection(request, rawResponse);
     case ACTION_CHOICE_TYPES.RESOURCE:
@@ -713,12 +713,13 @@ function resolveBooleanSelection(request, rawResponse) {
   });
 }
 
-function resolveNumberSelection(request, rawResponse) {
+function resolveNumberSelection(request, rawResponse, {actorSystem=null}={}) {
   const value = finiteNumber(rawResponse?.value ?? rawResponse);
   if ( value == null ) return invalidSelection(request.id, "Number choices require a finite number.");
 
-  const min = evaluateMaybeExpression(request.min, {choice: request});
-  const max = evaluateMaybeExpression(request.max, {choice: request});
+  // Its bounds may read its creature (Healing Light: "up to your Charisma modifier").
+  const min = evaluateMaybeExpression(request.min, {choice: request, actorSystem});
+  const max = evaluateMaybeExpression(request.max, {choice: request, actorSystem});
   if ( min != null && value < min ) return invalidSelection(request.id, `Choice value is below minimum ${min}.`);
   if ( max != null && value > max ) return invalidSelection(request.id, `Choice value is above maximum ${max}.`);
 

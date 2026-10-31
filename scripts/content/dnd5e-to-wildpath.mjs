@@ -3922,9 +3922,12 @@ function convertActivity({document, activity, system, spell, level, scales, note
   if ( spell && level && (activity.consumption?.spellSlot === false) ) definition.metadata = {...(definition.metadata ?? {}), followUp: true};
   if ( typeChoices.length ) definition.configuration = [...(definition.configuration ?? []), ...typeChoices];
   // The uses spent are chosen when used, and `spendAmount` spends them (so the pool's fixed cost goes).
-  // shortcut: a maximum that reads its creature (Healing Light's Charisma modifier) is not set; upgrade when a choice's max can.
   if ( spent ) {
-    const max = number(activity.consumption.scaling.max);
+    // A maximum that reads its creature ("@abilities.cha.mod": Healing Light's "up to your Charisma modifier (minimum
+    // of one)") is a formula, never below 1.
+    const formula = number(activity.consumption.scaling.max) == null && activity.consumption.scaling.max
+      ? formulaExpression(String(activity.consumption.scaling.max), {scales}) : null;
+    const max = number(activity.consumption.scaling.max) ?? (formula ? {type: "max", terms: [{type: "constant", value: 1}, formula]} : null);
     definition.costs = {...definition.costs, allOf: (definition.costs?.allOf ?? []).filter(cost => cost.capability !== spendId)};
     definition.configuration = [...(definition.configuration ?? []), {id: "spent", type: "number",
       label: (pool?.id === spendId ? pool?.rule?.data?.label : null) ?? document.name, required: true, min: 1, ...(max ? {max} : {}),
