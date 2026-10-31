@@ -128,3 +128,14 @@ shouldn't ship without the backlash.
   some cursed items, Blood Magic-style homebrew).
 - Done meanwhile: nothing; Overchannel stays by hand (noted).
 - Recommendation: yes; medium-sized, with the maximize half shipped together.
+
+### Q11. Rules the caster gives a save it imposes (Magical Ambush, Eldritch Strike, Eldritch Hex) (2026-10-31)
+Three book features make a creature's save against the caster worse: an Arcane Trickster casting while Invisible
+(Disadvantage on the save), an Eldritch Knight's weapon hit (Disadvantage on its next save against the knight's spell),
+a Great Old One's Hex (Disadvantage on saves of the hexed ability). Today a save reads only the saver's own rules.
+
+- Question: add a caster-side save domain (the caster's RollModes on `imposed.save`, read in the caster's context and
+  combined with the saver's), and `save.fromCaster.<mark>` (the marks the saver carries from that caster, as attacks
+  have `attack.fromAttacker`)? It is a new resolution capability; the three features then become data.
+- Done meanwhile: nothing; they stay by hand (silent in the census).
+- Recommendation: yes; small to medium, and it mirrors what attacks already do.
