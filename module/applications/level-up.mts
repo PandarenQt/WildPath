@@ -385,7 +385,12 @@ async function apply(actor: LevelActor, item: LevelItem, {level, steps, form, fi
   await actor.update(updates);
   if ( footprint ) await Promise.all(actor.getActiveTokens(false, true).map(token => token.update({width: footprint, height: footprint})));
   const added = [...await addItems(actor, uuids, item)];
-  for ( const [owner, list] of originGrants ) added.push(...await addItems(actor, list, owner));
+  for ( const [owner, list] of originGrants ) {
+    // What its species already gave at that level (a class removed and taken again, or levels lowered) is not given twice.
+    const had = new Set(actor.items.filter(entry => (entry as {flags?: {wildpath?: {grantedBy?: string}}}).flags?.wildpath?.grantedBy === owner.id)
+      .map(entry => (entry as {_stats?: {compendiumSource?: string}})._stats?.compendiumSource).filter(Boolean));
+    added.push(...await addItems(actor, list.filter(uuid => !had.has(uuid)), owner));
+  }
   // A feat that gives choices of its own (Eldritch Adept) asks them now, as its own level 0.
   for ( const created of added ) if ( (created.type === "feature") && (created.system.advancement ?? []).length ) {
     await levelUp(actor, created, {level: 0, confirm: false});

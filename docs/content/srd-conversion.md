@@ -293,7 +293,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Cloak of Protection | equipment24 | Cloak of Protection (gear) | — |
 | Cloak of the Bat | equipment24 | Cloak of the Bat (gear), Cloak of the Bat: Polymorph (automated) | "Grip Edges" is passive or triggered: not automated; transform: a Beast the caster chooses; what the creature may do in its form is by hand |
 | Cloak of the Manta Ray | equipment24 | Cloak of the Manta Ray (gear) | — |
-| Cloaker | actors24 | Cloaker (7 items) | Light Sensitivity: silent: its text names a rule that is not converted (by hand); Attach: "Detach Attempt" is passive or triggered: not automated |
+| Cloaker | actors24 | Cloaker (7 items) | Attach: "Detach Attempt" is passive or triggered: not automated |
 | Clone | spells24 | Clone (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 hour is not an action-economy cost |
 | Clothes, Fine | equipment24 | Clothes, Fine (gear) | — |
 | Clothes, Traveler's | equipment24 | Clothes, Traveler's (gear) | — |

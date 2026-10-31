@@ -2030,9 +2030,10 @@ export async function endEffectsWhenAttacked({state}, {fromUuid}) {
   const attacker = sourceToken?.actor ?? null;
   const definition = state?.actionDefinition ?? {};
   const applied = new Set((definition.effects ?? []).filter(effect => effect?.type === "effect").map(effect => customEffectId(definition.id, effect)));
-  // What this attack, or a reaction within it (Stunning Strike's success), just applied is not spent by it.
+  // What the attacker, by this attack or a reaction within it (Stunning Strike's success, Studied Attacks), just put on a
+  // creature is not spent by it. The creature's own answer to it (Parry, Uncanny Dodge) is.
   const appliedNow = effect => (effect.flags?.wildpath?.conditionEffect?.metadata?.resolutionIds ?? []).includes(state.id);
-  const endsWhen = effect => (appliedNow(effect) ? null : effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen);
+  const endsWhen = (effect, spared=false) => (spared ? null : effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen);
   const ended = [];
   const end = async (actor, effects) => {
     if ( !effects.length ) return;
@@ -2043,15 +2044,17 @@ export async function endEffectsWhenAttacked({state}, {fromUuid}) {
     const actor = scene?.tokens?.get(tokenId)?.actor;
     if ( !actor ) continue;
     const fromAttacker = new Set(attacker ? effectsFrom(actor, attacker).map(effect => effect.id) : []);
+    const ends = effect => endsWhen(effect, appliedNow(effect) && fromAttacker.has(effect.id));
     await end(actor, [...actor.effects].filter(effect => !(hit && [...(effect.statuses ?? [])].some(status => applied.has(status)))
-      && ((endsWhen(effect) === "attacked") || ((endsWhen(effect) === "attackedBySource") && fromAttacker.has(effect.id))
-        || ((endsWhen(effect) === "attackedByOther") && !fromAttacker.has(effect.id))
+      && ((ends(effect) === "attacked") || ((ends(effect) === "attackedBySource") && fromAttacker.has(effect.id))
+        || ((ends(effect) === "attackedByOther") && !fromAttacker.has(effect.id))
         // Help's: only its helper's ally's attack uses it up.
-        || ((endsWhen(effect) === "attackedByAllyOfSource") && alliedTokens(sourceToken, effectGiver(effect, actor, scene))))));
+        || ((ends(effect) === "attackedByAllyOfSource") && alliedTokens(sourceToken, effectGiver(effect, actor, scene))))));
   }
   // ... and its `hits` ones once it hit (an injury poison's coat, delivered).
   const hitAny = [...attacked.values()].some(Boolean);
-  if ( attacker ) await end(attacker, [...attacker.effects].filter(effect => (endsWhen(effect) === "attacks") || (hitAny && (endsWhen(effect) === "hits"))));
+  const own = effect => endsWhen(effect, appliedNow(effect));
+  if ( attacker ) await end(attacker, [...attacker.effects].filter(effect => (own(effect) === "attacks") || (hitAny && (own(effect) === "hits"))));
   return ended;
 }
 

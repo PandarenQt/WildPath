@@ -359,8 +359,12 @@ async function apply(actor, item, { level, steps, form, first, hitDie, fortitude
     if (footprint)
         await Promise.all(actor.getActiveTokens(false, true).map(token => token.update({ width: footprint, height: footprint })));
     const added = [...await addItems(actor, uuids, item)];
-    for (const [owner, list] of originGrants)
-        added.push(...await addItems(actor, list, owner));
+    for (const [owner, list] of originGrants) {
+        // What its species already gave at that level (a class removed and taken again, or levels lowered) is not given twice.
+        const had = new Set(actor.items.filter(entry => entry.flags?.wildpath?.grantedBy === owner.id)
+            .map(entry => entry._stats?.compendiumSource).filter(Boolean));
+        added.push(...await addItems(actor, list.filter(uuid => !had.has(uuid)), owner));
+    }
     // A feat that gives choices of its own (Eldritch Adept) asks them now, as its own level 0.
     for (const created of added)
         if ((created.type === "feature") && (created.system.advancement ?? []).length) {

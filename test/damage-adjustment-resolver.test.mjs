@@ -112,3 +112,13 @@ test("damage whose attacker ignores Resistance to its type is not halved by it; 
   assert.deepEqual(ignoredResistances({items: [{system: {active: true}, flags: {wildpath: {ignoresResistance: ["bludgeoning", "piercing"]}}},
     {system: {active: false}, flags: {wildpath: {ignoresResistance: ["fire"]}}}]}), ["bludgeoning", "piercing"], "active features only");
 });
+
+test("several Resistances to one damage type count as one; a halving of every type is not one an attacker can ignore", async () => {
+  const {mergeDamageAdjustmentProfiles} = await import("../module/resolvers/damage-adjustment-resolver.mjs");
+  const tiefling = mergeDamageAdjustmentProfiles({resistances: [{id: "legacy", damageTypes: ["slashing"]}]},
+    {resistances: [{id: "species", damageTypes: ["slashing"]}]});
+  assert.equal(adjustDamageResult(damageResult(), tiefling).damageResult.byDamageType.slashing, 5, "halved once, not to a quarter");
+  const dodging = mergeDamageAdjustmentProfiles({ignoresResistance: ["slashing"]}, {resistances: [{id: "uncanny-dodge", damageTypes: []}]});
+  assert.equal(adjustDamageResult(damageResult(), dodging).damageResult.byDamageType.slashing, 5,
+    "Uncanny Dodge still halves a Boon of Irresistible Offense's slashing");
+});

@@ -158,14 +158,19 @@ function applyTypedAdjustmentsToComponent(component, profile) {
     return {component: adjusted, applications};
   }
 
-  const multipliers = [
-    ...(profile.ignoresResistance.includes(component.damageType) ? []
-      : profile.resistances.filter(adjustment => matchesComponent(component, adjustment))),
-    ...profile.vulnerabilities.filter(adjustment => matchesComponent(component, adjustment))
-  ];
+  // Its attacker's damage of a type it ignores Resistance to (Boon of Irresistible Offense) skips the Resistance that names
+  // that type; a halving of every type (Uncanny Dodge's) is not that Resistance and still applies.
+  const ignored = adjustment => profile.ignoresResistance.includes(component.damageType)
+    && (adjustment.damageTypes ?? []).includes(component.damageType);
+  const resistances = profile.resistances.filter(adjustment => matchesComponent(component, adjustment) && !ignored(adjustment));
+  const vulnerabilities = profile.vulnerabilities.filter(adjustment => matchesComponent(component, adjustment));
+  const multipliers = [...resistances, ...vulnerabilities];
   if ( !multipliers.length ) return {component, applications};
 
-  const multiplier = multipliers.reduce((product, adjustment) => product * adjustment.multiplier, 1);
+  // 2024: several Resistances (or Vulnerabilities) to the same damage count as one: a Tiefling's legacy and its species
+  // trait halve it once, not to a quarter. The strongest of each applies.
+  const multiplier = (resistances.length ? Math.min(...resistances.map(adjustment => adjustment.multiplier)) : 1)
+    * (vulnerabilities.length ? Math.max(...vulnerabilities.map(adjustment => adjustment.multiplier)) : 1);
   const adjustedAmount = roundAmount(component.amount * multiplier, profile.rounding);
   const adjusted = adjustedComponent(component, adjustedAmount, [{
     kind: "multiplier",

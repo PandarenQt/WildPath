@@ -210,8 +210,14 @@ test("another choice of the same custom effect replaces it: Elemental Affinity's
   };
   const actor = actorWithEffects();
   assert.equal((await commitConditionEffectMutationPlan(actor, plan("fire"))).ok, true);
-  assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("cold"), existingEffectId: null})).ok, true);
+  const coldPlan = {...plan("cold"), existingEffectId: null};
+  const replaced = await commitConditionEffectMutationPlan(actor, coldPlan);
+  assert.equal(replaced.ok, true);
   assert.deepEqual(actor.effects.map(effect => effect.system.ruleElements[0].data.damageTypes), [["cold"]], "Cold replaces Fire");
+  assert.equal(await rollbackConditionEffectMutationPlan(actor, coldPlan, null, replaced), true);
+  assert.deepEqual(actor.effects.map(effect => effect.system.ruleElements[0].data.damageTypes), [["fire"]],
+    "rolled back: Fire again, and no Cold beside it");
+  assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("cold"), existingEffectId: null})).ok, true);
   assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("cold"), existingEffectId: null})).ok, true);
   assert.equal(actor.effects.length, 1, "the same choice again refreshes it");
 });

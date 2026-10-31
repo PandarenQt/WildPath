@@ -176,20 +176,24 @@ test("Assist's Advantage is used up by the ally's next check with that skill, no
   assert.deepEqual(removed, ["assisted"]);
 });
 
-test("an effect a reaction applied during an attack is not spent by that attack (Stunning Strike's success)", async () => {
+test("an effect the attacker's reaction applied during an attack is not spent by it; the target's own answer is (Parry)", async () => {
   const {endEffectsWhenAttacked} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
   const deleted = [];
-  const effect = (id, resolutionIds=[]) => ({id, flags: {wildpath: {conditionEffect: {definition: {endsWhen: "attacked"}, metadata: {resolutionIds}}}}});
-  const enemy = {effects: [effect("older"), effect("stunned-success", ["resolution:2", "resolution:attack"])],
+  const effect = (id, sourceRef, resolutionIds=[]) => ({id, flags: {wildpath: {conditionEffect: {sourceRef,
+    definition: {endsWhen: "attacked"}, metadata: {resolutionIds}}}}});
+  const enemy = {uuid: "Actor.enemy", effects: [effect("older", "uuid:Actor.monk"),
+    effect("stunned-success", "uuid:Actor.monk", ["resolution:2", "resolution:attack"]),
+    effect("parry", "uuid:Actor.enemy", ["resolution:3", "resolution:attack"])],
     deleteEmbeddedDocuments: async (type, ids) => {
       deleted.push(...ids);
       enemy.effects = enemy.effects.filter(entry => !ids.includes(entry.id));
     }};
+  const monk = {uuid: "Actor.monk", effects: []};
   const scene = {tokens: {get: id => (id === "enemy" ? {actor: enemy} : null)}};
   const state = {id: "resolution:attack", source: {tokenRef: "Scene.s.Token.monk"},
     results: {attackResolution: {results: [{ok: true, hit: true, target: {tokenId: "enemy"}}]}}};
-  await endEffectsWhenAttacked({state}, {fromUuid: async () => ({parent: scene})});
-  assert.deepEqual(deleted, ["older"], "the one applied within this attack (its reaction's, whose ancestry names it) stays");
-  await endEffectsWhenAttacked({state: {...state, id: "resolution:next"}}, {fromUuid: async () => ({parent: scene})});
-  assert.deepEqual(deleted, ["older", "stunned-success"], "the next attack spends it");
+  await endEffectsWhenAttacked({state}, {fromUuid: async () => ({parent: scene, actor: monk})});
+  assert.deepEqual(deleted, ["older", "parry"], "the monk's own new effect stays; the target's Parry against this attack ends");
+  await endEffectsWhenAttacked({state: {...state, id: "resolution:next"}}, {fromUuid: async () => ({parent: scene, actor: monk})});
+  assert.deepEqual(deleted, ["older", "parry", "stunned-success"], "the next attack spends it");
 });

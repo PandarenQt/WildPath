@@ -54,6 +54,11 @@ export async function rollbackConditionEffectMutationPlan(actor, plan, _mutation
   const persistence = persistencePort ?? createFoundryV14EffectPersistenceAdapter();
   try {
     if ( commitResult.before ) {
+      // A replacement (another choice of a custom effect: a different id) is removed before the original comes back.
+      if ( commitResult.after?.id && (commitResult.after.id !== commitResult.before.id) ) {
+        const replacement = findConditionEffect(actor, commitResult.after);
+        if ( replacement ) await deleteConditionEffect(replacement, persistence);
+      }
       return await restoreConditionEffectSnapshot(actor, commitResult.before, persistence);
     }
 
@@ -86,10 +91,12 @@ async function applyBinaryConditionDelta(actor, plan, existingEffect, levels, pe
   // Another choice of the same custom effect (Elemental Affinity's Cold after its Fire, Hex's ability) replaces it; the
   // same one again refreshes it. Replaced rather than updated: a player may not write an effect's rules.
   const stored = existingEffect?.flags?.wildpath?.conditionEffect?.definition;
+  // The new one first: if it can't be made, the old one stays.
   if ( existingEffect && plan.definition?.custom && stored && ((stored.name !== plan.definition.name)
     || (JSON.stringify(stored.ruleElements ?? []) !== JSON.stringify(plan.definition.ruleElements ?? []))) ) {
+    const replacement = await createConditionEffect(actor, plan, null, persistence);
     await deleteConditionEffect(existingEffect, persistence);
-    return createConditionEffect(actor, plan, null, persistence);
+    return replacement;
   }
   const effect = existingEffect ?? await createConditionEffect(actor, plan, null, persistence);
   if ( existingEffect && effect && shouldPersistLifecycleMetadata(plan) ) {
