@@ -159,6 +159,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     ...(raw.requires ? {requires: clonePlain(raw.requires)} : {}),
     // A reaction's changes to the Action it answers (reactions.md): {forgoDice, damage, rollMode, tags, push}.
     ...(raw.rider ? {rider: normalizePlainComponent(raw.rider)} : {}),
+    // Its own damage, moved to a creature within `range` of its target (Superior Hunter's Prey): {range}.
+    ...(raw.retarget ? {retarget: normalizePlainComponent(raw.retarget)} : {}),
     // Its caster concentrates on it for `duration` (a native duration), though nothing it sustains is automated (Fog
     // Cloud, Detect Thoughts): a marker on the caster, which a new concentration, damage or Incapacitated ends.
     ...(raw.concentration ? {concentration: normalizePlainComponent(raw.concentration)} : {}),

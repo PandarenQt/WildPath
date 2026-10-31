@@ -33,7 +33,8 @@
         "title": "Subclass Features",
         "type": "grant",
         "items": [
-          "Compendium.wildpath.srd-items.Item.phbrgrSuperiorHu"
+          "Compendium.wildpath.srd-items.Item.phbrgrSuperiorHu",
+          "Compendium.wildpath.srd-items.Item.fixdwp15y3l47000"
         ],
         "optional": false
       },

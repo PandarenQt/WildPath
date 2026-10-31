@@ -2733,6 +2733,77 @@ test("damage reactions for another creature: Interception reduces an ally's dama
     "the attack becomes the knight's and misses: nobody takes the 6");
 });
 
+/**
+ * A ranger (the attacker) with the converted Superior Hunter's Prey, its target carrying a Hunter's Mark from `markedBy`
+ * (the ranger by default), and other creatures at `others` ({id: rows below the target}: 5 ft a row); `preyItems`, the
+ * one named prey's reactions.
+ */
+async function huntersPreyFixture(t, {markedBy=null, others={prey: 3, far: 12}, natural=null, preyItems=null}={}) {
+  const fs = await import("node:fs");
+  const file = fs.readdirSync("packs/_source/srd-items").find(name => name.startsWith("superior-hunter-s-prey-") && !name.includes("phbrg"));
+  const item = JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}`, "utf8"));
+  const fixture = counterattackFixture(t, {reactor: "source", items: [{id: item._id, type: "action", name: item.name, system: item.system}],
+    natural, queue: [{natural: natural ?? 18, total: (natural ?? 18) + 4}, {total: 4}],
+    // The ranger's weapon damage bonus (a Dueling): its attack's, not the mark's die.
+    extra: [{id: "dueling", expression: {type: "constant", value: 2}}]});
+  const mark = {id: "mark", name: "Hunter's Mark", statuses: new Set(["hunters-mark"]),
+    flags: {wildpath: {conditionEffect: {sourceRef: markedBy ?? fixture.sourceActor.uuid}}}};
+  fixture.targetActor.effects = [mark];
+  const creatures = Object.fromEntries(Object.entries(others).map(([id, rows]) => {
+    const actor = withFoundryActorSystem(fakeActor(id, {system: {...targetActorSystem(), resources: {health: {value: 20, max: 20},
+      reaction: {value: 1, max: 1}}}}));
+    if ( (id === "prey") && preyItems ) actor.items = preyItems;
+    const token = fakeTokenDocument({id: `${id}-token`, actor, scene: fixture.scene, offset: {i: 1, j: rows}});
+    Object.assign(actor, {uuid: `${token.uuid}.Actor.${id}`, isToken: true, token, tokens: [token]});
+    fixture.scene.tokens.push(token);
+    return [id, actor];
+  }));
+  const declared = await fixture.player.declareActionIntent(fixture.intent);
+  return {...fixture, creatures, record: fixture.gm.getRecord(declared.resolutionId)};
+}
+
+const preyRolls = requests => requests.filter(request => request.definition?.dice?.[0]?.id === "damage-1:die:0")
+  .map(request => `${request.definition.dice[0].number}d${request.definition.dice[0].faces}`);
+
+for ( const critical of [false, true] ) test(`Superior Hunter's Prey: a hit on its own Hunter's Mark sends the mark's die to another creature within 30 ft, once a turn${critical ? "; a Critical Hit doesn't double it" : ""}`, async t => {
+  const previous = globalThis.game;
+  globalThis.game = {combat: {id: "c", round: 1, turn: 0, started: true}};
+  t.after(() => { globalThis.game = previous; });
+  const {record, offers, targetActor, sourceActor, creatures, playerRollRequests} = await huntersPreyFixture(t, {natural: critical ? 20 : null});
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(offers.length, 1, "offered to the ranger's controller");
+  assert.deepEqual(preyRolls(playerRollRequests), ["1d6"], "the mark's die, not doubled: the second creature isn't the attack's target");
+  assert.equal((record.state.results.reactions ?? []).some(entry => entry.childFailed), false);
+  assert.deepEqual([targetActor.system.resources.health.value, creatures.prey.system.resources.health.value, creatures.far.system.resources.health.value],
+    [22, 16, 20], "the target takes only the attack's 6 + 2; the creature 15 ft away the 4 (no Dueling on it); the one 60 ft away nothing");
+  assert.equal(sourceActor.flags?.wildpath?.onceUsed?.["superior-hunters-prey"], "c:1:0", "its use is recorded for this turn");
+});
+
+test("Superior Hunter's Prey: the creature its die moves to is the one asked about the damage coming (a Stone's Endurance)", async t => {
+  const guard = {id: "guard", type: "action", name: "Guard", system: {active: true, definition: {schemaVersion: 1, id: "action:guard",
+    label: "Guard", costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]}, range: {type: "self"}, targeting: {type: "self"},
+    rider: {reduceDamage: {dice: {type: "constant", value: 3}}}},
+  ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction", event: "damage.applied",
+    match: {phase: "before", targetTokenId: "{self}"}}}]}};
+  const {record, offers, creatures} = await huntersPreyFixture(t, {preyItems: [guard]});
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(offers.length, 2, "the ranger's, then the second creature's own");
+  assert.deepEqual([creatures.prey.system.resources.health.value, creatures.prey.system.resources.reaction.value], [19, 0], "4 less 3");
+});
+
+test("Superior Hunter's Prey: not offered for another creature's mark; with nobody else within 30 ft it rolls nothing and the hit still lands", async t => {
+  const {record, offers} = await huntersPreyFixture(t, {markedBy: "Actor.another-ranger"});
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.equal(offers.length, 0, "the mark isn't its own");
+
+  const alone = await huntersPreyFixture(t, {others: {far: 12}});
+  assert.equal(alone.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(alone.record.state.errors).slice(0, 1500));
+  assert.equal(alone.offers.length, 1);
+  assert.deepEqual(preyRolls(alone.playerRollRequests), [], "no die rolled for nobody");
+  assert.equal((alone.record.state.results.reactions ?? []).some(entry => entry.childFailed), true, "it fails");
+  assert.deepEqual([alone.targetActor.system.resources.health.value, alone.creatures.far.system.resources.health.value], [22, 20]);
+});
+
 test("Protective Bond: a reaction an effect gives (Bonded), offered while its giver has the feature; it takes the damage", async t => {
   const {action} = {action: {schemaVersion: 1, id: "action:protective-bond", label: "Protective Bond",
     costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]}, range: {type: "self"}, targeting: {type: "self"},

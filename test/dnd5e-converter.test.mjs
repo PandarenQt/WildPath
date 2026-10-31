@@ -2709,6 +2709,30 @@ test("Slasher: two Actions of one feat, Hamstring on a Slashing hit once a turn,
   assert.notEqual(hamstring.system.definition.id, critical.system.definition.id);
 });
 
+test("Superior Hunter's Prey: its own Action, once a turn after damage to its own Hunter's Mark, the mark's die moved within 30 ft", () => {
+  const prey = {_id: "phbrgrSuperiorHu", name: "Superior Hunter's Prey", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "superior-hunters-prey", type: {value: "class"}, description: {value: "<p>Rule text.</p>"},
+      // dnd5e's: no activation, the mark's die by formula.
+      activities: {a: activity("damage", {activation: {type: "", override: false},
+        damage: {parts: [{custom: {enabled: true, formula: "@scale.ranger.mark"}, number: null, denomination: 0, types: ["force"]}]}})}}};
+  const [feature, action] = convertItem(prey).items;
+  assert.deepEqual([feature.type, action.type, action.name, action.system.definition.costs.allOf], ["feature", "action", "Superior Hunter's Prey", []]);
+  assert.deepEqual(action.system.ruleElements[0].data, {kind: "reaction", event: "damage.applied", match: {phase: "interrupt", sourceTokenId: "{self}"},
+    once: "turn", onceKey: "superior-hunters-prey", triggerPredicate: {equals: {path: "targetFrom.{self}.hunters-mark", value: true}}});
+  const mark = convertItem({_id: "testHuntersMark1", name: "Hunter's Mark", type: "spell", img: "systems/dnd5e/icons/spell.webp",
+    effects: [{_id: "mark", name: "Hunter's Mark", transfer: false, statuses: ["marked"], system: {changes: []}, duration: {value: 3600, units: "seconds"}}],
+    system: {source: SRD, identifier: "hunters-mark", level: 1, preparation: {mode: "prepared"}, properties: ["vocal", "concentration"],
+      activation: {type: "bonus"}, range: {units: "ft", value: 90}, target: {affects: {type: "creature", count: 1}, template: {}},
+      activities: {a: activity("utility", {name: "Mark Creature", target: {affects: {type: "creature", count: 1}, template: {}},
+        effects: [{_id: "mark"}], consumption: {spellSlot: true}})}}}).items[0];
+  const [damage] = action.system.definition.damage;
+  assert.deepEqual([damage.damageType, damage.expression], ["force", mark.system.definition.effects[0].ruleElements[0].data.expression],
+    "the mark's own die, a d10 from ranger level 20");
+  assert.deepEqual(action.system.definition.retarget, {range: 30});
+  assert.equal(validateActionDefinition(action.system.definition).ok, true);
+  assert.equal(JSON.stringify(feature.flags.wildpath.conversion.notes).includes("passive or triggered"), false);
+});
+
 test("review fixes: Sentinel's attacks are Opportunity Attacks on any Disengage; a Flurry strike needs no unarmored monk; a Dagger is thrown", async () => {
   const fs = await import("node:fs");
   const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")

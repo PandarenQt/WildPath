@@ -195,6 +195,9 @@ export function actionDefinitionField() {
     concentration: new ObjectField({nullable: true, initial: null}),
     // A reaction's changes to the Action it answers (Cunning Strike, Brutal Strike): {forgoDice, damage, rollMode, tags, push}.
     rider: new ObjectField({nullable: true, initial: null}),
+    // Its own damage goes to a creature its controller picks within `range` feet of its target instead: {range}
+    // (Superior Hunter's Prey).
+    retarget: new ObjectField({nullable: true, initial: null}),
     // What its creature must be for it to be used, a predicate (Steady Aim: it hasn't moved this turn).
     requires: new ObjectField({nullable: true, initial: null}),
     // Pools of the acting creature the Action refills when used (Multiattack's attacks): [{resourceId, amount}].

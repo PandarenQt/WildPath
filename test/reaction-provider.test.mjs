@@ -291,3 +291,19 @@ test("Grappler's Punch and Grab: its own Unarmed Strike's hit offers the common 
   assert.deepEqual(trigger.reaction.action.costs.allOf, [], "it costs no Action: it comes with the hit");
   assert.match(JSON.stringify(trigger), /"tagsAll":\["unarmed"\]/u, "only on an Unarmed Strike's hit");
 });
+
+test("each reactor's own effects on the first creature an event names (targetFrom): Superior Hunter's Prey's own Hunter's Mark", () => {
+  const prey = {id: "prey", type: "action", system: {active: true, definition: {schemaVersion: 1, id: "action:prey", label: "Prey",
+    costs: {allOf: []}, range: {type: "special"}, targeting: {type: "single", required: true, count: 1}},
+  ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction", event: "damage.applied",
+    match: {phase: "interrupt", sourceTokenId: "{self}"}}}]}};
+  const ranger = token("ranger", 1, [prey]);
+  const caster = token("caster", 1);
+  const marked = token("marked", -1);
+  const mark = {name: "Hunter's Mark", statuses: new Set(["hunters-mark"]), flags: {wildpath: {conditionEffect: {sourceRef: ranger.actor.uuid}}}};
+  marked.actor.effects = [mark];
+  const services = createFoundryReactionProvider({resolve: () => null})({scene: {grid: {distance: 5}, tokens: [ranger, caster, marked]}, token: ranger});
+  const {targetFrom} = services.reactions.context({event: {targets: [{tokenId: "marked"}]}});
+  assert.deepEqual([targetFrom.ranger, targetFrom.caster], [{"hunters-mark": true}, {}], "only its caster's mark is its own");
+  assert.deepEqual(services.reactions.context({event: {targets: []}}).targetFrom.ranger, {}, "no creature named: nothing from anyone");
+});

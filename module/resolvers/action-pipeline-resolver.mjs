@@ -515,14 +515,15 @@ function createBeforeDamageReactionStage() {
 function damageComingReactionEvent(state) {
   const input = preparedResolverInput(state);
   if ( !shouldResolveDamage(input.damage) ) return null;
-  const damageResolution = resolveActionDamage({
+  // Damage already moved to another creature (Superior Hunter's Prey's `retarget`) is coming to that creature.
+  const damageResolution = redirectedDamage(resolveActionDamage({
     damage: input.damage,
     targetResolution: state.results?.targetResolution ?? null,
     attackResolution: state.results?.attackResolution ?? null,
     saveResolution: state.results?.saveResolution ?? null,
     actionContext: {action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
       source: state.actionContext?.source ?? input.source ?? state.source ?? null, targets: input.targets ?? []}
-  });
+  }), input.durability?.redirectsByTarget, state.results?.attackResolution ?? null);
   const dealt = (damageResolution?.results ?? []).filter(result => result.ok && ((Number(result.total) || 0) > 0));
   const damaged = dealt.map(result => result.target).filter(Boolean);
   if ( !damaged.length ) return null;
@@ -2009,7 +2010,11 @@ function createHealingRollStage() {
 function createComponentRollStage({id, kind, rollType, request}) {
   return createResolutionPipelineStage({
     id,
-    run(state) {
+    run(state, services={}) {
+      // Its creature picks who takes it before anything is rolled, so no die is rolled for nobody.
+      const retarget = (kind === "damage") ? retargeted(state, services) : null;
+      if ( retarget?.stop ) return retarget.stop;
+      if ( retarget?.state ) state = retarget.state;
       const input = preparedResolverInput(state);
       const resolves = kind === "damage" ? shouldResolveDamage(input.damage) : shouldResolveHealing(input.healing);
       if ( !resolves || ((kind === "damage") && attackResolvedAsOnlyMisses(state)) ) {
@@ -3654,21 +3659,22 @@ function redirectedDamage(damageResolution, redirectsByTarget, attackResolution=
 
 /**
  * Who takes the damage instead (`rider.redirectDamage`): its own creature (`to: "self"`: Protective Bond), or a creature
- * within `range` of it other than the attacker and the creature it protects (`chosen`: Cloud Rune), its controller's
- * pick when there are several. The runtime finds them (`services.redirectCandidates`). `{candidate}`, `{wait}`, or null.
+ * within `range` of it (of the Token `around`, when given) other than the attacker and the creature it protects
+ * (`chosen`: Cloud Rune), its controller's pick when there are several. The runtime finds them
+ * (`services.redirectCandidates`). `{candidate}`, `{wait}`, or null.
  */
-function redirectChoice(state, services, spec) {
+function redirectChoice(state, services, spec, stageId=ACTION_PIPELINE_STAGE_IDS.PAYMENT) {
   if ( !spec || (typeof services?.redirectCandidates !== "function") ) return null;
   const event = state.sourceEvent ?? {};
   const reactor = state.source?.tokenId ?? null;
   const candidates = normalizeArray(spec.to === "self" ? services.redirectCandidates({tokenIds: [reactor]})
-    : services.redirectCandidates({around: reactor, range: Number(spec.range) || 5,
+    : services.redirectCandidates({around: spec.around ?? reactor, range: Number(spec.range) || 5,
       exclude: [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId].filter(Boolean)}));
   if ( candidates.length < 2 ) return candidates.length ? {candidate: candidates[0]} : null;
   const requestId = requestIdFor(state, "redirect");
   const answer = getResolutionResponse(state, {requestId, type: RESOLUTION_REQUEST_TYPES.CHOICE});
   if ( !answer ) return {wait: waitResolutionStage({state, request: createResolutionRequest({id: requestId, resolutionId: state.id,
-    stageId: ACTION_PIPELINE_STAGE_IDS.PAYMENT, type: RESOLUTION_REQUEST_TYPES.CHOICE, expectedResponseType: "choice",
+    stageId, type: RESOLUTION_REQUEST_TYPES.CHOICE, expectedResponseType: "choice",
     chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, authority: {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
     payload: {id: "redirect", type: "select-one", required: true, label: "WILDPATH.REDIRECT.Choose",
       options: candidates.map(candidate => ({value: candidate.target.tokenId, label: candidate.target.name ?? candidate.target.tokenId})),
@@ -3676,6 +3682,24 @@ function redirectChoice(state, services, spec) {
     metadata: {title: "WILDPATH.REDIRECT.Title"}}), reason: "Its creature chooses who takes the damage instead."})};
   const value = String(answer.response?.value?.choices?.redirect ?? answer.response?.value ?? "");
   return {candidate: candidates.find(candidate => candidate.target.tokenId === value) ?? candidates[0]};
+}
+
+/**
+ * An Action's own damage moved off its target onto a creature within `retarget.range` feet of it, other than its own
+ * creature and the creature whose event it answers (Superior Hunter's Prey), its controller's pick: `{state}` with the
+ * redirect in its durability options, `{stop}` (a choice to wait for, or the Action failing when nobody is in range), or
+ * null when it has no `retarget` or already chose.
+ */
+function retargeted(state, services) {
+  const spec = state.actionDefinition?.retarget;
+  const from = normalizeArray(state.input?.targets)[0]?.tokenId ?? null;
+  if ( !spec || !from || state.input?.durability?.redirectsByTarget?.[from] ) return null;
+  const choice = redirectChoice(state, services, {range: spec.range, around: from}, ACTION_PIPELINE_STAGE_IDS.DAMAGE_ROLL);
+  if ( choice?.wait ) return {stop: choice.wait};
+  if ( !choice?.candidate ) return {stop: failActionPlanningStage({state, stage: ACTION_RESOLUTION_STAGES.TARGETING,
+    code: ACTION_RESOLVER_CODES.TARGETING_FAILED, reason: "No other creature within range."})};
+  return {state: updateResolutionState(state, {input: {...state.input,
+    durability: withRedirect(state.input?.durability, from, choice.candidate)}})};
 }
 
 /** Durability options with one more damage reduction for the creature at `key` (`reductionsByTarget`, by Token). */

@@ -23,9 +23,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"damage\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

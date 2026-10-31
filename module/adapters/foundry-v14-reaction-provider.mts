@@ -9,6 +9,7 @@ import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-a
 import {attackSight} from "./foundry-v14-senses.mjs";
 import {coverBetween, foundrySightCollision} from "./foundry-v14-cover.mjs";
 import {piercesIllusion} from "../helpers/senses.mjs";
+import {conditionsFrom} from "../helpers/effect-sources.mjs";
 
 type Data = Record<string, unknown>;
 
@@ -122,11 +123,19 @@ export function createFoundryReactionProvider({resolve = defaultResolve} = {}) {
     // Each reactor's relation to the event's source (`toSource`), and to the first creature it damages or targets
     // (`toTarget`, that creature itself as `self`: Interception, Cloud Rune); and that creature's effects by name
     // (`targetEffects.<slug>`: Protective Bond's other bonded creature) and creature type (`targetType`: a Smite's
-    // Undead or Fiend).
+    // Undead or Fiend); and the statuses it has from each reactor (`targetFrom.{self}.<status>`: Superior Hunter's Prey's
+    // own Hunter's Mark), worked out only when a predicate reads them.
     return triggers.length ? {reactions: {triggers, context: ({event}: {event?: Data}) => {
       const targetId = ((event?.targets as Data[] | undefined)?.[0]?.tokenId ?? null) as string | null;
       const target = targetId ? [...scene.tokens!].find(token => token.id === targetId) ?? null : null;
+      const targetFrom: Record<string, Data> = {};
+      for ( const token of scene.tokens! ) {
+        let memo: Data | null = null;
+        if ( token.actor ) Object.defineProperty(targetFrom, token.id, {enumerable: true, get: () => (memo ??= target?.actor
+          ? (conditionsFrom as unknown as (holder: unknown, source: unknown) => Data)(target.actor, token.actor) : {})});
+      }
       return {toSource: relationsToSource(scene, event), toTarget: relationsToSource(scene, {source: {tokenId: targetId}}, {includeSource: true}),
+        targetFrom,
         targetEffects: Object.fromEntries([...(target?.actor?.effects ?? [])].filter(effect => !effect.disabled && !effect.isSuppressed)
           .map(effect => [slug(effect.name), true])),
         targetType: (target?.actor?.system as {details?: {type?: string}} | undefined)?.details?.type || null};

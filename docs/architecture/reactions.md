@@ -498,6 +498,19 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     on the Scene but the attacker is in the concentration input; only one that takes damage is checked). Protective
     Bond's damage is taken, not rolled against. shortcut: the attack's other effects stay with the first target.
 
+  - **Superior Hunter's Prey** (SRD, 2026-10-31): once a turn, after its ranger's own damage lands on a creature carrying
+    its own Hunter's Mark (`damage.applied` interrupt, `sourceTokenId: "{self}"`), the mark's die (1d6 Force, 1d10 from
+    ranger level 20) goes to another creature within 30 ft of that one. Its predicate reads `targetFrom.{self}.<status>`:
+    the statuses the first damaged creature has from each reactor (`conditionsFrom`), not from anyone as `targetEffects`
+    says. Its Action's `retarget: {range}` moves its own damage off its target: at the start of its damage roll, before
+    anything is rolled, its controller picks a creature within `range` of the target other than it and the attacker
+    (`redirectChoice` from the target, `redirectCandidates`), and the damage step moves the result there
+    (`redirectedDamage`). With nobody in range the reaction fails and rolls nothing. Its before-damage window names that
+    creature, so its own "when you take damage" reactions are offered. A Critical Hit on the target doesn't double it.
+    shortcut: "that you can see" isn't checked; only the first creature an Action damages is checked for the mark; once a
+    turn is checked per Action; and a reaction child carries no concentration input, so a concentrating creature it
+    damages makes no check.
+
   - **Protective Bond** (Tasha's): Emboldening Bond's "Bonded" effect carries a Trigger with its own Action
     (`data.action`). The provider offers it as an Item of its creature (`effectReactionItems`), only while the cleric
     who gave the effect has Protective Bond (`giverItem`).

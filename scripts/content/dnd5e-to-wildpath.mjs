@@ -1958,6 +1958,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         costs: {allOf: featureAction.costs ?? (featureAction.free ? [] : [{capability: pool.id, amount: 1}])},
         range: structuredClone(featureAction.range ?? {type: "self"}), targeting: structuredClone(featureAction.targeting ?? {type: "self"}),
         effects: structuredClone(featureAction.effects ?? []),
+        ...(featureAction.damage ? {damage: structuredClone(featureAction.damage)} : {}),
+        ...(featureAction.retarget ? {retarget: structuredClone(featureAction.retarget)} : {}),
         ...(featureAction.configuration ? {configuration: structuredClone(featureAction.configuration)} : {}),
         ...(featureAction.teleport ? {teleport: structuredClone(featureAction.teleport)} : {}),
         ...(featureAction.requires ? {requires: structuredClone(featureAction.requires)} : {})},
@@ -2037,6 +2039,11 @@ const ENGINE_FEATURES = new Set(["ability-score-improvement", "divine-order", "p
 const NARRATIVE_FEATURES = new Set(["ephemeral", "shielded-mind", "inscrutable", "tunneler", "magic-rope", "soul-bag",
   "undead-restoration", "soul-tome", "soul-gem", "forbiddance", "crossbow-expert", "mounted-combatant"]);
 
+// Hunter's Mark's die, dnd5e's @scale.ranger.mark: a d10 from ranger level 20 (Foe Slayer), read from its caster; a d6 for
+// anyone else (a table's default when its key can't be read). Superior Hunter's Prey deals the same.
+const HUNTERS_MARK_DIE = {type: "table", key: {type: "class-level", class: "ranger"},
+  rows: {1: {type: "dice", number: 1, faces: 6}, 20: {type: "dice", number: 1, faces: 10}}, default: {type: "dice", number: 1, faces: 6}};
+
 /**
  * Features dnd5e gives no usable activity that are used on their creature's turn, as an Action of their own (2024 Action
  * Surge: "you can take one additional action", no Action itself: one more Action this turn).
@@ -2062,6 +2069,18 @@ const FEATURE_ACTIONS = Object.freeze({
     trigger: {kind: "reaction", event: "attack.hit", match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["opportunity"]}},
     effects: [{id: "effect-1", type: "effect", name: "Halted", img: "icons/svg/net.svg", duration: {value: 0, units: "turns", expiry: "turnEnd"},
       ruleElements: [{schemaVersion: 1, id: "halted", type: "ResourceCap", data: {resources: ["movement"], maximum: 0}}]}]},
+  // 2024 Hunter's Superior Hunter's Prey: once a turn, after its damage lands on a creature carrying its own Hunter's Mark
+  // (the after-damage window: nothing is offered when no damage was dealt), the mark's die goes to another creature within
+  // 30 feet of that one, its controller's pick (`retarget`). Free; asked, so it can be declined when only an ally is near.
+  // shortcut: "that you can see" isn't checked for that creature, only the first creature an Action damages is checked for
+  // the mark, and once a turn is checked per Action (an own reaction damaging the marked creature inside the same Action
+  // can offer it twice); upgrade by filtering redirectCandidates by attackSight and reading every damaged target.
+  // shortcut: reaction children carry no concentration input, so a concentrating creature it damages makes no check;
+  // upgrade by giving reactionChildState the runtime's concentration states.
+  "superior-hunters-prey": {free: true, range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+    damage: [{id: "damage-1", expression: HUNTERS_MARK_DIE, damageType: "force"}], retarget: {range: 30},
+    trigger: {kind: "reaction", event: "damage.applied", match: {phase: "interrupt", sourceTokenId: "{self}"},
+      once: "turn", onceKey: "superior-hunters-prey", triggerPredicate: {equals: {path: "targetFrom.{self}.hunters-mark", value: true}}}},
   // 2024 Boon of Dimensional Travel (Blink Steps): "Immediately after you take the Attack action or the Magic action, you can
   // teleport up to 30 feet": once a turn, after an attack roll or a spell cast with the Action this turn. shortcut:
   // "immediately" is not enforced (later in the same turn works too).
@@ -3114,12 +3133,9 @@ const EFFECTS_BY_HAND = Object.freeze({
   "vicious-mockery": {endsWhen: "attacks", duration: {value: 1, units: "rounds", expiry: "turnEnd"},
     ruleElements: [{schemaVersion: 1, id: "vicious-mockery", type: "RollMode", data: {domains: ["attack"], mode: "disadvantage"}}]},
   // "You deal an extra 1d6 Force damage to the target whenever you hit it with an attack roll." The mark is its own
-  // effect (slug), so only its caster's attacks see it.
-  // Its die is dnd5e's @scale.ranger.mark: a d10 from ranger level 20 (Foe Slayer), read from the attacker; a d6 for anyone
-  // else (a table's default when its key can't be read).
+  // effect (slug), so only its caster's attacks see it. Its die: HUNTERS_MARK_DIE.
   "hunters-mark": {slug: "hunters-mark", bonusDamage: "Bonus Mark Damage", ruleElements: [markDamage("hunters-mark", "force", 6,
-    {type: "table", key: {type: "class-level", class: "ranger"}, rows: {1: {type: "dice", number: 1, faces: 6}, 20: {type: "dice", number: 1, faces: 10}},
-      default: {type: "dice", number: 1, faces: 6}})]},
+    structuredClone(HUNTERS_MARK_DIE))]},
   // A Stars druid's form is the `starry-form` status (Full of Stars reads it).
   "starry-form": {slug: "starry-form"},
   // Rage's effect is the `raging` status (Frenzy reads it).
