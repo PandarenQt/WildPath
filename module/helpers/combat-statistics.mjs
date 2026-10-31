@@ -262,15 +262,21 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
   const dieMinimums = (components.length && (typeof actor?.getDamageDieMinimums === "function"))
     ? actor.getDamageDieMinimums(damageDomains(attackDefinition, tags), {item, tags: extraTags, context})
       .map(entry => ({minimum: entry.minimum, damageTypes: entry.damageTypes ?? []})) : [];
+  // Its weapon's damage dice rolled twice, the higher kept, once a turn (2024 Savage Attacker: a feature flagged
+  // `damageTwice`), while unused this turn.
+  const twice = own && (definition?.tags ?? []).includes("weapon") && [...(actor?.items ?? [])]
+    .some(entry => (entry?.system?.active !== false) && entry?.flags?.wildpath?.damageTwice)
+    && !(turn && (actor.flags?.wildpath?.onceUsed?.["savage-attacker"] === turn));
+  const bestOfTwo = twice ? (turn ? {once: {key: "savage-attacker", turn}} : {}) : null;
   // Healing bonuses (`healing.spell`, `healing`), added once to its first component; their values see `context`
   // (`castLevel`: Disciple of Life).
   const healing = (definition?.healing ?? []).length ? (resolveActorStatisticModifier(actor,
     [tags.includes("spell") ? "healing.spell" : null, "healing"].filter(Boolean), {item, tags, context}).value ?? 0) : 0;
   return {
     defenseKey: attackDefinition ? (attackDefinition.defenseKey ?? "ac") : null,
-    damage: (components.length && (weapon || bonus || extraComponents.length || replaced || dieMinimums.length))
+    damage: (components.length && (weapon || bonus || extraComponents.length || replaced || dieMinimums.length || bestOfTwo))
       ? {modifierTotal, ...(extraComponents.length ? {extraComponents} : {}), ...(replaced ? {baseExpression: replaced} : {}),
-        ...(dieMinimums.length ? {dieMinimums} : {})} : null,
+        ...(dieMinimums.length ? {dieMinimums} : {}), ...(bestOfTwo ? {bestOfTwo} : {})} : null,
     ...(healing ? {healing: {modifierTotal: healing}} : {}),
     attack: statistic ? {
       statistic,

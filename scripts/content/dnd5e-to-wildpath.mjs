@@ -1879,6 +1879,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(metamagic ? {metamagic} : {}),
         ...(testOffer ? {testOffer} : {}), ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {}),
         ...(IGNORES_RESISTANCE[identifierOf(document)] ? {ignoresResistance: [...IGNORES_RESISTANCE[identifierOf(document)]]} : {}),
+        ...((identifierOf(document) === "savage-attacker") ? {damageTwice: true} : {}),
         ...(CHOICES_FOR[identifierOf(document)] ? {choiceFor: structuredClone(CHOICES_FOR[identifierOf(document)])} : {}),
         ...(FREE_CASTS[identifierOf(document)] ? {freeCast: {spells: [...FREE_CASTS[identifierOf(document)].spells],
           ...(FREE_CASTS[identifierOf(document)].granted ? {granted: true} : {}), resourceId: freeCastResource(identifierOf(document))}} : {}),
@@ -1986,9 +1987,16 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
  */
 const IGNORES_RESISTANCE = Object.freeze({"boon-of-irresistible-offense": ["bludgeoning", "piercing", "slashing"]});
 
+/*
+ * 2024 Savage Attacker (`flags.wildpath.damageTwice`): once a turn, its weapon's damage dice are rolled twice and the
+ * higher total is kept (combat-statistics `bestOfTwo`; Foundry's dice pool `{2d6,2d6}kh`). Its user would always
+ * choose the higher, so nothing is asked.
+ */
+
 /** Words that name a rule in a feature's text (silent features, above). */
-// Also what refills, rerolls or changes dice (Perfect Focus, Great Weapon Fighting were missed by the first list).
-const SILENT_MECHANICS = /\b(?:Advantage|Disadvantage|Resistance|Immunity|immune|Speed|bonus to|can't|Hit Point maximum|Armor Class|regain|reroll|roll Initiative|damage die|extra damage|Temporary Hit Points|saving throw)\b/u;
+// Also what refills, rerolls or changes dice (Perfect Focus, Great Weapon Fighting were missed by the first list), and
+// "damage dice" (Savage Attacker's rolling them twice).
+const SILENT_MECHANICS = /\b(?:Advantage|Disadvantage|Resistance|Immunity|immune|Speed|bonus to|can't|Hit Point maximum|Armor Class|regain|reroll|roll Initiative|damage dice?|extra damage|Temporary Hit Points|saving throw)\b/u;
 /**
  * Features whose rule is their class's or species' advancement, which the level-up dialog runs (`improvement`, `choice`),
  * or another feature's rule reading them (Infiltration Expertise: Steady Aim's `hasFeature`): the feature Item is only

@@ -117,6 +117,15 @@ test("extra damage rules join a matching attack's damage, and a once-per-turn ru
   assert.equal(actionCombatStatistics(actor, melee, {turn: "c:1:0"}).damage, null, "used this turn");
   assert.equal(actionCombatStatistics(actor, melee, {turn: "c:1:1"}).damage.extraComponents.length, 1, "the next turn it is back");
   assert.equal(actionCombatStatistics(actor, melee, {turn: null}).damage.extraComponents[0].once, undefined, "no limit outside combat");
+  // Savage Attacker: a weapon's damage rolled twice, once a turn; not a spell's, not once used this turn.
+  const savage = Object.assign(Object.create(WildPathActor.prototype), {id: "savage", uuid: "Actor.savage", effects: [], statuses: new Set(),
+    flags: {}, system: {}, allApplicableEffects: () => [], items: [{id: "feat", type: "feature", flags: {wildpath: {damageTwice: true}},
+      system: {active: true, modifiers: [], ruleElements: []}}]});
+  const axe = {...melee, tags: ["weapon"]};
+  assert.deepEqual(actionCombatStatistics(savage, axe, {turn: "c:1:0"}).damage.bestOfTwo, {once: {key: "savage-attacker", turn: "c:1:0"}});
+  assert.equal(actionCombatStatistics(savage, melee, {turn: "c:1:0"}).damage?.bestOfTwo, undefined, "not a weapon");
+  savage.flags = {wildpath: {onceUsed: {"savage-attacker": "c:1:0"}}};
+  assert.equal(actionCombatStatistics(savage, axe, {turn: "c:1:0"}).damage?.bestOfTwo, undefined, "used this turn");
   feature.system.ruleElements = [{...sneak, id: "reduced", data: {...sneak.data, once: undefined, subtract: true}}];
   assert.equal(actionCombatStatistics(actor, melee, {turn: null}).damage.extraComponents[0].metadata.subtract, true,
     "a penalty (Reduce) is marked on its component");

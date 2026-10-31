@@ -897,6 +897,29 @@ test("extra damage is its own roll, doubled on a critical, and a hit records its
   assert.equal(missed.state.mutationPlans.some(entry => entry.type === "sourceUpdate"), false, "a miss uses nothing");
 });
 
+test("Savage Attacker: a hit's weapon dice are rolled twice, the higher kept, doubled on a critical; the hit records its use", () => {
+  const definition = {schemaVersion: 1, id: "action:axe", label: "Axe", costs: {allOf: []}, tags: ["weapon"],
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"}]};
+  const strike = id => planStagedActionResolution({id, actorSystem: actorSystem(1), action: definitionAction(definition),
+    source: {actorId: "actor-source"}, damage: {modifierTotal: 3, bestOfTwo: {once: {key: "savage-attacker", turn: "c:1:0"}}},
+    targeting: {required: true, candidates: [{id: "orc", target: target("orc", {defenses: {ac: {value: 12}}}),
+      actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]}});
+  const answer = (result, value) => {
+    const request = result.state.pendingRequests[0];
+    return {formula: rollFormulaForRequest(request.payload.rollRequest).formula,
+      next: resumeStagedActionResolution({state: result.state, response: {resolutionId: result.state.id, requestId: request.id,
+        type: RESOLUTION_REQUEST_TYPES.ROLL, value}})};
+  };
+  let step = answer(strike("resolution:savage"), {total: 15, die: 15});
+  step = answer(step.next, {total: 9});
+  assert.equal(step.formula, "{1d8,1d8}kh + 3");
+  assert.deepEqual(step.next.state.mutationPlans.find(entry => entry.type === "sourceUpdate")?.updates,
+    {"flags.wildpath.onceUsed.savage-attacker": "c:1:0"});
+  step = answer(strike("resolution:savage-crit"), {total: 20, die: 20});
+  assert.equal(answer(step.next, {total: 12}).formula, "{2d8,2d8}kh + 3", "a critical doubles the dice in both rolls");
+});
+
 test("a penalty die is rolled once even on a critical, then taken off the hit's damage, down to its minimum", () => {
   const definition = {schemaVersion: 1, id: "action:dagger", label: "Dagger", costs: {allOf: []},
     targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},

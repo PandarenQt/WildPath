@@ -667,12 +667,15 @@ function resolverRequestFromDamageDefinition(definition, runtimeDamage, evaluati
     return (component.dice && (minimum >= 2) && (minimum <= Number(component.dice.faces)))
       ? {...component, dice: {...component.dice, modifiers: [...new Set([...(component.dice.modifiers ?? []), `min${minimum}`])]}} : component;
   };
-  const components = [...own, ...extras].map((component, index) => floored(damageComponentForResolver({
+  // Its weapon's dice rolled twice, the higher kept (Savage Attacker: `bestOfTwo`).
+  const twice = component => ((runtimeDamage?.bestOfTwo && (component.provenance === "weapon-base") && component.dice)
+    ? {...component, dice: {...component.dice, metadata: {...(component.dice.metadata ?? {}), bestOfTwo: true}}} : component);
+  const components = [...own, ...extras].map((component, index) => twice(floored(damageComponentForResolver({
     component: spell ? {...component, tags: [...new Set([...(component.tags ?? []), "spell"])]} : component,
     index,
     runtimeComponents,
     evaluationContext
-  })));
+  }))));
   return mergeResolverRequest({
     components,
     saveOutcomePolicy: firstDefined(definition.damage.map(component => component.outcomePolicy?.saveOutcomePolicy ?? component.saveOutcomePolicy)),

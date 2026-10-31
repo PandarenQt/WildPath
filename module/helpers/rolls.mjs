@@ -446,7 +446,8 @@ export function createRollResultFromManualInput({request, input, provider=null, 
  * roll data) returns null, so the caller skips the check rather than reject a valid roll.
  */
 export function simpleFormulaBounds(formula) {
-  const text = String(formula ?? "").replace(/\s+/gu, "");
+  // A pool of one term twice, the higher kept (`{2d6,2d6}kh`), has that term's bounds.
+  const text = String(formula ?? "").replace(/\s+/gu, "").replace(/\{([^,{}]+),\1\}kh/gu, "$1");
   // Dice may keep their highest or lowest (advantage: 2d20kh), which keeps one die unless a count is given.
   // A die may count as at least a minimum (`1d20min10`, Reliable Talent).
   if ( !text || !/^[+-]?(\d+d\d+(min\d+)?(k[hl]\d*)?|\d+)([+-](\d+d\d+(min\d+)?(k[hl]\d*)?|\d+))*$/iu.test(text) ) return null;
@@ -940,7 +941,9 @@ function formulaForDieTerm(die, rollMode) {
   // Its modifiers (Reliable Talent's `min10`) stay on both dice.
   if ( isD20 && rollMode === ROLL_MODES.ADVANTAGE ) return `2d20${die.modifiers.join("")}kh`;
   if ( isD20 && rollMode === ROLL_MODES.DISADVANTAGE ) return `2d20${die.modifiers.join("")}kl`;
-  return `${die.number}d${die.faces}${die.modifiers.join("")}`;
+  const term = `${die.number}d${die.faces}${die.modifiers.join("")}`;
+  // Rolled twice, the higher total kept (Savage Attacker): Foundry's dice pool.
+  return die.metadata?.bestOfTwo ? `{${term},${term}}kh` : term;
 }
 
 function joinFormulaTerms(terms) {

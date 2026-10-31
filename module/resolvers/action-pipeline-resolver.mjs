@@ -3078,7 +3078,9 @@ function oncePerTurnPlans(once) {
  */
 function onceUsePlans(damage, damageResolution) {
   if ( !(damageResolution?.results ?? []).some(result => (Number(result.total) || 0) > 0) ) return [];
-  return (damage?.extraComponents ?? []).filter(component => component.once?.key && component.once?.turn).map(component => {
+  // And its weapon's dice rolled twice (Savage Attacker).
+  return [...(damage?.extraComponents ?? []), damage?.bestOfTwo ?? null].filter(component => component?.once?.key && component.once?.turn)
+    .map(component => {
     const path = `flags.wildpath.onceUsed.${component.once.key}`;
     return {type: "sourceUpdate", resolver: "ActionPipeline", updates: {[path]: component.once.turn}, rollbackUpdates: {[path]: null}};
   });

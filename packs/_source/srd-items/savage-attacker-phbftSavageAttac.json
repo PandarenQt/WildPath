@@ -25,7 +25,8 @@
       },
       "conversion": {
         "notes": []
-      }
+      },
+      "damageTwice": true
     }
   }
 }
