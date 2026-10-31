@@ -64,3 +64,10 @@ test("wearing: what its creature has equipped (Unarmored Defense and Martial Art
   assert.deepEqual([evaluatePredicate(monk.predicate, {actor: actor([["shield"]])}).ok, evaluatePredicate(barbarian.predicate,
     {actor: actor([["shield"]])}).ok], [false, true], "a monk's Unarmored Defense needs no Shield; a barbarian's allows one");
 });
+
+test("Rage is entered only while not wearing Heavy armor (its requires)", async () => {
+  const fs = await import("node:fs");
+  const {requires} = JSON.parse(fs.readFileSync("packs/_source/srd-items/rage-phbbrbRage000000.json", "utf8")).system.definition;
+  const actor = armor => ({items: [{type: "gear", system: {armor, active: true}}]});
+  assert.deepEqual([evaluatePredicate(requires, {actor: actor("medium")}).ok, evaluatePredicate(requires, {actor: actor("heavy")}).ok], [true, false]);
+});

@@ -787,6 +787,8 @@ function martialArtsActions(document, img, source, scales) {
  */
 /** Features whose passive rules hold only while their creature wears what their 2024 text allows (`wearing`). */
 const WEARING_GATES = Object.freeze({"unarmored-movement": {armor: false, shield: false}, "fast-movement": {heavy: false}});
+/** Actions used only while their creature wears what their 2024 text allows (`requires`). */
+const USED_WHILE_WEARING = Object.freeze({rage: {heavy: false}});
 
 /** 2024 Martial Arts and Unarmored Movement: "while you aren't wearing armor or wielding a Shield". */
 const UNARMORED = Object.freeze({wearing: {armor: false, shield: false}});
@@ -1559,6 +1561,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       if ( !definition.effects.length ) delete definition.effects;
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated") && !/^effect: (?:"Stabilized"|stable )/.test(note)));
     }
+    // What it may be used only while wearing (2024 Rage: "if you aren't wearing Heavy armor"). shortcut: a Rage going on
+    // isn't ended by donning Heavy armor.
+    if ( USED_WHILE_WEARING[identifierOf(document)] ) definition = {...definition, requires: definition.requires
+      ? {all: [definition.requires, {wearing: USED_WHILE_WEARING[identifierOf(document)]}]} : {wearing: USED_WHILE_WEARING[identifierOf(document)]}};
     const selfEffects = SELF_EFFECTS[identifierOf(document)];
     if ( selfEffects || USED_AT_TURN_START.has(identifierOf(document)) ) {
       definition = {...definition, range: {type: "self"}, targeting: {type: "self"},

@@ -107,6 +107,11 @@
           }
         }
       ],
+      "requires": {
+        "wearing": {
+          "heavy": false
+        }
+      },
       "label": "Rage"
     },
     "ruleElements": [
