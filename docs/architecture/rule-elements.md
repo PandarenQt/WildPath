@@ -206,9 +206,14 @@ damage type. It is rolled as the dice's `min` modifier (`2d6min3`, Foundry's own
 physical roll's prompt shows it. 2024 Great Weapon Fighting: 3, on melee attacks with the `two-handed` property (a
 Two-Handed weapon, or a Versatile weapon's two-handed Action).
 
-**Weapon damage rolled twice (2026-10-31).** A feature flagged `damageTwice` (2024 Savage Attacker) makes its weapon
-hits' damage statistic carry `bestOfTwo` once a turn (`flags.wildpath.onceUsed.savage-attacker`, recorded by the hit like
-a once-per-turn extra). The weapon's die is rolled as Foundry's dice pool `{1d8,1d8}kh` (doubled dice in both on a
+**Weapon damage rolled twice (2026-10-31).** A feature's `flags.wildpath.damageTwice: true | {tagsAll?: string[],
+once?: "turn" | null}` (2024 Savage Attacker: `true`, read as `{tagsAll: ["weapon"], once: "turn"}`) makes the hits of
+attacks with every tag in `tagsAll` (the attack's type, its Action's tags, the weapon's category and properties) carry
+`bestOfTwo` in their damage statistic. With `once: "turn"` each feature has its own use a turn
+(`flags.wildpath.onceUsed.<item id>-damageTwice`, recorded by the hit like a once-per-turn extra); the first fitting
+feature not yet used is taken. `once: null` applies on every hit. It only ever rolls the weapon's own die (its
+`weapon-base` component), so `tagsAll` can narrow among weapon attacks (`melee`, `category:martial`) but cannot reach a
+spell. The weapon's die is rolled as Foundry's dice pool `{1d8,1d8}kh` (doubled dice in both on a
 critical), the higher total kept; a typed total has the single roll's bounds. Its user would always keep the higher, so
 nothing is asked.
 

@@ -153,6 +153,21 @@ function damageDomains(attack, tags=[]) {
   return [kind ? `damage.${kind}` : null, attack?.type ? `damage.${attack.type}` : null, "damage"].filter(Boolean);
 }
 
+/**
+ * A feature's `flags.wildpath.damageTwice` read as `{tagsAll, once}`: `true` (the stored shape) is a weapon attack's,
+ * once a turn. `tagsAll` can only narrow among weapon attacks: it rolls the weapon's own die twice. Null when unset.
+ */
+function damageTwiceSpec(flag) {
+  if ( flag === true ) return {tagsAll: ["weapon"], once: "turn"};
+  if ( !flag || (typeof flag !== "object") ) return null;
+  return {tagsAll: Array.isArray(flag.tagsAll) ? flag.tagsAll.map(String) : ["weapon"], once: flag.once === null ? null : "turn"};
+}
+
+/** The key a feature's `damageTwice` use is recorded under: the feature's own, so two never share one use. */
+function damageTwiceKey(item) {
+  return `${item.id ?? item.uuid ?? "owner"}-damageTwice`.replace(/\./g, "_");
+}
+
 /** The key a once-per-turn rule is recorded under: its owner and its own id (no dots: Foundry would nest them). */
 function onceKey(entry) {
   const owner = entry.source?.parent ?? entry.source ?? {};
@@ -262,12 +277,13 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
   const dieMinimums = (components.length && (typeof actor?.getDamageDieMinimums === "function"))
     ? actor.getDamageDieMinimums(damageDomains(attackDefinition, tags), {item, tags: extraTags, context})
       .map(entry => ({minimum: entry.minimum, damageTypes: entry.damageTypes ?? []})) : [];
-  // Its weapon's damage dice rolled twice, the higher kept, once a turn (2024 Savage Attacker: a feature flagged
-  // `damageTwice`), while unused this turn.
-  const twice = own && (definition?.tags ?? []).includes("weapon") && [...(actor?.items ?? [])]
-    .some(entry => (entry?.system?.active !== false) && entry?.flags?.wildpath?.damageTwice)
-    && !(turn && (actor.flags?.wildpath?.onceUsed?.["savage-attacker"] === turn));
-  const bestOfTwo = twice ? (turn ? {once: {key: "savage-attacker", turn}} : {}) : null;
+  // Its weapon's damage dice rolled twice, the higher kept (2024 Savage Attacker): the first active feature whose
+  // `damageTwice` fits this attack and is unused this turn. Each feature has its own once-a-turn use.
+  const twice = own ? [...(actor?.items ?? [])].filter(entry => entry?.system?.active !== false)
+    .map(entry => ({entry, spec: damageTwiceSpec(entry?.flags?.wildpath?.damageTwice)}))
+    .find(({entry, spec}) => spec && spec.tagsAll.every(tag => extraTags.includes(tag))
+      && !((spec.once === "turn") && turn && (actor.flags?.wildpath?.onceUsed?.[damageTwiceKey(entry)] === turn))) : null;
+  const bestOfTwo = twice ? (((twice.spec.once === "turn") && turn) ? {once: {key: damageTwiceKey(twice.entry), turn}} : {}) : null;
   // Healing bonuses (`healing.spell`, `healing`), added once to its first component; their values see `context`
   // (`castLevel`: Disciple of Life).
   const healing = (definition?.healing ?? []).length ? (resolveActorStatisticModifier(actor,

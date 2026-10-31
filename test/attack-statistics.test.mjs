@@ -122,10 +122,21 @@ test("extra damage rules join a matching attack's damage, and a once-per-turn ru
     flags: {}, system: {}, allApplicableEffects: () => [], items: [{id: "feat", type: "feature", flags: {wildpath: {damageTwice: true}},
       system: {active: true, modifiers: [], ruleElements: []}}]});
   const axe = {...melee, tags: ["weapon"]};
-  assert.deepEqual(actionCombatStatistics(savage, axe, {turn: "c:1:0"}).damage.bestOfTwo, {once: {key: "savage-attacker", turn: "c:1:0"}});
+  // Its use is the feature's own (`<item>-damageTwice`), so two such features never share one.
+  assert.deepEqual(actionCombatStatistics(savage, axe, {turn: "c:1:0"}).damage.bestOfTwo, {once: {key: "feat-damageTwice", turn: "c:1:0"}});
   assert.equal(actionCombatStatistics(savage, melee, {turn: "c:1:0"}).damage?.bestOfTwo, undefined, "not a weapon");
-  savage.flags = {wildpath: {onceUsed: {"savage-attacker": "c:1:0"}}};
+  savage.flags = {wildpath: {onceUsed: {"feat-damageTwice": "c:1:0"}}};
   assert.equal(actionCombatStatistics(savage, axe, {turn: "c:1:0"}).damage?.bestOfTwo, undefined, "used this turn");
+  // A homebrew feature with the shape (`{tagsAll, once}`): melee weapon attacks only, its own use.
+  savage.items.push({id: "heavy", type: "feature", flags: {wildpath: {damageTwice: {tagsAll: ["melee"], once: "turn"}}},
+    system: {active: true, modifiers: [], ruleElements: []}});
+  assert.deepEqual(actionCombatStatistics(savage, axe, {turn: "c:1:0"}).damage.bestOfTwo, {once: {key: "heavy-damageTwice", turn: "c:1:0"}},
+    "Savage Attacker's use is spent: Heavy Hitter's own still applies");
+  const bow = {...axe, attack: {type: "ranged", statistic: "weapon"}};
+  assert.equal(actionCombatStatistics(savage, bow, {turn: "c:1:0"}).damage?.bestOfTwo, undefined, "a ranged attack: none");
+  savage.items[1].flags.wildpath.damageTwice = {tagsAll: ["melee"], once: null};
+  savage.flags = {wildpath: {onceUsed: {"feat-damageTwice": "c:1:0", "heavy-damageTwice": "c:1:0"}}};
+  assert.deepEqual(actionCombatStatistics(savage, axe, {turn: "c:1:0"}).damage.bestOfTwo, {}, "`once: null`: every hit");
   feature.system.ruleElements = [{...sneak, id: "reduced", data: {...sneak.data, once: undefined, subtract: true}}];
   assert.equal(actionCombatStatistics(actor, melee, {turn: null}).damage.extraComponents[0].metadata.subtract, true,
     "a penalty (Reduce) is marked on its component");
