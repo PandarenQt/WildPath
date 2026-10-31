@@ -214,6 +214,7 @@ damage types, and an automatic save success misses spells with no save (Magic Mi
   matched by identity rather than by name.
 - Recommendation: yes, targeted and wasted, with the `spell:` tag; the shroud's on/off Bonus Action is the feature's
   active toggle.
+- **Answered 2026-10-31: the recommendation: an `Unaffected` rule, the creature targeted and the use wasted, spells tagged `spell:<identifier>` (plan 7.10).**
 
 ### Q16. Inspiring Help (Expert sidekick): dice added to the Help it gives (2026-10-31)
 An Expert sidekick's Help adds 1d6 (2d6 at level 20) to the helped roll, or to the attack's damage on a hit instead. The
@@ -226,3 +227,4 @@ can add dice there.
   effects carry the die (a second Help beside the common one). The "damage instead" choice needs a prompt on the hit in
   either case.
 - Recommendation: (a) without the damage option for now; it is a sidekick-only feature, so low priority.
+- **Answered 2026-10-31: (b), done properly. Both halves are shapes that exist: the sidekick's own Help puts one effect on the helped ally carrying a Bardic-Inspiration-style die for its roll and an ExtraDamage rider for its hit; whichever is used ends it (plan 7.11).**
