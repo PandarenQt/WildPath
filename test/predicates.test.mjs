@@ -71,3 +71,11 @@ test("Rage is entered only while not wearing Heavy armor (its requires)", async 
   const actor = armor => ({items: [{type: "gear", system: {armor, active: true}}]});
   assert.deepEqual([evaluatePredicate(requires, {actor: actor("medium")}).ok, evaluatePredicate(requires, {actor: actor("heavy")}).ok], [true, false]);
 });
+
+test("hasFeature: its creature has an active feature by identifier (an Assassin's Steady Aim keeps its Speed)", () => {
+  const actor = (identifier, active=true) => ({items: [{type: "feature", system: {active}, flags: {wildpath: {source: {identifier}}}}]});
+  const notAssassin = {not: {hasFeature: "infiltration-expertise"}};
+  assert.deepEqual([evaluatePredicate(notAssassin, {actor: actor("infiltration-expertise")}).ok,
+    evaluatePredicate(notAssassin, {actor: actor("infiltration-expertise", false)}).ok, evaluatePredicate(notAssassin, {actor: actor("cunning-action")}).ok],
+  [false, true, true]);
+});

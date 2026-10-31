@@ -65,6 +65,11 @@
               "schemaVersion": 1,
               "id": "steady-aim-speed",
               "type": "Modifier",
+              "predicate": {
+                "not": {
+                  "hasFeature": "infiltration-expertise"
+                }
+              },
               "data": {
                 "domains": [
                   "speed.multiplier"

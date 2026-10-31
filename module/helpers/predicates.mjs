@@ -28,7 +28,8 @@ const PREDICATE_KEYS = new Set([
   "poolEmpty",
   "poolBelowMax",
   "bloodied",
-  "wearing"
+  "wearing",
+  "hasFeature"
 ]);
 
 /* -------------------------------------------- */
@@ -70,7 +71,8 @@ export function evaluatePredicate(predicate, context={}) {
     evaluateAtLeast(predicate, context),
     evaluatePools(predicate, context),
     evaluateBloodied(predicate, context),
-    evaluateWearing(predicate, context)
+    evaluateWearing(predicate, context),
+    evaluateHasFeature(predicate, context)
   ];
   return tests.find(result => !result.ok) ?? pass();
 }
@@ -180,6 +182,17 @@ function evaluateWearing(predicate, context) {
     if ( (key in has) && (has[key] !== Boolean(wanted)) ) return fail(`wearing ${key} is not ${wanted}`);
   }
   return pass();
+}
+
+/**
+ * Whether its creature has an active feature by its source identifier (`hasFeature: "infiltration-expertise"`: an
+ * Assassin's Steady Aim leaves its Speed alone). With no creature's Items to read, it fails.
+ */
+function evaluateHasFeature(predicate, context) {
+  if ( predicate.hasFeature == null ) return pass();
+  const found = [...(context.actor?.items ?? [])].some(item => (item?.system?.active !== false)
+    && (item?.flags?.wildpath?.source?.identifier === predicate.hasFeature));
+  return found ? pass() : fail(`lacks feature ${predicate.hasFeature}`);
 }
 
 /**

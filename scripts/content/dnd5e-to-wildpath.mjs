@@ -520,8 +520,9 @@ const SELF_EFFECTS = Object.freeze({
     duration: {value: 0, units: "turns", expiry: "turnEnd"},
     ruleElements: [{schemaVersion: 1, id: "steady-aim", type: "RollMode", data: {domains: ["attack"], mode: "advantage"}}]},
   {id: "effect-2", type: "effect", name: "Steady Aim (Speed 0)", img: "icons/svg/target.svg", duration: {value: 0, units: "turns", expiry: "turnEnd"},
-    ruleElements: [{schemaVersion: 1, id: "steady-aim-speed", type: "Modifier", data: {domains: ["speed.multiplier"], modifierType: "untyped",
-      value: 0}}]}]
+    // Not an Assassin's (Infiltration Expertise: its Speed isn't 0).
+    ruleElements: [{schemaVersion: 1, id: "steady-aim-speed", type: "Modifier", predicate: {not: {hasFeature: "infiltration-expertise"}},
+      data: {domains: ["speed.multiplier"], modifierType: "untyped", value: 0}}]}]
 });
 
 /**
@@ -1948,11 +1949,12 @@ const IGNORES_RESISTANCE = Object.freeze({"boon-of-irresistible-offense": ["blud
 /** Words that name a rule in a feature's text (silent features, above). */
 const SILENT_MECHANICS = /\b(?:Advantage|Disadvantage|Resistance|Immunity|immune|Speed|bonus to|can't|Hit Point maximum|Armor Class)\b/u;
 /**
- * Features whose rule is their class's or species' advancement, which the level-up dialog runs (`improvement`, `choice`):
- * the feature Item is only its name and text.
+ * Features whose rule is their class's or species' advancement, which the level-up dialog runs (`improvement`, `choice`),
+ * or another feature's rule reading them (Infiltration Expertise: Steady Aim's `hasFeature`): the feature Item is only
+ * its name and text.
  */
 const ENGINE_FEATURES = new Set(["ability-score-improvement", "divine-order", "primal-order", "eldritch-invocations", "giant-ancestry",
-  "druidic", "celestial-resistance", "elven-lineage", "fiendish-legacy"]);
+  "druidic", "celestial-resistance", "elven-lineage", "fiendish-legacy", "infiltration-expertise"]);
 /**
  * Features whose rule nothing in play exercises, so their text is their rule (an informational note, not a gap): what a
  * creature can't carry (Ephemeral), thoughts no one reads (Shielded Mind, Inscrutable: an Insight check is the GM's call
