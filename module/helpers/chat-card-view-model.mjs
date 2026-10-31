@@ -18,7 +18,7 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
     checkSuccess: "WILDPATH.CHAT.Outcome.CheckSuccess",
     checkFailure: "WILDPATH.CHAT.Outcome.CheckFailure"
 });
-export function createResolutionCardViewModel(result) {
+export function createResolutionCardViewModel(result, { conditionNames = {} } = {}) {
     const attack = result.outcomes?.attack?.results ?? [];
     const save = result.outcomes?.save?.results ?? [];
     return {
@@ -32,6 +32,10 @@ export function createResolutionCardViewModel(result) {
             const kept = (result.outcomes?.zeroHp ?? []).find(entry => sameTarget(entry.target, target));
             const covered = (result.outcomes?.cover ?? []).find(entry => sameTarget(entry.target, target));
             const coverKey = covered?.degree ? CHAT_OUTCOME_KEYS[covered.degree] : null;
+            const effects = (result.outcomes?.effects ?? []).filter(entry => sameTarget(entry.target, target)).flatMap(entry => {
+                const label = textOrNull(entry.name) ?? (entry.conditionId ? (conditionNames[entry.conditionId] ?? entry.conditionId) : null);
+                return label ? [{ label, conditionId: textOrNull(entry.conditionId), removed: entry.removed === true }] : [];
+            });
             const name = textOrNull(target.name);
             return {
                 name,
@@ -39,7 +43,8 @@ export function createResolutionCardViewModel(result) {
                 attack: attackEntry ? attackOutcome(attackEntry) : null,
                 save: saveEntry ? saveOutcome(saveEntry) : null,
                 ...(kept ? { staysUp: { label: CHAT_OUTCOME_KEYS.staysUp, name: textOrNull(kept.name) ?? "" } } : {}),
-                ...(coverKey ? { cover: { label: coverKey } } : {})
+                ...(coverKey ? { cover: { label: coverKey } } : {}),
+                ...(effects.length ? { effects } : {})
             };
         }),
         rolls: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.foundryRoll] : [])),

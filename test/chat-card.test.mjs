@@ -211,3 +211,22 @@ test("a roll is open to a reroll for ten minutes", () => {
   assert.equal(isRecentRoll({timestamp: 1_000_000}, 1_000_000 + 11 * 60_000), false);
   assert.equal(isRecentRoll({}, 1_000_000), false);
 });
+
+test("the card names the conditions and effects an Action gave or ended, by target, and nothing of their rules", () => {
+  const projected = projectResolutionResultForDisclosure({resolutionId: "resolution:effects", status: "completed",
+    targets: [{id: "goblin", tokenId: "goblin", name: "Goblin", uuid: "Actor.goblin"}],
+    outcomes: {effects: {mutationPlans: [
+      {type: "conditionEffect", target: {id: "goblin", tokenId: "goblin", uuid: "Actor.goblin"}, conditionId: "poisoned", levels: 1,
+        definition: {id: "poisoned"}, duration: {value: SECRET}},
+      {type: "conditionEffect", target: {id: "goblin", tokenId: "goblin", uuid: "Actor.goblin"}, conditionId: "charmed", levels: -1},
+      {type: "conditionEffect", target: {id: "goblin", tokenId: "goblin", uuid: "Actor.goblin"}, conditionId: "action:bless:blessed", levels: 1,
+        definition: {custom: true, name: "Blessed", ruleElements: [{secret: SECRET}]}},
+      {type: "durabilityDamage", target: {id: "goblin"}, amount: SECRET}]}}
+  }, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE);
+  assert.equal(JSON.stringify(projected).includes(SECRET), false, "no rules, durations or damage cross");
+  const view = createResolutionCardViewModel(projected, {conditionNames: {poisoned: "WILDPATH.CONDITIONS.Poisoned"}});
+  assert.deepEqual(view.targets[0].effects, [
+    {label: "WILDPATH.CONDITIONS.Poisoned", conditionId: "poisoned", removed: false},
+    {label: "charmed", conditionId: "charmed", removed: true},
+    {label: "Blessed", conditionId: null, removed: false}]);
+});

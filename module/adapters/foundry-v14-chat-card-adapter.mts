@@ -67,7 +67,16 @@ export function createFoundryV14ChatCardAdapter({
   return async function publishResult({resolutionId, initiatorUserId, messageMode, actor, action, result}: PublishedResolution) {
     if ( !action || result?.status !== "completed" ) return {ok: true, posted: false};
     const foundry = foundryGlobals({ChatMessage, Roll, renderTemplate, game});
-    const view = createResolutionCardViewModel(result);
+    const conditions = (globalThis as {CONFIG?: {WILDPATH?: {CONDITIONS?: Record<string, {name?: string}>}}}).CONFIG?.WILDPATH?.CONDITIONS ?? {};
+    const shown = createResolutionCardViewModel(result, {conditionNames: Object.fromEntries(Object.entries(conditions)
+      .flatMap(([id, condition]) => (condition?.name ? [[id, condition.name]] : [])))});
+    // A condition its target is immune to was never given ("Immune" floats over it instead).
+    const view = {...shown, targets: shown.targets.map(target => {
+      if ( !target.uuid || !target.effects?.length ) return target;
+      const document = (globalThis as {fromUuidSync?(uuid: string): unknown}).fromUuidSync?.(target.uuid) as {actor?: ImmuneActor} | null;
+      const immune = new Set(((document?.actor ?? document) as ImmuneActor | null)?.getConditionImmunities?.() ?? []);
+      return {...target, effects: target.effects.filter(effect => effect.removed || !effect.conditionId || !immune.has(effect.conditionId))};
+    })};
     const rolls = view.rolls.map(data => foundry.Roll.fromData(data));
     const rollHtml = (await Promise.all(rolls.map((roll, index) => roll.render({flavor: rollFlavor(view.rollLabels[index], foundry.game?.i18n)}))))
       .join("");

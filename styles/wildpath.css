@@ -521,6 +521,16 @@
   background: color-mix(in srgb, var(--wp-danger) 18%, transparent);
 }
 
+/* A condition or effect the Action gave (or ended): neutral, lighter than an outcome, a removed one struck through. */
+.wildpath.resolution-card .outcome.effect {
+  border-color: var(--wp-border, currentColor);
+  font-weight: normal;
+}
+
+.wildpath.resolution-card .outcome.effect.removed {
+  text-decoration: line-through;
+}
+
 .wildpath.resolution-card .card-target[data-target-uuid] {
   cursor: pointer;
 }

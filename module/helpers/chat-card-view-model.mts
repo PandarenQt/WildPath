@@ -48,6 +48,8 @@ export interface PublicResolutionResult {
     readonly check?: {readonly success?: boolean} | null;
     readonly zeroHp?: readonly {readonly target?: PublicRef | null; readonly name?: string | null}[];
     readonly cover?: readonly {readonly target?: PublicRef | null; readonly degree?: string | null}[];
+    readonly effects?: readonly {readonly target?: PublicRef | null; readonly conditionId?: string | null; readonly name?: string | null;
+      readonly removed?: boolean | null}[];
   };
   readonly rolls?: readonly PublicRoll[];
 }
@@ -84,6 +86,8 @@ export interface ResolutionCardTarget {
   readonly staysUp?: {readonly label: string; readonly name: string} | null;
   /** Its cover against the Action ("Half cover"). */
   readonly cover?: {readonly label: string} | null;
+  /** The conditions and effects the Action gave it (or ended): a condition's lang key, an effect's own name. */
+  readonly effects?: readonly {readonly label: string; readonly conditionId: string | null; readonly removed: boolean}[];
 }
 
 export interface ResolutionCardView {
@@ -99,7 +103,8 @@ export interface ResolutionCardView {
   readonly enteredRolls: readonly {readonly formula: string | null; readonly total: number}[];
 }
 
-export function createResolutionCardViewModel(result: PublicResolutionResult): ResolutionCardView {
+export function createResolutionCardViewModel(result: PublicResolutionResult,
+  {conditionNames = {}}: {conditionNames?: Readonly<Record<string, string>>} = {}): ResolutionCardView {
   const attack = result.outcomes?.attack?.results ?? [];
   const save = result.outcomes?.save?.results ?? [];
   return {
@@ -113,6 +118,10 @@ export function createResolutionCardViewModel(result: PublicResolutionResult): R
       const kept = (result.outcomes?.zeroHp ?? []).find(entry => sameTarget(entry.target, target));
       const covered = (result.outcomes?.cover ?? []).find(entry => sameTarget(entry.target, target));
       const coverKey = covered?.degree ? (CHAT_OUTCOME_KEYS as Record<string, string>)[covered.degree] : null;
+      const effects = (result.outcomes?.effects ?? []).filter(entry => sameTarget(entry.target, target)).flatMap(entry => {
+        const label = textOrNull(entry.name) ?? (entry.conditionId ? (conditionNames[entry.conditionId] ?? entry.conditionId) : null);
+        return label ? [{label, conditionId: textOrNull(entry.conditionId), removed: entry.removed === true}] : [];
+      });
       const name = textOrNull(target.name);
       return {
         name,
@@ -120,7 +129,8 @@ export function createResolutionCardViewModel(result: PublicResolutionResult): R
         attack: attackEntry ? attackOutcome(attackEntry) : null,
         save: saveEntry ? saveOutcome(saveEntry) : null,
         ...(kept ? {staysUp: {label: CHAT_OUTCOME_KEYS.staysUp, name: textOrNull(kept.name) ?? ""}} : {}),
-        ...(coverKey ? {cover: {label: coverKey}} : {})
+        ...(coverKey ? {cover: {label: coverKey}} : {}),
+        ...(effects.length ? {effects} : {})
       };
     }),
     rolls: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.foundryRoll] : [])),

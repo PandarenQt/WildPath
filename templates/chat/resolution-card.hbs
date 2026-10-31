@@ -25,6 +25,7 @@
         {{#if save}}<span class="outcome {{save.tone}}">{{localize save.label}}</span>{{/if}}
         {{#if staysUp}}<span class="outcome success">{{localize staysUp.label name=staysUp.name}}</span>{{/if}}
         {{#if cover}}<span class="outcome cover">{{localize cover.label}}</span>{{/if}}
+        {{#each effects}}<span class="outcome effect{{#if removed}} removed{{/if}}">{{#if removed}}−{{else}}+{{/if}} {{localize label}}</span>{{/each}}
       </span>
     </li>
     {{/each}}

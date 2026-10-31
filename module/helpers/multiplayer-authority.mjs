@@ -522,7 +522,10 @@ function projectPublicResolutionResult(data) {
         .map(entry => ({target: projectEntityRefForDisclosure(entry.target), name: stringOrNull(entry.name), kept: true}))} : {}),
       // Each target's cover, as everyone at the table can see it.
       ...(normalizeArray(data.outcomes?.cover).length ? {cover: normalizeArray(data.outcomes.cover).filter(entry => entry?.target)
-        .map(entry => ({target: projectEntityRefForDisclosure(entry.target), degree: stringOrNull(entry.degree)}))} : {})
+        .map(entry => ({target: projectEntityRefForDisclosure(entry.target), degree: stringOrNull(entry.degree)}))} : {}),
+      // The conditions and effects it gave or ended, by target, as their icons on its Tokens show anyway: a condition by
+      // its id, an Action's own effect by its name; never their rules, durations or sources.
+      ...(publicEffectOutcomes(data.outcomes?.effects).length ? {effects: publicEffectOutcomes(data.outcomes.effects)} : {})
     },
     rolls: normalizeArray(data.rolls)
       .filter(entry => entry?.visibility === "public")
@@ -537,6 +540,16 @@ function projectPublicResolutionResult(data) {
         foundryRoll: publicFoundryRoll(entry.rollResult)
       }))
   }, "resolutionResult.broadcast");
+}
+
+/** An effect resolution's condition plans as the card shows them: who, which, and whether it ended. */
+function publicEffectOutcomes(effects) {
+  return normalizeArray(effects?.mutationPlans).filter(plan => (plan?.type === "conditionEffect") && plan.target
+    && Number.isFinite(Number(plan.levels)) && (Number(plan.levels) !== 0))
+    .map(plan => ({target: projectEntityRefForDisclosure(plan.target),
+      ...(plan.definition?.custom ? {name: stringOrNull(plan.definition.name)} : {conditionId: stringOrNull(plan.conditionId)}),
+      removed: Number(plan.levels) < 0}))
+    .filter(entry => entry.name || entry.conditionId);
 }
 
 /**
