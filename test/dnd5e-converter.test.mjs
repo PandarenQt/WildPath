@@ -1615,7 +1615,7 @@ test("class features' dnd5e changes: a critical range, Advantage on Initiative a
   const {effectRules} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
   const rules = changes => effectRules({name: "Feature", changes}).map(rule => [rule.type, rule.data]);
   assert.deepEqual(rules([{key: "flags.dnd5e.weaponCriticalThreshold", mode: 3, value: "19"}]),
-    [["RollOutcome", {domains: ["attack.weapon"], outcome: "critical-range", threshold: 19}]], "Improved Critical");
+    [["RollOutcome", {domains: ["attack.weapon"], outcome: "critical-range", widen: 1}]], "Improved Critical: one wider, so it stacks");
   assert.deepEqual(rules([{key: "system.attributes.init.roll.mode", mode: 2, value: "1"}]), [["RollMode", {domains: ["initiative"], mode: "advantage"}]]);
   assert.deepEqual(rules([{key: "system.attributes.concentration.roll.mode", mode: 2, value: "1"}]),
     [["RollMode", {domains: ["concentration"], mode: "advantage"}]], "Eldritch Mind");

@@ -185,8 +185,12 @@ export function attackRollModeSources(attacker, target, {type=null, item=null, a
 /** `{policy: {criticalHitThreshold}}` when a rule widens the attacker's critical range for this attack, else nothing. */
 function criticalRange(actor, attackDefinition, tags) {
   const ranges = (actor?.getRollOutcomes?.(["attack", `attack.${attackDefinition?.statistic ?? "weapon"}`], {context: {tags}}) ?? [])
-    .filter(outcome => outcome.outcome === "critical-range").map(outcome => Number(outcome.threshold)).filter(Number.isFinite);
-  return ranges.length ? {policy: {criticalHitThreshold: Math.min(...ranges)}} : {};
+    .filter(outcome => outcome.outcome === "critical-range");
+  if ( !ranges.length ) return {};
+  // The lowest set threshold (20 without one), less every widening (Improved and Superior Critical: 1 each, 18-20).
+  const thresholds = ranges.map(outcome => Number(outcome.threshold)).filter(Number.isFinite);
+  const widened = ranges.reduce((total, outcome) => total + (Number(outcome.widen) || 0), 0);
+  return {policy: {criticalHitThreshold: Math.max(2, Math.min(20, ...thresholds) - widened)}};
 }
 
 export function attackForcesCritical(target, {type=null, context={}}={}) {

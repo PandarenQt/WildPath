@@ -880,7 +880,8 @@ function abilityScoreRuleElement(ruleElement, context) {
 function rollOutcomeRuleElement(ruleElement) {
   const data = ruleElement.data;
   const domains = normalizeStrings(data.domains ?? data.domain);
-  // `critical-range`: its attacks score a Critical Hit on a d20 of `threshold` or more (Improved Critical: 19).
+  // `critical-range`: its attacks score a Critical Hit on a d20 of `threshold` or more, or its range grows by `widen`
+  // (Improved Critical: 1); widenings add up (with Superior Critical, 18-20: owner's ruling, 2026-10-31).
   // `minimum-natural`: a d20 below `threshold` counts as it (Reliable Talent: 10, on checks with a proficiency).
   // `automatic-success`: on `save`, the save succeeds unrolled (Trance against sleep magic); on `concentration`, damage
   // calls for no check (Relentless Hunter). `no-advantage`: on `attacked`, no attack roll against it has Advantage (Elusive).
@@ -891,15 +892,17 @@ function rollOutcomeRuleElement(ruleElement) {
   }
   if ( !domains.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement requires domains.");
   const threshold = Number(data.threshold);
-  if ( (data.outcome === "critical-range") && !(Number.isInteger(threshold) && (threshold >= 2) && (threshold <= 20)) ) {
-    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A critical-range RollOutcome needs a threshold from 2 to 20.");
+  const widen = Number(data.widen);
+  const widens = (data.outcome === "critical-range") && (data.threshold == null) && Number.isInteger(widen) && (widen >= 1) && (widen <= 18);
+  if ( (data.outcome === "critical-range") && !widens && !(Number.isInteger(threshold) && (threshold >= 2) && (threshold <= 20)) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A critical-range RollOutcome needs a threshold from 2 to 20 or a widen from 1 to 18.");
   }
   if ( (data.outcome === "minimum-natural") && !(Number.isInteger(threshold) && (threshold >= 1) && (threshold <= 20)) ) {
     return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A minimum-natural RollOutcome needs a threshold from 1 to 20.");
   }
-  const thresholded = ["critical-range", "minimum-natural"].includes(data.outcome);
+  const thresholded = ["critical-range", "minimum-natural"].includes(data.outcome) && !widens;
   return success({
-    rollOutcomes: [{id: data.id ?? ruleElement.id, outcome: data.outcome, domains, ...(thresholded ? {threshold} : {}),
+    rollOutcomes: [{id: data.id ?? ruleElement.id, outcome: data.outcome, domains, ...(thresholded ? {threshold} : {}), ...(widens ? {widen} : {}),
       source: ruleElementSource(ruleElement),
       metadata: contributionMetadata(ruleElement, data.metadata)}]
   });

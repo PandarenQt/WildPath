@@ -385,8 +385,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
   Zone of Truth, Confusion, Bestow Curse. SRD saves left wholly by hand fell from 137 to 35 documents, and
   concentration effects not converted from 175 to 122.
 - **Class features (2026-10-19).**
-  - Improved and Superior Critical: a `RollOutcome` `critical-range` (threshold 19, 18) on weapon attacks, read into the
-    attack's `criticalHitThreshold` (rule-elements.md).
+  - Improved and Superior Critical: a `RollOutcome` `critical-range` on weapon attacks, read into the attack's
+    `criticalHitThreshold` (rule-elements.md). Since 2026-10-31 each is `widen: 1`, so they stack (18-20).
   - Advantage on Initiative (Feral Instinct, an Ioun Stone of Awareness) and on Concentration saves (Eldritch Mind):
     RollModes on `initiative` and `concentration`. A Concentration save now rolls with the creature's Advantage or
     Disadvantage on `save`, `save.fortitude` and `concentration`; before, it had none.

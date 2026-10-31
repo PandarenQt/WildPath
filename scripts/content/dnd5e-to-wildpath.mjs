@@ -4770,8 +4770,9 @@ export function effectRules(effect, notes=[], {scales={}, text=""}={}) {
       // 2024 Remarkable Athlete: Advantage on Initiative rolls and Strength (Athletics) checks.
       rule("RollMode", {domains: ["initiative", "check.athletics"], mode: "advantage"});
     } else if ( (key === "flags.dnd5e.weaponCriticalThreshold") && ["downgrade", "override"].includes(type) && Number.isInteger(number) ) {
-      // Improved Critical (19), Superior Critical (18): its weapon attacks score a Critical Hit on that d20 or more.
-      rule("RollOutcome", {domains: ["attack.weapon"], outcome: "critical-range", threshold: number});
+      // Improved Critical, Superior Critical: each widens its weapon attacks' critical range by 1, so they stack (18-20
+      // with both; owner's ruling, 2026-10-31). dnd5e's 18 for Superior Critical assumes Improved Critical's 19 before it.
+      rule("RollOutcome", {domains: ["attack.weapon"], outcome: "critical-range", widen: 1});
     } else if ( (key === "system.attributes.hp.bonuses.overall") && (type === "add") && value ) {
       // Draconic Resilience: Hit Points, one per sorcerer level.
       modifier(["resources.health.max"], value);

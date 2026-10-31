@@ -17,7 +17,7 @@
             "attack.weapon"
           ],
           "outcome": "critical-range",
-          "threshold": 19
+          "widen": 1
         }
       }
     ]

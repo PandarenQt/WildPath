@@ -436,3 +436,18 @@ test("a critical range (Improved Critical): a RollOutcome with a threshold, read
   assert.deepEqual(actionCombatStatistics(actor, sword).attack.policy, {criticalHitThreshold: 19});
   assert.equal(actionCombatStatistics(actor, {...sword, attack: {...sword.attack, statistic: "spell"}}).attack?.policy, undefined, "weapons only");
 });
+
+test("critical ranges widen and stack: Improved and Superior Critical are 18-20, and a set threshold is widened from", async () => {
+  const {rollOutcomesFromRuleElements, validateRuleElementDefinition} = await import("../module/helpers/rule-elements.mjs");
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const outcome = (id, data) => ({schemaVersion: 1, id, type: "RollOutcome", data: {domains: ["attack.weapon"], outcome: "critical-range", ...data}});
+  const threshold = rules => actionCombatStatistics({system: {abilities: {might: {value: 16}}},
+    getRollOutcomes: domains => rollOutcomesFromRuleElements([{ruleElements: rules}], {domains})}, {attack: {type: "melee", statistic: "weapon",
+    defenseKey: "ac"}, damage: []}).attack.policy?.criticalHitThreshold;
+  const improved = outcome("improved", {widen: 1});
+  assert.deepEqual([threshold([improved]), threshold([improved, outcome("superior", {widen: 1})])], [19, 18]);
+  assert.equal(threshold([outcome("homebrew", {threshold: 19}), improved]), 18, "widened from the set 19");
+  assert.equal(threshold(Array.from({length: 25}, (_, index) => outcome(`w${index}`, {widen: 1}))), 2, "never below 2");
+  assert.equal(validateRuleElementDefinition(outcome("bad", {widen: 0})).ok, true, "the shape validates; its handler refuses it");
+  assert.equal(rollOutcomesFromRuleElements([{ruleElements: [outcome("bad", {widen: 0})]}], {domains: ["attack.weapon"]}).length, 0);
+});

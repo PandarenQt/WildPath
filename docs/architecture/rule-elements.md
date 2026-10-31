@@ -568,8 +568,11 @@ not (2026-10-24): Glibness's "Glib" is `{domains: ["check.presence"], threshold:
   its sheet (`1d20min10 + 3`, never below 13). With physical dice, Player1's Hide took a typed 2 as 10: 13, failing DC 15.
 
 **Critical range (2026-10-19).** `RollOutcome {domains: ["attack.weapon"], outcome: "critical-range", threshold: 19}`:
-its creature's attacks in those domains score a Critical Hit on a d20 of the threshold or more (Improved Critical).
-`actionCombatStatistics` puts the lowest one into the attack's `policy.criticalHitThreshold`.
+its creature's attacks in those domains score a Critical Hit on a d20 of the threshold or more.
+- `widen: N` in place of `threshold` grows the range by N (2026-10-31, owner's ruling: Improved Critical widens it by 1,
+  so it stacks with similar features). Improved and Superior Critical are `widen: 1` each: 18-20 together.
+- `actionCombatStatistics` takes the lowest threshold (20 without one), less every widening, never below 2, into the
+  attack's `policy.criticalHitThreshold`.
 
 **Identical grants count once (2026-10-19).** Grants of one pool add up, except identical ones: the same rule id for
 the same pool. A feature converted into several Actions puts its pool's grant on each (Monk's Focus on Flurry of Blows,
