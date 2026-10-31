@@ -406,3 +406,31 @@ test("Spell Sniper: a spell attack reaches 60 feet farther; a spell with a save 
   assert.deepEqual([actionDefinitionFromItem(spell({attack: {type: "ranged", statistic: "spell"}})).definition.range.normal.value,
     actionDefinitionFromItem(spell({save: {ability: "agility"}})).definition.range.normal.value], [180, 120]);
 });
+
+test("a damage profile's rules see their creature's conditions: Full of Stars resists only in Starry Form", async () => {
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const stars = {schemaVersion: 1, id: "full-of-stars", type: "GrantResistance", predicate: {hasCondition: "starry-form"},
+    data: {damageTypes: ["bludgeoning", "piercing", "slashing"]}};
+  const druid = statuses => Object.assign(Object.create(WildPathActor.prototype), {id: "druid", uuid: "Actor.druid", effects: [],
+    statuses: new Set(statuses), flags: {}, system: {}, allApplicableEffects: () => [],
+    items: [{id: "f", uuid: "Actor.druid.Item.f", type: "feature", system: {active: true, modifiers: [], ruleElements: [stars]}}]});
+  assert.deepEqual([druid(["starry-form"]).getDamageProfile()?.resistances?.length ?? 0, druid([]).getDamageProfile()?.resistances?.length ?? 0], [1, 0]);
+  // Living Shadow: outside Bright Light (the profile reads its Token's light: `inBrightLight`).
+  const shadow = {not: {equals: {path: "inBrightLight", value: true}}};
+  assert.deepEqual([evaluatePredicate(shadow, {}).ok, evaluatePredicate(shadow, {inBrightLight: true}).ok], [true, false]);
+});
+
+test("Warrior's Wrath: Advantage on melee attacks against a Bloodied target (attack.targetBloodied)", async () => {
+  const {targetBloodied, targetDamaged} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const at = (value, max=20) => ({system: {resources: {health: {value, max}}}});
+  assert.deepEqual([targetBloodied(at(10)), targetBloodied(at(11)), targetBloodied(at(0)), targetDamaged(at(19)), targetDamaged(at(20))],
+    [true, false, true, true, false]);
+  const {attackRollMode} = await import("../module/helpers/combat-statistics.mjs");
+  const wrath = {schemaVersion: 1, id: "warriors-wrath", type: "RollMode", predicate: {equals: {path: "attack.targetBloodied", value: true}},
+    data: {domains: ["attack.melee"], mode: "advantage"}};
+  const creature = rules => Object.assign(Object.create(WildPathActor.prototype), {id: "c", uuid: "Actor.c", effects: [], statuses: new Set(),
+    flags: {}, system: {}, allApplicableEffects: () => [], items: [{id: "r", uuid: "Actor.c.Item.r", type: "feature",
+      system: {active: true, modifiers: [], ruleElements: rules}}]});
+  const mode = (type, bloodied) => attackRollMode(creature([wrath]), creature([]), {type, context: {attack: {type, targetBloodied: bloodied}}});
+  assert.deepEqual([mode("melee", true), mode("melee", false), mode("ranged", true)], ["advantage", "normal", "normal"]);
+});

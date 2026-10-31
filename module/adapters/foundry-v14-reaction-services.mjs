@@ -13,6 +13,13 @@ import { economyResourcesFromActorResources } from "../helpers/action-economy.mj
 import { createAutomationEvent } from "../helpers/automation-events.mjs";
 import { movementTransitionRelations } from "../helpers/movement-transition.mjs";
 const PROPOSED_EVENT = "movement.transition-proposed";
+/** Whether its target is missing Hit Points (`targetDamaged`) and is Bloodied (`targetBloodied`), as the runtime's attacks read. */
+function healthContext(actor) {
+    const health = actor?.system?.resources?.health;
+    const max = Number(health?.max);
+    const value = Number(health?.value) || 0;
+    return { targetDamaged: Number.isFinite(Number(health?.value)) && (value < max), targetBloodied: (max > 0) && (value <= max / 2) };
+}
 const DISPOSITIONS = { "-1": "hostile", "0": "neutral", "1": "friendly", "-2": "secret" };
 /**
  * Actor documents and controllers for every creature a reaction may involve, and live resource snapshots.
@@ -72,6 +79,8 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
             fromAttacker: conditionsFrom(actor, reactor.actor),
             allyNearTarget: allyNearTarget(reactor, target, targetFootprint.footprint ?? null),
             helpedByAlly: helpedByAlly(reactor, actor),
+            // Its target's health, as an Action's own attacks see it (Colossus Slayer, Blood Frenzy; Warrior's Wrath).
+            ...healthContext(actor),
             // An attack answering a creature's move is an Opportunity Attack (2024 Escape the Horde gives it Disadvantage).
             opportunity: (args.baseChildState.sourceEvent ?? args.candidate.event)?.type === PROPOSED_EVENT },
         ...sunlightContext(reactor), ...fearContext(reactor) };

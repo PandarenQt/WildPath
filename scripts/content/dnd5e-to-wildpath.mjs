@@ -2417,6 +2417,17 @@ const TRAITS = Object.freeze({
     predicate: {tagsAll: ["ranged", "thrown"]}, data: {domains: ["damage.weapon"], modifierType: "untyped", value: 2}}], notes: []}),
   // A creature's Fey Ancestry that says magic can't put it to sleep: Trance's rule (the saves part is SAVES_AGAINST's).
   "fey-ancestry": document => (/\bmagic can[’']t put (?:it|you) to sleep\b/u.test(plainText(document)) ? TRAITS.trance() : null),
+  // Advantage on melee attacks against a Bloodied creature (the DMG's Warrior's Wrath; `attack.targetBloodied`).
+  "warriors-wrath": () => ({rules: [{schemaVersion: 1, id: "warriors-wrath", type: "RollMode",
+    predicate: {equals: {path: "attack.targetBloodied", value: true}}, data: {domains: ["attack.melee"], mode: "advantage"}}], notes: []}),
+  // Resistance to Bludgeoning, Piercing and Slashing damage while in its Starry Form (a Stars druid's Full of Stars).
+  "full-of-stars": (document, {activities}) => ({rules: [{schemaVersion: 1, id: "full-of-stars", type: "GrantResistance",
+    predicate: {hasCondition: "starry-form"}, data: {damageTypes: ["bludgeoning", "piercing", "slashing"]}}],
+  consumes: activities.filter(entry => entry.type === "utility"), notes: []}),
+  // Resistance to all damage but Force, Psychic and Radiant while not in Bright Light (a shadow dragon's Living Shadow).
+  "living-shadow": () => ({rules: [{schemaVersion: 1, id: "living-shadow", type: "GrantResistance",
+    predicate: {not: {equals: {path: "inBrightLight", value: true}}},
+    data: {damageTypes: DAMAGE_TYPES.filter(type => !["force", "psychic", "radiant"].includes(type))}}], notes: []}),
   // 2024 Trance: "magic can't put you to sleep" (Sleep: a creature that doesn't sleep succeeds on its saves). shortcut: its
   // 4-hour Long Rest is by hand (a party rest is 8 hours).
   trance: () => ({rules: [{schemaVersion: 1, id: "trance", type: "RollOutcome", predicate: {tagsAny: ["sleep"]},
@@ -2938,6 +2949,8 @@ const EFFECTS_BY_HAND = Object.freeze({
   "hunters-mark": {slug: "hunters-mark", bonusDamage: "Bonus Mark Damage", ruleElements: [markDamage("hunters-mark", "force", 6,
     {type: "table", key: {type: "class-level", class: "ranger"}, rows: {1: {type: "dice", number: 1, faces: 6}, 20: {type: "dice", number: 1, faces: 10}},
       default: {type: "dice", number: 1, faces: 6}})]},
+  // A Stars druid's form is the `starry-form` status (Full of Stars reads it).
+  "starry-form": {slug: "starry-form"},
   // Rage's effect is the `raging` status (Frenzy reads it).
   "rage": {slug: "raging"},
   // Hex: the same, Necrotic, and Disadvantage on checks of one ability the caster chooses (its six effects, one kept).

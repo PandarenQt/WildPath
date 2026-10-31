@@ -190,6 +190,13 @@ bard's) Unarmored Defense, Martial Arts' Monk weapon rules and strikes, and Unar
 Shield; a barbarian's Unarmored Defense, Mage Armor and Draconic Resilience no armor; Fast Movement no Heavy armor. With
 no creature's Items in its context it holds. `requires` sees the creature (`requiresContext`'s `actor`).
 
+**Damage profile context (2026-10-31).** A creature's damage profile (`getDamageProfile`) reads its rules with its
+conditions and the light its Token stands in (`inSunlight`, `inBrightLight`): a Stars druid's Full of Stars resists
+while it has `starry-form`; a shadow dragon's Living Shadow resists outside Bright Light.
+
+**Target health (2026-10-31).** An attack's context has `targetDamaged` (missing Hit Points: Colossus Slayer, Blood
+Frenzy) and `targetBloodied` (half or fewer: Warrior's Wrath), reactions' attacks included.
+
 Invalid or unknown RuleElement types fail explicitly in the collector result. Disabled,
 suppressed, or predicate-failed entries fail closed by contributing nothing while remaining visible
 to rules-inspector tooling.

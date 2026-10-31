@@ -36,6 +36,14 @@ interface SuppliedServices {reactions?: Data; movement?: {observers?: readonly O
 interface Trigger {event?: {type?: string}; owner?: {tokenId?: string | null}}
 
 const PROPOSED_EVENT = "movement.transition-proposed";
+
+/** Whether its target is missing Hit Points (`targetDamaged`) and is Bloodied (`targetBloodied`), as the runtime's attacks read. */
+function healthContext(actor: unknown) {
+  const health = (actor as {system?: {resources?: {health?: {value?: number; max?: number}}}} | null)?.system?.resources?.health;
+  const max = Number(health?.max);
+  const value = Number(health?.value) || 0;
+  return {targetDamaged: Number.isFinite(Number(health?.value)) && (value < max), targetBloodied: (max > 0) && (value <= max / 2)};
+}
 const DISPOSITIONS: Record<string, string> = {"-1": "hostile", "0": "neutral", "1": "friendly", "-2": "secret"};
 
 /**
@@ -96,6 +104,8 @@ function reactionChildState({args, reactor, target, targetFootprint, sourceFootp
     fromAttacker: (conditionsFrom as unknown as (holder: unknown, source: unknown) => Data)(actor, reactor.actor),
     allyNearTarget: allyNearTarget(reactor as never, target as never, (targetFootprint as {footprint?: Data}).footprint ?? null),
     helpedByAlly: helpedByAlly(reactor as never, actor as never),
+    // Its target's health, as an Action's own attacks see it (Colossus Slayer, Blood Frenzy; Warrior's Wrath).
+    ...healthContext(actor),
     // An attack answering a creature's move is an Opportunity Attack (2024 Escape the Horde gives it Disadvantage).
     opportunity: ((args.baseChildState.sourceEvent ?? args.candidate.event) as {type?: string} | null)?.type === PROPOSED_EVENT},
     ...sunlightContext(reactor as never), ...fearContext(reactor as never)};

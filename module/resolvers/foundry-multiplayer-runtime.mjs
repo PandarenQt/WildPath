@@ -1581,9 +1581,15 @@ function foundryAttackOutcomes({definition, targets, targetEntries, spatial, gam
  * stands within 5 ft of it (`allyNearTarget`, Pack Tactics), and whether the attacker stands in sunlight (`inSunlight`).
  */
 /** Whether a creature is missing Hit Points (Colossus Slayer). */
-function targetDamaged(actor) {
+export function targetDamaged(actor) {
   const health = actor?.system?.resources?.health;
   return Number.isFinite(Number(health?.value)) && (Number(health.value) < Number(health.max));
+}
+
+/** Whether a creature is Bloodied, at half its Hit Points or fewer (Warrior's Wrath), as the `bloodied` predicate reads it. */
+export function targetBloodied(actor) {
+  const health = actor?.system?.resources?.health;
+  return (Number(health?.max) > 0) && ((Number(health.value) || 0) <= (Number(health.max) / 2));
 }
 
 function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
@@ -1598,7 +1604,7 @@ function attackContext(type, spatial, entry, game, sourceToken, attacker=null) {
     distance}) : {};
   return {attack: {type, ...(Number.isFinite(fields) ? {adjacent: fields * spatial.context.gridDistance <= 5} : {}), ...sight,
     fromTarget: conditionsFrom(attacker, entry?.actor, game), fromAttacker: conditionsFrom(entry?.actor, attacker, game),
-    allyNearTarget: allyNearTarget(sourceToken, token), targetDamaged: targetDamaged(entry?.actor),
+    allyNearTarget: allyNearTarget(sourceToken, token), targetDamaged: targetDamaged(entry?.actor), targetBloodied: targetBloodied(entry?.actor),
     // An ally of the attacker Helped against this target (2024 Help: its Distracted).
     helpedByAlly: helpedByAlly(sourceToken, entry?.actor),
     // What it is (2024: a Mace of Disruption's Fiend or Undead).

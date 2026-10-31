@@ -1,4 +1,5 @@
 import {startedContagions} from "../adapters/foundry-v14-contagions.mjs";
+import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
 import {carryingRules} from "../helpers/carrying.mjs";
 import {requiresContext} from "../helpers/combat.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
@@ -237,7 +238,11 @@ export default class WildPathActor extends Actor {
    * @returns {object|null}
    */
   getDamageProfile() {
-    return damageProfileFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system});
+    // What its rules' predicates see: its conditions (Starry Form's Resistances) and the light its Token stands in (a
+    // shadow dragon's Living Shadow, outside Bright Light).
+    const token = this.token ?? this.getActiveTokens?.()[0]?.document ?? null;
+    return damageProfileFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])],
+      ...(token ? sunlightContext(token) : {})});
   }
 
   /**
