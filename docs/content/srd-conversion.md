@@ -536,7 +536,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Euryale | equipment24 | Euryale (gear) | "Card Effect" is passive or triggered: not automated |
 | Evasion | classes24 | Evasion (feature) | — |
 | Evasion | classes24 | Evasion (feature) | — |
-| Eversmoking Bottle | equipment24 | Eversmoking Bottle (gear), Eversmoking Bottle (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; area: 50 + @scaling * 10-ft radius is not supported; the user picks the targets |
+| Eversmoking Bottle | equipment24 | Eversmoking Bottle (gear), Eversmoking Bottle (manual) | not automated (utility): its area obscures; the rest of its description is by hand |
 | Evocation Savant | classes24 | Evocation Savant (feature) | — |
 | Evoker | classes24 | Evoker (subclass) | — |
 | Expeditious Retreat | spells24 | Expeditious Retreat (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
@@ -671,7 +671,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Giant Insect | spells24 | Giant Insect (manual) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; concentration: its caster concentrates; what it sustains is by hand |
 | Giant Insect | actors24 | Giant Insect (6 items) | — |
 | Giant Lizard | actors24 | Giant Lizard (3 items) | — |
-| Giant Octopus | actors24 | Giant Octopus (4 items) | Ink Cloud: not automated (utility): using it spends its cost; its description says the rest |
+| Giant Octopus | actors24 | Giant Octopus (4 items) | Ink Cloud: not automated (utility): its area obscures; the rest of its description is by hand |
 | Giant Owl | actors24 | Giant Owl (6 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: activation: 10 minute is not an action-economy cost |
 | Giant Rat | actors24 | Giant Rat (3 items) | — |
 | Giant Scorpion | actors24 | Giant Scorpion (4 items) | — |
@@ -1043,7 +1043,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Oathbow | equipment24 | Oathbow (Oathbow) (manual), Oathbow (Attack Sworn Enemy) (automated) | not automated (enchant): using it spends its cost; its description says the rest; "Swear Oath" is passive or triggered: not automated |
 | Obsidian Steed | equipment24 | Obsidian Steed (gear), Obsidian Steed (automated) | — |
 | Ochre Jelly | actors24 | Ochre Jelly (5 items) | Split: summon: what it gains with the spell's level (hp) is not added |
-| Octopus | actors24 | Octopus (5 items) | Ink Cloud: not automated (utility): using it spends its cost; its description says the rest |
+| Octopus | actors24 | Octopus (5 items) | Ink Cloud: not automated (utility): its area obscures; the rest of its description is by hand |
 | Ogre | actors24 | Ogre (3 items) | — |
 | Ogre Zombie | actors24 | Ogre Zombie (3 items) | — |
 | Oil | equipment24 | Oil (Throw) (automated), Oil (Douse Space) (automated) | rolled (save); what it does is by hand |

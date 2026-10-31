@@ -21,6 +21,44 @@
           }
         ]
       },
+      "targeting": {
+        "type": "area"
+      },
+      "range": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "area-scaling",
+          "type": "number",
+          "label": "Size step",
+          "required": true,
+          "min": 1,
+          "max": 7,
+          "effects": [
+            {
+              "type": "scaleArea",
+              "levelChoiceId": "area-scaling",
+              "baseLevel": 1,
+              "perLevel": 10
+            }
+          ]
+        }
+      ],
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 60,
+          "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 100
+          },
+          "obscures": "heavily"
+        }
+      },
       "label": "Eversmoking Bottle"
     },
     "ruleElements": []
@@ -40,8 +78,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "area: 50 + @scaling * 10-ft radius is not supported; the user picks the targets"
+          "not automated (utility): its area obscures; the rest of its description is by hand"
         ]
       },
       "price": 400,

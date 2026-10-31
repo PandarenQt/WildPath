@@ -292,7 +292,7 @@ test("an effect with its own changes becomes a custom effect with the rules they
     {minSelections: 1, maxSelections: 3}, "up to three creatures: one is enough");
 });
 
-test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneration become their rules", () => {
+test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneration become their rules", async () => {
   const trait = (id, name, activities={}, description="") => ({_id: `${id.replace(/-/g, "").slice(0, 12)}0000`, name, type: "feat",
     system: {source: SRD, identifier: id, activities, description: {value: description}}});
   const regenerating = description => trait("regeneration", "Regeneration", {a: activity("heal", {activation: {type: "special",
@@ -391,6 +391,22 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
   assert.deepEqual(fog.system.definition.configuration.find(choice => choice.id === "spell-slot").effects.at(-1),
     {type: "scaleArea", levelChoiceId: "spell-slot", baseLevel: 1, perLevel: 20});
   assert.deepEqual(fog.flags.wildpath.conversion.notes, []);
+  // An Eversmoking Bottle: an item's obscuring Emanation, its size a step its user picks (60 to 120 feet), lasting the 10
+  // minutes its text names; the rest of its text by hand.
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const [, bottle] = convertItem({_id: "dmgEversmokingBo", name: "Eversmoking Bottle", type: "equipment", system: {source: SRD,
+    identifier: "eversmoking-bottle", type: {value: "wondrous"}, description: {value: "<p>The area within the smoke is Heavily Obscured. "
+      + "Closing the bottle fixes the cloud until it disperses after 10 minutes.</p>"},
+    activities: {a: activity("utility", {name: "Open Bottle", consumption: {targets: [], scaling: {allowed: true, max: "7"}},
+      range: {units: "self"}, target: {override: true, template: {type: "radius", size: "50 + @scaling * 10", units: "ft"}, affects: {}}})}}}).items;
+  assert.deepEqual([bottle.system.definition.area.shape, bottle.system.definition.area.size.value, bottle.system.definition.area.persistence],
+    ["emanation", 60, {duration: {unit: "round", value: 100}, obscures: "heavily"}]);
+  assert.equal(validateActionDefinition(bottle.system.definition).ok, true);
+  const opened = resolveActionConfiguration({definition: bottle.system.definition, actorSystem: {resources: {action: {value: 1, max: 1}}},
+    choices: {"area-scaling": {value: 7}}});
+  assert.equal(opened.ok, true, JSON.stringify(opened.errors));
+  assert.equal(opened.configuration.effectiveDefinition.area.size.value, 120, "step 7: 60 + 6 x 10");
+  assert.match(bottle.flags.wildpath.conversion.notes.join(" "), /its area obscures; the rest of its description is by hand/u);
   // 2024 Stinking Cloud: its cloud obscures; its start-of-turn save (another activity) stays by hand, and says so.
   const cloud = convertItem({_id: "phbsplStinkingCl", name: "Stinking Cloud", type: "spell", system: {source: SRD, identifier: "stinking-cloud",
     level: 3, preparation: {mode: "prepared"}, properties: ["concentration"], activation: {type: "action"}, range: {value: "90", units: "ft"},

@@ -87,6 +87,27 @@
               }
             ]
           },
+          "targeting": {
+            "type": "area"
+          },
+          "range": {
+            "type": "self"
+          },
+          "configuration": [],
+          "area": {
+            "shape": "cube",
+            "size": {
+              "value": 5,
+              "unit": "ft"
+            },
+            "persistence": {
+              "duration": {
+                "unit": "round",
+                "value": 10
+              },
+              "obscures": "heavily"
+            }
+          },
           "label": "Ink Cloud"
         },
         "ruleElements": [
@@ -121,7 +142,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "not automated (utility): its area obscures; the rest of its description is by hand"
             ]
           }
         }
@@ -323,7 +344,7 @@
       },
       "conversion": {
         "notes": [
-          "Ink Cloud: not automated (utility): using it spends its cost; its description says the rest"
+          "Ink Cloud: not automated (utility): its area obscures; the rest of its description is by hand"
         ]
       }
     }

@@ -57,6 +57,10 @@ The Homebrew Builder's rule rows have "A sense" (a sense and its range) for writ
 `obscures: "heavily"` on its lasting area: Cloudkill, Incendiary Cloud and Sleet Storm beside their repeats (not Storm of
 Vengeance, whose area is obscured only from turn 5: areas have no stages); Fog Cloud and Stinking Cloud's cloud as an area of their own, Fog Cloud 20 feet wider per slot level above 1 (Stinking Cloud's
 save at the start of a turn stays by hand, noted).
+An item's or creature's utility area whose text says so too (2026-10-31): an Eversmoking Bottle's 60-foot Emanation,
+its size a step its user picks (dnd5e's `@scaling`: up to 120 feet), and an Octopus's Ink Cloud; with no duration of its
+own, the one its text names ("for 1 minute", "after 10 minutes"). The rest of their text (the bottle closing, the
+octopus swimming off) is by hand, noted.
 shortcut: what is behind fog (both creatures outside it, the fog between) stays seen, as with magical Darkness; Foundry's
 own vision is not blocked by the area, and Lightly Obscured (Web, Insect Plague) changes nothing, since sight-based
 Perception checks aren't automated. A strong wind dispersing it is by hand.

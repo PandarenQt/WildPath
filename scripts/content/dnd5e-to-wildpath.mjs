@@ -1268,8 +1268,18 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
     return value?.ok ? Number(value.value) : null;
   };
   const leveled = /@item\.level/.test(String(template.size ?? "")) && (sizeAt(level) > 0) && (sizeAt(level + 1) != null);
-  const size = number(template.size) ?? (leveled ? sizeAt(level) : null);
+  // One its user scales when using it (an Eversmoking Bottle's "50 + @scaling * 10": 60 to 120 feet): its size at a
+  // scaling of 1, and what each step adds (`areaScaling`, a number choice's scaleArea, scalingChoice).
+  const steps = activity.consumption?.scaling?.allowed ? (number(activity.consumption.scaling.max) || 0) : 0;
+  const scaledAt = step => {
+    const expression = formulaExpression(String(template.size ?? "").replaceAll("@scaling", String(step)), {scales});
+    const value = expression ? evaluateValueExpression(expression, {}) : null;
+    return value?.ok ? Number(value.value) : null;
+  };
+  const scaled = !leveled && (steps > 1) && /@scaling\b/.test(String(template.size ?? "")) && (scaledAt(1) > 0) && (scaledAt(2) != null);
+  const size = number(template.size) ?? (leveled ? sizeAt(level) : (scaled ? scaledAt(1) : null));
   const areaPerLevel = leveled ? sizeAt(level + 1) - size : 0;
+  const areaScaling = scaled ? {perStep: scaledAt(2) - size, steps} : null;
   const rangeUnits = pick(activity, system, "range").units ?? system.range?.units;
   if ( template.type ) {
     // A Cube (or a square) is a block of fields; a circle is radial, as a sphere is.
@@ -1282,7 +1292,8 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
       const height = (template.type === "circle") ? 0 : (["cylinder", "wall"].includes(template.type) ? number(template.height) : null);
       return {targeting: {type: "area"}, area: {shape, size: {value: length, unit: "ft"},
         ...(shape === "line" ? {width: {value: number(template.width) ?? 5, unit: "ft"}} : {}),
-        ...(height != null ? {height: {value: height, unit: "ft"}} : {})}, ...(areaPerLevel ? {areaPerLevel} : {})};
+        ...(height != null ? {height: {value: height, unit: "ft"}} : {})}, ...(areaPerLevel ? {areaPerLevel} : {}),
+        ...(areaScaling ? {areaScaling} : {})};
     }
     notes.push(`area: ${template.size}-ft ${template.type} is not supported; the user picks the targets`);
     return {targeting: {type: "multiple", required: true, count: 20, ...UP_TO}};
@@ -1603,7 +1614,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
     // A spell that fills its area with light (2024 Daylight's sunlight) is a lasting area shedding it.
-    const shedding = spell ? sheddingArea({document, activity, system, definition, scales}) : null;
+    // So does an item whose utility area is Heavily Obscured (an Eversmoking Bottle's smoke). shortcut: with no duration of
+    // its own it lasts until removed; the bottle's growth each minute is its size step, and closing it is by hand.
+    const shedding = sheddingArea({document, activity, system, definition, scales, spell: Boolean(spell)});
     if ( shedding ) {
       definition = {...definition, ...shedding.definition};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated") && !note.startsWith("concentration: nothing")),
@@ -2808,23 +2821,35 @@ function obscuredFromCast(document) {
  * is Heavily Obscured (2024 Fog Cloud: "The Sphere is Heavily Obscured"), its radius growing with a higher slot. Null when
  * the spell is neither or has no area.
  */
-function sheddingArea({document, activity, system, definition, scales={}}) {
-  const light = SHEDS_LIGHT[system.identifier];
+function sheddingArea({document, activity, system, definition, scales={}, spell=true}) {
+  const light = spell ? SHEDS_LIGHT[system.identifier] : null;
   const obscures = !light && (activity.type === "utility") && obscuredFromCast(document);
-  const level = Number(system.level) || 0;
-  const {targeting, area, areaPerLevel=0} = (light || obscures) ? targetingOf({activity, system, notes: [], level, scales}) : {};
+  const level = spell ? (Number(system.level) || 0) : 0;
+  const {targeting, area, areaPerLevel=0, areaScaling=null} = (light || obscures) ? targetingOf({activity, system, notes: [], level, scales}) : {};
   if ( targeting?.type !== "area" ) return null;
-  const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
-  const configuration = (definition.configuration ?? []).map(choice => ((areaPerLevel && (choice.id === "spell-slot"))
-    ? {...choice, effects: [...(choice.effects ?? []), ...levelScaling("spell-slot", level, [], {areaPerLevel})]} : choice));
+  // An item's or creature's with no duration of its own, its text's (an Ink Cloud's "Heavily Obscured for 1 minute", an
+  // Eversmoking Bottle's "disperses after 10 minutes").
+  const written = spell ? null : /\b(?:for|after) (\d+) (minute|hour)s?\b/iu.exec(plainText(document));
+  const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0)
+    || (written ? Number(written[1]) * ROUNDS[written[2].toLowerCase()] : 0);
+  const configuration = [...(definition.configuration ?? []).filter(choice => choice.id !== "area-scaling")
+    .map(choice => ((areaPerLevel && (choice.id === "spell-slot"))
+      ? {...choice, effects: [...(choice.effects ?? []), ...levelScaling("spell-slot", level, [], {areaPerLevel})]} : choice)),
+  ...(areaScaling ? [scalingChoice(areaScaling)] : [])];
   return {definition: {targeting, range: rangeOf({activity, system, document, attack: null}),
     configuration: light ? [...configuration, {...ON_OBJECT}] : configuration,
     area: {...area, persistence: {
       ...(rounds ? {duration: {unit: "round", value: rounds}} : {}), ...((system.properties ?? []).includes("concentration") ? {concentration: true} : {}),
       ...(light ? {light: {...light(area.size.value), spellLevel: level}, onObject: ON_OBJECT.id} : {obscures: "heavily"})}}},
     // Its fog is its area; what else the spell does (Stinking Cloud's start-of-turn save) stays by hand.
-    notes: (!light && (Object.keys(system.activities ?? {}).length > 1))
+    notes: (!light && (!spell || (Object.keys(system.activities ?? {}).length > 1)))
       ? ["not automated (utility): its area obscures; the rest of its description is by hand"] : []};
+}
+
+/** A number choice of how far its user scales an area (1 to `steps`), each step past the first `perStep` feet larger. */
+function scalingChoice({perStep, steps}) {
+  return {id: "area-scaling", type: "number", label: "Size step", required: true, min: 1, max: steps,
+    effects: [{type: "scaleArea", levelChoiceId: "area-scaling", baseLevel: 1, perLevel: perStep}]};
 }
 
 /** "A creature also makes this save when it enters the spell's area or ends its turn there": an area's repeat. */
@@ -4105,8 +4130,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
   if ( range ) definition.range = range;
   // A melee attack hits one creature: a template on it is something else's (a Torch's 40-foot light).
   const aimed = (attack?.type === "melee") ? {...activity, target: {...(activity.target ?? {}), template: {}, override: true}} : activity;
-  const {perLevel=0, areaPerLevel=0, ...targets} = targetingOf({activity: aimed, system, notes, level, scales});
+  const {perLevel=0, areaPerLevel=0, areaScaling=null, ...targets} = targetingOf({activity: aimed, system, notes, level, scales});
   Object.assign(definition, targets);
+  if ( areaScaling ) definition.configuration = [...(definition.configuration ?? []), scalingChoice(areaScaling)];
   // A melee attack dnd5e leaves at "self" (a Torch's) is one creature within its reach.
   if ( (attack?.type === "melee") && (definition.targeting?.type === "self") ) Object.assign(definition,
     {range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1}});
