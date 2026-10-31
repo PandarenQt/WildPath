@@ -1,0 +1,177 @@
+{
+  "_id": "7z3faaj3zyrk0000",
+  "_key": "!items!7z3faaj3zyrk0000",
+  "name": "Defensive Tactics (Choose)",
+  "type": "action",
+  "img": "icons/skills/melee/shield-block-gray-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-defensive-tactics",
+      "label": "Defensive Tactics (Choose)",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "defensive-tactics",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "escape-the-horde",
+          "type": "effect",
+          "name": "Defensive Tactics (Escape the Horde)",
+          "slug": "defensive-tactics",
+          "img": "icons/skills/melee/shield-block-gray-yellow.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "escape-the-horde",
+              "type": "RollMode",
+              "predicate": {
+                "equals": {
+                  "path": "attack.opportunity",
+                  "value": true
+                }
+              },
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ]
+        },
+        {
+          "id": "multiattack-defense",
+          "type": "effect",
+          "name": "Defensive Tactics (Multiattack Defense)",
+          "slug": "defensive-tactics",
+          "img": "icons/skills/melee/shield-block-gray-yellow.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "multiattack-defense",
+              "type": "Trigger",
+              "data": {
+                "kind": "reaction",
+                "event": "attack.hit",
+                "match": {
+                  "phase": "interrupt",
+                  "targetTokenId": "{self}"
+                },
+                "policy": "always",
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-multiattack-defense",
+                  "label": "Multiattack Defense",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "range": {
+                    "type": "special"
+                  },
+                  "targeting": {
+                    "type": "single",
+                    "required": true,
+                    "count": 1
+                  },
+                  "effects": [
+                    {
+                      "id": "effect-1",
+                      "type": "effect",
+                      "name": "Multiattack Defense",
+                      "slug": "multiattack-defended",
+                      "duration": {
+                        "value": 0,
+                        "units": "turns",
+                        "expiry": "turnEnd"
+                      },
+                      "ruleElements": [
+                        {
+                          "schemaVersion": 1,
+                          "id": "multiattack-defended",
+                          "type": "RollMode",
+                          "predicate": {
+                            "equals": {
+                              "path": "attack.fromTarget.multiattack-defended",
+                              "value": true
+                            }
+                          },
+                          "data": {
+                            "domains": [
+                              "attack"
+                            ],
+                            "mode": "disadvantage"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "configuration": [
+        {
+          "id": "tactic",
+          "type": "select-one",
+          "label": "Tactic",
+          "required": true,
+          "options": [
+            {
+              "id": "escape-the-horde",
+              "label": "Escape the Horde",
+              "value": "escape-the-horde"
+            },
+            {
+              "id": "multiattack-defense",
+              "label": "Multiattack Defense",
+              "value": "multiattack-defense"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "escape-the-horde",
+                "multiattack-defense"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbrgrDefensiveT",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "defensive-tactics",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

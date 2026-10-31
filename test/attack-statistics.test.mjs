@@ -356,3 +356,24 @@ test("Eldritch Spear: a damaging cantrip reaches 30 feet farther per warlock lev
   assert.equal(read(cantrip(["spell", "cantrip"], {type: "ranged", normal: {value: 120, unit: "ft"}}), warlock()).normal.value, 120, "no damage");
   assert.equal(read(cantrip(["spell", "cantrip", "damage:lightning"], {type: "touch", distance: {value: 5, unit: "ft"}}), warlock()).type, "touch");
 });
+
+test("Defensive Tactics: Escape the Horde gives Opportunity Attacks against it Disadvantage; Multiattack Defense marks its attacker", async () => {
+  const fs = await import("node:fs");
+  const {attackRollMode} = await import("../module/helpers/combat-statistics.mjs");
+  const choose = JSON.parse(fs.readFileSync("packs/_source/srd-items/defensive-tactics-choose-7z3faaj3zyrk0000.json", "utf8")).system.definition;
+  assert.deepEqual([choose.costs.allOf, choose.configuration[0].options.map(option => option.value), choose.effects.map(effect => effect.slug)],
+    [[{capability: "defensive-tactics", amount: 1}], ["escape-the-horde", "multiattack-defense"], ["defensive-tactics", "defensive-tactics"]]);
+  const creature = (id, rules=[]) => Object.assign(Object.create(WildPathActor.prototype), {id, uuid: `Actor.${id}`, effects: [],
+    statuses: new Set(), flags: {}, system: {}, allApplicableEffects: () => [],
+    items: [{id: "rules", uuid: `Actor.${id}.Item.rules`, type: "feature", system: {active: true, modifiers: [], ruleElements: rules}}]});
+  const ranger = creature("ranger", choose.effects[0].ruleElements);
+  const orc = creature("orc");
+  assert.deepEqual([attackRollMode(orc, ranger, {type: "melee", context: {attack: {type: "melee", opportunity: true}}}),
+    attackRollMode(orc, ranger, {type: "melee", context: {attack: {type: "melee"}}})], ["disadvantage", "normal"]);
+  // Multiattack Defense: its reaction marks the attacker; the mark gives Disadvantage on its attacks against the ranger only.
+  const [trigger] = choose.effects[1].ruleElements;
+  assert.deepEqual([trigger.data.event, trigger.data.match.targetTokenId, trigger.data.action.targeting.type], ["attack.hit", "{self}", "single"]);
+  const marked = creature("orc2", trigger.data.action.effects[0].ruleElements);
+  assert.deepEqual([attackRollMode(marked, ranger, {type: "melee", context: {attack: {type: "melee", fromTarget: {"multiattack-defended": true}}}}),
+    attackRollMode(marked, orc, {type: "melee", context: {attack: {type: "melee", fromTarget: {}}}})], ["disadvantage", "normal"]);
+});

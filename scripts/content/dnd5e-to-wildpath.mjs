@@ -833,6 +833,38 @@ function fiendishResilienceAction(document, img, source) {
   ruleElements: []}, flags: {wildpath: {source, conversion: {notes: []}}}};
 }
 
+/**
+ * 2024 Defensive Tactics (Hunter 7): one of two options, which a Short or Long Rest lets it change (its pool), as Fiendish
+ * Resilience's types. Escape the Horde: Opportunity Attacks against it have Disadvantage (`attack.opportunity`, the
+ * reaction's). Multiattack Defense: "When a creature hits you with an attack roll, that creature has Disadvantage on all
+ * other attack rolls against you this turn": a free reaction marking the attacker (`attack.fromTarget`, Bestow Curse's
+ * pattern).
+ */
+function defensiveTacticsAction(document, img, source) {
+  const id = stableId(`${document._id}:choose`);
+  const name = `${document.name} (Choose)`;
+  const rule = (ruleId, predicate, domains) => ({schemaVersion: 1, id: ruleId, type: "RollMode", predicate, data: {domains, mode: "disadvantage"}});
+  const defended = {id: "effect-1", type: "effect", name: "Multiattack Defense", slug: "multiattack-defended",
+    duration: {value: 0, units: "turns", expiry: "turnEnd"},
+    ruleElements: [rule("multiattack-defended", {equals: {path: "attack.fromTarget.multiattack-defended", value: true}}, ["attack"])]};
+  const options = [
+    {id: "escape-the-horde", label: "Escape the Horde",
+      ruleElements: [rule("escape-the-horde", {equals: {path: "attack.opportunity", value: true}}, ["attacked"])]},
+    {id: "multiattack-defense", label: "Multiattack Defense", ruleElements: [{schemaVersion: 1, id: "multiattack-defense", type: "Trigger",
+      data: {kind: "reaction", event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}"}, policy: "always",
+        action: {schemaVersion: 1, id: "action:srd-multiattack-defense", label: "Multiattack Defense", costs: {allOf: []},
+          range: {type: "special"}, targeting: {type: "single", required: true, count: 1}, effects: [defended]}}}]}];
+  return {_id: id, _key: `!items!${id}`, name, type: "action", img, system: {active: true, description: "", definition: {schemaVersion: 1,
+    id: "action:srd-defensive-tactics", label: name, costs: {allOf: [{capability: "defensive-tactics", amount: 1}]},
+    range: {type: "self"}, targeting: {type: "self"},
+    effects: options.map(option => ({id: option.id, type: "effect", name: `${document.name} (${option.label})`, slug: "defensive-tactics", img,
+      ruleElements: option.ruleElements})),
+    configuration: [{id: "tactic", type: "select-one", label: "Tactic", required: true,
+      options: options.map(option => ({id: option.id, label: option.label, value: option.id})),
+      effects: [{type: "keepEffect", effectIds: options.map(option => option.id)}]}]},
+  ruleElements: []}, flags: {wildpath: {source, conversion: {notes: []}}}};
+}
+
 /** A drop-to-0 rule (`health.zero`) on its feature, standing for its activities (their saves and heals). */
 function zeroHpTrait(activities, zeroHp) {
   return {rules: [{schemaVersion: 1, id: "zero-hp", type: "Trigger", data: {kind: "zero-hp", event: "health.zero", zeroHp}}],
@@ -1354,7 +1386,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Bite) is that condition's effect's own (turnStartDamageEffects), not an Action.
     if ( turnStartDamage(document, activity) ) continue;
     // Brutal Strike's Actions are its own (brutalStrikeActions), not its dnd5e damage activity.
-    if ( ["brutal-strike", "improved-brutal-strike", "elemental-affinity"].includes(identifierOf(document)) ) continue;
+    if ( ["brutal-strike", "improved-brutal-strike", "elemental-affinity", "defensive-tactics"].includes(identifierOf(document)) ) continue;
     // A choice it adds to another feature's Action (Restoring Touch on Lay on Hands) is its flag, not an Action.
     if ( CHOICES_FOR[identifierOf(document)] ) continue;
     // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use): used, though dnd5e may leave it passive.
@@ -1761,6 +1793,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       const choose = fiendishResilienceAction(document, img, source);
       items[0].system.ruleElements.push({schemaVersion: 1, id: "fiendish-resilience-uses", type: "GrantResource",
         data: {resourceId: "fiendish-resilience", label: "Fiendish Resilience", maximum: 1, recovery: "shortRest"}});
+      items[0].flags.wildpath.grants = [choose._id];
+      items.push(choose);
+    }
+    // Defensive Tactics too: one of its two options, changed on a rest.
+    if ( identifierOf(document) === "defensive-tactics" ) {
+      const choose = defensiveTacticsAction(document, img, source);
+      items[0].system.ruleElements.push({schemaVersion: 1, id: "defensive-tactics-uses", type: "GrantResource",
+        data: {resourceId: "defensive-tactics", label: "Defensive Tactics", maximum: 1, recovery: "shortRest"}});
       items[0].flags.wildpath.grants = [choose._id];
       items.push(choose);
     }

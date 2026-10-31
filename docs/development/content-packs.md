@@ -398,6 +398,10 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - Heightened Focus (2026-10-31): Flurry's third strike is the Flurry pool's level-10 row; Patient Defense with a Focus
     Point gives Temporary Hit Points of two Martial Arts dice from monk level 10 (a class-level table, 0 below).
   - Scimitar of Speed (2026-10-31): dnd5e's "Action or Bonus Action" attack is two Actions, one per cost.
+  - Defensive Tactics (2026-10-31, Hunter 7): a "(Choose)" Action like Fiendish Resilience's, once per Short or Long Rest.
+    Escape the Horde gives Opportunity Attacks against it Disadvantage (a reaction answering a move sets
+    `attack.opportunity`); Multiattack Defense is a free reaction to a hit that marks the attacker, whose other attacks
+    against it this turn have Disadvantage (`attack.fromTarget.multiattack-defended`).
   - The paladin auras' and Martial Arts' dnd5e activities are their converted rules, not "passive" notes.
   - Indomitable: a fighter's own failed save may be rerolled with a bonus of its fighter level, from its pool, offered
     with Heroic Inspiration (`withIndomitable`); a reroll option may carry a `bonus`.

@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 986 automated, 237 manual, 225 features. Creatures: 375.
+Items: 987 automated, 237 manual, 225 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -389,7 +389,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Deer | actors24 | Deer (3 items) | — |
 | Defender | equipment24 | Defender (automated) | — |
 | Defense | feats24 | Defense (feature) | — |
-| Defensive Tactics | classes24 | Defensive Tactics (feature) | "Multiattack Defense" is passive or triggered: not automated |
+| Defensive Tactics | classes24 | Defensive Tactics (feature), Defensive Tactics (Choose) (automated) | — |
 | Deflect Attacks | classes24 | Deflect Attacks (Reduce) (automated) | "Redirect" is passive or triggered: not automated |
 | Deflect Energy | classes24 | Deflect Energy (Reduce) (automated) | "Redirect" is passive or triggered: not automated |
 | Deft Explorer | classes24 | Deft Explorer (feature) | — |

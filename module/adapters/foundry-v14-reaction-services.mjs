@@ -71,7 +71,9 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
             fromTarget: conditionsFrom(reactor.actor, actor),
             fromAttacker: conditionsFrom(actor, reactor.actor),
             allyNearTarget: allyNearTarget(reactor, target, targetFootprint.footprint ?? null),
-            helpedByAlly: helpedByAlly(reactor, actor) },
+            helpedByAlly: helpedByAlly(reactor, actor),
+            // An attack answering a creature's move is an Opportunity Attack (2024 Escape the Horde gives it Disadvantage).
+            opportunity: (args.baseChildState.sourceEvent ?? args.candidate.event)?.type === PROPOSED_EVENT },
         ...sunlightContext(reactor), ...fearContext(reactor) };
     const rollMode = definition.attack ? attackRollMode(reactor.actor, actor, { type, item: reactionItem, ability: attackAbility(reactor.actor, definition.attack),
         context }) : null;
