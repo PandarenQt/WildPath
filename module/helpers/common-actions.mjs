@@ -67,7 +67,7 @@ const COMMON = {
     shove: { name: "WILDPATH.COMMON.Shove", img: "icons/svg/falling.svg", definition: { costs: ACTION, ...strikeSave({ conditionId: "prone" }) } },
     push: { name: "WILDPATH.COMMON.Push", img: "icons/svg/thrust.svg", definition: { costs: ACTION, ...GRAB,
             save: STRIKE_SAVE, push: { distance: 5 } } },
-    unarmed: { name: "WILDPATH.COMMON.UnarmedStrike", img: "icons/svg/combat.svg", definition: { costs: ACTION, ...TOUCH,
+    unarmed: { name: "WILDPATH.COMMON.UnarmedStrike", img: "icons/svg/combat.svg", definition: { costs: ACTION, ...TOUCH, tags: ["unarmed"],
             attack: { type: "melee", statistic: "weapon", defenseKey: "ac", proficient: true },
             damage: [{ id: "unarmed", expression: { type: "constant", value: 1 }, damageType: "bludgeoning", provenance: "weapon-base" }] } },
     // 2024 Search, Study and Influence: the Action, then a check of one of its skills, which the GM judges (no DC).

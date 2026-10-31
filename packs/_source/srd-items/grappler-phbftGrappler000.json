@@ -7,7 +7,45 @@
   "system": {
     "active": true,
     "description": "<p>You gain the following benefits.</p><p><strong>Ability Score Increase.</strong> Increase your Strength or Dexterity score by 1, to a maximum of 20.</p><p><strong>Punch and Grab.</strong> When you hit a creature with an Unarmed Strike as part of the Attack action on your turn, you can use both the Damage and the Grapple option. You can use this benefit only once per turn.</p><p><strong>Attack Advantage.</strong> You have Advantage on attack rolls against a creature Grappled by you.</p><p><strong>Fast Wrestler.</strong> You don't have to spend extra movement to move a creature by you if the creature is your size or smaller.</p><section class=\"secret\" id=\"secret-LAjjGo55LPacAy8v\"><p><strong>Foundry Note</strong></p><p>The Advantage is not automated.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "grappler-advantage",
+        "type": "RollMode",
+        "predicate": {
+          "equals": {
+            "path": "attack.fromAttacker.grappled",
+            "value": true
+          }
+        },
+        "data": {
+          "domains": [
+            "attack"
+          ],
+          "mode": "advantage"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "punch-and-grab",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": [
+              "unarmed"
+            ]
+          },
+          "commonAction": "grapple",
+          "free": true,
+          "once": "turn",
+          "onceKey": "punch-and-grab"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -24,9 +62,7 @@
         "feat": "general"
       },
       "conversion": {
-        "notes": [
-          "silent: its text names a rule that is not converted (by hand)"
-        ]
+        "notes": []
       },
       "prerequisites": {
         "level": 4,

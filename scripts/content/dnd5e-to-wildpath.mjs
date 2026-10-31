@@ -2202,6 +2202,15 @@ const TRAITS = Object.freeze({
   "precise-hunter": () => ({rules: [{schemaVersion: 1, id: "precise-hunter", type: "RollMode",
     predicate: {equals: {path: "attack.fromAttacker.hunters-mark", value: true}}, data: {domains: ["attack"], mode: "advantage"}}],
     notes: []}),
+  // 2024 Grappler. Attack Advantage: against a creature it Grappled (`attack.fromAttacker.grappled`). Punch and Grab: once
+  // a turn, its Unarmed Strike's hit may also Grapple, free. shortcut: any of its Unarmed Strike hits qualifies, not only
+  // one of the Attack action's. Fast Wrestler needs nothing: moving a Grappled creature costs no extra movement here.
+  grappler: () => ({rules: [
+    {schemaVersion: 1, id: "grappler-advantage", type: "RollMode", predicate: {equals: {path: "attack.fromAttacker.grappled", value: true}},
+      data: {domains: ["attack"], mode: "advantage"}},
+    {schemaVersion: 1, id: "punch-and-grab", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["unarmed"]}, commonAction: "grapple", free: true,
+      once: "turn", onceKey: "punch-and-grab"}}], notes: []}),
   // 2024 Mindless Rage: Immunity to Charmed and Frightened while raging. One it already has is suppressed while the Rage
   // lasts, as under Aura of Courage. shortcut: that condition returns when the Rage ends instead of ending; upgrade when
   // entering a Rage can end conditions.

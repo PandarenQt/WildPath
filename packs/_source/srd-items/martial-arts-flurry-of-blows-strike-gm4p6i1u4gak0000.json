@@ -31,6 +31,9 @@
         "required": true,
         "count": 1
       },
+      "tags": [
+        "flurry"
+      ],
       "attack": {
         "type": "melee",
         "statistic": "weapon",
@@ -75,9 +78,6 @@
           "damageType": "bludgeoning",
           "provenance": "weapon-base"
         }
-      ],
-      "tags": [
-        "flurry"
       ]
     },
     "ruleElements": [

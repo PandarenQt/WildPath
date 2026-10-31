@@ -715,7 +715,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Goliath | origins24 | Goliath (species) | — |
 | Goodberry | spells24 | Goodberry (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Gorgon | actors24 | Gorgon (4 items) | — |
-| Grappler | feats24 | Grappler (feature) | silent: its text names a rule that is not converted (by hand) |
+| Grappler | feats24 | Grappler (feature) | — |
 | Grappling Hook | equipment24 | Grappling Hook (gear), Grappling Hook (automated) | — |
 | Gray Bag of Tricks | equipment24 | Gray Bag of Tricks (gear), Gray Bag of Tricks (automated) | — |
 | Gray Ooze | actors24 | Gray Ooze (4 items) | — |

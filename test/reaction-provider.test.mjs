@@ -251,3 +251,15 @@ test("each reactor's relation to an event's source: hostile, how far, and whethe
   const services = createFoundryReactionProvider({resolve: () => null})({scene, token: scene.tokens[0]});
   assert.equal(typeof services.reactions?.context, "function", "each event's predicates see them (toSource)");
 });
+
+test("Grappler's Punch and Grab: its own Unarmed Strike's hit offers the common Grapple, free, once a turn", () => {
+  const grappler = {id: "grappler", name: "Grappler", type: "feature", system: {active: true, ruleElements: [{schemaVersion: 1, id: "punch-and-grab",
+    type: "Trigger", data: {kind: "reaction", event: "attack.hit", match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["unarmed"]},
+      commonAction: "grapple", free: true, once: "turn", onceKey: "punch-and-grab"}}]}};
+  const wrestler = token("wrestler", 1, [grappler]);
+  const services = createFoundryReactionProvider({resolve: () => null})({scene: {grid: {distance: 5}, tokens: [wrestler]}, token: wrestler});
+  const [trigger] = services.reactions.triggers.filter(entry => entry.id.includes("punch-and-grab"));
+  assert.equal(trigger.reaction.action.id, "common:grapple");
+  assert.deepEqual(trigger.reaction.action.costs.allOf, [], "it costs no Action: it comes with the hit");
+  assert.match(JSON.stringify(trigger), /"tagsAll":\["unarmed"\]/u, "only on an Unarmed Strike's hit");
+});

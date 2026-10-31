@@ -194,6 +194,9 @@ function tokenReactions(token: TokenLike) {
       if ( data.commonAction ) definition.definition = {...definition.definition,
         label: String((actionItem as {name?: string}).name ?? "")
           .replace(localize("WILDPATH.COMMON.OpportunityAttack"), String((item as {name?: string}).name ?? ""))};
+      // A common Action a feature gives as part of something else costs nothing of its own (Grappler's Punch and Grab: the
+      // Grapple a hit brings, beside its damage).
+      if ( data.commonAction && data.free ) definition.definition = {...definition.definition, costs: {allOf: []}};
       // A reaction set to "Never" is not offered; one set to "Always" is used without asking (its Item's setting).
       const policy = policyOf(data.commonAction ? item : actionItem!);
       if ( policy === "never" ) return [];
