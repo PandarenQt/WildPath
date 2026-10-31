@@ -1460,7 +1460,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
     // A spell that fills its area with light (2024 Daylight's sunlight) is a lasting area shedding it.
-    const shedding = spell ? sheddingArea({document, activity, system, definition}) : null;
+    const shedding = spell ? sheddingArea({document, activity, system, definition, scales}) : null;
     if ( shedding ) {
       definition = {...definition, ...shedding.definition};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated") && !note.startsWith("concentration: nothing")),
@@ -2423,18 +2423,44 @@ const SHEDS_LIGHT = Object.freeze({
 const ON_OBJECT = Object.freeze({id: "on-object", type: "boolean", label: "Cast on an object (the Token at its center)", required: false});
 const ROUNDS = Object.freeze({round: 1, minute: 10, hour: 600});
 
-/** A light-shedding spell's lasting area, for its duration; null when the spell is not one or has no area. */
-function sheddingArea({document, activity, system, definition}) {
+/**
+ * "The Sphere is Heavily Obscured", "the area is Difficult Terrain and Heavily Obscured" (2024; dnd5e writes
+ * `&Reference[heavilyobscured]`): the area itself. Not fog somewhere in it (Guards and Wards: "corridors, making them").
+ */
+const HEAVILY_OBSCURED = /\b(?:is|are)\b[^.]{0,60}?\bheavily ?obscured\b/iu;
+
+/**
+ * Whether its area is Heavily Obscured from the moment it is made: not when the text says so only for later turns (Storm
+ * of Vengeance's "Turns 5-10"). shortcut: an area has no stages; upgrade when lasting areas gain per-round stages.
+ */
+function obscuredFromCast(document) {
+  const text = plainText(document);
+  const match = HEAVILY_OBSCURED.exec(text);
+  return Boolean(match) && !/\bTurns? \d/u.test(text.slice(0, match.index));
+}
+
+/**
+ * A spell whose area is all it makes, for its duration: one that sheds light (SHEDS_LIGHT), or a utility spell whose area
+ * is Heavily Obscured (2024 Fog Cloud: "The Sphere is Heavily Obscured"), its radius growing with a higher slot. Null when
+ * the spell is neither or has no area.
+ */
+function sheddingArea({document, activity, system, definition, scales={}}) {
   const light = SHEDS_LIGHT[system.identifier];
-  const {targeting, area} = light ? targetingOf({activity, system, notes: []}) : {};
+  const obscures = !light && (activity.type === "utility") && obscuredFromCast(document);
+  const level = Number(system.level) || 0;
+  const {targeting, area, areaPerLevel=0} = (light || obscures) ? targetingOf({activity, system, notes: [], level, scales}) : {};
   if ( targeting?.type !== "area" ) return null;
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
+  const configuration = (definition.configuration ?? []).map(choice => ((areaPerLevel && (choice.id === "spell-slot"))
+    ? {...choice, effects: [...(choice.effects ?? []), ...levelScaling("spell-slot", level, [], {areaPerLevel})]} : choice));
   return {definition: {targeting, range: rangeOf({activity, system, document, attack: null}),
-    configuration: [...(definition.configuration ?? []), {...ON_OBJECT}],
+    configuration: light ? [...configuration, {...ON_OBJECT}] : configuration,
     area: {...area, persistence: {
       ...(rounds ? {duration: {unit: "round", value: rounds}} : {}), ...((system.properties ?? []).includes("concentration") ? {concentration: true} : {}),
-      light: {...light(area.size.value), spellLevel: Number(system.level) || 0}, onObject: ON_OBJECT.id}}},
-    notes: []};
+      ...(light ? {light: {...light(area.size.value), spellLevel: level}, onObject: ON_OBJECT.id} : {obscures: "heavily"})}}},
+    // Its fog is its area; what else the spell does (Stinking Cloud's start-of-turn save) stays by hand.
+    notes: (!light && (Object.keys(system.activities ?? {}).length > 1))
+      ? ["not automated (utility): its area obscures; the rest of its description is by hand"] : []};
 }
 
 /** "A creature also makes this save when it enters the spell's area or ends its turn there": an area's repeat. */
@@ -2454,6 +2480,8 @@ export function lastingArea({document, system, definition, activity=null}) {
   if ( (definition.targeting?.type !== "area") || !definition.area || definition.area.persistence ) return null;
   // An area that is Difficult Terrain lasts for that alone (Spike Growth, Entangle).
   const terrain = difficultTerrainOf(document, activity);
+  // One that is Heavily Obscured (Cloudkill, Sleet Storm) hides those in it while it lasts.
+  const obscures = obscuredFromCast(document);
   if ( !(definition.damage?.length || definition.effects?.length || terrain) ) return null;
   const wording = LASTING_WORDING.exec(plainText(document));
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
@@ -2474,7 +2502,7 @@ export function lastingArea({document, system, definition, activity=null}) {
     // caster's side is spared. shortcut: the designated creatures are always the caster's allies.
     ...((/\benem(?:y|ies)\b/iu.test(wording?.[0] ?? "") || /designate creatures to be unaffected/iu.test(plainText(document)))
       ? {affects: "enemies"} : {}),
-    ...(terrain ? {difficultTerrain: terrain} : {}),
+    ...(terrain ? {difficultTerrain: terrain} : {}), ...(obscures ? {obscures: "heavily"} : {}),
     triggers: wording ? [{on: ["area.entered", wording[1].toLowerCase() === "starts" ? "turn.started" : "turn.ended"], action}] : []}}};
 }
 

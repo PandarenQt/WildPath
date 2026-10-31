@@ -7,6 +7,7 @@
  */
 import { obscured, onGround, perceives } from "../helpers/senses.mjs";
 import { lightAt } from "./foundry-v14-sunlight.mjs";
+import { heavilyObscuredAt } from "./foundry-v14-persistent-areas.mjs";
 /** Its creature's senses applied to a Token's prepared sight and detection modes (before Foundry fills the rest). */
 export function applySensesToToken(token) {
     const senses = token.actor?.system?.senses;
@@ -52,8 +53,10 @@ export function registerDarknessSight(config) {
  * Invisible in Darkness is still one source of Disadvantage. `distance` in feet.
  */
 export function attackSight({ attacker, target, attackerToken = null, targetToken = null, distance = null }) {
-    const attackerLight = lightAt(attackerToken);
-    const targetLight = lightAt(targetToken);
+    // Fog hides more than any darkness (Truesight doesn't pierce it), so a Heavily Obscured area wins over its light.
+    const at = (token) => (heavilyObscuredAt(token) ? "heavilyObscured" : lightAt(token));
+    const attackerLight = at(attackerToken);
+    const targetLight = at(targetToken);
     const perceivesTarget = perceives(attacker, target, { distance, grounded: onGround(targetToken) });
     const perceivedByTarget = perceives(target, attacker, { distance, grounded: onGround(attackerToken) });
     const targetHidden = perceivesTarget && obscured(attacker, { distance, grounded: onGround(targetToken), observerLight: attackerLight,

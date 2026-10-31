@@ -41,7 +41,7 @@ export interface AreaFlag {
   topology: string; fields: Field[]; shape: string; size: number; attached: boolean;
   band: {bottom: number | null; top: number | null};
   persistence: {oncePerTurn: boolean; concentration: boolean; duration: {unit: string; value: number} | null; triggers: Trigger[];
-    light?: AreaLight | null; affects?: "enemies" | null};
+    light?: AreaLight | null; affects?: "enemies" | null; obscures?: "heavily" | null};
   /** Its space is Difficult Terrain (Web, Spike Growth), of these kinds (`web`, `ice`): its Region's movement cost. */
   difficultTerrain?: {types: string[]} | null;
   createdAt: {combatId: string; round: number; turn: number | null} | null;
@@ -89,7 +89,7 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
   const area = definition.area ?? {};
   const persistence = (area.persistence ?? {}) as {oncePerTurn?: boolean; concentration?: boolean;
     duration?: {unit: string; value: number}; elevation?: {bottom?: number | null; top?: number | null}; triggers?: Trigger[];
-    light?: AreaLight; affects?: string; difficultTerrain?: {types?: string[]}};
+    light?: AreaLight; affects?: string; difficultTerrain?: {types?: string[]}; obscures?: string};
   const scene = sourceToken.parent;
   // Bands are authored relative to the floor of the caster's Level; a missing bound is open.
   const floor = Number(scene.levels?.get(String(sourceToken.level))?.elevation?.bottom) || 0;
@@ -105,7 +105,8 @@ export function persistentAreaRegionData({placement, sourceToken, combat, color}
     size: Number(area.size?.value) || 0, attached, band,
     persistence: {oncePerTurn: persistence.oncePerTurn !== false, concentration: persistence.concentration === true,
       duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
-      ...(persistence.affects === "enemies" ? {affects: "enemies" as const} : {})},
+      ...(persistence.affects === "enemies" ? {affects: "enemies" as const} : {}),
+      ...(persistence.obscures === "heavily" ? {obscures: "heavily" as const} : {})},
     createdAt: combat ? {combatId: combat.id, round: combat.round, turn: combat.turn} : null,
     applied: {},
     ...(persistence.difficultTerrain ? {difficultTerrain: {types: [...(persistence.difficultTerrain.types ?? [])]}} : {})
@@ -171,6 +172,12 @@ function tokenAt(scene: AreaScene, point: {x: number; y: number} | null) {
     const [x, y] = [Number(token.x) || 0, Number(token.y) || 0];
     return (point.x >= x) && (point.x < x + ((Number(token.width) || 1) * size)) && (point.y >= y) && (point.y < y + ((Number(token.height) || 1) * size));
   }) ?? null;
+}
+
+/** Whether a Token stands in a Heavily Obscured lasting area (Fog Cloud, Cloudkill): no sight sees it, or out. */
+export function heavilyObscuredAt(token: AreaToken | null | undefined) {
+  return Boolean(token?.parent) && sceneAreas(token!.parent).some(({flag}) => (flag.persistence?.obscures === "heavily")
+    && areaCovers(flag, token!));
 }
 
 export function sceneAreas(scene: AreaScene) {

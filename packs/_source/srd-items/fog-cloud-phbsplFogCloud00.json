@@ -99,13 +99,39 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleArea",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 1,
+              "perLevel": 20
+            }
+          ]
         }
       ],
-      "concentration": {
-        "duration": {
-          "value": 1,
-          "units": "hours"
+      "targeting": {
+        "type": "area"
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 120,
+          "unit": "ft"
+        }
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 20,
+          "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 600
+          },
+          "concentration": true,
+          "obscures": "heavily"
         }
       },
       "metadata": {
@@ -136,10 +162,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: its caster concentrates; what it sustains is by hand"
-        ]
+        "notes": []
       }
     }
   }

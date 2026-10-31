@@ -357,10 +357,29 @@
               }
             ]
           },
-          "concentration": {
-            "duration": {
-              "value": 1,
-              "units": "hours"
+          "targeting": {
+            "type": "area"
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 20,
+              "unit": "ft"
+            },
+            "persistence": {
+              "duration": {
+                "unit": "round",
+                "value": 600
+              },
+              "concentration": true,
+              "obscures": "heavily"
             }
           },
           "metadata": {
@@ -400,10 +419,7 @@
             "castBy": "Fog Cloud"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: its caster concentrates; what it sustains is by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -492,10 +508,7 @@
         "challenge": 0.5
       },
       "conversion": {
-        "notes": [
-          "Fog Cloud: not automated (utility): using it spends its cost; its description says the rest",
-          "Fog Cloud: concentration: its caster concentrates; what it sustains is by hand"
-        ]
+        "notes": []
       }
     }
   }

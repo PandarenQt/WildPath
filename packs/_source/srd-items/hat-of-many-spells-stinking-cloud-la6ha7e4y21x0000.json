@@ -25,10 +25,29 @@
           }
         ]
       },
-      "concentration": {
-        "duration": {
-          "value": 1,
-          "units": "minutes"
+      "targeting": {
+        "type": "area"
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 90,
+          "unit": "ft"
+        }
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 20,
+          "unit": "ft"
+        },
+        "persistence": {
+          "duration": {
+            "unit": "round",
+            "value": 10
+          },
+          "concentration": true,
+          "obscures": "heavily"
         }
       },
       "metadata": {
@@ -54,8 +73,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: its caster concentrates; what it sustains is by hand",
+          "not automated (utility): its area obscures; the rest of its description is by hand",
           "\"Start of Turn Save\" is passive or triggered: not automated"
         ]
       },

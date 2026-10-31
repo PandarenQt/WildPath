@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 975 automated, 239 manual, 228 features. Creatures: 375.
+Items: 977 automated, 237 manual, 228 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -297,7 +297,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Clone | spells24 | Clone (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 hour is not an action-economy cost |
 | Clothes, Fine | equipment24 | Clothes, Fine (gear) | — |
 | Clothes, Traveler's | equipment24 | Clothes, Traveler's (gear) | — |
-| Cloud Giant | actors24 | Cloud Giant (11 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: save: a failure marks its creature only; what it does is by hand; Misty Step: consumption: itemUses 1 not converted |
+| Cloud Giant | actors24 | Cloud Giant (11 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: save: a failure marks its creature only; what it does is by hand; Misty Step: consumption: itemUses 1 not converted |
 | Cloud's Jaunt | origins24 | Cloud's Jaunt (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Cloudkill | spells24 | Cloudkill (automated) | — |
 | Club | equipment24 | Club (automated) | — |
@@ -623,7 +623,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Fly | spells24 | Fly (automated) | — |
 | Flying Snake | actors24 | Flying Snake (3 items) | — |
 | Foe Slayer | classes24 | Foe Slayer (feature) | "Improved Hunter's Mark Damage" is passive or triggered: not automated |
-| Fog Cloud | spells24 | Fog Cloud (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
+| Fog Cloud | spells24 | Fog Cloud (automated) | — |
 | Folding Boat | equipment24 | Folding Boat (gear) | — |
 | Font of Inspiration | classes24 | Font of Inspiration (automated) | — |
 | Font of Magic | classes24 | Font of Magic (Regain Spell Slot) (automated), Font of Magic (Regain Sorcery Points) (automated) | — |
@@ -756,7 +756,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Harpy | actors24 | Harpy (3 items) | — |
 | Haste | spells24 | Haste (Cast) (automated) | "Apply Lethargy" is passive or triggered: not automated |
 | Hat of Disguise | equipment24 | Hat of Disguise (gear), Hat of Disguise: Disguise Self (automated) | effect: "Disguised" marks its creature (narrative) |
-| Hat of Many Spells | equipment24 | Hat of Many Spells (gear), Hat of Many Spells: Enlarge/Reduce (automated), Hat of Many Spells: Faerie Fire (automated), Hat of Many Spells: Fireball (automated), Hat of Many Spells: Invisibility (automated), Hat of Many Spells: Lightning Bolt (automated), Hat of Many Spells: Phantasmal Force (automated), Hat of Many Spells: Polymorph (automated), Hat of Many Spells: Stinking Cloud (manual) | "Unknown Spell Check" is passive or triggered: not automated; effect: "Seeing Illusions" marks its creature only; its rules are by hand; "Phantasm Damage" is passive or triggered: not automated; transform: a Beast the caster chooses; what the creature may do in its form is by hand; not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Start of Turn Save" is passive or triggered: not automated |
+| Hat of Many Spells | equipment24 | Hat of Many Spells (gear), Hat of Many Spells: Enlarge/Reduce (automated), Hat of Many Spells: Faerie Fire (automated), Hat of Many Spells: Fireball (automated), Hat of Many Spells: Invisibility (automated), Hat of Many Spells: Lightning Bolt (automated), Hat of Many Spells: Phantasmal Force (automated), Hat of Many Spells: Polymorph (automated), Hat of Many Spells: Stinking Cloud (manual) | "Unknown Spell Check" is passive or triggered: not automated; effect: "Seeing Illusions" marks its creature only; its rules are by hand; "Phantasm Damage" is passive or triggered: not automated; transform: a Beast the caster chooses; what the creature may do in its form is by hand; not automated (utility): its area obscures; the rest of its description is by hand; "Start of Turn Save" is passive or triggered: not automated |
 | Hawk | actors24 | Hawk (2 items) | — |
 | Headband of Intellect | equipment24 | Headband of Intellect (gear) | — |
 | Heal | spells24 | Heal (automated) | — |
@@ -815,7 +815,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Hyena | actors24 | Hyena (3 items) | — |
 | Hypnotic Pattern | spells24 | Hypnotic Pattern (automated) | — |
 | Ice Devil | actors24 | Ice Devil (7 items) | Ice Wall: concentration: its caster concentrates; what it sustains is by hand; Ice Wall: "Frigid Air" is passive or triggered: not automated |
-| Ice Mephit | actors24 | Ice Mephit (5 items) | Fog Cloud: not automated (utility): using it spends its cost; its description says the rest; Fog Cloud: concentration: its caster concentrates; what it sustains is by hand |
+| Ice Mephit | actors24 | Ice Mephit (5 items) | — |
 | Ice Storm | spells24 | Ice Storm (automated) | — |
 | Identify | spells24 | Identify (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
 | Illusory Creature | actors24 | Illusory Creature (0 items) | — |
@@ -1439,7 +1439,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Staff | equipment24 | Staff (automated), Staff (Two-Handed) (automated) | — |
 | Staff of Charming | equipment24 | Staff of Charming (attack) (automated), Staff of Charming (attack) (Two-Handed) (automated), Staff of Charming (Reflect Enchantment) (manual), Staff of Charming (Resist Enchantment) (manual), Staff of Charming: Charm Person (automated), Staff of Charming: Command (automated), Staff of Charming: Comprehend Languages (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Staff of Fire | equipment24 | Staff of Fire (attack) (automated), Staff of Fire (attack) (Two-Handed) (automated), Staff of Fire: Burning Hands (automated), Staff of Fire: Fireball (automated), Staff of Fire: Wall of Fire (automated) | — |
-| Staff of Frost | equipment24 | Staff of Frost (attack) (automated), Staff of Frost (attack) (Two-Handed) (automated), Staff of Frost: Cone of Cold (automated), Staff of Frost: Ice Storm (automated), Staff of Frost: Fog Cloud (manual), Staff of Frost: Wall of Ice (automated) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Frigid Air" is passive or triggered: not automated |
+| Staff of Frost | equipment24 | Staff of Frost (attack) (automated), Staff of Frost (attack) (Two-Handed) (automated), Staff of Frost: Cone of Cold (automated), Staff of Frost: Ice Storm (automated), Staff of Frost: Fog Cloud (automated), Staff of Frost: Wall of Ice (automated) | concentration: its caster concentrates; what it sustains is by hand; "Frigid Air" is passive or triggered: not automated |
 | Staff of Healing | equipment24 | Staff of Healing (attack) (automated), Staff of Healing (attack) (Two-Handed) (automated), Staff of Healing: Cure Wounds (automated), Staff of Healing: Lesser Restoration (automated), Staff of Healing: Mass Cure Wounds (automated) | — |
 | Staff of Power | equipment24 | Staff of Power (attack) (automated), Staff of Power (attack) (Two-Handed) (automated), Staff of Power (Retributive Strike) (manual), Staff of Power: Cone of Cold (automated), Staff of Power: Fireball (automated), Staff of Power: Globe of Invulnerability (manual), Staff of Power: Hold Monster (automated), Staff of Power: Levitate (automated), Staff of Power: Lightning Bolt (automated), Staff of Power: Magic Missile (automated), Staff of Power: Ray of Enfeeblement (automated), Staff of Power: Wall of Force (manual) | not automated (damage): using it spends its cost; its description says the rest; damage 1: custom formula "16 * @item.uses.value" not converted; "Retributive Strike: Save" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; effect: "Levitating" marks its creature (narrative) |
 | Staff of Striking | equipment24 | Staff of Striking (attack) (automated), Staff of Striking (attack) (Two-Handed) (automated), Staff of Striking (Charge Damage) (automated) | — |
@@ -1453,7 +1453,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Starry Wisp | spells24 | Starry Wisp (automated) | effect: "Illuminated" marks its creature only; its rules are by hand |
 | Steady Aim | classes24 | Steady Aim (automated) | — |
 | Steam Mephit | actors24 | Steam Mephit (5 items) | — |
-| Stinking Cloud | spells24 | Stinking Cloud (Create Cloud) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Start of Turn Save" is passive or triggered: not automated |
+| Stinking Cloud | spells24 | Stinking Cloud (Create Cloud) (manual) | not automated (utility): its area obscures; the rest of its description is by hand; "Start of Turn Save" is passive or triggered: not automated |
 | Stirge | actors24 | Stirge (3 items) | Proboscis: activation: turnStart is not an action-economy cost |
 | Stone Giant | actors24 | Stone Giant (5 items) | Deflect Missile: "Save" is passive or triggered: not automated |
 | Stone Golem | actors24 | Stone Golem (7 items) | — |

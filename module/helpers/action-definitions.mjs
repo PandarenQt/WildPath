@@ -861,9 +861,9 @@ export const AREA_PERSISTENCE_EVENTS = Object.freeze(["area.entered", "area.exit
 /**
  * A lasting area: `{duration: {unit: "round", value}, concentration, oncePerTurn, elevation: {bottom, top},
  * triggers: [{on: [...events], action: ActionDefinition}], light?: {bright, dim, sunlight, darkness, dispels, spellLevel},
- * onObject?: <configuration choice id>}`. Elevation is relative to the floor of the caster's Level; a missing bound is
- * open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the area surrounds
- * the Token at its center and follows it.
+ * onObject?: <configuration choice id>, obscures?: "heavily"}`. Elevation is relative to the floor of the caster's Level; a
+ * missing bound is open. `light` is shed from its center (Daylight, Darkness); when the `onObject` choice is chosen, the
+ * area surrounds the Token at its center and follows it. `obscures` hides those in it from sight (Fog Cloud).
  */
 function validateAreaPersistence(persistence, errors) {
   const path = "area.persistence";
@@ -875,6 +875,7 @@ function validateAreaPersistence(persistence, errors) {
   }
   // Whom its triggers affect: everyone in it (the default), or only its caster's enemies (Spirit Guardians).
   if ( (persistence.affects != null) && (persistence.affects !== "enemies") ) fail(".affects", "A lasting area affects everyone or \"enemies\".");
+  if ( (persistence.obscures != null) && (persistence.obscures !== "heavily") ) fail(".obscures", "A lasting area obscures \"heavily\" or not at all.");
   // Difficult Terrain of some kinds (`{types: ["web"]}`), or of none named.
   const terrain = persistence.difficultTerrain;
   if ( (terrain != null) && (!isPlainObject(terrain) || ((terrain.types != null) && !Array.isArray(terrain.types))) ) {

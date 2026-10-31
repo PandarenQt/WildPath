@@ -8,6 +8,7 @@
 
 import {obscured, onGround, perceives} from "../helpers/senses.mjs";
 import {lightAt} from "./foundry-v14-sunlight.mjs";
+import {heavilyObscuredAt} from "./foundry-v14-persistent-areas.mjs";
 
 type Data = Record<string, unknown>;
 interface DetectionModeData {enabled?: boolean; range?: number | null}
@@ -66,8 +67,10 @@ type Placed = Parameters<typeof lightAt>[0] & Parameters<typeof onGround>[0];
  */
 export function attackSight({attacker, target, attackerToken = null, targetToken = null, distance = null}: {attacker: Creature;
   target: Creature; attackerToken?: Placed | null; targetToken?: Placed | null; distance?: number | null}) {
-  const attackerLight = lightAt(attackerToken);
-  const targetLight = lightAt(targetToken);
+  // Fog hides more than any darkness (Truesight doesn't pierce it), so a Heavily Obscured area wins over its light.
+  const at = (token: Placed | null) => (heavilyObscuredAt(token as never) ? "heavilyObscured" as const : lightAt(token));
+  const attackerLight = at(attackerToken);
+  const targetLight = at(targetToken);
   const perceivesTarget = perceives(attacker, target, {distance, grounded: onGround(targetToken)});
   const perceivedByTarget = perceives(target, attacker, {distance, grounded: onGround(attackerToken)});
   const targetHidden = perceivesTarget && obscured(attacker, {distance, grounded: onGround(targetToken), observerLight: attackerLight,

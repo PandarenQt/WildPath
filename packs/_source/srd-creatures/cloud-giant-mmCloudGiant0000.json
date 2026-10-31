@@ -477,10 +477,29 @@
               ]
             ]
           },
-          "concentration": {
-            "duration": {
-              "value": 1,
-              "units": "hours"
+          "targeting": {
+            "type": "area"
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 120,
+              "unit": "ft"
+            }
+          },
+          "area": {
+            "shape": "radial",
+            "size": {
+              "value": 20,
+              "unit": "ft"
+            },
+            "persistence": {
+              "duration": {
+                "unit": "round",
+                "value": 600
+              },
+              "concentration": true,
+              "obscures": "heavily"
             }
           },
           "metadata": {
@@ -505,10 +524,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
-              "concentration: its caster concentrates; what it sustains is by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1134,10 +1150,9 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
-          "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
+          "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
           "Spellcasting: save: a failure marks its creature only; what it does is by hand",
           "Misty Step: consumption: itemUses 1 not converted"

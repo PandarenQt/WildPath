@@ -375,6 +375,34 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
   assert.deepEqual(daylight.system.definition.configuration.at(-1), {id: "on-object", type: "boolean",
     label: "Cast on an object (the Token at its center)", required: false});
   assert.equal(validateActionDefinition(daylight.system.definition).ok, true);
+  // 2024 Fog Cloud: a 20-foot Sphere that is Heavily Obscured, 20 feet wider per slot level above 1.
+  const fog = convertItem({_id: "phbsplFogCloud00", name: "Fog Cloud", type: "spell", system: {source: SRD, identifier: "fog-cloud", level: 1,
+    preparation: {mode: "prepared"}, properties: ["concentration"], activation: {type: "action"}, range: {value: "120", units: "ft"},
+    duration: {value: "1", units: "hour"}, description: {value: "<p>The Sphere is &amp;Reference[heavilyobscured].</p>"},
+    target: {template: {type: "sphere", size: "20 * @item.level"}, affects: {}},
+    activities: {a: activity("utility", {target: {override: false, template: {}, affects: {}}})}}}).items[0];
+  assert.deepEqual([fog.system.definition.area.size.value, fog.system.definition.area.persistence],
+    [20, {duration: {unit: "round", value: 600}, concentration: true, obscures: "heavily"}]);
+  assert.deepEqual(fog.system.definition.configuration.find(choice => choice.id === "spell-slot").effects.at(-1),
+    {type: "scaleArea", levelChoiceId: "spell-slot", baseLevel: 1, perLevel: 20});
+  assert.deepEqual(fog.flags.wildpath.conversion.notes, []);
+  // 2024 Stinking Cloud: its cloud obscures; its start-of-turn save (another activity) stays by hand, and says so.
+  const cloud = convertItem({_id: "phbsplStinkingCl", name: "Stinking Cloud", type: "spell", system: {source: SRD, identifier: "stinking-cloud",
+    level: 3, preparation: {mode: "prepared"}, properties: ["concentration"], activation: {type: "action"}, range: {value: "90", units: "ft"},
+    duration: {value: "1", units: "minute"}, description: {value: "<p>The cloud is Heavily Obscured.</p>"},
+    target: {template: {type: "sphere", size: "20"}, affects: {}},
+    activities: {a: activity("utility", {name: "Create Cloud", target: {override: false, template: {}, affects: {}}}),
+      b: activity("save", {_id: "actsave", name: "Start of Turn Save", activation: {type: ""}, save: {ability: ["con"], dc: {calculation: "spellcasting"}}})}}})
+    .items.find(item => item.system.definition?.area);
+  assert.equal(cloud.system.definition.area.persistence.obscures, "heavily");
+  assert.match(cloud.flags.wildpath.conversion.notes.join(" "), /not automated \(utility\): its area obscures/u);
+  // Storm of Vengeance's area is obscured only from turn 5: none from the cast (areas have no stages).
+  const storm = (text, type) => lastingArea({document: {name: "Storm", system: {description: {value: text}}}, system: {duration: {value: 1, units: "minute"},
+    properties: ["concentration"]}, definition: {id: "action:storm", targeting: {type: "area"}, area: {shape: "radial", size: {value: 300, unit: "ft"}},
+    damage: [{id: "damage-1", expression: {type: "dice", number: 2, faces: 6}, damageType: type}]}}).area.persistence.obscures;
+  assert.deepEqual([storm("<p>Turn 1. Each creature under the cloud takes damage when it starts its turn or enters it. Turns 5-10. The area is "
+    + "Difficult Terrain and Heavily Obscured.</p>", "thunder"), storm("<p>Its area is Heavily Obscured. A creature that enters it or starts its turn "
+    + "there takes damage.</p>", "poison")], [undefined, "heavily"]);
   const [evade] = convertItem(trait("evasion", "Evasion")).items[0].system.ruleElements;
   assert.deepEqual([evade.type, evade.data, evade.predicate.not.any.length], ["RollOutcome", {domains: ["save.agility"], outcome: "evasion"}, 6]);
   const sneak = convertItem(trait("sneak-attack", "Sneak Attack", {a: activity("damage", {activation: {type: ""},

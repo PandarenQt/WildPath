@@ -52,6 +52,7 @@
               "ice"
             ]
           },
+          "obscures": "heavily",
           "triggers": [
             {
               "on": [

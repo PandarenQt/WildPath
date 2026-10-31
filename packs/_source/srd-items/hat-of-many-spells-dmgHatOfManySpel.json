@@ -35,8 +35,7 @@
           "effect: \"Seeing Illusions\" marks its creature only; its rules are by hand",
           "\"Phantasm Damage\" is passive or triggered: not automated",
           "transform: a Beast the caster chooses; what the creature may do in its form is by hand",
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: its caster concentrates; what it sustains is by hand",
+          "not automated (utility): its area obscures; the rest of its description is by hand",
           "\"Start of Turn Save\" is passive or triggered: not automated"
         ]
       },

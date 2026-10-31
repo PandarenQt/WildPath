@@ -62,6 +62,9 @@ test("unseen in the dark: Darkvision sees darkness, Devil's Sight and Truesight 
   assert.equal(obscured(creature({devilsSight: 120}), {observedLight: "magicalDarkness", distance: 30}), false);
   assert.equal(obscured(creature({darkvision: 60}), {observerLight: "magicalDarkness", distance: 30}), true, "inside it, it sees nothing out");
   assert.equal(obscured(creature({blindsight: 10}), {observedLight: "magicalDarkness", distance: 10}), false, "Blindsight ignores light");
+  assert.equal(obscured(creature({truesight: 120, darkvision: 60}), {observedLight: "heavilyObscured", distance: 10}), true,
+    "fog: no sight sees in");
+  assert.equal(obscured(creature({tremorsense: 30}), {observerLight: "heavilyObscured", distance: 10}), false, "Tremorsense feels through it");
   // A target in a Darkness spell; the attacker in torchlight beside it.
   const at = (x, lights) => {
     const hero = scene({lights});

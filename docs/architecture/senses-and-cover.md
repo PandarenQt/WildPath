@@ -47,7 +47,19 @@ The Homebrew Builder's rule rows have "A sense" (a sense and its range) for writ
 - Darkness hides a creature from one without Darkvision, Devil's Sight or Truesight reaching it.
 - Magical Darkness hides it from one without Devil's Sight or Truesight, and a creature inside magical Darkness sees
   nothing beyond it without them.
-- Blindsight, and Tremorsense on a creature on the ground, ignore light.
+- A Heavily Obscured lasting area (2026-10-31) hides a creature in it from every sight, Truesight included, and one in it
+  sees nothing out ("Blinded while trying to see something in it"). `attackSight` reads it as `heavilyObscured` when the
+  Token stands in an area whose `flags.wildpath.area.persistence.obscures` is `heavily` (`heavilyObscuredAt`,
+  `adapters/foundry-v14-persistent-areas.mts`), before its light.
+- Blindsight, and Tremorsense on a creature on the ground, ignore light and fog.
+
+**Heavily Obscured areas (conversion).** A spell whose text says its area "is ... Heavily Obscured" gets
+`obscures: "heavily"` on its lasting area: Cloudkill, Incendiary Cloud and Sleet Storm beside their repeats (not Storm of
+Vengeance, whose area is obscured only from turn 5: areas have no stages); Fog Cloud and Stinking Cloud's cloud as an area of their own, Fog Cloud 20 feet wider per slot level above 1 (Stinking Cloud's
+save at the start of a turn stays by hand, noted).
+shortcut: what is behind fog (both creatures outside it, the fog between) stays seen, as with magical Darkness; Foundry's
+own vision is not blocked by the area, and Lightly Obscured (Web, Insect Plague) changes nothing, since sight-based
+Perception checks aren't automated. A strong wind dispersing it is by hand.
 
 Every creature has two unseen rules (`UNSEEN`, `documents/actor.mjs`): Disadvantage attacking a target that only light
 hides (`attack.targetHidden`), Advantage attacking one that only light keeps from seeing it (`attack.attackerHidden`).

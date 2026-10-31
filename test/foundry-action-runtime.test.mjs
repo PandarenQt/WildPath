@@ -1693,6 +1693,22 @@ test("a lasting area becomes a Region and burns a creature that starts its turn 
   assert.equal(areaCovers(flag, targetToken), false);
 });
 
+test("a Heavily Obscured lasting area (Fog Cloud) hides a creature in it from sight, but not from Blindsight", async t => {
+  const {heavilyObscuredAt} = await import("../module/adapters/foundry-v14-persistent-areas.mjs");
+  const {attackSight} = await import("../module/adapters/foundry-v14-senses.mjs");
+  const {scene, targetToken, farToken, player, intent} = lastingAreaFixture(t);
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  const [region] = scene.regions;
+  assert.equal(heavilyObscuredAt(targetToken), false, "an area that doesn't obscure hides nothing");
+  region.flags.wildpath.area.persistence.obscures = "heavily";
+  assert.deepEqual([heavilyObscuredAt(targetToken), heavilyObscuredAt(farToken)], [true, false]);
+  const creature = senses => ({statuses: new Set(), system: {senses}});
+  const sight = senses => attackSight({attacker: creature(senses), target: creature({}), attackerToken: farToken, targetToken, distance: 10});
+  assert.deepEqual(sight({truesight: 120}), {seesTarget: false, seenByTarget: false, targetHidden: true, attackerHidden: true},
+    "Truesight doesn't see through fog, and the one in it sees nothing out");
+  assert.equal(sight({blindsight: 30}).seesTarget, true, "Blindsight within range ignores it");
+});
+
 test("a lasting area keeps the slot it was cast with: its stored repeat is the configured one (3d10)", async t => {
   const {scene, areas, sourceToken} = lastingAreaFixture(t);
   const fields = [{i: 2, j: 0}];

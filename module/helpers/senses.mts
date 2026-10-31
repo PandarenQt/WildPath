@@ -37,13 +37,15 @@ export function onGround(token: GroundToken | null | undefined): boolean {
 
 interface Perceiver {statuses?: Iterable<string> | null; system?: {senses?: Partial<Senses> | null} | null}
 
-type Light = "light" | "dark" | "magicalDarkness";
+type Light = "light" | "dark" | "magicalDarkness" | "heavilyObscured";
 
 /**
  * Whether light hides `observed` from `observer` (2024): darkness hides it from a creature without Darkvision (or
  * Devil's Sight, or Truesight) reaching it; magical Darkness from one without Devil's Sight or Truesight reaching it,
- * and a creature inside magical Darkness sees nothing beyond it without them. Blindsight within range, or Tremorsense on
- * a creature on the ground, ignores light. `observerLight`, `observedLight`: where each stands (lightAt).
+ * and a creature inside magical Darkness sees nothing beyond it without them. A Heavily Obscured area (fog: Fog Cloud,
+ * Cloudkill) hides those in it from every sight, and they see nothing out of it ("Blinded while trying to see something
+ * in it"). Blindsight within range, or Tremorsense on a creature on the ground, ignores light and fog. `observerLight`,
+ * `observedLight`: where each stands (lightAt, or `heavilyObscured` in such an area).
  */
 export function obscured(observer: Perceiver | null | undefined, {distance = null, grounded = true, observerLight = "light",
   observedLight = "light"}: {distance?: number | null; grounded?: boolean; observerLight?: Light; observedLight?: Light} = {}): boolean {
@@ -51,6 +53,7 @@ export function obscured(observer: Perceiver | null | undefined, {distance = nul
   const senses = observer?.system?.senses ?? {};
   const reaches = (sense: Sense) => ((Number(senses[sense]) || 0) > 0) && ((distance === null) || (distance <= Number(senses[sense])));
   if ( reaches("blindsight") || (grounded && reaches("tremorsense")) ) return false;
+  if ( (observerLight === "heavilyObscured") || (observedLight === "heavilyObscured") ) return true;
   const throughMagic = reaches("devilsSight") || reaches("truesight");
   if ( (observerLight === "magicalDarkness") || (observedLight === "magicalDarkness") ) return !throughMagic;
   return (observedLight === "dark") && !(throughMagic || reaches("darkvision"));

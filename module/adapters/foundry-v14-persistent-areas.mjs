@@ -36,7 +36,8 @@ export function persistentAreaRegionData({ placement, sourceToken, combat, color
         size: Number(area.size?.value) || 0, attached, band,
         persistence: { oncePerTurn: persistence.oncePerTurn !== false, concentration: persistence.concentration === true,
             duration: persistence.duration ?? null, triggers: persistence.triggers ?? [], light: persistence.light ?? null,
-            ...(persistence.affects === "enemies" ? { affects: "enemies" } : {}) },
+            ...(persistence.affects === "enemies" ? { affects: "enemies" } : {}),
+            ...(persistence.obscures === "heavily" ? { obscures: "heavily" } : {}) },
         createdAt: combat ? { combatId: combat.id, round: combat.round, turn: combat.turn } : null,
         applied: {},
         ...(persistence.difficultTerrain ? { difficultTerrain: { types: [...(persistence.difficultTerrain.types ?? [])] } } : {})
@@ -105,6 +106,11 @@ function tokenAt(scene, point) {
         const [x, y] = [Number(token.x) || 0, Number(token.y) || 0];
         return (point.x >= x) && (point.x < x + ((Number(token.width) || 1) * size)) && (point.y >= y) && (point.y < y + ((Number(token.height) || 1) * size));
     }) ?? null;
+}
+/** Whether a Token stands in a Heavily Obscured lasting area (Fog Cloud, Cloudkill): no sight sees it, or out. */
+export function heavilyObscuredAt(token) {
+    return Boolean(token?.parent) && sceneAreas(token.parent).some(({ flag }) => (flag.persistence?.obscures === "heavily")
+        && areaCovers(flag, token));
 }
 export function sceneAreas(scene) {
     return [...(scene.regions ?? [])].flatMap(region => region.flags?.wildpath?.area ? [{ region, flag: region.flags.wildpath.area }] : []);
