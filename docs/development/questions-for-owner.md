@@ -160,3 +160,14 @@ The combining rules keep each character's slots, orders, hirelings, defenders an
      for solo Bastions. Recommend: yes, as its own item.
   9. Covering an ally's defender losses: leave out until 8 is built, then each member opts in. Recommend: yes.
   10. Grid: a square of side ceil(sqrt(pooled squares)), painting capped at the pool. Recommend: yes.
+
+### Q13. Boon of Spell Recall and slot-paid features (2026-10-31)
+Boon of Spell Recall is built (`a8a46c93`): a spell paid with a level 1-4 slot rolls a d4, and a roll equal to the slot's
+level keeps the slot (Reaction spells too; the card says whether it was kept).
+
+- Question 1: under the Paladin's Smite house rule, the 2014-style Divine Smite is cast as a level 1+ spell with a slot.
+  Should the boon's d4 apply to it? Done meanwhile: yes, like any spell paid with a level 1-4 slot.
+- Question 2: Wild Companion paid with a spell slot now counts as casting Find Familiar (`90ba955c`: the boon rolls, and
+  Counterspell can answer it). Should the Wild Shape-paid version count as a cast too? Done meanwhile: no (it spends
+  no slot). Making it count also needs the action bar to place it among 1st-level spells.
+- Recommendation: keep both as they are.
