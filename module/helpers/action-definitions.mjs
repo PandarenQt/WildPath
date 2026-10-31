@@ -466,7 +466,9 @@ function withFreeCasts(raw, item) {
   const capabilities = [...new Set([...(item.actor?.items ?? [])].filter(entry => entry?.system?.active !== false)
     .filter(entry => entry?.flags?.wildpath?.freeCast?.spells?.includes(identifier)
       || (entry?.flags?.wildpath?.freeCast?.granted && entry.id && (entry.id === item.flags?.wildpath?.grantedBy)))
-    .map(entry => entry.flags.wildpath.freeCast.resourceId).filter(resourceId => pools.has(resourceId)))];
+    // Each copy's own pool (`{item}`: Magic Initiate taken twice).
+    .map(entry => String(entry.flags.wildpath.freeCast.resourceId).replaceAll("{item}", String(entry.id ?? "")))
+    .filter(resourceId => pools.has(resourceId)))];
   if ( !capabilities.length ) return raw;
   return {...raw, configuration: raw.configuration.map(entry => ((entry !== choice) ? entry : {...entry,
     cost: {anyOf: [...(entry.cost?.anyOf ?? []), ...capabilities.map(capability => [{capability, amount: 1}])]},

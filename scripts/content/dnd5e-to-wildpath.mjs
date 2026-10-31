@@ -513,14 +513,14 @@ const SIGNATURE_SPELL_POOLS = Object.freeze([1, 2].map(n => ({schemaVersion: 1, 
  * Faithful Steed's Find Steed once per Long Rest (its paladin class grants the spell, always prepared).
  */
 const FREE_CASTS = Object.freeze({"faithful-steed": {spells: ["find-steed"], recovery: "longRest"},
-  // Its level 1 spell, whichever it gave (`granted`). shortcut: a second Magic Initiate shares the pool (2 uses for both
-  // spells, not 1 each); give each copy its own pool if that matters.
-  "magic-initiate": {spells: [], granted: true, recovery: "longRest"},
+  // Its level 1 spell, whichever it gave (`granted`); each copy of the feat its own pool (`perItem`: `{item}` in the pool's
+  // id is the feat Item's id), since the feat may be taken again with another list.
+  "magic-initiate": {spells: [], granted: true, perItem: true, recovery: "longRest"},
   // The PHB's Favored Enemy is a feature beside the Hunter's Mark its ranger is granted (the SRD's is a Hunter's Mark
   // Action with this pool): its free casts by ranger level.
   "favored-enemy": {spells: ["hunters-mark"], recovery: "longRest",
     maximum: {type: "table", key: {type: "class-level", class: "ranger"}, rows: {1: 2, 5: 3, 9: 4, 13: 5, 17: 6}}}});
-const freeCastResource = identifier => `free-cast.${identifier}`;
+const freeCastResource = identifier => `free-cast.${identifier}${FREE_CASTS[identifier]?.perItem ? ".{item}" : ""}`;
 
 /**
  * A feature dnd5e leaves without automation, as the effects its use puts on its creature. 2024 Steady Aim: Advantage
@@ -2851,9 +2851,9 @@ function sheddingArea({document, activity, system, definition, scales={}, spell=
   const level = spell ? (Number(system.level) || 0) : 0;
   const {targeting, area, areaPerLevel=0, areaScaling=null} = (light || obscures) ? targetingOf({activity, system, notes: [], level, scales}) : {};
   if ( targeting?.type !== "area" ) return null;
-  // An item's or creature's with no duration of its own, its text's (an Ink Cloud's "Heavily Obscured for 1 minute", an
-  // Eversmoking Bottle's "disperses after 10 minutes").
-  const written = spell ? null : /\b(?:for|after) (\d+) (minute|hour)s?\b/iu.exec(plainText(document));
+  // An item's or creature's with no duration of its own, the one its text names for the obscurement ("Heavily Obscured for
+  // 1 minute": an Ink Cloud). Else none: an Eversmoking Bottle's smoke lasts while it is open, until removed.
+  const written = spell ? null : /\bheavily ?obscured\b[^.]{0,40}?\bfor (\d+) (minute|hour)s?\b/iu.exec(plainText(document));
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0)
     || (written ? Number(written[1]) * ROUNDS[written[2].toLowerCase()] : 0);
   const configuration = [...(definition.configuration ?? []).filter(choice => choice.id !== "area-scaling")

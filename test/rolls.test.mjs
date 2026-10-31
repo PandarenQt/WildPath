@@ -436,16 +436,15 @@ test("a minimum d20 (Reliable Talent): min10 on the die, with Advantage too; a t
   assert.equal(d20FormulaWith("1d20 + 1d4", {modifier: 2}), "1d20 + 1d4 + 2", "no minimum: unchanged");
 });
 
-test("a total floor (Indomitable Might): a typed or digital total below it counts as it; the die stays as rolled", () => {
+test("a total floor (Indomitable Might) rides the roll as rolled: its total stays, and its floor goes to the resolver's roll", () => {
   const request = createD20RollRequest({id: "roll:save", resolutionId: "resolution:save", type: ROLL_TYPES.SAVING_THROW, modifier: -6,
     expected: {totalMinimum: 20}});
   assert.equal(request.expected.totalMinimum, 20);
   const typed = createRollResultFromManualInput({request, input: {natural: 4}});
   assert.equal(typed.ok, true, JSON.stringify(typed));
-  assert.deepEqual([typed.result.natural, typed.result.total], [4, 20], "-2 counts as 20");
-  const high = createRollResultFromManualInput({request, input: {natural: 20}});
-  assert.equal(high.result.total, 20, "14 counts as 20, above the formula's own most (14)");
-  assert.equal(validateRollResult({...typed.result, total: -2}, {request}).ok, false, "not the raw total");
+  assert.deepEqual([typed.result.natural, typed.result.total, typed.result.totalMinimum], [4, -2, 20], "the total as rolled, its floor beside it");
+  assert.equal(validateRollResult({...typed.result, total: 20}, {request}).ok, false, "a typed total is the die plus the bonus");
+  assert.deepEqual([rollResultToResolverRoll(typed.result).total, rollResultToResolverRoll(typed.result).totalMinimum], [-2, 20]);
   const plain = createD20RollRequest({id: "roll:plain", resolutionId: "resolution:save", type: ROLL_TYPES.SAVING_THROW, modifier: 2});
-  assert.equal(createRollResultFromManualInput({request: plain, input: {natural: 4}}).result.total, 6, "no floor: unchanged");
+  assert.equal(createRollResultFromManualInput({request: plain, input: {natural: 4}}).result.totalMinimum, undefined, "no floor");
 });

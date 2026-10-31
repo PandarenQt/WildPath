@@ -2560,7 +2560,8 @@ function healerReward(input, plans) {
   if ( !(amount > 0) || !input.source ) return {plans, record: null};
   const own = entry => sameCreature(entry?.target, input.source);
   const healed = entry => (Number(entry?.plan?.to) || 0) > (Number(entry?.plan?.from) || 0);
-  if ( !plans.some(entry => !own(entry) && healed(entry)) ) return {plans, record: null};
+  // A steed's Life Bond healing is its own feature's, not this spell's healing of another creature.
+  if ( !plans.some(entry => !own(entry) && !entry?.lifeBond && healed(entry)) ) return {plans, record: null};
   const record = {name: onHeal.name ?? "", hitPoints: amount};
   const mine = plans.find(own);
   if ( mine?.plan?.path ) {
@@ -2592,7 +2593,7 @@ function lifeBondHealing(input, plans) {
     const plan = createActorHealingMutationPlan(bond.actorSystem ?? {}, {healingResult: {total: amount, byHealingType: {healing: amount}},
       target: bond.target});
     return plan?.ok ? [...result, {type: "durabilityHealing", resolver: "DurabilityResolver", targetRef: bond.sourceRef,
-      target: clonePlain(bond.target), plan}] : result;
+      target: clonePlain(bond.target), plan, lifeBond: true}] : result;
   }, plans);
 }
 

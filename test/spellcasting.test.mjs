@@ -155,13 +155,21 @@ test("Magic Initiate: the level 1 spell it gave casts free from its pool; its sp
     .find(file => file.startsWith(prefix))}`, "utf8"));
   const feat = {...read("magic-initiate-phbft"), id: "initiate"};
   assert.deepEqual([feat.system.advancement.map(entry => [entry.count, entry.pool.spellLevel]), feat.flags.wildpath.conversion.notes], [[[2, 0], [1, 1]], []]);
-  const fighter = {items: [feat], system: {pools: [{id: "free-cast.magic-initiate", value: 1, max: 1}],
+  const {grantedResourcesFromRuleElements} = await import("../module/helpers/rule-elements.mjs");
+  assert.deepEqual(grantedResourcesFromRuleElements([{ruleElements: feat.system.ruleElements, source: {type: "item", id: "initiate"}}])
+    .map(grant => grant.id), ["free-cast.magic-initiate.initiate"], "each copy's pool by its Item's id");
+  // Each copy its own pool, by the feat Item's id; a second copy's spell spends the second's.
+  const second = {...feat, id: "initiate2"};
+  const fighter = {items: [feat, second], system: {pools: [{id: "free-cast.magic-initiate.initiate", value: 1, max: 1},
+    {id: "free-cast.magic-initiate.initiate2", value: 1, max: 1}],
     abilities: {intellect: {value: 10}, wits: {value: 16}, presence: {value: 12}}}};
   const given = (spell, grantedBy="initiate") => actionDefinitionFromItem({...spell, flags: {...spell.flags, wildpath: {...spell.flags.wildpath, grantedBy}},
     actor: fighter}).definition;
   const bless = given(read("bless-phb")).configuration.find(choice => choice.id === "spell-slot");
-  assert.equal(bless.levelByResourceId["free-cast.magic-initiate"], 1, "free, at level 1");
-  assert.equal(given(read("bless-phb"), null).configuration.find(choice => choice.id === "spell-slot").levelByResourceId["free-cast.magic-initiate"],
+  assert.equal(bless.levelByResourceId["free-cast.magic-initiate.initiate"], 1, "free, at level 1");
+  assert.deepEqual(Object.keys(given(read("bless-phb"), "initiate2").configuration.find(choice => choice.id === "spell-slot").levelByResourceId)
+    .filter(key => key.startsWith("free-cast")), ["free-cast.magic-initiate.initiate2"], "the second copy's spell, the second's pool");
+  assert.equal(given(read("bless-phb"), null).configuration.find(choice => choice.id === "spell-slot").levelByResourceId["free-cast.magic-initiate.initiate"],
     undefined, "not one it gave");
   const flame = given(read("sacred-flame-phb"));
   assert.deepEqual(flame.save.dc.valueExpression.terms.at(-1), {type: "spellcasting-modifier", ability: "wits"}, "Wisdom, its best");

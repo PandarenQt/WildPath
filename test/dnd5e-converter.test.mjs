@@ -391,8 +391,8 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
   assert.deepEqual(fog.system.definition.configuration.find(choice => choice.id === "spell-slot").effects.at(-1),
     {type: "scaleArea", levelChoiceId: "spell-slot", baseLevel: 1, perLevel: 20});
   assert.deepEqual(fog.flags.wildpath.conversion.notes, []);
-  // An Eversmoking Bottle: an item's obscuring Emanation, its size a step its user picks (60 to 120 feet), lasting the 10
-  // minutes its text names; the rest of its text by hand.
+  // An Eversmoking Bottle: an item's obscuring Emanation, its size a step its user picks (60 to 120 feet), lasting until
+  // removed (its "after 10 minutes" is once closed); the rest of its text by hand.
   const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
   const [, bottle] = convertItem({_id: "dmgEversmokingBo", name: "Eversmoking Bottle", type: "equipment", system: {source: SRD,
     identifier: "eversmoking-bottle", type: {value: "wondrous"}, description: {value: "<p>The area within the smoke is Heavily Obscured. "
@@ -400,7 +400,7 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
     activities: {a: activity("utility", {name: "Open Bottle", consumption: {targets: [], scaling: {allowed: true, max: "7"}},
       range: {units: "self"}, target: {override: true, template: {type: "radius", size: "50 + @scaling * 10", units: "ft"}, affects: {}}})}}}).items;
   assert.deepEqual([bottle.system.definition.area.shape, bottle.system.definition.area.size.value, bottle.system.definition.area.persistence],
-    ["emanation", 60, {duration: {unit: "round", value: 100}, obscures: "heavily"}]);
+    ["emanation", 60, {obscures: "heavily"}], "its smoke lasts while open: \"after 10 minutes\" is once closed");
   assert.equal(validateActionDefinition(bottle.system.definition).ok, true);
   const opened = resolveActionConfiguration({definition: bottle.system.definition, actorSystem: {resources: {action: {value: 1, max: 1}}},
     choices: {"area-scaling": {value: 7}}});

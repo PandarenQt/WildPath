@@ -151,3 +151,14 @@ test("SaveResolver preserves target failures while resolving other targets", () 
   assert.deepEqual(result.successes.map(save => save.target.id), ["rogue"]);
   assert.deepEqual(result.invalid.map(failure => failure.target.id), ["unknown"]);
 });
+
+test("a total floor (Indomitable Might) counts when judged, after anything that changed the roll", () => {
+  const judged = total => resolveSaveAgainstDC({roll: {total, die: 3, totalMinimum: 20}, dc: {value: 19}});
+  assert.deepEqual([judged(8).success, judged(8).roll.total], [true, 20], "3 + 5 counts as 20");
+  // Portent turned the 3 into a 1 (8 - 3 + 1): still at least 20; into an 18: 23, not 20 + 15.
+  assert.equal(judged(6).success, true);
+  assert.equal(judged(23).roll.total, 23);
+  // Cutting Words' 4 off a floored check: the floor still holds.
+  assert.equal(judged(8 - 4).roll.total, 20);
+  assert.equal(resolveSaveAgainstDC({roll: {total: 8, die: 3}, dc: {value: 19}}).success, false, "no floor");
+});

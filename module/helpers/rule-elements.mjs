@@ -518,7 +518,8 @@ function modifierRuleElement(ruleElement) {
 
 function grantResourceRuleElement(ruleElement, context) {
   const data = ruleElement.data;
-  const id = data.resourceId ?? data.resource ?? data.id ?? ruleElement.id;
+  // `{item}` in its id is the granting Item's id: each copy of a repeatable feat its own pool (Magic Initiate's free cast).
+  const id = String(data.resourceId ?? data.resource ?? data.id ?? ruleElement.id).replaceAll("{item}", String(ruleElement.source?.id ?? ""));
   const maximum = evaluateNumeric(data.maximum ?? data.max ?? data.value ?? 0, context);
   if ( !maximum.ok ) return maximum;
   const current = data.current == null ? maximum : evaluateNumeric(data.current, context);

@@ -224,7 +224,8 @@ gated by sources and prerequisites, and at class level 0. Tasha's feats, through
   `metadata.spellLists`). The spells it gives are always prepared (`grantedBy`) and cast with the best of Intelligence,
   Wisdom and Charisma (`flags.wildpath.castingAbilities` on the feat; `withGrantedCastingAbility` pins the spell attack
   and every unnamed spellcasting modifier). Its level 1 spell is cast once per Long Rest from `free-cast.magic-initiate`
-  (`freeCast.granted`). shortcut: two copies share that pool, and the same-list rule is not enforced.
+  (`freeCast.granted`), each copy of the feat its own (`free-cast.magic-initiate.{item}`: a GrantResource id may name its
+  Item). shortcut: the same-list rule is not enforced.
 - **Resilient and Elemental Adept (2024, 2026-10-31):** a trait choice at level 0. Resilient's is a saving throw
   proficiency (`saves:<ability>`). Elemental Adept's is its Energy Mastery type, recorded as `adept:<type>`: its
   spells' dice of that type count a 1 as a 2 (`trainingRuleElements` gives a `DamageDieMinimum`) and ignore Resistance

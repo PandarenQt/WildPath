@@ -1935,6 +1935,8 @@ export function bestSaveAbility({definition, targetActor, saverToken, cover="non
     if ( forced.includes("automatic-failure") ) return 0;
     const modes = (targetActor.getRollModes?.(["save", `save.${ability}`], context) ?? []).map(entry => entry?.mode ?? entry);
     const bonus = resolveActorSaveStatistic(targetActor, ability);
+    // A total floor at or above the DC can't fail (Indomitable Might).
+    if ( Number(bonus?.totalMinimum) >= dc ) return 1;
     const modifier = (bonus?.totalModifier ?? 0) + ((ability === "agility") ? (COVER_BONUS[cover] ?? 0) : 0);
     return d20Chance({modifier, target: dc, rollMode: combineRollModes(modes), dice: bonus?.dice ?? []});
   };
@@ -1995,7 +1997,8 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
     const modifier = (statistic?.totalModifier ?? 0) + ((ability === "agility")
       ? (COVER_BONUS[actionCover({definition, sourceToken, targetToken: token})] ?? 0) : 0);
     const forced = (target.getRollOutcomes?.(["save", `save.${ability}`], context) ?? []).map(outcome => outcome.outcome);
-    const passes = forced.includes("automatic-success");
+    // A total floor at or above the DC passes too (Indomitable Might).
+    const passes = forced.includes("automatic-success") || (Number(statistic?.totalMinimum) >= dc);
     const automatic = passes || forced.includes("automatic-failure");
     return {tokenId: token.id, name: token.name, kind: "save", ability, dc, modifier, rollMode, automatic,
       chance: passes ? 0 : (automatic ? 1 : 1 - d20Chance({modifier, target: dc, rollMode, dice: statistic?.dice}))};

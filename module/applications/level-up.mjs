@@ -86,8 +86,13 @@ function stepHtml(step, index, actor, view) {
                 return id ? `${uuid.split(".Item.")[0]}:${id}` : null;
             };
             const options = groupedOptions(all.filter(uuid => view.allows(uuid, Number(entry.level) || 0)), sourceOf);
+            // What it may replace, the same way: a rune's Items together (their ids, comma-joined).
+            const ownedSource = new Map(actor.items.filter(() => true).map(item => [item.id,
+                item.flags?.wildpath?.source?.id ?? null]));
+            const names = new Map(owned.map(item => [item.id, item.name]));
+            const replaceable = groupedOptions(owned.map(item => item.id), id => ownedSource.get(id) ?? null);
             const replace = (entry.replacement && owned.length) ? `<label>${localize("WILDPATH.LEVELUP.Replace")} <select name="${name}.replace" data-replace>
-        <option value="">${localize("WILDPATH.LEVELUP.ReplaceNone")}</option>${owned.map(item => `<option value="${escape(item.id)}">${escape(item.name)}</option>`).join("")}</select></label>` : "";
+        <option value="">${localize("WILDPATH.LEVELUP.ReplaceNone")}</option>${replaceable.map(value => `<option value="${escape(value)}">${escape(value.includes(",") ? (names.get(value.split(",")[0]) ?? "").replace(/ \([^)]*\)$/u, "") : (names.get(value) ?? value))}</option>`).join("")}</select></label>` : "";
             if (!options.length || (!entry.count && !replace))
                 return "";
             return `<fieldset data-count="${entry.count ?? 0}">${legend}<p class="hint">${format("WILDPATH.LEVELUP.Choose", { count: entry.count ?? 0 })}</p>
@@ -303,11 +308,13 @@ async function apply(actor, item, { level, steps, form, first, hitDie, fortitude
         if (kind === "grant")
             into.push(...(entry.optional ? picked(name) : (entry.items ?? [])));
         else if (kind === "choice") {
-            // A spell's option is its Items' uuids, comma-joined (spellChoiceHtml).
-            into.push(...picked(name).flatMap(value => value.split(",")));
+            // A grouped option is its Items' uuids, comma-joined (a spell's, a rune's); so is one it replaces (their ids).
+            const chosen = picked(name).flatMap(value => value.split(","));
+            into.push(...chosen);
             const old = picked(`${name}.replace`)[0];
             if (old)
-                replaced.push({ id: old, by: picked(name) });
+                for (const id of old.split(","))
+                    replaced.push({ id, by: chosen });
         }
         else if (kind === "trait") {
             const owner = source ?? item;

@@ -592,8 +592,10 @@ damage rules. A predicate `{tagsAny: ["weapon:<id>"]}` reaches that weapon alone
 
 **A total floor (2026-10-31).** `minimum-score` on `check.<ability>` or `save.<ability>`: the check's or save's total counts
 as at least that ability's score (Indomitable Might: `check.might` and `save.might`). The save and check statistics carry
-it as `totalMinimum`; a RollRequest's `expected.totalMinimum` raises the RollResult's total, digital or typed, and the die
-stays as rolled. A sheet roll notes it in its chat flavour. The odds preview does not count it yet.
+it as `totalMinimum`; a RollRequest's `expected.totalMinimum` rides its RollResult (`totalMinimum`, the total kept as
+rolled) into the resolver's roll, and `resolveSaveAgainstDC` judges `max(total, totalMinimum)`. So a later change to the
+roll (Portent's die, Bardic Inspiration, Cutting Words' penalty) works from the rolled total and the floor still holds.
+A sheet roll notes it in its chat flavour; a save's odds and a Grapple's choice of save count it.
 
 A golem's Immutable Form is `ConditionImmunity {conditions: ["transformed"]}`: Polymorph skips a creature immune to it
 (`applyActionTransformation`), with a GM notice.

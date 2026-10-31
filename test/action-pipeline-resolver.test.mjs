@@ -1072,6 +1072,14 @@ test("Life Bond: a bonded steed regains what its summoner regained from the spel
   assert.deepEqual(steedPlans(run([target("rider")], 28).state), [[5, 7]], "the 2 its rider regained");
   assert.deepEqual(steedPlans(run([target("rider")], 30).state), [], "a rider at full regained none");
   assert.deepEqual(steedPlans(run([target("rider"), steed], 10).state), [[5, 13]], "healed too: one plan, 4 + 4");
+  // A Blessed Healer healing only itself gains nothing for its steed's Life Bond healing.
+  const healer = planStagedActionResolution({id: "resolution:bond-healer", actorSystem: actorSystem(1, {resources: {health: {value: 10, max: 30}}}),
+    action: definitionAction(definition(1)), source: {actorId: "actor-rider", tokenId: "token-rider"}, targets: [target("rider")],
+    durability: {targetSystems: {"actor:actor-rider": {resources: {health: {value: 10, max: 30}}}},
+      onHeal: {name: "Blessed Healer", hitPoints: 5, sourceRef: "Actor.rider"},
+      lifeBonds: [{casterTokenId: "token-rider", sourceRef: "Actor.steed", target: steed, actorSystem: {resources: {health: {value: 5, max: 20}}}}]}});
+  assert.deepEqual(healer.state.mutationPlans.filter(entry => entry.type === "durabilityHealing")
+    .map(entry => [entry.target?.tokenId, entry.plan.from, entry.plan.to]), [["token-rider", 10, 14], ["token-steed", 5, 9]], "no Blessed Healer");
 });
 
 test("drop to 0: Dark One's Blessing gives its source Temporary Hit Points for a hostile creature dropped", () => {

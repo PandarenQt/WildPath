@@ -52,10 +52,6 @@
           "unit": "ft"
         },
         "persistence": {
-          "duration": {
-            "unit": "round",
-            "value": 100
-          },
           "obscures": "heavily"
         }
       },

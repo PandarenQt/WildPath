@@ -83,7 +83,9 @@ export function resolveSaveAgainstDC({
   }
 
   const activePolicy = normalizePolicy(policy);
-  const margin = normalizedRoll.total - normalizedDC.value;
+  // A total floor (Indomitable Might) counts when judged, after anything that changed the roll.
+  const total = (normalizedRoll.totalMinimum != null) ? Math.max(normalizedRoll.total, normalizedRoll.totalMinimum) : normalizedRoll.total;
+  const margin = total - normalizedDC.value;
   const criticalSuccess = isNaturalCriticalSuccess(normalizedRoll.die, activePolicy);
   const criticalFailure = isNaturalCriticalFailure(normalizedRoll.die, activePolicy);
   const outcome = saveOutcome({criticalSuccess, criticalFailure, margin, policy: activePolicy});
@@ -95,7 +97,7 @@ export function resolveSaveAgainstDC({
     success: outcome === SAVE_OUTCOMES.CRITICAL_SUCCESS || outcome === SAVE_OUTCOMES.SUCCESS,
     critical: outcome === SAVE_OUTCOMES.CRITICAL_SUCCESS || outcome === SAVE_OUTCOMES.CRITICAL_FAILURE,
     margin,
-    roll: normalizedRoll,
+    roll: {...normalizedRoll, total},
     dc: normalizedDC,
     target: targetRef,
     context: clonePlain(context) ?? {}
@@ -291,6 +293,7 @@ function normalizeSaveRoll(roll={}) {
   if ( typeof roll === "number" ) roll = {total: roll};
   return {
     total: finiteNumber(roll?.total),
+    ...((finiteNumber(roll?.totalMinimum) > 1) ? {totalMinimum: finiteNumber(roll.totalMinimum)} : {}),
     die: finiteNumber(roll?.die ?? roll?.natural ?? roll?.d20),
     ability: roll?.ability ?? roll?.slug ?? roll?.key ?? null,
     formula: roll?.formula ?? null,

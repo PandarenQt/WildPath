@@ -13,7 +13,7 @@
         "id": "magic-initiate-free-cast",
         "type": "GrantResource",
         "data": {
-          "resourceId": "free-cast.magic-initiate",
+          "resourceId": "free-cast.magic-initiate.{item}",
           "label": "Magic Initiate",
           "maximum": 1,
           "recovery": "longRest"
@@ -71,7 +71,7 @@
       "freeCast": {
         "spells": [],
         "granted": true,
-        "resourceId": "free-cast.magic-initiate"
+        "resourceId": "free-cast.magic-initiate.{item}"
       },
       "castingAbilities": [
         "intellect",

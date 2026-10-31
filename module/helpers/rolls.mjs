@@ -330,7 +330,7 @@ export function validateRollResult(result, {
   const formulaComplete = requestData && ((requestData.expected?.manualInputMode === ROLL_INPUT_MODES.TOTAL)
     || (requestData.expected?.validateTotalFromNatural !== false));
   const bounds = formulaComplete ? simpleFormulaBounds(rollFormulaForRequest(requestData).formula) : null;
-  if ( bounds && ((data.total < bounds.min) || (data.total > Math.max(bounds.max, finiteInteger(requestData.expected?.totalMinimum) ?? 0))) ) {
+  if ( bounds && ((data.total < bounds.min) || (data.total > bounds.max)) ) {
     return validationFailure(ROLL_CODES.INVALID_ROLL_RESULT,
       `RollResult total must be between ${bounds.min} and ${bounds.max} for ${bounds.formula}.`, "total");
   }
@@ -340,8 +340,7 @@ export function validateRollResult(result, {
     && data.natural != null
     && requestData?.expected?.modifierTotal != null
   ) {
-    const expectedTotal = flooredTotal(countedNatural(data.natural, requestData.expected)
-      + (finiteNumber(requestData.expected.modifierTotal) ?? 0), requestData.expected);
+    const expectedTotal = countedNatural(data.natural, requestData.expected) + (finiteNumber(requestData.expected.modifierTotal) ?? 0);
     if ( data.total !== expectedTotal ) {
       return validationFailure(
         ROLL_CODES.INVALID_MANUAL_RESULT,
@@ -496,6 +495,8 @@ export function rollResultToResolverRoll(result) {
   const data = normalizeRollResult(result);
   return {
     total: data.total,
+    // What its total counts as at least when judged (Indomitable Might), whatever changes it later.
+    ...(data.totalMinimum ? {totalMinimum: data.totalMinimum} : {}),
     die: data.natural,
     natural: data.natural,
     d20: data.natural,
@@ -599,7 +600,8 @@ function normalizeRollExpected(expected, type=null) {
     modifierTotal: finiteNumber(data.modifierTotal ?? data.modifier) ?? null,
     // A d20 below it counts as it (Reliable Talent: 10); `natural` stays the die as rolled.
     ...(finiteInteger(data.naturalMinimum) > 1 ? {naturalMinimum: finiteInteger(data.naturalMinimum)} : {}),
-    // Its total counts as at least it (Indomitable Might: the Might score); the dice stay as rolled.
+    // Its total counts as at least it when judged (Indomitable Might: the Might score); the total stays as rolled, so a
+    // later change to the roll (Portent, Bardic Inspiration, Cutting Words) works from it (save-resolver).
     ...(finiteInteger(data.totalMinimum) > 1 ? {totalMinimum: finiteInteger(data.totalMinimum)} : {}),
     staleAfterStageId: stringOrNull(data.staleAfterStageId),
     metadata: clonePlainData(data.metadata ?? {}, "expected.metadata") ?? {}
@@ -614,10 +616,11 @@ function normalizeRollResult(raw={}, {skipSerializableClone=false}={}) {
   const dice = normalizeRollResultDice(source.dice ?? resultData.dice ?? []);
   const natural = finiteNumber(source.natural ?? source.die ?? source.d20 ?? resultData.natural ?? resultData.die)
     ?? naturalFromDice(dice, request?.expected?.primaryDieFaces);
-  const total = flooredTotal(finiteNumber(source.total ?? source.value ?? source.amount ?? resultData.total)
+  const total = finiteNumber(source.total ?? source.value ?? source.amount ?? resultData.total)
     ?? (request?.expected?.manualInputMode === ROLL_INPUT_MODES.NATURAL && natural != null
       ? countedNatural(natural, request.expected) + (finiteNumber(request.expected.modifierTotal) ?? rollModifierTotal(request))
-      : null), request?.expected);
+      : null);
+  const totalMinimum = finiteInteger(source.totalMinimum ?? request?.expected?.totalMinimum);
 
   return {
     schemaVersion: finiteInteger(source.schemaVersion) ?? ROLL_SCHEMA_VERSION,
@@ -625,6 +628,7 @@ function normalizeRollResult(raw={}, {skipSerializableClone=false}={}) {
     resolutionId: stringOrNull(source.resolutionId) ?? request?.resolutionId ?? null,
     type: normalizeRollType(source.type ?? source.semanticType ?? request?.type ?? ROLL_TYPES.CUSTOM),
     total,
+    ...((totalMinimum > 1) ? {totalMinimum} : {}),
     natural,
     dice,
     formula: stringOrNull(source.formula ?? resultData.formula) ?? rollFormulaForRequestOrNull(request),
@@ -919,12 +923,6 @@ export function d20FormulaWith(formula, {rollMode=ROLL_MODES.NORMAL, modifier=0,
   const rolled = dice ? String(formula).replace(/\b1?d20\b/, dice) : String(formula);
   if ( !modifier ) return rolled;
   return `${rolled} ${modifier < 0 ? "-" : "+"} ${Math.abs(modifier)}`;
-}
-
-/** A total as it counts: at least the request's `totalMinimum` (Indomitable Might). */
-function flooredTotal(total, expected) {
-  const minimum = finiteInteger(expected?.totalMinimum);
-  return ((total != null) && (minimum > 1)) ? Math.max(total, minimum) : total;
 }
 
 /** The d20 as it counts: at least the request's minimum (Reliable Talent), the die itself otherwise. */
