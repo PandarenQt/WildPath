@@ -536,10 +536,22 @@ function hitOffer(document, activity) {
  */
 function attackRider(document, activity, activities) {
   if ( (activity?.type !== "save") || !["", "none", "special"].includes(activity.activation?.type ?? "") || activity.activation?.condition
-    || !activities.some(entry => entry.type === "attack") || ![].concat(activity.save?.ability ?? []).filter(Boolean).length
+    || !activities.some(entry => entry.type === "attack") || !saveAbilitiesOf(document, activity).length
     || !/\b(?:is )?subject(?:ed)? to the following effect\b|\bmust make the following saving throw\b/iu.test(plainText(document)) ) return null;
   return {spell: true, tagsAll: [`hit:${slugify(document.name)}`], always: true, keepNotes: true,
     definition: definition => ({...definition, costs: {allOf: []}})};
+}
+
+/**
+ * A save activity's abilities (dnd5e's: `str`, `dex`, ...). None set: the one its text names, in a spell's wording ("a
+ * Dexterity saving throw": 2024 Lightning Arrow) or a stat block's ("Constitution Saving Throw: DC 21": a Pit Fiend's Bite).
+ */
+function saveAbilitiesOf(document, activity) {
+  const abilities = [].concat(activity?.save?.ability ?? []).filter(Boolean);
+  if ( abilities.length ) return abilities;
+  const named = [...new Set([...plainText(document).matchAll(/\b(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma) saving throw/giu)]
+    .map(match => match[1].slice(0, 3).toLowerCase()))];
+  return (named.length === 1) ? named : [];
 }
 
 const OWN_HIT = Object.freeze({
@@ -3330,11 +3342,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     Object.assign(definition, {range: {type: "special"}, targeting: {type: "single", required: true, count: 1}});
 
   if ( activity.type === "save" ) {
-    const abilities = [].concat(activity.save?.ability ?? []).filter(Boolean);
-    // None set: the one its text names ("a Dexterity saving throw": 2024 Lightning Arrow).
-    const named = [...new Set([...plainText(document).matchAll(/\b(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma) saving throw/g)]
-      .map(match => match[1].slice(0, 3).toLowerCase()))];
-    if ( !abilities.length && (named.length === 1) ) abilities.push(named[0]);
+    const abilities = saveAbilitiesOf(document, activity);
     const ability = ABILITY_MAP[abilities[0]] ?? null;
     if ( abilities.length > 1 ) notes.push(`save: a choice of ${abilities.join("/")} uses ${abilities[0]}`);
     const dc = activity.save?.dc ?? {};

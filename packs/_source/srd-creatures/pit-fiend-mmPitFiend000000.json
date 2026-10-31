@@ -436,6 +436,9 @@
               "provenance": "weapon-base"
             }
           ],
+          "tags": [
+            "hit:bite"
+          ],
           "label": "Bite (attack)"
         },
         "ruleElements": []
@@ -456,6 +459,90 @@
           "conversion": {
             "notes": []
           }
+        }
+      }
+    },
+    {
+      "_id": "2yhunondknwq0000",
+      "_key": "!actors.items!mmPitFiend000000.2yhunondknwq0000",
+      "name": "Bite (save)",
+      "type": "action",
+      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
+      "system": {
+        "active": true,
+        "description": "<p class=\"feature\">Melee Attack Roll: +14, reach 5 ft. Hit: 18 (3d6 + 8) Piercing damage. If the target is a creature, it must make the following saving throw.</p><p class=\"feature\"><em>Constitution Saving Throw:</em> DC 21.</p><p class=\"feature\"><em>Failure:</em> The target has the Poisoned condition. While Poisoned, the target can't regain Hit Points and takes 21 (6d6) Poison damage at the start of each of its turns, and it repeats the save at the end of each of its turns, ending the effect on itself on a success. After 1 minute, it succeeds automatically.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-bite",
+          "costs": {
+            "allOf": []
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "save": {
+            "ability": "fortitude",
+            "dc": {
+              "value": 21
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "poisoned",
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "repeatSave": "turnEnd"
+            }
+          ],
+          "range": {
+            "type": "special"
+          },
+          "label": "Bite (save)"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "reaction",
+            "type": "Trigger",
+            "data": {
+              "kind": "reaction",
+              "event": "attack.hit",
+              "match": {
+                "phase": "interrupt",
+                "sourceTokenId": "{self}",
+                "tagsAll": [
+                  "hit:bite"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "mmBite0000000000",
+            "type": "weapon",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "bite",
+            "subtype": null
+          },
+          "conversion": {
+            "notes": []
+          },
+          "reactionPolicy": "always"
         }
       }
     },
@@ -1246,7 +1333,6 @@
       },
       "conversion": {
         "notes": [
-          "Bite: \"save\" is passive or triggered: not automated",
           "Bite: activation: turnStart is not an action-economy cost"
         ]
       }

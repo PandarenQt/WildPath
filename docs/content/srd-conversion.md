@@ -1112,7 +1112,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Pirate | actors24 | Pirate (4 items) | — |
 | Pirate Captain | actors24 | Pirate Captain (6 items) | — |
 | Pistol | equipment24 | Pistol (automated) | — |
-| Pit Fiend | actors24 | Pit Fiend (13 items) | Bite: "save" is passive or triggered: not automated; Bite: activation: turnStart is not an action-economy cost |
+| Pit Fiend | actors24 | Pit Fiend (14 items) | Bite: activation: turnStart is not an action-economy cost |
 | Planar Ally | spells24 | Planar Ally (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
 | Planar Binding | spells24 | Planar Binding (automated) | activation: 1 hour is not an action-economy cost; effect: "Bound to Service" marks its creature only; its rules are by hand |
 | Plane Shift | spells24 | Plane Shift (manual) | not automated (teleport, narrative): using it spends its cost; its description says the rest |

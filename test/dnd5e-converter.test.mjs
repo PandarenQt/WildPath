@@ -1162,6 +1162,15 @@ test("a stat block attack's save happens on its hit (a Ghoul's Claw: \"it is sub
   const ghoul = JSON.parse(fs.readFileSync(`packs/_source/srd-creatures/${fs.readdirSync("packs/_source/srd-creatures")
     .find(file => file.startsWith("ghoul-"))}`, "utf8"));
   assert.equal(ghoul.flags.wildpath.conversion.notes.some(note => note.startsWith('Claw: "save" is passive')), false);
+  // dnd5e leaves a save's ability empty: its stat block's "Constitution Saving Throw" names it (a Pit Fiend's Bite).
+  const unnamed = claw("");
+  unnamed.system.activities.b.save.ability = [];
+  const named = convertItem(unnamed).items.find(item => item.system?.definition?.save);
+  assert.equal(named?.system.definition.save.ability, "fortitude");
+  const fiend = JSON.parse(fs.readFileSync(`packs/_source/srd-creatures/${fs.readdirSync("packs/_source/srd-creatures")
+    .find(file => file.startsWith("pit-fiend-"))}`, "utf8"));
+  assert.deepEqual(fiend.items.find(item => item.name === "Bite (save)")?.system.definition.effects.map(effect => effect.conditionId), ["poisoned"],
+    "the Pit Fiend's Bite poisons on a hit");
 });
 
 test("a weapon with the Ammunition property names the ammunition its attack spends (a Longbow's arrows)", () => {
