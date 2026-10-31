@@ -959,6 +959,134 @@ test("a save waiting on a Player who disconnects goes to the GM instead of hangi
   assert.equal(errors.find(envelope => envelope.messageType === "RESOLUTION_ERROR")?.payload?.code, "RESOLUTION_NOT_FOUND");
 });
 
+test("a save released from a Player who left can be passed back once they return; a stale or repeated answer is refused", async t => {
+  const saveDefinition = {schemaVersion: 1, id: "action:routed-save", label: "Routed save",
+    costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "single", required: true, count: 1},
+    range: {type: "reach", distance: {value: 5, unit: "ft"}}, save: {ability: "fortitude", dc: {value: 100}},
+    damage: [{id: "venom", expression: {type: "constant", value: 4}, damageType: "poison",
+      saveOutcomePolicy: {success: "half", failure: "full"}}]};
+  const {sourceActor, targetActor, targetToken, action, game} = syntheticRuntimeFixture(t, saveDefinition, {targetHealth: 30});
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  // The GM's prompt presses Pass back: at once (the Player still away), then once the Player is back.
+  const asked = [];
+  let reopen = null;
+  const passedBack = request => ({ok: false, status: "failure", code: "REQUEST_PASSED_BACK", requestId: request.id,
+    resolutionId: request.resolutionId});
+  const answers = [passedBack, request => new Promise(resolve => { reopen = () => resolve(passedBack(request)); })];
+  const gmDialog = {id: "gm-dialog", type: "test", label: "GM dialog", canHandle: () => true,
+    request: async (request, context) => { asked.push(context.passBackUserId); return answers.shift()(request); }};
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), promptPorts: [gmDialog],
+    actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent,
+      senderUserId: envelope.senderUserId, game, persistencePort: createTestDocumentPersistenceAdapter()})});
+  gm.register();
+  const received = [];
+  const away = hub.createEndpoint({userId: "player-a"});
+  away.register(envelope => { received.push(envelope); return {ok: true}; });
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: away, rollProviders: [createTestRollProvider({result: {natural: 3, total: 3}})]});
+  const built = buildFoundryActionUseIntent({actor: sourceActor, action, game: {user: {targets: new Set([{document: targetToken}])}}});
+  const declared = await gm.declareActionIntent(built.intent);
+  const record = gm.getRecord(declared.resolutionId);
+  const requests = () => received.filter(envelope => envelope.messageType === "PENDING_REQUEST");
+  assert.equal(requests().length, 1, "the save waits on the target's Player");
+
+  // They leave: the save is released to the GM, as before, and the GM's prompt knows whose it was.
+  hub.setActive("player-a", false);
+  const releasing = gm.releaseRequestsOf("player-a");
+  for ( let tick = 0; (tick < 50) && !reopen; tick++ ) await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(asked, ["player-a", "player-a"], "passed back while still away, it comes back to the GM");
+  assert.equal(requests().length, 1, "nothing is sent to a Player who is away");
+  assert.deepEqual(gm.waitingRequests(), [], "the GM's own prompt is not waiting on anyone else");
+
+  // Back online: passed back, the same request goes to them again and leaves the GM.
+  hub.setActive("player-a", true);
+  reopen();
+  await releasing;
+  const [first, again] = requests();
+  assert.equal(again?.requestId, first.requestId, "re-sent to the Player");
+  assert.deepEqual(gm.waitingRequests().map(entry => entry.userId), ["player-a"]);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.AWAITING_ROLL);
+
+  // The GM's answer now is stale: refused, as the Player is the expected chooser.
+  const stale = await gm.handleEnvelope(createResolutionSocketEnvelope({messageType: "REQUEST_RESPONSE", senderUserId: "gm-a",
+    recipientUserId: "gm-a", resolutionId: again.resolutionId, requestId: again.requestId,
+    payload: {response: {resolutionId: again.resolutionId, requestId: again.requestId, type: "roll", value: {natural: 20, total: 20}}}}));
+  assert.equal(stale.code, "WRONG_USER");
+  assert.equal(targetActor.system.resources.health.value, 30);
+
+  // The Player's answer is the first accepted one; a repeat of it changes nothing.
+  await player.handleEnvelope(again);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors));
+  assert.equal(targetActor.system.resources.health.value, 26, "the Player's 3 failed against DC 100");
+  const repeated = await gm.handleEnvelope(createResolutionSocketEnvelope({messageType: "REQUEST_RESPONSE", senderUserId: "player-a",
+    recipientUserId: "gm-a", resolutionId: again.resolutionId, requestId: again.requestId,
+    payload: {response: {resolutionId: again.resolutionId, requestId: again.requestId, type: "roll", value: {natural: 1, total: 1}}}}));
+  assert.equal(repeated.duplicate, true);
+  assert.equal(targetActor.system.resources.health.value, 26);
+});
+
+test("a Player whose client is ready again gets what it waits on; one passed back who leaves again is released to the GM", async t => {
+  const saveDefinition = {schemaVersion: 1, id: "action:routed-save", label: "Routed save",
+    costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "single", required: true, count: 1},
+    range: {type: "reach", distance: {value: 5, unit: "ft"}}, save: {ability: "fortitude", dc: {value: 100}},
+    damage: [{id: "venom", expression: {type: "constant", value: 4}, damageType: "poison",
+      saveOutcomePolicy: {success: "half", failure: "full"}}]};
+  const {sourceActor, targetActor, targetToken, action, game} = syntheticRuntimeFixture(t, saveDefinition, {targetHealth: 30});
+  const hub = createTestResolutionTransportHub({users: [
+    {id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}
+  ]});
+  // The GM's prompt: first it passes the save back (the Player is back), then it answers the save itself.
+  const asked = [];
+  const answers = [request => ({ok: false, status: "failure", code: "REQUEST_PASSED_BACK", requestId: request.id,
+    resolutionId: request.resolutionId}), request => ({ok: true, response: {resolutionId: request.resolutionId, requestId: request.id,
+    type: request.type, value: {natural: 2, total: 2}}})];
+  const gmDialog = {id: "gm-dialog", type: "test", label: "GM dialog", canHandle: () => true,
+    request: async (request, context) => { asked.push(context.passBackUserId); return answers.shift()(request); }};
+  const ready = [];
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), promptPorts: [gmDialog], onClientReady: userId => ready.push(userId),
+    actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent,
+      senderUserId: envelope.senderUserId, game, persistencePort: createTestDocumentPersistenceAdapter()})});
+  gm.register();
+  const received = [];
+  const endpoint = hub.createEndpoint({userId: "player-a"});
+  endpoint.register(envelope => { received.push(envelope); return {ok: true}; });
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: endpoint});
+  const built = buildFoundryActionUseIntent({actor: sourceActor, action, game: {user: {targets: new Set([{document: targetToken}])}}});
+  const declared = await gm.declareActionIntent(built.intent);
+  const record = gm.getRecord(declared.resolutionId);
+  const requests = () => received.filter(envelope => envelope.messageType === "PENDING_REQUEST");
+  assert.equal(requests().length, 1);
+
+  // The Player's page reloads: Foundry calls them connected before WildPath listens, so the save sent then is lost. Their
+  // client's CLIENT_READY has the GM send it again, and lets the GM's prompts pass back to them.
+  assert.equal((await player.announceReady()).ok, true);
+  assert.deepEqual(ready, ["player-a"]);
+  assert.equal(requests().length, 2, "sent again once their client listens");
+  assert.equal(requests()[1].requestId, requests()[0].requestId);
+  assert.deepEqual(gm.waitingRequests().map(entry => entry.userId), ["player-a"]);
+
+  // They leave: released to the GM, who passes it back (they are back at once); they leave again before answering: it is
+  // released to the GM again, whose prompt knows whose it was, and the GM's answer completes the Action.
+  hub.setActive("player-a", false);
+  const releasing = gm.releaseRequestsOf("player-a");
+  hub.setActive("player-a", true);
+  await releasing;
+  assert.equal(requests().length, 3, "passed back: sent to the Player");
+  hub.setActive("player-a", false);
+  await gm.releaseRequestsOf("player-a");
+  assert.deepEqual(asked, ["player-a", "player-a"], "released again, the GM's prompt can still pass it back");
+  assert.equal(requests().length, 3, "nothing more sent to a Player who is away");
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors));
+  assert.equal(targetActor.system.resources.health.value, 26, "the GM's 2 failed against DC 100");
+});
+
 test("the GM answers a save a connected Player leaves waiting; the Player is told, and a late answer is refused", async t => {
   const saveDefinition = {schemaVersion: 1, id: "action:routed-save", label: "Routed save",
     costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "single", required: true, count: 1},
@@ -2418,6 +2546,42 @@ test("an aura grants its rules to allies within its radius and to its bearer, bu
   assert.deepEqual(granted(enemy), [], "an enemy inside the aura");
 });
 
+test("a creature benefits from one copy of the same aura, the most potent, while different auras stack", async () => {
+  const {createFoundryAuras} = await import("../module/adapters/foundry-v14-auras.mjs");
+  const scene = fakeScene(new FakeSquareGrid(), {id: "aura-copies-scene"});
+  const creature = (id, offset, auras=[], disposition=1) => {
+    const actor = {id, isToken: true, getAuras: () => auras};
+    actor.token = fakeTokenDocument({id: `token-${id}`, actor, scene, offset, disposition});
+    scene.tokens.push(actor.token);
+    return actor;
+  };
+  const feature = name => ({type: "ruleElement", ruleElementId: "rule-1", ruleElementType: "Aura", parent: {type: "item", name}});
+  const protection = value => ({id: "aura-of-protection", radius: 10, affects: "allies", source: feature("Aura of Protection"),
+    ruleElements: [{schemaVersion: 1, id: `protection-${value}`, type: "Modifier", data: {domains: ["save"], value}}]});
+  const courage = {id: "aura-of-courage", radius: 10, affects: "allies", source: feature("Aura of Courage"),
+    ruleElements: [{schemaVersion: 1, id: "courage", type: "ConditionImmunity", data: {conditions: ["frightened"]}}]};
+  // Homebrew built in the sheet: its rule id repeats ("rule-1"), its feature's name does not.
+  const warding = {id: "rule-1", radius: 10, affects: "allies", source: feature("Warding Hum"),
+    ruleElements: [{schemaVersion: 1, id: "hum", type: "Modifier", data: {domains: ["defense.ac"], value: 1}}]};
+  const glow = {id: "rule-1", radius: 10, affects: "allies", source: feature("Soft Glow"),
+    ruleElements: [{schemaVersion: 1, id: "glow", type: "Modifier", data: {domains: ["defense.ac"], value: 1}}]};
+  const dread = value => ({id: "dread", radius: 10, affects: "enemies", source: feature("Dread Hum"),
+    ruleElements: [{schemaVersion: 1, id: `dread${value}`, type: "Modifier", data: {domains: ["save"], value}}]});
+  creature("paladin-b", {i: 5, j: 5}, [protection(2), courage, warding]);
+  // The higher-id copy comes first in scene.tokens, so only the tie-break, not the order, keeps paladin-a's.
+  creature("paladin-c", {i: 6, j: 6}, [protection(4)]);
+  creature("paladin-a", {i: 7, j: 5}, [protection(4), glow]);
+  creature("fiend-a", {i: 4, j: 5}, [dread(-1)], -1);
+  creature("fiend-b", {i: 6, j: 4}, [dread(-3)], -1);
+  const ally = creature("ally", {i: 6, j: 5});
+  const granted = createFoundryAuras().ownersFor(ally);
+  assert.deepEqual(granted.flatMap(owner => owner.ruleElements.map(rule => rule.id)).sort(),
+    ["courage", "dread-3", "glow", "hum", "protection-4"],
+    "one Aura of Protection, the higher; one enemy aura, the bigger penalty; the different auras all apply");
+  assert.equal(granted.find(owner => owner.source.aura === "aura-of-protection").source.bearerTokenId, "token-paladin-a",
+    "a tie keeps the lowest bearer Token id");
+});
+
 test("a bearerOnly aura grants its bearer alone, only while a creature it affects stands within its radius (Steadfast)", async () => {
   const {createFoundryAuras} = await import("../module/adapters/foundry-v14-auras.mjs");
   const {evaluateRuleElement} = await import("../module/helpers/rule-elements.mjs");
@@ -3023,6 +3187,18 @@ test("a willing creature only (targeting.notHostile): a target hostile to its so
   fixture.targetToken.disposition = 1;
   const enemy = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: fixture.intent, game: fixture.game});
   assert.deepEqual([enemy.ok, enemy.reason], [false, "WILDPATH.COMMON.NotWilling"]);
+});
+
+test("another creature only (targeting.notSelf): its source targeting itself is refused, another creature is not", async t => {
+  const definition = {schemaVersion: 1, id: "action:help", label: "Help", costs: {allOf: []},
+    range: {type: "ranged", normal: {value: 30, unit: "ft"}}, targeting: {type: "single", required: true, count: 1, notHostile: true, notSelf: true}};
+  const fixture = syntheticRuntimeFixture(t, definition);
+  const other = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: fixture.intent, game: fixture.game});
+  assert.equal(other.ok, true, JSON.stringify(other.reason));
+  const built = buildFoundryActionUseIntent({actor: fixture.sourceActor, action: fixture.action,
+    game: {user: {targets: new Set([{document: fixture.sourceToken}])}}});
+  const self = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: built.intent, game: fixture.game});
+  assert.deepEqual([self.ok, self.reason], [false, "WILDPATH.COMMON.NotSelf"]);
 });
 
 test("shared healing (a Trigger of kind shared-healing: Life Bond, homebrew): a summoned creature near its healed summoner shares the healing", async t => {

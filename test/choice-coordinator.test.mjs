@@ -26,7 +26,7 @@ import {
 } from "../module/helpers/resolution-state.mjs";
 import {PROMPT_CONTROL_TYPES, createPromptViewModel} from "../module/helpers/prompt-view-models.mjs";
 import {ROLL_CODES, ROLL_TYPES} from "../module/helpers/rolls.mjs";
-import {createFoundryV14PromptAdapter} from "../module/adapters/foundry-v14-prompt-adapter.mjs";
+import {createFoundryV14PromptAdapter, setPassBackAvailable} from "../module/adapters/foundry-v14-prompt-adapter.mjs";
 import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
 import {
   CHOICE_COORDINATOR_CODES,
@@ -916,6 +916,31 @@ test("FoundryV14PromptAdapter uses DialogV2.input and returns plain action-confi
       metadata: {}
     }]
   })).ok, true);
+});
+
+test("FoundryV14PromptAdapter offers to pass a released request back to its Player, live once they are online", async () => {
+  const request = createResolutionRequest({id: "request:released", resolutionId: "resolution:released", stageId: "choice",
+    type: RESOLUTION_REQUEST_TYPES.CHOICE, expectedResponseType: "choice-response", validation: {required: true}});
+  let config = null;
+  let liveOnReturn = null;
+  let liveWhileAway = null;
+  const DialogV2 = {
+    async input(options) {
+      config = options;
+      const passBack = options.buttons[0];
+      liveWhileAway = !passBack.disabled;
+      options.render(null, {options: {buttons: {passBack}}, element: null});
+      setPassBackAvailable("player-a", true);
+      liveOnReturn = !passBack.disabled;
+      return passBack.action;
+    }
+  };
+  const result = await createFoundryV14PromptAdapter({DialogV2}).request(request, {currentUserId: "gm-a",
+    passBackUserId: "player-a", users: [{id: "player-a", label: "Ann", active: false}]});
+  assert.equal(config.buttons.length, 1);
+  assert.equal(config.buttons[0].userId, "player-a");
+  assert.deepEqual([liveWhileAway, liveOnReturn], [false, true], "disabled while away, enabled once the Player is back");
+  assert.deepEqual([result.ok, result.code], [false, "REQUEST_PASSED_BACK"]);
 });
 
 test("FoundryV14PromptAdapter returns unhandled for non-local authority metadata", async () => {

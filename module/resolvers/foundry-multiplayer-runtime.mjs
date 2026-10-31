@@ -8,7 +8,7 @@ import {WILDPATH} from "../config.mjs";
 import {actionTags} from "../helpers/rule-elements.mjs";
 import {createFoundryDigitalRollProvider} from "../adapters/foundry-digital-roll-provider.mjs";
 import {createFoundryV14DocumentPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
-import {closeFoundryPrompt, createFoundryV14PromptAdapter} from "../adapters/foundry-v14-prompt-adapter.mjs";
+import {closeFoundryPrompt, createFoundryV14PromptAdapter, setPassBackAvailable} from "../adapters/foundry-v14-prompt-adapter.mjs";
 import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-adapter.mjs";
 import {
   createFoundryV14ResolutionSocketAdapter,
@@ -91,7 +91,7 @@ import {targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {ROLL_AUTHORITY, combineRollModes, d20Chance} from "../helpers/rolls.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
-import {conditionsFrom, creatureRefs, effectsFrom, revealedTo} from "../helpers/effect-sources.mjs";
+import {conditionsFrom, creatureRefs, effectAddedDice, effectsFrom, revealedTo} from "../helpers/effect-sources.mjs";
 import {CREATURE_SIZE_ORDER, customEffectId} from "../helpers/action-definitions.mjs";
 import {isUnprepared} from "../helpers/spellcasting.mjs";
 
@@ -160,6 +160,7 @@ export function registerFoundryV14MultiplayerResolution({
     users: () => foundryUserDirectory(game),
     activeGMUserId: () => game.users?.activeGM?.id ?? null,
     transport,
+    onClientReady: userId => setPassBackAvailable(userId, true),
     promptPorts: [createFoundryV14PromptAdapter()],
     rollProviders: [createFoundryDigitalRollProvider(), createPhysicalDiceProvider()],
     rollContext: dicePolicyRollContext(game),
@@ -227,9 +228,16 @@ export function registerFoundryV14MultiplayerResolution({
   const areas = createFoundryPersistentAreas({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? null,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   // A Player who disconnects mid-resolution cannot answer; the authority routes their requests again (GM fallback).
+  // Once they are back, the GM's prompt for such a request can pass it back to them.
+  // Once they are back and their client listens (its CLIENT_READY, `onClientReady`), the GM's prompt for such a request
+  // can pass it back to them.
   globalThis.Hooks?.on?.("userConnected", (user, connected) => {
-    if ( !connected && (game.users?.activeGM?.id === game.user?.id) ) void coordinator.releaseRequestsOf(user.id);
+    if ( connected || (game.users?.activeGM?.id !== game.user?.id) ) return;
+    setPassBackAvailable(user.id, false);
+    void coordinator.releaseRequestsOf(user.id);
   });
+  // This client listens now: the active GM is told (it sends what it waits on from this user again).
+  void coordinator.announceReady();
   globalThis.Hooks?.on?.("deleteActiveEffect", effect => areas.onEffectDeleted(effect));
   // Auras: statistics read for rolls and defenses ask which auras surround a creature.
   game.wildpath = {...(game.wildpath ?? {}), auras: createFoundryAuras()};
@@ -922,7 +930,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       const legendary = legendaryResistanceFor(targetActor, systemSnapshots.get(targetActor), game);
       if ( legendary ) legendaryByTarget[key] = legendary;
       const inspiration = withAllyTestOffers(withTestOffers(withAddedDice(inspirationOffer(targetActor,
-        systemSnapshots.get(targetActor), game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers}), targetActor, game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, target}), targetActor,
+        systemSnapshots.get(targetActor), game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, payers}), targetActor, game, {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, target, test: "save"}), targetActor,
         systemSnapshots.get(targetActor), game, "save", {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER}), saverToken, definition, game, "save",
         {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, register: payer => { allyPayers.push(payer); }});
       if ( inspiration ) inspirationByTarget[key] = inspiration;
@@ -988,15 +996,19 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // A willing creature only (`targeting.notHostile`): none on the other side from its source.
   if ( definition?.targeting?.notHostile && sourceToken
     && targetEntries.some(entry => hostileTo(sourceToken, targetTokenFor(entry.actor, entry.hint, game))) ) return refused("WILDPATH.COMMON.NotWilling");
+  // Another creature only (`targeting.notSelf`: Help aids someone else).
+  if ( definition?.targeting?.notSelf && targetEntries.some(entry => entry.actor === actor) ) return refused("WILDPATH.COMMON.NotSelf");
   const attackRollModeSourceList = definition?.attack ? foundryAttackRollModeSources({actor, action, definition, targetEntries, spatial, game, sourceToken}) : null;
   const attackRollMode = attackRollModeSourceList ? combineRollModes(attackRollModeSourceList) : null;
   const attackOutcomes = definition?.attack ? foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) : null;
   const attackBonuses = definition?.attack ? foundryAttackBonuses({targets, targetEntries, game, sourceToken}) : null;
   // Extra damage that depends on this attack (Sneak Attack: Advantage, or an ally beside the target) sees it. A target's
   // own (Hunter's Mark, Hex) counts on it alone; with several targets, each one's on that one (its refs).
+  // A die its effect adds to this attack sees it too (Inspiring Help's: an ally beside the target).
+  const ownAttackContext = definition?.attack ? {attack: {...attackContext(definition.attack.type ?? null, spatial,
+    targetEntries[0], game, sourceToken, actor).attack, rollMode: attackRollMode}} : {};
   const statistics = definition?.attack ? actionCombatStatistics(actor, definition, {item: action,
-    turn: game.combat?.started ? turnKey(game.combat) : null, context: {attack: {...attackContext(definition.attack.type ?? null, spatial,
-      targetEntries[0], game, sourceToken, actor).attack, rollMode: attackRollMode}},
+    turn: game.combat?.started ? turnKey(game.combat) : null, context: ownAttackContext,
     target: targetEntries.length === 1 ? targetEntries[0].actor : null,
     targets: targetEntries.length > 1 ? targetEntries.map((entry, index) => ({actor: entry.actor, refs: targetLookupRefs(targets[index])})) : null})
     : combatStatistics;
@@ -1018,7 +1030,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const ownOffer = (definition?.attack || definition?.check)
     ? withAddedDice(inspirationOffer(actor, actorSystem, game, {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, payers}), actor, game,
       {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, target: {id: actor.id, actorId: actor.id, actorRef: actor.uuid, uuid: actor.uuid,
-        tokenId: sourceToken?.id ?? null}}) : null;
+        tokenId: sourceToken?.id ?? null}, test: definition?.check ? "check" : "attack", context: ownAttackContext}) : null;
   // An ally's on its check too (Flash of Genius), each paying creature committed on like a target.
   const ownTest = (definition?.attack || definition?.check) ? withAllyTestOffers(withTestOffers(ownOffer, actor, actorSystem, game,
     definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, tags: definition?.tags ?? []}), sourceToken, definition, game,
@@ -1711,22 +1723,23 @@ function joinOwnOptions(offer, options, {chooser, label}) {
 
 /**
  * Dice its effects let a creature add to a failed d20 test (2024 Bardic Inspiration: "roll the Bardic Inspiration die
- * and add the number rolled"): an option each, added to its own offer (or an offer alone). The die is worked out from
- * the creature that gave it (a bard's level), and using it ends the effect (`payment`: a condition removal plan).
+ * and add the number rolled"): an option each, added to its own offer (or an offer alone). Its size and count
+ * (`addDie: {faces, number?}`) are worked out from the creature that gave it (a bard's level), and using it ends the
+ * effect (`payment`: a condition removal plan). One naming `tests` is offered only on those (`test`: "attack", "check",
+ * "save"; Inspiring Help's on the roll its Help covers), and one with a `predicate` only when the roll's `context` fits it
+ * (effectAddedDice).
  */
-export function withAddedDice(offer, roller, game, {chooser, target}={}) {
+export function withAddedDice(offer, roller, game, {chooser, target, test=null, context={}}={}) {
   const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
   const options = [];
   for ( const effect of roller?.effects ?? [] ) {
     const flag = effect?.flags?.wildpath?.conditionEffect;
-    const die = flag?.metadata?.addDie;
-    if ( effect.disabled || !die || !flag.conditionId ) continue;
-    const giver = globalThis.fromUuidSync?.(String(flag.sourceRef ?? "").replace(/^uuid:/, ""));
-    const giverActor = giver?.documentName === "Actor" ? giver : giver?.actor ?? giver?.parent ?? null;
-    const faces = evaluateValueExpression(die.faces, {actor: giverActor ?? roller, actorSystem: (giverActor ?? roller)?.system});
-    if ( !faces.ok || !(faces.value > 0) ) continue;
-    options.push({value: `add:${effect.id}`, addDice: {number: 1, faces: faces.value},
-      label: format("WILDPATH.INSPIRATION.AddDie", {name: effect.name, faces: faces.value}),
+    const dice = flag?.conditionId ? effectAddedDice(effect, roller, {test, context}) : null;
+    if ( !dice ) continue;
+    const {number: count, faces} = dice;
+    options.push({value: `add:${effect.id}`, addDice: {number: count, faces},
+      label: (count > 1) ? format("WILDPATH.INSPIRATION.AddDice", {name: effect.name, number: count, faces})
+        : format("WILDPATH.INSPIRATION.AddDie", {name: effect.name, faces}),
       payment: {type: "conditionEffect", conditionId: flag.conditionId, levels: -1, action: "delete", stacking: false,
         existingEffectId: effect.id, target: clonePlainData(target, "target"), definition: {id: flag.conditionId, custom: true},
         metadata: {}}});

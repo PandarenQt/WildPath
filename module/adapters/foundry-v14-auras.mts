@@ -3,6 +3,7 @@ import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-a
 import {createReachFootprint, footprintDistance} from "../helpers/grid-footprints.mjs";
 import {WILDPATH} from "../config.mjs";
 import {areaCovers} from "./foundry-v14-persistent-areas.mjs";
+import {bestAuraCopies} from "../helpers/rule-elements.mjs";
 
 /**
  * Auras (2024: "you and allies within 10 ft gain +1 AC"): an `Aura` RuleElement on a creature's features, gear or
@@ -139,7 +140,8 @@ export function createFoundryAuras() {
         }
       }
     }
-    return owners;
+    // One copy of the same aura (two paladins' Auras of Protection, or one bearer's two Tokens): the best for it.
+    return bestAuraCopies(owners);
   }
 
   return {ownersFor};

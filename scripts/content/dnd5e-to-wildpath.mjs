@@ -2128,10 +2128,36 @@ const HUNTERS_MARK_DIE = {type: "table", key: {type: "class-level", class: "rang
   rows: {1: {type: "dice", number: 1, faces: 6}, 20: {type: "dice", number: 1, faces: 10}}, default: {type: "dice", number: 1, faces: 6}};
 
 /**
+ * Inspiring Help (an Expert sidekick, 2014): its own Help puts one effect on another creature it helps, not on an enemy
+ * (`notHostile`, `notSelf`), with a die for the roll that Help covers. The creature adds it after that roll fails
+ * (`addDie`, offered on that kind of roll only), or on an attack it hits without it, deals it as damage (an ExtraDamage
+ * rider). Adding it to the roll spends the effect and drops its damage (withoutSpentEffect); the attack or check ends it
+ * either way. Its dice (1d6, 2d6 from expert level 20) are the sidekick's, worked out from the effect's giver
+ * (`fromSource`). Help: Advantage, the die and the damage on the creature's next attack only against a target an ally of
+ * it stands beside (`attack.allyNearTarget`, on all three). Assist: Advantage and the die on its next check.
+ * shortcut: any ally beside the target counts, not only the sidekick; upgrade when a predicate can name the effect's giver.
+ */
+const INSPIRING_DICE = Object.freeze({type: "table", key: {type: "class-level", class: "expert"}, rows: {1: 1, 20: 2}, default: 1});
+const ALLY_NEAR_TARGET = Object.freeze({equals: {path: "attack.allyNearTarget", value: true}});
+const inspiringHelp = (name, test, endsWhen, rules, predicate=null) => ({name, costs: [{capability: "action", amount: 1}],
+  range: {type: "ranged", normal: {value: 30, unit: "ft"}}, targeting: {type: "single", required: true, count: 1, notHostile: true, notSelf: true},
+  effects: [{id: "effect-1", type: "effect", name: "Inspiring Help", img: "icons/svg/upgrade.svg",
+    duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"}, endsWhen,
+    metadata: {addDie: {faces: 6, number: structuredClone(INSPIRING_DICE), tests: [test], ...(predicate ? {predicate: structuredClone(predicate)} : {})}},
+    ruleElements: rules}]});
+
+/**
  * Features dnd5e gives no usable activity that are used on their creature's turn, as an Action of their own (2024 Action
  * Surge: "you can take one additional action", no Action itself: one more Action this turn).
  */
 const FEATURE_ACTIONS = Object.freeze({
+  "inspiring-help": [inspiringHelp("Help", "attack", "attacks", [{schemaVersion: 1, id: "inspiring-help-attack", type: "RollMode",
+    predicate: structuredClone(ALLY_NEAR_TARGET), data: {domains: ["attack"], mode: "advantage"}},
+  {schemaVersion: 1, id: "inspiring-help-damage", type: "ExtraDamage", predicate: structuredClone(ALLY_NEAR_TARGET),
+    data: {domains: ["damage.melee", "damage.ranged"], expression: {type: "dice", number: structuredClone(INSPIRING_DICE), faces: 6},
+      metadata: {fromSource: true}}}], ALLY_NEAR_TARGET),
+  inspiringHelp("Assist", "check", "checks", [{schemaVersion: 1, id: "inspiring-help-check", type: "RollMode",
+    data: {domains: ["check"], mode: "advantage"}}])],
   "action-surge": {effects: [{id: "effect-1", type: "effect", name: "Action Surge", duration: {value: 0, units: "turns", expiry: "turnEnd"},
     ruleElements: [{schemaVersion: 1, id: "action-surge", type: "Modifier", data: {domains: ["resources.action.max"], modifierType: "untyped", value: 1}}]}]},
   // Slasher: once a turn its Slashing damage on a hit takes 10 feet off the creature's Speed until the start of its next

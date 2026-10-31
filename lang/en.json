@@ -257,6 +257,7 @@
     },
     "PROMPT": {
       "Confirm": "Confirm",
+      "PassBack": "Pass back to {name}",
       "Configure": {
         "Title": "Use {name}",
         "Spends": "Spends",
@@ -374,6 +375,7 @@
       "AssistSkill": "Which of your skills",
       "TooLarge": "That creature is more than one size larger: it can't be grappled or shoved.",
       "NotWilling": "Only a willing creature: not one hostile to you.",
+      "NotSelf": "Only another creature: not yourself.",
       "ChooseSkill": "{name}: which skill?"
     },
     "SUNLIGHT": {
@@ -439,6 +441,7 @@
       "OwnSave": "{name}'s save failed. Reroll it?",
       "OwnTest": "{name}'s roll failed. Add a die or reroll it?",
       "AddDie": "Add {name} (d{faces})",
+      "AddDice": "Add {name} ({number}d{faces})",
       "AddDieKept": "Add {name} (d{faces}; kept if it still fails)",
       "SetNatural": "{name}: turn it into a {natural}",
       "ForceHit": "{name}: hit instead",

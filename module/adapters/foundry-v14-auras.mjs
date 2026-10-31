@@ -3,6 +3,7 @@ import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid
 import { createReachFootprint, footprintDistance } from "../helpers/grid-footprints.mjs";
 import { WILDPATH } from "../config.mjs";
 import { areaCovers } from "./foundry-v14-persistent-areas.mjs";
+import { bestAuraCopies } from "../helpers/rule-elements.mjs";
 const reachFootprint = createReachFootprint;
 /** Whether an aura of `affects` from `bearer` reaches the creature standing at `token`, by their dispositions. */
 function affectsToken(affects, bearer, token) {
@@ -125,7 +126,8 @@ export function createFoundryAuras() {
                 }
             }
         }
-        return owners;
+        // One copy of the same aura (two paladins' Auras of Protection, or one bearer's two Tokens): the best for it.
+        return bestAuraCopies(owners);
     }
     return { ownersFor };
 }

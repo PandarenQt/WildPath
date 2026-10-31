@@ -423,6 +423,15 @@ equipped. Equipping it (`system.active`) turns its rules on.
     creature that gave it, its roller rolls it and the total grows by it, and the effect ends (a condition removal plan).
     Live: QA Caster (a d8 copy) inspired QA Fighter; on a failed Grapple save (1, total 0) Player1 added the d8 (4): still
     a failure at 4, both rolls on the card, Inspired gone.
+  - An added die may be several (`addDie.number`, worked out from the giver too) and only for one kind of roll
+    (`addDie.tests`: "attack", "check", "save"; unset is any). Inspiring Help (an Expert sidekick, 2026-11-01): the
+    feature brings its own "Help" and "Assist" Actions (FEATURE_ACTIONS), each putting "Inspiring Help" on another
+    creature it targets, never itself nor a hostile one (`targeting.notSelf`, `notHostile`): Advantage on its next
+    attack or check, a d6 (2d6 from expert level 20) for that roll, and on the attack the same dice as an ExtraDamage
+    rider on its hit (`fromSource`, rule-elements.md). The attack's Advantage, die and damage all need an ally of the
+    attacker beside its target (`attack.allyNearTarget`; the die's `addDie.predicate`); shortcut: any ally, not only
+    the sidekick. The attack or check ends it; adding the die drops the damage. A check rolled from the sheet has no DC
+    to fail, so Assist's die is added to it outright. Not yet checked live.
   - Live (two browsers): QA Fighter (a Champion) used Action Surge with its Action spent (0/1 to 1/2); its Longsword
     attack carried a critical threshold of 19; and a failed Grapple save was offered "Reroll with Indomitable, +6",
     which rolled 1d20 + 5 (its -1 and +6).

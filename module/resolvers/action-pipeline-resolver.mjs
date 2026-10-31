@@ -1303,7 +1303,7 @@ function createAttackOutcomeStage() {
         makeRollRequest: (suffix, bonus=0, rollMode=null) => attackRollRequestForState(state, input, {suffix, bonus, rollMode})}) : {};
       if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
       if ( reroll.roll ) {
-        input = {...input, attack: {...attack, roll: reroll.roll}};
+        input = withoutSpentEffect({...input, attack: {...attack, roll: reroll.roll}}, reroll.payment);
         attackResolution = resolveAttack(reroll.roll);
       }
       if ( !attackResolution.ok ) {
@@ -1701,6 +1701,18 @@ function addedDie(state, input, {option, key, stageId, rollKind, makeRollRequest
     payment: option.payment ?? (option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef}
       : null),
     refundOnFail: option.refundOnFail === true};
+}
+
+/**
+ * Its damage without the extra damage of the effect a die added to its roll just spent (`metadata.effectId`): Inspiring
+ * Help's die goes on the attack roll or on its damage, never both.
+ */
+function withoutSpentEffect(input, payment) {
+  const spent = (payment?.type === "conditionEffect") ? payment.existingEffectId : null;
+  if ( !spent || !input.damage ) return input;
+  const kept = list => list.filter(component => component?.metadata?.effectId !== spent);
+  return {...input, damage: {...input.damage, ...(Array.isArray(input.damage.components) ? {components: kept(input.damage.components)} : {}),
+    ...(Array.isArray(input.damage.extraComponents) ? {extraComponents: kept(input.damage.extraComponents)} : {})}};
 }
 
 function inspirationReroll(state, input, {offer: offered, failed, key, stageId, rollKind, makeRollRequest, targets=[], roll: original=null,

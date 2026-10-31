@@ -410,6 +410,30 @@ export function aurasFromRuleElements(owners=[], context={}) {
   return owners.flatMap(({ruleElements=[], source=null}) => collectRuleElementContributions({ruleElements, context, source}).contributions.auras);
 }
 
+/**
+ * A creature benefits from one copy of the same aura at a time (2024 Aura of Protection; generally, the same feature's
+ * effects don't combine), while different auras stack. Of the aura owners granted to a creature (`{ruleElements,
+ * source: {aura, bearerTokenId, parent}}`), copies share their aura id and the name of the feature giving it (rule ids
+ * alone repeat across homebrew features). The copy kept is the most potent, as when same-named effects meet: its numeric
+ * Modifiers add up to the largest size (the bigger bonus of an ally aura, the bigger penalty of an enemy one); on a tie,
+ * the lowest bearer Token id, so every client keeps the same one.
+ */
+export function bestAuraCopies(owners=[]) {
+  const total = owner => Math.abs((owner.ruleElements ?? []).reduce((sum, rule) => sum
+    + (((rule?.type === "Modifier") && Number.isFinite(Number(rule.data?.value))) ? Number(rule.data.value) : 0), 0));
+  const best = new Map();
+  for ( const owner of owners ) {
+    const key = JSON.stringify([owner.source?.aura ?? null, owner.source?.parent?.name ?? null]);
+    const kept = best.get(key);
+    const [mine, theirs] = [total(owner), kept ? total(kept) : -Infinity];
+    if ( (mine > theirs) || ((mine === theirs) && (String(owner.source?.bearerTokenId) < String(kept.source?.bearerTokenId))) ) {
+      best.set(key, owner);
+    }
+  }
+  const kept = new Set(best.values());
+  return owners.filter(owner => kept.has(owner));
+}
+
 /** The extra damage (`ExtraDamage`) a creature's owners add to an Action's damage in any of `domains`. */
 export function extraDamageFromRuleElements(owners=[], {domains=[], context={}}={}) {
   return contributionsInDomains(owners, "extraDamage", domains, context);

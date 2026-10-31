@@ -1338,6 +1338,8 @@ function normalizeTargetingDefinition(targeting) {
       ? {maxSizeAboveSource: Number(targeting.maxSizeAboveSource)} : {}),
     // A target may not be hostile to its source ("a willing creature": Heightened Focus' carry).
     ...(targeting.notHostile === true ? {notHostile: true} : {}),
+    // ... nor its source itself (Help aids another creature).
+    ...(targeting.notSelf === true ? {notSelf: true} : {}),
     metadata: clonePlain(targeting.metadata ?? {}) ?? {}
   };
 }

@@ -879,6 +879,12 @@ disadvantage".
   is no limit.
 - `actor.getExtraDamage(domains, {item, tags})` collects these rules, including the acting Action's own.
   `actionCombatStatistics` adds them for the runtime and for reaction Actions.
+- **An effect's, from its giver (2026-11-01).** On an effect, `data.metadata.fromSource: true` works its expression's
+  tables out with the creature that gave the effect (its `sourceRef`), as an added die is (`metadata.addDie`): Inspiring
+  Help's 1d6, 2d6 from its sidekick's expert level 20. Without that creature it is its holder's, as any other. Each
+  component of an effect's rule names its effect (`metadata.effectId`), so a die from that effect added to the attack
+  roll (which spends the effect) drops its damage from that attack: Inspiring Help goes on the roll or on the hit,
+  never both (`withoutSpentEffect`, action-pipeline-resolver.mjs).
 
 **Less damage: a penalty in dice (2026-10-31).** With `subtract: true` the dice are taken off instead (2024 Reduce's
 "1d4 less damage", Ray of Enfeeblement's "subtracts 1d8 from all its damage rolls"). `minimum` is the least damage
@@ -922,6 +928,13 @@ rules to the creatures within `radius` feet of its bearer.
   creature it `affects` stands within `radius` (Steadfast: `{radius: 30, affects: "allies", bearerOnly: true}` with a
   `ConditionImmunity` to Frightened). With `affects: "enemies"` it reads "while an enemy is near". shortcut: sight is
   not checked.
+- **One copy of the same aura (2026-10-31).** A creature benefits from only one copy of the same aura at a time
+  (2024 Aura of Protection; generally, the same feature's effects don't combine); different auras still stack.
+  Copies share their aura id and the name of the feature giving it (rule ids alone repeat across homebrew features),
+  whoever bears them, and one bearer's two Tokens count as two copies. `bestAuraCopies` (`module/helpers/rule-elements.mjs`),
+  called by `ownersFor`, keeps the most potent copy: its numeric Modifiers add up to the largest size (the bigger
+  penalty, for an enemy aura); on a tie, the lowest bearer Token id, so every client keeps the same one. shortcut: a
+  Modifier with a dice value counts as 0; weigh dice by their average when an aura with one needs it.
 - **Example.** "You and allies within 10 ft gain +1 AC" is `{radius: 10, affects: "allies", ruleElements:
   [{type: "Modifier", data: {domains: ["defense.ac"], value: 1}}]}`.
 - **When it is read.** Who is inside is worked out whenever a statistic is read for a roll or a defense:

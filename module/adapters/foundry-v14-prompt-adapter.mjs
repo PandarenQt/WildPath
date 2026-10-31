@@ -12,6 +12,7 @@ import {
   CHOICE_COORDINATOR_CODES,
   PROMPT_PORT_OUTCOMES
 } from "../resolvers/choice-coordinator.mjs";
+import {MULTIPLAYER_AUTHORITY_CODES} from "../helpers/multiplayer-authority.mjs";
 
 /** Prompts open on this client, by resolution and request, so one the GM took over can be withdrawn. */
 const openPrompts = new Map();
@@ -23,6 +24,35 @@ export function closeFoundryPrompt({resolutionId=null, requestId=null}={}) {
   if ( !dialog ) return false;
   void dialog.close?.();
   return true;
+}
+
+/** Users whose WildPath client announced it is listening (CLIENT_READY) and has not disconnected since. */
+const readyUsers = new Set();
+
+/** The pass-back button of an open prompt, on or off as its Player's client is ready. */
+function applyPassBack(dialog) {
+  const button = dialog.options?.buttons?.passBack;
+  if ( !button ) return;
+  button.disabled = !readyUsers.has(button.userId);
+  dialog.element?.querySelector?.('button[data-action="passBack"]')?.toggleAttribute("disabled", button.disabled);
+}
+
+/**
+ * A Player's client is ready (or they left): the GM's open prompts for requests released from them can pass them back,
+ * or not. Ready is the client's own CLIENT_READY, not Foundry's connect, which comes before its socket listens.
+ */
+export function setPassBackAvailable(userId, available) {
+  if ( available ) readyUsers.add(userId);
+  else readyUsers.delete(userId);
+  for ( const dialog of openPrompts.values() ) if ( dialog.options?.buttons?.passBack?.userId === userId ) applyPassBack(dialog);
+}
+
+/** A request the GM answers because its Player left (`passBackUserId`): a button to give it back, live once they are ready. */
+function passBackButton(context) {
+  const user = context.passBackUserId ? (context.users ?? []).find(entry => entry.id === context.passBackUserId) : null;
+  if ( !user ) return null;
+  return {action: "passBack", type: "button", icon: "fa-solid fa-share", userId: user.id, disabled: !readyUsers.has(user.id),
+    label: localize("WILDPATH.PROMPT.PassBack", {name: user.label})};
 }
 
 export function createFoundryV14PromptAdapter({
@@ -57,8 +87,11 @@ export function createFoundryV14PromptAdapter({
       const viewModel = createPromptViewModel(request, context);
       const shown = localizeViewModel(viewModel);
       const key = promptKey(request.resolutionId, request.id);
+      const passBack = passBackButton(context);
       const response = await Dialog.input({classes: ["wildpath", "themed", "theme-light"],
-        render: (_event, dialog) => openPrompts.set(key, dialog),
+        // Its button from the live state: a Player ready between building it and this render still counts.
+        render: (_event, dialog) => { openPrompts.set(key, dialog); applyPassBack(dialog); },
+        buttons: passBack ? [passBack] : [],
         window: {
           title: shown.title
         },
@@ -71,6 +104,8 @@ export function createFoundryV14PromptAdapter({
         ...dialogOptions,
         ...(context.dialogOptions ?? {})
       }).finally(() => openPrompts.delete(key));
+      if ( passBack && (response === passBack.action) ) return promptFailure({id, request,
+        code: MULTIPLAYER_AUTHORITY_CODES.REQUEST_PASSED_BACK, reason: "Passed back to its Player."});
       if ( response == null ) return {
         ok: false,
         status: PROMPT_PORT_OUTCOMES.CANCELLED,

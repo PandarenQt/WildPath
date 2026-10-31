@@ -2592,6 +2592,31 @@ test("Studied Attacks: a missed attack marks its target, and the fighter's next 
     {equals: {path: "attack.fromAttacker.studied", value: true}}]);
 });
 
+test("Inspiring Help: the sidekick's own Help and Assist put one effect on the creature helped, its die and its damage", () => {
+  const {items, notes} = convertItem({_id: "inspiringhelp000", name: "Inspiring Help", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "inspiring-help", activities: {}, type: {value: "class"},
+      description: {value: "<p>When it takes the Help action, the creature it helps adds a bonus to the d20 roll.</p>"}}});
+  assert.deepEqual([items.map(item => [item.type, item.name]), notes], [[["feature", "Inspiring Help"], ["action", "Inspiring Help (Help)"],
+    ["action", "Inspiring Help (Assist)"]], []], "not silent: two Actions");
+  const [help, assist] = items.slice(1).map(item => item.system.definition);
+  for ( const definition of [help, assist] ) {
+    assert.equal(validateActionDefinition(definition).ok, true);
+    assert.deepEqual([definition.costs.allOf, definition.targeting.notHostile, definition.targeting.notSelf],
+      [[{capability: "action", amount: 1}], true, true], "another creature, an ally, for an Action");
+  }
+  const sidekickDice = {type: "table", key: {type: "class-level", class: "expert"}, rows: {1: 1, 20: 2}, default: 1};
+  const beside = {equals: {path: "attack.allyNearTarget", value: true}};
+  const [helped] = help.effects;
+  assert.deepEqual([helped.endsWhen, helped.metadata.addDie], ["attacks", {faces: 6, number: sidekickDice, tests: ["attack"], predicate: beside}]);
+  const [advantage, damage] = helped.ruleElements;
+  assert.deepEqual([advantage.type, advantage.data.mode, advantage.predicate], ["RollMode", "advantage", beside]);
+  assert.deepEqual([damage.type, damage.data.expression, damage.data.metadata, damage.predicate], ["ExtraDamage",
+    {type: "dice", number: sidekickDice, faces: 6}, {fromSource: true}, beside], "the same dice on its hit, the sidekick's, beside an ally too");
+  const [assisted] = assist.effects;
+  assert.deepEqual([assisted.endsWhen, assisted.metadata.addDie.tests, assisted.ruleElements.map(rule => rule.data.domains)],
+    ["checks", ["check"], [["check"]]]);
+});
+
 test("Fiendish Resilience: once per rest, an Action choosing a damage type other than Force to resist", () => {
   const {items} = convertItem({_id: "fiendishresil000", name: "Fiendish Resilience", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
     system: {source: SRD, identifier: "fiendish-resilience", activities: {}, type: {value: "class"},

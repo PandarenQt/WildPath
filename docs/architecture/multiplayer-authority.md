@@ -82,6 +82,35 @@ Live (two browsers, 14.369, 2026-10-14): with physical dice, the GM's save Actio
 roll. Player1's browser left without answering. The GM then received the same "Enter your roll" prompt,
 answered it, and the resolution completed.
 
+**Passing a released request back (owner's Q2, plan 7.2, 2026-11-01).** The release still happens at once;
+passing back is an option the GM may use, so nothing changes unless they do. No setting is needed.
+- **`releasedFrom`.** `releaseRequestsOf` remembers, on the record, whom each released request was taken
+  from. A request the GM then answers carries that user as `passBackUserId` in the local prompt context.
+- **The button.** The GM's prompt (`createFoundryV14PromptAdapter().request`, the same DialogV2 used for
+  choices and physical rolls) gets a **Pass back to {name}** button. It is disabled until the Player's
+  client is ready. The prompt is modal, so the button has to be on the prompt itself.
+- **Ready, not connected.** Foundry marks a user active as soon as their socket connects, at the start of
+  page load, but WildPath's socket handler is registered only at `ready` (after migrations). A request sent
+  in between is lost. So each non-GM client announces `CLIENT_READY` (`coordinator.announceReady()`, sent to
+  the active GM, broadcast-safe: it carries nothing but who is ready) once it listens. On it the GM enables
+  pass-back for that Player (`onClientReady` → `setPassBackAvailable`) and routes again every request it
+  still expects from them, so one lost during the reload is sent again (the first accepted answer still
+  wins). The `userConnected` hook only handles a disconnect: it disables the button and releases the
+  Player's requests. The prompt reads the ready state again when it renders.
+- **Pressing it.** The prompt resolves `REQUEST_PASSED_BACK` instead of an answer. The coordinator
+  (`passBack`) drops the GM's expectation and routes the request to that Player through a per-request
+  override (chooser policy `passed-back`). The same `PENDING_REQUEST` goes to their client, and the GM's
+  prompt is gone, since pressing a button closes it. If the Player left again in the meantime, nothing is
+  sent; the request is routed afresh, so the GM is asked again. An override naming a Player who is no
+  longer active when it is routed is released the same way, never sent to nobody.
+- **Duplicates and staleness.** The GM is still the only authority. After a pass back, the Player is the
+  expected chooser, so a GM answer is refused (`WRONG_USER`). The first accepted answer wins as before,
+  and a repeat is a `DUPLICATE_REQUEST_RESPONSE`. If the Player leaves again, the override is cleared and
+  the request is released again, and can be passed back again.
+- **Limits.** The batch-saves window (several saves rolled by the GM at once) has no pass-back button. A
+  digitally rolled save has no prompt, so it is answered at once. A request released to another
+  controller, not the GM, is not offered for pass back.
+
 **The GM answers for a Player (maintainer decision, 2026-10-14).** A Player who stays connected but never
 answers is not timed out. The GM answers in their place instead.
 - **`waitingRequests()`** lists what each running resolution waits on, and from whom. The Rules Inspector shows
@@ -380,6 +409,10 @@ drag movement remains voluntary walk movement by default.
 - duplicate `REQUEST_RESPONSE` and duplicate `ACTION_INTENT` idempotency
 - wrong-user, wrong-request, and stale response rejection
 - disconnected chooser GM fallback and no-fallback failure
+- passing a released request back to its returning Player, refusing the GM's stale answer and a repeat;
+  `CLIENT_READY` sending again what a reloaded Player waits on; a passed-back request released again when
+  its Player leaves again (`test/foundry-action-runtime.test.mjs`); and the prompt's pass-back button
+  (`test/choice-coordinator.test.mjs`)
 - no-active-GM local authority only with proven commit permission
 - multiple active GM candidates selecting exactly the designated active GM
 - non-plain socket payload rejection

@@ -899,6 +899,41 @@ test("extra damage is its own roll, doubled on a critical, and a hit records its
   assert.equal(missed.state.mutationPlans.some(entry => entry.type === "sourceUpdate"), false, "a miss uses nothing");
 });
 
+test("Inspiring Help: a die added to the missed attack spends its effect, so the hit gets none of that effect's damage", () => {
+  const definition = {schemaVersion: 1, id: "action:dagger", label: "Dagger", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 4}, damageType: "piercing", provenance: "weapon-base"}]};
+  const ending = {type: "conditionEffect", conditionId: "custom:helped", levels: -1, action: "delete", existingEffectId: "helped",
+    target: {id: "fighter"}};
+  const offer = {own: true, chooser: "source-controller", label: "x",
+    options: [{value: "add:helped", addDice: {number: 2, faces: 6}, label: "Add Inspiring Help (2d6)", payment: ending}]};
+  const strike = id => planStagedActionResolution({id, actorSystem: actorSystem(1), action: definitionAction(definition),
+    source: {actorId: "actor-source"}, attack: {inspiration: offer},
+    damage: {extraComponents: [{id: "extra:inspiring-help-damage", expression: {type: "dice", number: 2, faces: 6}, damageType: "piercing",
+      provenance: "additional", metadata: {ruleId: "inspiring-help-damage", effectId: "helped"}}]},
+    targeting: {required: true, candidates: [{id: "orc", target: target("orc", {defenses: {ac: {value: 12}}}),
+      actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]}});
+  let state = null;
+  const answer = value => {
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: typeof value === "function" ? value(request) : value}}).state;
+    return request.payload?.rollRequest ? rollFormulaForRequest(request.payload.rollRequest).formula : request.type;
+  };
+  const roll = total => request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id,
+    type: request.payload.rollRequest.type, total, die: total});
+  state = strike("resolution:inspired-roll").state;
+  answer(roll(8));
+  assert.equal(answer("add:helped"), "choice", "the miss offers the die");
+  assert.equal(answer(roll(5)), "2d6", "both dice on the roll: 8 + 5 hits AC 12");
+  assert.equal(answer(roll(3)), "1d4", "the dagger's damage");
+  assert.equal(state.pendingRequests.length, 0, "and no Inspiring Help damage after it");
+  assert.ok(state.mutationPlans.some(plan => plan.existingEffectId === "helped"), "the effect is spent");
+  state = strike("resolution:inspired-damage").state;
+  answer(roll(15));
+  assert.deepEqual([answer(roll(3)), answer(roll(7))], ["1d4", "2d6"], "a hit without the die deals it as damage");
+});
+
 test("Savage Attacker: a hit's weapon dice are rolled twice, the higher kept, doubled on a critical; the hit records its use", () => {
   const definition = {schemaVersion: 1, id: "action:axe", label: "Axe", costs: {allOf: []}, tags: ["weapon"],
     targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},

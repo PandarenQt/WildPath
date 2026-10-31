@@ -5,7 +5,7 @@ import {requiresContext} from "../helpers/combat.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 import {pruneActorPools} from "../helpers/migrations.mjs";
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
-import {hostedRules} from "../helpers/effect-sources.mjs";
+import {effectAddedDice, effectGiverActor, hostedRules} from "../helpers/effect-sources.mjs";
 import {
   damageProfileFromRuleElements, dieMinimumsFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, grantedSensesFromRuleElements, grantedLightsFromRuleElements, grantedLanguagesFromRuleElements,
   modifiersFromRuleElements,
@@ -15,7 +15,7 @@ import {
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
 import {trainingRuleElements, withRecordedChoices} from "../helpers/level-up.mjs";
-import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
+import {evaluateValueExpression, selectTableRows} from "../helpers/value-expressions.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {floatHealthChange} from "../applications/floating-text.mjs";
 import {effectiveSpellcasting, hitDiceHealing, hitDiePoolId, longRestHitDice} from "../helpers/spellcasting.mjs";
@@ -268,8 +268,14 @@ export default class WildPathActor extends Actor {
   getExtraDamage(domains, {item=null, tags=[], context={}}={}) {
     const owners = grantOwners(this);
     if ( item?.system?.ruleElements?.length ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
+    // An effect's whose dice are its giver's (`metadata.fromSource`: Inspiring Help's by its sidekick's level), as that
+    // creature works them out, the way its added die is (withAddedDice).
     return extraDamageFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system, item, tags,
-      conditions: [...(this.statuses ?? [])], ...context}});
+      conditions: [...(this.statuses ?? [])], ...context}}).map(entry => {
+      const effectId = (entry.metadata?.fromSource && (entry.source?.parent?.type === "effect")) ? entry.source.parent.id : null;
+      const giver = effectId ? effectGiverActor([...(this.effects ?? [])].find(effect => effect.id === effectId)) : null;
+      return giver ? {...entry, expression: selectTableRows(entry.expression, {actor: giver, actorSystem: giver.system})} : entry;
+    });
   }
 
   /** The least its damage dice count as in `domains` (`DamageDieMinimum`: Great Weapon Fighting), read as getExtraDamage. */
@@ -808,6 +814,15 @@ export default class WildPathActor extends Actor {
     const rollMode = combineRollModes(this.getRollModes(domains, {context: save ? {} : {check: {ability: used, skill}}}));
     const bonus = (statistic?.dice ?? []).filter(die => (Number(die?.number) > 0) && (Number(die?.faces) > 0))
       .map(die => `${die.sign < 0 ? "-" : "+"} ${die.number}d${die.faces}`);
+    // The die of help this check uses up (Assist from Inspiring Help: `addDie` for "check", `endsWhen: "checks"`) goes on
+    // it: a sheet roll has no DC to fail first, and the check ends that effect either way (endEffectsWhenChecked).
+    const checked = new Set(["check", `check.${used}`, skill ? `check.${skill}` : null]);
+    const usedUp = effect => (effect.flags?.wildpath?.conditionEffect?.definition?.endsWhen === "checks")
+      && (effect.system?.ruleElements ?? []).some(rule => (rule.data?.domains ?? []).some(domain => checked.has(domain)));
+    if ( !save ) for ( const effect of this.effects ?? [] ) {
+      const dice = usedUp(effect) ? effectAddedDice(effect, this, {test: "check"}) : null;
+      if ( dice ) bonus.push(`+ ${dice.number}d${dice.faces}`);
+    }
     const formula = d20FormulaWith(["1d20", ...bonus].join(" "), {rollMode, modifier: statistic?.totalModifier ?? 0,
       naturalMinimum: statistic?.naturalMinimum ?? null});
     const abilityLabel = game.i18n.localize(ABILITIES[used]?.label ?? used);

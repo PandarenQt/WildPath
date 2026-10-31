@@ -259,10 +259,11 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
   const replaced = (baseExpression && (baseExpression !== own?.expression)) ? selectTableRows(baseExpression, {actorSystem: actor?.system ?? null})
     : null;
   // Extra damage with no type of its own is the Action's (Sneak Attack deals the weapon's).
-  // Each names its rule (`metadata.ruleId`: "sneak-attack"), which a reaction's rider can give dice of up (Cunning Strike).
+  // Each names its rule (`metadata.ruleId`: "sneak-attack"), which a reaction's rider can give dice of up (Cunning Strike),
+  // and an effect's its effect (`metadata.effectId`), so spending that effect on the roll drops it (Inspiring Help).
   const component = (entry, suffix="", metadata={}) => ({id: `extra:${onceKey(entry)}${suffix}`, expression: entry.expression,
     damageType: entry.damageType ?? components[0]?.damageType ?? "untyped", provenance: "additional",
-    metadata: {ruleId: entry.id, ...(entry.subtract ? {subtract: true, ...(entry.minimum ? {minimum: entry.minimum} : {})} : {}), ...metadata},
+    metadata: {ruleId: entry.id, ...((entry.source?.parent?.type === "effect") ? {effectId: entry.source.parent.id} : {}), ...(entry.subtract ? {subtract: true, ...(entry.minimum ? {minimum: entry.minimum} : {})} : {}), ...metadata},
     ...(((entry.once === "turn") && turn) ? {once: {key: onceKey(entry), turn}} : {})});
   // With several targets (Eldritch Blast's beams, Scorching Ray's rays), each creature's own (Hex, Hunter's Mark) counts
   // only on it (`metadata.targetRefs`), once for each of its entries; the damage resolver keeps it for that creature.

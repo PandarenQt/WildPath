@@ -664,3 +664,27 @@ test("a save's roll modes: the caster's own on the saves it imposes (Magical Amb
   assert.deepEqual(mode(struckBy("Actor.knight"), knight, {...spell, tags: ["weapon"]}), [], "not the knight's spell");
   assert.deepEqual(mode(struckBy("Actor.other"), knight, spell), [], "another creature's mark");
 });
+
+test("an effect's extra damage worked out from its giver (Inspiring Help's dice by its sidekick's level) names its effect", async () => {
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const dice = {type: "dice", number: {type: "table", key: {type: "class-level", class: "expert"}, rows: {1: 1, 20: 2}, default: 1}, faces: 6};
+  const rider = (fromSource=true) => ({schemaVersion: 1, id: "inspiring-help-damage", type: "ExtraDamage",
+    data: {domains: ["damage.melee"], expression: dice, ...(fromSource ? {metadata: {fromSource: true}} : {})}});
+  const sidekick = level => ({documentName: "Actor", uuid: `Actor.expert${level}`, system: {classes: [{id: "expert", level}]}});
+  const givers = {"Actor.expert20": sidekick(20), "Actor.expert11": sidekick(11)};
+  globalThis.fromUuidSync = uuid => givers[uuid] ?? null;
+  const helped = (sourceRef, rule=rider()) => {
+    const effect = {id: "helped", uuid: "Actor.fighter.ActiveEffect.helped", name: "Inspiring Help", disabled: false,
+      flags: {wildpath: {conditionEffect: {sourceRef}}}, system: {ruleElements: [rule]}};
+    return Object.assign(Object.create(WildPathActor.prototype), {id: "fighter", uuid: "Actor.fighter", effects: [effect], items: [],
+      statuses: new Set(), flags: {}, system: {classes: [{id: "fighter", level: 20}]}, allApplicableEffects: () => [effect]});
+  };
+  const melee = {attack: {type: "melee", statistic: "weapon"}, damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8},
+    provenance: "weapon-base"}]};
+  const extra = actor => actionCombatStatistics(actor, melee).damage.extraComponents.map(entry => [entry.expression.number, entry.metadata.effectId]);
+  assert.deepEqual(extra(helped("uuid:Actor.expert20")), [[2, "helped"]], "a level 20 sidekick's 2d6");
+  assert.deepEqual(extra(helped("uuid:Actor.expert11")), [[1, "helped"]], "a level 11 sidekick's 1d6");
+  assert.deepEqual(extra(helped("uuid:Actor.expert20", rider(false))), [[dice.number, "helped"]],
+    "without fromSource it stays its holder's, worked out when rolled");
+  delete globalThis.fromUuidSync;
+});

@@ -62,7 +62,8 @@ export function createMultiplayerActionCoordinator({
   notify=null,
   publishResult=null,
   afterCompleted=null,
-  afterCancelled=null
+  afterCancelled=null,
+  onClientReady=null
 }={}) {
   const localUserId = stringOrNull(userId ?? transport?.userId);
   // Unfinished resolutions stay in `records`; a finished one is kept until it falls out of the bounded
@@ -189,6 +190,7 @@ export function createMultiplayerActionCoordinator({
     /**
      * A user who disconnected cannot answer: requests still waiting on them are routed again without them
      * (another controller, or the GM fallback). The authority calls this from Foundry's `userConnected` hook.
+     * Each is remembered (`releasedFrom`), so the GM's prompt for it can pass it back once they return.
      */
     async releaseRequestsOf(userId) {
       const results = [];
@@ -201,11 +203,24 @@ export function createMultiplayerActionCoordinator({
           if ( (expectation.expectedUserId !== userId) || !pending.has(key) ) continue;
           record.requestExpectations.delete(key);
           record.routedRequestIds.delete(key);
+          // A request passed back to them is theirs no longer: it is routed again like any other.
+          record.requestOverrides?.delete(key);
+          (record.releasedFrom ??= new Map()).set(key, userId);
           released = true;
         }
         if ( released ) results.push(await advanceRecord(record));
       }
       return results;
+    },
+    /**
+     * This client's WildPath socket is listening: the active GM is told, so it can send this user what it waits on
+     * (Foundry marks a user active on connect, before this client's handler exists, so a request sent then is lost).
+     */
+    async announceReady() {
+      const gmId = activeGMId();
+      if ( !localUserId || !gmId || (gmId === localUserId) ) return {ok: true, code: MULTIPLAYER_AUTHORITY_CODES.OK, skipped: true};
+      return sendEnvelope(createResolutionSocketEnvelope({messageType: MULTIPLAYER_MESSAGE_TYPES.CLIENT_READY,
+        senderUserId: localUserId, recipientUserId: gmId, resolutionId: `client-ready:${localUserId}:${Date.now()}`, payload: {}}));
     },
     register() {
       if ( !transport || typeof transport.register !== "function" ) return {
@@ -303,6 +318,8 @@ export function createMultiplayerActionCoordinator({
         return receiveResolutionResult(data);
       case MULTIPLAYER_MESSAGE_TYPES.RESOLUTION_ERROR:
         return receiveResolutionError(data);
+      case MULTIPLAYER_MESSAGE_TYPES.CLIENT_READY:
+        return receiveClientReady(data);
       default:
         return {
           ok: false,
@@ -546,9 +563,16 @@ export function createMultiplayerActionCoordinator({
       const key = requestKey(request, state);
       if ( record.routedRequestIds.has(key) ) continue;
       const sourceControllerUserIds = sourceControllerUserIdsForRequest(record, request, state);
-      // The GM took this request over (answerForUsers): it is answered here, whoever would normally choose.
-      const override = record.requestOverrides?.get(key);
-      const chooser = override ? {ok: true, userId: override, policy: "gm-answer"} : resolveRequestChooser({
+      // The GM took this request over (answerForUsers), or passed it back to its Player: it goes there, whoever would
+      // normally choose.
+      let override = record.requestOverrides?.get(key);
+      // A request passed back to a Player who has since left is released again, not sent to nobody.
+      if ( override && (override !== localUserId) && !userDirectory().some(user => (user.id === override) && user.active) ) {
+        record.requestOverrides.delete(key);
+        (record.releasedFrom ??= new Map()).set(key, override);
+        override = null;
+      }
+      const chooser = override ? {ok: true, userId: override, policy: (override === localUserId) ? "gm-answer" : "passed-back"} : resolveRequestChooser({
         request,
         users: userDirectory(),
         initiatorUserId: execution.nested ? null : record.initiatorUserId,
@@ -626,6 +650,7 @@ export function createMultiplayerActionCoordinator({
     if ( record.cancelled ) return cancelledByGM(record);
     if ( batch && !batch.ok ) return sendAuthorityError(record, batch, {requestId: batch.requestId ?? null, resolutionId: state.id});
     let result = null;
+    let passed = false;
     for ( const request of requests ) {
       // An earlier answer may have ended the resolution or moved it on.
       const pending = activeResolutionExecution(record.state, state.id)?.state?.pendingRequests ?? [];
@@ -633,6 +658,11 @@ export function createMultiplayerActionCoordinator({
       const answered = batch?.responses.has(request.id) ? {ok: true, response: batch.responses.get(request.id)}
         : await answerPendingRequestLocally({request, promptPorts, rollProviders, context: localRequestContext(record, request, state)});
       if ( record.cancelled ) return cancelledByGM(record);
+      if ( answered.code === MULTIPLAYER_AUTHORITY_CODES.REQUEST_PASSED_BACK ) {
+        passBack(record, requestKey(request, state));
+        passed = true;
+        continue;
+      }
       if ( !answered.ok ) return sendAuthorityError(record, answered, {requestId: request.id, resolutionId: state.id});
       result = await applyRequestResponse(record, createResolutionSocketEnvelope({
         messageType: MULTIPLAYER_MESSAGE_TYPES.REQUEST_RESPONSE,
@@ -643,7 +673,48 @@ export function createMultiplayerActionCoordinator({
         payload: {response: answered.response}
       }));
     }
+    if ( passed ) return advanceRecord(record);
     return result ?? {ok: true, code: MULTIPLAYER_AUTHORITY_CODES.REQUEST_ROUTED, state, pendingRequests: requests.length};
+  }
+
+  /**
+   * The GM passed back a request released from a Player who left (`releasedFrom`): routed to that Player again, and an
+   * answer from anyone else (the GM's included) is then refused as not the expected chooser. A Player who is still away
+   * is not sent it: it is routed afresh, so the GM is asked again.
+   */
+  function passBack(record, key) {
+    const userId = record.releasedFrom?.get(key) ?? null;
+    record.requestExpectations.delete(key);
+    record.routedRequestIds.delete(key);
+    if ( !userDirectory().some(user => (user.id === userId) && user.active) ) return;
+    record.releasedFrom.delete(key);
+    (record.requestOverrides ??= new Map()).set(key, userId);
+  }
+
+  /**
+   * A user's client is listening again (a reload, a rejoin): what this authority still waits on from them is routed
+   * afresh, so a request sent while their client loaded (and lost) reaches them now; the first answer still wins. The
+   * GM's prompts may then pass released requests back to them (`onClientReady`).
+   */
+  async function receiveClientReady(envelope) {
+    const userId = envelope.senderUserId;
+    if ( activeGMId() !== localUserId ) return {ok: true, code: MULTIPLAYER_AUTHORITY_CODES.OK, ignored: true};
+    onClientReady?.(userId);
+    const results = [];
+    for ( const record of [...records.values()] ) {
+      if ( (record.authorityUserId !== localUserId) || isTerminalState(record.state) ) continue;
+      const execution = activeResolutionExecution(record.state);
+      const pending = new Set((execution?.state?.pendingRequests ?? []).map(request => requestKey(request, execution.state)));
+      let resend = false;
+      for ( const [key, expectation] of record.requestExpectations ) {
+        if ( (expectation.expectedUserId !== userId) || !pending.has(key) ) continue;
+        record.requestExpectations.delete(key);
+        record.routedRequestIds.delete(key);
+        resend = true;
+      }
+      if ( resend ) results.push(await advanceRecord(record));
+    }
+    return {ok: true, code: MULTIPLAYER_AUTHORITY_CODES.OK, results};
   }
 
   async function receivePendingRequest(envelope) {
@@ -1155,7 +1226,9 @@ export function createMultiplayerActionCoordinator({
       users: userDirectory(),
       resolutionId: state?.id ?? record.resolutionId,
       parentResolutionId: state?.parentId ?? record.resolutionId,
-      requestId: request.id
+      requestId: request.id,
+      // Released from a Player who left: the prompt can offer to pass it back to them.
+      passBackUserId: record.releasedFrom?.get(requestKey(request, state)) ?? null
     };
   }
 

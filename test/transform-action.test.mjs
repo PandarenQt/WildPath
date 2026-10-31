@@ -183,6 +183,40 @@ test("a die an effect lets its creature add (Bardic Inspiration) is offered at i
   delete globalThis.fromUuidSync;
 });
 
+test("a die for one kind of roll (Inspiring Help's) is offered only on it, as many dice as its giver's level gives", async () => {
+  const {withAddedDice} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const sidekick = level => ({documentName: "Actor", system: {classes: [{id: "expert", level}]}});
+  const givers = {"Actor.veteran": sidekick(20), "Actor.novice": sidekick(11)};
+  globalThis.fromUuidSync = uuid => givers[uuid] ?? null;
+  const helped = sourceRef => ({id: "helped", name: "Inspiring Help", flags: {wildpath: {conditionEffect: {conditionId: "custom:action:help:effect-1",
+    sourceRef, metadata: {addDie: {faces: 6, number: {type: "table", key: {type: "class-level", class: "expert"}, rows: {1: 1, 20: 2}, default: 1},
+      tests: ["attack"]}}}}}});
+  const game = {i18n: {format: (key, data) => `${key}:${data.number ?? 1}d${data.faces}`}};
+  const offer = (sourceRef, test) => withAddedDice(null, {name: "Fighter", effects: [helped(sourceRef)]}, game, {chooser: "source-controller",
+    target: {id: "fighter"}, test});
+  const veteran = offer("uuid:Actor.veteran", "attack").options[0];
+  assert.deepEqual([veteran.addDice, veteran.label, veteran.payment.existingEffectId], [{number: 2, faces: 6}, "WILDPATH.INSPIRATION.AddDice:2d6", "helped"]);
+  assert.deepEqual(offer("uuid:Actor.novice", "attack").options[0].addDice, {number: 1, faces: 6});
+  assert.equal(offer("uuid:Actor.veteran", "save"), null, "not on a save");
+  assert.equal(offer("uuid:Actor.veteran", "check"), null, "nor on a check");
+  delete globalThis.fromUuidSync;
+});
+
+test("an added die for a check (Assist's) is offered on a check; one with a predicate only on a roll it fits", async () => {
+  const {withAddedDice} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {effectAddedDice} = await import("../module/helpers/effect-sources.mjs");
+  const helped = addDie => ({id: "helped", name: "Inspiring Help", flags: {wildpath: {conditionEffect: {conditionId: "custom:action:assist:effect-1",
+    metadata: {addDie}}}}});
+  const offer = (effect, test, context) => withAddedDice(null, {name: "Fighter", effects: [effect]}, {}, {chooser: "source-controller",
+    target: {id: "fighter"}, test, context});
+  assert.deepEqual(offer(helped({faces: 6, tests: ["check"]}), "check").options[0].addDice, {number: 1, faces: 6});
+  assert.equal(offer(helped({faces: 6, tests: ["check"]}), "attack"), null, "not on an attack");
+  const beside = helped({faces: 6, tests: ["attack"], predicate: {equals: {path: "attack.allyNearTarget", value: true}}});
+  assert.deepEqual(offer(beside, "attack", {attack: {allyNearTarget: true}}).options[0].addDice, {number: 1, faces: 6});
+  assert.equal(offer(beside, "attack", {attack: {allyNearTarget: false}}), null, "no ally beside the target: no die");
+  assert.equal(effectAddedDice({...beside, disabled: true}, {}, {test: "attack", context: {attack: {allyNearTarget: true}}}), null, "disabled");
+});
+
 test("Wild Shape's limits (2014): CR, Fly and Swim Speed by druid level", async () => {
   const {formBeyondLimits} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
   const limits = {class: "druid", rows: {2: {cr: 0.25, fly: false, swim: false}, 4: {cr: 0.5, fly: false, swim: true}, 8: {cr: 1, fly: true, swim: true}}};
