@@ -7,7 +7,19 @@
   "system": {
     "active": true,
     "description": "<p>Choose one damage type, other than Force, whenever you finish a Short or Long Rest. You have Resistance to that damage type until you choose a different one with this feature.</p><section class=\"secret\" id=\"secret-MG3loWptcg4gpsdG\"><p><strong>Foundry Note</strong></p><p>This feature includes an Active Effect for each type of damage which will grant you the correct Resistance. Apply and disable the effects as necessary when you change types.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "fiendish-resilience-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "fiendish-resilience",
+          "label": "Fiendish Resilience",
+          "maximum": 1,
+          "recovery": "shortRest"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -23,10 +35,11 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "silent: its text names a rule that is not converted (by hand)"
-        ]
-      }
+        "notes": []
+      },
+      "grants": [
+        "16hpr3j186l5yv00"
+      ]
     }
   }
 }

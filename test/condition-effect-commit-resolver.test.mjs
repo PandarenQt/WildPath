@@ -195,3 +195,23 @@ test("a removal planned without seeing the target (Lesser Restoration's noop pla
   assert.deepEqual(actor.effects.map(effect => [effect.system.type, effect.system.level]), [["exhaustion", 2]], "Poisoned ends; Exhaustion 3 -> 2");
   assert.equal((await commitConditionEffectMutationPlan(actor, removal("blinded", false))).ok, true, "a condition it lacks: nothing to do");
 });
+
+test("another choice of the same custom effect replaces it: Elemental Affinity's Cold after its Fire", async () => {
+  const {planStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
+  const affinity = type => ({id: type, type: "effect", name: `Elemental Affinity (${type})`, slug: "elemental-affinity",
+    ruleElements: [{schemaVersion: 1, id: `affinity-${type}`, type: "GrantResistance", data: {damageTypes: [type]}}]});
+  const plan = type => {
+    const definition = {schemaVersion: 1, id: "action:affinity", label: "Elemental Affinity", costs: {allOf: []},
+      targeting: {type: "single", required: true, count: 1}, effects: [affinity(type)]};
+    return planStagedActionResolution({id: `resolution:${type}`, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+      action: {id: definition.id, type: "action", name: "Elemental Affinity", system: {definition}}, source: {actorId: "sorcerer"},
+      targets: [{id: "sorcerer", actorId: "actor-sorcerer"}]})
+      .state.mutationPlans.find(entry => entry.type === "conditionEffect");
+  };
+  const actor = actorWithEffects();
+  assert.equal((await commitConditionEffectMutationPlan(actor, plan("fire"))).ok, true);
+  assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("cold"), existingEffectId: null})).ok, true);
+  assert.deepEqual(actor.effects.map(effect => effect.system.ruleElements[0].data.damageTypes), [["cold"]], "Cold replaces Fire");
+  assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("cold"), existingEffectId: null})).ok, true);
+  assert.equal(actor.effects.length, 1, "the same choice again refreshes it");
+});

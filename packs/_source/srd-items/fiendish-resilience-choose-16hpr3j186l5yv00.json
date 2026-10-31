@@ -1,0 +1,368 @@
+{
+  "_id": "16hpr3j186l5yv00",
+  "_key": "!items!16hpr3j186l5yv00",
+  "name": "Fiendish Resilience (Choose)",
+  "type": "action",
+  "img": "icons/magic/defensive/armor-stone-skin.webp",
+  "system": {
+    "active": true,
+    "description": "",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-fiendish-resilience",
+      "label": "Fiendish Resilience (Choose)",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "fiendish-resilience",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "acid",
+          "type": "effect",
+          "name": "Fiendish Resilience (Acid)",
+          "slug": "fiendish-resilience",
+          "img": "icons/magic/defensive/armor-stone-skin.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resilience-acid",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "acid"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "bludgeoning",
+          "type": "effect",
+          "name": "Fiendish Resilience (Bludgeoning)",
+          "slug": "fiendish-resilience",
+          "img": "icons/magic/defensive/armor-stone-skin.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resilience-bludgeoning",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "bludgeoning"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "cold",
+          "type": "effect",
+          "name": "Fiendish Resilience (Cold)",
+          "slug": "fiendish-resilience",
+          "img": "icons/magic/defensive/armor-stone-skin.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resilience-cold",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "cold"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "fire",
+          "type": "effect",
+          "name": "Fiendish Resilience (Fire)",
+          "slug": "fiendish-resilience",
+          "img": "icons/magic/defensive/armor-stone-skin.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resilience-fire",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "fire"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "lightning",
+          "type": "effect",
+          "name": "Fiendish Resilience (Lightning)",
+          "slug": "fiendish-resilience",
+          "img": "icons/magic/defensive/armor-stone-skin.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resilience-lightning",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "lightning"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "necrotic",
+          "type": "effect",
+          "name": "Fiendish Resilience (Necrotic)",
+          "slug": "fiendish-resilience",
+          "img": "icons/magic/defensive/armor-stone-skin.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resilience-necrotic",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "necrotic"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "piercing",
+          "type": "effect",
+          "name": "Fiendish Resilience (Piercing)",
+          "slug": "fiendish-resilience",
+          "img": "icons/magic/defensive/armor-stone-skin.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resilience-piercing",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "piercing"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "poison",
+          "type": "effect",
+          "name": "Fiendish Resilience (Poison)",
+          "slug": "fiendish-resilience",
+          "img": "icons/magic/defensive/armor-stone-skin.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resilience-poison",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "poison"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "psychic",
+          "type": "effect",
+          "name": "Fiendish Resilience (Psychic)",
+          "slug": "fiendish-resilience",
+          "img": "icons/magic/defensive/armor-stone-skin.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resilience-psychic",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "psychic"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "radiant",
+          "type": "effect",
+          "name": "Fiendish Resilience (Radiant)",
+          "slug": "fiendish-resilience",
+          "img": "icons/magic/defensive/armor-stone-skin.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resilience-radiant",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "radiant"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "slashing",
+          "type": "effect",
+          "name": "Fiendish Resilience (Slashing)",
+          "slug": "fiendish-resilience",
+          "img": "icons/magic/defensive/armor-stone-skin.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resilience-slashing",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "slashing"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "id": "thunder",
+          "type": "effect",
+          "name": "Fiendish Resilience (Thunder)",
+          "slug": "fiendish-resilience",
+          "img": "icons/magic/defensive/armor-stone-skin.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "resilience-thunder",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "thunder"
+                ]
+              }
+            }
+          ]
+        }
+      ],
+      "configuration": [
+        {
+          "id": "type",
+          "type": "select-one",
+          "label": "Damage type",
+          "required": true,
+          "options": [
+            {
+              "id": "acid",
+              "label": "Acid",
+              "value": "acid"
+            },
+            {
+              "id": "bludgeoning",
+              "label": "Bludgeoning",
+              "value": "bludgeoning"
+            },
+            {
+              "id": "cold",
+              "label": "Cold",
+              "value": "cold"
+            },
+            {
+              "id": "fire",
+              "label": "Fire",
+              "value": "fire"
+            },
+            {
+              "id": "lightning",
+              "label": "Lightning",
+              "value": "lightning"
+            },
+            {
+              "id": "necrotic",
+              "label": "Necrotic",
+              "value": "necrotic"
+            },
+            {
+              "id": "piercing",
+              "label": "Piercing",
+              "value": "piercing"
+            },
+            {
+              "id": "poison",
+              "label": "Poison",
+              "value": "poison"
+            },
+            {
+              "id": "psychic",
+              "label": "Psychic",
+              "value": "psychic"
+            },
+            {
+              "id": "radiant",
+              "label": "Radiant",
+              "value": "radiant"
+            },
+            {
+              "id": "slashing",
+              "label": "Slashing",
+              "value": "slashing"
+            },
+            {
+              "id": "thunder",
+              "label": "Thunder",
+              "value": "thunder"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "acid",
+                "bludgeoning",
+                "cold",
+                "fire",
+                "lightning",
+                "necrotic",
+                "piercing",
+                "poison",
+                "psychic",
+                "radiant",
+                "slashing",
+                "thunder"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "ruleElements": []
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "classes24",
+        "id": "phbwlkFiendishRe",
+        "type": "feat",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "fiendish-resilience",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

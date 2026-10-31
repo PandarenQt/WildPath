@@ -776,6 +776,26 @@ function elementalAffinityAction(document, img, source) {
   ruleElements: []}, flags: {wildpath: {source, conversion: {notes: []}}}};
 }
 
+/**
+ * 2024 Fiendish Resilience: "Choose one damage type, other than Force, whenever you finish a Short or Long Rest. You have
+ * Resistance to that damage type until you choose a different one": an Action choosing it, once per rest (its feature's
+ * pool), each choice replacing the last. shortcut: chosen with the Action after a rest, not asked as the rest ends.
+ */
+function fiendishResilienceAction(document, img, source) {
+  const types = DAMAGE_TYPES.filter(type => type !== "force");
+  const title = type => `${type.charAt(0).toUpperCase()}${type.slice(1)}`;
+  const id = stableId(`${document._id}:choose`);
+  const name = `${document.name} (Choose)`;
+  const effect = type => ({id: type, type: "effect", name: `${document.name} (${title(type)})`, slug: "fiendish-resilience", img,
+    ruleElements: [{schemaVersion: 1, id: `resilience-${type}`, type: "GrantResistance", data: {damageTypes: [type]}}]});
+  return {_id: id, _key: `!items!${id}`, name, type: "action", img, system: {active: true, description: "", definition: {schemaVersion: 1,
+    id: "action:srd-fiendish-resilience", label: name, costs: {allOf: [{capability: "fiendish-resilience", amount: 1}]},
+    range: {type: "self"}, targeting: {type: "self"}, effects: types.map(effect),
+    configuration: [{id: "type", type: "select-one", label: "Damage type", required: true,
+      options: types.map(type => ({id: type, label: title(type), value: type})), effects: [{type: "keepEffect", effectIds: types}]}]},
+  ruleElements: []}, flags: {wildpath: {source, conversion: {notes: []}}}};
+}
+
 /** A drop-to-0 rule (`health.zero`) on its feature, standing for its activities (their saves and heals). */
 function zeroHpTrait(activities, zeroHp) {
   return {rules: [{schemaVersion: 1, id: "zero-hp", type: "Trigger", data: {kind: "zero-hp", event: "health.zero", zeroHp}}],
@@ -1660,6 +1680,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Elemental Affinity brings the Action choosing its type.
     if ( identifierOf(document) === "elemental-affinity" ) {
       const choose = elementalAffinityAction(document, img, source);
+      items[0].flags.wildpath.grants = [choose._id];
+      items.push(choose);
+    }
+    // Fiendish Resilience too, once per Short or Long Rest (its feature's pool).
+    if ( identifierOf(document) === "fiendish-resilience" ) {
+      const choose = fiendishResilienceAction(document, img, source);
+      items[0].system.ruleElements.push({schemaVersion: 1, id: "fiendish-resilience-uses", type: "GrantResource",
+        data: {resourceId: "fiendish-resilience", label: "Fiendish Resilience", maximum: 1, recovery: "shortRest"}});
       items[0].flags.wildpath.grants = [choose._id];
       items.push(choose);
     }

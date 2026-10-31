@@ -83,6 +83,14 @@ async function applyBinaryConditionDelta(actor, plan, existingEffect, levels, pe
     return null;
   }
 
+  // Another choice of the same custom effect (Elemental Affinity's Cold after its Fire, Hex's ability) replaces it; the
+  // same one again refreshes it. Replaced rather than updated: a player may not write an effect's rules.
+  const stored = existingEffect?.flags?.wildpath?.conditionEffect?.definition;
+  if ( existingEffect && plan.definition?.custom && stored && ((stored.name !== plan.definition.name)
+    || (JSON.stringify(stored.ruleElements ?? []) !== JSON.stringify(plan.definition.ruleElements ?? []))) ) {
+    await deleteConditionEffect(existingEffect, persistence);
+    return createConditionEffect(actor, plan, null, persistence);
+  }
   const effect = existingEffect ?? await createConditionEffect(actor, plan, null, persistence);
   if ( existingEffect && effect && shouldPersistLifecycleMetadata(plan) ) {
     await updateConditionEffect(effect, lifecycleUpdates(plan, null), persistence);

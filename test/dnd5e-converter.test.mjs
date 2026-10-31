@@ -2435,3 +2435,17 @@ test("Studied Attacks: a missed attack marks its target, and the fighter's next 
   assert.deepEqual([mark.slug, mark.endsWhen, mark.ruleElements[0].predicate], ["studied", "attackedBySource",
     {equals: {path: "attack.fromAttacker.studied", value: true}}]);
 });
+
+test("Fiendish Resilience: once per rest, an Action choosing a damage type other than Force to resist", () => {
+  const {items} = convertItem({_id: "fiendishresil000", name: "Fiendish Resilience", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "fiendish-resilience", activities: {}, type: {value: "class"},
+      description: {value: "<p>Choose one damage type, other than Force, whenever you finish a Short or Long Rest. You have Resistance to that damage type.</p>"}}});
+  const [feature, choose] = items;
+  assert.deepEqual([feature.flags.wildpath.grants, feature.system.ruleElements.map(rule => [rule.type, rule.data.recovery])],
+    [[choose._id], [["GrantResource", "shortRest"]]]);
+  assert.equal(validateActionDefinition(choose.system.definition).ok, true);
+  assert.deepEqual(choose.system.definition.costs.allOf, [{capability: "fiendish-resilience", amount: 1}]);
+  const types = choose.system.definition.effects.map(effect => effect.ruleElements[0].data.damageTypes[0]);
+  assert.equal(types.includes("force"), false);
+  assert.equal(new Set(choose.system.definition.effects.map(effect => effect.slug)).size, 1, "one slug: a new choice replaces the last");
+});

@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 972 automated, 242 manual, 227 features. Creatures: 375.
+Items: 973 automated, 242 manual, 227 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -584,7 +584,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Fiendish Legacy, Abyssal | origins24 | Fiendish Legacy, Abyssal (feature) | — |
 | Fiendish Legacy, Chthonic | origins24 | Fiendish Legacy, Chthonic (feature) | — |
 | Fiendish Legacy, Infernal | origins24 | Fiendish Legacy, Infernal (feature) | — |
-| Fiendish Resilience | classes24 | Fiendish Resilience (feature) | silent: its text names a rule that is not converted (by hand) |
+| Fiendish Resilience | classes24 | Fiendish Resilience (feature), Fiendish Resilience (Choose) (automated) | — |
 | Fiendish Vigor | classes24 | Fiendish Vigor (automated) | — |
 | Fighter | classes24 | Fighter (class) | — |
 | Fighting Style | classes24 | Fighting Style (feature) | — |
