@@ -174,7 +174,7 @@
           },
           "conversion": {
             "notes": [
-              "silent: its text names a rule that is not converted (by hand)"
+              "\"Magic Rope\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -736,7 +736,7 @@
       },
       "conversion": {
         "notes": [
-          "Magic Rope: silent: its text names a rule that is not converted (by hand)"
+          "Magic Rope: \"Magic Rope\" is passive or triggered (narrative): not automated"
         ]
       }
     }

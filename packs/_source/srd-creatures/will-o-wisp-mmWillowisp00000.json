@@ -87,7 +87,7 @@
           },
           "conversion": {
             "notes": [
-              "silent: its text names a rule that is not converted (by hand)"
+              "\"Ephemeral\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -450,7 +450,7 @@
       },
       "conversion": {
         "notes": [
-          "Ephemeral: silent: its text names a rule that is not converted (by hand)",
+          "Ephemeral: \"Ephemeral\" is passive or triggered (narrative): not automated",
           "Consume Life: \"Wisp: Healing\" is passive or triggered: not automated"
         ]
       }

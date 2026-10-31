@@ -82,7 +82,7 @@
           },
           "conversion": {
             "notes": [
-              "silent: its text names a rule that is not converted (by hand)"
+              "\"Tunneler\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -345,7 +345,7 @@
       },
       "conversion": {
         "notes": [
-          "Tunneler: silent: its text names a rule that is not converted (by hand)"
+          "Tunneler: \"Tunneler\" is passive or triggered (narrative): not automated"
         ]
       }
     }

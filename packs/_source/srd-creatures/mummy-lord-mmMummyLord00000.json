@@ -141,7 +141,7 @@
           },
           "conversion": {
             "notes": [
-              "silent: its text names a rule that is not converted (by hand)"
+              "\"Undead Restoration\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -1883,7 +1883,7 @@
       },
       "conversion": {
         "notes": [
-          "Undead Restoration: silent: its text names a rule that is not converted (by hand)",
+          "Undead Restoration: \"Undead Restoration\" is passive or triggered (narrative): not automated",
           "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest",
           "Glare: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Necrotic Strike: not automated (utility, narrative): using it spends its cost; its description says the rest"

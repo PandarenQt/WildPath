@@ -4,6 +4,7 @@ import {activityText, checkOf, convertActor, convertFacility, convertItem, conve
   failureByMargin, scaleTables, textBoundExpiry, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import * as valueExpressions from "../module/helpers/value-expressions.mjs";
+import {rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
 
 // Synthetic documents in dnd5e 6.x's shape (mechanics only), not copies of its compendium.
 const SRD = {license: "CC-BY-4.0", rules: "2024", book: ""};
@@ -2357,4 +2358,28 @@ test("an activity reads its own paragraph: a staff's Magic action is not a hit o
   assert.match(activityText(staff, {name: "Lightning"}), /^Lightning\. When you hit/u);
   assert.doesNotMatch(activityText(staff, {name: "Lightning"}), /Thunderclap/u, "up to the next activity's paragraph");
   assert.match(activityText(staff, {name: "Unnamed"}), /Lightning\. When you hit/u, "no paragraph of its own: the whole text");
+});
+
+test("bloodied and wounded-target traits (Bloodied Frenzy, Bloodied Fury, Blood Frenzy) and Blurred Form become roll modes", () => {
+  const feature = (identifier, name, text) => convertItem({_id: `${identifier.replace(/-/g, "")}`.padEnd(16, "0").slice(0, 16), name, type: "feat",
+    img: "icons/svg/item-bag.svg", effects: [], system: {source: SRD, identifier, activities: {}, description: {value: `<p>${text}</p>`}}}).items[0];
+  const modes = (item, domains, context) => rollModesFromRuleElements([{ruleElements: item.system.ruleElements}], {domains, context})
+    .map(entry => entry.mode ?? entry);
+  const health = value => ({actorSystem: {resources: {health: {value, max: 67}}}});
+  const frenzy = feature("bloodied-frenzy", "Bloodied Frenzy", "While Bloodied, the berserker has Advantage on attack rolls and saving throws.");
+  assert.deepEqual(modes(frenzy, ["save"], health(33)), ["advantage"], "33 of 67 is Bloodied");
+  assert.deepEqual(modes(frenzy, ["attack"], health(34)), [], "34 of 67 is not");
+  const fury = feature("bloodied-fury", "Bloodied Fury", "While Bloodied, the boar has Advantage on attack rolls.");
+  assert.deepEqual([modes(fury, ["attack"], health(10)), modes(fury, ["save"], health(10))], [["advantage"], []]);
+  const blood = feature("blood-frenzy", "Blood Frenzy", "The sahuagin warrior has Advantage on attack rolls against any creature that doesn't have all its Hit Points.");
+  assert.deepEqual([modes(blood, ["attack"], {attack: {targetDamaged: true}}), modes(blood, ["attack"], {attack: {targetDamaged: false}})],
+    [["advantage"], []]);
+  assert.deepEqual(feature("blood-frenzy", "Blood Frenzy", "The sahuagin has advantage on melee attack rolls against any creature that "
+    + "doesn't have all its hit points.").system.ruleElements[0].data.domains, ["attack.melee"], "2014: melee attack rolls");
+  const blurred = feature("blurred-form", "Blurred Form", "Attack rolls against the steam mephit are made with Disadvantage unless the steam "
+    + "mephit has the Incapacitated condition.");
+  assert.deepEqual([modes(blurred, ["attacked"], {conditions: []}), modes(blurred, ["attacked"], {conditions: ["stunned"]})], [["disadvantage"], []]);
+  for ( const item of [frenzy, fury, blood, blurred] ) {
+    assert.equal(item.flags.wildpath.conversion.notes.some(note => /^silent: /u.test(note)), false, `${item.name} is not silent`);
+  }
 });

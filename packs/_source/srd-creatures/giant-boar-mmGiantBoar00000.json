@@ -66,7 +66,22 @@
       "system": {
         "active": true,
         "description": "<p>While Bloodied, the giant boar has Advantage on attack rolls.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "bloodied-fury",
+            "type": "RollMode",
+            "predicate": {
+              "bloodied": true
+            },
+            "data": {
+              "domains": [
+                "attack"
+              ],
+              "mode": "advantage"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -82,9 +97,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "silent: its text names a rule that is not converted (by hand)"
-            ]
+            "notes": []
           }
         }
       }
@@ -266,9 +279,7 @@
         "challenge": 2
       },
       "conversion": {
-        "notes": [
-          "Bloodied Fury: silent: its text names a rule that is not converted (by hand)"
-        ]
+        "notes": []
       }
     }
   }
