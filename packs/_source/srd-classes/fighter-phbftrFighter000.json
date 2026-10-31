@@ -66,7 +66,8 @@
         "title": "Class Features",
         "type": "grant",
         "items": [
-          "Compendium.wildpath.srd-items.Item.phbftrStudiedAtt"
+          "Compendium.wildpath.srd-items.Item.phbftrStudiedAtt",
+          "Compendium.wildpath.srd-items.Item.nghf0p1uwo027000"
         ],
         "optional": false
       },

@@ -1761,6 +1761,14 @@ const FEATURE_ACTIONS = Object.freeze({
   // (Withdraw's movement, without Disengage), answering its own Rage.
   "instinctive-pounce": {free: true, policy: "always", trigger: ownDeclared("action:srd-rage-expend-rage"),
     effects: [{...Object.fromEntries(Object.entries(WITHDRAW).filter(([key]) => key !== "slug")), name: "Instinctive Pounce"}]},
+  // 2024 Studied Attacks: a missed attack roll marks its target (`studied`, from this fighter); the fighter's next attack
+  // roll against it before the end of its next turn has Advantage and spends the mark (Vex's rule, on a miss).
+  "studied-attacks": {free: true, policy: "always", range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+    trigger: {kind: "reaction", event: "attack.miss", match: {phase: "interrupt", sourceTokenId: "{self}"}},
+    effects: [{id: "effect-1", type: "effect", name: "Studied", slug: "studied", img: "icons/svg/target.svg",
+      duration: {value: 1, units: "rounds", expiry: "turnEnd"}, endsWhen: "attackedBySource",
+      ruleElements: [{schemaVersion: 1, id: "studied", type: "RollMode", predicate: {equals: {path: "attack.fromAttacker.studied", value: true}},
+        data: {domains: ["attacked"], mode: "advantage"}}]}]},
   // 2024 Contact Patron: once per Long Rest, Contact Other Plane with no slot to contact its patron, its save an automatic
   // success (so no damage): an Action with no save. What the patron answers is the GM's.
   "contact-patron": {costs: [{capability: "contact-patron", amount: 1}], pool: {schemaVersion: 1, id: "contact-patron-uses",

@@ -2423,3 +2423,15 @@ test("features that are Actions of their own: Tactical Shift and Instinctive Pou
   assert.deepEqual([confer.system.definition.targeting.type, confer.system.definition.effects[0].ruleElements[0].data.damageTypes],
     ["single", ["fire"]]);
 });
+
+test("Studied Attacks: a missed attack marks its target, and the fighter's next attack against it has Advantage", () => {
+  const studied = convertItem({_id: "studiedattacks00", name: "Studied Attacks", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "studied-attacks", activities: {}, type: {value: "class"},
+      description: {value: "<p>If you make an attack roll against a creature and miss, you have Advantage on your next attack roll against that creature.</p>"}}})
+    .items.find(item => item.type === "action");
+  assert.equal(validateActionDefinition(studied.system.definition).ok, true);
+  assert.deepEqual([studied.system.ruleElements[0].data.event, studied.flags.wildpath.reactionPolicy], ["attack.miss", "always"]);
+  const [mark] = studied.system.definition.effects;
+  assert.deepEqual([mark.slug, mark.endsWhen, mark.ruleElements[0].predicate], ["studied", "attackedBySource",
+    {equals: {path: "attack.fromAttacker.studied", value: true}}]);
+});
