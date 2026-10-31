@@ -2203,7 +2203,7 @@ test("warlock: Pact Magic classes, Magical Cunning's slots back (all at level 20
   assert.deepEqual(arcanum, [["mystic-arcanum.6", "11"], ["mystic-arcanum.7", "13"], ["mystic-arcanum.8", "15"], ["mystic-arcanum.9", "17"]]);
   const slot = item => item.system.definition.configuration.find(choice => choice.id === "spell-slot");
   assert.equal(JSON.stringify(slot(read("srd-items", "disintegrate-")).cost).includes("mystic-arcanum"), false,
-    "no spell offers an arcanum by itself: only the one its warlock marks (withMysticArcanum)");
+    "no spell offers an arcanum by itself: only the one its warlock marks (withSpellChoices)");
 });
 
 test("on-hit features: Devious Strikes, Eldritch Smite (a Pact Magic slot), Hurl Through Hell and Giant Ancestry answer a hit", async () => {

@@ -47,6 +47,14 @@
       },
       "conversion": {
         "notes": []
+      },
+      "spellChoice": {
+        "flag": "signature",
+        "levels": [
+          3
+        ],
+        "count": 2,
+        "resourceId": "signature-spell.{n}"
       }
     }
   }

@@ -77,14 +77,17 @@ test("Mystic Arcanum: only the spell marked as its level's arcanum may spend tha
   const disintegrate = JSON.parse(fs.readFileSync("packs/_source/srd-items/disintegrate-phbsplDisintegra.json", "utf8"));
   assert.equal(spellBaseLevel(disintegrate.system.definition), 6);
   assert.equal(spellBaseLevel({configuration: [{id: "spell-slot", levelByResourceId: {"spell-slot": {6: 6, 7: 7}}}]}), 6, "Foundry's nested keys");
-  const actor = pools => ({system: {pools}});
-  const spell = (arcanum, pools) => ({...disintegrate, flags: {wildpath: {arcanum}}, actor: actor(pools)});
+  // Its warlock's Mystic Arcanum feature marks it (`spellChoice`: flag `arcanum`, the pool `mystic-arcanum.{level}`).
+  const feature = JSON.parse(fs.readFileSync("packs/_source/srd-items/mystic-arcanum-phbwlkMysticArca.json", "utf8"));
+  const actor = (pools, items=[feature]) => ({items, system: {pools}});
+  const spell = (arcanum, pools, items) => ({...disintegrate, flags: {wildpath: {arcanum}}, actor: actor(pools, items)});
   const options = item => actionDefinitionFromItem(item).definition.configuration.find(choice => choice.id === "spell-slot").cost.anyOf
     .map(branch => branch[0].capability);
   const arcanumPool = [{id: "mystic-arcanum.6", value: 1, max: 1}];
   assert.equal(options(spell(true, arcanumPool)).includes("mystic-arcanum.6"), true, "marked, with the arcanum");
   assert.equal(options(spell(false, arcanumPool)).includes("mystic-arcanum.6"), false, "not marked");
   assert.equal(options(spell(true, [])).includes("mystic-arcanum.6"), false, "no arcanum of that level");
+  assert.equal(options(spell(true, arcanumPool, [])).includes("mystic-arcanum.6"), false, "no Mystic Arcanum feature");
   assert.deepEqual([preparesSpell(spell(true, arcanumPool)), preparesSpell(spell(false, arcanumPool))], [false, true]);
 });
 
@@ -95,10 +98,10 @@ test("Spell Mastery casts a marked level 1 or 2 Action spell free at its level; 
   const {preparesSpell} = await import("../module/helpers/spellcasting.mjs");
   const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
     .find(file => file.startsWith(prefix))}`, "utf8"));
-  const mastery = read("spell-mastery-phbwzd");
+  const [mastery, signatures] = [read("spell-mastery-phbwzd"), read("signature-spells-phbwzd")];
   const [missile, misty, fireball] = [read("magic-missile-phb"), read("misty-step-phb"), read("fireball-phb")];
   const pools = [{id: "spell-slot.1", value: 0, max: 4}, {id: "signature-spell.1", value: 1, max: 1}];
-  const owner = (features=[mastery]) => ({items: features, system: {pools}});
+  const owner = (features=[mastery, signatures]) => ({items: features, system: {pools}});
   const slot = (spell, flags, actor=owner()) => actionDefinitionFromItem({...spell, flags: {wildpath: flags}, actor}).definition
     .configuration.find(choice => choice.id === "spell-slot");
   const free = choice => choice.cost.anyOf.some(branch => !branch.length);
@@ -115,11 +118,53 @@ test("Spell Mastery casts a marked level 1 or 2 Action spell free at its level; 
   assert.deepEqual([signature.cost.anyOf.some(branch => branch[0]?.capability === "signature-spell.1"), signature.levelByResourceId["signature-spell.1"]],
     [true, 3]);
   assert.equal(slot(fireball, {signature: 2}).cost.anyOf.some(branch => branch[0]?.capability === "signature-spell.2"), false, "no such pool");
-  assert.deepEqual([preparesSpell({...missile, flags: {wildpath: {mastered: true}}}), preparesSpell({...fireball, flags: {wildpath: {signature: 1}}}),
-    preparesSpell(missile)], [false, false, true], "always prepared");
-  const signatures = read("signature-spells-phbwzd");
+  assert.equal(slot(fireball, {signature: 1}, owner([mastery])).cost.anyOf.some(branch => branch[0]?.capability === "signature-spell.1"), false,
+    "no Signature Spells feature");
+  // Always prepared while its feature marks it (the mark counts only while that feature is there).
+  const prepares = (spell, flags, actor=owner()) => preparesSpell({...spell, flags: {wildpath: flags}, actor});
+  assert.deepEqual([prepares(missile, {mastered: true}), prepares(fireball, {signature: 1}), prepares(missile, {}),
+    prepares(missile, {mastered: true}, owner([]))], [false, false, true, true], "always prepared");
   assert.deepEqual([signatures.system.ruleElements.map(rule => [rule.data.resourceId, rule.data.recovery]), signatures.flags.wildpath.conversion.notes,
     mastery.flags.wildpath.conversion.notes], [[["signature-spell.1", "shortRest"], ["signature-spell.2", "shortRest"]], [], []]);
+});
+
+test("a spell choice is data (flags.wildpath.spellChoice): a homebrew feature's marks, its pools by {n}, the sheet's toggle", async () => {
+  const fs = await import("node:fs");
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const {spellChoiceOf, spellChoiceToggle, preparesSpell} = await import("../module/helpers/spellcasting.mjs");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const [misty, fireball] = [read("misty-step-phb"), read("fireball-phb")];
+  // Homebrew "Arcane Reserve": three level 2 spells, each from its own pool.
+  const reserve = {id: "reserve", name: "Arcane Reserve", type: "feature", system: {active: true},
+    flags: {wildpath: {spellChoice: {flag: "reserve", levels: [2], count: 3, resourceId: "reserve.{n}"}}}};
+  const pools = [1, 2, 3].map(n => ({id: `reserve.${n}`, value: 1, max: 1}));
+  const actor = {items: [reserve], system: {pools}};
+  const branches = (spell, mark) => actionDefinitionFromItem({...spell, flags: {wildpath: {reserve: mark}}, actor}).definition.configuration
+    .find(choice => choice.id === "spell-slot");
+  const marked = branches(misty, 2);
+  assert.deepEqual([marked.cost.anyOf.some(branch => branch[0]?.capability === "reserve.2"), marked.levelByResourceId["reserve.2"]], [true, 2]);
+  assert.equal(JSON.stringify(branches(misty, 4).cost).includes("reserve."), false, "4 is no mark of a count of 3");
+  assert.equal(JSON.stringify(branches(fireball, 2).cost).includes("reserve."), false, "a level 3 spell does not fit");
+  assert.equal(preparesSpell({...misty, flags: {wildpath: {reserve: 1}}, actor}), false, "marked: always prepared");
+  // The sheet's toggle: the lowest free number; every number taken is full; a marked spell is unmarked.
+  const choice = spellChoiceOf(reserve);
+  const spell = (id, mark) => ({id, flags: {wildpath: {reserve: mark}}, system: {definition: misty.system.definition}});
+  const [a, b, c, d] = [spell("a", 1), spell("b", 3), spell("c", null), spell("d", null)];
+  assert.deepEqual(spellChoiceToggle(choice, c, [a, b, c, d]), {updates: [{_id: "c", "flags.wildpath.reserve": 2}]});
+  c.flags.wildpath.reserve = 2;
+  assert.deepEqual(spellChoiceToggle(choice, d, [a, b, c, d]), {full: true});
+  assert.deepEqual(spellChoiceToggle(choice, a, [a, b, c, d]), {updates: [{_id: "a", "flags.wildpath.reserve": null}]});
+  // Count 1 (Spell Mastery's shape): marking one clears the other of its level.
+  const one = {...choice, count: 1, flag: "mastered"};
+  const [e, f] = [{id: "e", flags: {wildpath: {mastered: true}}, system: {definition: misty.system.definition}},
+    {id: "f", flags: {wildpath: {}}, system: {definition: misty.system.definition}}];
+  assert.deepEqual(spellChoiceToggle(one, f, [e, f]), {updates: [{_id: "f", "flags.wildpath.mastered": true}, {_id: "e", "flags.wildpath.mastered": null}]});
+  // A flag the system itself uses, or a malformed choice, fails explicitly.
+  const bad = spellChoice => () => spellChoiceOf({name: "Bad", flags: {wildpath: {spellChoice}}});
+  assert.throws(bad({flag: "grantedBy", levels: [1]}), /grantedBy/u);
+  assert.throws(bad({flag: "mark", levels: []}), /levels/u);
+  assert.throws(bad({flag: "mark", levels: [1], count: 0}), /count/u);
 });
 
 test("Faithful Steed: Find Steed may spend its once-per-Long-Rest pool instead of a slot, at level 2; another spell may not", async () => {

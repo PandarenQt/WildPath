@@ -9,7 +9,8 @@ import {ruleProblems} from "../helpers/rule-guard.mjs";
 import {portentDice, portentFeature} from "../adapters/foundry-v14-portent.mjs";
 import {LANGUAGES} from "../helpers/level-up.mjs";
 import {chooseAbilityScores} from "./ability-scores.mjs";
-import {mysticArcanumPoolId, preparedSpellLimit, preparesSpell, spellBaseLevel} from "../helpers/spellcasting.mjs";
+import {fitsSpellChoice, preparedSpellLimit, preparesSpell, spellBaseLevel, spellChoiceMark, spellChoicePool, spellChoiceToggle,
+  spellChoices} from "../helpers/spellcasting.mjs";
 
 /** Item types whose drop opens the level-up dialog (G8): a class's first level, a species or background. */
 const LEVELLED = new Set(["class", "species", "background"]);
@@ -72,9 +73,7 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       levelUp: WildPathActorSheet.#onLevelUp,
       abilityScores: WildPathActorSheet.#onAbilityScores,
       togglePrepared: WildPathActorSheet.#onTogglePrepared,
-      toggleArcanum: WildPathActorSheet.#onToggleArcanum,
-      toggleMastered: WildPathActorSheet.#onToggleMastered,
-      toggleSignature: WildPathActorSheet.#onToggleSignature,
+      toggleSpellChoice: WildPathActorSheet.#onToggleSpellChoice,
       rollTest: WildPathActorSheet.#onRollTest,
       deleteEffect: WildPathActorSheet.#onDeleteEffect,
       enlargeFacility: WildPathActorSheet.#onEnlargeFacility,
@@ -187,20 +186,20 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     context.canChooseAbilityScores = this.isEditable && (this.actor.type === "character") && (total <= 1)
       && !this.actor.items.some(item => item.type === "background");
     // Spells of 1st level or higher are prepared (2024): a toggle on each, and the count against the classes' limit.
+    const choices = spellChoices(this.actor);
     for ( const row of context.actionItems ?? [] ) {
       const item = this.actor.items.get(row.id);
       row.prepares = preparesSpell(item);
       row.prepared = item?.system?.prepared !== false;
-      // A spell of level 6 to 9 may be its level's Mystic Arcanum while the creature has that arcanum.
+      // A toggle for each feature that may mark this spell (Mystic Arcanum, Spell Mastery, Signature Spells), one with a
+      // pool only while its creature has that pool.
       const level = item?.system?.definition?.tags?.includes("spell") ? spellBaseLevel(item.system.definition) : null;
-      const pool = (level >= 6) ? this.actor.system.pools.find(entry => entry.id === mysticArcanumPoolId(level)) : null;
-      row.arcanum = (pool && (pool.max > 0)) ? {level, on: item.flags?.wildpath?.arcanum === true} : null;
-      // A wizard's Spell Mastery (a level 1 or 2 spell cast with an Action) and Signature Spells (a level 3 spell).
-      const action = (item?.system?.definition?.costs?.allOf ?? []).some(cost => cost?.capability === "action");
-      row.mastered = ([1, 2].includes(level) && action && this.actor.items.some(entry => (entry.system?.active !== false)
-        && (entry.flags?.wildpath?.source?.identifier === "spell-mastery"))) ? {level, on: item.flags?.wildpath?.mastered === true} : null;
-      row.signature = ((level === 3) && this.actor.system.pools.some(entry => entry.id === "signature-spell.1"))
-        ? {on: Boolean(item.flags?.wildpath?.signature)} : null;
+      row.spellChoices = level ? choices.filter(choice => fitsSpellChoice(choice, item.system.definition)).flatMap(choice => {
+        const mark = spellChoiceMark(choice, item);
+        const pool = spellChoicePool(choice, mark ?? 1, level);
+        if ( pool && !(this.actor.system.pools.find(entry => entry.id === pool)?.max > 0) ) return [];
+        return [{featureId: choice.id, name: choice.name, level, on: mark !== null}];
+      }) : [];
     }
     const preparing = this.actor.items.filter(preparesSpell);
     const limit = preparedSpellLimit(classes, [...this.actor.items]);
@@ -363,39 +362,14 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     }
   }
 
-  /** @this {WildPathActorSheet} Make a spell its level's Mystic Arcanum (one a level), or no longer. */
-  static async #onToggleArcanum(event, target) {
+  /** @this {WildPathActorSheet} Mark a spell for a feature's spell choice (spellcasting.mts spellChoiceToggle), or unmark it. */
+  static async #onToggleSpellChoice(event, target) {
     const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
-    if ( !item ) return;
-    const on = item.flags?.wildpath?.arcanum !== true;
-    const level = spellBaseLevel(item.system.definition);
-    const others = this.actor.items.filter(entry => (entry !== item) && (entry.flags?.wildpath?.arcanum === true)
-      && (spellBaseLevel(entry.system.definition) === level));
-    await this.actor.updateEmbeddedDocuments("Item", [{_id: item.id, "flags.wildpath.arcanum": on},
-      ...(on ? others.map(entry => ({_id: entry.id, "flags.wildpath.arcanum": false})) : [])]);
-  }
-
-  /** @this {WildPathActorSheet} Make a spell its level's Spell Mastery spell (one a level), or no longer. */
-  static async #onToggleMastered(event, target) {
-    const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
-    if ( !item ) return;
-    const on = item.flags?.wildpath?.mastered !== true;
-    const level = spellBaseLevel(item.system.definition);
-    const others = this.actor.items.filter(entry => (entry !== item) && (entry.flags?.wildpath?.mastered === true)
-      && (spellBaseLevel(entry.system.definition) === level));
-    await this.actor.updateEmbeddedDocuments("Item", [{_id: item.id, "flags.wildpath.mastered": on},
-      ...(on ? others.map(entry => ({_id: entry.id, "flags.wildpath.mastered": false})) : [])]);
-  }
-
-  /** @this {WildPathActorSheet} Make a spell one of the two Signature Spells (its own pool, 1 or 2), or no longer. */
-  static async #onToggleSignature(event, target) {
-    const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
-    if ( !item ) return;
-    if ( item.flags?.wildpath?.signature ) return item.update({"flags.wildpath.signature": null});
-    const taken = new Set(this.actor.items.map(entry => entry.flags?.wildpath?.signature).filter(Boolean));
-    const free = [1, 2].find(number => !taken.has(number));
-    if ( !free ) return ui.notifications.warn(game.i18n.localize("WILDPATH.SHEET.SignatureFull"));
-    return item.update({"flags.wildpath.signature": free});
+    const choice = spellChoices(this.actor).find(entry => entry.id === target.dataset.featureId);
+    if ( !item || !choice ) return;
+    const toggled = spellChoiceToggle(choice, item, [...this.actor.items]);
+    if ( toggled.full ) return ui.notifications.warn(game.i18n.format("WILDPATH.SHEET.SpellChoiceFull", {name: choice.name, count: choice.count}));
+    await this.actor.updateEmbeddedDocuments("Item", toggled.updates);
   }
 
   /** @this {WildPathActorSheet} Generate the six ability scores (standard array, point buy or 4d6). */

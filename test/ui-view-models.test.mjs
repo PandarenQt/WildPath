@@ -270,9 +270,11 @@ test("an Action whose required slot choice can't be paid (no slot left) is greye
 test("a spell marked as its level's Mystic Arcanum stays usable with no slot of that level, while the arcanum lasts", async () => {
   const fs = await import("node:fs");
   const disintegrate = JSON.parse(fs.readFileSync("packs/_source/srd-items/disintegrate-phbsplDisintegra.json", "utf8"));
+  // The mark counts while its warlock has the Mystic Arcanum feature (its `spellChoice`).
+  const feature = JSON.parse(fs.readFileSync("packs/_source/srd-items/mystic-arcanum-phbwlkMysticArca.json", "utf8"));
   const bar = (arcanum, uses) => {
     const pools = [{id: "mystic-arcanum.6", label: "Mystic Arcanum (level 6)", value: uses, max: 1}];
-    const item = {...disintegrate, id: "dis", flags: {wildpath: {arcanum}}, actor: {system: {pools}},
+    const item = {...disintegrate, id: "dis", flags: {wildpath: {arcanum}}, actor: {items: [feature], system: {pools}},
       activationCost: {allOf: [{capability: "action", amount: 1}]}};
     return createActionBarViewModel({actor: {id: "actor-a", name: "Rook"}, actorSystem: {...actorSystem(), pools}, actions: [item]})
       .actions.find(action => action.id === "dis").enabled;

@@ -24,6 +24,16 @@
       },
       "conversion": {
         "notes": []
+      },
+      "spellChoice": {
+        "flag": "mastered",
+        "levels": [
+          1,
+          2
+        ],
+        "costs": [
+          "action"
+        ]
       }
     }
   }

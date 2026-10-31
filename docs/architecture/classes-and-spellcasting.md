@@ -264,17 +264,27 @@ needing Warlock levels was offered. Armor of Shadows was added.
   once, and the spell is cast at the pool's level (its `castingLevel`), upcast like any slot.
   - **Magical Cunning** restores `spell-slot.pact` by half its maximum rounded up, all of it at Warlock level 20
     (Eldritch Master); it is refused while none is spent. shortcut: its 1-minute rite is not timed.
-  - **Mystic Arcanum** gives a pool per spell level 6 to 9 (Warlock levels 11, 13, 15 and 17), recovered on a Long
-    Rest. The warlock marks one spell of each level as its arcanum (the sheet's Arcanum toggle on a level 6-9 spell
-    while that pool exists; one a level, `flags.wildpath.arcanum`); only that spell offers its level's arcanum, at its
-    own level (`withMysticArcanum`, as the authority builds its definition), and it is not counted as prepared. Live:
-    a Warlock 11 marked Disintegrate (then Eyebite, which unmarked it, then Disintegrate again) and cast it from the
-    arcanum (1/1 to 0/1); Eyebite stayed unavailable, its pact slots being level 5.
-  - **Spell Mastery and Signature Spells (wizard 18 and 20, 2026-10-31)** work the same way (`withChosenSpells`). The
-    sheet's Mastered toggle marks one level 1 and one level 2 spell cast with an Action (`flags.wildpath.mastered`,
-    while the wizard has Spell Mastery): its slot choice gains a branch that spends nothing, at the spell's own level
-    (`metadata.freeCastLevel`). The Signature toggle marks two level 3 spells (`flags.wildpath.signature`: 1 or 2),
-    each paid from its own pool `signature-spell.<n>` (1, Short or Long Rest). Marked spells are always prepared.
+  - **Spell choices (`flags.wildpath.spellChoice`, 2026-10-31).** A feature that lets its creature mark spells carries
+    `{flag, levels, count?, costs?, resourceId?}` (spellcasting.mts `spellChoiceOf`). A spell is marked by its own
+    `flags.wildpath.<flag>`: `true` with `count` 1 (the default; one spell a level), or its number 1 to `count`. It fits
+    when its level is in `levels` and it costs every capability in `costs`. A marked spell that fits gains a branch on its
+    slot choice at its own level (`withSpellChoices`, as the authority builds its definition): paid from `resourceId`
+    (`{n}` the mark's number, `{level}` the spell's level) while its creature has that pool, or, without a `resourceId`,
+    free (`metadata.freeCastLevel`). While its feature is active a marked spell is never counted as prepared
+    (`preparesSpell`); without the feature the mark does nothing. The sheet shows a toggle named after the feature on
+    each spell that fits (a pool-backed one only while that pool has a maximum above 0); count 1 unmarks the other spell
+    of that level, a higher count takes the lowest free number or warns that all are taken (`spellChoiceToggle`).
+    `flag` may not be one the system writes on Items (`RESERVED_SPELL_FLAGS`: `grantedBy`, `source`, `training`,
+    `freeCast`, `conversion`, `replaced`, `reactionPolicy`, `buildCost`, `spellChoice`): such a feature, or one with no
+    levels or a bad count, fails explicitly. The spells' marks are play data (pack-refresh KEPT_FLAGS keeps `arcanum`,
+    `mastered`, `signature`; a homebrew flag is not refreshed onto a spell, which no pack copy carries anyway).
+    - **Mystic Arcanum** gives a pool per spell level 6 to 9 (Warlock levels 11, 13, 15 and 17), recovered on a Long
+      Rest: `{flag: "arcanum", levels: [6, 7, 8, 9], resourceId: "mystic-arcanum.{level}"}`. Live (before the shape was
+      data): a Warlock 11 marked Disintegrate (then Eyebite, which unmarked it, then Disintegrate again) and cast it from
+      the arcanum (1/1 to 0/1); Eyebite stayed unavailable, its pact slots being level 5.
+    - **Spell Mastery (wizard 18)**: `{flag: "mastered", levels: [1, 2], costs: ["action"]}`, free at the spell's level.
+    - **Signature Spells (wizard 20)**: `{flag: "signature", levels: [3], count: 2, resourceId: "signature-spell.{n}"}`,
+      each from its own pool (1, Short or Long Rest; GrantResource rules on the feature).
   - **A feature's free cast (2026-10-31).** A feature with `flags.wildpath.freeCast: {spells, resourceId}` and that pool
     (a GrantResource on it) gives the named spells' slot choice one more branch, paid from the pool at the spell's own
     level (`withFreeCasts`). Faithful Steed: Find Steed once per Long Rest (`free-cast.faithful-steed`); its paladin class

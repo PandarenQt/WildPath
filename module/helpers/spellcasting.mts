@@ -149,25 +149,105 @@ export function spellBaseLevel(definition: {configuration?: Array<{id?: string; 
   return levels.length ? Math.min(...levels) : null;
 }
 
-/** The pool of Mystic Arcanum uses of one spell level (`mystic-arcanum.6`). */
-export const mysticArcanumPoolId = (level: number) => `mystic-arcanum.${level}`;
+/**
+ * `flags.wildpath` keys the system writes on an Item itself: a spell choice may not mark spells with one, or marking a
+ * spell would change what it was granted by, its source, its training, its free casts.
+ */
+export const RESERVED_SPELL_FLAGS: readonly string[] = Object.freeze(["grantedBy", "source", "training", "freeCast", "conversion", "replaced",
+  "reactionPolicy", "buildCost", "spellChoice"]);
+
+/**
+ * A feature's spell choice (`flags.wildpath.spellChoice`): the spells its creature may mark, by the spell's own
+ * `flags.wildpath.<flag>`. `levels`: the spell levels it may mark. `count` 1 (the default): one spell a level, its mark
+ * `true`; higher: up to `count` spells, each marked with its number. `costs`: capabilities the spell must cost (an
+ * Action). `resourceId`: the pool a marked spell spends to be cast at its own level (`{n}`: the mark's number, `{level}`:
+ * the spell's level); without one it is cast free. 2024 Mystic Arcanum, Spell Mastery, Signature Spells.
+ */
+export interface SpellChoice {id: string; name: string; flag: string; levels: number[]; count: number; costs: string[]; resourceId: string | null}
+
+interface ChoosingFeature {id?: string; name?: string; system?: {active?: boolean}; flags?: {wildpath?: {spellChoice?: unknown}}}
+
+/** A feature's spell choice, or null without one. A malformed one, or one marking a reserved flag, fails explicitly. */
+export function spellChoiceOf(feature: ChoosingFeature | null | undefined): SpellChoice | null {
+  const raw = feature?.flags?.wildpath?.spellChoice as Record<string, unknown> | null | undefined;
+  if ( !raw ) return null;
+  const fail = (reason: string) => new Error(`WildPath | ${feature?.name ?? "A feature"}: flags.wildpath.spellChoice ${reason}`);
+  const flag = (typeof raw.flag === "string") ? raw.flag : "";
+  if ( !/^[A-Za-z][\w-]*$/u.test(flag) ) throw fail("needs a flag name (letters, digits, - or _).");
+  if ( RESERVED_SPELL_FLAGS.includes(flag) ) throw fail(`may not mark "${flag}": the system uses it.`);
+  const levels = Array.isArray(raw.levels) ? raw.levels.map(Number).filter(level => Number.isInteger(level) && (level >= 1) && (level <= 9)) : [];
+  if ( !levels.length ) throw fail("needs levels from 1 to 9.");
+  const count = (raw.count === undefined) ? 1 : Number(raw.count);
+  if ( !Number.isInteger(count) || (count < 1) ) throw fail("count must be a whole number of 1 or more.");
+  return {id: feature?.id ?? "", name: feature?.name ?? "", flag, levels, count,
+    costs: Array.isArray(raw.costs) ? raw.costs.map(String) : [], resourceId: (typeof raw.resourceId === "string") ? raw.resourceId : null};
+}
+
+/** The spell choices of a creature's active features. */
+export function spellChoices(actor: {items?: Iterable<ChoosingFeature>} | null | undefined): SpellChoice[] {
+  return [...(actor?.items ?? [])].filter(item => item?.system?.active !== false).map(spellChoiceOf)
+    .filter((choice): choice is SpellChoice => choice !== null);
+}
+
+type SpellDefinition = {configuration?: Array<{id?: string; levelByResourceId?: Record<string, unknown>}>; costs?: {allOf?: Array<{capability?: string}>}};
+interface MarkableSpell {id?: string; flags?: {wildpath?: Record<string, unknown>}; system?: {definition?: SpellDefinition}}
+
+/** A spell's mark for a choice: `true` (count 1) or its number, 1 to count; null when unmarked. */
+export function spellChoiceMark(choice: SpellChoice, spell: MarkableSpell | null | undefined): true | number | null {
+  const value = spell?.flags?.wildpath?.[choice.flag];
+  if ( choice.count === 1 ) return (value === true) ? true : null;
+  return ((typeof value === "number") && Number.isInteger(value) && (value >= 1) && (value <= choice.count)) ? value : null;
+}
+
+/** Whether a choice may mark a spell of this definition: its level is one of the choice's, and it has every one of its costs. */
+export function fitsSpellChoice(choice: SpellChoice, definition: SpellDefinition | null | undefined) {
+  const level = spellBaseLevel(definition);
+  return (level !== null) && choice.levels.includes(level)
+    && choice.costs.every(capability => (definition?.costs?.allOf ?? []).some(cost => cost?.capability === capability));
+}
+
+/** The pool a marked spell spends (`resourceId` with `{n}` and `{level}` filled in), or null when it is cast free. */
+export function spellChoicePool(choice: SpellChoice, mark: true | number, level: number) {
+  return choice.resourceId ? choice.resourceId.replaceAll("{n}", String((mark === true) ? 1 : mark)).replaceAll("{level}", String(level)) : null;
+}
+
+/**
+ * The Item updates marking or unmarking a spell for a choice, among its creature's `spells`: unmarking clears it; with
+ * count 1, marking it clears the other spell of its level; with a higher count it takes the lowest free number, or
+ * `{full: true}` when every number is taken.
+ */
+export function spellChoiceToggle(choice: SpellChoice, spell: MarkableSpell, spells: readonly MarkableSpell[]):
+  {updates: Array<Record<string, unknown>>} | {full: true} {
+  const key = `flags.wildpath.${choice.flag}`;
+  if ( spellChoiceMark(choice, spell) !== null ) return {updates: [{_id: spell.id, [key]: null}]};
+  const others = spells.filter(entry => (entry !== spell) && (spellChoiceMark(choice, entry) !== null));
+  if ( choice.count === 1 ) {
+    const level = spellBaseLevel(spell.system?.definition);
+    return {updates: [{_id: spell.id, [key]: true}, ...others.filter(entry => spellBaseLevel(entry.system?.definition) === level)
+      .map(entry => ({_id: entry.id, [key]: null}))]};
+  }
+  const taken = new Set(others.map(entry => spellChoiceMark(choice, entry)));
+  const free = Array.from({length: choice.count}, (_, index) => index + 1).find(number => !taken.has(number));
+  return free ? {updates: [{_id: spell.id, [key]: free}]} : {full: true};
+}
 
 interface PreparingItem {
-  type?: string; flags?: {wildpath?: {grantedBy?: string | null; arcanum?: boolean; mastered?: boolean; signature?: number | null}};
+  type?: string; flags?: {wildpath?: Record<string, unknown>};
   system?: {prepared?: boolean; definition?: {tags?: string[]; configuration?: Array<{id?: string}>}};
+  actor?: {items?: Iterable<ChoosingFeature>} | null;
 }
 
 /**
  * Whether a creature prepares this Action (2024): a spell of 1st level or higher (one that spends a spell slot). A
- * spell a feature or item gave it (a subclass's, a wand's) is always prepared.
+ * spell a feature or item gave it (a subclass's, a wand's) is always prepared, and so is one a feature of its creature
+ * has marked (`spellChoice`: a Mystic Arcanum spell is cast from its arcanum or a slot; Spell Mastery's and Signature
+ * Spells' are always prepared).
  */
 export function preparesSpell(item: PreparingItem | null | undefined) {
   const definition = item?.system?.definition;
-  // A Mystic Arcanum spell is cast from its arcanum (or a slot), never prepared; a wizard's Spell Mastery and Signature
-  // Spells are always prepared.
-  const flags = item?.flags?.wildpath;
-  return (item?.type === "action") && !flags?.grantedBy && !flags?.arcanum && !flags?.mastered && !flags?.signature
-    && !!definition?.tags?.includes("spell") && !!definition.configuration?.some(choice => choice?.id === "spell-slot");
+  return (item?.type === "action") && !item.flags?.wildpath?.grantedBy
+    && !!definition?.tags?.includes("spell") && !!definition.configuration?.some(choice => choice?.id === "spell-slot")
+    && !spellChoices(item.actor).some(choice => spellChoiceMark(choice, item) !== null);
 }
 
 /** A spell its creature has not prepared, so it can't cast it. */

@@ -126,19 +126,84 @@ export function spellBaseLevel(definition) {
         .map(Number).filter(Number.isFinite);
     return levels.length ? Math.min(...levels) : null;
 }
-/** The pool of Mystic Arcanum uses of one spell level (`mystic-arcanum.6`). */
-export const mysticArcanumPoolId = (level) => `mystic-arcanum.${level}`;
+/**
+ * `flags.wildpath` keys the system writes on an Item itself: a spell choice may not mark spells with one, or marking a
+ * spell would change what it was granted by, its source, its training, its free casts.
+ */
+export const RESERVED_SPELL_FLAGS = Object.freeze(["grantedBy", "source", "training", "freeCast", "conversion", "replaced",
+    "reactionPolicy", "buildCost", "spellChoice"]);
+/** A feature's spell choice, or null without one. A malformed one, or one marking a reserved flag, fails explicitly. */
+export function spellChoiceOf(feature) {
+    const raw = feature?.flags?.wildpath?.spellChoice;
+    if (!raw)
+        return null;
+    const fail = (reason) => new Error(`WildPath | ${feature?.name ?? "A feature"}: flags.wildpath.spellChoice ${reason}`);
+    const flag = (typeof raw.flag === "string") ? raw.flag : "";
+    if (!/^[A-Za-z][\w-]*$/u.test(flag))
+        throw fail("needs a flag name (letters, digits, - or _).");
+    if (RESERVED_SPELL_FLAGS.includes(flag))
+        throw fail(`may not mark "${flag}": the system uses it.`);
+    const levels = Array.isArray(raw.levels) ? raw.levels.map(Number).filter(level => Number.isInteger(level) && (level >= 1) && (level <= 9)) : [];
+    if (!levels.length)
+        throw fail("needs levels from 1 to 9.");
+    const count = (raw.count === undefined) ? 1 : Number(raw.count);
+    if (!Number.isInteger(count) || (count < 1))
+        throw fail("count must be a whole number of 1 or more.");
+    return { id: feature?.id ?? "", name: feature?.name ?? "", flag, levels, count,
+        costs: Array.isArray(raw.costs) ? raw.costs.map(String) : [], resourceId: (typeof raw.resourceId === "string") ? raw.resourceId : null };
+}
+/** The spell choices of a creature's active features. */
+export function spellChoices(actor) {
+    return [...(actor?.items ?? [])].filter(item => item?.system?.active !== false).map(spellChoiceOf)
+        .filter((choice) => choice !== null);
+}
+/** A spell's mark for a choice: `true` (count 1) or its number, 1 to count; null when unmarked. */
+export function spellChoiceMark(choice, spell) {
+    const value = spell?.flags?.wildpath?.[choice.flag];
+    if (choice.count === 1)
+        return (value === true) ? true : null;
+    return ((typeof value === "number") && Number.isInteger(value) && (value >= 1) && (value <= choice.count)) ? value : null;
+}
+/** Whether a choice may mark a spell of this definition: its level is one of the choice's, and it has every one of its costs. */
+export function fitsSpellChoice(choice, definition) {
+    const level = spellBaseLevel(definition);
+    return (level !== null) && choice.levels.includes(level)
+        && choice.costs.every(capability => (definition?.costs?.allOf ?? []).some(cost => cost?.capability === capability));
+}
+/** The pool a marked spell spends (`resourceId` with `{n}` and `{level}` filled in), or null when it is cast free. */
+export function spellChoicePool(choice, mark, level) {
+    return choice.resourceId ? choice.resourceId.replaceAll("{n}", String((mark === true) ? 1 : mark)).replaceAll("{level}", String(level)) : null;
+}
+/**
+ * The Item updates marking or unmarking a spell for a choice, among its creature's `spells`: unmarking clears it; with
+ * count 1, marking it clears the other spell of its level; with a higher count it takes the lowest free number, or
+ * `{full: true}` when every number is taken.
+ */
+export function spellChoiceToggle(choice, spell, spells) {
+    const key = `flags.wildpath.${choice.flag}`;
+    if (spellChoiceMark(choice, spell) !== null)
+        return { updates: [{ _id: spell.id, [key]: null }] };
+    const others = spells.filter(entry => (entry !== spell) && (spellChoiceMark(choice, entry) !== null));
+    if (choice.count === 1) {
+        const level = spellBaseLevel(spell.system?.definition);
+        return { updates: [{ _id: spell.id, [key]: true }, ...others.filter(entry => spellBaseLevel(entry.system?.definition) === level)
+                    .map(entry => ({ _id: entry.id, [key]: null }))] };
+    }
+    const taken = new Set(others.map(entry => spellChoiceMark(choice, entry)));
+    const free = Array.from({ length: choice.count }, (_, index) => index + 1).find(number => !taken.has(number));
+    return free ? { updates: [{ _id: spell.id, [key]: free }] } : { full: true };
+}
 /**
  * Whether a creature prepares this Action (2024): a spell of 1st level or higher (one that spends a spell slot). A
- * spell a feature or item gave it (a subclass's, a wand's) is always prepared.
+ * spell a feature or item gave it (a subclass's, a wand's) is always prepared, and so is one a feature of its creature
+ * has marked (`spellChoice`: a Mystic Arcanum spell is cast from its arcanum or a slot; Spell Mastery's and Signature
+ * Spells' are always prepared).
  */
 export function preparesSpell(item) {
     const definition = item?.system?.definition;
-    // A Mystic Arcanum spell is cast from its arcanum (or a slot), never prepared; a wizard's Spell Mastery and Signature
-    // Spells are always prepared.
-    const flags = item?.flags?.wildpath;
-    return (item?.type === "action") && !flags?.grantedBy && !flags?.arcanum && !flags?.mastered && !flags?.signature
-        && !!definition?.tags?.includes("spell") && !!definition.configuration?.some(choice => choice?.id === "spell-slot");
+    return (item?.type === "action") && !item.flags?.wildpath?.grantedBy
+        && !!definition?.tags?.includes("spell") && !!definition.configuration?.some(choice => choice?.id === "spell-slot")
+        && !spellChoices(item.actor).some(choice => spellChoiceMark(choice, item) !== null);
 }
 /** A spell its creature has not prepared, so it can't cast it. */
 export const isUnprepared = (item) => preparesSpell(item) && (item?.system?.prepared === false);

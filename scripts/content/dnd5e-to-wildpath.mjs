@@ -484,7 +484,7 @@ const CHOICES_FOR = Object.freeze({
  * Features the engine offers itself when they apply (Tactical Mind: withTacticalMind on a failed check), or that are
  * rows of another feature's Action (Eldritch Master in Magical Cunning; Heightened Focus in Monk's Focus: Flurry's third
  * strike, Patient Defense's Temporary Hit Points; its carrying Step of the Wind is its own Action, FEATURE_ACTIONS), or that mark a spell on the sheet (Spell Mastery, Signature Spells:
- * withChosenSpells). Their dnd5e activities are neither Actions nor notes.
+ * SPELL_CHOICES). Their dnd5e activities are neither Actions nor notes.
  */
 const OFFERED_BY_ENGINE = new Set(["tactical-mind", "eldritch-master", "indomitable", "heightened-focus", "spell-mastery",
   "signature-spells"]);
@@ -503,8 +503,7 @@ const MAGICAL_CUNNING_RESTORE = Object.freeze({resourceId: PACT_SLOT_POOL, amoun
 
 /**
  * 2024 Mystic Arcanum: one spell of each level 6 to 9 cast without a slot once per Long Rest, from warlock levels 11,
- * 13, 15 and 17: a pool per level, which the spell its warlock marks as that level's arcanum may spend (on the sheet;
- * action-definitions withMysticArcanum).
+ * 13, 15 and 17: a pool per level, which the spell its warlock marks as that level's arcanum may spend (SPELL_CHOICES).
  */
 const MYSTIC_ARCANUM_POOLS = Object.freeze([[6, 11], [7, 13], [8, 15], [9, 17]].map(([level, from]) => ({schemaVersion: 1,
   id: `mystic-arcanum-${level}`, type: "GrantResource", data: {resourceId: `mystic-arcanum.${level}`, label: `Mystic Arcanum (level ${level})`,
@@ -512,11 +511,23 @@ const MYSTIC_ARCANUM_POOLS = Object.freeze([[6, 11], [7, 13], [8, 15], [9, 17]].
 
 /**
  * 2024 Signature Spells (wizard 20): two level 3 spells, each cast at level 3 without a slot once per Short or Long Rest:
- * a pool for each, which the spell its wizard marks as that signature spell may spend (on the sheet; action-definitions
- * withChosenSpells). Spell Mastery's spells cost nothing and need no pool.
+ * a pool for each, which the spell its wizard marks as that signature spell may spend (SPELL_CHOICES). Spell Mastery's
+ * spells cost nothing and need no pool.
  */
 const SIGNATURE_SPELL_POOLS = Object.freeze([1, 2].map(n => ({schemaVersion: 1, id: `signature-spell-${n}`, type: "GrantResource",
   data: {resourceId: `signature-spell.${n}`, label: `Signature Spell ${n}`, maximum: 1, recovery: "shortRest"}})));
+
+/**
+ * Features that let their creature mark spells on the sheet (`flags.wildpath.spellChoice`, spellcasting.mts): the spell's
+ * own flag, the levels it may mark, how many, the costs it needs, the pool it then spends (`{n}`, `{level}`) or none (free).
+ * Mystic Arcanum: one spell of each level 6 to 9, from that level's arcanum. Spell Mastery: a level 1 and a level 2 spell
+ * cast with an Action, free. Signature Spells: two level 3 spells, each from its own pool.
+ */
+const SPELL_CHOICES = Object.freeze({
+  "mystic-arcanum": {flag: "arcanum", levels: [6, 7, 8, 9], resourceId: "mystic-arcanum.{level}"},
+  "spell-mastery": {flag: "mastered", levels: [1, 2], costs: ["action"]},
+  "signature-spells": {flag: "signature", levels: [3], count: 2, resourceId: "signature-spell.{n}"}
+});
 
 /**
  * A spell a feature lets its creature cast without a slot, from a pool of the feature's (action-definitions withFreeCasts):
@@ -1903,6 +1914,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...(IGNORES_RESISTANCE[identifierOf(document)] ? {ignoresResistance: [...IGNORES_RESISTANCE[identifierOf(document)]]} : {}),
         ...((identifierOf(document) === "savage-attacker") ? {damageTwice: true} : {}),
         ...((identifierOf(document) === "boon-of-spell-recall") ? {slotRecall: structuredClone(SLOT_RECALL)} : {}),
+        ...(SPELL_CHOICES[identifierOf(document)] ? {spellChoice: structuredClone(SPELL_CHOICES[identifierOf(document)])} : {}),
         ...(CHOICES_FOR[identifierOf(document)] ? {choiceFor: structuredClone(CHOICES_FOR[identifierOf(document)])} : {}),
         ...(FREE_CASTS[identifierOf(document)] ? {freeCast: {spells: [...FREE_CASTS[identifierOf(document)].spells],
           ...(FREE_CASTS[identifierOf(document)].granted ? {granted: true} : {}), resourceId: freeCastResource(identifierOf(document))}} : {}),

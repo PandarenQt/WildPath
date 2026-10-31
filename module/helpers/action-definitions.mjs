@@ -11,7 +11,7 @@ import {
 import {WILDPATH} from "../config.mjs";
 import {withWeaponMastery} from "./weapon-mastery.mjs";
 import {withMetamagic} from "./metamagic.mjs";
-import {mysticArcanumPoolId, spellBaseLevel} from "./spellcasting.mjs";
+import {fitsSpellChoice, spellBaseLevel, spellChoiceMark, spellChoicePool, spellChoices} from "./spellcasting.mjs";
 
 /** When a custom effect ends early: its creature is attacked, attacked by the creature that applied it, or attacks. */
 export const CUSTOM_EFFECT_ENDS_WHEN = Object.freeze(["attacked", "attackedBySource", "attackedByOther", "attackedByAllyOfSource", "attacks",
@@ -273,8 +273,8 @@ export function actionDefinitionFromItem(item, options={}) {
   const actor = item?.actor ?? null;
   const stored = system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null;
   const ranged = withHalfOnSuccess(withRangeBonus(withOwnWeapons(withWeaponMastery(withExtraAttacks(stored, item), actor), actor), item), actor);
-  const raw = withContributedChoices(withSummonLevels(withFreeCasts(withChosenSpells(withMysticArcanum(withMetamagic(
-    withGrantedCastingAbility(ranged, item), actor), item), item), item), actor), item);
+  const raw = withContributedChoices(withSummonLevels(withFreeCasts(withSpellChoices(withMetamagic(
+    withGrantedCastingAbility(ranged, item), actor), item), item), actor), item);
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
   const legacyActivationCost = options.legacyActivationCost
@@ -415,44 +415,26 @@ function ownGear(items, attacks, kinds=[]) {
 }
 
 /**
- * 2024 Mystic Arcanum: the spell its warlock chose for a level 6 to 9 (`flags.wildpath.arcanum`) may also be cast at its
- * own level from that level's arcanum (`mystic-arcanum.<level>`, once per Long Rest), while its creature has that pool.
+ * The spells its creature's features let it mark (`flags.wildpath.spellChoice` on an active feature, spellcasting.mts):
+ * a spell marked for a choice that fits it (its level, its costs) is also cast at its own level, free (Spell Mastery:
+ * `metadata.freeCastLevel`) or from the choice's pool while its creature has it (Mystic Arcanum's `mystic-arcanum.<level>`,
+ * Signature Spells' `signature-spell.<n>`).
  */
-function withMysticArcanum(raw, item) {
-  const choice = item?.flags?.wildpath?.arcanum ? raw?.configuration?.find(entry => entry?.id === "spell-slot") : null;
-  const level = choice ? spellBaseLevel(raw) : null;
-  if ( !(level >= 6) ) return raw;
-  const capability = mysticArcanumPoolId(level);
-  if ( !(item.actor?.system?.pools ?? []).some(pool => pool.id === capability) ) return raw;
-  return {...raw, configuration: raw.configuration.map(entry => ((entry !== choice) ? entry : {...entry,
-    cost: {anyOf: [...(entry.cost?.anyOf ?? []), [{capability, amount: 1}]]},
-    levelByResourceId: {...(entry.levelByResourceId ?? {}), [capability]: level}}))};
-}
-
-/**
- * A wizard's chosen spells (2024): Spell Mastery's level 1 and level 2 spell with a casting time of an Action
- * (`flags.wildpath.mastered`) is also cast at its own level without a slot, while its creature has Spell Mastery; each of
- * Signature Spells' two level 3 spells (`flags.wildpath.signature`: 1 or 2) also from its own pool, once per Short or Long
- * Rest (`signature-spell.<n>`), while its creature has that pool.
- */
-function withChosenSpells(raw, item) {
-  const {mastered=false, signature=null} = item?.flags?.wildpath ?? {};
-  const choice = (mastered || signature) ? raw?.configuration?.find(entry => entry?.id === "spell-slot") : null;
+function withSpellChoices(raw, item) {
+  const choice = raw?.configuration?.find(entry => entry?.id === "spell-slot");
   const level = choice ? spellBaseLevel(raw) : null;
   if ( !level ) return raw;
-  const actor = item.actor;
-  const branch = (cost, extra) => ({...raw, configuration: raw.configuration.map(entry => ((entry !== choice) ? entry
-    : {...entry, cost: {anyOf: [...(entry.cost?.anyOf ?? []), cost]}, ...extra(entry)}))});
-  if ( mastered && [1, 2].includes(level) && (raw.costs?.allOf ?? []).some(cost => cost?.capability === "action")
-    && [...(actor?.items ?? [])].some(entry => (entry?.system?.active !== false)
-      && (entry?.flags?.wildpath?.source?.identifier === "spell-mastery")) ) {
-    return branch([], entry => ({metadata: {...(entry.metadata ?? {}), freeCastLevel: level}}));
+  const pools = new Set((item.actor?.system?.pools ?? []).map(pool => pool.id));
+  let slot = choice;
+  for ( const spellChoice of spellChoices(item.actor) ) {
+    const mark = spellChoiceMark(spellChoice, item);
+    if ( (mark === null) || !fitsSpellChoice(spellChoice, raw) ) continue;
+    const capability = spellChoicePool(spellChoice, mark, level);
+    if ( !capability ) slot = {...slot, cost: {anyOf: [...(slot.cost?.anyOf ?? []), []]}, metadata: {...(slot.metadata ?? {}), freeCastLevel: level}};
+    else if ( pools.has(capability) ) slot = {...slot, cost: {anyOf: [...(slot.cost?.anyOf ?? []), [{capability, amount: 1}]]},
+      levelByResourceId: {...(slot.levelByResourceId ?? {}), [capability]: level}};
   }
-  const capability = `signature-spell.${signature}`;
-  if ( signature && (level === 3) && (actor?.system?.pools ?? []).some(pool => pool.id === capability) ) {
-    return branch([{capability, amount: 1}], entry => ({levelByResourceId: {...(entry.levelByResourceId ?? {}), [capability]: level}}));
-  }
-  return raw;
+  return (slot === choice) ? raw : {...raw, configuration: raw.configuration.map(entry => ((entry === choice) ? slot : entry))};
 }
 
 /**
