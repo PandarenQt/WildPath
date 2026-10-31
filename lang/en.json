@@ -387,7 +387,8 @@
     "ROLL": {
       "Check": "{ability} check",
       "Skill": "{skill} ({ability}) check",
-      "Save": "{ability} saving throw"
+      "Save": "{ability} saving throw",
+      "AtLeast": "counts as {total}"
     },
     "ABILITYSCORES": {
       "Button": "Ability Scores",

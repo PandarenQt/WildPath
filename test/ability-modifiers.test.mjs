@@ -78,3 +78,14 @@ test("an ability's minimum d20 applies with or without proficiency (Glibness: a 
   assert.equal(resolveActorCheckStatistic(bard, {ability: "presence"}).naturalMinimum, 15, "no skill");
   assert.equal(resolveActorCheckStatistic(bard, {skill: "stealth"}).naturalMinimum, undefined, "another ability");
 });
+
+test("a minimum-score outcome floors a check's or save's total at its ability's score (Indomitable Might), on that ability only", () => {
+  const barbarian = {system: {abilities: {might: {value: 20, saveProficient: true}, agility: {value: 14}}, skills: {athletics: {proficiency: 1}},
+    proficiencyBonus: 4}, getStatistic: () => ({totalModifier: 0}),
+    getRollOutcomes: domains => (domains.some(domain => ["check.might", "save.might"].includes(domain)) ? [{outcome: "minimum-score"}] : [])};
+  assert.equal(resolveActorSaveStatistic(barbarian, "might").totalMinimum, 20, "a proficient save");
+  assert.equal(resolveActorCheckStatistic(barbarian, {skill: "athletics"}).totalMinimum, 20, "a Might skill");
+  assert.equal(resolveActorCheckStatistic(barbarian, {ability: "might"}).totalMinimum, 20, "a plain check");
+  assert.equal(resolveActorSaveStatistic(barbarian, "agility").totalMinimum, undefined, "another save");
+  assert.equal(resolveActorCheckStatistic(barbarian, {skill: "acrobatics"}).totalMinimum, undefined, "another skill");
+});

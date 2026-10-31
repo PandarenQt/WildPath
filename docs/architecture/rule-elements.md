@@ -581,6 +581,11 @@ damage rules. A predicate `{tagsAny: ["weapon:<id>"]}` reaches that weapon alone
 - `no-advantage` on `attacked`: no attack roll against the creature has Advantage; `attackRollModeSources` drops those
   sources and keeps its Disadvantages (Elusive, unless Incapacitated).
 
+**A total floor (2026-10-31).** `minimum-score` on `check.<ability>` or `save.<ability>`: the check's or save's total counts
+as at least that ability's score (Indomitable Might: `check.might` and `save.might`). The save and check statistics carry
+it as `totalMinimum`; a RollRequest's `expected.totalMinimum` raises the RollResult's total, digital or typed, and the die
+stays as rolled. A sheet roll notes it in its chat flavour. The odds preview does not count it yet.
+
 A golem's Immutable Form is `ConditionImmunity {conditions: ["transformed"]}`: Polymorph skips a creature immune to it
 (`applyActionTransformation`), with a GM notice.
 

@@ -2463,6 +2463,9 @@ const TRAITS = Object.freeze({
   // 2024 Elusive: "No attack roll can have Advantage against you unless you have the Incapacitated condition."
   elusive: () => ({rules: [{schemaVersion: 1, id: "elusive", type: "RollOutcome", predicate: NOT_INCAPACITATED,
     data: {domains: ["attacked"], outcome: "no-advantage"}}], notes: []}),
+  // 2024 Indomitable Might: a Strength check's or save's total counts as at least the Strength (Might) score.
+  "indomitable-might": () => ({rules: [{schemaVersion: 1, id: "indomitable-might", type: "RollOutcome",
+    data: {domains: ["check.might", "save.might"], outcome: "minimum-score"}}], notes: []}),
   // A feat's weapon or spell attacks ignore Half and Three-Quarters Cover (`cover.ignored` 2): Sharpshooter's ranged weapon
   // attacks; Spell Sniper's spell attacks, which also reach 60 feet farther (`range.spell`). Their other parts lift
   // penalties WildPath doesn't impose (long range, attacking beside an enemy).

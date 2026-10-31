@@ -835,7 +835,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Incendiary Cloud | spells24 | Incendiary Cloud (Create Cloud) (automated) | "Per Turn Save" is passive or triggered: not automated |
 | Incubus | actors24 | Incubus (9 items) | Succubus Form: "Shape-Shift: Succubus" is passive or triggered (narrative): not automated; Spellcasting: effect: "Disguised" marks its creature (narrative); Spellcasting: activation: 1 minute is not an action-economy cost |
 | Indomitable | classes24 | Indomitable (feature) | — |
-| Indomitable Might | classes24 | Indomitable Might (feature) | silent: its text names a rule that is not converted (by hand) |
+| Indomitable Might | classes24 | Indomitable Might (feature) | — |
 | Inflict Wounds | spells24 | Inflict Wounds (automated) | — |
 | Ink | equipment24 | Ink (gear) | — |
 | Ink | equipment24 | Ink (gear) | — |

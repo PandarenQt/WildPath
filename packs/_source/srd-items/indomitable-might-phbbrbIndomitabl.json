@@ -7,7 +7,20 @@
   "system": {
     "active": true,
     "description": "<p>If your total for a Strength check or Strength saving throw is less than your Strength score, you can use that score in place of the total.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "indomitable-might",
+        "type": "RollOutcome",
+        "data": {
+          "domains": [
+            "check.might",
+            "save.might"
+          ],
+          "outcome": "minimum-score"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -23,9 +36,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "silent: its text names a rule that is not converted (by hand)"
-        ]
+        "notes": []
       }
     }
   }

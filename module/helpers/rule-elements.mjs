@@ -908,10 +908,11 @@ function rollOutcomeRuleElement(ruleElement) {
   // `minimum-natural`: a d20 below `threshold` counts as it (Reliable Talent: 10, on checks with a proficiency).
   // `automatic-success`: on `save`, the save succeeds unrolled (Trance against sleep magic); on `concentration`, damage
   // calls for no check (Relentless Hunter). `no-advantage`: on `attacked`, no attack roll against it has Advantage (Elusive).
-  if ( !["automatic-failure", "automatic-success", "critical-on-hit", "evasion", "critical-range", "minimum-natural", "no-advantage"]
-    .includes(data.outcome) ) {
+  // `minimum-score`: a check's or save's total counts as at least the score of its ability (Indomitable Might: Might).
+  if ( !["automatic-failure", "automatic-success", "critical-on-hit", "evasion", "critical-range", "minimum-natural", "no-advantage",
+    "minimum-score"].includes(data.outcome) ) {
     return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement outcome must be automatic-failure, automatic-success, "
-      + "critical-on-hit, evasion, critical-range, minimum-natural or no-advantage.");
+      + "critical-on-hit, evasion, critical-range, minimum-natural, no-advantage or minimum-score.");
   }
   if ( !domains.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement requires domains.");
   const threshold = Number(data.threshold);

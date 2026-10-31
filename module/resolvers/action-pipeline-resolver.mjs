@@ -3956,7 +3956,7 @@ function checkRollRequestForState(state, input, {suffix="check-roll", bonus: rer
     modifiers: modifier.known ? [{id: "check-modifier", value: modifier.value}] : [],
     ...(bonus.definition || dice ? {definition: {dice: dice ?? bonus.definition.dice}} : {}),
     expected: {validateTotalFromNatural: modifier.known, modifierTotal: modifier.known ? modifier.value : null, ...(bonus.expected ?? {}),
-      ...(minimum ? {naturalMinimum: minimum} : {})},
+      ...(minimum ? {naturalMinimum: minimum} : {}), ...((Number(check.totalMinimum) > 1) ? {totalMinimum: Math.trunc(check.totalMinimum)} : {})},
     metadata: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: "check", ability: check.ability ?? null,
       skill: check.skill ?? null}
   });
@@ -3976,6 +3976,8 @@ function saveRollRequestForState(state, input, {target=null, suffix="save-roll",
   const known = Number.isFinite(targetBonus) ? {known: true, value: targetBonus}
     : rollModifierInfo(save, ["saveBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]);
   const modifier = bonus ? {known: known.known, value: (Number(known.value) || 0) + bonus} : known;
+  const dice = bonusDiceRequest(save.diceByTarget?.[rollModeTargetKey(target ?? firstRollTarget(input))] ?? save.dice, modifier);
+  const totalMinimum = save.totalMinimumByTarget?.[rollModeTargetKey(target ?? firstRollTarget(input))];
   return createD20RollRequest({
     id: requestIdFor(state, suffix),
     resolutionId: state.id,
@@ -3992,12 +3994,14 @@ function saveRollRequestForState(state, input, {target=null, suffix="save-roll",
     chooser: save.chooser ?? ROLL_AUTHORITY.TARGET_CONTROLLER,
     authority: save.authority ?? {kind: ROLL_AUTHORITY.TARGET_CONTROLLER},
     modifiers: save.modifiers ?? (modifier.known ? [{id: "save-modifier", value: modifier.value}] : []),
+    // Each target's own bonus dice (Bless) and total floor (Indomitable Might), keyed by Token like its bonus.
+    ...(dice.definition ? {definition: dice.definition} : {}),
     expected: {
       validateTotalFromNatural: modifier.known,
-      modifierTotal: modifier.known ? modifier.value : null
+      modifierTotal: modifier.known ? modifier.value : null,
+      ...(dice.expected ?? {}),
+      ...((Number(totalMinimum) > 1) ? {totalMinimum: Math.trunc(totalMinimum)} : {})
     },
-    // Each target's own bonus dice (Bless), keyed by Token like its bonus.
-    ...bonusDiceRequest(save.diceByTarget?.[rollModeTargetKey(target ?? firstRollTarget(input))] ?? save.dice, modifier),
     metadata: {
       actionDefinitionId: state.actionDefinition?.id ?? null,
       rollKind: "save",

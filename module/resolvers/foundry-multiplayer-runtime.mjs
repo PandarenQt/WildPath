@@ -703,6 +703,7 @@ function actionCheckInput(actor, {ability=null, skill=null, escapes=null}={}, so
   const domains = checkRollModeDomains(actor, {ability, skill});
   return {...(bonus ? {modifier: bonus.totalModifier} : {}), ...(bonus?.dice?.length ? {dice: bonus.dice} : {}),
     ...(bonus?.naturalMinimum ? {naturalMinimum: bonus.naturalMinimum} : {}),
+    ...(bonus?.totalMinimum ? {totalMinimum: bonus.totalMinimum} : {}),
     // What it escapes (Powerful Build: Advantage to end Grappled).
     ...checkRollModes(actor.getRollModes?.(domains, {context: {check: {ability, skill, ...(escapes ? {escapes} : {})},
       ...sunlightContext(sourceToken), ...fearContext(sourceToken)}}) ?? [])};
@@ -836,6 +837,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const coverByTarget = [];
   const saveModifiers = {};
   const saveDice = {};
+  const saveTotalMinimums = {};
   // The save each target makes when it may choose (a Grapple's Might or Agility).
   const saveAbilityByTarget = {};
   const saveOutcomes = {};
@@ -906,6 +908,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       const covered = (ability === "agility") ? COVER_BONUS[cover] : 0;
       if ( bonus || covered ) saveModifiers[key] = (bonus?.totalModifier ?? 0) + covered;
       if ( bonus?.dice?.length ) saveDice[key] = bonus.dice;
+      if ( bonus?.totalMinimum ) saveTotalMinimums[key] = bonus.totalMinimum;
       const forced = targetActor.getRollOutcomes?.(["save", `save.${ability}`], saveContext(definition, ability, saverToken)) ?? [];
       if ( forced.some(entry => entry.outcome === "automatic-failure") ) saveOutcomes[key] = "automatic-failure";
       // A save it can't fail (Trance against sleep magic) wins over one it can't pass.
@@ -1068,6 +1071,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         // Its creature's bonus to its spells' save DC (Innate Sorcery's +1, a Robe of the Archmagi's +2: `dc.spell`).
         ...(spellDcBonus ? {dcBonus: spellDcBonus} : {}),
         ...(Object.keys(saveDice).length ? {diceByTarget: saveDice} : {}),
+        ...(Object.keys(saveTotalMinimums).length ? {totalMinimumByTarget: saveTotalMinimums} : {}),
         ...(Object.keys(saveAbilityByTarget).length ? {abilityByTarget: saveAbilityByTarget} : {}),
         ...(Object.keys(legendaryByTarget).length ? {legendaryByTarget} : {}),
         ...(Object.keys(inspirationByTarget).length ? {inspirationByTarget} : {}),

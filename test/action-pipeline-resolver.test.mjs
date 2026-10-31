@@ -961,6 +961,20 @@ test("a reaction that counters (Counterspell): its target's failed save asks the
   assert.equal(cast("resolution:resisted", 18).state.results.parentDirective, undefined);
 });
 
+test("a target's save floor (Indomitable Might) rides its save request: a typed 2 at +1 counts as 18 against DC 15", () => {
+  const shove = {schemaVersion: 1, id: "action:shove", label: "Shove", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, save: {ability: "might", dc: {value: 15}}};
+  const plan = planStagedActionResolution({id: "resolution:might", actorSystem: actorSystem(1), action: definitionAction(shove),
+    source: {actorId: "actor-source"}, targets: [target("barbarian")],
+    save: {modifiersByTarget: {"token-barbarian": 1}, totalMinimumByTarget: {"token-barbarian": 18}}});
+  const request = plan.state.pendingRequests[0];
+  assert.equal(request.payload.rollRequest.expected.totalMinimum, 18);
+  const rolled = resumeStagedActionResolution({state: plan.state, response: {resolutionId: plan.state.id, requestId: request.id,
+    type: RESOLUTION_REQUEST_TYPES.ROLL, value: {die: 2}}});
+  assert.equal(rolled.state.results.saveResolution?.results?.[0]?.success ?? rolled.state.results.saveResolution?.success, true,
+    JSON.stringify(rolled.state.results.saveResolution));
+});
+
 test("an Action its creature cannot pay for is refused before anything is rolled (Command's Halt, Incapacitated)", () => {
   const strike = {schemaVersion: 1, id: "action:strike", label: "Strike", costs: {allOf: [{capability: "action", amount: 1}]},
     targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},

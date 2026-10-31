@@ -810,14 +810,17 @@ export default class WildPathActor extends Actor {
       if ( (answer?.total == null) || (answer.total === "") || !Number.isFinite(total) ) return null;
       roll = await new Roll(String(total)).evaluate();
     } else roll = await new Roll(formula).evaluate();
-    const note = rerolled ? `, ${game.i18n.localize("WILDPATH.INSPIRATION.Rerolled")}` : "";
+    // Its total counts as at least its floor (Indomitable Might: the Might score).
+    const total = Math.max(roll.total, Number(statistic?.totalMinimum) || -Infinity);
+    const note = [rerolled ? game.i18n.localize("WILDPATH.INSPIRATION.Rerolled") : null,
+      (total > roll.total) ? game.i18n.format("WILDPATH.ROLL.AtLeast", {total}) : null].filter(Boolean).map(text => `, ${text}`).join("");
     // Its Token speaks, so a Diviner who sees it may replace the d20 (adapters/foundry-v14-portent).
     await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this, token: this.token ?? this.getActiveTokens?.()[0]?.document}),
       flavor: `${label} (${formula}${note})`,
       flags: {wildpath: {rollTest: {actorUuid: this.uuid, ability, skill, save, rerolled}}}});
     // A check uses up the help it had (Assist's Advantage).
     if ( !save ) await game.wildpath?.endEffectsWhenChecked?.(this, {ability: used, skill});
-    return roll.total;
+    return total;
   }
 
   /**

@@ -336,9 +336,19 @@ export function actorProficiencyBonus(actor) {
 export function resolveActorSaveStatistic(actor, ability=null) {
   const save = withAbilityModifier(resolveActorStatisticModifier(actor, [ability ? `save.${ability}` : null, "save"].filter(Boolean),
     {tags: ability ? [ability] : []}), actor, ability);
-  if ( !save || (actor?.system?.abilities?.[ability]?.saveProficient !== true) ) return save;
+  if ( !save ) return save;
+  const minimum = scoreMinimum(actor, [ability ? `save.${ability}` : null, "save"], ability);
+  if ( actor?.system?.abilities?.[ability]?.saveProficient !== true ) return {...save, ...minimum};
   const proficiency = actorProficiencyBonus(actor);
-  return {...save, totalModifier: save.totalModifier + proficiency, proficiency};
+  return {...save, totalModifier: save.totalModifier + proficiency, proficiency, ...minimum};
+}
+
+/** `{totalMinimum}`: its ability's score, when a `minimum-score` RollOutcome is on `domains` (Indomitable Might). */
+function scoreMinimum(actor, domains, ability) {
+  const score = ability ? finiteNumber(actor?.system?.abilities?.[ability]?.value) : null;
+  if ( !(score > 1) ) return {};
+  const outcomes = actor?.getRollOutcomes?.(domains.filter(Boolean)) ?? [];
+  return outcomes.some(outcome => outcome.outcome === "minimum-score") ? {totalMinimum: score} : {};
 }
 
 /**
@@ -378,7 +388,8 @@ export function resolveActorCheckStatistic(actor, {ability=null, skill=null}={})
   const naturalMinimum = Math.max(0, ...(actor?.getRollOutcomes?.([used ? `check.${used}` : null, skill ? `check.${skill}` : null,
     level ? "check.proficient" : null].filter(Boolean)) ?? [])
     .filter(outcome => outcome.outcome === "minimum-natural").map(outcome => Number(outcome.threshold) || 0));
-  const minimum = naturalMinimum > 1 ? {naturalMinimum} : {};
+  const minimum = {...(naturalMinimum > 1 ? {naturalMinimum} : {}),
+    ...scoreMinimum(actor, ["check", used ? `check.${used}` : null, skill ? `check.${skill}` : null], used)};
   if ( !level ) return {...check, ...minimum};
   const proficiency = actorProficiencyBonus(actor) * level;
   return {...check, totalModifier: check.totalModifier + proficiency, proficiency, ...minimum};
