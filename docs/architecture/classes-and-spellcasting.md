@@ -219,6 +219,12 @@ gated by sources and prerequisites, and at class level 0. Tasha's feats, through
 - **Fighting Initiate:** one Fighting Style.
 - **Metamagic Adept:** two Metamagic options, and `GrantResource` +2 Sorcery Points. Grants on one pool add up, so a
   sorcerer's points grow by 2.
+- **Magic Initiate (2024, 2026-10-31):** two cantrips and one level 1 spell (`pool: {spellLists, spellLevel}`: any spell
+  of that level on the Cleric, Druid or Wizard list, as dnd5e offers them; one option per spell, its Items together, by
+  `metadata.spellLists`). The spells it gives are always prepared (`grantedBy`) and cast with the best of Intelligence,
+  Wisdom and Charisma (`flags.wildpath.castingAbilities` on the feat; `withGrantedCastingAbility` pins the spell attack
+  and every unnamed spellcasting modifier). Its level 1 spell is cast once per Long Rest from `free-cast.magic-initiate`
+  (`freeCast.granted`). shortcut: two copies share that pool, and the same-list rule is not enforced.
 - shortcut: Artificer Initiate's cantrip, spell and tool are taken by hand.
 
 Live (14.369): the converted Eldritch Adept on QA Caster offered Armor of Shadows, Eldritch Mind and the Pacts. None

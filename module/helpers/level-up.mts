@@ -9,8 +9,11 @@ type Data = Record<string, unknown>;
 export interface AdvancementEntry {
   level?: number; type: string; title?: string | null; classRestriction?: string;
   items?: string[]; optional?: boolean; count?: number; replacement?: boolean;
-  /** A choice of any option of a kind, by its source subtype (Eldritch Adept's Invocation), in place of `items`. */
-  pool?: {subtype: string};
+  /**
+   * A choice of any option of a kind, in place of `items`: by its source subtype (Eldritch Adept's Invocation), or a spell
+   * of a level on one of some class spell lists (Magic Initiate: a cantrip from the Cleric, Druid or Wizard list).
+   */
+  pool?: {subtype?: string; spellLists?: string[]; spellLevel?: number};
   grants?: string[]; choices?: Array<{count: number; pool: string[]}>;
   points?: number; cap?: number; abilities?: string[]; fixed?: Record<string, number>; feat?: boolean;
   sizes?: string[];
@@ -99,6 +102,26 @@ export function choiceOptions(pool: readonly string[], items: Iterable<{id: stri
     .map(item => ({id: item.id, name: item.name, source: String(item._stats!.compendiumSource)}));
   const have = new Set(owned.map(item => item.source));
   return {options: pool.filter(uuid => !have.has(uuid)), owned: owned.map(({id, name}) => ({id, name}))};
+}
+
+/**
+ * A spell choice's options (`pool.spellLists`, `pool.spellLevel`: Magic Initiate), one per spell: its Items taken together
+ * (Produce Flame's Cast and Hurl Fire), their uuids the option's value, comma-joined; by name. Not one whose Items its
+ * creature already has (`owned`: compendium sources).
+ */
+export function spellChoiceOptions(entries: Iterable<{uuid: string; name: string; system?: {definition?: {metadata?: {spellLists?: string[];
+  spellLevel?: number}}}; flags?: {wildpath?: {source?: {id?: string}}}}>, pool: AdvancementEntry["pool"], owned: ReadonlySet<string>) {
+  const {spellLists = [], spellLevel = 0} = pool ?? {};
+  const spells = new Map<string, Array<{uuid: string; name: string}>>();
+  for ( const entry of entries ) {
+    const metadata = entry.system?.definition?.metadata;
+    const id = entry.flags?.wildpath?.source?.id;
+    if ( !id || (Number(metadata?.spellLevel) !== spellLevel) || !metadata?.spellLists?.some(list => spellLists.includes(list)) ) continue;
+    spells.set(id, [...(spells.get(id) ?? []), entry]);
+  }
+  return [...spells.values()].filter(items => !items.some(item => owned.has(item.uuid)))
+    .map(items => ({value: items.map(item => item.uuid).join(","), label: items[0]!.name.replace(/ \([^)]*\)$/u, "")}))
+    .sort((a, b) => a.label.localeCompare(b.label));
 }
 
 /** What a feat or class option may ask (`flags.wildpath.prerequisites`, scripts/content: prerequisitesOf). */

@@ -271,7 +271,8 @@ export function actionDefinitionFromItem(item, options={}) {
   const actor = item?.actor ?? null;
   const stored = system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null;
   const ranged = withPotentCantrip(withRangeBonus(withOwnWeapons(withWeaponMastery(withExtraAttacks(stored, item), actor), actor), item), actor);
-  const raw = withContributedChoices(withSummonLevels(withFreeCasts(withChosenSpells(withMysticArcanum(withMetamagic(ranged, actor), item), item), item), actor), item);
+  const raw = withContributedChoices(withSummonLevels(withFreeCasts(withChosenSpells(withMysticArcanum(withMetamagic(
+    withGrantedCastingAbility(ranged, item), actor), item), item), item), actor), item);
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
   const legacyActivationCost = options.legacyActivationCost
@@ -453,8 +454,8 @@ function withChosenSpells(raw, item) {
 
 /**
  * A spell a feature lets its creature cast once without a slot (`flags.wildpath.freeCast: {spells, resourceId}` on an active
- * feature: Faithful Steed's Find Steed, once per Long Rest): its slot choice may spend that pool instead, at the spell's own
- * level, while the pool is there.
+ * feature: Faithful Steed's Find Steed, once per Long Rest; `granted: true` for the spells the feature gave, Magic
+ * Initiate's level 1 spell): its slot choice may spend that pool instead, at the spell's own level, while the pool is there.
  */
 function withFreeCasts(raw, item) {
   const identifier = item?.flags?.wildpath?.source?.identifier;
@@ -463,12 +464,34 @@ function withFreeCasts(raw, item) {
   if ( !level ) return raw;
   const pools = new Set((item.actor?.system?.pools ?? []).map(pool => pool.id));
   const capabilities = [...new Set([...(item.actor?.items ?? [])].filter(entry => entry?.system?.active !== false)
-    .map(entry => entry?.flags?.wildpath?.freeCast)
-    .filter(spec => spec?.spells?.includes(identifier) && pools.has(spec.resourceId)).map(spec => spec.resourceId))];
+    .filter(entry => entry?.flags?.wildpath?.freeCast?.spells?.includes(identifier)
+      || (entry?.flags?.wildpath?.freeCast?.granted && entry.id && (entry.id === item.flags?.wildpath?.grantedBy)))
+    .map(entry => entry.flags.wildpath.freeCast.resourceId).filter(resourceId => pools.has(resourceId)))];
   if ( !capabilities.length ) return raw;
   return {...raw, configuration: raw.configuration.map(entry => ((entry !== choice) ? entry : {...entry,
     cost: {anyOf: [...(entry.cost?.anyOf ?? []), ...capabilities.map(capability => [{capability, amount: 1}])]},
     levelByResourceId: {...(entry.levelByResourceId ?? {}), ...Object.fromEntries(capabilities.map(capability => [capability, level]))}}))};
+}
+
+/**
+ * A spell a feature gave its creature, cast with the feature's own ability (`flags.wildpath.castingAbilities` on the
+ * granting feature: Magic Initiate's Intelligence, Wisdom or Charisma): the best of them, for its spell attack, its save DC
+ * and every spellcasting modifier in it that names no ability or class of its own.
+ */
+function withGrantedCastingAbility(raw, item) {
+  const grantedBy = item?.flags?.wildpath?.grantedBy;
+  const abilities = grantedBy ? [...(item.actor?.items ?? [])].find(entry => entry?.id === grantedBy)?.flags?.wildpath?.castingAbilities : null;
+  if ( !raw || !Array.isArray(abilities) || !abilities.length || !(raw.tags ?? []).includes("spell") ) return raw;
+  const score = ability => Number(item.actor?.system?.abilities?.[ability]?.value) || 0;
+  const ability = abilities.reduce((best, entry) => ((score(entry) > score(best)) ? entry : best));
+  const pin = value => {
+    if ( Array.isArray(value) ) return value.map(pin);
+    if ( !value || (typeof value !== "object") ) return value;
+    const copy = Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, pin(entry)]));
+    return ((value.type === "spellcasting-modifier") && !value.ability && !value.class) ? {...copy, ability} : copy;
+  };
+  const pinned = pin(raw);
+  return raw.attack?.statistic === "spell" ? {...pinned, attack: {...pinned.attack, ability}} : pinned;
 }
 
 function withExtraAttacks(raw, item) {

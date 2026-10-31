@@ -7,7 +7,49 @@
   "system": {
     "active": true,
     "description": "<p>You gain the following benefits.</p><p><strong>Two Cantrips.</strong> You learn two cantrips of your choice from the Cleric, Druid, or Wizard spell list. Intelligence, Wisdom, or Charisma is your spellcasting ability for this feat's spells (choose when you select this feat).</p><p><strong>Level 1 Spell.</strong> Choose a level 1 spell from the same list you selected for this feat's cantrips. You always have that spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. You can also cast the spell using any spell slots you have.</p><p><strong>Spell Change.</strong> Whenever you gain a new level, you can replace one of the spells you chose for this feat with a different spell of the same level from the chosen spell list.</p><p><strong>Repeatable.</strong> You can take this feat more than once, but you must choose a different spell list each time.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "magic-initiate-free-cast",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "free-cast.magic-initiate",
+          "label": "Magic Initiate",
+          "maximum": 1,
+          "recovery": "longRest"
+        }
+      }
+    ],
+    "advancement": [
+      {
+        "level": 0,
+        "type": "choice",
+        "title": "Cantrips",
+        "count": 2,
+        "pool": {
+          "spellLists": [
+            "cleric",
+            "druid",
+            "wizard"
+          ],
+          "spellLevel": 0
+        }
+      },
+      {
+        "level": 0,
+        "type": "choice",
+        "title": "Level 1 Spell",
+        "count": 1,
+        "pool": {
+          "spellLists": [
+            "cleric",
+            "druid",
+            "wizard"
+          ],
+          "spellLevel": 1
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -24,10 +66,18 @@
         "feat": "origin"
       },
       "conversion": {
-        "notes": [
-          "silent: its text names a rule that is not converted (by hand)"
-        ]
+        "notes": []
       },
+      "freeCast": {
+        "spells": [],
+        "granted": true,
+        "resourceId": "free-cast.magic-initiate"
+      },
+      "castingAbilities": [
+        "intellect",
+        "wits",
+        "presence"
+      ],
       "prerequisites": {
         "repeatable": true
       }

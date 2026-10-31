@@ -512,7 +512,10 @@ const SIGNATURE_SPELL_POOLS = Object.freeze([1, 2].map(n => ({schemaVersion: 1, 
  * A spell a feature lets its creature cast without a slot, from a pool of the feature's (action-definitions withFreeCasts):
  * Faithful Steed's Find Steed once per Long Rest (its paladin class grants the spell, always prepared).
  */
-const FREE_CASTS = Object.freeze({"faithful-steed": {spells: ["find-steed"], recovery: "longRest"}});
+const FREE_CASTS = Object.freeze({"faithful-steed": {spells: ["find-steed"], recovery: "longRest"},
+  // Its level 1 spell, whichever it gave (`granted`). shortcut: a second Magic Initiate shares the pool (2 uses for both
+  // spells, not 1 each); give each copy its own pool if that matters.
+  "magic-initiate": {spells: [], granted: true, recovery: "longRest"}});
 const freeCastResource = identifier => `free-cast.${identifier}`;
 
 /**
@@ -1865,7 +1868,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...(IGNORES_RESISTANCE[identifierOf(document)] ? {ignoresResistance: [...IGNORES_RESISTANCE[identifierOf(document)]]} : {}),
         ...(CHOICES_FOR[identifierOf(document)] ? {choiceFor: structuredClone(CHOICES_FOR[identifierOf(document)])} : {}),
         ...(FREE_CASTS[identifierOf(document)] ? {freeCast: {spells: [...FREE_CASTS[identifierOf(document)].spells],
-          resourceId: freeCastResource(identifierOf(document))}} : {}),
+          ...(FREE_CASTS[identifierOf(document)].granted ? {granted: true} : {}), resourceId: freeCastResource(identifierOf(document))}} : {}),
+        ...(FEAT_ADVANCEMENT[identifierOf(document)]?.castingAbilities
+          ? {castingAbilities: [...FEAT_ADVANCEMENT[identifierOf(document)].castingAbilities]} : {}),
         // The Diviner's Portent (a monster's, used when it sees a roll, is an Action of its own).
         ...((identifierOf(document) === "portent") ? {portentDice: structuredClone(PORTENT_DICE)} : {})}}});
     if ( identifierOf(document) === "paladins-smite" ) items.push(...paladinsSmiteActions(document, img, source));
@@ -4684,6 +4689,11 @@ export function prerequisitesOf(system) {
 const FEAT_ADVANCEMENT = Object.freeze({
   "eldritch-adept": {advancement: [{level: 0, type: "choice", title: "Eldritch Invocation", count: 1, pool: {subtype: "eldritchInvocation"}}]},
   "fighting-initiate": {advancement: [{level: 0, type: "choice", title: "Fighting Style", count: 1, pool: {subtype: "fightingStyle"}}]},
+  // 2024 Magic Initiate: two cantrips and a level 1 spell from the Cleric, Druid or Wizard list (dnd5e offers the three
+  // lists together too), cast with the best of Intelligence, Wisdom and Charisma; the level 1 spell once a Long Rest free.
+  "magic-initiate": {advancement: [["Cantrips", 2, 0], ["Level 1 Spell", 1, 1]].map(([title, count, spellLevel]) => ({level: 0,
+    type: "choice", title, count, pool: {spellLists: ["cleric", "druid", "wizard"], spellLevel}})),
+  castingAbilities: ["intellect", "wits", "presence"]},
   "metamagic-adept": {advancement: [{level: 0, type: "choice", title: "Metamagic", count: 2, pool: {subtype: "metamagic"}}],
     rules: [{schemaVersion: 1, id: "metamagic-adept-points", type: "GrantResource", data: {resourceId: "font-of-magic", label: "Sorcery Points",
       maximum: 2, recovery: "longRest"}}]}

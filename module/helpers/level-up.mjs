@@ -78,6 +78,25 @@ export function choiceOptions(pool, items) {
     return { options: pool.filter(uuid => !have.has(uuid)), owned: owned.map(({ id, name }) => ({ id, name })) };
 }
 /**
+ * A spell choice's options (`pool.spellLists`, `pool.spellLevel`: Magic Initiate), one per spell: its Items taken together
+ * (Produce Flame's Cast and Hurl Fire), their uuids the option's value, comma-joined; by name. Not one whose Items its
+ * creature already has (`owned`: compendium sources).
+ */
+export function spellChoiceOptions(entries, pool, owned) {
+    const { spellLists = [], spellLevel = 0 } = pool ?? {};
+    const spells = new Map();
+    for (const entry of entries) {
+        const metadata = entry.system?.definition?.metadata;
+        const id = entry.flags?.wildpath?.source?.id;
+        if (!id || (Number(metadata?.spellLevel) !== spellLevel) || !metadata?.spellLists?.some(list => spellLists.includes(list)))
+            continue;
+        spells.set(id, [...(spells.get(id) ?? []), entry]);
+    }
+    return [...spells.values()].filter(items => !items.some(item => owned.has(item.uuid)))
+        .map(items => ({ value: items.map(item => item.uuid).join(","), label: items[0].name.replace(/ \([^)]*\)$/u, "") }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+}
+/**
  * The prerequisites a creature doesn't meet, by key (none: it may take it). `level` is its character level for a feat,
  * the class's for a class option (an Invocation: `level` in `facts`). Something it already has is left out unless
  * repeatable (`identifier`). Text it can't check (`text`) is not unmet.

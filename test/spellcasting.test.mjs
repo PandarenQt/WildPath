@@ -141,6 +141,28 @@ test("Faithful Steed: Find Steed may spend its once-per-Long-Rest pool instead o
   assert.equal(has(slot(read("aid-phb"), paladin())), false, "another spell");
 });
 
+test("Magic Initiate: the level 1 spell it gave casts free from its pool; its spells use the best of Intelligence, Wisdom and Charisma", async () => {
+  const fs = await import("node:fs");
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const feat = {...read("magic-initiate-phbft"), id: "initiate"};
+  assert.deepEqual([feat.system.advancement.map(entry => [entry.count, entry.pool.spellLevel]), feat.flags.wildpath.conversion.notes], [[[2, 0], [1, 1]], []]);
+  const fighter = {items: [feat], system: {pools: [{id: "free-cast.magic-initiate", value: 1, max: 1}],
+    abilities: {intellect: {value: 10}, wits: {value: 16}, presence: {value: 12}}}};
+  const given = (spell, grantedBy="initiate") => actionDefinitionFromItem({...spell, flags: {...spell.flags, wildpath: {...spell.flags.wildpath, grantedBy}},
+    actor: fighter}).definition;
+  const bless = given(read("bless-phb")).configuration.find(choice => choice.id === "spell-slot");
+  assert.equal(bless.levelByResourceId["free-cast.magic-initiate"], 1, "free, at level 1");
+  assert.equal(given(read("bless-phb"), null).configuration.find(choice => choice.id === "spell-slot").levelByResourceId["free-cast.magic-initiate"],
+    undefined, "not one it gave");
+  const flame = given(read("sacred-flame-phb"));
+  assert.deepEqual(flame.save.dc.valueExpression.terms.at(-1), {type: "spellcasting-modifier", ability: "wits"}, "Wisdom, its best");
+  const bolt = given(read("fire-bolt-phb"));
+  assert.equal(bolt.attack.ability, "wits");
+  assert.equal(given(read("fire-bolt-phb"), null).attack.ability, undefined, "a class's own spell keeps its class's ability");
+});
+
 test("third casters: their own table alone (a third of the level, rounded up, from 3rd), a third rounded down beside others", () => {
   const knight = level => ({id: "fighter", level, spellcasting: {progression: "third"}});
   // 2024 Eldritch Knight: 3rd level two 1st-level slots, 7th four and two, 19th 4/3/3/1.

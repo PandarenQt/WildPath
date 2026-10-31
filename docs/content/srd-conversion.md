@@ -942,7 +942,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Mage Hand | spells24 | Mage Hand (automated) | — |
 | Mage Hand | actors24 | Mage Hand (0 items) | — |
 | Magic Circle | spells24 | Magic Circle (automated) | activation: 1 minute is not an action-economy cost; rolled (save); what it does is by hand |
-| Magic Initiate | feats24 | Magic Initiate (feature) | silent: its text names a rule that is not converted (by hand) |
+| Magic Initiate | feats24 | Magic Initiate (feature) | — |
 | Magic Jar | spells24 | Magic Jar (Cast and Transfer Soul) (automated), Magic Jar (Possess Humanoid) (automated), Magic Jar (Return from Host) (manual) | activation: 1 minute is not an action-economy cost; not automated (utility): using it spends its cost; its description says the rest |
 | Magic Missile | spells24 | Magic Missile (automated) | — |
 | Magic Mouth | spells24 | Magic Mouth (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |

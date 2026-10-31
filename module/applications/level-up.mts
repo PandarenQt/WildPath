@@ -2,7 +2,7 @@
  * The level-up dialog (G8, BG3-style): one form for what a class level (with its subclass's), a species or a
  * background asks; what it grants is added without asking. The rules are helpers/level-up.mts.
  */
-import {choiceOptions, hitPointsForLevel, improvementUpdates, multiclassShortfalls, ORIGIN_TYPES, poolOptions, sourceGate,
+import {choiceOptions, spellChoiceOptions, hitPointsForLevel, improvementUpdates, multiclassShortfalls, ORIGIN_TYPES, poolOptions, sourceGate,
   stepsForLevel, unmetPrerequisites} from "../helpers/level-up.mjs";
 import type {AdvancementEntry, LevelStep, PrerequisiteFacts, Prerequisites} from "../helpers/level-up.mjs";
 import {hitDiePoolId} from "../helpers/spellcasting.mjs";
@@ -25,7 +25,8 @@ export interface LevelActor {
   createEmbeddedDocuments(type: string, data: Data[]): Promise<LevelItem[]>;
   getActiveTokens(linked?: boolean, document?: boolean): Array<{update(data: Data): Promise<unknown>}>;
 }
-interface IndexEntry {uuid: string; uuids?: string[]; name: string; type?: string; system?: {classIdentifier?: string}; flags?: {wildpath?: {source?: {feat?: string;
+interface IndexEntry {uuid: string; uuids?: string[]; name: string; type?: string;
+  system?: {classIdentifier?: string; definition?: {metadata?: {spellLists?: string[]; spellLevel?: number}}}; flags?: {wildpath?: {source?: {feat?: string;
   system?: string; book?: string; rules?: string; thirdParty?: boolean; identifier?: string; subtype?: string | null; id?: string}; prerequisites?: Prerequisites}}}
 interface Globals {
   foundry: {applications: {api: {DialogV2: {wait(config: Data): Promise<unknown>}}};
@@ -89,6 +90,15 @@ const labelOf = (uuid: string, view: View) => {
   return `${view.entries.get(uuid)?.name ?? nameOf(uuid)}${text ? ` (${text})` : ""}`;
 };
 
+/** A choice of spells (Magic Initiate): one option per spell, not one its creature already has (spellChoiceOptions). */
+function spellChoiceHtml(entry: LevelStep["entry"], name: string, legend: string, actor: LevelActor, view: View): string {
+  const owned = new Set(actor.items.filter(() => true).map(item => String((item as {_stats?: {compendiumSource?: string}})._stats?.compendiumSource ?? "")));
+  const options = spellChoiceOptions(view.entries.values(), entry.pool, owned);
+  if ( !options.length || !entry.count ) return "";
+  return `<fieldset data-count="${entry.count}">${legend}<p class="hint">${format("WILDPATH.LEVELUP.Choose", {count: entry.count})}</p>
+    ${options.map(option => checkbox(name, option.value, option.label)).join("")}</fieldset>`;
+}
+
 /** One step's form section, or "" when it neither gives nor asks anything. */
 function stepHtml(step: LevelStep, index: number, actor: LevelActor, view: View): string {
   const {entry} = step;
@@ -104,6 +114,7 @@ function stepHtml(step: LevelStep, index: number, actor: LevelActor, view: View)
     case "choice": {
       // Not what it already has; one it has may be replaced where the class allows it (Fighting Style, Invocations).
       // Only what it meets the prerequisites of, at this class level (an Invocation's "Warlock 5").
+      if ( entry.pool?.spellLists ) return spellChoiceHtml(entry, name, legend, actor, view);
       const pool = entry.items ?? (entry.pool?.subtype ? [...view.entries.values()].filter(option => option.flags?.wildpath?.source?.subtype
         === entry.pool!.subtype).map(option => option.uuid) : []);
       const {options: all, owned} = choiceOptions(pool, actor.items.filter(() => true) as unknown as Parameters<typeof choiceOptions>[1]);
@@ -225,7 +236,8 @@ async function compendiumOptions(item: LevelItem, totalLevel: number, actor: Lev
     `source${sourceGate(entry.flags?.wildpath?.source, packageName).replace(/^./, letter => letter.toUpperCase())}`) !== false;
   for ( const pack of game.packs ) {
     if ( pack.documentName !== "Item" ) continue;
-    for ( const entry of await pack.getIndex({fields: ["flags.wildpath.source", "flags.wildpath.prerequisites", "system.classIdentifier"]}) ) {
+    for ( const entry of await pack.getIndex({fields: ["flags.wildpath.source", "flags.wildpath.prerequisites", "system.classIdentifier",
+      "system.definition.metadata.spellLists", "system.definition.metadata.spellLevel"]}) ) {
       if ( !allowed(entry, pack.metadata?.packageName ?? "") ) continue;
       entries.set(entry.uuid, entry);
       // A feat converted into several Items (Chef's Actions) is one option, its Items taken together; by name, the
@@ -322,7 +334,8 @@ async function apply(actor: LevelActor, item: LevelItem, {level, steps, form, fi
     const into = (owner && ORIGIN_TYPES.has(owner.type)) ? (originGrants.get(owner) ?? originGrants.set(owner, []).get(owner)!) : uuids;
     if ( kind === "grant" ) into.push(...(entry.optional ? picked(name) : (entry.items ?? [])));
     else if ( kind === "choice" ) {
-      into.push(...picked(name));
+      // A spell's option is its Items' uuids, comma-joined (spellChoiceHtml).
+      into.push(...picked(name).flatMap(value => value.split(",")));
       const old = picked(`${name}.replace`)[0];
       if ( old ) replaced.push({id: old, by: picked(name)});
     }
