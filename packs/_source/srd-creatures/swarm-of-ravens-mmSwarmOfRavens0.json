@@ -69,7 +69,20 @@
       "system": {
         "active": true,
         "description": "<p>The swarm can occupy another creature's space and vice versa, and the swarm can move through any opening large enough for a Tiny creature. The swarm can't regain Hit Points or gain Temporary Hit Points.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "swarm-no-healing",
+            "type": "ResourceCap",
+            "data": {
+              "resources": [
+                "healing",
+                "temporaryHealth"
+              ],
+              "maximum": 0
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -86,7 +99,7 @@
           },
           "conversion": {
             "notes": [
-              "silent: its text names a rule that is not converted (by hand)"
+              "swarm: sharing another creature's space is by hand"
             ]
           }
         }
@@ -414,7 +427,7 @@
       },
       "conversion": {
         "notes": [
-          "Swarm: silent: its text names a rule that is not converted (by hand)"
+          "Swarm: swarm: sharing another creature's space is by hand"
         ]
       }
     }

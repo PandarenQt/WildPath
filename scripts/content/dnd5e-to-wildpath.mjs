@@ -1549,9 +1549,16 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const onEffect = items.some(item => (item.system?.definition?.effects ?? []).some(effect => (effect.ruleElements ?? [])
     .some(rule => rule.predicate?.tagsAny?.some(tag => String(tag).startsWith("against:")))));
   if ( !onEffect ) {
-    for ( const rule of savesAgainstRules(plainText(document), identifierOf(document)) ) {
+    // A trait's own "can't regain Hit Points" too (a swarm's), only a feature's: a weapon's text speaks of its target.
+    const phrased = [...savesAgainstRules(plainText(document), identifierOf(document)),
+      ...((document.type === "feat") ? bearerHealingRules(plainText(document), identifierOf(document)) : [])];
+    for ( const rule of phrased ) {
       if ( !passive.some(entry => entry.id === rule.id) ) passive.push(rule);
     }
+  }
+  // 2024 swarms share other creatures' spaces: movement does not yet let a creature end in an occupied space.
+  if ( (document.type === "feat") && /\boccupy another creature[’']s space\b/u.test(plainText(document)) ) {
+    allNotes.push("swarm: sharing another creature's space is by hand");
   }
   // Equipment is gear its owner equips (G7): armor's AC, and its passive effects. A potion or scroll is only its Actions.
   if ( GEAR_TYPES.has(document.type) && !((document.type === "consumable") && items.length) ) {
@@ -1778,6 +1785,20 @@ function savesAgainstRules(text, base) {
       predicate: {tagsAny: [`against:${condition}`]}, data: {domains: ["save"], mode: "advantage"}}));
 }
 const SAVES_AGAINST = /(?<!\bnot )\bAdvantage on saving throws(?: you make| made)? to avoid or end the (\w+) condition/giu;
+
+/**
+ * A creature's own trait that says it "can't regain Hit Points" caps its healing at 0, and "or gain Temporary Hit Points"
+ * those too (2024 swarms). Not a sentence about a target or a state ("While Poisoned, the target can't regain Hit
+ * Points" belongs to the effect that poisons).
+ */
+function bearerHealingRules(text, base) {
+  const sentences = String(text ?? "").split(/(?<=\.)\s+/u).map(sentence => sentence.trim())
+    .filter(sentence => /\bcan[’']t regain Hit Points\b/u.test(sentence) && !/\btarget\b/iu.test(sentence) && !/^(?:While|Until)\b/u.test(sentence));
+  if ( !sentences.length ) return [];
+  const temporary = sentences.some(sentence => /\bgain Temporary Hit Points\b/u.test(sentence));
+  return [{schemaVersion: 1, id: `${base || "rule"}-no-healing`, type: "ResourceCap",
+    data: {resources: ["healing", ...(temporary ? ["temporaryHealth"] : [])], maximum: 0}}];
+}
 
 /** The rules an effect with none of its own takes from its item's text (Antitoxin's Advantage on saves against Poisoned). */
 function textEffect(document) {

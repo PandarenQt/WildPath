@@ -123,6 +123,12 @@ export default class WildPathActor extends Actor {
       foundry.utils.setProperty(changes, "system.resources.health.value", health.value);
       ui.notifications?.info(game.i18n.format("WILDPATH.NOTIFY.NoHealing", {name: this.name}));
     }
+    // Nor gain Temporary Hit Points (`ResourceCap` on `temporaryHealth` at 0: a swarm).
+    const gained = foundry.utils.getProperty(changes, "system.resources.health.temp");
+    if ( Number.isFinite(gained) && (gained > (Number(health?.temp) || 0)) && (this.system.resourceCaps?.temporaryHealth === 0) ) {
+      foundry.utils.setProperty(changes, "system.resources.health.temp", Number(health?.temp) || 0);
+      ui.notifications?.info(game.i18n.format("WILDPATH.NOTIFY.NoTemporaryHealth", {name: this.name}));
+    }
     const next = foundry.utils.getProperty(changes, "system.resources.health.value");
     const nextTemp = foundry.utils.getProperty(changes, "system.resources.health.temp");
     // Temporary Hit Points lost to damage show with it; gaining them is no healing.

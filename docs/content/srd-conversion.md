@@ -1487,13 +1487,13 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Supreme Healing | classes24 | Supreme Healing (feature) | — |
 | Supreme Sneak | classes24 | Supreme Sneak (feature) | — |
 | Survivor | classes24 | Survivor (feature) | — |
-| Swarm of Bats | actors24 | Swarm of Bats (4 items) | Swarm: silent: its text names a rule that is not converted (by hand) |
-| Swarm of Crawling Claws | actors24 | Swarm of Crawling Claws (4 items) | Swarm: silent: its text names a rule that is not converted (by hand) |
-| Swarm of Insects | actors24 | Swarm of Insects (5 items) | Swarm: silent: its text names a rule that is not converted (by hand) |
-| Swarm of Piranhas | actors24 | Swarm of Piranhas (5 items) | Swarm: silent: its text names a rule that is not converted (by hand) |
-| Swarm of Rats | actors24 | Swarm of Rats (4 items) | Swarm: silent: its text names a rule that is not converted (by hand) |
-| Swarm of Ravens | actors24 | Swarm of Ravens (5 items) | Swarm: silent: its text names a rule that is not converted (by hand) |
-| Swarm of Venomous Snakes | actors24 | Swarm of Venomous Snakes (4 items) | Swarm: silent: its text names a rule that is not converted (by hand) |
+| Swarm of Bats | actors24 | Swarm of Bats (4 items) | Swarm: swarm: sharing another creature's space is by hand |
+| Swarm of Crawling Claws | actors24 | Swarm of Crawling Claws (4 items) | Swarm: swarm: sharing another creature's space is by hand |
+| Swarm of Insects | actors24 | Swarm of Insects (5 items) | Swarm: swarm: sharing another creature's space is by hand |
+| Swarm of Piranhas | actors24 | Swarm of Piranhas (5 items) | Swarm: swarm: sharing another creature's space is by hand |
+| Swarm of Rats | actors24 | Swarm of Rats (4 items) | Swarm: swarm: sharing another creature's space is by hand |
+| Swarm of Ravens | actors24 | Swarm of Ravens (5 items) | Swarm: swarm: sharing another creature's space is by hand |
+| Swarm of Venomous Snakes | actors24 | Swarm of Venomous Snakes (4 items) | Swarm: swarm: sharing another creature's space is by hand |
 | Sword of Life Stealing | equipment24 | Sword of Life Stealing (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Sword of Sharpness | equipment24 | Sword of Sharpness (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Sword of Wounding | equipment24 | Sword of Wounding (Sword of Wounding Save) (automated) | "Sword of Wounding" is passive or triggered: not automated |

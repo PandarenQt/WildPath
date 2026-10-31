@@ -1194,6 +1194,12 @@ test("\"Advantage on saving throws to avoid or end\" a condition is a RollMode o
   assert.deepEqual(not.flags.wildpath.conversion.notes, ["silent: its text names a rule that is not converted (by hand)"]);
   assert.deepEqual(trait("Lore", "You know many stories.").items[0].flags.wildpath.conversion.notes, [], "no rule in its text");
   assert.deepEqual(brave.flags.wildpath.conversion.notes, [], "one that converts is not silent");
+  const [swarm] = trait("Swarm", "The swarm can occupy another creature's space and vice versa. The swarm can't regain Hit Points or gain Temporary Hit Points.").items;
+  assert.deepEqual(swarm.system.ruleElements.map(rule => [rule.type, rule.data]),
+    [["ResourceCap", {resources: ["healing", "temporaryHealth"], maximum: 0}]], "a swarm's own trait");
+  assert.deepEqual(swarm.flags.wildpath.conversion.notes, ["swarm: sharing another creature's space is by hand"]);
+  assert.deepEqual(trait("Rot", "While Poisoned, the target can't regain Hit Points.").items[0].system.ruleElements, [],
+    "a target's, while poisoned, is its effect's");
   const [asi] = trait("Ability Score Improvement", "You gain a +2 bonus to one ability score.").items;
   assert.deepEqual(asi.flags.wildpath.conversion.notes, [], "its class's advancement is its rule (the level-up dialog)");
   const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")

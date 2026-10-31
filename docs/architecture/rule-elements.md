@@ -424,6 +424,11 @@ Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft
   (`save.against`, from its effects' statuses). "Advantage on saving throws to avoid or end the Poisoned condition"
   (Dwarven Resilience, Brave, Fey Ancestry, Antitoxin) is `{tagsAny: ["against:poisoned"]}` on `save`; the converter
   reads that 2024 wording (`savesAgainstRules`), unless it says "not".
+
+**Can't regain Hit Points (2026-10-31).** `ResourceCap` on `healing` at 0 keeps a creature's Hit Points from rising
+(Chill Touch); on `temporaryHealth` at 0, its Temporary Hit Points (`WildPathActor#_preUpdate`, with a notice). The
+converter reads a creature's own trait, "can't regain Hit Points or gain Temporary Hit Points" (2024 swarms), into both
+(`bearerHealingRules`); a sentence about a target, or one starting "While" or "Until", belongs to an effect instead.
 - `inSunlight` (2026-10-15): the rolling creature stands in sunlight. It is set on its own attacks, checks (initiative
   included), saves, and its automatic triggers. Sunlight Sensitivity is `{equals: {path: "inSunlight", value: true}}` on
   `attack` and `check`.
