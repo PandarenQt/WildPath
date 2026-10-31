@@ -1,0 +1,50 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "wildpath runic",
+        "createdAt": "2026-10-31T00:52:34.741Z",
+        "reason": "DESIGN.md Typography reserves the Noto script fonts for language text (maintainer language decision 2026-10-20)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "wildpath ogham",
+        "createdAt": "2026-10-31T00:52:34.916Z",
+        "reason": "DESIGN.md Typography reserves the Noto script fonts for language text (maintainer language decision 2026-10-20)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "wildpath old persian",
+        "createdAt": "2026-10-31T00:52:35.098Z",
+        "reason": "DESIGN.md Typography reserves the Noto script fonts for language text (maintainer language decision 2026-10-20)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "wildpath old hungarian",
+        "createdAt": "2026-10-31T00:52:35.283Z",
+        "reason": "DESIGN.md Typography reserves the Noto script fonts for language text (maintainer language decision 2026-10-20)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "wildpath glagolitic",
+        "createdAt": "2026-10-31T00:52:35.465Z",
+        "reason": "DESIGN.md Typography reserves the Noto script fonts for language text (maintainer language decision 2026-10-20)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "wildpath tifinagh",
+        "createdAt": "2026-10-31T00:52:35.651Z",
+        "reason": "DESIGN.md Typography reserves the Noto script fonts for language text (maintainer language decision 2026-10-20)"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "wildpath old italic",
+        "createdAt": "2026-10-31T00:52:35.833Z",
+        "reason": "DESIGN.md Typography reserves the Noto script fonts for language text (maintainer language decision 2026-10-20)"
+      }
+    ]
+  }
+}

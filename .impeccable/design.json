@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-31T00:00:00Z",
+  "generatedAt": "2026-10-31T00:56:21.538Z",
   "title": "Design System: Wild Path",
   "extensions": {
     "colorMeta": {
@@ -42,16 +42,16 @@
       "focus-brass": {
         "role": "secondary",
         "displayName": "Focus Brass",
-        "canonical": "#b5822a",
+        "canonical": "#a0711f",
         "tonalRamp": [
-          "#190600",
-          "#3c1b00",
-          "#5f3500",
-          "#825200",
-          "#a67621",
-          "#c79d5d",
-          "#e2c69c",
-          "#f7edde"
+          "#180600",
+          "#3a1b00",
+          "#5e3500",
+          "#805300",
+          "#a4772c",
+          "#c59d63",
+          "#e1c6a0",
+          "#f7eddf"
         ]
       },
       "parchment": {
@@ -203,6 +203,31 @@
         "role": "neutral",
         "displayName": "HUD Faded",
         "canonical": "rgba(242, 232, 213, 0.7)"
+      },
+      "verdigris-tint": {
+        "role": "primary",
+        "displayName": "Verdigris Tint",
+        "canonical": "rgba(47, 111, 104, 0.14)"
+      },
+      "ink-rule-strong": {
+        "role": "neutral",
+        "displayName": "Strong Ink Rule",
+        "canonical": "rgba(88, 70, 46, 0.65)"
+      },
+      "ochre-tint": {
+        "role": "status",
+        "displayName": "Ochre Tint",
+        "canonical": "rgba(138, 95, 35, 0.12)"
+      },
+      "hud-health": {
+        "role": "neutral",
+        "displayName": "HUD Health",
+        "canonical": "#4caf50"
+      },
+      "hud-health-track": {
+        "role": "neutral",
+        "displayName": "HUD Health Track",
+        "canonical": "#5a1e1e"
       }
     },
     "typographyMeta": {
@@ -257,9 +282,9 @@
       "name": "Button",
       "kind": "button",
       "refersTo": "button",
-      "description": "The default control in every Wild Path window: parchment fill, ink rule, Verdigris border on hover.",
+      "description": "The default control in every Wild Path window: a firm ink edge, a Vellum fill on hover, and a pressed state that tints and sinks a pixel.",
       "html": "<div class=\"ds-page\"><button class=\"ds-btn\">Short Rest</button> <button class=\"ds-btn\" disabled>Long Rest</button></div>",
-      "css": ".ds-page { background: #f3ead7; padding: 12px; font-family: Signika, sans-serif; } .ds-btn { min-height: 1.9rem; padding: 0 0.75rem; background: #faf5e9; color: #2a2219; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 6px; font: inherit; cursor: pointer; } .ds-btn:not(:disabled):hover { border-color: #2f6f68; } .ds-btn:focus-visible { outline: 2px solid #b5822a; outline-offset: 1px; } .ds-btn:disabled { opacity: 0.55; cursor: not-allowed; }"
+      "css": ".ds-page { background: #f3ead7; padding: 12px; font-family: Signika, sans-serif; } .ds-btn { min-height: 1.9rem; padding: 0 0.75rem; background: #faf5e9; color: #2a2219; border: 1px solid rgba(88, 70, 46, 0.65); border-radius: 6px; font: inherit; cursor: pointer; transition: background-color 120ms ease-out, border-color 120ms ease-out; } .ds-btn:not(:disabled):hover { border-color: #2f6f68; background: #fffdf6; } .ds-btn:not(:disabled):active { border-color: #2f6f68; background: rgba(47, 111, 104, 0.14); transform: translateY(1px); } .ds-btn:focus-visible { outline: 2px solid #a0711f; outline-offset: 1px; } .ds-btn:disabled { opacity: 0.55; cursor: not-allowed; }"
     },
     {
       "name": "Input",
@@ -267,15 +292,15 @@
       "refersTo": "input",
       "description": "Vellum field with an ink rule; Focus Brass outline on focus, Oxblood outline when invalid.",
       "html": "<div class=\"ds-page\"><input class=\"ds-input\" value=\"14\"> <input class=\"ds-input\" value=\"2d6+\" aria-invalid=\"true\"></div>",
-      "css": ".ds-page { background: #f3ead7; padding: 12px; font-family: Signika, sans-serif; } .ds-input { width: 5rem; padding: 0.25rem 0.4rem; background: #fffdf6; color: #2a2219; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 3px; font: inherit; text-align: center; } .ds-input:focus-visible { outline: 2px solid #b5822a; outline-offset: 1px; } .ds-input[aria-invalid=\"true\"] { outline: 2px solid #8a3434; }"
+      "css": ".ds-page { background: #f3ead7; padding: 12px; font-family: Signika, sans-serif; } .ds-input { width: 5rem; padding: 0.25rem 0.4rem; background: #fffdf6; color: #2a2219; border: 1px solid rgba(88, 70, 46, 0.65); border-radius: 3px; font: inherit; text-align: center; } .ds-input:focus-visible { outline: 2px solid #a0711f; outline-offset: 1px; } .ds-input[aria-invalid=\"true\"] { outline: 2px solid #8a3434; }"
     },
     {
       "name": "Sheet Tabs",
       "kind": "nav",
       "refersTo": "sheet-nav",
-      "description": "The sticky Vellum tab bar on the actor sheet; hover and focus tint Verdigris.",
+      "description": "The sticky Vellum tab bar on the actor sheet; hover and focus give a Verdigris Tint fill with Ink text.",
       "html": "<div class=\"ds-page\"><nav class=\"ds-nav\"><a href=\"#\">Overview</a><a href=\"#\">Actions</a><a href=\"#\">Spells</a><a href=\"#\">Inventory</a><a href=\"#\">Effects</a></nav></div>",
-      "css": ".ds-page { background: #f3ead7; padding: 12px; font-family: Signika, sans-serif; color: #2a2219; } .ds-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.25rem; padding: 0.25rem; background: #fffdf6; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 8px; } .ds-nav a { display: flex; min-height: 2rem; align-items: center; justify-content: center; border-radius: 6px; color: inherit; font-weight: 700; text-decoration: none; } .ds-nav a:hover, .ds-nav a:focus-visible { background: rgba(47, 111, 104, 0.14); color: #2f6f68; outline: none; }"
+      "css": ".ds-page { background: #f3ead7; padding: 12px; font-family: Signika, sans-serif; color: #2a2219; } .ds-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.25rem; padding: 0.25rem; background: #fffdf6; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 8px; } .ds-nav a { display: flex; min-height: 2rem; align-items: center; justify-content: center; border-radius: 6px; color: inherit; font-weight: 700; text-decoration: none; } .ds-nav a:hover, .ds-nav a:focus-visible { background: rgba(47, 111, 104, 0.14); outline: none; }"
     },
     {
       "name": "Summary Pills",
@@ -291,7 +316,7 @@
       "refersTo": "sheet-row",
       "description": "An action or item row: icon, name over detail, command. Unavailable rows go dashed and faded, not just recoloured.",
       "html": "<div class=\"ds-page\"><div class=\"ds-row\"><span class=\"ds-icon\"></span><span class=\"ds-main\"><span class=\"ds-name\">Longsword</span><span class=\"ds-detail\">action · 1d8 slashing</span></span><button class=\"ds-cmd\">Use</button></div><div class=\"ds-row ds-unavailable\"><span class=\"ds-icon\"></span><span class=\"ds-main\"><span class=\"ds-name\">Fireball</span><span class=\"ds-detail\">no 3rd-level slot left</span></span><button class=\"ds-cmd\" disabled>Use</button></div></div>",
-      "css": ".ds-page { display: grid; gap: 0.35rem; background: #f3ead7; padding: 12px; font-family: Signika, sans-serif; color: #2a2219; } .ds-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.5rem; min-height: 2.6rem; padding: 0.3rem 0.45rem; background: #faf5e9; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 6px; } .ds-icon { width: 2rem; height: 2rem; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 4px; background: #e6dcc4; } .ds-main { display: grid; gap: 0.1rem; min-width: 0; } .ds-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-detail { color: #6a5d4c; font-size: 0.75rem; } .ds-cmd { min-width: 4.25rem; min-height: 1.9rem; background: #faf5e9; color: #2a2219; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 6px; font: inherit; cursor: pointer; } .ds-cmd:not(:disabled):hover { border-color: #2f6f68; } .ds-cmd:focus-visible { outline: 2px solid #b5822a; outline-offset: 1px; } .ds-cmd:disabled { opacity: 0.55; cursor: not-allowed; } .ds-unavailable { border-style: dashed; opacity: 0.72; } .ds-unavailable .ds-name { color: #6a5d4c; }"
+      "css": ".ds-page { display: grid; gap: 0.35rem; background: #f3ead7; padding: 12px; font-family: Signika, sans-serif; color: #2a2219; } .ds-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.5rem; min-height: 2.6rem; padding: 0.3rem 0.45rem; background: #faf5e9; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 6px; } .ds-icon { width: 2rem; height: 2rem; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 4px; background: #e6dcc4; } .ds-main { display: grid; gap: 0.1rem; min-width: 0; } .ds-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-detail { color: #6a5d4c; font-size: 0.75rem; } .ds-cmd { min-width: 4.25rem; min-height: 1.9rem; background: #faf5e9; color: #2a2219; border: 1px solid rgba(88, 70, 46, 0.65); border-radius: 6px; font: inherit; cursor: pointer; } .ds-cmd:not(:disabled):hover { border-color: #2f6f68; background: #fffdf6; } .ds-cmd:not(:disabled):active { border-color: #2f6f68; background: rgba(47, 111, 104, 0.14); transform: translateY(1px); } .ds-cmd:focus-visible { outline: 2px solid #a0711f; outline-offset: 1px; } .ds-cmd:disabled { opacity: 0.55; cursor: not-allowed; } .ds-unavailable { border-style: dashed; opacity: 0.72; } .ds-unavailable .ds-name { color: #6a5d4c; }"
     },
     {
       "name": "Resolution Card",
@@ -299,7 +324,7 @@
       "refersTo": "chat-card",
       "description": "The chat card a resolved Action posts: title, one line per target, tinted outcome badges, and an inspect link.",
       "html": "<div class=\"ds-card\"><div class=\"ds-head\"><span class=\"ds-cicon\"></span><h3>Fireball</h3></div><ul><li><span>Bandit Captain</span><span class=\"ds-out ds-fail\">Failed save · 28 fire</span></li><li><span>Bandit</span><span class=\"ds-out ds-ok\">Saved · 14 fire</span></li></ul><button class=\"ds-inspect\">Inspect</button></div>",
-      "css": ".ds-card { max-width: 18rem; padding: 4px 6px; background: #faf5e9; color: #2a2219; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 4px; font-family: Signika, sans-serif; font-size: 0.875rem; } .ds-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; } .ds-cicon { width: 32px; height: 32px; border-radius: 4px; background: #c79d5d; } .ds-card h3 { margin: 0; font-size: 1rem; } .ds-card ul { list-style: none; margin: 0.25rem 0 0; padding: 0; } .ds-card li { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.25rem 0; } .ds-card li + li { border-top: 1px solid rgba(88, 70, 46, 0.35); } .ds-out { padding: 0 0.375rem; border: 1px solid; border-radius: 3px; font-weight: bold; white-space: nowrap; } .ds-ok { border-color: #1b8f23; background: color-mix(in srgb, #1b8f23 18%, transparent); } .ds-fail { border-color: #8f1b1b; background: color-mix(in srgb, #8f1b1b 18%, transparent); } .ds-inspect { display: block; margin: 4px 0 0 auto; padding: 0; border: none; background: none; color: #2f6f68; font: inherit; font-size: 0.8em; text-decoration: underline; cursor: pointer; } .ds-inspect:focus-visible { outline: 2px solid #b5822a; outline-offset: 1px; }"
+      "css": ".ds-card { max-width: 18rem; padding: 4px 6px; background: #faf5e9; color: #2a2219; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 4px; font-family: Signika, sans-serif; font-size: 0.875rem; } .ds-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; } .ds-cicon { width: 32px; height: 32px; border-radius: 4px; background: #c79d5d; } .ds-card h3 { margin: 0; font-size: 1rem; } .ds-card ul { list-style: none; margin: 0.25rem 0 0; padding: 0; } .ds-card li { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.25rem 0; } .ds-card li + li { border-top: 1px solid rgba(88, 70, 46, 0.35); } .ds-out { padding: 0 0.375rem; border: 1px solid; border-radius: 3px; font-weight: bold; white-space: nowrap; } .ds-ok { border-color: #2f6b3a; background: color-mix(in srgb, #2f6b3a 18%, transparent); } .ds-fail { border-color: #8a3434; background: color-mix(in srgb, #8a3434 18%, transparent); } .ds-inspect { display: block; margin: 4px 0 0 auto; padding: 0; border: none; background: none; color: #2f6f68; font: inherit; font-size: 0.8em; text-decoration: underline; cursor: pointer; } .ds-inspect:focus-visible { outline: 2px solid #a0711f; outline-offset: 1px; }"
     },
     {
       "name": "Action Bar",
@@ -307,7 +332,7 @@
       "refersTo": "hud-bar",
       "description": "The translucent ink HUD above the hotbar: economy counters, then action groups; spent counters strike through. Button chrome here approximates the Foundry core button the bar inherits.",
       "html": "<div class=\"ds-scene\"><div class=\"ds-bar\"><div class=\"ds-res\"><span>Action 1</span><span class=\"ds-spent\">Bonus Action 0</span><span>Reaction 1</span><span>30 ft</span></div><div class=\"ds-groups\"><span class=\"ds-glabel\">Action</span><button class=\"ds-act\">Longsword</button><button class=\"ds-act\" aria-disabled=\"true\">Fireball</button></div></div></div>",
-      "css": ".ds-scene { padding: 16px; background: #3d4a3a; } .ds-bar { display: inline-flex; flex-direction: column; gap: 4px; padding: 6px 8px; border-radius: 6px; background: rgba(28, 23, 18, 0.92); color: #f2e8d5; font-family: Signika, sans-serif; font-size: 0.85rem; } .ds-res { display: flex; gap: 8px; flex-wrap: wrap; } .ds-spent { opacity: 0.5; text-decoration: line-through; } .ds-groups { display: flex; align-items: center; gap: 4px; } .ds-glabel { color: rgba(242, 232, 213, 0.7); } .ds-act { padding: 2px 6px; background: rgba(242, 232, 213, 0.08); color: inherit; border: 1px solid rgba(242, 232, 213, 0.25); border-radius: 4px; font: inherit; cursor: pointer; } .ds-act:hover { border-color: #e0b44c; } .ds-act:focus-visible { outline: 2px solid #e0b44c; outline-offset: 1px; } .ds-act[aria-disabled=\"true\"] { opacity: 0.45; cursor: not-allowed; }"
+      "css": ".ds-scene { padding: 16px; background: #3d4a3a; } .ds-bar { display: inline-flex; flex-direction: column; gap: 4px; padding: 6px 8px; border-radius: 6px; background: rgba(28, 23, 18, 0.92); color: #f2e8d5; font-family: Signika, sans-serif; font-size: 0.85rem; } .ds-res { display: flex; gap: 8px; flex-wrap: wrap; } .ds-spent { opacity: 0.5; text-decoration: line-through; } .ds-groups { display: flex; align-items: center; gap: 4px; } .ds-glabel { color: rgba(242, 232, 213, 0.7); } .ds-act { padding: 2px 6px; background: rgba(242, 232, 213, 0.08); color: inherit; border: 1px solid rgba(242, 232, 213, 0.25); border-radius: 4px; font: inherit; cursor: pointer; } .ds-act:focus-visible { outline: 2px solid #e0b44c; outline-offset: 1px; } .ds-act[aria-disabled=\"true\"] { opacity: 0.45; cursor: not-allowed; }"
     },
     {
       "name": "Carousel Turn",
@@ -320,7 +345,7 @@
   ],
   "narrative": {
     "northStar": "The Annotated Ledger",
-    "overview": "Wild Path's windows read like a ledger kept on parchment: ink text, thin ruled borders, and rows of facts about a character, each one written by the engine and open to inspection. The page is warm and quiet so the numbers carry the weight. Verdigris is the annotator's second ink, marking what can be followed (a link, a tab, a total the engine worked out). Over the battle itself sits a different material: an ink-dark HUD, lit by Lantern Gold, that floats on the scene without hiding it.\n\nThe look is fixed. Every colour a Wild Path surface shows is set in `styles/wildpath.css` on the `--wp-*` custom properties, so sheets, dialogs and chat cards look the same under Foundry's light and dark themes. Density is moderate: compact rows and small labels, enough room that a player reads a number in the middle of a turn without hunting for it.\n\nControls are moving toward **tactile and confident**: things you press, not text you might click. Today they are flat with thin borders. Future work adds weight through fills, heavier borders and a visible pressed state, never through shadows.",
+    "overview": "Wild Path's windows read like a ledger kept on parchment: ink text, thin ruled borders, and rows of facts about a character, each one written by the engine and open to inspection. The page is warm and quiet so the numbers carry the weight. Verdigris is the annotator's second ink, marking what can be followed (a link, a tab, a total the engine worked out). Over the battle itself sits a different material: an ink-dark HUD, lit by Lantern Gold, that floats on the scene without hiding it.\n\nThe look is fixed. Every colour a Wild Path surface shows is set in `styles/wildpath.css` on the `--wp-*` custom properties, so sheets, dialogs and chat cards look the same under Foundry's light and dark themes. Density is moderate: compact rows and small labels, enough room that a player reads a number in the middle of a turn without hunting for it.\n\nControls are **tactile and confident**: things you press, not text you might click. They have a firm ink edge, a lighter fill on hover, and a pressed state that tints and sinks by a pixel. They get that weight from fill and border, never from shadows.",
     "keyCharacteristics": [
       "Parchment page, ink text, ruled borders: windows, dialogs and chat cards share one material.",
       "An ink-dark, translucent HUD (action bar, combat carousel) floats over the canvas, with Lantern Gold for the active thing.",
@@ -341,7 +366,7 @@
       },
       {
         "name": "The Weight Not Face Rule",
-        "body": "Add hierarchy with weight, size and case. A new font family is reserved for language script.",
+        "body": "Add hierarchy with weight, size and case. A new font family is reserved for language script. Headings in Wild Path windows and chat cards set Signika explicitly, so Foundry's display face doesn't leak in.",
         "section": "typography"
       },
       {
@@ -354,14 +379,17 @@
       "Do take every colour from the `--wp-*` properties in `styles/wildpath.css`, and add a new property there when a new role appears.",
       "Do keep Verdigris for links, hover, focus-adjacent states and engine-derived values. Keep Lantern Gold on the HUD.",
       "Do show every state in a second form besides colour: a dashed border (unavailable or empty), strikethrough (spent), opacity (disabled or defeated), italic (concealed), or text (a tooltip reason).",
-      "Do use the 2px Focus Brass outline for keyboard focus on every interactive element.",
+      "Do use the 2px Focus Brass outline for keyboard focus on every interactive element (Lantern Gold on the HUD).",
+      "Do read the interface font from `var(--font-body, sans-serif)`.",
+      "Do dim secondary text with Faded Ink, not with opacity, which drops it under 4.5:1.",
       "Do truncate long names with an ellipsis in rows and carousel tiles rather than letting them wrap.",
-      "Do make new controls feel pressable with fill, border weight and a pressed state."
+      "Do give every new control the button's hover and pressed states."
     ],
     "donts": [
       "Don't use `box-shadow` for depth or emphasis anywhere. Use tone, borders and fills.",
       "Don't show a state with colour alone, whether it's a hue change on a badge, a row or an icon.",
-      "Don't put Lantern Gold on parchment, or Verdigris on the dark HUD as its main accent."
+      "Don't put Lantern Gold on parchment, or Verdigris on the dark HUD as its main accent.",
+      "Don't mark a callout or row with a coloured side rule thicker than 1px. Use a full 1px border and a tint."
     ]
   }
 }

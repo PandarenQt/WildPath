@@ -4,20 +4,25 @@ description: Parchment-and-ink windows and an ink-dark, lantern-lit HUD for an a
 colors:
   verdigris: "#2f6f68"
   verdigris-contrast: "#ffffff"
+  verdigris-tint: "rgba(47, 111, 104, 0.14)"
   lantern-gold: "#e0b44c"
-  focus-brass: "#b5822a"
+  focus-brass: "#a0711f"
   parchment: "#f3ead7"
   parchment-light: "#faf5e9"
   vellum: "#fffdf6"
   ink: "#2a2219"
   faded-ink: "#6a5d4c"
   ink-rule: "rgba(88, 70, 46, 0.35)"
+  ink-rule-strong: "rgba(88, 70, 46, 0.65)"
   ochre-warning: "#8a5f23"
+  ochre-tint: "rgba(138, 95, 35, 0.12)"
   oxblood-danger: "#8a3434"
   moss-success: "#2f6b3a"
   hud-ink: "rgba(28, 23, 18, 0.92)"
   hud-parchment: "#f2e8d5"
   hud-faded: "rgba(242, 232, 213, 0.7)"
+  hud-health: "#4caf50"
+  hud-health-track: "#5a1e1e"
 typography:
   headline:
     fontFamily: "Signika, sans-serif"
@@ -71,6 +76,12 @@ components:
     textColor: "{colors.ink}"
     rounded: "{rounded.control}"
     height: "1.9rem"
+  button-hover:
+    backgroundColor: "{colors.vellum}"
+    textColor: "{colors.ink}"
+  button-pressed:
+    backgroundColor: "{colors.verdigris-tint}"
+    textColor: "{colors.ink}"
   input:
     backgroundColor: "{colors.vellum}"
     textColor: "{colors.ink}"
@@ -80,7 +91,8 @@ components:
     rounded: "{rounded.control}"
     height: "2rem"
   sheet-tab-hover:
-    textColor: "{colors.verdigris}"
+    backgroundColor: "{colors.verdigris-tint}"
+    textColor: "{colors.ink}"
   sheet-nav:
     backgroundColor: "{colors.vellum}"
     rounded: "{rounded.panel}"
@@ -144,9 +156,9 @@ properties, so sheets, dialogs and chat cards look the same under Foundry's ligh
 moderate: compact rows and small labels, enough room that a player reads a number in the middle of a turn without
 hunting for it.
 
-Controls are moving toward **tactile and confident**: things you press, not text you might click. Today they are
-flat with thin borders. Future work adds weight through fills, heavier borders and a visible pressed state, never
-through shadows.
+Controls are **tactile and confident**: things you press, not text you might click. They have a firm ink edge, a
+lighter fill on hover, and a pressed state that tints and sinks by a pixel. They get that weight from fill and
+border, never from shadows.
 
 **Key Characteristics:**
 - Parchment page, ink text, ruled borders: windows, dialogs and chat cards share one material.
@@ -161,15 +173,18 @@ through shadows.
 Warm, low-saturation parchment and ink, with one cool accent for the page and one warm light for the HUD.
 
 ### Primary
-- **Verdigris** ({colors.verdigris}): links, content links, the hover border on every button, the hover and focus
-  colour of sheet tabs, the actor's type pill, and the effective ability scores the engine works out. On a filled
-  control, its text is {colors.verdigris-contrast}. A 14% tint of it is the sheet tab's hover fill.
+- **Verdigris** ({colors.verdigris}): links, content links, the hover and pressed border on every button, the
+  Rules Inspector's selected entry, the actor's type pill, and the effective ability scores the engine works out. On
+  a filled control, its text is {colors.verdigris-contrast}.
+- **Verdigris Tint** ({colors.verdigris-tint}): the fill for a hovered sheet tab, a pressed button and a selected
+  entry. Text on it stays Ink, because Verdigris text on its own tint falls under 4.5:1.
 
 ### Secondary
 - **Lantern Gold** ({colors.lantern-gold}): HUD only. Today it marks the active turn in the combat carousel (a
   border plus a 15% fill); it is the HUD's accent for anything new that must catch the eye there.
 - **Focus Brass** ({colors.focus-brass}): the 2px focus outline, offset 1px, on every focusable element in a Wild
-  Path window.
+  Path window or chat card. It holds at least 3:1 against Parchment, Parchment Light and Vellum. On the HUD, the
+  focus outline is Lantern Gold.
 
 ### Neutral
 - **Parchment** ({colors.parchment}): the window background.
@@ -179,14 +194,19 @@ Warm, low-saturation parchment and ink, with one cool accent for the page and on
   actor name.
 - **Ink** ({colors.ink}): all body text.
 - **Faded Ink** ({colors.faded-ink}): hints, notes, row details, section labels and maximum values.
-- **Ink Rule** ({colors.ink-rule}): every border and divider on the page.
+- **Ink Rule** ({colors.ink-rule}): borders and dividers on rows, cells, sections and cards.
+- **Strong Ink Rule** ({colors.ink-rule-strong}): the edges of buttons and inputs (3:1 against the page, so a
+  control reads as a control), the window scrollbar thumb, and the rail beside nested builder rules.
 - **HUD Ink** ({colors.hud-ink}): the translucent ground of the action bar and carousel.
 - **HUD Parchment** ({colors.hud-parchment}) and **HUD Faded** ({colors.hud-faded}): text and secondary text on the
   HUD.
+- **HUD Health** ({colors.hud-health}) on **HUD Health Track** ({colors.hud-health-track}): the carousel's 4px
+  health bar. The bar's length carries the value, and the tile's tooltip names it.
 
 ### Status
-- **Ochre** ({colors.ochre-warning}): warnings, such as an encumbered load, an active condition's border with a 12%
-  fill, and builder warnings. A sheet warning is a 3px Ochre left rule on a 12% Ochre fill.
+- **Ochre** ({colors.ochre-warning}): warnings, such as an encumbered load, an active condition's border, builder
+  warnings, and the dashed edge around what a running resolution waits on. A sheet warning is a 1px Ochre border
+  around an Ochre Tint ({colors.ochre-tint}) fill, which is also the active condition's fill.
 - **Oxblood** ({colors.oxblood-danger}): errors, invalid fields (a 2px outline), failed death saves, and going over a
   limit.
 - **Moss** ({colors.moss-success}): marked successful death saves.
@@ -200,7 +220,8 @@ Foundry theme surrounds it.
 
 ## Typography
 
-**Body Font:** Signika (Foundry's `--font-primary`, with sans-serif fallback)
+**Body Font:** Signika, read from Foundry V14's `--font-body` with a sans-serif fallback. V14 doesn't define
+`--font-primary` where Wild Path reads it, so a rule that uses it falls back to the platform sans.
 **Mono Font:** the system monospace, for the JSON editor and formula fields only
 **Script Fonts:** Noto Runic, Ogham, Old Persian, Old Hungarian, Glagolitic, Tifinagh and Old Italic (OFL, `fonts/`),
 used only to render text in a language the reader doesn't know.
@@ -220,7 +241,8 @@ uppercase labels, not from a second family.
 
 ### Named Rules
 **The Weight Not Face Rule.** Add hierarchy with weight, size and case. A new font family is reserved for language
-script.
+script. Headings in Wild Path windows and chat cards set Signika explicitly, so Foundry's display face doesn't leak
+in.
 
 ## Layout
 
@@ -266,26 +288,31 @@ circles.
 ## Components
 
 ### Buttons
-Moving from quiet to tactile.
+Tactile and confident: a control you press.
 - **Shape:** gently rounded ({rounded.control}), at least 1.9rem tall on the sheet.
-- **Default:** a Parchment Light fill, Ink text, and a 1px Ink Rule border.
-- **Hover:** the border turns Verdigris (enabled buttons only).
+- **Default:** a Parchment Light fill, Ink text, and a 1px Strong Ink Rule border.
+- **Hover:** a Vellum fill and a Verdigris border (enabled buttons only), with a 120ms ease-out on colour.
+- **Pressed:** a Verdigris Tint fill, a Verdigris border, and a 1px drop.
 - **Focus:** a 2px Focus Brass outline, offset 1px.
 - **Disabled:** 55% opacity and a not-allowed cursor.
 - **Text buttons:** a name that opens its Item, or a skill name, is a real button styled as bold text that
   underlines on hover or focus, so it stays keyboard-reachable.
-- **Direction:** new button work should feel pressable, with a firmer fill or border and a visible pressed state,
-  within the No-Shadow Rule.
+- **HUD buttons** keep Foundry's dark core button and take a Lantern Gold focus outline.
 
 ### Inputs / Fields
-- **Style:** a Vellum fill, Ink text, and a 1px Ink Rule border.
+- **Style:** a Vellum fill, Ink text, and a 1px Strong Ink Rule border.
 - **Focus:** a 2px Focus Brass outline. The inline actor name is borderless until focused, then gains a Verdigris
   border and a Vellum fill.
 - **Error:** a 2px Oxblood outline (`aria-invalid`), with the message in Oxblood below the field.
 
 ### Navigation (sheet tabs)
 - A sticky Vellum bar with 8px corners and five equal tabs in bold text.
-- Hover and focus give a 14% Verdigris fill and Verdigris text.
+- Hover and focus give a Verdigris Tint fill, and the text stays Ink.
+
+### Rules Inspector
+- A list of resolutions beside the detail. The selected entry has a Verdigris Tint fill, a 1px Verdigris edge and a
+  bold label, so the selection never rests on colour alone. Statuses are in Faded Ink.
+- Stage names are small Vellum chips with an Ink Rule border.
 
 ### Pills
 - Summary chips under the actor name: full pill radius, Parchment Light, Detail type in Faded Ink. The actor's type
@@ -303,8 +330,8 @@ Moving from quiet to tactile.
 
 ### Chat Resolution Card
 - A Parchment Light card with 4px corners: a 32px icon and the title, then one line per target.
-- **Outcome badges:** bold text with a 3px radius, tinted from Foundry's success and error level colours (an 18% fill
-  and a solid border), so the text stays Ink.
+- **Outcome badges:** bold text with a 3px radius. A success has a Moss border and an 18% Moss fill; a failure is
+  the same in Oxblood. The text stays Ink and names the outcome. Targets are separated by Ink Rule lines.
 - Clicking a target underlines its name. Below sits an underlined Verdigris "inspect" link that opens the Rules
   Inspector.
 
@@ -314,6 +341,7 @@ Moving from quiet to tactile.
 - Common actions are icons only, named in their tooltips. A spent resource shows at 50% opacity with a
   strikethrough. An unaffordable action is at 45% opacity, and its tooltip gives the engine's reason.
 - Spell slot buttons sit beside a spell, and odds chips are small dark badges.
+- Each reaction policy has its own icon. "Always" is tinted Lantern Gold, and "never" is dimmed.
 
 ### Combat Carousel (signature)
 - A translucent HUD Ink strip at top centre. Each turn is a 56px tile with a portrait, a truncated name, a 4px health
@@ -330,11 +358,14 @@ Moving from quiet to tactile.
   HUD.
 - **Do** show every state in a second form besides colour: a dashed border (unavailable or empty), strikethrough
   (spent), opacity (disabled or defeated), italic (concealed), or text (a tooltip reason).
-- **Do** use the 2px Focus Brass outline for keyboard focus on every interactive element.
+- **Do** use the 2px Focus Brass outline for keyboard focus on every interactive element (Lantern Gold on the HUD).
+- **Do** read the interface font from `var(--font-body, sans-serif)`.
+- **Do** dim secondary text with Faded Ink, not with opacity, which drops it under 4.5:1.
 - **Do** truncate long names with an ellipsis in rows and carousel tiles rather than letting them wrap.
-- **Do** make new controls feel pressable with fill, border weight and a pressed state.
+- **Do** give every new control the button's hover and pressed states.
 
 ### Don't:
 - **Don't** use `box-shadow` for depth or emphasis anywhere. Use tone, borders and fills.
 - **Don't** show a state with colour alone, whether it's a hue change on a badge, a row or an icon.
 - **Don't** put Lantern Gold on parchment, or Verdigris on the dark HUD as its main accent.
+- **Don't** mark a callout or row with a coloured side rule thicker than 1px. Use a full 1px border and a tint.
