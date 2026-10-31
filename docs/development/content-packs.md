@@ -159,6 +159,10 @@ Reconverted on 2026-10-31 (plan 6.1; first converted 2026-10-14, dnd5e 6.0.2 dat
 
 The census across the SRD and the four books then counted 1,910 real gaps.
 
+Reconverted again on 2026-10-31 (afternoon) with that day's converter: 1,868 real gaps across the five sources; the
+SRD has no "silent" feature (a rule in its text, nothing converted), the books 13. The packages open in Foundry and
+were read back live (level-up choices, Elemental Adept, Rune Knight).
+
 Each package was read back with the Foundry CLI, and every art path resolves on disk. They have not been opened
 in Foundry yet; that waits for the next world launch.
 
