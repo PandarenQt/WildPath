@@ -519,3 +519,23 @@ test("a companion's controller's proficiency bonus is its first controller's (Pr
     assert.equal(Object.assign(Object.create(WildPathActor.prototype), {system: {companion: {controllers: []}}}).controllerProficiencyBonus, null);
   } finally { globalThis.fromUuidSync = previous; }
 });
+
+test("a pool its base Actor's new Item grants reaches its unlinked Tokens too (their own stored pools), not linked or unowned ones", async () => {
+  const grant = {id: "focus", type: "feature", system: {active: true, modifiers: [], ruleElements: [{schemaVersion: 1, id: "focus-pool",
+    type: "GrantResource", data: {resourceId: "focus", maximum: 2}}]}};
+  // Real instances: syncItemRecords queues on a private field.
+  const creature = (extra) => Object.assign(new WildPathActor(), {effects: [], statuses: new Set(), flags: {},
+    items: [grant], allApplicableEffects: () => [], system: {pools: []}, ...extra});
+  const writes = [];
+  const actorOf = (name, extra={}) => {
+    const actor = creature({name, isToken: true, isOwner: true, ...extra});
+    actor.toObject = () => ({system: {pools: []}});
+    actor.update = async data => { writes.push([name, data["system.pools"]?.map(pool => pool.id)]); };
+    return actor;
+  };
+  const base = creature({name: "base", isToken: false, toObject: () => ({system: {pools: [{id: "focus", value: 2, max: 2}]}}),
+    update: async () => {}, getDependentTokens: () => [{actorLink: false, actor: actorOf("unlinked")},
+      {actorLink: true, actor: actorOf("linked")}, {actorLink: false, actor: actorOf("unowned", {isOwner: false})}]});
+  await base.syncItemRecords();
+  assert.deepEqual(writes, [["unlinked", ["focus"]]]);
+});

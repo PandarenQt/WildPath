@@ -435,6 +435,11 @@ export default class WildPathActor extends Actor {
       const missing = this.grantedPoolsMissing(pools);
       if ( missing.length ) await this.update({"system.pools": [...pools, ...missing]});
       if ( prune ) await pruneActorPools(this);
+      // An unlinked Token keeps its own stored pools (its delta), so a pool its base Actor's new Item grants never reaches
+      // it on its own: each one this user may update syncs too (Foundry has already refreshed its synthetic Items).
+      if ( !this.isToken ) for ( const token of this.getDependentTokens?.({concreteOnly: true}) ?? [] ) {
+        if ( !token.actorLink && token.actor?.isOwner ) await token.actor.syncItemRecords?.({classes, prune});
+      }
     }).catch(error => console.error("WildPath | Actor records could not be stored.", error));
     return this.#recordSync;
   }
