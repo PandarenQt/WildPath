@@ -2013,7 +2013,10 @@ const ENGINE_FEATURES = new Set(["ability-score-improvement", "divine-order", "p
   // second option and 2d10 (Brutal Strike's own level tables).
   "spellcasting", "pact-magic", "elven-lineage-drow", "elven-lineage-high-elf", "gnomish-lineage-forest", "improved-brutal-strike-2",
   // A Find Steed steed's Life Bond: the runtime finds it beside its healed summoner (durability.lifeBonds).
-  "life-bond"]);
+  "life-bond",
+  // A subclass's Bonus Proficiencies (Order and Twilight Domains, Rune Knight, College of Lore, the sidekicks): its
+  // subclass's or class's trait steps give them.
+  "bonus-proficiencies"]);
 /**
  * Features whose rule nothing in play exercises, so their text is their rule (an informational note, not a gap): what a
  * creature can't carry (Ephemeral), thoughts no one reads (Shielded Mind, Inscrutable: an Insight check is the GM's call
