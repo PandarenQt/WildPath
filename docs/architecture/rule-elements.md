@@ -912,14 +912,15 @@ the authority's separate refusals:
 | Command's Flee | `{all: [{tagsAny: ["cost:action", "cost:bonus-action"]}, {notTagsAny: ["id:common:dash", "id:common:disengage"]}]}` | the `commanded-flee` status |
 | A transformed creature (Wild Shape, Polymorph) | `{tagsAny: ["spell"]}` | `actor.transformation` |
 | Armor it isn't trained with (2024) | `{tagsAny: ["spell"]}` | the armor (not a Shield) |
+| A Quickened spell this turn (2024) | `{tagsAny: ["spell:leveled"]}` | `flags.wildpath.quickenedTurn`, this combat turn |
 
-- The last four are state, not stored data: `grantOwners` (actor.mjs) adds their rules while the state holds, as it
+- The last five are state, not stored data: `grantOwners` (actor.mjs) adds their rules while the state holds, as it
   does for untrained armor's Disadvantage; a status's are in `STATUS_FORBIDS`. Existing worlds need no migration.
-- Quickened Spell's "no other spell of level 1+ this turn" stays a refusal of its own: it depends on what was cast this
-  turn, which no rule owner holds.
+- `actionTags` adds `spell:leveled` to a spell of level 1 or higher (`metadata.spellLevel`).
 - `actor.forbiddingRule(definition)` returns the first match, named after its owner (the effect or armor). The
   authority refuses the intent with the rule's `reason`, or `WILDPATH.REFUSAL.Forbidden` ("{name} can't do that:
-  {by}"). The reaction provider doesn't offer a forbidden reaction (a Silenced wizard's Shield).
+  {by}"). The reaction provider doesn't offer a forbidden reaction (a Silenced wizard's Shield), and the action bar
+  greys a forbidden Action with the same reason.
 - Authority Actions (a lasting area's turns, which its caster already cast) are not checked.
 
 ## Future Types

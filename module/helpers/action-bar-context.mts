@@ -28,6 +28,8 @@ interface BarActor {
   effects?: Iterable<{system?: {type?: string; level?: number}; disabled?: boolean}>;
   system?: Data;
   flags?: Data;
+  /** The rule barring an Action (Forbid: Silenced, a Quickened spell this turn), as the authority checks it. */
+  forbiddingRule?(definition: unknown): {reason?: string; name?: string | null} | null;
 }
 
 const viewModel = createActionBarViewModel as unknown as (options: {actor: BarActor; actions?: readonly unknown[]}) => BarView;
@@ -135,10 +137,9 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[], loca
   };
   // What its definition requires of the creature (`requires`: Steady Aim, not moved this turn), as the authority checks.
   const required = (requiresContext as (actor: unknown) => Data)(actor);
+  const forbidden = (action: ActionView) => actor.forbiddingRule?.(rawDefinition(action) ?? null) ?? null;
   const requiresMet = (action: ActionView) => {
-    const definition = rawDefinition(action) as {tags?: string[]; metadata?: {spellLevel?: number}} | null;
-    // Quickened Spell this turn: no other spell of level 1+.
-    if ( required.quickenedThisTurn && definition?.tags?.includes("spell") && (Number(definition.metadata?.spellLevel) >= 1) ) return false;
+    if ( forbidden(action) ) return false;
     const requires = rawDefinition(action)?.requires;
     return !requires || (evaluatePredicate as (predicate: unknown, context: Data) => {ok: boolean})(requires,
       {...required, tags: rawDefinition(action)?.tags ?? []}).ok;
@@ -148,6 +149,8 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[], loca
   // Why it is not available, in words: its item is not ready, or what has run out ("no 3rd-level slot left").
   const reason = (action: ActionView) => {
     if ( !itemReady(action) ) return {key: "WILDPATH.ACTIONBAR.Reason.ItemNotReady", name: sourceItem(action)?.name ?? ""};
+    const forbid = forbidden(action);
+    if ( forbid ) return {key: forbid.reason ?? "WILDPATH.REFUSAL.Forbidden", name: actor.name ?? "", by: forbid.name ?? ""};
     if ( !requiresMet(action) ) return {key: "WILDPATH.ACTIONBAR.Reason.Requires", name: ""};
     const spent = [...new Set((action.payment?.failures ?? []).filter(failure => failure.code === "INSUFFICIENT_RESOURCE")
       .map(failure => resourceLabels.get(String(failure.resourceId)) ?? String(failure.resourceId)))];

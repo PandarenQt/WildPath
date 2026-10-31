@@ -78,3 +78,17 @@ test("states forbid by rule: Gaseous Form attacks and spells, a transformation s
   assert.equal(creature({items: [shield], system: {training: {armor: ["light"]}}}).forbiddingRule(spell("verbal")), null,
     "an untrained Shield doesn't stop casting");
 });
+
+test("a Quickened spell this combat turn forbids spells of level 1+, not cantrips, until the next turn", () => {
+  const previous = globalThis.game;
+  globalThis.game = {combat: {started: true, id: "c", round: 1, turn: 0}};
+  try {
+    const leveled = {id: "action:fireball", tags: ["spell"], metadata: {spellLevel: 3}};
+    const cantrip = {id: "action:fire-bolt", tags: ["spell"], metadata: {spellLevel: 0}};
+    assert.deepEqual(actionTags(leveled), ["spell", "spell:leveled", "id:action:fireball"]);
+    const quickened = creature({flags: {wildpath: {quickenedTurn: "c:1:0"}}});
+    assert.equal(quickened.forbiddingRule(leveled)?.reason, "WILDPATH.REFUSAL.Quickened");
+    assert.equal(quickened.forbiddingRule(cantrip), null);
+    assert.equal(creature({flags: {wildpath: {quickenedTurn: "c:0:3"}}}).forbiddingRule(leveled), null, "an earlier turn's");
+  } finally { globalThis.game = previous; }
+});

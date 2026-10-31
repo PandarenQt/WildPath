@@ -88,17 +88,16 @@ test("Metamagic: Extended doubles to 24 hours at most, with Advantage on Concent
   assert.deepEqual(subtle.tags, ["spell", "component:none"]);
 });
 
-test("Metamagic: after a Quickened spell this turn, a level 1+ spell is greyed on the bar; a cantrip is not", async () => {
+test("Metamagic: what its rules forbid (a level 1+ spell after a Quickened one) is greyed on the bar, with the reason", async () => {
   const {actionBarContext} = await import("../module/helpers/action-bar-context.mjs");
-  const previous = globalThis.game;
-  globalThis.game = {combat: {started: true, id: "c", round: 1, turn: 0}};
-  try {
-    const item = (id, prefix) => ({id, type: "action", name: id, system: {definition: spell(prefix)}});
-    const actor = {name: "Sorcerer", flags: {wildpath: {quickenedTurn: "c:1:0"}}, effects: [], items: [item("bolt", "fire-bolt"), item("ball", "fireball")],
-      system: {resources: {action: {value: 1, max: 1}, bonus: {value: 1, max: 1}, reaction: {value: 1, max: 1}}, pools: [{id: "spell-slot.3", value: 2, max: 2}]}};
-    const enabled = id => actionBarContext({actor}).groups.flatMap(group => group.actions).find(action => action.id === id)?.enabled;
-    assert.deepEqual([enabled("bolt"), enabled("ball")], [true, false]);
-  } finally { globalThis.game = previous; }
+  const {actionTags} = await import("../module/helpers/rule-elements.mjs");
+  const item = (id, prefix) => ({id, type: "action", name: id, system: {definition: spell(prefix)}});
+  const actor = {name: "Sorcerer", flags: {}, effects: [], items: [item("bolt", "fire-bolt"), item("ball", "fireball")],
+    system: {resources: {action: {value: 1, max: 1}, bonus: {value: 1, max: 1}, reaction: {value: 1, max: 1}}, pools: [{id: "spell-slot.3", value: 2, max: 2}]},
+    forbiddingRule: definition => (actionTags(definition).includes("spell:leveled") ? {reason: "WILDPATH.REFUSAL.Quickened", name: "quickened"} : null)};
+  const action = id => actionBarContext({actor}).groups.flatMap(group => group.actions).find(entry => entry.id === id);
+  assert.deepEqual([action("bolt").enabled, action("ball").enabled], [true, false]);
+  assert.deepEqual(action("ball").reason, {key: "WILDPATH.REFUSAL.Quickened", name: "Sorcerer", by: "quickened"});
 });
 
 test("Empowered Spell: a choice beside the other option; its lowest damage die below average is rolled again", async () => {

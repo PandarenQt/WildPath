@@ -107,10 +107,9 @@ export function actionBarContext({ actor, conditions = [], odds = {}, common = [
     };
     // What its definition requires of the creature (`requires`: Steady Aim, not moved this turn), as the authority checks.
     const required = requiresContext(actor);
+    const forbidden = (action) => actor.forbiddingRule?.(rawDefinition(action) ?? null) ?? null;
     const requiresMet = (action) => {
-        const definition = rawDefinition(action);
-        // Quickened Spell this turn: no other spell of level 1+.
-        if (required.quickenedThisTurn && definition?.tags?.includes("spell") && (Number(definition.metadata?.spellLevel) >= 1))
+        if (forbidden(action))
             return false;
         const requires = rawDefinition(action)?.requires;
         return !requires || evaluatePredicate(requires, { ...required, tags: rawDefinition(action)?.tags ?? [] }).ok;
@@ -121,6 +120,9 @@ export function actionBarContext({ actor, conditions = [], odds = {}, common = [
     const reason = (action) => {
         if (!itemReady(action))
             return { key: "WILDPATH.ACTIONBAR.Reason.ItemNotReady", name: sourceItem(action)?.name ?? "" };
+        const forbid = forbidden(action);
+        if (forbid)
+            return { key: forbid.reason ?? "WILDPATH.REFUSAL.Forbidden", name: actor.name ?? "", by: forbid.name ?? "" };
         if (!requiresMet(action))
             return { key: "WILDPATH.ACTIONBAR.Reason.Requires", name: "" };
         const spent = [...new Set((action.payment?.failures ?? []).filter(failure => failure.code === "INSUFFICIENT_RESOURCE")

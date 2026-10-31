@@ -759,9 +759,6 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // What the Action requires of its creature (`requires`: Steady Aim, not moved this turn).
   if ( !authorityAction && definition?.requires && !evaluatePredicate(definition.requires, {...requiresContext(actor, {game}), actorSystem,
     tags: definition.tags ?? []}).ok ) return refused("WILDPATH.ITEM.CannotUse", {name: action.name ?? ""});
-  // 2024 Quickened Spell: "nor can you cast a level 1+ spell on the same turn after modifying a spell with this option".
-  if ( !authorityAction && requiresContext(actor, {game}).quickenedThisTurn && (definition?.tags ?? []).includes("spell")
-    && (Number(definition?.metadata?.spellLevel) >= 1) ) return refused("WILDPATH.REFUSAL.Quickened", {name: actor.name ?? ""});
   // A magic item's Action (a wand's spell) needs its item equipped and, when it needs attunement, attuned (2024).
   // An Action it replaced (inactive: an Invocation, a Maneuver) is not used.
   if ( !authorityAction && (action.system?.active === false) ) return refused("WILDPATH.LEVELUP.Replaced", {name: action.name ?? ""});

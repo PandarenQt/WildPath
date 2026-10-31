@@ -758,11 +758,13 @@ function forbidRuleElement(ruleElement) {
 }
 
 /**
- * The tags a Forbid tests an Action by: its own, `attack` when it makes an attack roll, its id (`id:common:dash`), and
- * what it always costs (`cost:action`, `cost:bonus-action`).
+ * The tags a Forbid tests an Action by: its own, `attack` when it makes an attack roll, `spell:leveled` for a spell of
+ * level 1+, its id (`id:common:dash`), and what it always costs (`cost:action`, `cost:bonus-action`).
  */
 export function actionTags(definition) {
-  return [...(definition?.tags ?? []), ...(definition?.attack ? ["attack"] : []), ...(definition?.id ? [`id:${definition.id}`] : []),
+  const leveled = definition?.tags?.includes("spell") && (Number(definition.metadata?.spellLevel) >= 1);
+  return [...(definition?.tags ?? []), ...(definition?.attack ? ["attack"] : []), ...(leveled ? ["spell:leveled"] : []),
+    ...(definition?.id ? [`id:${definition.id}`] : []),
     ...(definition?.costs?.allOf ?? []).flatMap(cost => (cost?.capability ? [`cost:${cost.capability}`] : []))];
 }
 

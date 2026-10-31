@@ -1,5 +1,6 @@
 import {startedContagions} from "../adapters/foundry-v14-contagions.mjs";
 import {carryingRules} from "../helpers/carrying.mjs";
+import {requiresContext} from "../helpers/combat.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
 import {pruneActorPools} from "../helpers/migrations.mjs";
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
@@ -1087,6 +1088,7 @@ function grantOwners(actor) {
     ...(hindering ? [{ruleElements: [UNTRAINED_ARMOR, UNTRAINED_CASTING], source: documentRuleElementSource(hindering, "item")}] : []),
     ...Object.entries(STATUS_FORBIDS).flatMap(([status, rule]) => (actor.statuses?.has?.(status) ? [state(status, [rule])] : [])),
     ...(transformation ? [state("transformed", [TRANSFORMED])] : []),
+    ...(requiresContext(actor).quickenedThisTurn ? [state("quickened", [QUICKENED])] : []),
     ...(load.length ? [{ruleElements: load, source: {type: "rule", uuid: null, id: "carrying", name: "Carrying"}}] : []),
     {ruleElements: UNSEEN, source: {type: "rule", uuid: null, id: "unseen", name: "Unseen"}}];
 }
@@ -1128,6 +1130,12 @@ const STATUS_FORBIDS = Object.freeze({
  */
 const TRANSFORMED = Object.freeze({schemaVersion: 1, id: "transformed", type: "Forbid",
   data: {actions: {tagsAny: ["spell"]}, reason: "WILDPATH.REFUSAL.Transformed"}});
+/**
+ * 2024 Quickened Spell: "nor can you cast a level 1+ spell on the same turn after modifying a spell with this option".
+ * Its turn is `flags.wildpath.quickenedTurn` (requiresContext).
+ */
+const QUICKENED = Object.freeze({schemaVersion: 1, id: "quickened", type: "Forbid",
+  data: {actions: {tagsAny: ["spell:leveled"]}, reason: "WILDPATH.REFUSAL.Quickened"}});
 
 /**
  * The armor and Shields a creature wears without the training for them (G8). A creature with no armor training at
