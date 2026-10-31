@@ -1,6 +1,7 @@
 import {cpSync, existsSync, mkdtempSync, readdirSync, readFileSync, rmSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {join, resolve} from "node:path";
+import {contentStamp} from "./content-stamp.mjs";
 import {extractPack} from "@foundryvtt/foundryvtt-cli";
 import {spellListsOf, convertTable, PROGRESSION_TYPES, baseWeapons, beastsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables,
   withRedirects} from "./dnd5e-to-wildpath.mjs";
@@ -138,7 +139,9 @@ await writeLocalModule({target, id: `wildpath-${moduleId}`, title: `WildPath: ${
   version: manifest.version ?? "1.0.0",
   packs: [["items", "Item", items, `${manifest.title}: Spells, Equipment and Features`], ["creatures", "Actor", actors, `${manifest.title}: Creatures`],
     ["classes", "Item", progressions, `${manifest.title}: Classes and Origins`], ["tables", "RollTable", tables, `${manifest.title}: Tables`]],
-  flags: {convertedFrom: moduleId, sourceVersion: manifest.version ?? null}, notes});
+  // Its content stamp: a world re-runs its re-runnable migrations when it changes (migrations.mjs).
+  flags: {convertedFrom: moduleId, sourceVersion: manifest.version ?? null,
+    contentStamp: contentStamp([...items, ...actors, ...progressions, ...tables])}, notes});
 const kinds = items.reduce((total, item) => {
   const kind = ["feature", "gear"].includes(item.type) ? item.type : (item.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")) ? "manual" : "automated");
   return {...total, [kind]: (total[kind] ?? 0) + 1};

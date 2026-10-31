@@ -41,9 +41,16 @@ world Actor carries nothing else, and Refresh Items cannot reach its Items), or 
 `_stats.compendiumSource`. World Items, world Actors and unlinked Tokens' Actors are walked.
 
 It cannot reach an Item with no compendium copy (homebrew, or a pack no longer installed); such a feature does nothing
-until its rule or flag is added by hand. Elemental Adept is only in the locally converted premium packs, which
-`npm run build:packs` does not regenerate: reconvert them before the world first starts on this version, or the
-migration finds the old copy, adds nothing and is recorded as done. Refresh Items afterwards also copies the rules and
+until its rule or flag is added by hand.
+
+**Re-runnable (owner's decision, 2026-10-31).** Migration 5 only adds, so it is marked `rerun`: besides its first run,
+it runs again whenever the converted content changes. Each converter writes a hash of what it produced
+(`scripts/content/content-stamp.mjs`): the SRD converter into `system.json` `flags.wildpath.contentStamp`, the book
+converter into each book module's manifest. At `ready` the active GM compares the system's and the active `wildpath-`
+books' stamps (`contentStampOf`) with the world setting `wildpath.contentStamp`; when they differ, each re-runnable
+migration already done runs again, and the setting is updated only after all succeed. So a world started before its
+books were reconverted (Elemental Adept is only in the locally converted PHB) gets their shapes at its next start, and
+a later converter improvement reaches stored characters too. Refresh Items afterwards also copies the rules and
 `spellChoice` for Items that carry a `_stats.compendiumSource` (a feat taken at level-up).
 
 ## Stale pools

@@ -1,4 +1,5 @@
-import {mkdirSync, rmSync, writeFileSync} from "node:fs";
+import {mkdirSync, readFileSync, rmSync, writeFileSync} from "node:fs";
+import {contentStamp} from "./content-stamp.mjs";
 import {join} from "node:path";
 import {spellListsOf, PROGRESSION_TYPES, baseWeapons, beastsOf, convertActor, convertItem, convertProgression, convertTable, isSrd2024, nameIndex, scaleTables, slugify,
   withRedirects} from "./dnd5e-to-wildpath.mjs";
@@ -128,6 +129,15 @@ write("packs/_source/srd-items", items);
 write("packs/_source/srd-creatures", actors);
 write("packs/_source/srd-classes", progressions);
 write("packs/_source/srd-tables", convertedTables);
+// The system's content stamp: a world re-runs its re-runnable migrations when it changes (migrations.mjs).
+if ( !only ) {
+  const manifest = JSON.parse(readFileSync("system.json", "utf8"));
+  const stamp = contentStamp([...items, ...actors, ...progressions, ...convertedTables]);
+  if ( manifest.flags?.wildpath?.contentStamp !== stamp ) {
+    manifest.flags = {...(manifest.flags ?? {}), wildpath: {...(manifest.flags?.wildpath ?? {}), contentStamp: stamp}};
+    writeFileSync("system.json", `${JSON.stringify(manifest, null, 2)}\n`);
+  }
+}
 
 const counts = items.reduce((total, item) => ({...total, [kind(item)]: (total[kind(item)] ?? 0) + 1}), {});
 const rows = report.sort((a, b) => a.name.localeCompare(b.name)).map(entry => `| ${entry.name} | ${entry.pack} | ${entry.converted.join(", ") || "—"} | ${

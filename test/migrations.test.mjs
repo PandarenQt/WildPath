@@ -57,8 +57,8 @@ test("an NPC converted before creatures carried a type takes it from its compend
   assert.equal(creatureTypeFix({type: "npc", name: "Guard", system: {details: {}}}, named), null, "a name several types share");
 });
 
-function world({version=0, isGM=true, active=true}={}) {
-  const settings = {version};
+function world({version=0, isGM=true, active=true, contentStamp="", system="", modules=[]}={}) {
+  const settings = {version, contentStamp};
   const user = {isGM};
   const told = [];
   return {
@@ -66,12 +66,45 @@ function world({version=0, isGM=true, active=true}={}) {
     settings,
     game: {
       user, users: {activeGM: active ? user : {}},
-      settings: {get: () => settings.version, set: async (_scope, _key, value) => { settings.version = value; }},
+      system: {flags: {wildpath: {contentStamp: system}}}, modules,
+      settings: {get: (_scope, key) => ((key === "contentStamp") ? settings.contentStamp : settings.version),
+        set: async (_scope, key, value) => { settings[(key === "contentStamp") ? "contentStamp" : "version"] = value; }},
       i18n: {localize: key => key, format: key => key}
     },
     ui: {notifications: {info: text => told.push(["info", text]), warn: text => told.push(["warn", text])}}
   };
 }
+
+test("a re-runnable migration runs again when the converted content changes, once; a failure keeps the old stamp", async () => {
+  const {contentStampOf} = await import("../module/helpers/migrations.mjs");
+  const ran = [];
+  const migrations = [{version: 1, name: "one", run: async () => { ran.push(1); }},
+    {version: 2, name: "shapes", rerun: true, run: async () => { ran.push(2); }}];
+  const book = stamp => ({id: "wildpath-dnd-players-handbook", active: true, flags: {wildpath: {contentStamp: stamp}}});
+  const current = world({version: 2, system: "s1", modules: [book("b1"), {id: "other-module", active: true, flags: {}}]});
+  current.settings.contentStamp = contentStampOf(current.game);
+  assert.equal(contentStampOf(current.game), "system:s1|wildpath-dnd-players-handbook:b1", "the system's and the converted books'");
+  await runMigrations({...current, migrations});
+  assert.deepEqual(ran, [], "same content: nothing runs");
+  current.game.modules[0].flags.wildpath.contentStamp = "b2";
+  await runMigrations({...current, migrations});
+  assert.deepEqual(ran, [2], "a book reconverted: the re-runnable one runs again, the others don't");
+  assert.equal(current.settings.contentStamp, "system:s1|wildpath-dnd-players-handbook:b2");
+  await runMigrations({...current, migrations});
+  assert.deepEqual(ran, [2], "and only once");
+  // A world on version 1: migration 2 runs as new, once, not again as a re-run.
+  const behind = world({version: 1, system: "s1"});
+  await runMigrations({...behind, migrations});
+  assert.deepEqual(ran, [2, 2]);
+  // A failing re-run keeps the old stamp, so it runs again next start.
+  const failing = world({version: 2, system: "s2", contentStamp: "system:s1"});
+  const logger = console.warn;
+  console.warn = () => {};
+  try {
+    await runMigrations({...failing, migrations: [{version: 2, name: "shapes", rerun: true, run: async () => { throw new Error("pack gone"); }}]});
+  } finally { console.warn = logger; }
+  assert.equal(failing.settings.contentStamp, "system:s1");
+});
 
 test("migrations run once, in order, on the active GM only, and stop at a failure", async () => {
   const ran = [];

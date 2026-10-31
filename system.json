@@ -189,5 +189,10 @@
   "manifest": "",
   "download": "",
   "license": "LICENSE",
-  "readme": "README.md"
+  "readme": "README.md",
+  "flags": {
+    "wildpath": {
+      "contentStamp": "e5b690e60b4d4da4"
+    }
+  }
 }

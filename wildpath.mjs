@@ -131,6 +131,8 @@ Hooks.once("init", () => {
   // The 2014 rules replace the conditions that differ (a world setting; read during init, applied after a reload).
   // The last world migration done (module/helpers/migrations.mjs).
   game.settings.register("wildpath", "migrationVersion", {scope: "world", config: false, type: Number, default: 0});
+  // The converted content those migrations last ran against (re-runnable ones run again when it changes).
+  game.settings.register("wildpath", "contentStamp", {scope: "world", config: false, type: String, default: ""});
   game.settings.register("wildpath", "rulesVersion", {
     name: "WILDPATH.SETTINGS.RulesVersion.Name",
     hint: "WILDPATH.SETTINGS.RulesVersion.Hint",

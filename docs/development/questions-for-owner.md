@@ -185,3 +185,5 @@ this one was not asked: that is my process miss.
   1. Keep it. Existing characters keep working (Spell Mastery's toggle, Life Bond, Elemental Adept, ...).
   2. Revert it. Those stored features stop working until each is refreshed (Refresh Items) or re-added.
 - Recommendation: option 1.
+- **Answered 2026-10-31: keep it, and make it re-run whenever the converted packs change** (done: content stamps,
+  docs/architecture/world-migrations.md).

@@ -4,6 +4,9 @@ import {gmNotice} from "./gm-notice.mjs";
  * World migrations: each runs once, in order, on the active GM's client at `ready`, and the world setting
  * `wildpath.migrationVersion` records the last one done. A failed one stops the run (the GM is told), and runs again at
  * the next start. Each migration takes `game` and changes what it finds; one finding nothing changes nothing.
+ * One that reads converted content and only adds (`rerun`: migration 5, feature shapes) also runs again whenever that
+ * content changes: the system's and the converted books' `flags.wildpath.contentStamp`, against the world setting
+ * `wildpath.contentStamp`. So a world started before its packs were reconverted still gets their shapes later.
  */
 
 /** Pools the system keeps itself (spell slots, Hit Dice, Mystic Arcanum, Heroic Inspiration): never stale. */
@@ -185,7 +188,7 @@ export const MIGRATIONS = Object.freeze([
   {version: 2, name: "WILDPATH.MIGRATION.StalePools", run: pruneStalePools},
   {version: 3, name: "WILDPATH.MIGRATION.Fortitude", run: recordFortitude},
   {version: 4, name: "WILDPATH.MIGRATION.CreatureTypes", run: recordCreatureTypes},
-  {version: 5, name: "WILDPATH.MIGRATION.FeatureShapes", run: game => fillFeatureShapes(game)}
+  {version: 5, name: "WILDPATH.MIGRATION.FeatureShapes", run: game => fillFeatureShapes(game), rerun: true}
 ]);
 
 /**
@@ -196,20 +199,44 @@ export const MIGRATIONS = Object.freeze([
 export async function runMigrations({game=globalThis.game, ui=globalThis.ui, migrations=MIGRATIONS}={}) {
   const done = Number(game.settings.get("wildpath", "migrationVersion")) || 0;
   if ( !game.user?.isGM || (game.users?.activeGM && (game.users.activeGM !== game.user)) ) return done;
-  const pending = [...migrations].sort((a, b) => a.version - b.version).filter(migration => migration.version > done);
-  if ( !pending.length ) return done;
+  const ordered = [...migrations].sort((a, b) => a.version - b.version);
+  const pending = ordered.filter(migration => migration.version > done);
+  // Converted content changed since the re-runnable ones last ran: they run again (once each, not twice this start).
+  const stamp = contentStampOf(game);
+  const changed = stamp !== String(game.settings.get("wildpath", "contentStamp") ?? "");
+  const again = changed ? ordered.filter(migration => migration.rerun && (migration.version <= done)) : [];
+  if ( !pending.length && !again.length ) {
+    if ( changed ) await game.settings.set("wildpath", "contentStamp", stamp);
+    return done;
+  }
   ui?.notifications?.info?.(game.i18n.localize("WILDPATH.MIGRATION.Start"));
   let version = done;
-  for ( const migration of pending ) {
+  for ( const migration of [...again, ...pending] ) {
     try {
       await migration.run(game);
     } catch ( error ) {
       gmNotice("WILDPATH.MIGRATION.Failed", {name: game.i18n.localize(migration.name)}, error, {game, ui});
       return version;
     }
-    version = migration.version;
-    await game.settings.set("wildpath", "migrationVersion", version);
+    if ( migration.version > version ) {
+      version = migration.version;
+      await game.settings.set("wildpath", "migrationVersion", version);
+    }
   }
+  // Only once all ran: a failure leaves the old stamp, so they run again at the next start.
+  if ( changed ) await game.settings.set("wildpath", "contentStamp", stamp);
   ui?.notifications?.info?.(game.i18n.localize("WILDPATH.MIGRATION.Done"));
   return version;
+}
+
+/**
+ * The converted content a world runs on: the system's stamp and each active converted book's (`wildpath-` modules), as
+ * one string. A package converted before stamps counts with an empty one, so stamping it changes the string.
+ * @param {object} game
+ * @returns {string}
+ */
+export function contentStampOf(game) {
+  const books = [...(game.modules ?? [])].filter(module => module?.active && String(module.id ?? "").startsWith("wildpath-"))
+    .map(module => `${module.id}:${module.flags?.wildpath?.contentStamp ?? ""}`).sort();
+  return [`system:${game.system?.flags?.wildpath?.contentStamp ?? ""}`, ...books].join("|");
 }
