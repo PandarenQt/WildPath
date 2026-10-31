@@ -443,3 +443,25 @@ test("granted movement sees its creature's conditions: Stride of the Elements' F
       system: {active: true, modifiers: [], ruleElements: [rule]}}]});
   assert.deepEqual([monk(["elemental-attunement"]).getGrantedMovement().length, monk([]).getGrantedMovement().length], [1, 0]);
 });
+
+test("Great Weapon Fighting: a two-handed melee weapon's damage dice roll with min3; a one-handed one's don't", async () => {
+  const fs = await import("node:fs");
+  const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");
+  const {actionDefinitionToResolverInput} = await import("../module/helpers/action-definitions.mjs");
+  const {createDamageRollRequest, rollFormulaForRequest} = await import("../module/helpers/rolls.mjs");
+  const [gwf] = JSON.parse(fs.readFileSync("packs/_source/srd-items/great-weapon-fighting-phbfstGreatWeapo.json", "utf8")).system.ruleElements;
+  const fighter = Object.assign(Object.create(WildPathActor.prototype), {id: "f", uuid: "Actor.f", effects: [], statuses: new Set(), flags: {},
+    system: {abilities: {might: {value: 16}}}, allApplicableEffects: () => [],
+    items: [{id: "s", uuid: "Actor.f.Item.s", type: "feature", system: {active: true, modifiers: [], ruleElements: [gwf]}}]});
+  const sword = properties => ({schemaVersion: 1, id: "action:sword", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", properties, weapon: {category: "martial", base: "greatsword"}},
+    damage: [{id: "base", expression: {type: "dice", number: 2, faces: 6}, damageType: "slashing", provenance: "weapon-base"}]});
+  const formula = properties => {
+    const definition = sword(properties);
+    const damage = actionCombatStatistics(fighter, definition, {context: {attack: {type: "melee"}}}).damage;
+    const input = actionDefinitionToResolverInput(definition, {damage});
+    return rollFormulaForRequest(createDamageRollRequest({id: "r", components: input.damage.components})).formula;
+  };
+  assert.match(formula(["two-handed"]), /2d6min3/u);
+  assert.doesNotMatch(formula([]), /min3/u);
+});

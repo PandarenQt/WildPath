@@ -27,7 +27,10 @@
           "category": "martial",
           "base": "warhammer",
           "mastery": "push"
-        }
+        },
+        "properties": [
+          "two-handed"
+        ]
       },
       "range": {
         "type": "reach",

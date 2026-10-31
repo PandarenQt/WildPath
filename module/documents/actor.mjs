@@ -7,7 +7,7 @@ import {pruneActorPools} from "../helpers/migrations.mjs";
 import {WildPathModifier, WildPathStatistic} from "../helpers/modifiers.mjs";
 import {hostedRules} from "../helpers/effect-sources.mjs";
 import {
-  damageProfileFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, grantedSensesFromRuleElements, grantedLightsFromRuleElements, grantedLanguagesFromRuleElements,
+  damageProfileFromRuleElements, dieMinimumsFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, grantedSensesFromRuleElements, grantedLightsFromRuleElements, grantedLanguagesFromRuleElements,
   modifiersFromRuleElements,
   resourceCapsFromRuleElements, abilityScoreChangesFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements, forbiddingRule,
   conditionImmunitiesFromRuleElements, opportunityAttackAvoidanceFromRuleElements, extraAttacksFromRuleElements, normalizeRuleElementType,
@@ -268,6 +268,14 @@ export default class WildPathActor extends Actor {
     const owners = grantOwners(this);
     if ( item?.system?.ruleElements?.length ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
     return extraDamageFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system, item, tags,
+      conditions: [...(this.statuses ?? [])], ...context}});
+  }
+
+  /** The least its damage dice count as in `domains` (`DamageDieMinimum`: Great Weapon Fighting), read as getExtraDamage. */
+  getDamageDieMinimums(domains, {item=null, tags=[], context={}}={}) {
+    const owners = grantOwners(this);
+    if ( item?.system?.ruleElements?.length ) owners.push({ruleElements: item.system.ruleElements, source: documentRuleElementSource(item, "item")});
+    return dieMinimumsFromRuleElements(owners, {domains, context: {actor: this, actorSystem: this.system, item, tags,
       conditions: [...(this.statuses ?? [])], ...context}});
   }
 

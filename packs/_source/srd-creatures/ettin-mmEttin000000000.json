@@ -188,7 +188,10 @@
               "category": "martial",
               "base": "battleaxe",
               "mastery": "topple"
-            }
+            },
+            "properties": [
+              "two-handed"
+            ]
           },
           "range": {
             "type": "reach",

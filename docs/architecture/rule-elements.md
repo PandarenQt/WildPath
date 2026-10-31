@@ -197,6 +197,12 @@ while it has `starry-form`; a shadow dragon's Living Shadow resists outside Brig
 **Target health (2026-10-31).** An attack's context has `targetDamaged` (missing Hit Points: Colossus Slayer, Blood
 Frenzy) and `targetBloodied` (half or fewer: Warrior's Wrath), reactions' attacks included.
 
+**DamageDieMinimum (2026-10-31).** `{domains, minimum, damageTypes?}`: the least each damage die of an Action's damage in
+its domains counts as (`damage.weapon`, `damage.spell`, ...), by its tags; the highest that applies to a component's
+damage type. It is rolled as the dice's `min` modifier (`2d6min3`, Foundry's own), so digital dice apply it and a
+physical roll's prompt shows it. 2024 Great Weapon Fighting: 3, on melee attacks with the `two-handed` property (a
+Two-Handed weapon, or a Versatile weapon's two-handed Action).
+
 Invalid or unknown RuleElement types fail explicitly in the collector result. Disabled,
 suppressed, or predicate-failed entries fail closed by contributing nothing while remaining visible
 to rules-inspector tooling.

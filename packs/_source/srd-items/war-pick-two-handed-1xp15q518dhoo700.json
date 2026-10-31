@@ -27,7 +27,10 @@
           "category": "martial",
           "base": "war-pick",
           "mastery": "sap"
-        }
+        },
+        "properties": [
+          "two-handed"
+        ]
       },
       "range": {
         "type": "reach",

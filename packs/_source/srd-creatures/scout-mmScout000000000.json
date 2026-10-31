@@ -198,6 +198,9 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
+            "properties": [
+              "two-handed"
+            ],
             "weapon": {
               "category": "martial",
               "base": "longbow",

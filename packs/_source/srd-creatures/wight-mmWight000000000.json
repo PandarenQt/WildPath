@@ -422,6 +422,9 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
+            "properties": [
+              "two-handed"
+            ],
             "ability": "agility",
             "weapon": {
               "category": "martial",

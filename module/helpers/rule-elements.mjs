@@ -24,6 +24,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   ABILITY_SCORE: "AbilityScore",
   ROLL_OUTCOME: "RollOutcome",
   EXTRA_DAMAGE: "ExtraDamage",
+  DAMAGE_DIE_MINIMUM: "DamageDieMinimum",
   FORBID: "Forbid",
   AURA: "Aura",
   TRIGGER: "Trigger"
@@ -78,6 +79,7 @@ const TYPE_ALIASES = Object.freeze({
   abilityscore: RULE_ELEMENT_TYPES.ABILITY_SCORE,
   rolloutcome: RULE_ELEMENT_TYPES.ROLL_OUTCOME,
   extradamage: RULE_ELEMENT_TYPES.EXTRA_DAMAGE,
+  damagedieminimum: RULE_ELEMENT_TYPES.DAMAGE_DIE_MINIMUM,
   forbid: RULE_ELEMENT_TYPES.FORBID,
   aura: RULE_ELEMENT_TYPES.AURA,
   trigger: RULE_ELEMENT_TYPES.TRIGGER
@@ -121,6 +123,7 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.ABILITY_SCORE, abilityScoreRuleElement],
     [RULE_ELEMENT_TYPES.ROLL_OUTCOME, rollOutcomeRuleElement],
     [RULE_ELEMENT_TYPES.EXTRA_DAMAGE, extraDamageRuleElement],
+    [RULE_ELEMENT_TYPES.DAMAGE_DIE_MINIMUM, damageDieMinimumRuleElement],
     [RULE_ELEMENT_TYPES.FORBID, forbidRuleElement],
     [RULE_ELEMENT_TYPES.AURA, auraRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESOURCE, grantResourceRuleElement],
@@ -417,6 +420,11 @@ function contributionsInDomains(owners, key, domains, context) {
   return owners.flatMap(({ruleElements=[], source=null}) =>
     collectRuleElementContributions({ruleElements, context, source}).contributions[key]
       .filter(entry => entry.domains.some(domain => wanted.has(domain))));
+}
+
+/** The damage die minimums (`DamageDieMinimum`) a creature's owners give in any of `domains`. */
+export function dieMinimumsFromRuleElements(owners=[], {domains=[], context={}}={}) {
+  return contributionsInDomains(owners, "dieMinimums", domains, context);
 }
 
 /** The lowest ceiling each resource has from a creature's owners (`ResourceCap`), as `{resourceId: maximum}`. */
@@ -741,6 +749,21 @@ function extraDamageRuleElement(ruleElement) {
 }
 
 /**
+ * The least each damage die of an Action's damage in its `domains` counts as (`{domains, minimum, damageTypes?}`): 2024
+ * Great Weapon Fighting's 3 on a two-handed melee weapon's dice; Elemental Adept's 2 on its type's spell dice. Rolled as
+ * the dice's `min` modifier, so digital and physical dice alike show it.
+ */
+function damageDieMinimumRuleElement(ruleElement) {
+  const data = ruleElement.data;
+  const domains = normalizeStrings(data.domains ?? data.domain);
+  const minimum = Math.trunc(Number(data.minimum));
+  if ( !domains.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "DamageDieMinimum RuleElement requires domains.");
+  if ( !(minimum >= 2) ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "DamageDieMinimum RuleElement requires a minimum of 2 or more.");
+  return success({dieMinimums: [{id: data.id ?? ruleElement.id, domains, minimum, damageTypes: normalizeStrings(data.damageTypes ?? []),
+    source: ruleElementSource(ruleElement), metadata: contributionMetadata(ruleElement, data.metadata)}]});
+}
+
+/**
  * Actions its creature can't use while it applies: `{actions: <predicate>, reason?: <localization key>}`. The predicate
  * sees the Action's tags (`actionTags`): Spell Taxed forbids `{tagsAny: ["spell"]}`, Silenced
  * `{tagsAny: ["component:verbal"]}`, Gaseous Form `{tagsAny: ["spell", "attack"]}`.
@@ -997,6 +1020,7 @@ function emptyContributions() {
     abilityScores: [],
     rollOutcomes: [],
     extraDamage: [],
+    dieMinimums: [],
     forbids: [],
     auras: [],
     conditionImmunities: [],
@@ -1026,6 +1050,7 @@ function mergeContributions(target, source={}) {
   target.abilityScores.push(...(source.abilityScores ?? []));
   target.rollOutcomes.push(...(source.rollOutcomes ?? []));
   target.extraDamage.push(...(source.extraDamage ?? []));
+  target.dieMinimums.push(...(source.dieMinimums ?? []));
   target.forbids.push(...(source.forbids ?? []));
   target.auras.push(...(source.auras ?? []));
   target.conditionImmunities.push(...(source.conditionImmunities ?? []));

@@ -2109,8 +2109,10 @@ function versatileDefinition({document, system, definition}) {
   const count = number(system.damage?.versatile?.number) || number(base.number) || 1;
   const bonus = base.bonus ? formulaExpression(String(base.bonus)) : null;
   const expression = bonus ? add([dice(count, faces), bonus]) : dice(count, faces);
+  // Held with two hands (Great Weapon Fighting reads it).
   return {...definition, id: `${definition.id}-two-handed`, damage: definition.damage.map(entry => (entry === component
-    ? {...entry, expression} : entry))};
+    ? {...entry, expression} : entry)), ...(definition.attack ? {attack: {...definition.attack,
+    properties: [...new Set([...(definition.attack.properties ?? []), "two-handed"])]}} : {})};
 }
 
 /**
@@ -2525,6 +2527,10 @@ const TRAITS = Object.freeze({
   // 2024 Grappler. Attack Advantage: against a creature it Grappled (`attack.fromAttacker.grappled`). Punch and Grab: once
   // a turn, its Unarmed Strike's hit may also Grapple, free. shortcut: any of its Unarmed Strike hits qualifies, not only
   // one of the Attack action's. Fast Wrestler needs nothing: moving a Grappled creature costs no extra movement here.
+  // 2024 Great Weapon Fighting: a 1 or 2 on a damage die of a melee attack with a weapon held in two hands counts as a 3
+  // (a Two-Handed weapon, or a Versatile one's two-handed Action).
+  "great-weapon-fighting": () => ({rules: [{schemaVersion: 1, id: "great-weapon-fighting", type: "DamageDieMinimum",
+    predicate: {tagsAll: ["melee", "two-handed"]}, data: {domains: ["damage.weapon"], minimum: 3}}], notes: []}),
   // A Climb or Swim Speed equal to its Speed: Athlete (standing up and running jumps cost nothing extra here anyway),
   // Aquatic Affinity, a thief's Second-Story Work (unless its effect gives it already, as the SRD copy's does).
   athlete: () => ({rules: [movementEqualToSpeed("athlete-climb", "climb")], notes: []}),
@@ -4040,8 +4046,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
     proficient: true} : null;
   if ( attack ) {
     // Its properties a rule or the engine reads: finesse (its better ability), light (a Monk weapon, two-weapon fighting).
-    // Thrown too (Thrown Weapon Fighting's bonus reads it).
-    const properties = [["fin", "finesse"], ["lgt", "light"], ["thr", "thrown"]].filter(([key]) => (system.properties ?? []).includes(key)).map(([, name]) => name);
+    // Thrown too (Thrown Weapon Fighting's bonus reads it), and Two-Handed (Great Weapon Fighting's).
+    const properties = [["fin", "finesse"], ["lgt", "light"], ["thr", "thrown"], ["two", "two-handed"]].filter(([key]) => (system.properties ?? []).includes(key)).map(([, name]) => name);
     if ( properties.length ) attack.properties = properties;
     if ( attackData.ability && ABILITY_MAP[attackData.ability] ) attack.ability = ABILITY_MAP[attackData.ability];
     const weapon = weaponOf(document);

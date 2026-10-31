@@ -7,7 +7,25 @@
   "system": {
     "active": true,
     "description": "<p><em>(Prerequisite: Fighting Style Feature)</em></p><p>When you roll damage for an attack you make with a Melee weapon that you are holding with two hands, you can treat any 1 or 2 on a damage die as a 3. The weapon must have the Two-Handed or Versatile property to gain this benefit.</p><section id=\"secret-jkbP75uR9eNGIRN0\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>This effect is not automated.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "great-weapon-fighting",
+        "type": "DamageDieMinimum",
+        "predicate": {
+          "tagsAll": [
+            "melee",
+            "two-handed"
+          ]
+        },
+        "data": {
+          "domains": [
+            "damage.weapon"
+          ],
+          "minimum": 3
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

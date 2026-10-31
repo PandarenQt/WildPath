@@ -30,7 +30,10 @@
           "category": "simple",
           "base": "quarterstaff",
           "mastery": "topple"
-        }
+        },
+        "properties": [
+          "two-handed"
+        ]
       },
       "range": {
         "type": "reach",

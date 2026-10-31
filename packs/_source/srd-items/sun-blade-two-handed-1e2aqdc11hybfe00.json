@@ -27,7 +27,8 @@
         "defenseKey": "ac",
         "proficient": true,
         "properties": [
-          "finesse"
+          "finesse",
+          "two-handed"
         ],
         "weapon": {
           "category": "martial",

@@ -101,6 +101,9 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
+            "properties": [
+              "two-handed"
+            ],
             "weapon": {
               "category": "martial",
               "base": "greatsword",
@@ -180,6 +183,9 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
+            "properties": [
+              "two-handed"
+            ],
             "weapon": {
               "category": "martial",
               "base": "heavy-crossbow",

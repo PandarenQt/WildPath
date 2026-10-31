@@ -27,7 +27,8 @@
         "defenseKey": "ac",
         "proficient": true,
         "properties": [
-          "thrown"
+          "thrown",
+          "two-handed"
         ],
         "weapon": {
           "category": "martial",

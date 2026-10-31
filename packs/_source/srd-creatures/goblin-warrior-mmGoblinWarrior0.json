@@ -267,6 +267,9 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
+            "properties": [
+              "two-handed"
+            ],
             "weapon": {
               "category": "simple",
               "base": "shortbow",
@@ -351,6 +354,9 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
+            "properties": [
+              "two-handed"
+            ],
             "weapon": {
               "category": "simple",
               "base": "shortbow",

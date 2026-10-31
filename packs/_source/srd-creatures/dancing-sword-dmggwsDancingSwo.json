@@ -88,6 +88,9 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
+            "properties": [
+              "two-handed"
+            ],
             "weapon": {
               "category": "martial",
               "base": "greatsword",
@@ -294,7 +297,10 @@
               "category": "martial",
               "base": "longsword",
               "mastery": "sap"
-            }
+            },
+            "properties": [
+              "two-handed"
+            ]
           },
           "range": {
             "type": "reach",

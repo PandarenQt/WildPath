@@ -87,6 +87,9 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
+            "properties": [
+              "two-handed"
+            ],
             "weapon": {
               "category": "simple",
               "base": "greatclub",

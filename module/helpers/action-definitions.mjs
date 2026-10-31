@@ -603,12 +603,21 @@ function resolverRequestFromDamageDefinition(definition, runtimeDamage, evaluati
     ? {...component, expression: clonePlain(runtimeDamage.baseExpression)} : component)) : definition.damage;
   // A spell's damage says so (Spell Resistance: Resistance to damage from spells).
   const spell = (definition.tags ?? []).includes("spell");
-  const components = [...own, ...extras].map((component, index) => damageComponentForResolver({
+  // Its dice's floor (Great Weapon Fighting: a 1 or 2 counts as 3), rolled as their `min` modifier: the highest that
+  // applies to its damage type.
+  const floors = normalizeArray(runtimeDamage?.dieMinimums);
+  const floored = component => {
+    const minimum = Math.max(0, ...floors.filter(entry => !entry.damageTypes?.length || entry.damageTypes.includes(component.damageType))
+      .map(entry => Number(entry.minimum) || 0));
+    return (component.dice && (minimum >= 2) && (minimum <= Number(component.dice.faces)))
+      ? {...component, dice: {...component.dice, modifiers: [...new Set([...(component.dice.modifiers ?? []), `min${minimum}`])]}} : component;
+  };
+  const components = [...own, ...extras].map((component, index) => floored(damageComponentForResolver({
     component: spell ? {...component, tags: [...new Set([...(component.tags ?? []), "spell"])]} : component,
     index,
     runtimeComponents,
     evaluationContext
-  }));
+  })));
   return mergeResolverRequest({
     components,
     saveOutcomePolicy: firstDefined(definition.damage.map(component => component.outcomePolicy?.saveOutcomePolicy ?? component.saveOutcomePolicy)),

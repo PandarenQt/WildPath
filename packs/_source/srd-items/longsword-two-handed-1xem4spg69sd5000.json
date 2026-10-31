@@ -27,7 +27,10 @@
           "category": "martial",
           "base": "longsword",
           "mastery": "sap"
-        }
+        },
+        "properties": [
+          "two-handed"
+        ]
       },
       "range": {
         "type": "reach",

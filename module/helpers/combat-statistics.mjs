@@ -258,14 +258,19 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
     return markedOn(entry.actor).filter(unused).map(marked => component(marked, `:${index}`, {targetRefs: entry.refs ?? []}));
   });
   const extraComponents = [...extra.map(entry => component(entry)), ...perTarget];
+  // The least its damage dice count as (Great Weapon Fighting's 3 on a two-handed melee weapon), by damage type.
+  const dieMinimums = (components.length && (typeof actor?.getDamageDieMinimums === "function"))
+    ? actor.getDamageDieMinimums(damageDomains(attackDefinition, tags), {item, tags: extraTags, context})
+      .map(entry => ({minimum: entry.minimum, damageTypes: entry.damageTypes ?? []})) : [];
   // Healing bonuses (`healing.spell`, `healing`), added once to its first component; their values see `context`
   // (`castLevel`: Disciple of Life).
   const healing = (definition?.healing ?? []).length ? (resolveActorStatisticModifier(actor,
     [tags.includes("spell") ? "healing.spell" : null, "healing"].filter(Boolean), {item, tags, context}).value ?? 0) : 0;
   return {
     defenseKey: attackDefinition ? (attackDefinition.defenseKey ?? "ac") : null,
-    damage: (components.length && (weapon || bonus || extraComponents.length || replaced))
-      ? {modifierTotal, ...(extraComponents.length ? {extraComponents} : {}), ...(replaced ? {baseExpression: replaced} : {})} : null,
+    damage: (components.length && (weapon || bonus || extraComponents.length || replaced || dieMinimums.length))
+      ? {modifierTotal, ...(extraComponents.length ? {extraComponents} : {}), ...(replaced ? {baseExpression: replaced} : {}),
+        ...(dieMinimums.length ? {dieMinimums} : {})} : null,
     ...(healing ? {healing: {modifierTotal: healing}} : {}),
     attack: statistic ? {
       statistic,
