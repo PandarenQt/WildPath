@@ -675,9 +675,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "dispel: an object is not a target (by hand)"
-            ]
+            "notes": []
           }
         }
       }
@@ -1188,8 +1186,7 @@
       },
       "conversion": {
         "notes": [
-          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: dispel: an object is not a target (by hand)"
+          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)"
         ]
       }
     }

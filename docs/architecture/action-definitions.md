@@ -457,8 +457,11 @@ picks one. The intent carries `dispelArea: {regionId}`.
   or lower. Above it, the same check decides.
 - A lasting area records `castLevel` when it is placed: the slot it was cast with, else its light's level (Daylight,
   Darkness), else the definition's `metadata.spellLevel`. An area with none is not a spell, and can't be chosen.
-- Shortcut: an object is not a target yet (the converter notes it). The owner decided on 2026-10-30 that dispelling
-  an object asks for a check; the exact rule is to be confirmed.
+- **An object (2026-10-31, rules as written: the owner's decision).** The same list offers the spells on objects within
+  range: an enchanted Item's effect held by a creature whose Token is that near (`enchantedObjectsWithin`). The intent
+  carries `dispelObject: {effectUuid}`; the authority finds it again in range, and it ends as a creature's spell does,
+  by its level or the caster's check. An enchantment records `spellLevel` when a spell makes it (the slot it was cast
+  with, else the spell's own); one that is no spell (an infusion) can't be chosen.
 
 Live (two browsers, 2026-10-19): QA Caster cursed the Bandit Captain (Curse Attacks, tagged `curse`) and then cast Remove
 Curse on it: the curse ended. It blessed QA Fighter and then cast Dispel Magic on it: Blessed ended.

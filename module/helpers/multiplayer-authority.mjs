@@ -209,6 +209,10 @@ export function sanitizeActionIntentPayload(payload={}) {
   if ( (typeof intent.dispelArea?.regionId === "string") && intent.dispelArea.regionId ) {
     projected.dispelArea = {regionId: intent.dispelArea.regionId.slice(0, 64)};
   }
+  // ... or the spell on an object (an enchanted Item's effect): its uuid, checked again too.
+  if ( (typeof intent.dispelObject?.effectUuid === "string") && intent.dispelObject.effectUuid ) {
+    projected.dispelObject = {effectUuid: intent.dispelObject.effectUuid.slice(0, 256)};
+  }
   // Where a summon's creatures appear: one canvas point each, which the authority checks again.
   if ( Array.isArray(intent.summon?.points) ) projected.summon = {points: intent.summon.points.slice(0, 20)
     .map(point => ({x: Number(point?.x), y: Number(point?.y)}))

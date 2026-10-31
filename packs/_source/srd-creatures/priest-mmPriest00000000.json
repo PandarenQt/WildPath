@@ -781,9 +781,7 @@
             "castBy": "Divine Aid"
           },
           "conversion": {
-            "notes": [
-              "dispel: an object is not a target (by hand)"
-            ]
+            "notes": []
           }
         }
       }
@@ -1105,9 +1103,7 @@
         "challenge": 2
       },
       "conversion": {
-        "notes": [
-          "Divine Aid: dispel: an object is not a target (by hand)"
-        ]
+        "notes": []
       }
     }
   }

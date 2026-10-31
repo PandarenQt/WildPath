@@ -836,9 +836,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "dispel: an object is not a target (by hand)"
-            ]
+            "notes": []
           }
         }
       }
@@ -1524,7 +1522,6 @@
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
-          "Spellcasting: dispel: an object is not a target (by hand)",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",

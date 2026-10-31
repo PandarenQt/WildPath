@@ -1425,8 +1425,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       definition = {...definition, ends: structuredClone(ending),
         targeting: ending.areas ? {type: "single", required: false, count: 1} : (definition.targeting ?? {type: "single", required: true, count: 1}),
         ...(range ? {range} : {})};
-      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")),
-        ...(ending.spells ? ["dispel: an object is not a target (by hand)"] : []));
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
     // Flurry of Blows: its Bonus Action and Focus Point fill the strikes Martial Arts' Flurry strike spends.
     const flurry = (identifierOf(document) === "monks-focus") && (activity.name === "Flurry of Blows");

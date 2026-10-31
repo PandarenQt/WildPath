@@ -3,6 +3,7 @@ import {actionDefinitionFromAction} from "../helpers/action-definitions.mjs";
 import {placeFoundryArea, placeFoundrySummons, placeFoundryTeleport} from "../applications/area-placement.mjs";
 import {areaClickCount} from "../adapters/foundry-v14-area-placement.mjs";
 import {ownArea, spellAreasWithin} from "../adapters/foundry-v14-persistent-areas.mjs";
+import {enchantedObjectsWithin} from "../adapters/foundry-v14-enchantments.mjs";
 import {promptActionConfiguration} from "../adapters/foundry-v14-prompt-adapter.mjs";
 import {foundryActorSystemSnapshot} from "../adapters/foundry-v14-actor-system-adapter.mjs";
 import {isUnprepared} from "../helpers/spellcasting.mjs";
@@ -26,22 +27,28 @@ async function chooseTestSkill(actor, skills, name) {
 }
 
 /**
- * Dispel Magic with no creature targeted: the lasting spell area its user picks among those within `feet` of its Token
- * (2024: "a magical effect"), as `{sceneId, regionId}`; null when there is none or it is cancelled.
+ * Dispel Magic with no creature targeted: the magical effect its user picks among those within `feet` of its Token
+ * (2024: "one creature, object, or magical effect"): a lasting spell area, or a spell on an object (an enchanted Item).
+ * Returns the intent's `{dispelArea: {regionId}}` or `{dispelObject: {effectUuid}}`; null when there is none or it is
+ * cancelled.
  */
-async function chooseDispelArea(sourceToken, feet, name) {
-  const areas = sourceToken ? spellAreasWithin(sourceToken, feet) : [];
-  if ( !areas.length ) {
+async function chooseDispelTarget(sourceToken, feet, name) {
+  const escape = foundry.utils.escapeHTML;
+  const choices = sourceToken ? [
+    ...spellAreasWithin(sourceToken, feet).map(({region, flag}) => ({value: `area:${region.id}`, intent: {dispelArea: {regionId: region.id}},
+      label: game.i18n.format("WILDPATH.DISPEL.Option", {label: flag.label, level: flag.castLevel})})),
+    ...enchantedObjectsWithin(sourceToken, feet).map(({token, item, effect}) => ({value: `object:${effect.uuid}`,
+      intent: {dispelObject: {effectUuid: effect.uuid}}, label: game.i18n.format("WILDPATH.DISPEL.ObjectOption",
+        {label: effect.name ?? "", item: item.name ?? "", holder: token.name ?? "", level: effect.flags.wildpath.enchantment.spellLevel})}))] : [];
+  if ( !choices.length ) {
     ui.notifications.warn(game.i18n.localize("WILDPATH.DISPEL.NoArea"));
     return null;
   }
-  const options = areas.map(({region, flag}) => `<option value="${region.id}">${foundry.utils.escapeHTML(game.i18n.format("WILDPATH.DISPEL.Option",
-    {label: flag.label, level: flag.castLevel}))}</option>`).join("");
+  const options = choices.map(choice => `<option value="${escape(choice.value)}">${escape(choice.label)}</option>`).join("");
   const answer = await foundry.applications.api.DialogV2.input({classes: ["wildpath", "themed", "theme-light"],
-    window: {title: game.i18n.format("WILDPATH.DISPEL.Choose", {name})}, content: `<select name="regionId">${options}</select>`,
+    window: {title: game.i18n.format("WILDPATH.DISPEL.Choose", {name})}, content: `<select name="target">${options}</select>`,
     ok: {label: game.i18n.localize("WILDPATH.PROMPT.Confirm")}, rejectClose: false});
-  const chosen = areas.find(({region}) => region.id === answer?.regionId);
-  return chosen ? {sceneId: sourceToken.parent.id, regionId: chosen.region.id} : null;
+  return choices.find(choice => choice.value === answer?.target)?.intent ?? null;
 }
 
 /** Item types whose changes rebuild their creature's class records (G8). */
@@ -252,13 +259,13 @@ export default class WildPathItem extends Item {
       built.intent.area = area;
       built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};
     }
-    // Dispel Magic with no creature targeted ends a lasting spell area instead, chosen from those within its range.
+    // Dispel Magic with no creature targeted ends a lasting spell area or a spell on an object instead, chosen in range.
     if ( definition.ok && definition.definition?.ends?.areas && !(globalThis.game?.user?.targets?.size) ) {
       const sourceToken = this.actor.token ?? this.actor.getActiveTokens?.(false, true)?.[0] ?? null;
       const range = definition.definition.range;
-      const chosen = await chooseDispelArea(sourceToken, Number(range?.normal?.value ?? range?.distance?.value) || 0, this.name);
+      const chosen = await chooseDispelTarget(sourceToken, Number(range?.normal?.value ?? range?.distance?.value) || 0, this.name);
       if ( !chosen ) return false;
-      built.intent.dispelArea = chosen;
+      Object.assign(built.intent, chosen);
       built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};
     }
     // A teleport lands where its creature's player clicks (Misty Step).

@@ -445,10 +445,11 @@
       "NoToken": "Place your Token on this scene to teleport."
     },
     "DISPEL": {
-      "Choose": "{name}: which lasting area?",
+      "Choose": "{name}: which magical effect?",
       "Option": "{label} (level {level})",
+      "ObjectOption": "{label} on {holder}'s {item} (level {level})",
       "NoTarget": "Target a creature, or choose a lasting spell area within range.",
-      "NoArea": "No lasting spell area is within range. Target a creature instead.",
+      "NoArea": "No lasting spell area or enchanted object is within range. Target a creature instead.",
       "OutOfRange": "That area is out of range.",
       "OneTarget": "Choose one target: a creature or an area."
     },

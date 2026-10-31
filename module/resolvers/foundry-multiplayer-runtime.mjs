@@ -3,6 +3,7 @@ import {movementMessage, refusalMessage} from "../helpers/refusal-messages.mjs";
 export {refusalMessage};
 import {createFoundryEnchantments} from "../adapters/foundry-v14-enchantments.mjs";
 import {consumePortents, controllerAuthority, portentOffer} from "../adapters/foundry-v14-portent.mjs";
+import {enchantedObjectsWithin} from "../adapters/foundry-v14-enchantments.mjs";
 import {WILDPATH} from "../config.mjs";
 import {createFoundryDigitalRollProvider} from "../adapters/foundry-digital-roll-provider.mjs";
 import {createFoundryV14DocumentPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
@@ -785,11 +786,15 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // It takes one target, a creature or an area.
   const dispelling = definition?.ends?.areas === true;
   const declaredAny = normalizeArray(intent.targetRefs ?? intent.targets).length > 0;
-  const dispelArea = (dispelling && intent.dispelArea && sourceToken) ? (spellAreasWithin(sourceToken,
-    Number(definition.range?.normal?.value ?? definition.range?.distance?.value) || 0).find(({region}) => region.id === String(intent.dispelArea.regionId ?? "")) ?? null) : null;
-  if ( dispelling && intent.dispelArea && !dispelArea ) return refused("WILDPATH.DISPEL.OutOfRange");
-  if ( dispelArea && declaredAny ) return refused("WILDPATH.DISPEL.OneTarget");
-  if ( dispelling && !dispelArea && !declaredAny ) return refused("WILDPATH.DISPEL.NoTarget");
+  const dispelRange = Number(definition?.range?.normal?.value ?? definition?.range?.distance?.value) || 0;
+  const dispelArea = (dispelling && intent.dispelArea && sourceToken) ? (spellAreasWithin(sourceToken, dispelRange)
+    .find(({region}) => region.id === String(intent.dispelArea.regionId ?? "")) ?? null) : null;
+  // ... or a spell on an object (2024 RAW: an enchanted Item, held within range).
+  const dispelObject = (dispelling && intent.dispelObject && sourceToken) ? (enchantedObjectsWithin(sourceToken, dispelRange)
+    .find(({effect}) => effect.uuid === String(intent.dispelObject.effectUuid ?? "")) ?? null) : null;
+  if ( dispelling && ((intent.dispelArea && !dispelArea) || (intent.dispelObject && !dispelObject)) ) return refused("WILDPATH.DISPEL.OutOfRange");
+  if ( [dispelArea, dispelObject, declaredAny || null].filter(Boolean).length > 1 ) return refused("WILDPATH.DISPEL.OneTarget");
+  if ( dispelling && !dispelArea && !dispelObject && !declaredAny ) return refused("WILDPATH.DISPEL.NoTarget");
   // A Wild Shape form beyond its druid's level is refused before anything is paid.
   if ( definition?.transform?.limits ) {
     const formRef = chosenFormRef(definition.transform, intent.configuration?.choices);
@@ -1054,6 +1059,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       ...(areaMove ? {areaMove: areaMove.move} : {}),
       ...(landing?.ok ? {teleport: {sceneId: sourceToken.parent.id, tokenId: sourceToken.id, ...landing.position}} : {}),
       ...(dispelArea ? {dispelArea: {sceneId: sourceToken.parent.id, regionId: dispelArea.region.id}} : {}),
+      ...(dispelObject ? {dispelObject: {effectUuid: dispelObject.effect.uuid}} : {}),
       // A new concentration ends the caster's earlier one once it completes: what it sustains now, by uuid.
       ...(startsConcentration(definition) ? {endsConcentration: sustainedEffects(actor, game).map(({effect}) => effect.uuid)} : {}),
       ...(controller.actor ? {controller: {actorRef: controller.actor.uuid, actorSystem: controllerSystem}} : {}),
@@ -1160,6 +1166,18 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
     if ( within || await check(entry) ) {
       await region.delete();
       ended[region.uuid] = [region.id];
+    }
+  }
+  // A spell on an object (an enchanted Item, 2024 RAW): the same, by the level it was cast at.
+  const enchantment = options?.dispelObject ? await fromUuid?.(String(options.dispelObject.effectUuid)) : null;
+  const objectLevel = Number(enchantment?.flags?.wildpath?.enchantment?.spellLevel);
+  if ( enchantment && Number.isFinite(objectLevel) ) {
+    const entry = {effect: {name: `${enchantment.name ?? ""} (${enchantment.parent?.name ?? ""})`}, level: objectLevel};
+    const within = Number.isFinite(limit) && (objectLevel <= limit);
+    if ( !within ) beyond.push(entry);
+    if ( within || await check(entry) ) {
+      await enchantment.delete();
+      ended[enchantment.uuid] = [enchantment.id];
     }
   }
   const line = entry => game?.i18n?.format?.(entry.ended ? "WILDPATH.NOTIFY.DispelEnded" : "WILDPATH.NOTIFY.DispelStayed",

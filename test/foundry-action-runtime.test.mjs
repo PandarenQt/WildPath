@@ -2200,6 +2200,22 @@ test("Dispel Magic takes a creature or a lasting spell area within its range, ne
     return foundryActionIntentToStagedOptions({intent: {...fixture.intent, ...changes}, senderUserId: "player-a", game: fixture.game});
   };
   const none = {targetRefs: [], targets: []};
+  // A spell on an object (2024 RAW): Magic Weapon on the target's sword, 5 ft away; an enchantment of no spell level beside it.
+  const enchanted = async (range, effectUuid, extra={}) => {
+    const fixture = syntheticRuntimeFixture(t, dispel(range));
+    fixture.scene.regions = [];
+    fixture.targetActor.items = [{id: "sword", name: "Longsword", effects: [
+      {uuid: "Actor.target.Item.sword.ActiveEffect.magic", name: "Magic Weapon", flags: {wildpath: {enchantment: {key: "magic-weapon", spellLevel: 2}}}},
+      {uuid: "Actor.target.Item.sword.ActiveEffect.infused", name: "Enhanced Weapon", flags: {wildpath: {enchantment: {key: "infusion"}}}}]}];
+    return foundryActionIntentToStagedOptions({intent: {...fixture.intent, ...none, dispelObject: {effectUuid}, ...extra},
+      senderUserId: "player-a", game: fixture.game});
+  };
+  const sword = await enchanted(120, "Actor.target.Item.sword.ActiveEffect.magic");
+  assert.equal(sword.ok, true, JSON.stringify(sword.reason));
+  assert.deepEqual(sword.options.dispelObject, {effectUuid: "Actor.target.Item.sword.ActiveEffect.magic"});
+  assert.match((await enchanted(0, "Actor.target.Item.sword.ActiveEffect.magic")).reason, /DISPEL.OutOfRange|out of range/);
+  assert.match((await enchanted(120, "Actor.target.Item.sword.ActiveEffect.infused")).reason, /DISPEL.OutOfRange|out of range/,
+    "an enchantment that is no spell");
   const chosen = await use(120, {...none, dispelArea: {regionId: "web"}});
   assert.equal(chosen.ok, true, JSON.stringify(chosen.reason));
   assert.deepEqual(chosen.options.dispelArea, {sceneId: "scene-models", regionId: "web"});
@@ -2214,6 +2230,8 @@ test("Dispel Magic takes a creature or a lasting spell area within its range, ne
   // Found live: the transport only passes intent fields it knows; the Region id crosses it, and nothing else of it.
   assert.deepEqual(sanitizeActionIntentPayload({intent: {dispelArea: {regionId: "web", sceneId: "elsewhere"}}}).dispelArea, {regionId: "web"});
   assert.equal(sanitizeActionIntentPayload({intent: {dispelArea: {regionId: 7}}}).dispelArea, undefined);
+  assert.deepEqual(sanitizeActionIntentPayload({intent: {dispelObject: {effectUuid: "Actor.a.Item.b.ActiveEffect.c", item: "x"}}}).dispelObject,
+    {effectUuid: "Actor.a.Item.b.ActiveEffect.c"});
 });
 
 test("a weapon attack adds the attacker's Might to the attack and its damage; a spell attack's damage adds nothing", async t => {

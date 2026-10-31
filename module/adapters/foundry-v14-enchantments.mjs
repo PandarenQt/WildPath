@@ -7,6 +7,8 @@
  * oldest ends, wherever its Item now is.
  */
 import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
+import { footprintDistance } from "../helpers/grid-footprints.mjs";
+import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
 /** The effect whose level range holds `level` (the first with none when nothing matches). */
 export function enchantEffectFor(effects, level) {
     const inRange = (effect) => !effect.level || (((effect.level.min ?? 0) <= level) && (level <= (effect.level.max ?? Infinity)));
@@ -30,6 +32,29 @@ function enchantmentsOf(game, key, creatorRef) {
     return holders.flatMap(({ actor, skip }) => [...(actor.items ?? [])].filter((item) => !skip?.has?.(item.id)).flatMap((item) => [...(item.effects ?? [])]
         .filter((effect) => (effect.flags?.wildpath?.enchantment?.key === key) && (effect.flags.wildpath.enchantment.creatorRef === creatorRef))
         .map((effect) => ({ effect, item, at: Number(effect.flags.wildpath.enchantment.at) || 0 }))));
+}
+/**
+ * The spells on objects within `feet` of a Token's space (an Item enchanted by a spell, its level known: Magic Weapon),
+ * held by creatures whose Tokens are that near: what Dispel Magic can choose as its object (2024 RAW). Measured as targets
+ * are, between the nearest spaces.
+ */
+export function enchantedObjectsWithin(token, feet) {
+    const scene = token?.parent;
+    if (!scene)
+        return [];
+    const adapter = createFoundryV14TacticalGridAdapter({ scene });
+    const from = adapter.tokenToFootprint(token);
+    if (!from.ok || !from.footprint)
+        return [];
+    const grid = Number(scene.grid?.distance) || 5;
+    return [...(scene.tokens ?? [])].flatMap((holder) => {
+        const to = holder.actor ? adapter.tokenToFootprint(holder) : null;
+        if (!to?.ok || !to.footprint || ((footprintDistance(from.footprint, to.footprint) * grid) > feet))
+            return [];
+        return [...(holder.actor.items ?? [])].flatMap((item) => [...(item.effects ?? [])]
+            .filter((effect) => Number.isFinite(Number(effect.flags?.wildpath?.enchantment?.spellLevel ?? NaN)))
+            .map((effect) => ({ token: holder, item, effect })));
+    });
 }
 export function createFoundryEnchantments({ game, logger = console }) {
     /** After an Action that enchants, on the active GM: the chosen Item gets its effect. */
@@ -71,9 +96,12 @@ export function createFoundryEnchantments({ game, logger = console }) {
                 }
             }
         }
+        // A spell's keeps its level, so Dispel Magic can end it (the slot it was cast with, else the spell's own).
+        const tags = (state?.actionDefinition?.tags ?? []);
+        const spellLevel = tags.includes("spell") ? Number(state?.configuration?.castingLevel ?? state?.actionDefinition?.metadata?.spellLevel) : NaN;
         const [created] = await item.createEmbeddedDocuments("ActiveEffect", [{ name: effect.name, ...(effect.img ? { img: effect.img } : {}),
                 type: "effect", transfer: true, origin: state?.action?.uuid ?? null, system: { ruleElements: effect.ruleElements },
-                flags: { wildpath: { enchantment: { key, creatorRef: actor.uuid, at: Date.now() } } } }]);
+                flags: { wildpath: { enchantment: { key, creatorRef: actor.uuid, at: Date.now(), ...(Number.isFinite(spellLevel) ? { spellLevel } : {}) } } } }]);
         return created ?? null;
     }
     return { afterResolution };

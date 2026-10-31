@@ -136,9 +136,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "dispel: an object is not a target (by hand)"
-        ]
+        "notes": []
       }
     }
   }

@@ -51,3 +51,20 @@ test("an enchantment of several options applies the one chosen (Shield, +1, +2, 
   await createFoundryEnchantments({game}).afterResolution({options: {actor}, state});
   assert.deepEqual(created.map(effect => [effect.name, effect.system.ruleElements[0].data.value]), [["Shield +2", 2]]);
 });
+
+test("a spell's enchantment keeps the level it was cast at, so Dispel Magic can end it; one that is no spell keeps none", async () => {
+  const {createFoundryEnchantments} = await import("../module/adapters/foundry-v14-enchantments.mjs");
+  const enchant = async (tags, configuration) => {
+    const created = [];
+    const sword = {id: "sword", effects: [], createEmbeddedDocuments: async (type, data) => { created.push(...data); return data; }};
+    const actor = {uuid: "Actor.a", system: {details: {level: 5}}, items: {get: id => (id === "sword" ? sword : null)}};
+    const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, actors: [], scenes: []};
+    const state = {actionDefinition: {id: "action:magic-weapon", tags, metadata: {spellLevel: 2}, enchant: {choiceId: "item", key: "magic-weapon",
+      effects: [{name: "Magic Weapon", ruleElements: []}]}}, configuration: {choices: [{id: "item", value: "sword"}], ...configuration}};
+    await createFoundryEnchantments({game}).afterResolution({options: {actor}, state});
+    return created[0].flags.wildpath.enchantment.spellLevel;
+  };
+  assert.equal(await enchant(["spell"], {castingLevel: 4}), 4, "the slot it was cast with");
+  assert.equal(await enchant(["spell"], {}), 2, "else the spell's own level");
+  assert.equal(await enchant([], {}), undefined, "an infusion is no spell");
+});

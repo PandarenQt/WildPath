@@ -97,9 +97,7 @@
         "castBy": "Staff of the Magi"
       },
       "conversion": {
-        "notes": [
-          "dispel: an object is not a target (by hand)"
-        ]
+        "notes": []
       },
       "price": 200000,
       "rarity": "legendary"

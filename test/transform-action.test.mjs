@@ -116,6 +116,23 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   assert.equal(regions.has("wall"), true, "Wall of Fire at level 4 stays on a 13");
   await dispelling("wall", 14);
   assert.equal(regions.has("wall"), false, "and ends on a 14");
+
+  // A spell on an object (2024 RAW): Magic Weapon (level 2) ends at once; one cast at level 4 on the check.
+  const enchantments = new Map();
+  const enchant = (id, spellLevel) => enchantments.set(`Actor.a.Item.sword.ActiveEffect.${id}`, {id, uuid: `Actor.a.Item.sword.ActiveEffect.${id}`,
+    name: "Magic Weapon", parent: {name: "Longsword"}, flags: {wildpath: {enchantment: {spellLevel}}},
+    async delete() { enchantments.delete(this.uuid); }});
+  const objectFromUuid = async uuid => enchantments.get(uuid) ?? ({parent: scene});
+  const object = (id, total) => endEffectsOnTargets({options: {actor: caster(total), dispelObject: {effectUuid: `Actor.a.Item.sword.ActiveEffect.${id}`}},
+    state: {...state({spells: "slot", areas: true}), targets: []}}, {fromUuid: objectFromUuid, game: {}});
+  enchant("low", 2);
+  await object("low", 1);
+  assert.equal(enchantments.size, 0, "Magic Weapon at level 2: ended, no check");
+  enchant("high", 4);
+  await object("high", 13);
+  assert.equal(enchantments.size, 1, "level 4 stays on a 13");
+  await object("high", 14);
+  assert.equal(enchantments.size, 0, "and ends on a 14");
   delete globalThis.ChatMessage;
 });
 
