@@ -825,7 +825,9 @@ export default class WildPathActor extends Actor {
     // Its Token speaks, so a Diviner who sees it may replace the d20 (adapters/foundry-v14-portent).
     await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this, token: this.token ?? this.getActiveTokens?.()[0]?.document}),
       flavor: `${label} (${formula}${note})`,
-      flags: {wildpath: {rollTest: {actorUuid: this.uuid, ability, skill, save, rerolled}}}});
+      // Its floor (Indomitable Might), for a later Portent on this card.
+      flags: {wildpath: {rollTest: {actorUuid: this.uuid, ability, skill, save, rerolled,
+        ...((Number(statistic?.totalMinimum) > 1) ? {totalMinimum: Number(statistic.totalMinimum)} : {})}}}});
     // A check uses up the help it had (Assist's Advantage).
     if ( !save ) await game.wildpath?.endEffectsWhenChecked?.(this, {ability: used, skill});
     return total;

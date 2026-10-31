@@ -113,11 +113,15 @@ export async function rollPortentDice(actor: Data, game: Data) {
   await actor.update({"flags.wildpath.portent": slots, "flags.wildpath.portentTurn": null});
 }
 
-/** A card's d20 with a foretelling roll in its place: the new total (its kept d20 out, `value` in). */
-export function replacedTotal(roll: Data | null | undefined, value: number): number | null {
+/**
+ * A card's d20 with a foretelling roll in its place: the new total (its kept d20 out, `value` in), at least the roll's
+ * floor (`totalMinimum`: a sheet roll's Indomitable Might, on its card's rollTest flags).
+ */
+export function replacedTotal(roll: Data | null | undefined, value: number, totalMinimum: number | null = null): number | null {
   const die = (roll?.dice ?? []).find((term: Data) => Number(term.faces) === 20);
   if ( !die || !Number.isFinite(Number(roll?.total)) ) return null;
-  return Number(roll!.total) - Number(die.total) + value;
+  const total = Number(roll!.total) - Number(die.total) + value;
+  return (Number(totalMinimum) > total) ? Number(totalMinimum) : total;
 }
 
 /**
@@ -135,7 +139,7 @@ async function applyToCard({messageId, holderUuid, slot}: Data, user: Data, game
   // As the button allows: an unrerolled roll-test card or an initiative card, rolled just now.
   const offered = message && ((flags.wildpath?.rollTest && !flags.wildpath.rollTest.rerolled) || flags.core?.initiativeRoll) && isRecentRoll(message);
   if ( !offered || !holder || !die || !holder.testUserPermission?.(user, "OWNER") || flags.wildpath?.portentUsed ) return {ok: false};
-  const total = replacedTotal(message.rolls?.[0], die.value);
+  const total = replacedTotal(message.rolls?.[0], die.value, Number(flags.wildpath?.rollTest?.totalMinimum) || null);
   if ( total === null ) return {ok: false};
   // The card is claimed before the die is spent: a second query for it finds it used.
   await message.update({"flags.wildpath.portentUsed": true, ...(message.flags?.wildpath?.rollTest ? {"flags.wildpath.rollTest.rerolled": true} : {})});

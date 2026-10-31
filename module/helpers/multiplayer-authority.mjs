@@ -383,7 +383,9 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
         type: entry.type ?? null, visibility: previous.visibility, rollerKind: previous.rollerKind,
         label: previous.label ?? null,
         formula: String(previous.formula ?? "").replace(/^\s*\d*d20(?:min\d+)?(?:k[hl]\d*)?/i, String(entry.roll.natural ?? "")) || null,
-        rollResult: {total: entry.roll.total, natural: entry.roll.natural ?? null}}];
+        // Its floor too (Indomitable Might), so the card shows the total it counted at.
+        rollResult: {total: entry.roll.total, natural: entry.roll.natural ?? null,
+          ...((Number(entry.roll.totalMinimum) > 1) ? {totalMinimum: Number(entry.roll.totalMinimum)} : {})}}];
       return [...rolls, {
         requestId,
         type: entry.type ?? entry.semanticType ?? null,

@@ -7,11 +7,18 @@ import {rollFormulaForRequest} from "./rolls.mjs";
 
 type Data = Record<string, unknown>;
 interface Named {name?: string; tokenId?: string; actorRef?: string; uuid?: string; id?: string; actorId?: string; target?: Named}
-interface Roll {total?: number; natural?: number; die?: number}
+interface Roll {total?: number; natural?: number; die?: number; totalMinimum?: number}
 interface RollEntry {type?: string; semanticType?: string; rollRequest?: Data & {rollMode?: string; metadata?: Data};
   rollResult?: Roll & {provenance?: {method?: string}}; targetKey?: string}
 interface AttackResult {target?: Named; roll?: Roll; defense?: {value?: number}; outcome?: string; ok?: boolean}
-interface SaveResult {target?: Named; roll?: Roll | null; dc?: {value?: number}; outcome?: string; automatic?: boolean}
+interface SaveResult {target?: Named; roll?: Roll | null; total?: number; dc?: {value?: number}; outcome?: string; automatic?: boolean}
+
+/** A roll's total as it counted: at least its floor (`totalMinimum`, Indomitable Might). */
+function countedTotal(roll: Roll | undefined): number | null {
+  const total = roll?.total;
+  if ( (total === undefined) || !Number.isFinite(total) ) return null;
+  return (Number(roll?.totalMinimum) > total) ? Number(roll!.totalMinimum) : total;
+}
 interface Plan {type?: string; target?: Named; payerRef?: string; conditionId?: string; action?: string; definition?: {name?: string};
   plan?: {from?: number; to?: number; amount?: number; target?: Named; payments?: Array<{resourceId?: string; from?: number; to?: number}>}}
 interface State {
@@ -46,14 +53,16 @@ export function inspectResolution(record: ResolutionRecord) {
       formula: entry.rollRequest ? formulaOf(entry.rollRequest).formula ?? null : null,
       mode: entry.rollRequest?.rollMode ?? "normal",
       natural: entry.rollResult?.natural ?? entry.rollResult?.die ?? null,
-      total: entry.rollResult?.total ?? null,
+      // As it counted: at least its floor (Indomitable Might).
+      total: countedTotal(entry.rollResult),
       method: entry.rollResult?.provenance?.method ?? null
     })),
     attacks: (state.results?.attackResolution?.results ?? []).filter(result => result.outcome).map(result => ({
       target: nameOf(result.target), total: result.roll?.total ?? null, defense: result.defense?.value ?? null, outcome: result.outcome
     })),
     saves: (state.results?.saveResolution?.results ?? []).filter(result => result.outcome).map(result => ({
-      target: nameOf(result.target), total: result.roll?.total ?? null, dc: result.dc?.value ?? null, outcome: result.outcome,
+      // The total it was judged at (its floor counted), else its roll's.
+      target: nameOf(result.target), total: result.total ?? result.roll?.total ?? null, dc: result.dc?.value ?? null, outcome: result.outcome,
       automatic: result.automatic === true
     })),
     changes: (state.mutationPlans ?? []).filter(plan => DURABILITY.has(String(plan.type))).map(plan => ({

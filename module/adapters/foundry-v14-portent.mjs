@@ -107,12 +107,16 @@ export async function rollPortentDice(actor, game) {
     const slots = Object.fromEntries(Array.from({ length: Math.max(count, 3) }, (_, index) => [String(index + 1), values[index] ?? 0]));
     await actor.update({ "flags.wildpath.portent": slots, "flags.wildpath.portentTurn": null });
 }
-/** A card's d20 with a foretelling roll in its place: the new total (its kept d20 out, `value` in). */
-export function replacedTotal(roll, value) {
+/**
+ * A card's d20 with a foretelling roll in its place: the new total (its kept d20 out, `value` in), at least the roll's
+ * floor (`totalMinimum`: a sheet roll's Indomitable Might, on its card's rollTest flags).
+ */
+export function replacedTotal(roll, value, totalMinimum = null) {
     const die = (roll?.dice ?? []).find((term) => Number(term.faces) === 20);
     if (!die || !Number.isFinite(Number(roll?.total)))
         return null;
-    return Number(roll.total) - Number(die.total) + value;
+    const total = Number(roll.total) - Number(die.total) + value;
+    return (Number(totalMinimum) > total) ? Number(totalMinimum) : total;
 }
 /**
  * The active GM replaces a card's d20 (a sheet roll's, an initiative roll's) with `holderUuid`'s die `slot`: a new card
@@ -130,7 +134,7 @@ async function applyToCard({ messageId, holderUuid, slot }, user, game, fromUuid
     const offered = message && ((flags.wildpath?.rollTest && !flags.wildpath.rollTest.rerolled) || flags.core?.initiativeRoll) && isRecentRoll(message);
     if (!offered || !holder || !die || !holder.testUserPermission?.(user, "OWNER") || flags.wildpath?.portentUsed)
         return { ok: false };
-    const total = replacedTotal(message.rolls?.[0], die.value);
+    const total = replacedTotal(message.rolls?.[0], die.value, Number(flags.wildpath?.rollTest?.totalMinimum) || null);
     if (total === null)
         return { ok: false };
     // The card is claimed before the die is spent: a second query for it finds it used.
