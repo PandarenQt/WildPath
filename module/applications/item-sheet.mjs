@@ -1,4 +1,5 @@
 import {scrollItemData} from "../helpers/spell-scrolls.mjs";
+import {realGapNotes} from "../helpers/conversion-notes.mjs";
 import {craftingPlan, spendGold} from "../helpers/crafting.mjs";
 import {CUSTOM_EFFECT_DURATION_UNITS, CUSTOM_EFFECT_EXPIRY_EVENTS, validateActionDefinition} from "../helpers/action-definitions.mjs";
 import {summarizeActionDefinition} from "../helpers/action-definition-summary.mjs";
@@ -393,6 +394,9 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     context.isAction = this.item.type === "action";
     context.isGear = this.item.type === "gear";
     context.isGM = game.user.isGM;
+    // What its conversion left to the GM (real gaps, not informational notes): a "partly by hand" marker, GM only.
+    const byHand = game.user.isGM ? realGapNotes(this.item.flags?.wildpath?.conversion?.notes) : [];
+    context.byHand = byHand.length ? byHand.join("\n") : null;
     // Gear, or an Action that stands for an item (an SRD Longbow: its price in its flags).
     context.isFacility = this.item.type === "facility";
     context.facilityKinds = {basic: "WILDPATH.BASTION.Basic", special: "WILDPATH.BASTION.Special"};

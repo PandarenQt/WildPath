@@ -6,6 +6,8 @@
     <input type="checkbox" name="system.active" {{checked system.active}}>
     {{#if isGear}}{{localize "WILDPATH.SHEET.Equipped"}}{{else}}{{localize "WILDPATH.ITEMSHEET.Active"}}{{/if}}
   </label>
+  {{#if byHand}}<span class="by-hand-marker" data-tooltip="{{byHand}}" data-tooltip-class="wildpath-by-hand"
+    aria-label="{{localize "WILDPATH.ITEMSHEET.ByHandHint"}}"><i class="fa-solid fa-hand" inert></i> {{localize "WILDPATH.ITEMSHEET.ByHand"}}</span>{{/if}}
 </header>
 {{#if progression}}
 <div class="progression-fields">

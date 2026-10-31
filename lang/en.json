@@ -595,6 +595,8 @@
     },
     "ITEMSHEET": {
       "GmOnly": "Only the GM changes what this does.",
+      "ByHand": "Partly by hand",
+      "ByHandHint": "Its conversion left parts to the GM. Hover for what.",
       "Identifier": "Identifier",
       "Levels": "Levels",
       "HitDie": "Hit Die",

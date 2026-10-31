@@ -653,6 +653,9 @@
 .wildpath.item .sheet-header .profile-img { width: 48px; height: 48px; flex: 0 0 48px; }
 .wildpath.item .sheet-header .item-name { flex: 1; font-size: 1.2rem; }
 .wildpath.item .sheet-header .active-toggle { flex: 0 0 auto; white-space: nowrap; }
+/* A GM's note that its conversion left parts by hand (conversion-notes.mjs). */
+.wildpath.item .sheet-header .by-hand-marker { flex: 0 0 auto; white-space: nowrap; font-size: var(--font-size-12); opacity: 0.8; cursor: help; }
+.tooltip.wildpath-by-hand { white-space: pre-line; max-width: 32rem; text-align: left; }
 .wildpath .builder fieldset { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin: 4px 0; }
 .wildpath .builder fieldset > ol, .wildpath .builder fieldset > p { flex-basis: 100%; }
 .wildpath .builder-rows { margin: 0; padding: 0; list-style: none; }

@@ -21,6 +21,10 @@ computer doing the bookkeeping, which is WildPath's job too. See [Baldur's Gate 
 the SRD packs plus the local book packages: Player's Handbook, Dungeon Master's Guide, Monster Manual and
 Tasha's. Each reason counts once per document. Rerun it after each gap closes to see the effect. An SRD creature is counted by its own notes, which hold each of its Items' (2026-10-24); before that they were skipped.
 
+The reasons and which of them are informational live in `module/helpers/conversion-notes.mjs` (2026-10-31). The
+item sheet uses the same split: a GM sees "Partly by hand" beside Active on an item with real-gap notes, and the
+notes on hover.
+
 Census on 2026-10-14, documents per reason (top rows; the four books are summed):
 
 | Reason | SRD | Books | Total |
