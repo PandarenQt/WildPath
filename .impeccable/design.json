@@ -1,0 +1,367 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-31T00:00:00Z",
+  "title": "Design System: Wild Path",
+  "extensions": {
+    "colorMeta": {
+      "verdigris": {
+        "role": "primary",
+        "displayName": "Verdigris",
+        "canonical": "#2f6f68",
+        "tonalRamp": [
+          "#000f0d",
+          "#002c28",
+          "#074a44",
+          "#296a63",
+          "#518d86",
+          "#7eb0a9",
+          "#b2d3ce",
+          "#e6f1f0"
+        ]
+      },
+      "verdigris-contrast": {
+        "role": "primary",
+        "displayName": "On Verdigris",
+        "canonical": "#ffffff"
+      },
+      "lantern-gold": {
+        "role": "secondary",
+        "displayName": "Lantern Gold",
+        "canonical": "#e0b44c",
+        "tonalRamp": [
+          "#170700",
+          "#391d00",
+          "#5c3700",
+          "#7e5500",
+          "#a17900",
+          "#c2a052",
+          "#dfc896",
+          "#f6eedc"
+        ]
+      },
+      "focus-brass": {
+        "role": "secondary",
+        "displayName": "Focus Brass",
+        "canonical": "#b5822a",
+        "tonalRamp": [
+          "#190600",
+          "#3c1b00",
+          "#5f3500",
+          "#825200",
+          "#a67621",
+          "#c79d5d",
+          "#e2c69c",
+          "#f7edde"
+        ]
+      },
+      "parchment": {
+        "role": "neutral",
+        "displayName": "Parchment",
+        "canonical": "#f3ead7",
+        "tonalRamp": [
+          "#0e0b05",
+          "#292318",
+          "#463f31",
+          "#645d4d",
+          "#877f6f",
+          "#aba496",
+          "#cfcac0",
+          "#f0eeeb"
+        ]
+      },
+      "parchment-light": {
+        "role": "neutral",
+        "displayName": "Parchment Light",
+        "canonical": "#faf5e9",
+        "tonalRamp": [
+          "#0d0b07",
+          "#27241d",
+          "#433f37",
+          "#615d53",
+          "#848076",
+          "#a8a49b",
+          "#cdcac4",
+          "#efeeec"
+        ]
+      },
+      "vellum": {
+        "role": "neutral",
+        "displayName": "Vellum",
+        "canonical": "#fffdf6",
+        "tonalRamp": [
+          "#0c0b09",
+          "#252420",
+          "#41403b",
+          "#5f5e58",
+          "#82807a",
+          "#a6a49f",
+          "#cbcac7",
+          "#efeeed"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#2a2219",
+        "tonalRamp": [
+          "#0e0a07",
+          "#29231c",
+          "#463e35",
+          "#655c52",
+          "#887e74",
+          "#aba39a",
+          "#cfc9c3",
+          "#f0eeec"
+        ]
+      },
+      "faded-ink": {
+        "role": "neutral",
+        "displayName": "Faded Ink",
+        "canonical": "#6a5d4c",
+        "tonalRamp": [
+          "#0f0a05",
+          "#2b2217",
+          "#493e2f",
+          "#685b4a",
+          "#8b7e6d",
+          "#aea394",
+          "#d1c9bf",
+          "#f1eeea"
+        ]
+      },
+      "ink-rule": {
+        "role": "neutral",
+        "displayName": "Ink Rule",
+        "canonical": "rgba(88, 70, 46, 0.35)"
+      },
+      "ochre-warning": {
+        "role": "status",
+        "displayName": "Ochre",
+        "canonical": "#8a5f23",
+        "tonalRamp": [
+          "#170700",
+          "#391c00",
+          "#5b3600",
+          "#7e5415",
+          "#a27740",
+          "#c29d70",
+          "#e0c6a7",
+          "#f6ede2"
+        ]
+      },
+      "oxblood-danger": {
+        "role": "status",
+        "displayName": "Oxblood",
+        "canonical": "#8a3434",
+        "tonalRamp": [
+          "#1f0002",
+          "#46090d",
+          "#6e2122",
+          "#953e3d",
+          "#ba6360",
+          "#da8d88",
+          "#f1bbb7",
+          "#fde9e7"
+        ]
+      },
+      "moss-success": {
+        "role": "status",
+        "displayName": "Moss",
+        "canonical": "#2f6b3a",
+        "tonalRamp": [
+          "#001001",
+          "#002d0b",
+          "#134c21",
+          "#316d3c",
+          "#57905f",
+          "#82b388",
+          "#b4d5b7",
+          "#e6f2e7"
+        ]
+      },
+      "hud-ink": {
+        "role": "neutral",
+        "displayName": "HUD Ink",
+        "canonical": "rgba(28, 23, 18, 0.92)"
+      },
+      "hud-parchment": {
+        "role": "neutral",
+        "displayName": "HUD Parchment",
+        "canonical": "#f2e8d5",
+        "tonalRamp": [
+          "#0e0b05",
+          "#292318",
+          "#463f30",
+          "#655d4c",
+          "#887f6f",
+          "#aba495",
+          "#cfcac0",
+          "#f0eeeb"
+        ]
+      },
+      "hud-faded": {
+        "role": "neutral",
+        "displayName": "HUD Faded",
+        "canonical": "rgba(242, 232, 213, 0.7)"
+      }
+    },
+    "typographyMeta": {
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The actor's name in the sheet header."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Sheet section headings and chat card titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text and field values, at Foundry's base window size."
+      },
+      "row-name": {
+        "displayName": "Row Name",
+        "purpose": "Sheet row names, sheet tabs, outcome badges."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase sub-headings inside a section, in Faded Ink."
+      },
+      "detail": {
+        "displayName": "Detail",
+        "purpose": "A row's second line and the summary pills."
+      },
+      "hud": {
+        "displayName": "HUD",
+        "purpose": "Action bar text."
+      },
+      "hud-small": {
+        "displayName": "HUD Small",
+        "purpose": "Combat carousel text."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "JSON editor and formula fields only."
+      }
+    },
+    "shadows": [],
+    "motion": [],
+    "breakpoints": [
+      {
+        "name": "sheet-narrow",
+        "value": "680px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "The default control in every Wild Path window: parchment fill, ink rule, Verdigris border on hover.",
+      "html": "<div class=\"ds-page\"><button class=\"ds-btn\">Short Rest</button> <button class=\"ds-btn\" disabled>Long Rest</button></div>",
+      "css": ".ds-page { background: #f3ead7; padding: 12px; font-family: Signika, sans-serif; } .ds-btn { min-height: 1.9rem; padding: 0 0.75rem; background: #faf5e9; color: #2a2219; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 6px; font: inherit; cursor: pointer; } .ds-btn:not(:disabled):hover { border-color: #2f6f68; } .ds-btn:focus-visible { outline: 2px solid #b5822a; outline-offset: 1px; } .ds-btn:disabled { opacity: 0.55; cursor: not-allowed; }"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Vellum field with an ink rule; Focus Brass outline on focus, Oxblood outline when invalid.",
+      "html": "<div class=\"ds-page\"><input class=\"ds-input\" value=\"14\"> <input class=\"ds-input\" value=\"2d6+\" aria-invalid=\"true\"></div>",
+      "css": ".ds-page { background: #f3ead7; padding: 12px; font-family: Signika, sans-serif; } .ds-input { width: 5rem; padding: 0.25rem 0.4rem; background: #fffdf6; color: #2a2219; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 3px; font: inherit; text-align: center; } .ds-input:focus-visible { outline: 2px solid #b5822a; outline-offset: 1px; } .ds-input[aria-invalid=\"true\"] { outline: 2px solid #8a3434; }"
+    },
+    {
+      "name": "Sheet Tabs",
+      "kind": "nav",
+      "refersTo": "sheet-nav",
+      "description": "The sticky Vellum tab bar on the actor sheet; hover and focus tint Verdigris.",
+      "html": "<div class=\"ds-page\"><nav class=\"ds-nav\"><a href=\"#\">Overview</a><a href=\"#\">Actions</a><a href=\"#\">Spells</a><a href=\"#\">Inventory</a><a href=\"#\">Effects</a></nav></div>",
+      "css": ".ds-page { background: #f3ead7; padding: 12px; font-family: Signika, sans-serif; color: #2a2219; } .ds-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.25rem; padding: 0.25rem; background: #fffdf6; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 8px; } .ds-nav a { display: flex; min-height: 2rem; align-items: center; justify-content: center; border-radius: 6px; color: inherit; font-weight: 700; text-decoration: none; } .ds-nav a:hover, .ds-nav a:focus-visible { background: rgba(47, 111, 104, 0.14); color: #2f6f68; outline: none; }"
+    },
+    {
+      "name": "Summary Pills",
+      "kind": "chip",
+      "refersTo": "summary-pill",
+      "description": "Small rounded chips under the actor name; the type pill is bold Verdigris.",
+      "html": "<div class=\"ds-page\"><span class=\"ds-pill ds-pill-type\">humanoid</span> <span class=\"ds-pill\">Level 5</span> <span class=\"ds-pill\">Speed 30 ft</span></div>",
+      "css": ".ds-page { background: #f3ead7; padding: 12px; font-family: Signika, sans-serif; } .ds-pill { display: inline-flex; min-height: 1.35rem; align-items: center; padding: 0 0.5rem; background: #faf5e9; color: #6a5d4c; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 999px; font-size: 0.78rem; white-space: nowrap; } .ds-pill-type { color: #2f6f68; font-weight: 700; text-transform: capitalize; }"
+    },
+    {
+      "name": "Sheet Row",
+      "kind": "card",
+      "refersTo": "sheet-row",
+      "description": "An action or item row: icon, name over detail, command. Unavailable rows go dashed and faded, not just recoloured.",
+      "html": "<div class=\"ds-page\"><div class=\"ds-row\"><span class=\"ds-icon\"></span><span class=\"ds-main\"><span class=\"ds-name\">Longsword</span><span class=\"ds-detail\">action · 1d8 slashing</span></span><button class=\"ds-cmd\">Use</button></div><div class=\"ds-row ds-unavailable\"><span class=\"ds-icon\"></span><span class=\"ds-main\"><span class=\"ds-name\">Fireball</span><span class=\"ds-detail\">no 3rd-level slot left</span></span><button class=\"ds-cmd\" disabled>Use</button></div></div>",
+      "css": ".ds-page { display: grid; gap: 0.35rem; background: #f3ead7; padding: 12px; font-family: Signika, sans-serif; color: #2a2219; } .ds-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 0.5rem; min-height: 2.6rem; padding: 0.3rem 0.45rem; background: #faf5e9; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 6px; } .ds-icon { width: 2rem; height: 2rem; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 4px; background: #e6dcc4; } .ds-main { display: grid; gap: 0.1rem; min-width: 0; } .ds-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-detail { color: #6a5d4c; font-size: 0.75rem; } .ds-cmd { min-width: 4.25rem; min-height: 1.9rem; background: #faf5e9; color: #2a2219; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 6px; font: inherit; cursor: pointer; } .ds-cmd:not(:disabled):hover { border-color: #2f6f68; } .ds-cmd:focus-visible { outline: 2px solid #b5822a; outline-offset: 1px; } .ds-cmd:disabled { opacity: 0.55; cursor: not-allowed; } .ds-unavailable { border-style: dashed; opacity: 0.72; } .ds-unavailable .ds-name { color: #6a5d4c; }"
+    },
+    {
+      "name": "Resolution Card",
+      "kind": "custom",
+      "refersTo": "chat-card",
+      "description": "The chat card a resolved Action posts: title, one line per target, tinted outcome badges, and an inspect link.",
+      "html": "<div class=\"ds-card\"><div class=\"ds-head\"><span class=\"ds-cicon\"></span><h3>Fireball</h3></div><ul><li><span>Bandit Captain</span><span class=\"ds-out ds-fail\">Failed save · 28 fire</span></li><li><span>Bandit</span><span class=\"ds-out ds-ok\">Saved · 14 fire</span></li></ul><button class=\"ds-inspect\">Inspect</button></div>",
+      "css": ".ds-card { max-width: 18rem; padding: 4px 6px; background: #faf5e9; color: #2a2219; border: 1px solid rgba(88, 70, 46, 0.35); border-radius: 4px; font-family: Signika, sans-serif; font-size: 0.875rem; } .ds-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; } .ds-cicon { width: 32px; height: 32px; border-radius: 4px; background: #c79d5d; } .ds-card h3 { margin: 0; font-size: 1rem; } .ds-card ul { list-style: none; margin: 0.25rem 0 0; padding: 0; } .ds-card li { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.25rem 0; } .ds-card li + li { border-top: 1px solid rgba(88, 70, 46, 0.35); } .ds-out { padding: 0 0.375rem; border: 1px solid; border-radius: 3px; font-weight: bold; white-space: nowrap; } .ds-ok { border-color: #1b8f23; background: color-mix(in srgb, #1b8f23 18%, transparent); } .ds-fail { border-color: #8f1b1b; background: color-mix(in srgb, #8f1b1b 18%, transparent); } .ds-inspect { display: block; margin: 4px 0 0 auto; padding: 0; border: none; background: none; color: #2f6f68; font: inherit; font-size: 0.8em; text-decoration: underline; cursor: pointer; } .ds-inspect:focus-visible { outline: 2px solid #b5822a; outline-offset: 1px; }"
+    },
+    {
+      "name": "Action Bar",
+      "kind": "custom",
+      "refersTo": "hud-bar",
+      "description": "The translucent ink HUD above the hotbar: economy counters, then action groups; spent counters strike through. Button chrome here approximates the Foundry core button the bar inherits.",
+      "html": "<div class=\"ds-scene\"><div class=\"ds-bar\"><div class=\"ds-res\"><span>Action 1</span><span class=\"ds-spent\">Bonus Action 0</span><span>Reaction 1</span><span>30 ft</span></div><div class=\"ds-groups\"><span class=\"ds-glabel\">Action</span><button class=\"ds-act\">Longsword</button><button class=\"ds-act\" aria-disabled=\"true\">Fireball</button></div></div></div>",
+      "css": ".ds-scene { padding: 16px; background: #3d4a3a; } .ds-bar { display: inline-flex; flex-direction: column; gap: 4px; padding: 6px 8px; border-radius: 6px; background: rgba(28, 23, 18, 0.92); color: #f2e8d5; font-family: Signika, sans-serif; font-size: 0.85rem; } .ds-res { display: flex; gap: 8px; flex-wrap: wrap; } .ds-spent { opacity: 0.5; text-decoration: line-through; } .ds-groups { display: flex; align-items: center; gap: 4px; } .ds-glabel { color: rgba(242, 232, 213, 0.7); } .ds-act { padding: 2px 6px; background: rgba(242, 232, 213, 0.08); color: inherit; border: 1px solid rgba(242, 232, 213, 0.25); border-radius: 4px; font: inherit; cursor: pointer; } .ds-act:hover { border-color: #e0b44c; } .ds-act:focus-visible { outline: 2px solid #e0b44c; outline-offset: 1px; } .ds-act[aria-disabled=\"true\"] { opacity: 0.45; cursor: not-allowed; }"
+    },
+    {
+      "name": "Carousel Turn",
+      "kind": "custom",
+      "refersTo": "carousel-turn",
+      "description": "A turn tile in the combat carousel; the active turn gets a Lantern Gold border and fill, the defeated fade.",
+      "html": "<div class=\"ds-scene\"><ol class=\"ds-strip\"><li class=\"ds-turn ds-active\"><span class=\"ds-face\"></span><span class=\"ds-tname\">Player One</span><span class=\"ds-hp\"><span style=\"width:80%\"></span></span></li><li class=\"ds-turn\"><span class=\"ds-face\"></span><span class=\"ds-tname\">Bandit Captain</span><span class=\"ds-hp\"><span style=\"width:45%\"></span></span></li><li class=\"ds-turn ds-defeated\"><span class=\"ds-face\"></span><span class=\"ds-tname\">Bandit</span><span class=\"ds-hp\"><span style=\"width:0%\"></span></span></li></ol></div>",
+      "css": ".ds-scene { padding: 16px; background: #3d4a3a; } .ds-strip { display: inline-flex; gap: 4px; margin: 0; padding: 4px 8px; list-style: none; border-radius: 6px; background: rgba(28, 23, 18, 0.92); color: #f2e8d5; font-family: Signika, sans-serif; font-size: 0.75rem; } .ds-turn { display: flex; flex-direction: column; align-items: center; width: 56px; padding: 2px; border: 2px solid transparent; border-radius: 4px; } .ds-active { border-color: #e0b44c; background: rgba(224, 180, 76, 0.15); } .ds-defeated { opacity: 0.4; } .ds-face { width: 40px; height: 40px; border-radius: 4px; background: #887f6f; } .ds-tname { max-width: 52px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-hp { width: 48px; height: 4px; border-radius: 2px; background: #5a1e1e; } .ds-hp span { display: block; height: 100%; border-radius: 2px; background: #4caf50; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Annotated Ledger",
+    "overview": "Wild Path's windows read like a ledger kept on parchment: ink text, thin ruled borders, and rows of facts about a character, each one written by the engine and open to inspection. The page is warm and quiet so the numbers carry the weight. Verdigris is the annotator's second ink, marking what can be followed (a link, a tab, a total the engine worked out). Over the battle itself sits a different material: an ink-dark HUD, lit by Lantern Gold, that floats on the scene without hiding it.\n\nThe look is fixed. Every colour a Wild Path surface shows is set in `styles/wildpath.css` on the `--wp-*` custom properties, so sheets, dialogs and chat cards look the same under Foundry's light and dark themes. Density is moderate: compact rows and small labels, enough room that a player reads a number in the middle of a turn without hunting for it.\n\nControls are moving toward **tactile and confident**: things you press, not text you might click. Today they are flat with thin borders. Future work adds weight through fills, heavier borders and a visible pressed state, never through shadows.",
+    "keyCharacteristics": [
+      "Parchment page, ink text, ruled borders: windows, dialogs and chat cards share one material.",
+      "An ink-dark, translucent HUD (action bar, combat carousel) floats over the canvas, with Lantern Gold for the active thing.",
+      "Flat surfaces separated by tone and borders, with no shadows.",
+      "One interface face (Signika), with weight and size, not new fonts, setting the hierarchy.",
+      "Every state shows in a form besides colour: dashed borders, strikethrough, opacity, or text."
+    ],
+    "rules": [
+      {
+        "name": "The Two Inks Rule",
+        "body": "The page has one accent. Verdigris marks what can be followed or what the engine derived; it never decorates. Lantern Gold belongs to the HUD and does not appear on parchment.",
+        "section": "colors"
+      },
+      {
+        "name": "The Own Palette Rule",
+        "body": "A Wild Path surface sets its own background and text colour, so it stays readable whatever Foundry theme surrounds it.",
+        "section": "colors"
+      },
+      {
+        "name": "The Weight Not Face Rule",
+        "body": "Add hierarchy with weight, size and case. A new font family is reserved for language script.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Shadow Rule",
+        "body": "Never use `box-shadow` for depth. Lift something with a lighter tone, a border, or (for pressed controls) a heavier border or fill.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do take every colour from the `--wp-*` properties in `styles/wildpath.css`, and add a new property there when a new role appears.",
+      "Do keep Verdigris for links, hover, focus-adjacent states and engine-derived values. Keep Lantern Gold on the HUD.",
+      "Do show every state in a second form besides colour: a dashed border (unavailable or empty), strikethrough (spent), opacity (disabled or defeated), italic (concealed), or text (a tooltip reason).",
+      "Do use the 2px Focus Brass outline for keyboard focus on every interactive element.",
+      "Do truncate long names with an ellipsis in rows and carousel tiles rather than letting them wrap.",
+      "Do make new controls feel pressable with fill, border weight and a pressed state."
+    ],
+    "donts": [
+      "Don't use `box-shadow` for depth or emphasis anywhere. Use tone, borders and fills.",
+      "Don't show a state with colour alone, whether it's a hue change on a badge, a row or an icon.",
+      "Don't put Lantern Gold on parchment, or Verdigris on the dark HUD as its main accent."
+    ]
+  }
+}
