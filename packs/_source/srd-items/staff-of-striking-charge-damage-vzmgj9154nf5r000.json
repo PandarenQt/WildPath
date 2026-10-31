@@ -14,12 +14,7 @@
         "magical"
       ],
       "costs": {
-        "allOf": [
-          {
-            "capability": "action",
-            "amount": 1
-          }
-        ]
+        "allOf": []
       },
       "targeting": {
         "type": "single",

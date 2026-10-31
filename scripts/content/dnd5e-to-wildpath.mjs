@@ -539,9 +539,28 @@ const sizeAtMost = size => ({not: {oneOf: {path: "event.data.targetSize",
  * (Favored Foe). Offered on its own hits as OWN_HIT's are: a weapon's when its text says weapon, else any attack's; once
  * a turn when it says so. Its cost, damage, save and effects are its activity's.
  */
+/**
+ * The paragraph of an item's 2024 text its activity names ("Thunderclap. You can take a Magic action ..."), up to the
+ * next one another activity names; the whole text when it names none. So one property's "when you hit" (a Staff of
+ * Thunder and Lightning's Lightning) does not make its Magic actions hit offers.
+ */
+export function activityText(document, activity) {
+  const text = plainText(document);
+  const escape = name => name.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+  const at = name => {
+    const found = new RegExp(`(?:^\\s*|[.)]\\s+)${escape(name)}\\.\\s`, "u").exec(text);
+    return found ? found.index + found[0].indexOf(name) : -1;
+  };
+  const start = activity?.name ? at(activity.name) : -1;
+  if ( start < 0 ) return text;
+  const ends = Object.values(document.system?.activities ?? {}).map(entry => entry?.name)
+    .filter(name => name && (name !== activity.name)).map(at).filter(index => index > start);
+  return text.slice(start, ends.length ? Math.min(...ends) : undefined);
+}
+
 function hitOffer(document, activity) {
   if ( !["damage", "save"].includes(activity?.type) ) return null;
-  const text = `${activity.activation?.condition ?? ""} ${plainText(document)}`;
+  const text = `${activity.activation?.condition ?? ""} ${activityText(document, activity)}`;
   const hit = /\bwhen (?:you|it|the [^.,]{1,40}?) hits? (?:a creature|a target|an enemy|one or more creatures|a creature or an object)? ?with (an attack roll|a weapon|a melee weapon|a melee attack|an attack)/iu
     .exec(text);
   if ( !hit ) return null;
@@ -549,10 +568,14 @@ function hitOffer(document, activity) {
   // A part of any type (dnd5e lists every one: "add the die to the attack's damage roll") is the attack's own type: a
   // rider on the attack it answers, whose type is the attack's.
   const anyType = (activity.damage?.parts ?? []).map(part => (part.types ?? []).length >= DAMAGE_TYPES.length);
+  // No Action is taken in the middle of a hit: dnd5e's "action" activation on such an offer (a Staff of Striking's Charge
+  // Damage) costs nothing of the turn's economy. A Bonus Action or Reaction it names stays.
+  const free = definition => ({...definition, costs: {...(definition.costs ?? {}),
+    allOf: (definition.costs?.allOf ?? []).filter(cost => cost.capability !== "action")}});
   const riding = definition => {
     const ride = (definition.damage ?? []).filter((_, index) => anyType[index]);
-    return ride.length ? {...definition, damage: (definition.damage ?? []).filter((_, index) => !anyType[index]),
-      rider: {...(definition.rider ?? {}), damage: ride.map(({damageType: _type, ...component}) => component)}} : definition;
+    return free(ride.length ? {...definition, damage: (definition.damage ?? []).filter((_, index) => !anyType[index]),
+      rider: {...(definition.rider ?? {}), damage: ride.map(({damageType: _type, ...component}) => component)}} : definition);
   };
   return {...(/weapon/iu.test(hit[1]) ? {tagsAll: ["weapon"]} : {spell: true, tagsAll: []}),
     ...(once ? {once: "turn", onceKey: slugify(document.name)} : {}), ...(anyType.some(Boolean) ? {dropNotes: /: a choice of acid\//u} : {}),
@@ -3682,8 +3705,6 @@ function convertActivity({document, activity, system, spell, level, scales, note
   if ( typeChoices.length ) definition.configuration = [...(definition.configuration ?? []), ...typeChoices];
   // The uses spent are chosen when used, and `spendAmount` spends them (so the pool's fixed cost goes).
   // shortcut: a maximum that reads its creature (Healing Light's Charisma modifier) is not set; upgrade when a choice's max can.
-  // shortcut: a hit offer keeps dnd5e's activation cost (Staff of Striking's Charge Damage asks for the Action); upgrade
-  // when hit offers drop their activation.
   if ( spent ) {
     const max = number(activity.consumption.scaling.max);
     definition.costs = {...definition.costs, allOf: (definition.costs?.allOf ?? []).filter(cost => cost.capability !== spendId)};

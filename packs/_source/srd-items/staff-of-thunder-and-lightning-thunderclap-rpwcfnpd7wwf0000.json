@@ -26,9 +26,7 @@
         ]
       },
       "targeting": {
-        "type": "single",
-        "required": true,
-        "count": 1
+        "type": "area"
       },
       "area": {
         "shape": "radial",
@@ -72,9 +70,6 @@
           }
         }
       ],
-      "range": {
-        "type": "special"
-      },
       "label": "Staff of Thunder and Lightning (Thunderclap)"
     },
     "ruleElements": [
@@ -104,20 +99,6 @@
             "value": 1
           },
           "recovery": "longRest"
-        }
-      },
-      {
-        "schemaVersion": 1,
-        "id": "reaction",
-        "type": "Trigger",
-        "data": {
-          "kind": "reaction",
-          "event": "attack.hit",
-          "match": {
-            "phase": "interrupt",
-            "sourceTokenId": "{self}",
-            "tagsAll": []
-          }
         }
       }
     ]

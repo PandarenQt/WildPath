@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 969 automated, 242 manual, 227 features. Creatures: 375.
+Items: 968 automated, 242 manual, 227 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -768,7 +768,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Heightened Spell | classes24 | Heightened Spell (feature) | — |
 | Hell Hound | actors24 | Hell Hound (5 items) | — |
 | Hellish Rebuke | spells24 | Hellish Rebuke (automated) | — |
-| Helm of Brilliance | equipment24 | Helm of Brilliance (gear), Helm of Brilliance (Diamond Light) (automated), Helm of Brilliance (Fire Opal Flames) (manual), Helm of Brilliance: Daylight (automated), Helm of Brilliance: Fireball (automated), Helm of Brilliance: Prismatic Spray (automated), Helm of Brilliance: Wall of Fire (automated), Helm of Brilliance (Explosive Emanation) (automated) | not automated (enchant): using it spends its cost; its description says the rest; rolled (save); what it does is by hand; activation: special is not an action-economy cost; damage 1: bonus "@scaling" not converted; armor: of any kind; give it its armor's AC by hand |
+| Helm of Brilliance | equipment24 | Helm of Brilliance (gear), Helm of Brilliance (Fire Opal Flames) (manual), Helm of Brilliance: Daylight (automated), Helm of Brilliance: Fireball (automated), Helm of Brilliance: Prismatic Spray (automated), Helm of Brilliance: Wall of Fire (automated), Helm of Brilliance (Explosive Emanation) (automated) | not automated (enchant): using it spends its cost; its description says the rest; rolled (save); what it does is by hand; activation: special is not an action-economy cost; damage 1: bonus "@scaling" not converted; armor: of any kind; give it its armor's AC by hand |
 | Helm of Comprehending Languages | equipment24 | Helm of Comprehending Languages (gear), Helm of Comprehending Languages: Comprehend Languages (automated) | — |
 | Helm of Telepathy | equipment24 | Helm of Telepathy (gear), Helm of Telepathy: Detect Thoughts (manual), Helm of Telepathy: Suggestion (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; save: a failure marks its creature (narrative) |
 | Helm of Teleportation | equipment24 | Helm of Teleportation (gear), Helm of Teleportation: Teleport (manual) | not automated (teleport, narrative): using it spends its cost; its description says the rest |

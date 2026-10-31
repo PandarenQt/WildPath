@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {checkOf, convertActor, convertFacility, convertItem, convertTable, creatureRef, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex,
+import {activityText, checkOf, convertActor, convertFacility, convertItem, convertTable, creatureRef, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex,
   failureByMargin, scaleTables, textBoundExpiry, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import * as valueExpressions from "../module/helpers/value-expressions.mjs";
@@ -2345,4 +2345,16 @@ test("a Failure by 5 or More section: the conditions only it names, how long, an
     + "Poisoned, the target also has the Unconscious condition, which ends early if the target takes damage or a creature wakes it.";
   assert.deepEqual(failureByMargin(pseudodragon), {by: 5, only: ["unconscious"], duration: {value: 1, units: "hours"}, endsOnDamage: true});
   assert.equal(failureByMargin("Failure: The target has the Prone condition."), null);
+});
+
+test("an activity reads its own paragraph: a staff's Magic action is not a hit offer because another property says \"when you hit\"", () => {
+  const staff = {name: "Staff of Thunder and Lightning", system: {description: {value: "<p><em>Lightning.</em> When you hit with a melee attack "
+    + "using the staff, you can cause the target to take an extra 2d6 Lightning damage.</p><p><em>Thunder and Lightning.</em> Immediately after "
+    + "you hit, you can take a Bonus Action.</p><p><em>Thunderclap.</em> You can take a Magic action to cause the staff to produce a "
+    + "thunderclap.</p>"}, activities: {a: {name: "Lightning"}, b: {name: "Thunder and Lightning"}, c: {name: "Thunderclap"}}}};
+  assert.match(activityText(staff, {name: "Thunderclap"}), /^Thunderclap\. You can take a Magic action/u);
+  assert.doesNotMatch(activityText(staff, {name: "Thunderclap"}), /when you hit/iu);
+  assert.match(activityText(staff, {name: "Lightning"}), /^Lightning\. When you hit/u);
+  assert.doesNotMatch(activityText(staff, {name: "Lightning"}), /Thunderclap/u, "up to the next activity's paragraph");
+  assert.match(activityText(staff, {name: "Unnamed"}), /Lightning\. When you hit/u, "no paragraph of its own: the whole text");
 });
