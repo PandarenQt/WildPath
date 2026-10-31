@@ -492,7 +492,8 @@ function formValues(response, name) {
   if ( typeof response.getAll === "function" ) return response.getAll(name);
   const value = Object.hasOwn(response, name) ? response[name] : null;
   if ( value == null ) return [];
-  return Array.isArray(value) ? value : [value];
+  // V14's FormDataExtended gives each unticked checkbox of a shared name as null.
+  return (Array.isArray(value) ? value : [value]).filter(entry => (entry != null) && (entry !== ""));
 }
 
 function resolveDialogV2({DialogV2, context}) {

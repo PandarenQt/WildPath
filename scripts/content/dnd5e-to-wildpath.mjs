@@ -443,6 +443,20 @@ const WITHDRAW = {id: "effect-1", type: "effect", name: "Withdraw", slug: "disen
       numerator: {type: "add", terms: [{type: "context", path: "actorSystem.resources.movement.base"},
         {type: "context", path: "actorSystem.resources.movement.bonus"}]}, denominator: {type: "constant", value: 2}}}}}]};
 
+/**
+ * Choices a feature adds to another feature's Actions, by that feature's identifier (action-definitions.mjs,
+ * withContributedChoices). 2024 Restoring Touch: "When you use Lay On Hands on a creature, you can also remove one or more
+ * of the following conditions ... You must expend 5 Hit Points from the healing pool of Lay On Hands for each of these
+ * conditions you remove; those points don't also restore Hit Points to the creature."
+ */
+const CHOICES_FOR = Object.freeze({
+  "restoring-touch": {identifier: "lay-on-hands", choice: {id: "restoring-touch", type: "select-many", label: "Restoring Touch",
+    options: ["blinded", "charmed", "deafened", "frightened", "paralyzed", "stunned"].map(conditionId => ({id: conditionId, value: conditionId,
+      label: conditionId.charAt(0).toUpperCase() + conditionId.slice(1),
+      effects: [{type: "add-cost", cost: {allOf: [{capability: "lay-on-hands", amount: 5}]}},
+        {type: "add-effects", effects: [{id: `restoring-touch-${conditionId}`, type: "condition", conditionId, levels: -1}]}]}))}}
+});
+
 /** Features the engine offers itself when they apply (Tactical Mind: withTacticalMind on a failed check). */
 const OFFERED_BY_ENGINE = new Set(["tactical-mind", "eldritch-master", "indomitable"]);
 
@@ -1311,6 +1325,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( turnStartDamage(document, activity) ) continue;
     // Brutal Strike's Actions are its own (brutalStrikeActions), not its dnd5e damage activity.
     if ( ["brutal-strike", "improved-brutal-strike", "elemental-affinity"].includes(identifierOf(document)) ) continue;
+    // A choice it adds to another feature's Action (Restoring Touch on Lay on Hands) is its flag, not an Action.
+    if ( CHOICES_FOR[identifierOf(document)] ) continue;
     // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use): used, though dnd5e may leave it passive.
     const trades = tradesPools({document, activity, pool, names, scales});
     // A trap's tier ("Trigger (5-10)", 2024 DMG) is set by the GM as a lasting area (trapDefinition).
@@ -1486,10 +1502,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         // "touch a creature" (dnd5e records its range as self).
         range: {type: "touch", distance: {value: 5, unit: "ft"}},
         healing: [{id: "healing-1", expression: {type: "constant", value: 1}, healingType: "healing"}],
-        configuration: [...(definition.configuration ?? []), {id: "points", type: "number", label: "Points", required: true, min: 1,
+        // 0 when it only ends Restoring Touch's conditions.
+        configuration: [...(definition.configuration ?? []), {id: "points", type: "number", label: "Points", required: true, min: 0,
           effects: [{type: "spendAmount", resourceId: pool.id, componentIds: ["healing-1"]}]}]};
       notes.splice(0, notes.length, ...notes.filter(note => !/not automated|custom formula/.test(note)));
     }
+    // Its Remove Poison touches a creature too (dnd5e records its range as self).
+    if ( (identifierOf(document) === "lay-on-hands") && (activity.name === "Remove Poison") ) definition = {...definition,
+      targeting: {type: "single", required: true, count: 1}, range: {type: "touch", distance: {value: 5, unit: "ft"}}};
     // What it ends on its target (Remove Curse: curses; Dispel Magic: spells up to its level).
     const ending = ENDS[identifierOf(document)];
     if ( ending ) {
@@ -1684,6 +1704,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(metamagic ? {metamagic} : {}),
         ...(testOffer ? {testOffer} : {}), ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {}),
         ...(IGNORES_RESISTANCE[identifierOf(document)] ? {ignoresResistance: [...IGNORES_RESISTANCE[identifierOf(document)]]} : {}),
+        ...(CHOICES_FOR[identifierOf(document)] ? {choiceFor: structuredClone(CHOICES_FOR[identifierOf(document)])} : {}),
         // The Diviner's Portent (a monster's, used when it sees a roll, is an Action of its own).
         ...((identifierOf(document) === "portent") ? {portentDice: structuredClone(PORTENT_DICE)} : {})}}});
     if ( identifierOf(document) === "paladins-smite" ) items.push(...paladinsSmiteActions(document, img, source));

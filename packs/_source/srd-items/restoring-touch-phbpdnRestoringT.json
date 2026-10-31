@@ -2,24 +2,11 @@
   "_id": "phbpdnRestoringT",
   "_key": "!items!phbpdnRestoringT",
   "name": "Restoring Touch",
-  "type": "action",
+  "type": "feature",
   "img": "icons/magic/light/hand-sparks-glow-yellow.webp",
   "system": {
     "active": true,
     "description": "<p>When you use Lay On Hands on a creature, you can also remove one or more of the following conditions from the creature: Blinded, Charmed, Deafened, Frightened, Paralyzed, or Stunned. You must expend 5 Hit Points from the healing pool of Lay On Hands for each of these conditions you remove; those points don't also restore Hit Points to the creature.</p><section class=\"secret\" id=\"secret-jxD0l6XyrF6DQqyI\"><p><strong>Foundry Note</strong></p><p>This feature includes a Scale prompt for selecting how many conditions you would like to remove that will automatically consume the correct number from your Lay on Hands pool.</p></section>",
-    "definition": {
-      "schemaVersion": 1,
-      "id": "action:srd-restoring-touch",
-      "costs": {
-        "allOf": [
-          {
-            "capability": "bonus-action",
-            "amount": 1
-          }
-        ]
-      },
-      "label": "Restoring Touch"
-    },
     "ruleElements": []
   },
   "flags": {
@@ -36,11 +23,191 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "consumption: itemUses 5 * @scaling not converted",
-          "consumption: itemUses 5 * @scaling not converted"
-        ]
+        "notes": []
+      },
+      "choiceFor": {
+        "identifier": "lay-on-hands",
+        "choice": {
+          "id": "restoring-touch",
+          "type": "select-many",
+          "label": "Restoring Touch",
+          "options": [
+            {
+              "id": "blinded",
+              "value": "blinded",
+              "label": "Blinded",
+              "effects": [
+                {
+                  "type": "add-cost",
+                  "cost": {
+                    "allOf": [
+                      {
+                        "capability": "lay-on-hands",
+                        "amount": 5
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "add-effects",
+                  "effects": [
+                    {
+                      "id": "restoring-touch-blinded",
+                      "type": "condition",
+                      "conditionId": "blinded",
+                      "levels": -1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "charmed",
+              "value": "charmed",
+              "label": "Charmed",
+              "effects": [
+                {
+                  "type": "add-cost",
+                  "cost": {
+                    "allOf": [
+                      {
+                        "capability": "lay-on-hands",
+                        "amount": 5
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "add-effects",
+                  "effects": [
+                    {
+                      "id": "restoring-touch-charmed",
+                      "type": "condition",
+                      "conditionId": "charmed",
+                      "levels": -1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "deafened",
+              "value": "deafened",
+              "label": "Deafened",
+              "effects": [
+                {
+                  "type": "add-cost",
+                  "cost": {
+                    "allOf": [
+                      {
+                        "capability": "lay-on-hands",
+                        "amount": 5
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "add-effects",
+                  "effects": [
+                    {
+                      "id": "restoring-touch-deafened",
+                      "type": "condition",
+                      "conditionId": "deafened",
+                      "levels": -1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "frightened",
+              "value": "frightened",
+              "label": "Frightened",
+              "effects": [
+                {
+                  "type": "add-cost",
+                  "cost": {
+                    "allOf": [
+                      {
+                        "capability": "lay-on-hands",
+                        "amount": 5
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "add-effects",
+                  "effects": [
+                    {
+                      "id": "restoring-touch-frightened",
+                      "type": "condition",
+                      "conditionId": "frightened",
+                      "levels": -1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "paralyzed",
+              "value": "paralyzed",
+              "label": "Paralyzed",
+              "effects": [
+                {
+                  "type": "add-cost",
+                  "cost": {
+                    "allOf": [
+                      {
+                        "capability": "lay-on-hands",
+                        "amount": 5
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "add-effects",
+                  "effects": [
+                    {
+                      "id": "restoring-touch-paralyzed",
+                      "type": "condition",
+                      "conditionId": "paralyzed",
+                      "levels": -1
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "stunned",
+              "value": "stunned",
+              "label": "Stunned",
+              "effects": [
+                {
+                  "type": "add-cost",
+                  "cost": {
+                    "allOf": [
+                      {
+                        "capability": "lay-on-hands",
+                        "amount": 5
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "add-effects",
+                  "effects": [
+                    {
+                      "id": "restoring-touch-stunned",
+                      "type": "condition",
+                      "conditionId": "stunned",
+                      "levels": -1
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
       }
     }
   }

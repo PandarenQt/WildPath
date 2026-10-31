@@ -511,6 +511,42 @@ test("an enchantment picks one of its creature's own weapons, and binds it and t
   assert.equal(forged.ok, false, "not one of its weapons");
 });
 
+test("Restoring Touch adds its conditions to Lay on Hands: 5 points each, ended on the target, none of them healing", async () => {
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const fs = await import("node:fs");
+  const pack = file => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}.json`, "utf8"));
+  const hands = pack("lay-on-hands-heal-phbpdnLayOnHands");
+  const touch = pack("restoring-touch-phbpdnRestoringT");
+  const read = active => actionDefinitionFromItem({id: "loh", type: "action", name: hands.name, flags: hands.flags, system: hands.system,
+    actor: {items: [{...touch, system: {...touch.system, active}}]}});
+  assert.equal(read(false).definition.configuration.some(choice => choice.id === "restoring-touch"), false, "not without the feature");
+  const {definition} = read(true);
+  const choice = definition.configuration.find(entry => entry.id === "restoring-touch");
+  assert.deepEqual(choice.options.map(option => option.value), ["blinded", "charmed", "deafened", "frightened", "paralyzed", "stunned"]);
+  const system = pool => ({resources: {bonus: {value: 1, max: 1}}, pools: [{id: "lay-on-hands", value: pool, max: 70}]});
+  const resolved = resolveActionConfiguration({definition, actorSystem: system(12), choices: {points: 0, "restoring-touch": ["blinded", "stunned"]}});
+  assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+  const effective = resolved.configuration.effectiveDefinition;
+  assert.deepEqual(effective.healing, [], "0 points heal nothing");
+  assert.deepEqual(effective.effects.map(effect => [effect.conditionId, effect.levels]), [["blinded", -1], ["stunned", -1]]);
+  assert.deepEqual(effective.costs.allOf.filter(cost => cost.capability === "lay-on-hands").map(cost => cost.amount), [5, 5]);
+  const healed = resolveActionConfiguration({definition, actorSystem: system(12), choices: {points: 2, "restoring-touch": ["charmed"]}});
+  assert.deepEqual([healed.configuration.effectiveDefinition.healing[0].expression.value,
+    healed.configuration.effectiveDefinition.costs.allOf.filter(cost => cost.capability === "lay-on-hands").map(cost => cost.amount)], [2, [2, 5]]);
+  // V14's form gives each unticked checkbox of the choice as null.
+  const ticked = resolveActionConfiguration({definition, actorSystem: system(12),
+    choices: {points: 0, "restoring-touch": {values: ["blinded"]}}});
+  assert.equal(ticked.ok, true, JSON.stringify(ticked.errors));
+  const nothing = resolveActionConfiguration({definition, actorSystem: system(12), choices: {points: 0, "restoring-touch": {values: []}}});
+  assert.equal(nothing.ok, false, "0 points and no condition: nothing to do");
+  const twice = actionDefinitionFromItem({id: "loh", type: "action", name: hands.name, flags: hands.flags, system: hands.system,
+    actor: {items: [touch, {...touch, _id: "copy"}]}}).definition;
+  assert.equal(twice.configuration.filter(choice => choice.id === "restoring-touch").length, 1, "a feature held twice adds its choice once");
+  const plain = read(false).definition;
+  assert.equal(resolveActionConfiguration({definition: plain, actorSystem: system(12), choices: {points: 0}}).ok, false,
+    "without Restoring Touch, 0 points is refused");
+});
+
 test("Font of Magic: a slot level's own effects cost its points and give back its slot; a full or missing slot is refused", async () => {
   const fs = await import("node:fs");
   const read = file => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}.json`, "utf8")).system.definition;

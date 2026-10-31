@@ -46,7 +46,7 @@
           "type": "number",
           "label": "Points",
           "required": true,
-          "min": 1,
+          "min": 0,
           "effects": [
             {
               "type": "spendAmount",

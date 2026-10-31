@@ -40,3 +40,11 @@ test("the preview shows the chosen damage type and a table's dice at the creatur
     choices: {"damage-type-1": "fire"}});
   assert.match(html, /2d10 fire/u);
 });
+
+test("a pick-several choice's unticked boxes (V14's FormDataExtended gives them as null) are no picks", async () => {
+  const pick = {schemaVersion: 1, id: "action:pick", label: "Pick", costs: {allOf: [{capability: "action", amount: 1}]}, targeting: {type: "self"},
+    configuration: [{id: "conditions", type: "select-many", label: "Conditions", options: ["blinded", "charmed", "stunned"]
+      .map(value => ({id: value, value, label: value}))}]};
+  const DialogV2 = {input: async () => ({"choice:conditions": ["blinded", null, null]})};
+  assert.deepEqual(await promptActionConfiguration({definition: pick, actorSystem, DialogV2}), {conditions: {values: ["blinded"]}});
+});

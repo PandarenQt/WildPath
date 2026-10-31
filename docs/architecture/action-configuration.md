@@ -287,11 +287,20 @@ that many of the pool to the Action's cost and makes each listed healing (or dam
 `per`). 2024 Lay on Hands: "restore a number of Hit Points equal to the points spent". Spending more than the pool
 holds is refused at payment, before anything rolls. With `faces` (2026-10-24) each component is that many dice of those
 faces instead: dnd5e's "(@scaling)d6" (2024 Staff of Striking: "1d6 Force damage per charge spent").
+Spending 0 (2026-10-31) removes the listed components: Lay on Hands used only for Restoring Touch's conditions heals
+nothing.
 
 ## An option's own effects, and restoring a pool (2026-10-19)
 
 - **An option's `effects`.** An option of a `select-one` choice may carry its own effects, applied after its choice's
   when it is chosen (Font of Magic: each slot level adds its cost in Sorcery Points and restores that slot).
+- **A `select-many` choice** applies the effects of each option it picked (2026-10-31).
+- **`{type: "add-effects", effects}`** appends effects to what the Action does (Restoring Touch: each condition picked is
+  one more removal, `levels: -1`, beside its `add-cost` of 5 Lay on Hands points).
+- **A choice from another feature** (2026-10-31): an active feature's `flags.wildpath.choiceFor: {identifier, choice}`
+  adds `choice` to its creature's Actions whose `flags.wildpath.source.identifier` is `identifier`, whenever the Action
+  is read (`withContributedChoices`, action-definitions.mjs). 2024 Restoring Touch is a choice of six conditions on Lay
+  on Hands, not a Bonus Action of its own.
 - **`{type: "restore", resourceId, amount?}`** adds a pool of the acting creature to the Action's `restores`, refilled
   at payment up to its maximum. Its amount is by default the level its choice selected (`levelChoiceId`: a spent slot's
   level in Sorcery Points). It is refused when the creature lacks the pool or the pool is full.

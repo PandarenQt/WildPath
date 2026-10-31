@@ -1780,6 +1780,12 @@ test("spells that end conditions: Lesser Restoration's choice of four, Heal's th
   const [healing, poison] = convertItem(hands).items;
   assert.equal(healing.system.definition.effects, undefined, "its healing ends nothing");
   assert.deepEqual(poison.system.definition.effects.map(effect => [effect.conditionId, effect.levels]), [["poisoned", -1]]);
+  assert.deepEqual([poison.system.definition.range.type, poison.system.definition.targeting.type], ["touch", "single"], "a touched creature");
+  const restoring = {_id: "testRestoringT01", name: "Restoring Touch", type: "feat", img: "icons/svg/heal.svg", effects: [],
+    system: {source: SRD, identifier: "restoring-touch", activities: {a: activity("utility", {activation: {type: "bonus"}})}}};
+  const [feature, ...rest] = convertItem(restoring).items;
+  assert.deepEqual([feature.type, rest.length, feature.flags.wildpath.choiceFor.identifier], ["feature", 0, "lay-on-hands"],
+    "a choice on Lay on Hands, not an Action of its own");
 });
 
 test("a feature spending another feature's uses spends that feature's pool (Channel Divinity's options, Land's Aid's Wild Shape)", () => {

@@ -398,6 +398,8 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - Lay on Hands: a Bonus Action with a "Points" number chosen when used, spent from its pool and healed
     (`spendAmount`, action-configuration.md); touch, though dnd5e records self. Live: QA Caster with a 25-point copy
     healed QA Fighter for 7 (30 to 37, pool 25 to 18).
+    Its Remove Poison touches a creature too. Restoring Touch adds a choice of six conditions to it, 5 points each
+    (`choiceFor`, action-configuration.md); "Points" may be 0 to end conditions only.
   - Rage and Unarmored Movement: a dnd5e change on a class's scale reads its table (`effectRules` gets the scales;
     distance scales count). Rage adds +2 to +4 to Strength-based melee damage; Unarmored Movement +10 to +30 feet.
   - Bardic Inspiration: the Inspired effect carries its die (`metadata.addDie.faces`, a table on bard level). When its

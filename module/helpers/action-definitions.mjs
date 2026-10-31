@@ -267,9 +267,9 @@ export function serializeActionDefinition(rawDefinition={}, options={}) {
 
 export function actionDefinitionFromItem(item, options={}) {
   const system = item?.system ?? {};
-  const raw = withSummonLevels(withMysticArcanum(withMetamagic(withOwnWeapons(withWeaponMastery(withExtraAttacks(system.definition ?? system.actionDefinition
-    ?? item?.definition ?? item?.actionDefinition ?? null, item), item?.actor ?? null), item?.actor ?? null), item?.actor ?? null), item),
-    item?.actor ?? null);
+  const raw = withContributedChoices(withSummonLevels(withMysticArcanum(withMetamagic(withOwnWeapons(withWeaponMastery(withExtraAttacks(
+    system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null, item), item?.actor ?? null),
+    item?.actor ?? null), item?.actor ?? null), item), item?.actor ?? null), item);
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
   const legacyActivationCost = options.legacyActivationCost
@@ -334,6 +334,21 @@ function withOwnWeapons(raw, actor) {
     }
     return {...choice, options: [...options.values()]};
   })};
+}
+
+/**
+ * A choice another of its creature's features adds to the Action (`flags.wildpath.choiceFor: {identifier, choice}` on an
+ * active feature: Restoring Touch's conditions on Lay on Hands), for the Actions whose source identifier it names.
+ */
+function withContributedChoices(raw, item) {
+  const identifier = item?.flags?.wildpath?.source?.identifier;
+  if ( !raw || !identifier ) return raw;
+  // Once each: a feature held twice adds its choice once.
+  const seen = new Set((raw.configuration ?? []).map(entry => entry?.id));
+  const added = [...(item.actor?.items ?? [])].filter(feature => (feature?.system?.active !== false)
+    && (feature?.flags?.wildpath?.choiceFor?.identifier === identifier)).map(feature => feature.flags.wildpath.choiceFor.choice)
+    .filter(choice => choice?.id && !seen.has(choice.id) && seen.add(choice.id));
+  return added.length ? {...raw, configuration: [...(raw.configuration ?? []), ...clonePlain(added)]} : raw;
 }
 
 /**

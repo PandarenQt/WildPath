@@ -746,7 +746,8 @@ function resolveOneSelection(request, rawResponse) {
 }
 
 function resolveManySelection(request, rawResponse) {
-  const rawValues = normalizeArray(rawResponse?.values ?? rawResponse?.value ?? rawResponse);
+  // A bare array's `values` is Array.prototype.values, not its picks.
+  const rawValues = normalizeArray(Array.isArray(rawResponse) ? rawResponse : (rawResponse?.values ?? rawResponse?.value ?? rawResponse));
   const selectedOptions = [];
   for ( const rawValue of rawValues ) {
     const optionId = String(rawValue?.optionId ?? rawValue?.id ?? rawValue?.value ?? rawValue);
@@ -896,7 +897,9 @@ function applySelectionsToDefinition({baseDefinition, selections, context}) {
       }));
     }
 
-    for ( const effect of [...normalizeArray(selection.choiceDefinition?.effects), ...normalizeArray(selection.option?.effects)] ) {
+    // A select-many choice applies each option it selected (Restoring Touch: each condition's cost and removal).
+    for ( const effect of [...normalizeArray(selection.choiceDefinition?.effects), ...normalizeArray(selection.option?.effects),
+      ...normalizeArray(selection.options).flatMap(option => normalizeArray(option?.effects))] ) {
       const result = applyConfigurationEffect({
         definition,
         effect,
@@ -907,6 +910,14 @@ function applySelectionsToDefinition({baseDefinition, selections, context}) {
       if ( result.ok ) trace.push(...result.trace);
       else errors.push(...result.errors);
     }
+  }
+  // Spending 0 is allowed only for something else the use does (Lay on Hands with Restoring Touch's conditions), checked
+  // once every choice has applied; otherwise its Bonus Action would buy nothing.
+  const zero = selections.find(selection => selection.active && (Number(selection.value) === 0)
+    && normalizeArray(selection.choiceDefinition?.effects).some(effect => (normalizeEffectType(effect.type ?? effect.kind) === "spend-amount")
+      && effect.resourceId && (effect.collection !== "summon")));
+  if ( zero && !["healing", "damage", "effects", "restores"].some(key => normalizeArray(definition[key]).length) ) {
+    errors.push(choiceError(ACTION_CONFIGURATION_CODES.INVALID_CHOICE, zero.id, "Spending 0 leaves the Action nothing to do."));
   }
 
   return {definition, trace, errors};
@@ -928,6 +939,10 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
       return applyRestoreEffect({definition, effect, selection, selectionsById, context});
     case "replace-cost":
       return applyReplaceCostEffect({definition, effect, selection});
+    case "add-effects":
+      // Effects the choice adds to what the Action does (Restoring Touch: a condition it also ends).
+      definition.effects = [...normalizeArray(definition.effects), ...normalizeArray(effect.effects).map(clonePlain)];
+      return {ok: true, trace: [appliedTrace(selection, "add-effects", {count: normalizeArray(effect.effects).length})], errors: []};
     case "set-range":
       definition.range = clonePlain(effect.range);
       return {ok: true, trace: [appliedTrace(selection, "set-range", {range: effect.range})], errors: []};
@@ -1068,6 +1083,12 @@ function applyAddCostEffect({definition, effect, selection}) {
 function applySpendAmountEffect({definition, effect, selection}) {
   const amount = Math.trunc(finiteNumber(selection.value) ?? 0);
   if ( (effect.collection === "summon") && (amount > 0) && definition.summon ) definition.summon = {...definition.summon, count: amount};
+  // None spent is none of it (Lay on Hands used only for Restoring Touch's conditions).
+  if ( (amount === 0) && effect.resourceId && (effect.collection !== "summon") ) {
+    const collection = effect.collection === "damage" ? "damage" : "healing";
+    const ids = new Set(effect.componentIds ?? []);
+    definition[collection] = (definition[collection] ?? []).filter(component => ids.size && !ids.has(component.id));
+  }
   if ( !(amount > 0) || !effect.resourceId ) return {ok: true, trace: [appliedTrace(selection, "spend-amount-noop", {amount})], errors: []};
   appendCostRequirements(definition, activationCostRequirements({allOf: [{capability: effect.resourceId, amount}]}), {
     source: selection.source, choiceId: selection.id});

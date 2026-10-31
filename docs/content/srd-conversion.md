@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 975 automated, 240 manual, 227 features. Creatures: 375.
+Items: 975 automated, 239 manual, 228 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -1237,7 +1237,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Resilient Sphere | spells24 | Resilient Sphere (automated) | effect: "Enclosed in Sphere" marks its creature only; its rules are by hand |
 | Resistance | spells24 | Resistance (automated) | — |
 | Resourceful | origins24 | Resourceful (feature) | — |
-| Restoring Touch | classes24 | Restoring Touch (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses 5 * @scaling not converted |
+| Restoring Touch | classes24 | Restoring Touch (feature) | — |
 | Resurrection | spells24 | Resurrection (Cast) (automated), Resurrection (Taxing Cast) (automated) | activation: 1 hour is not an action-economy cost |
 | Retaliation | classes24 | Retaliation (automated) | — |
 | Reverse Gravity | spells24 | Reverse Gravity (automated) | save: a failure marks its creature only; what it does is by hand |
