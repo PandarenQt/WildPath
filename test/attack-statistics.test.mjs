@@ -501,13 +501,23 @@ test("Great Weapon Fighting: a two-handed melee weapon's damage dice roll with m
   assert.doesNotMatch(formula([]), /min3/u);
 });
 
-test("Potent Cantrip: a cantrip saved against deals half its damage while its caster has the feature", async () => {
+test("half-on-success: a save against its creature's Action halves damage it would take none of (Potent Cantrip, homebrew)", async () => {
   const fs = await import("node:fs");
   const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
   const flame = JSON.parse(fs.readFileSync("packs/_source/srd-items/sacred-flame-phbsplSacredFlam.json", "utf8"));
-  const caster = potent => ({items: potent ? [{system: {active: true}, flags: {wildpath: {source: {identifier: "potent-cantrip"}}}}] : []});
-  const success = actor => actionDefinitionFromItem({...flame, actor}).definition.damage[0].saveOutcomePolicy.success;
-  assert.deepEqual([success(caster(true)), success(caster(false))], ["half", "none"]);
+  // Potent Cantrip, as converted: a `half-on-success` RollOutcome on the saves its cantrips impose.
+  const potent = JSON.parse(fs.readFileSync("packs/_source/srd-items/potent-cantrip-phbwzdPotentCant.json", "utf8"));
+  const feat = rules => ({id: "f", type: "feature", flags: {}, system: {active: true, modifiers: [], ruleElements: rules}});
+  const caster = rules => Object.assign(Object.create(WildPathActor.prototype), {id: "c", uuid: "Actor.c", effects: [], statuses: new Set(),
+    flags: {}, system: {}, allApplicableEffects: () => [], items: rules ? [feat(rules)] : []});
+  const success = (actor, spell=flame) => actionDefinitionFromItem({...spell, actor}).definition.damage[0].saveOutcomePolicy.success;
+  assert.deepEqual([success(caster(potent.system.ruleElements)), success(caster(null))], ["half", "none"]);
+  // Homebrew "Searing Will": the same outcome on fire spells, any level; a radiant cantrip is left alone.
+  const searing = caster([{schemaVersion: 1, id: "searing-will", type: "RollOutcome", predicate: {tagsAll: ["spell", "damage:fire"]},
+    data: {outcome: "half-on-success", domains: ["imposed.save"]}}]);
+  const fiery = {...flame, system: {...flame.system, definition: {...flame.system.definition,
+    tags: ["spell", "school:evocation", "damage:fire"]}}};
+  assert.deepEqual([success(searing, fiery), success(searing)], ["half", "none"]);
 });
 
 test("ignored Resistances: a feature's flag, and an ignore-resistance rule naming its recorded choice (Elemental Adept, homebrew)", async () => {

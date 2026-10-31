@@ -272,7 +272,7 @@ export function actionDefinitionFromItem(item, options={}) {
   // Its range bonus before Metamagic, so Distant Spell doubles the longer range.
   const actor = item?.actor ?? null;
   const stored = system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null;
-  const ranged = withPotentCantrip(withRangeBonus(withOwnWeapons(withWeaponMastery(withExtraAttacks(stored, item), actor), actor), item), actor);
+  const ranged = withHalfOnSuccess(withRangeBonus(withOwnWeapons(withWeaponMastery(withExtraAttacks(stored, item), actor), actor), item), actor);
   const raw = withContributedChoices(withSummonLevels(withFreeCasts(withChosenSpells(withMysticArcanum(withMetamagic(
     withGrantedCastingAbility(ranged, item), actor), item), item), item), actor), item);
   const migrated = !hasAuthoredDefinition(raw);
@@ -358,13 +358,14 @@ function withRangeBonus(raw, item) {
 }
 
 /**
- * 2024 Potent Cantrip (wizard): a creature that succeeds on its save against its cantrip takes half its damage rather than
- * none, while its creature has the feature. shortcut: half damage on a missed cantrip attack is by hand (noted).
+ * A creature that succeeds on its save against the Action takes half its damage rather than none, while its creature
+ * has a `half-on-success` RollOutcome on `imposed.save` whose predicate holds for the Action's tags (2024 Potent
+ * Cantrip: cantrips).
  */
-function withPotentCantrip(raw, actor) {
-  if ( !(raw?.tags ?? []).includes("cantrip") || !raw.save || !(raw.damage ?? []).some(entry => entry?.saveOutcomePolicy?.success === "none") ) return raw;
-  if ( ![...(actor?.items ?? [])].some(item => (item?.system?.active !== false)
-    && (item?.flags?.wildpath?.source?.identifier === "potent-cantrip")) ) return raw;
+function withHalfOnSuccess(raw, actor) {
+  if ( !raw?.save || !(raw.damage ?? []).some(entry => entry?.saveOutcomePolicy?.success === "none") ) return raw;
+  if ( !(actor?.getRollOutcomes?.(["imposed.save"], {context: {tags: raw.tags ?? []}}) ?? [])
+    .some(outcome => outcome.outcome === "half-on-success") ) return raw;
   return {...raw, damage: raw.damage.map(entry => ((entry?.saveOutcomePolicy?.success === "none")
     ? {...entry, saveOutcomePolicy: {...entry.saveOutcomePolicy, success: "half"}} : entry))};
 }

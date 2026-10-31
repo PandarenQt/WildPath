@@ -2657,8 +2657,10 @@ const TRAITS = Object.freeze({
   // 2024 Grappler. Attack Advantage: against a creature it Grappled (`attack.fromAttacker.grappled`). Punch and Grab: once
   // a turn, its Unarmed Strike's hit may also Grapple, free. shortcut: any of its Unarmed Strike hits qualifies, not only
   // one of the Attack action's. Fast Wrestler needs nothing: moving a Grappled creature costs no extra movement here.
-  // 2024 Potent Cantrip: a saved cantrip deals half its damage (action-definitions withPotentCantrip reads the feature).
-  "potent-cantrip": () => ({rules: [], notes: ["Potent Cantrip: half damage on a missed cantrip attack is by hand"]}),
+  // 2024 Potent Cantrip: a saved cantrip deals half its damage (a `half-on-success` RollOutcome on the saves it imposes).
+  "potent-cantrip": () => ({rules: [{schemaVersion: 1, id: "potent-cantrip", type: "RollOutcome", predicate: {tagsAll: ["cantrip"]},
+    data: {outcome: "half-on-success", domains: ["imposed.save"]}}],
+  notes: ["Potent Cantrip: half damage on a missed cantrip attack is by hand"]}),
   // 2024 Perfect Focus (monk 15) and Superior Inspiration (bard 18): when it rolls Initiative, its pool comes back up to
   // 4 Focus Points, or 2 Bardic Inspiration dice. shortcut: Perfect Focus doesn't check that Uncanny Metabolism wasn't used.
   "perfect-focus": () => ({rules: [refillOnInitiative("perfect-focus", "monk-s-focus", "Perfect Focus", 4)], notes: []}),
