@@ -163,6 +163,31 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
             await actor.update(Object.fromEntries(types.map(type => [`flags.wildpath.damageTaken.${type}`, true])));
     }
     /**
+     * What a creature took, by type, for its own `damage.taken` automation triggers (a Flesh Golem's Aversion to Fire):
+     * `event.data.damageTaken.<type>` is true for each type it took more than 0 of. Only a creature that has such a trigger
+     * is dispatched for, so every other hit costs nothing.
+     */
+    async function dispatchDamageTaken(actor, entry) {
+        const listens = [...(actor.items ?? [])]
+            .some(item => (item.system?.active !== false) && (item.system?.ruleElements ?? [])
+            .some(rule => (rule.type === "Trigger") && (rule.data?.event === "damage.taken")));
+        if (!listens)
+            return;
+        const taken = (entry.plan
+            ?.metadata?.damageResult?.byDamageType) ?? {};
+        const types = Object.entries(taken).filter(([, amount]) => Number(amount) > 0).map(([type]) => type);
+        if (!types.length)
+            return;
+        const token = actor.isToken ? actor.token : (actor.getActiveTokens?.(false, true)?.[0] ?? null);
+        try {
+            await globalThis.game?.wildpath
+                ?.automation?.dispatch?.("damage.taken", { actor, token, data: { damageTaken: Object.fromEntries(types.map(type => [type, true])) } });
+        }
+        catch (error) {
+            logger.warn("Wild Path | A damage trigger failed", error);
+        }
+    }
+    /**
      * The health changes `plans` committed on `actor` (a condition's damage at turn start). With `rescue`, damage outside
      * an Action that dropped it to 0 may keep it up first (rescueAtZero); an Action's own damage was checked before
      * commit, so `afterResolution` never rescues.
@@ -177,6 +202,8 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
                 continue;
             if (DAMAGE.has(type))
                 await recordStoppingDamage(actor, entry);
+            if (DAMAGE.has(type))
+                await dispatchDamageTaken(actor, entry);
             let consequence = dyingAfterChange({ change: { ...change, type }, critical, character: savesForDeath(actor),
                 deathSaves: deathSavesOf(actor) });
             // A creature whose Regeneration puts off its death lies at 0 until its turn starts.

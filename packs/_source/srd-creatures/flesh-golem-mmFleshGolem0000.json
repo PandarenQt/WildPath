@@ -71,7 +71,63 @@
       "system": {
         "active": true,
         "description": "<p>If the flesh golem takes Fire damage, it has Disadvantage on attack rolls and ability checks until the end of its next turn.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "aversion-to-fire",
+            "type": "Trigger",
+            "data": {
+              "event": "damage.taken",
+              "predicate": {
+                "equals": {
+                  "path": "event.data.damageTaken.fire",
+                  "value": true
+                }
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-aversion-to-fire",
+                "label": "Aversion to Fire",
+                "costs": {
+                  "allOf": []
+                },
+                "range": {
+                  "type": "self"
+                },
+                "targeting": {
+                  "type": "self"
+                },
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "effect",
+                    "name": "Aversion to Fire",
+                    "img": "icons/svg/fire.svg",
+                    "duration": {
+                      "value": 1,
+                      "units": "rounds",
+                      "expiry": "turnEnd"
+                    },
+                    "ruleElements": [
+                      {
+                        "schemaVersion": 1,
+                        "id": "aversion-to-fire",
+                        "type": "RollMode",
+                        "data": {
+                          "domains": [
+                            "attack",
+                            "check"
+                          ],
+                          "mode": "disadvantage"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -87,9 +143,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "silent: its text names a rule that is not converted (by hand)"
-            ]
+            "notes": []
           }
         }
       }
@@ -472,7 +526,6 @@
       },
       "conversion": {
         "notes": [
-          "Aversion to Fire: silent: its text names a rule that is not converted (by hand)",
           "Berserk: \"Berserk Check\" is passive or triggered: not automated",
           "Berserk: \"Calm Check\" is passive or triggered: not automated"
         ]

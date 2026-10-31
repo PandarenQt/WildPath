@@ -614,7 +614,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Flaming Sphere | actors24 | Flaming Sphere (2 items) | Flames: "save" is passive or triggered: not automated; Roll: rolled (save); what it does is by hand |
 | Flask | equipment24 | Flask (gear) | — |
 | Fleet Step | classes24 | Fleet Step (feature) | — |
-| Flesh Golem | actors24 | Flesh Golem (8 items) | Aversion to Fire: silent: its text names a rule that is not converted (by hand); Berserk: "Berserk Check" is passive or triggered: not automated; Berserk: "Calm Check" is passive or triggered: not automated |
+| Flesh Golem | actors24 | Flesh Golem (8 items) | Berserk: "Berserk Check" is passive or triggered: not automated; Berserk: "Calm Check" is passive or triggered: not automated |
 | Flesh to Stone | spells24 | Flesh to Stone (automated) | — |
 | Floating Disk | spells24 | Floating Disk (automated) | — |
 | Floating Disk | actors24 | Floating Disk (1 items) | — |

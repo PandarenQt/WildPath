@@ -226,3 +226,24 @@ test("drop to 0 outside an Action (a condition's damage): Relentless Endurance k
   await dying.afterPlans(orc, [bleed], {rescue: true});
   assert.deepEqual(orc.effects.map(effect => effect.system.type), ["unconscious"], "no use left: it drops");
 });
+
+test("a creature with a damage.taken trigger (Aversion to Fire) is dispatched what it took, by type; others are not", async () => {
+  const dispatched = [];
+  const previous = globalThis.game;
+  globalThis.game = {wildpath: {automation: {dispatch: async (type, data) => dispatched.push([type, data.data])}}};
+  try {
+    const dying = createFoundryDying({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: []}, coordinator: {},
+      resolveAction: async () => ({ok: false})});
+    const hit = byDamageType => ({type: "durabilityDamage", plan: {...damage(90, 9, 93), metadata: {damageResult: {byDamageType}}}});
+    const golem = creature({type: "npc", health: 90});
+    golem.items = [{system: {active: true, ruleElements: [{type: "Trigger", data: {event: "damage.taken"}}]}}];
+    await dying.afterPlans(golem, [hit({fire: 6, slashing: 3, cold: 0})]);
+    assert.deepEqual(dispatched, [["damage.taken", {damageTaken: {fire: true, slashing: true}}]]);
+    const ogre = creature({type: "npc", health: 90});
+    ogre.items = [];
+    await dying.afterPlans(ogre, [hit({fire: 6})]);
+    assert.equal(dispatched.length, 1, "no trigger, no dispatch");
+  } finally {
+    globalThis.game = previous;
+  }
+});

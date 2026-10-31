@@ -2309,6 +2309,15 @@ const TRAITS = Object.freeze({
   flyby: () => ({rules: [{schemaVersion: 1, id: "flyby", type: "AvoidOpportunityAttacks", data: {movementModes: ["fly"]}}], notes: []}),
   "pack-tactics": () => ({rules: [{schemaVersion: 1, id: "pack-tactics", type: "RollMode",
     predicate: {equals: {path: "attack.allyNearTarget", value: true}}, data: {domains: ["attack"], mode: "advantage"}}], notes: []}),
+  // 2024 Flesh Golem: "If the flesh golem takes Fire damage, it has Disadvantage on attack rolls and ability checks until the
+  // end of its next turn": a `damage.taken` trigger (the dying adapter dispatches it with the types taken).
+  "aversion-to-fire": document => ({rules: [{schemaVersion: 1, id: "aversion-to-fire", type: "Trigger", data: {event: "damage.taken",
+    predicate: {equals: {path: "event.data.damageTaken.fire", value: true}},
+    action: {schemaVersion: 1, id: "action:srd-aversion-to-fire", label: document.name, costs: {allOf: []}, range: {type: "self"},
+      targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect", name: document.name, img: "icons/svg/fire.svg",
+        duration: {value: 1, units: "rounds", expiry: "turnEnd"},
+        ruleElements: [{schemaVersion: 1, id: "aversion-to-fire", type: "RollMode", data: {domains: ["attack", "check"], mode: "disadvantage"}}]}]}}}],
+    notes: []}),
   // 2024 Berserker: "While Bloodied, the berserker has Advantage on attack rolls and saving throws."
   "bloodied-frenzy": () => ({rules: [{schemaVersion: 1, id: "bloodied-frenzy", type: "RollMode", predicate: {bloodied: true},
     data: {domains: ["attack", "save"], mode: "advantage"}}], notes: []}),
