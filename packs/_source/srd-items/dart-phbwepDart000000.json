@@ -24,7 +24,8 @@
         "defenseKey": "ac",
         "proficient": true,
         "properties": [
-          "finesse"
+          "finesse",
+          "thrown"
         ],
         "weapon": {
           "category": "simple",

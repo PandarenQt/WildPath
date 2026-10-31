@@ -166,6 +166,9 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
+            "properties": [
+              "thrown"
+            ],
             "weapon": {
               "category": "simple",
               "base": "javelin",

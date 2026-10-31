@@ -2621,3 +2621,26 @@ test("the books' silent features, first batch: movement equal to Speed, Advantag
     .items[0].flags.wildpath.conversion.notes;
   assert.match(narrative.join(" "), /narrative/u);
 });
+
+test("the books' silent features, second batch: third-person saves, Fey Ancestry's sleep, ranged feats, thrown weapons, Sacred Weapon", () => {
+  const feat = (identifier, name, description="<p>Rule text.</p>") => ({_id: `${identifier.replace(/-/g, "")}`.padEnd(16, "0").slice(0, 16),
+    name, type: "feat", img: "icons/svg/item-bag.svg", effects: [], system: {source: SRD, identifier, activities: {}, description: {value: description}}});
+  const rules = document => convertItem(document).items[0].system.ruleElements;
+  assert.deepEqual(rules(feat("poison-tolerant", "Poison Tolerant",
+    "<p>The creature has Advantage on saving throws it makes to avoid or end the Poisoned condition.</p>")).map(rule => rule.predicate.tagsAny),
+  [["against:poisoned"]], "a creature's trait in the third person");
+  const fey = rules(feat("fey-ancestry", "Fey Ancestry",
+    "<p>The creature has Advantage on saving throws it makes to avoid or end the Charmed condition, and magic can't put it to sleep.</p>"));
+  assert.deepEqual(fey.map(rule => rule.id).sort(), ["fey-ancestry-against-charmed", "trance"]);
+  assert.deepEqual(rules(feat("sharpshooter", "Sharpshooter")).map(rule => [rule.data.domains[0], rule.data.value, rule.predicate.tagsAll]),
+    [["cover.ignored", 2, ["weapon", "ranged"]]]);
+  assert.deepEqual(rules(feat("spell-sniper", "Spell Sniper")).map(rule => [rule.data.domains[0], rule.data.value]),
+    [["cover.ignored", 2], ["range.spell", 60]]);
+  assert.deepEqual(rules(feat("thrown-weapon-fighting", "Thrown Weapon Fighting")).map(rule => rule.predicate.tagsAll), [["ranged", "thrown"]]);
+  const javelin = convertItem({...weapon, _id: "testJavelin00001", name: "Test Javelin", system: {...weapon.system, properties: ["thr"]}}).items
+    .find(item => item.type === "action");
+  assert.deepEqual(javelin.system.definition.attack.properties, ["thrown"]);
+  // A creature's weapon named Sacred Weapon is its attack, not the paladin's Channel Divinity enchantment.
+  const sacred = convertItem({...weapon, _id: "testSacredWeap01", name: "Sacred Weapon", system: {...weapon.system, identifier: "sacred-weapon"}}).items;
+  assert.equal(sacred.some(item => item.system?.definition?.attack), true);
+});

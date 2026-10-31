@@ -1421,7 +1421,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const onHit = OWN_HIT[`${identifierOf(document)}/${activity.name}`] ?? OWN_HIT[identifierOf(document)] ?? hitOffer(document, activity)
       ?? attackRider(document, activity, activities);
     // An enchantment of one of its creature's weapons (Magic Weapon, Sacred Weapon): its weapon's attacks change instead.
-    const enchant = ENCHANTS[identifierOf(document)] ?? null;
+    // Not a weapon of the same name (a creature's Sacred Weapon attack is no Channel Divinity).
+    const enchant = (document.type !== "weapon") ? (ENCHANTS[identifierOf(document)] ?? null) : null;
     if ( enchant && (activity.type !== "enchant") ) continue;
     // A template's enchantment is an Action even with no activation (null when it changes nothing: Adamantine Armor).
     const template = templateEnchant(document, activities)
@@ -2130,7 +2131,8 @@ function savesAgainstRules(text, base) {
     .map(condition => ({schemaVersion: 1, id: `${base || "rule"}-against-${condition}`, type: "RollMode",
       predicate: {tagsAny: [`against:${condition}`]}, data: {domains: ["save"], mode: "advantage"}}));
 }
-const SAVES_AGAINST = /(?<!\bnot )\bAdvantage on saving throws(?: you make| made)? to avoid or end the (\w+) condition/giu;
+// "you make", "it makes", "they make" or "made" (a creature's trait reads in the third person: Poison Tolerant).
+const SAVES_AGAINST = /(?<!\bnot )\bAdvantage on saving throws(?: (?:you|it|they) makes?| made)? to avoid or end the (\w+) condition/giu;
 
 /**
  * A creature's own trait that says it "can't regain Hit Points" caps its healing at 0, and "or gain Temporary Hit Points"
@@ -2402,6 +2404,19 @@ const TRAITS = Object.freeze({
   // 2024 Elusive: "No attack roll can have Advantage against you unless you have the Incapacitated condition."
   elusive: () => ({rules: [{schemaVersion: 1, id: "elusive", type: "RollOutcome", predicate: NOT_INCAPACITATED,
     data: {domains: ["attacked"], outcome: "no-advantage"}}], notes: []}),
+  // A feat's weapon or spell attacks ignore Half and Three-Quarters Cover (`cover.ignored` 2): Sharpshooter's ranged weapon
+  // attacks; Spell Sniper's spell attacks, which also reach 60 feet farther (`range.spell`). Their other parts lift
+  // penalties WildPath doesn't impose (long range, attacking beside an enemy).
+  sharpshooter: () => ({rules: [{schemaVersion: 1, id: "sharpshooter-cover", type: "Modifier", predicate: {tagsAll: ["weapon", "ranged"]},
+    data: {domains: ["cover.ignored"], modifierType: "untyped", value: 2}}], notes: []}),
+  "spell-sniper": () => ({rules: ["cover.ignored", "range.spell"].map(domain => ({schemaVersion: 1, id: `spell-sniper-${domain.split(".")[0]}`,
+    type: "Modifier", predicate: {tagsAll: ["spell", "attack"]}, data: {domains: [domain], modifierType: "untyped",
+      value: (domain === "range.spell") ? 60 : 2}})), notes: []}),
+  // +2 damage with a thrown weapon's ranged attack (Thrown Weapon Fighting); drawing it as part of the attack needs nothing.
+  "thrown-weapon-fighting": () => ({rules: [{schemaVersion: 1, id: "thrown-weapon-fighting", type: "Modifier",
+    predicate: {tagsAll: ["ranged", "thrown"]}, data: {domains: ["damage.weapon"], modifierType: "untyped", value: 2}}], notes: []}),
+  // A creature's Fey Ancestry that says magic can't put it to sleep: Trance's rule (the saves part is SAVES_AGAINST's).
+  "fey-ancestry": document => (/\bmagic can[’']t put (?:it|you) to sleep\b/u.test(plainText(document)) ? TRAITS.trance() : null),
   // 2024 Trance: "magic can't put you to sleep" (Sleep: a creature that doesn't sleep succeeds on its saves). shortcut: its
   // 4-hour Long Rest is by hand (a party rest is 8 hours).
   trance: () => ({rules: [{schemaVersion: 1, id: "trance", type: "RollOutcome", predicate: {tagsAny: ["sleep"]},
@@ -3947,7 +3962,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
     proficient: true} : null;
   if ( attack ) {
     // Its properties a rule or the engine reads: finesse (its better ability), light (a Monk weapon, two-weapon fighting).
-    const properties = [["fin", "finesse"], ["lgt", "light"]].filter(([key]) => (system.properties ?? []).includes(key)).map(([, name]) => name);
+    // Thrown too (Thrown Weapon Fighting's bonus reads it).
+    const properties = [["fin", "finesse"], ["lgt", "light"], ["thr", "thrown"]].filter(([key]) => (system.properties ?? []).includes(key)).map(([, name]) => name);
     if ( properties.length ) attack.properties = properties;
     if ( attackData.ability && ABILITY_MAP[attackData.ability] ) attack.ability = ABILITY_MAP[attackData.ability];
     const weapon = weaponOf(document);

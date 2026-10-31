@@ -86,6 +86,9 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
+            "properties": [
+              "thrown"
+            ],
             "weapon": {
               "category": "simple",
               "base": "spear",
@@ -169,6 +172,9 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
+            "properties": [
+              "thrown"
+            ],
             "weapon": {
               "category": "simple",
               "base": "spear",

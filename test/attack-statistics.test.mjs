@@ -393,3 +393,16 @@ test("a monk's Unarmored Defense counts without a Shield only; its Martial Arts 
   const dieOn = actor => actor.getExtraDamage(["damage.weapon"], {tags: ["melee", "category:simple"]}).length > 0;
   assert.deepEqual([dieOn(monk([])), dieOn(monk(["light"]))], [true, false], "a quarterstaff in leather armor is no Monk weapon strike");
 });
+
+test("Spell Sniper: a spell attack reaches 60 feet farther; a spell with a save doesn't", async () => {
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const sniper = Object.assign(Object.create(WildPathActor.prototype), {id: "sniper", uuid: "Actor.sniper", effects: [], statuses: new Set(),
+    flags: {}, system: {}, allApplicableEffects: () => [], items: [{id: "feat", uuid: "Actor.sniper.Item.feat", type: "feature",
+      system: {active: true, modifiers: [], ruleElements: [{schemaVersion: 1, id: "spell-sniper-range", type: "Modifier",
+        predicate: {tagsAll: ["spell", "attack"]}, data: {domains: ["range.spell"], modifierType: "untyped", value: 60}}]}}]});
+  const spell = extra => ({id: "s", type: "action", name: "Spell", actor: sniper, system: {definition: {schemaVersion: 1, id: "action:spell",
+    costs: {allOf: [{capability: "action", amount: 1}]}, tags: ["spell", "cantrip"], range: {type: "ranged", normal: {value: 120, unit: "ft"}},
+    targeting: {type: "single", required: true, count: 1}, ...extra}}});
+  assert.deepEqual([actionDefinitionFromItem(spell({attack: {type: "ranged", statistic: "spell"}})).definition.range.normal.value,
+    actionDefinitionFromItem(spell({save: {ability: "agility"}})).definition.range.normal.value], [180, 120]);
+});

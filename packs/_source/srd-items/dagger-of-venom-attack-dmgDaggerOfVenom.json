@@ -28,7 +28,8 @@
         "proficient": true,
         "properties": [
           "finesse",
-          "light"
+          "light",
+          "thrown"
         ],
         "weapon": {
           "category": "simple",

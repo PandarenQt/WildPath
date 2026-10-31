@@ -95,7 +95,8 @@
             "defenseKey": "ac",
             "proficient": true,
             "properties": [
-              "light"
+              "light",
+              "thrown"
             ],
             "weapon": {
               "category": "simple",

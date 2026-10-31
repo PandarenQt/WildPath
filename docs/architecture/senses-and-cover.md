@@ -110,7 +110,8 @@ Cover is worked out automatically for every Action (maintainer decision, 2026-10
 
 3. If no wall gives cover, a creature whose space a line crosses gives Half.
 4. Cover its attacker's rules ignore (2026-10-31): `cover.ignored` Modifiers, read with the Action's tags, of 1 make Half
-   Cover none, of 2 Three-Quarters Cover too. The Wand of the War Mage's enchantment gives 1 on spell attacks.
+   Cover none, of 2 Three-Quarters Cover too; its tags include the attack's type and statistic. The Wand of the War
+   Mage's enchantment gives 1 on spell attacks; Sharpshooter 2 on ranged weapon attacks; Spell Sniper 2 on spell attacks.
 
 ### Walls on any Scene
 

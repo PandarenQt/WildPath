@@ -116,7 +116,10 @@
             "type": "ranged",
             "statistic": "weapon",
             "defenseKey": "ac",
-            "proficient": true
+            "proficient": true,
+            "properties": [
+              "thrown"
+            ]
           },
           "range": {
             "type": "ranged",

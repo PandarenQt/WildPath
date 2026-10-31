@@ -346,7 +346,8 @@ function withOwnWeapons(raw, actor) {
 function withRangeBonus(raw, item) {
   const range = raw?.range;
   if ( (range?.type !== "ranged") || !(Number(range.normal?.value) >= 10) || (typeof item?.actor?.getStatistic !== "function") ) return raw;
-  const tags = raw.tags ?? [];
+  // An attack's too (Spell Sniper: spell attacks).
+  const tags = [...(raw.tags ?? []), ...(raw.attack ? ["attack"] : [])];
   const bonus = Number(item.actor.getStatistic([...(tags.includes("spell") ? ["range.spell"] : []), "range"], {item, tags})?.totalModifier) || 0;
   if ( !(bonus > 0) ) return raw;
   const longer = distance => (distance ? {...distance, value: Number(distance.value) + bonus} : distance);

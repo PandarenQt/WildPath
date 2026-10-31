@@ -63,7 +63,9 @@ export function actionCover({definition, sourceToken, targetToken, points=[]}) {
   }
   // Cover its attacker's rules ignore (`cover.ignored` Modifiers, by the Action's tags): 1 Half Cover (2024 Wand of the War
   // Mage's spell attacks), 2 Three-Quarters Cover too.
-  const ignored = Math.trunc(Number(sourceToken.actor?.getStatistic?.("cover.ignored", {tags: actionTags(definition)})?.totalModifier) || 0);
+  // Its tags with its attack's type and statistic (Sharpshooter: a ranged weapon attack).
+  const tags = [...actionTags(definition), definition?.attack?.type, definition?.attack?.statistic].filter(Boolean);
+  const ignored = Math.trunc(Number(sourceToken.actor?.getStatistic?.("cover.ignored", {tags})?.totalModifier) || 0);
   return (((ignored >= 1) && (cover === "half")) || ((ignored >= 2) && (cover === "threeQuarters"))) ? "none" : cover;
 }
 import {createFoundryWeaponMastery} from "../adapters/foundry-v14-weapon-mastery.mjs";

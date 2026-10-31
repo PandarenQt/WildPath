@@ -159,6 +159,9 @@
             "statistic": "weapon",
             "defenseKey": "ac",
             "proficient": true,
+            "properties": [
+              "thrown"
+            ],
             "ability": "might"
           },
           "range": {

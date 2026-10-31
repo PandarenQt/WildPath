@@ -92,3 +92,16 @@ test("an attacker's rules may ignore cover: the Wand of the War Mage's spell att
     actionCover({definition: {attack: {type: "ranged"}}, sourceToken: caster, targetToken: target(["coverHalf"])})],
   ["none", "threeQuarters", "half", "half"], "a spell attack only; Three-Quarters Cover stays; a save and a weapon attack keep Half Cover");
 });
+
+test("Sharpshooter's ranged weapon attacks ignore Half and Three-Quarters Cover; its melee attacks don't", async () => {
+  const {actionCover} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const rule = {predicate: {tagsAll: ["weapon", "ranged"]}, data: {value: 2}};
+  const archer = {id: "s", actor: {getStatistic: (domain, {tags}) => ({totalModifier: evaluatePredicate(rule.predicate, {tags}).ok ? 2 : 0})}};
+  const target = statuses => ({id: "t", parent: null, actor: {statuses: new Set(statuses)}});
+  const bow = {attack: {type: "ranged", statistic: "weapon"}};
+  const sword = {attack: {type: "melee", statistic: "weapon"}};
+  assert.deepEqual([actionCover({definition: bow, sourceToken: archer, targetToken: target(["coverThreeQuarters"])}),
+    actionCover({definition: bow, sourceToken: archer, targetToken: target(["coverTotal"])}),
+    actionCover({definition: sword, sourceToken: archer, targetToken: target(["coverHalf"])})], ["none", "total", "half"]);
+});
