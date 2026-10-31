@@ -133,7 +133,18 @@
       "system": {
         "active": true,
         "description": "<p class=\"feature\">The clay golem can't shape-shift.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immutable-form",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "transformed"
+              ]
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -149,9 +160,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "silent: its text names a rule that is not converted (by hand)"
-            ]
+            "notes": []
           }
         }
       }
@@ -620,8 +629,7 @@
       },
       "conversion": {
         "notes": [
-          "Berserk: \"Berserk Check\" is passive or triggered (narrative): not automated",
-          "Immutable Form: silent: its text names a rule that is not converted (by hand)"
+          "Berserk: \"Berserk Check\" is passive or triggered (narrative): not automated"
         ]
       }
     }

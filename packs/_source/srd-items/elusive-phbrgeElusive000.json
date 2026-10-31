@@ -7,7 +7,43 @@
   "system": {
     "active": true,
     "description": "<p>You're so evasive that attackers rarely gain the upper hand against you. No attack roll can have Advantage against you unless you have the Incapacitated condition.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "elusive",
+        "type": "RollOutcome",
+        "predicate": {
+          "not": {
+            "any": [
+              {
+                "hasCondition": "incapacitated"
+              },
+              {
+                "hasCondition": "stunned"
+              },
+              {
+                "hasCondition": "paralyzed"
+              },
+              {
+                "hasCondition": "petrified"
+              },
+              {
+                "hasCondition": "unconscious"
+              },
+              {
+                "hasCondition": "dead"
+              }
+            ]
+          }
+        },
+        "data": {
+          "domains": [
+            "attacked"
+          ],
+          "outcome": "no-advantage"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -23,9 +59,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "silent: its text names a rule that is not converted (by hand)"
-        ]
+        "notes": []
       }
     }
   }

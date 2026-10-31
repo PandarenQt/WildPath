@@ -1274,6 +1274,7 @@
       },
       "FormMissing": "WildPath: the form this Action names can't be found, so nothing was transformed.",
       "FormTooStrong": "{form} is beyond {name}'s Challenge Rating or level, so it wasn't transformed.",
+      "CannotShapeShift": "{name} can't shape-shift, so it wasn't transformed.",
       "SummonNoToken": "WildPath: a summon needs its caster's Token on a Scene.",
       "SummonMissing": "WildPath: the creature this Action summons can't be found (is its compendium enabled?).",
       "SummonNone": "{name} summons no creature at this level.",

@@ -1447,6 +1447,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Evocation), each damage type it deals (`damage:fire`: Elemental Affinity), and its components (Counterspell).
     if ( spell ) definition = {...definition, tags: [...new Set([...(definition.tags ?? []), ...(Number(level) === 0 ? ["cantrip"] : []),
       ...(SCHOOLS[system.school] ? [`school:${SCHOOLS[system.school]}`] : []), ...componentTags(system),
+      // Sleep magic, which a creature that doesn't sleep shrugs off (2024 Sleep: "Creatures that don't sleep ...").
+      ...(/\bdon['’]t sleep\b/iu.test(plainText(document)) ? ["sleep"] : []),
       ...(definition.damage ?? []).map(component => component.damageType).filter(Boolean).map(type => `damage:${type}`)])]};
     // Lay on Hands: "restore a number of Hit Points equal to the points spent", chosen when used, from its pool.
     if ( (identifierOf(document) === "lay-on-hands") && (activity.type === "heal") && pool ) {
@@ -2103,6 +2105,21 @@ const TRAITS = Object.freeze({
   // instead take no damage if you succeed on the saving throw and only half damage if you fail", unless Incapacitated.
   evasion: () => ({rules: [{schemaVersion: 1, id: "evasion", type: "RollOutcome", predicate: NOT_INCAPACITATED,
     data: {domains: ["save.agility"], outcome: "evasion"}}], notes: []}),
+  // 2024 Elusive: "No attack roll can have Advantage against you unless you have the Incapacitated condition."
+  elusive: () => ({rules: [{schemaVersion: 1, id: "elusive", type: "RollOutcome", predicate: NOT_INCAPACITATED,
+    data: {domains: ["attacked"], outcome: "no-advantage"}}], notes: []}),
+  // 2024 Trance: "magic can't put you to sleep" (Sleep: a creature that doesn't sleep succeeds on its saves). shortcut: its
+  // 4-hour Long Rest is by hand (a party rest is 8 hours).
+  trance: () => ({rules: [{schemaVersion: 1, id: "trance", type: "RollOutcome", predicate: {tagsAny: ["sleep"]},
+    data: {domains: ["save"], outcome: "automatic-success"}}], notes: []}),
+  // 2024 Relentless Hunter: "Taking damage can't break your Concentration on Hunter's Mark" (no damage check while what
+  // it sustains is the mark; 2024 concentration holds one spell).
+  "relentless-hunter": () => ({rules: [{schemaVersion: 1, id: "relentless-hunter", type: "RollOutcome",
+    predicate: {equals: {path: "concentration.sustains.hunters-mark", value: true}},
+    data: {domains: ["concentration"], outcome: "automatic-success"}}], notes: []}),
+  // A golem's Immutable Form: "can't shape-shift" (2014: immune to effects that alter its form); no Polymorph takes it.
+  "immutable-form": () => ({rules: [{schemaVersion: 1, id: "immutable-form", type: "ConditionImmunity",
+    data: {conditions: ["transformed"]}}], notes: []}),
   // Once per turn, extra damage of the weapon's type to a creature hit with a Finesse or Ranged weapon, if the attack has
   // Advantage, or an ally is within 5 ft of the target and the attack has no Disadvantage.
   // 2024 Frenzy: while raging and Reckless, the first target hit with a Strength attack on its turn takes its Rage

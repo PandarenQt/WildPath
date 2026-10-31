@@ -171,10 +171,14 @@ export function attackRollMode(attacker, target, options={}) {
 
 /** Each source of an attack's Advantage or Disadvantage, the attacker's and the target's, before they combine. */
 export function attackRollModeSources(attacker, target, {type=null, item=null, ability=null, context={}}={}) {
-  return [
+  const sources = [
     ...(attacker?.getRollModes?.(["attack", `attack.${type}`, ...(ability ? [`attack.${ability}`] : [])], {item, context}) ?? []),
     ...(target?.getRollModes?.(["attacked", `attacked.${type}`], {context}) ?? [])
   ];
+  // 2024 Elusive: no attack roll against it has Advantage (`no-advantage`); its Disadvantages stay.
+  const elusive = (target?.getRollOutcomes?.(["attacked", `attacked.${type}`], {context}) ?? [])
+    .some(outcome => outcome.outcome === "no-advantage");
+  return elusive ? sources.filter(source => (source?.mode ?? source) !== "advantage") : sources;
 }
 
 /** Whether every hit on `target` is a critical hit (`critical-on-hit`: Paralyzed or Unconscious, within 5 ft). */

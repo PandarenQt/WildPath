@@ -136,7 +136,18 @@
       "system": {
         "active": true,
         "description": "<p class=\"feature\">The flesh golem can't shape-shift.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immutable-form",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "transformed"
+              ]
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -152,9 +163,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "silent: its text names a rule that is not converted (by hand)"
-            ]
+            "notes": []
           }
         }
       }
@@ -465,8 +474,7 @@
         "notes": [
           "Aversion to Fire: silent: its text names a rule that is not converted (by hand)",
           "Berserk: \"Berserk Check\" is passive or triggered: not automated",
-          "Berserk: \"Calm Check\" is passive or triggered: not automated",
-          "Immutable Form: silent: its text names a rule that is not converted (by hand)"
+          "Berserk: \"Calm Check\" is passive or triggered: not automated"
         ]
       }
     }

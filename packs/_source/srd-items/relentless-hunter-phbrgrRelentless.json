@@ -7,7 +7,25 @@
   "system": {
     "active": true,
     "description": "<p>Taking damage can't break your Concentration on Hunter's Mark.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "relentless-hunter",
+        "type": "RollOutcome",
+        "predicate": {
+          "equals": {
+            "path": "concentration.sustains.hunters-mark",
+            "value": true
+          }
+        },
+        "data": {
+          "domains": [
+            "concentration"
+          ],
+          "outcome": "automatic-success"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -23,9 +41,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "silent: its text names a rule that is not converted (by hand)"
-        ]
+        "notes": []
       }
     }
   }

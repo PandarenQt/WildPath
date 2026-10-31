@@ -880,9 +880,12 @@ function rollOutcomeRuleElement(ruleElement) {
   const domains = normalizeStrings(data.domains ?? data.domain);
   // `critical-range`: its attacks score a Critical Hit on a d20 of `threshold` or more (Improved Critical: 19).
   // `minimum-natural`: a d20 below `threshold` counts as it (Reliable Talent: 10, on checks with a proficiency).
-  if ( !["automatic-failure", "critical-on-hit", "evasion", "critical-range", "minimum-natural"].includes(data.outcome) ) {
-    return handlerFailure(RULE_ELEMENT_CODES.INVALID,
-      "RollOutcome RuleElement outcome must be automatic-failure, critical-on-hit, evasion, critical-range or minimum-natural.");
+  // `automatic-success`: on `save`, the save succeeds unrolled (Trance against sleep magic); on `concentration`, damage
+  // calls for no check (Relentless Hunter). `no-advantage`: on `attacked`, no attack roll against it has Advantage (Elusive).
+  if ( !["automatic-failure", "automatic-success", "critical-on-hit", "evasion", "critical-range", "minimum-natural", "no-advantage"]
+    .includes(data.outcome) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement outcome must be automatic-failure, automatic-success, "
+      + "critical-on-hit, evasion, critical-range, minimum-natural or no-advantage.");
   }
   if ( !domains.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement requires domains.");
   const threshold = Number(data.threshold);

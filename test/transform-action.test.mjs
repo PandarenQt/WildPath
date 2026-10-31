@@ -210,3 +210,18 @@ test("a spell cast with a slot in combat is recorded for its turn; a smite, a ca
   await recordSlotSpell(calm.event, {game: {combat: null}});
   assert.equal(calm.actor.flags.wildpath, undefined, "outside combat");
 });
+
+test("Immutable Form: a creature that can't shape-shift is not Polymorphed, though it failed its save", async () => {
+  const definition = {...WILD_SHAPE, transform: {choiceId: "form", targets: true, keepItemTypes: [], temporaryHealth: "form"}};
+  const {configuration} = resolveActionConfiguration({actionDefinition: definition, responses: {form: "Actor.bear"}});
+  const golem = {...shifter(), name: "Clay Golem", system: {details: {threat: 9}}, getConditionImmunities: () => ["transformed"]};
+  const ogre = {...shifter(), system: {details: {threat: 2}}};
+  const caster = {id: "caster", parent: {tokens: new Map([["golem", {actor: golem}], ["ogre", {actor: ogre}]])}};
+  const bear = {name: "Bear", system: {details: {threat: 1}, resources: {health: {max: 34}}}};
+  await applyActionTransformation({options: {actor: shifter()}, state: {actionDefinition: definition, configuration,
+    source: {tokenRef: "Scene.s.Token.caster"}, results: {saveResolution: {results: [{ok: true, success: false, target: {tokenId: "golem"}},
+      {ok: true, success: false, target: {tokenId: "ogre"}}]}}}},
+  {fromUuid: async uuid => (uuid === "Actor.bear" ? bear : (uuid === "Scene.s.Token.caster" ? caster : null)), logger: {warn() {}}});
+  assert.deepEqual(golem.calls, [], "its shape stays");
+  assert.equal(ogre.calls.length, 1, "the other creature that failed is transformed");
+});

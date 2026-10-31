@@ -427,6 +427,7 @@ async function plannedWithConditions(definition, {attacker=[], target=[], offset
     actor: Object.assign(fakeActor(`roll-ally-${index}`, {system: actorSystem()}), {statuses: new Set(conditions)})}));
   // Others at the table: each has a Token on the Scene, out of the way.
   const extraTokens = extraActors.map((actor, index) => fakeTokenDocument({id: `extra-${index}`, actor, scene, offset: {i: 6 + index, j: 6}}));
+  for ( const [index, actor] of extraActors.entries() ) if ( !actor.tokens?.length ) actor.tokens = [extraTokens[index]];
   scene.tokens = [sourceToken, targetToken, ...allyTokens, ...extraTokens];
   const action = actionItem(definition, sourceActor);
   const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game: fakeGame({actors: [sourceActor, targetActor,
@@ -2774,4 +2775,31 @@ test("a refusal reaches its player in words: its own, a known lower-level reason
   assert.equal(refusalMessage({code: "X", reason: "The Action sender must own the acting Actor."}, game(false)), "loc:WILDPATH.REFUSAL.Generic");
   assert.equal(refusalMessage({code: "X", reason: "The Action sender must own the acting Actor."}, game(true)),
     "fmt:WILDPATH.NOTIFY.ActionFailed:The Action sender must own the acting Actor.");
+});
+
+test("Trance: a save against sleep magic succeeds unrolled; Relentless Hunter: damage calls for no check on its Hunter's Mark", async () => {
+  const trance = [{schemaVersion: 1, id: "trance", type: "RollOutcome", predicate: {tagsAny: ["sleep"]},
+    data: {domains: ["save"], outcome: "automatic-success"}}];
+  const sleep = {...fortitudeBlast("wits"), id: "action:runtime-sleep", tags: ["spell", "sleep"], damage: [],
+    effects: [{id: "effect-1", type: "condition", conditionId: "incapacitated", saveOutcomePolicy: "failure"}]};
+  const slept = await plannedWithConditions(sleep, {target: [trance], saveRoll: {total: 1, natural: 1, die: 1}});
+  assert.equal(slept.state.results.saveResolution.results[0].success, true, "a 1 still succeeds: magic can't put it to sleep");
+  const awake = await plannedWithConditions({...sleep, tags: ["spell"]}, {target: [trance], saveRoll: {total: 1, natural: 1, die: 1}});
+  assert.equal(awake.state.results.saveResolution.results[0].success, false, "other magic: rolled as usual");
+
+  const relentless = [{schemaVersion: 1, id: "relentless-hunter", type: "RollOutcome",
+    predicate: {equals: {path: "concentration.sustains.hunters-mark", value: true}}, data: {domains: ["concentration"], outcome: "automatic-success"}}];
+  // A ranger on the Scene concentrating on Hunter's Mark (as a bystander a redirected hit may reach, it is planned for).
+  const ranger = rules => {
+    const actor = withConditions(fakeActor("ranger", {system: actorSystem()}), rules);
+    Object.defineProperty(actor, "token", {get: () => actor.tokens[0] ?? null});
+    const mark = {id: "mark", name: "Hunter's Mark", statuses: new Set(["hunters-mark"]),
+      flags: {wildpath: {conditionEffect: {concentration: {sourceRef: "token:extra-0"}}}}};
+    actor.effects = [{...mark, toObject: () => ({...structuredClone({...mark, statuses: []}), statuses: ["hunters-mark"]})}];
+    return actor;
+  };
+  const checks = async rules => JSON.stringify((await plannedWithConditions(meleeStrikeDefinition(), {extraActors: [ranger(rules)],
+    attackRoll: {total: 20, natural: 15, die: 15}})).state.input?.concentration ?? null);
+  assert.match(await checks([]), /token:extra-0/u, "without it, damage would call for a concentration check");
+  assert.doesNotMatch(await checks(relentless), /token:extra-0/u, "with it, none on the mark");
 });

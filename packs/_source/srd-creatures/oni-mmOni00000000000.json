@@ -921,7 +921,8 @@
             "school:enchantment",
             "component:verbal",
             "component:somatic",
-            "component:material"
+            "component:material",
+            "sleep"
           ],
           "costs": {
             "anyOf": [

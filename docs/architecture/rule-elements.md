@@ -545,6 +545,17 @@ it, else the attack) and the ability it uses (`might`, `agility`, ...) among its
 damage rules. A predicate `{tagsAny: ["weapon:<id>"]}` reaches that weapon alone (Magic Weapon), and `{tagsAll:
 ["weapon:<id>", "might"]}` its Strength-based attacks (Pact of the Blade's Charisma swap: `max(0, Pres - Might)`).
 
+**Automatic success and no Advantage (2026-10-31).** Two more `RollOutcome` outcomes:
+- `automatic-success` on `save`: the save succeeds unrolled, and wins over an `automatic-failure` (Trance: `{tagsAny:
+  ["sleep"]}`, on sleep magic, which the converter tags from a spell's "don't sleep"). On `concentration`: damage calls
+  for no check while the predicate holds; it sees `concentration.sustains.<status>` for what the creature sustains
+  (Relentless Hunter: `hunters-mark`). Incapacitation still ends concentration.
+- `no-advantage` on `attacked`: no attack roll against the creature has Advantage; `attackRollModeSources` drops those
+  sources and keeps its Disadvantages (Elusive, unless Incapacitated).
+
+A golem's Immutable Form is `ConditionImmunity {conditions: ["transformed"]}`: Polymorph skips a creature immune to it
+(`applyActionTransformation`), with a GM notice.
+
 **A minimum d20 (2026-10-19, Reliable Talent).** `RollOutcome {domains: ["check.proficient"], outcome: "minimum-natural",
 threshold: 10}`: a check with its skill's proficiency reads `check.proficient`, and `resolveActorCheckStatistic` returns the
 highest such threshold as `naturalMinimum`. Every check also reads `check.<ability>` and `check.<skill>`, proficient or

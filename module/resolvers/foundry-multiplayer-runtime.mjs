@@ -902,6 +902,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( bonus?.dice?.length ) saveDice[key] = bonus.dice;
       const forced = targetActor.getRollOutcomes?.(["save", `save.${ability}`], saveContext(definition, ability, saverToken)) ?? [];
       if ( forced.some(entry => entry.outcome === "automatic-failure") ) saveOutcomes[key] = "automatic-failure";
+      // A save it can't fail (Trance against sleep magic) wins over one it can't pass.
+      if ( forced.some(entry => entry.outcome === "automatic-success") ) saveOutcomes[key] = "automatic-success";
       if ( forced.some(entry => entry.outcome === "evasion") ) evasionByTarget[key] = "evasion";
       const legendary = legendaryResistanceFor(targetActor, systemSnapshots.get(targetActor), game);
       if ( legendary ) legendaryByTarget[key] = legendary;
@@ -1279,6 +1281,11 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
   for ( const entry of state.results?.saveResolution?.results ?? [] ) {
     const target = (entry.ok && (entry.success === false)) ? scene?.tokens?.get?.(String(entry.target?.tokenId ?? ""))?.actor : null;
     if ( !target?.transform ) continue;
+    // Immutable Form (a golem): a creature that can't shape-shift keeps its shape.
+    if ( target.getConditionImmunities?.()?.includes?.("transformed") ) {
+      gmNotice("WILDPATH.NOTICE.CannotShapeShift", {name: target.name ?? ""});
+      continue;
+    }
     if ( rank(form) > Math.max(rank(target), 0) ) {
       gmNotice("WILDPATH.NOTICE.FormTooStrong", {form: form.name ?? "", name: target.name ?? ""});
       globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.format?.("WILDPATH.TRANSFORMATION.TooMighty",
@@ -1831,7 +1838,9 @@ export function bestSaveAbility({definition, targetActor, saverToken, cover="non
   const dc = Number(save.dc?.value ?? evaluateValueExpression(save.dc?.valueExpression, {actor, actorSystem}).value) || 10;
   const chance = ability => {
     const context = saveContext(definition, ability, saverToken);
-    if ( (targetActor.getRollOutcomes?.(["save", `save.${ability}`], context) ?? []).some(entry => entry.outcome === "automatic-failure") ) return 0;
+    const forced = (targetActor.getRollOutcomes?.(["save", `save.${ability}`], context) ?? []).map(entry => entry.outcome);
+    if ( forced.includes("automatic-success") ) return 1;
+    if ( forced.includes("automatic-failure") ) return 0;
     const modes = (targetActor.getRollModes?.(["save", `save.${ability}`], context) ?? []).map(entry => entry?.mode ?? entry);
     const bonus = resolveActorSaveStatistic(targetActor, ability);
     const modifier = (bonus?.totalModifier ?? 0) + ((ability === "agility") ? (COVER_BONUS[cover] ?? 0) : 0);
@@ -1893,10 +1902,11 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
     const statistic = resolveActorSaveStatistic(target, ability);
     const modifier = (statistic?.totalModifier ?? 0) + ((ability === "agility")
       ? (COVER_BONUS[actionCover({definition, sourceToken, targetToken: token})] ?? 0) : 0);
-    const automatic = (target.getRollOutcomes?.(["save", `save.${ability}`], context) ?? [])
-      .some(outcome => outcome.outcome === "automatic-failure");
+    const forced = (target.getRollOutcomes?.(["save", `save.${ability}`], context) ?? []).map(outcome => outcome.outcome);
+    const passes = forced.includes("automatic-success");
+    const automatic = passes || forced.includes("automatic-failure");
     return {tokenId: token.id, name: token.name, kind: "save", ability, dc, modifier, rollMode, automatic,
-      chance: automatic ? 1 : 1 - d20Chance({modifier, target: dc, rollMode, dice: statistic?.dice})};
+      chance: passes ? 0 : (automatic ? 1 : 1 - d20Chance({modifier, target: dc, rollMode, dice: statistic?.dice}))};
   });
 }
 
@@ -2119,6 +2129,11 @@ function foundryConcentrationContext({targetEntries=[], game=globalThis.game, sc
     const refs = uniqueStrings([token?.id ? `token:${token.id}` : null, ...targetControllerKeys(actor, hint, game)]);
     const sourceRef = refs.find(ref => sustained.has(ref));
     if ( !sourceRef ) continue;
+    // 2024 Relentless Hunter: damage can't break its concentration on what a rule names (`automatic-success` on
+    // `concentration`, whose predicate sees the statuses of what it sustains: `concentration.sustains.hunters-mark`).
+    const sustains = Object.fromEntries(sustained.get(sourceRef).flatMap(({effect}) => [...(effect.statuses ?? [])]).map(id => [id, true]));
+    if ( (actor.getRollOutcomes?.(["concentration"], {context: {concentration: {sustains}}}) ?? [])
+      .some(entry => entry.outcome === "automatic-success") ) continue;
     // Its concentration save adds its Fortitude save bonus (ability modifier and Modifiers).
     // Its Advantage or Disadvantage on it too: on Fortitude saves, and on Concentration (War Caster, Eldritch Mind).
     const state = {concentrating: true, actorId: actor.id ?? null, actorRef: actor.uuid ?? null, sourceRef,

@@ -80,3 +80,19 @@ test("proficiency joins only an attack or save the creature is proficient in, by
   assert.equal(resolveActorSaveStatistic(fighter, "agility").totalModifier, 4, "a proficient save adds it: Agility 1 + 3");
   assert.equal(resolveActorSaveStatistic(fighter, "might").totalModifier, 3, "a save it is not proficient in does not");
 });
+
+test("Elusive: no attack roll against it has Advantage unless it is Incapacitated; its Disadvantages stay", async () => {
+  const {attackRollModeSources} = await import("../module/helpers/combat-statistics.mjs");
+  const {rollModesFromRuleElements, rollOutcomesFromRuleElements} = await import("../module/helpers/rule-elements.mjs");
+  const creature = (ruleElements, conditions=[]) => ({
+    getRollModes: (domains, {context={}}={}) => rollModesFromRuleElements([{ruleElements}], {domains, context: {conditions, ...context}}),
+    getRollOutcomes: (domains, {context={}}={}) => rollOutcomesFromRuleElements([{ruleElements}], {domains, context: {conditions, ...context}})});
+  const elusive = {schemaVersion: 1, id: "elusive", type: "RollOutcome", predicate: {not: {any: [{hasCondition: "incapacitated"}, {hasCondition: "stunned"}]}},
+    data: {domains: ["attacked"], outcome: "no-advantage"}};
+  const reckless = {schemaVersion: 1, id: "reckless", type: "RollMode", data: {domains: ["attack"], mode: "advantage"}};
+  const prone = {schemaVersion: 1, id: "dodging", type: "RollMode", data: {domains: ["attacked"], mode: "disadvantage"}};
+  const modes = (target) => attackRollModeSources(creature([reckless]), target, {type: "melee"}).map(source => source.mode ?? source);
+  assert.deepEqual(modes(creature([prone])), ["advantage", "disadvantage"], "without Elusive: both");
+  assert.deepEqual(modes(creature([elusive, prone])), ["disadvantage"], "Elusive: the Advantage goes, the Disadvantage stays");
+  assert.deepEqual(modes(creature([elusive, prone], ["stunned"])), ["advantage", "disadvantage"], "Stunned: Elusive does not apply");
+});

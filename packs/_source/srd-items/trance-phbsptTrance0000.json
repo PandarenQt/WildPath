@@ -7,7 +7,24 @@
   "system": {
     "active": true,
     "description": "<p>You don't need to sleep, and magic can't put you to sleep. You can finish a Long Rest in 4 hours if you spend those hours in a trancelike meditation, during which you retain consciousness.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "trance",
+        "type": "RollOutcome",
+        "predicate": {
+          "tagsAny": [
+            "sleep"
+          ]
+        },
+        "data": {
+          "domains": [
+            "save"
+          ],
+          "outcome": "automatic-success"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -23,9 +40,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "silent: its text names a rule that is not converted (by hand)"
-        ]
+        "notes": []
       }
     }
   }

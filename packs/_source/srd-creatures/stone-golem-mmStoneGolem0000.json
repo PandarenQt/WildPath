@@ -71,7 +71,18 @@
       "system": {
         "active": true,
         "description": "<p class=\"feature\">The stone golem can't shape-shift.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "immutable-form",
+            "type": "ConditionImmunity",
+            "data": {
+              "conditions": [
+                "transformed"
+              ]
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -87,9 +98,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "silent: its text names a rule that is not converted (by hand)"
-            ]
+            "notes": []
           }
         }
       }
@@ -614,9 +623,7 @@
         "challenge": 10
       },
       "conversion": {
-        "notes": [
-          "Immutable Form: silent: its text names a rule that is not converted (by hand)"
-        ]
+        "notes": []
       }
     }
   }

@@ -283,7 +283,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Circlet of Blasting | equipment24 | Circlet of Blasting (gear), Circlet of Blasting: Scorching Ray (automated) | — |
 | Clairvoyance | spells24 | Clairvoyance (automated) | — |
 | Clawed Gauntlet | equipment24 | Clawed Gauntlet (automated) | — |
-| Clay Golem | actors24 | Clay Golem (9 items) | Berserk: "Berserk Check" is passive or triggered (narrative): not automated; Immutable Form: silent: its text names a rule that is not converted (by hand) |
+| Clay Golem | actors24 | Clay Golem (9 items) | Berserk: "Berserk Check" is passive or triggered (narrative): not automated |
 | Cleric | classes24 | Cleric (class) | — |
 | Climber's Kit | equipment24 | Climber's Kit (gear) | — |
 | Cloak of Arachnida | equipment24 | Cloak of Arachnida (gear), Cloak of Arachnida: Web (automated) | — |
@@ -500,7 +500,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Elf, Wood | origins24 | Elf, Wood (species) | — |
 | Elixir of Health | equipment24 | Elixir of Health (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Elk | actors24 | Elk (3 items) | — |
-| Elusive | classes24 | Elusive (feature) | silent: its text names a rule that is not converted (by hand) |
+| Elusive | classes24 | Elusive (feature) | — |
 | Elven Chain | equipment24 | Elven Chain (gear), Elven Chain (automated) | — |
 | Elven Lineage, Drow | origins24 | Elven Lineage, Drow (feature) | — |
 | Elven Lineage, High Elf | origins24 | Elven Lineage, High Elf (feature) | — |
@@ -614,7 +614,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Flaming Sphere | actors24 | Flaming Sphere (2 items) | Flames: "save" is passive or triggered: not automated; Roll: rolled (save); what it does is by hand |
 | Flask | equipment24 | Flask (gear) | — |
 | Fleet Step | classes24 | Fleet Step (feature) | — |
-| Flesh Golem | actors24 | Flesh Golem (8 items) | Aversion to Fire: silent: its text names a rule that is not converted (by hand); Berserk: "Berserk Check" is passive or triggered: not automated; Berserk: "Calm Check" is passive or triggered: not automated; Immutable Form: silent: its text names a rule that is not converted (by hand) |
+| Flesh Golem | actors24 | Flesh Golem (8 items) | Aversion to Fire: silent: its text names a rule that is not converted (by hand); Berserk: "Berserk Check" is passive or triggered: not automated; Berserk: "Calm Check" is passive or triggered: not automated |
 | Flesh to Stone | spells24 | Flesh to Stone (automated) | — |
 | Floating Disk | spells24 | Floating Disk (automated) | — |
 | Floating Disk | actors24 | Floating Disk (1 items) | — |
@@ -870,7 +870,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ioun Stone of Sustenance | equipment24 | Ioun Stone of Sustenance (gear) | — |
 | Iron Bands | equipment24 | Iron Bands (gear), Iron Bands (Throw Bands) (automated) | "Break Check" is passive or triggered: not automated |
 | Iron Flask | equipment24 | Iron Flask (gear), Iron Flask (Attempt to Trap Creature) (automated), Iron Flask (Release Creature) (manual), Iron Flask (Add Trapped Creature) (manual) | rolled (save); what it does is by hand; not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures; consumption: itemUses -1 not converted; not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses 1 not converted |
-| Iron Golem | actors24 | Iron Golem (8 items) | Immutable Form: silent: its text names a rule that is not converted (by hand) |
+| Iron Golem | actors24 | Iron Golem (8 items) | — |
 | Iron Horn of Valhalla | equipment24 | Iron Horn of Valhalla (gear), Iron Horn of Valhalla (automated) | — |
 | Irresistible Dance | spells24 | Irresistible Dance (automated) | effect: "Short Dance" marks its creature only; its rules are by hand |
 | Ivory Goats | equipment24 | Ivory Goats (gear), Ivory Goats (Goat of Terror) (manual), Ivory Goats (Goat of Traveling) (automated), Ivory Goats (Revert or Recall Goat of Traveling) (automated), Ivory Goats (Goat of Travail) (automated) | not automated (summon): using it spends its cost; its description says the rest; summon: its creature is not among the converted creatures |
@@ -1226,7 +1226,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Regenerate | spells24 | Regenerate (automated) | activation: 1 minute is not an action-economy cost |
 | Reincarnate | spells24 | Reincarnate (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 hour is not an action-economy cost |
 | Relentless Endurance | origins24 | Relentless Endurance (feature) | — |
-| Relentless Hunter | classes24 | Relentless Hunter (feature) | silent: its text names a rule that is not converted (by hand) |
+| Relentless Hunter | classes24 | Relentless Hunter (feature) | — |
 | Relentless Rage | classes24 | Relentless Rage (feature) | — |
 | Reliable Talent | classes24 | Reliable Talent (feature) | — |
 | Reliquary | equipment24 | Reliquary (gear) | — |
@@ -1456,7 +1456,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Stinking Cloud | spells24 | Stinking Cloud (Create Cloud) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Start of Turn Save" is passive or triggered: not automated |
 | Stirge | actors24 | Stirge (3 items) | Proboscis: activation: turnStart is not an action-economy cost |
 | Stone Giant | actors24 | Stone Giant (5 items) | Deflect Missile: "Save" is passive or triggered: not automated |
-| Stone Golem | actors24 | Stone Golem (7 items) | Immutable Form: silent: its text names a rule that is not converted (by hand) |
+| Stone Golem | actors24 | Stone Golem (7 items) | — |
 | Stone of Controlling Earth Elementals | equipment24 | Stone of Controlling Earth Elementals (gear), Stone of Controlling Earth Elementals (automated) | — |
 | Stone of Good Luck (Luckstone) | equipment24 | Stone of Good Luck (Luckstone) (gear) | — |
 | Stone Shape | spells24 | Stone Shape (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
@@ -1550,7 +1550,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Torpor | equipment24 | Torpor (automated) | — |
 | Tough | actors24 | Tough (3 items) | — |
 | Tough Boss | actors24 | Tough Boss (5 items) | — |
-| Trance | origins24 | Trance (feature) | silent: its text names a rule that is not converted (by hand) |
+| Trance | origins24 | Trance (feature) | — |
 | Transmuted Spell | classes24 | Transmuted Spell (feature) | — |
 | Transport via Plants | spells24 | Transport via Plants (manual) | not automated (teleport, narrative): using it spends its cost; its description says the rest |
 | Treant | actors24 | Treant (6 items) | — |
