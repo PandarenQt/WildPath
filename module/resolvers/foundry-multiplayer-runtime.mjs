@@ -1146,6 +1146,8 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
   const scene = source?.parent ?? null;
   const ended = {};
   const beyond = [];
+  // What it ended, by name, for the line everyone sees: "Haste (Ogre)"; a hidden creature unnamed.
+  const endedNames = [];
   // Its caster's check for a spell above the level it was cast at: DC 10 + that spell's level.
   const caster = options?.actor ?? null;
   const ability = caster?.system?.spellcasting?.ability || null;
@@ -1158,7 +1160,8 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
   const targets = state.targets?.length ? state.targets
     : (state.results?.targetResolution?.targetContexts ?? []).map(context => context?.target?.target ?? context?.target);
   for ( const target of targets ) {
-    const actor = scene?.tokens?.get?.(String(target?.tokenId ?? ""))?.actor;
+    const token = scene?.tokens?.get?.(String(target?.tokenId ?? ""));
+    const actor = token?.actor;
     if ( !actor?.effects ) continue;
     const ids = [];
     for ( const effect of actor.effects ) {
@@ -1172,6 +1175,7 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
     }
     // Above the level it was cast at: its caster's check for each.
     for ( const entry of beyond.filter(entry => entry.actor === actor) ) if ( await check(entry) ) ids.push(entry.effect.id);
+    for ( const effect of actor.effects ) if ( ids.includes(effect.id) ) endedNames.push(token?.hidden ? effect.name : `${effect.name} (${token?.name ?? actor.name})`);
     if ( ids.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", ids);
     ended[actor.uuid] = ids;
   }
@@ -1185,6 +1189,7 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
     if ( within || await check(entry) ) {
       await region.delete();
       ended[region.uuid] = [region.id];
+      endedNames.push(area.label);
     }
   }
   // A spell on an object (an enchanted Item, 2024 RAW): the same, by the level it was cast at.
@@ -1197,10 +1202,17 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
     if ( within || await check(entry) ) {
       await enchantment.delete();
       ended[enchantment.uuid] = [enchantment.id];
+      endedNames.push(entry.effect.name);
     }
   }
   const line = entry => game?.i18n?.format?.(entry.ended ? "WILDPATH.NOTIFY.DispelEnded" : "WILDPATH.NOTIFY.DispelStayed",
     {name: entry.effect.name ?? "", level: entry.level, dc: 10 + entry.level, total: entry.total ?? "-"}) ?? entry.effect.name;
+  // Everyone sees what it ended, as its card would (the card is posted before this runs).
+  const action = state.actionDefinition?.label ?? options?.action?.name ?? "";
+  const escape = value => String(value ?? "").replace(/[&<>"]/gu, character => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;"})[character]);
+  if ( endedNames.filter(Boolean).length ) await globalThis.ChatMessage?.create?.({speaker: {alias: options?.actor?.name ?? ""},
+    content: `<p>${escape(game?.i18n?.format?.("WILDPATH.NOTIFY.EndedEffects", {action, list: endedNames.filter(Boolean).join(", ")})
+      ?? `${action}: ${endedNames.join(", ")}`)}</p>`});
   if ( beyond.length ) await globalThis.ChatMessage?.create?.({content: beyond.map(entry => `<p>${line(entry)}</p>`).join(""),
     whisper: game?.users?.filter?.(user => user.isGM)?.map?.(user => user.id) ?? []});
   return ended;

@@ -1218,6 +1218,7 @@
       "CancelledByGM": "The GM cancelled this Action.",
       "CancelledByGMChat": "{action} was cancelled by the GM. Nothing was spent.",
       "DispelEnded": "{name} (level {level}) ends: the check was {total} against DC {dc}.",
+      "EndedEffects": "{action} ends: {list}.",
       "DispelStayed": "{name} (level {level}) stays: the check was {total} against DC {dc}.",
       "NoHealing": "{name} can't regain Hit Points right now.",
       "NoTemporaryHealth": "{name} can't gain Temporary Hit Points right now."

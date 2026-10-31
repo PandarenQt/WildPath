@@ -95,7 +95,7 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   const deleted = [];
   const actor = {uuid: "Actor.orc", effects: [effect("bless", {spellLevel: 1}), effect("haste", {spellLevel: 3}), effect("fly", {spellLevel: 4}),
     effect("curse", {spellLevel: 3, tags: ["curse"]}), effect("prone", {})], deleteEmbeddedDocuments: async (type, ids) => deleted.push(...ids)};
-  const scene = {tokens: {get: id => (id === "orc" ? {actor} : null)}};
+  const scene = {tokens: {get: id => (id === "orc" ? {actor, name: "Orc"} : null)}};
   const posted = [];
   globalThis.ChatMessage = {create: async data => posted.push(data)};
   const state = (ends, castingLevel=3) => ({actionDefinition: {ends}, configuration: {castingLevel}, source: {tokenRef: "Scene.s.Token.caster"},
@@ -105,7 +105,9 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   const caster = total => ({system: {spellcasting: {ability: "intellect"}}, rollTest: async ({ability}) => (ability === "intellect" ? total : 0)});
   await endEffectsOnTargets({options: {actor: caster(15)}, state: state({spells: "slot"})}, {fromUuid, game: {}});
   assert.deepEqual(deleted, ["bless", "haste", "curse", "fly"], "spells up to the slot's level, a spell's curse too, and Fly on a 15");
-  assert.match(posted[0].content, /fly/, "the GM is told");
+  assert.match(posted[0].content, /bless \(Orc\), haste \(Orc\), fly \(Orc\), curse \(Orc\)/u, "everyone sees what it ended");
+  assert.equal(posted[0].whisper, undefined, "a public line");
+  assert.match(posted[1].content, /fly/, "the GM is told of the check");
   deleted.length = 0;
   await endEffectsOnTargets({options: {actor: caster(13)}, state: state({spells: "slot"})}, {fromUuid, game: {}});
   assert.equal(deleted.includes("fly"), false, "a 13 leaves it");
