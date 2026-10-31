@@ -2284,6 +2284,8 @@ const TRAITS = Object.freeze({
   // 4-hour Long Rest is by hand (a party rest is 8 hours).
   trance: () => ({rules: [{schemaVersion: 1, id: "trance", type: "RollOutcome", predicate: {tagsAny: ["sleep"]},
     data: {domains: ["save"], outcome: "automatic-success"}}], notes: []}),
+  // 2024 Foe Slayer: "The damage die of your Hunter's Mark is a d10 rather than a d6": the mark's own table (ranger 20).
+  "foe-slayer": () => ({rules: [], notes: []}),
   // 2024 Relentless Hunter: "Taking damage can't break your Concentration on Hunter's Mark" (no damage check while what
   // it sustains is the mark; 2024 concentration holds one spell).
   "relentless-hunter": () => ({rules: [{schemaVersion: 1, id: "relentless-hunter", type: "RollOutcome",
@@ -2731,8 +2733,8 @@ const SNEAK_ATTACK = Object.freeze({all: [
  * the engine expresses exactly; the rest stay the GM's.
  */
 /** A mark's extra damage: 1d6 on each attack its own caster hits it with (`attack.fromAttacker`: marks it bears from them). */
-const markDamage = (slug, damageType, faces=6) => ({schemaVersion: 1, id: `${slug}-damage`, type: "ExtraDamage",
-  data: {domains: ["attacked"], expression: {type: "dice", number: 1, faces}, damageType},
+const markDamage = (slug, damageType, faces=6, expression=null) => ({schemaVersion: 1, id: `${slug}-damage`, type: "ExtraDamage",
+  data: {domains: ["attacked"], expression: expression ?? {type: "dice", number: 1, faces}, damageType},
   predicate: {equals: {path: `attack.fromAttacker.${slug}`, value: true}}});
 
 const EFFECTS_BY_HAND = Object.freeze({
@@ -2750,7 +2752,11 @@ const EFFECTS_BY_HAND = Object.freeze({
     ruleElements: [{schemaVersion: 1, id: "vicious-mockery", type: "RollMode", data: {domains: ["attack"], mode: "disadvantage"}}]},
   // "You deal an extra 1d6 Force damage to the target whenever you hit it with an attack roll." The mark is its own
   // effect (slug), so only its caster's attacks see it.
-  "hunters-mark": {slug: "hunters-mark", bonusDamage: "Bonus Mark Damage", ruleElements: [markDamage("hunters-mark", "force")]},
+  // Its die is dnd5e's @scale.ranger.mark: a d10 from ranger level 20 (Foe Slayer), read from the attacker; a d6 for anyone
+  // else (a table's default when its key can't be read).
+  "hunters-mark": {slug: "hunters-mark", bonusDamage: "Bonus Mark Damage", ruleElements: [markDamage("hunters-mark", "force", 6,
+    {type: "table", key: {type: "class-level", class: "ranger"}, rows: {1: {type: "dice", number: 1, faces: 6}, 20: {type: "dice", number: 1, faces: 10}},
+      default: {type: "dice", number: 1, faces: 6}})]},
   // Rage's effect is the `raging` status (Frenzy reads it).
   "rage": {slug: "raging"},
   // Hex: the same, Necrotic, and Disadvantage on checks of one ability the caster chooses (its six effects, one kept).

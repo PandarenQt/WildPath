@@ -48,9 +48,28 @@
                   "attacked"
                 ],
                 "expression": {
-                  "type": "dice",
-                  "number": 1,
-                  "faces": 6
+                  "type": "table",
+                  "key": {
+                    "type": "class-level",
+                    "class": "ranger"
+                  },
+                  "rows": {
+                    "1": {
+                      "type": "dice",
+                      "number": 1,
+                      "faces": 6
+                    },
+                    "20": {
+                      "type": "dice",
+                      "number": 1,
+                      "faces": 10
+                    }
+                  },
+                  "default": {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 6
+                  }
                 },
                 "damageType": "force"
               },

@@ -94,7 +94,9 @@ export function selectTableRows(expression, context={}) {
   if ( !expression || (typeof expression !== "object") ) return expression;
   if ( expression.type === "table" ) {
     const key = evaluateValueExpression(expression.key, context);
-    if ( !key.ok ) return expression;
+    // A key it can't read (a class its creature lacks: a non-ranger's Hunter's Mark) is its `default`, when it has one.
+    if ( !key.ok ) return (expression.default === undefined) ? expression
+      : selectTableRows(typeof expression.default === "number" ? {type: "constant", value: expression.default} : expression.default, context);
     const thresholds = Object.keys(expression.rows ?? {}).map(Number).filter(Number.isFinite).sort((a, b) => b - a);
     const row = thresholds.find(threshold => threshold <= key.value);
     const chosen = row === undefined ? expression.default : (expression.rows[String(row)] ?? expression.rows[row]);
@@ -124,11 +126,12 @@ export function evaluateValueExpressionNumber(expression, context={}, fallback=0
 /**
  * A step table: the row with the highest threshold at or below `key` (e.g. class level), so
  * `{key: {type: "class-level", class: "rogue"}, rows: {1: 1, 3: 2, 5: 3}}` is 2 at level 4.
- * Below every threshold the table yields `default`, or fails when none is given.
+ * Below every threshold, or with a key it can't read (a class its creature lacks), the table yields `default`, or fails
+ * when none is given.
  */
 function evaluateTable(expression, context) {
   const key = evaluateValueExpression(expression.key, context);
-  if ( !key.ok ) return key;
+  if ( !key.ok ) return (expression.default === undefined) ? key : evaluateValueExpression(expression.default, context);
   const thresholds = Object.keys(expression.rows ?? {}).map(Number).filter(Number.isFinite).sort((a, b) => b - a);
   const row = thresholds.find(threshold => threshold <= key.value);
   if ( row === undefined ) {

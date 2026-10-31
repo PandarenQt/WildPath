@@ -23,9 +23,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Improved Hunter's Mark Damage\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

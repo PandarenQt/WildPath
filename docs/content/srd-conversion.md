@@ -622,7 +622,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Flute | equipment24 | Flute (gear), Flute (Play a Known Tune) (automated), Flute (Improvise a Song) (automated) | — |
 | Fly | spells24 | Fly (automated) | — |
 | Flying Snake | actors24 | Flying Snake (3 items) | — |
-| Foe Slayer | classes24 | Foe Slayer (feature) | "Improved Hunter's Mark Damage" is passive or triggered: not automated |
+| Foe Slayer | classes24 | Foe Slayer (feature) | — |
 | Fog Cloud | spells24 | Fog Cloud (automated) | — |
 | Folding Boat | equipment24 | Folding Boat (gear) | — |
 | Font of Inspiration | classes24 | Font of Inspiration (automated) | — |

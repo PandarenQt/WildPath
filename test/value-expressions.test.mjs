@@ -129,3 +129,15 @@ test("a table of dice becomes the row for the creature's level before it is roll
     {type: "add", terms: [dice(2, 10), {type: "constant", value: 2}]});
   assert.deepEqual(selectTableRows(cantrip, {}), cantrip, "without a level the table stays");
 });
+
+test("a table with a default is that default when its key can't be read: Hunter's Mark's d6 for a non-ranger, d10 at ranger 20", async () => {
+  const {selectTableRows: rows, evaluateValueExpression: evaluate} = await import("../module/helpers/value-expressions.mjs");
+  const fs = await import("node:fs");
+  const mark = JSON.parse(fs.readFileSync("packs/_source/srd-items/hunter-s-mark-mark-creature-phbsplHuntersMar.json", "utf8"))
+    .system.definition.effects.find(effect => effect.slug === "hunters-mark").ruleElements.find(rule => rule.type === "ExtraDamage");
+  const faces = classes => rows(mark.data.expression, {actorSystem: {classes}}).faces;
+  assert.deepEqual([faces({ranger: {levels: 20}}), faces({ranger: {levels: 19}}), faces({fighter: {levels: 20}}), faces(undefined)], [10, 6, 6, 6]);
+  const table = {type: "table", key: {type: "class-level", class: "warlock"}, rows: {5: 2}, default: 1};
+  assert.deepEqual([evaluate(table, {actorSystem: {classes: {}}}).value, evaluate({...table, default: undefined}, {actorSystem: {classes: {}}}).ok],
+    [1, false], "no default: still a failure");
+});
