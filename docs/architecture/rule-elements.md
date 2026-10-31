@@ -787,7 +787,7 @@ it leaves: Reduce's text says 1; unset is 0.
 - The converter maps dnd5e's `subtract` change of dice, or an `add` of `-1d4`, on `rolls.damage.<kind>.bonus` and
   `bonuses.<kind>.damage`. The same penalty on all four kinds of attack becomes one rule on `damage`: every damage
   roll. It sets `minimum: 1` when the item's text says the damage can't go below 1.
-- The rule rows show it as the extra damage row's **Less damage** switch. `minimum` has no field there yet.
+- The rule rows show it as the extra damage row's **Less damage** switch, with **At least** for `minimum`.
 
 **On its target: a mark (2026-10-19).** A rule in the `attacked` domain adds damage to attacks against its bearer.
 - An attack on one target collects the target's own `attacked` and `attacked.<type>` extra damage
@@ -922,6 +922,8 @@ the authority's separate refusals:
   {by}"). The reaction provider doesn't offer a forbidden reaction (a Silenced wizard's Shield), and the action bar
   greys a forbidden Action with the same reason.
 - Authority Actions (a lasting area's turns, which its caster already cast) are not checked.
+- The rule rows have a **Can't use** row: a Forbid of Actions by tag (`{tagsAny: [...]}`, comma-separated). Any other
+  predicate (Command's Flee) is Advanced's. An aura's rules can't be one: forbiddingRule reads only a creature's own owners.
 
 ## Future Types
 

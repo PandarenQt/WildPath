@@ -11,7 +11,7 @@ import { DEFAULT_RULE_ELEMENT_REGISTRY, evaluateRuleElement, normalizeRuleElemen
 const TYPE_OF_KIND = { bonus: "Modifier", rollMode: "RollMode", resistance: "GrantResistance",
     immunity: "GrantImmunity", vulnerability: "GrantVulnerability", conditionImmunity: "ConditionImmunity", reveal: "Reveal",
     speed: "GrantMovement", sense: "GrantSense", language: "GrantLanguage", resource: "GrantResource", extraDamage: "ExtraDamage", abilityScore: "AbilityScore",
-    aura: "Aura" };
+    forbid: "Forbid", aura: "Aura" };
 const KIND_OF_TYPE = Object.fromEntries(Object.entries(TYPE_OF_KIND).map(([kind, type]) => [type, kind]));
 /** The kinds a row can be; an aura's own rules can be any but another aura. */
 export const RULE_KINDS = Object.freeze(Object.keys(TYPE_OF_KIND));
@@ -93,6 +93,9 @@ function ruleToRow(rule, abilities) {
     const named = whileOf(predicate);
     const amount = amountText(data.valueExpression ?? data.expression ?? data.value);
     const maximum = amountText(data.maximum ?? data.max);
+    // A Forbid of Actions by tag (`{tagsAny: [...]}`); any other predicate is Advanced's.
+    const forbidTags = (data.actions && (Object.keys(data.actions).length === 1) && Array.isArray(data.actions.tagsAny))
+        ? listText(data.actions.tagsAny) : null;
     return {
         kind,
         type: normalized.type ?? String(rule.type ?? ""),
@@ -124,6 +127,9 @@ function ruleToRow(rule, abilities) {
         damageType: typeof data.damageType === "string" ? data.damageType : "",
         oncePerTurn: data.once === "turn",
         lessDamage: data.subtract === true,
+        damageMinimum: number(data.minimum) ?? "",
+        forbidTags: forbidTags ?? "",
+        forbidReadOnly: (kind === "forbid") && (forbidTags === null),
         radius: number(data.radius),
         ability: typeof data.ability === "string" ? data.ability : "",
         scoreMode: data.mode ?? "add",
@@ -152,8 +158,9 @@ const ROW_DATA = {
     sense: ["sense", "range", "value"],
     language: ["language", "range"],
     resource: ["resourceId", "resource", "label", "maximum", "max", "recovery", "current", "emptiesAtTurnStart", "recharge", "regain"],
-    extraDamage: ["domains", "domain", "selector", "expression", "valueExpression", "damageType", "once", "subtract"],
+    extraDamage: ["domains", "domain", "selector", "expression", "valueExpression", "damageType", "once", "subtract", "minimum"],
     abilityScore: ["ability", "mode", "value", "maximum"],
+    forbid: ["actions", "reason"],
     aura: ["radius", "affects", "ruleElements"]
 };
 /**
@@ -185,6 +192,8 @@ export function ruleGaps(ruleElements, { abilities = [] } = {}) {
             }
             if (row.whileReadOnly)
                 gaps.add(`${name}.predicate`);
+            if (row.forbidReadOnly)
+                gaps.add(`${name}.actions`);
             const data = { ...Object.fromEntries(Object.entries(rule).filter(([key]) => !ROOT_KEYS.has(key))), ...(rule.data ?? {}) };
             for (const key of Object.keys(data))
                 if (!ROW_DATA[row.kind].includes(key) && (key !== "label"))
@@ -212,6 +221,7 @@ export function defaultRule(kind, id) {
         case "resource": return rule({ resourceId: "points", label: "Points", maximum: 1, recovery: "longRest" });
         case "extraDamage": return rule({ domains: ["damage.melee"], expression: { type: "dice", number: 1, faces: 6 }, damageType: "fire", once: "turn" });
         case "abilityScore": return rule({ ability: "might", mode: "upgrade", value: 19 });
+        case "forbid": return rule({ actions: { tagsAny: ["spell"] } });
         case "aura": return rule({ radius: 10, affects: "allies", ruleElements: [defaultRule("bonus", `${id}-1`)] });
         default: return { schemaVersion: 1, id, type: "Modifier", data: { domains: ["defense.ac"], value: 1, modifierType: "untyped" } };
     }
@@ -386,6 +396,14 @@ function writeRule(stored, row, model, field, errors, options, index, siblings) 
                 set("once", row.oncePerTurn ? "turn" : undefined);
             if (changed("lessDamage"))
                 set("subtract", row.lessDamage ? true : undefined);
+            // The least it leaves (Cutting Words-like reductions: "minimum 1"); only read with less damage.
+            if (changed("damageMinimum"))
+                set("minimum", Number(row.damageMinimum) > 0 ? Math.trunc(Number(row.damageMinimum)) : undefined);
+            break;
+        case "forbid":
+            // Actions with any of these tags (`spell`, `spell:leveled`, `attack`, `component:verbal`, `cost:bonus-action`).
+            if (changed("forbidTags") && !model.forbidReadOnly && listOf(row.forbidTags).length)
+                set("actions", { tagsAny: listOf(row.forbidTags) });
             break;
         case "abilityScore":
             if (changed("ability") && row.ability)
@@ -468,7 +486,7 @@ export function removeRule(rules, index, path = []) {
 }
 /** Handlers that read nothing but their own data, so they can be tried while editing. */
 const CONTEXT_FREE = new Set(["Modifier", "RollMode", "GrantResistance", "GrantImmunity", "GrantVulnerability", "ConditionImmunity",
-    "Reveal", "ExtraDamage", "Aura", "RollOutcome"]);
+    "Reveal", "ExtraDamage", "Aura", "RollOutcome", "Forbid"]);
 /**
  * What is wrong with a list of RuleElements, one message per rule: its shape, an unknown type, or what the rule's
  * own handler refuses (a Modifier without domains), tried without its predicate.

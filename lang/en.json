@@ -691,6 +691,9 @@
       "OncePerTurn": "Once per turn",
       "GmOnly": "Only the GM can change what {name} does.",
       "LessDamage": "Less damage",
+      "DamageMinimum": "At least",
+      "ForbidTags": "Actions tagged",
+      "ForbidTagsHint": "Comma-separated tags: spell, spell:leveled, attack, component:verbal, component:somatic, cost:action, cost:bonus-action, cost:reaction",
       "Hover": "Can hover",
       "Ability": "Ability",
       "ScoreModeLabel": "How it changes",
@@ -729,6 +732,7 @@
         "resource": "A resource pool",
         "extraDamage": "Extra damage on a hit",
         "abilityScore": "An ability score",
+        "forbid": "Can't use",
         "aura": "An aura"
       },
       "Mode": {

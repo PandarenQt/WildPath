@@ -56,6 +56,31 @@ test("an extra damage row's Less damage switch makes it a penalty (Reduce), and 
   assert.equal("subtract" in submit(less, {0: {lessDamage: false}}).ruleElements[0].data, false);
 });
 
+test("a less-damage row's At least is the rule's minimum, and none when cleared", () => {
+  const less = submit([defaultRule("extraDamage", "a")], {0: {lessDamage: true}}).ruleElements;
+  const floored = submit(less, {0: {damageMinimum: "1"}}).ruleElements;
+  assert.equal(floored[0].data.minimum, 1);
+  assert.equal(rulesToRows(floored)[0].damageMinimum, 1);
+  assert.deepEqual(ruleGaps(floored), []);
+  assert.equal(collectRuleElementContributions({ruleElements: floored}).contributions.extraDamage[0].minimum, 1);
+  assert.equal("minimum" in submit(floored, {0: {damageMinimum: ""}}).ruleElements[0].data, false);
+});
+
+test("a Can't use row forbids Actions by tag; any other Forbid predicate is Advanced's", () => {
+  let rules = addRule([], "forbid");
+  assert.deepEqual(rules[0].data, {actions: {tagsAny: ["spell"]}});
+  rules = submit(rules, {0: {forbidTags: "spell:leveled, Attack"}}).ruleElements;
+  assert.deepEqual(rules[0].data.actions, {tagsAny: ["spell:leveled", "attack"]});
+  assert.equal(rulesToRows(rules)[0].forbidTags, "spell:leveled, attack");
+  assert.deepEqual([ruleGaps(rules), ruleIssues(rules)], [[], []]);
+  assert.deepEqual(submit(rules, {0: {forbidTags: " "}}).ruleElements[0].data.actions, {tagsAny: ["spell:leveled", "attack"]},
+    "an empty list keeps what it forbids");
+  const flee = [{schemaVersion: 1, id: "flee", type: "Forbid", data: {actions: {notTagsAny: ["id:common:dash"]}}}];
+  assert.equal(rulesToRows(flee)[0].forbidReadOnly, true);
+  assert.deepEqual(ruleGaps(flee), ["Forbid.actions"]);
+  assert.equal(submit(flee, {0: {forbidTags: "spell"}}).ruleElements[0].data.actions.notTagsAny[0], "id:common:dash");
+});
+
 test("a changed field is written into the rule's data; what the row does not show survives", () => {
   const stored = [{id: "ward", type: "Modifier", label: "Ward", priority: 50, domains: ["defense.ac"], value: 1, metadata: {note: "kept"}}];
   const result = submit(stored, {0: {amount: "3"}});

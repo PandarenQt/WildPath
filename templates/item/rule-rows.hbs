@@ -88,6 +88,14 @@
           {{localize "WILDPATH.RULES.OncePerTurn"}}</label>
         <label class="checkbox"><input type="checkbox" name="{{row.name}}.lessDamage" {{checked row.lessDamage}}>
           {{localize "WILDPATH.RULES.LessDamage"}}</label>
+        {{#if row.lessDamage}}<label>{{localize "WILDPATH.RULES.DamageMinimum"}}
+          <input type="number" name="{{row.name}}.damageMinimum" value="{{row.damageMinimum}}" min="0" step="1" placeholder="0"></label>{{/if}}
+      {{/if}}
+      {{#if row.isForbid}}
+        {{#if row.forbidReadOnly}}<span class="hint">{{localize "WILDPATH.BUILDER.EditInAdvanced"}}</span>{{else}}
+        <input type="text" name="{{row.name}}.forbidTags" value="{{row.forbidTags}}" placeholder="spell, attack"
+               aria-label="{{localize "WILDPATH.RULES.ForbidTags"}}" data-tooltip="{{localize "WILDPATH.RULES.ForbidTagsHint"}}">
+        {{/if}}
       {{/if}}
       {{#if row.isAbilityScore}}
         <select name="{{row.name}}.ability" aria-label="{{localize "WILDPATH.RULES.Ability"}}">

@@ -58,7 +58,7 @@ export function ruleRowsContext(ruleElements, {prefix, field=prefix, list, error
       isOther: row.kind === "other", isBonus: row.kind === "bonus", isRollMode: row.kind === "rollMode",
       isDamageTypes: ["resistance", "immunity", "vulnerability"].includes(row.kind),
       isConditions: row.kind === "conditionImmunity", isSpeed: row.kind === "speed", isSense: row.kind === "sense", isLanguage: row.kind === "language", isResource: row.kind === "resource",
-      isExtraDamage: row.kind === "extraDamage", isAura: row.kind === "aura", isAbilityScore: row.kind === "abilityScore",
+      isExtraDamage: row.kind === "extraDamage", isForbid: row.kind === "forbid", isAura: row.kind === "aura", isAbilityScore: row.kind === "abilityScore",
       scoreAdds: row.scoreMode === "add",
       hasAppliesTo: ["bonus", "rollMode", "extraDamage"].includes(row.kind),
       appliesToChoices: domains[row.kind] ?? {},
@@ -68,7 +68,8 @@ export function ruleRowsContext(ruleElements, {prefix, field=prefix, list, error
     };
   });
   const kinds = options(RULE_KINDS, "WILDPATH.RULES.Kind.");
-  const {aura: _aura, ...nestedKinds} = kinds;
+  // An aura grants no Forbid (forbiddingRule reads a creature's own owners), so its rules can't be one.
+  const {aura: _aura, forbid: _forbid, ...nestedKinds} = kinds;
   return {
     rows: view(rows, prefix, field, []),
     ctx: {
