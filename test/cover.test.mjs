@@ -74,3 +74,21 @@ test("a cover condition is its creature's cover wherever it stands, unless the w
   assert.equal(actionCover({definition: {}, sourceToken: {id: "s", actor: worm}, targetToken: swallowed}), "none");
   assert.equal(actionCover({definition: {}, sourceToken: {id: "s", actor: {uuid: "Actor.other", id: "other"}}, targetToken: swallowed}), "total");
 });
+
+test("an attacker's rules may ignore cover: the Wand of the War Mage's spell attacks ignore Half Cover, nothing more", async () => {
+  const fs = await import("node:fs");
+  const {actionCover} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const [rule] = JSON.parse(fs.readFileSync("packs/_source/srd-items/wand-of-the-war-mage-1-2-or-3-dmg1WandOfTheWar.json", "utf8"))
+    .system.definition.enchant.effects[0].ruleElements.filter(entry => entry.id === "war-mage-cover");
+  // The attacker's statistic: its rule counts when the Action's tags meet its predicate.
+  const caster = {id: "s", actor: {getStatistic: (domain, {tags}) => ({totalModifier: ((domain === "cover.ignored")
+    && evaluatePredicate(rule.predicate, {tags}).ok) ? rule.data.value : 0})}};
+  const target = statuses => ({id: "t", parent: null, actor: {statuses: new Set(statuses)}});
+  const bolt = {tags: ["spell"], attack: {type: "ranged"}};
+  assert.deepEqual([actionCover({definition: bolt, sourceToken: caster, targetToken: target(["coverHalf"])}),
+    actionCover({definition: bolt, sourceToken: caster, targetToken: target(["coverThreeQuarters"])}),
+    actionCover({definition: {tags: ["spell"], save: {ability: "agility"}}, sourceToken: caster, targetToken: target(["coverHalf"])}),
+    actionCover({definition: {attack: {type: "ranged"}}, sourceToken: caster, targetToken: target(["coverHalf"])})],
+  ["none", "threeQuarters", "half", "half"], "a spell attack only; Three-Quarters Cover stays; a save and a weapon attack keep Half Cover");
+});

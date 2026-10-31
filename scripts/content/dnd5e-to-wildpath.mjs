@@ -357,12 +357,22 @@ function enchantmentRules(effect) {
  * shortcut: its riders (Radiant Weapon's reaction), the Item's new name and attunement are by hand. Null when nothing it
  * changes is a rule.
  */
+/**
+ * What a template's text adds to each of its enchantments beyond dnd5e's changes. 2024 Wand of the War Mage: "you ignore
+ * Half Cover when making a spell attack roll" (`cover.ignored`, the authority's cover).
+ */
+const ENCHANT_TEXT_RULES = Object.freeze({
+  "1-wand-of-the-war-mage": [{schemaVersion: 1, id: "war-mage-cover", type: "Modifier", predicate: {tagsAll: ["spell", "attack"]},
+    data: {domains: ["cover.ignored"], modifierType: "untyped", value: 1}}]
+});
+
 function itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf={}, scales={}}) {
   // Each enchantment with the effects it brings along on its Item (`riders.effect`: Armor of Resistance's Acid Resistance).
   const byId = id => (document.effects ?? []).find(effect => effect._id === id);
   const effects = (activity.effects ?? []).map(ref => ({ref, effect: byId(ref._id)})).filter(({effect}) => effect)
     .map(({ref, effect}) => ({name: effect.name, ...(effect.img ? {img: effect.img} : {}), ruleElements: [...enchantmentRules(effect),
-      ...(ref.riders?.effect ?? []).map(byId).filter(Boolean).flatMap(rider => effectRules(rider, []))]}))
+      ...(ref.riders?.effect ?? []).map(byId).filter(Boolean).flatMap(rider => effectRules(rider, [])),
+      ...structuredClone(ENCHANT_TEXT_RULES[identifierOf(document)] ?? [])]}))
     .filter(effect => effect.ruleElements.length);
   if ( !effects.length ) return null;
   const raised = /increases to \+(\d+) when you reach (\d+)(?:st|nd|rd|th) level/i.exec(plainText(document));

@@ -134,6 +134,24 @@
                   "modifierType": "untyped",
                   "value": 1
                 }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "war-mage-cover",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAll": [
+                    "spell",
+                    "attack"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "cover.ignored"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                }
               }
             ]
           },
@@ -208,6 +226,24 @@
                   "modifierType": "untyped",
                   "value": 2
                 }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "war-mage-cover",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAll": [
+                    "spell",
+                    "attack"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "cover.ignored"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                }
               }
             ]
           },
@@ -281,6 +317,24 @@
                   ],
                   "modifierType": "untyped",
                   "value": 3
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "war-mage-cover",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAll": [
+                    "spell",
+                    "attack"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "cover.ignored"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
                 }
               }
             ]

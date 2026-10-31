@@ -5,6 +5,7 @@ import {createFoundryEnchantments} from "../adapters/foundry-v14-enchantments.mj
 import {controllerAuthority, portentOffer} from "../adapters/foundry-v14-portent.mjs";
 import {enchantedObjectsWithin} from "../adapters/foundry-v14-enchantments.mjs";
 import {WILDPATH} from "../config.mjs";
+import {actionTags} from "../helpers/rule-elements.mjs";
 import {createFoundryDigitalRollProvider} from "../adapters/foundry-digital-roll-provider.mjs";
 import {createFoundryV14DocumentPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
 import {closeFoundryPrompt, createFoundryV14PromptAdapter} from "../adapters/foundry-v14-prompt-adapter.mjs";
@@ -53,11 +54,17 @@ export function actionCover({definition, sourceToken, targetToken, points=[]}) {
   const own = ["coverTotal", "coverThreeQuarters", "coverHalf"].find(status => statuses?.has?.(status) && !given[status]);
   const held = own ? {coverTotal: "total", coverThreeQuarters: "threeQuarters", coverHalf: "half"}[own] : "none";
   const collides = foundrySightCollision(targetToken.parent);
-  if ( !collides || (held === "total") ) return held;
-  const origin = ((definition?.targeting?.type === "area") && (definition.area?.shape === "radial") && points[0]) ? points[0] : null;
-  const walls = coverBetween({source: origin ? null : sourceToken, origin, target: targetToken, collides});
   const order = ["none", "half", "threeQuarters", "total"];
-  return order.indexOf(walls) >= order.indexOf(held) ? walls : held;
+  let cover = held;
+  if ( collides && (held !== "total") ) {
+    const origin = ((definition?.targeting?.type === "area") && (definition.area?.shape === "radial") && points[0]) ? points[0] : null;
+    const walls = coverBetween({source: origin ? null : sourceToken, origin, target: targetToken, collides});
+    cover = order.indexOf(walls) >= order.indexOf(held) ? walls : held;
+  }
+  // Cover its attacker's rules ignore (`cover.ignored` Modifiers, by the Action's tags): 1 Half Cover (2024 Wand of the War
+  // Mage's spell attacks), 2 Three-Quarters Cover too.
+  const ignored = Math.trunc(Number(sourceToken.actor?.getStatistic?.("cover.ignored", {tags: actionTags(definition)})?.totalModifier) || 0);
+  return (((ignored >= 1) && (cover === "half")) || ((ignored >= 2) && (cover === "threeQuarters"))) ? "none" : cover;
 }
 import {createFoundryWeaponMastery} from "../adapters/foundry-v14-weapon-mastery.mjs";
 import {lacksAmmunition, offerAmmunitionRecovery, spendAmmunition} from "../adapters/foundry-v14-ammunition.mjs";
