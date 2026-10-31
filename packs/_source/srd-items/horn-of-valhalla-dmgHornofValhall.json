@@ -18,6 +18,10 @@
           {
             "capability": "action",
             "amount": 1
+          },
+          {
+            "capability": "horn-of-valhalla",
+            "amount": 7
           }
         ]
       },

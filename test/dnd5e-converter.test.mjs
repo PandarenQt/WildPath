@@ -413,6 +413,21 @@ test("summons (G4): its creature, a choice of creatures, for the spell's duratio
   const byChallenge = convertItem(summoning({summon: {mode: "cr"}}), {creatures}).items[0];
   assert.equal(byChallenge.system.definition.summon, undefined, "a creature chosen by Challenge Rating stays by hand");
   assert.equal(convertItem(summoning({}), {creatures: {}}).items[0].system.definition.summon, undefined, "nor one not converted");
+
+  // A magic item's: Pipes of the Sewers call one swarm per charge spent; a Horn of Valhalla spends all its uses.
+  const charged = (consumption, count, uses) => convertItem({_id: "summonItem000001", name: "Summon Item", type: "equipment", system: {
+    source: SRD, type: {value: "wondrous"}, uses: {max: uses, spent: 0, recovery: [{period: "dawn", type: "formula", formula: "1"}]},
+    activation: {type: "action"}, activities: {a: activity("summon", {profiles: [{...profile("spirit000000001"), count}], bonuses: {},
+      summon: {mode: ""}, consumption})}}}, {creatures}).items.find(item => item.system.definition?.summon);
+  const pipes = charged({scaling: {allowed: true, max: "3"}, targets: [{type: "itemUses", value: "1", target: "",
+    scaling: {mode: "amount"}}]}, "@scaling", "3");
+  valid(pipes);
+  assert.deepEqual(pipes.system.definition.configuration.at(-1).effects, [{type: "spendAmount", collection: "summon",
+    resourceId: "summon-item"}]);
+  assert.equal(pipes.system.definition.costs.allOf.some(cost => cost.capability === "summon-item"), false, "spent by the number chosen");
+  const horn = charged({scaling: {allowed: false}, targets: [{type: "itemUses", value: "@item.uses.max", target: ""}]}, "2", "7");
+  assert.deepEqual(horn.system.definition.costs.allOf.find(cost => cost.capability === "summon-item"), {capability: "summon-item", amount: 7});
+  assert.deepEqual(horn.flags.wildpath.conversion.notes, [], "its consumption is converted, and a summon's notes are kept");
 });
 
 test("the monster toolkit (G4): Multiattack's attacks, a Spellcasting's spells at their own uses, and Recharge", async () => {

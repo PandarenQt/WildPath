@@ -161,7 +161,9 @@
         "subtype": "eldritchInvocation"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "consumption: attribute 1 not converted"
+        ]
       }
     }
   }

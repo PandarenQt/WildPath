@@ -86,7 +86,9 @@
         "subtype": null
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "consumption: itemUses -@item.uses.spent not converted"
+        ]
       },
       "price": 4000,
       "rarity": "rare"

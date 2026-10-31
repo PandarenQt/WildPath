@@ -544,7 +544,9 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "activation: 10 minute is not an action-economy cost"
+            ]
           }
         }
       }
@@ -1211,6 +1213,7 @@
       },
       "conversion": {
         "notes": [
+          "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: activation: 1 minute is not an action-economy cost"
         ]
       }

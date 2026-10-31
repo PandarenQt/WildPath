@@ -203,7 +203,9 @@
         "subtype": null
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "activation: 1 minute is not an action-economy cost"
+        ]
       }
     }
   }

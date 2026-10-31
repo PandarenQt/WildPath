@@ -276,7 +276,7 @@ function wildShapeDefinition({document, activity, system, spell, level, notes, p
   const highest = Math.max(...Object.values(rows).map(row => row.cr));
   const choice = {id: "form", type: "select-one", label: "Form", required: true,
     options: beasts.filter(beast => beast.cr <= highest).map(beast => ({id: beast.uuid, label: `${beast.name} (CR ${beast.cr})`}))};
-  const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool});
+  const definition = manualDefinition({document, activity, system, spell, level, notes, pool});
   return {...definition, range: {type: "self"}, targeting: {type: "self"},
     configuration: [...(definition.configuration ?? []), choice],
     transform: {choiceId: choice.id, limits: {class: owner, rows}, temporaryHealth: "form",
@@ -2951,7 +2951,7 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
   const uniform = counts.every(count => Number.isInteger(count)) && (new Set(counts).size === 1);
   // A list, not a map: a uuid's dots would be read as nested keys when stored.
   const byCreature = uniform ? null : profiles.map(({ref}, index) => ({actorRef: ref, count: counts[index]}));
-  const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool});
+  const definition = manualDefinition({document, activity, system, spell, level, notes, pool});
   if ( chosenCount ) {
     const spending = (activity.consumption.targets ?? []).find(target => (target.type === "itemUses") && (target.scaling?.mode === "amount"));
     const spendId = spending ? targetPoolId(spending, pool, names) : null;
@@ -3206,7 +3206,7 @@ export function teleportDefinition({document, activity, system, spell, level, no
   if ( !(distance > 0) || ((activity.teleport?.units ?? "ft") !== "ft") ) return null;
   // shortcut: only its creature goes; a willing creature it brings (Dimension Door) is moved by hand.
   if ( /\bwilling creature\b/i.test(plainText(document)) ) notes.push("teleport: a creature it brings along is moved by hand");
-  return {...manualDefinition({document, activity, system, spell, level, notes: [], pool}), targeting: {type: "self"}, teleport: {distance}};
+  return {...manualDefinition({document, activity, system, spell, level, notes, pool}), targeting: {type: "self"}, teleport: {distance}};
 }
 
 /** A summon bonus as a ValueExpression of the spell's cast level (`castLevel`): "10 * (@item.level - 4)", "(@item.level - 3)d10". */
@@ -3541,7 +3541,9 @@ function consumptionDefinition(definition, {document, activity, notes, pool, nam
       else note(target);
       continue;
     }
-    const amount = (text === "") ? 1 : number(text);
+    // All of its own uses (a Horn of Valhalla's 7, one regained a day: "can't be used again until 7 days have passed").
+    const allOwn = (target.type === "itemUses") && !target.target && (text === "@item.uses.max") ? number(document.system?.uses?.max) : null;
+    const amount = (text === "") ? 1 : (allOwn ?? number(text));
     if ( target.type === "spellSlots" ) {
       const slot = number(target.target) || 1;
       if ( amount > 0 ) slotLevels.push(slot);

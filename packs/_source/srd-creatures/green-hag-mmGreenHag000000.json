@@ -377,7 +377,9 @@
             "castBy": "Coven Magic"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "activation: 1 hour is not an action-economy cost"
+            ]
           }
         }
       }
@@ -1476,6 +1478,7 @@
         "notes": [
           "Coven Magic: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Coven Magic: activation: 1 minute is not an action-economy cost",
+          "Coven Magic: activation: 1 hour is not an action-economy cost",
           "Coven Magic: concentration: its caster concentrates; what it sustains is by hand",
           "Coven Magic: activation: 10 minute is not an action-economy cost",
           "Coven Magic: save: a failure marks its creature (narrative)",

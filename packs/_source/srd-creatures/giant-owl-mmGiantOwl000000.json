@@ -428,7 +428,9 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "activation: 10 minute is not an action-economy cost"
+            ]
           }
         }
       }
@@ -487,7 +489,8 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Evil and Good\" marks its creature (narrative)",
-          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)"
+          "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
+          "Spellcasting: activation: 10 minute is not an action-economy cost"
         ]
       }
     }

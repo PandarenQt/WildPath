@@ -1089,7 +1089,9 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "activation: 1 minute is not an action-economy cost"
+            ]
           }
         }
       }
@@ -2454,6 +2456,7 @@
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: save: a failure marks its creature (narrative)",
+          "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: teleport: a creature it brings along is moved by hand",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: \"Raise Zombie\" is passive or triggered: not automated",
