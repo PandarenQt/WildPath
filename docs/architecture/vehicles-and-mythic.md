@@ -28,6 +28,9 @@ creature. Mythic traits are from Mythic Odysseys of Theros (2014). Build the sea
    above it, the whole amount applies. It belongs in `damage-adjustment-resolver.mjs`, after Resistance and
    Vulnerability, as a profile field like `ignoresResistance`. Objects (Dispel Magic on objects, doors) can use it
    too.
+   **Built 2026-10-31:** `damageThreshold` on a damage adjustment profile (the highest of merged profiles wins); a
+   total below it from one damage result becomes 0, with a `threshold` application. Nothing sets it yet: the vehicle
+   type will.
 3. **Crew and Actions (open: who acts).** A vehicle has no turn. Its Actions (the Apparatus of the Crab's levers, a
    later ballista) are used by a creature aboard as crew, costing that creature's Action. The Action's `requires`
    predicate reads its role (`aboard.crew`). Stations (2014 Saltmarsh, Spelljammer) come later, as a role with a

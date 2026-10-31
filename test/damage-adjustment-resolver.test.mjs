@@ -2,7 +2,8 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {
   DAMAGE_ADJUSTMENT_CODES,
-  adjustDamageResult
+  adjustDamageResult,
+  mergeDamageAdjustmentProfiles
 } from "../module/resolvers/damage-adjustment-resolver.mjs";
 
 function damageResult() {
@@ -121,4 +122,17 @@ test("several Resistances to one damage type count as one; a halving of every ty
   const dodging = mergeDamageAdjustmentProfiles({ignoresResistance: ["slashing"]}, {resistances: [{id: "uncanny-dodge", damageTypes: []}]});
   assert.equal(adjustDamageResult(damageResult(), dodging).damageResult.byDamageType.slashing, 5,
     "Uncanny Dodge still halves a Boon of Irresistible Offense's slashing");
+});
+
+test("a Damage Threshold (a ship's 15) ignores a smaller total from one source, after its other adjustments", () => {
+  const hit = amount => ({ok: true, code: "OK", components: [{id: "ram", amount, damageType: "bludgeoning"}], total: amount,
+    byDamageType: {bludgeoning: amount}});
+  const ship = {damageThreshold: 15, immunities: ["poison"]};
+  const below = adjustDamageResult(hit(14), ship);
+  assert.equal(below.damageResult.total, 0, "superficial");
+  assert.deepEqual(below.applications.at(-1), {kind: "threshold", threshold: 15, prevented: 14});
+  assert.equal(adjustDamageResult(hit(15), ship).damageResult.total, 15, "at the threshold it takes it all");
+  assert.equal(adjustDamageResult(hit(20), {...ship, resistances: ["bludgeoning"]}).damageResult.total, 0, "halved to 10 first");
+  assert.equal(adjustDamageResult(damageResult(), ship).damageResult.total, 27, "several types add up as one source");
+  assert.equal(mergeDamageAdjustmentProfiles({damageThreshold: 10}, {damageThreshold: 15}, {}).damageThreshold, 15);
 });

@@ -10,7 +10,8 @@ export const DAMAGE_ADJUSTMENT_KINDS = Object.freeze({
   RESISTANCE: "resistance",
   VULNERABILITY: "vulnerability",
   ABSORPTION: "absorption",
-  REDUCTION: "reduction"
+  REDUCTION: "reduction",
+  THRESHOLD: "threshold"
 });
 
 export const DAMAGE_REDUCTION_TYPES = Object.freeze({
@@ -65,7 +66,8 @@ export function adjustDamageResult(damageResult, profile={}) {
   const typed = applyTypedAdjustments(originalComponents, normalizedProfile);
   const absorbed = applyAbsorptions(typed.components, normalizedProfile);
   const reduced = applyReductions(absorbed.components, normalizedProfile);
-  const adjustedComponents = reduced.components.map(component => ({
+  const held = applyDamageThreshold(reduced.components, normalizedProfile);
+  const adjustedComponents = held.components.map(component => ({
     ...component,
     metadata: {
       ...(component.metadata ?? {}),
@@ -74,7 +76,7 @@ export function adjustDamageResult(damageResult, profile={}) {
   })).map(({adjustments, ...component}) => component);
   const originalTotal = originalComponents.reduce((sum, component) => sum + component.amount, 0);
   const adjustedTotal = adjustedComponents.reduce((sum, component) => sum + component.amount, 0);
-  const applications = [...typed.applications, ...absorbed.applications, ...reduced.applications];
+  const applications = [...typed.applications, ...absorbed.applications, ...reduced.applications, ...held.applications];
 
   return {
     ok: true,
@@ -121,6 +123,8 @@ export function normalizeDamageAdjustmentProfile(profile={}) {
     reductions: normalizeReductions(profile.reductions ?? profile.damageReductions ?? profile.reduction),
     // Damage types whose Resistance the damage ignores (its attacker's: Boon of Irresistible Offense).
     ignoresResistance: [...new Set((profile.ignoresResistance ?? []).map(String))],
+    // A vehicle's or object's Damage Threshold (DMG 2024): less damage than this from one source is superficial.
+    damageThreshold: Math.max(0, finiteNumber(profile.damageThreshold) ?? 0),
     metadata: clonePlain(profile.metadata ?? {}) ?? {}
   };
 }
@@ -137,6 +141,7 @@ export function mergeDamageAdjustmentProfiles(...profiles) {
     absorptions: normalized.flatMap(profile => profile.absorptions),
     reductions: normalized.flatMap(profile => profile.reductions),
     ignoresResistance: [...new Set(normalized.flatMap(profile => profile.ignoresResistance))],
+    damageThreshold: Math.max(...normalized.map(profile => profile.damageThreshold)),
     metadata: Object.assign({}, ...normalized.map(profile => profile.metadata ?? {}))
   };
 }
@@ -302,6 +307,20 @@ function applyReductions(components, profile) {
   }
 
   return {components: adjustedComponents, applications};
+}
+
+/**
+ * DMG 2024 Damage Threshold: "immunity to all damage unless it takes an amount of damage from a single attack or effect
+ * equal to or greater than its damage threshold, in which case it takes damage as normal". The single source is this
+ * damage result, after its other adjustments.
+ */
+function applyDamageThreshold(components, profile) {
+  const threshold = profile.damageThreshold;
+  const total = components.reduce((sum, component) => sum + component.amount, 0);
+  if ( !(threshold > 0) || !(total > 0) || (total >= threshold) ) return {components, applications: []};
+  return {components: components.map(component => adjustedComponent(component, 0, [{kind: DAMAGE_ADJUSTMENT_KINDS.THRESHOLD,
+    threshold, before: component.amount}])),
+    applications: [{kind: DAMAGE_ADJUSTMENT_KINDS.THRESHOLD, threshold, prevented: total}]};
 }
 
 function applyTypedAdjustments(components, profile) {
