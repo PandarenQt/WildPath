@@ -447,4 +447,7 @@ test("a total floor (Indomitable Might) rides the roll as rolled: its total stay
   assert.deepEqual([rollResultToResolverRoll(typed.result).total, rollResultToResolverRoll(typed.result).totalMinimum], [-2, 20]);
   const plain = createD20RollRequest({id: "roll:plain", resolutionId: "resolution:save", type: ROLL_TYPES.SAVING_THROW, modifier: 2});
   assert.equal(createRollResultFromManualInput({request: plain, input: {natural: 4}}).result.totalMinimum, undefined, "no floor");
+  // The request decides the floor: a roller's answer can't set one, or drop it.
+  assert.equal(createRollResultFromManualInput({request: plain, input: {natural: 4, totalMinimum: 30}}).result.totalMinimum, undefined);
+  assert.equal(createRollResultFromManualInput({request, input: {natural: 4, totalMinimum: 0}}).result.totalMinimum, 20);
 });

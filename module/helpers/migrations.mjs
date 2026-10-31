@@ -18,7 +18,8 @@ const SYSTEM_POOL = /^(?:spell-slot\.|hit-die\.|mystic-arcanum\.)|^heroic-inspir
  * @returns {string[]}
  */
 export function stalePoolIds(pools=[], documents=[]) {
-  const texts = documents.map(document => JSON.stringify(document ?? {}));
+  // A grant's `{item}` is its Item's id (Magic Initiate's per-copy pool), so its pool is that document's.
+  const texts = documents.map(document => JSON.stringify(document ?? {}).replaceAll("{item}", String(document?._id ?? document?.id ?? "")));
   return pools.filter(pool => !SYSTEM_POOL.test(pool.id) && !pool.base && !pool.bonus
     && !texts.some(text => text.includes(`"${pool.id}"`) || text.includes(`pools.${pool.id}.`))).map(pool => pool.id);
 }

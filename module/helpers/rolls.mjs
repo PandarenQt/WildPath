@@ -620,7 +620,8 @@ function normalizeRollResult(raw={}, {skipSerializableClone=false}={}) {
     ?? (request?.expected?.manualInputMode === ROLL_INPUT_MODES.NATURAL && natural != null
       ? countedNatural(natural, request.expected) + (finiteNumber(request.expected.modifierTotal) ?? rollModifierTotal(request))
       : null);
-  const totalMinimum = finiteInteger(source.totalMinimum ?? request?.expected?.totalMinimum);
+  // The request's floor when there is one: a roller's answer can't set its own (a trust boundary).
+  const totalMinimum = finiteInteger(request ? request.expected?.totalMinimum : source.totalMinimum);
 
   return {
     schemaVersion: finiteInteger(source.schemaVersion) ?? ROLL_SCHEMA_VERSION,

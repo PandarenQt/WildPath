@@ -793,6 +793,10 @@ test("public rolls carry the roller's Foundry Roll JSON only when evaluated and 
   assert.deepEqual(publicRoll({natural: 18, total: 22, raw: {foundryRoll}}), foundryRoll);
   assert.equal(publicRoll({natural: 18, total: 22, raw: {foundryRoll: {...foundryRoll, total: 40}}}), null, "forged total");
   assert.equal(publicRoll({natural: 18, total: 22, raw: {foundryRoll: {...foundryRoll, evaluated: false}}}), null, "unevaluated");
+  // A floored total (Indomitable Might) is shown as it counted, without the lower dice.
+  const floored = projectResolutionResultForDisclosure({...sampleResult(), rolls: [{requestId: "r1", type: "save", visibility: "public",
+    rollResult: {natural: 4, total: 9, totalMinimum: 20, raw: {foundryRoll: {...foundryRoll, total: 9}}}}]}, D.BROADCAST_SAFE).rolls[0];
+  assert.deepEqual([floored.total, floored.foundryRoll], [20, null]);
   // A roll's label: a card key and a plain damage type only.
   const labelOf = label => projectResolutionResultForDisclosure({...sampleResult(),
     rolls: [{requestId: "r1", type: "damage", visibility: "public", label, rollResult: {total: 9}}]}, D.BROADCAST_SAFE).rolls[0].label;

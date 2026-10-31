@@ -1997,11 +1997,12 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
     const modifier = (statistic?.totalModifier ?? 0) + ((ability === "agility")
       ? (COVER_BONUS[actionCover({definition, sourceToken, targetToken: token})] ?? 0) : 0);
     const forced = (target.getRollOutcomes?.(["save", `save.${ability}`], context) ?? []).map(outcome => outcome.outcome);
-    // A total floor at or above the DC passes too (Indomitable Might).
-    const passes = forced.includes("automatic-success") || (Number(statistic?.totalMinimum) >= dc);
-    const automatic = passes || forced.includes("automatic-failure");
-    return {tokenId: token.id, name: token.name, kind: "save", ability, dc, modifier, rollMode, automatic,
-      chance: passes ? 0 : (automatic ? 1 : 1 - d20Chance({modifier, target: dc, rollMode, dice: statistic?.dice}))};
+    // A save it can't fail wins over one it can't pass (Trance), which wins over a total floor at the DC (Indomitable Might).
+    const passes = forced.includes("automatic-success");
+    const fails = !passes && forced.includes("automatic-failure");
+    const floored = !passes && !fails && (Number(statistic?.totalMinimum) >= dc);
+    return {tokenId: token.id, name: token.name, kind: "save", ability, dc, modifier, rollMode, automatic: passes || fails,
+      chance: (passes || floored) ? 0 : (fails ? 1 : 1 - d20Chance({modifier, target: dc, rollMode, dice: statistic?.dice}))};
   });
 }
 

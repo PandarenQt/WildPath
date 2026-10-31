@@ -16,6 +16,12 @@ test("a pool is stale only when nothing names it and it has no base of its own",
   assert.deepEqual(stalePoolIds(pools, documents), ["gone"]);
 });
 
+test("a per-Item pool ({item} in its grant: Magic Initiate taken twice) stays while its Item is there", () => {
+  const feat = id => ({_id: id, system: {ruleElements: [{type: "GrantResource", data: {resourceId: "free-cast.magic-initiate.{item}"}}]}});
+  const pools = [{id: "free-cast.magic-initiate.a"}, {id: "free-cast.magic-initiate.b"}];
+  assert.deepEqual(stalePoolIds(pools, [feat("a")]), ["free-cast.magic-initiate.b"], "b's feat is gone");
+});
+
 test("an NPC converted before fractional Challenge Ratings gets its fraction back", () => {
   const npc = (threat, challenge) => ({type: "npc", system: {details: {threat}}, flags: {wildpath: {source: {challenge}}}});
   assert.equal(threatFix(npc(0, 0.25)), 0.25);

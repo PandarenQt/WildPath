@@ -73,6 +73,9 @@ test("odds show as a badge, a range over several targets, and one tooltip line p
   assert.equal(saves.badge, "45–100%");
   assert.deepEqual(saves.lines.map(line => [line.key, line.ability, line.data.modifier ?? null]), [
     ["WILDPATH.ODDS.Fails", "WILDPATH.ABILITIES.Wits", "-1"], ["WILDPATH.ODDS.AlwaysFails", "WILDPATH.ABILITIES.Wits", null]]);
+  // One it can't fail (Trance) is a 0% chance it fails, not "always fails".
+  assert.equal(oddsView([{name: "Elf", kind: "save", chance: 0, automatic: true, modifier: 0, dc: 13, ability: "wits", rollMode: "normal"}])
+    .lines[0].key, "WILDPATH.ODDS.Fails");
 });
 
 test("a magic item's Action is unavailable while its item is unequipped or not attuned", () => {

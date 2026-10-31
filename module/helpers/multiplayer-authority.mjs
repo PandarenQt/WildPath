@@ -534,12 +534,19 @@ function projectPublicResolutionResult(data) {
         type: entry.type ?? null,
         visibility: entry.visibility,
         natural: entry.rollResult?.natural ?? null,
-        total: entry.rollResult?.total ?? null,
+        total: countedTotal(entry.rollResult),
         formula: entry.formula ?? null,
         label: projectRollLabel(entry.label),
-        foundryRoll: publicFoundryRoll(entry.rollResult)
+        // A floored total is shown as entered: the dice would show the lower roll.
+        foundryRoll: (countedTotal(entry.rollResult) === (entry.rollResult?.total ?? null)) ? publicFoundryRoll(entry.rollResult) : null
       }))
   }, "resolutionResult.broadcast");
+}
+
+/** A roll's total as it counted: at least its floor (`totalMinimum`, Indomitable Might). */
+function countedTotal(rollResult) {
+  const total = rollResult?.total ?? null;
+  return (Number.isFinite(total) && (Number(rollResult?.totalMinimum) > total)) ? Number(rollResult.totalMinimum) : total;
 }
 
 /** An effect resolution's condition plans as the card shows them: who, which, and whether it ended. */

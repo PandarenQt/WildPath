@@ -102,7 +102,8 @@ export function oddsView(entries: readonly OddsEntry[] = []) {
       if ( entry.kind === "attack" ) return {key: "WILDPATH.ODDS.Hit", mode, ability: null,
         data: {name: entry.name, chance: percents[index], modifier: signed(entry.modifier), defense: entry.defense}};
       const ability = `WILDPATH.ABILITIES.${capitalize(String(entry.ability ?? ""))}`;
-      return entry.automatic ? {key: "WILDPATH.ODDS.AlwaysFails", mode: null, ability, data: {name: entry.name}}
+      // An automatic save that it fails (Stunned); one it can't fail shows its 0% like any other.
+      return (entry.automatic && (entry.chance >= 1)) ? {key: "WILDPATH.ODDS.AlwaysFails", mode: null, ability, data: {name: entry.name}}
         : {key: "WILDPATH.ODDS.Fails", mode, ability,
           data: {name: entry.name, chance: percents[index], dc: entry.dc, modifier: signed(entry.modifier)}};
     })

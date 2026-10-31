@@ -97,7 +97,9 @@ export function resolveSaveAgainstDC({
     success: outcome === SAVE_OUTCOMES.CRITICAL_SUCCESS || outcome === SAVE_OUTCOMES.SUCCESS,
     critical: outcome === SAVE_OUTCOMES.CRITICAL_SUCCESS || outcome === SAVE_OUTCOMES.CRITICAL_FAILURE,
     margin,
-    roll: {...normalizedRoll, total},
+    // The roll as rolled (what Portent or Bardic Inspiration changes later), and the total it was judged at (its floor).
+    roll: normalizedRoll,
+    total,
     dc: normalizedDC,
     target: targetRef,
     context: clonePlain(context) ?? {}
