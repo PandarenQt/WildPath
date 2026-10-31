@@ -1033,6 +1033,20 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const onHeal = (definition?.healing?.length && definition.tags?.includes("spell")) ? healedOthersFor(actor, actorSystem, healingCastLevel)
     : null;
   if ( onHeal ) targetActors[actor.uuid] ??= actor;
+  // Life Bond (Find Steed): a steed within 5 feet of its summoner regains what a level 1+ spell heals the summoner.
+  const lifeBonds = (definition?.healing?.length && definition.tags?.includes("spell") && (Number(healingCastLevel) >= 1))
+    ? targetEntries.flatMap(({actor: healed, hint}) => {
+      const token = targetTokenFor(healed, hint, game);
+      return [...(token?.parent?.tokens ?? [])].filter(steed => steed.actor && (steed.flags?.wildpath?.summon?.casterUuid === healed.uuid)
+        && [...steed.actor.items].some(item => (item.system?.active !== false) && (item.flags?.wildpath?.source?.identifier === "life-bond"))
+        && ((allyDistance(token, steed) ?? Infinity) <= 5))
+        .map(steed => {
+          targetActors[steed.actor.uuid] ??= steed.actor;
+          return {casterTokenId: token.id, sourceRef: steed.actor.uuid, actorSystem: foundryActorSystemSnapshot(steed.actor),
+            target: {id: steed.actor.id, actorId: steed.actor.id, actorRef: steed.actor.uuid, uuid: steed.actor.uuid, tokenId: steed.id,
+              name: steed.name}};
+        });
+    }) : [];
   for ( const payer of [...(inspirationPayers ?? []), ...allyPayers] ) targetActors[payer.uuid] ??= payer;
   // Reactors on the Scene (Trigger RuleElements on Action events) and the acting creature they may answer.
   const scene = sourceToken?.parent ?? null;
@@ -1087,7 +1101,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       durability: {targetSystems, ...(Object.keys(targetProfiles).length ? {adjustmentProfiles: targetProfiles} : {}),
         ...(ignoredResistances(actor).length ? {adjustments: {ignoresResistance: ignoredResistances(actor)}} : {}),
         ...(Object.keys(zeroHpByTarget).length ? {zeroHpByTarget} : {}),
-        ...(onReduce ? {onReduce: {...onReduce, hostileKeys}} : {}), ...(onHeal ? {onHeal} : {})},
+        ...(onReduce ? {onReduce: {...onReduce, hostileKeys}} : {}), ...(onHeal ? {onHeal} : {}), ...(lifeBonds.length ? {lifeBonds} : {})},
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
       ...(concentration ? {concentration: concentration.input} : {}),
       ...(area.persistentArea ? {persistentArea: area.persistentArea} : {}),

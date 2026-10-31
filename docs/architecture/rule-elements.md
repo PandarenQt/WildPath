@@ -159,6 +159,9 @@ reads it, and no dispatcher runs it.
   context). A spell cast from a slot that restores Hit Points to a creature other than its caster heals the caster that
   much once, on top of its own healing when the spell heals it too (Blessed Healer: 2 + the slot's level). The runtime
   reads it before the Action (`durability.onHeal`); the healing stage applies it (`healerReward`).
+- **Life Bond** (an engine feature, by identifier `life-bond`, 2026-10-31): a summoned creature with it, within 5 feet of the
+  summoner a level 1+ spell heals, regains as many Hit Points as its summoner did. The runtime finds such summons by their
+  Token's `flags.wildpath.summon.casterUuid` (`durability.lifeBonds`); the healing stage adds their plans (`lifeBondHealing`).
 
 **How it runs:**
 - **The runtime** works these out per target (`durability.zeroHpByTarget`: hit points, DC, save bonus, roll mode, the

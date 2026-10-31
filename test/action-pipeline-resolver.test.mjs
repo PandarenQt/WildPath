@@ -1032,6 +1032,25 @@ test("Blessed Healer: healing another creature with a spell heals its caster 2 +
   assert.deepEqual(ownPlans(run([self, ally]).state).map(entry => [entry.plan.from, entry.plan.to]), [[10, 19]], "itself and an ally: one plan, 4 + 5");
 });
 
+test("Life Bond: a bonded steed regains what its summoner regained from the spell, on top of its own healing; nothing at full", () => {
+  const definition = count => ({schemaVersion: 1, id: "action:cure", label: "Cure", costs: {allOf: []},
+    targeting: {type: "multiple", required: true, count}, tags: ["spell"],
+    healing: [{id: "cure", healingType: "healing", expression: {type: "constant", value: 4}}]});
+  const steed = {...target("steed"), tokenId: "token-steed"};
+  const run = (targets, riderHealth) => planStagedActionResolution({id: `resolution:bond-${targets.length}-${riderHealth}`,
+    actorSystem: actorSystem(1), action: definitionAction(definition(targets.length)), source: {actorId: "actor-source"}, targets,
+    durability: {targetSystems: {"actor:actor-rider": {resources: {health: {value: riderHealth, max: 30}}},
+      "actor:actor-steed": {resources: {health: {value: 5, max: 20}}}},
+    lifeBonds: [{casterTokenId: "token-rider", sourceRef: "Actor.steed", target: steed,
+      actorSystem: {resources: {health: {value: 5, max: 20}}}}]}});
+  const steedPlans = state => state.mutationPlans.filter(entry => (entry.type === "durabilityHealing") && (entry.target?.tokenId === "token-steed"))
+    .map(entry => [entry.plan.from, entry.plan.to]);
+  assert.deepEqual(steedPlans(run([target("rider")], 10).state), [[5, 9]], "4, as its rider regained");
+  assert.deepEqual(steedPlans(run([target("rider")], 28).state), [[5, 7]], "the 2 its rider regained");
+  assert.deepEqual(steedPlans(run([target("rider")], 30).state), [], "a rider at full regained none");
+  assert.deepEqual(steedPlans(run([target("rider"), steed], 10).state), [[5, 13]], "healed too: one plan, 4 + 4");
+});
+
 test("drop to 0: Dark One's Blessing gives its source Temporary Hit Points for a hostile creature dropped", () => {
   const definition = {schemaVersion: 1, id: "action:blast", label: "Blast", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
     damage: [{id: "blast", expression: {type: "constant", value: 10}, damageType: "force"}]};

@@ -1968,7 +1968,9 @@ const ENGINE_FEATURES = new Set(["ability-score-improvement", "divine-order", "p
   "druidic", "celestial-resistance", "elven-lineage", "fiendish-legacy", "infiltration-expertise",
   // A class's spellcasting and Pact Magic (its slots), a lineage's spells (its species' grants), Improved Brutal Strike's
   // second option and 2d10 (Brutal Strike's own level tables).
-  "spellcasting", "pact-magic", "elven-lineage-drow", "elven-lineage-high-elf", "gnomish-lineage-forest", "improved-brutal-strike-2"]);
+  "spellcasting", "pact-magic", "elven-lineage-drow", "elven-lineage-high-elf", "gnomish-lineage-forest", "improved-brutal-strike-2",
+  // A Find Steed steed's Life Bond: the runtime finds it beside its healed summoner (durability.lifeBonds).
+  "life-bond"]);
 /**
  * Features whose rule nothing in play exercises, so their text is their rule (an informational note, not a gap): what a
  * creature can't carry (Ephemeral), thoughts no one reads (Shielded Mind, Inscrutable: an Insight check is the GM's call

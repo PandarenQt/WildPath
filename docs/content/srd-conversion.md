@@ -258,7 +258,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Case, Crossbow Bolt | equipment24 | Case, Crossbow Bolt (gear) | — |
 | Case, Map or Scroll | equipment24 | Case, Map or Scroll (gear) | — |
 | Cat | actors24 | Cat (3 items) | — |
-| Celestial Steed | actors24 | Celestial Steed (3 items) | Life Bond: silent: its text names a rule that is not converted (by hand) |
+| Celestial Steed | actors24 | Celestial Steed (3 items) | — |
 | Censer of Controlling Air Elementals | equipment24 | Censer of Controlling Air Elementals (gear), Censer of Controlling Air Elementals (automated) | — |
 | Centaur Trooper | actors24 | Centaur Trooper (4 items) | — |
 | Chain | equipment24 | Chain (Wrap Chain Check) (automated), Chain (Escape Check) (automated), Chain (Burst Chain Check) (automated) | — |
@@ -577,10 +577,10 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Feral Instinct | classes24 | Feral Instinct (feature) | — |
 | Feral Senses | classes24 | Feral Senses (feature) | — |
 | Fey Ancestry | origins24 | Fey Ancestry (feature) | — |
-| Fey Steed | actors24 | Fey Steed (3 items) | Life Bond: silent: its text names a rule that is not converted (by hand); Fey Step: not automated (utility): using it spends its cost; its description says the rest |
+| Fey Steed | actors24 | Fey Steed (3 items) | Fey Step: not automated (utility): using it spends its cost; its description says the rest |
 | Fiend Patron | classes24 | Fiend Patron (subclass) | — |
 | Fiend Spells | classes24 | Fiend Spells (feature) | — |
-| Fiend Steed | actors24 | Fiend Steed (3 items) | Life Bond: silent: its text names a rule that is not converted (by hand) |
+| Fiend Steed | actors24 | Fiend Steed (3 items) | — |
 | Fiendish Legacy, Abyssal | origins24 | Fiendish Legacy, Abyssal (feature) | — |
 | Fiendish Legacy, Chthonic | origins24 | Fiendish Legacy, Chthonic (feature) | — |
 | Fiendish Legacy, Infernal | origins24 | Fiendish Legacy, Infernal (feature) | — |
@@ -1065,7 +1065,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Orc | origins24 | Orc (species) | — |
 | Otherworldly Leap | classes24 | Otherworldly Leap (automated) | effect: "Jump" marks its creature (narrative) |
 | Otherworldly Presence | origins24 | Otherworldly Presence (feature) | — |
-| Otherworldly Steed | actors24 | Otherworldly Steed (3 items) | Life Bond: silent: its text names a rule that is not converted (by hand); Fey Step: not SRD 5.2 (CC-BY-4.0); Healing Touch: not SRD 5.2 (CC-BY-4.0) |
+| Otherworldly Steed | actors24 | Otherworldly Steed (3 items) | Fey Step: not SRD 5.2 (CC-BY-4.0); Healing Touch: not SRD 5.2 (CC-BY-4.0) |
 | Otyugh | actors24 | Otyugh (5 items) | Bite: "save" is passive or triggered: not automated |
 | Overchannel | classes24 | Overchannel (feature) | "First Use" is passive or triggered: not automated; "Second+ Use" is passive or triggered: not automated |
 | Owl | actors24 | Owl (3 items) | — |

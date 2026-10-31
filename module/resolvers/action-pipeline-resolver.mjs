@@ -2226,7 +2226,7 @@ function createHealingStage() {
         });
       }
 
-      const healer = healerReward(input, durabilityResolution?.mutationPlans ?? []);
+      const healer = healerReward(input, lifeBondHealing(input, durabilityResolution?.mutationPlans ?? []));
       actionResult = addResolutionStep(actionResult, {
         stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
         consequences: [{
@@ -2572,6 +2572,28 @@ function healerReward(input, plans) {
     target: input.source});
   return plan?.ok ? {plans: [...plans, {type: "durabilityHealing", resolver: "DurabilityResolver", targetRef: onHeal.sourceRef,
     target: clonePlain(input.source), plan}], record} : {plans, record: null};
+}
+
+/**
+ * Life Bond (`durability.lifeBonds`, the runtime's: a Find Steed steed within 5 feet of its summoner): each bonded steed
+ * regains the Hit Points its summoner regained from this spell, on top of any it regains itself (two plans from the same
+ * starting Hit Points would overwrite each other).
+ */
+function lifeBondHealing(input, plans) {
+  return (input.durability?.lifeBonds ?? []).reduce((result, bond) => {
+    const caster = result.find(entry => entry?.plan && (entry.target?.tokenId === bond.casterTokenId));
+    const amount = caster ? (Number(caster.plan.to) || 0) - (Number(caster.plan.from) || 0) : 0;
+    if ( !(amount > 0) ) return result;
+    const own = result.find(entry => sameCreature(entry?.target, bond.target));
+    if ( own?.plan?.path ) {
+      const to = Math.min(Number(own.plan.max) || Infinity, (Number(own.plan.to) || 0) + amount);
+      return result.map(entry => ((entry !== own) ? entry : {...entry, plan: {...entry.plan, to, updates: {...entry.plan.updates, [entry.plan.path]: to}}}));
+    }
+    const plan = createActorHealingMutationPlan(bond.actorSystem ?? {}, {healingResult: {total: amount, byHealingType: {healing: amount}},
+      target: bond.target});
+    return plan?.ok ? [...result, {type: "durabilityHealing", resolver: "DurabilityResolver", targetRef: bond.sourceRef,
+      target: clonePlain(bond.target), plan}] : result;
+  }, plans);
 }
 
 /** Whether two creature refs name the same creature: its Token when both name one, else its Actor. */
