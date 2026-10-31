@@ -531,8 +531,9 @@ function damageComingReactionEvent(state) {
     phase: AUTOMATION_EVENT_PHASES.BEFORE,
     source: state.actionContext?.source ?? input.source ?? state.source ?? null,
     targets: damaged,
+    // A Critical Hit is one too (Slasher's Enhanced Critical).
     tags: uniqueStrings([...(state.actionContext?.action?.tags ?? []), ...(state.results?.attackResolution?.hits?.length ? ["hit"] : []),
-      ...types]),
+      ...((state.results?.attackResolution?.hits ?? []).some(hit => hit.outcome === "criticalHit") ? ["critical"] : []), ...types]),
     data: {
       action: state.actionContext?.action ?? actionRef(input.action, state.actionDefinition),
       ...targetRelations(input, damaged),

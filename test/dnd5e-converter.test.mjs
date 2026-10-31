@@ -2662,3 +2662,14 @@ test("Sentinel: Opportunity Attacks on a Disengage or a hit on another creature 
   const attack = commonAction({items: []}, "opportunity").system.definition;
   assert.equal(attack.tags.includes("opportunity"), true, "an Opportunity Attack says it is one");
 });
+
+test("Slasher: two Actions of one feat, Hamstring on a Slashing hit once a turn, and its Critical Hit rider", () => {
+  const slasher = {_id: "slasherfeat00000", name: "Slasher", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "slasher", type: {value: "feat"}, activities: {}, description: {value: "<p>Rule text.</p>"}}};
+  const [feature, hamstring, critical] = convertItem(slasher).items;
+  assert.deepEqual([hamstring.name, critical.name], ["Slasher (Hamstring)", "Slasher (Enhanced Critical)"]);
+  assert.deepEqual(feature.flags.wildpath.grants, [hamstring._id, critical._id]);
+  assert.deepEqual([hamstring.system.ruleElements[0].data.once, critical.system.ruleElements[0].data.match.tagsAll],
+    ["turn", ["hit", "critical", "damage:slashing"]]);
+  assert.notEqual(hamstring.system.definition.id, critical.system.definition.id);
+});

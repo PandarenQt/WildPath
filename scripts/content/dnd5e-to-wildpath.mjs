@@ -1886,13 +1886,17 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       flags: {wildpath: {source, conversion: {notes: []}}}});
   }
   // A feature used on its turn that dnd5e leaves without an Action (Action Surge): its Action, paid from its own pool.
-  const featureAction = FEATURE_ACTIONS[identifierOf(document)];
-  if ( featureAction && (pool?.rule || featureAction.free || featureAction.costs) && !items.some(item => item.type === "action") ) {
-    const id = stableId(`${document._id}:use`);
+  // One Action, or several, each named (Slasher's Hamstring and Enhanced Critical).
+  const featureActions = [FEATURE_ACTIONS[identifierOf(document)] ?? []].flat();
+  const hasAction = items.some(item => item.type === "action");
+  for ( const [index, featureAction] of featureActions.entries() ) {
+    if ( !(pool?.rule || featureAction.free || featureAction.costs) || hasAction ) continue;
+    const id = stableId(index ? `${document._id}:use:${index}` : `${document._id}:use`);
+    const name = featureAction.name ? `${document.name} (${featureAction.name})` : document.name;
     // An entry may bring its own uses (`pool`), reach a creature (`range`, `targeting`), or answer an event of its user's
     // own (`trigger`: Tactical Shift on its Second Wind), offered as its `policy` says.
-    items.push({_id: id, _key: `!items!${id}`, name: document.name, type: "action", img,
-      system: {active: true, description, definition: {schemaVersion: 1, id: `action:srd-${slugify(document.name)}`, label: document.name,
+    items.push({_id: id, _key: `!items!${id}`, name, type: "action", img,
+      system: {active: true, description, definition: {schemaVersion: 1, id: `action:srd-${slugify(name)}`, label: name,
         costs: {allOf: featureAction.costs ?? (featureAction.free ? [] : [{capability: pool.id, amount: 1}])},
         range: structuredClone(featureAction.range ?? {type: "self"}), targeting: structuredClone(featureAction.targeting ?? {type: "self"}),
         effects: structuredClone(featureAction.effects ?? []),
@@ -1963,6 +1967,19 @@ const NARRATIVE_FEATURES = new Set(["ephemeral", "shielded-mind", "inscrutable",
 const FEATURE_ACTIONS = Object.freeze({
   "action-surge": {effects: [{id: "effect-1", type: "effect", name: "Action Surge", duration: {value: 0, units: "turns", expiry: "turnEnd"},
     ruleElements: [{schemaVersion: 1, id: "action-surge", type: "Modifier", data: {domains: ["resources.action.max"], modifierType: "untyped", value: 1}}]}]},
+  // Slasher: once a turn its Slashing damage on a hit takes 10 feet off the creature's Speed until the start of its next
+  // turn; on a Critical Hit, the creature has Disadvantage on attack rolls until then too. Free, always.
+  slasher: [{name: "Hamstring", free: true, policy: "always", range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+    trigger: {kind: "reaction", event: "damage.applied", match: {phase: "before", sourceTokenId: "{self}", tagsAll: ["hit", "damage:slashing"]},
+      once: "turn", onceKey: "slasher-hamstring"},
+    effects: [{id: "effect-1", type: "effect", name: "Hamstrung", img: "icons/svg/net.svg", duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"},
+      ruleElements: [{schemaVersion: 1, id: "slasher-hamstring", type: "Modifier", data: {domains: ["resources.movement.max"], modifierType: "untyped",
+        value: -10}}]}]},
+  {name: "Enhanced Critical", free: true, policy: "always", range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+    trigger: {kind: "reaction", event: "damage.applied", match: {phase: "before", sourceTokenId: "{self}",
+      tagsAll: ["hit", "critical", "damage:slashing"]}},
+    effects: [{id: "effect-1", type: "effect", name: "Slashed", img: "icons/svg/downgrade.svg", duration: {value: 1, units: "rounds", expiry: "sourceTurnStart"},
+      ruleElements: [{schemaVersion: 1, id: "slasher-critical", type: "RollMode", data: {domains: ["attack"], mode: "disadvantage"}}]}]}],
   // Sentinel's Halt: a creature its Opportunity Attack hits has a Speed of 0 for the rest of the turn (free, always).
   sentinel: {free: true, policy: "always", range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
     trigger: {kind: "reaction", event: "attack.hit", match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["opportunity"]}},
