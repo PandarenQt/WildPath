@@ -765,7 +765,9 @@ module/helpers/metamagic.mts). Its first option is None. The others are those th
 ## Tactical Mind (2026-10-19)
 
 2024 Tactical Mind (fighter level 2): when the fighter fails an ability check made through an Action (`definition.check`),
-its own offer adds "Tactical Mind: add 1d10" (`withTacticalMind`, beside Heroic Inspiration and Bardic Inspiration).
+its own offer adds "Tactical Mind: add 1d10" (beside Heroic Inspiration and Bardic Inspiration). Since 2026-10-31 it is a
+plain test offer (`flags.wildpath.testOffer`: `{tests: ["check"], faces: 10, pool: "second-wind", refundOnFail: true}`),
+like Indomitable's reroll (`bonus`: its fighter level as a class-level expression); no engine code names the fighter.
 - **Paying:** it is paid from its Second Wind pool, and the use is kept when the check still fails (`refundOnFail`: the
   check stage leaves the payment out).
 - **shortcut:** a check rolled from the sheet gets no offer.

@@ -52,7 +52,8 @@ migration already done runs again, and the setting is updated only after all suc
 books were reconverted (Elemental Adept is only in the locally converted PHB) gets their shapes at its next start, and
 a later converter improvement reaches stored characters too. A re-runnable migration also carries a `revision`, part of the stamp: improving one
 (revision 2 of migration 5 finds an Item copied without its compendium link by its converted source id, the system's
-pack copy before a book's) makes it run again on worlds that already ran it. Refresh Items afterwards also copies the rules and
+pack copy before a book's; revision 3 also copies a feature's `flags.wildpath.testOffer`) makes it run again on worlds
+that already ran it. Refresh Items afterwards also copies the rules and
 `spellChoice` for Items that carry a `_stats.compendiumSource` (a feat taken at level-up).
 
 ## Stale pools
