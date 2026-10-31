@@ -81,7 +81,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "silent: its text names a rule that is not converted (by hand)"
+            ]
           }
         }
       }
@@ -354,7 +356,9 @@
         "challenge": 1
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "Swarm: silent: its text names a rule that is not converted (by hand)"
+        ]
       }
     }
   }

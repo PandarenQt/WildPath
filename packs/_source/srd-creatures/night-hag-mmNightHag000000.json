@@ -794,7 +794,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "silent: its text names a rule that is not converted (by hand)"
+            ]
           }
         }
       }
@@ -1703,6 +1705,7 @@
           "Coven Magic: activation: 10 minute is not an action-economy cost",
           "Coven Magic: save: a failure marks its creature (narrative)",
           "Coven Magic: \"Create Sensor\" is passive or triggered (narrative): not automated",
+          "Soul Bag: silent: its text names a rule that is not converted (by hand)",
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: effect: \"Fears Manifested\" marks its creature only; its rules are by hand",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",

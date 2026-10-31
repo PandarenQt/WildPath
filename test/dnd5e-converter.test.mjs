@@ -1184,12 +1184,18 @@ test("a weapon with the Ammunition property names the ammunition its attack spen
 test("\"Advantage on saving throws to avoid or end\" a condition is a RollMode on saves against it, from the 2024 wording", async () => {
   const fs = await import("node:fs");
   const trait = (name, text) => convertItem({_id: `test${name}`.padEnd(16, "0").slice(0, 16), name, type: "feat", img: "icons/svg/item-bag.svg",
-    system: {source: SRD, identifier: name.toLowerCase(), type: {value: "race"}, description: {value: `<p>${text}</p>`}, activities: {}}, effects: []});
+    system: {source: SRD, identifier: name.toLowerCase().replaceAll(" ", "-"), type: {value: "race"}, description: {value: `<p>${text}</p>`}, activities: {}}, effects: []});
   const [brave] = trait("Brave", "You have Advantage on saving throws you make to avoid or end the &amp;Reference[Frightened] condition.").items;
   assert.deepEqual(brave.system.ruleElements.map(rule => [rule.type, rule.predicate, rule.data]),
     [["RollMode", {tagsAny: ["against:frightened"]}, {domains: ["save"], mode: "advantage"}]]);
   const [not] = trait("Notice", "You gain Resistance to Poison damage but not Advantage on saving throws to avoid or end the Poisoned condition.").items;
   assert.deepEqual(not.system.ruleElements, [], "not when it says not");
+  // A feature that converts to nothing while its text names a rule is noted, so the census counts it.
+  assert.deepEqual(not.flags.wildpath.conversion.notes, ["silent: its text names a rule that is not converted (by hand)"]);
+  assert.deepEqual(trait("Lore", "You know many stories.").items[0].flags.wildpath.conversion.notes, [], "no rule in its text");
+  assert.deepEqual(brave.flags.wildpath.conversion.notes, [], "one that converts is not silent");
+  const [asi] = trait("Ability Score Improvement", "You gain a +2 bonus to one ability score.").items;
+  assert.deepEqual(asi.flags.wildpath.conversion.notes, [], "its class's advancement is its rule (the level-up dialog)");
   const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
     .find(file => file.startsWith(prefix))}`, "utf8"));
   assert.deepEqual(read("antitoxin-").system.definition.effects[0].ruleElements.map(rule => rule.predicate), [{tagsAny: ["against:poisoned"]}],

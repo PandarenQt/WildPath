@@ -86,7 +86,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "silent: its text names a rule that is not converted (by hand)"
+            ]
           }
         }
       }
@@ -448,6 +450,7 @@
       },
       "conversion": {
         "notes": [
+          "Ephemeral: silent: its text names a rule that is not converted (by hand)",
           "Consume Life: \"Wisp: Healing\" is passive or triggered: not automated"
         ]
       }

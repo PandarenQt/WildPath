@@ -81,7 +81,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "silent: its text names a rule that is not converted (by hand)"
+            ]
           }
         }
       }
@@ -270,7 +272,9 @@
         "challenge": 0.25
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "Bloodied Fury: silent: its text names a rule that is not converted (by hand)"
+        ]
       }
     }
   }

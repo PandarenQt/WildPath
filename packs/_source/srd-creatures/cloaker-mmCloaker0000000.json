@@ -91,7 +91,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "silent: its text names a rule that is not converted (by hand)"
+            ]
           }
         }
       }
@@ -659,6 +661,7 @@
       },
       "conversion": {
         "notes": [
+          "Light Sensitivity: silent: its text names a rule that is not converted (by hand)",
           "Attach: \"Detach Attempt\" is passive or triggered: not automated",
           "Phantasms: effect: \"Duplicate A\" change flags.dnd-players-handbook.mirrorImages (add) not converted",
           "Phantasms: effect: \"Duplicate A\" marks its creature only; its rules are by hand",

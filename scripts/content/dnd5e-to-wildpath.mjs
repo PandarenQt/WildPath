@@ -1642,8 +1642,26 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     .includes(system.type?.subtype);
   const prerequisites = chosen ? prerequisitesOf(system) : null;
   if ( prerequisites ) for ( const item of items ) item.flags = {...(item.flags ?? {}), wildpath: {...(item.flags?.wildpath ?? {}), prerequisites}};
+  // A feature that became nothing that acts (no rules, no Actions, nothing flagged for the engine) while its text names a
+  // rule is said to be by hand, so the census counts it: 2024 Brave was one until its wording was read.
+  const [only] = items;
+  if ( (items.length === 1) && (only.type === "feature") && !allNotes.length && !only.system.ruleElements.length
+    && !only.system.advancement && !Object.keys(only.flags.wildpath).some(key => !["source", "conversion", "prerequisites"].includes(key))
+    && !ENGINE_FEATURES.has(identifierOf(document)) && SILENT_MECHANICS.test(plainText(document)) ) {
+    const note = "silent: its text names a rule that is not converted (by hand)";
+    allNotes.push(note);
+    only.flags.wildpath.conversion.notes.push(note);
+  }
   return {ok: true, items, notes: [...new Set(allNotes)]};
 }
+
+/** Words that name a rule in a feature's text (silent features, above). */
+const SILENT_MECHANICS = /\b(?:Advantage|Disadvantage|Resistance|Immunity|immune|Speed|bonus to|can't|Hit Point maximum|Armor Class)\b/u;
+/**
+ * Features whose rule is their class's or species' advancement, which the level-up dialog runs (`improvement`, `choice`):
+ * the feature Item is only its name and text.
+ */
+const ENGINE_FEATURES = new Set(["ability-score-improvement", "divine-order", "primal-order", "eldritch-invocations", "giant-ancestry"]);
 
 /**
  * Features dnd5e gives no usable activity that are used on their creature's turn, as an Action of their own (2024 Action

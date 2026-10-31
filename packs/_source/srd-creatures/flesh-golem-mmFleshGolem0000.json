@@ -87,7 +87,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "silent: its text names a rule that is not converted (by hand)"
+            ]
           }
         }
       }
@@ -150,7 +152,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "silent: its text names a rule that is not converted (by hand)"
+            ]
           }
         }
       }
@@ -459,8 +463,10 @@
       },
       "conversion": {
         "notes": [
+          "Aversion to Fire: silent: its text names a rule that is not converted (by hand)",
           "Berserk: \"Berserk Check\" is passive or triggered: not automated",
-          "Berserk: \"Calm Check\" is passive or triggered: not automated"
+          "Berserk: \"Calm Check\" is passive or triggered: not automated",
+          "Immutable Form: silent: its text names a rule that is not converted (by hand)"
         ]
       }
     }

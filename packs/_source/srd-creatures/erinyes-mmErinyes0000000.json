@@ -173,7 +173,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "silent: its text names a rule that is not converted (by hand)"
+            ]
           }
         }
       }
@@ -733,7 +735,9 @@
         "challenge": 12
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "Magic Rope: silent: its text names a rule that is not converted (by hand)"
+        ]
       }
     }
   }

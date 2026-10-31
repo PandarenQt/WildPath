@@ -149,7 +149,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "silent: its text names a rule that is not converted (by hand)"
+            ]
           }
         }
       }
@@ -618,7 +620,8 @@
       },
       "conversion": {
         "notes": [
-          "Berserk: \"Berserk Check\" is passive or triggered (narrative): not automated"
+          "Berserk: \"Berserk Check\" is passive or triggered (narrative): not automated",
+          "Immutable Form: silent: its text names a rule that is not converted (by hand)"
         ]
       }
     }

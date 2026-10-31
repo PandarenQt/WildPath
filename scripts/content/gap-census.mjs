@@ -59,7 +59,9 @@ const RULES = [
   [/condition immunities/, () => "condition immunities"],
   [/magic or silvered/, () => "resistance bypasses"],
   [/AC: /, () => "AC calculation"],
-  [/healing: temporary/, () => "temporary Hit Points"]
+  [/healing: temporary/, () => "temporary Hit Points"],
+  // A feature that converted to nothing that acts while its text names a rule (convertItem's silent check).
+  [/^silent: /, () => "silent: a rule in its text, nothing converted"]
 ];
 /** Reasons that say how something is handled rather than what is missing: counted apart from the real gaps. */
 const INFORMATIONAL = new Set(["narrative use (its cost is all there is)", "passive trait (its text is its rule)",
