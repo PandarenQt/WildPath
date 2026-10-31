@@ -1173,8 +1173,12 @@ test("a stat block attack's save happens on its hit (a Ghoul's Claw: \"it is sub
   const bite = fiend.items.find(item => item.name === "Bite (save)")?.system.definition.effects ?? [];
   assert.deepEqual(bite.filter(effect => effect.type === "condition").map(effect => effect.conditionId), ["poisoned"],
     "the Pit Fiend's Bite poisons on a hit");
-  assert.deepEqual(bite.filter(effect => effect.type === "effect").map(effect => effect.slug), ["no-healing-while-poisoned"],
-    "and while Poisoned, it can't regain Hit Points");
+  assert.deepEqual(bite.filter(effect => effect.type === "effect").map(effect => effect.slug), ["bite-turn-damage", "no-healing-while-poisoned"],
+    "and while Poisoned, it takes damage each turn and can't regain Hit Points");
+  const turn = bite.find(effect => effect.slug === "bite-turn-damage").ruleElements[0].data;
+  assert.deepEqual([turn.event, turn.predicate, turn.action.damage[0].expression, turn.action.damage[0].damageType],
+    ["turn.started", {hasCondition: "poisoned"}, {type: "dice", number: 6, faces: 6}, "poison"], "6d6 Poison at the start of each of its turns");
+  assert.equal(fiend.items.some(item => /Add'l Poison Damage/u.test(item.name)), false, "no longer an Action of its own");
 });
 
 test("a weapon with the Ammunition property names the ammunition its attack spends (a Longbow's arrows)", () => {

@@ -349,6 +349,48 @@
               "conditionId": "poisoned",
               "saveOutcomePolicy": "failure",
               "repeatSave": "turnEnd"
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Spores (start of turn)",
+              "slug": "spores-turn-damage",
+              "img": "icons/svg/poison.svg",
+              "saveOutcomePolicy": "failure",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "spores-turn-damage",
+                  "type": "Trigger",
+                  "data": {
+                    "kind": "automation",
+                    "event": "turn.started",
+                    "predicate": {
+                      "hasCondition": "poisoned"
+                    },
+                    "action": {
+                      "schemaVersion": 1,
+                      "id": "action:spores-turn-damage",
+                      "label": "Spores",
+                      "costs": {
+                        "allOf": []
+                      },
+                      "damage": [
+                        {
+                          "id": "turn-1",
+                          "expression": {
+                            "type": "dice",
+                            "number": 1,
+                            "faces": 10
+                          },
+                          "damageType": "poison",
+                          "provenance": "additional"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
             }
           ],
           "label": "Spores (Save)"
@@ -386,82 +428,6 @@
           },
           "conversion": {
             "notes": []
-          }
-        }
-      }
-    },
-    {
-      "_id": "1uj3vlo1nv0pz800",
-      "_key": "!actors.items!mmVrock000000000.1uj3vlo1nv0pz800",
-      "name": "Spores (Damage While Poisoned)",
-      "type": "action",
-      "img": "icons/magic/air/fog-gas-smoke-orange.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 15, each creature in a 20-foot Emanation originating from the vrock.</p><p class=\"feature\"><em>Failure:</em> The target has the Poisoned condition and repeats the save at the end of each of its turns, ending the effect on itself on a success. While Poisoned, the target takes 5 (1d10) Poison at the start of each of its turns. Emptying a flask of Holy Water on the target ends the effect early.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-spores-damage-while-poisoned",
-          "costs": {
-            "allOf": []
-          },
-          "range": {
-            "type": "special"
-          },
-          "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "damage": [
-            {
-              "id": "damage-1",
-              "expression": {
-                "type": "dice",
-                "number": 1,
-                "faces": 10
-              },
-              "damageType": "poison",
-              "provenance": "additional"
-            }
-          ],
-          "label": "Spores (Damage While Poisoned)"
-        },
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "spores-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "spores",
-              "label": "Spores",
-              "maximum": {
-                "type": "constant",
-                "value": 1
-              },
-              "recovery": "none",
-              "recharge": 6
-            }
-          }
-        ]
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmSpores00000000",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024",
-            "identifier": "spores",
-            "subtype": null
-          },
-          "conversion": {
-            "notes": [
-              "activation: turnStart is not an action-economy cost"
-            ]
           }
         }
       }
@@ -669,9 +635,7 @@
         "challenge": 6
       },
       "conversion": {
-        "notes": [
-          "Spores: activation: turnStart is not an action-economy cost"
-        ]
+        "notes": []
       }
     }
   }

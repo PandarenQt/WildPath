@@ -374,6 +374,48 @@
               "metadata": {
                 "escapeDC": 13
               }
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Vortex (start of turn)",
+              "slug": "vortex-turn-damage",
+              "img": "icons/svg/poison.svg",
+              "saveOutcomePolicy": "failure",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "vortex-turn-damage",
+                  "type": "Trigger",
+                  "data": {
+                    "kind": "automation",
+                    "event": "turn.started",
+                    "predicate": {
+                      "hasCondition": "grappled"
+                    },
+                    "action": {
+                      "schemaVersion": 1,
+                      "id": "action:vortex-turn-damage",
+                      "label": "Vortex",
+                      "costs": {
+                        "allOf": []
+                      },
+                      "damage": [
+                        {
+                          "id": "turn-1",
+                          "expression": {
+                            "type": "dice",
+                            "number": 2,
+                            "faces": 6
+                          },
+                          "damageType": "thunder",
+                          "provenance": "additional"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
             }
           ],
           "label": "Vortex (Save)"
@@ -395,75 +437,6 @@
           },
           "conversion": {
             "notes": []
-          }
-        }
-      }
-    },
-    {
-      "_id": "hzf75317rhtrd000",
-      "_key": "!actors.items!mmInvisibleStalk.hzf75317rhtrd000",
-      "name": "Vortex (Damage: Grappled)",
-      "type": "action",
-      "img": "icons/magic/air/wind-vortex-swirl-blue.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\"><em>Constitution Saving Throw:</em> DC 14, one Large or smaller creature in the invisible stalker's space.</p><p><em>Failure:</em> 7 (1d8 + 3) Thunder damage, and the target has the Grappled condition (escape DC ). Until the grapple ends, the target can't cast spells with a Verbal component and takes 7 (2d6) Thunder damage at the start of each of the invisible stalker's turns.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-vortex-damage-grappled",
-          "costs": {
-            "anyOf": [
-              [
-                {
-                  "capability": "multiattack-replace",
-                  "amount": 1
-                },
-                {
-                  "capability": "multiattack-wind-swipe",
-                  "amount": 1
-                }
-              ],
-              []
-            ]
-          },
-          "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "damage": [
-            {
-              "id": "damage-1",
-              "expression": {
-                "type": "dice",
-                "number": 2,
-                "faces": 6
-              },
-              "damageType": "thunder",
-              "provenance": "additional"
-            }
-          ],
-          "label": "Vortex (Damage: Grappled)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmVortex00000000",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024",
-            "identifier": "vortex",
-            "subtype": null
-          },
-          "conversion": {
-            "notes": [
-              "activation: turnStart is not an action-economy cost"
-            ]
           }
         }
       }
@@ -574,9 +547,7 @@
         "challenge": 6
       },
       "conversion": {
-        "notes": [
-          "Vortex: activation: turnStart is not an action-economy cost"
-        ]
+        "notes": []
       }
     }
   }

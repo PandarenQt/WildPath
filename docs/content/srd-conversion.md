@@ -852,7 +852,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Investment of the Chain Master | classes24 | Investment of the Chain Master (Find Familiar with Flight) (automated), Investment of the Chain Master (Find Familiar with Swimming) (automated), Investment of the Chain Master (Invest with Resistance) (automated) | — |
 | Invisibility | spells24 | Invisibility (automated) | — |
 | Invisible Sensor | actors24 | Invisible Sensor (0 items) | — |
-| Invisible Stalker | actors24 | Invisible Stalker (7 items) | Vortex: activation: turnStart is not an action-economy cost |
+| Invisible Stalker | actors24 | Invisible Stalker (6 items) | — |
 | Ioun Stone | equipment24 | Ioun Stone (gear) | — |
 | Ioun Stone of Absorption | equipment24 | Ioun Stone of Absorption (gear), Ioun Stone of Absorption (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Ioun Stone of Agility | equipment24 | Ioun Stone of Agility (gear) | — |
@@ -1112,7 +1112,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Pirate | actors24 | Pirate (4 items) | — |
 | Pirate Captain | actors24 | Pirate Captain (6 items) | — |
 | Pistol | equipment24 | Pistol (automated) | — |
-| Pit Fiend | actors24 | Pit Fiend (14 items) | Bite: activation: turnStart is not an action-economy cost |
+| Pit Fiend | actors24 | Pit Fiend (13 items) | — |
 | Planar Ally | spells24 | Planar Ally (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
 | Planar Binding | spells24 | Planar Binding (automated) | activation: 1 hour is not an action-economy cost; effect: "Bound to Service" marks its creature only; its rules are by hand |
 | Plane Shift | spells24 | Plane Shift (manual) | not automated (teleport, narrative): using it spends its cost; its description says the rest |
@@ -1597,7 +1597,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Vitriolic Sphere | spells24 | Vitriolic Sphere (save) (automated) | — |
 | Void | equipment24 | Void (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Vorpal Sword | equipment24 | Vorpal Sword (feature) | "Vorpal Sword" is passive or triggered: not automated |
-| Vrock | actors24 | Vrock (8 items) | Spores: activation: turnStart is not an action-economy cost |
+| Vrock | actors24 | Vrock (7 items) | — |
 | Vulture | actors24 | Vulture (3 items) | — |
 | Wall of Fire | spells24 | Wall of Fire (Create Wall) (automated), Wall of Fire (Create Ring) (automated) | — |
 | Wall of Force | spells24 | Wall of Force (Sphere or Globe) (manual), Wall of Force (Panels) (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
@@ -1634,7 +1634,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Water (Pint) | equipment24 | Water (Pint) (gear) | "Consume" is passive or triggered (narrative): not automated |
 | Water (Pint) | equipment24 | Water (Pint) (gear) | "Consume" is passive or triggered (narrative): not automated |
 | Water Breathing | spells24 | Water Breathing (automated) | effect: "Water Breathing" marks its creature (narrative) |
-| Water Elemental | actors24 | Water Elemental (7 items) | Freeze: "Use" is passive or triggered: not automated; Whelm: activation: turnStart is not an action-economy cost |
+| Water Elemental | actors24 | Water Elemental (6 items) | Freeze: "Use" is passive or triggered: not automated |
 | Water Ring of Elemental Command | equipment24 | Water Ring of Elemental Command (gear), Water Ring of Elemental Command (Elemental Compulsion) (automated), Water Ring of Elemental Command: Create or Destroy Water (manual), Water Ring of Elemental Command: Ice Storm (automated), Water Ring of Elemental Command: Tsunami (automated), Water Ring of Elemental Command: Wall of Ice (automated), Water Ring of Elemental Command: Water Walk (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost; consumption: itemUses -6 not converted; concentration: its caster concentrates; what it sustains is by hand; "Start of Turn Effects" is passive or triggered: not automated; "Frigid Air" is passive or triggered: not automated; effect: "Water Walking" marks its creature (narrative) |
 | Water Walk | spells24 | Water Walk (automated) | effect: "Water Walking" marks its creature (narrative) |
 | Water, fresh (Pint) | equipment24 | Water, fresh (Pint) (gear) | "Consume" is passive or triggered (narrative): not automated |

@@ -1304,6 +1304,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Acid Arrow's and Vitriolic Sphere's later damage is their Lingering Acid effect's own (lingeringAcid).
     if ( (activity.type === "damage") && LATER_ACID.test(activity.name ?? "")
       && (document.effects ?? []).some(effect => effect.name === "Lingering Acid") ) continue;
+    // A stat block's damage at the start of each of the target's turns while its save's condition lasts (a Pit Fiend's
+    // Bite) is that condition's effect's own (turnStartDamageEffects), not an Action.
+    if ( turnStartDamage(document, activity) ) continue;
     // Brutal Strike's Actions are its own (brutalStrikeActions), not its dnd5e damage activity.
     if ( ["brutal-strike", "improved-brutal-strike", "elemental-affinity"].includes(identifierOf(document)) ) continue;
     // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use): used, though dnd5e may leave it passive.
@@ -2545,6 +2548,38 @@ function lingeringAcid(document) {
   const acid = structuredClone(EFFECTS_BY_NAME["Lingering Acid"]);
   if ( count && faces ) acid.ruleElements[0].data.action.damage[0].expression = dice(count, faces);
   return acid;
+}
+
+/**
+ * A stat block's damage activity dnd5e fires at the start of the target's turn (`turnStart`: a Pit Fiend's "Bite (Add'l
+ * Poison Damage)") beside a save that gives a condition: it belongs to that condition's effect (turnStartDamageEffects).
+ */
+function turnStartDamage(document, activity) {
+  return (activity?.type === "damage") && (activity.activation?.type === "turnStart")
+    && Object.values(document.system?.activities ?? {}).some(entry => (entry.type === "save") && (entry.effects ?? []).length);
+}
+
+/**
+ * Its turn-start damage as an effect beside the save's first condition (`effects`, as converted): while the creature has
+ * that condition, the damage at the start of each of its turns (an automation Trigger, as Lingering Acid's), lasting as
+ * long and applied on the same outcome.
+ */
+function turnStartDamageEffects(document, effects, {spell, scales, notes}) {
+  const carrier = effects.find(effect => effect.type === "condition");
+  if ( !carrier ) return [];
+  return Object.values(document.system?.activities ?? {}).filter(activity => turnStartDamage(document, activity)).map((activity, index) => {
+    const damage = (activity.damage?.parts ?? []).map((part, at) => ({id: `turn-${at + 1}`,
+      expression: partExpression(part, {spell, ability: null, scales, notes, label: activity.name ?? "damage"}),
+      ...(part.types?.length === 1 ? {damageType: part.types[0]} : {}), provenance: "additional"})).filter(component => component.expression);
+    if ( !damage.length ) return null;
+    const slug = `${slugify(document.name)}-turn-damage${index ? `-${index + 1}` : ""}`;
+    return {id: `effect-${effects.length + index + 1}`, type: "effect", name: `${document.name} (start of turn)`, slug,
+      img: "icons/svg/poison.svg", ...(carrier.saveOutcomePolicy ? {saveOutcomePolicy: carrier.saveOutcomePolicy} : {}),
+      ...(carrier.duration ? {duration: structuredClone(carrier.duration)} : {}),
+      ruleElements: [{schemaVersion: 1, id: slug, type: "Trigger", data: {kind: "automation", event: "turn.started",
+        predicate: {hasCondition: carrier.conditionId},
+        action: {schemaVersion: 1, id: `action:${slug}`, label: document.name, costs: {allOf: []}, damage}}}]};
+  }).filter(Boolean);
 }
 
 /** A DC dnd5e leaves unset (no calculation, no formula) that its text states once: a 2014 stat block's "DC 21". */
@@ -3914,6 +3949,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
     if ( margined.endsOnDamage ) effect.metadata = {...(effect.metadata ?? {}), endsWhen: "damaged"};
     settled = true;
   }
+  // Its damage at the start of each of the target's turns while the condition this save gives lasts (a Pit Fiend's Bite,
+  // a Vrock's Spores, an Invisible Stalker's Vortex, a Water Elemental's Whelm): an effect beside that condition's.
+  if ( activity.type === "save" ) effects.push(...turnStartDamageEffects(document, effects, {spell, scales, notes}));
   // "While Poisoned, the target can't regain Hit Points" (a Bone Devil's Sting; "Until this poison ends": a Bearded
   // Devil's Beard; "While cursed": a Mummy's Rotting Fist): beside the effect bringing that condition, one capping its
   // healing at 0 for as long as it has the condition (Lesser Restoration ending it ends the cap too).

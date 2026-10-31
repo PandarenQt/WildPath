@@ -360,6 +360,48 @@
               "metadata": {
                 "escapeDC": 14
               }
+            },
+            {
+              "id": "effect-3",
+              "type": "effect",
+              "name": "Whelm (start of turn)",
+              "slug": "whelm-turn-damage",
+              "img": "icons/svg/poison.svg",
+              "saveOutcomePolicy": "failure",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "whelm-turn-damage",
+                  "type": "Trigger",
+                  "data": {
+                    "kind": "automation",
+                    "event": "turn.started",
+                    "predicate": {
+                      "hasCondition": "grappled"
+                    },
+                    "action": {
+                      "schemaVersion": 1,
+                      "id": "action:whelm-turn-damage",
+                      "label": "Whelm",
+                      "costs": {
+                        "allOf": []
+                      },
+                      "damage": [
+                        {
+                          "id": "turn-1",
+                          "expression": {
+                            "type": "dice",
+                            "number": 2,
+                            "faces": 8
+                          },
+                          "damageType": "bludgeoning",
+                          "provenance": "additional"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
             }
           ],
           "label": "Whelm (Save)"
@@ -397,82 +439,6 @@
           },
           "conversion": {
             "notes": []
-          }
-        }
-      }
-    },
-    {
-      "_id": "1ala2q019saeek00",
-      "_key": "!actors.items!mmWaterElemental.1ala2q019saeek00",
-      "name": "Whelm (Damage: Start of Turn)",
-      "type": "action",
-      "img": "icons/magic/water/bubbles-air-water-light.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\"><em>Strength Saving Throw:</em> DC 15, each creature in the water elemental's space.</p><p class=\"feature\"><em>Failure:</em> 22 (4d8 + 4) Bludgeoning damage. If the target is a Large or smaller creature, it has the Grappled condition (escape DC ). Until the grapple ends, the target has the Restrained condition, is suffocating unless it can breathe water, and takes 9 (2d8) Bludgeoning damage at the start of each of the water elemental's turns. The water elemental can grapple one Large creature or up to two Medium or smaller creatures at a time with Whelm.</p><p class=\"feature\">As an action, a creature within 5 feet of the water elemental can pull a creature out of it by succeeding on a DC @skills.ath.passive (Athletics) check.</p><p class=\"feature\"><em>Success:</em> Half damage only.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-whelm-damage-start-of-turn",
-          "costs": {
-            "allOf": []
-          },
-          "range": {
-            "type": "special"
-          },
-          "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "damage": [
-            {
-              "id": "damage-1",
-              "expression": {
-                "type": "dice",
-                "number": 2,
-                "faces": 8
-              },
-              "damageType": "bludgeoning",
-              "provenance": "additional"
-            }
-          ],
-          "label": "Whelm (Damage: Start of Turn)"
-        },
-        "ruleElements": [
-          {
-            "schemaVersion": 1,
-            "id": "whelm-uses",
-            "type": "GrantResource",
-            "data": {
-              "resourceId": "whelm",
-              "label": "Whelm",
-              "maximum": {
-                "type": "constant",
-                "value": 1
-              },
-              "recovery": "none",
-              "recharge": 4
-            }
-          }
-        ]
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmWhelm000000000",
-            "type": "feat",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024",
-            "identifier": "whelm",
-            "subtype": null
-          },
-          "conversion": {
-            "notes": [
-              "activation: turnStart is not an action-economy cost"
-            ]
           }
         }
       }
@@ -568,8 +534,7 @@
       },
       "conversion": {
         "notes": [
-          "Freeze: \"Use\" is passive or triggered: not automated",
-          "Whelm: activation: turnStart is not an action-economy cost"
+          "Freeze: \"Use\" is passive or triggered: not automated"
         ]
       }
     }

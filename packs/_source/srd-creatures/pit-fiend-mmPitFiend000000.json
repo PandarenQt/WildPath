@@ -504,6 +504,53 @@
             {
               "id": "effect-2",
               "type": "effect",
+              "name": "Bite (start of turn)",
+              "slug": "bite-turn-damage",
+              "img": "icons/svg/poison.svg",
+              "saveOutcomePolicy": "failure",
+              "duration": {
+                "value": 60,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "bite-turn-damage",
+                  "type": "Trigger",
+                  "data": {
+                    "kind": "automation",
+                    "event": "turn.started",
+                    "predicate": {
+                      "hasCondition": "poisoned"
+                    },
+                    "action": {
+                      "schemaVersion": 1,
+                      "id": "action:bite-turn-damage",
+                      "label": "Bite",
+                      "costs": {
+                        "allOf": []
+                      },
+                      "damage": [
+                        {
+                          "id": "turn-1",
+                          "expression": {
+                            "type": "dice",
+                            "number": 6,
+                            "faces": 6
+                          },
+                          "damageType": "poison",
+                          "provenance": "additional"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "id": "effect-3",
+              "type": "effect",
               "name": "Can't Regain Hit Points",
               "slug": "no-healing-while-poisoned",
               "img": "icons/svg/blood.svg",
@@ -572,63 +619,6 @@
             "notes": []
           },
           "reactionPolicy": "always"
-        }
-      }
-    },
-    {
-      "_id": "3sgnql1ml0wg5000",
-      "_key": "!actors.items!mmPitFiend000000.3sgnql1ml0wg5000",
-      "name": "Bite (Add'l Poison Damage)",
-      "type": "action",
-      "img": "icons/creatures/abilities/fangs-teeth-bite.webp",
-      "system": {
-        "active": true,
-        "description": "<p class=\"feature\">Melee Attack Roll: +14, reach 5 ft. Hit: 18 (3d6 + 8) Piercing damage. If the target is a creature, it must make the following saving throw.</p><p class=\"feature\"><em>Constitution Saving Throw:</em> DC 21.</p><p class=\"feature\"><em>Failure:</em> The target has the Poisoned condition. While Poisoned, the target can't regain Hit Points and takes 21 (6d6) Poison damage at the start of each of its turns, and it repeats the save at the end of each of its turns, ending the effect on itself on a success. After 1 minute, it succeeds automatically.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-bite-add-l-poison-damage",
-          "costs": {
-            "allOf": []
-          },
-          "targeting": {
-            "type": "single",
-            "required": true,
-            "count": 1
-          },
-          "damage": [
-            {
-              "id": "damage-1",
-              "expression": {
-                "type": "dice",
-                "number": 6,
-                "faces": 6
-              },
-              "damageType": "poison",
-              "provenance": "additional"
-            }
-          ],
-          "label": "Bite (Add'l Poison Damage)"
-        },
-        "ruleElements": []
-      },
-      "flags": {
-        "wildpath": {
-          "source": {
-            "system": "dnd5e",
-            "pack": "actors24",
-            "id": "mmBite0000000000",
-            "type": "weapon",
-            "book": "SRD 5.2",
-            "license": "CC-BY-4.0",
-            "rules": "2024",
-            "identifier": "bite",
-            "subtype": null
-          },
-          "conversion": {
-            "notes": [
-              "activation: turnStart is not an action-economy cost"
-            ]
-          }
         }
       }
     },
@@ -1361,9 +1351,7 @@
         "challenge": 20
       },
       "conversion": {
-        "notes": [
-          "Bite: activation: turnStart is not an action-economy cost"
-        ]
+        "notes": []
       }
     }
   }
