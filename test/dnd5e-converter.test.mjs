@@ -250,6 +250,10 @@ test("older dnd5e data (2014 modules, before activities) converts like the curre
     scaling: {mode: "level", formula: "1d8"}, damage: {parts: [["1d8 + @mod", "healing"]]}}}, own);
   assert.deepEqual(cure.items[0].system.definition.configuration[0].effects[0], {type: "scaleHealing", levelChoiceId: "spell-slot", baseLevel: 1,
     componentIds: ["healing-1"], dice: {number: 1, faces: 8}});
+  // A stat block's legacy Magic Weapon enchants a weapon, as the 2024 spell does.
+  const weaponSpell = upgradeLegacy({_id: "legacyMagicWeap1", name: "Magic Weapon", type: "spell", system: {...legacy, identifier: "magic-weapon",
+    level: 2, actionType: "util", activation: {type: "bonus", cost: 1}, range: {units: "touch"}, target: {value: 1, type: "object"}}});
+  assert.deepEqual(Object.values(weaponSpell.system.activities).map(entry => entry.type), ["enchant"]);
 });
 
 test("an effect with its own changes becomes a custom effect with the rules they map to, and its duration (G3)", async () => {

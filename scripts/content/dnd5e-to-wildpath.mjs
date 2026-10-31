@@ -1308,7 +1308,9 @@ export function upgradeLegacy(document) {
   if ( system.activities || (system.actionType === undefined) ) return document;
   const upgraded = structuredClone(document);
   const s = upgraded.system;
-  const [type, attackType, classification] = LEGACY_ACTIONS[system.actionType] ?? (system.activation?.type ? ["utility"] : []);
+  // A legacy copy of an enchanting spell (a stat block's Magic Weapon) enchants, as the 2024 spell's activity does.
+  const [type, attackType, classification] = ((document.type === "spell") && ENCHANTS[identifierOf(document)]) ? ["enchant"]
+    : (LEGACY_ACTIONS[system.actionType] ?? (system.activation?.type ? ["utility"] : []));
   const parts = (system.damage?.parts ?? []).map(([formula, damageType]) => ({custom: {enabled: true, formula: String(formula ?? "")},
     types: damageType ? [damageType] : []}));
   s.activation = {...(system.activation ?? {}), value: system.activation?.cost ?? system.activation?.value ?? null};
