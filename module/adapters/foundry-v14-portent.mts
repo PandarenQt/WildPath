@@ -5,7 +5,7 @@
  * `flags.wildpath.portent` (`{"1": 14, "2": 3}`: 0 is used); its turn the `portentTurn` flag. Its feature carries how
  * many it rolls (`flags.wildpath.portentDice`: three from level 14, Greater Portent).
  * - An Action's d20: the runtime offers each Diviner who may (portentOffer), the pipeline asks (portentReplace), and
- *   its die is spent once the Action completes (consumePortents).
+ *   its die is spent in the Action's transaction (portentPayment).
  * - A sheet roll's or initiative's card: a Portent button for the Diviner's owner; the active GM applies it.
  */
 
@@ -65,14 +65,28 @@ export function portentHolders(rollerToken: Data | null | undefined, game: Data)
   return holders;
 }
 
-/** Portent's offer for an Action's d20 rolled by `rollerToken` (`attack.portent`, `check.portent`, a save's), or null. */
-export function portentOffer(rollerToken: Data | null | undefined, game: Data) {
+/**
+ * Portent's offer for an Action's d20 rolled by `rollerToken` (`attack.portent`, `check.portent`, a save's), or null.
+ * `register` is handed each Diviner, who pays in the Action's transaction.
+ */
+export function portentOffer(rollerToken: Data | null | undefined, game: Data, {register}: {register?: (actor: Data) => void} = {}) {
   const holders = portentHolders(rollerToken, game);
   if ( !holders.length ) return null;
+  for ( const {actor} of holders ) register?.(actor);
   const format = (key: string, data: Data) => game.i18n?.format?.(key, data) ?? key;
   return {holders: holders.map(({actor, dice}) => ({holderRef: actor.uuid, authority: controllerAuthority(actor, game),
     label: format("WILDPATH.PORTENT.Offer", {name: actor.name ?? "", roller: rollerToken?.name ?? ""}),
-    dice: dice.map(die => ({...die, label: format("WILDPATH.PORTENT.Use", {value: die.value})}))}))};
+    dice: dice.map(die => ({...die, label: format("WILDPATH.PORTENT.Use", {value: die.value}), plan: portentPayment(actor, die, game)}))}))};
+}
+
+/** Using a die, paid in the Action's transaction: its slot becomes 0 and the turn is marked (rolled back with it). */
+export function portentPayment(actor: Data, die: PortentDie, game: Data) {
+  const slotPath = `flags.wildpath.portent.${die.slot}`;
+  const turn = combatTurnKey(game);
+  const turnPath = "flags.wildpath.portentTurn";
+  return {updates: {[slotPath]: 0, ...(turn ? {[turnPath]: turn} : {})},
+    payments: [{path: slotPath, resourceId: "portent", from: die.value, to: 0}],
+    ...(turn ? {path: turnPath, from: actor.flags?.wildpath?.portentTurn ?? null} : {})};
 }
 
 /** Spend a Diviner's die (its slot becomes 0) for this turn. */
@@ -83,17 +97,6 @@ export async function spendPortent(actor: Data | null | undefined, slot: string,
   await actor.update({[`flags.wildpath.portent.${slot}`]: 0, ...(turn ? {"flags.wildpath.portentTurn": turn} : {})});
 }
 
-/**
- * The dice an Action's rolls used (their records' `portent`), spent once it completes (the active GM).
- * shortcut: spent after the commit, not in it; a failure to save the flag leaves the die unspent. Upgrade with a flag
- * mutation plan in the Action's transaction.
- */
-export async function consumePortents({state}: {state?: Data} = {}, {game, fromUuid}: {game: Data; fromUuid: (uuid: string) => Promise<Data | null>}) {
-  for ( const result of state?.rollResults ?? [] ) {
-    const portent = result?.portent;
-    if ( portent?.holderRef ) await spendPortent(await fromUuid(String(portent.holderRef)), String(portent.slot), game);
-  }
-}
 
 /** After a Long Rest: its foretelling rolls, rolled anew (any unused ones are lost), shown to its owner and the GM. */
 export async function rollPortentDice(actor: Data, game: Data) {

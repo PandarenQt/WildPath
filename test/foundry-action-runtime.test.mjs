@@ -7,7 +7,7 @@ import {CREATURE_SIZES} from "../module/helpers/grid-footprints.mjs";
 import {RESOLUTION_STATE_STATUS, validateResolutionStateSerializable} from "../module/helpers/resolution-state.mjs";
 import {createActionResolutionState, planStagedActionResolution, resumeStagedActionResolution} from "../module/resolvers/action-pipeline-resolver.mjs";
 import {withFoundryActorSystem} from "./fixtures/foundry-actor-system.mjs";
-import {consumePortents, portentHolders} from "../module/adapters/foundry-v14-portent.mjs";
+import {portentHolders, portentPayment} from "../module/adapters/foundry-v14-portent.mjs";
 import {
   MULTIPLAYER_AUTHORITY_CODES,
   MULTIPLAYER_MESSAGE_TYPES,
@@ -2613,11 +2613,17 @@ test("Portent (2024 Diviner, replacing a rolled d20): offered to a Diviner who s
   assert.match(saving.state.pendingRequests[0].id, /portent:0:enemy$/u);
   assert.equal(answer(saving.state, "use:2").state.results.saveResolution.successes.length, 1);
 
-  // Its die is spent once the Action completes: that slot becomes 0.
-  const updates = [];
-  Object.assign(diviner, {update: async data => updates.push(data)});
-  await consumePortents({state: foretold}, {game: {combat: null}, fromUuid: async uuid => (uuid === diviner.uuid ? diviner : null)});
-  assert.deepEqual(updates, [{"flags.wildpath.portent.2": 0}]);
+  // Its die is spent by the Diviner in the Action's transaction: that slot becomes 0 (rolled back with it).
+  const portentPayments = state => (state.mutationPlans ?? []).filter(plan => plan.payerRef === "Actor.diviner");
+  assert.deepEqual(portentPayments(foretold).map(plan => [plan.type, plan.plan.updates, plan.plan.payments[0].from]),
+    [["resourcePayment", {"flags.wildpath.portent.2": 0}, 17]]);
+  assert.equal(portentPayments(kept).length, 0, "a die not used is not spent");
+  assert.equal(portentPayments(answer(saving.state, "use:2").state).length, 1, "a save's too");
+  // In a combat its turn is marked too, and restored if the transaction rolls back.
+  const turnGame = {combat: {started: true, id: "combat", round: 2, turn: 1}};
+  assert.deepEqual(portentPayment(diviner, {slot: "1", value: 3}, turnGame), {updates: {"flags.wildpath.portent.1": 0,
+    "flags.wildpath.portentTurn": "combat:2:1"}, payments: [{path: "flags.wildpath.portent.1", resourceId: "portent", from: 3, to: 0}],
+  path: "flags.wildpath.portentTurn", from: null});
 
   // Used this turn: not offered again.
   // Its own roll needs no sight; a die used this combat turn is not offered again until the next.

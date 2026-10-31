@@ -2,7 +2,7 @@ import {gmNotice} from "../helpers/gm-notice.mjs";
 import {movementMessage, refusalMessage} from "../helpers/refusal-messages.mjs";
 export {refusalMessage};
 import {createFoundryEnchantments} from "../adapters/foundry-v14-enchantments.mjs";
-import {consumePortents, controllerAuthority, portentOffer} from "../adapters/foundry-v14-portent.mjs";
+import {controllerAuthority, portentOffer} from "../adapters/foundry-v14-portent.mjs";
 import {enchantedObjectsWithin} from "../adapters/foundry-v14-enchantments.mjs";
 import {WILDPATH} from "../config.mjs";
 import {createFoundryDigitalRollProvider} from "../adapters/foundry-digital-roll-provider.mjs";
@@ -203,8 +203,6 @@ export function registerFoundryV14MultiplayerResolution({
       await recordCastLevel(event);
       await recordAttackTurn(event, {game});
       await recordQuickened(event, {game});
-      // The foretelling rolls its d20s used (Portent).
-      await consumePortents(event, {game, fromUuid: globalThis.fromUuid ?? (async () => null)});
       await markCasterConcentration(event, {game});
     },
     afterCancelled: async event => {
@@ -915,7 +913,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         {chooser: ROLL_AUTHORITY.TARGET_CONTROLLER, register: payer => { allyPayers.push(payer); }});
       if ( inspiration ) inspirationByTarget[key] = inspiration;
       // Portent: a Diviner who sees it may replace its d20.
-      const portent = portentOffer(saverToken, game);
+      const portent = portentOffer(saverToken, game, {register: payer => { allyPayers.push(payer); }});
       if ( portent ) portentByTarget[key] = portent;
     }
     if ( definition?.damage?.length ) {
@@ -1011,7 +1009,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const ownInspiration = definition?.check ? withTacticalMind(ownTest, actor, actorSystem, game)
     : (definition?.tags?.includes("spell") ? withSeekingSpell(ownTest, actor, actorSystem, game) : ownTest);
   // Portent: a Diviner who sees the acting creature may replace its attack's or check's d20.
-  const ownPortent = (definition?.attack || definition?.check) ? portentOffer(sourceToken, game) : null;
+  const ownPortent = (definition?.attack || definition?.check) ? portentOffer(sourceToken, game,
+    {register: payer => { allyPayers.push(payer); }}) : null;
   // A character paying for a reroll is committed on like a target, its uuid its key: the acting creature for its own
   // roll, or a player character for a monster's.
   if ( ownInspiration?.own ) targetActors[actor.uuid] ??= actor;

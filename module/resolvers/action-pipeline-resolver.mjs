@@ -1071,11 +1071,21 @@ function createCheckOutcomeStage() {
         stageId: ACTION_PIPELINE_STAGE_IDS.CHECK_OUTCOME, rollKind: "check",
         makeRollRequest: (suffix, bonus=0, rollMode=null) => checkRollRequestForState(state, input, {suffix, bonus, rollMode})});
       if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
-      if ( !reroll.roll ) return continueResolutionStage({
+      if ( !reroll.roll && !portent.payment ) return continueResolutionStage({
         state: withRerolls(updateResolutionState(state, {input: foretold, results: {...state.results, checkResolution}}),
           portent.roll ? [portent] : []),
         data: {success: checkResolution.success}
       });
+      if ( !reroll.roll ) {
+        const planning = ensureActionPlanningResult(state, foretold);
+        if ( planning.failed ) return planning.failed;
+        const actionResult = addResolutionStep(planning.actionResult, {stage: ACTION_RESOLUTION_STAGES.ROLL, events: [], consequences: [],
+          mutationPlans: [portent.payment], data: {checkResolution}});
+        return continueResolutionStage({
+          state: withRerolls(stateWithActionResult(state, {input: foretold, actionResult, results: {checkResolution}}), [portent]),
+          data: {success: checkResolution.success}
+        });
+      }
       const rerolled = {...input, check: {...input.check, roll: reroll.roll}};
       checkResolution = resolveCheck(reroll.roll);
       // The point is paid in the Action's own transaction, like its costs.
@@ -1083,7 +1093,7 @@ function createCheckOutcomeStage() {
       if ( planning.failed ) return planning.failed;
       const kept = reroll.refundOnFail && !checkResolution.success;
       const actionResult = addResolutionStep(planning.actionResult, {stage: ACTION_RESOLUTION_STAGES.ROLL, events: [], consequences: [],
-        mutationPlans: kept ? [] : [reroll.payment].filter(Boolean), data: {checkResolution}});
+        mutationPlans: [portent.payment, kept ? null : reroll.payment].filter(Boolean), data: {checkResolution}});
       return continueResolutionStage({
         state: withRerolls(stateWithActionResult(state, {input: rerolled, actionResult, results: {checkResolution}}),
           [portent, reroll].filter(entry => entry.roll)),
@@ -1265,7 +1275,7 @@ function createAttackOutcomeStage() {
           attackResolution
         }],
         // A die kept when the attack still misses (Peerless Skill) is not paid for.
-        mutationPlans: (reroll.payment && !(reroll.refundOnFail && !attackResolution.hits?.length)) ? [reroll.payment] : [],
+        mutationPlans: [portent.payment, (reroll.refundOnFail && !attackResolution.hits?.length) ? null : reroll.payment].filter(Boolean),
         data: {attackResolution}
       });
 
@@ -1703,7 +1713,7 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
     const roll = {...(original ?? {}), natural, die: natural, d20: natural, total: (Number(original?.total) || 0) - before + natural,
       modifiers: [...(original?.modifiers ?? []), {id: "set-natural", value: natural - before, label: option.label ?? null}]};
     return {roll, rollResult: {requestId: null, type: `${rollKind}-set-natural`, roll, reroll: true, targetKey: key,
-      // The foretelling roll used (Portent), which the runtime spends once the Action completes.
+      // The foretelling roll used (Portent): one Diviner uses one die per resolution.
       ...(option.portent ? {portent: option.portent} : {})},
       payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null};
   }
@@ -1774,7 +1784,9 @@ function portentReplace(state, input, {offer, roll, key, stageId, rollKind, targ
     const result = inspirationReroll(state, input, {id: `portent:${index}`, key, stageId, rollKind, targets, roll, failed: true,
       makeRollRequest: () => null, offer: {own: false, chooser: holder.authority?.kind ?? ROLL_AUTHORITY.GM, authority: holder.authority,
         label: holder.label ?? "WILDPATH.PORTENT.Title", title: "WILDPATH.PORTENT.Title",
+        // Its die is spent by the Diviner in the Action's transaction (`die.plan`).
         options: holder.dice.map(die => ({value: `use:${die.slot}`, label: die.label ?? String(die.value), setNatural: Number(die.value),
+          ...(die.plan ? {plan: die.plan, payerRef: holder.holderRef} : {}),
           portent: {holderRef: holder.holderRef, slot: die.slot, value: Number(die.value)}}))}});
     if ( result.wait || result.fail ) return result;
     if ( result.roll ) {

@@ -634,7 +634,8 @@ How it works (`adapters/foundry-v14-portent.mts`):
 - **An Action's d20.** The runtime offers `attack.portent`, `check.portent` and `save.portentByTarget`.
   - After the roll, `portentReplace` (pipeline) asks each holder before Heroic Inspiration. A die used sets the natural
     (`setNatural`), so a 20 is a critical hit. A Diviner uses at most one die per resolution, even across several saves.
-  - `consumePortents` spends the die once the Action completes (shortcut: after the commit, not in it).
+  - The die is a payment by the Diviner (`portentPayment`): its slot becomes 0 and its turn is marked in the Action's
+    own transaction, so a failed commit leaves it unspent.
 - **A sheet roll's or initiative's card.** A Diviner's owner gets a Portent button. The active GM checks the request
   (the user owns the Diviner, which may use it now). It then posts the new total, marks the old card, sets the
   combatant's initiative, and spends the die.
