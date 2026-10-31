@@ -1,0 +1,39 @@
+{
+  "_id": "eoj76jo3zbm30000",
+  "_key": "!items!eoj76jo3zbm30000",
+  "name": "Wand of the War Mage, +1, +2, or +3",
+  "type": "gear",
+  "img": "icons/weapons/wands/wand-gem-blue.webp",
+  "system": {
+    "active": false,
+    "description": "<p><em>Wand, Uncommon (+1), Rare (+2), or Very Rare (+3) (Requires Attunement by a Spellcaster)</em></p><p>While holding this wand, you gain a bonus to spell attack rolls determined by the wand's rarity. In addition, you ignore HalfCover when making a spell attack roll.</p><p></p>",
+    "quantity": 1,
+    "weight": 0,
+    "slot": "",
+    "ruleElements": [],
+    "attunement": "required",
+    "armor": "",
+    "price": 0
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmg1WandOfTheWar",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "1-wand-of-the-war-mage",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      },
+      "grants": [
+        "dmg1WandOfTheWar"
+      ]
+    }
+  }
+}

@@ -2,121 +2,298 @@
   "_id": "dmg1WandOfTheWar",
   "_key": "!items!dmg1WandOfTheWar",
   "name": "Wand of the War Mage, +1, +2, or +3",
-  "type": "gear",
+  "type": "action",
   "img": "icons/weapons/wands/wand-gem-blue.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p><em>Wand, Uncommon (+1), Rare (+2), or Very Rare (+3) (Requires Attunement by a Spellcaster)</em></p><p>While holding this wand, you gain a bonus to spell attack rolls determined by the wand's rarity. In addition, you ignore HalfCover when making a spell attack roll.</p><p></p>",
-    "quantity": 1,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [
-      {
-        "schemaVersion": 1,
-        "id": "war-mage-1-1",
-        "type": "Modifier",
-        "predicate": {
-          "tagsAny": [
-            "melee"
-          ]
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-wand-of-the-war-mage-1-2-or-3-wand-of-the-war-mage-1-2-or-3",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": []
+          }
         },
-        "data": {
-          "domains": [
-            "attack.spell"
-          ],
-          "modifierType": "untyped",
+        {
+          "id": "enchantment",
+          "type": "option",
+          "label": "Wand of the War Mage, +1, +2, or +3",
+          "required": true,
+          "options": [
+            {
+              "id": "0",
+              "label": "Wand of the War Mage, +1",
+              "value": "0"
+            },
+            {
+              "id": "1",
+              "label": "Wand of the War Mage, +2",
+              "value": "1"
+            },
+            {
+              "id": "2",
+              "label": "Wand of the War Mage, +3",
+              "value": "2"
+            }
+          ]
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "1-wand-of-the-war-mage",
+        "optionChoiceId": "enchantment",
+        "effects": [
+          {
+            "name": "Wand of the War Mage, +1",
+            "img": "systems/dnd5e/icons/spell-tiers/spell2.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "wand-of-the-war-mage-1-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "wand-of-the-war-mage-1-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "war-mage-1-1",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAny": [
+                    "melee"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "attack.spell"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "war-mage-1-2",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAny": [
+                    "ranged"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "attack.spell"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                }
+              }
+            ]
+          },
+          {
+            "name": "Wand of the War Mage, +2",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "wand-of-the-war-mage-2-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 2
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "wand-of-the-war-mage-2-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 2
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "war-mage-2-1",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAny": [
+                    "melee"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "attack.spell"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 2
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "war-mage-2-2",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAny": [
+                    "ranged"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "attack.spell"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 2
+                }
+              }
+            ]
+          },
+          {
+            "name": "Wand of the War Mage, +3",
+            "img": "systems/dnd5e/icons/spell-tiers/spell4.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "wand-of-the-war-mage-3-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 3
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "wand-of-the-war-mage-3-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 3
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "war-mage-3-1",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAny": [
+                    "melee"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "attack.spell"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 3
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "war-mage-3-2",
+                "type": "Modifier",
+                "predicate": {
+                  "tagsAny": [
+                    "ranged"
+                  ]
+                },
+                "data": {
+                  "domains": [
+                    "attack.spell"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 3
+                }
+              }
+            ]
+          }
+        ],
+        "limit": {
+          "type": "constant",
           "value": 1
         }
       },
-      {
-        "schemaVersion": 1,
-        "id": "war-mage-1-2",
-        "type": "Modifier",
-        "predicate": {
-          "tagsAny": [
-            "ranged"
-          ]
-        },
-        "data": {
-          "domains": [
-            "attack.spell"
-          ],
-          "modifierType": "untyped",
-          "value": 1
-        }
-      },
-      {
-        "schemaVersion": 1,
-        "id": "war-mage-2-1",
-        "type": "Modifier",
-        "predicate": {
-          "tagsAny": [
-            "melee"
-          ]
-        },
-        "data": {
-          "domains": [
-            "attack.spell"
-          ],
-          "modifierType": "untyped",
-          "value": 2
-        }
-      },
-      {
-        "schemaVersion": 1,
-        "id": "war-mage-2-2",
-        "type": "Modifier",
-        "predicate": {
-          "tagsAny": [
-            "ranged"
-          ]
-        },
-        "data": {
-          "domains": [
-            "attack.spell"
-          ],
-          "modifierType": "untyped",
-          "value": 2
-        }
-      },
-      {
-        "schemaVersion": 1,
-        "id": "war-mage-3-1",
-        "type": "Modifier",
-        "predicate": {
-          "tagsAny": [
-            "melee"
-          ]
-        },
-        "data": {
-          "domains": [
-            "attack.spell"
-          ],
-          "modifierType": "untyped",
-          "value": 3
-        }
-      },
-      {
-        "schemaVersion": 1,
-        "id": "war-mage-3-2",
-        "type": "Modifier",
-        "predicate": {
-          "tagsAny": [
-            "ranged"
-          ]
-        },
-        "data": {
-          "domains": [
-            "attack.spell"
-          ],
-          "modifierType": "untyped",
-          "value": 3
-        }
-      }
-    ],
-    "attunement": "required",
-    "armor": "",
-    "price": 0
+      "label": "Wand of the War Mage, +1, +2, or +3"
+    },
+    "ruleElements": []
   },
   "flags": {
     "wildpath": {
@@ -132,9 +309,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Wand of the War Mage, +1, +2, or +3\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

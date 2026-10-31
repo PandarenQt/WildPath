@@ -2,11 +2,93 @@
   "_id": "dmgVorpalSword00",
   "_key": "!items!dmgVorpalSword00",
   "name": "Vorpal Sword",
-  "type": "feature",
+  "type": "action",
   "img": "icons/weapons/swords/scimitar-guard-gold.webp",
   "system": {
     "active": true,
     "description": "<p><em>Weapon (Glaive, Greatsword, Longsword, or Scimitar), Legendary (Requires Attunement)</em></p><p>You gain a +3 bonus to attack rolls and damage rolls made with this magic weapon. In addition, the weapon ignores Resistance to Slashing damage.</p><p>When you use this weapon to attack a creature that has at least one head and roll a 20 on the d20 for the attack roll, you cut off one of the creature's heads. The creature dies if it can't survive without the lost head. A creature is immune to this effect if it has Immunity to Slashing damage, if it doesn't have or need a head, or if the GM decides that the creature is too big for its head to be cut off with this weapon. Such a creature instead takes an extra 30 Slashing damage from the hit. If the creature has Legendary Resistance, it can expend one daily use of that trait to avoid losing its head, taking the extra damage instead.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-vorpal-sword-vorpal-sword",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "weapon"
+            ]
+          }
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "vorpal-sword",
+        "effects": [
+          {
+            "name": "Vorpal Sword",
+            "img": "systems/dnd5e/icons/spell-tiers/spell4.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "vorpal-sword-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 3
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "vorpal-sword-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 3
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "limit": {
+          "type": "constant",
+          "value": 1
+        }
+      },
+      "label": "Vorpal Sword"
+    },
     "ruleElements": []
   },
   "flags": {
@@ -23,10 +105,10 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Vorpal Sword\" is passive or triggered: not automated"
-        ]
-      }
+        "notes": []
+      },
+      "price": 200000,
+      "rarity": "legendary"
     }
   }
 }

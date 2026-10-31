@@ -1156,7 +1156,7 @@ test("a magic item template enchants an Item of its kind: a choice of its option
     effects: [option("acid", "Acid"), option("fire", "Fire"), rider("acidr", "Acid"), rider("firer", "Fire")]};
   const enchant = convertItem(armor).items.find(item => item.type === "action").system.definition;
   assert.deepEqual(enchant.configuration.map(choice => [choice.id, choice.optionsFrom?.kinds ?? choice.options.map(entry => entry.value)]),
-    [["item", ["armor", "shield"]], ["enchantment", ["0", "1"]]]);
+    [["item", ["armor"]], ["enchantment", ["0", "1"]]], "2024 Armor of Resistance: Armor (any Light, Medium or Heavy), not a Shield");
   assert.deepEqual(enchant.enchant.effects.map(effect => effect.ruleElements.map(rule => rule.data.damageTypes)), [[["acid"]], [["fire"]]]);
   assert.equal(enchant.enchant.optionChoiceId, "enchantment");
 });
@@ -2565,4 +2565,40 @@ test("Scimitar of Speed attacks with the Action or the Bonus Action; Archdruid's
   assert.deepEqual([four.configuration.effectiveDefinition.costs.allOf.map(cost => [cost.capability, cost.amount]),
     four.configuration.effectiveDefinition.restores], [[["archdruid", 1], ["wild-shape", 2]], [{resourceId: "spell-slot.4", amount: 1}]]);
   assert.equal(read("archdruid-phbdrd").flags.wildpath.conversion.notes.length, 0);
+});
+
+test("a magic item that is only a template enchants an Item with no activation (Armor +1/+2/+3); its riders come with the enchantment", () => {
+  const bonus = n => ({_id: `armorbonus${n}000000`, name: `Armor +${n}`, type: "enchantment", transfer: false, disabled: false,
+    changes: [{key: "system.armor.magicalBonus", type: "upgrade", value: String(n)}]});
+  const armor = {_id: "testArmorPlusN01", name: "Armor, +1, +2, or +3", type: "equipment", img: "icons/svg/shield.svg",
+    effects: [1, 2, 3].map(bonus), system: {source: SRD, type: {value: "medium"}, activities: {a: activity("enchant", {activation: {type: ""},
+      effects: [1, 2, 3].map(n => ({_id: `armorbonus${n}000000`}))})}}};
+  const items = convertItem(armor).items;
+  const action = items.find(item => item.type === "action");
+  assert.deepEqual([action.system.definition.costs.allOf, action.system.definition.enchant.effects.map(effect => effect.ruleElements[0].data)],
+    [[], [1, 2, 3].map(value => ({domains: ["defense.ac"], modifierType: "untyped", value}))]);
+  assert.equal(items.flatMap(item => item.flags.wildpath.conversion.notes).some(note => /passive or triggered/u.test(note)), false);
+  const config = action.system.definition;
+  assert.deepEqual([config.configuration.find(choice => choice.id === "item").optionsFrom.kinds, config.enchant.limit],
+    [["armor"], {type: "constant", value: 1}], "armor only (Shield +N is its own item), one Item at a time");
+  // Armor of Vulnerability: each choice brings its own Resistance and Vulnerabilities; the gear has none of them at once
+  // (dnd5e's "bludegoning" read as bludgeoning).
+  const rider = (id, dr, dv) => ({_id: id, name: id, transfer: true, disabled: false, changes: [
+    {key: "system.traits.dr.value", type: "add", value: dr}, ...dv.map(value => ({key: "system.traits.dv.value", type: "add", value}))]});
+  const vulnerable = {_id: "testArmorVulner1", name: "Armor of Vulnerability", type: "equipment", img: "icons/svg/shield.svg",
+    effects: [{_id: "pickbludgeon00000", name: "Bludgeoning", type: "enchantment", transfer: false, changes: [{key: "name", type: "override", value: "{}"}]},
+      rider("riderbludgeon0000", "bludegoning", ["piercing", "slashing"])],
+    system: {source: SRD, type: {value: "heavy"}, activities: {a: activity("enchant", {activation: {type: ""},
+      effects: [{_id: "pickbludgeon00000", riders: {effect: ["riderbludgeon0000"]}}]})}}};
+  const converted = convertItem(vulnerable).items;
+  const gear = converted.find(item => item.type === "gear");
+  const pick = converted.find(item => item.type === "action").system.definition.enchant.effects[0].ruleElements;
+  assert.deepEqual(pick.map(rule => [rule.type, rule.data.damageTypes]), [["GrantResistance", ["bludgeoning"]], ["GrantVulnerability", ["piercing", "slashing"]]]);
+  assert.deepEqual(gear?.system.ruleElements ?? [], [], "not on the gear as well");
+  // A rider's language stays the gear's training (Efreeti Chain's Primordial); its rules come with the enchantment.
+  const chain = {...vulnerable, _id: "testEfreetiChain", name: "Efreeti Chain", effects: [vulnerable.effects[0], {...rider("riderbludgeon0000",
+    "fire", []), changes: [{key: "system.traits.di.value", type: "add", value: "fire"},
+    {key: "system.traits.languages.value", type: "add", value: "primordial"}]}]};
+  const chainGear = convertItem(chain).items.find(item => item.type === "gear");
+  assert.deepEqual(chainGear.flags.wildpath.training, ["languages:primordial"]);
 });

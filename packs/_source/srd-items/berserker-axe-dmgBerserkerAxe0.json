@@ -109,7 +109,11 @@
               }
             ]
           }
-        ]
+        ],
+        "limit": {
+          "type": "constant",
+          "value": 1
+        }
       },
       "label": "Berserker Axe"
     },

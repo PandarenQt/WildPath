@@ -37,7 +37,6 @@
           "optionsFrom": {
             "type": "gear",
             "kinds": [
-              "armor",
               "shield"
             ]
           }
@@ -125,7 +124,11 @@
               }
             ]
           }
-        ]
+        ],
+        "limit": {
+          "type": "constant",
+          "value": 1
+        }
       },
       "label": "Shield, +1, +2, or +3"
     },

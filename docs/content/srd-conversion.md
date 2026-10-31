@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 980 automated, 237 manual, 227 features. Creatures: 375.
+Items: 986 automated, 237 manual, 225 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -99,8 +99,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Armor of Invulnerability | equipment24 | Armor of Invulnerability (gear), Armor of Invulnerability (automated) | — |
 | Armor of Resistance | equipment24 | Armor of Resistance (gear), Armor of Resistance (automated) | — |
 | Armor of Shadows | classes24 | Armor of Shadows (automated) | — |
-| Armor of Vulnerability | equipment24 | Armor of Vulnerability (gear) | "Armor of Vulnerability" is passive or triggered: not automated |
-| Armor, +1, +2, or +3 | equipment24 | Armor, +1, +2, or +3 (gear) | "Armor, +1, +2, or +3" is passive or triggered: not automated |
+| Armor of Vulnerability | equipment24 | Armor of Vulnerability (gear), Armor of Vulnerability (automated) | — |
+| Armor, +1, +2, or +3 | equipment24 | Armor, +1, +2, or +3 (gear), Armor, +1, +2, or +3 (automated) | — |
 | Arrow-Catching Shield | equipment24 | Arrow-Catching Shield (gear), Arrow-Catching Shield (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Arrows | equipment24 | Arrows (gear) | — |
 | Ascendant Step | classes24 | Ascendant Step (automated) | effect: "Levitating" marks its creature (narrative) |
@@ -440,7 +440,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Draft Horse | actors24 | Draft Horse (1 items) | — |
 | Dragon Companion | classes24 | Dragon Companion (feature) | "Expend Use" is passive or triggered: not automated |
 | Dragon Orb | equipment24 | Dragon Orb (gear), Dragon Orb (Call Dragons) (manual), Dragon Orb: Suggestion (automated), Dragon Orb: Cure Wounds (automated), Dragon Orb: Daylight (automated), Dragon Orb: Death Ward (automated), Dragon Orb: Detect Magic (automated), Dragon Orb: Scrying (automated) | "Attunement Save" is passive or triggered: not automated; not automated (utility, narrative): using it spends its cost; its description says the rest; effect: "Detect Magic" marks its creature (narrative); activation: 10 minute is not an action-economy cost; save: a failure marks its creature (narrative); "Create Sensor" is passive or triggered (narrative): not automated |
-| Dragon Scale Mail | equipment24 | Dragon Scale Mail (gear) | "Select Dragon Type" is passive or triggered: not automated |
+| Dragon Scale Mail | equipment24 | Dragon Scale Mail (gear), Dragon Scale Mail (automated) | — |
 | Dragon Slayer | equipment24 | Dragon Slayer (automated) | — |
 | Dragon Turtle | actors24 | Dragon Turtle (6 items) | — |
 | Dragon Wings | classes24 | Dragon Wings (Dragon Wings) (automated), Dragon Wings (Restore Use) (automated) | — |
@@ -1596,7 +1596,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Visions of Distant Realms | classes24 | Visions of Distant Realms (automated) | — |
 | Vitriolic Sphere | spells24 | Vitriolic Sphere (save) (automated) | — |
 | Void | equipment24 | Void (gear) | "Card Effect" is passive or triggered (narrative): not automated |
-| Vorpal Sword | equipment24 | Vorpal Sword (feature) | "Vorpal Sword" is passive or triggered: not automated |
+| Vorpal Sword | equipment24 | Vorpal Sword (automated) | — |
 | Vrock | actors24 | Vrock (7 items) | — |
 | Vulture | actors24 | Vulture (3 items) | — |
 | Wall of Fire | spells24 | Wall of Fire (Create Wall) (automated), Wall of Fire (Create Ring) (automated) | — |
@@ -1615,7 +1615,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Wand of Paralysis | equipment24 | Wand of Paralysis (gear), Wand of Paralysis (automated) | — |
 | Wand of Polymorph | equipment24 | Wand of Polymorph (gear), Wand of Polymorph: Polymorph (automated) | transform: a Beast the caster chooses; what the creature may do in its form is by hand |
 | Wand of Secrets | equipment24 | Wand of Secrets (gear), Wand of Secrets (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Wand of the War Mage, +1, +2, or +3 | equipment24 | Wand of the War Mage, +1, +2, or +3 (gear) | "Wand of the War Mage, +1, +2, or +3" is passive or triggered: not automated |
+| Wand of the War Mage, +1, +2, or +3 | equipment24 | Wand of the War Mage, +1, +2, or +3 (gear), Wand of the War Mage, +1, +2, or +3 (automated) | — |
 | Wand of Web | equipment24 | Wand of Web (gear), Wand of Web: Web (automated) | — |
 | Wand of Wonder | equipment24 | Wand of Wonder (gear) | "cast" is passive or triggered: not automated; "Heavy Rain (36-40)" is passive or triggered: not automated; "Cloud of Oversized Butterflies (41-45)" is passive or triggered: not automated; "Grass Cover (61-64)" is passive or triggered: not automated; "Burst of Colorful Light (78-82)" is passive or triggered: not automated; "Stream of Gems (88-92)" is passive or triggered: not automated |
 | War Pick | equipment24 | War Pick (automated), War Pick (Two-Handed) (automated) | — |
@@ -1650,7 +1650,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Weapon Mastery | classes24 | Weapon Mastery (feature) | — |
 | Weapon Mastery | classes24 | Weapon Mastery (feature) | — |
 | Weapon of Warning | equipment24 | Weapon of Warning (automated) | — |
-| Weapon, +1, +2, or +3 | equipment24 | Weapon, +1, +2, or +3 (feature) | "Weapon, +1, +2, or +3" is passive or triggered: not automated |
+| Weapon, +1, +2, or +3 | equipment24 | Weapon, +1, +2, or +3 (automated) | — |
 | Weasel | actors24 | Weasel (2 items) | — |
 | Weaver's Tools | equipment24 | Weaver's Tools (gear), Weaver's Tools (automated) | — |
 | Web | spells24 | Web (automated) | — |

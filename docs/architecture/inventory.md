@@ -252,6 +252,16 @@ the local book module.
     with no level between them are a choice (`enchant.optionChoiceId`, the chosen effect's index), and each brings
     the effects its option names (`riders.effect`: Armor of Resistance's Acid Resistance). A magic bonus may be added
     or raised to (`upgrade`).
+  - A template whose enchant dnd5e left with no activation (Armor, Weapon or Wand of the War Mage +1/+2/+3, Vorpal
+    Sword, Armor of Vulnerability, Dragon Scale Mail) is that Action too (2026-10-31, `templateEnchant`): before, it was
+    only a "passive" note. One that changes nothing the rules read (Adamantine Armor) stays narrative.
+  - Its riders with rules come only with the enchantment: they are no longer also the gear's own passive rules, which
+    gave Armor of Resistance all ten Resistances at once and the Wand of the War Mage +6. A rider with no rules (Demon
+    Armor's Abyssal, a language) stays the gear's.
+  - A template makes one Item at a time (`enchant.limit` 1: using it again moves the enchantment), and suits what its
+    name says: a magic Shield a Shield, a magic armor (or mail) armor, a magic weapon a weapon. shortcut: a weapon's
+    category (Vorpal Sword's martial melee weapons) is not narrowed; Ring of Resistance and the Wand of the War Mage
+    may pick any Item, so pick the ring or wand itself.
   - shortcut: other riders (Radiant Weapon's reaction), changes to the Item itself (Mithral Armor's Strength and Stealth),
     the new name and attunement are by hand.
 

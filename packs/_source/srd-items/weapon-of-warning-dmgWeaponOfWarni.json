@@ -63,7 +63,11 @@
               }
             ]
           }
-        ]
+        ],
+        "limit": {
+          "type": "constant",
+          "value": 1
+        }
       },
       "label": "Weapon of Warning"
     },

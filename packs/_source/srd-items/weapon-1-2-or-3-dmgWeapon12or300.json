@@ -2,11 +2,197 @@
   "_id": "dmgWeapon12or300",
   "_key": "!items!dmgWeapon12or300",
   "name": "Weapon, +1, +2, or +3",
-  "type": "feature",
+  "type": "action",
   "img": "icons/weapons/swords/greatsword-crossguard-engraved-green.webp",
   "system": {
     "active": true,
     "description": "<p><em>Weapon (Any Simple or Martial), Uncommon (+1), Rare (+2), or Very Rare (+3)</em></p><p>You have a bonus to attack rolls and damage rolls made with this magic weapon. The bonus is determined by the weapon's rarity.</p><p></p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-weapon-1-2-or-3-weapon-1-2-or-3",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": []
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "weapon"
+            ]
+          }
+        },
+        {
+          "id": "enchantment",
+          "type": "option",
+          "label": "Weapon, +1, +2, or +3",
+          "required": true,
+          "options": [
+            {
+              "id": "0",
+              "label": "Weapon +1",
+              "value": "0"
+            },
+            {
+              "id": "1",
+              "label": "Weapon +2",
+              "value": "1"
+            },
+            {
+              "id": "2",
+              "label": "Weapon +3",
+              "value": "2"
+            }
+          ]
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "weapon-1-2-or-3",
+        "optionChoiceId": "enchantment",
+        "effects": [
+          {
+            "name": "Weapon +1",
+            "img": "systems/dnd5e/icons/spell-tiers/spell2.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "weapon-1-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "weapon-1-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 1
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Weapon +2",
+            "img": "systems/dnd5e/icons/spell-tiers/spell3.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "weapon-2-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 2
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "weapon-2-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 2
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "name": "Weapon +3",
+            "img": "systems/dnd5e/icons/spell-tiers/spell4.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "weapon-3-attack",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 3
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "weapon-3-damage",
+                "type": "Modifier",
+                "data": {
+                  "domains": [
+                    "damage"
+                  ],
+                  "modifierType": "untyped",
+                  "value": 3
+                },
+                "predicate": {
+                  "tagsAny": [
+                    "weapon:{{host}}"
+                  ]
+                }
+              }
+            ]
+          }
+        ],
+        "limit": {
+          "type": "constant",
+          "value": 1
+        }
+      },
+      "label": "Weapon, +1, +2, or +3"
+    },
     "ruleElements": []
   },
   "flags": {
@@ -23,9 +209,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Weapon, +1, +2, or +3\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

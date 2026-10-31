@@ -83,7 +83,11 @@
               }
             ]
           }
-        ]
+        ],
+        "limit": {
+          "type": "constant",
+          "value": 1
+        }
       },
       "label": "Frost Brand"
     },

@@ -37,8 +37,7 @@
           "optionsFrom": {
             "type": "gear",
             "kinds": [
-              "armor",
-              "shield"
+              "armor"
             ]
           }
         }
@@ -65,7 +64,11 @@
               }
             ]
           }
-        ]
+        ],
+        "limit": {
+          "type": "constant",
+          "value": 1
+        }
       },
       "label": "Demon Armor"
     },

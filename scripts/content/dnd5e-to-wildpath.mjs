@@ -372,11 +372,14 @@ function itemEnchantDefinition({document, activity, system, spell, level, pool, 
     effect.level = {...(/\+\d+$/.test(effect.name) ? {min: at} : {max: at - 1}), ...(levelClass ? {class: levelClass} : {})};
     effect.name = effect.name.replace(/\s*\+\d+$/, "");
   }
-  // What it suits: a weapon (`restrictions.type`, or a weapon's own template), armor and Shields (its AC bonus, or an armor's
-  // template: Armor of Resistance), else any Item.
+  // What it suits: a weapon (`restrictions.type`, or a weapon's own template); a magic Shield's a Shield and a magic armor's
+  // armor, by its name or `restrictions.type` (Shield +1, Armor +1, Armor of Resistance, Dragon Scale Mail); else armor and
+  // Shields when it gives AC (an infusion's Enhanced Defense); else any Item. shortcut: a weapon's category (Vorpal Sword's
+  // martial melee) is not narrowed; upgrade when gear choices filter by category.
+  const named = (document.type === "equipment") ? (/\bshield\b/iu.test(document.name) ? ["shield"]
+    : (/\b(?:armor|mail)\b/iu.test(document.name) || (activity.restrictions?.type === "equipment")) ? ["armor"] : null) : null;
   const kinds = ((activity.restrictions?.type === "weapon") || (document.type === "weapon")) ? ["weapon"]
-    : (effects.some(effect => effect.ruleElements.some(rule => rule.data?.domains?.includes("defense.ac")))
-      || ((document.type === "equipment") && /\b(?:armor|shield)\b/i.test(document.name))) ? ["armor", "shield"] : [];
+    : named ?? (effects.some(effect => effect.ruleElements.some(rule => rule.data?.domains?.includes("defense.ac"))) ? ["armor", "shield"] : []);
   // Several with no level between them are a choice of one (+1, +2 or +3; Acid or Fire Resistance), by its index.
   const choose = (effects.length > 1) && !(raised && (effects.length === 2));
   const limited = (activity.consumption?.targets ?? []).find(target => (target.type === "itemUses") && target.target);
@@ -1327,6 +1330,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // An enchantment of one of its creature's weapons (Magic Weapon, Sacred Weapon): its weapon's attacks change instead.
     const enchant = ENCHANTS[identifierOf(document)] ?? null;
     if ( enchant && (activity.type !== "enchant") ) continue;
+    // A template's enchantment is an Action even with no activation (null when it changes nothing: Adamantine Armor).
+    const template = templateEnchant(document, activities)
+      ? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales}) : null;
+    // A template makes one Item that magic item: using it again moves the enchantment (its older one ends).
+    if ( template?.enchant ) template.enchant.limit ??= {type: "constant", value: 1};
     // Wall of Fire's later damage is its lasting area's repeat (lastingArea).
     if ( spell && (activity === unsavedRepeat(system)) && LASTING_WORDING.test(plainText(document)) ) continue;
     // Acid Arrow's and Vitriolic Sphere's later damage is their Lingering Acid effect's own (lingeringAcid).
@@ -1346,7 +1354,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // What hitting it costs the attacker (a Black Pudding's Corrosive Form, an Azer's Heated Body): an Action of its own,
     // answering the hit at once (RETALIATION).
     const retaliates = (activity.type === "damage") && RETALIATION_TEXT.test(plainText(document));
-    if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !trades && !trapTier && !retaliates
+    if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !template && !trades && !trapTier && !retaliates
       && !USED_AT_TURN_START.has(identifierOf(document)) ) {
       // A recharge when its creature rolls Initiative (Persistent Rage, Uncanny Metabolism, Archdruid): automatic.
       const recharge = initiativeTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature,
@@ -1418,7 +1426,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
           : ((activity.type === "transform") ? wildShapeDefinition({document, activity, system, spell, level, notes, pool, beasts})
             : (enchant ? enchantDefinition({document, activity, system, spell, level, pool, enchant})
               : ((activity.type === "enchant")
-                ? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales})
+                ? (template ?? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales}))
                 : null))))));
     if ( definition && trapTier ) definition = trapDefinition(definition, document.name);
     // 2024 Confusion: "must roll 1d10 at the start of each of its turns to determine its behavior for that turn, consulting
@@ -1962,11 +1970,26 @@ export function preparedTable(system) {
  * The effects an Item gives its holder while it is had: its enabled transfer effects, but not one a summon applies to
  * the creature it summons (an Onyx Dog's "Mastiff Figurine" is the mastiff's Intellect, Common and Blindsight).
  */
-function passiveEffects(document) {
-  const summoned = new Set(Object.values(document.system?.activities ?? {}).filter(activity => activity.type === "summon")
+function passiveEffects(document, {riders=false}={}) {
+  const activities = Object.values(document.system?.activities ?? {}).filter(activity => activity?.type);
+  const summoned = new Set(activities.filter(activity => activity.type === "summon")
     .flatMap(activity => (activity.effects ?? []).map(effect => effect._id)));
-  return (document.effects ?? []).filter(effect => effect.transfer && !effect.disabled && !summoned.has(effect._id));
+  // An enchantment's riders (Armor of Resistance's ten Resistances) come with the enchantment its Action applies, not
+  // all at once on the gear. One with no rules of its own stays the gear's (Demon Armor's Abyssal); `riders` keeps them
+  // all (their training).
+  const ridden = riders ? new Set() : new Set(activities.filter(activity => (activity.type === "enchant")
+    && (ACTIVATION_COST[activity.activation?.type] || templateEnchant(document, activities)))
+    .flatMap(activity => (activity.effects ?? []).flatMap(ref => ref.riders?.effect ?? [])));
+  return (document.effects ?? []).filter(effect => effect.transfer && !effect.disabled && !summoned.has(effect._id)
+    && !(ridden.has(effect._id) && effectRules(effect, []).length));
 }
+
+/**
+ * A magic item that is only a template (Armor, Weapon or Wand of the War Mage +1/+2/+3, Vorpal Sword, Armor of
+ * Vulnerability, Dragon Scale Mail): its one activity enchants an Item, whatever activation dnd5e left it.
+ */
+const templateEnchant = (document, activities) => ["equipment", "weapon"].includes(document.type) && (activities.length === 1)
+  && (activities[0].type === "enchant");
 
 /**
  * What an Item's passive effects, left empty in dnd5e, name in its text: "Advantage on Dexterity (Stealth) checks" (Boots
@@ -2045,7 +2068,8 @@ function emptyPassiveRules(document, notes=[]) {
  * heavy armor), as trait keys its creature gains when the Item is added (`flags.wildpath.training`).
  */
 function trainingKeys(document) {
-  const changes = passiveEffects(document)
+  // An enchantment's rider's training stays the gear's (Efreeti Chain's Primordial): the enchantment carries rules only.
+  const changes = passiveEffects(document, {riders: true})
     .flatMap(effectChanges);
   return [...new Set(changes.flatMap(change => {
     // 2024 Disciplined Survivor: proficiency in every saving throw.
@@ -4866,7 +4890,9 @@ export function effectRules(effect, notes=[], {scales={}, text=""}={}) {
     } else if ( (key === "system.attributes.hp.tempmax") && (type === "add") && value ) {
       modifier(["resources.health.max"], value);
     } else if ( (match = /^system\.traits\.(dr|di|dv|ci)\.value$/.exec(key)) && (type === "add") ) {
-      adjustments[match[1]].push(...String(change.value ?? "").split(/[,;]/).map(entry => entry.trim().toLowerCase()).filter(Boolean));
+      // dnd5e misspells one (Armor of Vulnerability's "bludegoning").
+      adjustments[match[1]].push(...String(change.value ?? "").split(/[,;]/).map(entry => entry.trim().toLowerCase()).filter(Boolean)
+        .map(entry => ((entry === "bludegoning") ? "bludgeoning" : entry)));
     } else if ( (key === "system.attributes.movement.walk") && ["override", "downgrade"].includes(type) && Number.isFinite(number) ) {
       // shortcut: a walking Speed set to a value only caps it; raising a Speed this way is not converted.
       rule("ResourceCap", {resources: ["movement"], maximum: Math.max(number, 0)});
