@@ -2510,6 +2510,9 @@ const TRAITS = Object.freeze({
   // instead take no damage if you succeed on the saving throw and only half damage if you fail", unless Incapacitated.
   evasion: () => ({rules: [{schemaVersion: 1, id: "evasion", type: "RollOutcome", predicate: NOT_INCAPACITATED,
     data: {domains: ["save.agility"], outcome: "evasion"}}], notes: []}),
+  // 2024 Primal Bond (a Beast Master's beast): its controller's Proficiency Bonus on the beast's checks and saves.
+  "primal-bond": () => ({rules: [{schemaVersion: 1, id: "primal-bond", type: "Modifier",
+    data: {domains: ["check", "save"], modifierType: "untyped", valueExpression: {type: "controller-proficiency-bonus"}}}], notes: []}),
   // A monster's Avoidance: Evasion on every save, not only Dexterity's, unless Incapacitated.
   avoidance: () => ({rules: [{schemaVersion: 1, id: "avoidance", type: "RollOutcome", predicate: NOT_INCAPACITATED,
     data: {domains: ["save"], outcome: "evasion"}}], notes: []}),

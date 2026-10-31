@@ -498,3 +498,15 @@ test("Potent Cantrip: a cantrip saved against deals half its damage while its ca
   const success = actor => actionDefinitionFromItem({...flame, actor}).definition.damage[0].saveOutcomePolicy.success;
   assert.deepEqual([success(caster(true)), success(caster(false))], ["half", "none"]);
 });
+
+test("a companion's controller's proficiency bonus is its first controller's (Primal Bond); none without one", () => {
+  const ranger = Object.assign(Object.create(WildPathActor.prototype), {id: "ranger", uuid: "Actor.ranger", effects: [], items: [],
+    statuses: new Set(), flags: {}, system: {details: {level: 9}}, allApplicableEffects: () => []});
+  const previous = globalThis.fromUuidSync;
+  globalThis.fromUuidSync = uuid => ((uuid === "Actor.ranger") ? ranger : null);
+  try {
+    const beast = Object.assign(Object.create(WildPathActor.prototype), {system: {companion: {controllers: ["Actor.ranger"]}}});
+    assert.equal(beast.controllerProficiencyBonus, 4, "a 9th-level ranger's +4");
+    assert.equal(Object.assign(Object.create(WildPathActor.prototype), {system: {companion: {controllers: []}}}).controllerProficiencyBonus, null);
+  } finally { globalThis.fromUuidSync = previous; }
+});

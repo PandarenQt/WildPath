@@ -1175,6 +1175,7 @@ function validateExpressionShape(expression) {
         : {ok: false, reason: "Ability ValueExpression requires an ability key."};
     case "proficiency-bonus":
     case "proficiencyBonus":
+    case "controller-proficiency-bonus":
     case "character-level":
     case "characterLevel":
     case "spellcasting-modifier":

@@ -40,6 +40,9 @@ export function evaluateValueExpression(expression, context={}) {
     case "proficiency-bonus":
     case "proficiencyBonus":
       return evaluateProficiencyBonus(context);
+    // A companion's controller's (2024 Primal Bond: "your" Proficiency Bonus on the beast's checks and saves); 0 with none.
+    case "controller-proficiency-bonus":
+      return ok(firstNumeric([context.controllerProficiencyBonus, context.actor?.controllerProficiencyBonus]) ?? 0);
     case "character-level":
     case "characterLevel":
       return evaluateCharacterLevel(context);

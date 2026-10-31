@@ -19,7 +19,8 @@ import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {floatHealthChange} from "../applications/floating-text.mjs";
 import {effectiveSpellcasting, hitDiceHealing, hitDiePoolId, longRestHitDice} from "../helpers/spellcasting.mjs";
-import {actorAbilityModifier, checkRollModeDomains, resolveActorCheckStatistic, resolveActorSaveStatistic} from "../helpers/combat-statistics.mjs";
+import {actorAbilityModifier, actorProficiencyBonus, checkRollModeDomains, resolveActorCheckStatistic, resolveActorSaveStatistic}
+  from "../helpers/combat-statistics.mjs";
 import {combineRollModes, d20FormulaWith} from "../helpers/rolls.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
 import {executeEffectLifecycleCommit} from "../resolvers/effect-lifecycle-commit-resolver.mjs";
@@ -475,6 +476,13 @@ export default class WildPathActor extends Actor {
   /* -------------------------------------------- */
   /*  Transformations                              */
   /* -------------------------------------------- */
+
+  /** Its first controller's proficiency bonus, for a companion, summon or sidekick (`controller-proficiency-bonus`). */
+  get controllerProficiencyBonus() {
+    const ref = this.system?.companion?.controllers?.[0];
+    const controller = ref ? globalThis.fromUuidSync?.(ref) : null;
+    return (controller && (controller !== this)) ? actorProficiencyBonus(controller) : null;
+  }
 
   /** The active transformation, if any: `{effect, policy}` from an enabled effect that names a form. */
   get transformation() {

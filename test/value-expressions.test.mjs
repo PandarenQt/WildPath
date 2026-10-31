@@ -141,3 +141,9 @@ test("a table with a default is that default when its key can't be read: Hunter'
   assert.deepEqual([evaluate(table, {actorSystem: {classes: {}}}).value, evaluate({...table, default: undefined}, {actorSystem: {classes: {}}}).ok],
     [1, false], "no default: still a failure");
 });
+
+test("a controller's proficiency bonus (Primal Bond): its companion's controller's, 0 with none", async () => {
+  const {evaluateValueExpression} = await import("../module/helpers/value-expressions.mjs");
+  assert.equal(evaluateValueExpression({type: "controller-proficiency-bonus"}, {actor: {controllerProficiencyBonus: 4}}).value, 4);
+  assert.equal(evaluateValueExpression({type: "controller-proficiency-bonus"}, {actor: {controllerProficiencyBonus: null}}).value, 0, "no controller");
+});

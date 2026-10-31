@@ -428,6 +428,8 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
   assert.deepEqual([evade.type, evade.data, evade.predicate.not.any.length], ["RollOutcome", {domains: ["save.agility"], outcome: "evasion"}, 6]);
   const [might] = convertItem(trait("indomitable-might", "Indomitable Might")).items[0].system.ruleElements;
   assert.deepEqual([might.type, might.data], ["RollOutcome", {domains: ["check.might", "save.might"], outcome: "minimum-score"}]);
+  const [bond] = convertItem(trait("primal-bond", "Primal Bond")).items[0].system.ruleElements;
+  assert.deepEqual([bond.data.domains, bond.data.valueExpression], [["check", "save"], {type: "controller-proficiency-bonus"}]);
   const [avoid] = convertItem(trait("avoidance", "Avoidance")).items[0].system.ruleElements;
   assert.deepEqual([avoid.data, avoid.predicate.not.any.length], [{domains: ["save"], outcome: "evasion"}, 6], "every save, unless Incapacitated");
   const resilient = convertItem(trait("resilient", "Resilient")).items[0];

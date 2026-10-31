@@ -17,6 +17,10 @@ Every Actor has `system.companion`:
 A creature with no controllers is no one's companion. The kind is a label for sheets and content; the rules
 treat all three alike.
 
+**Its controller's numbers (2026-10-31).** `actor.controllerProficiencyBonus` is its first controller's proficiency
+bonus (null with none), which the `controller-proficiency-bonus` ValueExpression reads (0 with none): 2024 Primal Bond
+adds it to a Beast Master's beast's checks and saves.
+
 ## Shared control
 
 Every Player who owns one of the controllers owns the companion too. A large summoning can therefore be split
