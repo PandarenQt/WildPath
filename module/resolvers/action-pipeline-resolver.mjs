@@ -2689,8 +2689,10 @@ function createPaymentStage() {
             // Its creature, keyed as the attack keys its targets.
             targetKey: rollModeTargetKey(state.source) || String(state.source?.actorId ?? "")}} : {})}
         : null;
+      // Its dice are rolls of its own, on its card like any other (Mirror Image's d6s, a Cutting Words die).
+      const riderRolls = [penalty, reduction, damagePenalty, decoy].map(entry => entry?.rollResult).filter(Boolean);
       return continueResolutionStage({
-        state: stateWithActionResult(state, {
+        state: stateWithActionResult(riderRolls.length ? {...state, rollResults: [...(state.rollResults ?? []), ...riderRolls]} : state, {
           input,
           actionResult,
           // A reaction with a rider (Cunning Strike) changes the Action it answers once it is paid for.
@@ -3375,7 +3377,7 @@ function riderRoll(state, input, spec, key) {
     targets: [], original: {total: 0}});
   if ( rolled.wait ) return {wait: rolled.wait};
   if ( rolled.fail ) return null;
-  return {total: Math.max((Number(rolled.roll?.total) || 0) + bonusOf(), 0)};
+  return {total: Math.max((Number(rolled.roll?.total) || 0) + bonusOf(), 0), rollResult: rolled.rollResult ?? null};
 }
 
 /** Its ability check lowered by `penalty` (Cutting Words) and judged again against its DC. */

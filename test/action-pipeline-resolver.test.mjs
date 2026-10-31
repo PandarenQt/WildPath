@@ -940,6 +940,9 @@ test("a rider's dice may keep only their highest (Mirror Image's d6 per duplicat
   const done = resumeStagedActionResolution({state: plan.state, response: {resolutionId: plan.state.id, requestId: request.id,
     type: RESOLUTION_REQUEST_TYPES.ROLL, value: {total: 4}}});
   assert.deepEqual([done.state.results.parentDirective.data.missChance.total, done.state.results.parentDirective.data.missChance.missed], [4, true]);
+  // Its d6s are a roll of its own, on its card.
+  assert.deepEqual(sanitizeResolutionResultForTransport({state: done.state}).rolls.map(roll => [roll.formula, roll.rollResult?.total]),
+    [["2d6kh", 4]]);
 });
 
 test("a reaction that counters (Counterspell): its target's failed save asks the parent to be cancelled; a success does not", () => {
