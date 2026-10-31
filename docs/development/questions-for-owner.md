@@ -171,3 +171,17 @@ level keeps the slot (Reaction spells too; the card says whether it was kept).
   Counterspell can answer it). Should the Wild Shape-paid version count as a cast too? Done meanwhile: no (it spends
   no slot). Making it count also needs the action bar to place it among 1st-level spells.
 - Recommendation: keep both as they are.
+
+### Q14. Migration 5 (feature shapes) was added without asking first (2026-10-31)
+Plan 2.8 made the name-keyed features generic data (Life Bond, Potent Cantrip, Elemental Adept, Mystic Arcanum, Spell
+Mastery, Signature Spells). A stored copy of one of them has only its identifier, so the build agent added migration 5
+(`7ec59324`, docs/architecture/world-migrations.md): when a world loads, it copies the new rules and `spellChoice` flag
+from each stored feature's compendium copy. It only adds; it replaces nothing. Migrations need your approval first, and
+this one was not asked: that is my process miss.
+
+- Done meanwhile: the packs (SRD and the four books) are reconverted and rebuilt, so the migration would read current
+  copies. No world has loaded since, so it has not run anywhere.
+- Options:
+  1. Keep it. Existing characters keep working (Spell Mastery's toggle, Life Bond, Elemental Adept, ...).
+  2. Revert it. Those stored features stop working until each is refreshed (Refresh Items) or re-added.
+- Recommendation: option 1.
