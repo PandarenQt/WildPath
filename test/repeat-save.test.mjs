@@ -27,7 +27,7 @@ test("the saves a creature repeats at a turn boundary: one per Action and source
 });
 
 test("an effect whose save repeats keeps the save it was let in by: its ability and the DC it resolved to", () => {
-  const hold = {schemaVersion: 1, id: "action:hold", label: "Hold Person", costs: {allOf: []},
+  const hold = {schemaVersion: 1, id: "action:hold", label: "Hold Person", costs: {allOf: []}, tags: ["spell", "school:enchantment"],
     targeting: {type: "single", required: true, count: 1}, save: {ability: "wits", dc: {value: 14}},
     effects: [{id: "effect-1", type: "condition", conditionId: "paralyzed", saveOutcomePolicy: "failure", repeatSave: "turnEnd"}]};
   assert.equal(validateActionDefinition(hold).ok, true);
@@ -40,7 +40,11 @@ test("an effect whose save repeats keeps the save it was let in by: its ability 
     type: RESOLUTION_REQUEST_TYPES.ROLL, value: {requestId: request.payload.rollRequest.id, resolutionId: plan.state.id,
       type: request.payload.rollRequest.type, natural: 3, total: 3}}});
   const condition = done.state.mutationPlans.find(entry => entry.type === "conditionEffect");
-  assert.deepEqual(condition?.metadata?.repeatSave, {timing: "turnEnd", ability: "wits", dc: 14});
+  assert.deepEqual(condition?.metadata?.repeatSave, {timing: "turnEnd", ability: "wits", dc: 14, tags: ["spell", "school:enchantment"]},
+    "its spell's tags too: the repeated save is still against a spell (Magic Resistance)");
+  const [group] = repeatSaveGroups([{id: "p", name: "Hold Person", flags: {wildpath: {conditionEffect: {sourceRef: "s",
+    metadata: {actionDefinitionId: hold.id, repeatSave: condition.metadata.repeatSave}}}}}], "turn.ended");
+  assert.deepEqual(group.tags, ["spell", "school:enchantment"]);
 });
 
 test("Bardic Inspiration: a failed save may add the die, which can turn it into a success, and ends the effect", async () => {

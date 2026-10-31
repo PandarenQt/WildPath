@@ -2235,12 +2235,15 @@ function createHealingStage() {
  * Effects whose save is repeated (Hold Person) carry the save they repeat: its ability and the DC it resolved to, so the
  * creature rolls the same save at the end of each of its turns (foundry-v14-automation-dispatcher.mts).
  */
-function withRepeatSaves(effects, save, saveResolution) {
+function withRepeatSaves(effects, save, saveResolution, tags=[]) {
   const ability = save?.ability ?? save?.saveKey ?? null;
   const dc = finiteNumber(save?.dc?.value ?? saveResolution?.results?.[0]?.dc?.value);
   if ( !effects?.conditions?.some(entry => entry?.metadata?.repeatSave) || !ability || (dc == null) ) return effects;
+  // Its Action's tags too, so the repeated save is still against a spell (Magic Resistance) or a magical effect.
+  const kept = uniqueStrings(normalizeArray(tags).filter(tag => typeof tag === "string"));
   return {...effects, conditions: effects.conditions.map(entry => (entry?.metadata?.repeatSave
-    ? {...entry, metadata: {...entry.metadata, repeatSave: {...entry.metadata.repeatSave, ability, dc}}} : entry))};
+    ? {...entry, metadata: {...entry.metadata, repeatSave: {...entry.metadata.repeatSave, ability, dc, ...(kept.length ? {tags: kept} : {})}}}
+    : entry))};
 }
 
 /**
@@ -2281,7 +2284,8 @@ function createEffectStage() {
       let {actionResult} = planning;
 
       const effectResolution = resolveActionEffects({
-        effects: withResolutionIds(withSpellLevel(withRepeatSaves(input.effects, input.save, state.results?.saveResolution ?? null), state), state),
+        effects: withResolutionIds(withSpellLevel(withRepeatSaves(input.effects, input.save, state.results?.saveResolution ?? null,
+          state.actionDefinition?.tags), state), state),
         targetResolution: state.results?.targetResolution ?? null,
         attackResolution: state.results?.attackResolution ?? null,
         saveResolution: state.results?.saveResolution ?? null,

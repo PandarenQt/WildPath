@@ -94,15 +94,16 @@ interface RepeatSaveEffect {id: string; name?: string; disabled?: boolean; statu
  */
 export function repeatSaveGroups(effects: Iterable<RepeatSaveEffect>, eventType: string) {
   const timing = REPEAT_SAVE_EVENTS[eventType];
-  const groups = new Map<string, {key: string; name: string; ability: string; dc: number; effectIds: string[]; against: string[]}>();
+  const groups = new Map<string, {key: string; name: string; ability: string; dc: number; effectIds: string[]; against: string[];
+    tags: string[]}>();
   if ( !timing ) return [];
   for ( const effect of effects ) {
     const flag = effect.flags?.wildpath?.conditionEffect;
-    const repeat = flag?.metadata?.repeatSave as {timing?: string; ability?: string; dc?: number} | undefined;
+    const repeat = flag?.metadata?.repeatSave as {timing?: string; ability?: string; dc?: number; tags?: string[]} | undefined;
     if ( effect.disabled || (repeat?.timing !== timing) || !repeat.ability || !Number.isFinite(Number(repeat.dc)) ) continue;
     const key = `${String(flag?.metadata?.actionDefinitionId ?? effect.id)}|${String(flag?.sourceRef ?? "")}`;
     const group = groups.get(key) ?? {key, name: String(effect.name ?? ""), ability: repeat.ability, dc: Number(repeat.dc), effectIds: [],
-      against: []};
+      against: [], tags: Array.isArray(repeat.tags) ? repeat.tags.filter(tag => typeof tag === "string") : []};
     group.effectIds.push(effect.id);
     // The conditions it ends, which the save is against (Antitoxin: Advantage on saves to end Poisoned).
     for ( const status of effect.statuses ?? [] ) if ( !group.against.includes(status) ) group.against.push(status);
@@ -245,8 +246,9 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     if ( type === "turn.ended" ) await suffocate(actor as SuffocatingActor);
     // Repeated saves: the creature rolls each again as its own Action; a success ends what that save let in.
     for ( const group of repeatSaveGroups((actor.effects ?? []) as Iterable<RepeatSaveEffect>, type) ) {
+      // Its Action's tags (`spell`), so the repeated save is against a spell too (Magic Resistance).
       const definition = {schemaVersion: 1, id: `action:repeat-save:${group.key}`, label: group.name, costs: {allOf: []},
-        save: {ability: group.ability, dc: {value: group.dc}, ...(group.against.length ? {against: group.against} : {})}};
+        ...(group.tags.length ? {tags: group.tags} : {}), save: {ability: group.ability, dc: {value: group.dc}, ...(group.against.length ? {against: group.against} : {})}};
       const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
         resolutionId: `repeat-save:${actor.id}:${sequence}:${group.key}`, definition, label: group.name, actorRef: actor.uuid,
         source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, target: self}) as

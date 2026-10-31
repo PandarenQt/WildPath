@@ -452,7 +452,9 @@ Never trust UI visibility as a permission mechanism.
 
 # 14. TypeScript
 
-Use TypeScript for new system code.
+Write new code in the language of the module it joins: a `.mjs` file in a `.mjs` module, a `.mts` file in a `.mts`
+module. New Foundry adapter files are `.mts` (that folder is mostly TypeScript sources). Where both a `.mts` and its
+generated `.mjs` exist, edit the `.mts` and run `npm run build`. (Maintainer decision, 2026-10-31.)
 
 Prefer:
 

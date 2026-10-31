@@ -72,7 +72,7 @@ export function repeatSaveGroups(effects, eventType) {
             continue;
         const key = `${String(flag?.metadata?.actionDefinitionId ?? effect.id)}|${String(flag?.sourceRef ?? "")}`;
         const group = groups.get(key) ?? { key, name: String(effect.name ?? ""), ability: repeat.ability, dc: Number(repeat.dc), effectIds: [],
-            against: [] };
+            against: [], tags: Array.isArray(repeat.tags) ? repeat.tags.filter(tag => typeof tag === "string") : [] };
         group.effectIds.push(effect.id);
         // The conditions it ends, which the save is against (Antitoxin: Advantage on saves to end Poisoned).
         for (const status of effect.statuses ?? [])
@@ -217,8 +217,9 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
             await suffocate(actor);
         // Repeated saves: the creature rolls each again as its own Action; a success ends what that save let in.
         for (const group of repeatSaveGroups((actor.effects ?? []), type)) {
+            // Its Action's tags (`spell`), so the repeated save is against a spell too (Magic Resistance).
             const definition = { schemaVersion: 1, id: `action:repeat-save:${group.key}`, label: group.name, costs: { allOf: [] },
-                save: { ability: group.ability, dc: { value: group.dc }, ...(group.against.length ? { against: group.against } : {}) } };
+                ...(group.tags.length ? { tags: group.tags } : {}), save: { ability: group.ability, dc: { value: group.dc }, ...(group.against.length ? { against: group.against } : {}) } };
             const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
                 resolutionId: `repeat-save:${actor.id}:${sequence}:${group.key}`, definition, label: group.name, actorRef: actor.uuid,
                 source: token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {}, target: self });
