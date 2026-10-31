@@ -2,8 +2,8 @@
  * The level-up dialog (G8, BG3-style): one form for what a class level (with its subclass's), a species or a
  * background asks; what it grants is added without asking. The rules are helpers/level-up.mts.
  */
-import {choiceOptions, hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, poolOptions, sourceGate,
-  unmetPrerequisites} from "../helpers/level-up.mjs";
+import {choiceOptions, hitPointsForLevel, improvementUpdates, multiclassShortfalls, ORIGIN_TYPES, poolOptions, sourceGate,
+  stepsForLevel, unmetPrerequisites} from "../helpers/level-up.mjs";
 import type {AdvancementEntry, LevelStep, PrerequisiteFacts, Prerequisites} from "../helpers/level-up.mjs";
 import {hitDiePoolId} from "../helpers/spellcasting.mjs";
 import {actorAbilityModifier} from "../helpers/combat-statistics.mjs";
@@ -267,9 +267,9 @@ export async function levelUp(actor: LevelActor, item: LevelItem, {level, confir
   const original = isClass ? (classRecordsFromItems(classes)[classes.indexOf(item)]?.original ?? true) : true;
   const subclasses = isClass ? actor.items.filter(entry => (entry.type === "subclass")
     && ((entry.system as {classIdentifier?: string}).classIdentifier === item.system.identifier)) : [];
-  const steps = [...levelSteps(item.system.advancement ?? [], level, {original}),
-    ...subclasses.flatMap(subclass => levelSteps(subclass.system.advancement ?? [], level).map(step => ({...step, source: subclass})))];
   const otherLevels = classes.filter(entry => entry !== item).reduce((sum, entry) => sum + (Number(entry.system.levels) || 0), 0);
+  const steps = stepsForLevel(item, level, {original, otherLevels, subclasses,
+    origins: isClass ? actor.items.filter(entry => ORIGIN_TYPES.has(entry.type)) : []});
   const first = isClass && !otherLevels && (level === 1);
   const scores = Object.fromEntries(Object.entries(actor.system.abilities ?? {}).map(([key, ability]) => [key, Number(ability.value) || 10]));
   // A new class beside others: warn when either side's primary abilities fall short (2024), but do not block.
@@ -314,11 +314,15 @@ async function apply(actor: LevelActor, item: LevelItem, {level, steps, form, fi
   let size: string | null = null;
   let subclass: string | null = null;
   const replaced: Array<{id: string; by: string[]}> = [];
+  // What a species' or background's step grants is that Item's (`grantedBy`), not the class level's that reached it.
+  const originGrants = new Map<LevelItem, string[]>();
   for ( const [index, {kind, entry, source}] of steps.entries() ) {
     const name = `s${index}`;
-    if ( kind === "grant" ) uuids.push(...(entry.optional ? picked(name) : (entry.items ?? [])));
+    const owner = source as LevelItem | undefined;
+    const into = (owner && ORIGIN_TYPES.has(owner.type)) ? (originGrants.get(owner) ?? originGrants.set(owner, []).get(owner)!) : uuids;
+    if ( kind === "grant" ) into.push(...(entry.optional ? picked(name) : (entry.items ?? [])));
     else if ( kind === "choice" ) {
-      uuids.push(...picked(name));
+      into.push(...picked(name));
       const old = picked(`${name}.replace`)[0];
       if ( old ) replaced.push({id: old, by: picked(name)});
     }
@@ -380,7 +384,8 @@ async function apply(actor: LevelActor, item: LevelItem, {level, steps, form, fi
   }
   await actor.update(updates);
   if ( footprint ) await Promise.all(actor.getActiveTokens(false, true).map(token => token.update({width: footprint, height: footprint})));
-  const added = await addItems(actor, uuids, item);
+  const added = [...await addItems(actor, uuids, item)];
+  for ( const [owner, list] of originGrants ) added.push(...await addItems(actor, list, owner));
   // A feat that gives choices of its own (Eldritch Adept) asks them now, as its own level 0.
   for ( const created of added ) if ( (created.type === "feature") && (created.system.advancement ?? []).length ) {
     await levelUp(actor, created, {level: 0, confirm: false});

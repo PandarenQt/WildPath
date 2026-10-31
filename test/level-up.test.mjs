@@ -1,6 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, pointBuySpent, poolOptions, traitUpdates, usesPool} from "../module/helpers/level-up.mjs";
+import {hitPointsForLevel, improvementUpdates, levelSteps, multiclassShortfalls, pointBuySpent, poolOptions, stepsForLevel, traitUpdates,
+  usesPool} from "../module/helpers/level-up.mjs";
 
 test("a level's steps: its entries, the original class's or a multiclass's", () => {
   const advancement = [{level: 1, type: "grant", title: "Class Features"}, {level: 1, type: "trait", title: "Saves", classRestriction: "primary"},
@@ -115,4 +116,22 @@ test("prerequisites: a feat's level and abilities, training, spellcasting, a cla
   assert.deepEqual(unmetPrerequisites({repeatable: true}, facts, {identifier: "alert"}), []);
   assert.deepEqual(unmetPrerequisites({text: "Warlock Cantrip That Deals Damage"}, facts), []);
   assert.deepEqual(unmetPrerequisites({level: 19}, facts), ["level"], "an Epic Boon");
+});
+
+test("a species' levels follow its creature's: a Tiefling's cantrip at 1st, its spells at 3rd and 5th", () => {
+  const tiefling = {type: "species", name: "Abyssal Tiefling", system: {advancement: [{level: 0, type: "size"}, {level: 0, type: "grant", title: "Traits"},
+    {level: 1, type: "grant", title: "Poison Spray"}, {level: 3, type: "grant", title: "Ray of Sickness"}, {level: 5, type: "grant", title: "Hold Person"}]}};
+  const background = {type: "background", system: {advancement: [{level: 0, type: "trait", title: "Skills"}]}};
+  const fighter = {type: "class", system: {advancement: [{level: 1, type: "grant", title: "Fighting Style"}, {level: 3, type: "subclass"}]}};
+  const champion = {type: "subclass", system: {advancement: [{level: 3, type: "grant", title: "Improved Critical"}]}};
+  const titles = steps => steps.map(step => `${step.source?.name ?? ""}:${step.title ?? step.kind}`);
+  assert.deepEqual(titles(stepsForLevel(tiefling, 0)), [":size", ":Traits"], "added at creation: its origin steps only");
+  assert.deepEqual(titles(stepsForLevel(fighter, 1, {origins: [tiefling, background]})), [":Fighting Style", "Abyssal Tiefling:Poison Spray"],
+    "1st level: the class's, and the species' 1st-level step");
+  assert.deepEqual(titles(stepsForLevel(fighter, 3, {otherLevels: 0, subclasses: [champion], origins: [tiefling]})),
+    [":subclass", ":Improved Critical", "Abyssal Tiefling:Ray of Sickness"]);
+  assert.deepEqual(titles(stepsForLevel(fighter, 2, {otherLevels: 3, origins: [tiefling]})), ["Abyssal Tiefling:Hold Person"],
+    "a multiclass level that makes the character 5th level");
+  assert.deepEqual(titles(stepsForLevel(tiefling, 0, {otherLevels: 4})), [":size", ":Traits", ":Poison Spray", ":Ray of Sickness"],
+    "added to a 4th-level character: every level up to 4th");
 });

@@ -30,6 +30,25 @@ export function levelSteps(advancement, level, { original = true } = {}) {
         .filter(entry => !entry.classRestriction || (entry.classRestriction === (original ? "primary" : "secondary")))
         .map(entry => ({ kind: entry.type, title: entry.title ?? null, entry }));
 }
+/** Items whose levels are their creature's character level, not a class's own. */
+export const ORIGIN_TYPES = new Set(["species", "background"]);
+/**
+ * The steps applying `level` of `item` brings. A class level brings its own and its subclasses' steps at that level, and
+ * its creature's species' and background's at the character level it reaches (a Tiefling's cantrip at 1st, its spells at
+ * 3rd and 5th; a Dragonborn's flight at 5th). A species or background added to a creature that already has levels
+ * (`otherLevels`) brings every level of it up to theirs. Each step names the Item it comes from (`source`) when that is
+ * not `item`.
+ */
+export function stepsForLevel(item, level, { original = true, otherLevels = 0, subclasses = [], origins = [] } = {}) {
+    const own = (source, at, options = {}) => levelSteps(source.system.advancement ?? [], at, options);
+    if (ORIGIN_TYPES.has(item.type))
+        return Array.from({ length: otherLevels + 1 }, (_, at) => own(item, at)).flat();
+    if (item.type !== "class")
+        return own(item, level, { original });
+    return [...own(item, level, { original }),
+        ...subclasses.flatMap(subclass => own(subclass, level).map(step => ({ ...step, source: subclass }))),
+        ...origins.flatMap(origin => own(origin, otherLevels + level).map(step => ({ ...step, source: origin })))];
+}
 /** Where content comes from, each a world setting (`source<Gate>`) that offers it in the level-up dialog or not. */
 export const SOURCE_GATES = Object.freeze(["core2014", "core2024", "supplement", "ua", "thirdParty"]);
 const CORE_PACKAGES = new Set(["wildpath", "wildpath-dnd-players-handbook", "wildpath-dnd-dungeon-masters-guide", "wildpath-dnd-monster-manual"]);

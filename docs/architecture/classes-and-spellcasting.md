@@ -132,6 +132,14 @@ only what one level asks, and adds what it grants:
   has is not offered; Expertise in a skill not yet proficient waits until this dialog grants or picks the skill), an Ability Score Improvement (points to spend, or a feat from the compendiums' origin and
   general feats, Epic Boons from level 19), the subclass (from every Item compendium, by class identifier) and a
   species' size. Confirm stays disabled until every count and every point is met.
+- **A species' or background's later levels (2026-10-31).** Their levels are the character level, not a class's
+  (`stepsForLevel`, `ORIGIN_TYPES`): a class level that makes the character Nth level also asks and grants the
+  species' and background's Nth-level steps (an Abyssal Tiefling's Poison Spray at 1st, Ray of Sickness at 3rd, Hold
+  Person at 5th; a Dragonborn's flight at 5th). A species added to a character that already has levels brings every
+  level of it up to theirs. What those steps grant is the species' (`grantedBy`), so it goes when the species goes.
+  Until then only their level-0 steps ran. Live (14.369): a new character took Tiefling, Abyssal, then Fighter 1, and
+  received Poison Spray from the species. Characters made before this keep what they had; drop the species again
+  to add what it missed.
 - **What it does.** The class's `levels` goes up; hit points rise by the Hit Die's maximum at a character's first
   level, else its average rounded up, plus the Fortitude modifier (the `rollHitPoints` world setting rolls the die
   instead, with the roll in chat); one more Hit Die is available. Skills, saves and training are recorded on the class,
