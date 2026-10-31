@@ -43,7 +43,8 @@ export const WHILE_PREDICATES: Readonly<Record<string, Data>> = Object.freeze({
   "@melee": {tagsAny: ["melee"]},
   "@ranged": {tagsAny: ["ranged"]},
   "@allyNearTarget": {equals: {path: "attack.allyNearTarget", value: true}},
-  "@inSunlight": {equals: {path: "inSunlight", value: true}}
+  "@inSunlight": {equals: {path: "inSunlight", value: true}},
+  "@inBrightLight": {equals: {path: "inBrightLight", value: true}}
 });
 const whileOf = (predicate: Data | null) => (predicate ? (Object.entries(WHILE_PREDICATES)
   .find(([, known]) => JSON.stringify(known) === JSON.stringify(predicate))?.[0] ?? null) : null);

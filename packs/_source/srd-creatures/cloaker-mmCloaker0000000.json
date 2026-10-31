@@ -75,7 +75,25 @@
       "system": {
         "active": true,
         "description": "<p class=\"feature\">While in Bright Light, the cloaker has Disadvantage on attack rolls.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "light-sensitivity",
+            "type": "RollMode",
+            "predicate": {
+              "equals": {
+                "path": "inBrightLight",
+                "value": true
+              }
+            },
+            "data": {
+              "domains": [
+                "attack"
+              ],
+              "mode": "disadvantage"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -91,9 +109,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "silent: its text names a rule that is not converted (by hand)"
-            ]
+            "notes": []
           }
         }
       }
@@ -670,7 +686,6 @@
       },
       "conversion": {
         "notes": [
-          "Light Sensitivity: silent: its text names a rule that is not converted (by hand)",
           "Attach: \"Detach Attempt\" is passive or triggered: not automated"
         ]
       }

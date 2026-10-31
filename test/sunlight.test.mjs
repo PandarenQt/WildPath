@@ -21,7 +21,7 @@ test("sunlight: a sunlit Scene, or a light tagged as sunlight that reaches the c
   assert.equal(inSunlight(scene({lights: [{...daylight, hidden: true}]})), false, "a light switched off");
   const carrier = {...sun, id: "cleric", x: 1100, y: 1000, width: 1, height: 1, light: {bright: 10, dim: 0}};
   assert.equal(inSunlight(scene({tokens: [carrier]})), true, "a Token whose light is sunlight");
-  assert.deepEqual(sunlightContext(scene({flags: sun.flags})), {inSunlight: true});
+  assert.deepEqual(sunlightContext(scene({flags: sun.flags})), {inSunlight: true, inBrightLight: true}, "sunlight is Bright Light");
   assert.deepEqual(sunlightContext(null), {});
 });
 
@@ -78,4 +78,26 @@ test("unseen in the dark: Darkvision sees darkness, Devil's Sight and Truesight 
   assert.deepEqual(sight(creature({devilsSight: 120}), creature()), {seesTarget: true, seenByTarget: false, targetHidden: false, attackerHidden: true});
   assert.deepEqual(sight(creature({darkvision: 60}), creature({}, ["invisible"])).targetHidden, false,
     "an Invisible target is unseen by Invisible's own rule, not again by the dark");
+});
+
+test("Bright Light (Light Sensitivity): a light's bright radius, not its dim one; bright global light; never magical Darkness", async () => {
+  const {inBrightLight} = await import("../module/adapters/foundry-v14-sunlight.mjs");
+  const lit = hero => Object.assign(hero.parent, {tokenVision: true}) && hero;
+  const torch = {x: 1550, y: 1050, config: {bright: 20, dim: 40}};
+  assert.equal(inBrightLight(lit(scene())), false, "dark");
+  assert.equal(inBrightLight(lit(scene({lights: [{...torch, x: 1150}]}))), true, "5 ft from a torch: its 20 ft bright");
+  assert.equal(inBrightLight(lit(scene({lights: [torch]}))), false, "25 ft away: only its dim light");
+  const global = lit(scene());
+  global.parent.environment = {globalLight: {enabled: true, bright: false}};
+  assert.equal(inBrightLight(global), false, "dim global illumination");
+  global.parent.environment.globalLight.bright = true;
+  assert.equal(inBrightLight(global), true, "bright global illumination");
+  const dark = lit(scene({lights: [{...torch, x: 1150}, {x: 1050, y: 1050, config: {bright: 15, negative: true}}]}));
+  assert.equal(inBrightLight(dark), false, "inside magical Darkness");
+  const rendered = lit(scene({lights: [{...torch, x: 1150, object: {lightSource: {active: true, testPoint: () => true}}},
+    {...torch, object: {lightSource: {active: true, testPoint: () => true}}}]}));
+  const canvas = {scene: rendered.parent};
+  assert.equal(inBrightLight(rendered, {canvas}), true, "on the viewed Scene: Foundry's test, then the bright radius");
+  rendered.parent.lights.shift();
+  assert.equal(inBrightLight(rendered, {canvas}), false, "a light that reaches it only dimly");
 });

@@ -2318,6 +2318,9 @@ const TRAITS = Object.freeze({
         duration: {value: 1, units: "rounds", expiry: "turnEnd"},
         ruleElements: [{schemaVersion: 1, id: "aversion-to-fire", type: "RollMode", data: {domains: ["attack", "check"], mode: "disadvantage"}}]}]}}}],
     notes: []}),
+  // 2024 Cloaker: "While in Bright Light, the cloaker has Disadvantage on attack rolls" (inBrightLight, beside inSunlight).
+  "light-sensitivity": () => ({rules: [{schemaVersion: 1, id: "light-sensitivity", type: "RollMode",
+    predicate: {equals: {path: "inBrightLight", value: true}}, data: {domains: ["attack"], mode: "disadvantage"}}], notes: []}),
   // 2024 Berserker: "While Bloodied, the berserker has Advantage on attack rolls and saving throws."
   "bloodied-frenzy": () => ({rules: [{schemaVersion: 1, id: "bloodied-frenzy", type: "RollMode", predicate: {bloodied: true},
     data: {domains: ["attack", "save"], mode: "advantage"}}], notes: []}),

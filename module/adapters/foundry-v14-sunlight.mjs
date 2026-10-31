@@ -1,7 +1,10 @@
 import { wallsBlock } from "./foundry-v14-walls.mjs";
 const tagged = (document) => document.flags?.wildpath?.sunlight === true;
-/** Whether a light `accept`ed (an ambient light, another Token's or its own) reaches `token` on its Scene. */
-function lightReaches(token, scene, accept, canvas) {
+/**
+ * Whether a light `accept`ed (an ambient light, another Token's or its own) reaches `token` on its Scene; with
+ * `brightOnly`, its Bright Light (Foundry's rendered test does not tell bright from dim: its bright radius does).
+ */
+function lightReaches(token, scene, accept, canvas, { brightOnly = false } = {}) {
     const size = Number(scene.grid?.size) || 100;
     const pixelsPerUnit = size / (Number(scene.grid?.distance) || 5);
     // A Token's center from its corner and size; an ambient light's position is its center.
@@ -13,11 +16,13 @@ function lightReaches(token, scene, accept, canvas) {
     const reaches = (light, config, source) => {
         if (!accept(light, config) || light.hidden)
             return false;
-        if (rendered && source?.testPoint)
-            return (source.active !== false) && source.testPoint(point);
-        // Off the viewed Scene: within the light's radius, with no wall that stops light between (foundry-v14-walls.mts).
-        const radius = Math.max(Number(config?.bright) || 0, Number(config?.dim) || 0) * pixelsPerUnit;
         const center = centerOf(light);
+        const bright = (Number(config?.bright) || 0) * pixelsPerUnit;
+        if (rendered && source?.testPoint)
+            return (source.active !== false) && source.testPoint(point)
+                && (!brightOnly || (Math.hypot(point.x - center.x, point.y - center.y) <= bright));
+        // Off the viewed Scene: within the light's radius, with no wall that stops light between (foundry-v14-walls.mts).
+        const radius = brightOnly ? bright : Math.max(bright, (Number(config?.dim) || 0) * pixelsPerUnit);
         return (radius > 0) && (Math.hypot(point.x - center.x, point.y - center.y) <= radius)
             && !wallsBlock(scene, center, point, { type: "light" });
     };
@@ -58,7 +63,23 @@ export function lightAt(token, { canvas = globalThis.canvas } = {}) {
         return "light";
     return lightReaches(token, scene, (_light, config) => config?.negative !== true, canvas) ? "light" : "dark";
 }
-/** What a creature's own roll's predicates see of the light it stands in: `inSunlight`. */
+/**
+ * Whether `token` stands in Bright Light (2024 Light Sensitivity): sunlight, a Scene without Token vision, bright global
+ * illumination, or a light whose bright radius reaches it; never in magical Darkness.
+ */
+export function inBrightLight(token, { canvas = globalThis.canvas } = {}) {
+    const scene = token?.parent;
+    if (!token || !scene)
+        return false;
+    if (inSunlight(token, { canvas }) || (scene.tokenVision === false))
+        return true;
+    if (lightAt(token, { canvas }) === "magicalDarkness")
+        return false;
+    if ((scene.environment?.globalLight?.enabled === true) && (scene.environment.globalLight.bright === true))
+        return true;
+    return lightReaches(token, scene, (_light, config) => config?.negative !== true, canvas, { brightOnly: true });
+}
+/** What a creature's own roll's predicates see of the light it stands in: `inSunlight`, `inBrightLight`. */
 export function sunlightContext(token) {
-    return inSunlight(token) ? { inSunlight: true } : {};
+    return { ...(inSunlight(token) ? { inSunlight: true } : {}), ...(inBrightLight(token) ? { inBrightLight: true } : {}) };
 }
