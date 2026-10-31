@@ -2113,6 +2113,25 @@ const TRAITS = Object.freeze({
   // Points. shortcut: Horde Breaker, its other option, is by hand.
   "hunters-prey": (document, {activities, scales}) => weaponExtra(activities, scales, "Colossus Slayer",
     {equals: {path: "attack.targetDamaged", value: true}}),
+  // 2024 Precise Hunter: Advantage on attack rolls against the creature its own Hunter's Mark marks (the mark's damage
+  // reads the same `fromAttacker` flag; another caster's mark does not count).
+  "precise-hunter": () => ({rules: [{schemaVersion: 1, id: "precise-hunter", type: "RollMode",
+    predicate: {equals: {path: "attack.fromAttacker.hunters-mark", value: true}}, data: {domains: ["attack"], mode: "advantage"}}],
+    notes: []}),
+  // 2024 Mindless Rage: Immunity to Charmed and Frightened while raging. One it already has is suppressed while the Rage
+  // lasts, as under Aura of Courage. shortcut: that condition returns when the Rage ends instead of ending; upgrade when
+  // entering a Rage can end conditions.
+  "mindless-rage": () => ({rules: [{schemaVersion: 1, id: "mindless-rage", type: "ConditionImmunity",
+    predicate: {hasCondition: "raging"}, data: {conditions: ["charmed", "frightened"]}}], notes: []}),
+  // 2024 Wood Elf lineage: "Your Speed increases to 35 feet" (the Elf's 30, +5). Its cantrip and spells are the
+  // species' advancement.
+  "elven-lineage-wood-elf": () => ({rules: [{schemaVersion: 1, id: "wood-elf-speed", type: "Modifier",
+    data: {domains: ["resources.movement.max"], modifierType: "untyped", value: 5}}], notes: []}),
+  // 2024 Fiendish Legacy, level 1 (every character): Resistance to Poison (Abyssal), Necrotic (Chthonic) or Fire
+  // (Infernal) damage. shortcut: its spells' free cast once per Long Rest and its casting ability are by hand.
+  "fiendish-legacy-abyssal": () => fiendishLegacy("poison"),
+  "fiendish-legacy-chthonic": () => fiendishLegacy("necrotic"),
+  "fiendish-legacy-infernal": () => fiendishLegacy("fire"),
   // 2024 Potent Spellcasting (cleric, druid): its Wisdom modifier on a cantrip's damage. shortcut: any cantrip, not only
   // its class's.
   "blessed-strikes-potent-spellcasting": (document, {activities}) => spellDamageBonus(activities, "wits", {tagsAll: ["cantrip"]}),
@@ -2217,6 +2236,9 @@ const TRAITS = Object.freeze({
  * One more attack whenever the creature takes the Attack action: a pool of further attacks, empty until it pays an
  * attack with the Action, emptied at the start of each turn. The pools of Extra Attack and its Fighter upgrades add up.
  */
+const fiendishLegacy = type => ({rules: [{schemaVersion: 1, id: "fiendish-legacy-resistance", type: "GrantResistance",
+  data: {damageTypes: [type]}}], notes: []});
+
 const extraAttackTrait = () => ({rules: [
   {schemaVersion: 1, id: "extra-attack-pool", type: "GrantResource", data: {resourceId: "extra-attack", label: "Extra Attack",
     maximum: 1, current: 0, recovery: "none", emptiesAtTurnStart: true}},

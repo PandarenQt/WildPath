@@ -504,7 +504,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Elven Chain | equipment24 | Elven Chain (gear), Elven Chain (automated) | — |
 | Elven Lineage, Drow | origins24 | Elven Lineage, Drow (feature) | — |
 | Elven Lineage, High Elf | origins24 | Elven Lineage, High Elf (feature) | — |
-| Elven Lineage, Wood Elf | origins24 | Elven Lineage, Wood Elf (feature) | silent: its text names a rule that is not converted (by hand) |
+| Elven Lineage, Wood Elf | origins24 | Elven Lineage, Wood Elf (feature) | — |
 | Emblem | equipment24 | Emblem (gear) | — |
 | Empowered Evocation | classes24 | Empowered Evocation (feature) | — |
 | Empowered Spell | classes24 | Empowered Spell (feature) | — |
@@ -581,9 +581,9 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Fiend Patron | classes24 | Fiend Patron (subclass) | — |
 | Fiend Spells | classes24 | Fiend Spells (feature) | — |
 | Fiend Steed | actors24 | Fiend Steed (3 items) | — |
-| Fiendish Legacy, Abyssal | origins24 | Fiendish Legacy, Abyssal (feature) | silent: its text names a rule that is not converted (by hand) |
-| Fiendish Legacy, Chthonic | origins24 | Fiendish Legacy, Chthonic (feature) | silent: its text names a rule that is not converted (by hand) |
-| Fiendish Legacy, Infernal | origins24 | Fiendish Legacy, Infernal (feature) | silent: its text names a rule that is not converted (by hand) |
+| Fiendish Legacy, Abyssal | origins24 | Fiendish Legacy, Abyssal (feature) | — |
+| Fiendish Legacy, Chthonic | origins24 | Fiendish Legacy, Chthonic (feature) | — |
+| Fiendish Legacy, Infernal | origins24 | Fiendish Legacy, Infernal (feature) | — |
 | Fiendish Resilience | classes24 | Fiendish Resilience (feature) | silent: its text names a rule that is not converted (by hand) |
 | Fiendish Vigor | classes24 | Fiendish Vigor (automated) | — |
 | Fighter | classes24 | Fighter (class) | — |
@@ -995,7 +995,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Mimic | actors24 | Mimic (6 items) | Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Mind Blank | spells24 | Mind Blank (automated) | — |
 | Mind Spike | spells24 | Mind Spike (automated) | effect: "Spiked" marks its creature (narrative) |
-| Mindless Rage | classes24 | Mindless Rage (feature) | silent: its text names a rule that is not converted (by hand) |
+| Mindless Rage | classes24 | Mindless Rage (feature) | — |
 | Minor Illusion | spells24 | Minor Illusion (automated) | — |
 | Minotaur of Baphomet | actors24 | Minotaur of Baphomet (4 items) | — |
 | Minotaur Skeleton | actors24 | Minotaur Skeleton (4 items) | — |
@@ -1170,7 +1170,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Power Word Stun | spells24 | Power Word Stun (automated) | — |
 | Powerful Build | origins24 | Powerful Build (feature) | — |
 | Prayer of Healing | spells24 | Prayer of Healing (automated) | activation: 10 minute is not an action-economy cost |
-| Precise Hunter | classes24 | Precise Hunter (feature) | silent: its text names a rule that is not converted (by hand) |
+| Precise Hunter | classes24 | Precise Hunter (feature) | — |
 | Preserve Life | classes24 | Preserve Life (automated) | — |
 | Prestidigitation | spells24 | Prestidigitation (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Priest | actors24 | Priest (11 items) | — |

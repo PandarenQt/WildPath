@@ -4,7 +4,7 @@ import {activityText, checkOf, convertActor, convertFacility, convertItem, conve
   failureByMargin, scaleTables, textBoundExpiry, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import * as valueExpressions from "../module/helpers/value-expressions.mjs";
-import {rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
+import {conditionImmunitiesFromRuleElements, rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
 
 // Synthetic documents in dnd5e 6.x's shape (mechanics only), not copies of its compendium.
 const SRD = {license: "CC-BY-4.0", rules: "2024", book: ""};
@@ -2382,4 +2382,23 @@ test("bloodied and wounded-target traits (Bloodied Frenzy, Bloodied Fury, Blood 
   for ( const item of [frenzy, fury, blood, blurred] ) {
     assert.equal(item.flags.wildpath.conversion.notes.some(note => /^silent: /u.test(note)), false, `${item.name} is not silent`);
   }
+});
+
+test("class and species silent features: Precise Hunter, Mindless Rage, the Wood Elf's Speed, the Fiendish Legacies' resistances", () => {
+  const feature = (identifier, name, text="") => convertItem({_id: `${identifier.replace(/-/g, "")}`.padEnd(16, "0").slice(0, 16), name,
+    type: "feat", img: "icons/svg/item-bag.svg", effects: [], system: {source: SRD, identifier, activities: {}, type: {value: "class"},
+      description: {value: `<p>${text}</p>`}}}).items[0];
+  const owners = item => [{ruleElements: item.system.ruleElements}];
+  const precise = feature("precise-hunter", "Precise Hunter", "You have Advantage on attack rolls against the creature currently marked by your Hunter's Mark.");
+  const modes = context => rollModesFromRuleElements(owners(precise), {domains: ["attack"], context}).map(entry => entry.mode ?? entry);
+  assert.deepEqual([modes({attack: {fromAttacker: {"hunters-mark": true}}}), modes({attack: {fromAttacker: {}}})], [["advantage"], []]);
+  const mindless = feature("mindless-rage", "Mindless Rage", "You have Immunity to the Charmed and Frightened conditions while your Rage is active.");
+  assert.deepEqual([conditionImmunitiesFromRuleElements(owners(mindless), {conditions: ["raging"]}).sort(),
+    conditionImmunitiesFromRuleElements(owners(mindless), {conditions: []})], [["charmed", "frightened"], []]);
+  const wood = feature("elven-lineage-wood-elf", "Elven Lineage, Wood Elf", "Your Speed increases to 35 feet.");
+  assert.deepEqual(wood.system.ruleElements.map(rule => [rule.type, rule.data.domains, rule.data.value]), [["Modifier", ["resources.movement.max"], 5]]);
+  const resists = ["abyssal", "chthonic", "infernal"].map(kind => feature(`fiendish-legacy-${kind}`, `Fiendish Legacy, ${kind}`,
+    "You have Resistance to some damage.").system.ruleElements[0]);
+  assert.deepEqual(resists.map(rule => [rule.type, rule.data.damageTypes]), [["GrantResistance", ["poison"]], ["GrantResistance", ["necrotic"]],
+    ["GrantResistance", ["fire"]]]);
 });

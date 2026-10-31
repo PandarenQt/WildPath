@@ -7,7 +7,25 @@
   "system": {
     "active": true,
     "description": "<p>You have Advantage on attack rolls against the creature currently marked by your Hunter's Mark.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "precise-hunter",
+        "type": "RollMode",
+        "predicate": {
+          "equals": {
+            "path": "attack.fromAttacker.hunters-mark",
+            "value": true
+          }
+        },
+        "data": {
+          "domains": [
+            "attack"
+          ],
+          "mode": "advantage"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -23,9 +41,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "silent: its text names a rule that is not converted (by hand)"
-        ]
+        "notes": []
       }
     }
   }
