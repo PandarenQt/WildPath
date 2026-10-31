@@ -308,7 +308,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Color Spray | spells24 | Color Spray (automated) | — |
 | Comet | equipment24 | Comet (gear) | "Card Effect: Start" is passive or triggered: not automated; "Card Effect: Resolve" is passive or triggered: not automated |
 | Command | spells24 | Command (automated) | — |
-| Commoner | actors24 | Commoner (2 items) | Training: silent: its text names a rule that is not converted (by hand) |
+| Commoner | actors24 | Commoner (2 items) | — |
 | Commune | spells24 | Commune (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
 | Commune with Nature | spells24 | Commune with Nature (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
 | Component Pouch | equipment24 | Component Pouch (gear) | — |

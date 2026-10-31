@@ -2211,6 +2211,10 @@ const TRAITS = Object.freeze({
     {schemaVersion: 1, id: "punch-and-grab", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
       match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["unarmed"]}, commonAction: "grapple", free: true,
       once: "turn", onceKey: "punch-and-grab"}}], notes: []}),
+  // 2024 Commoner's Training: "proficiency in one skill of the DM's choice and ... Advantage whenever it makes an ability
+  // check using that skill". The GM sets the skill on its sheet. shortcut: every skill it is proficient in.
+  training: () => ({rules: [{schemaVersion: 1, id: "training", type: "RollMode", data: {domains: ["check.proficient"], mode: "advantage"}}],
+    notes: []}),
   // 2024 Mindless Rage: Immunity to Charmed and Frightened while raging. One it already has is suppressed while the Rage
   // lasts, as under Aura of Courage. shortcut: that condition returns when the Rage ends instead of ending; upgrade when
   // entering a Rage can end conditions.

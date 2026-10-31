@@ -17,7 +17,7 @@ import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {floatHealthChange} from "../applications/floating-text.mjs";
 import {effectiveSpellcasting, hitDiceHealing, hitDiePoolId, longRestHitDice} from "../helpers/spellcasting.mjs";
-import {actorAbilityModifier, resolveActorCheckStatistic, resolveActorSaveStatistic} from "../helpers/combat-statistics.mjs";
+import {actorAbilityModifier, checkRollModeDomains, resolveActorCheckStatistic, resolveActorSaveStatistic} from "../helpers/combat-statistics.mjs";
 import {combineRollModes, d20FormulaWith} from "../helpers/rolls.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
 import {executeEffectLifecycleCommit} from "../resolvers/effect-lifecycle-commit-resolver.mjs";
@@ -773,7 +773,7 @@ export default class WildPathActor extends Actor {
     const used = save ?? ability ?? SKILLS[skill]?.ability ?? null;
     if ( !used ) return null;
     const statistic = save ? resolveActorSaveStatistic(this, save) : resolveActorCheckStatistic(this, {ability: used, skill});
-    const domains = save ? ["save", `save.${save}`] : ["check", `check.${used}`, ...(skill ? [`check.${skill}`] : [])];
+    const domains = save ? ["save", `save.${save}`] : checkRollModeDomains(this, {ability: used, skill});
     const rollMode = combineRollModes(this.getRollModes(domains, {context: save ? {} : {check: {ability: used, skill}}}));
     const bonus = (statistic?.dice ?? []).filter(die => (Number(die?.number) > 0) && (Number(die?.faces) > 0))
       .map(die => `${die.sign < 0 ? "-" : "+"} ${die.number}d${die.faces}`);

@@ -92,6 +92,7 @@ import {
   attackAbility,
   attackForcesCritical,
   attackRollModeSources,
+  checkRollModeDomains,
   resolveActorCheckStatistic,
   resolveActorSaveStatistic,
   resolveActorDefense
@@ -690,8 +691,7 @@ function notifyMultiplayerMovementFailure(event={}, {logger=globalThis.console}=
 function actionCheckInput(actor, {ability=null, skill=null, escapes=null}={}, sourceToken=null) {
   const bonus = resolveActorCheckStatistic(actor, {ability, skill});
   // A skill check uses its skill's ability unless it names another (`check.might` reaches an Athletics check).
-  const used = ability ?? WILDPATH.SKILLS?.[skill]?.ability ?? null;
-  const domains = ["check", used ? `check.${used}` : null, skill ? `check.${skill}` : null].filter(Boolean);
+  const domains = checkRollModeDomains(actor, {ability, skill});
   return {...(bonus ? {modifier: bonus.totalModifier} : {}), ...(bonus?.dice?.length ? {dice: bonus.dice} : {}),
     ...(bonus?.naturalMinimum ? {naturalMinimum: bonus.naturalMinimum} : {}),
     // What it escapes (Powerful Build: Advantage to end Grappled).

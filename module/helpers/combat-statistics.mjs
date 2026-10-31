@@ -333,6 +333,16 @@ export function resolveActorSaveStatistic(actor, ability=null) {
 }
 
 /**
+ * The domains a check's Advantage and Disadvantage are read in: `check`, its ability's and its skill's, and
+ * `check.proficient` for a skill it is proficient in (a Commoner's Training: Advantage with its chosen skill).
+ */
+export function checkRollModeDomains(actor, {ability=null, skill=null}={}) {
+  const used = ability ?? WILDPATH.SKILLS?.[skill]?.ability ?? null;
+  const proficient = Boolean(skill) && (Number(actor?.system?.skills?.[skill]?.proficiency) > 0);
+  return ["check", used ? `check.${used}` : null, skill ? `check.${skill}` : null, proficient ? "check.proficient" : null].filter(Boolean);
+}
+
+/**
  * A creature's check bonus: its ability modifier (the skill's own ability when the check names none), every Modifier
  * on `check.<skill>`, `check.<ability>` and `check`, and its proficiency bonus once for a proficient skill or twice
  * for expertise (`skills.<skill>.proficiency`).

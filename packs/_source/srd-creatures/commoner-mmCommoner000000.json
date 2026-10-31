@@ -152,7 +152,19 @@
       "system": {
         "active": true,
         "description": "<p class=\"feature\">The commoner has proficiency in one skill of the DM's choice and has Advantage whenever it makes an ability check using that skill.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "training",
+            "type": "RollMode",
+            "data": {
+              "domains": [
+                "check.proficient"
+              ],
+              "mode": "advantage"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -168,9 +180,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "silent: its text names a rule that is not converted (by hand)"
-            ]
+            "notes": []
           }
         }
       }
@@ -189,9 +199,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Training: silent: its text names a rule that is not converted (by hand)"
-        ]
+        "notes": []
       }
     }
   }

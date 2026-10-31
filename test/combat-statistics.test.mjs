@@ -96,3 +96,11 @@ test("Elusive: no attack roll against it has Advantage unless it is Incapacitate
   assert.deepEqual(modes(creature([elusive, prone])), ["disadvantage"], "Elusive: the Advantage goes, the Disadvantage stays");
   assert.deepEqual(modes(creature([elusive, prone], ["stunned"])), ["advantage", "disadvantage"], "Stunned: Elusive does not apply");
 });
+
+test("a check reads check.proficient for a skill its creature is proficient in (a Commoner's Training)", async () => {
+  const {checkRollModeDomains} = await import("../module/helpers/combat-statistics.mjs");
+  const commoner = {system: {skills: {perception: {proficiency: 1}, stealth: {proficiency: 0}}}};
+  assert.deepEqual(checkRollModeDomains(commoner, {skill: "perception"}), ["check", "check.wits", "check.perception", "check.proficient"]);
+  assert.deepEqual(checkRollModeDomains(commoner, {skill: "stealth"}), ["check", "check.agility", "check.stealth"]);
+  assert.deepEqual(checkRollModeDomains(commoner, {ability: "might"}), ["check", "check.might"], "a plain ability check");
+});
