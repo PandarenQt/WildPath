@@ -1133,7 +1133,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Pony | actors24 | Pony (1 items) | — |
 | Portable Hole | equipment24 | Portable Hole (gear), Portable Hole (Unfold Portable Hole) (manual), Portable Hole (Escape Check) (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Pot, Iron | equipment24 | Pot, Iron (gear) | — |
-| Potent Cantrip | classes24 | Potent Cantrip (feature) | silent: its text names a rule that is not converted (by hand) |
+| Potent Cantrip | classes24 | Potent Cantrip (feature) | Potent Cantrip: half damage on a missed cantrip attack is by hand |
 | Potion of Animal Friendship | equipment24 | Potion of Animal Friendship: Animal Friendship (automated) | — |
 | Potion of Clairvoyance | equipment24 | Potion of Clairvoyance: Clairvoyance (automated) | activation: 10 minute is not an action-economy cost |
 | Potion of Climbing | equipment24 | Potion of Climbing (automated) | — |

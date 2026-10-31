@@ -465,3 +465,12 @@ test("Great Weapon Fighting: a two-handed melee weapon's damage dice roll with m
   assert.match(formula(["two-handed"]), /2d6min3/u);
   assert.doesNotMatch(formula([]), /min3/u);
 });
+
+test("Potent Cantrip: a cantrip saved against deals half its damage while its caster has the feature", async () => {
+  const fs = await import("node:fs");
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const flame = JSON.parse(fs.readFileSync("packs/_source/srd-items/sacred-flame-phbsplSacredFlam.json", "utf8"));
+  const caster = potent => ({items: potent ? [{system: {active: true}, flags: {wildpath: {source: {identifier: "potent-cantrip"}}}}] : []});
+  const success = actor => actionDefinitionFromItem({...flame, actor}).definition.damage[0].saveOutcomePolicy.success;
+  assert.deepEqual([success(caster(true)), success(caster(false))], ["half", "none"]);
+});

@@ -270,7 +270,7 @@ export function actionDefinitionFromItem(item, options={}) {
   // Its range bonus before Metamagic, so Distant Spell doubles the longer range.
   const actor = item?.actor ?? null;
   const stored = system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null;
-  const ranged = withRangeBonus(withOwnWeapons(withWeaponMastery(withExtraAttacks(stored, item), actor), actor), item);
+  const ranged = withPotentCantrip(withRangeBonus(withOwnWeapons(withWeaponMastery(withExtraAttacks(stored, item), actor), actor), item), actor);
   const raw = withContributedChoices(withSummonLevels(withChosenSpells(withMysticArcanum(withMetamagic(ranged, actor), item), item), actor), item);
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
@@ -352,6 +352,18 @@ function withRangeBonus(raw, item) {
   if ( !(bonus > 0) ) return raw;
   const longer = distance => (distance ? {...distance, value: Number(distance.value) + bonus} : distance);
   return {...raw, range: {...range, normal: longer(range.normal), ...(range.long ? {long: longer(range.long)} : {})}};
+}
+
+/**
+ * 2024 Potent Cantrip (wizard): a creature that succeeds on its save against its cantrip takes half its damage rather than
+ * none, while its creature has the feature. shortcut: half damage on a missed cantrip attack is by hand (noted).
+ */
+function withPotentCantrip(raw, actor) {
+  if ( !(raw?.tags ?? []).includes("cantrip") || !raw.save || !(raw.damage ?? []).some(entry => entry?.saveOutcomePolicy?.success === "none") ) return raw;
+  if ( ![...(actor?.items ?? [])].some(item => (item?.system?.active !== false)
+    && (item?.flags?.wildpath?.source?.identifier === "potent-cantrip")) ) return raw;
+  return {...raw, damage: raw.damage.map(entry => ((entry?.saveOutcomePolicy?.success === "none")
+    ? {...entry, saveOutcomePolicy: {...entry.saveOutcomePolicy, success: "half"}} : entry))};
 }
 
 /**
