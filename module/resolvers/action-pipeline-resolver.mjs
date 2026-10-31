@@ -2225,14 +2225,16 @@ function createHealingStage() {
         });
       }
 
+      const healer = healerReward(input, durabilityResolution?.mutationPlans ?? []);
       actionResult = addResolutionStep(actionResult, {
         stage: ACTION_RESOLUTION_STAGES.CONSEQUENCE,
         consequences: [{
           type: "healingResolved",
           healingResolution,
-          ...(durabilityResolution ? {durabilityResolution} : {})
+          ...(durabilityResolution ? {durabilityResolution} : {}),
+          ...(healer.record ? {healerReward: healer.record} : {})
         }],
-        mutationPlans: durabilityResolution?.mutationPlans ?? [],
+        mutationPlans: healer.plans,
         data: {
           healingResolution,
           ...(durabilityResolution ? {durabilityResolution} : {})
@@ -2544,6 +2546,37 @@ function zeroHpOutcomes(state, input, durabilityResolution) {
   }
   return {durabilityResolution: {...durabilityResolution, mutationPlans}, plans, records, state: current,
     rolled: Object.keys(rolled).length ? rolled : null};
+}
+
+/**
+ * Its caster's reward for healing another creature (`durability.onHeal`, the runtime's: Blessed Healer's 2 + the slot's
+ * level), once, when some creature other than it regained Hit Points. A caster the same spell heals gets it on top of
+ * that healing: two plans from the same starting Hit Points would overwrite each other.
+ */
+function healerReward(input, plans) {
+  const onHeal = input.durability?.onHeal ?? null;
+  const amount = Math.trunc(Number(onHeal?.hitPoints) || 0);
+  if ( !(amount > 0) || !input.source ) return {plans, record: null};
+  const own = entry => sameCreature(entry?.target, input.source);
+  const healed = entry => (Number(entry?.plan?.to) || 0) > (Number(entry?.plan?.from) || 0);
+  if ( !plans.some(entry => !own(entry) && healed(entry)) ) return {plans, record: null};
+  const record = {name: onHeal.name ?? "", hitPoints: amount};
+  const mine = plans.find(own);
+  if ( mine?.plan?.path ) {
+    const to = Math.min(Number(mine.plan.max) || Infinity, (Number(mine.plan.to) || 0) + amount);
+    return {plans: plans.map(entry => ((entry !== mine) ? entry
+      : {...entry, plan: {...entry.plan, to, updates: {...entry.plan.updates, [entry.plan.path]: to}}})), record};
+  }
+  const plan = createActorHealingMutationPlan(input.actorSystem ?? {}, {healingResult: {total: amount, byHealingType: {healing: amount}},
+    target: input.source});
+  return plan?.ok ? {plans: [...plans, {type: "durabilityHealing", resolver: "DurabilityResolver", targetRef: onHeal.sourceRef,
+    target: clonePlain(input.source), plan}], record} : {plans, record: null};
+}
+
+/** Whether two creature refs name the same creature: its Token when both name one, else its Actor. */
+function sameCreature(left, right) {
+  if ( left?.tokenId && right?.tokenId ) return left.tokenId === right.tokenId;
+  return Boolean(left?.actorId && (left.actorId === right?.actorId));
 }
 
 /** The save a creature makes to stay up at 0 Hit Points (Relentless Rage, Undead Fortitude), asked of its controller. */

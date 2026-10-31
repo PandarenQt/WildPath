@@ -155,6 +155,10 @@ reads it, and no dispatcher runs it.
     - `{plusDamage}` is that + the damage (Undead Fortitude).
   - `notOn` lists damage types, or `critical`, that bar it.
 - **`event: "health.reduced"`** (the source): `temporaryHitPoints` (a ValueExpression), `hostileOnly` (Dark One's Blessing).
+- **`event: "healing.applied"`** (the source, 2026-10-31): `hitPoints` (a ValueExpression with `castLevel` in its
+  context). A spell cast from a slot that restores Hit Points to a creature other than its caster heals the caster that
+  much once, on top of its own healing when the spell heals it too (Blessed Healer: 2 + the slot's level). The runtime
+  reads it before the Action (`durability.onHeal`); the healing stage applies it (`healerReward`).
 
 **How it runs:**
 - **The runtime** works these out per target (`durability.zeroHpByTarget`: hit points, DC, save bonus, roll mode, the

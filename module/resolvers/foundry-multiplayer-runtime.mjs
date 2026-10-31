@@ -980,9 +980,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     targets: targetEntries.length > 1 ? targetEntries.map((entry, index) => ({actor: entry.actor, refs: targetLookupRefs(targets[index])})) : null})
     : combatStatistics;
   // Healing bonuses, which may read the level it is cast at (Disciple of Life: 2 + that level).
+  const healingCastLevel = (definition?.healing?.length && intent.configuration?.choices) ? (resolveActionConfiguration({definition,
+    actorSystem, choices: intent.configuration.choices}).configuration?.castingLevel ?? null) : null;
   const healingStatistic = definition?.healing?.length ? actionCombatStatistics(actor, definition, {item: action,
-    context: {castLevel: intent.configuration?.choices ? (resolveActionConfiguration({definition, actorSystem,
-      choices: intent.configuration.choices}).configuration?.castingLevel ?? null) : null}}).healing ?? null : null;
+    context: {castLevel: healingCastLevel}}).healing ?? null : null;
   const concentration = foundryConcentrationContext({targetEntries, game, scene: sourceToken?.parent ?? null, sourceToken});
   // Holders of effects a broken concentration ends are committed on too; a key another Actor already owns is
   // ambiguous (copies of one base Actor) and is dropped, so lookups fall through to the holder's uuid.
@@ -1014,6 +1015,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // Its own reward for dropping a creature (Dark One's Blessing) is committed on it, its uuid its key.
   const onReduce = definition?.damage?.length ? reducedToZeroFor(actor, actorSystem) : null;
   if ( onReduce ) targetActors[actor.uuid] ??= actor;
+  // And for healing another creature with a spell slot (Blessed Healer).
+  const onHeal = (definition?.healing?.length && definition.tags?.includes("spell")) ? healedOthersFor(actor, actorSystem, healingCastLevel)
+    : null;
+  if ( onHeal ) targetActors[actor.uuid] ??= actor;
   for ( const payer of [...(inspirationPayers ?? []), ...allyPayers] ) targetActors[payer.uuid] ??= payer;
   // Reactors on the Scene (Trigger RuleElements on Action events) and the acting creature they may answer.
   const scene = sourceToken?.parent ?? null;
@@ -1067,7 +1072,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       durability: {targetSystems, ...(Object.keys(targetProfiles).length ? {adjustmentProfiles: targetProfiles} : {}),
         ...(ignoredResistances(actor).length ? {adjustments: {ignoresResistance: ignoredResistances(actor)}} : {}),
         ...(Object.keys(zeroHpByTarget).length ? {zeroHpByTarget} : {}),
-        ...(onReduce ? {onReduce: {...onReduce, hostileKeys}} : {})},
+        ...(onReduce ? {onReduce: {...onReduce, hostileKeys}} : {}), ...(onHeal ? {onHeal} : {})},
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
       ...(concentration ? {concentration: concentration.input} : {}),
       ...(area.persistentArea ? {persistentArea: area.persistentArea} : {}),
@@ -1698,6 +1703,19 @@ function reducedToZeroFor(actor, actorSystem) {
     const amount = Math.trunc(Number(evaluateValueExpression(rule.data.temporaryHitPoints, {actor, actorSystem}).value) || 0);
     if ( amount > 0 ) return {name: item.name ?? "", temporaryHitPoints: amount, hostileOnly: rule.data.hostileOnly === true,
       sourceRef: actor.uuid};
+  }
+  return null;
+}
+
+/** Its reward for healing another creature with a spell cast from a slot (Blessed Healer: 2 + the slot's level), or null. */
+function healedOthersFor(actor, actorSystem, castLevel) {
+  if ( !(Number(castLevel) >= 1) ) return null;
+  for ( const item of actor?.items ?? [] ) {
+    if ( item?.system?.active === false ) continue;
+    const rule = (item?.system?.ruleElements ?? []).find(entry => (entry?.type === "Trigger") && (entry.data?.event === "healing.applied"));
+    if ( !rule ) continue;
+    const amount = Math.trunc(Number(evaluateValueExpression(rule.data.hitPoints, {actor, actorSystem, castLevel}).value) || 0);
+    if ( amount > 0 ) return {name: item.name ?? "", hitPoints: amount, sourceRef: actor.uuid};
   }
   return null;
 }

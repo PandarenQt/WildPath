@@ -998,6 +998,26 @@ test("drop to 0: Relentless Endurance keeps 1 HP for a use; a save keeps it up (
   assert.deepEqual([radiant.state.pendingRequests.length, health(radiant.state)], [0, 0], "radiant damage bars it");
 });
 
+test("Blessed Healer: healing another creature with a spell heals its caster 2 + the slot's level, once; on top when it is healed too", () => {
+  const definition = count => ({schemaVersion: 1, id: "action:cure", label: "Cure", costs: {allOf: []},
+    targeting: (count > 1) ? {type: "multiple", required: true, count} : {type: "single", required: true, count: 1},
+    tags: ["spell"], healing: [{id: "cure", healingType: "healing", expression: {type: "constant", value: 4}}]});
+  const caster = {resources: {health: {value: 10, max: 30, temp: 0}}};
+  const run = (targets, allyHealth=3) => planStagedActionResolution({id: `resolution:healer-${targets.length}-${allyHealth}`,
+    actorSystem: actorSystem(1, caster), action: definitionAction(definition(targets.length)), source: {actorId: "actor-source", tokenId: "token-source"},
+    targets, durability: {targetSystems: {"actor:actor-ally": {resources: {health: {value: allyHealth, max: 30}}},
+      "actor:actor-source": caster}, onHeal: {name: "Blessed Healer", hitPoints: 5, sourceRef: "Actor.source"}}});
+  const ownPlans = state => state.mutationPlans.filter(entry => (entry.type === "durabilityHealing") && ((entry.targetRef === "Actor.source")
+    || (entry.target?.tokenId === "token-source")));
+  const ally = target("ally");
+  const self = {...target("source"), tokenId: "token-source"};
+  const healed = run([ally]).state;
+  assert.deepEqual(ownPlans(healed).map(entry => [entry.plan.from, entry.plan.to]), [[10, 15]], "2 + level as the runtime gives it");
+  assert.deepEqual(ownPlans(run([ally], 30).state), [], "an ally at full Hit Points regained none");
+  assert.deepEqual(ownPlans(run([self]).state).map(entry => [entry.plan.from, entry.plan.to]), [[10, 14]], "only itself: no reward");
+  assert.deepEqual(ownPlans(run([self, ally]).state).map(entry => [entry.plan.from, entry.plan.to]), [[10, 19]], "itself and an ally: one plan, 4 + 5");
+});
+
 test("drop to 0: Dark One's Blessing gives its source Temporary Hit Points for a hostile creature dropped", () => {
   const definition = {schemaVersion: 1, id: "action:blast", label: "Blast", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
     damage: [{id: "blast", expression: {type: "constant", value: 10}, damageType: "force"}]};

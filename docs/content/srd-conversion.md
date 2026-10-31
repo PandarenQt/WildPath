@@ -176,7 +176,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Blanket | equipment24 | Blanket (gear) | — |
 | Blanket | equipment24 | Blanket (gear) | — |
 | Bless | spells24 | Bless (automated) | — |
-| Blessed Healer | classes24 | Blessed Healer (feature) | "heal" is passive or triggered: not automated |
+| Blessed Healer | classes24 | Blessed Healer (feature) | — |
 | Blessed Strikes | classes24 | Blessed Strikes (feature) | — |
 | Blessed Strikes: Divine Strike | classes24 | Blessed Strikes: Divine Strike (Necrotic Divine Strike) (automated), Blessed Strikes: Divine Strike (Radiant Divine Strike) (automated) | — |
 | Blessed Strikes: Potent Spellcasting | classes24 | Blessed Strikes: Potent Spellcasting (feature) | — |

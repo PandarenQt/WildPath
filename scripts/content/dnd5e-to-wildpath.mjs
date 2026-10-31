@@ -2394,6 +2394,11 @@ const TRAITS = Object.freeze({
     hitPoints: {type: "multiply", terms: [{type: "constant", value: 2}, {type: "class-level", class: "barbarian"}]}}),
   "undead-fortitude": (document, {activities}) => zeroHpTrait(activities, {mode: "save", ability: "fortitude", dc: {plusDamage: 5},
     hitPoints: 1, notOn: ["radiant", "critical"]}),
+  // 2024 Blessed Healer: "when you cast a spell with a spell slot and that spell restores Hit Points to any creature other
+  // than you, you regain Hit Points equal to 2 plus the spell slot's level" (`event: "healing.applied"`, the runtime's).
+  "blessed-healer": (document, {activities}) => ({rules: [{schemaVersion: 1, id: "blessed-healer", type: "Trigger",
+    data: {kind: "healer", event: "healing.applied", othersOnly: true, hitPoints: {type: "add", terms: [{type: "constant", value: 2},
+      {type: "context", path: "castLevel"}]}}}], consumes: activities.filter(entry => entry.type === "heal"), notes: []}),
   // 2024 Dark One's Blessing: when it reduces a hostile creature to 0 Hit Points, Temporary Hit Points of its Charisma
   // modifier + its warlock level (`event: "health.reduced"`).
   "dark-ones-blessing": (document, {activities}) => ({rules: [{schemaVersion: 1, id: "dark-ones-blessing", type: "Trigger",
