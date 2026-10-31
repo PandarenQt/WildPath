@@ -370,6 +370,8 @@ function normalizeChoiceDefinition(choice={}, index=0) {
     allowedDamageTypes: normalizeStrings(choice.allowedDamageTypes ?? choice.damageTypes),
     min: choice.min ?? choice.minimum ?? null,
     max: choice.max ?? choice.maximum ?? null,
+    // A select-many's limit on the sum of its picks' values (Arcane Recovery: slot levels up to half its wizard level).
+    budget: clonePlain(choice.budget ?? null),
     defaultValue: clonePlain(choice.defaultValue ?? choice.default ?? null),
     predicate: clonePlain(choice.predicate ?? null),
     dependsOn: normalizeDependencies(choice.dependsOn ?? choice.dependencies),
@@ -473,6 +475,7 @@ function createChoiceRequest({
     conflictsWith: [...choiceDefinition.conflictsWith],
     min: clonePlain(choiceDefinition.min),
     max: clonePlain(choiceDefinition.max),
+    ...(choiceDefinition.budget != null ? {budget: clonePlain(choiceDefinition.budget)} : {}),
     options: [],
     defaultValue: clonePlain(choiceDefinition.defaultValue),
     metadata: clonePlain(choiceDefinition.metadata),
@@ -693,7 +696,7 @@ function resolveChoiceSelection(request, rawResponse, context={}) {
     case ACTION_CHOICE_TYPES.NUMBER:
       return resolveNumberSelection(request, rawResponse, context);
     case ACTION_CHOICE_TYPES.SELECT_MANY:
-      return resolveManySelection(request, rawResponse);
+      return resolveManySelection(request, rawResponse, context);
     case ACTION_CHOICE_TYPES.RESOURCE:
       return resolveResourceSelection(request, rawResponse);
     case ACTION_CHOICE_TYPES.DAMAGE_TYPE:
@@ -749,7 +752,7 @@ function resolveOneSelection(request, rawResponse) {
   });
 }
 
-function resolveManySelection(request, rawResponse) {
+function resolveManySelection(request, rawResponse, {actorSystem=null}={}) {
   // A bare array's `values` is Array.prototype.values, not its picks.
   const rawValues = normalizeArray(Array.isArray(rawResponse) ? rawResponse : (rawResponse?.values ?? rawResponse?.value ?? rawResponse));
   const selectedOptions = [];
@@ -763,6 +766,11 @@ function resolveManySelection(request, rawResponse) {
   const min = evaluateMaybeExpression(request.min, {choice: request}) ?? 0;
   const max = evaluateMaybeExpression(request.max, {choice: request}) ?? Infinity;
   if ( selectedOptions.length < min ) return invalidSelection(request.id, `Choice requires at least ${min} selections.`);
+  const budget = evaluateMaybeExpression(request.budget, {choice: request, actorSystem});
+  const spent = selectedOptions.reduce((total, option) => total + (finiteNumber(option.value) ?? 0), 0);
+  // One it can't work out allows nothing, never anything.
+  if ( (request.budget != null) && ((budget == null) || (spent > budget)) ) return {ok: false, errors: [choiceError(
+    ACTION_CONFIGURATION_CODES.EXCEEDED_CHOICE_LIMIT, request.id, `Choice allows a total of ${budget ?? 0}; ${spent} chosen.`)]};
   if ( selectedOptions.length > max ) {
     return {
       ok: false,

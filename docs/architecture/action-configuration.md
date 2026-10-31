@@ -295,6 +295,10 @@ nothing.
 - **An option's `effects`.** An option of a `select-one` choice may carry its own effects, applied after its choice's
   when it is chosen (Font of Magic: each slot level adds its cost in Sorcery Points and restores that slot).
 - **A `select-many` choice** applies the effects of each option it picked (2026-10-31).
+- **A `select-many` budget** (2026-10-31): `budget` (a ValueExpression read with its creature) caps the sum of the picked
+  options' values; one it can't work out allows nothing. Arcane Recovery and Natural Recovery pick slots (value: their
+  level) up to half the class level, rounded up, after a Short Rest (a `rest.completed` Trigger with a use/decline
+  option, once per Long Rest).
 - **`{type: "add-effects", effects}`** appends effects to what the Action does (Restoring Touch: each condition picked is
   one more removal, `levels: -1`, beside its `add-cost` of 5 Lay on Hands points).
 - **A choice from another feature** (2026-10-31): an active feature's `flags.wildpath.choiceFor: {identifier, choice}`

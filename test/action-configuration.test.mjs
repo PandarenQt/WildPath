@@ -605,3 +605,21 @@ test("a number choice's maximum may read its creature (Healing Light: up to its 
   assert.equal(resolveActionConfiguration({definition, actorSystem: withPresence(16), choices: {spent: 4}}).ok, false, "not 4");
   assert.equal(resolveActionConfiguration({definition, actorSystem: withPresence(8), choices: {spent: 1}}).ok, true, "at least 1");
 });
+
+test("Arcane Recovery: after a Short Rest, slots whose levels add up to half its wizard level at most, none above 5", async () => {
+  const fs = await import("node:fs");
+  const recovery = JSON.parse(fs.readFileSync("packs/_source/srd-items/arcane-recovery-phbwzdArcaneReco.json", "utf8"));
+  const trigger = recovery.system.ruleElements.find(rule => rule.type === "Trigger");
+  assert.deepEqual([trigger.data.event, trigger.data.predicate.all[0].equals.value], ["rest.completed", "shortRest"]);
+  const definition = trigger.data.action;
+  assert.equal(definition.configuration[1].options.every(option => option.value <= 5), true, "none of level 6 or higher");
+  const actorSystem = {classes: [{id: "wizard", level: 6}], resources: {}, pools: [{id: "arcane-recovery", value: 1, max: 1},
+    ...[1, 2, 3].map(level => ({id: `spell-slot.${level}`, value: 0, max: 3}))]};
+  const pick = (...ids) => resolveActionConfiguration({definition, actorSystem, choices: {use: "use", slots: {values: ids}}});
+  const restored = result => result.configuration.effectiveDefinition.restores.map(entry => entry.resourceId);
+  assert.deepEqual(restored(pick("level-3-1")), ["spell-slot.3"], "3 of a budget of 3");
+  assert.deepEqual(restored(pick("level-2-1", "level-1-1")), ["spell-slot.2", "spell-slot.1"]);
+  assert.equal(pick("level-3-1", "level-1-1").ok, false, "4 is over half of 6");
+  assert.equal(resolveActionConfiguration({definition, actorSystem: {...actorSystem, classes: []}, choices: {use: "use",
+    slots: {values: ["level-1-1"]}}}).ok, false, "no wizard levels: a budget it can't work out allows nothing");
+});

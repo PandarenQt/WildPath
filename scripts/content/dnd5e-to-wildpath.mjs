@@ -879,6 +879,30 @@ function defensiveTacticsAction(document, img, source) {
   ruleElements: []}, flags: {wildpath: {source, conversion: {notes: []}}}};
 }
 
+/**
+ * 2024 Arcane Recovery and Natural Recovery: "When you finish a Short Rest, you can choose expended spell slots to recover.
+ * The spell slots can have a combined level equal to no more than half your [class] level (round up), and none of the
+ * slots can be level 6 or higher", once per Long Rest (`poolId`; one of its own unless `ownPool`): a rest Trigger asking
+ * which slots, each pick a slot of its level, their levels limited by a `budget`. shortcut: every pick up to level 10 is
+ * listed; a pick of a level with none expended is refused, and "use" with nothing picked spends the use.
+ */
+function slotRecovery({id, poolId, label, classId, ownPool=false}) {
+  const picks = [1, 2, 3, 4, 5].flatMap(level => Array.from({length: Math.floor(10 / level)}, (_, index) => ({id: `level-${level}-${index + 1}`,
+    label: `Level ${level}`, value: level, effects: [{type: "restore", resourceId: `spell-slot.${level}`, amount: 1}]})));
+  return {rules: [
+    ...(ownPool ? [] : [{schemaVersion: 1, id: `${id}-uses`, type: "GrantResource", data: {resourceId: poolId, label, maximum: 1,
+      recovery: "longRest"}}]),
+    {schemaVersion: 1, id, type: "Trigger", data: {kind: "automation", event: "rest.completed",
+      predicate: {all: [{equals: {path: "event.data.restType", value: "shortRest"}}, {not: {poolEmpty: poolId}}]},
+      action: {schemaVersion: 1, id: `action:srd-${id}`, label, costs: {allOf: [{capability: poolId, amount: 1}]}, range: {type: "self"},
+        targeting: {type: "self"}, configuration: [
+          {id: "use", type: "option", label, required: true, defaultValue: "use",
+            options: [{id: "use", label: "Use it", value: "use"}, {id: "decline", label: "Not now", value: "decline"}], effects: [{type: "decline"}]},
+          {id: "slots", type: "select-many", label: "Spell slots", required: false, min: 0, options: picks,
+            budget: {type: "divide", numerator: {type: "class-level", class: classId}, denominator: {type: "constant", value: 2}, round: "ceil"}}]}}}],
+    notes: []};
+}
+
 /** A drop-to-0 rule (`health.zero`) on its feature, standing for its activities (their saves and heals). */
 function zeroHpTrait(activities, zeroHp) {
   return {rules: [{schemaVersion: 1, id: "zero-hp", type: "Trigger", data: {kind: "zero-hp", event: "health.zero", zeroHp}}],
@@ -2458,6 +2482,13 @@ const TRAITS = Object.freeze({
     hitPoints: {type: "multiply", terms: [{type: "constant", value: 2}, {type: "class-level", class: "barbarian"}]}}),
   "undead-fortitude": (document, {activities}) => zeroHpTrait(activities, {mode: "save", ability: "fortitude", dc: {plusDamage: 5},
     hitPoints: 1, notOn: ["radiant", "critical"]}),
+  // Arcane Recovery and Natural Recovery's slots, chosen when a Short Rest ends (slotRecovery).
+  "arcane-recovery": (document, {activities}) => ({...slotRecovery({id: "arcane-recovery-slots", poolId: "arcane-recovery",
+    label: document.name, classId: "wizard", ownPool: true}), consumes: activities.filter(entry => entry.type === "utility")}),
+  "natural-recovery": (document, {activities}) => ({...slotRecovery({id: "natural-recovery-slots", poolId: "natural-recovery-recover-spell-slots",
+    label: "Natural Recovery (Recover Spell Slots)", classId: "druid"}), consumes: activities.filter(entry => entry.name === "Recover Spell Slots"),
+    // Its free Circle Spell waits on Circle of the Land's spells (Q9).
+    notes: ['"Cast Spell" is passive or triggered: not automated']}),
   // 2024 Boon of Fate: its use comes back when it rolls Initiative, as on a Short Rest.
   "boon-of-fate": () => ({rules: [{schemaVersion: 1, id: "boon-of-fate-initiative", type: "Trigger", data: {kind: "automation",
     event: "initiative.rolled", predicate: {all: [{poolBelowMax: "boon-of-fate"}]}, action: {schemaVersion: 1,

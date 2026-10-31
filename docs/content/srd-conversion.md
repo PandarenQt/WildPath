@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 988 automated, 237 manual, 225 features. Creatures: 375.
+Items: 988 automated, 236 manual, 226 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -87,7 +87,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Arcane Hand | spells24 | Arcane Hand (automated) | — |
 | Arcane Hand | actors24 | Arcane Hand (5 items) | Forceful Hand: rolled (save); what it does is by hand; Grasping Hand: rolled (save); what it does is by hand; Interposing Hand: effect: "Interposed" marks its creature only; its rules are by hand |
 | Arcane Lock | spells24 | Arcane Lock (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Arcane Recovery | classes24 | Arcane Recovery (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: shortRest is not an action-economy cost |
+| Arcane Recovery | classes24 | Arcane Recovery (feature) | — |
 | Arcane Sword | spells24 | Arcane Sword (automated) | — |
 | Arcane Sword | actors24 | Arcane Sword (1 items) | — |
 | Arcane Vigor | spells24 | Arcane Vigor (Cast) (manual) | not automated (utility): using it spends its cost; its description says the rest; "Expend d6 Hit Dice" is passive or triggered: not automated; "Expend d8 Hit Dice" is passive or triggered: not automated; "Expend d10 Hit Dice" is passive or triggered: not automated; "Expend d12 Hit Dice" is passive or triggered: not automated |
@@ -1022,7 +1022,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Mysterious Deck | equipment24 | Mysterious Deck (gear) | "Check Deck Size" is passive or triggered (narrative): not automated; "Draw Cards" is passive or triggered (narrative): not automated |
 | Mystic Arcanum | classes24 | Mystic Arcanum (feature) | — |
 | Nalfeshnee | actors24 | Nalfeshnee (8 items) | Pursuit: not automated (utility): using it spends its cost; its description says the rest |
-| Natural Recovery | classes24 | Natural Recovery (feature) | "Cast Spell" is passive or triggered: not automated; "Recover Spell Slots" is passive or triggered: not automated |
+| Natural Recovery | classes24 | Natural Recovery (feature) | "Cast Spell" is passive or triggered: not automated |
 | Naturally Stealthy | origins24 | Naturally Stealthy (feature) | — |
 | Nature's Sanctuary | classes24 | Nature's Sanctuary (Spectral Trees and Vines) (automated), Nature's Sanctuary (Move) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Nature's Veil | classes24 | Nature's Veil (automated) | — |
