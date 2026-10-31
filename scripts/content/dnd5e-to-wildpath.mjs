@@ -912,6 +912,10 @@ function slotRecovery({id, poolId, label, classId, ownPool=false}) {
     notes: []};
 }
 
+/** A movement mode equal to its creature's Speed (a Climb or Swim Speed "equal to your Speed"). */
+const movementEqualToSpeed = (id, mode) => ({schemaVersion: 1, id, type: "GrantMovement", data: {mode,
+  distance: {type: "context", path: "actorSystem.resources.movement.max"}}});
+
 /** A drop-to-0 rule (`health.zero`) on its feature, standing for its activities (their saves and heals). */
 function zeroHpTrait(activities, zeroHp) {
   return {rules: [{schemaVersion: 1, id: "zero-hp", type: "Trigger", data: {kind: "zero-hp", event: "health.zero", zeroHp}}],
@@ -1936,15 +1940,18 @@ const SILENT_MECHANICS = /\b(?:Advantage|Disadvantage|Resistance|Immunity|immune
  * the feature Item is only its name and text.
  */
 const ENGINE_FEATURES = new Set(["ability-score-improvement", "divine-order", "primal-order", "eldritch-invocations", "giant-ancestry",
-  "druidic"]);
+  "druidic", "celestial-resistance", "elven-lineage", "fiendish-legacy"]);
 /**
  * Features whose rule nothing in play exercises, so their text is their rule (an informational note, not a gap): what a
  * creature can't carry (Ephemeral), thoughts no one reads (Shielded Mind, Inscrutable: an Insight check is the GM's call
  * on a self-targeted Search, with no creature to read a rule from), rock it tunnels through (Tunneler), an object's own
- * stat block (Magic Rope, Soul Bag), a revival a day later (Undead Restoration).
+ * stat block (Magic Rope, Soul Bag), a revival a day later (Undead Restoration), an object a fiend keeps its soul in (Soul
+ * Tome, Soul Gem), a warding of a place against travel (Forbiddance). Two feats lift penalties WildPath doesn't impose:
+ * Crossbow Expert (Loading, firing with an enemy beside it, the Light attack's modifier) and Mounted Combatant (there
+ * are no mounts). Move them out when those rules come.
  */
 const NARRATIVE_FEATURES = new Set(["ephemeral", "shielded-mind", "inscrutable", "tunneler", "magic-rope", "soul-bag",
-  "undead-restoration"]);
+  "undead-restoration", "soul-tome", "soul-gem", "forbiddance", "crossbow-expert", "mounted-combatant"]);
 
 /**
  * Features dnd5e gives no usable activity that are used on their creature's turn, as an Action of their own (2024 Action
@@ -2427,6 +2434,26 @@ const TRAITS = Object.freeze({
   // 2024 Grappler. Attack Advantage: against a creature it Grappled (`attack.fromAttacker.grappled`). Punch and Grab: once
   // a turn, its Unarmed Strike's hit may also Grapple, free. shortcut: any of its Unarmed Strike hits qualifies, not only
   // one of the Attack action's. Fast Wrestler needs nothing: moving a Grappled creature costs no extra movement here.
+  // A Climb or Swim Speed equal to its Speed: Athlete (standing up and running jumps cost nothing extra here anyway),
+  // Aquatic Affinity, a thief's Second-Story Work (unless its effect gives it already, as the SRD copy's does).
+  athlete: () => ({rules: [movementEqualToSpeed("athlete-climb", "climb")], notes: []}),
+  "aquatic-affinity": () => ({rules: [movementEqualToSpeed("aquatic-affinity-swim", "swim")], notes: []}),
+  "second-story-work": document => (passiveEffects(document).length ? null
+    : {rules: [movementEqualToSpeed("second-story-work-1", "climb")], notes: []}),
+  // Advantage on saves against Charmed and Frightened (Tasha's Psychic Defenses), its activity the rule's.
+  "psychic-defenses": (document, {activities}) => ({rules: [{schemaVersion: 1, id: "psychic-defenses", type: "RollMode",
+    predicate: {tagsAny: ["against:charmed", "against:frightened"]}, data: {domains: ["save"], mode: "advantage"}}],
+  consumes: activities.filter(entry => entry.type === "utility"), notes: []}),
+  // Advantage on Initiative (the DMG's Battle Ready); not the Battle Smith's feature of the same name, an enchantment.
+  "battle-ready": document => (/\bAdvantage on Initiative rolls\b/u.test(plainText(document))
+    ? {rules: [{schemaVersion: 1, id: "battle-ready", type: "RollMode", data: {domains: ["initiative"], mode: "advantage"}}], notes: []} : null),
+  // Magic Resistance as a supernatural gift (the DMG's Blessing of Magic Resistance).
+  "blessing-of-magic-resistance": (...args) => TRAITS["magic-resistance"](...args),
+  // Attacks against it have Disadvantage unless it is Incapacitated (a displacer beast's Displacement).
+  displacement: () => ({rules: [{schemaVersion: 1, id: "displacement", type: "RollMode", predicate: NOT_INCAPACITATED,
+    data: {domains: ["attacked"], mode: "disadvantage"}}], notes: []}),
+  // Disadvantage in sunlight (a myconid's Sun Sickness), as Sunlight Sensitivity's; its slow death in sunlight is the GM's.
+  "sun-sickness": (document, options) => sunlightTrait(document, options),
   grappler: () => ({rules: [
     {schemaVersion: 1, id: "grappler-advantage", type: "RollMode", predicate: {equals: {path: "attack.fromAttacker.grappled", value: true}},
       data: {domains: ["attack"], mode: "advantage"}},

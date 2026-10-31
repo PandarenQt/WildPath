@@ -1879,8 +1879,8 @@ test("Jack of All Trades and Remarkable Athlete: dnd5e's flags as WildPath rules
     {actorSystem: {proficiencyBonus: 3}}).value, 1, "half of 3, rounded down");
   const [talent] = convertItem(flagged("talent", "flags.dnd5e.reliableTalent")).items;
   assert.deepEqual(talent.system.ruleElements[0].data, {domains: ["check.proficient"], outcome: "minimum-natural", threshold: 10});
-  const [athlete] = convertItem(flagged("athlete", "flags.dnd5e.remarkableAthlete")).items;
-  assert.deepEqual(athlete.system.ruleElements[0], {schemaVersion: 1, id: "athlete-1", type: "RollMode",
+  const [athlete] = convertItem(flagged("remarkable-athlete", "flags.dnd5e.remarkableAthlete")).items;
+  assert.deepEqual(athlete.system.ruleElements[0], {schemaVersion: 1, id: "remarkable-athlete-1", type: "RollMode",
     data: {domains: ["initiative", "check.athletics"], mode: "advantage"}});
 });
 
@@ -2602,4 +2602,22 @@ test("a magic item that is only a template enchants an Item with no activation (
     {key: "system.traits.languages.value", type: "add", value: "primordial"}]}]};
   const chainGear = convertItem(chain).items.find(item => item.type === "gear");
   assert.deepEqual(chainGear.flags.wildpath.training, ["languages:primordial"]);
+});
+
+test("the books' silent features, first batch: movement equal to Speed, Advantage traits, and narrative feats", () => {
+  // Synthetic documents in dnd5e's shape: their identifiers and a placeholder text, never a book's.
+  const feat = (identifier, name, description="<p>Rule text.</p>", effects=[]) => ({_id: `${identifier.replace(/-/g, "")}`.padEnd(16, "0").slice(0, 16),
+    name, type: "feat", img: "icons/svg/item-bag.svg", effects, system: {source: SRD, identifier, activities: {}, description: {value: description}}});
+  const rules = document => convertItem(document).items[0].system.ruleElements;
+  assert.deepEqual(rules(feat("athlete", "Athlete")).map(rule => [rule.type, rule.data.mode]), [["GrantMovement", "climb"]]);
+  assert.deepEqual(rules(feat("aquatic-affinity", "Aquatic Affinity")).map(rule => rule.data.mode), ["swim"]);
+  assert.deepEqual(rules(feat("displacement", "Displacement")).map(rule => [rule.type, rule.data.domains[0], rule.data.mode]),
+    [["RollMode", "attacked", "disadvantage"]]);
+  assert.deepEqual(rules(feat("battle-ready", "Battle Ready", "<p>You have Advantage on Initiative rolls.</p>")).map(rule => rule.data.domains),
+    [["initiative"]]);
+  assert.deepEqual(rules(feat("battle-ready", "Battle Ready", "<p>An artificer's weapon training.</p>")), [], "another Battle Ready");
+  assert.deepEqual(rules(feat("blessing-of-magic-resistance", "Blessing of Magic Resistance")).map(rule => rule.id), ["magic-resistance"]);
+  const narrative = convertItem(feat("crossbow-expert", "Crossbow Expert", "<p>You have no Disadvantage on attack rolls.</p>"))
+    .items[0].flags.wildpath.conversion.notes;
+  assert.match(narrative.join(" "), /narrative/u);
 });
