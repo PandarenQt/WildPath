@@ -419,6 +419,12 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     stops at the first option taken (`offerDeciders`). That Advantage is one more source: it cancels one
     source of Disadvantage on the save, source for source (the runtime keeps each target's sources,
     `save.rollModeSourcesByTarget`). 2024 Countercharm has no sight clause.
+    A GM creature's save (2026-10-31): the players' monster offer (their Heroic Inspiration on its roll, offered
+    whatever it rolls) no longer hides an ally's Countercharm. The ally's options join it marked `failedOnly`, so they
+    are asked only after a failure, and in their own words (`offerLabel`: "QA Ally's save failed. Reroll it?").
+    The creature's own options (its Indomitable, its own Countercharm) stay off a monster offer, as before. Live: the
+    Bandit Captain frightened QA Ally (GM's); the GM kept the roll, then Player1 was asked about QA Wizard's
+    Countercharm, took it, and rerolled 2d20kh. Before this, a player's Inspiration point silently removed the offer.
   - **Indomitable**'s converted Action, which spent a use and did nothing, is gone: the feature keeps the pool the
     engine's reroll pays from (`OFFERED_BY_ENGINE`).
 

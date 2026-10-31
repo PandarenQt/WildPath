@@ -1741,7 +1741,7 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
  * its payment is committed on it. The saver's controller decides (2024 Countercharm has no sight clause).
  */
 export function withAllyTestOffers(offer, saverToken, definition, game, test, {chooser, register=() => {}}={}) {
-  if ( (offer && !offer.own) || !saverToken?.parent ) return offer;
+  if ( !saverToken?.parent ) return offer;
   const conditions = new Set((definition?.effects ?? []).map(effect => effect?.conditionId).filter(Boolean));
   const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
   const options = [];
@@ -1752,6 +1752,8 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
       if ( !spec?.range || !spec.tests?.includes(test) || (item.system?.active === false) ) continue;
       // One for its allies only (Bountiful Luck: "an ally you can see"), not its own rolls; never an enemy's offer.
       if ( spec.others && (token.id === saverToken.id) ) continue;
+      // A GM creature's own, beside the players' monster offer: not offered (as its Indomitable is not).
+      if ( offer && !offer.own && (token.id === saverToken.id) ) continue;
       if ( (token.id !== saverToken.id) && hostileTo(token, saverToken) ) continue;
       // Countercharm answers only saves against its conditions; Flash of Genius any check or save.
       if ( spec.against && !spec.against.some(condition => conditions.has(condition)) ) continue;
@@ -1779,7 +1781,11 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
     }
   }
   if ( !options.length ) return offer;
-  return offer ? {...offer, options: [...offer.options, ...options]}
+  // Beside a monster offer (the players' Heroic Inspiration on a GM creature's roll, shown whatever the roll) an ally's
+  // help is still its own: asked of its controller, and only when the save failed (`failedOnly`).
+  const ownSave = format("WILDPATH.INSPIRATION.OwnSave", {name: saverToken.actor?.name ?? ""});
+  return offer ? {...offer, options: [...offer.options, ...(offer.own ? options
+    : options.map(option => ({...option, failedOnly: true, offerLabel: ownSave})))]}
     : {own: true, chooser, label: format("WILDPATH.INSPIRATION.OwnSave", {name: saverToken.actor?.name ?? ""}), options};
 }
 

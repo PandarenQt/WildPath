@@ -187,6 +187,41 @@ test("Countercharm: an ally's reroll of a failed save rolls with Advantage, and 
   assert.equal(state.mutationPlans.some(entry => entry.conditionId === "charmed"), false);
 });
 
+test("beside a monster offer, an ally's Countercharm is asked only when the save failed", () => {
+  const charm = {schemaVersion: 1, id: "action:charm", label: "Charm", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    save: {ability: "wits", dc: {value: 13}}, effects: [{id: "effect-1", type: "condition", conditionId: "charmed", saveOutcomePolicy: "failure"}]};
+  const plan = {ok: true, updates: {}, payments: []};
+  const bard = {kind: "specific", userIds: ["player-b"]};
+  const offer = {own: false, chooser: "gm", label: "x", options: [
+    {value: "spend:Actor.pc", payerRef: "Actor.pc", plan, label: "A player's Heroic Inspiration"},
+    {value: "ally-offer:Actor.bard:cc", payerRef: "Actor.bard", plan, rollMode: "advantage", label: "Bard's Countercharm", authority: bard,
+      failedOnly: true, offerLabel: "Ogre's save failed. Reroll it?"}]};
+  const run = natural => {
+    let state = planStagedActionResolution({id: `resolution:charm-monster-${natural}`, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+      action: {id: charm.id, type: "action", name: charm.label, system: {definition: charm}}, source: {actorId: "actor-source"},
+      targets: [{id: "ogre", actorId: "actor-ogre", tokenId: "token-ogre", disposition: "friendly"}],
+      save: {inspirationByTarget: {"token-ogre": offer}}}).state;
+    const asked = [];
+    const answer = value => {
+      const request = state.pendingRequests[0];
+      asked.push(request);
+      state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+        value: typeof value === "function" ? value(request) : value}}).state;
+    };
+    answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural, total: natural}));
+    answer("keep");
+    return {state, asked};
+  };
+  const saved = run(18);
+  assert.deepEqual(saved.asked[1].payload.options.map(option => option.value), ["spend:Actor.pc", "keep"], "a success: the GM's question only");
+  assert.equal(saved.state.pendingRequests.length, 0);
+  const failed = run(4);
+  assert.equal(failed.state.pendingRequests[0]?.payload?.options?.[0]?.value, "ally-offer:Actor.bard:cc", "a failure: then the bard's player");
+  assert.deepEqual(failed.state.pendingRequests[0].authority, bard);
+  assert.equal(failed.state.pendingRequests[0].payload.label, "Ogre's save failed. Reroll it?", "in its own words");
+  assert.equal(failed.asked[1].payload.label, "x", "the GM's question keeps the monster offer's");
+});
+
 test("an ally's offer is its own controller's to decide, asked after the saver's own options are kept", () => {
   const charm = {schemaVersion: 1, id: "action:charm", label: "Charm", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
     save: {ability: "wits", dc: {value: 13}}, effects: [{id: "effect-1", type: "condition", conditionId: "charmed", saveOutcomePolicy: "failure"}]};

@@ -2576,6 +2576,14 @@ test("Countercharm: offered for a save failed against Charmed or Frightened, by 
   for ( const system of [targetSource, targetActor.system] ) system.resources.reaction = {value: 1, max: 1};
   const both = offerFor({effects: [{conditionId: "frightened"}]});
   assert.deepEqual(both.options.map(option => option.authority?.kind ?? "saver"), ["saver", "gm"], "its own too, the saver's to decide");
+  // A GM creature's save, which the players' Heroic Inspiration may reroll whatever it rolls: the ally's Countercharm
+  // still joins, for a failure only (seen live 2026-10-31: it was dropped whenever a player had Inspiration).
+  const monster = {own: false, chooser: "gm", label: "Monster", options: [{value: "spend:Actor.pc", payerRef: "Actor.pc"}]};
+  const joined = withAllyTestOffers(monster, targetToken, charm, {}, "save", {chooser: "target-controller"});
+  assert.equal(joined.own, false);
+  assert.deepEqual(joined.options.map(option => [option.value.split(":")[0], option.failedOnly ?? false]),
+    [["spend", false], ["ally-offer", true]]);
+  assert.equal(joined.options[1].payerRef, "Actor.bard", "the ally's, not the GM creature's own");
 });
 
 test("Portent (2024 Diviner, replacing a rolled d20): offered to a Diviner who sees the roller, once per turn", async () => {

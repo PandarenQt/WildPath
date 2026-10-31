@@ -26,3 +26,15 @@ Sending the prompt back would mean taking it away from the GM again.
 
 - Done meanwhile: nothing; the GM answers, or cancels with Cancel Action.
 - Recommendation: keep it as it is. Ask again only if Players complain that the GM answers for them after a reload.
+
+### Q3. A GM creature's own rerolls beside the players' monster offer (2026-10-31)
+When a GM creature rolls and some player has Heroic Inspiration, the GM is asked "Reroll its roll with a player
+character's Heroic Inspiration?" (`inspirationMonsterRerolls`). A test says the creature's own options are then never
+offered (`test/transform-action.test.mjs`: Indomitable "never on a monster's GM-chosen reroll"), so a GM-run fighter
+loses its Indomitable, and a GM creature its own Countercharm or a Bardic Inspiration die, whenever a player holds a point.
+
+- Done meanwhile: an ally's help (another creature's Countercharm) now joins after a failure, asked of the ally's
+  player (see `docs/architecture/reactions.md`, Countercharm). The creature's own options still follow the test.
+- Question: was "never on a monster's reroll" meant to keep the GM's dialog about the players' points only, or should a
+  GM creature's own features join it after a failure, like an ally's do now?
+- Recommendation: let them join after a failure (`failedOnly`), which is one line per helper.

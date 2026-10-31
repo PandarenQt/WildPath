@@ -1646,8 +1646,9 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
   id="heroic-inspiration"}) {
   // An option only for one natural (Halfling Luck's 1) is offered only when the d20 shows it.
   const natural = Number(original?.natural ?? original?.die) || 0;
-  const offer = offered ? {...offered, options: (offered.options ?? []).filter(option => !(Number(option.natural) > 0)
-    || (Number(option.natural) === natural))} : offered;
+  // A creature's own options beside a monster offer (`failedOnly`) are offered only when the roll failed.
+  const offer = offered ? {...offered, options: (offered.options ?? []).filter(option => (!(Number(option.natural) > 0)
+    || (Number(option.natural) === natural)) && (failed || !option.failedOnly))} : offered;
   if ( !offer?.options?.length || (offer.own && !failed) ) return {};
   // Each decider is asked in turn, and the first option taken is used: the offer's chooser for its own options, then
   // each ally for the options it pays for (`option.authority`: its controller, else the GM; owner's decision, 2026-10-30).
@@ -1666,7 +1667,7 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
         chooser: decider.chooser,
         // Named users (a Diviner's player, else the GM: Portent; an ally's), or the chooser's kind.
         authority: decider.authority ?? {kind: decider.chooser},
-        payload: {id, label: offer.label ?? "WILDPATH.INSPIRATION.Title",
+        payload: {id, label: decider.label ?? offer.label ?? "WILDPATH.INSPIRATION.Title",
           options: [...decider.options.map(entry => ({value: entry.value, label: entry.label})),
             {value: "keep", label: "WILDPATH.INSPIRATION.Keep"}],
           defaultValue: "keep", targets},
@@ -1744,7 +1745,9 @@ function offerDeciders(offer) {
       continue;
     }
     const key = JSON.stringify(option.authority);
-    if ( !others.has(key) ) others.set(key, {chooser: option.authority.kind, authority: option.authority, options: []});
+    // An ally asked beside a monster offer is asked in its own words (`offerLabel`), not the players' question.
+    if ( !others.has(key) ) others.set(key, {chooser: option.authority.kind, authority: option.authority, options: [],
+      label: option.offerLabel ?? null});
     others.get(key).options.push(option);
   }
   return [own, ...others.values()].filter(decider => decider.options.length);
