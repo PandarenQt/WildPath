@@ -1164,6 +1164,8 @@ function conditionEffectTargetsForRequest({request, targetResolution, attackReso
 
 function normalizeConditionSaveOutcomePolicy(policy) {
   if ( !policy ) return null;
+  // 2024 "Failure by 5 or More" (a Homunculus's Bite): only a save failed by at least that much.
+  if ( Number(policy?.failedBy) > 0 ) return {any: false, outcomes: new Set(), successStates: new Set(), failedBy: Number(policy.failedBy)};
   const tokens = Array.isArray(policy)
     ? policy
     : typeof policy === "object"
@@ -1203,6 +1205,7 @@ function normalizeConditionSaveOutcomeToken(value) {
 }
 
 function conditionSavePolicyMatches(saveResult, policy) {
+  if ( policy.failedBy ) return (saveResult.success === false) && Number.isFinite(saveResult.margin) && (saveResult.margin <= -policy.failedBy);
   if ( policy.any ) return true;
   if ( policy.outcomes.has(saveResult.outcome) ) return true;
   return policy.successStates.has(saveResult.success);

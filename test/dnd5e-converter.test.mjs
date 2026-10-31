@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {checkOf, convertActor, convertFacility, convertItem, convertTable, creatureRef, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex,
-  scaleTables, textBoundExpiry, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
+  failureByMargin, scaleTables, textBoundExpiry, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import * as valueExpressions from "../module/helpers/value-expressions.mjs";
 
@@ -2334,4 +2334,15 @@ test("a one-turn effect ends where its 2024 text says, whatever dnd5e's data say
   const minute = {value: 10, units: "rounds", expiry: "turnStart"};
   assert.equal(textBoundExpiry(minute, "it can't move until the end of its next turn"), minute, "only a one-turn duration");
   assert.equal(textBoundExpiry(null, ghoul), null);
+});
+
+test("a Failure by 5 or More section: the conditions only it names, how long, and whether damage ends them", () => {
+  const homunculus = "Failure: The target has the Poisoned condition until the end of the homunculus's next turn. Failure by 5 or More: "
+    + "The target has the &amp;Reference[Poisoned apply=false] condition for 1 minute. While Poisoned, the target has the "
+    + "&amp;Reference[Unconscious apply=false] condition, which ends early if the target takes any damage.";
+  assert.deepEqual(failureByMargin(homunculus), {by: 5, only: ["unconscious"], duration: {value: 1, units: "minutes"}, endsOnDamage: true});
+  const pseudodragon = "Failure: 5 (2d4) Poison damage, and the target has the Poisoned condition for 1 hour. Failure by 5 or More: While "
+    + "Poisoned, the target also has the Unconscious condition, which ends early if the target takes damage or a creature wakes it.";
+  assert.deepEqual(failureByMargin(pseudodragon), {by: 5, only: ["unconscious"], duration: {value: 1, units: "hours"}, endsOnDamage: true});
+  assert.equal(failureByMargin("Failure: The target has the Prone condition."), null);
 });

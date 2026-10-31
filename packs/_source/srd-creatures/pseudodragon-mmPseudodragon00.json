@@ -339,43 +339,21 @@
                 "units": "seconds",
                 "expiry": "turnStart"
               }
-            }
-          ],
-          "configuration": [
+            },
             {
-              "id": "effect-choice",
-              "type": "option",
-              "label": "Effect",
-              "required": true,
-              "options": [
-                {
-                  "id": "effect-option-1",
-                  "label": "Poisoned",
-                  "value": "effect-option-1"
-                },
-                {
-                  "id": "effect-option-2",
-                  "label": "Poisoned (Failure 5+)",
-                  "value": "effect-option-2"
-                }
-              ],
-              "effects": [
-                {
-                  "type": "keepEffect",
-                  "effectIds": [
-                    "effect-1",
-                    "effect-2"
-                  ],
-                  "keep": {
-                    "effect-option-1": [
-                      "effect-1"
-                    ],
-                    "effect-option-2": [
-                      "effect-2"
-                    ]
-                  }
-                }
-              ]
+              "id": "effect-3",
+              "type": "condition",
+              "conditionId": "unconscious",
+              "saveOutcomePolicy": {
+                "failedBy": 5
+              },
+              "duration": {
+                "value": 1,
+                "units": "hours"
+              },
+              "metadata": {
+                "endsWhen": "damaged"
+              }
             }
           ],
           "label": "Sting"

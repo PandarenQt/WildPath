@@ -48,6 +48,25 @@ function failedSaveOutcome(document) {
 const NARRATIVE_SAVES = new Set(["scrying", "detect-thoughts", "seeming", "light", "read-thoughts", "crystal-ball", "crystal-ball-of-mind-reading",
   "crystal-ball-of-telepathy", "crystal-ball-of-true-seeing", "helm-of-telepathy", "medallion-of-thoughts", "potion-of-mind-reading"]);
 
+/**
+ * A stat block's "Failure by 5 or More:" section (2024 Homunculus, Pseudodragon): the conditions only it names (not the
+ * plain "Failure:" one's), how long they last (its own "for 1 minute", else the plain failure's), and whether they end
+ * early when the target takes damage. Null when there is no such section.
+ */
+export function failureByMargin(raw) {
+  const text = String(raw ?? "").replace(/&(?:amp;)?Reference\[(\w+)[^\]]*\]/gu, "$1");
+  const found = /Failure by (\d+) or More:\s*(.*?)(?=\b(?:Success|Failure|Hit|Miss|Trigger|Response)\b[^:.]{0,20}:|$)/iu.exec(text);
+  if ( !found ) return null;
+  const base = /\bFailure:\s*(.*?)(?=Failure by|$)/iu.exec(text)?.[1] ?? "";
+  const named = section => new Set([...section.matchAll(/\bthe (\w+) condition\b/giu)].map(match => CONDITION_MAP[match[1].toLowerCase()])
+    .filter(Boolean));
+  const inBase = named(base);
+  const lasting = /\bfor (\d+|one) (round|minute|hour)s?\b/iu.exec(found[2]) ?? /\bfor (\d+|one) (round|minute|hour)s?\b/iu.exec(base);
+  return {by: Number(found[1]), only: [...named(found[2])].filter(condition => !inBase.has(condition)),
+    duration: lasting ? {value: Number(lasting[1]) || 1, units: LASTING_UNITS[lasting[2].toLowerCase()]} : null,
+    endsOnDamage: /\bends early if the target takes (?:any )?damage\b/iu.test(found[2])};
+}
+
 /** dnd5e's duration units, as WildPath's. */
 const LASTING_UNITS = Object.freeze({turn: "turns", round: "rounds", minute: "minutes", hour: "hours", day: "days", month: "months",
   year: "years"});
@@ -3674,7 +3693,26 @@ function convertActivity({document, activity, system, spell, level, scales, note
   }
   // dnd5e lists an activity's effects as options its user applies (Blindness or Deafness, one of Hex's abilities, a
   // Shadow's -1 to -4): a choice keeps one, with every condition it brings.
-  if ( groups.length > 1 ) {
+  // A condition only a "Failure by 5 or More:" section names lands on such a failure alone (`failedBy`), as long as it says;
+  // its options are then the save's to settle, not its user's. shortcut: a condition both sections name keeps the plain
+  // failure's duration (a Homunculus's 1-minute Poisoned on a big failure lasts a turn); upgrade when an effect can take
+  // its duration from the margin.
+  const margined = definition.save ? failureByMargin(plainText(document)) : null;
+  let settled = false;
+  // One dnd5e's data leaves out (a Pseudodragon's Unconscious) is added from the text.
+  for ( const conditionId of margined?.only ?? [] ) {
+    if ( effects.length && !effects.some(effect => effect.conditionId === conditionId) ) {
+      effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId});
+    }
+  }
+  for ( const effect of effects ) {
+    if ( (effect.type !== "condition") || !margined?.only.includes(effect.conditionId) ) continue;
+    effect.saveOutcomePolicy = {failedBy: margined.by};
+    if ( margined.duration ) effect.duration = margined.duration;
+    if ( margined.endsOnDamage ) effect.metadata = {...(effect.metadata ?? {}), endsWhen: "damaged"};
+    settled = true;
+  }
+  if ( (groups.length > 1) && !settled ) {
     const option = index => `effect-option-${index + 1}`;
     definition.configuration = [...(definition.configuration ?? []), {id: "effect-choice", type: "option",
       label: removal?.chooseOne ?? byHand?.chooseOne ?? choices?.chooseOne ?? "Effect", required: true,

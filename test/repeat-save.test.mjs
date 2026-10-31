@@ -474,3 +474,23 @@ test("zeroHpFor (Death Ward): a ward on an effect drops its creature to 1 instea
   assert.deepEqual(zeroHpFor(actor, {pools: []}), {name: "Protection from Death", mode: "set", hitPoints: 1, effectUuid: ward.uuid});
   assert.equal(zeroHpFor({items: [], effects: [{...ward, disabled: true}]}, {pools: []}), null, "a disabled one does nothing");
 });
+
+test("Failure by 5 or More (a Homunculus's Bite): its condition lands only on a save failed by that much", () => {
+  const bite = {schemaVersion: 1, id: "action:bite", label: "Bite", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    save: {ability: "fortitude", dc: {value: 12}}, effects: [
+      {id: "effect-1", type: "condition", conditionId: "poisoned", saveOutcomePolicy: "failure"},
+      {id: "effect-2", type: "condition", conditionId: "unconscious", saveOutcomePolicy: {failedBy: 5}, metadata: {endsWhen: "damaged"}}]};
+  assert.equal(validateActionDefinition(bite).ok, true);
+  const conditionsAfter = total => {
+    let state = planStagedActionResolution({id: `resolution:bite-${total}`, actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+      action: {id: bite.id, type: "action", name: bite.label, system: {definition: bite}}, source: {actorId: "actor-source"},
+      targets: [{id: "fighter", actorId: "actor-fighter", tokenId: "token-fighter", disposition: "enemy"}]}).state;
+    const request = state.pendingRequests[0];
+    state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+      value: {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: total, total}}}).state;
+    return state.mutationPlans.map(entry => entry.conditionId).filter(Boolean).sort();
+  };
+  assert.deepEqual(conditionsAfter(7), ["poisoned", "unconscious"], "7 against DC 12 fails by 5");
+  assert.deepEqual(conditionsAfter(8), ["poisoned"], "8 fails by 4");
+  assert.deepEqual(conditionsAfter(12), [], "a success");
+});
