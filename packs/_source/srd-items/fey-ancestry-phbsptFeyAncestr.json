@@ -7,7 +7,24 @@
   "system": {
     "active": true,
     "description": "<p>You have Advantage on saving throws you make to avoid or end the Charmed condition.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "fey-ancestry-against-charmed",
+        "type": "RollMode",
+        "predicate": {
+          "tagsAny": [
+            "against:charmed"
+          ]
+        },
+        "data": {
+          "domains": [
+            "save"
+          ],
+          "mode": "advantage"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

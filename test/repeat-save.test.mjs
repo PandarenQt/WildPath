@@ -21,6 +21,9 @@ test("the saves a creature repeats at a turn boundary: one per Action and source
     [["wits", 15, ["paralyzed", "marker"]], ["wits", 18, ["other-caster"]]]);
   assert.deepEqual(repeatSaveGroups([effect("start", "action:x", "s", {...held, timing: "turnStart"})], "turn.started")[0].effectIds, ["start"]);
   assert.deepEqual(repeatSaveGroups([effect("a", "b", "c", held)], "round.ended"), []);
+  // What the repeated save is against: the conditions it would end.
+  assert.deepEqual(repeatSaveGroups([effect("p", "action:sting", "s", held, {statuses: new Set(["poisoned"])}),
+    effect("m", "action:sting", "s", held)], "turn.ended")[0].against, ["poisoned"]);
 });
 
 test("an effect whose save repeats keeps the save it was let in by: its ability and the DC it resolved to", () => {

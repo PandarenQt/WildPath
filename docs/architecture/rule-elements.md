@@ -420,6 +420,10 @@ Its predicate sees `attack.type` and `attack.adjacent` (the attacker within 5 ft
   the target. Pack Tactics is `{equals: {path: "attack.allyNearTarget", value: true}}` on `attack`.
 - on a save, the Action's `tags`, where every spell is also `magical`. Magic Resistance is `{tagsAny: ["magical"]}` on
   `save`: it covers spells and any Action tagged `magical` (the converter tags a magic item's Actions).
+- on a save, `against:<condition>` (2026-10-31): each condition a failure gives, and each one a repeated save ends
+  (`save.against`, from its effects' statuses). "Advantage on saving throws to avoid or end the Poisoned condition"
+  (Dwarven Resilience, Brave, Fey Ancestry, Antitoxin) is `{tagsAny: ["against:poisoned"]}` on `save`; the converter
+  reads that 2024 wording (`savesAgainstRules`), unless it says "not".
 - `inSunlight` (2026-10-15): the rolling creature stands in sunlight. It is set on its own attacks, checks (initiative
   included), saves, and its automatic triggers. Sunlight Sensitivity is `{equals: {path: "inSunlight", value: true}}` on
   `attack` and `check`.

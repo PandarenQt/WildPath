@@ -34,7 +34,24 @@
           "type": "effect",
           "name": "Antitoxin",
           "img": "icons/consumables/potions/bottle-round-corked-pink.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "antitoxin-against-poisoned",
+              "type": "RollMode",
+              "predicate": {
+                "tagsAny": [
+                  "against:poisoned"
+                ]
+              },
+              "data": {
+                "domains": [
+                  "save"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
           "duration": {
             "value": 3600,
             "units": "seconds",
@@ -75,9 +92,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Antitoxin\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       },
       "price": 50
     }

@@ -2167,6 +2167,25 @@ test("an effect's Forbid (Spell Taxed) refuses its creature's spells, saying whi
   assert.equal(struck.ok, true, JSON.stringify(struck.reason));
 });
 
+test("a save knows what it is against: a target's \"Advantage on saves against Poisoned\" applies to a poisoning save only", async t => {
+  const sting = condition => ({schemaVersion: 1, id: "action:sting", label: "Sting", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, save: {ability: "fortitude", dc: {value: 12}},
+    effects: [{id: "effect-1", type: "condition", conditionId: condition, saveOutcomePolicy: "failure"}]});
+  const modeAgainst = async condition => {
+    const fixture = syntheticRuntimeFixture(t, sting(condition));
+    // Dwarven Resilience, Antitoxin: a RollMode on the `against:poisoned` tag, read by the real Actor method.
+    fixture.targetActor.getRollModes = WildPathActor.prototype.getRollModes;
+    fixture.targetActor.auraOwners = () => [];
+    fixture.targetActor.effects = [{name: "Antitoxin", disabled: false, isSuppressed: false, system: {ruleElements: [{schemaVersion: 1,
+      id: "antitoxin", type: "RollMode", predicate: {tagsAny: ["against:poisoned"]}, data: {domains: ["save"], mode: "advantage"}}]}}];
+    const built = await foundryActionIntentToStagedOptions({intent: fixture.intent, senderUserId: "player-a", game: fixture.game});
+    assert.equal(built.ok, true, JSON.stringify(built.reason));
+    return Object.values(built.options.save.rollModesByTarget)[0];
+  };
+  assert.equal(await modeAgainst("poisoned"), "advantage");
+  assert.equal(await modeAgainst("frightened"), "normal", "a save against something else");
+});
+
 test("Dispel Magic takes a creature or a lasting spell area within its range, never both and never neither", async t => {
   const dispel = range => ({schemaVersion: 1, id: "action:dispel", label: "Dispel Magic", tags: ["spell"], costs: {allOf: []},
     range: {type: "ranged", normal: {value: range, unit: "ft"}}, targeting: {type: "single", required: false, count: 1},

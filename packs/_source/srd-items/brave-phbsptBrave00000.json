@@ -7,7 +7,24 @@
   "system": {
     "active": true,
     "description": "<p>You have Advantage on saving throws you make to avoid or end the Frightened condition.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "brave-against-frightened",
+        "type": "RollMode",
+        "predicate": {
+          "tagsAny": [
+            "against:frightened"
+          ]
+        },
+        "data": {
+          "domains": [
+            "save"
+          ],
+          "mode": "advantage"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

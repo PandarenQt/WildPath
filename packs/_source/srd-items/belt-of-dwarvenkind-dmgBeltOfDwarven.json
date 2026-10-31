@@ -10,7 +10,24 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "belt-of-dwarvenkind-against-poisoned",
+        "type": "RollMode",
+        "predicate": {
+          "tagsAny": [
+            "against:poisoned"
+          ]
+        },
+        "data": {
+          "domains": [
+            "save"
+          ],
+          "mode": "advantage"
+        }
+      }
+    ],
     "attunement": "required",
     "armor": "",
     "price": 4000,

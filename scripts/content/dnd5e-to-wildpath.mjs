@@ -1544,6 +1544,15 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   }
   // What it gives while it is had (worn, for gear): its passive effects' rules.
   const passive = [...passiveEffects(document).flatMap(effect => effectRules(effect, allNotes, {scales, text: plainText(document)})), ...emptyPassiveRules(document, allNotes)];
+  // What its 2024 wording gives that dnd5e leaves out (Dwarven Resilience's Advantage on saves against Poisoned), unless
+  // its Action's effect already carries it (a vial of Antitoxin, for its hour).
+  const onEffect = items.some(item => (item.system?.definition?.effects ?? []).some(effect => (effect.ruleElements ?? [])
+    .some(rule => rule.predicate?.tagsAny?.some(tag => String(tag).startsWith("against:")))));
+  if ( !onEffect ) {
+    for ( const rule of savesAgainstRules(plainText(document), identifierOf(document)) ) {
+      if ( !passive.some(entry => entry.id === rule.id) ) passive.push(rule);
+    }
+  }
   // Equipment is gear its owner equips (G7): armor's AC, and its passive effects. A potion or scroll is only its Actions.
   if ( GEAR_TYPES.has(document.type) && !((document.type === "consumable") && items.length) ) {
     const gearId = items.some(item => item._id === document._id) ? stableId(`${document._id}:gear`) : document._id;
@@ -1738,6 +1747,26 @@ function passiveEffects(document) {
  * and Cloak of Elvenkind) is that skill's roll mode. Read only when every passive effect has no changes and no statuses; a
  * sentence of Advantage or Disadvantage it can't read is noted (the Cloak's "Perception checks made to see you").
  */
+/**
+ * "Advantage on saving throws (you make) to avoid or end the Poisoned condition" (2024 Dwarven Resilience, Brave, Fey
+ * Ancestry, a Periapt of Proof against Poison, Antitoxin): a RollMode on saves against it (the runtime tags a save
+ * `against:<condition>` by what a failure gives, or what a repeated save ends). Not when the text says "not".
+ */
+function savesAgainstRules(text, base) {
+  // A condition may be a dnd5e reference ("the &Reference[Frightened] condition").
+  const plain = String(text ?? "").replace(/&(?:amp;)?Reference\[(\w+)[^\]]*\]/gu, "$1");
+  return [...plain.matchAll(SAVES_AGAINST)].map(match => CONDITION_MAP[match[1].toLowerCase()]).filter(Boolean)
+    .map(condition => ({schemaVersion: 1, id: `${base || "rule"}-against-${condition}`, type: "RollMode",
+      predicate: {tagsAny: [`against:${condition}`]}, data: {domains: ["save"], mode: "advantage"}}));
+}
+const SAVES_AGAINST = /(?<!\bnot )\bAdvantage on saving throws(?: you make| made)? to avoid or end the (\w+) condition/giu;
+
+/** The rules an effect with none of its own takes from its item's text (Antitoxin's Advantage on saves against Poisoned). */
+function textEffect(document) {
+  const rules = savesAgainstRules(plainText(document), identifierOf(document));
+  return rules.length ? {ruleElements: rules} : null;
+}
+
 function emptyPassiveRules(document, notes=[]) {
   const effects = passiveEffects(document);
   if ( !effects.length || effects.some(effect => effectChanges(effect).length || effectStatuses(effect).length) ) return [];
@@ -1754,6 +1783,7 @@ function emptyPassiveRules(document, notes=[]) {
         data: {domains: [`check.${skill}`], mode: mode.toLowerCase()}});
       rest = rest.replace(phrase, "");
     }
+    rest = rest.replace(SAVES_AGAINST, "");
     // What else it says of Advantage (others' checks "made to see you") is not read.
     if ( /\b(?:Advantage|Disadvantage)\b/u.test(rest) ) notes.push(`text: "${sentence.trim()}" not converted`);
   }
@@ -3484,7 +3514,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const changeNotes = [];
     const converted = hand?.ruleElements ?? (effect ? effectRules(effect, changeNotes, {scales, text: plainText(document)}) : []);
     const named = (!hand && !converted.length && effect) ? ((effect.name === "Lingering Acid") ? lingeringAcid(document)
-      : (EFFECTS_BY_NAME[effect.name] ?? null)) : null;
+      : (EFFECTS_BY_NAME[effect.name] ?? textEffect(document))) : null;
     if ( !named ) notes.push(...changeNotes);
     const rules = [...(named?.ruleElements ?? converted), ...(byHand?.extraRules ?? []),
       ...structuredClone(EFFECT_REACTIONS[`${identifierOf(document)}/${effect?.name}`] ?? [])];

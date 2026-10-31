@@ -77,7 +77,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Antilife Shell | spells24 | Antilife Shell (automated) | effect: "Antilife Shell" marks its creature only; its rules are by hand |
 | Antimagic Field | spells24 | Antimagic Field (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
 | Antipathy/Sympathy | spells24 | Antipathy/Sympathy (Cast) (automated) | activation: 1 hour is not an action-economy cost; effect: "Antipathy" marks its creature only; its rules are by hand; effect: "Sympathy" marks its creature only; its rules are by hand; "Antipathy Save" is passive or triggered: not automated; "Sympathy Save" is passive or triggered: not automated |
-| Antitoxin | equipment24 | Antitoxin (automated) | effect: "Antitoxin" marks its creature only; its rules are by hand |
+| Antitoxin | equipment24 | Antitoxin (automated) | — |
 | Ape | actors24 | Ape (4 items) | — |
 | Apparatus of the Crab | equipment24 | Apparatus of the Crab (gear), Apparatus of the Crab (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Arcane Apotheosis | classes24 | Arcane Apotheosis (feature) | — |

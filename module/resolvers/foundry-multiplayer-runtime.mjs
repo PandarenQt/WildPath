@@ -1790,7 +1790,11 @@ export function bestSaveAbility({definition, targetActor, saverToken, cover="non
  */
 function saveContext(definition, ability, token=null) {
   const tags = definition?.tags ?? [];
-  return {context: {save: {ability}, tags: tags.includes("spell") && !tags.includes("magical") ? [...tags, "magical"] : tags,
+  // What the save is against (`against:poisoned`): the conditions a failure gives, or a repeated save ends
+  // (`save.against`), so "Advantage on saves to avoid or end the Poisoned condition" is a RollMode on that tag.
+  const against = [...new Set([...(definition?.effects ?? []).map(effect => effect?.conditionId),
+    ...(definition?.save?.against ?? [])].filter(Boolean))].map(condition => `against:${condition}`);
+  return {context: {save: {ability}, tags: [...tags, ...(tags.includes("spell") && !tags.includes("magical") ? ["magical"] : []), ...against],
     ...sunlightContext(token), ...fearContext(token)}};
 }
 
