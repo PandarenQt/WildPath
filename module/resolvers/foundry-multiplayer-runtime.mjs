@@ -1135,7 +1135,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
 
 /**
  * The creatures on `scene` a reaction may move damage to (Cloud Rune, Protective Bond): the Tokens named (`tokenIds`), or
- * those within `range` feet of the Token `around` other than it and `exclude`. Each is a damage target with what planning
+ * those within `range` feet of the Token `around` other than it, `exclude`, hidden Tokens and dead creatures. Each is a damage target with what planning
  * needs (its snapshot, resistances and 0-HP rescue, under the keys it is committed by), and is committed on like a target.
  */
 export function redirectCandidates(scene, game, targetActors, {tokenIds=null, around=null, range=5, exclude=[]}={}) {
@@ -1147,8 +1147,11 @@ export function redirectCandidates(scene, game, targetActors, {tokenIds=null, ar
   // Any creature, friend or foe, by the distance between their spaces.
   const within = token => { const to = origin ? footprintOf(token) : null;
     return !!to && (footprintDistance(origin, to) * (Number(scene.grid?.distance) || 5) <= Number(range)); };
+  // Not a Token the GM hides (its player mustn't learn of it, even by name) or a dead creature (no die is wasted on it).
+  const defeated = globalThis.CONFIG?.specialStatusEffects?.DEFEATED ?? "dead";
+  const pickable = token => (token.hidden !== true) && !token.actor.statuses?.has?.(defeated);
   return tokens.filter(token => token.actor && (tokenIds ? tokenIds.includes(token.id) : (from && (token.id !== around)
-    && !exclude.includes(token.id) && within(token))))
+    && !exclude.includes(token.id) && pickable(token) && within(token))))
     .flatMap(token => {
       const actor = token.actor;
       let actorSystem;

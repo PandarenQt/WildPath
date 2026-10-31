@@ -2736,9 +2736,9 @@ test("damage reactions for another creature: Interception reduces an ally's dama
 /**
  * A ranger (the attacker) with the converted Superior Hunter's Prey, its target carrying a Hunter's Mark from `markedBy`
  * (the ranger by default), and other creatures at `others` ({id: rows below the target}: 5 ft a row); `preyItems`, the
- * one named prey's reactions.
+ * one named prey's reactions; `preyState`, it hidden by the GM ("hidden") or already dead ("dead").
  */
-async function huntersPreyFixture(t, {markedBy=null, others={prey: 3, far: 12}, natural=null, preyItems=null}={}) {
+async function huntersPreyFixture(t, {markedBy=null, others={prey: 3, far: 12}, natural=null, preyItems=null, preyState=null, direct=false}={}) {
   const fs = await import("node:fs");
   const file = fs.readdirSync("packs/_source/srd-items").find(name => name.startsWith("superior-hunter-s-prey-") && !name.includes("phbrg"));
   const item = JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}`, "utf8"));
@@ -2755,10 +2755,22 @@ async function huntersPreyFixture(t, {markedBy=null, others={prey: 3, far: 12}, 
     if ( (id === "prey") && preyItems ) actor.items = preyItems;
     const token = fakeTokenDocument({id: `${id}-token`, actor, scene: fixture.scene, offset: {i: 1, j: rows}});
     Object.assign(actor, {uuid: `${token.uuid}.Actor.${id}`, isToken: true, token, tokens: [token]});
+    if ( (id === "prey") && (preyState === "hidden") ) token.hidden = true;
+    if ( (id === "prey") && (preyState === "dead") ) actor.statuses = new Set(["dead"]);
     fixture.scene.tokens.push(token);
     return [id, actor];
   }));
-  const declared = await fixture.player.declareActionIntent(fixture.intent);
+  // `direct`: the ranger uses the feature itself from its sheet, on the target, with no hit to answer.
+  let intent = fixture.intent;
+  if ( direct ) {
+    const own = Object.assign(fixture.sourceActor.items.get(item._id), {uuid: `${fixture.sourceActor.uuid}.Item.${item._id}`, actor: fixture.sourceActor});
+    const lookup = globalThis.fromUuid;
+    globalThis.fromUuid = async ref => (ref === own.uuid ? own : lookup(ref));
+    t.after(() => { globalThis.fromUuid = lookup; });
+    intent = buildFoundryActionUseIntent({actor: fixture.sourceActor, action: own,
+      game: {user: {targets: new Set([{document: fixture.targetToken}])}}}).intent;
+  }
+  const declared = await fixture.player.declareActionIntent(intent);
   return {...fixture, creatures, record: fixture.gm.getRecord(declared.resolutionId)};
 }
 
@@ -2802,6 +2814,25 @@ test("Superior Hunter's Prey: not offered for another creature's mark; with nobo
   assert.deepEqual(preyRolls(alone.playerRollRequests), [], "no die rolled for nobody");
   assert.equal((alone.record.state.results.reactions ?? []).some(entry => entry.childFailed), true, "it fails");
   assert.deepEqual([alone.targetActor.system.resources.health.value, alone.creatures.far.system.resources.health.value], [22, 20]);
+});
+
+for ( const preyState of ["hidden", "dead"] ) test(`Superior Hunter's Prey: a ${preyState} creature within 30 ft isn't one its die can move to`, async t => {
+  const previous = globalThis.game;
+  globalThis.game = {combat: {id: "c", round: 1, turn: 0, started: true}};
+  t.after(() => { globalThis.game = previous; });
+  const {record, creatures} = await huntersPreyFixture(t, {others: {prey: 3, other: 4, far: 12}, preyState});
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.deepEqual([creatures.prey, creatures.other, creatures.far].map(actor => actor.system.resources.health.value), [20, 16, 20],
+    "the only other creature in range takes it, unasked");
+});
+
+test("Superior Hunter's Prey: used straight from the sheet, with no hit on a mark to answer, it fails and deals nothing", async t => {
+  const {record, sourceActor, targetActor, creatures, offers} = await huntersPreyFixture(t, {markedBy: "Actor.another-ranger", direct: true});
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.FAILED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(record.state.pendingRequests.length, 0, "nobody is asked who takes it");
+  assert.equal(offers.length, 0);
+  assert.deepEqual([sourceActor, targetActor, creatures.prey, creatures.far].map(actor => actor.system.resources.health.value),
+    [20, 30, 20, 20], "nobody takes the die");
 });
 
 test("Protective Bond: a reaction an effect gives (Bonded), offered while its giver has the feature; it takes the damage", async t => {

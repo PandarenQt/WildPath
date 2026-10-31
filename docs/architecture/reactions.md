@@ -505,7 +505,8 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     says. Its Action's `retarget: {range}` moves its own damage off its target: at the start of its damage roll, before
     anything is rolled, its controller picks a creature within `range` of the target other than it and the attacker
     (`redirectChoice` from the target, `redirectCandidates`), and the damage step moves the result there
-    (`redirectedDamage`). With nobody in range the reaction fails and rolls nothing. Its before-damage window names that
+    (`redirectedDamage`). Hidden Tokens and dead creatures aren't candidates. With nobody in range the reaction fails
+    and rolls nothing; used from the sheet, with no event to answer, it fails too. Its before-damage window names that
     creature, so its own "when you take damage" reactions are offered. A Critical Hit on the target doesn't double it.
     shortcut: "that you can see" isn't checked; only the first creature an Action damages is checked for the mark; once a
     turn is checked per Action; and a reaction child carries no concentration input, so a concentrating creature it

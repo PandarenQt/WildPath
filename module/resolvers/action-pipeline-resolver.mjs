@@ -3659,7 +3659,7 @@ function redirectedDamage(damageResolution, redirectsByTarget, attackResolution=
 
 /**
  * Who takes the damage instead (`rider.redirectDamage`): its own creature (`to: "self"`: Protective Bond), or a creature
- * within `range` of it (of the Token `around`, when given) other than the attacker and the creature it protects
+ * within `range` of it (of the Token `around`, when given) other than itself, the attacker and the creature it protects
  * (`chosen`: Cloud Rune), its controller's pick when there are several. The runtime finds them
  * (`services.redirectCandidates`). `{candidate}`, `{wait}`, or null.
  */
@@ -3669,7 +3669,7 @@ function redirectChoice(state, services, spec, stageId=ACTION_PIPELINE_STAGE_IDS
   const reactor = state.source?.tokenId ?? null;
   const candidates = normalizeArray(spec.to === "self" ? services.redirectCandidates({tokenIds: [reactor]})
     : services.redirectCandidates({around: spec.around ?? reactor, range: Number(spec.range) || 5,
-      exclude: [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId].filter(Boolean)}));
+      exclude: [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId, reactor].filter(Boolean)}));
   if ( candidates.length < 2 ) return candidates.length ? {candidate: candidates[0]} : null;
   const requestId = requestIdFor(state, "redirect");
   const answer = getResolutionResponse(state, {requestId, type: RESOLUTION_REQUEST_TYPES.CHOICE});
@@ -3694,6 +3694,9 @@ function retargeted(state, services) {
   const spec = state.actionDefinition?.retarget;
   const from = normalizeArray(state.input?.targets)[0]?.tokenId ?? null;
   if ( !spec || !from || state.input?.durability?.redirectsByTarget?.[from] ) return null;
+  // It only answers a hit (its Trigger checks the mark and once a turn): used from the sheet, it has nothing to move.
+  if ( !state.sourceEvent ) return {stop: failActionPlanningStage({state, stage: ACTION_RESOLUTION_STAGES.TARGETING,
+    code: ACTION_RESOLVER_CODES.TARGETING_FAILED, reason: "Only as a reaction."})};
   const choice = redirectChoice(state, services, {range: spec.range, around: from}, ACTION_PIPELINE_STAGE_IDS.DAMAGE_ROLL);
   if ( choice?.wait ) return {stop: choice.wait};
   if ( !choice?.candidate ) return {stop: failActionPlanningStage({state, stage: ACTION_RESOLUTION_STAGES.TARGETING,
