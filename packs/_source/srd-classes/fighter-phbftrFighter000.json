@@ -37,8 +37,7 @@
         "type": "grant",
         "items": [
           "Compendium.wildpath.srd-items.Item.phbftrExtraAttac",
-          "Compendium.wildpath.srd-items.Item.phbftrTacticalSh",
-          "Compendium.wildpath.srd-items.Item.1vtfpto1qwqxou00"
+          "Compendium.wildpath.srd-items.Item.phbftrTacticalSh"
         ],
         "optional": false
       },

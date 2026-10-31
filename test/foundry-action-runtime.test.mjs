@@ -2803,11 +2803,12 @@ test("damage reactions for another creature: Interception reduces an ally's dama
  * (the ranger by default), and other creatures at `others` ({id: rows below the target}: 5 ft a row); `preyItems`, the
  * one named prey's reactions; `preyState`, it hidden by the GM ("hidden") or already dead ("dead").
  */
-async function huntersPreyFixture(t, {markedBy=null, others={prey: 3, far: 12}, natural=null, preyItems=null, preyState=null, direct=false}={}) {
+async function huntersPreyFixture(t, {markedBy=null, others={prey: 3, far: 12}, natural=null, preyItems=null, preyState=null}={}) {
   const fs = await import("node:fs");
-  const file = fs.readdirSync("packs/_source/srd-items").find(name => name.startsWith("superior-hunter-s-prey-") && !name.includes("phbrg"));
+  // The converted feature: its reaction is its own Trigger carrying the Action (no Action Item to use by hand).
+  const file = fs.readdirSync("packs/_source/srd-items").find(name => name.startsWith("superior-hunter-s-prey-"));
   const item = JSON.parse(fs.readFileSync(`packs/_source/srd-items/${file}`, "utf8"));
-  const fixture = counterattackFixture(t, {reactor: "source", items: [{id: item._id, type: "action", name: item.name, system: item.system}],
+  const fixture = counterattackFixture(t, {reactor: "source", items: [{id: item._id, type: item.type, name: item.name, system: item.system}],
     natural, queue: [{natural: natural ?? 18, total: (natural ?? 18) + 4}, {total: 4}],
     // The ranger's weapon damage bonus (a Dueling): its attack's, not the mark's die.
     extra: [{id: "dueling", expression: {type: "constant", value: 2}}]});
@@ -2825,17 +2826,7 @@ async function huntersPreyFixture(t, {markedBy=null, others={prey: 3, far: 12}, 
     fixture.scene.tokens.push(token);
     return [id, actor];
   }));
-  // `direct`: the ranger uses the feature itself from its sheet, on the target, with no hit to answer.
-  let intent = fixture.intent;
-  if ( direct ) {
-    const own = Object.assign(fixture.sourceActor.items.get(item._id), {uuid: `${fixture.sourceActor.uuid}.Item.${item._id}`, actor: fixture.sourceActor});
-    const lookup = globalThis.fromUuid;
-    globalThis.fromUuid = async ref => (ref === own.uuid ? own : lookup(ref));
-    t.after(() => { globalThis.fromUuid = lookup; });
-    intent = buildFoundryActionUseIntent({actor: fixture.sourceActor, action: own,
-      game: {user: {targets: new Set([{document: fixture.targetToken}])}}}).intent;
-  }
-  const declared = await fixture.player.declareActionIntent(intent);
+  const declared = await fixture.player.declareActionIntent(fixture.intent);
   return {...fixture, creatures, record: fixture.gm.getRecord(declared.resolutionId)};
 }
 
@@ -2891,13 +2882,13 @@ for ( const preyState of ["hidden", "dead"] ) test(`Superior Hunter's Prey: a ${
     "the only other creature in range takes it, unasked");
 });
 
-test("Superior Hunter's Prey: used straight from the sheet, with no hit on a mark to answer, it fails and deals nothing", async t => {
-  const {record, sourceActor, targetActor, creatures, offers} = await huntersPreyFixture(t, {markedBy: "Actor.another-ranger", direct: true});
-  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.FAILED, JSON.stringify(record.state.errors).slice(0, 1500));
-  assert.equal(record.state.pendingRequests.length, 0, "nobody is asked who takes it");
-  assert.equal(offers.length, 0);
-  assert.deepEqual([sourceActor, targetActor, creatures.prey, creatures.far].map(actor => actor.system.resources.health.value),
-    [20, 30, 20, 20], "nobody takes the die");
+test("Superior Hunter's Prey: nothing to use straight from the sheet; its reaction is its feature's own Trigger", async () => {
+  const fs = await import("node:fs");
+  const files = fs.readdirSync("packs/_source/srd-items").filter(name => name.startsWith("superior-hunter-s-prey-"));
+  assert.equal(files.length, 1, "no Action Item beside the feature");
+  const feature = JSON.parse(fs.readFileSync(`packs/_source/srd-items/${files[0]}`, "utf8"));
+  const trigger = feature.system.ruleElements.find(rule => rule.type === "Trigger");
+  assert.deepEqual([feature.type, trigger.data.event, trigger.data.action.retarget], ["feature", "damage.applied", {range: 30}]);
 });
 
 test("Protective Bond: a reaction an effect gives (Bonded), offered while its giver has the feature; it takes the damage", async t => {

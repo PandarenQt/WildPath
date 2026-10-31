@@ -7,7 +7,91 @@
   "system": {
     "active": true,
     "description": "<p>As part of the Bonus Action you take to enter your Rage, you can move up to half your Speed.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "action.declared",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}"
+          },
+          "triggerPredicate": {
+            "equals": {
+              "path": "event.data.actionDefinitionId",
+              "value": "action:srd-rage-expend-rage"
+            }
+          },
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-instinctive-pounce",
+            "label": "Instinctive Pounce",
+            "costs": {
+              "allOf": []
+            },
+            "range": {
+              "type": "self"
+            },
+            "targeting": {
+              "type": "self"
+            },
+            "effects": [
+              {
+                "id": "effect-1",
+                "type": "effect",
+                "name": "Instinctive Pounce",
+                "img": "icons/svg/walk.svg",
+                "duration": {
+                  "value": 0,
+                  "units": "turns",
+                  "expiry": "turnEnd"
+                },
+                "ruleElements": [
+                  {
+                    "schemaVersion": 1,
+                    "id": "withdraw",
+                    "type": "Modifier",
+                    "data": {
+                      "domains": [
+                        "resources.movement.max"
+                      ],
+                      "modifierType": "untyped",
+                      "valueExpression": {
+                        "type": "floor",
+                        "value": {
+                          "type": "divide",
+                          "numerator": {
+                            "type": "add",
+                            "terms": [
+                              {
+                                "type": "context",
+                                "path": "actorSystem.resources.movement.base"
+                              },
+                              {
+                                "type": "context",
+                                "path": "actorSystem.resources.movement.bonus"
+                              }
+                            ]
+                          },
+                          "denominator": {
+                            "type": "constant",
+                            "value": 2
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "policy": "always"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

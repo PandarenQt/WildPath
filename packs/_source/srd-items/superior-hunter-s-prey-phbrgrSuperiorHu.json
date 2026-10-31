@@ -7,7 +7,79 @@
   "system": {
     "active": true,
     "description": "<p>Once per turn when you deal damage to a creature marked by your <em>Hunter's Mark</em>, you can also deal that spell's extra damage to a different creature that you can see within 30 feet of the first creature.</p><section id=\"secret-AuiRnxdHXs9cXvQV\" class=\"secret\"><p><strong>Foundry Note</strong></p><p>You can apply the damage from Hunter's Mark or use the <strong>Damage</strong> activity on this feature.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "damage.applied",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}"
+          },
+          "once": "turn",
+          "onceKey": "superior-hunters-prey",
+          "triggerPredicate": {
+            "equals": {
+              "path": "targetFrom.{self}.hunters-mark",
+              "value": true
+            }
+          },
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-superior-hunter-s-prey",
+            "label": "Superior Hunter's Prey",
+            "costs": {
+              "allOf": []
+            },
+            "range": {
+              "type": "special"
+            },
+            "targeting": {
+              "type": "single",
+              "required": true,
+              "count": 1
+            },
+            "effects": [],
+            "damage": [
+              {
+                "id": "damage-1",
+                "expression": {
+                  "type": "table",
+                  "key": {
+                    "type": "class-level",
+                    "class": "ranger"
+                  },
+                  "rows": {
+                    "1": {
+                      "type": "dice",
+                      "number": 1,
+                      "faces": 6
+                    },
+                    "20": {
+                      "type": "dice",
+                      "number": 1,
+                      "faces": 10
+                    }
+                  },
+                  "default": {
+                    "type": "dice",
+                    "number": 1,
+                    "faces": 6
+                  }
+                },
+                "damageType": "force"
+              }
+            ],
+            "retarget": {
+              "range": 30
+            }
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

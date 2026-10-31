@@ -2552,14 +2552,22 @@ test("features that are Actions of their own: Tactical Shift and Instinctive Pou
   const actionOf = (identifier, name) => convertItem({_id: `${identifier.replace(/-/g, "")}`.padEnd(16, "0").slice(0, 16), name, type: "feat",
     img: "icons/svg/item-bag.svg", effects: [], system: {source: SRD, identifier, activities: {}, type: {value: "class"},
       description: {value: "<p>You can move up to half your Speed.</p>"}}}).items.find(item => item.type === "action");
-  const shift = actionOf("tactical-shift", "Tactical Shift");
-  assert.equal(validateActionDefinition(shift.system.definition).ok, true);
-  assert.deepEqual([shift.system.definition.costs.allOf, shift.flags.wildpath.reactionPolicy, shift.system.ruleElements[0].data.event,
-    shift.system.ruleElements[0].data.triggerPredicate.equals.value], [[], "always", "action.declared", "action:srd-second-wind"]);
-  assert.equal(shift.system.definition.effects[0].slug, "disengaged", "it provokes no Opportunity Attacks");
-  const pounce = actionOf("instinctive-pounce", "Instinctive Pounce");
-  assert.equal(pounce.system.ruleElements[0].data.triggerPredicate.equals.value, "action:srd-rage-expend-rage");
-  assert.equal(pounce.system.definition.effects[0].slug, undefined, "it moves, but may provoke");
+  // A free one answering its event is its feature's own Trigger carrying the Action: nothing to use by hand.
+  const reactionOf = (identifier, name) => {
+    const {items} = convertItem({_id: `${identifier.replace(/-/g, "")}`.padEnd(16, "0").slice(0, 16), name, type: "feat",
+      img: "icons/svg/item-bag.svg", effects: [], system: {source: SRD, identifier, activities: {}, type: {value: "class"},
+        description: {value: "<p>You can move up to half your Speed.</p>"}}});
+    assert.deepEqual(items.map(item => item.type), ["feature"], `${name}: no Action Item`);
+    return items[0].system.ruleElements.find(rule => rule.type === "Trigger").data;
+  };
+  const shift = reactionOf("tactical-shift", "Tactical Shift");
+  assert.equal(validateActionDefinition(shift.action).ok, true);
+  assert.deepEqual([shift.action.costs.allOf, shift.policy, shift.event, shift.triggerPredicate.equals.value],
+    [[], "always", "action.declared", "action:srd-second-wind"]);
+  assert.equal(shift.action.effects[0].slug, "disengaged", "it provokes no Opportunity Attacks");
+  const pounce = reactionOf("instinctive-pounce", "Instinctive Pounce");
+  assert.equal(pounce.triggerPredicate.equals.value, "action:srd-rage-expend-rage");
+  assert.equal(pounce.action.effects[0].slug, undefined, "it moves, but may provoke");
   const patron = actionOf("contact-patron", "Contact Patron");
   assert.deepEqual([patron.system.definition.costs.allOf, patron.system.ruleElements[0].data.recovery],
     [[{capability: "contact-patron", amount: 1}], "longRest"], "once per Long Rest, from its own pool");
@@ -2724,37 +2732,44 @@ test("Sentinel: Opportunity Attacks on a Disengage or a hit on another creature 
   const {commonAction} = await import("../module/helpers/common-actions.mjs");
   const sentinel = {_id: "sentinelfeat0000", name: "Sentinel", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
     system: {source: SRD, identifier: "sentinel", type: {value: "feat"}, activities: {}, description: {value: "<p>Rule text.</p>"}}};
-  const [feature, halt] = convertItem(sentinel).items;
-  assert.deepEqual(feature.system.ruleElements.map(rule => [rule.data.event, rule.data.commonAction]),
+  const {items} = convertItem(sentinel);
+  assert.equal(items.length, 1, "its Halt is no Action Item to use by hand");
+  const [feature] = items;
+  assert.deepEqual(feature.system.ruleElements.filter(rule => rule.data.commonAction).map(rule => [rule.data.event, rule.data.commonAction]),
     [["action.declared", "opportunity"], ["attack.hit", "opportunity"]]);
-  assert.deepEqual(feature.flags.wildpath.grants, [halt._id], "the feat brings its Halt");
-  assert.deepEqual([halt.system.ruleElements[0].data.match.tagsAll, halt.system.definition.effects[0].ruleElements[0].data],
-    [["opportunity"], {resources: ["movement"], maximum: 0}]);
+  const halt = feature.system.ruleElements.find(rule => rule.id === "reaction").data;
+  assert.deepEqual([halt.match.tagsAll, halt.action.effects[0].ruleElements[0].data], [["opportunity"], {resources: ["movement"], maximum: 0}]);
   const attack = commonAction({items: []}, "opportunity").system.definition;
   assert.equal(attack.tags.includes("opportunity"), true, "an Opportunity Attack says it is one");
 });
 
-test("Slasher: two Actions of one feat, Hamstring on a Slashing hit once a turn, and its Critical Hit rider", () => {
+test("Slasher: two reactions of one feat, Hamstring on a Slashing hit once a turn, and its Critical Hit rider", () => {
   const slasher = {_id: "slasherfeat00000", name: "Slasher", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
     system: {source: SRD, identifier: "slasher", type: {value: "feat"}, activities: {}, description: {value: "<p>Rule text.</p>"}}};
-  const [feature, hamstring, critical] = convertItem(slasher).items;
-  assert.deepEqual([hamstring.name, critical.name], ["Slasher (Hamstring)", "Slasher (Enhanced Critical)"]);
-  assert.deepEqual(feature.flags.wildpath.grants, [hamstring._id, critical._id]);
-  assert.deepEqual([hamstring.system.ruleElements[0].data.once, critical.system.ruleElements[0].data.match.tagsAll],
-    ["turn", ["hit", "critical", "damage:slashing"]]);
-  assert.notEqual(hamstring.system.definition.id, critical.system.definition.id);
+  const {items} = convertItem(slasher);
+  assert.equal(items.length, 1, "no Action Items to use by hand");
+  const triggers = items[0].system.ruleElements.filter(rule => rule.type === "Trigger");
+  assert.deepEqual(triggers.map(rule => [rule.id, rule.data.action.label]),
+    [["reaction-hamstring", "Slasher (Hamstring)"], ["reaction-enhanced-critical", "Slasher (Enhanced Critical)"]]);
+  const [hamstring, critical] = triggers.map(rule => rule.data);
+  assert.deepEqual([hamstring.once, critical.match.tagsAll], ["turn", ["hit", "critical", "damage:slashing"]]);
+  assert.notEqual(hamstring.action.id, critical.action.id);
 });
 
-test("Superior Hunter's Prey: its own Action, once a turn after damage to its own Hunter's Mark, the mark's die moved within 30 ft", () => {
+test("Superior Hunter's Prey: its feature's reaction, once a turn after damage to its own Hunter's Mark, the mark's die moved within 30 ft", () => {
   const prey = {_id: "phbrgrSuperiorHu", name: "Superior Hunter's Prey", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
     system: {source: SRD, identifier: "superior-hunters-prey", type: {value: "class"}, description: {value: "<p>Rule text.</p>"},
       // dnd5e's: no activation, the mark's die by formula.
       activities: {a: activity("damage", {activation: {type: "", override: false},
         damage: {parts: [{custom: {enabled: true, formula: "@scale.ranger.mark"}, number: null, denomination: 0, types: ["force"]}]}})}}};
-  const [feature, action] = convertItem(prey).items;
-  assert.deepEqual([feature.type, action.type, action.name, action.system.definition.costs.allOf], ["feature", "action", "Superior Hunter's Prey", []]);
-  assert.deepEqual(action.system.ruleElements[0].data, {kind: "reaction", event: "damage.applied", match: {phase: "interrupt", sourceTokenId: "{self}"},
+  const {items} = convertItem(prey);
+  assert.deepEqual(items.map(item => item.type), ["feature"], "no Action Item to use by hand");
+  const [feature] = items;
+  const {action: definition, ...trigger} = feature.system.ruleElements.find(rule => rule.type === "Trigger").data;
+  assert.deepEqual([definition.label, definition.costs.allOf], ["Superior Hunter's Prey", []]);
+  assert.deepEqual(trigger, {kind: "reaction", event: "damage.applied", match: {phase: "interrupt", sourceTokenId: "{self}"},
     once: "turn", onceKey: "superior-hunters-prey", triggerPredicate: {equals: {path: "targetFrom.{self}.hunters-mark", value: true}}});
+  const action = {system: {definition}};
   const mark = convertItem({_id: "testHuntersMark1", name: "Hunter's Mark", type: "spell", img: "systems/dnd5e/icons/spell.webp",
     effects: [{_id: "mark", name: "Hunter's Mark", transfer: false, statuses: ["marked"], system: {changes: []}, duration: {value: 3600, units: "seconds"}}],
     system: {source: SRD, identifier: "hunters-mark", level: 1, preparation: {mode: "prepared"}, properties: ["vocal", "concentration"],
@@ -2775,15 +2790,16 @@ test("review fixes: Sentinel's attacks are Opportunity Attacks on any Disengage;
     .find(file => file.startsWith(prefix))}`, "utf8"));
   const sentinel = convertItem({_id: "sentinelfeat0000", name: "Sentinel", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
     system: {source: SRD, identifier: "sentinel", type: {value: "feat"}, activities: {}, description: {value: "<p>Rule text.</p>"}}}).items[0];
-  assert.deepEqual(sentinel.system.ruleElements.map(rule => rule.data.opportunity), [true, true]);
+  assert.deepEqual(sentinel.system.ruleElements.filter(rule => rule.data.commonAction).map(rule => rule.data.opportunity), [true, true]);
   assert.deepEqual(sentinel.system.ruleElements[0].data.triggerPredicate.all[0], {equals: {path: "event.data.disengages", value: true}});
   assert.deepEqual([read("martial-arts-flurry-of-blows-strike").system.definition.requires, read("martial-arts-bonus-unarmed-strike").system.definition.requires],
     [undefined, {wearing: {armor: false, shield: false}}]);
   const thrown = read("dagger-thrown").system.definition;
   assert.deepEqual([thrown.attack.type, thrown.attack.properties, thrown.range.normal.value], ["ranged", ["finesse", "light", "thrown"], 20]);
   const slasher = convertItem({_id: "slasherfeat00000", name: "Slasher", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
-    system: {source: SRD, identifier: "slasher", type: {value: "feat"}, activities: {}, description: {value: "<p>Rule text.</p>"}}}).items[1];
-  assert.deepEqual(slasher.system.definition.effects[0].ruleElements[0].data.domains, ["resources.movement.max", "speed"], "every Speed");
+    system: {source: SRD, identifier: "slasher", type: {value: "feat"}, activities: {}, description: {value: "<p>Rule text.</p>"}}}).items[0];
+  const hamstring = slasher.system.ruleElements.find(rule => rule.id === "reaction-hamstring").data.action;
+  assert.deepEqual(hamstring.effects[0].ruleElements[0].data.domains, ["resources.movement.max", "speed"], "every Speed");
 });
 
 test("Stride of the Elements: a Fly and Swim Speed while Elemental Attunement's status lasts; its activation sets it", () => {

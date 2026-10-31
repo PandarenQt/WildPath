@@ -73,8 +73,7 @@
         "type": "grant",
         "items": [
           "Compendium.wildpath.srd-items.Item.phbbrbFeralInsti",
-          "Compendium.wildpath.srd-items.Item.phbbrbInstinctiv",
-          "Compendium.wildpath.srd-items.Item.1y5qv3r1aqo99000"
+          "Compendium.wildpath.srd-items.Item.phbbrbInstinctiv"
         ],
         "optional": false
       },

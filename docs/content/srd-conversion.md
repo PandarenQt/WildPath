@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 995 automated, 235 manual, 226 features. Creatures: 375.
+Items: 992 automated, 235 manual, 226 features. Creatures: 375.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -847,7 +847,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Insect Plague | spells24 | Insect Plague (automated) | — |
 | Instant Fortress | equipment24 | Instant Fortress (gear), Instant Fortress (Grow Tower) (manual), Instant Fortress (Open Fortress Door) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Instant Summons | spells24 | Instant Summons (Inscribe Mark) (manual), Instant Summons (Recall Object) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost; consumption: itemUses -1 not converted |
-| Instinctive Pounce | classes24 | Instinctive Pounce (feature), Instinctive Pounce (automated) | — |
+| Instinctive Pounce | classes24 | Instinctive Pounce (feature) | — |
 | Intimidating Presence | classes24 | Intimidating Presence (save) (automated), Intimidating Presence (Recharge with Rage) (automated) | — |
 | Investment of the Chain Master | classes24 | Investment of the Chain Master (Find Familiar with Flight) (automated), Investment of the Chain Master (Find Familiar with Swimming) (automated), Investment of the Chain Master (Invest with Resistance) (automated) | activation: 1 hour is not an action-economy cost; consumption: attribute 1 not converted |
 | Invisibility | spells24 | Invisibility (automated) | — |
@@ -1482,7 +1482,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Superior Critical | classes24 | Superior Critical (feature) | — |
 | Superior Defense | classes24 | Superior Defense (automated) | — |
 | Superior Hunter's Defense | classes24 | Superior Hunter's Defense (automated) | — |
-| Superior Hunter's Prey | classes24 | Superior Hunter's Prey (feature), Superior Hunter's Prey (automated) | — |
+| Superior Hunter's Prey | classes24 | Superior Hunter's Prey (feature) | — |
 | Superior Inspiration | classes24 | Superior Inspiration (feature) | — |
 | Supreme Healing | classes24 | Supreme Healing (feature) | — |
 | Supreme Sneak | classes24 | Supreme Sneak (feature) | — |
@@ -1500,7 +1500,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Symbol | spells24 | Symbol (Inscribe Glyph) (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost; "Death" is passive or triggered: not automated; "Discord" is passive or triggered: not automated; "Fear" is passive or triggered: not automated; "Pain" is passive or triggered: not automated; "Sleep" is passive or triggered: not automated; "Stunning" is passive or triggered: not automated |
 | Tactical Master | classes24 | Tactical Master (feature) | effect: "Tactial Master" change system.traits.weaponProf.mastery.bonus (add) not converted |
 | Tactical Mind | classes24 | Tactical Mind (feature) | — |
-| Tactical Shift | classes24 | Tactical Shift (feature), Tactical Shift (automated) | — |
+| Tactical Shift | classes24 | Tactical Shift (feature) | — |
 | Talisman of Pure Good | equipment24 | Talisman of Pure Good (gear), Talisman of Pure Good (Pure Rebuke) (automated) | "Fiend and Undead Damage" is passive or triggered: not automated |
 | Talisman of the Sphere | equipment24 | Talisman of the Sphere (gear) | — |
 | Talisman of Ultimate Evil | equipment24 | Talisman of Ultimate Evil (gear), Talisman of Ultimate Evil (Ultimate End) (automated) | "Non-Fiend or Undead Damage" is passive or triggered: not automated |

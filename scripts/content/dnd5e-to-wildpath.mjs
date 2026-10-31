@@ -2030,11 +2030,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       ...(featureAction.teleport ? {teleport: structuredClone(featureAction.teleport)} : {}),
       ...(featureAction.requires ? {requires: structuredClone(featureAction.requires)} : {}),
       ...(featureAction.restores ? {restores: structuredClone(featureAction.restores)} : {})};
-    // One that only answers its event (`reactionOnly`: Fanatical Focus's refill, Studied Attacks' mark) is its feature's
-    // own Trigger carrying the Action, so there is no Action Item to use by hand.
-    if ( featureAction.reactionOnly && (items[0]?.type === "feature") ) {
+    // A free one answering its event (Fanatical Focus's refill, Studied Attacks' mark, Tactical Shift's move) is its
+    // feature's own Trigger carrying the Action, so there is no free Action Item to use by hand. Each of a feature's
+    // several has its own Trigger id (Slasher's Hamstring and Enhanced Critical).
+    if ( featureAction.free && featureAction.trigger && (items[0]?.type === "feature") ) {
       items[0].system.ruleElements.push(...[pool?.rule ? null : structuredClone(featureAction.pool ?? null), {schemaVersion: 1,
-        id: "reaction", type: "Trigger", data: {...structuredClone(featureAction.trigger), action: definition,
+        id: featureAction.name ? `reaction-${slugify(featureAction.name)}` : "reaction", type: "Trigger",
+        data: {...structuredClone(featureAction.trigger), action: definition,
           ...(featureAction.policy ? {policy: featureAction.policy} : {})}}].filter(Boolean));
       continue;
     }
@@ -2206,7 +2208,7 @@ const FEATURE_ACTIONS = Object.freeze({
     effects: [{...Object.fromEntries(Object.entries(WITHDRAW).filter(([key]) => key !== "slug")), name: "Instinctive Pounce"}]},
   // 2024 Studied Attacks: a missed attack roll marks its target (`studied`, from this fighter); the fighter's next attack
   // roll against it before the end of its next turn has Advantage and spends the mark (Vex's rule, on a miss).
-  "studied-attacks": {free: true, reactionOnly: true, policy: "always", range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+  "studied-attacks": {free: true, policy: "always", range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
     trigger: {kind: "reaction", event: "attack.miss", match: {phase: "interrupt", sourceTokenId: "{self}"}},
     effects: [{id: "effect-1", type: "effect", name: "Studied", slug: "studied", img: "icons/svg/target.svg",
       duration: {value: 1, units: "rounds", expiry: "turnEnd"}, endsWhen: "attackedBySource",
@@ -2216,7 +2218,7 @@ const FEATURE_ACTIONS = Object.freeze({
   // knight's next turn; its next save against one of the knight's spells has Disadvantage, and any save the knight forces
   // spends the mark (`savedBySource`). shortcut: a save the knight forces that is not a spell's (a Topple) spends it too,
   // without the Disadvantage; upgrade when `endsWhen` can filter on tags.
-  "eldritch-strike": {free: true, reactionOnly: true, policy: "always", range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+  "eldritch-strike": {free: true, policy: "always", range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
     trigger: {kind: "reaction", event: "attack.hit", match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["weapon"]}},
     effects: [{id: "effect-1", type: "effect", name: "Eldritch Strike", slug: "eldritch-struck", img: "icons/svg/daze.svg",
       duration: {value: 1, units: "rounds", expiry: "turnEnd"}, endsWhen: "savedBySource",
@@ -2224,7 +2226,7 @@ const FEATURE_ACTIONS = Object.freeze({
         {equals: {path: "save.fromSource.eldritch-struck", value: true}}]}, data: {domains: ["save"], mode: "disadvantage"}}]}]},
   // Fanatical Focus: its once-per-Rage reroll (TEST_OFFERS) is refilled whenever its barbarian enters a Rage with the Rage
   // Action. shortcut: a Rage begun another way (an effect giving `raging`) refills nothing.
-  "fanatical-focus": {name: "Rage", free: true, reactionOnly: true, policy: "always", trigger: ownDeclared("action:srd-rage-expend-rage"),
+  "fanatical-focus": {name: "Rage", free: true, policy: "always", trigger: ownDeclared("action:srd-rage-expend-rage"),
     restores: [{resourceId: "fanatical-focus", amount: 1}], pool: {schemaVersion: 1, id: "fanatical-focus-uses", type: "GrantResource",
       data: {resourceId: "fanatical-focus", label: "Fanatical Focus", maximum: 1, recovery: "none"}}},
   // 2024 Contact Patron: once per Long Rest, Contact Other Plane with no slot to contact its patron, its save an automatic
