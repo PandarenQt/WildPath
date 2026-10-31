@@ -509,6 +509,13 @@ const SIGNATURE_SPELL_POOLS = Object.freeze([1, 2].map(n => ({schemaVersion: 1, 
   data: {resourceId: `signature-spell.${n}`, label: `Signature Spell ${n}`, maximum: 1, recovery: "shortRest"}})));
 
 /**
+ * A spell a feature lets its creature cast without a slot, from a pool of the feature's (action-definitions withFreeCasts):
+ * Faithful Steed's Find Steed once per Long Rest (its paladin class grants the spell, always prepared).
+ */
+const FREE_CASTS = Object.freeze({"faithful-steed": {spells: ["find-steed"], recovery: "longRest"}});
+const freeCastResource = identifier => `free-cast.${identifier}`;
+
+/**
  * A feature dnd5e leaves without automation, as the effects its use puts on its creature. 2024 Steady Aim: Advantage
  * on its next attack roll this turn, and Speed 0 until the turn ends; only while it hasn't moved this turn (`requires`).
  */
@@ -1848,12 +1855,17 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...((identifierOf(document) === "paladins-smite") ? [PALADINS_SMITE.pool] : []),
         ...((identifierOf(document) === "mystic-arcanum") ? structuredClone(MYSTIC_ARCANUM_POOLS) : []),
         ...((identifierOf(document) === "signature-spells") ? structuredClone(SIGNATURE_SPELL_POOLS) : []),
+        ...(FREE_CASTS[identifierOf(document)] ? [{schemaVersion: 1, id: `${identifierOf(document)}-free-cast`, type: "GrantResource",
+          data: {resourceId: freeCastResource(identifierOf(document)), label: document.name, maximum: 1,
+            recovery: FREE_CASTS[identifierOf(document)].recovery}}] : []),
         ...structuredClone(FEAT_ADVANCEMENT[identifierOf(document)]?.rules ?? [])].filter(Boolean),
         ...(FEAT_ADVANCEMENT[identifierOf(document)] ? {advancement: structuredClone(FEAT_ADVANCEMENT[identifierOf(document)].advancement)} : {})},
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(metamagic ? {metamagic} : {}),
         ...(testOffer ? {testOffer} : {}), ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {}),
         ...(IGNORES_RESISTANCE[identifierOf(document)] ? {ignoresResistance: [...IGNORES_RESISTANCE[identifierOf(document)]]} : {}),
         ...(CHOICES_FOR[identifierOf(document)] ? {choiceFor: structuredClone(CHOICES_FOR[identifierOf(document)])} : {}),
+        ...(FREE_CASTS[identifierOf(document)] ? {freeCast: {spells: [...FREE_CASTS[identifierOf(document)].spells],
+          resourceId: freeCastResource(identifierOf(document))}} : {}),
         // The Diviner's Portent (a monster's, used when it sees a roll, is an Action of its own).
         ...((identifierOf(document) === "portent") ? {portentDice: structuredClone(PORTENT_DICE)} : {})}}});
     if ( identifierOf(document) === "paladins-smite" ) items.push(...paladinsSmiteActions(document, img, source));

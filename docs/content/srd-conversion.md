@@ -558,7 +558,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Faerie Fire | spells24 | Faerie Fire (automated) | — |
 | Faithful Hound | spells24 | Faithful Hound (summon) (automated), Faithful Hound (Move Hound) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Faithful Hound | actors24 | Faithful Hound (2 items) | Bite: "save" is passive or triggered: not automated |
-| Faithful Steed | classes24 | Faithful Steed (feature) | silent: its text names a rule that is not converted (by hand) |
+| Faithful Steed | classes24 | Faithful Steed (feature) | — |
 | Falling Net | equipment24 | Falling Net (gear), Falling Net (Trigger (1-4)) (automated), Falling Net (Trigger (5-10)) (automated), Falling Net (Trigger (11-16)) (automated), Falling Net (Trigger (17-20)) (automated), Falling Net (Escape Check (1-4)) (automated), Falling Net (Escape Check (5-10)) (automated), Falling Net (Escape Check (11-16)) (automated), Falling Net (Escape Check (17-20)) (automated), Falling Net (Set Trap) (automated) | activation: 10 minute is not an action-economy cost |
 | False Life | spells24 | False Life (automated) | — |
 | Fast Hands | classes24 | Fast Hands (Sleight of Hand) (manual), Fast Hands (Thieves' Tools) (manual), Fast Hands (Use an Object) (manual) | not automated (check): using it spends its cost; its description says the rest; check: slt DC (?) not converted; check: dex DC (?) not converted; not automated (utility): using it spends its cost; its description says the rest |

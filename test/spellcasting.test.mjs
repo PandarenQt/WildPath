@@ -122,6 +122,25 @@ test("Spell Mastery casts a marked level 1 or 2 Action spell free at its level; 
     mastery.flags.wildpath.conversion.notes], [[["signature-spell.1", "shortRest"], ["signature-spell.2", "shortRest"]], [], []]);
 });
 
+test("Faithful Steed: Find Steed may spend its once-per-Long-Rest pool instead of a slot, at level 2; another spell may not", async () => {
+  const fs = await import("node:fs");
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const faithful = read("faithful-steed-phbpdn");
+  const [rule] = faithful.system.ruleElements;
+  assert.deepEqual([rule.data.resourceId, rule.data.maximum, rule.data.recovery, faithful.flags.wildpath.freeCast, faithful.flags.wildpath.conversion.notes],
+    ["free-cast.faithful-steed", 1, "longRest", {spells: ["find-steed"], resourceId: "free-cast.faithful-steed"}, []]);
+  const paladin = (pools=[{id: "free-cast.faithful-steed", value: 1, max: 1}]) => ({items: [faithful], system: {pools}});
+  const slot = (spell, actor) => actionDefinitionFromItem({...spell, actor}).definition.configuration.find(choice => choice.id === "spell-slot");
+  const steed = slot(read("find-steed-summon-steed-phb"), paladin());
+  assert.deepEqual([steed.cost.anyOf.some(branch => branch[0]?.capability === "free-cast.faithful-steed"), steed.levelByResourceId["free-cast.faithful-steed"]],
+    [true, 2]);
+  const has = choice => choice.cost.anyOf.some(branch => branch[0]?.capability === "free-cast.faithful-steed");
+  assert.equal(has(slot(read("find-steed-summon-steed-phb"), paladin([]))), false, "no pool");
+  assert.equal(has(slot(read("aid-phb"), paladin())), false, "another spell");
+});
+
 test("third casters: their own table alone (a third of the level, rounded up, from 3rd), a third rounded down beside others", () => {
   const knight = level => ({id: "fighter", level, spellcasting: {progression: "third"}});
   // 2024 Eldritch Knight: 3rd level two 1st-level slots, 7th four and two, 19th 4/3/3/1.

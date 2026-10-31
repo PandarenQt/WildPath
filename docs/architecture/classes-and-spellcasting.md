@@ -263,6 +263,10 @@ needing Warlock levels was offered. Armor of Shadows was added.
     while the wizard has Spell Mastery): its slot choice gains a branch that spends nothing, at the spell's own level
     (`metadata.freeCastLevel`). The Signature toggle marks two level 3 spells (`flags.wildpath.signature`: 1 or 2),
     each paid from its own pool `signature-spell.<n>` (1, Short or Long Rest). Marked spells are always prepared.
+  - **A feature's free cast (2026-10-31).** A feature with `flags.wildpath.freeCast: {spells, resourceId}` and that pool
+    (a GrantResource on it) gives the named spells' slot choice one more branch, paid from the pool at the spell's own
+    level (`withFreeCasts`). Faithful Steed: Find Steed once per Long Rest (`free-cast.faithful-steed`); its paladin class
+    grants the spell, so it is always prepared.
 - **The pool chosen pays.** A resource choice's option is paid from the pool it named (`resourceId` on the requirement),
   not from another pool with the same capability: Pact Magic slots chosen are not swapped for a level-1 slot.
 

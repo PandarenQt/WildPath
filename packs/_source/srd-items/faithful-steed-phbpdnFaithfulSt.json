@@ -7,7 +7,19 @@
   "system": {
     "active": true,
     "description": "<p>You can call on the aid of an otherworldly steed. You always have the Find Steed spell prepared.</p><p>You can also cast the spell once without expending a spell slot, and you regain the ability to do so when you finish a Long Rest.</p><section class=\"secret\" id=\"secret-XC2S9ToogFr41act\"><p><strong>Foundry Note</strong></p><p>The Find Steed spell is added to your spell list as always prepared and with a free use per Long Rest when you reach this level.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "faithful-steed-free-cast",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "free-cast.faithful-steed",
+          "label": "Faithful Steed",
+          "maximum": 1,
+          "recovery": "longRest"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -23,9 +35,13 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "silent: its text names a rule that is not converted (by hand)"
-        ]
+        "notes": []
+      },
+      "freeCast": {
+        "spells": [
+          "find-steed"
+        ],
+        "resourceId": "free-cast.faithful-steed"
       }
     }
   }

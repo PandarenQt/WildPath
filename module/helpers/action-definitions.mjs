@@ -271,7 +271,7 @@ export function actionDefinitionFromItem(item, options={}) {
   const actor = item?.actor ?? null;
   const stored = system.definition ?? system.actionDefinition ?? item?.definition ?? item?.actionDefinition ?? null;
   const ranged = withPotentCantrip(withRangeBonus(withOwnWeapons(withWeaponMastery(withExtraAttacks(stored, item), actor), actor), item), actor);
-  const raw = withContributedChoices(withSummonLevels(withChosenSpells(withMysticArcanum(withMetamagic(ranged, actor), item), item), actor), item);
+  const raw = withContributedChoices(withSummonLevels(withFreeCasts(withChosenSpells(withMysticArcanum(withMetamagic(ranged, actor), item), item), item), actor), item);
   const migrated = !hasAuthoredDefinition(raw);
   const source = sourceFromItem(item);
   const legacyActivationCost = options.legacyActivationCost
@@ -449,6 +449,26 @@ function withChosenSpells(raw, item) {
     return branch([{capability, amount: 1}], entry => ({levelByResourceId: {...(entry.levelByResourceId ?? {}), [capability]: level}}));
   }
   return raw;
+}
+
+/**
+ * A spell a feature lets its creature cast once without a slot (`flags.wildpath.freeCast: {spells, resourceId}` on an active
+ * feature: Faithful Steed's Find Steed, once per Long Rest): its slot choice may spend that pool instead, at the spell's own
+ * level, while the pool is there.
+ */
+function withFreeCasts(raw, item) {
+  const identifier = item?.flags?.wildpath?.source?.identifier;
+  const choice = identifier ? raw?.configuration?.find(entry => entry?.id === "spell-slot") : null;
+  const level = choice ? spellBaseLevel(raw) : null;
+  if ( !level ) return raw;
+  const pools = new Set((item.actor?.system?.pools ?? []).map(pool => pool.id));
+  const capabilities = [...new Set([...(item.actor?.items ?? [])].filter(entry => entry?.system?.active !== false)
+    .map(entry => entry?.flags?.wildpath?.freeCast)
+    .filter(spec => spec?.spells?.includes(identifier) && pools.has(spec.resourceId)).map(spec => spec.resourceId))];
+  if ( !capabilities.length ) return raw;
+  return {...raw, configuration: raw.configuration.map(entry => ((entry !== choice) ? entry : {...entry,
+    cost: {anyOf: [...(entry.cost?.anyOf ?? []), ...capabilities.map(capability => [{capability, amount: 1}])]},
+    levelByResourceId: {...(entry.levelByResourceId ?? {}), ...Object.fromEntries(capabilities.map(capability => [capability, level]))}}))};
 }
 
 function withExtraAttacks(raw, item) {
