@@ -247,14 +247,42 @@ const TRAIT_RULES: Readonly<Record<string, string>> = Object.freeze({dr: "GrantR
 export function trainingRuleElements(keys: readonly string[] = []) {
   return keys.flatMap((key): Array<{schemaVersion: number; id: string; type: string; data: Data}> => {
     const [kind, value] = String(key).split(":");
-    // Elemental Adept's Energy Mastery (`adept:<type>`): its spells' dice of that type count a 1 as a 2 (its Resistance
-    // ignored is combat-statistics' ignoredResistances).
-    if ( (kind === "adept") && value && !value.endsWith("*") ) return [{schemaVersion: 1, id: `training-adept-${value}`,
-      type: "DamageDieMinimum", data: {domains: ["damage.spell"], minimum: 2, damageTypes: [value]}}];
     const type = TRAIT_RULES[kind ?? ""];
     if ( !type || !value || value.endsWith("*") ) return [];
     return [{schemaVersion: 1, id: `training-${kind}-${value}`, type,
       data: type === "ConditionImmunity" ? {conditions: [value]} : {damageTypes: [value]}}];
+  });
+}
+
+/** The placeholder a rule's `data` names a recorded choice of its own Item with: `{training:<kind>}`. */
+const RECORDED_CHOICE = /^\{training:([^}]+)\}$/u;
+
+/**
+ * An Item's rules with its recorded choices filled in: in any array of a rule's `data`, `"{training:<kind>}"` becomes
+ * the values its `flags.wildpath.training` records under that kind (`adept:fire` gives `fire`), as `{item}` names the
+ * Item itself elsewhere. A rule whose placeholder has nothing recorded yet (the choice not made, or still pending: `*`)
+ * is dropped, since an empty list would often mean "all" (every damage type). Other rules are returned as they are.
+ */
+export function withRecordedChoices<T extends {data?: unknown}>(rules: readonly T[] = [], keys: readonly string[] = []): T[] {
+  const recorded = (kind: string) => keys.map(key => String(key).split(":")).filter(([entry, ...rest]) => (entry === kind)
+    && rest.join(":") && !rest.join(":").endsWith("*")).map(([, ...rest]) => rest.join(":"));
+  let missing = false;
+  const fill = (value: unknown): unknown => {
+    if ( Array.isArray(value) ) return value.flatMap(entry => {
+      const kind = (typeof entry === "string") ? RECORDED_CHOICE.exec(entry)?.[1] : undefined;
+      if ( kind === undefined ) return [fill(entry)];
+      const values = recorded(kind);
+      if ( !values.length ) missing = true;
+      return values;
+    });
+    if ( value && (typeof value === "object") ) return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, fill(entry)]));
+    return value;
+  };
+  return rules.flatMap(rule => {
+    if ( !JSON.stringify(rule?.data ?? null).includes("{training:") ) return [rule];
+    missing = false;
+    const data = fill(rule.data);
+    return missing ? [] : [{...rule, data}];
   });
 }
 

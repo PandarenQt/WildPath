@@ -163,13 +163,21 @@ test("a spell choice (Magic Initiate): one option per spell on its lists at its 
   assert.deepEqual(spellChoiceOptions(copies, pool, new Set()), [{value: "Compendium.srd.Item.x", label: "Fire Bolt"}], "the first package's copy");
 });
 
-test("Elemental Adept's recorded Energy Mastery (adept:fire): fire spell dice count a 1 as a 2", async () => {
-  const {trainingRuleElements, mergeTraining} = await import("../module/helpers/level-up.mjs");
-  assert.deepEqual(trainingRuleElements(["adept:fire"]), [{schemaVersion: 1, id: "training-adept-fire", type: "DamageDieMinimum",
-    data: {domains: ["damage.spell"], minimum: 2, damageTypes: ["fire"]}}]);
+test("a recorded choice (adept:fire) is plain data: its feat's own rules read it ({training:adept})", async () => {
+  const {trainingRuleElements, mergeTraining, withRecordedChoices} = await import("../module/helpers/level-up.mjs");
+  assert.deepEqual(trainingRuleElements(["adept:fire"]), [], "no rule of its own: the feat's rules name it");
   const system = {};
   mergeTraining(system, ["adept:fire"]);
   assert.deepEqual(system, {training: {}}, "not a proficiency");
+  const dice = {schemaVersion: 1, id: "dice", type: "DamageDieMinimum", data: {domains: ["damage.spell"], minimum: 2, damageTypes: ["{training:adept}"]}};
+  const other = {schemaVersion: 1, id: "other", type: "Modifier", data: {domain: "ac", value: 1}};
+  assert.deepEqual(withRecordedChoices([dice, other], ["adept:fire", "skills:arcana"]),
+    [{...dice, data: {...dice.data, damageTypes: ["fire"]}}, other], "its recorded type fills the list; another rule is untouched");
+  assert.deepEqual(withRecordedChoices([dice, other], []), [other], "nothing recorded: the rule is dropped, never 'every type'");
+  assert.deepEqual(withRecordedChoices([dice], ["adept:*"]), [], "a pending choice is not a choice");
+  // A homebrew kind, nested: every value it records.
+  const storm = {id: "storm", type: "RollOutcome", data: {outcome: "ignore-resistance", domains: ["damage"], damageTypes: ["{training:storm}", "acid"]}};
+  assert.deepEqual(withRecordedChoices([storm], ["storm:lightning", "storm:thunder"])[0].data.damageTypes, ["lightning", "thunder", "acid"]);
 });
 
 test("a choice's options group by source: a rune's Invoke and Inscribe Items are one option", async () => {

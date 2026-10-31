@@ -374,18 +374,20 @@ function scoreMinimum(actor, domains, ability) {
 }
 
 /**
- * The damage types whose Resistance a creature's damage ignores, from its active features (`flags.wildpath.
- * ignoresResistance`: Boon of Irresistible Offense's Bludgeoning, Piercing and Slashing), and for a spell (`tags`) the
- * Energy Mastery type it chose (`adept:<type>` in its Elemental Adept's recorded training). Immunity still holds.
+ * The damage types whose Resistance a creature's damage ignores: its `ignore-resistance` RollOutcomes on the damage
+ * domains of an Action with these `tags` (Elemental Adept's chosen type, on `damage.spell`), whose predicates see the
+ * tags, and its active features' `flags.wildpath.ignoresResistance` (Boon of Irresistible Offense's Bludgeoning,
+ * Piercing and Slashing). Immunity still holds.
  * @param {object} actor
  * @param {{tags?: string[]}} [options]
  * @returns {string[]}
  */
 export function ignoredResistances(actor, {tags=[]}={}) {
-  const spell = tags.includes("spell");
-  return [...new Set([...(actor?.items ?? [])].filter(item => item?.system?.active !== false)
-    .flatMap(item => [...(item?.flags?.wildpath?.ignoresResistance ?? []), ...(spell ? (item?.flags?.wildpath?.training ?? [])
-      .filter(key => String(key).startsWith("adept:")).map(key => String(key).slice(6)) : [])]))];
+  const domains = [tags.includes("spell") ? "damage.spell" : null, tags.includes("weapon") ? "damage.weapon" : null, "damage"].filter(Boolean);
+  const ruled = (actor?.getRollOutcomes?.(domains, {context: {tags}}) ?? []).filter(outcome => outcome.outcome === "ignore-resistance")
+    .flatMap(outcome => outcome.damageTypes ?? []);
+  return [...new Set([...[...(actor?.items ?? [])].filter(item => item?.system?.active !== false)
+    .flatMap(item => item?.flags?.wildpath?.ignoresResistance ?? []), ...ruled])];
 }
 
 /**

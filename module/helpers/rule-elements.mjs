@@ -910,12 +910,20 @@ function rollOutcomeRuleElement(ruleElement) {
   // `automatic-success`: on `save`, the save succeeds unrolled (Trance against sleep magic); on `concentration`, damage
   // calls for no check (Relentless Hunter). `no-advantage`: on `attacked`, no attack roll against it has Advantage (Elusive).
   // `minimum-score`: a check's or save's total counts as at least the score of its ability (Indomitable Might: Might).
+  // `half-on-success`: on `imposed.save` (saves its creature's Actions force), damage a success would reduce to none is
+  // halved instead (Potent Cantrip): `evasion`'s caster-side mirror.
+  // `ignore-resistance`: on `damage.*`, its creature's damage of `damageTypes` ignores Resistance; Immunity still holds
+  // (Elemental Adept).
   if ( !["automatic-failure", "automatic-success", "critical-on-hit", "evasion", "critical-range", "minimum-natural", "no-advantage",
-    "minimum-score"].includes(data.outcome) ) {
+    "minimum-score", "half-on-success", "ignore-resistance"].includes(data.outcome) ) {
     return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement outcome must be automatic-failure, automatic-success, "
-      + "critical-on-hit, evasion, critical-range, minimum-natural, no-advantage or minimum-score.");
+      + "critical-on-hit, evasion, critical-range, minimum-natural, no-advantage, minimum-score, half-on-success or ignore-resistance.");
   }
   if ( !domains.length ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "RollOutcome RuleElement requires domains.");
+  const damageTypes = normalizeStrings(data.damageTypes);
+  if ( (data.outcome === "ignore-resistance") && !damageTypes.length ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "An ignore-resistance RollOutcome needs damageTypes.");
+  }
   const threshold = Number(data.threshold);
   const widen = Number(data.widen);
   const widens = (data.outcome === "critical-range") && (data.threshold == null) && Number.isInteger(widen) && (widen >= 1) && (widen <= 18);
@@ -928,6 +936,7 @@ function rollOutcomeRuleElement(ruleElement) {
   const thresholded = ["critical-range", "minimum-natural"].includes(data.outcome) && !widens;
   return success({
     rollOutcomes: [{id: data.id ?? ruleElement.id, outcome: data.outcome, domains, ...(thresholded ? {threshold} : {}), ...(widens ? {widen} : {}),
+      ...((data.outcome === "ignore-resistance") ? {damageTypes} : {}),
       source: ruleElementSource(ruleElement),
       metadata: contributionMetadata(ruleElement, data.metadata)}]
   });

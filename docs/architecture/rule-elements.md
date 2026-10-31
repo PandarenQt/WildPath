@@ -206,6 +206,17 @@ damage type. It is rolled as the dice's `min` modifier (`2d6min3`, Foundry's own
 physical roll's prompt shows it. 2024 Great Weapon Fighting: 3, on melee attacks with the `two-handed` property (a
 Two-Handed weapon, or a Versatile weapon's two-handed Action).
 
+**Recorded choices in rules (2026-10-31).** In any array of a rule's `data`, the string `"{training:<kind>}"` stands
+for the values its own Item records under that kind in `flags.wildpath.training` (`adept:fire` gives `fire`; several
+recorded values give several entries), as `{item}` names the Item in a GrantResource id. A rule whose placeholder has
+nothing recorded (the choice not made, or still pending: `*`) is dropped rather than read with an empty list, which
+would often mean "every type". It is filled in per Item (`withRecordedChoices`, level-up), so each copy of a repeated
+feat reads its own choice. The creature's statistics (`getStatistic`) and grants (`grantOwners`) read Item rules
+filled in; Triggers the reaction and automation adapters read are not, so a placeholder there stays literal. A trait
+kind the training merge and `trainingRuleElements` do not know (`adept`, a homebrew `storm`) is a plain recorded
+choice. 2024 Elemental Adept: `DamageDieMinimum {domains: ["damage.spell"], minimum: 2, damageTypes:
+["{training:adept}"]}` and an `ignore-resistance` RollOutcome on `damage.spell` with the same types.
+
 **Weapon damage rolled twice (2026-10-31).** A feature's `flags.wildpath.damageTwice: true | {tagsAll?: string[],
 once?: "turn" | null}` (2024 Savage Attacker: `true`, read as `{tagsAll: ["weapon"], once: "turn"}`) makes the hits of
 attacks with every tag in `tagsAll` (the attack's type, its Action's tags, the weapon's category and properties) carry
@@ -604,6 +615,15 @@ A sheet roll notes it in its chat flavour; a save's odds and a Grapple's choice 
 
 A golem's Immutable Form is `ConditionImmunity {conditions: ["transformed"]}`: Polymorph skips a creature immune to it
 (`applyActionTransformation`), with a GM notice.
+
+**Damage policies (2026-10-31).** Two `RollOutcome` outcomes change its creature's own damage:
+- `half-on-success` on `imposed.save` (the saves its own Actions force): damage a successful save would reduce to none
+  is halved instead, while the predicate holds against the Action's tags. It is `evasion`'s caster-side mirror (2024
+  Potent Cantrip: `{tagsAll: ["cantrip"]}`). It is read when the Action's definition is built (`withHalfOnSuccess`).
+- `ignore-resistance` on `damage.spell`, `damage.weapon` or `damage` with `damageTypes` (required): its damage of
+  those types ignores the target's Resistance; Immunity still holds. Its predicate sees the Action's tags
+  (`ignoredResistances`, combat-statistics). The older feature flag `flags.wildpath.ignoresResistance: string[]` (Boon
+  of Irresistible Offense) is still read, any Action; the two are joined.
 
 **A minimum d20 (2026-10-19, Reliable Talent).** `RollOutcome {domains: ["check.proficient"], outcome: "minimum-natural",
 threshold: 10}`: a check with its skill's proficiency reads `check.proficient`, and `resolveActorCheckStatistic` returns the

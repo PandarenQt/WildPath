@@ -14,7 +14,7 @@ import {
   armorClassesFromRuleElements
 } from "../helpers/rule-elements.mjs";
 import {DEFAULT_FORM_STATISTICS, DEFAULT_KEPT_ITEM_TYPES, itemContributesWhileTransformed} from "../helpers/transformations.mjs";
-import {trainingRuleElements} from "../helpers/level-up.mjs";
+import {trainingRuleElements, withRecordedChoices} from "../helpers/level-up.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {floatHealthChange} from "../applications/floating-text.mjs";
@@ -189,7 +189,7 @@ export default class WildPathActor extends Actor {
         if ( !domains.some(entry => modifierTargetsDomain(m, entry)) ) continue;
         modifiers.push(new WildPathModifier({...m, source: owner.uuid}));
       }
-      for ( const entry of domains ) modifiers.push(...collectRuleElementModifiers(owner.system?.ruleElements, {
+      for ( const entry of domains ) modifiers.push(...collectRuleElementModifiers(itemRules(owner), {
         actor: this,
         domain: entry,
         source: documentRuleElementSource(owner, "item"),
@@ -1100,6 +1100,14 @@ function brokenRules(actor, source, result) {
 }
 
 /**
+ * An Item's own rules as its creature reads them: its recorded choices filled in (`{training:<kind>}`: Elemental Adept's
+ * damage type). Statistics and grants read them here; Triggers the reaction and automation adapters read stay raw.
+ */
+function itemRules(item) {
+  return withRecordedChoices(item?.system?.ruleElements ?? [], item?.flags?.wildpath?.training ?? []);
+}
+
+/**
  * Grants count from active features and gear (those a transformation keeps) and enabled effects. Armor worn without
  * its training adds Disadvantage on Might and Agility attack rolls, saves and checks (2024). Every creature has the
  * unseen rules (UNSEEN).
@@ -1110,7 +1118,7 @@ function grantOwners(actor) {
   const items = [...(actor.items ?? [])].filter(item => contributes(item, untrained) && (item.type !== "action")
     && (!transformation || contributesWhileTransformed(item, transformation)))
     // Its recorded training's damage and condition traits too (a Dwarf's Resistance to Poison, from its species).
-    .map(item => ({ruleElements: [...(item.system?.ruleElements ?? []), ...trainingRuleElements(item.flags?.wildpath?.training ?? [])],
+    .map(item => ({ruleElements: [...itemRules(item), ...trainingRuleElements(item.flags?.wildpath?.training ?? [])],
       source: documentRuleElementSource(item, "item")}));
   const effects = [...(actor.allApplicableEffects?.() ?? actor.effects)].filter(effect => !effect.disabled && !effect.isSuppressed)
     .map(effect => ({ruleElements: hostedRules(effect), source: documentRuleElementSource(effect, "effect")}));

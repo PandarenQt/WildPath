@@ -437,6 +437,20 @@ test("a critical range (Improved Critical): a RollOutcome with a threshold, read
   assert.equal(actionCombatStatistics(actor, {...sword, attack: {...sword.attack, statistic: "spell"}}).attack?.policy, undefined, "weapons only");
 });
 
+test("RollOutcome half-on-success and ignore-resistance validate; ignore-resistance needs damage types, its predicate sees the tags", async () => {
+  const {rollOutcomesFromRuleElements} = await import("../module/helpers/rule-elements.mjs");
+  const outcome = data => ({schemaVersion: 1, id: "x", type: "RollOutcome", data});
+  assert.equal(evaluateRuleElement(outcome({outcome: "half-on-success", domains: ["imposed.save"]})).ok, true);
+  assert.equal(evaluateRuleElement(outcome({outcome: "ignore-resistance", domains: ["damage"], damageTypes: ["fire"]})).ok, true);
+  const bare = evaluateRuleElement(outcome({outcome: "ignore-resistance", domains: ["damage"]}));
+  assert.deepEqual([bare.ok, bare.code], [false, RULE_ELEMENT_CODES.INVALID], "no damage types");
+  assert.equal(evaluateRuleElement(outcome({outcome: "halve-everything", domains: ["damage"]})).ok, false, "an unknown outcome");
+  const rule = {...outcome({outcome: "ignore-resistance", domains: ["damage.spell"], damageTypes: ["fire"]}), predicate: {tagsAll: ["spell"]}};
+  const found = tags => rollOutcomesFromRuleElements([{ruleElements: [rule]}], {domains: ["damage.spell", "damage"], context: {tags}});
+  assert.deepEqual(found(["spell"]).map(entry => [entry.outcome, entry.damageTypes]), [["ignore-resistance", ["fire"]]]);
+  assert.deepEqual(found(["weapon"]), [], "a weapon's damage: its predicate fails");
+});
+
 test("critical ranges widen and stack: Improved and Superior Critical are 18-20, and a set threshold is widened from", async () => {
   const {rollOutcomesFromRuleElements, validateRuleElementDefinition} = await import("../module/helpers/rule-elements.mjs");
   const {actionCombatStatistics} = await import("../module/helpers/combat-statistics.mjs");

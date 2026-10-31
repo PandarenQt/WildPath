@@ -510,13 +510,24 @@ test("Potent Cantrip: a cantrip saved against deals half its damage while its ca
   assert.deepEqual([success(caster(true)), success(caster(false))], ["half", "none"]);
 });
 
-test("ignored Resistances: a feature's own, and Energy Mastery's type for spells only", async () => {
+test("ignored Resistances: a feature's flag, and an ignore-resistance rule naming its recorded choice (Elemental Adept, homebrew)", async () => {
   const {ignoredResistances} = await import("../module/helpers/combat-statistics.mjs");
-  const actor = {items: [{system: {active: true}, flags: {wildpath: {ignoresResistance: ["slashing"]}}},
-    {system: {active: true}, flags: {wildpath: {training: ["adept:fire", "skills:arcana"]}}}]};
+  const feat = (id, ruleElements, flags) => ({id, type: "feature", flags: {wildpath: flags}, system: {active: true, modifiers: [], ruleElements}});
+  const creature = items => Object.assign(Object.create(WildPathActor.prototype), {id: "c", uuid: "Actor.c", effects: [], statuses: new Set(),
+    flags: {}, system: {}, allApplicableEffects: () => [], items});
+  // Elemental Adept, as converted: its chosen type (`adept:fire`) feeds its own rule; spells only.
+  const adept = feat("adept", [{schemaVersion: 1, id: "elemental-adept-resistance", type: "RollOutcome", predicate: {tagsAll: ["spell"]},
+    data: {outcome: "ignore-resistance", domains: ["damage.spell"], damageTypes: ["{training:adept}"]}}], {training: ["adept:fire", "skills:arcana"]});
+  const actor = creature([feat("boon", [], {ignoresResistance: ["slashing"]}), adept]);
   assert.deepEqual(ignoredResistances(actor, {tags: ["spell"]}), ["slashing", "fire"]);
   assert.deepEqual(ignoredResistances(actor, {tags: ["weapon"]}), ["slashing"], "a weapon's fire is resisted");
   assert.deepEqual(ignoredResistances(actor), ["slashing"]);
+  adept.flags.wildpath.training = [];
+  assert.deepEqual(ignoredResistances(actor, {tags: ["spell"]}), ["slashing"], "no type chosen yet: none, not every type");
+  // Homebrew "Stormborn": two recorded types of its own kind, no predicate, on any damage.
+  const storm = creature([feat("storm", [{schemaVersion: 1, id: "stormborn", type: "RollOutcome",
+    data: {outcome: "ignore-resistance", domains: ["damage"], damageTypes: ["{training:storm}"]}}], {training: ["storm:lightning", "storm:thunder"]})]);
+  assert.deepEqual(ignoredResistances(storm, {tags: ["weapon"]}), ["lightning", "thunder"], "a weapon attack too");
 });
 
 test("a companion's controller's proficiency bonus is its first controller's (Primal Bond); none without one", () => {

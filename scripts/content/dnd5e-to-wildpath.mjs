@@ -4802,11 +4802,15 @@ const FEAT_ADVANCEMENT = Object.freeze({
   // by hand, as every feat's ability increase is.
   resilient: {advancement: [{level: 0, type: "trait", title: "Saving Throw Proficiency", grants: [], choices: [{count: 1,
     pool: ["might", "agility", "fortitude", "intellect", "wits", "presence"].map(ability => `saves:${ability}`)}]}]},
-  // 2024 Elemental Adept's Energy Mastery: a damage type its spells' Resistance-ignoring and 1-as-2 dice are for (an
-  // `adept:<type>` trait: level-up trainingRuleElements, combat-statistics ignoredResistances). shortcut: its +1 to an
-  // ability is by hand, as every feat's is.
+  // 2024 Elemental Adept's Energy Mastery: a damage type (an `adept:<type>` recorded choice) its own rules name with
+  // `{training:adept}`: its spells' dice of that type count a 1 as a 2, and their damage ignores Resistance to it.
+  // shortcut: its +1 to an ability is by hand, as every feat's is.
   "elemental-adept": {advancement: [{level: 0, type: "trait", title: "Energy Mastery", grants: [], choices: [{count: 1,
-    pool: ["acid", "cold", "fire", "lightning", "thunder"].map(type => `adept:${type}`)}]}]},
+    pool: ["acid", "cold", "fire", "lightning", "thunder"].map(type => `adept:${type}`)}]}],
+  rules: [{schemaVersion: 1, id: "elemental-adept-dice", type: "DamageDieMinimum",
+    data: {domains: ["damage.spell"], minimum: 2, damageTypes: ["{training:adept}"]}},
+  {schemaVersion: 1, id: "elemental-adept-resistance", type: "RollOutcome", predicate: {tagsAll: ["spell"]},
+    data: {outcome: "ignore-resistance", domains: ["damage.spell"], damageTypes: ["{training:adept}"]}}]},
   "metamagic-adept": {advancement: [{level: 0, type: "choice", title: "Metamagic", count: 2, pool: {subtype: "metamagic"}}],
     rules: [{schemaVersion: 1, id: "metamagic-adept-points", type: "GrantResource", data: {resourceId: "font-of-magic", label: "Sorcery Points",
       maximum: 2, recovery: "longRest"}}]}
