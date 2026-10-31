@@ -120,6 +120,12 @@ without Quench never downloads the tests). Its `registerQuenchTests` registers e
 Latest full run (2026-10-31, Foundry V14 on fresh packs): fourteen batches, **79/79** (`areas`, `languages` and
 `applications` joined since). The conditions batch's performance probe now passes a stand-in Setting with the
 `updateSetting` it fires, so listeners that read `setting.key` (the action bar's) no longer throw during the run.
+
+**Live checks through two browsers (since 2026-10).** Beside Quench, changes are checked live through two Playwright
+MCP browsers on a local headless Foundry: one logged in as the GM, one as Player1, so a player's prompts, permissions
+and sockets are exercised as a second client. After a Foundry restart both land on `/join` and log in again; after a
+code change, reload both (a client keeps the code it loaded). Drive UI flows (dialogs, bar buttons) by clicks, never by
+awaiting them inside a page evaluation.
 Batch modules do
 not add registration hooks. When batches are started programmatically (`quench.runBatches`), render
 the Quench results window first (`quench.app.render({force: true})`); otherwise Quench's reporter

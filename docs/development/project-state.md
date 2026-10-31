@@ -1,5 +1,23 @@
 # WildPath — Current Project State
 
+## Current state (verified 2026-10-31)
+
+- Branch `milestone/action-runtime-live-proof`, HEAD `103d4089` before this note's commit; local `main` is still
+  `61d6268b` (the branch has not been merged).
+- `npm test`: 1,610 tests, 1,608 passed, 0 failed, 2 skipped. `npm run typecheck` clean.
+- Quench on Foundry V14 (system.json: minimum and verified 14), fresh packs: fourteen batches, **79/79**.
+- Content: the SRD 5.2 packs in `packs/_source` (committed, CC-BY-4.0), and four premium books converted into the local
+  world only (never committed). The gap census (`node scripts/content/gap-census.mjs`) counts 1,879 real gaps across
+  the five sources; the SRD has no "silent" feature left, the books 24. Counts per source: `docs/content/content-packs.md`.
+- Since 2026-10-13 the work has been content automation and engine growth (rule elements, action configuration,
+  lasting areas, senses and cover, reactions, spellcasting, level-up, Bastions), recorded in the commit log and the
+  architecture documents under `docs/architecture/`. Open questions for the maintainer: `questions-for-owner.md`.
+- Live checks use two Playwright browsers (GM and Player1) against a local headless Foundry; see
+  `foundry-testing-strategy.md`.
+
+Everything below this section is the handoff as of **2026-10-13**, kept as history. Its HEADs, counts and "next
+step" are superseded by the section above.
+
 Last verified: 2026-10-13.
 
 - Branch: `milestone/action-runtime-live-proof`.
