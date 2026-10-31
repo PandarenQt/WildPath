@@ -2938,7 +2938,11 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
   }
   // Each creature's count: a whole number, or worked out when cast (Animate Dead's 1 + 2 per slot level above 3rd,
   // Animate Objects' spellcasting modifier); different counts per creature (Dancing Lights: 4 small or 1 medium).
-  const counts = profiles.map(({profile}) => (String(profile.count ?? "").trim() === "" ? 1
+  // A count of "@scaling" with scaling allowed is chosen when used (`chosenCount`): Pipes of the Sewers' "one Swarm of
+  // Rats with each expended charge" spends that many charges; a Horn of Valhalla's up to 5 spirits cost nothing more.
+  const scaling = activity.consumption?.scaling?.allowed ? activity.consumption.scaling : null;
+  const chosenCount = scaling && profiles.every(({profile}) => String(profile.count ?? "").trim() === "@scaling");
+  const counts = profiles.map(({profile}) => (chosenCount || (String(profile.count ?? "").trim() === "") ? 1
     : (Number.isInteger(Number(profile.count)) ? Number(profile.count) : summonCount(profile.count, level))));
   if ( counts.some(count => (count === null) || (Number.isInteger(count) && (count < 1))) ) {
     notes.push(`summon: a count of "${profiles.map(({profile}) => profile.count).join(", ")}" is not converted`);
@@ -2948,6 +2952,15 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
   // A list, not a map: a uuid's dots would be read as nested keys when stored.
   const byCreature = uniform ? null : profiles.map(({ref}, index) => ({actorRef: ref, count: counts[index]}));
   const definition = manualDefinition({document, activity, system, spell, level, notes: [], pool});
+  if ( chosenCount ) {
+    const spending = (activity.consumption.targets ?? []).find(target => (target.type === "itemUses") && (target.scaling?.mode === "amount"));
+    const spendId = spending ? targetPoolId(spending, pool, names) : null;
+    // Spent by the number chosen, not its fixed cost.
+    if ( spendId ) definition.costs = {...definition.costs, allOf: (definition.costs?.allOf ?? []).filter(cost => cost.capability !== spendId)};
+    definition.configuration = [...(definition.configuration ?? []), {id: "summon-count", type: "number", label: "Creatures",
+      required: true, min: 1, ...(number(scaling.max) ? {max: number(scaling.max)} : {}),
+      effects: [{type: "spendAmount", collection: "summon", ...(spendId ? {resourceId: spendId} : {})}]}];
+  }
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
   const concentration = (system.properties ?? []).includes("concentration");
   const range = rangeOf({activity, system, document, attack: null});

@@ -465,6 +465,24 @@ test("a number chosen when used with `faces` is that many dice (Staff of Strikin
   assert.ok(costs.includes("staff") && costs.includes("3"), costs);
 });
 
+test("a number chosen for a summon is how many come, spent per creature when it names a pool (Pipes of the Sewers)", () => {
+  const pipes = resourceId => ({schemaVersion: 1, id: "action:pipes", costs: {allOf: [{capability: "bonus-action", amount: 1}]},
+    targeting: {type: "self"}, summon: {actorRef: "Actor.rats", count: 1},
+    configuration: [{id: "summon-count", type: ACTION_CHOICE_TYPES.NUMBER, label: "Creatures", required: true, min: 1, max: 3,
+      effects: [{type: "spendAmount", collection: "summon", ...(resourceId ? {resourceId} : {})}]}]});
+  const system = actorSystem();
+  const withPool = {...system, pools: [...(system.pools ?? []), {id: "pipes", value: 3, max: 3}]};
+  const result = resolveActionConfiguration({definition: pipes("pipes"), actorSystem: withPool, choices: {"summon-count": 2}});
+  assert.equal(result.ok, true, JSON.stringify(result.errors));
+  assert.equal(result.configuration.effectiveDefinition.summon.count, 2);
+  const costs = JSON.stringify(result.configuration.effectiveDefinition.costs);
+  assert.ok(costs.includes("pipes") && costs.includes("2"), costs);
+  // A Horn of Valhalla's spirits: chosen, nothing more spent.
+  const horn = resolveActionConfiguration({definition: pipes(null), actorSystem: system, choices: {"summon-count": 3}});
+  assert.equal(horn.configuration.effectiveDefinition.summon.count, 3);
+  assert.equal(JSON.stringify(horn.configuration.effectiveDefinition.costs).includes("pipes"), false);
+});
+
 test("an enchantment picks one of its creature's own weapons, and binds it and the slot's level into its effect (Magic Weapon)", async () => {
   const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
   const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");

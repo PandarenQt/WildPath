@@ -18,12 +18,32 @@
           {
             "capability": "bonus-action",
             "amount": 1
-          },
-          {
-            "capability": "pipes-of-the-sewers",
-            "amount": 1
           }
         ]
+      },
+      "configuration": [
+        {
+          "id": "summon-count",
+          "type": "number",
+          "label": "Creatures",
+          "required": true,
+          "min": 1,
+          "max": 3,
+          "effects": [
+            {
+              "type": "spendAmount",
+              "collection": "summon",
+              "resourceId": "pipes-of-the-sewers"
+            }
+          ]
+        }
+      ],
+      "range": {
+        "type": "self"
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmSwarmOfRats000",
+        "count": 1
       },
       "label": "Pipes of the Sewers (Call Swarm of Rats)"
     },
@@ -65,10 +85,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest",
-          "summon: a count of \"@scaling\" is not converted"
-        ]
+        "notes": []
       },
       "price": 400,
       "rarity": "uncommon"

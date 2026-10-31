@@ -1061,13 +1061,17 @@ function applyAddCostEffect({definition, effect, selection}) {
  * A number chosen when used is spent from a pool and is the amount (2024 Lay on Hands: "restore a number of Hit Points
  * equal to the points spent"): `{type: "spendAmount", resourceId, componentIds, collection: "healing"}`. Each listed
  * healing (or damage) component becomes that many, times `per`; spending more than the pool holds fails at payment.
- * With `faces` it is that many dice instead (2024 Staff of Striking: "1d6 Force damage per charge spent").
+ * With `faces` it is that many dice instead (2024 Staff of Striking: "1d6 Force damage per charge spent"). With
+ * `collection: "summon"` it is how many creatures come, spent from the pool if it names one (Pipes of the Sewers:
+ * "one Swarm of Rats with each expended charge"; a Horn of Valhalla's spirits, chosen without a cost).
  */
 function applySpendAmountEffect({definition, effect, selection}) {
   const amount = Math.trunc(finiteNumber(selection.value) ?? 0);
+  if ( (effect.collection === "summon") && (amount > 0) && definition.summon ) definition.summon = {...definition.summon, count: amount};
   if ( !(amount > 0) || !effect.resourceId ) return {ok: true, trace: [appliedTrace(selection, "spend-amount-noop", {amount})], errors: []};
   appendCostRequirements(definition, activationCostRequirements({allOf: [{capability: effect.resourceId, amount}]}), {
     source: selection.source, choiceId: selection.id});
+  if ( effect.collection === "summon" ) return {ok: true, trace: [appliedTrace(selection, "spent-amount", {amount, value: amount})], errors: []};
   const collection = effect.collection === "damage" ? "damage" : "healing";
   const ids = new Set(effect.componentIds ?? []);
   const value = amount * (finiteNumber(effect.per) ?? 1);

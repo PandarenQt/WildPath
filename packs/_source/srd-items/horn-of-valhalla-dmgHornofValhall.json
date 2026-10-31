@@ -21,6 +21,33 @@
           }
         ]
       },
+      "configuration": [
+        {
+          "id": "summon-count",
+          "type": "number",
+          "label": "Creatures",
+          "required": true,
+          "min": 1,
+          "max": 5,
+          "effects": [
+            {
+              "type": "spendAmount",
+              "collection": "summon"
+            }
+          ]
+        }
+      ],
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmBerserker00000",
+        "count": 1
+      },
       "label": "Horn of Valhalla"
     },
     "ruleElements": [
@@ -57,11 +84,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest",
-          "summon: a count of \"@scaling\" is not converted",
-          "consumption: itemUses @item.uses.max not converted"
-        ]
+        "notes": []
       }
     }
   }
