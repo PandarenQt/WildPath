@@ -18,6 +18,7 @@ Player twice. Seen live on 2026-10-31, when another session's browser stayed log
   3. Show a warning only.
 - Recommendation: option 3 first (cheap: a notice when another client of the same GM user answers), then 2 if it
   ever happens in play.
+- **Answered 2026-10-31: leave it to Foundry; not a security concern here. The documented rule stands.**
 
 ### Q2. A Player who reconnects mid-Action: send their prompt again? (2026-10-31)
 Plan item 1.1 asked that "a reconnecting client is sent its open prompts again". Today a Player who disconnects has
@@ -26,6 +27,7 @@ Sending the prompt back would mean taking it away from the GM again.
 
 - Done meanwhile: nothing; the GM answers, or cancels with Cancel Action.
 - Recommendation: keep it as it is. Ask again only if Players complain that the GM answers for them after a reload.
+- **Answered 2026-10-31: make it an option to pass the prompt back to the Player (plan 7.2).**
 
 ### Q3. A GM creature's own rerolls beside the players' monster offer (2026-10-31)
 When a GM creature rolls and some player has Heroic Inspiration, the GM is asked "Reroll its roll with a player
@@ -38,6 +40,7 @@ loses its Indomitable, and a GM creature its own Countercharm or a Bardic Inspir
 - Question: was "never on a monster's reroll" meant to keep the GM's dialog about the players' points only, or should a
   GM creature's own features join it after a failure, like an ally's do now?
 - Recommendation: let them join after a failure (`failedOnly`), which is one line per helper.
+- **Answered 2026-10-31: they join after the failure (plan 7.1).**
 
 ### Q4. Inscrutable (two sphinxes): read the roller's targets in a sheet roll? (2026-10-31)
 2024 Inscrutable: "Wisdom (Insight) checks made to ascertain its intentions or sincerity are made with Disadvantage."
@@ -50,6 +53,7 @@ to treat the creatures the roller has targeted as the ones the check is about (`
 - Question: is reading the roller's targets in `rollTest` acceptable (the runtime already reads them to build
   intents), or should an Insight check about a creature be an Action of its own with a target?
 - Recommendation: read the targets; it needs no new UI and matches how attacks pick their target.
+- **Answered 2026-10-31: reading the roller's targets is acceptable, or the GM handles it; the suggestion goes in a "possible upgrades" markdown (plan 7.3).**
 
 ### Q5. Creature spaces in movement (plan 3.4, swarms) (2026-10-31)
 Plan item 3.4 assumed movement refuses an occupied space and swarms would be exempted through `occupancyPolicy`. It
@@ -65,6 +69,7 @@ end its move in an occupied space. Swarms (and a few others) ignore these.
   another would be refused (forced movement and teleports already avoid occupied spaces).
 - Recommendation: yes, as an `occupancyPolicy` from the runtime, with a world setting "Creatures block movement" (on by
   default), the GM's own drags exempt, and a `swarm` trait (from the stat block's type) that ignores it.
+- **Answered 2026-10-31: the recommendation; keep the exceptions features give, and make the Difficult Terrain of moving through a creature optional (plan 3.4).**
 
 ### Q6. Vehicles and mythic phases: four choices before building (plan 5.1) (2026-10-31)
 The design is in `docs/architecture/vehicles-and-mythic.md`. SRD 5.2 has 8 ships (numbers only: AC, HP, Damage
@@ -79,6 +84,7 @@ Threshold, crew, passengers, cargo) and no mythic creature; none of the owned bo
 - Question 4: mythic phases have no content to test against. Build the seam now (a `Phase` rule on 0 Hit Points,
   `mythic` Actions forbidden until then), or wait for content? Recommendation: build the seam with a test creature.
 - Done meanwhile: nothing. Damage Threshold doesn't depend on these answers, so it can be built next.
+- **Answered 2026-10-31: the recommendations (plan 5.1).**
 
 ### Q7. Two paladins' Auras of Protection stack (2026-10-31)
 2024: "a creature can benefit from only one Aura of Protection at a time". Today each aura's save bonus is an untyped
@@ -91,6 +97,7 @@ Modifier, and untyped Modifiers always stack, so a creature inside two paladins'
     is best. Covers future auras too.
 - Done meanwhile: nothing; they stack.
 - Recommendation: (b), since it matches the rule's wording and needs no new modifier type.
+- **Answered 2026-10-31: the recommendation, (b) (plan 7.4).**
 
 ### Q8. Potent Spellcasting's Temporary Hit Points to another creature (Cleric 14) (2026-10-31)
 2024 Improved Blessed Strikes: after dealing damage with a cantrip, the cleric can give itself or a creature within 60
@@ -103,6 +110,7 @@ feet Temporary Hit Points equal to twice its Wisdom modifier. A reaction can't p
     Larger, but it reuses for other "you or a creature within X" riders.
 - Done meanwhile: nothing; it stays by hand (noted).
 - Recommendation: (a) now; (b) when a second feature needs a reaction target.
+- **Answered 2026-10-31: (b), a reaction target chooser, built generally: War Caster's reaction spell needs the same (the triggering creature, itself, or any creature in range) (plan 7.5).**
 
 ### Q9. Circle of the Land spells and Natural Recovery's free cast (2026-10-31)
 Natural Recovery casts one prepared Circle Spell without a slot once per Long Rest. WildPath doesn't know which spells are
@@ -115,6 +123,7 @@ Circle Spells: the land is chosen at each Long Rest, and its spells aren't grant
     reads the mark.
 - Done meanwhile: nothing; both stay by hand.
 - Recommendation: (a); it removes two gaps and fits "nothing by hand". (b) only if (a) waits long.
+- **Answered 2026-10-31: (a) (plan 7.7).**
 
 ### Q10. Overchannel: an Action that damages its own caster (Evoker 14) (2026-10-31)
 2024 Overchannel: a wizard spell of level 1-5 that deals damage deals maximum damage; each later use before a Long Rest
@@ -128,6 +137,7 @@ shouldn't ship without the backlash.
   some cursed items, Blood Magic-style homebrew).
 - Done meanwhile: nothing; Overchannel stays by hand (noted).
 - Recommendation: yes; medium-sized, with the maximize half shipped together.
+- **Answered 2026-10-31: the recommendation (plan 7.6).**
 
 ### Q11. Rules the caster gives a save it imposes (Magical Ambush, Eldritch Strike, Eldritch Hex) (2026-10-31)
 Three book features make a creature's save against the caster worse: an Arcane Trickster casting while Invisible
@@ -139,6 +149,7 @@ a Great Old One's Hex (Disadvantage on saves of the hexed ability). Today a save
   have `attack.fromAttacker`)? It is a new resolution capability; the three features then become data.
 - Done meanwhile: nothing; they stay by hand (silent in the census).
 - Recommendation: yes; small to medium, and it mirrors what attacks already do.
+- **Answered 2026-10-31: yes (done `647978f5`: `imposed.save` and `save.fromSource`; Magical Ambush, Eldritch Strike, Eldritch Hex are data).**
 
 ### Q12. Shared Bastions (plan 5.2): what is shared, and how members join (2026-10-31)
 The design is in `docs/architecture/shared-bastions.md` (three designs judged against the Bastion code and the local DMG).
@@ -160,6 +171,7 @@ The combining rules keep each character's slots, orders, hirelings, defenders an
      for solo Bastions. Recommend: yes, as its own item.
   9. Covering an ally's defender losses: leave out until 8 is built, then each member opts in. Recommend: yes.
   10. Grid: a square of side ceil(sqrt(pooled squares)), painting capped at the pool. Recommend: yes.
+- **Answered 2026-10-31: all ten recommendations (plan 5.2).**
 
 ### Q13. Boon of Spell Recall and slot-paid features (2026-10-31)
 Boon of Spell Recall is built (`a8a46c93`): a spell paid with a level 1-4 slot rolls a d4, and a roll equal to the slot's
@@ -171,6 +183,7 @@ level keeps the slot (Reaction spells too; the card says whether it was kept).
   Counterspell can answer it). Should the Wild Shape-paid version count as a cast too? Done meanwhile: no (it spends
   no slot). Making it count also needs the action bar to place it among 1st-level spells.
 - Recommendation: keep both as they are.
+- **Answered 2026-10-31: keep both as they are.**
 
 ### Q14. Migration 5 (feature shapes) was added without asking first (2026-10-31)
 Plan 2.8 made the name-keyed features generic data (Life Bond, Potent Cantrip, Elemental Adept, Mystic Arcanum, Spell
@@ -187,3 +200,29 @@ this one was not asked: that is my process miss.
 - Recommendation: option 1.
 - **Answered 2026-10-31: keep it, and make it re-run whenever the converted packs change** (done: content stamps,
   docs/architecture/world-migrations.md).
+
+### Q15. A creature unaffected by certain spells (Spell Immunity, Telepathic Shroud) (2026-10-31)
+A Helmed Horror is immune to three spells its maker chose; a creature with Telepathic Shroud is immune to Divination
+spells. No rule shape makes a creature unaffected by an Action: Forbid bars its own Actions, damage immunity matches
+damage types, and an automatic save success misses spells with no save (Magic Missile, Hunter's Mark).
+
+- Done meanwhile: nothing; both stay by hand (silent in the census).
+- Question: add a generic target-side rule `Unaffected {actions: <predicate over the Action's tags>}` (mirroring Forbid)?
+  Then: is such a creature left out of the Action's targets (an area passes over it; a single-target spell at it is not
+  cast), or targeted and the use wasted (the spell is spent and nothing happens to it)? The second matches the rules
+  text ("immune") and needs no change to targeting. Spells would also get a `spell:<identifier>` tag so a named spell is
+  matched by identity rather than by name.
+- Recommendation: yes, targeted and wasted, with the `spell:` tag; the shroud's on/off Bonus Action is the feature's
+  active toggle.
+
+### Q16. Inspiring Help (Expert sidekick): dice added to the Help it gives (2026-10-31)
+An Expert sidekick's Help adds 1d6 (2d6 at level 20) to the helped roll, or to the attack's damage on a hit instead. The
+common Help Action (2024) puts its effect on the enemy, and target-side attack modifiers are flat numbers, so no shape
+can add dice there.
+
+- Done meanwhile: nothing; it stays by hand (silent).
+- Options: (a) let target-side `attacked` Modifiers roll dice and see `attack.helpedByAlly` (changes how every such
+  modifier is rolled); (b) the converter gives the sidekick its own "Help (Inspiring Help)" and "Assist" Actions whose
+  effects carry the die (a second Help beside the common one). The "damage instead" choice needs a prompt on the hit in
+  either case.
+- Recommendation: (a) without the damage option for now; it is a sidekick-only feature, so low priority.
