@@ -21,7 +21,8 @@ interface Globals {
     utils: {escapeHTML(text: string): string}};
   canvas?: {tokens?: {controlled?: BarToken[]}};
   game: {user?: {character?: BarActor | null; isGM?: boolean; targets?: Iterable<BarToken>}; settings?: {get(scope: string, key: string): unknown};
-    i18n: {localize(key: string): string; format(key: string, data: Record<string, unknown>): string}};
+    i18n: {localize(key: string): string; format(key: string, data: Record<string, unknown>): string};
+    tooltip?: {activate(element: HTMLElement): void}};
   CONFIG: {WILDPATH: {CONDITIONS: Record<string, {id: string; name: string; img: string; stacking?: boolean}>};
     Item: {documentClass: {prototype: {use(this: unknown): Promise<unknown>}}}};
   Hooks: {on(name: string, callback: (...args: unknown[]) => unknown): number};
@@ -95,7 +96,9 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
   static async #onUse(this: WildPathActionBar, event: Event, target: HTMLElement) {
     const id = target.closest<HTMLElement>("[data-item-id]")?.dataset.itemId;
     const actor = this.shownActor;
-    if ( !id || !actor || target.getAttribute("aria-disabled") === "true" ) return;
+    if ( !id || !actor ) return;
+    // A click or tap shows why an action is unaffordable: a touch screen never hovers to open the tooltip.
+    if ( target.getAttribute("aria-disabled") === "true" ) return globals.game.tooltip?.activate(target);
     // A common action is no Item: Item#use runs on the Action this creature has for it.
     const common = id.startsWith("common-") ? this.#common(actor).find(action => action.id === id) : null;
     if ( common ) await globals.CONFIG.Item.documentClass.prototype.use.call(common);

@@ -93,6 +93,8 @@
   min-height: 100%;
   padding: 0.75rem;
   overflow: auto;
+  /* The sheet is a window, so it narrows on its own: layout follows the sheet's width, not the screen's. */
+  container-type: inline-size;
 }
 
 .wildpath.actor-sheet .sheet-header {
@@ -242,7 +244,7 @@
 .wildpath.actor-sheet .overview-grid,
 .wildpath.actor-sheet .inventory-columns {
   display: grid;
-  grid-template-columns: repeat(2, minmax(240px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
   gap: 0.75rem;
 }
 
@@ -439,7 +441,8 @@
   min-height: 12rem;
 }
 
-@media (max-width: 680px) {
+/* Below 30rem the five tab labels no longer fit on one row. */
+@container (max-width: 30rem) {
   .wildpath.actor-sheet .sheet-header {
     grid-template-columns: 56px minmax(0, 1fr);
   }
@@ -451,11 +454,6 @@
 
   .wildpath.actor-sheet .sheet-nav {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .wildpath.actor-sheet .overview-grid,
-  .wildpath.actor-sheet .inventory-columns {
-    grid-template-columns: 1fr;
   }
 }
 
@@ -750,3 +748,28 @@
 .wildpath.bastion-map .wp-warning { color: var(--wp-warning); margin: 0; }
 .wildpath.sheet .bastion-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem; margin: 0 0 0.4rem; }
 .wildpath.sheet .bastion-summary button { margin-left: auto; width: auto; }
+
+/* Touch. Any touch screen, a touchscreen laptop included: every target reaches 24px (WCAG 2.5.8); mouse sizes stay. */
+@media (any-pointer: coarse) {
+  #wildpath-action-bar .bar-slot { min-width: 24px; min-height: 24px; }
+  .wildpath.actor button.skill-name { display: inline-flex; align-items: center; min-height: 24px; }
+  /* The box must grow with its drawn mark, or the mark spills over the score input beside it. */
+  .wildpath.actor-sheet input[type="checkbox"] { --checkbox-size: 24px; flex: none; width: var(--checkbox-size); height: var(--checkbox-size); }
+  .resolution-card + .wildpath-inspect, .resolution-card .wildpath-inspect { min-height: 24px; }
+}
+
+/* A touch-first device (a tablet): 44px targets where the layout has room, 36px in the dense ability cells. */
+@media (pointer: coarse) {
+  #wildpath-action-bar :is(.bar-action, .bar-policy, .bar-slot) { min-height: 44px; }
+  #wildpath-action-bar :is(.bar-policy, .bar-slot),
+  #wildpath-action-bar .bar-group[data-group="common"] .bar-action { min-width: 44px; justify-content: center; }
+  #wildpath-combat-carousel .carousel-next { min-height: 44px; }
+  .wildpath.actor-sheet :is(button, .row-command):not(.condition):not(.icon-roll),
+  .wildpath.actor-sheet .sheet-nav a,
+  .wildpath.actor-sheet :is(input:not([type="checkbox"]):not([type="radio"]), select) { min-height: 44px; }
+  .wildpath.actor .icon-roll { width: 36px; height: 36px; }
+  .wildpath.actor-sheet input[type="checkbox"] { --checkbox-size: 32px; }
+  /* Room for the score, the save checkbox and both roll buttons at touch size. */
+  .wildpath.actor-sheet .ability-grid { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .wildpath.resolution-card .card-target[data-target-uuid] { min-height: 44px; }
+}

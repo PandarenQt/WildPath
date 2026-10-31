@@ -251,12 +251,18 @@ Windows are Foundry ApplicationV2 sheets: a vertical stack with a 0.75rem gap an
 - **Spacing rhythm:** 0.25rem, 0.35rem, 0.5rem and 0.75rem. Tight groups (pills, rows, cells) use 0.35–0.4rem, and
   sections use 0.75rem.
 - **Actor sheet:** a 72px portrait beside the name and summary pills. Below it is a sticky five-tab nav, then
-  bordered sections. The overview and inventory are two columns with a minimum of 240px each. Ability and resource
-  cells use an auto-fit grid (140px and 160px minimums).
+  bordered sections. The overview and inventory fit as many 240px columns as the sheet has room for (two on a
+  normal sheet, one on a narrow one). Ability and resource cells use an auto-fit grid (140px and 160px minimums).
 - **Rows:** a three-part grid of icon, name and detail, then a command. Long names truncate with an ellipsis rather
   than wrapping.
-- **Narrow windows (680px or less):** a 56px portrait, the nav on two columns, and one column for overview and
-  inventory.
+- **Narrow sheets (30rem or less):** a 56px portrait and the nav on two columns. This is a container query on the
+  sheet, not a media query: the sheet is a window, so its width has nothing to do with the screen's.
+- **Touch:** sizes follow the pointer, never the screen width, so mouse users keep today's density.
+  - Any touch screen (`any-pointer: coarse`), touchscreen laptops included: every target reaches 24px (WCAG 2.5.8).
+  - A touch-first device (`pointer: coarse`, a tablet): action-bar buttons, sheet buttons, tabs, inputs and chat
+    targets reach 44px. In the dense ability cells, roll buttons are 36px and checkboxes 32px, and the cells widen
+    to 190px.
+  - Nothing works only on hover. A tooltip that explains a state also opens on a click or tap.
 - **HUD:** the action bar is fixed and centred 96px from the bottom, above the hotbar, at most 70vw wide. The
   carousel is fixed at top centre, at most 60vw wide, and scrolls sideways when turns overflow.
 - **Rules Inspector:** a 220px list beside the detail pane. The Bastion Map is a 15rem facility list beside a
@@ -339,7 +345,10 @@ Tactile and confident: a control you press.
 - A translucent HUD Ink panel, 6px corners, above the hotbar. It shows the creature, its condition icons, and the
   action-economy counters, then action groups labelled in HUD Faded text.
 - Common actions are icons only, named in their tooltips. A spent resource shows at 50% opacity with a
-  strikethrough. An unaffordable action is at 45% opacity, and its tooltip gives the engine's reason.
+  strikethrough. An unaffordable action is at 45% opacity, and its tooltip gives the engine's reason. Clicking or
+  tapping it opens that tooltip and spends nothing.
+- The bar is centred at `left: 50%`, so it can never be wider than half the viewport. On touch it wraps into more
+  rows rather than spreading under the sidebar.
 - Spell slot buttons sit beside a spell, and odds chips are small dark badges.
 - Each reaction policy has its own icon. "Always" is tinted Lantern Gold, and "never" is dimmed.
 

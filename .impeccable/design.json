@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-31T00:56:21.538Z",
+  "generatedAt": "2026-10-31T01:09:25.865Z",
   "title": "Design System: Wild Path",
   "extensions": {
     "colorMeta": {
@@ -273,7 +273,15 @@
     "breakpoints": [
       {
         "name": "sheet-narrow",
-        "value": "680px"
+        "value": "@container (max-width: 30rem)"
+      },
+      {
+        "name": "touch-any",
+        "value": "(any-pointer: coarse)"
+      },
+      {
+        "name": "touch-first",
+        "value": "(pointer: coarse)"
       }
     ]
   },
