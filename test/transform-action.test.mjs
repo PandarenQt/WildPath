@@ -163,8 +163,10 @@ test("Indomitable (a test offer): a failed save may be rerolled with a bonus of 
     ["spend:Actor.fighter", "test-offer:ind"], "beside Heroic Inspiration");
   assert.equal(withTestOffers(null, fighter, system(0), {}, "save"), null, "none left");
   assert.equal(withTestOffers(null, fighter, system(1), {}, "check"), null, "a save's only");
-  const monster = {own: false, options: []};
-  assert.equal(withTestOffers(monster, fighter, system(1), {}, "save"), monster, "never on a monster's GM-chosen reroll");
+  // Beside a monster offer (the players' Heroic Inspiration), its own joins only when the save failed (owner, Q3).
+  const monster = {own: false, options: [{value: "spend:Actor.player"}]};
+  assert.deepEqual(withTestOffers(monster, fighter, system(1), {}, "save").options.map(option => [option.value, option.failedOnly ?? false]),
+    [["spend:Actor.player", false], ["test-offer:ind", true]]);
 });
 
 test("a die an effect lets its creature add (Bardic Inspiration) is offered at its giver's size", async () => {

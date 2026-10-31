@@ -1698,12 +1698,23 @@ export function inspirationOffer(roller, rollerSystem, game, {chooser, payers=()
 }
 
 /**
+ * A creature's own options joined to its offer, or an offer of their own. Beside a monster offer (the players' Heroic
+ * Inspiration on a GM creature's roll, shown whatever the roll) they are still its own: offered only when its roll
+ * failed (`failedOnly`), under its own label (owner's decision, Q3 2026-10-31).
+ */
+function joinOwnOptions(offer, options, {chooser, label}) {
+  if ( !options.length ) return offer;
+  if ( !offer ) return {own: true, chooser, label, options};
+  return {...offer, options: [...offer.options, ...(offer.own ? options
+    : options.map(option => ({...option, failedOnly: true, offerLabel: label})))]};
+}
+
+/**
  * Dice its effects let a creature add to a failed d20 test (2024 Bardic Inspiration: "roll the Bardic Inspiration die
  * and add the number rolled"): an option each, added to its own offer (or an offer alone). The die is worked out from
  * the creature that gave it (a bard's level), and using it ends the effect (`payment`: a condition removal plan).
  */
 export function withAddedDice(offer, roller, game, {chooser, target}={}) {
-  if ( offer && !offer.own ) return offer;
   const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
   const options = [];
   for ( const effect of roller?.effects ?? [] ) {
@@ -1721,8 +1732,7 @@ export function withAddedDice(offer, roller, game, {chooser, target}={}) {
         metadata: {}}});
   }
   if ( !options.length ) return offer;
-  return offer ? {...offer, options: [...offer.options, ...options]}
-    : {own: true, chooser, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""}), options};
+  return joinOwnOptions(offer, options, {chooser, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""})});
 }
 
 /** Its reward for reducing a creature to 0 Hit Points (Dark One's Blessing: Temporary Hit Points), or null. */
@@ -1786,7 +1796,6 @@ function hostileTo(sourceToken, targetToken) {
  * a check or save. Each is paid with a use of `pool`. Added to its own offer, or an offer alone.
  */
 export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser, tags=[]}={}) {
-  if ( offer && !offer.own ) return offer;
   const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
   const options = [];
   for ( const item of roller?.items ?? [] ) {
@@ -1832,8 +1841,7 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
       label: format(spec.refundOnFail ? "WILDPATH.INSPIRATION.AddDieKept" : "WILDPATH.INSPIRATION.AddDie", {name: item.name ?? "", faces: faces.value})});
   }
   if ( !options.length ) return offer;
-  return offer ? {...offer, options: [...offer.options, ...options]}
-    : {own: true, chooser, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""}), options};
+  return joinOwnOptions(offer, options, {chooser, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""})});
 }
 
 /**
