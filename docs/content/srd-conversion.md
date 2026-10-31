@@ -201,7 +201,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Boon of Combat Prowess | feats24 | Boon of Combat Prowess (feature) | silent: its text names a rule that is not converted (by hand) |
 | Boon of Dimensional Travel | feats24 | Boon of Dimensional Travel (feature) | "Teleport" is passive or triggered: not automated |
 | Boon of Fate | feats24 | Boon of Fate (feature) | "Improve Fate" is passive or triggered: not automated |
-| Boon of Irresistible Offense | feats24 | Boon of Irresistible Offense (feature) | silent: its text names a rule that is not converted (by hand) |
+| Boon of Irresistible Offense | feats24 | Boon of Irresistible Offense (feature) | Overwhelming Strike: a 20's extra damage of the attack's type is by hand |
 | Boon of Spell Recall | feats24 | Boon of Spell Recall (feature) | "Free Cast Roll" is passive or triggered: not automated |
 | Boon of the Night Spirit | feats24 | Boon of the Night Spirit (automated) | — |
 | Boon of Truesight | feats24 | Boon of Truesight (feature) | — |

@@ -1672,6 +1672,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...(FEAT_ADVANCEMENT[identifierOf(document)] ? {advancement: structuredClone(FEAT_ADVANCEMENT[identifierOf(document)].advancement)} : {})},
       flags: {wildpath: {source, conversion: {notes: [...new Set(allNotes)]}, ...(metamagic ? {metamagic} : {}),
         ...(testOffer ? {testOffer} : {}), ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {}),
+        ...(IGNORES_RESISTANCE[identifierOf(document)] ? {ignoresResistance: [...IGNORES_RESISTANCE[identifierOf(document)]]} : {}),
         // The Diviner's Portent (a monster's, used when it sees a roll, is an Action of its own).
         ...((identifierOf(document) === "portent") ? {portentDice: structuredClone(PORTENT_DICE)} : {})}}});
     if ( identifierOf(document) === "paladins-smite" ) items.push(...paladinsSmiteActions(document, img, source));
@@ -1751,6 +1752,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   }
   return {ok: true, items, notes: [...new Set(allNotes)]};
 }
+
+/**
+ * Damage types whose Resistance its creature's damage ignores (`flags.wildpath.ignoresResistance`, read by the runtime):
+ * 2024 Boon of Irresistible Offense's Overcome Defenses. shortcut: its Overwhelming Strike (a 20's extra damage) is by hand.
+ */
+const IGNORES_RESISTANCE = Object.freeze({"boon-of-irresistible-offense": ["bludgeoning", "piercing", "slashing"]});
 
 /** Words that name a rule in a feature's text (silent features, above). */
 const SILENT_MECHANICS = /\b(?:Advantage|Disadvantage|Resistance|Immunity|immune|Speed|bonus to|can't|Hit Point maximum|Armor Class)\b/u;
@@ -2211,6 +2218,8 @@ const TRAITS = Object.freeze({
     {schemaVersion: 1, id: "punch-and-grab", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
       match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["unarmed"]}, commonAction: "grapple", free: true,
       once: "turn", onceKey: "punch-and-grab"}}], notes: []}),
+  // 2024 Boon of Irresistible Offense: its Overcome Defenses is IGNORES_RESISTANCE's; its Overwhelming Strike is by hand.
+  "boon-of-irresistible-offense": () => ({rules: [], notes: ["Overwhelming Strike: a 20's extra damage of the attack's type is by hand"]}),
   // 2024 Commoner's Training: "proficiency in one skill of the DM's choice and ... Advantage whenever it makes an ability
   // check using that skill". The GM sets the skill on its sheet. shortcut: every skill it is proficient in.
   training: () => ({rules: [{schemaVersion: 1, id: "training", type: "RollMode", data: {domains: ["check.proficient"], mode: "advantage"}}],

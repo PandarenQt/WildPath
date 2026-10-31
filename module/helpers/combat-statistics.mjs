@@ -333,6 +333,15 @@ export function resolveActorSaveStatistic(actor, ability=null) {
 }
 
 /**
+ * The damage types whose Resistance a creature's damage ignores, from its active features (`flags.wildpath.
+ * ignoresResistance`: Boon of Irresistible Offense's Bludgeoning, Piercing and Slashing). Immunity still holds.
+ */
+export function ignoredResistances(actor) {
+  return [...new Set([...(actor?.items ?? [])].filter(item => item?.system?.active !== false)
+    .flatMap(item => item?.flags?.wildpath?.ignoresResistance ?? []))];
+}
+
+/**
  * The domains a check's Advantage and Disadvantage are read in: `check`, its ability's and its skill's, and
  * `check.proficient` for a skill it is proficient in (a Commoner's Training: Advantage with its chosen skill).
  */

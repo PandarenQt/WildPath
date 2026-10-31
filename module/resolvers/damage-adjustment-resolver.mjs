@@ -119,6 +119,8 @@ export function normalizeDamageAdjustmentProfile(profile={}) {
     }),
     absorptions: normalizeAbsorptions(profile.absorptions ?? profile.damageAbsorptions ?? profile.absorption),
     reductions: normalizeReductions(profile.reductions ?? profile.damageReductions ?? profile.reduction),
+    // Damage types whose Resistance the damage ignores (its attacker's: Boon of Irresistible Offense).
+    ignoresResistance: [...new Set((profile.ignoresResistance ?? []).map(String))],
     metadata: clonePlain(profile.metadata ?? {}) ?? {}
   };
 }
@@ -134,6 +136,7 @@ export function mergeDamageAdjustmentProfiles(...profiles) {
     vulnerabilities: normalized.flatMap(profile => profile.vulnerabilities),
     absorptions: normalized.flatMap(profile => profile.absorptions),
     reductions: normalized.flatMap(profile => profile.reductions),
+    ignoresResistance: [...new Set(normalized.flatMap(profile => profile.ignoresResistance))],
     metadata: Object.assign({}, ...normalized.map(profile => profile.metadata ?? {}))
   };
 }
@@ -156,7 +159,8 @@ function applyTypedAdjustmentsToComponent(component, profile) {
   }
 
   const multipliers = [
-    ...profile.resistances.filter(adjustment => matchesComponent(component, adjustment)),
+    ...(profile.ignoresResistance.includes(component.damageType) ? []
+      : profile.resistances.filter(adjustment => matchesComponent(component, adjustment))),
     ...profile.vulnerabilities.filter(adjustment => matchesComponent(component, adjustment))
   ];
   if ( !multipliers.length ) return {component, applications};

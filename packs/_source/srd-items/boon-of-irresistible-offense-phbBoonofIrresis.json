@@ -25,9 +25,14 @@
       },
       "conversion": {
         "notes": [
-          "silent: its text names a rule that is not converted (by hand)"
+          "Overwhelming Strike: a 20's extra damage of the attack's type is by hand"
         ]
-      }
+      },
+      "ignoresResistance": [
+        "bludgeoning",
+        "piercing",
+        "slashing"
+      ]
     }
   }
 }

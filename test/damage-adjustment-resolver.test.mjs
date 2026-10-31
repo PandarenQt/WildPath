@@ -101,3 +101,14 @@ test("rolled damage absorption requires an already resolved amount", () => {
   assert.equal(result.ok, false);
   assert.equal(result.code, DAMAGE_ADJUSTMENT_CODES.INVALID_ABSORPTION);
 });
+
+test("damage whose attacker ignores Resistance to its type is not halved by it; Immunity still holds", async () => {
+  const {mergeDamageAdjustmentProfiles} = await import("../module/resolvers/damage-adjustment-resolver.mjs");
+  const profile = mergeDamageAdjustmentProfiles({ignoresResistance: ["slashing", "fire"]}, {resistances: ["slashing", "cold"], immunities: ["fire"]});
+  const result = adjustDamageResult(damageResult(), profile);
+  assert.deepEqual(result.damageResult.byDamageType, {slashing: 10, fire: 0, cold: 4},
+    "slashing ignores its Resistance; fire is still Immune; cold is still halved");
+  const {ignoredResistances} = await import("../module/helpers/combat-statistics.mjs");
+  assert.deepEqual(ignoredResistances({items: [{system: {active: true}, flags: {wildpath: {ignoresResistance: ["bludgeoning", "piercing"]}}},
+    {system: {active: false}, flags: {wildpath: {ignoresResistance: ["fire"]}}}]}), ["bludgeoning", "piercing"], "active features only");
+});

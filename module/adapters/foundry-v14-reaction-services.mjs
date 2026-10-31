@@ -1,7 +1,7 @@
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
 import { createActionResolutionState, createActionReactionChildState } from "../resolvers/action-pipeline-resolver.mjs";
-import { actionCombatStatistics, attackAbility, attackForcesCritical, attackRollMode, resolveActorDefense } from "../helpers/combat-statistics.mjs";
+import { actionCombatStatistics, attackAbility, attackForcesCritical, attackRollMode, ignoredResistances, resolveActorDefense } from "../helpers/combat-statistics.mjs";
 import { conditionsFrom } from "../helpers/effect-sources.mjs";
 import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { turnKey } from "./foundry-v14-persistent-areas.mjs";
@@ -106,7 +106,9 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
             ? { ...(statistics.damage ?? {}), critical: true } : statistics.damage,
         selectedPaymentOptionId: args.candidate.selectedPaymentOption?.id ?? null,
         durability: { targetSystems: Object.fromEntries(targetKeys.map(key => [key, targetSystem])),
-            ...(profile ? { adjustmentProfiles: Object.fromEntries(targetKeys.map(key => [key, structuredClone(profile)])) } : {}) } });
+            ...(profile ? { adjustmentProfiles: Object.fromEntries(targetKeys.map(key => [key, structuredClone(profile)])) } : {}),
+            // Its own damage's ignored Resistances (an Opportunity Attack with Boon of Irresistible Offense).
+            ...(ignoredResistances(reactor.actor).length ? { adjustments: { ignoresResistance: ignoredResistances(reactor.actor) } } : {}) } });
 }
 /** Whether `reactor`'s own attack, the event it answers, was a critical hit on `target`. */
 function ownCriticalHit(event, reactor, target) {
