@@ -115,3 +115,16 @@ Circle Spells: the land is chosen at each Long Rest, and its spells aren't grant
     reads the mark.
 - Done meanwhile: nothing; both stay by hand.
 - Recommendation: (a); it removes two gaps and fits "nothing by hand". (b) only if (a) waits long.
+
+### Q10. Overchannel: an Action that damages its own caster (Evoker 14) (2026-10-31)
+2024 Overchannel: a wizard spell of level 1-5 that deals damage deals maximum damage; each later use before a Long Rest
+deals 2d12 Necrotic per spell level (+1d12 per further use) to the wizard, ignoring Resistance and Immunity. The
+maximum damage is small to build, but nothing in the engine lets an Action damage its own caster, and the maximum
+shouldn't ship without the backlash.
+
+- Question: build "damage to its own source" as a resolution capability (a `sourceDamage` list rolled after the
+  Action's damage, committed on the caster in the same transaction, with a per-component "ignores Resistance and
+  Immunity", and the caster's Concentration save)? It is a new pattern; later features could use it (2014 Overchannel,
+  some cursed items, Blood Magic-style homebrew).
+- Done meanwhile: nothing; Overchannel stays by hand (noted).
+- Recommendation: yes; medium-sized, with the maximize half shipped together.
