@@ -25,7 +25,17 @@
       "conversion": {
         "notes": []
       },
-      "metamagic": "seeking"
+      "metamagic": "seeking",
+      "testOffer": {
+        "tests": [
+          "attack"
+        ],
+        "reroll": true,
+        "tagsAll": [
+          "spell"
+        ],
+        "pool": "font-of-magic"
+      }
     }
   }
 }

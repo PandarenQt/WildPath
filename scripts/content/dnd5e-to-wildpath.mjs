@@ -598,7 +598,9 @@ const TEST_OFFERS = Object.freeze({
   // 2024 Indomitable: a failed save rerolled with a bonus of its activity's roll (its fighter level), from its own uses.
   indomitable: {tests: ["save"], reroll: true},
   // 2024 Tactical Mind: a failed check adds its 1d10, paid from Second Wind (its activity's), not spent if it still fails.
-  "tactical-mind": {tests: ["check"], refundOnFail: true}
+  "tactical-mind": {tests: ["check"], refundOnFail: true},
+  // 2024 Seeking Spell: a missed spell attack rerolled for a Sorcery Point (its activity's Font of Magic).
+  "seeking-spell": {tests: ["attack"], reroll: true, tagsAll: ["spell"]}
 });
 
 /** 2024 Luck (halfling): a 1 on the d20 of a D20 Test rerolled, free. shortcut: offered only when the roll failed. */

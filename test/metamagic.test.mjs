@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import {withMetamagic} from "../module/helpers/metamagic.mjs";
 import {resolveActionConfiguration} from "../module/helpers/action-configuration.mjs";
-import {withSeekingSpell} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
+import {withTestOffers} from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 
 const spell = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
   .find(file => file.startsWith(`${prefix}-`))}`, "utf8")).system.definition;
@@ -61,13 +61,16 @@ test("Metamagic: Twinned Hold Person at level 3 holds 3; Distant doubles its ran
   assert.equal(bless.configuration.effectiveDefinition.effects[0].duration.value, 120);
 });
 
-test("Seeking Spell: a missed spell attack may be rerolled for 1 Sorcery Point, by a sorcerer who knows it", () => {
+test("Seeking Spell (a test offer): a missed spell attack may be rerolled for 1 Sorcery Point, by a sorcerer who knows it", () => {
   const actor = sorcerer(["seeking"]);
-  const offer = withSeekingSpell(null, actor, actor.system, null);
+  const spellAttack = {tags: ["spell"]};
+  const offer = withTestOffers(null, actor, actor.system, null, "attack", spellAttack);
   assert.equal(offer.options.length, 1);
   assert.equal(offer.options[0].addDice, undefined, "a reroll, nothing added");
-  assert.equal(withSeekingSpell(null, sorcerer(["careful"]), sorcerer(["careful"]).system, null), null);
-  assert.equal(withSeekingSpell(null, actor, sorcerer(["seeking"], {points: 0}).system, null), null);
+  assert.ok(offer.options[0].plan, "paid from Font of Magic");
+  assert.equal(withTestOffers(null, actor, actor.system, null, "attack", {tags: ["weapon"]}), null, "a spell's attack only");
+  assert.equal(withTestOffers(null, sorcerer(["careful"]), sorcerer(["careful"]).system, null, "attack", spellAttack), null);
+  assert.equal(withTestOffers(null, actor, sorcerer(["seeking"], {points: 0}).system, null, "attack", spellAttack), null);
 });
 
 test("Metamagic: Extended doubles to 24 hours at most, with Advantage on Concentration; only for 1 minute or longer", () => {

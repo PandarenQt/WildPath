@@ -112,7 +112,6 @@ import {
 import {createMultiplayerActionCoordinator} from "./multiplayer-action-coordinator.mjs";
 import {createPhysicalDiceProvider} from "./roll-provider-resolver.mjs";
 import {resolveActorResourcePayment} from "./resource-resolver.mjs";
-import {knownMetamagic, METAMAGIC_POOL} from "../helpers/metamagic.mjs";
 import {resolveActionConfiguration} from "../helpers/action-configuration.mjs";
 import {zeroHpFor} from "../adapters/foundry-v14-zero-hp.mjs";
 export {zeroHpFor};
@@ -1022,10 +1021,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         tokenId: sourceToken?.id ?? null}}) : null;
   // An ally's on its check too (Flash of Genius), each paying creature committed on like a target.
   const ownTest = (definition?.attack || definition?.check) ? withAllyTestOffers(withTestOffers(ownOffer, actor, actorSystem, game,
-    definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER}), sourceToken, definition, game,
+    definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, tags: definition?.tags ?? []}), sourceToken, definition, game,
     definition?.check ? "check" : "attack", {chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, register: payer => { allyPayers.push(payer); }})
     : ownOffer;
-  const ownInspiration = definition?.tags?.includes("spell") ? withSeekingSpell(ownTest, actor, actorSystem, game) : ownTest;
+  const ownInspiration = ownTest;
   // Portent: a Diviner who sees the acting creature may replace its attack's or check's d20.
   const ownPortent = (definition?.attack || definition?.check) ? portentOffer(sourceToken, game,
     {register: payer => { allyPayers.push(payer); }}) : null;
@@ -1786,7 +1785,7 @@ function hostileTo(sourceToken, targetToken) {
  * Peerless Skill's Bardic Inspiration die on a check or attack roll, kept if it still fails; Dark One's Own Luck's d10 on
  * a check or save. Each is paid with a use of `pool`. Added to its own offer, or an offer alone.
  */
-export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser}={}) {
+export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser, tags=[]}={}) {
   if ( offer && !offer.own ) return offer;
   const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
   const options = [];
@@ -1794,6 +1793,8 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
     const spec = item?.flags?.wildpath?.testOffer;
     // One with a range is offered to its allies too (withAllyTestOffers).
     if ( !spec?.tests?.includes(test) || spec.range || (item.system?.active === false) ) continue;
+    // Only for an Action with every one of its tags (Seeking Spell: a spell's attack).
+    if ( (spec.tagsAll ?? []).some(tag => !tags.includes(tag)) ) continue;
     // A free one (Halfling Luck) names no pool.
     const payment = spec.pool ? resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: spec.pool, amount: 1}]}})
       : {ok: true, mutationPlan: null};
@@ -1890,23 +1891,6 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
   return offer ? {...offer, options: [...offer.options, ...(offer.own ? options
     : options.map(option => ({...option, failedOnly: true, offerLabel: ownSave})))]}
     : {own: true, chooser, label: format("WILDPATH.INSPIRATION.OwnSave", {name: saverToken.actor?.name ?? ""}), options};
-}
-
-/**
- * 2024 Seeking Spell: "If you make an attack roll for a spell and miss, you can spend 1 Sorcery Point to reroll the
- * d20", for a sorcerer who knows it, beside its other rerolls of a missed spell attack.
- */
-export function withSeekingSpell(offer, roller, rollerSystem, game) {
-  const pool = (rollerSystem?.pools ?? []).find(entry => entry.id === METAMAGIC_POOL);
-  if ( !knownMetamagic(roller).has("seeking") || !(Number(pool?.value) > 0) || (offer && !offer.own) ) return offer;
-  const payment = resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: METAMAGIC_POOL, amount: 1}]}});
-  if ( !payment.ok ) return offer;
-  const format = (key, data) => game?.i18n?.format?.(key, data) ?? key;
-  const option = {value: `seeking:${roller.uuid}`, payerRef: roller.uuid, plan: payment.mutationPlan,
-    label: format("WILDPATH.INSPIRATION.SeekingSpell", {value: pool.value})};
-  return offer ? {...offer, options: [...offer.options, option]}
-    : {own: true, chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, label: format("WILDPATH.INSPIRATION.OwnTest", {name: roller?.name ?? ""}),
-      options: [option]};
 }
 
 /**

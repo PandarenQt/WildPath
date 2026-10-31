@@ -440,7 +440,6 @@
       "OwnTest": "{name}'s roll failed. Add a die or reroll it?",
       "AddDie": "Add {name} (d{faces})",
       "AddDieKept": "Add {name} (d{faces}; kept if it still fails)",
-      "SeekingSpell": "Seeking Spell: reroll the d20 (1 Sorcery Point, {value} left)",
       "SetNatural": "{name}: turn it into a {natural}",
       "ForceHit": "{name}: hit instead",
       "AllyAdd": "Add {value} with {name}'s {feature}",
