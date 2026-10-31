@@ -757,9 +757,13 @@ function forbidRuleElement(ruleElement) {
     source: ruleElementSource(ruleElement), metadata: contributionMetadata(ruleElement, data.metadata)}]});
 }
 
-/** The tags a Forbid tests an Action by: its own, and `attack` when it makes an attack roll. */
+/**
+ * The tags a Forbid tests an Action by: its own, `attack` when it makes an attack roll, its id (`id:common:dash`), and
+ * what it always costs (`cost:action`, `cost:bonus-action`).
+ */
 export function actionTags(definition) {
-  return [...(definition?.tags ?? []), ...(definition?.attack ? ["attack"] : [])];
+  return [...(definition?.tags ?? []), ...(definition?.attack ? ["attack"] : []), ...(definition?.id ? [`id:${definition.id}`] : []),
+    ...(definition?.costs?.allOf ?? []).flatMap(cost => (cost?.capability ? [`cost:${cost.capability}`] : []))];
 }
 
 /**

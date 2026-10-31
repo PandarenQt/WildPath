@@ -731,7 +731,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   if ( fromCast ) intent = {...intent, configuration: {...(intent.configuration ?? {}),
     choices: {...(intent.configuration?.choices ?? {}), ...fromCast}}};
   // What its rules forbid it (`Forbid`): Spell Taxed, Silenced, and its state's (a transformation's spells, Gaseous Form,
-  // armor it isn't trained with). Its Actions run by the authority (a lasting area it already cast) go on.
+  // Command's Flee, armor it isn't trained with). Its Actions run by the authority (a lasting area it already cast) go on.
   const forbid = authorityAction ? null : actor.forbiddingRule?.(definition) ?? null;
   if ( forbid ) return refused(forbid.reason ?? "WILDPATH.REFUSAL.Forbidden", {name: actor.name ?? "", by: forbid.name ?? "",
     armor: forbid.name ?? ""});
@@ -743,9 +743,6 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // 2024 Quickened Spell: "nor can you cast a level 1+ spell on the same turn after modifying a spell with this option".
   if ( !authorityAction && requiresContext(actor, {game}).quickenedThisTurn && (definition?.tags ?? []).includes("spell")
     && (Number(definition?.metadata?.spellLevel) >= 1) ) return refused("WILDPATH.REFUSAL.Quickened", {name: actor.name ?? ""});
-  // 2024 Command, Flee: "spends its turn moving away from you by the fastest available means" (only Dash or Disengage).
-  const usesTurn = (definition?.costs?.allOf ?? []).some(cost => ["action", "bonus-action"].includes(cost?.capability));
-  if ( !authorityAction && actor.statuses?.has?.("commanded-flee") && usesTurn && !["common:dash", "common:disengage"].includes(definition?.id) ) return refused("WILDPATH.REFUSAL.Flee", {name: actor.name ?? ""});
   // A magic item's Action (a wand's spell) needs its item equipped and, when it needs attunement, attuned (2024).
   // An Action it replaced (inactive: an Invocation, a Maneuver) is not used.
   if ( !authorityAction && (action.system?.active === false) ) return refused("WILDPATH.LEVELUP.Replaced", {name: action.name ?? ""});

@@ -881,18 +881,22 @@ the Item restores the scores.
 
 `{type: "Forbid", data: {actions: <predicate>, reason?: <localization key>}}`: while it applies, its creature can't use
 an Action that matches. The predicate sees the Action's tags (`actionTags`): its own, plus `attack` when it makes an
-attack roll. One model replaces the authority's separate refusals:
+attack roll, its id (`id:common:dash`) and what it always costs (`cost:action`, `cost:bonus-action`). One model replaces
+the authority's separate refusals:
 
 | What | Its rule | Where it comes from |
 | --- | --- | --- |
 | Spell Taxed (Resurrection) | `{tagsAny: ["spell"]}` | the effect, by name in the converter |
 | Silenced | `{tagsAny: ["component:verbal"]}` | the `silenced` condition (config.mjs) |
 | Gaseous Form, Wind Walk's cloud | `{tagsAny: ["spell", "attack"]}` | the `gaseous` status |
+| Command's Flee | `{all: [{tagsAny: ["cost:action", "cost:bonus-action"]}, {notTagsAny: ["id:common:dash", "id:common:disengage"]}]}` | the `commanded-flee` status |
 | A transformed creature (Wild Shape, Polymorph) | `{tagsAny: ["spell"]}` | `actor.transformation` |
 | Armor it isn't trained with (2024) | `{tagsAny: ["spell"]}` | the armor (not a Shield) |
 
-- The last three are state, not stored data: `grantOwners` (actor.mjs) adds their rules while the state holds, as it
-  does for untrained armor's Disadvantage. Existing worlds need no migration.
+- The last four are state, not stored data: `grantOwners` (actor.mjs) adds their rules while the state holds, as it
+  does for untrained armor's Disadvantage; a status's are in `STATUS_FORBIDS`. Existing worlds need no migration.
+- Quickened Spell's "no other spell of level 1+ this turn" stays a refusal of its own: it depends on what was cast this
+  turn, which no rule owner holds.
 - `actor.forbiddingRule(definition)` returns the first match, named after its owner (the effect or armor). The
   authority refuses the intent with the rule's `reason`, or `WILDPATH.REFUSAL.Forbidden` ("{name} can't do that:
   {by}"). The reaction provider doesn't offer a forbidden reaction (a Silenced wizard's Shield).

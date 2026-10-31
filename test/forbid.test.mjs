@@ -28,8 +28,10 @@ test("a Forbid needs a valid actions predicate, and an Action's tags include att
   assert.equal(evaluateRuleElement(forbid({tagsAny: ["spell"]})).ok, true);
   assert.equal(evaluateRuleElement(forbid(null)).ok, false, "no predicate");
   assert.equal(evaluateRuleElement(forbid({castsSpells: true})).ok, false, "an unknown predicate key");
-  assert.deepEqual(actionTags(strike), ["attack"]);
-  assert.deepEqual(actionTags(spell("verbal")), ["spell", "component:verbal"]);
+  assert.deepEqual(actionTags(strike), ["attack", "id:action:strike"]);
+  assert.deepEqual(actionTags(spell("verbal")), ["spell", "component:verbal", "id:action:spell"]);
+  assert.deepEqual(actionTags({id: "common:dash", tags: [], costs: {allOf: [{capability: "action", amount: 1}]}}),
+    ["id:common:dash", "cost:action"], "its id, and what it always costs");
 });
 
 test("Spell Taxed: an effect's Forbid bars its creature's spells, named after the effect; its other Actions go on", () => {
@@ -57,6 +59,15 @@ test("states forbid by rule: Gaseous Form attacks and spells, a transformation s
   const shaped = creature({effects: [{...effect("Wild Shape", []), flags: {wildpath: {transformation: {formRef: "Actor.bear"}}}}]});
   assert.equal(shaped.forbiddingRule(spell("verbal"))?.reason, "WILDPATH.REFUSAL.Transformed");
   assert.equal(shaped.forbiddingRule(strike), null);
+
+  // Command's Flee: an Action or Bonus Action only to Dash or Disengage; what costs neither is free.
+  const fleeing = creature({statuses: ["commanded-flee"]});
+  const costing = (id, capability) => ({id, tags: [], costs: {allOf: capability ? [{capability, amount: 1}] : []}});
+  assert.equal(fleeing.forbiddingRule(costing("action:strike", "action"))?.reason, "WILDPATH.REFUSAL.Flee");
+  assert.equal(fleeing.forbiddingRule(costing("action:shove", "bonus-action"))?.reason, "WILDPATH.REFUSAL.Flee");
+  assert.equal(fleeing.forbiddingRule(costing("common:dash", "action")), null);
+  assert.equal(fleeing.forbiddingRule(costing("common:disengage", "bonus-action")), null);
+  assert.equal(fleeing.forbiddingRule(costing("action:shield", "reaction")), null, "a Reaction is not its turn");
 
   const plate = {id: "plate", name: "Plate Armor", type: "gear", system: {active: true, armor: "heavy", ruleElements: []}};
   const shield = {id: "shield", name: "Shield", type: "gear", system: {active: true, armor: "shield", ruleElements: []}};

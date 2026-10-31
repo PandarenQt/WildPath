@@ -1074,7 +1074,7 @@ function grantOwners(actor) {
   const state = (id, rules) => ({ruleElements: rules, source: {type: "rule", uuid: null, id, name: id}});
   return [...items, ...effects,
     ...(hindering ? [{ruleElements: [UNTRAINED_ARMOR, UNTRAINED_CASTING], source: documentRuleElementSource(hindering, "item")}] : []),
-    ...(actor.statuses?.has?.("gaseous") ? [state("gaseous", [GASEOUS])] : []),
+    ...Object.entries(STATUS_FORBIDS).flatMap(([status, rule]) => (actor.statuses?.has?.(status) ? [state(status, [rule])] : [])),
     ...(transformation ? [state("transformed", [TRANSFORMED])] : []),
     ...(load.length ? [{ruleElements: load, source: {type: "rule", uuid: null, id: "carrying", name: "Carrying"}}] : []),
     {ruleElements: UNSEEN, source: {type: "rule", uuid: null, id: "unseen", name: "Unseen"}}];
@@ -1101,6 +1101,16 @@ const UNTRAINED_CASTING = Object.freeze({schemaVersion: 1, id: "untrained-armor-
 /** 2024 Gaseous Form (and Wind Walk's cloud form): "the target can't attack or cast spells". */
 const GASEOUS = Object.freeze({schemaVersion: 1, id: "gaseous", type: "Forbid",
   data: {actions: {tagsAny: ["spell", "attack"]}, reason: "WILDPATH.REFUSAL.Gaseous"}});
+/**
+ * What a status forbids, by rule rather than stored on its effect, so effects made before the rule still forbid it:
+ * 2024 Gaseous Form, and Command's Flee ("spends its turn moving away from you": an Action or Bonus Action only to Dash
+ * or Disengage).
+ */
+const STATUS_FORBIDS = Object.freeze({
+  gaseous: GASEOUS,
+  "commanded-flee": Object.freeze({schemaVersion: 1, id: "commanded-flee", type: "Forbid", data: {reason: "WILDPATH.REFUSAL.Flee",
+    actions: {all: [{tagsAny: ["cost:action", "cost:bonus-action"]}, {notTagsAny: ["id:common:dash", "id:common:disengage"]}]}}})
+});
 /**
  * 2024 Wild Shape and Polymorph: a transformed creature can't cast spells. Spells it already cast (their lasting areas,
  * which run as authority Actions) go on.
