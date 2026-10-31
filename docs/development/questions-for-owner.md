@@ -38,3 +38,15 @@ loses its Indomitable, and a GM creature its own Countercharm or a Bardic Inspir
 - Question: was "never on a monster's reroll" meant to keep the GM's dialog about the players' points only, or should a
   GM creature's own features join it after a failure, like an ally's do now?
 - Recommendation: let them join after a failure (`failedOnly`), which is one line per helper.
+
+### Q4. Inscrutable (two sphinxes): read the roller's targets in a sheet roll? (2026-10-31)
+2024 Inscrutable: "Wisdom (Insight) checks made to ascertain its intentions or sincerity are made with Disadvantage."
+The Disadvantage belongs to the creature checked about, but a sheet's Insight check names no one. The proposed way is
+to treat the creatures the roller has targeted as the ones the check is about (`game.user.targets`, read in
+`Actor#rollTest` on the rolling client), with a `checked.<skill>` roll-mode domain on them.
+
+- Done meanwhile: nothing; it is the last silent SRD feature besides narrative ones. Its other sentence (no scrying,
+  no thought reading) is narrative.
+- Question: is reading the roller's targets in `rollTest` acceptable (the runtime already reads them to build
+  intents), or should an Insight check about a creature be an Action of its own with a target?
+- Recommendation: read the targets; it needs no new UI and matches how attacks pick their target.
