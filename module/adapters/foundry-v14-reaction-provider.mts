@@ -8,6 +8,7 @@ import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-adapter.mjs";
 import {attackSight} from "./foundry-v14-senses.mjs";
 import {coverBetween, foundrySightCollision} from "./foundry-v14-cover.mjs";
+import {piercesIllusion} from "../helpers/senses.mjs";
 
 type Data = Record<string, unknown>;
 
@@ -310,11 +311,11 @@ function reachFields(definition: Data, scene: SceneLike) {
  * without a source Token on the Scene, so a predicate reading it fails (no "creature you can see").
  */
 export function relationsToSource(scene: SceneLike, event: Data | undefined, {includeSource=false}: {includeSource?: boolean} = {}):
-  Record<string, {hostile: boolean; distance: number | null; sees: boolean; self?: boolean}> {
+  Record<string, {hostile: boolean; distance: number | null; sees: boolean; undeceived?: boolean; self?: boolean}> {
   const sourceId = ((event?.source as Data | undefined)?.tokenId ?? event?.tokenId) as string | undefined;
   const tokens = [...(scene.tokens ?? [])];
   const source = sourceId ? tokens.find(token => token.id === sourceId) : null;
-  const relations: Record<string, {hostile: boolean; distance: number | null; sees: boolean; self?: boolean}> = {};
+  const relations: Record<string, {hostile: boolean; distance: number | null; sees: boolean; undeceived?: boolean; self?: boolean}> = {};
   if ( !source?.actor ) return relations;
   if ( includeSource ) relations[source.id] = {hostile: false, distance: 0, sees: true, self: true};
   const grid = createFoundryV14TacticalGridAdapter({scene: scene as never}) as {tokenToFootprint(token: unknown): {ok: boolean; footprint?: unknown}};
@@ -323,7 +324,7 @@ export function relationsToSource(scene: SceneLike, event: Data | undefined, {in
   const fieldDistance = Number(scene.grid?.distance) || 5;
   for ( const token of tokens ) {
     if ( !token.actor || (token.id === source.id) ) continue;
-    let memo: {hostile: boolean; distance: number | null; sees: boolean} | null = null;
+    let memo: {hostile: boolean; distance: number | null; sees: boolean; undeceived: boolean} | null = null;
     Object.defineProperty(relations, token.id, {enumerable: true, get() {
       if ( memo ) return memo;
       const to = footprintOf(token);
@@ -333,7 +334,8 @@ export function relationsToSource(scene: SceneLike, event: Data | undefined, {in
       const walled = collides ? coverBetween({source: token as never, target: source as never, collides}) === "total" : false;
       const sees = !walled && attackSight({attacker: token.actor as never, target: source.actor as never, attackerToken: token as never,
         targetToken: source as never, distance}).seesTarget;
-      memo = {hostile: isHostile(token, source), distance, sees};
+      // The source is not fooled by an illusion around this one (Mirror Image): Blinded, or its Blindsight or Truesight reach it.
+      memo = {hostile: isHostile(token, source), distance, sees, undeceived: piercesIllusion(source.actor as never, {distance})};
       return memo;
     }});
   }

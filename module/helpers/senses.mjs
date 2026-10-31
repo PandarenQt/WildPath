@@ -47,6 +47,17 @@ export function obscured(observer, { distance = null, grounded = true, observerL
     return (observedLight === "dark") && !(throughMagic || reaches("darkvision"));
 }
 /**
+ * Whether an illusion around a creature `distance` feet away does not fool `observer` (2024 Mirror Image: "A creature is
+ * unaffected by this spell if it has the Blinded condition, Blindsight, or Truesight"), its sense reaching that far.
+ */
+export function piercesIllusion(observer, { distance = null } = {}) {
+    if (new Set(observer?.statuses ?? []).has("blinded"))
+        return true;
+    const senses = (observer?.system?.senses ?? {});
+    const reaches = (sense) => ((Number(senses[sense]) || 0) > 0) && ((distance === null) || (distance <= Number(senses[sense])));
+    return reaches("blindsight") || reaches("truesight");
+}
+/**
  * Whether `observer` perceives `observed` despite Blinded and Invisible: a Blinded creature perceives only by
  * Blindsight (or Tremorsense, a creature on the ground) within range; an Invisible creature is perceived by Truesight, See Invisibility,
  * Blindsight or Tremorsense within range. `distance` in feet (unknown counts as within range); `grounded`: the observed

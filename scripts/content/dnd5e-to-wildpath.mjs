@@ -214,10 +214,12 @@ const EFFECT_REACTIONS = Object.freeze({
  * remaining duplicates. If any of the d6s rolls a 3 or higher, one of the duplicates is hit instead of you, and the
  * duplicate is destroyed." Its effect's reaction, used at once: the highest of a d6 per level (`"{{level}}"`, filled in
  * when it is offered) at 3 or more turns the hit into a miss (`missChance`), and spendDecoys takes a level off.
- * shortcut: an attacker with Blindsight or Truesight is fooled too; upgrade when a reaction's predicate sees the attacker's senses.
+ * "A creature is unaffected by this spell if it has the Blinded condition, Blindsight, or Truesight": not offered when
+ * the attacker is undeceived (`toSource.{self}.undeceived`, its sense reaching this creature).
  */
 const MIRROR_IMAGE = Object.freeze({schemaVersion: 1, id: "mirror-image", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
   match: {phase: "interrupt", targetTokenId: "{self}"}, policy: "always",
+  triggerPredicate: {not: {equals: {path: "toSource.{self}.undeceived", value: true}}},
   action: {schemaVersion: 1, id: "action:mirror-image-duplicates", label: "Mirror Image", costs: {allOf: []}, range: {type: "self"},
     targeting: {type: "self"}, rider: {missChance: {dice: {type: "dice", number: "{{level}}", faces: 6}, keep: "highest", atLeast: 3}}}}});
 

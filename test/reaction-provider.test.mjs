@@ -245,6 +245,16 @@ test("each reactor's relation to an event's source: hostile, how far, and whethe
   assert.deepEqual(Object.keys(relations), ["wizard", "imp"], "everyone but the source");
   assert.deepEqual([relations.wizard.hostile, relations.wizard.sees, relations.imp.hostile], [true, true, false]);
   assert.equal(relations.wizard.distance, 50, "ten squares away");
+  // Mirror Image's duplicates fool the source unless it is Blinded or its Blindsight or Truesight reaches (2024).
+  assert.equal(relations.wizard.undeceived, false, "an ordinary attacker is fooled");
+  scene.tokens[0].actor.system.senses = {truesight: 60};
+  assert.equal(relationsToSource(scene, {source: {tokenId: "caster"}}).wizard.undeceived, true, "Truesight 60 ft reaches 50 ft");
+  scene.tokens[0].actor.system.senses = {blindsight: 30};
+  assert.equal(relationsToSource(scene, {source: {tokenId: "caster"}}).wizard.undeceived, false, "Blindsight 30 ft does not reach");
+  scene.tokens[0].actor.system.senses = {};
+  scene.tokens[0].actor.statuses.add("blinded");
+  assert.equal(relationsToSource(scene, {source: {tokenId: "caster"}}).wizard.undeceived, true, "a Blinded attacker");
+  scene.tokens[0].actor.statuses.delete("blinded");
   scene.tokens[0].actor.statuses.add("invisible");
   assert.equal(relationsToSource(scene, {source: {tokenId: "caster"}}).wizard.sees, false, "an Invisible caster is not seen");
   assert.deepEqual(relationsToSource(scene, {source: {}}), {}, "no source on the Scene: nothing to read");

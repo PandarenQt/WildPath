@@ -428,6 +428,14 @@
                       "targetTokenId": "{self}"
                     },
                     "policy": "always",
+                    "triggerPredicate": {
+                      "not": {
+                        "equals": {
+                          "path": "toSource.{self}.undeceived",
+                          "value": true
+                        }
+                      }
+                    },
                     "action": {
                       "schemaVersion": 1,
                       "id": "action:mirror-image-duplicates",

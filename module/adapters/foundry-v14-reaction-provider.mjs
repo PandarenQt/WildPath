@@ -8,6 +8,7 @@ import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { attackSight } from "./foundry-v14-senses.mjs";
 import { coverBetween, foundrySightCollision } from "./foundry-v14-cover.mjs";
+import { piercesIllusion } from "../helpers/senses.mjs";
 const MOVEMENT_EVENT = "movement.transition-proposed";
 // The JS builders are untyped; these are the only places their shapes are asserted.
 const reactionTrigger = createReactionTrigger;
@@ -288,7 +289,8 @@ export function relationsToSource(scene, event, { includeSource = false } = {}) 
                 const walled = collides ? coverBetween({ source: token, target: source, collides }) === "total" : false;
                 const sees = !walled && attackSight({ attacker: token.actor, target: source.actor, attackerToken: token,
                     targetToken: source, distance }).seesTarget;
-                memo = { hostile: isHostile(token, source), distance, sees };
+                // The source is not fooled by an illusion around this one (Mirror Image): Blinded, or its Blindsight or Truesight reach it.
+                memo = { hostile: isHostile(token, source), distance, sees, undeceived: piercesIllusion(source.actor, { distance }) };
                 return memo;
             } });
     }
