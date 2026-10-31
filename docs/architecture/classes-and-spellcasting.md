@@ -616,6 +616,10 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
   or an ally's within 30 ft (`withAllyTestOffers`, now on checks too). `addAbility: "intellect"` adds its modifier
   (`addFlat` in `inspirationReroll`), paid with a use and its Reaction (`reaction`). shortcut: "a creature you can see"
   is any ally in range.
+- **Boon of Fate (2026-10-31):** a ranged test offer adding dice (`faces`, `number`: 2d4) to a failed D20 Test of its
+  bearer or an ally within 60 feet, paid with its use, which a Short Rest or rolling Initiative restores (an automation
+  Trigger on `initiative.rolled`). shortcut: offers come on a failure only, so its penalty on another creature's
+  success is by hand (noted).
 
 ## Portent (2026-10-20)
 

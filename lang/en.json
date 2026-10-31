@@ -440,6 +440,7 @@
       "SetNatural": "{name}: turn it into a {natural}",
       "ForceHit": "{name}: hit instead",
       "AllyAdd": "Add {value} with {name}'s {feature}",
+      "AllyDice": "Add {number}d{faces} with {name}'s {feature}",
       "AllyReroll": "{name}'s {feature}: reroll with Advantage (its Reaction)",
       "RerollWith": "Reroll with {name}",
       "Indomitable": "Reroll with Indomitable, +{bonus} ({value} left)",

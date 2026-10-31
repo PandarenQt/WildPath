@@ -1832,15 +1832,19 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
       // Flash of Genius adds its bearer's modifier (`addAbility`) to the roll; Countercharm rerolls it.
       const added = spec.addAbility ? Math.trunc(Number(evaluateValueExpression({type: "ability-modifier", ability: spec.addAbility},
         {actor: bearer, actorSystem: system}).value) || 0) : 0;
+      // Boon of Fate adds dice (`faces`, `number`: 2d4).
+      const faces = spec.faces ? Math.trunc(Number(evaluateValueExpression(spec.faces, {actor: bearer, actorSystem: system}).value) || 0) : 0;
+      const number = Math.max(1, Math.trunc(Number(spec.number) || 1));
       // Its bearer decides (its player, else the GM): its resource and Reaction (owner's decision, 2026-10-30).
       const deciders = (token.id !== saverToken.id) ? controllerAuthority(bearer, game) : null;
       options.push({value: `ally-offer:${bearer.uuid}:${item.id}`, payerRef: bearer.uuid, plan: payment.mutationPlan,
         ...(deciders ? {authority: deciders.userIds.length ? deciders : {kind: ROLL_AUTHORITY.GM}} : {}),
         ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), ...(spec.addAbility ? {addFlat: added} : {}),
+        ...((faces > 0) ? {addDice: {number, faces}} : {}),
         // Only when the d20 shows this number (Bountiful Luck's 1).
         ...(Number(spec.natural) > 0 ? {natural: Number(spec.natural)} : {}),
-        label: format(spec.addAbility ? "WILDPATH.INSPIRATION.AllyAdd" : "WILDPATH.INSPIRATION.AllyReroll", {name: bearer.name ?? "",
-          feature: item.name ?? "", value: added})});
+        label: format((faces > 0) ? "WILDPATH.INSPIRATION.AllyDice" : spec.addAbility ? "WILDPATH.INSPIRATION.AllyAdd"
+          : "WILDPATH.INSPIRATION.AllyReroll", {name: bearer.name ?? "", feature: item.name ?? "", value: added, number, faces})});
     }
   }
   if ( !options.length ) return offer;

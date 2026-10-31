@@ -2603,6 +2603,20 @@ test("Countercharm: offered for a save failed against Charmed or Frightened, by 
   assert.equal(joined.options[1].payerRef, "Actor.bard", "the ally's, not the GM creature's own");
 });
 
+test("Boon of Fate: 2d4 added to a failed D20 Test of its bearer or an ally within 60 feet, from its use", async t => {
+  const {withAllyTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const fs = await import("node:fs");
+  const {scene, targetToken} = syntheticRuntimeFixture(t);
+  const boon = JSON.parse(fs.readFileSync("packs/_source/srd-items/boon-of-fate-phbBoonofFate000.json", "utf8"));
+  const fate = {id: "fate", name: "Boon of Fate", system: {active: true}, flags: {wildpath: {testOffer: boon.flags.wildpath.testOffer}}};
+  const actor = withFoundryActorSystem(fakeActor("seer", {system: {...targetActorSystem(), pools: [{id: "boon-of-fate", value: 1, max: 1}]}}));
+  actor.items = [fate];
+  scene.tokens.push(fakeTokenDocument({id: "seer-token", actor, scene, offset: {i: 1, j: 6}, disposition: targetToken.disposition}));
+  const offer = withAllyTestOffers(null, targetToken, {}, {}, "attack", {chooser: "target-controller"});
+  assert.deepEqual(offer.options.map(option => [option.payerRef, option.addDice]), [["Actor.seer", {number: 2, faces: 4}]]);
+  assert.equal(boon.system.ruleElements.find(rule => rule.id === "boon-of-fate-initiative").data.event, "initiative.rolled", "back on Initiative");
+});
+
 test("Portent (2024 Diviner, replacing a rolled d20): offered to a Diviner who sees the roller, once per turn", async () => {
   const diviner = fakeActor("diviner", {system: actorSystem(), owners: ["player-b"]});
   diviner.items = [{id: "portent", name: "Portent", system: {active: true}, flags: {wildpath: {portentDice: {type: "constant", value: 2}}}}];

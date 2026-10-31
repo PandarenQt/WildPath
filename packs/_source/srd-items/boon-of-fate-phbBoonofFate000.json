@@ -21,6 +21,43 @@
           },
           "recovery": "shortRest"
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "boon-of-fate-initiative",
+        "type": "Trigger",
+        "data": {
+          "kind": "automation",
+          "event": "initiative.rolled",
+          "predicate": {
+            "all": [
+              {
+                "poolBelowMax": "boon-of-fate"
+              }
+            ]
+          },
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-boon-of-fate-initiative",
+            "label": "Improve Fate",
+            "costs": {
+              "allOf": []
+            },
+            "range": {
+              "type": "self"
+            },
+            "targeting": {
+              "type": "self"
+            },
+            "restores": [
+              {
+                "resourceId": "boon-of-fate",
+                "amount": 1,
+                "refuseWhenFull": true
+              }
+            ]
+          }
+        }
       }
     ]
   },
@@ -40,8 +77,22 @@
       },
       "conversion": {
         "notes": [
-          "\"Improve Fate\" is passive or triggered: not automated"
+          "Improve Fate: the 2d4 penalty on another creature's successful D20 Test is by hand"
         ]
+      },
+      "testOffer": {
+        "tests": [
+          "check",
+          "save",
+          "attack"
+        ],
+        "pool": "boon-of-fate",
+        "range": 60,
+        "faces": {
+          "type": "constant",
+          "value": 4
+        },
+        "number": 2
       }
     }
   }

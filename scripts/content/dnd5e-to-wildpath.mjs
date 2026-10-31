@@ -551,6 +551,10 @@ const TEST_OFFERS = Object.freeze({
   // modifier is added, for its Reaction and a use (its own pool, named by its identifier). shortcut: "you can see" is any
   // ally within range, and it is offered only on a failure (as every test offer is).
   "flash-of-genius": {tests: ["check", "save"], pool: "flash-of-genius", reaction: true, range: 30, addAbility: "intellect"},
+  // 2024 Boon of Fate (Improve Fate): when it or a creature within 60 feet fails a D20 Test, 2d4 added to the roll, once
+  // per Short Rest or Initiative (TRAITS restores it). shortcut: offered on a failure only, so the 2d4 penalty on another
+  // creature's success is by hand (noted).
+  "boon-of-fate": {tests: ["check", "save", "attack"], pool: "boon-of-fate", range: 60, faces: {type: "constant", value: 4}, number: 2},
   // 2024 Disciplined Survivor: a failed save rerolled for 1 Focus Point (its activity's).
   "disciplined-survivor": {tests: ["save"], reroll: true}
 });
@@ -2454,6 +2458,12 @@ const TRAITS = Object.freeze({
     hitPoints: {type: "multiply", terms: [{type: "constant", value: 2}, {type: "class-level", class: "barbarian"}]}}),
   "undead-fortitude": (document, {activities}) => zeroHpTrait(activities, {mode: "save", ability: "fortitude", dc: {plusDamage: 5},
     hitPoints: 1, notOn: ["radiant", "critical"]}),
+  // 2024 Boon of Fate: its use comes back when it rolls Initiative, as on a Short Rest.
+  "boon-of-fate": () => ({rules: [{schemaVersion: 1, id: "boon-of-fate-initiative", type: "Trigger", data: {kind: "automation",
+    event: "initiative.rolled", predicate: {all: [{poolBelowMax: "boon-of-fate"}]}, action: {schemaVersion: 1,
+      id: "action:srd-boon-of-fate-initiative", label: "Improve Fate", costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"},
+      restores: [{resourceId: "boon-of-fate", amount: 1, refuseWhenFull: true}]}}}],
+  notes: ["Improve Fate: the 2d4 penalty on another creature's successful D20 Test is by hand"]}),
   // 2024 Blessed Healer: "when you cast a spell with a spell slot and that spell restores Hit Points to any creature other
   // than you, you regain Hit Points equal to 2 plus the spell slot's level" (`event: "healing.applied"`, the runtime's).
   "blessed-healer": (document, {activities}) => ({rules: [{schemaVersion: 1, id: "blessed-healer", type: "Trigger",
