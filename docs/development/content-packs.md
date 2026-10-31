@@ -15,6 +15,17 @@ Foundry's Compendium Packs sidebar tab.
   localizes.
 - **Close the world before rebuilding.** A running world holds a lock on every pack it loaded. A new pack
   appears only after the world is launched again.
+- **Refreshing a world (2026-10-31).** Items copied into a world keep the version they were copied at. After a
+  rebuild, a GM opens Settings, then **Refresh items** (`module/applications/refresh-items.mts`). It lists each
+  world Item and world Actor's Item whose compendium copy (`_stats.compendiumSource`) now differs, then refreshes them
+  on the GM's word.
+  - Taken from the pack: `system.definition`, `ruleElements`, `modifiers`, `description`, `cost`, `advancement`,
+    and the pack's own `flags.wildpath` keys (helpers/pack-refresh.mjs). Objects are replaced whole
+    (ForcedReplacement).
+  - Kept: name, image, active, prepared, quantity, identified, and the flags play writes (`KEPT_FLAGS`: reaction
+    setting, training, Arcanum, replaced, grantedBy, build cost).
+  - Not walked: an unlinked Token's own Items.
+  - Found live: the QA Fighter's Improved Critical had no rules (no 19–20 critical range) until refreshed.
 
 ## Checks
 

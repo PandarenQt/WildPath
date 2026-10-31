@@ -319,6 +319,10 @@ Hooks.once("ready", async () => {
   const {openRulesInspector, registerRulesInspector} = await import("./module/applications/rules-inspector.mjs");
   registerRulesInspector();
   game.wildpath = {...(game.wildpath ?? {}), inspect: openRulesInspector};
+  // The GM's refresh of world Items from their compendiums (a settings menu; Settings reads its menus when it opens).
+  const {WildPathRefreshItems} = await import("./module/applications/refresh-items.mjs");
+  game.settings.registerMenu("wildpath", "refreshItems", {name: "WILDPATH.REFRESH.Title", label: "WILDPATH.REFRESH.Open",
+    hint: "WILDPATH.REFRESH.MenuHint", icon: "fa-solid fa-rotate", type: WildPathRefreshItems, restricted: true});
 });
 
 /* -------------------------------------------- */

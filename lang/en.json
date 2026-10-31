@@ -318,6 +318,15 @@
     "DYING": {
       "DeathSave": "Death Saving Throw"
     },
+    "REFRESH": {
+      "Title": "Refresh items from compendiums",
+      "Open": "Refresh items",
+      "MenuHint": "Update world items and characters' items that came from a compendium to its current version.",
+      "Hint": "These items differ from the compendium they came from. Refreshing replaces their rules, Action, description and costs; names, images, uses, equipped and prepared stay as they are.",
+      "Refresh": "Refresh {count} items",
+      "UpToDate": "Every item matches its compendium.",
+      "Done": "Refreshed {count} items."
+    },
     "INSPECTOR": {
       "Title": "Rules Inspector",
       "Inspect": "Inspect",
