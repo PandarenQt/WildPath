@@ -139,3 +139,24 @@ a Great Old One's Hex (Disadvantage on saves of the hexed ability). Today a save
   have `attack.fromAttacker`)? It is a new resolution capability; the three features then become data.
 - Done meanwhile: nothing; they stay by hand (silent in the census).
 - Recommendation: yes; small to medium, and it mirrors what attacks already do.
+
+### Q12. Shared Bastions (plan 5.2): what is shared, and how members join (2026-10-31)
+The design is in `docs/architecture/shared-bastions.md` (three designs judged against the Bastion code and the local DMG).
+The combining rules keep each character's slots, orders, hirelings, defenders and event roll; only the floor plan is shared.
+
+- Done meanwhile: stage 0 only (`81b189a5`): a Bastion turn runs on the active GM alone, and an order given mid-turn is
+  kept. Nothing else is built.
+- Questions, each with a recommendation (the doc has the options):
+  1. Share only the map; keep everything else per character, as the DMG does. Recommend: yes.
+  2. Store membership as one optional field on each member (`system.bastion.shared: {id, squares}`), no group
+     document. Recommend: yes.
+  3. Joining: open to any visible group, announced in chat, the GM can remove anyone (no approval step). Recommend: yes.
+  4. Ground a member doesn't pool is unused while it's a member (no private second map). Recommend: yes.
+  5. Squares outside the grid are kept and shown as problems, solo maps included (today they are dropped when the map
+     opens). Recommend: yes.
+  6. A joining member's cells are kept; overlaps show as problems. Recommend: yes.
+  7. The shared Bastion is named by its members (no shared name field). Recommend: yes.
+  8. Build the DMG's zero-defender shutdown (an Attack with no defenders shuts a special facility), missing today even
+     for solo Bastions. Recommend: yes, as its own item.
+  9. Covering an ally's defender losses: leave out until 8 is built, then each member opts in. Recommend: yes.
+  10. Grid: a square of side ceil(sqrt(pooled squares)), painting capped at the pool. Recommend: yes.
