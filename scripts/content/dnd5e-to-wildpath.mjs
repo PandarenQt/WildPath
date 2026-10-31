@@ -497,6 +497,10 @@ const TEST_OFFERS = Object.freeze({
   "dark-ones-own-luck": {tests: ["check", "save"]},
   // 2024 Stroke of Luck: a failed D20 Test becomes a 20, once per Short Rest.
   "stroke-of-luck": {tests: ["check", "save", "attack"], setNatural: 20},
+  // 2024 Boon of Combat Prowess, Peerless Aim: "When you miss with an attack roll, you can hit instead", once until the start
+  // of its next turn (its own pool, which TRAITS gives: dnd5e gives the boon no activity). shortcut: one d20 against several
+  // targets hits each it missed.
+  "boon-of-combat-prowess": {tests: ["attack"], pool: "boon-of-combat-prowess", forceHit: true},
   // 2024 Countercharm: a save failed against Charmed or Frightened, by itself or an ally within 30 ft, rerolled with
   // Advantage for its Reaction (withAllyTestOffers). Its pool is named here: its activity spends none.
   countercharm: {tests: ["save"], pool: "reaction", rollMode: "advantage", range: 30, against: ["charmed", "frightened"]},
@@ -1655,6 +1659,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   // Halfling Luck: its dnd5e flag is its test offer.
   if ( (document.effects ?? []).some(effect => effectChanges(effect)
     .some(change => change.key === "flags.dnd5e.halflingLucky")) ) testOffer ??= structuredClone(HALFLING_LUCK);
+  // A test offer of a feature dnd5e gives no activity (Boon of Combat Prowess): its own entry, its pool its trait's.
+  if ( !activities.length && TEST_OFFERS[identifierOf(document)]?.forceHit ) testOffer ??= structuredClone(TEST_OFFERS[identifierOf(document)]);
   // Nothing to use: a passive ability is a feature carrying its text (and any uses its other Actions spend).
   if ( !items.length ) {
     // Its training is its flag (`flags.wildpath.training`), no longer a note.
@@ -2218,6 +2224,9 @@ const TRAITS = Object.freeze({
     {schemaVersion: 1, id: "punch-and-grab", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
       match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["unarmed"]}, commonAction: "grapple", free: true,
       once: "turn", onceKey: "punch-and-grab"}}], notes: []}),
+  // 2024 Boon of Combat Prowess: Peerless Aim's use, once until the start of its next turn (its test offer is TEST_OFFERS').
+  "boon-of-combat-prowess": () => ({rules: [{schemaVersion: 1, id: "boon-of-combat-prowess-uses", type: "GrantResource",
+    data: {resourceId: "boon-of-combat-prowess", label: "Peerless Aim", maximum: 1, recovery: "turn"}}], notes: []}),
   // 2024 Boon of Irresistible Offense: its Overcome Defenses is IGNORES_RESISTANCE's; its Overwhelming Strike is by hand.
   "boon-of-irresistible-offense": () => ({rules: [], notes: ["Overwhelming Strike: a 20's extra damage of the attack's type is by hand"]}),
   // 2024 Commoner's Training: "proficiency in one skill of the DM's choice and ... Advantage whenever it makes an ability

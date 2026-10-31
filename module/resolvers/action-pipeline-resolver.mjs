@@ -1690,6 +1690,12 @@ function inspirationReroll(state, input, {offer: offered, failed, key, stageId, 
     return {roll, rollResult: {requestId: null, type: `${rollKind}-added`, roll, reroll: true, targetKey: key},
       payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null};
   }
+  // Peerless Aim (Boon of Combat Prowess): the miss hits instead (`forceHit`); its d20 stays, so it is no critical hit.
+  if ( option.forceHit ) {
+    const roll = {...(original ?? {}), metadata: {...(original?.metadata ?? {}), forcedHit: true}};
+    return {roll, rollResult: {requestId: null, type: `${rollKind}-forced-hit`, roll, reroll: true, targetKey: key},
+      payment: option.plan ? {type: "resourcePayment", resolver: "ResourceResolver", plan: option.plan, payerRef: option.payerRef} : null};
+  }
   // Stroke of Luck turns the d20 into a 20 (`setNatural`): a natural 20, so an attack's is a critical hit.
   if ( Number(option.setNatural) > 0 ) {
     const natural = Number(option.setNatural);

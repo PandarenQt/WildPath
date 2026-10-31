@@ -84,7 +84,9 @@ export function resolveAttackAgainstDefense({
   const margin = normalizedRoll.total - normalizedDefense.value;
   const criticalHit = isNaturalCriticalHit(normalizedRoll.die, activePolicy);
   const criticalMiss = isNaturalCriticalMiss(normalizedRoll.die, activePolicy);
-  const outcome = attackOutcome({criticalHit, criticalMiss, margin, policy: activePolicy});
+  // A roll a feature turned into a hit (Peerless Aim's `forcedHit`) hits, even on a natural 1; a critical stays one.
+  const outcome = (normalizedRoll.metadata?.forcedHit && !criticalHit) ? ATTACK_OUTCOMES.HIT
+    : attackOutcome({criticalHit, criticalMiss, margin, policy: activePolicy});
 
   return {
     ok: true,

@@ -1727,6 +1727,12 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
         label: format("WILDPATH.INSPIRATION.RerollWith", {name: item.name ?? ""})});
       continue;
     }
+    // Peerless Aim (Boon of Combat Prowess): the missed attack hits instead (`forceHit`).
+    if ( spec.forceHit ) {
+      options.push({value: `test-offer:${item.id}`, forceHit: true, payerRef: roller.uuid, plan: payment.mutationPlan,
+        label: format("WILDPATH.INSPIRATION.ForceHit", {name: item.name ?? ""})});
+      continue;
+    }
     // Stroke of Luck: the roll becomes a 20 (`setNatural`), with no die of its own.
     if ( Number(spec.setNatural) > 0 ) {
       options.push({value: `test-offer:${item.id}`, setNatural: Number(spec.setNatural), payerRef: roller.uuid, plan: payment.mutationPlan,

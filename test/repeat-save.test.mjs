@@ -510,3 +510,37 @@ test("an effect that ends when its creature is attacked remembers the resolution
   assert.ok(plan, JSON.stringify(state.mutationPlans).slice(0, 400));
   assert.match(JSON.stringify(plan), /"resolutionIds":\["resolution:child"/u);
 });
+
+test("Boon of Combat Prowess (SRD): a missed attack, even a natural 1, hits instead, not as a critical hit, for its use", async () => {
+  const fs = await import("node:fs");
+  const {withTestOffers} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const item = JSON.parse(fs.readFileSync("packs/_source/srd-items/boon-of-combat-prowess-phbBoonofCombatP.json", "utf8"));
+  const system = {resources: {}, pools: [{id: "boon-of-combat-prowess", value: 1, max: 1}]};
+  const offer = withTestOffers(null, {uuid: "Actor.fighter", name: "Fighter", items: [{id: item._id, name: item.name, flags: item.flags,
+    system: item.system}]}, system, null, "attack");
+  assert.equal(offer.options[0].forceHit, true);
+  assert.equal(withTestOffers(null, {uuid: "Actor.fighter", items: [{id: item._id, flags: item.flags, system: item.system}]},
+    {resources: {}, pools: [{id: "boon-of-combat-prowess", value: 0, max: 1}]}, null, "attack"), null, "used this turn");
+  const definition = {schemaVersion: 1, id: "action:stab", label: "Stab", costs: {allOf: []}, targeting: {type: "single", required: true, count: 1},
+    attack: {type: "melee", statistic: "weapon", defenseKey: "ac"}};
+  const run = die => {
+    let state = planStagedActionResolution({id: `resolution:aim-${die}`, actorSystem: system, action: {id: definition.id, type: "action",
+      name: definition.label, system: {definition}}, source: {actorId: "actor-fighter"},
+      targeting: {required: true, candidates: [{id: "orc", target: {id: "orc", actorId: "actor-orc", tokenId: "token-orc", disposition: "enemy",
+        defenses: {ac: {value: 15}}}, actor: {id: "actor-orc"}, disposition: "enemy", kind: "creature"}]},
+      attack: {modifierTotal: 2, inspiration: offer}}).state;
+    const answer = value => {
+      const request = state.pendingRequests[0];
+      state = resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: request.type,
+        value: typeof value === "function" ? value(request) : value}}).state;
+    };
+    answer(request => ({requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, die}));
+    answer(offer.options[0].value);
+    return state;
+  };
+  for ( const die of [8, 1] ) {
+    const state = run(die);
+    assert.equal(state.results.attackResolution.hits[0]?.outcome, "hit", `a ${die}: ${JSON.stringify(state.errors ?? []).slice(0, 300)}`);
+    assert.ok(state.mutationPlans.some(plan => (plan.type === "resourcePayment") && (plan.payerRef === "Actor.fighter")), "its use is spent");
+  }
+});

@@ -198,7 +198,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Book | equipment24 | Book (gear) | — |
 | Book | equipment24 | Book (gear) | — |
 | Book of Shadows | classes24 | Book of Shadows (automated) | rolled (attack); what it does is by hand |
-| Boon of Combat Prowess | feats24 | Boon of Combat Prowess (feature) | silent: its text names a rule that is not converted (by hand) |
+| Boon of Combat Prowess | feats24 | Boon of Combat Prowess (feature) | — |
 | Boon of Dimensional Travel | feats24 | Boon of Dimensional Travel (feature) | "Teleport" is passive or triggered: not automated |
 | Boon of Fate | feats24 | Boon of Fate (feature) | "Improve Fate" is passive or triggered: not automated |
 | Boon of Irresistible Offense | feats24 | Boon of Irresistible Offense (feature) | Overwhelming Strike: a 20's extra damage of the attack's type is by hand |
