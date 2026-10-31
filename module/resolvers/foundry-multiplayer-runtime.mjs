@@ -106,7 +106,8 @@ import {
   ignoredResistances,
   resolveActorCheckStatistic,
   resolveActorSaveStatistic,
-  resolveActorDefense
+  resolveActorDefense,
+  slotRecallFor
 } from "../helpers/combat-statistics.mjs";
 import {createMultiplayerActionCoordinator} from "./multiplayer-action-coordinator.mjs";
 import {createPhysicalDiceProvider} from "./roll-provider-resolver.mjs";
@@ -1109,6 +1110,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
         ...(Object.keys(zeroHpByTarget).length ? {zeroHpByTarget} : {}),
         ...(onReduce ? {onReduce: {...onReduce, hostileKeys}} : {}), ...(onHeal ? {onHeal} : {}), ...(lifeBonds.length ? {lifeBonds} : {})},
       configuration: clonePlainData(intent.configuration ?? null, "intent.configuration"),
+      // Boon of Spell Recall: its d4 for a spell's slot (the pipeline judges which payments roll).
+      ...(slotRecallFor(actor) ? {slotRecall: slotRecallFor(actor)} : {}),
       ...(concentration ? {concentration: concentration.input} : {}),
       ...(area.persistentArea ? {persistentArea: area.persistentArea} : {}),
       ...(areaMove ? {areaMove: areaMove.move} : {}),

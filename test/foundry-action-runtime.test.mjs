@@ -2633,6 +2633,44 @@ test("Boon of Fate: 2d4 added to a failed D20 Test of its bearer or an ally with
   assert.equal(boon.system.ruleElements.find(rule => rule.id === "boon-of-fate-initiative").data.event, "initiative.rolled", "back on Initiative");
 });
 
+/** The converted Boon of Spell Recall, as its bearer's feature. */
+function spellRecallItem() {
+  const boon = JSON.parse(readFileSync("packs/_source/srd-items/boon-of-spell-recall-phbBoonofSpellRe.json", "utf8"));
+  assert.deepEqual(boon.flags.wildpath.conversion.notes, [], "its Free Cast Roll is automated");
+  return {id: "recall", type: "feature", name: boon.name, system: {active: true}, flags: {wildpath: {slotRecall: boon.flags.wildpath.slotRecall}}};
+}
+
+test("Boon of Spell Recall: its active feature gives the bearer's Actions its d4 (the pipeline judges which payments roll)", async t => {
+  const {sourceActor, game, intent} = syntheticRuntimeFixture(t);
+  const recall = spellRecallItem();
+  // A Foundry Collection: iterating gives its Items.
+  sourceActor.items = new (class extends Map { [Symbol.iterator]() { return this.values(); } })([...sourceActor.items.entries(),
+    [recall.id, recall]]);
+  const options = async () => (await foundryActionIntentToStagedOptions({intent, senderUserId: "player-a", game,
+    persistencePort: createTestDocumentPersistenceAdapter()})).options;
+  assert.deepEqual((await options()).slotRecall, {dice: {type: "dice", number: 1, faces: 4}, maxLevel: 4});
+  recall.system.active = false;
+  assert.equal((await options()).slotRecall, undefined, "not while inactive");
+});
+
+for ( const d4 of [1, 2] ) test(`Boon of Spell Recall: a spell cast as a Reaction (a 2024 Divine Smite) rolls the d4 for its level-1 slot; a ${d4} ${d4 === 1 ? "keeps" : "spends"} it`, async t => {
+  const smite = {id: "smite", type: "action", name: "Divine Smite", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:divine-smite", label: "Divine Smite", tags: ["spell"],
+      costs: {allOf: [{capability: "spell-slot.1", amount: 1}]}, range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+      damage: [{id: "smite", expression: {type: "dice", number: 2, faces: 8}, damageType: "radiant", provenance: "spell-base"}]},
+    ruleElements: [{schemaVersion: 1, id: "smite", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["melee"]}}}]}};
+  const {sourceActor, player, gm, intent, playerRollRequests} = counterattackFixture(t, {reactor: "source", items: [smite, spellRecallItem()],
+    queue: [{natural: 18, total: 22}, {total: 9}, {total: d4}]});
+  sourceActor.system.pools = [{id: "spell-slot.1", value: 1, max: 1}];
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.deepEqual(playerRollRequests.map(request => rollFormulaForRequest(request).formula).slice(-1), ["1d4"],
+    "the d4 is rolled by the smiting creature's player");
+  assert.equal(sourceActor.system.pools[0].value, d4 === 1 ? 1 : 0);
+});
+
 test("Portent (2024 Diviner, replacing a rolled d20): offered to a Diviner who sees the roller, once per turn", async () => {
   const diviner = fakeActor("diviner", {system: actorSystem(), owners: ["player-b"]});
   diviner.items = [{id: "portent", name: "Portent", system: {active: true}, flags: {wildpath: {portentDice: {type: "constant", value: 2}}}}];

@@ -24,9 +24,15 @@
         "feat": "epicBoon"
       },
       "conversion": {
-        "notes": [
-          "\"Free Cast Roll\" is passive or triggered: not automated"
-        ]
+        "notes": []
+      },
+      "slotRecall": {
+        "dice": {
+          "type": "dice",
+          "number": 1,
+          "faces": 4
+        },
+        "maxLevel": 4
       },
       "prerequisites": {
         "level": 19

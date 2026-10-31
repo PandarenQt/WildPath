@@ -1891,6 +1891,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...(testOffer ? {testOffer} : {}), ...(trainingKeys(document).length ? {training: trainingKeys(document)} : {}),
         ...(IGNORES_RESISTANCE[identifierOf(document)] ? {ignoresResistance: [...IGNORES_RESISTANCE[identifierOf(document)]]} : {}),
         ...((identifierOf(document) === "savage-attacker") ? {damageTwice: true} : {}),
+        ...((identifierOf(document) === "boon-of-spell-recall") ? {slotRecall: structuredClone(SLOT_RECALL)} : {}),
         ...(CHOICES_FOR[identifierOf(document)] ? {choiceFor: structuredClone(CHOICES_FOR[identifierOf(document)])} : {}),
         ...(FREE_CASTS[identifierOf(document)] ? {freeCast: {spells: [...FREE_CASTS[identifierOf(document)].spells],
           ...(FREE_CASTS[identifierOf(document)].granted ? {granted: true} : {}), resourceId: freeCastResource(identifierOf(document))}} : {}),
@@ -1999,6 +2000,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
  * 2024 Boon of Irresistible Offense's Overcome Defenses. shortcut: its Overwhelming Strike (a 20's extra damage) is by hand.
  */
 const IGNORES_RESISTANCE = Object.freeze({"boon-of-irresistible-offense": ["bludgeoning", "piercing", "slashing"]});
+
+/**
+ * 2024 Boon of Spell Recall's Free Casting (`flags.wildpath.slotRecall`, read by the runtime): a spell paid with a slot
+ * of level 1-4 rolls 1d4, and a roll equal to the slot's level leaves the slot unspent.
+ */
+const SLOT_RECALL = Object.freeze({dice: {type: "dice", number: 1, faces: 4}, maxLevel: 4});
 
 /*
  * 2024 Savage Attacker (`flags.wildpath.damageTwice`): once a turn, its weapon's damage dice are rolled twice and the
@@ -2680,6 +2687,8 @@ const TRAITS = Object.freeze({
     data: {resourceId: "boon-of-combat-prowess", label: "Peerless Aim", maximum: 1, recovery: "turn"}}], notes: []}),
   // 2024 Boon of Irresistible Offense: its Overcome Defenses is IGNORES_RESISTANCE's; its Overwhelming Strike is by hand.
   "boon-of-irresistible-offense": () => ({rules: [], notes: ["Overwhelming Strike: a 20's extra damage of the attack's type is by hand"]}),
+  // 2024 Boon of Spell Recall: its Free Cast Roll is SLOT_RECALL's.
+  "boon-of-spell-recall": (document, {activities}) => ({rules: [], consumes: [...activities], notes: []}),
   // 2024 Commoner's Training: "proficiency in one skill of the DM's choice and ... Advantage whenever it makes an ability
   // check using that skill". The GM sets the skill on its sheet. shortcut: every skill it is proficient in.
   training: () => ({rules: [{schemaVersion: 1, id: "training", type: "RollMode", data: {domains: ["check.proficient"], mode: "advantage"}}],

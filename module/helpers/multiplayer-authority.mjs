@@ -438,8 +438,9 @@ const FOOTPRINT_KEYS = Object.freeze(["type", "topology", "size", "anchor", "fie
 
 /**
  * What a roll is, for its line on the card, from the authority's own request: `{key}` (an attack, a save, a check,
- * healing), or for damage `{key, damageType}`; a penalty die (Reduce: `metadata.subtract`) is less damage. Null for one
- * the card names no other way (Empowered Spell's rerolled dice).
+ * healing), or for damage `{key, damageType}`; a penalty die (Reduce: `metadata.subtract`) is less damage; another names
+ * its own (`metadata.labelKey`: Boon of Spell Recall's d4). Null for one the card names no other way (Empowered Spell's
+ * rerolled dice).
  */
 function rollLabel(request) {
   const component = request?.definition?.components?.[0] ?? null;
@@ -452,7 +453,7 @@ function rollLabel(request) {
       : {key: "WILDPATH.CHAT.Roll.Damage", ...(damageType ? {damageType} : {})};
     case ROLL_TYPES.HEALING: return {key: "WILDPATH.CHAT.Roll.Healing"};
     case ROLL_TYPES.CONCENTRATION: return {key: "WILDPATH.CHAT.Roll.Concentration"};
-    default: return null;
+    default: return (typeof request?.metadata?.labelKey === "string") ? {key: request.metadata.labelKey} : null;
   }
 }
 

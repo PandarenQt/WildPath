@@ -373,6 +373,19 @@ export function ignoredResistances(actor, {tags=[]}={}) {
 }
 
 /**
+ * Its Boon of Spell Recall, from an active feature's `flags.wildpath.slotRecall` (`{dice, maxLevel}`): a spell paid with
+ * a slot of level 1 to `maxLevel` rolls `dice`, and keeps the slot when the roll equals its level. Null without one.
+ * Both the runtime and the reaction services read it, so a spell cast as a Reaction (Shield, Divine Smite) rolls too.
+ * @param {object} actor
+ * @returns {{dice: object, maxLevel: number}|null}
+ */
+export function slotRecallFor(actor) {
+  const recall = [...(actor?.items ?? [])].find(item => (item?.system?.active !== false) && item?.flags?.wildpath?.slotRecall)
+    ?.flags.wildpath.slotRecall;
+  return recall ? structuredClone(recall) : null;
+}
+
+/**
  * The domains a check's Advantage and Disadvantage are read in: `check`, its ability's and its skill's, and
  * `check.proficient` for a skill it is proficient in (a Commoner's Training: Advantage with its chosen skill).
  */

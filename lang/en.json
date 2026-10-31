@@ -119,7 +119,9 @@
         "TypedDamage": "{type} damage",
         "LessDamage": "Less damage",
         "Healing": "Healing",
-        "Concentration": "Concentration"
+        "Concentration": "Concentration",
+        "SlotKept": "Spell Recall: slot kept",
+        "SlotSpent": "Spell Recall: slot spent"
       },
       "Outcome": {
         "Hit": "Hit",

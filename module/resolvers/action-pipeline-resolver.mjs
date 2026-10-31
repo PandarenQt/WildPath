@@ -81,7 +81,8 @@ import {
   shouldResolveSave,
   shouldResolveTargets
 } from "./action-resolver.mjs";
-import {resolveActorResourcePayment, withResourceRestores} from "./resource-resolver.mjs";
+import {createActorResourceMutationPlan, resolveActorResourcePayment, withResourceRestores} from "./resource-resolver.mjs";
+import {PACT_SLOT_POOL, pactMagic} from "../helpers/spellcasting.mjs";
 import {createActorHealingMutationPlan} from "./durability-resolver.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
@@ -153,6 +154,7 @@ export function createActionResolutionState({
   healing=null,
   effects=null,
   durability=null,
+  slotRecall=null,
   concentration=null,
   reactions=null,
   configuration=null,
@@ -202,6 +204,7 @@ export function createActionResolutionState({
       healing,
       effects,
       durability,
+      slotRecall,
       concentration,
       reactions,
       configuration,
@@ -2745,6 +2748,12 @@ function createPaymentStage() {
         }
       }
 
+      // Boon of Spell Recall: a roll of its slot's level keeps the slot. The plan still names the slot (the spell was cast
+      // with it, at its level: Blessed Healer, recordCastLevel); only the slot's spending leaves the mutation.
+      const recall = slotRecallRoll(state, input, payment.paymentPlan);
+      if ( recall?.wait ) return recall.wait;
+      if ( recall?.kept ) payment.mutationPlan = createActorResourceMutationPlan(input.actorSystem,
+        {...payment.paymentPlan, resources: payment.paymentPlan.resources.filter(entry => entry !== recall.slot)});
       // The pools the Action refills (Multiattack) join its payment.
       payment.mutationPlan = withResourceRestores(input.actorSystem, payment.mutationPlan, state.actionDefinition?.restores ?? []);
       if ( !payment.mutationPlan?.ok ) {
@@ -2781,6 +2790,7 @@ function createPaymentStage() {
         data: {
           paymentPlan: payment.paymentPlan,
           discovery: payment.discovery,
+          ...(recall ? {slotRecall: {level: recall.level, total: recall.total, kept: recall.kept}} : {}),
           ...(controllerPayment ? {controllerPaymentPlan: controllerPayment.paymentPlan} : {})
         }
       });
@@ -2810,7 +2820,7 @@ function createPaymentStage() {
             targetKey: rollModeTargetKey(state.source) || String(state.source?.actorId ?? "")}} : {})}
         : null;
       // Its dice are rolls of its own, on its card like any other (Mirror Image's d6s, a Cutting Words die).
-      const riderRolls = [penalty, reduction, damagePenalty, decoy].map(entry => entry?.rollResult).filter(Boolean);
+      const riderRolls = [recall, penalty, reduction, damagePenalty, decoy].map(entry => entry?.rollResult).filter(Boolean);
       return continueResolutionStage({
         state: stateWithActionResult(riderRolls.length ? {...state, rollResults: [...(state.rollResults ?? []), ...riderRolls]} : state, {
           input,
@@ -3502,6 +3512,29 @@ function riderRoll(state, input, spec, key) {
   if ( rolled.wait ) return {wait: rolled.wait};
   if ( rolled.fail ) return null;
   return {total: Math.max((Number(rolled.roll?.total) || 0) + bonusOf(), 0), rollResult: rolled.rollResult ?? null};
+}
+
+/**
+ * Boon of Spell Recall (`input.slotRecall`: `{dice, maxLevel}`): a spell paid with a spell slot of level 1 to `maxLevel`
+ * rolls its die, by its caster, once paid for; a roll equal to the slot's level keeps the slot. A Pact Magic slot is of
+ * its Pact Magic's level. `{wait}` while it is rolled, `{slot, level, total, kept, rollResult}`, or null when nothing is
+ * rolled: no boon, not a spell (Eldritch Smite's slot), no slot of those levels (a free cast, Mystic Arcanum).
+ * shortcut: `resourcesAfter` on its step still shows the slot spent; nothing reads it today.
+ */
+function slotRecallRoll(state, input, paymentPlan) {
+  const recall = input.slotRecall;
+  if ( !recall || !(state.actionDefinition?.tags ?? []).includes("spell") ) return null;
+  const slot = (paymentPlan?.resources ?? []).find(entry => String(entry?.resourceId ?? "").startsWith("spell-slot."));
+  const level = (slot?.resourceId === PACT_SLOT_POOL) ? pactMagic(input.actorSystem?.classes ?? []).level
+    : Number(/^spell-slot\.(\d+)$/.exec(slot?.resourceId ?? "")?.[1]);
+  if ( !(level >= 1) || !(level <= (Number(recall.maxLevel) || 4)) ) return null;
+  const rolled = riderRoll(state, input, {dice: recall.dice}, "slot-recall");
+  if ( !rolled || rolled.wait ) return rolled;
+  const kept = rolled.total === level;
+  // Its line on the card says what the roll did (rollLabel reads the request's `labelKey`).
+  const rollRequest = rolled.rollResult ? {...rolled.rollResult.rollRequest, metadata: {...(rolled.rollResult.rollRequest?.metadata ?? {}),
+    labelKey: kept ? "WILDPATH.CHAT.Roll.SlotKept" : "WILDPATH.CHAT.Roll.SlotSpent"}} : null;
+  return {...rolled, ...(rollRequest ? {rollResult: {...rolled.rollResult, rollRequest}} : {}), slot, level, kept};
 }
 
 /** Its ability check lowered by `penalty` (Cutting Words) and judged again against its DC. */

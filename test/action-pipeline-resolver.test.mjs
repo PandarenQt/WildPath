@@ -12,6 +12,7 @@ import {ROLL_TYPES, rollFormulaForRequest} from "../module/helpers/rolls.mjs";
 import {AUTOMATION_EVENT_TYPES} from "../module/helpers/automation-events.mjs";
 import {
   createPhysicalDiceProvider,
+  createTestRollProvider,
   executeRollRequest
 } from "../module/resolvers/roll-provider-resolver.mjs";
 import {
@@ -966,6 +967,83 @@ test("a rider's dice may keep only their highest (Mirror Image's d6 per duplicat
   // Its d6s are a roll of its own, on its card.
   assert.deepEqual(sanitizeResolutionResultForTransport({state: done.state}).rolls.map(roll => [roll.formula, roll.rollResult?.total]),
     [["2d6kh", 4]]);
+});
+
+/** A spell (unless `tags` say otherwise) paid with the Action and one slot, cast by a caster with Boon of Spell Recall. */
+function recalledCast(id, {cost="spell-slot.2", pool=cost, tags=["spell"], classes=[],
+  recall={dice: {type: "dice", number: 1, faces: 4}, maxLevel: 4}}={}) {
+  const bolt = {schemaVersion: 1, id: "action:bolt", label: "Bolt", tags, targeting: {type: "self"},
+    costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}, {capability: cost, amount: 1}]}};
+  return planStagedActionResolution({id, actorSystem: {...actorSystem(1, {pools: [{id: pool, value: 1, max: 2}]}), classes},
+    action: definitionAction(bolt), source: {actorId: "actor-source"}, slotRecall: recall});
+}
+
+function answerRoll(plan, value) {
+  const request = plan.state.pendingRequests[0];
+  return resumeStagedActionResolution({state: plan.state, response: {resolutionId: plan.state.id, requestId: request.id,
+    type: RESOLUTION_REQUEST_TYPES.ROLL, value}});
+}
+
+const paidUpdates = state => state.mutationPlans.find(entry => entry.type === "resourcePayment").plan.updates;
+
+test("Boon of Spell Recall: a spell cast with a level-2 slot rolls 1d4; a 2 keeps the slot, a 3 spends it", () => {
+  const plan = recalledCast("resolution:recall");
+  assert.equal(plan.state.status, RESOLUTION_STATE_STATUS.AWAITING_ROLL);
+  assert.equal(plan.state.pendingRequests[0].chooser, "source-controller", "its caster rolls it");
+  assert.equal(rollFormulaForRequest(plan.state.pendingRequests[0].payload.rollRequest).formula, "1d4");
+  const kept = answerRoll(plan, {total: 2});
+  assert.equal(kept.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT);
+  assert.deepEqual(paidUpdates(kept.state), {"system.resources.action.value": 0}, "the Action is spent, the slot is not");
+  assert.deepEqual(kept.state.results.paymentResolution.paymentPlan.resources.map(entry => entry.resourceId), ["economy.action", "spell-slot.2"],
+    "the spell was still cast with the slot");
+  const step = kept.state.results.actionResult.steps.find(entry => entry.stage === "resourcePayment");
+  assert.deepEqual(step.data.slotRecall, {level: 2, total: 2, kept: true});
+  assert.deepEqual(sanitizeResolutionResultForTransport({state: kept.state}).rolls.map(roll => [roll.formula, roll.rollResult?.total, roll.label]),
+    [["1d4", 2, {key: "WILDPATH.CHAT.Roll.SlotKept"}]], "its d4 is on the card");
+  const spent = answerRoll(recalledCast("resolution:recall-spent"), {total: 3});
+  assert.deepEqual(paidUpdates(spent.state), {"system.resources.action.value": 0, "system.pools.0.value": 0});
+  assert.deepEqual(sanitizeResolutionResultForTransport({state: spent.state}).rolls.map(roll => roll.label), [{key: "WILDPATH.CHAT.Roll.SlotSpent"}]);
+});
+
+test("Boon of Spell Recall: no d4 for a level-5 slot, a slot spent by no spell (Eldritch Smite), a free cast, or without the boon", () => {
+  const cases = {
+    "a level-5 slot": recalledCast("resolution:recall-5", {cost: "spell-slot.5"}),
+    "Eldritch Smite's untagged pact slot": recalledCast("resolution:recall-eldritch", {cost: "spell-slot.pact", tags: [],
+      classes: [{id: "warlock", level: 5, spellcasting: {progression: "pact"}}]}),
+    "a free cast": recalledCast("resolution:recall-free", {cost: "fey-touched"}),
+    "no boon": recalledCast("resolution:recall-none", {recall: null})
+  };
+  for ( const [name, plan] of Object.entries(cases) ) {
+    assert.equal(plan.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, name);
+    assert.equal(paidUpdates(plan.state)["system.pools.0.value"], 0, `${name}: spent as usual`);
+  }
+});
+
+test("Boon of Spell Recall: a Pact Magic slot rolls at its Pact Magic level, even paying for a lower-level spell", () => {
+  const warlock = {pool: "spell-slot.pact", classes: [{id: "warlock", level: 5, spellcasting: {progression: "pact"}}]};
+  assert.deepEqual(paidUpdates(answerRoll(recalledCast("resolution:pact", {...warlock, cost: "spell-slot.1"}), {total: 3}).state),
+    {"system.resources.action.value": 0}, "a 3 keeps a level-3 pact slot");
+  assert.equal(paidUpdates(answerRoll(recalledCast("resolution:pact-1", {...warlock, cost: "spell-slot.1"}), {total: 1}).state)["system.pools.0.value"], 0,
+    "a 1 does not: the slot is level 3");
+});
+
+test("Boon of Spell Recall: physical and digital d4s keep the slot alike, and an answered d4 is not asked again", async () => {
+  const kept = async (id, providers, context={}) => {
+    const plan = recalledCast(id);
+    const rollRequest = plan.state.pendingRequests[0].payload.rollRequest;
+    const provided = await executeRollRequest({request: rollRequest, providers, context: {physicalRolls: {[rollRequest.id]: {
+      requestId: rollRequest.id, resolutionId: rollRequest.resolutionId, type: rollRequest.type, total: 2}}, ...context}});
+    assert.equal(provided.ok, true, JSON.stringify(provided));
+    return answerRoll(plan, provided.result);
+  };
+  const physical = await kept("resolution:recall-physical", [createPhysicalDiceProvider()]);
+  const digital = await kept("resolution:recall-digital", [createTestRollProvider({result: {total: 2}})]);
+  for ( const done of [physical, digital] ) assert.deepEqual(paidUpdates(done.state), {"system.resources.action.value": 0});
+  assert.equal(physical.state.rollResults[0].rollResult.provenance.type, "physical");
+  const again = resumeStagedActionResolution({state: physical.state, response: {resolutionId: physical.state.id,
+    requestId: physical.state.rollResults[0].requestId, type: RESOLUTION_REQUEST_TYPES.ROLL, value: {total: 3}}});
+  assert.equal(again.state.rollRequests.filter(request => request.id.endsWith("slot-recall")).length, 1, "one d4 only");
+  assert.deepEqual(paidUpdates(again.state), {"system.resources.action.value": 0});
 });
 
 test("a reaction that counters (Counterspell): its target's failed save asks the parent to be cancelled; a success does not", () => {
