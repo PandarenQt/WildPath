@@ -21,7 +21,7 @@
         "value": 0
       }
     },
-    "travelSpeed": 2,
+    "travelSpeed": 2.5,
     "capacity": {
       "crew": 60,
       "passengers": 60,

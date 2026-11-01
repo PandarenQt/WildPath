@@ -4983,7 +4983,13 @@ export function convertVehicle(document, {scales={}, pack=null, names={}, licens
   const notes = [];
   const actorId = document._id;
   const text = String(system.details?.biography?.value ?? "").replace(/<[^>]+>/g, " ");
-  const line = label => number(new RegExp(`\\b${label}:\\s*([\\d.,]+)`, "i").exec(text)?.[1]?.replaceAll(",", ""));
+  // A stat block's number, a mixed fraction too ("Speed: 1 1/2 mph", "1½"): the Rowboat's 1.5, not 1.
+  const line = label => {
+    const match = new RegExp(`\\b${label}:\\s*([\\d.,]*)\\s*(?:(\\d+)/(\\d+)|([½¼¾]))?`, "i").exec(text);
+    if ( !match || (!match[1] && !match[2] && !match[4]) ) return null;
+    const fraction = match[2] ? Number(match[2]) / Number(match[3]) : ({"½": 0.5, "¼": 0.25, "¾": 0.75}[match[4]] ?? 0);
+    return (number(match[1]?.replaceAll(",", "")) ?? 0) + fraction;
+  };
   const holds = number(attributes.capacity?.creature) ?? 0;
   const items = [];
   for ( const source of document.items ?? [] ) {

@@ -111,7 +111,7 @@ function dnd5eVehicle(overrides={}) {
     system: {source: {license: "CC-BY-4.0", rules: "2024"},
       attributes: {ac: {flat: 20}, hp: {max: 200, dt: 10}, movement: {walk: "30", swim: "30"}, capacity: {creature: "6", cargo: {value: 2}}},
       traits: {size: "lg", di: {value: ["poison", "psychic"]}, ci: {value: ["blinded"]}},
-      details: {biography: {value: "<p><strong>Speed:</strong> 1.5 mph</p><p><strong>Crew:</strong> 2</p><p><strong>Passengers:</strong> —</p>"}}},
+      details: {biography: {value: "<p><strong>Speed:</strong> 1 1/2 mph</p><p><strong>Crew:</strong> 2</p><p><strong>Passengers:</strong> —</p>"}}},
     items: [{_id: "claw000000000000", name: "Claw", type: "feat", system: {source: {license: "CC-BY-4.0", rules: "2024"},
       type: {value: "monster"}, description: {value: ""},
       activities: {a: {_id: "a", type: "attack", activation: {type: "special"}, attack: {flat: true, bonus: "8", type: {value: "melee",
