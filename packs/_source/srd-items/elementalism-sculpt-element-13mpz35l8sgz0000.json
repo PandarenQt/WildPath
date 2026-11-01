@@ -14,6 +14,7 @@
         "spell",
         "cantrip",
         "school:transmutation",
+        "spell:elementalism",
         "component:verbal",
         "component:somatic"
       ],

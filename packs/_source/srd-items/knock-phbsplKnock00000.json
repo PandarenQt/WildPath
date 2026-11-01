@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:transmutation",
+        "spell:knock",
         "component:verbal"
       ],
       "costs": {

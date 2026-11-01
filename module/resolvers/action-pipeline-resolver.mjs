@@ -8,7 +8,8 @@ import {pushable, pushedTargets} from "../helpers/forced-movement.mjs";
 import {
   actionDefinitionActivationCost,
   actionDefinitionFromAction,
-  actionDefinitionToResolverInput
+  actionDefinitionToResolverInput,
+  startsConcentration
 } from "../helpers/action-definitions.mjs";
 import {
   ACTION_CONFIGURATION_CODES,
@@ -86,9 +87,10 @@ import {PACT_SLOT_POOL, pactMagic} from "../helpers/spellcasting.mjs";
 import {createActorHealingMutationPlan} from "./durability-resolver.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
+import {resolveDamageTargets} from "./damage-resolver.mjs";
 import {resolveAttackTargets} from "./attack-resolver.mjs";
 import {resolveSaveAgainstDC, resolveSaveTargets} from "./save-resolver.mjs";
-import {planConcentrationChecks, resolveConcentrationCheckResults} from "./concentration-resolver.mjs";
+import {CONCENTRATION_OUTCOMES, planConcentrationChecks, resolveConcentrationCheckResults} from "./concentration-resolver.mjs";
 import {planEffectLifecycle} from "./effect-lifecycle-resolver.mjs";
 import {
   REACTION_WINDOW_TIMINGS,
@@ -261,6 +263,20 @@ export function createActionResolutionPipeline({reactions=false}={}) {
     createReadyToCommitStage()
   );
   return stages.map(stage => (TARGETED_STAGE_IDS.has(stage.id) ? skippedWithoutTargets(stage) : stage));
+}
+
+/**
+ * A target its rules leave untouched by this Action (`Unaffected`, found by the runtime: `context.unaffected`) stays
+ * targeted, so the Action is still spent, but is excluded from what it does: no attack, save, damage or effect.
+ */
+function withoutUnaffected(resolution, unaffected=[]) {
+  const keys = new Set(normalizeArray(unaffected).map(rollModeTargetKey));
+  if ( !resolution.ok || !keys.size ) return resolution;
+  const spared = target => keys.has(rollModeTargetKey(target));
+  return {...resolution,
+    refinement: {...resolution.refinement, finalTargets: (resolution.refinement?.finalTargets ?? []).filter(target => !spared(target))},
+    targetContexts: (resolution.targetContexts ?? []).map(context => (spared(context.target ?? context)
+      ? {...context, excluded: true, resolutionState: "excluded", unaffected: true} : context))};
 }
 
 const TARGETED_STAGE_IDS = new Set([ACTION_PIPELINE_STAGE_IDS.ATTACK_ROLL, ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME,
@@ -816,7 +832,11 @@ function createConfigurationStage() {
 function createTargetingStage() {
   return createResolutionPipelineStage({
     id: ACTION_PIPELINE_STAGE_IDS.TARGETING,
-    run(state) {
+    run(state, services={}) {
+      // A reaction that picks its creature as it is used (`targetChoice`), before anything else is worked out for it.
+      const chosen = chosenTarget(state, services);
+      if ( chosen?.stop ) return chosen.stop;
+      if ( chosen?.state ) state = chosen.state;
       let input = preparedResolverInput(state);
       // An Action its creature cannot pay for (its Action spent, or capped at 0: Incapacitated, Command's Halt) is refused
       // before anything is rolled; the payment stage still pays it at the end.
@@ -889,7 +909,7 @@ function createTargetingStage() {
         });
       }
 
-      const targetResolution = resolveActionTargets({
+      const targetResolution = withoutUnaffected(resolveActionTargets({
         source: actionContext.source,
         targetSet: targeting?.targetSet ?? actionContext.targetSet,
         candidates: targeting?.candidates ?? [],
@@ -900,7 +920,7 @@ function createTargetingStage() {
         context: {action: actionContext.action, ...(targeting?.context ?? {})},
         required: targeting?.required ?? false,
         metadata: targeting?.metadata ?? {}
-      });
+      }), input.context?.unaffected);
       if ( !targetResolution.ok ) {
         return failActionPlanningStage({
           state,
@@ -2033,64 +2053,98 @@ function createComponentRollStage({id, kind, rollType, request}) {
       const input = preparedResolverInput(state);
       const resolves = kind === "damage" ? shouldResolveDamage(input.damage) : shouldResolveHealing(input.healing);
       if ( !resolves || ((kind === "damage") && attackResolvedAsOnlyMisses(state)) ) {
-        return continueResolutionStage({state: updateResolutionState(state, {input})});
+        const own = (kind === "damage") ? sourceDamageRolls(state, input, id) : null;
+        if ( own?.stop ) return own.stop;
+        return continueResolutionStage({state: updateResolutionState(own?.state ?? state, {input: {...input,
+          ...(own ? {sourceDamage: own.values} : {})}})});
       }
-      let values = withFixedModifier(input[kind]);
-      let current = state;
-      for ( ;; ) {
-        const components = values?.components ?? [];
-        const index = components.findIndex(component => component?.amount == null);
-        if ( index < 0 ) {
-          // Empowered Spell, Piercer's Puncture: its lowest damage dice are rolled again, once all are rolled.
-          const empowered = (kind === "damage") ? empoweredReroll(current, input, values, id) : null;
-          if ( empowered?.wait || empowered?.fail ) return empowered.wait ?? empowered.fail;
-          if ( empowered?.values ) ({values, state: current} = empowered);
-          if ( kind === "damage" ) values = lessPenaltyDamage(values);
-          return continueResolutionStage({state: updateResolutionState(current, {input: {...input, [kind]: values}})});
-        }
-        const requestId = requestIdFor(current, index ? `${request}:${index}` : request);
-        const build = () => componentRollRequestForState(current, input, {kind, rollType, requestId, index, values});
-        const accepted = getResolutionResponse(current, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
-        if ( !accepted ) {
-          const rollRequest = build();
-          return waitResolutionStage({
-            state: updateResolutionState(current, {input: {...input, [kind]: values},
-              rollRequests: appendRollRequest(current.rollRequests, rollRequest)}),
-            request: createResolutionRequest({
-              id: rollRequest.id,
-              resolutionId: current.id,
-              stageId: id,
-              type: RESOLUTION_REQUEST_TYPES.ROLL,
-              expectedResponseType: "roll-result",
-              chooser: rollRequest.chooser,
-              authority: rollRequest.authority,
-              validation: {rollRequestId: rollRequest.id, semanticType: rollRequest.type,
-                formula: rollFormulaForRequest(rollRequest).formula ?? null},
-              payload: {actionDefinitionId: current.actionDefinition?.id ?? null, rollKind: kind, rollRequest,
-                [kind]: values, targets: input.targets ?? []}
-            }),
-            reason: `A ${kind} roll result is required before action resolution can continue.`
-          });
-        }
-        const rollRequest = rollRequestFromAcceptedResponse(accepted, build);
-        const normalized = normalizeRollResponseValue(accepted.response.value, {request: rollRequest,
-          completedRequestIds: completedRollRequestIds(current)});
-        if ( !normalized.ok ) return failResolutionStage({state: current, code: normalized.code, reason: normalized.reason,
-          errors: [{code: normalized.code, reason: normalized.reason, requestId, validation: normalized.validation}],
-          data: {requestId, rollRequest, validation: normalized.validation}});
-        const [rolled] = rollResultToDamageComponents({result: normalized.result, components: [components[index]]});
-        // The damage modifier rolled with this component's dice; it must not be added again to its amount.
-        const modifierRolled = index === modifierComponentIndex(values);
-        values = {...values, components: components.map((component, i) => (i === index ? rolled : component)),
-          ...(modifierRolled ? {modifierApplied: true} : {})};
-        current = updateResolutionState(current, {
-          rollRequests: appendRollRequest(current.rollRequests, rollRequest),
-          rollResults: [...current.rollResults, {requestId: accepted.request.id, type: `${kind}-roll`,
-            semanticType: normalized.result.type, rollRequest, rollResult: normalized.result, roll: {total: normalized.result.total}}]
-        });
-      }
+      const rolled = rollEachComponent(state, input, {id, kind, rollType, request, values: withFixedModifier(input[kind])});
+      if ( rolled.stop ) return rolled.stop;
+      let {values, state: current} = rolled;
+      // Empowered Spell, Piercer's Puncture: its lowest damage dice are rolled again, once all are rolled.
+      const empowered = (kind === "damage") ? empoweredReroll(current, input, values, id) : null;
+      if ( empowered?.wait || empowered?.fail ) return empowered.wait ?? empowered.fail;
+      if ( empowered?.values ) ({values, state: current} = empowered);
+      if ( kind === "damage" ) values = lessPenaltyDamage(values);
+      // Then the damage it deals its own source (Overchannel's backlash), each part its own roll.
+      // Its rolled damage kept, so waiting on these doesn't roll it again.
+      const own = (kind === "damage") ? sourceDamageRolls(current, {...input, damage: values}, id) : null;
+      if ( own?.stop ) return own.stop;
+      return continueResolutionStage({state: updateResolutionState(own?.state ?? current, {input: {...input, [kind]: values,
+        ...(own ? {sourceDamage: own.values} : {})}})});
     }
   });
+}
+
+/**
+ * Its damage dealt to its own source (`sourceDamage`), rolled once the Action's own damage is: never doubled by a critical
+ * hit, maximized or rolled again. Rolled even when every attack missed. `{values, state}`, `{stop}`, or null without any.
+ */
+function sourceDamageRolls(state, input, id) {
+  if ( !input.sourceDamage?.components?.length ) return null;
+  return rollEachComponent(state, input, {id, kind: "sourceDamage", rollType: ROLL_TYPES.DAMAGE, request: "source-damage-roll",
+    values: input.sourceDamage});
+}
+
+/**
+ * Each component without an amount rolled, one request at a time. Damage the Action maximizes (`metadata.maximized`:
+ * Overchannel) is not rolled: each of its dice is at its highest. `{values, state}` once all have one, else `{stop}`.
+ */
+function rollEachComponent(state, input, {id, kind, rollType, request, values}) {
+  let current = state;
+  const definition = state.configuration?.effectiveDefinition ?? state.actionDefinition;
+  const maximized = (kind === "damage") && (definition?.metadata?.maximized === true);
+  for ( ;; ) {
+    const components = values?.components ?? [];
+    const index = components.findIndex(component => component?.amount == null);
+    if ( index < 0 ) return {values, state: current};
+    const requestId = requestIdFor(current, index ? `${request}:${index}` : request);
+    const build = () => componentRollRequestForState(current, input, {kind, rollType, requestId, index, values});
+    const accepted = getResolutionResponse(current, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
+    if ( !accepted && !maximized ) {
+      const rollRequest = build();
+      return {stop: waitResolutionStage({
+        state: updateResolutionState(current, {input: {...input, [kind]: values},
+          rollRequests: appendRollRequest(current.rollRequests, rollRequest)}),
+        request: createResolutionRequest({
+          id: rollRequest.id,
+          resolutionId: current.id,
+          stageId: id,
+          type: RESOLUTION_REQUEST_TYPES.ROLL,
+          expectedResponseType: "roll-result",
+          chooser: rollRequest.chooser,
+          authority: rollRequest.authority,
+          validation: {rollRequestId: rollRequest.id, semanticType: rollRequest.type,
+            formula: rollFormulaForRequest(rollRequest).formula ?? null},
+          payload: {actionDefinitionId: current.actionDefinition?.id ?? null, rollKind: kind, rollRequest,
+            [kind]: values, targets: input.targets ?? []}
+        }),
+        reason: `A ${kind} roll result is required before action resolution can continue.`
+      })};
+    }
+    const rollRequest = accepted ? rollRequestFromAcceptedResponse(accepted, build) : build();
+    const normalized = normalizeRollResponseValue(accepted ? accepted.response.value : {total: highestRoll(rollRequest)},
+      {request: rollRequest, completedRequestIds: completedRollRequestIds(current)});
+    if ( !normalized.ok ) return {stop: failResolutionStage({state: current, code: normalized.code, reason: normalized.reason,
+      errors: [{code: normalized.code, reason: normalized.reason, requestId, validation: normalized.validation}],
+      data: {requestId, rollRequest, validation: normalized.validation}})};
+    const [rolled] = rollResultToDamageComponents({result: normalized.result, components: [components[index]]});
+    // The damage modifier rolled with this component's dice; it must not be added again to its amount.
+    const modifierRolled = (kind !== "sourceDamage") && (index === modifierComponentIndex(values));
+    values = {...values, components: components.map((component, i) => (i === index ? rolled : component)),
+      ...(modifierRolled ? {modifierApplied: true} : {})};
+    current = updateResolutionState(current, {
+      rollRequests: appendRollRequest(current.rollRequests, rollRequest),
+      rollResults: [...current.rollResults, {requestId: accepted?.request?.id ?? rollRequest.id, type: `${kind}-roll`,
+        semanticType: normalized.result.type, rollRequest, rollResult: normalized.result, roll: {total: normalized.result.total}}]
+    });
+  }
+}
+
+/** A roll request's highest total: every die at its largest face, and its modifier. */
+function highestRoll(rollRequest) {
+  return (rollRequest.definition?.dice ?? []).reduce((total, die) => total + ((Number(die.number) || 0) * (Number(die.faces) || 0)),
+    Number(rollRequest.definition?.modifierTotal) || 0);
 }
 
 /**
@@ -2163,7 +2217,7 @@ function createDamageStage() {
         durability: preparePlanningDurabilityOptions(state.input?.durability, services.targetActors, services.snapshotActor,
           services.damageProfileOf)
       };
-      if ( !shouldResolveDamage(input.damage) ) return continueResolutionStage({
+      if ( !shouldResolveDamage(input.damage) && !sourceDamageComponents(input).length ) return continueResolutionStage({
         state: updateResolutionState(state, {input})
       });
       const planning = ensureActionPlanningResult(state, input);
@@ -2172,13 +2226,13 @@ function createDamageStage() {
       let {actionResult} = planning;
 
       // A reaction may have moved a creature's damage to another (Cloud Rune, Protective Bond).
-      const damageResolution = redirectedDamage(resolveActionDamage({
+      const damageResolution = withSourceDamage(shouldResolveDamage(input.damage) ? redirectedDamage(resolveActionDamage({
         damage: input.damage,
         targetResolution: state.results?.targetResolution ?? null,
         attackResolution: state.results?.attackResolution ?? null,
         saveResolution: state.results?.saveResolution ?? null,
         actionContext
-      }), input.durability?.redirectsByTarget, state.results?.attackResolution ?? null);
+      }), input.durability?.redirectsByTarget, state.results?.attackResolution ?? null) : null, input, actionContext);
       if ( !damageResolution.ok ) {
         return failActionPlanningStage({
           state,
@@ -2243,6 +2297,26 @@ function createDamageStage() {
       });
     }
   });
+}
+
+/** Its rolled damage to its own source (`sourceDamage`) that came to something. */
+function sourceDamageComponents(input) {
+  return normalizeArray(input.sourceDamage?.components).filter(component => Number(component?.amount) > 0);
+}
+
+/**
+ * Its damage to its own source (Overchannel's backlash) as damage results on that creature, beside the Action's own, so
+ * both are planned together (a source among its targets takes both from one snapshot) and its Concentration is checked
+ * as any damaged creature's.
+ */
+function withSourceDamage(damageResolution, input, actionContext) {
+  const components = sourceDamageComponents(input);
+  if ( !components.length || !input.source ) return damageResolution;
+  const own = resolveDamageTargets({components, targets: [input.source], context: {action: actionContext.action, source: actionContext.source}});
+  if ( !damageResolution ) return own;
+  const totals = {...(damageResolution.totals ?? {})};
+  for ( const [key, total] of Object.entries(own.totals) ) totals[key] = (totals[key] ?? 0) + total;
+  return {...damageResolution, ok: damageResolution.ok && own.ok, results: [...normalizeArray(damageResolution.results), ...own.results], totals};
 }
 
 function createHealingStage() {
@@ -2433,14 +2507,17 @@ function createEffectStage() {
  * A damaged creature that is concentrating checks to keep it (DC from the damage taken; ConcentrationResolver).
  * Each check is a save rolled by that creature's controller, one after another; a failed check ends every
  * effect that depends on that concentration in the same transaction as the damage. `input.concentration`
- * comes from the runtime: `{states, dependents: [{target, effects}], policy}`.
+ * comes from the runtime: `{states, dependents: [{target, effects}], policy}`. A source that loses the concentration this
+ * Action starts (`startingConcentration`) keeps none of its effects, and `results.concentrationResolution.startedLost`
+ * tells the runtime to end what it sustains once it completes (its lasting area, summons, marker).
  */
 function createConcentrationStage() {
   return createResolutionPipelineStage({
     id: ACTION_PIPELINE_STAGE_IDS.CONCENTRATION,
     run(state) {
       const input = preparedResolverInput(state);
-      const concentration = input.concentration;
+      const starting = startingConcentration(state, input);
+      const concentration = starting ? {...(input.concentration ?? {}), states: starting.states} : input.concentration;
       if ( !concentration?.states || !state.results?.damageResolution ) return continueResolutionStage({state});
       const planningChecks = planConcentrationChecks({
         damageResolution: state.results.damageResolution,
@@ -2509,7 +2586,12 @@ function createConcentrationStage() {
       const mutationPlans = lifecycle.flatMap(entry => entry.mutationPlans ?? []);
       const planning = ensureActionPlanningResult(current, input);
       if ( planning.failed ) return planning.failed;
-      const actionResult = addResolutionStep(planning.actionResult, {
+      const startedLost = !!starting && checks.decisions.some(decision => (decision.outcome === CONCENTRATION_OUTCOMES.BROKEN)
+        && starting.refs.includes(decision.checkRequest?.targetRef));
+      // Its own concentration effects, planned by the effects stage, are never created.
+      const kept = startedLost ? {...planning.actionResult, mutationPlans: planning.actionResult.mutationPlans.filter(plan => !plan?.concentration)}
+        : planning.actionResult;
+      const actionResult = addResolutionStep(kept, {
         stage: ACTION_RESOLUTION_STAGES.EFFECTS,
         consequences: [{type: "concentrationResolved", checks}],
         mutationPlans,
@@ -2519,12 +2601,28 @@ function createConcentrationStage() {
         state: stateWithActionResult(current, {
           input: {...input, concentration: {...concentration, rolled}},
           actionResult,
-          results: {concentrationResolution: {checks, endedEffects: mutationPlans.length}}
+          results: {concentrationResolution: {checks, endedEffects: mutationPlans.length, ...(startedLost ? {startedLost} : {})}}
         }),
         data: {checkCount: planningChecks.checkRequests.length, endedEffects: mutationPlans.length}
       });
     }
   });
+}
+
+/**
+ * The source as concentrating on the concentration this Action starts, when the Action damages it (`sourceDamage`):
+ * Overchannel's backlash comes once the spell is cast, so it threatens that spell, concentrating before or not. The
+ * runtime's state for the source (its save bonus and roll mode) when it gave one, else a bare one. `{states, refs}` or null.
+ */
+function startingConcentration(state, input) {
+  const source = input.source;
+  if ( !source || !sourceDamageComponents(input).length
+    || !startsConcentration(state.configuration?.effectiveDefinition ?? state.actionDefinition) ) return null;
+  const states = input.concentration?.states ?? {};
+  const refs = targetLookupRefs(source);
+  const own = refs.map(ref => states[ref]).find(Boolean)
+    ?? {concentrating: true, actorId: source.actorId ?? null, sourceRef: source.tokenId ? `token:${source.tokenId}` : null};
+  return {states: {...states, ...Object.fromEntries(refs.map(ref => [ref, own]))}, refs};
 }
 
 /**
@@ -3692,11 +3790,16 @@ function riderDurability(input, rider, childState) {
 function withRedirect(durability, fromKey, candidate, spec=null) {
   const options = (durability && (typeof durability === "object")) ? durability : {};
   if ( !fromKey || !candidate?.target ) return options;
-  const keys = normalizeArray(candidate.keys);
   // The attack becomes the new creature's, with the same roll (Cloud Rune): against its AC.
   const to = (spec?.sameRoll && Number.isFinite(Number(candidate.ac))) ? {...candidate.target, sameRollAgainst: Number(candidate.ac)}
     : candidate.target;
-  return {...options, redirectsByTarget: {...(options.redirectsByTarget ?? {}), [fromKey]: to},
+  return {...withCandidateDurability(options, candidate), redirectsByTarget: {...(options.redirectsByTarget ?? {}), [fromKey]: to}};
+}
+
+/** Durability options with what planning a candidate's damage or healing needs, under each of its keys. */
+function withCandidateDurability(options, candidate) {
+  const keys = normalizeArray(candidate.keys);
+  return {...options,
     targetSystems: {...(options.targetSystems ?? {}), ...Object.fromEntries(keys.map(key => [key, candidate.actorSystem]))},
     ...(candidate.profile ? {adjustmentProfiles: {...(options.adjustmentProfiles ?? {}),
       ...Object.fromEntries(keys.map(key => [key, candidate.profile]))}} : {}),
@@ -3730,27 +3833,70 @@ function redirectedDamage(damageResolution, redirectsByTarget, attackResolution=
  * Who takes the damage instead (`rider.redirectDamage`): its own creature (`to: "self"`: Protective Bond), or a creature
  * within `range` of it (of the Token `around`, when given) other than itself, the attacker and the creature it protects
  * (`chosen`: Cloud Rune), its controller's pick when there are several. The runtime finds them
- * (`services.redirectCandidates`). `{candidate}`, `{wait}`, or null.
+ * (`services.redirectCandidates`). `exclude` replaces those three; `includeSelf` offers its own creature first. `prompt`
+ * names the request and its text. `{candidate}`, `{wait}`, or null.
  */
-function redirectChoice(state, services, spec, stageId=ACTION_PIPELINE_STAGE_IDS.PAYMENT) {
+function redirectChoice(state, services, spec, stageId=ACTION_PIPELINE_STAGE_IDS.PAYMENT, prompt=REDIRECT_PROMPT) {
   if ( !spec || (typeof services?.redirectCandidates !== "function") ) return null;
   const event = state.sourceEvent ?? {};
   const reactor = state.source?.tokenId ?? null;
-  const candidates = normalizeArray(spec.to === "self" ? services.redirectCandidates({tokenIds: [reactor]})
-    : services.redirectCandidates({around: spec.around ?? reactor, range: Number(spec.range) || 5,
-      exclude: [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId, reactor].filter(Boolean)}));
+  const own = () => normalizeArray(services.redirectCandidates({tokenIds: [reactor]}));
+  const candidates = (spec.to === "self") ? own() : [...(spec.includeSelf ? own() : []),
+    ...normalizeArray(services.redirectCandidates({around: spec.around ?? reactor, range: Number(spec.range) || 5,
+      exclude: spec.exclude ?? [event.source?.tokenId, normalizeArray(event.targets)[0]?.tokenId, reactor].filter(Boolean)}))];
   if ( candidates.length < 2 ) return candidates.length ? {candidate: candidates[0]} : null;
-  const requestId = requestIdFor(state, "redirect");
+  const requestId = requestIdFor(state, prompt.id);
   const answer = getResolutionResponse(state, {requestId, type: RESOLUTION_REQUEST_TYPES.CHOICE});
   if ( !answer ) return {wait: waitResolutionStage({state, request: createResolutionRequest({id: requestId, resolutionId: state.id,
     stageId, type: RESOLUTION_REQUEST_TYPES.CHOICE, expectedResponseType: "choice",
     chooser: ROLL_AUTHORITY.SOURCE_CONTROLLER, authority: {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
-    payload: {id: "redirect", type: "select-one", required: true, label: "WILDPATH.REDIRECT.Choose",
+    payload: {id: prompt.id, type: "select-one", required: true, label: prompt.label,
       options: candidates.map(candidate => ({value: candidate.target.tokenId, label: candidate.target.name ?? candidate.target.tokenId})),
       defaultValue: candidates[0].target.tokenId},
-    metadata: {title: "WILDPATH.REDIRECT.Title"}}), reason: "Its creature chooses who takes the damage instead."})};
-  const value = String(answer.response?.value?.choices?.redirect ?? answer.response?.value ?? "");
+    metadata: {title: prompt.title}}), reason: prompt.reason})};
+  const value = choiceAnswer(answer, prompt.id);
   return {candidate: candidates.find(candidate => candidate.target.tokenId === value) ?? candidates[0]};
+}
+
+/** The Token id a `select-one` answer names. */
+function choiceAnswer(answer, id) {
+  return String(answer.response?.value?.choices?.[id] ?? answer.response?.value ?? "");
+}
+
+const REDIRECT_PROMPT = Object.freeze({id: "redirect", label: "WILDPATH.REDIRECT.Choose", title: "WILDPATH.REDIRECT.Title",
+  reason: "Its creature chooses who takes the damage instead."});
+const TARGET_CHOICE_PROMPT = Object.freeze({id: "target-choice", label: "WILDPATH.TARGET_CHOICE.Choose",
+  title: "WILDPATH.TARGET_CHOICE.Title", reason: "Its creature chooses the creature its reaction acts on."});
+
+/**
+ * A reaction's target picked as it is used (`targetChoice.from: "creatures"`: 2024 Potent Spellcasting's "itself or a
+ * creature within 60 feet"): any creature within `range` feet of its own creature, itself too with `includeSelf`, its
+ * controller's pick when there are several (`redirectChoice`'s prompt). The fixed ones ("self", "trigger-source",
+ * "trigger-target") are the runtime's, when it builds the reaction's child. `{state}` with that creature its one target,
+ * `{stop}` (a choice to wait for, or failing when nobody is in range), or null.
+ */
+function chosenTarget(state, services) {
+  const spec = state.actionDefinition?.targetChoice;
+  if ( (spec?.from !== "creatures") || !state.sourceEvent ) return null;
+  const choice = redirectChoice(state, services, {range: spec.range, includeSelf: spec.includeSelf === true, exclude: []},
+    ACTION_PIPELINE_STAGE_IDS.TARGETING, TARGET_CHOICE_PROMPT);
+  if ( choice?.wait ) return {stop: choice.wait};
+  const fail = reason => ({stop: failActionPlanningStage({state, stage: ACTION_RESOLUTION_STAGES.TARGETING,
+    code: ACTION_RESOLVER_CODES.TARGETING_FAILED, reason})});
+  if ( !choice?.candidate ) return fail("No creature within range.");
+  // The candidates are found again on the resume: a pick that has since left range, hidden or died isn't swapped for another.
+  const answer = getResolutionResponse(state, {requestId: requestIdFor(state, TARGET_CHOICE_PROMPT.id), type: RESOLUTION_REQUEST_TYPES.CHOICE});
+  if ( answer && (choiceAnswer(answer, TARGET_CHOICE_PROMPT.id) !== choice.candidate.target.tokenId) ) {
+    return fail("The chosen creature can no longer be targeted.");
+  }
+  const {target, footprint} = choice.candidate;
+  const context = state.input?.context ?? {};
+  // In place of the creature its child was built on: its candidates, and its footprint for the range stage to measure.
+  return {state: updateResolutionState(state, {targets: [clonePlain(target)], input: {...state.input, targets: [clonePlain(target)],
+    targeting: {...(state.input?.targeting ?? {}), candidates: [], targets: [clonePlain(target)]},
+    ...(context.spatial ? {context: {...context, spatial: {...context.spatial,
+      targetFootprints: footprint ? [{...clonePlain(target), footprint: clonePlain(footprint)}] : []}}} : {}),
+    durability: withCandidateDurability(state.input?.durability ?? {}, choice.candidate)}})};
 }
 
 /**
@@ -3925,6 +4071,7 @@ function preparedResolverInput(state) {
     save: input.save,
     check: input.check,
     damage: removed("damage") ? null : input.damage,
+    sourceDamage: input.sourceDamage,
     healing: removed("healing") ? null : input.healing,
     effects: removed("effects") ? null : input.effects,
     context: input.context ?? {},

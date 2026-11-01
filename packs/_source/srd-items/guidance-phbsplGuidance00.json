@@ -14,6 +14,7 @@
         "spell",
         "cantrip",
         "school:divination",
+        "spell:guidance",
         "component:verbal",
         "component:somatic"
       ],

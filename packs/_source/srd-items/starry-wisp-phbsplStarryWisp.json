@@ -14,6 +14,7 @@
         "spell",
         "cantrip",
         "school:evocation",
+        "spell:starry-wisp",
         "component:verbal",
         "component:somatic",
         "damage:radiant"

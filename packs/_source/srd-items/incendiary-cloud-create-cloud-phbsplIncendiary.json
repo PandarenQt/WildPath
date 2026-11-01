@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:conjuration",
+        "spell:incendiary-cloud",
         "component:verbal",
         "component:somatic",
         "damage:fire"
@@ -62,7 +63,9 @@
                   "allOf": []
                 },
                 "tags": [
-                  "spell"
+                  "spell",
+                  "school:conjuration",
+                  "spell:incendiary-cloud"
                 ],
                 "save": {
                   "ability": "agility",

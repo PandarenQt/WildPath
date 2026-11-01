@@ -440,6 +440,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -523,6 +524,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:fear",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -610,6 +612,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:acid-arrow",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -785,6 +788,7 @@
           "tags": [
             "spell",
             "school:necromancy",
+            "spell:create-undead",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -863,6 +867,7 @@
           "tags": [
             "spell",
             "school:necromancy",
+            "spell:speak-with-dead",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -938,6 +943,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:vitriolic-sphere",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -1233,6 +1239,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:fear",
             "component:verbal",
             "component:somatic",
             "component:material"

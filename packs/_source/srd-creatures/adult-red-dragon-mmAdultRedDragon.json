@@ -406,6 +406,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:command",
             "component:verbal"
           ],
           "costs": {
@@ -693,6 +694,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:command",
             "component:verbal"
           ],
           "costs": {
@@ -980,6 +982,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -1063,6 +1066,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:scorching-ray",
             "component:verbal",
             "component:somatic",
             "damage:fire"
@@ -1160,6 +1164,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:fireball",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -1273,6 +1278,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:scorching-ray",
             "component:verbal",
             "component:somatic",
             "damage:fire"

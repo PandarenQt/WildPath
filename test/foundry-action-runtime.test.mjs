@@ -25,6 +25,7 @@ import {areaCovers, areaExpired, createFoundryPersistentAreas} from "../module/a
 import {createFoundryAutomationDispatcher} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import {inspectResolution} from "../module/helpers/resolution-inspection.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
+import {convertItem} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {damageProfileFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements} from "../module/helpers/rule-elements.mjs";
 import {WILDPATH} from "../module/config.mjs";
 import {rollFormulaForRequest} from "../module/helpers/rolls.mjs";
@@ -171,6 +172,7 @@ function fakeActor(id, {system, size=CREATURE_SIZES.MEDIUM, statistics={}, owner
       return this.tokens;
     },
     forbiddingRule: WildPathActor.prototype.forbiddingRule,
+    unaffectingRule: WildPathActor.prototype.unaffectingRule,
     toObject(source) {
       assert.equal(source, true);
       return {system: structuredClone(this.system)};
@@ -1345,7 +1347,7 @@ test("two unlinked Tokens of one base Actor each make their own save", async t =
 
 /** A GM-controlled target whose Token answers "a hit on me" by striking back (authored Trigger RuleElement). */
 function counterattackFixture(t, {decision="use", reactor="target", event="attack.hit", natural=null, once=false, rider=null, extra=null,
-  queue=null, pick=null, items=null, holderItems=null, gmQueue=null, gmMessageMode=null}={}) {
+  queue=null, pick=null, items=null, holderItems=null, gmQueue=null, gmMessageMode=null, choose=null}={}) {
   const fixture = syntheticRuntimeFixture(t, undefined, {targetHealth: 30});
   const {scene, sourceActor, targetActor, targetSource, game} = fixture;
   scene.tokens.get = id => scene.tokens.find(token => token.id === id);
@@ -1395,6 +1397,7 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
     {id: "player-a", active: true, isGM: false}
   ]});
   const offers = [];
+  const asked = [];
   const posts = [];
   // The GM rolls the counterattack; its requests are kept for their roll mode.
   const gmRollRequests = [];
@@ -1416,6 +1419,11 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
     activeGMUserId: "gm-a", transport: hub.createEndpoint({userId: "player-a"}),
     // Its own reactions: the first candidate, or the one `pick` names (a Brutal Strike's blow).
     ...(reactor === "source" ? {promptPorts: [createTestPromptAdapter({id: "smite-choice", queue: Array.from({length: 4}, () => request => {
+      // A choice its reaction asks for (whom it acts on): the Token `choose` names (or returns), else the default.
+      if ( !request.payload?.candidates ) {
+        asked.push(request);
+        return {choices: {[request.payload.id]: (typeof choose === "function" ? choose(request, scene) : choose) ?? request.payload.defaultValue}};
+      }
       offers.push(request);
       const candidates = request.payload.candidates;
       return {decision: "use", candidateId: (candidates.find(candidate => pick && String(candidate.actionId ?? "").includes(pick)) ?? candidates[0]).id};
@@ -1425,7 +1433,7 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
       result: {natural: natural ?? 18, total: 22}}))]});
   gm.register();
   player.register();
-  return {...fixture, gm, player, offers, holder, posts, gmRollRequests, playerRollRequests};
+  return {...fixture, gm, player, offers, asked, holder, posts, gmRollRequests, playerRollRequests};
 }
 
 for ( const decision of ["use", "decline"] ) test(`a counterattack Trigger on the target's Token is offered after the hit and ${decision === "use" ? "strikes the attacker" : "can be declined"}`, async t => {
@@ -1626,8 +1634,8 @@ test("a once-a-turn Trigger on its own hit (Stunning Strike) records its use for
 });
 
 /** A 5-ft radial burst, 6 damage, cast from (0,0) at range 30 ft. A bystander stands at (5,0). */
-function areaFixture(t, {range=30, persistence=null, shape="radial", size=5, self=false}={}) {
-  const definition = {schemaVersion: 1, id: "action:runtime-burst", label: "Runtime Burst",
+function areaFixture(t, {range=30, persistence=null, shape="radial", size=5, self=false, tags=null}={}) {
+  const definition = {schemaVersion: 1, id: "action:runtime-burst", label: "Runtime Burst", ...(tags ? {tags} : {}),
     costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},
     range: self ? {type: "self"} : {type: "ranged", normal: {value: range, unit: "ft"}}, targeting: {type: "area"},
     area: {shape, size: {value: size, unit: "ft"}, ...(persistence ? {persistence} : {})},
@@ -1717,6 +1725,68 @@ test("an area placed out of range, or not placed at all, is refused by the autho
   assert.deepEqual(sanitizeActionIntentPayload({area: {points: [{x: 1, y: 2}, {x: "3", y: 4}, {x: 5, y: 6}],
     footprint: "forged"}}).area, {points: [{x: 1, y: 2}, {x: 3, y: 4}]}, "at most two finite points travel");
   assert.deepEqual(sanitizeActionIntentPayload({area: {points: [{x: "SECRET", y: 1}]}}).area, {points: []});
+});
+
+/** An effect on a creature leaving it untouched by Actions tagged `spell:spell-a` (`Unaffected`). */
+const SPELL_A_IMMUNITY = {name: "Spell Immunity", disabled: false, isSuppressed: false, system: {ruleElements: [{schemaVersion: 1,
+  id: "immune", type: "Unaffected", data: {actions: {tagsAny: ["spell:spell-a"]}}}]}};
+
+/** Declares `intent` from player-a and resolves it on gm-a (every d20 a 1); the GM's record of it, and its card's data. */
+async function declaredRecord(game, intent) {
+  const posts = [];
+  const rollProviders = [createTestRollProvider({result: {natural: 1, total: 1}})];
+  const hub = createTestResolutionTransportHub({users: [{id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}]});
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), rollProviders, publishResult: post => { posts.push(post); },
+    actionIntentResolver: ({intent: sent, envelope}) => foundryActionIntentToStagedOptions({
+      intent: sent, senderUserId: envelope.senderUserId, game, persistencePort: createTestDocumentPersistenceAdapter()})});
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "player-a"}), rollProviders});
+  gm.register();
+  player.register();
+  const declared = await player.declareActionIntent(intent);
+  assert.equal(declared.ok, true, JSON.stringify(declared));
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record?.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify([record?.state.trace?.slice(-3), record?.state.pendingRequests]).slice(0, 3000));
+  return {...record, posts};
+}
+
+test("Unaffected: an area passing over a creature immune to its spell leaves it out; the others take its damage", async t => {
+  const {sourceActor, targetActor, far, game, intent} = areaFixture(t, {shape: "wall", size: 25, tags: ["spell", "spell:spell-a"]});
+  targetActor.effects = [SPELL_A_IMMUNITY];
+  const record = await declaredRecord(game, {...intent, area: {points: [{x: 75, y: 25}, {x: 125, y: 25}]}});
+  assert.deepEqual(record.options.targets.map(target => target.tokenId), ["far-token"], "left out of the area's targets");
+  assert.equal(targetActor.system.resources.health.value, 30, "untouched");
+  assert.equal(far.system.resources.health.value, 24);
+  assert.equal(sourceActor.system.resources.action.value, 0);
+});
+
+test("Unaffected: a spell aimed at a creature immune to it is cast, its slot spent, and does nothing to it", async t => {
+  const spell = tag => ({schemaVersion: 1, id: "action:spell-a", label: "Spell A", tags: ["spell", tag],
+    costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}, {capability: "spell-slot.1", amount: 1}]},
+    range: {type: "ranged", normal: {value: 120, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    save: {ability: "agility", dc: {value: 30}},
+    damage: [{id: "bolt", expression: {type: "constant", value: 6}, damageType: "force", provenance: "spell-base"}]});
+  const cast = async tag => {
+    const fixture = syntheticRuntimeFixture(t, spell(tag));
+    fixture.sourceActor.system.pools = [{id: "spell-slot.1", value: 1, max: 1}];
+    fixture.targetActor.effects = [SPELL_A_IMMUNITY];
+    return {...fixture, record: await declaredRecord(fixture.game, fixture.intent)};
+  };
+  const immune = await cast("spell:spell-a");
+  assert.equal(immune.targetActor.system.resources.health.value, 20, "no damage");
+  assert.equal(immune.sourceActor.system.pools[0].value, 0, "its slot is spent");
+  assert.equal(immune.sourceActor.system.resources.action.value, 0, "and its Action");
+  assert.equal(immune.record.state.results.saveResolution ?? null, null, "no save is asked of it");
+  assert.deepEqual(immune.record.posts.map(post => post.result.outcomes.unaffected?.map(target => target.tokenId)), [["target-token"]],
+    "its card names it");
+  assert.deepEqual(immune.record.state.results.targetResolution.targetContexts.map(context => [context.excluded, context.unaffected]),
+    [[true, true]]);
+  const other = await cast("spell:spell-b");
+  assert.equal(other.targetActor.system.resources.health.value, 14, "a spell it is not immune to affects it");
+  assert.equal(other.record.state.results.saveResolution.results.length, 1, "and asks its save");
+  assert.equal(other.record.options.context.unaffected, undefined);
 });
 
 const BURNING = {schemaVersion: 1, id: "action:burning-ground", label: "Burning Ground", costs: {allOf: []},
@@ -1864,6 +1934,23 @@ test("moving a lasting area takes its fields and its cast level along, and a cre
   assert.equal(region.shapes[0].offsets.length, onto.length, "and Foundry draws it there");
   assert.equal(targetActor.system.resources.health.value, health - 4, "the creature it moved onto takes its damage");
   assert.equal(region.flags.wildpath.area.persistence.triggers[0].action.id, BURNING.id, "its triggers go with it");
+});
+
+test("Unaffected: a lasting area's trigger leaves out a creature immune to its spell, spending nothing of its turn", async t => {
+  const {scene, areas, sourceToken, targetActor, targetToken} = lastingAreaFixture(t);
+  const onto = createFoundryV14TacticalGridAdapter({scene}).tokenToFootprint(targetToken).footprint.fields;
+  const region = await areas.create({options: {persistentArea: {footprint: {topology: "square", fields: onto},
+    definition: {id: "action:burn", label: "Burn", area: {shape: "radial", size: {value: 5, unit: "ft"}, persistence: {
+      duration: {unit: "round", value: 10}, triggers: [{on: ["turn.started"], action: {...BURNING, tags: ["spell", "spell:spell-a"]}}]}}},
+    sourceTokenId: sourceToken.id, sceneId: scene.id}}, state: {configuration: {}}});
+  const health = targetActor.system.resources.health.value;
+  targetActor.effects = [SPELL_A_IMMUNITY];
+  await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  assert.equal(targetActor.system.resources.health.value, health, "untouched");
+  assert.equal(region.flags.wildpath.area.applied?.[targetToken.id], undefined, "its once-per-turn use is not spent");
+  targetActor.effects = [];
+  await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  assert.equal(targetActor.system.resources.health.value, health - 4, "without the immunity it burns");
 });
 
 test("a lasting area for enemies only (Spirit Guardians) spares its caster's side", async t => {
@@ -2724,6 +2811,32 @@ test("a reaction to taking damage (Hellish Rebuke) is offered once the damage is
   assert.equal(targetActor.system.resources.health.value, 24, "and the Action's own damage still lands");
 });
 
+test("Unaffected: a reaction spell at a creature immune to it is spent, and does nothing to it", async t => {
+  const rebuke = tag => [{id: "rebuke", type: "action", name: "Rebuke", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:rebuke", label: "Rebuke", tags: ["spell", tag],
+      costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]},
+      range: {type: "ranged", normal: {value: 60, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+      save: {ability: "agility", dc: {value: 30}},
+      damage: [{id: "flames", expression: {type: "constant", value: 3}, damageType: "fire", provenance: "spell-base"}]},
+    ruleElements: [{schemaVersion: 1, id: "rebuke", type: "Trigger", data: {kind: "reaction", event: "damage.applied",
+      match: {phase: "interrupt", targetTokenId: "{self}"}}}]}}];
+  const cast = async tag => {
+    const fixture = counterattackFixture(t, {holderItems: rebuke(tag)});
+    fixture.sourceActor.effects = [SPELL_A_IMMUNITY];
+    const declared = await fixture.player.declareActionIntent(fixture.intent);
+    assert.equal(declared.ok, true, JSON.stringify(declared));
+    assert.equal(fixture.gm.getRecord(declared.resolutionId)?.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+    return fixture;
+  };
+  const immune = await cast("spell:spell-a");
+  assert.equal(immune.offers.length, 1, "offered to the damaged creature's controller");
+  assert.equal(immune.sourceActor.system.resources.health.value, 20, "no damage to the immune attacker");
+  assert.equal(immune.targetActor.system.resources.reaction.value, 0, "the reaction is spent");
+  assert.deepEqual(immune.posts[0].result.outcomes.unaffected?.map(target => target.tokenId), [immune.sourceToken.id], "its card names it");
+  const other = await cast("spell:spell-b");
+  assert.equal(other.sourceActor.system.resources.health.value, 17, "a spell it is not immune to affects it");
+});
+
 test("a weapon attack's hit carries the `weapon` tag, so an own-hit reaction on any weapon (Divine Strike) is offered", async t => {
   const strike = {id: "strike", type: "action", name: "Divine Strike", system: {active: true,
     definition: {schemaVersion: 1, id: "action:strike", label: "Divine Strike", costs: {allOf: []}, range: {type: "special"},
@@ -3055,6 +3168,102 @@ test("Superior Hunter's Prey: nothing to use straight from the sheet; its reacti
   assert.deepEqual([feature.type, trigger.data.event, trigger.data.action.retarget], ["feature", "damage.applied", {range: 30}]);
 });
 
+/**
+ * A cleric (the attacker, Wisdom 16) with the converted Improved Blessed Strikes and, unless `option` is false, its Potent
+ * Spellcasting option; its attack a cantrip unless `cantrip` is false; other creatures at `others` ({id: rows below the
+ * cleric}: 5 ft a row). `choose`: the Token its controller picks for the Temporary Hit Points.
+ */
+async function potentSpellcastingFixture(t, {option=true, cantrip=true, others={ally: 3, far: 14}, choose=null, targetChoice=null}={}) {
+  const improved = convertItem({_id: "phbclcImprovedBl", name: "Improved Blessed Strikes", type: "feat", img: "icons/svg/item-bag.svg",
+    effects: [], system: {source: {license: "CC-BY-4.0", rules: "2024", book: ""}, identifier: "improved-blessed-strikes",
+      type: {value: "class"}, description: {value: "<p>Rule text.</p>"}, activities: {}}}).items[0];
+  const potent = {id: "potent", type: "feature", name: "Potent Spellcasting", system: {active: true, ruleElements: []},
+    flags: {wildpath: {source: {identifier: "blessed-strikes-potent-spellcasting"}}}};
+  const fixture = counterattackFixture(t, {reactor: "source", queue: [{natural: 18, total: 22}], choose,
+    items: [{id: improved._id, type: improved.type, name: improved.name, system: improved.system, flags: improved.flags},
+      ...(option ? [potent] : [])]});
+  if ( cantrip ) fixture.action.system.definition.tags = ["spell", "cantrip"];
+  if ( targetChoice ) improved.system.ruleElements[0].data.action.targetChoice = targetChoice;
+  fixture.sourceActor.system.abilities = {wits: {value: 16}};
+  const creatures = Object.fromEntries(Object.entries(others).map(([id, rows]) => {
+    const actor = withFoundryActorSystem(fakeActor(id, {system: {...targetActorSystem(), resources: {health: {value: 20, max: 20}}}}));
+    const token = fakeTokenDocument({id: `${id}-token`, actor, scene: fixture.scene, offset: {i: 0, j: rows}});
+    Object.assign(actor, {uuid: `${token.uuid}.Actor.${id}`, isToken: true, token, tokens: [token]});
+    fixture.scene.tokens.push(token);
+    return [id, actor];
+  }));
+  const declared = await fixture.player.declareActionIntent(fixture.intent);
+  return {...fixture, creatures, record: fixture.gm.getRecord(declared.resolutionId)};
+}
+
+test("Potent Spellcasting (Improved Blessed Strikes): after its cantrip's damage, Temporary Hit Points to a creature its controller picks within 60 ft", async t => {
+  const {record, offers, asked, creatures, sourceActor, targetActor} = await potentSpellcastingFixture(t, {choose: "ally-token"});
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(offers.length, 1, "offered to the cleric's controller");
+  assert.deepEqual(asked.map(request => request.payload.options.map(option => option.value)),
+    [["source-token", "target-token", "ally-token"]], "itself first, then every creature within 60 ft, the one it damaged too");
+  assert.equal(creatures.ally.system.resources.health.temp, 6, "twice its Wisdom modifier");
+  assert.deepEqual([sourceActor, targetActor, creatures.far].map(actor => actor.system.resources.health.temp ?? 0), [0, 0, 0],
+    "nobody else, not the creature its child was built on");
+  assert.equal(targetActor.system.resources.health.value, 24, "the cantrip's own damage lands");
+
+  // Only the creature it damaged within 60 ft: still asked, between it and itself.
+  const alone = await potentSpellcastingFixture(t, {others: {far: 14}});
+  assert.equal(alone.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(alone.record.state.errors).slice(0, 1500));
+  assert.equal(alone.asked.length, 1, "the creature it damaged is still one to pick");
+  assert.equal(alone.sourceActor.system.resources.health.temp, 6, "the default is itself");
+});
+
+test("Potent Spellcasting's pick: one candidate is taken unasked; none, or a pick no longer a candidate, fails the reaction", async t => {
+  // Without itself, only the creature it damaged is within 60 ft.
+  const one = await potentSpellcastingFixture(t, {others: {far: 14}, targetChoice: {from: "creatures", range: 60}});
+  assert.equal(one.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(one.record.state.errors).slice(0, 1500));
+  assert.deepEqual([one.asked.length, one.targetActor.system.resources.health.temp, one.sourceActor.system.resources.health.temp ?? 0],
+    [0, 6, 0]);
+
+  // Within 1 ft of it: nobody, not even the creature it damaged 5 ft away.
+  const none = await potentSpellcastingFixture(t, {targetChoice: {from: "creatures", range: 1}});
+  assert.equal(none.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+  assert.equal(none.asked.length, 0);
+  assert.equal((none.record.state.results.reactions ?? []).some(entry => entry.childFailed), true, "it fails");
+  assert.deepEqual([none.sourceActor, none.targetActor, none.creatures.ally].map(actor => actor.system.resources.health.temp ?? 0),
+    [0, 0, 0]);
+
+  // Its pick is hidden before the answer is resumed: no other creature takes its place.
+  const stale = await potentSpellcastingFixture(t, {choose: (request, scene) => {
+    scene.tokens.find(token => token.id === "ally-token").hidden = true;
+    return "ally-token";
+  }});
+  assert.equal(stale.asked.length, 1);
+  assert.equal((stale.record.state.results.reactions ?? []).some(entry => entry.childFailed), true, "it fails");
+  assert.deepEqual([stale.sourceActor, stale.targetActor, stale.creatures.ally].map(actor => actor.system.resources.health.temp ?? 0),
+    [0, 0, 0], "not the first candidate in its place");
+});
+
+test("a reaction's fixed target (targetChoice.from): itself, or the creature its event names, unasked; a malformed one is refused", async t => {
+  const self = await potentSpellcastingFixture(t, {targetChoice: {from: "self"}});
+  assert.equal(self.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(self.record.state.errors).slice(0, 1500));
+  assert.deepEqual([self.asked.length, self.sourceActor.system.resources.health.temp], [0, 6]);
+  const damaged = await potentSpellcastingFixture(t, {targetChoice: {from: "trigger-target"}});
+  assert.equal(damaged.record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(damaged.record.state.errors).slice(0, 1500));
+  assert.deepEqual([damaged.asked.length, damaged.targetActor.system.resources.health.temp, damaged.sourceActor.system.resources.health.temp ?? 0],
+    [0, 6, 0]);
+
+  // A misspelt source, or picking creatures with no positive range, is refused rather than falling back.
+  const paths = targetChoice => validateActionDefinition({schemaVersion: 1, id: "action:x", label: "X", targetChoice}).errors.map(entry => entry.path);
+  assert.deepEqual([paths({from: "trigger_source"}), paths({from: "creatures"}), paths({from: "creatures", range: "far"}),
+    paths({from: "creatures", range: 60}), paths({from: "self"})],
+    [["targetChoice.from"], ["targetChoice.range"], ["targetChoice.range"], [], []]);
+});
+
+test("Potent Spellcasting (Improved Blessed Strikes): only with that option, and only after a cantrip", async t => {
+  for ( const settings of [{option: false}, {cantrip: false}] ) {
+    const {record, offers} = await potentSpellcastingFixture(t, settings);
+    assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED);
+    assert.equal(offers.length, 0, JSON.stringify(settings));
+  }
+});
+
 test("Protective Bond: a reaction an effect gives (Bonded), offered while its giver has the feature; it takes the damage", async t => {
   const {action} = {action: {schemaVersion: 1, id: "action:protective-bond", label: "Protective Bond",
     costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]}, range: {type: "self"}, targeting: {type: "self"},
@@ -3229,4 +3438,34 @@ test("shared healing (a Trigger of kind shared-healing: Life Bond, homebrew): a 
   assert.deepEqual((await bonds()).map(bond => bond.target.tokenId), ["familiar-token"]);
   familiar.items = [{...vitality, system: {active: true, ruleElements: [trigger({kind: "shared-healing", tagsAll: ["spell"]})]}}];
   assert.deepEqual(await bonds(), [], "Life Bond's own defaults: a cantrip-level cast (0) is not level 1+");
+});
+
+test("an Action that may damage its own creature (a choice adding sourceDamage) plans and commits on the caster too", async t => {
+  const definition = {...meleeStrikeDefinition(), configuration: [{id: "backlash", type: "select-one", label: "Backlash", required: false,
+    options: [{id: "on", value: "on", label: "On", effects: [{type: "add-source-damage", damage: [{id: "self", damageType: "necrotic",
+      expression: {type: "constant", value: 3}}]}]}]}]};
+  const f = syntheticRuntimeFixture(t, definition);
+  const resolved = await foundryActionIntentToStagedOptions({intent: f.intent, senderUserId: "player-a", game: f.game});
+  assert.equal(resolved.ok, true, resolved.reason);
+  assert.equal(resolved.options.targetActors[f.sourceActor.uuid], f.sourceActor, "committed on like a target");
+  assert.ok(resolved.options.durability.targetSystems[f.sourceActor.uuid]?.resources, "its snapshot is planned on");
+  const g = syntheticRuntimeFixture(t);
+  const plain = await foundryActionIntentToStagedOptions({intent: g.intent, senderUserId: "player-a", game: g.game});
+  assert.equal(plain.options.durability.targetSystems[g.sourceActor.uuid], undefined, "not without one");
+});
+
+test("an Action that damages its own creature and starts a concentration gives the caster a Concentration state, concentrating before or not", async t => {
+  const backlash = {configuration: [{id: "backlash", type: "select-one", label: "Backlash", required: false,
+    options: [{id: "on", value: "on", label: "On", effects: [{type: "add-source-damage", damage: [{id: "self", damageType: "necrotic",
+      expression: {type: "constant", value: 3}}]}]}]}]};
+  const state = async definition => {
+    const f = syntheticRuntimeFixture(t, definition);
+    const resolved = await foundryActionIntentToStagedOptions({intent: f.intent, senderUserId: "player-a", game: f.game});
+    assert.equal(resolved.ok, true, resolved.reason);
+    return resolved.options.concentration?.states?.[f.sourceActor.uuid] ?? null;
+  };
+  const starting = await state({...meleeStrikeDefinition(), ...backlash, concentration: {}});
+  assert.equal(starting?.concentrating, true, "its check keeps the concentration this Action starts");
+  assert.equal(await state({...meleeStrikeDefinition(), ...backlash}), null, "none without a concentration");
+  assert.equal(await state({...meleeStrikeDefinition(), concentration: {}}), null, "none without damage to itself");
 });

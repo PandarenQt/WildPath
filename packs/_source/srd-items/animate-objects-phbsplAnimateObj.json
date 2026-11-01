@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:transmutation",
+        "spell:animate-objects",
         "component:verbal",
         "component:somatic"
       ],

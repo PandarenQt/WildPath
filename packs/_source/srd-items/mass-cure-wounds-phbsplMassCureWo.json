@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:abjuration",
+        "spell:mass-cure-wounds",
         "component:verbal",
         "component:somatic"
       ],

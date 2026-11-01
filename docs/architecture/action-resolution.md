@@ -120,6 +120,32 @@ generic `reaction-choice` windows that create child `ResolutionState` objects. T
 pipeline now has opt-in action-declared and after-attack-outcome windows; broader timing coverage
 should be added only when concrete semantic events need it.
 
+## Damage to its own source (2026-11-01)
+
+An Action's `sourceDamage` (damage components, as `damage`'s) is damage it deals its own source: Overchannel's backlash,
+and later a cursed item or a homebrew blood magic. A configuration choice may add it (`add-source-damage`,
+action-configuration.md).
+
+- **Rolled after its damage**, in the damage roll stage once the Action's own damage (and an Empowered reroll) is done,
+  each component its own roll request (`source-damage-roll`). Never doubled by a critical hit, maximized or rerolled;
+  rolled even when every attack missed. A component with no dice left (Overchannel's free first use) is not rolled.
+- **Planned with its damage**: the damage stage adds a result on the source beside its targets' (`withSourceDamage`), so
+  one durability plan covers both (a caster inside its own Fireball takes each from one snapshot), the commit is the
+  same transaction, and the concentration stage checks the source's Concentration as any damaged creature's. A
+  component of 0 is left out.
+- **It threatens the concentration the Action starts** (`startingConcentration`): the damage comes once the spell is cast,
+  so a source starting a concentration with it checks to keep that one, concentrating before or not. A failed check
+  drops the Action's planned concentration effects and sets `concentrationResolution.startedLost`; the runtime then ends
+  what the source sustains once the Action completes (its lasting area's, summons' or marker's effects:
+  `endLostConcentration`).
+- **`ignoreResistance` / `ignoreImmunity`** on a damage component (any, not only these) skip every Resistance
+  to it (a Resistance to all damage too), or any Immunity to it (damage-adjustment-resolver.mjs). Vulnerability still applies.
+- **The runtime** registers the acting creature like a target (its snapshot, damage profile, commit key and
+  concentration state, given even when it concentrates on nothing yet if the Action starts a concentration) when the
+  Action has `sourceDamage` or a choice that adds some. `sourceDamage` is a persisted Action schema field
+  (`actionDefinitionField`).
+- shortcut: an area that caught nobody skips its damage stages, so no backlash either; upgrade if a feature needs it.
+
 ## Future Consumers
 
 This foundation is intended for:

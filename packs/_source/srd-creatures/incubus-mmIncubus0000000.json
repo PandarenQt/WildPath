@@ -286,6 +286,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:disguise-self",
             "component:verbal",
             "component:somatic"
           ],
@@ -361,6 +362,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:etherealness",
             "component:verbal",
             "component:somatic"
           ],
@@ -432,6 +434,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:dream",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -576,6 +579,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:hypnotic-pattern",
             "component:somatic",
             "component:material"
           ],

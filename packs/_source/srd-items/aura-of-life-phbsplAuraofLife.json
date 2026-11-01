@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:abjuration",
+        "spell:aura-of-life",
         "component:verbal"
       ],
       "costs": {

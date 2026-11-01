@@ -202,6 +202,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-evil-and-good",
             "component:verbal",
             "component:somatic"
           ],
@@ -285,6 +286,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -368,6 +370,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:clairvoyance",
             "component:verbal",
             "component:somatic",
             "component:material"

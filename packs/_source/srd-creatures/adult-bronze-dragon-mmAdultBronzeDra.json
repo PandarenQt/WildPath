@@ -528,6 +528,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -611,6 +612,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:guiding-bolt",
             "component:verbal",
             "component:somatic",
             "damage:radiant"
@@ -768,6 +770,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:shapechange",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -831,6 +834,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:speak-with-animals",
             "component:verbal",
             "component:somatic"
           ],
@@ -915,6 +919,7 @@
             "spell",
             "cantrip",
             "school:transmutation",
+            "spell:thaumaturgy",
             "component:verbal"
           ],
           "costs": {
@@ -1005,6 +1010,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-thoughts",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1088,6 +1094,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:water-breathing",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1192,6 +1199,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:guiding-bolt",
             "component:verbal",
             "component:somatic",
             "damage:radiant"

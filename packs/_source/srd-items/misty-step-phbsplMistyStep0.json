@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:conjuration",
+        "spell:misty-step",
         "component:verbal"
       ],
       "costs": {

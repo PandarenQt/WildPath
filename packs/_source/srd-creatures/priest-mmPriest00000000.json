@@ -332,6 +332,7 @@
             "spell",
             "cantrip",
             "school:evocation",
+            "spell:light",
             "component:verbal",
             "component:material"
           ],
@@ -398,6 +399,7 @@
             "spell",
             "cantrip",
             "school:transmutation",
+            "spell:thaumaturgy",
             "component:verbal"
           ],
           "costs": {
@@ -488,6 +490,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:spiritual-weapon",
             "component:verbal",
             "component:somatic"
           ],
@@ -577,6 +580,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:bless",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -713,6 +717,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:dispel-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -801,6 +806,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:healing-word",
             "component:verbal"
           ],
           "costs": {
@@ -903,6 +909,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:lesser-restoration",
             "component:verbal",
             "component:somatic"
           ],

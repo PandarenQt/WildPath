@@ -439,6 +439,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -522,6 +523,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-thoughts",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -586,6 +588,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:disguise-self",
             "component:verbal",
             "component:somatic"
           ],
@@ -662,6 +665,7 @@
             "spell",
             "cantrip",
             "school:conjuration",
+            "spell:mage-hand",
             "component:verbal",
             "component:somatic"
           ],
@@ -728,6 +732,7 @@
             "spell",
             "cantrip",
             "school:illusion",
+            "spell:minor-illusion",
             "component:somatic",
             "component:material"
           ],
@@ -811,6 +816,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:fly",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -922,6 +928,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:invisibility",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1020,6 +1027,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:major-image",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1129,6 +1137,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:plane-shift",
             "component:verbal",
             "component:somatic",
             "component:material"

@@ -283,6 +283,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:misty-step",
             "component:verbal"
           ],
           "costs": {
@@ -360,6 +361,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:counterspell",
             "component:somatic"
           ],
           "costs": {
@@ -491,6 +493,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:shield",
             "component:verbal",
             "component:somatic"
           ],
@@ -604,6 +607,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -687,6 +691,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-thoughts",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -751,6 +756,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:disguise-self",
             "component:verbal",
             "component:somatic"
           ],
@@ -826,6 +832,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:invisibility",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -906,6 +913,7 @@
             "spell",
             "cantrip",
             "school:evocation",
+            "spell:light",
             "component:verbal",
             "component:material"
           ],
@@ -971,6 +979,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:mage-armor",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1079,6 +1088,7 @@
             "spell",
             "cantrip",
             "school:conjuration",
+            "spell:mage-hand",
             "component:verbal",
             "component:somatic"
           ],
@@ -1145,6 +1155,7 @@
             "spell",
             "cantrip",
             "school:transmutation",
+            "spell:prestidigitation",
             "component:verbal",
             "component:somatic"
           ],
@@ -1200,6 +1211,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:fly",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1311,6 +1323,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:lightning-bolt",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -1457,6 +1470,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:cone-of-cold",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -1599,6 +1613,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:mind-blank",
             "component:verbal",
             "component:somatic"
           ],
@@ -1718,6 +1733,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:scrying",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1843,6 +1859,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:teleport",
             "component:verbal"
           ],
           "costs": {

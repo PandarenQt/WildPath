@@ -155,6 +155,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:wish",
             "component:verbal"
           ],
           "costs": {
@@ -491,6 +492,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -575,6 +577,7 @@
             "spell",
             "cantrip",
             "school:transmutation",
+            "spell:elementalism",
             "component:verbal",
             "component:somatic"
           ],
@@ -630,6 +633,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:gaseous-form",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -799,6 +803,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:invisibility",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -897,6 +902,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:major-image",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1006,6 +1012,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:plane-shift",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1081,6 +1088,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:tongues",
             "component:verbal",
             "component:material"
           ],
@@ -1190,6 +1198,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:wall-of-fire",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -1247,7 +1256,9 @@
                       "allOf": []
                     },
                     "tags": [
-                      "spell"
+                      "spell",
+                      "school:evocation",
+                      "spell:wall-of-fire"
                     ],
                     "damage": [
                       {

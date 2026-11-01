@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:conjuration",
+        "spell:insect-plague",
         "component:verbal",
         "component:somatic",
         "component:material",
@@ -69,7 +70,9 @@
                   "allOf": []
                 },
                 "tags": [
-                  "spell"
+                  "spell",
+                  "school:conjuration",
+                  "spell:insect-plague"
                 ],
                 "save": {
                   "ability": "fortitude",

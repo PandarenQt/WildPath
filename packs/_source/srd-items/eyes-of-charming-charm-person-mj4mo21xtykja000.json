@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:enchantment",
+        "spell:charm-person",
         "component:verbal",
         "component:somatic"
       ],

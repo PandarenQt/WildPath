@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:conjuration",
+        "spell:conjure-woodland-beings",
         "component:verbal",
         "component:somatic",
         "damage:force"
@@ -57,7 +58,9 @@
                   "allOf": []
                 },
                 "tags": [
-                  "spell"
+                  "spell",
+                  "school:conjuration",
+                  "spell:conjure-woodland-beings"
                 ],
                 "save": {
                   "ability": "wits",

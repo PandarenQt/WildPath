@@ -14,6 +14,7 @@
         "spell",
         "cantrip",
         "school:necromancy",
+        "spell:spare-the-dying",
         "component:verbal",
         "component:somatic"
       ],

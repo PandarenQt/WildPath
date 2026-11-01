@@ -412,6 +412,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-evil-and-good",
             "component:verbal",
             "component:somatic"
           ],
@@ -496,6 +497,7 @@
             "spell",
             "cantrip",
             "school:transmutation",
+            "spell:druidcraft",
             "component:verbal",
             "component:somatic"
           ],
@@ -551,6 +553,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:calm-emotions",
             "component:verbal",
             "component:somatic"
           ],
@@ -727,6 +730,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:dispel-evil-and-good",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -847,6 +851,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:entangle",
             "component:verbal",
             "component:somatic"
           ],
@@ -969,6 +974,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:pass-without-trace",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1076,6 +1082,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:word-of-recall",
             "component:verbal"
           ],
           "costs": {
@@ -1288,6 +1295,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:cure-wounds",
             "component:verbal",
             "component:somatic"
           ],
@@ -1391,6 +1399,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:lesser-restoration",
             "component:verbal",
             "component:somatic"
           ],

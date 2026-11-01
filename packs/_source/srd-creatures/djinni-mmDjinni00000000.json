@@ -155,6 +155,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:wish",
             "component:verbal"
           ],
           "costs": {
@@ -318,6 +319,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-evil-and-good",
             "component:verbal",
             "component:somatic"
           ],
@@ -401,6 +403,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -484,6 +487,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:create-food-and-water",
             "component:verbal",
             "component:somatic"
           ],
@@ -558,6 +562,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:tongues",
             "component:verbal",
             "component:material"
           ],
@@ -667,6 +672,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:wind-walk",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -805,6 +811,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:creation",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -881,6 +888,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:gaseous-form",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1050,6 +1058,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:invisibility",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1148,6 +1157,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:major-image",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1257,6 +1267,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:plane-shift",
             "component:verbal",
             "component:somatic",
             "component:material"

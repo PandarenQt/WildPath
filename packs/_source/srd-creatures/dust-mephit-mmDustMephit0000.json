@@ -329,6 +329,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:sleep",
             "component:verbal",
             "component:somatic",
             "component:material",

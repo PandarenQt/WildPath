@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:evocation",
+        "spell:fire-storm",
         "component:verbal",
         "component:somatic",
         "damage:fire"

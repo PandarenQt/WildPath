@@ -496,6 +496,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -580,6 +581,7 @@
             "spell",
             "cantrip",
             "school:evocation",
+            "spell:light",
             "component:verbal",
             "component:material"
           ],
@@ -645,6 +647,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:control-weather",
             "component:verbal",
             "component:somatic",
             "component:material"

@@ -412,6 +412,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -495,6 +496,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:mind-spike",
             "component:somatic",
             "damage:psychic"
           ],
@@ -646,6 +648,7 @@
             "spell",
             "cantrip",
             "school:illusion",
+            "spell:minor-illusion",
             "component:somatic",
             "component:material"
           ],
@@ -729,6 +732,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:shapechange",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -792,6 +796,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:greater-restoration",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -944,6 +949,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:major-image",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1053,6 +1059,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:project-image",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1209,6 +1216,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:mind-spike",
             "component:somatic",
             "damage:psychic"
           ],

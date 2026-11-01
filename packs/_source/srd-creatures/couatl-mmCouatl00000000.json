@@ -302,6 +302,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-evil-and-good",
             "component:verbal",
             "component:somatic"
           ],
@@ -385,6 +386,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -468,6 +470,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-thoughts",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -532,6 +535,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:shapechange",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -595,6 +599,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:create-food-and-water",
             "component:verbal",
             "component:somatic"
           ],
@@ -669,6 +674,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:dream",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -813,6 +819,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:greater-restoration",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -965,6 +972,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:scrying",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1090,6 +1098,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:sleep",
             "component:verbal",
             "component:somatic",
             "component:material",

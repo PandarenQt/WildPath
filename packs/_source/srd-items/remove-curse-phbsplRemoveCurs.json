@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:abjuration",
+        "spell:remove-curse",
         "component:verbal",
         "component:somatic"
       ],

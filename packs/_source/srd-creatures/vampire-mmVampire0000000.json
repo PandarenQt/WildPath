@@ -483,6 +483,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:charm-person",
             "component:verbal",
             "component:somatic"
           ],
@@ -637,6 +638,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:command",
             "component:verbal"
           ],
           "costs": {

@@ -427,6 +427,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:darkness",
             "component:verbal",
             "component:material"
           ],
@@ -527,6 +528,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -618,6 +620,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:dispel-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -695,6 +698,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:confusion",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -821,6 +825,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:fly",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -944,6 +949,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:power-word-stun",
             "component:verbal"
           ],
           "costs": {

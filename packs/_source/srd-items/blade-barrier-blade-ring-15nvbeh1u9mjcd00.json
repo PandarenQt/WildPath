@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:evocation",
+        "spell:blade-barrier",
         "component:verbal",
         "component:somatic",
         "damage:force"

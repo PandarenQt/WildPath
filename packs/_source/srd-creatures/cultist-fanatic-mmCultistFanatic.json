@@ -269,6 +269,7 @@
             "spell",
             "cantrip",
             "school:evocation",
+            "spell:light",
             "component:verbal",
             "component:material"
           ],
@@ -335,6 +336,7 @@
             "spell",
             "cantrip",
             "school:transmutation",
+            "spell:thaumaturgy",
             "component:verbal"
           ],
           "costs": {
@@ -425,6 +427,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:command",
             "component:verbal"
           ],
           "costs": {
@@ -706,6 +709,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:hold-person",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -812,6 +816,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:spiritual-weapon",
             "component:verbal",
             "component:somatic"
           ],

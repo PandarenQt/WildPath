@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:abjuration",
+        "spell:protection-from-energy",
         "component:verbal",
         "component:somatic"
       ],

@@ -245,7 +245,9 @@ function normalizeDamageComponent(component={}) {
     weaponSizeScalable: component.weaponSizeScalable ?? scalingCategory === DAMAGE_SCALING_CATEGORIES.WEAPON_SIZE,
     source: component.source ? clonePlain(component.source) : null,
     tags: uniqueStrings(component.tags ?? []),
-    metadata: clonePlain(component.metadata ?? {}) ?? {}
+    metadata: clonePlain(component.metadata ?? {}) ?? {},
+    ...(component.ignoreResistance ? {ignoreResistance: true} : {}),
+    ...(component.ignoreImmunity ? {ignoreImmunity: true} : {})
   };
 }
 

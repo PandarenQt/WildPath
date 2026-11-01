@@ -38,10 +38,134 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"First Use\" is passive or triggered: not automated",
-          "\"Second+ Use\" is passive or triggered: not automated"
-        ]
+        "notes": []
+      },
+      "choiceFor": {
+        "spell": {
+          "lists": [
+            "wizard"
+          ],
+          "minLevel": 1,
+          "damage": true
+        },
+        "choice": {
+          "id": "overchannel",
+          "type": "select-one",
+          "label": "Overchannel",
+          "required": true,
+          "defaultValue": "no",
+          "options": [
+            {
+              "id": "no",
+              "label": "WILDPATH.PROMPT.No",
+              "value": "no"
+            },
+            {
+              "id": "overchannel",
+              "label": "Overchannel: maximum damage",
+              "value": "overchannel",
+              "effects": [
+                {
+                  "type": "require-level",
+                  "levelChoiceId": "spell-slot",
+                  "min": 1,
+                  "max": 5
+                },
+                {
+                  "type": "add-cost",
+                  "cost": {
+                    "allOf": [
+                      {
+                        "capability": "overchannel",
+                        "amount": 1
+                      }
+                    ]
+                  }
+                },
+                {
+                  "type": "maximize-damage"
+                },
+                {
+                  "type": "add-source-damage",
+                  "damage": [
+                    {
+                      "id": "overchannel",
+                      "expression": {
+                        "type": "dice",
+                        "number": 0,
+                        "faces": 12
+                      },
+                      "damageType": "necrotic",
+                      "ignoreResistance": true,
+                      "ignoreImmunity": true
+                    }
+                  ]
+                },
+                {
+                  "type": "scale-damage",
+                  "collection": "sourceDamage",
+                  "componentIds": [
+                    "overchannel"
+                  ],
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 0,
+                  "dice": {
+                    "faces": 12,
+                    "number": {
+                      "type": "multiply",
+                      "terms": [
+                        {
+                          "type": "min",
+                          "terms": [
+                            {
+                              "type": "subtract",
+                              "terms": [
+                                {
+                                  "type": "resource-max",
+                                  "resource": "overchannel"
+                                },
+                                {
+                                  "type": "resource-current",
+                                  "resource": "overchannel"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "constant",
+                              "value": 1
+                            }
+                          ]
+                        },
+                        {
+                          "type": "add",
+                          "terms": [
+                            {
+                              "type": "subtract",
+                              "terms": [
+                                {
+                                  "type": "resource-max",
+                                  "resource": "overchannel"
+                                },
+                                {
+                                  "type": "resource-current",
+                                  "resource": "overchannel"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "constant",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
       }
     }
   }

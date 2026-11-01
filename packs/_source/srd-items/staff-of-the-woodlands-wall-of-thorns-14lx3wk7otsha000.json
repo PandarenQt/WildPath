@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:conjuration",
+        "spell:wall-of-thorns",
         "component:verbal",
         "component:somatic",
         "component:material",
@@ -70,7 +71,9 @@
                   "allOf": []
                 },
                 "tags": [
-                  "spell"
+                  "spell",
+                  "school:conjuration",
+                  "spell:wall-of-thorns"
                 ],
                 "save": {
                   "ability": "agility",

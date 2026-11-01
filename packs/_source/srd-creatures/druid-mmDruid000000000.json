@@ -329,6 +329,7 @@
             "spell",
             "cantrip",
             "school:transmutation",
+            "spell:druidcraft",
             "component:verbal",
             "component:somatic"
           ],
@@ -384,6 +385,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:speak-with-animals",
             "component:verbal",
             "component:somatic"
           ],
@@ -467,6 +469,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:entangle",
             "component:verbal",
             "component:somatic"
           ],
@@ -589,6 +592,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:thunderwave",
             "component:verbal",
             "component:somatic",
             "damage:thunder"
@@ -700,6 +704,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:animal-messenger",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -808,6 +813,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:longstrider",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -920,6 +926,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:moonbeam",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -973,7 +980,9 @@
                       "allOf": []
                     },
                     "tags": [
-                      "spell"
+                      "spell",
+                      "school:evocation",
+                      "spell:moonbeam"
                     ],
                     "save": {
                       "ability": "fortitude",

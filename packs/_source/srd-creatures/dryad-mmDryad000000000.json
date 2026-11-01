@@ -400,6 +400,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:animal-friendship",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -493,6 +494,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:charm-monster",
             "component:verbal",
             "component:somatic"
           ],
@@ -586,6 +588,7 @@
             "spell",
             "cantrip",
             "school:transmutation",
+            "spell:druidcraft",
             "component:verbal",
             "component:somatic"
           ],
@@ -649,6 +652,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:entangle",
             "component:verbal",
             "component:somatic"
           ],
@@ -783,6 +787,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:pass-without-trace",
             "component:verbal",
             "component:somatic",
             "component:material"

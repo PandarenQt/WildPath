@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:enchantment",
+        "spell:zone-of-truth",
         "component:verbal",
         "component:somatic"
       ],
@@ -60,7 +61,9 @@
                   "allOf": []
                 },
                 "tags": [
-                  "spell"
+                  "spell",
+                  "school:enchantment",
+                  "spell:zone-of-truth"
                 ],
                 "save": {
                   "ability": "presence",

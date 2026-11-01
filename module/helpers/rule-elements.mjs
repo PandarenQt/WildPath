@@ -26,6 +26,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   EXTRA_DAMAGE: "ExtraDamage",
   DAMAGE_DIE_MINIMUM: "DamageDieMinimum",
   FORBID: "Forbid",
+  UNAFFECTED: "Unaffected",
   AURA: "Aura",
   TRIGGER: "Trigger"
 });
@@ -81,6 +82,7 @@ const TYPE_ALIASES = Object.freeze({
   extradamage: RULE_ELEMENT_TYPES.EXTRA_DAMAGE,
   damagedieminimum: RULE_ELEMENT_TYPES.DAMAGE_DIE_MINIMUM,
   forbid: RULE_ELEMENT_TYPES.FORBID,
+  unaffected: RULE_ELEMENT_TYPES.UNAFFECTED,
   aura: RULE_ELEMENT_TYPES.AURA,
   trigger: RULE_ELEMENT_TYPES.TRIGGER
 });
@@ -124,7 +126,8 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.ROLL_OUTCOME, rollOutcomeRuleElement],
     [RULE_ELEMENT_TYPES.EXTRA_DAMAGE, extraDamageRuleElement],
     [RULE_ELEMENT_TYPES.DAMAGE_DIE_MINIMUM, damageDieMinimumRuleElement],
-    [RULE_ELEMENT_TYPES.FORBID, forbidRuleElement],
+    [RULE_ELEMENT_TYPES.FORBID, actionsRuleElement("Forbid", "forbids")],
+    [RULE_ELEMENT_TYPES.UNAFFECTED, actionsRuleElement("Unaffected", "unaffected")],
     [RULE_ELEMENT_TYPES.AURA, auraRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESOURCE, grantResourceRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESISTANCE, grantResistanceRuleElement],
@@ -789,25 +792,29 @@ function damageDieMinimumRuleElement(ruleElement) {
 }
 
 /**
- * Actions its creature can't use while it applies: `{actions: <predicate>, reason?: <localization key>}`. The predicate
- * sees the Action's tags (`actionTags`): Spell Taxed forbids `{tagsAny: ["spell"]}`, Silenced
- * `{tagsAny: ["component:verbal"]}`, Gaseous Form `{tagsAny: ["spell", "attack"]}`.
+ * A rule over Actions by their tags (`actionTags`), `{actions: <predicate>, reason?: <localization key>}`, as `key`:
+ * `Forbid` (`forbids`), the Actions its creature can't use while it applies: Spell Taxed forbids `{tagsAny: ["spell"]}`,
+ * Silenced `{tagsAny: ["component:verbal"]}`, Gaseous Form `{tagsAny: ["spell", "attack"]}`. `Unaffected`
+ * (`unaffected`), the Actions that do nothing to its creature (`{tagsAny: ["spell:magic-missile"]}`,
+ * `{tagsAll: ["school:divination"]}`): it may still be targeted, and the Action is spent.
  */
-function forbidRuleElement(ruleElement) {
-  const data = ruleElement.data;
-  const actions = data.actions;
-  if ( !actions || (typeof actions !== "object") || Array.isArray(actions)
-    || (evaluatePredicate(actions, {tags: []}).code === PREDICATE_CODES.INVALID) ) {
-    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "Forbid RuleElement requires an actions predicate.");
-  }
-  return success({forbids: [{id: data.id ?? ruleElement.id, actions: clonePlain(actions),
-    ...(typeof data.reason === "string" ? {reason: data.reason} : {}), label: ruleElement.label ?? null,
-    source: ruleElementSource(ruleElement), metadata: contributionMetadata(ruleElement, data.metadata)}]});
+function actionsRuleElement(type, key) {
+  return ruleElement => {
+    const data = ruleElement.data;
+    const actions = data.actions;
+    if ( !actions || (typeof actions !== "object") || Array.isArray(actions)
+      || (evaluatePredicate(actions, {tags: []}).code === PREDICATE_CODES.INVALID) ) {
+      return handlerFailure(RULE_ELEMENT_CODES.INVALID, `${type} RuleElement requires an actions predicate.`);
+    }
+    return success({[key]: [{id: data.id ?? ruleElement.id, actions: clonePlain(actions),
+      ...(typeof data.reason === "string" ? {reason: data.reason} : {}), label: ruleElement.label ?? null,
+      source: ruleElementSource(ruleElement), metadata: contributionMetadata(ruleElement, data.metadata)}]});
+  };
 }
 
 /**
- * The tags a Forbid tests an Action by: its own, `attack` when it makes an attack roll, `spell:leveled` for a spell of
- * level 1+, its id (`id:common:dash`), and what it always costs (`cost:action`, `cost:bonus-action`).
+ * The tags a Forbid or Unaffected tests an Action by: its own, `attack` when it makes an attack roll, `spell:leveled`
+ * for a spell of level 1+, its id (`id:common:dash`), and what it always costs (`cost:action`, `cost:bonus-action`).
  */
 export function actionTags(definition) {
   const leveled = definition?.tags?.includes("spell") && (Number(definition.metadata?.spellLevel) >= 1);
@@ -816,18 +823,28 @@ export function actionTags(definition) {
     ...(definition?.costs?.allOf ?? []).flatMap(cost => (cost?.capability ? [`cost:${cost.capability}`] : []))];
 }
 
+/** The first of a creature's owners' rules in `key` whose actions match `definition`, named after its owner. */
+function actionsRule(key, owners, definition, context) {
+  const tags = actionTags(definition);
+  for ( const {ruleElements=[], source=null} of owners ) {
+    const rule = collectRuleElementContributions({ruleElements, context, source}).contributions[key]
+      .find(entry => evaluatePredicate(entry.actions, {tags}).ok);
+    if ( rule ) return {...rule, name: source?.name ?? rule.label ?? null};
+  }
+  return null;
+}
+
 /**
  * The first rule (`Forbid`) of a creature's owners that bars an Action with `definition`, or null. It is named after its
  * owner (the "Silenced" effect, the armor): a condition's rules carry ids as labels.
  */
 export function forbiddingRule(owners=[], definition=null, context={}) {
-  const tags = actionTags(definition);
-  for ( const {ruleElements=[], source=null} of owners ) {
-    const forbid = collectRuleElementContributions({ruleElements, context, source}).contributions.forbids
-      .find(entry => evaluatePredicate(entry.actions, {tags}).ok);
-    if ( forbid ) return {...forbid, name: source?.name ?? forbid.label ?? null};
-  }
-  return null;
+  return actionsRule("forbids", owners, definition, context);
+}
+
+/** The first rule (`Unaffected`) of a creature's owners that leaves it untouched by an Action with `definition`, or null. */
+export function unaffectingRule(owners=[], definition=null, context={}) {
+  return actionsRule("unaffected", owners, definition, context);
 }
 
 const AURA_AFFECTS = Object.freeze(["allies", "enemies", "all"]);
@@ -1080,6 +1097,7 @@ function emptyContributions() {
     extraDamage: [],
     dieMinimums: [],
     forbids: [],
+    unaffected: [],
     auras: [],
     conditionImmunities: [],
     opportunityAttackAvoidance: [],
@@ -1110,6 +1128,7 @@ function mergeContributions(target, source={}) {
   target.extraDamage.push(...(source.extraDamage ?? []));
   target.dieMinimums.push(...(source.dieMinimums ?? []));
   target.forbids.push(...(source.forbids ?? []));
+  target.unaffected.push(...(source.unaffected ?? []));
   target.auras.push(...(source.auras ?? []));
   target.conditionImmunities.push(...(source.conditionImmunities ?? []));
   target.opportunityAttackAvoidance.push(...(source.opportunityAttackAvoidance ?? []));

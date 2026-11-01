@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:evocation",
+        "spell:hellish-rebuke",
         "component:verbal",
         "component:somatic",
         "damage:fire"

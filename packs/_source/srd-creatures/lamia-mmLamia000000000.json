@@ -374,6 +374,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:disguise-self",
             "component:verbal",
             "component:somatic"
           ],
@@ -450,6 +451,7 @@
             "spell",
             "cantrip",
             "school:illusion",
+            "spell:minor-illusion",
             "component:somatic",
             "component:material"
           ],
@@ -533,6 +535,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:geas",
             "component:verbal",
             "damage:psychic"
           ],
@@ -654,6 +657,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:major-image",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -763,6 +767,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:scrying",
             "component:verbal",
             "component:somatic",
             "component:material"

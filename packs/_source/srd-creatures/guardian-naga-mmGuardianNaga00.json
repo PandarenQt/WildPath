@@ -394,6 +394,7 @@
             "spell",
             "cantrip",
             "school:transmutation",
+            "spell:thaumaturgy",
             "component:verbal"
           ],
           "costs": {
@@ -484,6 +485,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:clairvoyance",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -566,6 +568,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:cure-wounds",
             "component:verbal",
             "component:somatic"
           ],
@@ -702,6 +705,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:flame-strike",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -879,6 +883,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:geas",
             "component:verbal",
             "damage:psychic"
           ],
@@ -1033,6 +1038,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:true-seeing",
             "component:verbal",
             "component:somatic",
             "component:material",

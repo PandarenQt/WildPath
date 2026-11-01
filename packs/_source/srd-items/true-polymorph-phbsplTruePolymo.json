@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:transmutation",
+        "spell:true-polymorph",
         "component:verbal",
         "component:somatic",
         "component:material"

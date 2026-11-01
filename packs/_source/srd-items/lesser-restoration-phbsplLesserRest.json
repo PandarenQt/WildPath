@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:abjuration",
+        "spell:lesser-restoration",
         "component:verbal",
         "component:somatic"
       ],

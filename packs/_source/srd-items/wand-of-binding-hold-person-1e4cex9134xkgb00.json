@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:enchantment",
+        "spell:hold-person",
         "component:verbal",
         "component:somatic",
         "component:material"

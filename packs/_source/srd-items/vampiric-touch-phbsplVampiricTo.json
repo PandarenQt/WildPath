@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:necromancy",
+        "spell:vampiric-touch",
         "component:verbal",
         "component:somatic",
         "damage:necrotic"

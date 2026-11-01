@@ -62,6 +62,17 @@ test("the card view model reads only names, outcomes and public Roll JSON from t
   assert.equal(JSON.stringify(view).includes(SECRET), false);
 });
 
+test("a target the Action did nothing to (Unaffected) is still named on its card, as unaffected", () => {
+  const view = createResolutionCardViewModel(projectResolutionResultForDisclosure({
+    resolutionId: "resolution:unaffected", status: "completed", initiatorUserId: "player-a",
+    targets: [{id: "goblin", actorRef: "Actor.goblin", name: "Goblin"}],
+    outcomes: {unaffected: [{id: "golem", actorRef: "Actor.golem", tokenId: "golem-token", name: "Golem", defense: {value: SECRET}}]}
+  }, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE));
+  assert.deepEqual(view.targets.map(target => [target.name, target.unaffected?.label ?? null]),
+    [["Goblin", null], ["Golem", CHAT_OUTCOME_KEYS.unaffected]]);
+  assert.equal(JSON.stringify(view).includes(SECRET), false);
+});
+
 test("rolls entered by hand show the authority's formula and the validated total", () => {
   const view = createResolutionCardViewModel(projectResolutionResultForDisclosure({
     resolutionId: "resolution:physical", status: "completed", initiatorUserId: "player-a",

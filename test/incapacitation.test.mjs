@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import {WILDPATH} from "../module/config.mjs";
 import {d20FormulaWith} from "../module/helpers/rolls.mjs";
 import {rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
-import {endConcentrationOnIncapacitation, endEarlierConcentration, endEffectsWhenSaved, markCasterConcentration, startsConcentration,
+import {startsConcentration} from "../module/helpers/action-definitions.mjs";
+import {endConcentrationOnIncapacitation, endEarlierConcentration, endEffectsWhenSaved, endLostConcentration, markCasterConcentration,
   sustainedEffects}
   from "../module/resolvers/foundry-multiplayer-runtime.mjs";
 
@@ -44,6 +45,21 @@ test("a caster who becomes Incapacitated ends every effect it sustains, wherever
   assert.deepEqual([caster.deleted, ally.deleted, enemy.deleted], [["marker"], ["blessed"], ["held"]]);
   assert.deepEqual(await endConcentrationOnIncapacitation({system: {type: "prone"}, parent: caster}, game), [],
     "a condition that does not incapacitate ends nothing");
+});
+
+test("a caster that failed the check to keep the concentration its Action started ends what it sustains once it completes", async () => {
+  const caster = holder("caster", [sustained("wall-marker", "token:caster-token")]);
+  const enemy = holder("enemy", [sustained("burning", "uuid:Actor.caster.Item.wall")]);
+  const scene = {id: "scene-a", tokens: [{id: "caster-token", uuid: "Scene.scene-a.Token.caster-token", actorLink: true,
+    actorId: "caster", actor: caster, parent: null}]};
+  scene.tokens[0].parent = scene;
+  const game = {actors: [caster, enemy], scenes: [scene]};
+  const event = startedLost => ({options: {actor: caster},
+    state: {results: {concentrationResolution: {checks: {}, endedEffects: 0, ...(startedLost ? {startedLost} : {})}}}});
+  assert.deepEqual(await endLostConcentration(event(false), {game}), [], "kept");
+  assert.deepEqual([caster.deleted, enemy.deleted], [[], []]);
+  assert.deepEqual((await endLostConcentration(event(true), {game})).sort(), ["Effect.burning", "Effect.wall-marker"]);
+  assert.deepEqual([caster.deleted, enemy.deleted], [["wall-marker"], ["burning"]]);
 });
 
 test("a new concentration ends the caster's earlier one, as it stood when declared; a follow-up of the same spell does not", async () => {

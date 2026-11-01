@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:enchantment",
+        "spell:modify-memory",
         "component:verbal",
         "component:somatic"
       ],

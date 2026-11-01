@@ -461,6 +461,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:charm-person",
             "component:verbal",
             "component:somatic"
           ],
@@ -607,6 +608,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:darkness",
             "component:verbal",
             "component:material"
           ],
@@ -734,6 +736,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:gaseous-form",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -919,6 +922,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:sleep",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -1046,6 +1050,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:invisibility",
             "component:verbal",
             "component:somatic",
             "component:material"

@@ -30,7 +30,7 @@ The default registry currently supports these contribution types:
 - `GrantMovement`
 - `RollMode`, `ResourceCap`, `RollOutcome`
 - `ExtraDamage`, `Aura`
-- `Forbid`
+- `Forbid`, `Unaffected`
 - `Trigger`
 
 Handlers return contribution bundles only:
@@ -1045,6 +1045,33 @@ the authority's separate refusals:
 - Authority Actions (a lasting area's turns, which its caster already cast) are not checked.
 - The rule rows have a **Can't use** row: a Forbid of Actions by tag (`{tagsAny: [...]}`, comma-separated). Any other
   predicate (Command's Flee) is Advanced's. An aura's rules can't be one: forbiddingRule reads only a creature's own owners.
+
+## Unaffected (2026-11-01, plan 7.10)
+
+`{type: "Unaffected", data: {actions: <predicate>}}`: the target-side twin of Forbid (the owner's Q15). While it
+applies, an Action whose tags match does nothing to its creature. The predicate sees the same `actionTags`; Forbid and
+Unaffected share one handler (`actionsRuleElement`) and one owner walk (`actor.unaffectingRule(definition)`, from
+`grantOwners`, so not from an aura).
+
+- **Targeted and wasted.** A creature may still be chosen as a target. The authority
+  (`foundryActionIntentToStagedOptions`) lists it in `context.unaffected`. The pipeline's targeting stage
+  (`withoutUnaffected`) keeps it through target validation, so a required target is satisfied, then excludes it: its
+  target context is `excluded` and `unaffected`, and it leaves `finalTargets`. It gets no attack roll, save, damage or
+  effect. The Action is still paid (its Action, its spell slot). Its card names it, marked **Unaffected**
+  (`outcomes.unaffected` in the public projection, `WILDPATH.CHAT.Outcome.Unaffected`).
+- **An area leaves it out.** An area Action, or one the authority runs (an aura's, a lasting area's), drops it from
+  the targets, as it drops a creature on the other plane. A lasting area's trigger (`foundry-v14-persistent-areas`)
+  doesn't fire on it, so its once-per-turn use is not spent.
+- An Action its creature uses on itself is never "unaffected" (a creature with a school's immunity still casts that
+  school's spells on itself), and neither is a lasting area's on its own caster.
+- **Spells by identity.** The converter tags each spell `spell:<identifier>` (`spell:magic-missile`) next to its
+  `school:` tag. A lasting area's trigger copies both, so it matches the same rules as the spell. Packs pick this up
+  when they are next converted.
+
+| What | Its rule | Converted from |
+| --- | --- | --- |
+| Immunity to named spells (a Monster Manual construct's) | `{tagsAny: ["spell:heat-metal", ...]}` | the spells its text links (`@UUID[...spells.Item...]{Name}`), each name as a slug; no linked spell leaves it by hand |
+| Immunity to Divination spells (a DMG trait) | `{tagsAll: ["school:divination"]}` | the trait. Its Bonus Action that suppresses or restores the trait is the feature's `active` toggle. Being immune to other mind-reading effects is by hand |
 
 ## Future Types
 

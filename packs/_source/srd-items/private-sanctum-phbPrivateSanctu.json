@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:abjuration",
+        "spell:private-sanctum",
         "component:verbal",
         "component:somatic",
         "component:material"

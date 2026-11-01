@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:conjuration",
+        "spell:web",
         "component:verbal",
         "component:somatic",
         "component:material",
@@ -71,7 +72,9 @@
                   "allOf": []
                 },
                 "tags": [
-                  "spell"
+                  "spell",
+                  "school:conjuration",
+                  "spell:web"
                 ],
                 "save": {
                   "ability": "agility",

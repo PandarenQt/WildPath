@@ -940,7 +940,9 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
     case "add-cost":
       return applyAddCostEffect({definition, effect, selection});
     case "scale-damage":
-      return applyScaleDamageEffect({definition, effect, selection, selectionsById, context});
+      // `collection: "sourceDamage"`: the damage it deals its own source grows with the level (Overchannel's backlash).
+      return applyScaleDamageEffect({definition, effect, selection, selectionsById, context,
+        collection: (effect.collection === "sourceDamage") ? "sourceDamage" : "damage"});
     case "scale-healing":
       return applyScaleDamageEffect({definition, effect, selection, selectionsById, context, collection: "healing"});
     case "scale-targets":
@@ -978,6 +980,21 @@ function applyConfigurationEffect({definition, effect, selection, selectionsById
       // Empowered Spell: how many of its damage dice below average are rolled again (the damage roll stage).
       definition.metadata = {...(definition.metadata ?? {}), empowered: Math.max(1, Math.trunc(finiteNumber(effect.count) ?? 1))};
       return {ok: true, trace: [appliedTrace(selection, "empower-damage", {count: definition.metadata.empowered})], errors: []};
+    case "maximize-damage":
+      // Overchannel: its damage dice deal their maximum, unrolled (the damage roll stage).
+      definition.metadata = {...(definition.metadata ?? {}), maximized: true};
+      return {ok: true, trace: [appliedTrace(selection, "maximize-damage", {})], errors: []};
+    case "add-source-damage":
+      // Damage the Action also deals its own source (Overchannel's backlash), rolled after its damage.
+      definition.sourceDamage = [...normalizeArray(definition.sourceDamage), ...normalizeArray(effect.damage).map(clonePlain)];
+      return {ok: true, trace: [appliedTrace(selection, "add-source-damage", {count: normalizeArray(effect.damage).length})], errors: []};
+    case "require-level": {
+      // Only at a level from `min` to `max` of its level choice (Overchannel: a slot of level 1 to 5).
+      const level = scalingLevel(effect, selection, selectionsById) ?? 0;
+      return ((level >= (finiteNumber(effect.min) ?? 0)) && (level <= (finiteNumber(effect.max) ?? Infinity)))
+        ? {ok: true, trace: [appliedTrace(selection, "require-level", {level})], errors: []}
+        : {ok: false, trace: [], errors: [choiceError(ACTION_CONFIGURATION_CODES.INVALID_CHOICE, selection.id, `Not at level ${level}.`)]};
+    }
     case "set-save":
       // Heightened (`heightened: true`), Careful (`careful: <count>`): its save's resolution asks who.
       if ( !definition.save || !effect.key ) return {ok: true, trace: [appliedTrace(selection, "set-save", {skipped: true})], errors: []};
@@ -1189,7 +1206,7 @@ function applyScaleTargetsEffect({definition, effect, selection, selectionsById}
   return {ok: true, trace: [appliedTrace(selection, "scaled-targets", {before, after: before + added, selectedLevel, baseLevel})], errors: []};
 }
 
-function applyScaleDamageEffect({definition, effect, selection, selectionsById, collection="damage"}) {
+function applyScaleDamageEffect({definition, effect, selection, selectionsById, context, collection="damage"}) {
   const selectedLevel = scalingLevel(effect, selection, selectionsById);
   if ( selectedLevel == null ) return {
     ok: false,
@@ -1204,7 +1221,10 @@ function applyScaleDamageEffect({definition, effect, selection, selectionsById, 
   const baseLevel = finiteNumber(effect.baseLevel ?? effect.minimumLevel ?? effect.fromLevel) ?? 0;
   const levels = Math.max(selectedLevel - baseLevel, 0);
   const dice = effect.dice ?? effect.perLevel?.dice ?? effect.increment?.dice ?? {};
-  const diceNumber = finiteNumber(dice.number ?? dice.count ?? effect.number ?? effect.count) ?? 0;
+  // A count worked out for its creature (Overchannel: one more d12 a level for each earlier use, `resource-current`).
+  const counted = dice.number ?? dice.count ?? effect.number ?? effect.count;
+  const diceNumber = ((counted && (typeof counted === "object")) ? evaluateValueExpression(counted, context ?? {}).value
+    : finiteNumber(counted)) ?? 0;
   const diceFaces = finiteNumber(dice.faces ?? dice.sides ?? effect.faces ?? effect.sides);
   const addedDice = {
     type: "dice",

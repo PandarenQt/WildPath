@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:conjuration",
+        "spell:conjure-minor-elementals",
         "component:verbal",
         "component:somatic"
       ],

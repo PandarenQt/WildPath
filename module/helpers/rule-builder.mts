@@ -433,7 +433,7 @@ export function removeRule(rules: unknown, index: number, path: readonly number[
 
 /** Handlers that read nothing but their own data, so they can be tried while editing. */
 const CONTEXT_FREE = new Set(["Modifier", "RollMode", "GrantResistance", "GrantImmunity", "GrantVulnerability", "ConditionImmunity",
-  "Reveal", "ExtraDamage", "Aura", "RollOutcome", "Forbid"]);
+  "Reveal", "ExtraDamage", "Aura", "RollOutcome", "Forbid", "Unaffected"]);
 
 /**
  * What is wrong with a list of RuleElements, one message per rule: its shape, an unknown type, or what the rule's

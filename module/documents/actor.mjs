@@ -9,7 +9,7 @@ import {effectAddedDice, effectGiverActor, hostedRules} from "../helpers/effect-
 import {
   damageProfileFromRuleElements, dieMinimumsFromRuleElements, grantedMovementFromRuleElements, grantedResourcesFromRuleElements, grantedSensesFromRuleElements, grantedLightsFromRuleElements, grantedLanguagesFromRuleElements,
   modifiersFromRuleElements,
-  resourceCapsFromRuleElements, abilityScoreChangesFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements, forbiddingRule,
+  resourceCapsFromRuleElements, abilityScoreChangesFromRuleElements, rollModesFromRuleElements, rollOutcomesFromRuleElements, extraDamageFromRuleElements, aurasFromRuleElements, forbiddingRule, unaffectingRule,
   conditionImmunitiesFromRuleElements, opportunityAttackAvoidanceFromRuleElements, extraAttacksFromRuleElements, normalizeRuleElementType,
   armorClassesFromRuleElements
 } from "../helpers/rule-elements.mjs";
@@ -292,6 +292,14 @@ export default class WildPathActor extends Actor {
    */
   forbiddingRule(definition) {
     return forbiddingRule(grantOwners(this), definition, {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
+  }
+
+  /**
+   * The rule (`Unaffected`) that leaves this creature untouched by an Action with `definition`, or null: its features',
+   * gear's and effects' (immunity to named spells, or to a school's).
+   */
+  unaffectingRule(definition) {
+    return unaffectingRule(grantOwners(this), definition, {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])]});
   }
 
   /** The auras this creature's features, gear and effects give it (`Aura`). */

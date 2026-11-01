@@ -137,7 +137,8 @@ shouldn't ship without the backlash.
   some cursed items, Blood Magic-style homebrew).
 - Done meanwhile: nothing; Overchannel stays by hand (noted).
 - Recommendation: yes; medium-sized, with the maximize half shipped together.
-- **Answered 2026-10-31: the recommendation (plan 7.6).**
+- **Answered 2026-10-31: the recommendation (plan 7.6).** Built 2026-11-01: `sourceDamage` (action-resolution.md) and
+  Overchannel's choice (classes-and-spellcasting.md).
 
 ### Q11. Rules the caster gives a save it imposes (Magical Ambush, Eldritch Strike, Eldritch Hex) (2026-10-31)
 Three book features make a creature's save against the caster worse: an Arcane Trickster casting while Invisible
@@ -214,7 +215,7 @@ damage types, and an automatic save success misses spells with no save (Magic Mi
   matched by identity rather than by name.
 - Recommendation: yes, targeted and wasted, with the `spell:` tag; the shroud's on/off Bonus Action is the feature's
   active toggle.
-- **Answered 2026-10-31: the recommendation: an `Unaffected` rule, the creature targeted and the use wasted, spells tagged `spell:<identifier>` (plan 7.10).**
+- **Answered 2026-10-31: the recommendation: an `Unaffected` rule, the creature targeted and the use wasted, spells tagged `spell:<identifier>` (plan 7.10).** (done: docs/architecture/rule-elements.md, Unaffected).
 
 ### Q16. Inspiring Help (Expert sidekick): dice added to the Help it gives (2026-10-31)
 An Expert sidekick's Help adds 1d6 (2d6 at level 20) to the helped roll, or to the attack's damage on a hit instead. The

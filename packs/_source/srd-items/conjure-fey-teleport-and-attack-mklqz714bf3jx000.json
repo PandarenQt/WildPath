@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:conjuration",
+        "spell:conjure-fey",
         "component:verbal",
         "component:somatic"
       ],

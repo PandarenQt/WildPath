@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:conjuration",
+        "spell:conjure-animals",
         "component:verbal",
         "component:somatic",
         "damage:slashing"

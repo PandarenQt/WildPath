@@ -10,7 +10,8 @@ interface Field {[key: string]: unknown}
 interface Grid {distance: number}
 interface Level {elevation?: {bottom?: number | null}}
 interface Effect {uuid: string; flags?: {wildpath?: {areaRegion?: {sceneId: string; regionId: string}}}; delete(): Promise<unknown>}
-interface Actor {uuid: string; id: string; createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown[]>}
+interface Actor {uuid: string; id: string; createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown[]>;
+  unaffectingRule?(definition: Data): unknown}
 export interface AreaToken {
   id: string; uuid: string; name?: string; actor: Actor | null; elevation?: number; depth?: number; level?: string | null;
   parent: AreaScene; x?: number; y?: number; width?: number; height?: number; disposition?: number;
@@ -366,7 +367,9 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   }
 
   async function apply(region: AreaRegion, flag: AreaFlag, token: AreaToken, event: string) {
-    const triggers = flag.persistence.triggers.filter(trigger => trigger.on.includes(event));
+    // A creature its rules leave untouched by the area's spell (`Unaffected`; its caster's own excepted) is left out.
+    const unaffected = (trigger: Trigger) => (token.actor?.uuid !== flag.sourceActorRef) && !!token.actor?.unaffectingRule?.(trigger.action);
+    const triggers = flag.persistence.triggers.filter(trigger => trigger.on.includes(event) && !unaffected(trigger));
     if ( !triggers.length || !token.actor ) return [];
     // An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone.
     if ( flag.persistence.affects === "enemies" ) {

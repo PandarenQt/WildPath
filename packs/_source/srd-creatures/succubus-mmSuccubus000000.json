@@ -294,6 +294,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:dominate-person",
             "component:verbal",
             "component:somatic"
           ],

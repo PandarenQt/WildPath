@@ -1253,3 +1253,68 @@ test("drop to 0: Dark One's Blessing gives its source Temporary Hit Points for a
   assert.ok(reward(run(["token-orc"]).state), "a hostile creature dropped");
   assert.equal(reward(run([]).state), undefined, "not an ally");
 });
+
+test("source damage (Overchannel's backlash): rolled after the maximized damage, ignoring Resistance and Immunity, checks the caster's Concentration", () => {
+  const plan = (id, backlashDice) => planStagedActionResolution({id, actorSystem: actorSystem(1),
+    action: definitionAction({schemaVersion: 1, id: "action:bolt", label: "Bolt", tags: ["spell"], costs: {allOf: []},
+      targeting: {type: "single", required: true, count: 1}, metadata: {maximized: true},
+      damage: [{id: "fire", expression: {type: "dice", number: 3, faces: 6}, damageType: "fire"}],
+      sourceDamage: [{id: "backlash", expression: {type: "dice", number: backlashDice, faces: 12}, damageType: "necrotic",
+        ignoreResistance: true, ignoreImmunity: true}]}),
+    source: {actorId: "actor-caster", tokenId: "token-caster"}, targets: [target("orc")],
+    durability: {targetSystems: {"token-orc": targetActorSystem(30, 30), "token-caster": targetActorSystem(40, 40)},
+      adjustmentProfiles: {"token-caster": {resistances: ["necrotic"], immunities: ["necrotic"]}}},
+    concentration: {states: {"token-caster": {concentrating: true, actorId: "actor-caster", sourceRef: "token:token-caster"}}, dependents: []}});
+  const answer = (state, total) => {
+    const request = state.pendingRequests[0];
+    return resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: RESOLUTION_REQUEST_TYPES.ROLL,
+      value: {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: total, total}}});
+  };
+  const waiting = plan("resolution:backlash", 2);
+  assert.deepEqual(waiting.state.pendingRequests.map(request => request.payload.rollKind), ["sourceDamage"],
+    "its own damage is not rolled: 3d6 at their maximum");
+  assert.deepEqual(waiting.state.pendingRequests[0].payload.rollRequest.definition.dice.map(die => [die.number, die.faces]), [[2, 12]]);
+  const damaged = answer(waiting.state, 13);
+  assert.deepEqual(damaged.state.results.damageResolution.results.map(result => [result.target.tokenId, result.total]),
+    [["token-orc", 18], ["token-caster", 13]]);
+  assert.equal(damaged.state.pendingRequests[0].payload.rollKind, "concentration", "the caster checks its Concentration");
+  assert.equal(damaged.state.pendingRequests[0].payload.targets[0].tokenId, "token-caster");
+  const done = answer(damaged.state, 15);
+  assert.equal(done.ok, true, JSON.stringify(done.state.errors));
+  assert.deepEqual(done.state.mutationPlans.filter(entry => entry.type === "durabilityDamage").map(entry => [entry.targetRef, entry.plan.updates]),
+    [["token:token-orc", {"system.resources.health.value": 12}], ["token:token-caster", {"system.resources.health.value": 27}]],
+    "13 Necrotic though the caster resists and is immune to it");
+  const free = plan("resolution:free", 0);
+  assert.equal(free.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, "no backlash die: nothing to roll or check");
+  assert.deepEqual(free.state.results.damageResolution.results.map(result => result.target.tokenId), ["token-orc"]);
+});
+
+test("source damage threatens the concentration its Action starts: a failed check keeps none of it, though the caster held none before", () => {
+  const plan = id => planStagedActionResolution({id, actorSystem: actorSystem(1),
+    action: definitionAction({schemaVersion: 1, id: "action:wall", label: "Wall", tags: ["spell"], costs: {allOf: []},
+      targeting: {type: "single", required: true, count: 1},
+      damage: [{id: "fire", expression: {type: "constant", value: 5}, damageType: "fire"}],
+      effects: [{id: "blind", type: "condition", conditionId: "blinded", concentration: true}],
+      sourceDamage: [{id: "backlash", expression: {type: "constant", value: 30}, damageType: "necrotic"}]}),
+    source: {actorId: "actor-caster", tokenId: "token-caster"}, targets: [target("orc")],
+    durability: {targetSystems: {"token-orc": targetActorSystem(30, 30), "token-caster": targetActorSystem(40, 40)}}});
+  const check = (id, total) => {
+    const {state} = plan(id);
+    const request = state.pendingRequests[0];
+    assert.equal(request?.payload.rollKind, "concentration", "no concentration before, yet the caster checks the new one");
+    assert.equal(request.payload.targets[0].tokenId, "token-caster");
+    return resumeStagedActionResolution({state, response: {resolutionId: state.id, requestId: request.id, type: RESOLUTION_REQUEST_TYPES.ROLL,
+      value: {requestId: request.payload.rollRequest.id, resolutionId: state.id, type: request.payload.rollRequest.type, natural: total, total}}});
+  };
+  const effects = done => done.state.mutationPlans.filter(entry => entry.type === "conditionEffect").map(entry => entry.conditionId);
+  const lost = check("resolution:lost", 3);
+  assert.equal(lost.ok, true, JSON.stringify(lost.state.errors));
+  assert.deepEqual(effects(lost), [], "its concentration effect is never created");
+  assert.deepEqual(lost.state.results.concentrationResolution.checks.decisions.map(decision => [decision.dc, decision.outcome]),
+    [[15, "broken"]], "DC half its 30 backlash");
+  assert.equal(lost.state.results.concentrationResolution.startedLost, true, "the runtime ends its area, summons or marker");
+  assert.equal(lost.state.mutationPlans.filter(entry => entry.type === "durabilityDamage").length, 2, "the damage still lands");
+  const kept = check("resolution:kept", 20);
+  assert.deepEqual(effects(kept), ["blinded"]);
+  assert.equal(kept.state.results.concentrationResolution.startedLost, undefined);
+});

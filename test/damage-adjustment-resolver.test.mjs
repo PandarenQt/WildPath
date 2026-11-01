@@ -124,6 +124,14 @@ test("several Resistances to one damage type count as one; a halving of every ty
     "Uncanny Dodge still halves a Boon of Irresistible Offense's slashing");
 });
 
+test("damage that ignores Resistance outright (Overchannel's backlash) skips a Resistance to all damage too", () => {
+  const backlash = ignoreResistance => ({ok: true, code: "OK", total: 20, byDamageType: {necrotic: 20},
+    components: [{id: "backlash", amount: 20, damageType: "necrotic", ...(ignoreResistance ? {ignoreResistance} : {})}]});
+  const petrified = mergeDamageAdjustmentProfiles({resistances: [{id: "petrified", damageTypes: []}]});
+  assert.equal(adjustDamageResult(backlash(true), petrified).damageResult.total, 20, "not halved");
+  assert.equal(adjustDamageResult(backlash(false), petrified).damageResult.total, 10, "other damage still is");
+});
+
 test("a Damage Threshold (a ship's 15) ignores a smaller total from one source, after its other adjustments", () => {
   const hit = amount => ({ok: true, code: "OK", components: [{id: "ram", amount, damageType: "bludgeoning"}], total: amount,
     byDamageType: {bludgeoning: amount}});

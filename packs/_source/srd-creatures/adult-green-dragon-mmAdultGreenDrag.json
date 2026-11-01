@@ -442,6 +442,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -525,6 +526,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:mind-spike",
             "component:somatic",
             "damage:psychic"
           ],
@@ -675,6 +677,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:geas",
             "component:verbal",
             "damage:psychic"
           ],
@@ -796,6 +799,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:mind-spike",
             "component:somatic",
             "damage:psychic"
           ],

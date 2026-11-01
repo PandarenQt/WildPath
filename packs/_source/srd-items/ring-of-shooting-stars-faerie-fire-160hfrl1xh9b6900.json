@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:evocation",
+        "spell:faerie-fire",
         "component:verbal"
       ],
       "costs": {

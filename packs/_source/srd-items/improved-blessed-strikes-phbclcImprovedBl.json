@@ -7,7 +7,66 @@
   "system": {
     "active": true,
     "description": "<p>The option you chose for Blessed Strikes grows more powerful.</p><p><strong>Divine Strike.</strong> The extra damage of your Divine Strike increases to 2d8.</p><p><strong>Potent Spellcasting.</strong> When you cast a Cleric cantrip and deal damage to a creature with it, you can give vitality to yourself or another creature within 60 feet of yourself, granting a number of Temporary Hit Points equal to twice your Wisdom modifier.</p><section class=\"secret\" id=\"secret-UW0So7XcJyHUaivE\"><p><strong>Foundry Note</strong></p><p>If you chose <strong>Divine Strike</strong> the damage is automatically increased. If you chose <strong>Potent Spellcasting</strong> you can use the Potent Spellcasting activity on this feature.</p></section>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "damage.applied",
+          "match": {
+            "phase": "interrupt",
+            "sourceTokenId": "{self}",
+            "tagsAll": [
+              "cantrip"
+            ]
+          },
+          "whileFeature": "blessed-strikes-potent-spellcasting",
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-improved-blessed-strikes",
+            "label": "Improved Blessed Strikes",
+            "costs": {
+              "allOf": []
+            },
+            "range": {
+              "type": "special"
+            },
+            "targeting": {
+              "type": "single",
+              "required": true,
+              "count": 1
+            },
+            "effects": [],
+            "healing": [
+              {
+                "id": "potent-spellcasting",
+                "healingType": "temporary",
+                "expression": {
+                  "type": "multiply",
+                  "terms": [
+                    {
+                      "type": "constant",
+                      "value": 2
+                    },
+                    {
+                      "type": "ability-modifier",
+                      "ability": "wits"
+                    }
+                  ]
+                }
+              }
+            ],
+            "targetChoice": {
+              "from": "creatures",
+              "range": 60,
+              "includeSelf": true
+            }
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -23,9 +82,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Potent Spellcasting: Heal\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:evocation",
+        "spell:moonbeam",
         "component:verbal",
         "component:somatic",
         "component:material",
@@ -62,7 +63,9 @@
                   "allOf": []
                 },
                 "tags": [
-                  "spell"
+                  "spell",
+                  "school:evocation",
+                  "spell:moonbeam"
                 ],
                 "save": {
                   "ability": "fortitude",

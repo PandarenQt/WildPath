@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:abjuration",
+        "spell:prayer-of-healing",
         "component:verbal"
       ],
       "costs": {

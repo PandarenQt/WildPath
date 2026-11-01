@@ -423,6 +423,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:darkness",
             "component:verbal",
             "component:material"
           ],
@@ -535,6 +536,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:faerie-fire",
             "component:verbal"
           ],
           "costs": {
@@ -658,6 +660,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:web",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -716,7 +719,9 @@
                       "allOf": []
                     },
                     "tags": [
-                      "spell"
+                      "spell",
+                      "school:conjuration",
+                      "spell:web"
                     ],
                     "save": {
                       "ability": "agility",

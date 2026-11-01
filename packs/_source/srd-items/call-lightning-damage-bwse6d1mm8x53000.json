@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:conjuration",
+        "spell:call-lightning",
         "component:verbal",
         "component:somatic",
         "damage:untyped"

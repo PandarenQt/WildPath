@@ -291,7 +291,9 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         return game.users?.activeGM?.id === game.user.id;
     }
     async function apply(region, flag, token, event) {
-        const triggers = flag.persistence.triggers.filter(trigger => trigger.on.includes(event));
+        // A creature its rules leave untouched by the area's spell (`Unaffected`; its caster's own excepted) is left out.
+        const unaffected = (trigger) => (token.actor?.uuid !== flag.sourceActorRef) && !!token.actor?.unaffectingRule?.(trigger.action);
+        const triggers = flag.persistence.triggers.filter(trigger => trigger.on.includes(event) && !unaffected(trigger));
         if (!triggers.length || !token.actor)
             return [];
         // An area that affects only its caster's enemies (Spirit Guardians) leaves the caster and its side alone.

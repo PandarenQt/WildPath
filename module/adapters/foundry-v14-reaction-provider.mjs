@@ -180,6 +180,10 @@ function tokenReactions(token) {
             // Only while its creature has a status (Brutal Strike: Reckless Attack's "reckless").
             if (data.whileStatus && !actor.statuses?.has(String(data.whileStatus)))
                 return [];
+            // Only while its creature has a feature (Improved Blessed Strikes' heal: its Potent Spellcasting option), as `hasFeature`.
+            if (data.whileFeature && !items.some(entry => (entry.system?.active !== false)
+                && (entry.flags?.wildpath?.source?.identifier === data.whileFeature)))
+                return [];
             // Not one its rules forbid it (`Forbid`: a Silenced wizard's Shield, a Spell Taxed caster's spells).
             if (actor.forbiddingRule?.(definition.definition))
                 return [];

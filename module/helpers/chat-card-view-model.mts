@@ -48,6 +48,8 @@ export interface PublicResolutionResult {
     readonly check?: {readonly success?: boolean} | null;
     readonly zeroHp?: readonly {readonly target?: PublicRef | null; readonly name?: string | null}[];
     readonly cover?: readonly {readonly target?: PublicRef | null; readonly degree?: string | null}[];
+    /** The targets the Action did nothing to (`Unaffected`). */
+    readonly unaffected?: readonly PublicRef[];
     readonly effects?: readonly {readonly target?: PublicRef | null; readonly conditionId?: string | null; readonly name?: string | null;
       readonly removed?: boolean | null}[];
   };
@@ -66,6 +68,7 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
   half: "WILDPATH.COVER.half",
   threeQuarters: "WILDPATH.COVER.threeQuarters",
   immune: "WILDPATH.CHAT.Outcome.Immune",
+  unaffected: "WILDPATH.CHAT.Outcome.Unaffected",
   checkSuccess: "WILDPATH.CHAT.Outcome.CheckSuccess",
   checkFailure: "WILDPATH.CHAT.Outcome.CheckFailure"
 });
@@ -86,6 +89,8 @@ export interface ResolutionCardTarget {
   readonly staysUp?: {readonly label: string; readonly name: string} | null;
   /** Its cover against the Action ("Half cover"). */
   readonly cover?: {readonly label: string} | null;
+  /** The Action did nothing to it (`Unaffected`): it was targeted, and the Action spent. */
+  readonly unaffected?: {readonly label: string} | null;
   /** The conditions and effects the Action gave it (or ended): a condition's lang key, an effect's own name. */
   readonly effects?: readonly {readonly label: string; readonly conditionId: string | null; readonly removed: boolean}[];
 }
@@ -112,7 +117,9 @@ export function createResolutionCardViewModel(result: PublicResolutionResult,
     actionName: textOrNull(result.action?.name ?? result.action?.label),
     check: !result.outcomes?.check ? null : result.outcomes.check.success
       ? {label: CHAT_OUTCOME_KEYS.checkSuccess, tone: "success"} : {label: CHAT_OUTCOME_KEYS.checkFailure, tone: "failure"},
-    targets: (result.targets ?? []).map(target => {
+    // A target the Action did nothing to is no longer among its targets, but is still named.
+    targets: [...(result.targets ?? []), ...(result.outcomes?.unaffected ?? [])
+      .filter(spared => !(result.targets ?? []).some(target => sameTarget(spared, target)))].map(target => {
       const attackEntry = attack.find(entry => sameTarget(entry.target, target));
       const saveEntry = save.find(entry => sameTarget(entry.target, target));
       const kept = (result.outcomes?.zeroHp ?? []).find(entry => sameTarget(entry.target, target));
@@ -130,6 +137,8 @@ export function createResolutionCardViewModel(result: PublicResolutionResult,
         save: saveEntry ? saveOutcome(saveEntry) : null,
         ...(kept ? {staysUp: {label: CHAT_OUTCOME_KEYS.staysUp, name: textOrNull(kept.name) ?? ""}} : {}),
         ...(coverKey ? {cover: {label: coverKey}} : {}),
+        ...((result.outcomes?.unaffected ?? []).some(spared => sameTarget(spared, target))
+          ? {unaffected: {label: CHAT_OUTCOME_KEYS.unaffected}} : {}),
         ...(effects.length ? {effects} : {})
       };
     }),

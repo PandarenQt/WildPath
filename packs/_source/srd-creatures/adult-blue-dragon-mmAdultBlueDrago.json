@@ -409,6 +409,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -492,6 +493,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:invisibility",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -572,6 +574,7 @@
             "spell",
             "cantrip",
             "school:conjuration",
+            "spell:mage-hand",
             "component:verbal",
             "component:somatic"
           ],
@@ -637,6 +640,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:shatter",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -743,6 +747,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:scrying",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -868,6 +873,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:sending",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -988,6 +994,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:shatter",
             "component:verbal",
             "component:somatic",
             "component:material",

@@ -304,6 +304,8 @@ export interface ActionDefinition {
   readonly save: SaveDefinition | null;
   readonly check: CheckDefinition | null;
   readonly damage: readonly DamageDefinition[];
+  /** Damage it deals its own source once its damage is rolled (action-resolution.md: Overchannel's backlash). */
+  readonly sourceDamage?: readonly DamageDefinition[];
   readonly healing: readonly HealingDefinition[];
   readonly effects: readonly EffectApplicationDefinition[];
   readonly duration: DurationDefinition | null;
@@ -311,6 +313,16 @@ export interface ActionDefinition {
   readonly ruleElements: readonly RuleElementDefinition[];
   readonly policies: Readonly<Record<string, unknown>>;
   readonly metadata: Readonly<Record<string, unknown>>;
+  /** A reaction's target, picked as it is used (reactions.md). */
+  readonly targetChoice?: ReactionTargetChoice | null;
+}
+
+export interface ReactionTargetChoice {
+  readonly from: "self" | "trigger-source" | "trigger-target" | "creatures";
+  /** Feet from the reacting creature, a positive number: required for "creatures". */
+  readonly range?: number;
+  /** Whether "creatures" offers the reacting creature too. */
+  readonly includeSelf?: boolean;
 }
 
 export type ActionChoiceType =
@@ -1025,6 +1037,9 @@ export interface DamageDefinition {
   readonly source?: unknown;
   readonly tags: readonly string[];
   readonly metadata: Readonly<Record<string, unknown>>;
+  /** It ignores its target's Resistance, or Immunity, to its type (Overchannel's backlash). */
+  readonly ignoreResistance?: boolean;
+  readonly ignoreImmunity?: boolean;
 }
 
 export interface HealingDefinition {

@@ -484,8 +484,29 @@ const CHOICES_FOR = Object.freeze({
   // Disadvantage for both abilities; upgrade by reading the marker from the hex's own source.
   "eldritch-hex": {identifier: "hex", choice: {id: "eldritch-hex", type: "option", label: "Eldritch Hex", required: true, defaultValue: "on",
     options: [{id: "on", label: "Eldritch Hex", value: "on", effects: [{type: "add-effects", effects: [{id: "hex-saves", type: "effect",
-      name: "Eldritch Hex", slug: "hex-saves", img: "icons/svg/daze.svg", concentration: true, ruleElements: []}]}]}]}}
+      name: "Eldritch Hex", slug: "hex-saves", img: "icons/svg/daze.svg", concentration: true, ruleElements: []}]}]}]}},
+  // 2024 Overchannel (SRD 5.2): a wizard spell of level 1+ that deals damage, cast with a slot of level 1 to 5, may deal
+  // its maximum damage. Each use spends one of its uses (its dnd5e `overchannel` pool, full again after a Long Rest), so
+  // the uses before this one are its maximum less what is left. The first is free; each later one deals its caster d12s
+  // of Necrotic damage per slot level, one more than the uses before it (2, then 3...), ignoring Resistance and Immunity.
+  overchannel: {spell: {lists: ["wizard"], minLevel: 1, damage: true}, choice: {id: "overchannel", type: "select-one",
+    label: "Overchannel", required: true, defaultValue: "no", options: [{id: "no", label: "WILDPATH.PROMPT.No", value: "no"},
+      {id: "overchannel", label: "Overchannel: maximum damage", value: "overchannel", effects: [
+        {type: "require-level", levelChoiceId: "spell-slot", min: 1, max: 5},
+        {type: "add-cost", cost: {allOf: [{capability: "overchannel", amount: 1}]}},
+        {type: "maximize-damage"},
+        {type: "add-source-damage", damage: [{id: "overchannel", expression: {type: "dice", number: 0, faces: 12},
+          damageType: "necrotic", ignoreResistance: true, ignoreImmunity: true}]},
+        {type: "scale-damage", collection: "sourceDamage", componentIds: ["overchannel"], levelChoiceId: "spell-slot", baseLevel: 0,
+          dice: {faces: 12, number: overchannelDice()}}]}]}}
 });
+
+/** Overchannel's d12s per slot level: none on its first use since a Long Rest, else one more than the uses before it. */
+function overchannelDice() {
+  const before = {type: "subtract", terms: [{type: "resource-max", resource: "overchannel"}, {type: "resource-current", resource: "overchannel"}]};
+  return {type: "multiply", terms: [{type: "min", terms: [before, {type: "constant", value: 1}]},
+    {type: "add", terms: [before, {type: "constant", value: 1}]}]};
+}
 
 /**
  * Features the engine offers itself when they apply, or that are
@@ -1708,9 +1729,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( spell && Number.isFinite(Number(level)) ) definition = {...definition, metadata: {...(definition.metadata ?? {}), spellLevel: Number(level),
       ...(spellLists[document._id]?.length ? {spellLists: [...spellLists[document._id]]} : {})}};
     // A spell's tags say what it is, for rules on spell damage: a cantrip, its school (`school:evocation`: Empowered
-    // Evocation), each damage type it deals (`damage:fire`: Elemental Affinity), and its components (Counterspell).
+    // Evocation), itself (`spell:fireball`: a creature immune to it), each damage type it deals (`damage:fire`: Elemental
+    // Affinity), and its components (Counterspell). Its lasting area's trigger is the same spell (its school and itself).
+    const identity = spell ? [...(SCHOOLS[system.school] ? [`school:${SCHOOLS[system.school]}`] : []), `spell:${identifierOf(document)}`] : [];
+    if ( spell && definition.area?.persistence?.triggers?.length ) definition = {...definition, area: {...definition.area,
+      persistence: {...definition.area.persistence, triggers: definition.area.persistence.triggers.map(trigger => ({...trigger,
+        action: {...trigger.action, tags: [...new Set([...(trigger.action?.tags ?? []), ...identity])]}}))}}};
     if ( spell ) definition = {...definition, tags: [...new Set([...(definition.tags ?? []), ...(Number(level) === 0 ? ["cantrip"] : []),
-      ...(SCHOOLS[system.school] ? [`school:${SCHOOLS[system.school]}`] : []), ...componentTags(system),
+      ...identity, ...componentTags(system),
       // Sleep magic, which a creature that doesn't sleep shrugs off (2024 Sleep: "Creatures that don't sleep ...").
       ...(/\bdon['’]t sleep\b/iu.test(plainText(document)) ? ["sleep"] : []),
       ...(definition.damage ?? []).map(component => component.damageType).filter(Boolean).map(type => `damage:${type}`)])]};
@@ -2026,6 +2052,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       effects: structuredClone(featureAction.effects ?? []),
       ...(featureAction.damage ? {damage: structuredClone(featureAction.damage)} : {}),
       ...(featureAction.retarget ? {retarget: structuredClone(featureAction.retarget)} : {}),
+      ...(featureAction.healing ? {healing: structuredClone(featureAction.healing)} : {}),
+      ...(featureAction.targetChoice ? {targetChoice: structuredClone(featureAction.targetChoice)} : {}),
       ...(featureAction.configuration ? {configuration: structuredClone(featureAction.configuration)} : {}),
       ...(featureAction.teleport ? {teleport: structuredClone(featureAction.teleport)} : {}),
       ...(featureAction.requires ? {requires: structuredClone(featureAction.requires)} : {}),
@@ -2202,6 +2230,16 @@ const FEATURE_ACTIONS = Object.freeze({
     damage: [{id: "damage-1", expression: HUNTERS_MARK_DIE, damageType: "force"}], retarget: {range: 30},
     trigger: {kind: "reaction", event: "damage.applied", match: {phase: "interrupt", sourceTokenId: "{self}"},
       once: "turn", onceKey: "superior-hunters-prey", triggerPredicate: {equals: {path: "targetFrom.{self}.hunters-mark", value: true}}}},
+  // 2024 Improved Blessed Strikes, its Potent Spellcasting option (`whileFeature`: only a cleric who took that option): after
+  // its cantrip damages a creature, Temporary Hit Points of twice its Wisdom modifier to itself or any creature within 60
+  // feet of it, its controller's pick as it is used (`targetChoice`). Free; asked. shortcut: any cantrip, not only a cleric
+  // one (spells carry no class), as Potent Spellcasting's damage.
+  "improved-blessed-strikes": {free: true, range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+    targetChoice: {from: "creatures", range: 60, includeSelf: true},
+    healing: [{id: "potent-spellcasting", healingType: "temporary", expression: {type: "multiply",
+      terms: [{type: "constant", value: 2}, {type: "ability-modifier", ability: "wits"}]}}],
+    trigger: {kind: "reaction", event: "damage.applied", match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["cantrip"]},
+      whileFeature: "blessed-strikes-potent-spellcasting"}},
   // 2024 Boon of Dimensional Travel (Blink Steps): "Immediately after you take the Attack action or the Magic action, you can
   // teleport up to 30 feet": once a turn, after an attack roll or a spell cast with the Action this turn. shortcut:
   // "immediately" is not enforced (later in the same turn works too).
@@ -2742,6 +2780,20 @@ const TRAITS = Object.freeze({
   "relentless-hunter": () => ({rules: [{schemaVersion: 1, id: "relentless-hunter", type: "RollOutcome",
     predicate: {equals: {path: "concentration.sustains.hunters-mark", value: true}},
     data: {domains: ["concentration"], outcome: "automatic-success"}}], notes: []}),
+  // Immune to the spells its text links (`spell:<identifier>`, by each link's name, apostrophes dropped as dnd5e's
+  // identifiers drop them), from any spell pack: its maker's usual three. Another choice is its Unaffected rule's tags,
+  // edited by hand.
+  "spell-immunity": document => {
+    const spells = [...String(document.system?.description?.value ?? "")
+      .matchAll(/@UUID\[Compendium\.[\w-]+\.[\w-]*spells[\w-]*\.Item\.[\w-]+\]\{([^}]+)\}/g)]
+      .map(([, name]) => `spell:${slugify(name.replace(/['’]/g, ""))}`);
+    return spells.length ? {rules: [{schemaVersion: 1, id: "spell-immunity", type: "Unaffected", data: {actions: {tagsAny: spells}}}],
+      notes: []} : null;
+  },
+  // Immune to Divination spells; its Bonus Action suppressing or restoring that is its feature's active toggle.
+  "telepathic-shroud": () => ({rules: [{schemaVersion: 1, id: "telepathic-shroud", type: "Unaffected",
+    data: {actions: {tagsAll: ["school:divination"]}}}],
+  notes: ["Telepathic Shroud: immunity to mind-reading effects other than spells is by hand"]}),
   // A golem's Immutable Form: "can't shape-shift" (2014: immune to effects that alter its form); no Polymorph takes it.
   "immutable-form": () => ({rules: [{schemaVersion: 1, id: "immutable-form", type: "ConditionImmunity",
     data: {conditions: ["transformed"]}}], notes: []}),

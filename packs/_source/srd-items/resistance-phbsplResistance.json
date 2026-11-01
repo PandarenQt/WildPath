@@ -14,6 +14,7 @@
         "spell",
         "cantrip",
         "school:abjuration",
+        "spell:resistance",
         "component:verbal",
         "component:somatic"
       ],

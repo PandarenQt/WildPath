@@ -92,6 +92,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:augury",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -168,6 +169,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:find-familiar",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -370,6 +372,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:identify",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -446,6 +449,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:locate-object",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -528,6 +532,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:scrying",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -653,6 +658,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:unseen-servant",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -965,6 +971,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -1048,6 +1055,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:etherealness",
             "component:verbal",
             "component:somatic"
           ],
@@ -1119,6 +1127,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:magic-missile",
             "component:verbal",
             "component:somatic",
             "damage:force"
@@ -1248,6 +1257,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:phantasmal-killer",
             "component:verbal",
             "component:somatic",
             "damage:psychic"
@@ -1373,6 +1383,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:plane-shift",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1493,6 +1504,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:dream",
             "component:verbal",
             "component:somatic",
             "component:material",

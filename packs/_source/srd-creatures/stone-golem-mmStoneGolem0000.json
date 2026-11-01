@@ -404,6 +404,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:slow",
             "component:verbal",
             "component:somatic",
             "component:material"

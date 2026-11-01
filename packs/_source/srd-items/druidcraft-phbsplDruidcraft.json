@@ -14,6 +14,7 @@
         "spell",
         "cantrip",
         "school:transmutation",
+        "spell:druidcraft",
         "component:verbal",
         "component:somatic"
       ],

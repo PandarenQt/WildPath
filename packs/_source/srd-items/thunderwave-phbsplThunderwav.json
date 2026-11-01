@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:evocation",
+        "spell:thunderwave",
         "component:verbal",
         "component:somatic",
         "damage:thunder"

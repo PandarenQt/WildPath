@@ -493,12 +493,20 @@ A converted spell's tags say what it is:
 Its creature's rules read these tags:
 - **Potent Spellcasting** (cleric, druid): Wisdom on `damage.spell` for `cantrip`. shortcut: any cantrip, not only its
   class's.
+- **Improved Blessed Strikes** (cleric 14) with Potent Spellcasting: after a cantrip's damage, Temporary Hit Points of
+  twice its Wisdom modifier to itself or a creature within 60 ft, picked as it is used (reactions.md, "A reaction's
+  target chosen as it is used").
 - **Empowered Evocation:** Intelligence on `damage.spell` for `school:evocation`, once a roll.
 - **Elemental Affinity:** an Action, used once, chooses Acid, Cold, Fire, Lightning or Poison. That type is a lasting
   effect: Resistance to it, and Charisma on `damage.spell` for `damage:<type>`. shortcut: the choice is not tied to the
   Draconic ancestry.
 - **Disciple of Life:** 2 + the slot's level on `healing.spell`, only when a slot was spent (rule-elements.md, "Healing
   and context"). shortcut: Blessed Healer's self-heal is by hand.
+- **Overchannel (2026-11-01):** a choice on its wizard's spells of level 1+ that deal damage (`choiceFor.spell`), cast
+  with a slot of level 1 to 5: the spell deals its maximum damage, and a use of its `overchannel` pool (20, back on a
+  Long Rest) is spent. The first use since a Long Rest is free; each later one deals the wizard Necrotic damage that
+  ignores Resistance and Immunity: 2d12 a slot level on the second use, 3d12 on the third, and so on
+  (action-configuration.md, "Overchannel's effects"; action-resolution.md, "Damage to its own source").
 
 Live (two browsers, 14.369): QA Caster with Wisdom 16, Potent Spellcasting and Disciple of Life. Player1's level-2 Cure
 Wounds rolled "2d8 + 2d8 + 7": its Intelligence +3, plus 2 + 2. Sacred Flame on the Bandit Captain rolled "2d8 + 3".

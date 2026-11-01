@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:conjuration",
+        "spell:cloudkill",
         "component:verbal",
         "component:somatic",
         "damage:poison"
@@ -62,7 +63,9 @@
                   "allOf": []
                 },
                 "tags": [
-                  "spell"
+                  "spell",
+                  "school:conjuration",
+                  "spell:cloudkill"
                 ],
                 "save": {
                   "ability": "fortitude",

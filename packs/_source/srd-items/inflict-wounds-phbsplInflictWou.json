@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:necromancy",
+        "spell:inflict-wounds",
         "component:verbal",
         "component:somatic",
         "damage:necrotic"

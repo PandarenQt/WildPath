@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:illusion",
+        "spell:blur",
         "component:verbal"
       ],
       "costs": {

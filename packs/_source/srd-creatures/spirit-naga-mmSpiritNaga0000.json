@@ -349,6 +349,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -433,6 +434,7 @@
             "spell",
             "cantrip",
             "school:conjuration",
+            "spell:mage-hand",
             "component:verbal",
             "component:somatic"
           ],
@@ -499,6 +501,7 @@
             "spell",
             "cantrip",
             "school:illusion",
+            "spell:minor-illusion",
             "component:somatic",
             "component:material"
           ],
@@ -582,6 +585,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:water-breathing",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -667,6 +671,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-thoughts",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -750,6 +755,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:dimension-door",
             "component:verbal"
           ],
           "costs": {
@@ -829,6 +835,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:hold-person",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -962,6 +969,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:lightning-bolt",
             "component:verbal",
             "component:somatic",
             "component:material",

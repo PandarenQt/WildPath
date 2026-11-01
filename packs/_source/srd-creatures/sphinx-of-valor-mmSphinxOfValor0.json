@@ -661,6 +661,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-evil-and-good",
             "component:verbal",
             "component:somatic"
           ],
@@ -745,6 +746,7 @@
             "spell",
             "cantrip",
             "school:transmutation",
+            "spell:thaumaturgy",
             "component:verbal"
           ],
           "costs": {
@@ -835,6 +837,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -937,6 +940,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:dispel-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -1025,6 +1029,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:greater-restoration",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -1177,6 +1182,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:heroes-feast",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -1256,6 +1262,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:zone-of-truth",
             "component:verbal",
             "component:somatic"
           ],
@@ -1307,7 +1314,9 @@
                       "allOf": []
                     },
                     "tags": [
-                      "spell"
+                      "spell",
+                      "school:enchantment",
+                      "spell:zone-of-truth"
                     ],
                     "save": {
                       "ability": "presence",

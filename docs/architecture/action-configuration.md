@@ -304,7 +304,20 @@ nothing.
 - **A choice from another feature** (2026-10-31): an active feature's `flags.wildpath.choiceFor: {identifier, choice}`
   adds `choice` to its creature's Actions whose `flags.wildpath.source.identifier` is `identifier`, whenever the Action
   is read (`withContributedChoices`, action-definitions.mjs). 2024 Restoring Touch is a choice of six conditions on Lay
-  on Hands, not a Bonus Action of its own.
+  on Hands, not a Bonus Action of its own. In place of `identifier`, `spell: {lists?, minLevel?, damage?}` (2026-11-01)
+  names spells: on one of those class spell lists (`metadata.spellLists`), of at least that level (a cantrip is 0), and
+  dealing damage when `damage` (2024 Overchannel's wizard spells). shortcut: a spell on the list counts whichever class
+  prepared it.
+- **Overchannel's effects (2026-11-01):**
+  - `{type: "maximize-damage"}` sets `metadata.maximized`: the damage roll stage rolls none of its damage; each component
+    is its dice at their highest, plus its modifier (a critical hit's doubled dice too).
+  - `{type: "add-source-damage", damage}` appends damage components to the Action's `sourceDamage`, the damage it deals
+    its own source (action-resolution.md, "Damage to its own source").
+  - `scale-damage` with `collection: "sourceDamage"` scales those instead of `damage`, and its `dice.number` may be a
+    ValueExpression read with its creature (Overchannel's d12s a level: none on the first use, else one more than the
+    uses before it, `resource-max` less `resource-current` of its `overchannel` pool).
+  - `{type: "require-level", levelChoiceId, min?, max?}` refuses the configuration unless its level choice picked a
+    level in that range (Overchannel: a slot of level 1 to 5).
 - **`{type: "restore", resourceId, amount?}`** adds a pool of the acting creature to the Action's `restores`, refilled
   at payment up to its maximum. Its amount is by default the level its choice selected (`levelChoiceId`: a spent slot's
   level in Sorcery Points). It is refused when the creature lacks the pool or the pool is full.

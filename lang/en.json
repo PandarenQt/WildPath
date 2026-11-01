@@ -133,6 +133,7 @@
         "LegendaryResistance": "Legendary Resistance",
         "StaysUp": "{name}: stays up",
         "Immune": "Immune",
+        "Unaffected": "Unaffected",
         "CheckSuccess": "Check succeeded",
         "CheckFailure": "Check failed"
       }
@@ -421,6 +422,10 @@
     "REDIRECT": {
       "Title": "Who takes the damage",
       "Choose": "The creature that takes the damage instead"
+    },
+    "TARGET_CHOICE": {
+      "Title": "Choose a creature",
+      "Choose": "The creature it acts on"
     },
     "PORTENT": {
       "Title": "Portent",

@@ -17,7 +17,7 @@ interface ItemLike {
   readonly id: string;
   readonly type?: string;
   readonly system?: {active?: boolean; attunement?: string; ruleElements?: readonly Data[]; definition?: {id?: string}};
-  readonly flags?: {wildpath?: {reactionPolicy?: string; grantedBy?: string | null}};
+  readonly flags?: {wildpath?: {reactionPolicy?: string; grantedBy?: string | null; source?: {identifier?: string}}};
 }
 
 interface EffectLike {
@@ -221,6 +221,9 @@ function tokenReactions(token: TokenLike) {
       if ( policy === "never" ) return [];
       // Only while its creature has a status (Brutal Strike: Reckless Attack's "reckless").
       if ( data.whileStatus && !actor.statuses?.has(String(data.whileStatus)) ) return [];
+      // Only while its creature has a feature (Improved Blessed Strikes' heal: its Potent Spellcasting option), as `hasFeature`.
+      if ( data.whileFeature && !items.some(entry => (entry.system?.active !== false)
+        && (entry.flags?.wildpath?.source?.identifier === data.whileFeature)) ) return [];
       // Not one its rules forbid it (`Forbid`: a Silenced wizard's Shield, a Spell Taxed caster's spells).
       if ( actor.forbiddingRule?.(definition.definition) ) return [];
       // Once a turn (Stunning Strike): not offered again this combat turn; its use records it (`metadata.once`).

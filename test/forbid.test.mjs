@@ -92,3 +92,19 @@ test("a Quickened spell this combat turn forbids spells of level 1+, not cantrip
     assert.equal(creature({flags: {wildpath: {quickenedTurn: "c:0:3"}}}).forbiddingRule(leveled), null, "an earlier turn's");
   } finally { globalThis.game = previous; }
 });
+
+test("Unaffected: a feature's rule leaves its creature untouched by the spells it names or a school's, while the feature is on", () => {
+  const unaffected = actions => ({schemaVersion: 1, id: "unaffected", type: "Unaffected", data: {actions}});
+  assert.equal(evaluateRuleElement(unaffected({tagsAll: ["school:divination"]})).ok, true);
+  assert.equal(evaluateRuleElement(unaffected(null)).ok, false, "no predicate");
+  const feature = (actions, active=true) => ({id: "f", type: "feature", name: "Immunity", system: {active, ruleElements: [unaffected(actions)]}});
+  const named = creature({items: [feature({tagsAny: ["spell:spell-a", "spell:spell-b"]})]});
+  assert.equal(named.unaffectingRule({id: "action:a", tags: ["spell", "spell:spell-a"]})?.name, "Immunity");
+  assert.equal(named.unaffectingRule({id: "action:c", tags: ["spell", "spell:spell-c"]}), null, "a spell it does not name");
+  assert.equal(named.forbiddingRule({id: "action:a", tags: ["spell", "spell:spell-a"]}), null, "it bars nothing of its own");
+  const school = feature({tagsAll: ["school:divination"]});
+  assert.ok(creature({items: [school]}).unaffectingRule({id: "action:d", tags: ["spell", "school:divination"]}));
+  assert.equal(creature({items: [school]}).unaffectingRule({id: "action:e", tags: ["spell", "school:evocation"]}), null);
+  assert.equal(creature({items: [{...school, system: {...school.system, active: false}}]})
+    .unaffectingRule({id: "action:d", tags: ["spell", "school:divination"]}), null, "suppressed: the feature toggled off");
+});

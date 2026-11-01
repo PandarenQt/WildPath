@@ -85,7 +85,8 @@ import {
   clonePlainData,
   sanitizeActionIntentPayload
 } from "../helpers/multiplayer-authority.mjs";
-import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefinitionToResolverInput} from "../helpers/action-definitions.mjs";
+import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefinitionToResolverInput, startsConcentration}
+  from "../helpers/action-definitions.mjs";
 import {tokenRef} from "../helpers/entity-refs.mjs";
 import {targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
@@ -216,6 +217,8 @@ export function registerFoundryV14MultiplayerResolution({
       await recordMagicTurn(event, {game});
       await recordQuickened(event, {game});
       await markCasterConcentration(event, {game});
+      // Last, once all it sustains exists.
+      await endLostConcentration(event, {game});
     },
     afterCancelled: async event => {
       await afterCountered(event, {game});
@@ -848,6 +851,8 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   const saveRollModeSources = {};
   // Each target's cover (shown on the card).
   const coverByTarget = [];
+  // Each target its rules leave untouched by this Action (`Unaffected`), shown on the card.
+  const unaffected = [];
   const saveModifiers = {};
   const saveDice = {};
   const saveTotalMinimums = {};
@@ -894,6 +899,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     // An automatic Action on several creatures (an aura, a death burst) leaves out one behind Total Cover or on the other
     // plane, rather than failing for all of them.
     if ( authorityAction && (targetActor !== actor) && ((cover === "total") || (ethereal(targetActor) !== ethereal(actor))) ) continue;
+    // A creature its rules leave untouched by this Action (`Unaffected`; its own Actions on itself excepted): an area, or
+    // an Action the authority runs (a lasting area's, an aura's), leaves it out; one aimed at it still targets it, so the
+    // Action is spent on it for nothing (the pipeline leaves it out of what the Action does).
+    const unaffecting = (definition && (targetActor !== actor)) ? targetActor.unaffectingRule?.(definition) ?? null : null;
+    if ( unaffecting && (authorityAction || (targetingType === "area")) ) continue;
     const target = withActorDefense({
       id: targetActor.id ?? targetRef,
       actorId: targetActor.id ?? null,
@@ -945,6 +955,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( hostileTo(sourceToken, targetTokenFor(targetActor, hint, game)) ) hostileKeys.push(key);
     }
     targets.push(target);
+    if ( unaffecting ) unaffected.push({...target});
     const keys = uniqueStrings([targetActor.uuid, targetActor.id, `actor:${targetActor.id}`, targetRef,
       ...targetControllerKeys(targetActor, hint, game)]);
     for ( const key of keys ) {
@@ -1017,7 +1028,20 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     actorSystem, choices: intent.configuration.choices}).configuration?.castingLevel ?? null) : null;
   const healingStatistic = definition?.healing?.length ? actionCombatStatistics(actor, definition, {item: action,
     context: {castLevel: healingCastLevel}}).healing ?? null : null;
-  const concentration = foundryConcentrationContext({targetEntries, game, scene: sourceToken?.parent ?? null, sourceToken});
+  // Damage it may deal its own creature (`sourceDamage`, or a choice adding it: Overchannel's backlash) is planned and
+  // committed on it like a target's, and checks its Concentration.
+  const ownEntry = (damagesSource(definition) && !targetEntries.some(entry => entry.actor === actor))
+    ? {actor, hint: {tokenId: sourceToken?.id ?? null, sceneId: sourceToken?.parent?.id ?? null}} : null;
+  if ( damagesSource(definition) ) {
+    for ( const key of uniqueStrings([actor.uuid, ...targetControllerKeys(actor, ownEntry?.hint ?? {}, game)]) ) {
+      targetActors[key] ??= actor;
+      targetSystems[key] ??= actorSystem;
+      const profile = targetProfiles[key] ? null : actor.getDamageProfile?.({token: sourceToken}) ?? null;
+      if ( profile ) targetProfiles[key] = clonePlainData(profile, "source.damageProfile");
+    }
+  }
+  const concentration = foundryConcentrationContext({targetEntries: ownEntry ? [...targetEntries, ownEntry] : targetEntries, game,
+    scene: sourceToken?.parent ?? null, sourceToken, starting: (damagesSource(definition) && startsConcentration(definition)) ? actor : null});
   // Holders of effects a broken concentration ends are committed on too; a key another Actor already owns is
   // ambiguous (copies of one base Actor) and is dropped, so lookups fall through to the holder's uuid.
   for ( const holder of concentration?.holders ?? [] ) {
@@ -1092,6 +1116,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       context: {
         ...(spatial ? {spatial: spatial.context} : {}),
         ...(coverByTarget.length ? {cover: coverByTarget} : {}),
+        ...(unaffected.length ? {unaffected} : {}),
         ...(typeof intent.messageMode === "string" ? {messageMode: intent.messageMode} : {})
       },
       ...(statistics.damage ? {damage: statistics.damage} : {}),
@@ -1161,12 +1186,13 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
  * The creatures on `scene` a reaction may move damage to (Cloud Rune, Protective Bond): the Tokens named (`tokenIds`), or
  * those within `range` feet of the Token `around` other than it, `exclude`, hidden Tokens and dead creatures. Each is a damage target with what planning
  * needs (its snapshot, resistances and 0-HP rescue, under the keys it is committed by), and is committed on like a target.
+ * Also a reaction's target picked as it is used (`targetChoice`: Potent Spellcasting).
  */
 export function redirectCandidates(scene, game, targetActors, {tokenIds=null, around=null, range=5, exclude=[]}={}) {
   const tokens = scene?.tokens ? [...(scene.tokens.values?.() ?? scene.tokens)] : [];
   const from = around ? tokens.find(token => token.id === around) ?? null : null;
-  const grid = from ? createFoundryV14TacticalGridAdapter({scene}) : null;
-  const footprintOf = token => { const result = grid.tokenToFootprint(token); return result.ok ? result.footprint : null; };
+  const grid = scene ? createFoundryV14TacticalGridAdapter({scene}) : null;
+  const footprintOf = token => { const result = grid?.tokenToFootprint(token); return result?.ok ? result.footprint : null; };
   const origin = from ? footprintOf(from) : null;
   // Any creature, friend or foe, by the distance between their spaces.
   const within = token => { const to = origin ? footprintOf(token) : null;
@@ -1186,6 +1212,8 @@ export function redirectCandidates(scene, game, targetActors, {tokenIds=null, ar
         tokenId: token.id, name: token.name ?? actor.name ?? ""}, keys, actorSystem,
       // Its AC, for an attack that becomes its (Cloud Rune: "using the same roll").
       ac: resolveActorDefense(actor, "ac")?.value ?? null,
+      // Where it stands, for a reaction that makes it its target (`targetChoice`) to measure its range.
+      footprint: clonePlainData(footprintOf(token), "redirect.footprint"),
       profile: clonePlainData(actor.getDamageProfile?.({token}) ?? null, "redirect.damageProfile"), zeroHp: zeroHpFor(actor, actorSystem)}];
     });
 }
@@ -1521,6 +1549,21 @@ export async function endConcentrationOnIncapacitation(effect, game=globalThis.g
   if ( game?.users?.activeGM?.id !== game?.user?.id ) return [];
   const actor = effect.parent;
   if ( !actor?.uuid ) return [];
+  return endSustained(actor, game);
+}
+
+/**
+ * A source that failed the check to keep the concentration its Action started (its own damage: Overchannel's backlash)
+ * loses it: what it sustains once the Action completes, its lasting area's, summons' and marker's effects. Its earlier
+ * concentration ended first (`endEarlierConcentration`), and the pipeline never created that concentration's effects.
+ */
+export async function endLostConcentration({options, state}={}, {game=globalThis.game}={}) {
+  if ( !state?.results?.concentrationResolution?.startedLost || !options?.actor?.uuid ) return [];
+  return endSustained(options.actor, game);
+}
+
+/** Ends every effect `actor` sustains; their uuids. */
+async function endSustained(actor, game) {
   const sustained = sustainedEffects(actor, game);
   for ( const holder of new Set(sustained.map(entry => entry.holder)) ) {
     await holder.deleteEmbeddedDocuments("ActiveEffect", sustained.filter(entry => entry.holder === holder).map(entry => entry.effect.id));
@@ -1543,17 +1586,6 @@ export function sustainedEffects(actor, game=globalThis.game) {
     return Boolean(ref) && (refs.has(ref) || [...refs].some(owner => ref.startsWith(`${owner}.`)));
   };
   return [...holders].flatMap(holder => collectionContents(holder.effects).filter(sustains).map(effect => ({holder, effect})));
-}
-
-/**
- * Whether completing an Action starts a new concentration (2024: casting another concentration spell ends the
- * one you have): an effect, lasting area or summon it sustains. A converted follow-up of the same spell (Move Mark,
- * `metadata.followUp`) continues its concentration instead.
- */
-export function startsConcentration(definition) {
-  if ( !definition || definition.metadata?.followUp ) return false;
-  return (definition.effects ?? []).some(effect => effect?.concentration) || Boolean(definition.area?.persistence?.concentration)
-    || Boolean(definition.summon?.concentration) || Boolean(definition.transform?.concentration) || Boolean(definition.concentration);
 }
 
 /** The caster's earlier concentration, as it stood when this Action was declared (`endsConcentration`), ends now. */
@@ -2235,9 +2267,10 @@ function foundryActionArea({action, actor, intent, sourceToken}) {
  * Concentration is derived, not stored: a creature concentrates while some effect names it as its
  * concentration source (`flags.wildpath.conditionEffect.concentration.sourceRef`, a `token:<id>` or uuid
  * ref). Scans the Scene's Token Actors and the world's Actors for those effects and returns, for the
- * targeted creatures that sustain any, the pipeline's `concentration` input plus the holders to commit on.
+ * targeted creatures that sustain any, the pipeline's `concentration` input plus the holders to commit on. `starting`, a
+ * source the Action damages that starts a concentration with it, gets a state either way: its check keeps that one.
  */
-function foundryConcentrationContext({targetEntries=[], game=globalThis.game, scene=null, sourceToken=null}={}) {
+function foundryConcentrationContext({targetEntries=[], game=globalThis.game, scene=null, sourceToken=null, starting=null}={}) {
   const holders = [...new Set([
     ...collectionContents(scene?.tokens).map(token => token?.actor).filter(Boolean),
     ...collectionContents(game?.actors)
@@ -2249,7 +2282,7 @@ function foundryConcentrationContext({targetEntries=[], game=globalThis.game, sc
     if ( !sustained.has(sourceRef) ) sustained.set(sourceRef, []);
     sustained.get(sourceRef).push({holder, effect});
   }
-  if ( !sustained.size ) return null;
+  if ( !sustained.size && !starting ) return null;
 
   const states = {};
   const dependents = [];
@@ -2262,11 +2295,11 @@ function foundryConcentrationContext({targetEntries=[], game=globalThis.game, sc
   for ( const {actor, hint} of [...targetEntries, ...others] ) {
     const token = targetTokenFor(actor, hint, game);
     const refs = uniqueStrings([token?.id ? `token:${token.id}` : null, ...targetControllerKeys(actor, hint, game)]);
-    const sourceRef = refs.find(ref => sustained.has(ref));
+    const sourceRef = refs.find(ref => sustained.has(ref)) ?? ((actor === starting) ? refs[0] : null);
     if ( !sourceRef ) continue;
     // 2024 Relentless Hunter: damage can't break its concentration on what a rule names (`automatic-success` on
     // `concentration`, whose predicate sees the statuses of what it sustains: `concentration.sustains.hunters-mark`).
-    const sustains = Object.fromEntries(sustained.get(sourceRef).flatMap(({effect}) => [...(effect.statuses ?? [])]).map(id => [id, true]));
+    const sustains = Object.fromEntries((sustained.get(sourceRef) ?? []).flatMap(({effect}) => [...(effect.statuses ?? [])]).map(id => [id, true]));
     if ( (actor.getRollOutcomes?.(["concentration"], {context: {concentration: {sustains}}}) ?? [])
       .some(entry => entry.outcome === "automatic-success") ) continue;
     // Its concentration save adds its Fortitude save bonus (ability modifier and Modifiers).
@@ -2275,7 +2308,7 @@ function foundryConcentrationContext({targetEntries=[], game=globalThis.game, sc
       saveBonus: resolveActorSaveStatistic(actor, "fortitude")?.totalModifier ?? null,
       rollMode: combineRollModes(actor.getRollModes?.(["save", "save.fortitude", "concentration"]) ?? [])};
     for ( const key of refs ) states[key] = state;
-    for ( const {holder, effect} of sustained.get(sourceRef) ) {
+    for ( const {holder, effect} of sustained.get(sourceRef) ?? [] ) {
       usedHolders.add(holder);
       dependents.push({
         target: {id: holder.token?.uuid ?? holder.uuid, actorId: holder.id, actorRef: holder.uuid, uuid: holder.uuid},
@@ -2283,7 +2316,7 @@ function foundryConcentrationContext({targetEntries=[], game=globalThis.game, sc
       });
     }
   }
-  if ( !dependents.length ) return null;
+  if ( !Object.keys(states).length ) return null;
   // WildPath's concentration save is Fortitude; the DC policy is ConcentrationResolver's default.
   return {input: {states, dependents, policy: {ability: "fortitude", saveKey: "concentration"}}, holders: [...usedHolders]};
 }
@@ -2295,6 +2328,13 @@ function foundryConcentrationContext({targetEntries=[], game=globalThis.game, sc
 function publicTargetName(actor, hint, game) {
   const token = targetTokenFor(actor, hint, game);
   return token && token.hidden !== true ? stringOrNull(token.name) : null;
+}
+
+/** Whether an Action may damage its own creature: its `sourceDamage`, or a configuration choice that adds some. */
+function damagesSource(definition) {
+  const effects = choice => [...normalizeArray(choice?.effects), ...normalizeArray(choice?.options).flatMap(option => normalizeArray(option?.effects))];
+  return !!definition?.sourceDamage?.length
+    || normalizeArray(definition?.configuration).some(choice => effects(choice).some(effect => effect?.type === "add-source-damage"));
 }
 
 /**

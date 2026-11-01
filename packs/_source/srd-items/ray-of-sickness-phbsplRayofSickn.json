@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:necromancy",
+        "spell:ray-of-sickness",
         "component:verbal",
         "component:somatic",
         "damage:poison"

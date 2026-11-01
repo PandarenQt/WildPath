@@ -345,6 +345,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:wall-of-ice",
             "component:verbal",
             "component:somatic",
             "component:material",

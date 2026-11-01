@@ -150,7 +150,8 @@ export function mergeDamageAdjustmentProfiles(...profiles) {
 
 function applyTypedAdjustmentsToComponent(component, profile) {
   const applications = [];
-  const immunities = profile.immunities.filter(adjustment => matchesComponent(component, adjustment));
+  // Damage that ignores Immunity, or Resistance, to its type (Overchannel's backlash: `ignoreImmunity`, `ignoreResistance`).
+  const immunities = component.ignoreImmunity ? [] : profile.immunities.filter(adjustment => matchesComponent(component, adjustment));
   if ( immunities.length ) {
     const adjusted = adjustedComponent(component, 0, [{
       kind: DAMAGE_ADJUSTMENT_KINDS.IMMUNITY,
@@ -163,10 +164,11 @@ function applyTypedAdjustmentsToComponent(component, profile) {
     return {component: adjusted, applications};
   }
 
-  // Its attacker's damage of a type it ignores Resistance to (Boon of Irresistible Offense) skips the Resistance that names
-  // that type; a halving of every type (Uncanny Dodge's) is not that Resistance and still applies.
-  const ignored = adjustment => profile.ignoresResistance.includes(component.damageType)
-    && (adjustment.damageTypes ?? []).includes(component.damageType);
+  // Damage that ignores Resistance outright (`ignoreResistance`: Overchannel's backlash) skips every Resistance to it.
+  // Its attacker's damage of a type it ignores Resistance to (Boon of Irresistible Offense) skips only the Resistance that
+  // names that type; a halving of every type (Uncanny Dodge's) is not that Resistance and still applies.
+  const ignored = adjustment => component.ignoreResistance || (profile.ignoresResistance.includes(component.damageType)
+    && (adjustment.damageTypes ?? []).includes(component.damageType));
   const resistances = profile.resistances.filter(adjustment => matchesComponent(component, adjustment) && !ignored(adjustment));
   const vulnerabilities = profile.vulnerabilities.filter(adjustment => matchesComponent(component, adjustment));
   const multipliers = [...resistances, ...vulnerabilities];

@@ -546,6 +546,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -630,6 +631,7 @@
             "spell",
             "cantrip",
             "school:illusion",
+            "spell:minor-illusion",
             "component:somatic",
             "component:material"
           ],
@@ -713,6 +715,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:shapechange",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -776,6 +779,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:speak-with-animals",
             "component:verbal",
             "component:somatic"
           ],
@@ -859,6 +863,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-thoughts",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -942,6 +947,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:control-weather",
             "component:verbal",
             "component:somatic",
             "component:material"

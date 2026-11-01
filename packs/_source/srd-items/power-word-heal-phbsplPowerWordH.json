@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:enchantment",
+        "spell:power-word-heal",
         "component:verbal"
       ],
       "costs": {

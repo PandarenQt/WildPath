@@ -198,6 +198,9 @@ export function actionDefinitionField() {
     // Its own damage goes to a creature its controller picks within `range` feet of its target instead: {range}
     // (Superior Hunter's Prey).
     retarget: new ObjectField({nullable: true, initial: null}),
+    // A reaction's target, picked as it is used: {from: "self" | "trigger-source" | "trigger-target" | "creatures", range
+    // (feet, "creatures" only), includeSelf?} (Potent Spellcasting: itself or any creature within 60 feet; reactions.md).
+    targetChoice: new ObjectField({nullable: true, initial: null}),
     // What its creature must be for it to be used, a predicate (Steady Aim: it hasn't moved this turn).
     requires: new ObjectField({nullable: true, initial: null}),
     // Pools of the acting creature the Action refills when used (Multiattack's attacks): [{resourceId, amount}].
@@ -209,6 +212,8 @@ export function actionDefinitionField() {
     save: new ObjectField({nullable: true, initial: null}),
     check: new ObjectField({nullable: true, initial: null}),
     damage: objectArrayField(),
+    // Damage it deals its own source, as `damage`'s components (Overchannel's backlash; action-resolution.md).
+    sourceDamage: objectArrayField(),
     healing: objectArrayField(),
     effects: objectArrayField(),
     duration: new ObjectField({nullable: true, initial: null}),

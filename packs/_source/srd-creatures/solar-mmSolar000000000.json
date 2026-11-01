@@ -516,6 +516,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-evil-and-good",
             "component:verbal",
             "component:somatic"
           ],
@@ -599,6 +600,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:commune",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -675,6 +677,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:control-weather",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -758,6 +761,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:dispel-evil-and-good",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -878,6 +882,7 @@
           "tags": [
             "spell",
             "school:necromancy",
+            "spell:resurrection",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -1407,6 +1412,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:cure-wounds",
             "component:verbal",
             "component:somatic"
           ],
@@ -1543,6 +1549,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:lesser-restoration",
             "component:verbal",
             "component:somatic"
           ],
@@ -1708,6 +1715,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:remove-curse",
             "component:verbal",
             "component:somatic"
           ],

@@ -381,6 +381,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:mirror-image",
             "component:verbal",
             "component:somatic"
           ],

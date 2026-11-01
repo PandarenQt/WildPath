@@ -359,6 +359,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -454,6 +455,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:fog-cloud",
             "component:verbal",
             "component:somatic"
           ],
@@ -545,6 +547,7 @@
             "spell",
             "cantrip",
             "school:evocation",
+            "spell:light",
             "component:verbal",
             "component:material"
           ],
@@ -622,6 +625,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:control-weather",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -721,6 +725,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:gaseous-form",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -906,6 +911,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:telekinesis",
             "component:verbal",
             "component:somatic"
           ],
@@ -1029,6 +1035,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:misty-step",
             "component:verbal"
           ],
           "costs": {

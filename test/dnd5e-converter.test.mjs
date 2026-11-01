@@ -1806,7 +1806,7 @@ test("Divine Smite: the 2024 spell on its own melee hit; Paladin's Smite brings 
   assert.deepEqual([plain.name, unholy.name], ["Divine Smite", "Divine Smite (Undead or Fiend)"]);
   const {definition} = plain.system;
   assert.deepEqual([definition.tags, definition.costs.allOf.map(cost => cost.capability), definition.targeting.type],
-    [["spell", "school:evocation", "component:verbal", "damage:radiant", "smite"], ["bonus-action"], "single"]);
+    [["spell", "school:evocation", "spell:divine-smite", "component:verbal", "damage:radiant", "smite"], ["bonus-action"], "single"]);
   assert.deepEqual(Object.keys(definition.configuration[0].levelByResourceId).slice(-2), ["spell-slot.9", "paladins-smite"]);
   const unholyType = {oneOf: {path: "targetType", values: ["undead", "fiend"]}};
   assert.deepEqual(plain.system.ruleElements.find(rule => rule.type === "Trigger").data, {kind: "reaction", event: "attack.hit",
@@ -2809,6 +2809,23 @@ test("Superior Hunter's Prey: its feature's reaction, once a turn after damage t
   assert.equal(JSON.stringify(feature.flags.wildpath.conversion.notes).includes("passive or triggered"), false);
 });
 
+test("Improved Blessed Strikes: its Potent Spellcasting heal is its feature's reaction after cantrip damage, its target picked as it is used", () => {
+  const improved = {_id: "phbclcImprovedBl", name: "Improved Blessed Strikes", type: "feat", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "improved-blessed-strikes", type: {value: "class"}, description: {value: "<p>Rule text.</p>"},
+      // dnd5e's: a heal with no activation.
+      activities: {a: activity("heal", {name: "Potent Spellcasting: Heal", activation: {type: "", override: false},
+        healing: {custom: {enabled: true, formula: "2 * @abilities.wis.mod"}, types: ["temphp"]}})}}};
+  const {items} = convertItem(improved);
+  assert.deepEqual(items.map(item => item.type), ["feature"], "no Action Item to use by hand");
+  const {action: definition, ...trigger} = items[0].system.ruleElements.find(rule => rule.type === "Trigger").data;
+  assert.deepEqual(trigger, {kind: "reaction", event: "damage.applied", match: {phase: "interrupt", sourceTokenId: "{self}", tagsAll: ["cantrip"]},
+    whileFeature: "blessed-strikes-potent-spellcasting"});
+  assert.deepEqual([definition.costs.allOf, definition.targetChoice], [[], {from: "creatures", range: 60, includeSelf: true}]);
+  assert.deepEqual(definition.healing.map(entry => entry.healingType), ["temporary"]);
+  assert.equal(validateActionDefinition(definition).ok, true);
+  assert.equal(JSON.stringify(items[0].flags.wildpath.conversion.notes).includes("passive or triggered"), false);
+});
+
 test("review fixes: Sentinel's attacks are Opportunity Attacks on any Disengage; a Flurry strike needs no unarmored monk; a Dagger is thrown", async () => {
   const fs = await import("node:fs");
   const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${fs.readdirSync("packs/_source/srd-items")
@@ -2904,4 +2921,36 @@ test("silent class features and feats become rules: Eldritch Hex, Eldritch Strik
   assert.deepEqual(choose.system.definition.configuration[0].options.map(option => option.value), ["bludgeoning", "thunder", "fire", "cold"]);
   assert.deepEqual(choose.system.definition.effects.find(effect => effect.id === "fire").ruleElements[0].data,
     {domains: ["damage.melee", "damage.ranged"], expression: {type: "proficiency-bonus"}, damageType: "fire", once: "turn"});
+});
+
+test("Unaffected (plan 7.10): a spell is tagged by itself; immunity to named spells or a school becomes an Unaffected rule", () => {
+  // Synthetic documents in dnd5e's shape: placeholder names and text, never a book's.
+  const bolt = {_id: "testSpellBolt001", name: "Spell A", type: "spell", img: "icons/svg/fire.svg", effects: [],
+    system: {source: SRD, identifier: "spell-a", level: 1, school: "div", properties: ["vocal"], activities: {a: activity("utility")}}};
+  assert.deepEqual(convertItem(bolt).items[0].system.definition.tags.slice(0, 3), ["spell", "school:divination", "spell:spell-a"]);
+  const beam = {_id: "testSpellBeam001", name: "Spell B", type: "spell", img: "icons/svg/sun.svg", effects: [],
+    system: {source: SRD, identifier: "spell-b", level: 2, school: "evo", properties: ["vocal", "concentration"],
+      duration: {value: "1", units: "minute"},
+      description: {value: "<p>A creature also makes this save when it enters the spell's area or ends its turn there.</p>"},
+      activities: {a: activity("save", {target: {override: false, template: {type: "radius", size: "5", units: "ft"}, affects: {}},
+        save: {ability: ["con"], dc: {calculation: "spellcasting", formula: ""}},
+        damage: {onSave: "half", parts: [{number: 2, denomination: 10, types: ["radiant"]}]}})}}};
+  const {area} = convertItem(beam).items[0].system.definition;
+  assert.deepEqual(area.persistence.triggers.map(trigger => trigger.action.tags.filter(tag => /^(school|spell):/u.test(tag))),
+    [["school:evocation", "spell:spell-b"]], "its lasting area's trigger is the same spell");
+
+  const feat = (identifier, name, description) => ({_id: `${identifier.replace(/-/g, "")}`.padEnd(16, "0").slice(0, 16), name, type: "feat",
+    img: "icons/svg/item-bag.svg", effects: [], system: {source: SRD, identifier, type: {value: "monster"}, activities: {},
+      description: {value: description}}});
+  const rules = document => convertItem(document).items[0].system.ruleElements;
+  const linked = "<p>Immune to <em>@UUID[Compendium.test-book.spells.Item.testSpellA000000]{Spell A}</em> and "
+    + "<em>@UUID[Compendium.test-book.spells.Item.testSpellC000000]{Spell C Two}</em>, "
+    + "<em>@UUID[Compendium.test-book.spells24.Item.testSpellD000000]{Zed's Spell D}</em>; "
+    + "see @UUID[Compendium.test-book.rules.Item.r]{Rules}.</p>";
+  assert.deepEqual(rules(feat("spell-immunity", "Spell Immunity", linked)).map(rule => [rule.type, rule.data.actions]),
+    [["Unaffected", {tagsAny: ["spell:spell-a", "spell:spell-c-two", "spell:zeds-spell-d"]}]],
+    "by each linked spell's identity (an apostrophe dropped, as dnd5e's identifiers drop it), from any spell pack; other links are not spells");
+  assert.deepEqual(rules(feat("spell-immunity", "Spell Immunity", "<p>Immune to three spells.</p>")), [], "none linked: by hand");
+  assert.deepEqual(rules(feat("telepathic-shroud", "Telepathic Shroud", "<p>Rule text.</p>")).map(rule => [rule.type, rule.data.actions]),
+    [["Unaffected", {tagsAll: ["school:divination"]}]]);
 });

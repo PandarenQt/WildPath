@@ -826,7 +826,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Immovable Rod | equipment24 | Immovable Rod (gear), Immovable Rod (Make Immovable) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; "Attempt to Move" is passive or triggered: not automated |
 | Imp | actors24 | Imp (5 items) | — |
 | Imprisonment | spells24 | Imprisonment (automated) | activation: 1 minute is not an action-economy cost; effect: "Burial" marks its creature only; its rules are by hand; effect: "Hedged Prison" marks its creature only; its rules are by hand; effect: "Minimus Containment" marks its creature only; its rules are by hand |
-| Improved Blessed Strikes | classes24 | Improved Blessed Strikes (feature) | "Potent Spellcasting: Heal" is passive or triggered: not automated |
+| Improved Blessed Strikes | classes24 | Improved Blessed Strikes (feature) | — |
 | Improved Brutal Strike | classes24 | Improved Brutal Strike (feature), Brutal Strike (Staggering Blow) (automated), Brutal Strike (Sundering Blow) (automated) | — |
 | Improved Brutal Strike (2) | classes24 | Improved Brutal Strike (2) (feature) | — |
 | Improved Critical | classes24 | Improved Critical (feature) | — |
@@ -1067,7 +1067,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Otherworldly Presence | origins24 | Otherworldly Presence (feature) | — |
 | Otherworldly Steed | actors24 | Otherworldly Steed (3 items) | Fey Step: not SRD 5.2 (CC-BY-4.0); Healing Touch: not SRD 5.2 (CC-BY-4.0) |
 | Otyugh | actors24 | Otyugh (5 items) | Bite: "save" is passive or triggered: not automated |
-| Overchannel | classes24 | Overchannel (feature) | "First Use" is passive or triggered: not automated; "Second+ Use" is passive or triggered: not automated |
+| Overchannel | classes24 | Overchannel (feature) | — |
 | Owl | actors24 | Owl (3 items) | — |
 | Owlbear | actors24 | Owlbear (3 items) | — |
 | Pact Magic | classes24 | Pact Magic (feature) | — |

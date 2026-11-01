@@ -125,6 +125,8 @@ export function normalizeActionDefinition(rawDefinition={}, {
     save: normalizePlainComponent(raw.save),
     check: normalizePlainComponent(raw.check),
     damage: normalizeArray(raw.damage ?? raw.damageDefinitions ?? raw.damageComponents).map(normalizeDamageDefinition),
+    // Damage it deals its own source once its damage is rolled (Overchannel's backlash: action-resolution.md).
+    ...(normalizeArray(raw.sourceDamage).length ? {sourceDamage: normalizeArray(raw.sourceDamage).map(normalizeDamageDefinition)} : {}),
     healing: normalizeArray(raw.healing ?? raw.healingDefinitions ?? raw.healingComponents).map(normalizeHealingDefinition),
     effects: normalizeArray(raw.effects ?? raw.effectApplications ?? raw.effectApplicationDefinitions).map(normalizeEffectApplicationDefinition),
     duration: normalizeDurationDefinition(raw.duration),
@@ -164,6 +166,10 @@ export function normalizeActionDefinition(rawDefinition={}, {
     ...(raw.rider ? {rider: normalizePlainComponent(raw.rider)} : {}),
     // Its own damage, moved to a creature within `range` of its target (Superior Hunter's Prey): {range}.
     ...(raw.retarget ? {retarget: normalizePlainComponent(raw.retarget)} : {}),
+    // A reaction's target picked as it is used (reactions.md): the creature whose event it answers ("trigger-source"),
+    // the first that event names ("trigger-target"), itself ("self"), or any creature within `range` feet of it
+    // ("creatures", itself too with `includeSelf`), its controller's pick.
+    ...(raw.targetChoice ? {targetChoice: normalizePlainComponent(raw.targetChoice)} : {}),
     // Its caster concentrates on it for `duration` (a native duration), though nothing it sustains is automated (Fog
     // Cloud, Detect Thoughts): a marker on the caster, which a new concentration, damage or Incapacitated ends.
     ...(raw.concentration ? {concentration: normalizePlainComponent(raw.concentration)} : {}),
@@ -218,6 +224,7 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   validateSummon(definition.summon, errors);
   validateEnchant(definition.enchant, errors);
   validatePush(definition.push, errors);
+  validateTargetChoice(definition.targetChoice, errors);
   if ( definition.teleport && !(Number(definition.teleport.distance) > 0) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "teleport.distance", "A teleport goes a positive number of feet."));
   }
@@ -375,17 +382,33 @@ function withHalfOnSuccess(raw, actor) {
 
 /**
  * A choice another of its creature's features adds to the Action (`flags.wildpath.choiceFor: {identifier, choice}` on an
- * active feature: Restoring Touch's conditions on Lay on Hands), for the Actions whose source identifier it names.
+ * active feature: Restoring Touch's conditions on Lay on Hands), for the Actions whose source identifier it names, or the
+ * spells it describes (`choiceFits`: Overchannel).
  */
 function withContributedChoices(raw, item) {
   const identifier = item?.flags?.wildpath?.source?.identifier;
-  if ( !raw || !identifier ) return raw;
+  if ( !raw ) return raw;
   // Once each: a feature held twice adds its choice once.
   const seen = new Set((raw.configuration ?? []).map(entry => entry?.id));
-  const added = [...(item.actor?.items ?? [])].filter(feature => (feature?.system?.active !== false)
-    && (feature?.flags?.wildpath?.choiceFor?.identifier === identifier)).map(feature => feature.flags.wildpath.choiceFor.choice)
+  const added = [...(item?.actor?.items ?? [])].filter(feature => (feature?.system?.active !== false)
+    && choiceFits(feature?.flags?.wildpath?.choiceFor, raw, identifier)).map(feature => feature.flags.wildpath.choiceFor.choice)
     .filter(choice => choice?.id && !seen.has(choice.id) && seen.add(choice.id));
   return added.length ? {...raw, configuration: [...(raw.configuration ?? []), ...clonePlain(added)]} : raw;
+}
+
+/**
+ * Whether a feature's `choiceFor` names this Action: by its `identifier`, or by `spell: {lists?, minLevel?, damage?}`, a
+ * spell on one of those class spell lists (`metadata.spellLists`), of at least that level (a cantrip's is 0), that deals
+ * damage when `damage` (Overchannel's wizard spells of level 1+). shortcut: a spell on the list counts whichever class
+ * prepared it; upgrade when spells record the class they are cast through.
+ */
+function choiceFits(choiceFor, raw, identifier) {
+  if ( choiceFor?.identifier ) return choiceFor.identifier === identifier;
+  const spell = choiceFor?.spell;
+  if ( !spell || !(raw.tags ?? []).includes("spell") ) return false;
+  const lists = spell.lists ?? [];
+  return (!lists.length || (raw.metadata?.spellLists ?? []).some(list => lists.includes(list)))
+    && ((spellBaseLevel(raw) ?? 0) >= (Number(spell.minLevel) || 0)) && (!spell.damage || !!raw.damage?.length);
 }
 
 /**
@@ -509,6 +532,19 @@ export function actionDefinitionFromAction(action, options={}) {
 
 /* -------------------------------------------- */
 
+/**
+ * Whether completing an Action starts a new concentration (2024: casting another concentration spell ends the
+ * one you have): an effect, lasting area or summon it sustains. A converted follow-up of the same spell (Move Mark,
+ * `metadata.followUp`) continues its concentration instead.
+ */
+export function startsConcentration(definition) {
+  if ( !definition || definition.metadata?.followUp ) return false;
+  return (definition.effects ?? []).some(effect => effect?.concentration) || Boolean(definition.area?.persistence?.concentration)
+    || Boolean(definition.summon?.concentration) || Boolean(definition.transform?.concentration) || Boolean(definition.concentration);
+}
+
+/* -------------------------------------------- */
+
 export function actionDefinitionActivationCost(definition) {
   const cost = normalizeActivationCost(definition?.costs ?? {allOf: []});
   if ( cost.anyOf ) return {
@@ -530,6 +566,7 @@ export function actionDefinitionToResolverInput(definition, {
   save=null,
   check=null,
   damage=null,
+  sourceDamage=null,
   healing=null,
   effects=null,
   context={},
@@ -565,7 +602,10 @@ export function actionDefinitionToResolverInput(definition, {
       dc: resolveSaveDCDefinition(normalized.check.dc, evaluationContext), policy: normalized.check.policy ?? {}}, check) : check ?? null,
     damage: resolverRequestFromDamageDefinition(normalized, damage, evaluationContext),
     healing: resolverRequestFromHealingDefinition(normalized, healing, evaluationContext),
-    effects: resolverRequestFromEffectsDefinition(normalized, effects)
+    effects: resolverRequestFromEffectsDefinition(normalized, effects),
+    // Its damage to its own source, its rolled amounts kept (the pipeline's damage roll stage).
+    ...(normalized.sourceDamage ? {sourceDamage: {components: normalized.sourceDamage.map((component, index) => damageComponentForResolver({
+      component, index, runtimeComponents: normalizeArray(sourceDamage?.components), evaluationContext}))}} : {})
   };
 
   return {
@@ -763,6 +803,8 @@ function damageComponentForResolver({component, index, runtimeComponents, evalua
     weaponSizeScalable: component.weaponSizeScalable,
     source: component.source,
     tags: component.tags,
+    ...(component.ignoreResistance ? {ignoreResistance: true} : {}),
+    ...(component.ignoreImmunity ? {ignoreImmunity: true} : {}),
     metadata: {
       ...(component.metadata ?? {}),
       ...(overlay.metadata ?? {}),
@@ -907,6 +949,15 @@ function validatePush(push, errors) {
   if ( (push.on != null) && !["failure", "success"].includes(push.on) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "push.on", "A push is on a failed or a successful save."));
   }
+}
+
+function validateTargetChoice(choice, errors) {
+  if ( !choice ) return;
+  if ( !["self", "trigger-source", "trigger-target", "creatures"].includes(choice.from) ) errors.push(error(
+    ACTION_DEFINITION_CODES.INVALID_DEFINITION, "targetChoice.from", `Unknown reaction target: ${choice.from}`));
+  // Its creatures are the ones within `range`: no default distance stands in for a missing one.
+  if ( (choice.from === "creatures") && !(Number(choice.range) > 0) ) errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION,
+    "targetChoice.range", "A reaction picking its creature names a positive number of feet."));
 }
 
 function validateCosts(costs, errors, prefix="costs") {
@@ -1379,7 +1430,9 @@ function normalizeDamageDefinition(component={}, index=0) {
     scaling: clonePlain(component.scaling ?? {}) ?? {},
     source: clonePlain(component.source ?? null),
     tags: normalizeStrings(component.tags),
-    metadata: clonePlain(component.metadata ?? {}) ?? {}
+    metadata: clonePlain(component.metadata ?? {}) ?? {},
+    ...(component.ignoreResistance === true ? {ignoreResistance: true} : {}),
+    ...(component.ignoreImmunity === true ? {ignoreImmunity: true} : {})
   };
 }
 

@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:transmutation",
+        "spell:darkvision",
         "component:verbal",
         "component:somatic",
         "component:material"

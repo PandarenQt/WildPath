@@ -651,3 +651,38 @@ test("Arcane Recovery: after a Short Rest, slots whose levels add up to half its
   assert.equal(resolveActionConfiguration({definition, actorSystem: {...actorSystem, classes: []}, choices: {use: "use",
     slots: {values: ["level-1-1"]}}}).ok, false, "no wizard levels: a budget it can't work out allows nothing");
 });
+
+test("Overchannel (synthetic feat) on a wizard spell: maximum damage; its first use free, then 2d12, 3d12... per slot level", async () => {
+  const {actionDefinitionFromItem} = await import("../module/helpers/action-definitions.mjs");
+  const {convertItem} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
+  const fs = await import("node:fs");
+  const [feature] = convertItem({_id: "overchannel00000", name: "Overchannel", type: "feat", effects: [], system: {
+    source: {license: "CC-BY-4.0", rules: "2024", book: "SRD 5.2"}, identifier: "overchannel", activities: {},
+    uses: {max: "20", recovery: [{period: "lr", type: "recoverAll"}]}, description: {value: ""}}}).items;
+  const fireball = JSON.parse(fs.readFileSync("packs/_source/srd-items/fireball-phbsplFireball00.json", "utf8"));
+  const read = (system=fireball.system) => actionDefinitionFromItem({id: "fireball", type: "action", name: fireball.name, flags: fireball.flags,
+    system, actor: {items: [feature]}}).definition;
+  const definition = read();
+  assert.deepEqual(definition.configuration.find(choice => choice.id === "overchannel").options.map(option => option.value), ["no", "overchannel"]);
+  const cleric = {...fireball.system, definition: {...fireball.system.definition, metadata: {spellLevel: 3, spellLists: ["cleric"]}}};
+  assert.equal(read(cleric).configuration.some(choice => choice.id === "overchannel"), false, "not a wizard spell");
+  const harmless = {...fireball.system, definition: {...fireball.system.definition, damage: []}};
+  assert.equal(read(harmless).configuration.some(choice => choice.id === "overchannel"), false, "deals no damage");
+  const cast = (left, slot=3, use="overchannel") => resolveActionConfiguration({definition, actorSystem: actorSystem({pools: [
+    {id: `spell-slot.${slot}`, value: 1, max: 1}, {id: "overchannel", value: left, max: 20}]}),
+  choices: {"spell-slot": {resourceId: `spell-slot.${slot}`}, overchannel: use}});
+  const first = cast(20);
+  assert.equal(first.ok, true, JSON.stringify(first.errors));
+  const effective = first.configuration.effectiveDefinition;
+  assert.equal(effective.metadata.maximized, true, "its damage dice deal their maximum");
+  assert.deepEqual(effective.sourceDamage.map(entry => [entry.expression.number, entry.damageType, entry.ignoreResistance, entry.ignoreImmunity]),
+    [[0, "necrotic", true, true]], "the first use since a Long Rest deals its caster nothing");
+  assert.deepEqual(effective.costs.allOf.filter(cost => cost.capability === "overchannel").map(cost => cost.amount), [1], "a use is spent");
+  assert.deepEqual(cast(19).configuration.effectiveDefinition.sourceDamage[0].expression, {type: "dice", number: 6, faces: 12},
+    "the second use: 2d12 for each of the slot's 3 levels");
+  assert.equal(cast(18, 5).configuration.effectiveDefinition.sourceDamage[0].expression.number, 15, "the third: 3d12 for each of 5 levels");
+  assert.equal(cast(19, 6).ok, false, "not with a slot above level 5");
+  const plain = cast(19, 3, "no").configuration.effectiveDefinition;
+  assert.deepEqual([plain.metadata.maximized, plain.sourceDamage, plain.costs.allOf.some(cost => cost.capability === "overchannel")],
+    [undefined, undefined, false], "not used: no maximum, no backlash, no use spent");
+});

@@ -464,6 +464,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:dispel-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -534,6 +535,7 @@
             "spell",
             "cantrip",
             "school:transmutation",
+            "spell:thaumaturgy",
             "component:verbal"
           ],
           "costs": {
@@ -624,6 +626,7 @@
           "tags": [
             "spell",
             "school:necromancy",
+            "spell:animate-dead",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -795,6 +798,7 @@
           "tags": [
             "spell",
             "school:necromancy",
+            "spell:harm",
             "component:verbal",
             "component:somatic",
             "damage:necrotic"
@@ -902,6 +906,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:insect-plague",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -958,7 +963,9 @@
                       "allOf": []
                     },
                     "tags": [
-                      "spell"
+                      "spell",
+                      "school:conjuration",
+                      "spell:insect-plague"
                     ],
                     "save": {
                       "ability": "fortitude",
@@ -1368,6 +1375,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:command",
             "component:verbal"
           ],
           "costs": {

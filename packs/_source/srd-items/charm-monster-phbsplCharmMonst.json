@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:enchantment",
+        "spell:charm-monster",
         "component:verbal",
         "component:somatic"
       ],

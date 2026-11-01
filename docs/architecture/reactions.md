@@ -521,6 +521,48 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
       beside that creature (`teleportNextTo` → `riderTeleport`, `spaceBeside`).
     - shortcut: Expansive Bond's 60 ft and resistance aren't applied.
 
+  - **A reaction's target chosen as it is used (2026-11-01, the owner's Q8 answer, plan 7.5).** A reaction's Action may
+    say whom it acts on: `targetChoice: {from, range, includeSelf?}` (an optional ActionDefinition field; `range` only with `"creatures"`).
+    - **Fixed: `"self"`, `"trigger-source"`, `"trigger-target"`.** Its creature; the creature whose event it answers
+      (`event.source`); the first creature that event names (`event.targets[0]`). The runtime builds the child on that
+      Token (`foundryActionReactionServices`). Without `targetChoice` the old rule stands: `targeting.type: "self"` acts on
+      itself, a reaction to its own Action on the creature it hit, any other on the event's source.
+    - **Chosen: `"creatures"`.** At the start of its targeting stage (`chosenTarget`), before anything is rolled, its
+      controller picks any creature within `range` feet of its creature, itself too with `includeSelf` (itself first). It
+      reuses the redirect prompt (`redirectChoice`, `services.redirectCandidates`) with its own request id
+      (`target-choice`) and text (`WILDPATH.TARGET_CHOICE`). Hidden Tokens and dead creatures aren't candidates. One
+      candidate is taken unasked; none fails the reaction, as does a pick that is no longer a candidate when the answer is
+      resumed (moved out of range, hidden, dead): nobody else takes its place. `range` is required (a positive number of
+      feet), and an unknown `from` is refused (`validateActionDefinition`). The pick replaces the child's targets, its
+      footprint (each candidate now carries one, so the range stage can measure it) and the snapshot planning needs
+      (`withCandidateDurability`, shared with `withRedirect`).
+    - Only on a reaction (a `sourceEvent`); the same Action used from the sheet targets as usual. Which paths read it:
+      a reaction to an Action (`foundryActionReactionServices`) all four; a movement reaction
+      (`foundryMovementReactionServices`) `"self"` (itself, where it stands) and `"trigger-source"` (the mover where its
+      step starts, also the default). A step names no other creature and its services carry no `redirectCandidates`, so
+      `"trigger-target"` or `"creatures"` on a movement reaction fails the movement's resolution explicitly.
+    - shortcut: "a creature you can see" isn't checked for the chosen creature; upgrade by filtering `redirectCandidates`
+      by `attackSight`, as Superior Hunter's Prey also needs.
+  - **Potent Spellcasting** (SRD, 2024 Improved Blessed Strikes, cleric 14): after its cleric's cantrip damages a creature
+    (`damage.applied` interrupt, `sourceTokenId: "{self}"`, `tagsAll: ["cantrip"]`), Temporary Hit Points of twice its
+    Wisdom modifier to itself or any creature within 60 ft (`targetChoice: {from: "creatures", range: 60, includeSelf:
+    true}`). Free and asked: its feature's own Trigger carrying the Action, so nothing to use by hand. Offered only while
+    the cleric has the Potent Spellcasting option of Blessed Strikes: a Trigger's `whileFeature` (an identifier, as the
+    `hasFeature` predicate) gates it, as `whileStatus` does a status. shortcut: any cantrip, not only a cleric one (spells
+    carry no class), as Potent Spellcasting's damage.
+  - **War Caster's reaction spell (2024 feat, not built).** When a creature provokes its Opportunity Attack, it may cast
+    a spell at that creature instead: casting time one action, targeting only that creature. Its target is the
+    piece built here: the provoking creature, `targetChoice.from: "trigger-source"`, which a movement reaction reads
+    (and is also its default). What remains:
+    - the spell offer: the provider makes one Trigger per Action of its creature, so a Trigger that offers each of its
+      creature's qualifying spells (one-action casting, `targeting.type: "single"`, count 1, no area) as its own reaction
+      option is new provider work, with each spell's cost becoming its Reaction (the slot still asked, as Hellish
+      Rebuke's);
+    - beside the Opportunity Attack, not in place of it: today any Item reacting to `movement.transition-proposed`
+      removes its creature's common Opportunity Attack (`ownsMovementReaction`), so such a Trigger must be exempt and use
+      the Opportunity Attack's own predicate (a hostile creature leaving its reach);
+    - one Reaction between them, which Action Economy already enforces.
+
   - **Creature types (2026-10-21).** An NPC carries its creature type (`details.type`, `details.subtype`, converted from
     dnd5e; a custom one is its label), a character `humanoid`. A reaction's predicates see the first target's
     (`targetType`), as an attack's do (`attack.targetType`). Divine Smite's Undead or Fiend version is offered only on

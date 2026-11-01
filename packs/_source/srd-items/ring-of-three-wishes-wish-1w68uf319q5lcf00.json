@@ -13,6 +13,7 @@
       "tags": [
         "spell",
         "school:conjuration",
+        "spell:wish",
         "component:verbal"
       ],
       "costs": {

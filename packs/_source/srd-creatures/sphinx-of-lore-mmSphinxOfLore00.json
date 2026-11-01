@@ -422,6 +422,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -505,6 +506,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:identify",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -563,6 +565,7 @@
             "spell",
             "cantrip",
             "school:conjuration",
+            "spell:mage-hand",
             "component:verbal",
             "component:somatic"
           ],
@@ -629,6 +632,7 @@
             "spell",
             "cantrip",
             "school:illusion",
+            "spell:minor-illusion",
             "component:somatic",
             "component:material"
           ],
@@ -713,6 +717,7 @@
             "spell",
             "cantrip",
             "school:transmutation",
+            "spell:prestidigitation",
             "component:verbal",
             "component:somatic"
           ],
@@ -768,6 +773,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:dispel-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -856,6 +862,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:legend-lore",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -933,6 +940,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:locate-object",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1015,6 +1023,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:plane-shift",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1090,6 +1099,7 @@
           "tags": [
             "spell",
             "school:abjuration",
+            "spell:remove-curse",
             "component:verbal",
             "component:somatic"
           ],
@@ -1179,6 +1189,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:tongues",
             "component:verbal",
             "component:material"
           ],

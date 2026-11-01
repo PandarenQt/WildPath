@@ -100,15 +100,21 @@ function reactionChildState({ args, reactor, target, targetFootprint, sourceFoot
     const base = args.baseChildState;
     // A once-a-turn reaction (Stunning Strike) records its use when it pays (`metadata.once`).
     const once = args.candidate.payload?.once;
+    const targetRef = { id: actor.id, actorId: actor.id, actorRef: actor.uuid, tokenId: target.id, defense };
+    // A creature its rules leave untouched by this reaction (`Unaffected`; its own on itself excepted) stays targeted, so
+    // the reaction is spent, and the pipeline leaves it out of what it does, as for a declared Action.
+    const unaffected = (actor !== reactor.actor)
+        && !!actor.unaffectingRule?.(definition);
     return createActionResolutionState({ id: base.id, parentId: base.parentId, relationship: base.relationship,
         sourceEvent: base.sourceEvent, depth: base.depth, maxDepth: base.maxDepth, ancestry: base.ancestry,
         triggerIdentities: base.triggerIdentities, metadata: once ? { ...(base.metadata ?? {}), once } : base.metadata,
         actorSystem: foundryActorSystemSnapshot(reactor.actor),
         action: { id: definition.id, type: "action", name: definition.label, system: { definition } },
         source: { actorId: reactor.actor.id, actorRef: reactor.actor.uuid, tokenId: reactor.id, tokenRef: reactor.uuid },
-        targets: [{ id: actor.id, actorId: actor.id, actorRef: actor.uuid, tokenId: target.id, defense }],
+        targets: [targetRef],
         targeting: { candidates: [targetEntry] },
-        context: { spatial: { sceneContext, gridDistance: sceneContext.grid.distance, sourceFootprint, targetFootprints: [targetEntry] } },
+        context: { spatial: { sceneContext, gridDistance: sceneContext.grid.distance, sourceFootprint, targetFootprints: [targetEntry] },
+            ...(unaffected ? { unaffected: [{ ...targetRef }] } : {}) },
         attack: (statistics.attack || rollMode) ? {
             ...(statistics.attack ? { statistic: statistics.attack.statistic, modifierTotal: statistics.attack.modifierTotal,
                 ...(statistics.attack.dice ? { dice: statistics.attack.dice } : {}) } : {}),
@@ -135,7 +141,8 @@ function ownCriticalHit(event, reactor, target) {
 }
 /**
  * Reaction services for movement: the mover and every observer as participants, and a child-state factory
- * that makes a reaction to a proposed step target the mover where that step starts. Serves both the staged
+ * that makes a reaction to a proposed step target the mover where that step starts, or itself (`targetChoice.from:
+ * "self"`). Serves both the staged
  * movement host and the native checkpoint path.
  */
 export function foundryMovementReactionServices({ game, token, supplied, adapter, sceneContext, targetPosition }) {
@@ -150,12 +157,24 @@ export function foundryMovementReactionServices({ game, token, supplied, adapter
                     return createActionReactionChildState({ ...args,
                         services: { ...supplied, reactions: supplied.reactions ?? {} } });
                 const reactor = reactorFor(args.candidate, observers);
-                const targetResult = adapter.tokenToTargetFootprint(token, { position: targetPosition(previous) });
-                if (!targetResult.ok || !("tokenFootprint" in targetResult) || !targetResult.tokenFootprint)
-                    throw new Error("Logical movement target footprint is invalid.");
+                // A step names only its mover (`trigger-source`, the default) and no other creature, nor anyone to pick from.
+                const from = (args.candidate.actionDefinition ?? args.candidate.action)?.targetChoice?.from;
+                if (from && (from !== "self") && (from !== "trigger-source")) {
+                    throw new Error(`A movement reaction acts on the mover or itself, not targetChoice.from "${from}".`);
+                }
                 const sourceResult = adapter.tokenToFootprint(reactor, { position: reactor.toObject(true) });
                 if (!sourceResult.ok || !("footprint" in sourceResult) || !sourceResult.footprint)
                     throw new Error("Reaction source footprint is invalid.");
+                if (from === "self") {
+                    const own = adapter.tokenToTargetFootprint(reactor, { position: reactor.toObject(true) });
+                    if (!own.ok || !("tokenFootprint" in own) || !own.tokenFootprint)
+                        throw new Error("Reaction source footprint is invalid.");
+                    return reactionChildState({ args, reactor, target: reactor, targetFootprint: own.tokenFootprint,
+                        sourceFootprint: sourceResult.footprint, sceneContext });
+                }
+                const targetResult = adapter.tokenToTargetFootprint(token, { position: targetPosition(previous) });
+                if (!targetResult.ok || !("tokenFootprint" in targetResult) || !targetResult.tokenFootprint)
+                    throw new Error("Logical movement target footprint is invalid.");
                 return reactionChildState({ args, reactor, target: token,
                     targetFootprint: targetResult.tokenFootprint, sourceFootprint: sourceResult.footprint, sceneContext });
             } } };
@@ -164,7 +183,8 @@ export function foundryMovementReactionServices({ game, token, supplied, adapter
 /**
  * Reaction services for an ordinary Action: the acting creature and every Token whose triggers subscribe to
  * Action events (`action.declared`, `attack.hit`, `attack.miss`). A reaction Action that targets `self`
- * acts on its own Token; any other acts on the creature whose Action triggered it, where it stands.
+ * acts on its own Token; any other acts on the creature whose Action triggered it, where it stands, or on the one its
+ * `targetChoice` names.
  * Returns null when no such trigger is on the Scene, so Actions without reactors keep their plain path.
  */
 export function foundryActionReactionServices({ game, scene, token, supplied }) {
@@ -187,10 +207,15 @@ export function foundryActionReactionServices({ game, scene, token, supplied }) 
                 const reactor = reactorFor(args.candidate, reactors);
                 const definition = args.candidate.actionDefinition ?? args.candidate.action;
                 const event = (args.baseChildState.sourceEvent ?? args.candidate.event);
-                // A reaction to its own Action (2014 Divine Smite) acts on the creature that Action hit.
-                const target = definition?.targeting?.type === "self" ? reactor
-                    : (reactor.id === event?.source?.tokenId) ? scene.tokens.get(String(event?.targets?.[0]?.tokenId ?? "")) ?? null
-                        : participants.find(t => t.id === event?.source?.tokenId) ?? null;
+                // A reaction to its own Action (2014 Divine Smite) acts on the creature that Action hit. One naming its target
+                // (`targetChoice.from`) acts on that one; "creatures" is picked in its targeting stage, from this one on.
+                const from = definition?.targetChoice?.from;
+                const eventTarget = () => scene.tokens.get(String(event?.targets?.[0]?.tokenId ?? "")) ?? null;
+                const target = ((definition?.targeting?.type === "self") || (from === "self")) ? reactor
+                    : (from === "trigger-target") ? eventTarget()
+                        : (from === "trigger-source") ? scene.tokens.get(String(event?.source?.tokenId ?? "")) ?? null
+                            : (reactor.id === event?.source?.tokenId) ? eventTarget()
+                                : participants.find(t => t.id === event?.source?.tokenId) ?? null;
                 if (!target)
                     throw new Error("A reaction's target must be a Token on this Scene.");
                 const targetResult = adapter.tokenToTargetFootprint(target, { disposition: DISPOSITIONS[String(target.disposition ?? 0)] });

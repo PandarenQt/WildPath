@@ -446,6 +446,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-magic",
             "component:verbal",
             "component:somatic"
           ],
@@ -529,6 +530,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:guiding-bolt",
             "component:verbal",
             "component:somatic",
             "damage:radiant"
@@ -686,6 +688,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:shapechange",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -749,6 +752,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:flame-strike",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -881,6 +885,7 @@
           "tags": [
             "spell",
             "school:enchantment",
+            "spell:zone-of-truth",
             "component:verbal",
             "component:somatic"
           ],
@@ -932,7 +937,9 @@
                       "allOf": []
                     },
                     "tags": [
-                      "spell"
+                      "spell",
+                      "school:enchantment",
+                      "spell:zone-of-truth"
                     ],
                     "save": {
                       "ability": "presence",
@@ -1244,6 +1251,7 @@
           "tags": [
             "spell",
             "school:evocation",
+            "spell:guiding-bolt",
             "component:verbal",
             "component:somatic",
             "damage:radiant"

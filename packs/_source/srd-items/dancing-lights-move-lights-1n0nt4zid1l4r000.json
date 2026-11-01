@@ -14,6 +14,7 @@
         "spell",
         "cantrip",
         "school:illusion",
+        "spell:dancing-lights",
         "component:verbal",
         "component:somatic",
         "component:material"

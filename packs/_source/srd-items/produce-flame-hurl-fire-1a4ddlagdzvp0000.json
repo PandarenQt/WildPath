@@ -14,6 +14,7 @@
         "spell",
         "cantrip",
         "school:conjuration",
+        "spell:produce-flame",
         "component:verbal",
         "component:somatic",
         "damage:fire"

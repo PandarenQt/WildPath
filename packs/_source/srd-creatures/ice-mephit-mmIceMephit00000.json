@@ -342,6 +342,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:fog-cloud",
             "component:verbal",
             "component:somatic"
           ],

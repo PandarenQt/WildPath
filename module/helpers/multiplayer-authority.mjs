@@ -410,7 +410,8 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
       payment: current.results?.paymentResolution?.paymentPlan ?? null,
       ...(current.results?.movementOutcome ? {movement: current.results.movementOutcome} : {}),
       ...(current.results?.zeroHp?.length ? {zeroHp: current.results.zeroHp} : {}),
-      ...(current.input?.context?.cover?.length ? {cover: current.input.context.cover} : {})
+      ...(current.input?.context?.cover?.length ? {cover: current.input.context.cover} : {}),
+      ...(current.input?.context?.unaffected?.length ? {unaffected: current.input.context.unaffected} : {})
     },
     committedMutations: sanitizeCommittedMutations(transaction),
     trace: (current.trace ?? []).map(entry => ({
@@ -529,6 +530,9 @@ function projectPublicResolutionResult(data) {
       // Each target's cover, as everyone at the table can see it.
       ...(normalizeArray(data.outcomes?.cover).length ? {cover: normalizeArray(data.outcomes.cover).filter(entry => entry?.target)
         .map(entry => ({target: projectEntityRefForDisclosure(entry.target), degree: stringOrNull(entry.degree)}))} : {}),
+      // The targets the Action did nothing to (`Unaffected`), as the table sees nothing happen to them.
+      ...(normalizeArray(data.outcomes?.unaffected).length ? {unaffected: normalizeArray(data.outcomes.unaffected)
+        .map(projectEntityRefForDisclosure)} : {}),
       // The conditions and effects it gave or ended, by target, as their icons on its Tokens show anyway: a condition by
       // its id, an Action's own effect by its name; never their rules, durations or sources.
       ...(publicEffectOutcomes(data.outcomes?.effects).length ? {effects: publicEffectOutcomes(data.outcomes.effects)} : {})

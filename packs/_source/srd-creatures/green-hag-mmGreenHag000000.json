@@ -121,6 +121,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:augury",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -197,6 +198,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:find-familiar",
             "component:verbal",
             "component:somatic",
             "component:material",
@@ -399,6 +401,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:identify",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -475,6 +478,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:locate-object",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -557,6 +561,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:scrying",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -682,6 +687,7 @@
           "tags": [
             "spell",
             "school:conjuration",
+            "spell:unseen-servant",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -978,6 +984,7 @@
             "spell",
             "cantrip",
             "school:illusion",
+            "spell:dancing-lights",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1075,6 +1082,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:disguise-self",
             "component:verbal",
             "component:somatic"
           ],
@@ -1150,6 +1158,7 @@
           "tags": [
             "spell",
             "school:illusion",
+            "spell:invisibility",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -1230,6 +1239,7 @@
             "spell",
             "cantrip",
             "school:illusion",
+            "spell:minor-illusion",
             "component:somatic",
             "component:material"
           ],
@@ -1313,6 +1323,7 @@
           "tags": [
             "spell",
             "school:necromancy",
+            "spell:ray-of-sickness",
             "component:verbal",
             "component:somatic",
             "damage:poison"

@@ -325,6 +325,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:detect-evil-and-good",
             "component:verbal",
             "component:somatic"
           ],
@@ -408,6 +409,7 @@
           "tags": [
             "spell",
             "school:transmutation",
+            "spell:shapechange",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -471,6 +473,7 @@
           "tags": [
             "spell",
             "school:divination",
+            "spell:commune",
             "component:verbal",
             "component:somatic",
             "component:material"
@@ -547,6 +550,7 @@
           "tags": [
             "spell",
             "school:necromancy",
+            "spell:raise-dead",
             "component:verbal",
             "component:somatic",
             "component:material",
