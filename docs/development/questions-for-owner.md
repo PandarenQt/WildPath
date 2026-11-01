@@ -233,3 +233,15 @@ can add dice there.
   either case.
 - Recommendation: (a) without the damage option for now; it is a sidekick-only feature, so low priority.
 - **Answered 2026-10-31: (b), done properly. Both halves are shapes that exist: the sidekick's own Help puts one effect on the helped ally carrying a Bardic-Inspiration-style die for its roll and an ExtraDamage rider for its hit; whichever is used ends it (plan 7.11).**
+
+### Q17. Release plumbing (plan 6.5): version, changelog, merge to main (2026-11-01)
+The branch `milestone/action-runtime-live-proof` is 613 commits ahead of `main`, and `system.json` is still 0.9.0 with no
+`url`, `manifest` or `download`. Plan 6.5 waits on your go-ahead because a version and a merge to `main` are yours to call.
+
+- Done meanwhile: nothing; work continues on the branch.
+- Questions: (1) which version (recommend 0.10.0: many features, still pre-1.0); (2) merge to `main` now, or after a full
+  Quench run and a two-browser pass on the new features (vehicles, shared Bastions, creature spaces); (3) the GitHub
+  repository URLs for `url`, `manifest` and `download` (a release asset `system.zip` with `manifest` pointing at the latest
+  release's `system.json` is Foundry's usual pattern); (4) a CHANGELOG.md written from the plans and the Development Log.
+- Recommendation: 0.10.0, after one full Quench run and the two-browser pass; the standard GitHub release URLs; a
+  changelog grouped by feature, not by commit.
