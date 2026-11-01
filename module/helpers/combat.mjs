@@ -46,16 +46,21 @@ export function combatTurnKey(game=globalThis.game) {
 /**
  * What an Action's `requires` predicate sees of its creature: its data (`actorSystem`), and whether it already made an
  * attack roll this combat turn (`attackedThisTurn`: Reckless Attack, "your first attack roll on your turn";
- * `flags.wildpath.attackTurn`). The authority and the action bar both read it.
+ * `flags.wildpath.attackTurn`). The authority and the action bar both read it; both name the `controller` paying a
+ * vehicle's crew Action.
  */
-export function requiresContext(actor, {game=globalThis.game}={}) {
+export function requiresContext(actor, {game=globalThis.game, controller=null}={}) {
   const turn = combatTurnKey(game);
   // `actor`: what it wears (`wearing`: Martial Arts' strikes need no armor or Shield).
   return {actor: actor ?? null, actorSystem: actor?.system ?? null, attackedThisTurn: (turn !== null) && (actor?.flags?.wildpath?.attackTurn === turn),
     // Quickened Spell this turn: no other spell of level 1+ (`flags.wildpath.quickenedTurn`).
     quickenedThisTurn: (turn !== null) && (actor?.flags?.wildpath?.quickenedTurn === turn),
     // A Magic action this turn (`flags.wildpath.magicTurn`: a spell cast with the Action).
-    magicActionThisTurn: (turn !== null) && (actor?.flags?.wildpath?.magicTurn === turn)};
+    magicActionThisTurn: (turn !== null) && (actor?.flags?.wildpath?.magicTurn === turn),
+    // A vehicle's: the roles (`aboard.crew`) its `controller`, the creature using its Action, holds aboard it; with none
+    // named, those any creature aboard holds.
+    aboard: Object.fromEntries((actor?.system?.aboard ?? []).filter(entry => !controller || (entry.actorUuid === controller.uuid))
+      .map(entry => [entry.role, true]))};
 }
 
 export function getIncomingCombatant(combat, updateData) {

@@ -1,0 +1,76 @@
+{
+  "_id": "VBTtG9kjHNQstG0a",
+  "_key": "!actors!VBTtG9kjHNQstG0a",
+  "name": "Airship",
+  "type": "vehicle",
+  "img": "icons/environment/settlement/ship.webp",
+  "system": {
+    "defenses": {
+      "ac": {
+        "value": 13
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 300,
+        "value": 300,
+        "damageThreshold": 0
+      },
+      "movement": {
+        "base": 0,
+        "value": 0
+      }
+    },
+    "travelSpeed": 8,
+    "capacity": {
+      "crew": 10,
+      "passengers": 20,
+      "cargo": 1
+    },
+    "immunities": {
+      "damage": [
+        "poison",
+        "psychic"
+      ],
+      "conditions": [
+        "blinded",
+        "charmed",
+        "deafened",
+        "frightened",
+        "paralyzed",
+        "petrified",
+        "poisoned",
+        "stunned",
+        "unconscious"
+      ]
+    },
+    "aboard": []
+  },
+  "prototypeToken": {
+    "name": "Airship",
+    "width": 2,
+    "height": 2,
+    "disposition": 0,
+    "actorLink": false,
+    "texture": {
+      "src": "icons/environment/settlement/ship.webp"
+    }
+  },
+  "items": [],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "VBTtG9kjHNQstG0a",
+        "type": "vehicle",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

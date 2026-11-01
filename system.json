@@ -128,6 +128,11 @@
         "htmlFields": [
           "biography"
         ]
+      },
+      "vehicle": {
+        "htmlFields": [
+          "biography"
+        ]
       }
     },
     "Item": {
@@ -192,7 +197,7 @@
   "readme": "README.md",
   "flags": {
     "wildpath": {
-      "contentStamp": "f624dc2b2a10572a"
+      "contentStamp": "628f2819d65351e3"
     }
   }
 }

@@ -1,11 +1,13 @@
 <div class="bastion-map-body">
   <aside class="bastion-facilities">
     <p class="hint">{{localize "WILDPATH.BASTION.MapHint" size=size}}</p>
+    {{#each groups as |group|}}
+    {{#if group.name}}<h4>{{group.name}}</h4>{{/if}}
     <ol>
-      {{#each facilities as |facility|}}
+      {{#each group.facilities as |facility|}}
         <li>
           <button type="button" data-action="pick" data-facility-id="{{facility.id}}" class="{{#if facility.selected}}active{{/if}}"
-            aria-pressed="{{#if facility.selected}}true{{else}}false{{/if}}">
+            aria-pressed="{{#if facility.selected}}true{{else}}false{{/if}}" {{#unless facility.pickable}}disabled{{/unless}}>
             <span class="swatch" style="background: {{facility.color}}"></span>
             <span class="name">{{facility.name}}</span>
             <span class="count">{{facility.used}} / {{facility.most}} ({{facility.size}})</span>
@@ -15,6 +17,7 @@
         <li class="hint">{{localize "WILDPATH.BASTION.MapEmpty"}}</li>
       {{/each}}
     </ol>
+    {{/each}}
     {{#each problems as |problem|}}<p class="wp-warning">{{problem}}</p>{{/each}}
     {{#if editable}}
       <button type="button" data-action="clear">{{localize "WILDPATH.BASTION.MapClear"}}</button>
@@ -23,7 +26,7 @@
     {{#if isGM}}<button type="button" data-action="makeScene">{{localize "WILDPATH.BASTION.MakeScene"}}</button>{{/if}}
   </aside>
   <div class="bastion-grid" style="grid-template-columns: repeat({{size}}, 1fr);" role="grid" aria-label="{{localize "WILDPATH.BASTION.MapTitle" name=""}}">
-    {{#each rows as |row|}}{{#each row as |cell|}}<div class="bastion-cell" data-x="{{cell.x}}" data-y="{{cell.y}}" title="{{cell.title}}"
-      style="{{#if cell.color}}background: {{cell.color}}{{/if}}"></div>{{/each}}{{/each}}
+    {{#each rows as |row|}}{{#each row as |cell|}}<div class="bastion-cell{{#if cell.readonly}} readonly{{/if}}" data-x="{{cell.x}}" data-y="{{cell.y}}"
+      title="{{cell.title}}" style="{{#if cell.color}}background-color: {{cell.color}}{{/if}}"></div>{{/each}}{{/each}}
   </div>
 </div>

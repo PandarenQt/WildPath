@@ -4867,9 +4867,11 @@ export const proficiencyForChallenge = challenge => Math.max(2, Math.floor((Math
  * - Resistances and immunities, and Legendary Actions (a pool that refills each turn), go on a Traits feature.
  * @returns {{ok: true, actor: object, notes: string[]} | {ok: false, reason: string}}
  */
-export function convertActor(document, {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2", images=["icons/"], spells={},
-  creatures={}, beasts=[], tables={}}={}) {
+export function convertActor(document, options={}) {
+  const {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2", images=["icons/"], spells={}, creatures={}, beasts=[],
+    tables={}} = options;
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
+  if ( document.type === "vehicle" ) return convertVehicle(document, options);
   if ( document.type !== "npc" ) return {ok: false, reason: `a ${document.type} is not converted`};
   const system = document.system ?? {};
   const notes = [];
@@ -4959,6 +4961,74 @@ export function convertActor(document, {scales={}, pack=null, names={}, licensed
     items,
     flags: {wildpath: {source: {system: "dnd5e", pack, id: document._id, type: document.type, book,
       license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024", challenge}, conversion: {notes}}}
+  }};
+}
+
+/** What a vehicle's Actions require of the creature using one: to be aboard as crew (requiresContext's `aboard`). */
+const CREW = Object.freeze({equals: {path: "aboard.crew", value: true}});
+
+/**
+ * Convert a dnd5e `vehicle` Actor (a ship, the Apparatus of the Crab) to a WildPath vehicle (vehicles-and-mythic.md).
+ * - AC, Hit Points, Damage Threshold, Speed, cargo and immunities from its data; its travel Speed, crew and passengers from
+ *   its stat block's lines ("Speed: 8 mph", "Crew: 10"), which dnd5e keeps only as text; without them, every creature it
+ *   holds counts as crew.
+ * - Its Items become its Actions, used by a creature aboard as crew at the cost of that creature's Action (2024: "a
+ *   creature in the compartment can take a Utilize action"): `controllerCosts`, and `requires` its crew role.
+ * @returns {{ok: true, actor: object, notes: string[]} | {ok: false, reason: string}}
+ */
+export function convertVehicle(document, {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2", images=["icons/"]}={}) {
+  if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
+  const system = document.system ?? {};
+  const attributes = system.attributes ?? {};
+  const notes = [];
+  const actorId = document._id;
+  const text = String(system.details?.biography?.value ?? "").replace(/<[^>]+>/g, " ");
+  const line = label => number(new RegExp(`\\b${label}:\\s*([\\d.,]+)`, "i").exec(text)?.[1]?.replaceAll(",", ""));
+  const holds = number(attributes.capacity?.creature) ?? 0;
+  const items = [];
+  for ( const source of document.items ?? [] ) {
+    // A vehicle has no turn: dnd5e marks what its crew works "special"; here every one is an Action of the vehicle.
+    const item = structuredClone(source);
+    for ( const activity of Object.values(item.system?.activities ?? {}) ) {
+      if ( activity?.activation?.type === "special" ) activity.activation.type = "action";
+    }
+    const result = convertItem(item, {scales, pack, names, licensed, book, images, creature: {name: document.name, itemNames: {}}});
+    if ( !result.ok ) {
+      notes.push(`${item.name}: ${result.reason}`);
+      continue;
+    }
+    notes.push(...result.notes.map(note => `${item.name}: ${note}`));
+    // Its attack bonus is the stat block's own ("+8 to hit"): a vehicle has no ability scores to add.
+    const flat = Object.values(item.system?.activities ?? {}).find(activity => (activity?.type === "attack") && activity.attack?.flat);
+    for ( const converted of result.items ) {
+      const definition = converted.system?.definition;
+      if ( definition?.attack && (number(flat?.attack?.bonus) != null) ) definition.attack.fixedBonus = number(flat.attack.bonus);
+      if ( definition ) Object.assign(definition, {costs: {allOf: []}, controllerCosts: {allOf: [{capability: "action", amount: 1}]},
+        requires: definition.requires ? {all: [definition.requires, structuredClone(CREW)]} : structuredClone(CREW)});
+      items.push({...converted, _key: `!actors.items!${actorId}.${converted._id}`});
+    }
+  }
+  const health = number(attributes.hp?.max) ?? number(attributes.hp?.value) ?? 1;
+  const walk = number(attributes.movement?.walk) ?? number(attributes.movement?.swim) ?? number(attributes.movement?.fly) ?? 0;
+  const size = SIZES[system.traits?.size] ?? 1;
+  const crew = line("Crew") ?? holds;
+  return {ok: true, notes, actor: {
+    _id: actorId, _key: `!actors!${actorId}`, name: document.name, type: "vehicle",
+    img: kept(document.img, images) ?? "icons/svg/mystery-man.svg",
+    system: {
+      defenses: {ac: {value: number(attributes.ac?.flat) ?? 10}},
+      resources: {health: {base: health, value: health, damageThreshold: number(attributes.hp?.dt) ?? 0}, movement: {base: walk, value: walk}},
+      travelSpeed: line("Speed") ?? 0,
+      capacity: {crew, passengers: line("Passengers") ?? Math.max(holds - crew, 0), cargo: number(attributes.capacity?.cargo?.value) ?? 0},
+      immunities: {damage: [...(system.traits?.di?.value ?? [])], conditions: [...(system.traits?.ci?.value ?? [])]},
+      aboard: []
+    },
+    prototypeToken: {name: document.name, width: number(document.prototypeToken?.width) ?? size, height: number(document.prototypeToken?.height) ?? size,
+      disposition: 0, actorLink: false,
+      ...(kept(document.prototypeToken?.texture?.src, images) ? {texture: {src: document.prototypeToken.texture.src}} : {})},
+    items,
+    flags: {wildpath: {source: {system: "dnd5e", pack, id: document._id, type: document.type, book,
+      license: document.system?.source?.license || null, rules: document.system?.source?.rules || "2024"}, conversion: {notes}}}
   }};
 }
 

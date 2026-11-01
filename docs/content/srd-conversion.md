@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 992 automated, 235 manual, 226 features. Creatures: 375.
+Items: 992 automated, 235 manual, 226 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -40,6 +40,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Aid | spells24 | Aid (automated) | — |
 | Air Elemental | actors24 | Air Elemental (5 items) | — |
 | Air Ring of Elemental Command | equipment24 | Air Ring of Elemental Command (gear), Air Ring of Elemental Command (Elemental Compulsion) (automated), Air Ring of Elemental Command: Chain Lightning (automated), Air Ring of Elemental Command: Feather Fall (manual), Air Ring of Elemental Command: Gust of Wind (automated), Air Ring of Elemental Command: Wind Wall (automated) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
+| Airship | actors24 | Airship (0 items) | — |
 | Alarm | spells24 | Alarm (Cast over Area) (manual), Alarm (Cast on Window or Door) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
 | Alchemist's Fire | equipment24 | Alchemist's Fire (automated) | — |
 | Alchemist's Supplies | equipment24 | Alchemist's Supplies (gear), Alchemist's Supplies (automated) | — |
@@ -80,6 +81,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Antitoxin | equipment24 | Antitoxin (automated) | — |
 | Ape | actors24 | Ape (4 items) | — |
 | Apparatus of the Crab | equipment24 | Apparatus of the Crab (gear), Apparatus of the Crab (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Apparatus of the Crab | actors24 | Apparatus of the Crab (3 items) | Grapple Attack: rolled (attack); what it does is by hand; Grapple Attack: check: a choice of acr/ath uses acr |
 | Arcane Apotheosis | classes24 | Arcane Apotheosis (feature) | — |
 | Arcane Eye | spells24 | Arcane Eye (automated) | — |
 | Arcane Eye | actors24 | Arcane Eye (2 items) | Move: not automated (utility): using it spends its cost; its description says the rest |
@@ -639,6 +641,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Frost Brand | equipment24 | Frost Brand (automated) | — |
 | Frost Giant | actors24 | Frost Giant (5 items) | — |
 | Frost's Chill | origins24 | Frost's Chill (automated) | — |
+| Galley | actors24 | Galley (0 items) | — |
 | Gargoyle | actors24 | Gargoyle (4 items) | — |
 | Gaseous Form | spells24 | Gaseous Form (automated) | effect: "Gaseous Form" change img (override) not converted |
 | Gate | spells24 | Gate (Small Vertical Portal) (manual), Gate (Large Vertical Portal) (manual), Gate (Small Horizontal Portal) (manual), Gate (Large Horizontal Portal) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
@@ -882,6 +885,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Jeweler's Tools | equipment24 | Jeweler's Tools (gear), Jeweler's Tools (automated) | — |
 | Jug | equipment24 | Jug (gear) | — |
 | Jump | spells24 | Jump (automated) | effect: "Jump" marks its creature (narrative) |
+| Keelboat | actors24 | Keelboat (0 items) | — |
 | Keen Senses | origins24 | Keen Senses (feature) | — |
 | Key | equipment24 | Key (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Killer Whale | actors24 | Killer Whale (3 items) | — |
@@ -927,6 +931,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Locate Object | spells24 | Locate Object (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
 | Lock | equipment24 | Lock (gear) | — |
 | Longbow | equipment24 | Longbow (automated) | — |
+| Longship | actors24 | Longship (0 items) | — |
 | Longstrider | spells24 | Longstrider (automated) | — |
 | Longsword | equipment24 | Longsword (automated), Longsword (Two-Handed) (automated) | — |
 | Luck | origins24 | Luck (feature) | — |
@@ -1296,6 +1301,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Rope Trick | spells24 | Rope Trick (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Roper | actors24 | Roper (6 items) | Reel: not automated (utility): using it spends its cost; its description says the rest |
 | Roving | classes24 | Roving (feature) | — |
+| Rowboat | actors24 | Rowboat (0 items) | — |
 | Ruin | equipment24 | Ruin (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Rust Bag of Tricks | equipment24 | Rust Bag of Tricks (gear), Rust Bag of Tricks (automated) | — |
 | Rust Monster | actors24 | Rust Monster (7 items) | Iron Scent: "Expend Use" is passive or triggered (narrative): not automated; Antennae: rolled (save); what it does is by hand; Destroy Metal: not automated (utility, narrative): using it spends its cost; its description says the rest; Reflexive Antennae: not automated (utility): using it spends its cost; its description says the rest |
@@ -1306,6 +1312,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Sage | equipment24 | Sage (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Sage | origins24 | Sage (background) | — |
 | Sahuagin Warrior | actors24 | Sahuagin Warrior (7 items) | Aquatic Charge: not automated (utility): using it spends its cost; its description says the rest |
+| Sailing Ship | actors24 | Sailing Ship (0 items) | — |
 | Salamander | actors24 | Salamander (5 items) | Fire Aura: activation: turnEnd is not an action-economy cost |
 | Sanctuary | spells24 | Sanctuary (Cast) (automated) | "Save on Target" is passive or triggered: not automated |
 | Satyr | actors24 | Satyr (3 items) | — |
@@ -1627,6 +1634,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Warrior Infantry | actors24 | Warrior Infantry (3 items) | — |
 | Warrior of the Open Hand | classes24 | Warrior of the Open Hand (subclass) | — |
 | Warrior Veteran | actors24 | Warrior Veteran (5 items) | — |
+| Warship | actors24 | Warship (0 items) | — |
 | Water (Pint) | equipment24 | Water (Pint) (gear) | "Consume" is passive or triggered (narrative): not automated |
 | Water (Pint) | equipment24 | Water (Pint) (gear) | "Consume" is passive or triggered (narrative): not automated |
 | Water (Pint) | equipment24 | Water (Pint) (gear) | "Consume" is passive or triggered (narrative): not automated |

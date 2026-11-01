@@ -26,6 +26,8 @@ export function createFoundryCarry({ game }) {
         const anchors = data.completedAnchors ?? [];
         if (!scene || !carrier?.actor || (anchors.length < 2))
             return [];
+        if (Array.isArray(carrier.actor.system?.aboard))
+            return rideAlong(scene, carrier, data);
         const carried = [...scene.tokens].filter(token => (token !== carrier) && effectsFrom(token.actor, carrier.actor, game)
             .some((effect) => effect.statuses?.has("carried")));
         if (!carried.length)
@@ -66,6 +68,30 @@ export function createFoundryCarry({ game }) {
             if (!last)
                 continue;
             await token.update({ ...last }, { movement: { [token.id]: { waypoints, showRuler: false } }, wildpath: { movementKind: "forced" } });
+            moved.push(token);
+        }
+        return moved;
+    }
+    /** A vehicle's riders: each Token standing wholly on its starting spaces, moved by the vehicle's own offset. */
+    async function rideAlong(scene, vehicle, data) {
+        const adapter = createFoundryV14TacticalGridAdapter({ scene });
+        const anchors = data.completedAnchors ?? [];
+        const [start, end] = [anchors[0], anchors.at(-1)].map(anchor => adapter.fieldToCenterPoint(anchor).point);
+        const deck = new Set((data.origin?.footprint?.fields ?? []).map(field => `${field.x}.${field.y}`));
+        if (!start || !end || !deck.size)
+            return [];
+        const riders = [...scene.tokens].filter(token => {
+            if (token === vehicle)
+                return false;
+            const fields = (adapter.tokenToFootprint(token).footprint?.fields ?? []);
+            return fields.length > 0 && fields.every(field => deck.has(`${field.x}.${field.y}`));
+        });
+        // The one furthest along the way first, so none lands where another still stands.
+        const ahead = (token) => (token.x * (end.x - start.x)) + (token.y * (end.y - start.y));
+        const moved = [];
+        for (const token of riders.sort((a, b) => ahead(b) - ahead(a))) {
+            const to = { x: token.x + end.x - start.x, y: token.y + end.y - start.y };
+            await token.update(to, { movement: { [token.id]: { waypoints: [{ ...to, action: "blink" }], showRuler: false } }, wildpath: { movementKind: "forced" } });
             moved.push(token);
         }
         return moved;

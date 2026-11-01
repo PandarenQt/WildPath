@@ -127,6 +127,13 @@ order back to Maintain, each one as soon as it is carried out; a second click wh
   squares) in any shape, as the DMG lets players configure it. Saved as `system.bastion.map.cells` (`{x, y,
   facilityId}`). The GM's "Make a Scene" builds a Scene of it: a coloured Drawing per square, each facility's name, and a
   Wall on every square edge where the facility meets another or nothing, one per 5 feet, so any can be made a door.
+- **Shared Bastions** (2026-11-01, `docs/architecture/shared-bastions.md`). Characters carrying the same
+  `system.bastion.shared.id` share one map: the ground each pools (`shared.squares`, null for all of it) makes a square
+  grid just large enough. Everything else (slots, orders, defenders, events, payments) stays each character's own. The
+  sheet founds, joins (any group with a visible member, said in chat) and leaves one; the GM can remove anyone. A member
+  with `shared.cover` takes the others' Attack losses, one at a time from whoever has the most defenders
+  (`coverLosses`). The turn's chat lists a shared Bastion's lines under its members' names. An Attack that leaves a
+  Bastion no defenders shuts one special facility (`system.current.shutDown`) for its next turn.
 Live (14.369): a level 1 character was refused a Smithy; at 9th, a Smithy, Storehouse, Barrack and Workshop joined, two
 basic facilities came free and a third cost 500 gp. The player painted the Smithy on a 16 by 16 map (capped at 16
 squares) and saved it; the GM's Scene had the three facilities walled and named. One Bastion turn crafted a Dagger,

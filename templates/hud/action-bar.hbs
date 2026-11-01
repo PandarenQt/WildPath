@@ -25,7 +25,7 @@
     </div>
     <div class="bar-groups">
       {{#each groups as |group|}}
-        <div class="bar-group" data-group="{{group.id}}">
+        <div class="bar-group" data-group="{{group.id}}"{{#if group.actorUuid}} data-actor-uuid="{{group.actorUuid}}"{{/if}}>
           <span class="bar-group-label">{{localize group.label}}</span>
           {{#each group.actions as |action|}}
             <button type="button" class="bar-action" data-action="use" data-item-id="{{action.id}}"

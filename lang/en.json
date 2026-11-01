@@ -1255,6 +1255,7 @@
       "CancelledByGM": "The GM cancelled this Action.",
       "CancelledByGMChat": "{action} was cancelled by the GM. Nothing was spent.",
       "DispelEnded": "{name} (level {level}) ends: the check was {total} against DC {dc}.",
+      "PhaseBegan": "{name} rises ({feature}): its mythic actions are available.",
       "EndedEffects": "{action} ends: {list}.",
       "DispelStayed": "{name} (level {level}) stays: the check was {total} against DC {dc}.",
       "NoHealing": "{name} can't regain Hit Points right now.",
@@ -1276,6 +1277,7 @@
       "Gaseous": "{name} is a cloud of mist: it can't attack or cast spells.",
       "ArmorCasting": "{name} can't cast spells while wearing {armor} without training in it.",
       "Quickened": "{name} cast a Quickened spell this turn: no other spell of level 1 or higher.",
+      "Mythic": "{name}'s mythic actions are available once its mythic phase begins.",
       "Flee": "{name} was Commanded to flee: only Dash or Disengage.",
       "Equip": "{name} must be equipped to use this.",
       "EquipAttune": "{name} must be equipped and attuned to use this.",
@@ -1361,6 +1363,29 @@
       "Awarded": "{each} XP each: {names}.",
       "LevelUp": "{names} may now level up."
     },
+    "VEHICLE": {
+      "Sheet": "Wild Path Vehicle Sheet",
+      "Statistics": "Statistics",
+      "HitPoints": "Hit Points",
+      "DamageThreshold": "Damage Threshold",
+      "Speed": "Speed (ft.)",
+      "TravelSpeed": "Travel Speed (mph)",
+      "Crew": "Crew",
+      "Passengers": "Passengers",
+      "Cargo": "Cargo (tons)",
+      "DamageImmunities": "Damage immunities",
+      "ConditionImmunities": "Condition immunities",
+      "Aboard": "Aboard",
+      "NobodyAboard": "Nobody is aboard. Drop a creature here to bring it aboard.",
+      "Missing": "(not found)",
+      "RoleLabel": "Role",
+      "Role": {
+        "crew": "Crew",
+        "passenger": "Passenger"
+      },
+      "Leave": "Leave",
+      "Actions": "Actions"
+    },
     "JOURNEY": {
       "Title": "Journey",
       "Hint": "The party travels: Fast 4, Normal 3, Slow 2 miles an hour. Past 8 hours, each hour is a forced march (a Fortitude save or 1 Exhaustion level).",
@@ -1435,6 +1460,9 @@
       "MapOutside": "A square ({x}, {y}) lies outside the Bastion.",
       "MapOverlap": "Two facilities share the square ({x}, {y}).",
       "MapTooBig": "{name} covers {count} squares; its space allows {most}.",
+      "MapFull": "{count} squares are laid out; the shared Bastion's ground is {most}.",
+      "SharedTitle": "Shared Bastion: {names}",
+      "MemberFacility": "{facility} ({member})",
       "MakeScene": "Make a Scene",
       "SceneName": "{name}'s Bastion",
       "SceneMade": "Made the Scene {name}. Its doors are yours to place.",
@@ -1457,13 +1485,31 @@
       "Stocked": "{name}'s {facility} buys {gold} gp of stock.",
       "Recruited": "{name}'s {facility} recruits {count} Bastion Defenders.",
       "EventDrawn": "{name}'s Bastion only maintained: {event}",
-      "Attack": "{name}'s Bastion is attacked; {lost} defenders are lost."
+      "Attack": "{name}'s Bastion is attacked; {lost} defenders are lost.",
+      "ShutDown": "{name}'s Bastion has no defenders left: {facility} is damaged and shuts down for the next Bastion turn.",
+      "Repaired": "{name}'s {facility} is shut down this turn; it is repaired afterward.",
+      "Found": "Found a shared Bastion",
+      "Join": "Join",
+      "JoinPick": "Shared Bastion to join",
+      "Leave": "Leave the shared Bastion",
+      "Remove": "Remove {name} from the shared Bastion",
+      "Members": "Members:",
+      "Pooled": "{name} ({squares} squares)",
+      "Ground": "Ground: {capacity} squares, {size} by {size}",
+      "Squares": "Squares pooled",
+      "AllGround": "all",
+      "Cover": "Take the other members' defender losses",
+      "Founded": "{name} founds a shared Bastion.",
+      "Joined": "{name} joins the shared Bastion of {names}.",
+      "Left": "{name} leaves their shared Bastion.",
+      "Covered": "{name} takes {count} of {ally}'s losses."
     }
   },
   "TYPES": {
     "Actor": {
       "character": "Character",
-      "npc": "NPC"
+      "npc": "NPC",
+      "vehicle": "Vehicle"
     },
     "Item": {
       "feature": "Feature",

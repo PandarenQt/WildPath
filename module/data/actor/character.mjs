@@ -19,7 +19,13 @@ export default class WildPathCharacter extends WildPathBaseActor {
         defenders: new NumberField({required: true, integer: true, initial: 0, min: 0}),
         map: new foundry.data.fields.SchemaField({cells: new foundry.data.fields.ArrayField(new foundry.data.fields.SchemaField({
           x: new NumberField({required: true, integer: true, min: 0}), y: new NumberField({required: true, integer: true, min: 0}),
-          facilityId: new StringField({required: true, blank: false})}))})
+          facilityId: new StringField({required: true, blank: false})}))}),
+        // A shared Bastion (docs/architecture/shared-bastions.md): the id its members carry ("" is a Bastion of its own),
+        // the squares this character pools (null: all its ground), and whether it takes other members' defender losses
+        // (`cover`, owner's question 9). Its map's squares are then the shared grid's.
+        shared: new foundry.data.fields.SchemaField({id: new StringField({required: true, blank: true, initial: ""}),
+          squares: new NumberField({required: true, integer: true, min: 0, nullable: true, initial: null}),
+          cover: new foundry.data.fields.BooleanField({required: true, initial: false})})
       }),
       // Its coins (helpers/crafting.mjs spends them).
       currency: new foundry.data.fields.SchemaField({pp: coin(), gp: coin(), ep: coin(), sp: coin(), cp: coin()}),

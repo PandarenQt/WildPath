@@ -2,7 +2,8 @@ import {createActionBarViewModel} from "./ui-view-models.mjs";
 import {reactionPolicyOf} from "./automation-events.mjs";
 import {activeEffectViews} from "./effect-views.mjs";
 import {discoverActionConfigurationChoices} from "./action-configuration.mjs";
-import {actionDefinitionFromAction} from "./action-definitions.mjs";
+import {actionDefinitionFromAction, actionDefinitionActivationCost} from "./action-definitions.mjs";
+import {economyResourcesFromActorResources, resolvePaymentOptions} from "./action-economy.mjs";
 import {isUnprepared} from "./spellcasting.mjs";
 import {evaluatePredicate} from "./predicates.mjs";
 import {requiresContext} from "./combat.mjs";
@@ -117,9 +118,9 @@ function legendaryPolicy(actor: BarActor) {
   return {id, ...POLICY_VIEWS[id]};
 }
 
-export function actionBarContext({actor, conditions=[], odds={}, common=[], localize=(key: string) => key}: {actor: BarActor;
+export function actionBarContext({actor, conditions=[], odds={}, common=[], localize=(key: string) => key, controller=null}: {actor: BarActor;
   conditions?: readonly ConditionDefinition[]; odds?: Record<string, readonly OddsEntry[]>; common?: readonly {id: string}[];
-  localize?: (key: string) => string}) {
+  localize?: (key: string) => string; controller?: {uuid: string; system?: Data} | null}) {
   const bar = viewModel({actor});
   for ( const resource of bar.resources ) resource.label = localize(ECONOMY_LABELS[resource.id] ?? resource.label);
   const order = (resource: ResourceView) => {
@@ -137,7 +138,8 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[], loca
     return !source || ((source.system?.active !== false) && (source.system?.attunement !== "required"));
   };
   // What its definition requires of the creature (`requires`: Steady Aim, not moved this turn), as the authority checks.
-  const required = (requiresContext as (actor: unknown) => Data)(actor);
+  // A vehicle's Actions shown for a creature aboard (`controller`): what they require of its role (`aboard.crew`).
+  const required = (requiresContext as (actor: unknown, options: {controller: unknown}) => Data)(actor, {controller});
   const forbidden = (action: ActionView) => actor.forbiddingRule?.(rawDefinition(action) ?? null) ?? null;
   const requiresMet = (action: ActionView) => {
     if ( forbidden(action) ) return false;
@@ -145,7 +147,15 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[], loca
     return !requires || (evaluatePredicate as (predicate: unknown, context: Data) => {ok: boolean})(requires,
       {...required, tags: rawDefinition(action)?.tags ?? []}).ok;
   };
-  const ready = (action: ActionView) => itemReady(action) && requiresMet(action);
+  // A vehicle's Action at its crew member's own cost (`controllerCosts`, their Action): what that creature lacks, as the
+  // authority pays it from them (foundryActionController); none without a controller or such a cost.
+  const controllerShort = (action: ActionView): Data[] => {
+    const cost = controller ? actionDefinitionActivationCost({costs: rawDefinition(action)?.controllerCosts}) as {allOf?: unknown[]; anyOf?: unknown[]} : null;
+    if ( !(cost?.allOf?.length || cost?.anyOf?.length) ) return [];
+    const discovery = resolvePaymentOptions({cost, resources: economyResourcesFromActorResources(controller?.system ?? {})}) as Data;
+    return discovery.status === "available" ? [] : ((discovery.failures as Data[] | undefined) ?? [{code: discovery.code}]);
+  };
+  const ready = (action: ActionView) => itemReady(action) && requiresMet(action) && !controllerShort(action).length;
   const resourceLabels = new Map(bar.resources.map(resource => [resource.id, resource.label]));
   // Why it is not available, in words: its item is not ready, or what has run out ("no 3rd-level slot left").
   const reason = (action: ActionView) => {
@@ -153,8 +163,9 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[], loca
     const forbid = forbidden(action);
     if ( forbid ) return {key: forbid.reason ?? "WILDPATH.REFUSAL.Forbidden", name: actor.name ?? "", by: forbid.name ?? ""};
     if ( !requiresMet(action) ) return {key: "WILDPATH.ACTIONBAR.Reason.Requires", name: ""};
-    const spent = [...new Set((action.payment?.failures ?? []).filter(failure => failure.code === "INSUFFICIENT_RESOURCE")
-      .map(failure => resourceLabels.get(String(failure.resourceId)) ?? String(failure.resourceId)))];
+    const failures: Data[] = [...(action.payment?.failures ?? []), ...controllerShort(action)];
+    const spent = [...new Set(failures.filter(failure => failure.code === "INSUFFICIENT_RESOURCE")
+      .map(failure => resourceLabels.get(String(failure.resourceId)) ?? localize(ECONOMY_LABELS[String(failure.resourceId)] ?? String(failure.resourceId))))];
     return spent.length ? {key: "WILDPATH.ACTIONBAR.Reason.Spent", name: spent.join(", ")} : {key: "WILDPATH.ACTIONBAR.Unavailable", name: ""};
   };
   const rawDefinition = (action: ActionView) => (items.get(action.id ?? "") as {system?: {definition?: Data}} | undefined)?.system?.definition;
@@ -167,7 +178,8 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[], loca
   };
   const view = (groupId: string) => (action: ActionView) => ({id: action.id, label: action.label,
     img: action.img ?? "icons/svg/sword.svg", enabled: action.enabled && ready(action),
-    disabledCode: itemReady(action) ? (requiresMet(action) ? action.disabledCode : "REQUIRES_NOT_MET") : "ITEM_NOT_READY",
+    disabledCode: itemReady(action) ? (requiresMet(action) ? (action.disabledCode ?? controllerShort(action)[0]?.code ?? null)
+      : "REQUIRES_NOT_MET") : "ITEM_NOT_READY",
     ...((action.enabled && ready(action)) ? {} : {reason: reason(action)}),
     odds: oddsView(odds[action.id ?? ""] ?? []),
     // A spell whose only choice is its slot: one button per slot level it can use now.

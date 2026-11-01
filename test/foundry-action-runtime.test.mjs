@@ -2267,6 +2267,45 @@ test("a companion's controller cost needs a controller the sender owns, with eno
     "nothing is paid or done when the controller cannot pay");
 });
 
+/** A vehicle's Claw: no cost of its own (it has no turn); its crew member's Action, while that creature is aboard as crew. */
+function crewFixture(t, {roles=["passenger", "crew"]}={}) {
+  const definition = {schemaVersion: 1, id: "action:vehicle-claw", label: "Claw", costs: {allOf: []},
+    controllerCosts: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]},
+    requires: {equals: {path: "aboard.crew", value: true}},
+    range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    damage: [{id: "claw", expression: {type: "constant", value: 7}, damageType: "bludgeoning", provenance: "weapon-base"}]};
+  const fixture = syntheticRuntimeFixture(t, definition, {targetHealth: 30});
+  const [guest, pilot] = ["guest", "pilot"].map(id => withFoundryActorSystem(fakeActor(id, {system: actorSystem()})));
+  fixture.sourceActor.system.aboard = roles.map((role, index) => ({actorUuid: [guest, pilot][index].uuid, role}));
+  const resolve = globalThis.fromUuid;
+  globalThis.fromUuid = async ref => [guest, pilot].find(actor => actor.uuid === ref) ?? resolve(ref);
+  const hub = createTestResolutionTransportHub({users: [{id: "gm-a", active: true, isGM: true, isActiveGM: true},
+    {id: "player-a", active: true, isGM: false}]});
+  const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "gm-a"}), actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent,
+      senderUserId: envelope.senderUserId, game: fixture.game, persistencePort: createTestDocumentPersistenceAdapter()})});
+  const player = createMultiplayerActionCoordinator({userId: "player-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
+    transport: hub.createEndpoint({userId: "player-a"})});
+  gm.register();
+  player.register();
+  return {...fixture, guest, pilot, gm, player};
+}
+
+test("a vehicle's Action is used by a creature aboard as crew, at that creature's Action; a passenger can't", async t => {
+  const {sourceActor, targetActor, guest, pilot, game, intent, gm, player} = crewFixture(t);
+  const declared = await player.declareActionIntent(intent);
+  const state = gm.getRecord(declared.resolutionId).state;
+  assert.equal(state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(state.errors));
+  assert.equal(targetActor.system.resources.health.value, 23);
+  assert.deepEqual([pilot.system.resources.action.value, guest.system.resources.action.value, sourceActor.system.resources.action.value],
+    [0, 1, 1], "the crew member it found among those the sender owns pays; the passenger and the vehicle don't");
+  const named = await foundryActionIntentToStagedOptions({intent: {...intent, controllerRef: guest.uuid}, senderUserId: "player-a", game});
+  assert.deepEqual([named.ok, named.code], [false, MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED], "a passenger named from its own bar");
+  const {game: passengers, intent: alone} = crewFixture(t, {roles: ["passenger", "passenger"]});
+  const refused = await foundryActionIntentToStagedOptions({intent: alone, senderUserId: "player-a", game: passengers});
+  assert.deepEqual([refused.ok, refused.code], [false, MULTIPLAYER_AUTHORITY_CODES.ACTION_REFUSED], "no crew aboard");
+});
+
 test("the authority only resolves Actions sent by an owner of the acting Actor, using that Actor's own Item", async t => {
   const f = syntheticRuntimeFixture(t);
   // A player who does not own the acting Actor is refused before any rules input is built.

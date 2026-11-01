@@ -1,4 +1,4 @@
-import {BUILD_COST, ENLARGE_COST, canAddSpecial, defendersLost, recruited, tradeSale} from "../helpers/bastions.mjs";
+import {BUILD_COST, ENLARGE_COST, bastionGroups, canAddSpecial, coverLosses, defendersLost, recruited, tradeSale} from "../helpers/bastions.mjs";
 import {craftingPlan, spendGold} from "../helpers/crafting.mjs";
 
 /**
@@ -12,8 +12,10 @@ import {craftingPlan, spendGold} from "../helpers/crafting.mjs";
  * - Recruit: up to 4 Bastion Defenders, as many as its facilities house (a Barrack's 12);
  * - the rest (Empower, Harvest, Research, a Stable's trade): its text says what the GM gives.
  * A character whose facilities all maintain has a Bastion event: the "Bastion Events" table a converted book provides,
- * else a d100. An Attack costs a defender for each 1 on 6d6.
- * Each order then goes back to Maintain.
+ * else a d100. An Attack costs a defender for each 1 on 6d6; one that leaves none shuts a special facility (chosen at
+ * random) down: it sits out the next Bastion turn, then is repaired. In a shared Bastion, members who cover the others
+ * (`system.bastion.shared.cover`) take an Attack's losses in their place, most defenders first.
+ * Each order then goes back to Maintain. The turn's chat lists a shared Bastion's lines under its members' names.
  */
 
 const localize = key => globalThis.game?.i18n?.localize?.(key) ?? key;
@@ -22,12 +24,16 @@ const facilitiesOf = actor => [...(actor?.items ?? [])].filter(item => item.type
 // shortcut: an Armory is known by its English name; upgrade when facilities carry dnd5e's identifier.
 const isArmory = facility => /^armory$/i.test(facility?.name ?? "");
 
-/** A character's special facilities and the orders issued them this turn; `quiet` when every one maintains. */
+/**
+ * A character's special facilities, the orders issued them this turn, and those shut down (`shut`), which carry out
+ * none, as if they maintained; `quiet` when every one maintains.
+ */
 export function bastionTurn(actor) {
   const special = facilitiesOf(actor).filter(item => item.system?.kind === "special");
-  const orders = special.filter(item => (item.system?.current?.order ?? "maintain") !== "maintain")
+  const shut = special.filter(item => item.system?.current?.shutDown);
+  const orders = special.filter(item => !shut.includes(item) && ((item.system?.current?.order ?? "maintain") !== "maintain"))
     .map(item => ({facility: item, order: item.system.current.order}));
-  return {special, orders, quiet: special.length > 0 && !orders.length};
+  return {special, orders, shut, quiet: special.length > 0 && !orders.length};
 }
 
 /** What one order yields this turn, as a line for the chat; it applies what it can. */
@@ -88,8 +94,8 @@ export async function carryOut(actor, facility, order) {
 }
 
 /** The "Bastion Events" table a converted book provides, if any. */
-async function eventsTable() {
-  for ( const pack of globalThis.game?.packs ?? [] ) {
+async function eventsTable(game) {
+  for ( const pack of game?.packs ?? [] ) {
     if ( pack.documentName !== "RollTable" ) continue;
     for ( const entry of (await pack.getIndex()).filter(row => row.name === "Bastion Events") ) {
       const table = await pack.getDocument(entry._id);
@@ -99,9 +105,9 @@ async function eventsTable() {
   return null;
 }
 
-/** A quiet Bastion's event: its table's result, and an Attack's cost in defenders. */
-async function bastionEvent(actor) {
-  const table = await eventsTable();
+/** A quiet Bastion's event: its table's result, and an Attack's cost in defenders (`group`: its shared Bastion's members). */
+async function bastionEvent(actor, game, group=[actor]) {
+  const table = await eventsTable(game);
   const drawn = table ? (await table.draw({displayChat: false}))?.results?.[0] : null;
   const roll = drawn ? null : await new Roll("1d100").evaluate();
   const result = drawn?.name || drawn?.description?.replace(/<[^>]+>/g, " ").trim() || null;
@@ -110,9 +116,24 @@ async function bastionEvent(actor) {
     const armory = facilitiesOf(actor).find(item => isArmory(item) && (Number(item.system?.trade?.stock) > 0));
     const dice = await new Roll(armory ? "6d8" : "6d6").evaluate();
     if ( armory ) await armory.update({"system.trade.stock": 0});
-    const lost = Math.min(defendersLost(dice.dice[0].results.map(entry => entry.result)), Number(actor.system.bastion?.defenders) || 0);
-    if ( lost ) await actor.update({"system.bastion.defenders": (Number(actor.system.bastion?.defenders) || 0) - lost});
-    return format("WILDPATH.BASTION.Attack", {name: actor.name, lost});
+    const defenders = Number(actor.system.bastion?.defenders) || 0;
+    // The members covering this one take its losses first; it loses what they can't. Only what it could lose is covered:
+    // a Bastion with no defenders shuts down whatever its allies hold.
+    const covers = group.filter(member => (member !== actor) && member.system?.bastion?.shared?.cover);
+    const {by, rest: lost} = coverLosses(Math.min(defendersLost(dice.dice[0].results.map(entry => entry.result)), defenders),
+      covers.map(member => ({id: member.id, defenders: member.system.bastion.defenders})));
+    if ( lost ) await actor.update({"system.bastion.defenders": defenders - lost});
+    const lines = [format("WILDPATH.BASTION.Attack", {name: actor.name, lost})];
+    for ( const {id, lost: count} of by ) {
+      const member = covers.find(cover => cover.id === id);
+      await member.update({"system.bastion.defenders": (Number(member.system.bastion.defenders) || 0) - count});
+      lines.push(format("WILDPATH.BASTION.Covered", {name: member.name, count, ally: actor.name}));
+    }
+    const open = facilitiesOf(actor).filter(item => (item.system?.kind === "special") && !item.system?.current?.shutDown);
+    if ( (defenders - lost > 0) || !open.length ) return lines.join(" ");
+    const shut = open[(await new Roll(`1d${open.length}`).evaluate()).total - 1];
+    await shut.update({"system.current.shutDown": true});
+    return [...lines, format("WILDPATH.BASTION.ShutDown", {name: actor.name, facility: shut.name})].join(" ");
   }
   return result ? format("WILDPATH.BASTION.EventDrawn", {name: actor.name, event: result})
     : format("WILDPATH.BASTION.Event", {name: actor.name, total: roll.total});
@@ -130,24 +151,40 @@ export async function runBastionTurn({game=globalThis.game, ChatMessage=globalTh
   running = true;
   try {
     const characters = [...game.actors].filter(actor => (actor.type === "character") && actor.hasPlayerOwner);
-    const lines = [];
-    for ( const actor of characters ) {
-      const {special, orders, quiet} = bastionTurn(actor);
-      if ( !special.length ) continue;
-      // Each order back to Maintain as soon as it is carried out: an error later never repeats it. One its player gave
-      // while the turn ran (no longer the order carried out) stays for the next turn.
-      for ( const {facility, order} of orders ) {
-        lines.push(await carryOut(actor, facility, order));
-        if ( facility.system?.current?.order === order ) await facility.update({"system.current.order": "maintain"});
-      }
-      if ( quiet ) lines.push(await bastionEvent(actor));
+    // Bastions as they stand when the turn starts: one joined or left during it counts from the next turn.
+    const solo = [];
+    const shared = [];
+    for ( const group of bastionGroups(characters).values() ) {
+      const lines = group[0].system?.bastion?.shared?.id ? [] : solo;
+      for ( const actor of group ) await bastionActor(actor, game, group, lines);
+      if ( (lines !== solo) && lines.length ) shared.push({names: group.map(actor => actor.name).join(", "), lines});
     }
     await game.time?.advance?.(7 * 86400);
-    await ChatMessage.create({content: `<h3>${localize("WILDPATH.BASTION.Turn")}</h3>${lines.length
-      ? `<ul>${lines.map(line => `<li>${line}</li>`).join("")}</ul>` : `<p>${localize("WILDPATH.BASTION.Nothing")}</p>`}`});
+    const list = lines => `<ul>${lines.map(line => `<li>${line}</li>`).join("")}</ul>`;
+    const body = (solo.length ? list(solo) : "") + shared.map(({names, lines}) =>
+      `<h4>${format("WILDPATH.BASTION.SharedTitle", {names})}</h4>${list(lines)}`).join("");
+    await ChatMessage.create({content: `<h3>${localize("WILDPATH.BASTION.Turn")}</h3>${body || `<p>${localize("WILDPATH.BASTION.Nothing")}</p>`}`});
   } finally {
     running = false;
   }
+}
+
+/** One character's part of a Bastion turn, its lines added to `lines`. */
+async function bastionActor(actor, game, group, lines) {
+  const {special, orders, shut, quiet} = bastionTurn(actor);
+  if ( !special.length ) return;
+  // Shut down by last turn's Attack: it sits this turn out (its order waits), then is repaired.
+  for ( const facility of shut ) {
+    lines.push(format("WILDPATH.BASTION.Repaired", {name: actor.name, facility: facility.name}));
+    await facility.update({"system.current.shutDown": false});
+  }
+  // Each order back to Maintain as soon as it is carried out: an error later never repeats it. One its player gave
+  // while the turn ran (no longer the order carried out) stays for the next turn.
+  for ( const {facility, order} of orders ) {
+    lines.push(await carryOut(actor, facility, order));
+    if ( facility.system?.current?.order === order ) await facility.update({"system.current.order": "maintain"});
+  }
+  if ( quiet ) lines.push(await bastionEvent(actor, game, group));
 }
 
 /**
@@ -206,6 +243,20 @@ export async function enlargeFacility(facility) {
   await facility.update({"system.size": size});
   await ChatMessage.create({content: format("WILDPATH.BASTION.Enlarged", {name: actor.name, facility: facility.name, size: localize(`WILDPATH.BASTION.Sizes.${size}`), cost, days})});
   return true;
+}
+
+/**
+ * A character joining the shared Bastion `id`, founding it (an id no one carries yet), or leaving its own (""), said in
+ * chat so the table sees it: joining is open to any group (owner's question 3), and only the character's owner, or the
+ * GM removing a member, can write it.
+ */
+export async function shareBastion(actor, id, {game=globalThis.game, ChatMessage=globalThis.ChatMessage}={}) {
+  if ( (actor?.system?.bastion?.shared?.id ?? "") === id ) return;
+  const group = id ? [...game.actors].filter(other => (other.type === "character") && other.visible
+    && (other.system?.bastion?.shared?.id === id)) : [];
+  await actor.update({"system.bastion.shared.id": id});
+  const key = !id ? "Left" : group.length ? "Joined" : "Founded";
+  await ChatMessage.create({content: format(`WILDPATH.BASTION.${key}`, {name: actor.name, names: group.map(other => other.name).join(", ")})});
 }
 
 export function registerBastions() {

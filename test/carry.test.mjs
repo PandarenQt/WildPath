@@ -94,3 +94,22 @@ test("two quick moves carry in order: the second starts where the first left the
   await Promise.all([first, second]);
   assert.deepEqual(scene.tokens.get("ally").updates.map(update => update.data), [{x: 1000, y: 1000}, {x: 1100, y: 1000}]);
 });
+
+test("riding along: Tokens standing on a vehicle where it set out move with it by its offset, at once, as forced movement", async () => {
+  // A 2x2 ship at rows 10-11, columns 10-11; two riders on its deck, a swimmer beside it.
+  const {scene, carry} = world([["ship", 10, 10], ["bow", 10, 11], ["stern", 11, 10], ["swimmer", 12, 10]]);
+  const ship = scene.tokens.get("ship");
+  ship.actor.system = {aboard: [{actorUuid: "Actor.bow", role: "crew"}]};
+  const deck = [{x: 10, y: 10}, {x: 10, y: 11}, {x: 11, y: 10}, {x: 11, y: 11}];
+  const sailed = {type: "movement.completed", data: {movementKind: "voluntary", tokenRef: "token:scene.ship",
+    completedAnchors: [{x: 10, y: 10}, {x: 10, y: 11}, {x: 10, y: 12}], origin: {anchor: {x: 10, y: 10}, footprint: {fields: deck}},
+    actualDestination: {anchor: {x: 10, y: 12}, footprint: {fields: deck.map(field => ({x: field.x, y: field.y + 2}))}}}};
+  const moved = await carry.onMovementEvent(sailed);
+  assert.deepEqual(moved.map(token => token.id), ["bow", "stern"], "whoever stands on it, aboard or not; the one ahead first");
+  assert.deepEqual(scene.tokens.get("bow").updates, [{data: {x: 1300, y: 1000}, operation: {movement: {bow: {waypoints:
+    [{x: 1300, y: 1000, action: "blink"}], showRuler: false}}, wildpath: {movementKind: "forced"}}}], "one jump by its offset");
+  assert.deepEqual(position(scene.tokens.get("stern")), {x: 1200, y: 1100});
+  assert.deepEqual(scene.tokens.get("swimmer").updates, [], "off its deck: it stays");
+  assert.deepEqual(await carry.onMovementEvent({...sailed, data: {...sailed.data, movementKind: "forced"}}), [],
+    "only its own voluntary move carries its riders");
+});

@@ -32,6 +32,7 @@ The default registry currently supports these contribution types:
 - `ExtraDamage`, `Aura`
 - `Forbid`, `Unaffected`
 - `Trigger`
+- `Phase` (read by the zero-HP hook; contributes nothing)
 
 Handlers return contribution bundles only:
 
@@ -154,6 +155,12 @@ reads it, and no dispatcher runs it.
     - `{base, perUse, usesPool}` is base + perUse × the uses spent (Relentless Rage);
     - `{plusDamage}` is that + the damage (Undead Fortitude).
   - `notOn` lists damage types, or `critical`, that bar it.
+- **`Phase`** (2026-11-01, vehicles-and-mythic.md): `{type: "Phase", data: {on: "zero-hp", restore: <ValueExpression>,
+  once?: true, flag?: "mythicPhase"}}` is a `set` rule to `zeroHpFor`: its creature stays up at `restore` Hit Points.
+  Once that damage commits, `beginPhase` sets `flags.wildpath.mythicPhase` (the only `flag` accepted: the `mythic` Forbid
+  reads it) and posts a public line (`WILDPATH.NOTIFY.PhaseBegan`). `once` (the default) skips it while the flag is set;
+  a Phase on an effect keeps the effect. shortcut: nothing clears the flag;
+  a rest or the GM resetting it comes with a creature that needs it.
 - **`event: "health.reduced"`** (the source): `temporaryHitPoints` (a ValueExpression), `hostileOnly` (Dark One's Blessing).
 - **`event: "healing.applied"`, `kind: "healer"`** (the source, 2026-10-31): `hitPoints` (a ValueExpression with
   `castLevel` in its context). A spell cast from a slot that restores Hit Points to a creature other than its caster
@@ -1034,8 +1041,9 @@ the authority's separate refusals:
 | A transformed creature (Wild Shape, Polymorph) | `{tagsAny: ["spell"]}` | `actor.transformation` |
 | Armor it isn't trained with (2024) | `{tagsAny: ["spell"]}` | the armor (not a Shield) |
 | A Quickened spell this turn (2024) | `{tagsAny: ["spell:leveled"]}` | `flags.wildpath.quickenedTurn`, this combat turn |
+| Mythic actions before the mythic phase | `{tagsAny: ["mythic"]}` | no `flags.wildpath.mythicPhase` (a `Phase` rule sets it) |
 
-- The last five are state, not stored data: `grantOwners` (actor.mjs) adds their rules while the state holds, as it
+- The last six are state, not stored data: `grantOwners` (actor.mjs) adds their rules while the state holds, as it
   does for untrained armor's Disadvantage; a status's are in `STATUS_FORBIDS`. Existing worlds need no migration.
 - `actionTags` adds `spell:leveled` to a spell of level 1 or higher (`metadata.spellLevel`).
 - `actor.forbiddingRule(definition)` returns the first match, named after its owner (the effect or armor). The

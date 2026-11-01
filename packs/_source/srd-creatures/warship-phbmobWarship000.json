@@ -1,0 +1,76 @@
+{
+  "_id": "phbmobWarship000",
+  "_key": "!actors!phbmobWarship000",
+  "name": "Warship",
+  "type": "vehicle",
+  "img": "icons/environment/settlement/ship.webp",
+  "system": {
+    "defenses": {
+      "ac": {
+        "value": 15
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 500,
+        "value": 500,
+        "damageThreshold": 20
+      },
+      "movement": {
+        "base": 0,
+        "value": 0
+      }
+    },
+    "travelSpeed": 2,
+    "capacity": {
+      "crew": 60,
+      "passengers": 60,
+      "cargo": 200
+    },
+    "immunities": {
+      "damage": [
+        "poison",
+        "psychic"
+      ],
+      "conditions": [
+        "blinded",
+        "charmed",
+        "deafened",
+        "frightened",
+        "paralyzed",
+        "petrified",
+        "poisoned",
+        "stunned",
+        "unconscious"
+      ]
+    },
+    "aboard": []
+  },
+  "prototypeToken": {
+    "name": "Warship",
+    "width": 2,
+    "height": 2,
+    "disposition": 0,
+    "actorLink": false,
+    "texture": {
+      "src": "icons/environment/settlement/ship.webp"
+    }
+  },
+  "items": [],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbmobWarship000",
+        "type": "vehicle",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

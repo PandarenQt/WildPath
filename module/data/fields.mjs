@@ -10,7 +10,7 @@ const {SchemaField, NumberField, StringField, ArrayField, SetField, BooleanField
  * @param {string} [options.recovery="none"]  Default recovery cadence for this pool.
  * @returns {SchemaField}
  */
-export function resourceField({initial=0, recovery="none", counted=false, temporary=false, fortitude=false}={}) {
+export function resourceField({initial=0, recovery="none", counted=false, temporary=false, fortitude=false, threshold=false}={}) {
   return new SchemaField({
     base: new NumberField({required: true, integer: true, initial}),
     bonus: new NumberField({required: true, integer: true, initial: 0}),
@@ -26,6 +26,8 @@ export function resourceField({initial=0, recovery="none", counted=false, tempor
     // the current one instead (2024: a later increase, or an Amulet of Health, counts for every level); null when the
     // base was not built by level-up.
     ...(fortitude ? {perLevelFortitude: new NumberField({required: false, nullable: true, integer: true, initial: null})} : {}),
+    // A vehicle's or object's Damage Threshold (DMG 2024): its damage adjustment profile ignores less damage from one source.
+    ...(threshold ? {damageThreshold: new NumberField({required: true, integer: true, initial: 0, min: 0})} : {}),
     recovery: new StringField({required: true, initial: recovery,
       choices: ["turn", "shortRest", "longRest", "none"]})
   });

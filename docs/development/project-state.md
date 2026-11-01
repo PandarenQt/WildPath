@@ -12,6 +12,11 @@
 - Since 2026-10-13 the work has been content automation and engine growth (rule elements, action configuration,
   lasting areas, senses and cover, reactions, spellcasting, level-up, Bastions), recorded in the commit log and the
   architecture documents under `docs/architecture/`. Open questions for the maintainer: `questions-for-owner.md`.
+- Shared Bastions (plan 5.2, owner's Q6 and Q12; `docs/architecture/shared-bastions.md`), 2026-11-01: built and unit
+  tested, not yet live-checked in two browsers. New optional fields, defaulted, no migration: on the character
+  `system.bastion.shared` (`id` "", `squares` null, `cover` false), and on the facility Item `system.current.shutDown`
+  (false; the zero-defender shutdown, owner's Q8). Open: whether V14 gives a player the data of member Actors they can't
+  open (the live check settles it).
 - Live checks use two Playwright browsers (GM and Player1) against a local headless Foundry; see
   `foundry-testing-strategy.md`.
 

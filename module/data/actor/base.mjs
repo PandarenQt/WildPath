@@ -299,8 +299,9 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
    * `originalClass` and `spellcasting` ({casterLevel, ability, slots}) come from the same records.
    */
   #deriveClasses() {
-    const derived = deriveClassData(this.classes);
-    if ( this.classes.length && this.details && ("level" in this.details) ) this.details.level = derived.level;
+    const classes = this.classes ?? [];
+    const derived = deriveClassData(classes);
+    if ( classes.length && this.details && ("level" in this.details) ) this.details.level = derived.level;
     this.originalClass = derived.original;
     this.spellcasting = derived.spellcasting;
     this.hitDice = derived.hitDice;

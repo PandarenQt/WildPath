@@ -1,6 +1,6 @@
 import {xpForLevel} from "../helpers/encounters.mjs";
-import {ENLARGE_COST, specialSlots} from "../helpers/bastions.mjs";
-import {enlargeFacility} from "./bastions.mjs";
+import {ENLARGE_COST, bastionGroups, pooledSquares, sharedGrid, specialSlots} from "../helpers/bastions.mjs";
+import {enlargeFacility, shareBastion} from "./bastions.mjs";
 import {WildPathBastionMap} from "./bastion-map.mjs";
 import {createActorSheetViewModel} from "../helpers/character-sheet-view-models.mjs";
 import {actorProficiencyBonus, resolveActorCheckStatistic, resolveActorDefense} from "../helpers/combat-statistics.mjs";
@@ -77,7 +77,10 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       rollTest: WildPathActorSheet.#onRollTest,
       deleteEffect: WildPathActorSheet.#onDeleteEffect,
       enlargeFacility: WildPathActorSheet.#onEnlargeFacility,
-      bastionMap: WildPathActorSheet.#onBastionMap
+      bastionMap: WildPathActorSheet.#onBastionMap,
+      foundBastion: WildPathActorSheet.#onFoundBastion,
+      joinBastion: WildPathActorSheet.#onJoinBastion,
+      leaveBastion: WildPathActorSheet.#onLeaveBastion
     }
   };
 
@@ -117,6 +120,19 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       context.bastionInfo = (level >= 5) || facilities.length ? {slots: specialSlots(level),
         used: facilities.filter(item => item.system.kind === "special").length, defenders: Number(this.actor.system.bastion?.defenders) || 0,
         housed: facilities.reduce((total, item) => total + (Number(item.system.defenders) || 0), 0)} : null;
+      // A shared Bastion (docs/architecture/shared-bastions.md): its members and their ground; a character sharing none
+      // may join any group with a member this user can see, named by those it can see.
+      const shared = this.actor.system.bastion?.shared;
+      if ( context.bastionInfo ) {
+        const groups = bastionGroups(game.actors.filter(actor => actor.type === "character"));
+        const members = shared?.id ? (groups.get(shared.id) ?? [this.actor]) : null;
+        const join = [...groups].filter(([, group]) => group[0].system.bastion?.shared?.id && group.some(actor => actor.visible))
+          .map(([id, group]) => [id, group.filter(actor => actor.visible).map(actor => actor.name).join(", ")]);
+        context.bastionInfo.shared = members ? {...sharedGrid(members), squares: shared.squares ?? "", cover: shared.cover,
+          members: members.map(actor => ({id: actor.id, name: actor.name, removable: game.user.isGM && (actor !== this.actor),
+            squares: pooledSquares(actor.system.details?.level, actor.system.bastion.shared.squares)}))} : null;
+        context.bastionInfo.join = join.length ? Object.fromEntries(join) : null;
+      }
     }
     context.otherItems = (context.otherItems ?? []).filter(item => item.type !== "facility");
     // A character's coins.
@@ -210,6 +226,25 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     context.dyingModes = {auto: "WILDPATH.SHEET.DyingMode.auto", deathSaves: "WILDPATH.SHEET.DyingMode.deathSaves",
       dies: "WILDPATH.SHEET.DyingMode.dies"};
     return context;
+  }
+
+  /** The `updateActor` hook redrawing the shared Bastion's members and the groups to join. */
+  #bastionHook = null;
+
+  async _onFirstRender(context, options) {
+    await super._onFirstRender(context, options);
+    // Another character joining, leaving or changing its share redraws this sheet; its own updates already do.
+    if ( this.actor.type === "character" ) this.#bastionHook = Hooks.on("updateActor", (actor, changes) => {
+      if ( (actor === this.actor) || (actor.type !== "character") || !foundry.utils.hasProperty(changes, "system.bastion.shared") ) return;
+      const id = this.actor.system.bastion?.shared?.id;
+      if ( (id && (actor.system.bastion?.shared?.id === id)) || foundry.utils.hasProperty(changes, "system.bastion.shared.id") ) void this.render();
+    });
+  }
+
+  _onClose(options) {
+    super._onClose(options);
+    if ( this.#bastionHook !== null ) Hooks.off("updateActor", this.#bastionHook);
+    this.#bastionHook = null;
   }
 
   /**
@@ -403,7 +438,25 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
   }
 
   static #onBastionMap() {
-    void new WildPathBastionMap(this.actor).render(true);
+    // A shared Bastion's map is one window: opened from a second member's sheet, it comes to the front.
+    void (foundry.applications.instances.get(WildPathBastionMap.idOf(this.actor)) ?? new WildPathBastionMap(this.actor)).render(true);
+  }
+
+  /** @this {WildPathActorSheet} A new shared Bastion, this character its first member. */
+  static async #onFoundBastion() {
+    await shareBastion(this.actor, foundry.utils.randomID());
+  }
+
+  /** @this {WildPathActorSheet} Joining the shared Bastion picked beside the button. */
+  static async #onJoinBastion(event, target) {
+    const id = target.closest(".bastion")?.querySelector("select[data-bastion-join]")?.value;
+    if ( id ) await shareBastion(this.actor, id);
+  }
+
+  /** @this {WildPathActorSheet} Leaving the shared Bastion; the GM may remove another member (`data-actor-id`). */
+  static async #onLeaveBastion(event, target) {
+    const actor = target.dataset.actorId ? game.actors.get(target.dataset.actorId) : this.actor;
+    if ( actor ) await shareBastion(actor, "");
   }
 
   static async #onOpenItem(event, target) {

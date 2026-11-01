@@ -200,6 +200,9 @@ export default class WildPathActor extends Actor {
     // What it carries (variant encumbrance: Speed -10 or -20); its other carrying rules are read with its own (grantOwners).
     for ( const entry of domains ) modifiers.push(...collectRuleElementModifiers(carryingRules(this.system?.carrying), {actor: this,
       domain: entry, source: null, context: seen}));
+    // What its own data gives it (a vehicle's deck: `occupancy.share`).
+    for ( const entry of domains ) modifiers.push(...collectRuleElementModifiers(this.system?.ownRules ?? [], {actor: this,
+      domain: entry, source: null, context: seen}));
 
     // Auras around the creature (game.wildpath.auras), when a roll or defense is read; data preparation leaves them out.
     if ( auras ) for ( const owner of this.auraOwners() ) {
@@ -243,8 +246,11 @@ export default class WildPathActor extends Actor {
     // shadow dragon's Living Shadow, outside Bright Light): the Token its caller names, else its own (an unlinked one's),
     // else one on the viewed Scene.
     token ??= this.token ?? this.getActiveTokens?.()[0]?.document ?? null;
-    return damageProfileFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])],
+    const profile = damageProfileFromRuleElements(grantOwners(this), {actor: this, actorSystem: this.system, conditions: [...(this.statuses ?? [])],
       ...(token ? sunlightContext(token) : {})});
+    // A vehicle's Damage Threshold, kept with its Hit Points.
+    const damageThreshold = Number(this.system?.resources?.health?.damageThreshold) || 0;
+    return damageThreshold ? {...(profile ?? {}), damageThreshold} : profile;
   }
 
   /**
@@ -1153,7 +1159,11 @@ function grantOwners(actor) {
     ...Object.entries(STATUS_FORBIDS).flatMap(([status, rule]) => (actor.statuses?.has?.(status) ? [state(status, [rule])] : [])),
     ...(transformation ? [state("transformed", [TRANSFORMED])] : []),
     ...(requiresContext(actor).quickenedThisTurn ? [state("quickened", [QUICKENED])] : []),
+    // Until its mythic phase begins (a Phase rule's flag), its Actions tagged `mythic` wait.
+    ...(actor.flags?.wildpath?.mythicPhase ? [] : [state("mythic", [MYTHIC])]),
     ...(load.length ? [{ruleElements: load, source: {type: "rule", uuid: null, id: "carrying", name: "Carrying"}}] : []),
+    // What its own data gives it (a vehicle's immunities).
+    ...(actor.system?.ownRules?.length ? [{ruleElements: actor.system.ownRules, source: {type: "rule", uuid: null, id: "own", name: actor.name}}] : []),
     {ruleElements: UNSEEN, source: {type: "rule", uuid: null, id: "unseen", name: "Unseen"}}];
 }
 
@@ -1200,6 +1210,9 @@ const TRANSFORMED = Object.freeze({schemaVersion: 1, id: "transformed", type: "F
  */
 const QUICKENED = Object.freeze({schemaVersion: 1, id: "quickened", type: "Forbid",
   data: {actions: {tagsAny: ["spell:leveled"]}, reason: "WILDPATH.REFUSAL.Quickened"}});
+/** A mythic creature's mythic actions: only once its mythic phase began (`flags.wildpath.mythicPhase`, a `Phase` rule's). */
+const MYTHIC = Object.freeze({schemaVersion: 1, id: "mythic", type: "Forbid",
+  data: {actions: {tagsAny: ["mythic"]}, reason: "WILDPATH.REFUSAL.Mythic"}});
 
 /**
  * The armor and Shields a creature wears without the training for them (G8). A creature with no armor training at

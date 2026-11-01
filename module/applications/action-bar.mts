@@ -7,7 +7,7 @@ import {REACTION_POLICIES, reactionPolicyOf} from "../helpers/automation-events.
 type Data = Record<string, unknown>;
 interface BarActor {
   uuid: string; name?: string; img?: string; isOwner?: boolean; system?: Data;
-  items: {get(id: string): {use(options?: {configuration?: unknown}): Promise<unknown>;
+  items: {get(id: string): {use(options?: {configuration?: unknown; controllerRef?: string}): Promise<unknown>;
     setFlag(scope: string, key: string, value: unknown): Promise<unknown>} | undefined}
     & Iterable<{id?: string | null; flags?: Data}>;
   effects: Iterable<{system?: {type?: string; level?: number}; disabled?: boolean}>;
@@ -19,7 +19,7 @@ interface OddsLine {key: string; mode: string | null; ability: string | null; da
 interface Globals {
   foundry: {applications: {api: {ApplicationV2: AppClass; HandlebarsApplicationMixin(base: AppClass): AppClass}};
     utils: {escapeHTML(text: string): string}};
-  canvas?: {tokens?: {controlled?: BarToken[]}};
+  canvas?: {tokens?: {controlled?: BarToken[]; placeables?: BarToken[]}};
   game: {user?: {character?: BarActor | null; isGM?: boolean; targets?: Iterable<BarToken>}; settings?: {get(scope: string, key: string): unknown};
     i18n: {localize(key: string): string; format(key: string, data: Record<string, unknown>): string};
     tooltip?: {activate(element: HTMLElement): void}};
@@ -63,6 +63,13 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
       odds: this.#odds(actor, common), common});
     // Each target's odds, one line each, in the button's tooltip.
     const {i18n} = globals.game;
+    // The Actions of each vehicle it is aboard, in a group of their own: it uses them as crew, at its own cost.
+    this.#vehicles = this.#aboard(actor);
+    for ( const vehicle of this.#vehicles ) {
+      const crew = actionBarContext({actor: vehicle, controller: actor, localize: (key: string) => globals.game.i18n.localize(key)});
+      const actions = crew.groups.filter(group => group.id !== "common").flatMap(group => group.actions);
+      if ( actions.length ) context.groups.push({id: `vehicle-${vehicle.uuid}`, label: vehicle.name ?? "", actorUuid: vehicle.uuid, actions} as never);
+    }
     for ( const action of context.groups.flatMap(group => group.actions) ) {
       if ( !action.odds ) continue;
       Object.assign(action.odds, {tooltip: (action.odds.lines as OddsLine[]).map(line => i18n.format(line.key, {...line.data,
@@ -70,6 +77,19 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
         ability: line.ability ? i18n.localize(line.ability) : ""})).join("<br>")});
     }
     return {shown: true, ...context};
+  }
+
+  /** The vehicles the shown creature is aboard on the viewed Scene, and their uuids (their Actions' buttons name them). */
+  #vehicles: BarActor[] = [];
+
+  #aboard(actor: BarActor): BarActor[] {
+    const found = new Map<string, BarActor>();
+    for ( const token of globals.canvas?.tokens?.placeables ?? [] ) {
+      const vehicle = token.actor;
+      const aboard = (vehicle?.system?.aboard ?? []) as {actorUuid?: string}[];
+      if ( vehicle?.isOwner && aboard.some(entry => entry.actorUuid === actor.uuid) ) found.set(vehicle.uuid, vehicle);
+    }
+    return [...found.values()];
   }
 
   /** The common actions as this creature's Actions (Dash, Shove...). */
@@ -101,7 +121,11 @@ export class WildPathActionBar extends HandlebarsApplicationMixin(ApplicationV2)
     if ( target.getAttribute("aria-disabled") === "true" ) return globals.game.tooltip?.activate(target);
     // A common action is no Item: Item#use runs on the Action this creature has for it.
     const common = id.startsWith("common-") ? this.#common(actor).find(action => action.id === id) : null;
-    if ( common ) await globals.CONFIG.Item.documentClass.prototype.use.call(common);
+    // A vehicle's Action: the vehicle acts, this creature pays as its crew.
+    const vehicleUuid = target.closest<HTMLElement>("[data-actor-uuid]")?.dataset.actorUuid;
+    const vehicle = vehicleUuid ? this.#vehicles.find(entry => entry.uuid === vehicleUuid) : null;
+    if ( vehicle ) await vehicle.items.get(id)?.use({controllerRef: actor.uuid});
+    else if ( common ) await globals.CONFIG.Item.documentClass.prototype.use.call(common);
     else await actor.items.get(id)?.use();
   }
 

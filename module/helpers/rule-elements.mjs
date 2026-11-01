@@ -28,7 +28,8 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   FORBID: "Forbid",
   UNAFFECTED: "Unaffected",
   AURA: "Aura",
-  TRIGGER: "Trigger"
+  TRIGGER: "Trigger",
+  PHASE: "Phase"
 });
 
 export const RULE_ELEMENT_CODES = Object.freeze({
@@ -84,7 +85,8 @@ const TYPE_ALIASES = Object.freeze({
   forbid: RULE_ELEMENT_TYPES.FORBID,
   unaffected: RULE_ELEMENT_TYPES.UNAFFECTED,
   aura: RULE_ELEMENT_TYPES.AURA,
-  trigger: RULE_ELEMENT_TYPES.TRIGGER
+  trigger: RULE_ELEMENT_TYPES.TRIGGER,
+  phase: RULE_ELEMENT_TYPES.PHASE
 });
 
 /* -------------------------------------------- */
@@ -142,7 +144,8 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.GRANT_SENSE, grantSenseRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_LIGHT, grantLightRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_LANGUAGE, grantLanguageRuleElement],
-    [RULE_ELEMENT_TYPES.TRIGGER, triggerRuleElement]
+    [RULE_ELEMENT_TYPES.TRIGGER, triggerRuleElement],
+    [RULE_ELEMENT_TYPES.PHASE, phaseRuleElement]
   ]);
 }
 
@@ -1000,6 +1003,22 @@ function rollOutcomeRuleElement(ruleElement) {
       source: ruleElementSource(ruleElement),
       metadata: contributionMetadata(ruleElement, data.metadata)}]
   });
+}
+
+/**
+ * A phase its creature enters instead of dropping at 0 Hit Points (a mythic creature's, vehicles-and-mythic.md):
+ * `{on: "zero-hp", restore: <expression>, once: true, flag: "mythicPhase"}`. It contributes nothing here: the zero-HP
+ * hook reads it (zeroHpFor), keeps the creature up at `restore` Hit Points and sets `flags.wildpath.mythicPhase`.
+ */
+function phaseRuleElement(ruleElement) {
+  const data = ruleElement.data;
+  if ( data.on !== "zero-hp" ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A Phase RuleElement begins on zero-hp.");
+  if ( data.restore == null ) return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A Phase RuleElement requires the Hit Points it restores.");
+  // The only flag anything reads (the `mythic` Forbid, actor.mjs): another would begin a phase that unlocks nothing.
+  if ( (data.flag != null) && (data.flag !== "mythicPhase") ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A Phase RuleElement's flag is mythicPhase.");
+  }
+  return success(emptyContributions());
 }
 
 function triggerRuleElement(ruleElement) {

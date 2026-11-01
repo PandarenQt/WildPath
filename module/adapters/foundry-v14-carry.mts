@@ -13,13 +13,19 @@ import {forcedStepBlocker, type PushScene, type PushToken} from "./foundry-v14-f
  * shortcut: the carried creature stops at a wall, the Scene's edge or another creature's space (forced movement's rules,
  * stricter than 5e's moving through an ally) and keeps its own elevation; upgrade with a route evaluation of its own.
  * shortcut: without an active GM, nothing is carried (as pushes and teleports).
+ *
+ * Riding along (vehicles-and-mythic.md, owner's Q6): when a vehicle (an Actor with an `aboard` list) finishes a voluntary
+ * move, every other Token standing wholly on the spaces it set out from moves with it by the same offset, at once, as a
+ * forced move: no Speed spent, no Opportunity Attack. Its deck shares spaces (`occupancy.share`), so nothing blocks it.
+ * shortcut: the riders jump to the end (no walls or edges checked on the way) and keep their elevation; upgrade with the
+ * carried creatures' step-by-step route when a vehicle's walls matter.
  */
 
 type Data = Record<string, unknown>;
 interface Point {x: number; y: number}
-interface CarryToken extends PushToken {actor?: {uuid?: string; effects?: unknown} | null}
+interface CarryToken extends PushToken {actor?: {uuid?: string; effects?: unknown; system?: {aboard?: unknown}} | null}
 interface CarryEvent {type?: string; data?: {movementKind?: string; tokenRef?: string; completedAnchors?: Data[];
-  origin?: {footprint?: Data}; actualDestination?: {footprint?: {fields?: Data[]}}}}
+  origin?: {footprint?: {fields?: Data[]}}; actualDestination?: {footprint?: {fields?: Data[]}}}}
 interface GridAdapter {
   fieldToCenterPoint(field: Data): {ok: boolean; point?: Point};
   fieldToOffset(field: Data): {ok: boolean; offset?: {i: number; j: number}};
@@ -50,6 +56,7 @@ export function createFoundryCarry({game}: {game: {user?: {id?: string}; users?:
     const carrier = scene?.tokens.get(String(ref.id)) as CarryToken | undefined;
     const anchors = data.completedAnchors ?? [];
     if ( !scene || !carrier?.actor || (anchors.length < 2) ) return [];
+    if ( Array.isArray(carrier.actor.system?.aboard) ) return rideAlong(scene, carrier, data);
     const carried = [...scene.tokens as Iterable<CarryToken>].filter(token => (token !== carrier) && effectsFrom(token.actor, carrier.actor, game)
       .some((effect: {statuses?: Set<string>}) => effect.statuses?.has("carried")));
     if ( !carried.length ) return [];
@@ -85,6 +92,29 @@ export function createFoundryCarry({game}: {game: {user?: {id?: string}; users?:
       const last = waypoints.at(-1);
       if ( !last ) continue;
       await token.update({...last}, {movement: {[token.id]: {waypoints, showRuler: false}}, wildpath: {movementKind: "forced"}});
+      moved.push(token);
+    }
+    return moved;
+  }
+
+  /** A vehicle's riders: each Token standing wholly on its starting spaces, moved by the vehicle's own offset. */
+  async function rideAlong(scene: PushScene, vehicle: CarryToken, data: NonNullable<CarryEvent["data"]>) {
+    const adapter = createFoundryV14TacticalGridAdapter({scene}) as GridAdapter;
+    const anchors = data.completedAnchors ?? [];
+    const [start, end] = [anchors[0], anchors.at(-1)].map(anchor => adapter.fieldToCenterPoint(anchor!).point);
+    const deck = new Set((data.origin?.footprint?.fields ?? []).map(field => `${field.x}.${field.y}`));
+    if ( !start || !end || !deck.size ) return [];
+    const riders = [...scene.tokens as Iterable<CarryToken>].filter(token => {
+      if ( token === vehicle ) return false;
+      const fields = ((adapter.tokenToFootprint(token).footprint?.fields ?? []) as Data[]);
+      return fields.length > 0 && fields.every(field => deck.has(`${field.x}.${field.y}`));
+    });
+    // The one furthest along the way first, so none lands where another still stands.
+    const ahead = (token: CarryToken) => (token.x * (end.x - start.x)) + (token.y * (end.y - start.y));
+    const moved = [];
+    for ( const token of riders.sort((a, b) => ahead(b) - ahead(a)) ) {
+      const to = {x: token.x + end.x - start.x, y: token.y + end.y - start.y};
+      await token.update(to, {movement: {[token.id]: {waypoints: [{...to, action: "blink"}], showRuler: false}}, wildpath: {movementKind: "forced"}});
       moved.push(token);
     }
     return moved;

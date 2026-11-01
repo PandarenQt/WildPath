@@ -186,9 +186,10 @@ export default class WildPathItem extends Item {
    */
   /**
    * Use this Action. Its choices (a spell slot, a damage type) are asked first, with a preview, unless
-   * `configuration` (`{choices}`) is given; the authority checks them like everything else.
+   * `configuration` (`{choices}`) is given; the authority checks them like everything else. `controllerRef` names the
+   * creature paying its controller costs (a vehicle's crew member, from its own action bar).
    */
-  async use({configuration=null}={}) {
+  async use({configuration=null, controllerRef=null}={}) {
     if ( (this.type !== "action") || !this.actor ) return false;
     const runtime = globalThis.game?.wildpath;
     if ( typeof runtime?.executeActionIntent !== "function" ) {
@@ -223,6 +224,7 @@ export default class WildPathItem extends Item {
       const option = (choice?.options ?? []).find(entry => (entry.id === result?.documentUuid) || (entry.label === result?.name));
       if ( option ) configuration = {choices: {[draw.choiceId]: option.id}};
     }
+    if ( controllerRef ) built.intent.controllerRef = controllerRef;
     if ( configuration ) built.intent.configuration = configuration;
     else if ( definition.ok && definition.definition?.configuration?.length ) {
       const choices = await promptActionConfiguration({definition: definition.definition, actorSystem: foundryActorSystemSnapshot(this.actor),

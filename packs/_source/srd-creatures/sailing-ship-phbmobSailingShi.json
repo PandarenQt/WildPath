@@ -1,0 +1,76 @@
+{
+  "_id": "phbmobSailingShi",
+  "_key": "!actors!phbmobSailingShi",
+  "name": "Sailing Ship",
+  "type": "vehicle",
+  "img": "icons/environment/settlement/ship.webp",
+  "system": {
+    "defenses": {
+      "ac": {
+        "value": 15
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 300,
+        "value": 300,
+        "damageThreshold": 15
+      },
+      "movement": {
+        "base": 0,
+        "value": 0
+      }
+    },
+    "travelSpeed": 2,
+    "capacity": {
+      "crew": 20,
+      "passengers": 20,
+      "cargo": 100
+    },
+    "immunities": {
+      "damage": [
+        "poison",
+        "psychic"
+      ],
+      "conditions": [
+        "blinded",
+        "charmed",
+        "deafened",
+        "frightened",
+        "paralyzed",
+        "petrified",
+        "poisoned",
+        "stunned",
+        "unconscious"
+      ]
+    },
+    "aboard": []
+  },
+  "prototypeToken": {
+    "name": "Sailing Ship",
+    "width": 2,
+    "height": 2,
+    "disposition": 0,
+    "actorLink": false,
+    "texture": {
+      "src": "icons/environment/settlement/ship.webp"
+    }
+  },
+  "items": [],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbmobSailingShi",
+        "type": "vehicle",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

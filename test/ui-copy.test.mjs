@@ -111,10 +111,11 @@ test("every WILDPATH key in lang/en.json is shown somewhere", () => {
 });
 
 test("a select showing lang keys localizes them", () => {
-  // These lists are labels already (Challenge Ratings, die sizes, localized domain names and recharge rows).
-  const ready = new Set(["challengeOptions", "progression.hitDice", "row.appliesToChoices", "../ctx.recharge"]);
+  // These lists are labels already (Challenge Ratings, die sizes, localized domain names, recharge rows and the shared
+  // Bastions to join, named by their members).
+  const ready = new Set(["challengeOptions", "progression.hitDice", "row.appliesToChoices", "../ctx.recharge", "bastionInfo.join"]);
   const bare = sourceFiles("templates/").flatMap(file => [...readFileSync(new URL(file, root), "utf8")
-    .matchAll(/\{\{selectOptions\s+(\S+)([^}]*)\}\}/gu)]
+    .matchAll(/\{\{selectOptions\s+([^\s}]+)([^}]*)\}\}/gu)]
     .filter(([, list, rest]) => !/localize=true/u.test(rest) && !ready.has(list)).map(([call]) => `${file}: ${call}`));
   assert.deepEqual(bare, []);
 });

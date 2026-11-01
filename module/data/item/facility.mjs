@@ -1,6 +1,6 @@
 import WildPathBaseItem from "./base.mjs";
 
-const {NumberField, SchemaField, StringField} = foundry.data.fields;
+const {BooleanField, NumberField, SchemaField, StringField} = foundry.data.fields;
 const amount = () => new NumberField({required: true, initial: 0, min: 0});
 
 /** The orders a special facility may be issued (2024 DMG), "maintain" being none. */
@@ -24,9 +24,11 @@ export default class WildPathFacility extends WildPathBaseItem {
       // The Bastion Defenders it houses (a Barrack's 12), and its trade: its profit (%), the stock it may hold and holds.
       defenders: amount(),
       trade: new SchemaField({profit: amount(), stockMax: amount(), stock: amount()}),
-      // This turn's order; for Craft, the Item it makes (a uuid) and the days spent on it so far.
+      // This turn's order; for Craft, the Item it makes (a uuid) and the days spent on it so far. `shutDown`: an Attack on
+      // a Bastion with no defenders left damaged it, so it sits out the next Bastion turn (applications/bastions.mjs).
       current: new SchemaField({order: new StringField({required: true, initial: "maintain", choices: FACILITY_ORDERS}),
-        craft: new StringField({required: true, blank: true, initial: ""}), progress: amount()})
+        craft: new StringField({required: true, blank: true, initial: ""}), progress: amount(),
+        shutDown: new BooleanField({required: false, initial: false})})
     };
   }
 

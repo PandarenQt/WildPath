@@ -1,0 +1,76 @@
+{
+  "_id": "phbmobKeelboat00",
+  "_key": "!actors!phbmobKeelboat00",
+  "name": "Keelboat",
+  "type": "vehicle",
+  "img": "icons/environment/settlement/ship.webp",
+  "system": {
+    "defenses": {
+      "ac": {
+        "value": 15
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 100,
+        "value": 100,
+        "damageThreshold": 10
+      },
+      "movement": {
+        "base": 0,
+        "value": 0
+      }
+    },
+    "travelSpeed": 1,
+    "capacity": {
+      "crew": 1,
+      "passengers": 0,
+      "cargo": 1
+    },
+    "immunities": {
+      "damage": [
+        "poison",
+        "psychic"
+      ],
+      "conditions": [
+        "blinded",
+        "charmed",
+        "deafened",
+        "frightened",
+        "paralyzed",
+        "petrified",
+        "poisoned",
+        "stunned",
+        "unconscious"
+      ]
+    },
+    "aboard": []
+  },
+  "prototypeToken": {
+    "name": "Keelboat",
+    "width": 2,
+    "height": 2,
+    "disposition": 0,
+    "actorLink": false,
+    "texture": {
+      "src": "icons/environment/settlement/ship.webp"
+    }
+  },
+  "items": [],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbmobKeelboat00",
+        "type": "vehicle",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "_id": "phbmobGalley0000",
+  "_key": "!actors!phbmobGalley0000",
+  "name": "Galley",
+  "type": "vehicle",
+  "img": "icons/environment/settlement/ship.webp",
+  "system": {
+    "defenses": {
+      "ac": {
+        "value": 15
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 500,
+        "value": 500,
+        "damageThreshold": 20
+      },
+      "movement": {
+        "base": 0,
+        "value": 0
+      }
+    },
+    "travelSpeed": 4,
+    "capacity": {
+      "crew": 80,
+      "passengers": 0,
+      "cargo": 150
+    },
+    "immunities": {
+      "damage": [
+        "poison",
+        "psychic"
+      ],
+      "conditions": [
+        "blinded",
+        "charmed",
+        "deafened",
+        "frightened",
+        "paralyzed",
+        "petrified",
+        "poisoned",
+        "stunned",
+        "unconscious"
+      ]
+    },
+    "aboard": []
+  },
+  "prototypeToken": {
+    "name": "Galley",
+    "width": 2,
+    "height": 2,
+    "disposition": 0,
+    "actorLink": false,
+    "texture": {
+      "src": "icons/environment/settlement/ship.webp"
+    }
+  },
+  "items": [],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "phbmobGalley0000",
+        "type": "vehicle",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

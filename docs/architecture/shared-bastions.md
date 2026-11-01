@@ -1,6 +1,6 @@
 # Shared Bastions (plan 5.2)
 
-Status: design, awaiting the owner's answers (questions-for-owner.md, Q12); stage 0 is built (`81b189a5`). Files, lines and fields were checked against `7af0f9ef`. The rules reading was checked against the local DMG pack, which is not committed; this document states them in its own words and quotes nothing from the book.
+Status: **built** (2026-11-01), all stages and questions 8 and 9; the owner took all ten recommendations (questions-for-owner.md, Q12, 2026-10-31). Two optional fields go beyond the data model below: `system.current.shutDown` on a facility Item (question 8) and `system.bastion.shared.cover` on the character (question 9), both defaulted, no migration. Still to do: the live check in two browsers (Tests, below). Files, lines and fields were checked against `7af0f9ef`. The rules reading was checked against the local DMG pack, which is not committed; this document states them in its own words and quotes nothing from the book.
 
 ## How the rules frame it
 
@@ -43,7 +43,8 @@ The only addition is one field on the **character Actor**, inside the existing `
 ```js
 shared: new SchemaField({
   id: new StringField({required: true, blank: true, initial: ""}),      // "" = solo; else the group's randomID()
-  squares: new NumberField({required: true, integer: true, min: 0, nullable: true, initial: null}) // null = all its ground
+  squares: new NumberField({required: true, integer: true, min: 0, nullable: true, initial: null}), // null = all its ground
+  cover: new BooleanField({required: true, initial: false}) // takes other members' defender losses (question 9)
 })
 ```
 
@@ -162,11 +163,11 @@ Commands: `npm test` and `npm run typecheck`. The project has no lint script, an
 ## Staged build order (about 300 lines including tests)
 
 0. **Turn fixes (existing bugs, independent):** the active-GM gate and the order-reset guard, with their tests. Done `81b189a5`.
-1. **Data and helpers:** the `shared` field, `pooledSquares`, `sharedGrid`, `bastionGroups`, and `mapProblems({most})`, with their tests. About 70 lines.
-2. **Map:** stop dropping out-of-grid cells; add shared mode (namespaced keys, read-only other members, the `updateActor` hook, union save, Make a Scene). About 110 lines.
-3. **Sheet:** Found, Join and Leave, the pooled input, the members line, chat lines, lang keys. About 60 lines.
-4. **Turn chat grouping, docs and project-state, then the live check in two browsers.** About 40 lines.
-5. **Deferred (owner questions 8 and 9):** the zero-defender shutdown rule, then covering an ally's losses with a pure, deterministic split helper (most defenders first, stable tie-break).
+1. **Data and helpers:** the `shared` field, `pooledSquares`, `sharedGrid`, `bastionGroups`, and `mapProblems({most})`, with their tests. Done.
+2. **Map:** stop dropping out-of-grid cells; add shared mode (namespaced keys, read-only other members, the `updateActor` hook, union save, Make a Scene). Done; a member who joins while the map is open is read-only there until it is reopened, so a save never overwrites squares the window did not load.
+3. **Sheet:** Found, Join and Leave, the pooled input, the members line, chat lines, lang keys. Done: `shareBastion` in `applications/bastions.mjs` writes the id and posts the chat line; the GM's ✕ beside a member removes it.
+4. **Turn chat grouping, docs and project-state, then the live check in two browsers.** Done but for the live check: solo lines come first, then each shared Bastion's under one heading.
+5. **Owner questions 8 and 9:** the zero-defender shutdown rule (done: an Attack that leaves no defenders shuts a random special facility down; it carries out no order, counts as maintaining, and is repaired after the next turn), then covering an ally's losses (done: each member opts in with `shared.cover` on its sheet; `coverLosses` takes an Attack's losses one at a time from the coverer with the most defenders left, the earlier member on a tie, and the attacked member loses what they can't cover; they cover only what it could lose, so one with no defenders still shuts down).
 
 ## Owner questions
 

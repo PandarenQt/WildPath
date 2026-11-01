@@ -1,0 +1,81 @@
+<div class="wildpath actor-sheet vehicle-sheet">
+
+  <header class="sheet-header actor-header">
+    <img class="profile-img" src="{{actor.img}}" data-edit="img" data-action="editImage" alt="{{actor.name}}">
+    <div class="actor-title">
+      <input class="actor-name" type="text" name="name" value="{{actor.name}}">
+      <div class="actor-summary">
+        <span class="actor-pill">{{localize "TYPES.Actor.vehicle"}}</span>
+        <span>{{localize "WILDPATH.SHEET.Health" value=system.resources.health.value max=system.resources.health.max}}</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="sheet-body">
+    <section class="sheet-section">
+      <div class="section-heading"><h3>{{localize "WILDPATH.VEHICLE.Statistics"}}</h3></div>
+      <div class="resource-grid">
+        <label class="resource"><span class="label">{{localize "WILDPATH.SHEET.ArmorClass"}}</span>
+          <span class="resource-values"><input type="number" name="system.defenses.ac.value" value="{{system.defenses.ac.value}}" min="0"></span></label>
+        <label class="resource"><span class="label">{{localize "WILDPATH.VEHICLE.HitPoints"}}</span>
+          <span class="resource-values">
+            <input type="number" name="system.resources.health.value" value="{{system.resources.health.value}}" min="0">
+            <span class="sep">/</span>
+            <input class="base" type="number" name="system.resources.health.base" value="{{system.resources.health.base}}"
+                   title="{{localize "WILDPATH.SHEET.Base"}}">
+          </span></label>
+        <label class="resource"><span class="label">{{localize "WILDPATH.VEHICLE.DamageThreshold"}}</span>
+          <span class="resource-values"><input type="number" name="system.resources.health.damageThreshold"
+            value="{{system.resources.health.damageThreshold}}" min="0"></span></label>
+        <label class="resource"><span class="label">{{localize "WILDPATH.VEHICLE.Speed"}}</span>
+          <span class="resource-values"><input type="number" name="system.resources.movement.base" value="{{system.resources.movement.base}}"
+            min="0"></span></label>
+        <label class="resource"><span class="label">{{localize "WILDPATH.VEHICLE.TravelSpeed"}}</span>
+          <span class="resource-values"><input type="number" name="system.travelSpeed" value="{{system.travelSpeed}}" min="0" step="any"></span></label>
+        <label class="resource"><span class="label">{{localize "WILDPATH.VEHICLE.Crew"}}</span>
+          <span class="resource-values"><input type="number" name="system.capacity.crew" value="{{system.capacity.crew}}" min="0"></span></label>
+        <label class="resource"><span class="label">{{localize "WILDPATH.VEHICLE.Passengers"}}</span>
+          <span class="resource-values"><input type="number" name="system.capacity.passengers" value="{{system.capacity.passengers}}" min="0"></span></label>
+        <label class="resource"><span class="label">{{localize "WILDPATH.VEHICLE.Cargo"}}</span>
+          <span class="resource-values"><input type="number" name="system.capacity.cargo" value="{{system.capacity.cargo}}" min="0" step="any"></span></label>
+      </div>
+      <label class="field-block">{{localize "WILDPATH.VEHICLE.DamageImmunities"}}
+        <input type="text" name="system.immunities.damage" value="{{immunities.damage}}"></label>
+      <label class="field-block">{{localize "WILDPATH.VEHICLE.ConditionImmunities"}}
+        <input type="text" name="system.immunities.conditions" value="{{immunities.conditions}}"></label>
+    </section>
+
+    <section class="sheet-section">
+      <div class="section-heading"><h3>{{localize "WILDPATH.VEHICLE.Aboard"}}</h3></div>
+      <ol class="sheet-list">
+        {{#each aboard as |entry|}}
+          <li class="sheet-row" data-aboard-index="{{entry.index}}">
+            <div class="row-main"><span class="row-name">{{entry.name}}</span></div>
+            <select data-aboard-index="{{entry.index}}" aria-label="{{localize "WILDPATH.VEHICLE.RoleLabel"}}">
+              {{selectOptions @root.roles selected=entry.role localize=true}}</select>
+            <button type="button" class="row-command" data-action="leave">{{localize "WILDPATH.VEHICLE.Leave"}}</button>
+          </li>
+        {{else}}
+          <li class="empty-row">{{localize "WILDPATH.VEHICLE.NobodyAboard"}}</li>
+        {{/each}}
+      </ol>
+    </section>
+
+    <section class="sheet-section">
+      <div class="section-heading"><h3>{{localize "WILDPATH.VEHICLE.Actions"}}</h3></div>
+      <ol class="sheet-list">
+        {{#each actions as |item|}}
+          <li class="sheet-row action-row" data-item-id="{{item.id}}">
+            <img class="row-image" src="{{item.img}}" width="32" height="32" alt="{{item.name}}">
+            <div class="row-main"><button type="button" class="row-name" data-action="openItem">{{item.name}}</button></div>
+            <button type="button" class="row-command" data-action="useItem">{{localize "WILDPATH.SHEET.Use"}}</button>
+            <button type="button" class="row-command" data-action="deleteItem" title="{{localize "WILDPATH.SHEET.Delete"}}"
+                    aria-label="{{localize "WILDPATH.SHEET.Delete"}}">✕</button>
+          </li>
+        {{else}}
+          <li class="empty-row">{{localize "WILDPATH.SHEET.Empty.Actions"}}</li>
+        {{/each}}
+      </ol>
+    </section>
+  </div>
+</div>

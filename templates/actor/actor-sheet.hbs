@@ -309,6 +309,31 @@
           <span>{{localize "WILDPATH.BASTION.Defenders" count=bastionInfo.defenders housed=bastionInfo.housed}}</span>
           <button type="button" data-action="bastionMap">{{localize "WILDPATH.BASTION.Map"}}</button>
         </p>
+        {{#if bastionInfo.shared}}
+        <p class="bastion-shared">
+          <span>{{localize "WILDPATH.BASTION.Members"}}</span>
+          {{#each bastionInfo.shared.members as |member|}}
+            <span class="bastion-member">{{localize "WILDPATH.BASTION.Pooled" name=member.name squares=member.squares}}{{#if member.removable}}
+              <button type="button" class="row-command" data-action="leaveBastion" data-actor-id="{{member.id}}" title="{{localize "WILDPATH.BASTION.Remove" name=member.name}}" aria-label="{{localize "WILDPATH.BASTION.Remove" name=member.name}}">✕</button>{{/if}}</span>
+          {{/each}}
+          <span>{{localize "WILDPATH.BASTION.Ground" capacity=bastionInfo.shared.capacity size=bastionInfo.shared.size}}</span>
+        </p>
+        <p class="bastion-shared">
+          <label>{{localize "WILDPATH.BASTION.Squares"}}
+            <input type="number" name="system.bastion.shared.squares" value="{{bastionInfo.shared.squares}}" min="0" step="1" placeholder="{{localize "WILDPATH.BASTION.AllGround"}}" {{disabled (not editable)}}></label>
+          <label><input type="checkbox" name="system.bastion.shared.cover" {{checked bastionInfo.shared.cover}} {{disabled (not editable)}}>
+            {{localize "WILDPATH.BASTION.Cover"}}</label>
+          <button type="button" data-action="leaveBastion" {{disabled (not editable)}}>{{localize "WILDPATH.BASTION.Leave"}}</button>
+        </p>
+        {{else}}
+        <p class="bastion-shared">
+          {{#if bastionInfo.join}}
+            <select data-bastion-join aria-label="{{localize "WILDPATH.BASTION.JoinPick"}}" {{disabled (not editable)}}>{{selectOptions bastionInfo.join}}</select>
+            <button type="button" data-action="joinBastion" {{disabled (not editable)}}>{{localize "WILDPATH.BASTION.Join"}}</button>
+          {{/if}}
+          <button type="button" data-action="foundBastion" {{disabled (not editable)}}>{{localize "WILDPATH.BASTION.Found"}}</button>
+        </p>
+        {{/if}}
         <ol class="sheet-list">
           {{#each bastion as |facility|}}
             <li class="sheet-row" data-item-id="{{facility.id}}">

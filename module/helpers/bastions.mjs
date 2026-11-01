@@ -38,12 +38,37 @@ export function canAddSpecial({level=0, facilityLevel=0, specialCount=0}={}) {
   return null;
 }
 
+/** The squares a member of a shared Bastion pools (docs/architecture/shared-bastions.md): null is all its ground. */
+export function pooledSquares(level, squares=null) {
+  const all = mapSize(level) ** 2;
+  return squares === null ? all : Math.min(Math.max(Math.floor(Number(squares)) || 0, 0), all);
+}
+
+/** A shared Bastion's ground: the squares its members pool, on a square grid just large enough to hold them. */
+export function sharedGrid(members=[]) {
+  const capacity = members.reduce((total, actor) => total
+    + pooledSquares(actor.system?.details?.level, actor.system?.bastion?.shared?.squares ?? null), 0);
+  return {capacity, size: Math.ceil(Math.sqrt(capacity))};
+}
+
+/** Characters by the Bastion they share, keyed by its id; a character sharing none is a Bastion of its own. */
+export function bastionGroups(characters=[]) {
+  const groups = new Map();
+  for ( const actor of characters ) {
+    const id = actor.system?.bastion?.shared?.id || actor.id;
+    groups.set(id, [...(groups.get(id) ?? []), actor]);
+  }
+  return groups;
+}
+
 /**
- * A Bastion map's problems: squares outside its grid, or a facility covering more than its space allows. `cells` are
- * `{x, y, facilityId}`; `facilities` map an id to its space.
+ * A Bastion map's problems: squares outside its grid, more squares painted than its ground (`most`, a shared Bastion's
+ * pool), or a facility covering more than its space allows. `cells` are `{x, y, facilityId}`; `facilities` map an id to
+ * its space. A shared map keys both by `${actorId}.${facilityId}`, so two members' facilities never merge.
  */
-export function mapProblems(cells=[], {size=12, facilities={}}={}) {
+export function mapProblems(cells=[], {size=12, facilities={}, most}={}) {
   const problems = [];
+  if ( (most !== undefined) && (cells.length > most) ) problems.push({key: "WILDPATH.BASTION.MapFull", data: {count: cells.length, most}});
   const counts = {};
   const seen = new Set();
   for ( const {x, y, facilityId} of cells ) {
@@ -57,6 +82,23 @@ export function mapProblems(cells=[], {size=12, facilities={}}={}) {
     if ( count > most ) problems.push({key: "WILDPATH.BASTION.MapTooBig", data: {id, count, most}});
   }
   return problems;
+}
+
+/**
+ * Defenders an Attack costs one member of a shared Bastion, taken instead by the members who cover it (owner's question
+ * 9): one at a time from whoever has the most left, the earlier in `covers` on a tie. `covers` are `{id, defenders}`.
+ * Returns what each coverer loses (`by`, none listed that lose none) and what is left for the attacked member (`rest`).
+ */
+export function coverLosses(lost=0, covers=[]) {
+  const left = covers.map(({id, defenders}) => ({id, defenders: Math.max(Number(defenders) || 0, 0), lost: 0}));
+  let rest = Math.max(Number(lost) || 0, 0);
+  for ( ; rest > 0; rest-- ) {
+    const most = left.reduce((best, cover) => (cover.defenders > (best?.defenders ?? 0) ? cover : best), null);
+    if ( !most ) break;
+    most.defenders--;
+    most.lost++;
+  }
+  return {by: left.filter(cover => cover.lost).map(({id, lost}) => ({id, lost})), rest};
 }
 
 /** A Recruit order: up to 4 more defenders, no more than its facilities house. */

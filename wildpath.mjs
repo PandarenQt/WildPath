@@ -21,6 +21,7 @@ Hooks.once("quenchReady", quench => import("./module/tests/quench/index.mjs").th
 
 import WildPathCharacter from "./module/data/actor/character.mjs";
 import WildPathNPC from "./module/data/actor/npc.mjs";
+import WildPathVehicle from "./module/data/actor/vehicle.mjs";
 
 import WildPathFeature from "./module/data/item/feature.mjs";
 import WildPathAction from "./module/data/item/action.mjs";
@@ -39,6 +40,7 @@ import WildPathCombatant from "./module/documents/combatant.mjs";
 import WildPathTokenDocument from "./module/documents/token.mjs";
 
 import WildPathActorSheet from "./module/applications/actor-sheet.mjs";
+import WildPathVehicleSheet from "./module/applications/vehicle-sheet.mjs";
 import WildPathItemSheet from "./module/applications/item-sheet.mjs";
 import {WildPathEffectSheet} from "./module/applications/effect-sheet.mjs";
 
@@ -85,7 +87,8 @@ Hooks.once("init", () => {
   // Actor data models
   CONFIG.Actor.dataModels = {
     character: WildPathCharacter,
-    npc: WildPathNPC
+    npc: WildPathNPC,
+    vehicle: WildPathVehicle
   };
 
   // Item data models
@@ -125,7 +128,8 @@ Hooks.once("init", () => {
     npc: {
       bar: ["resources.health", "resources.action"],
       value: ["resources.bonus", "resources.reaction", "resources.movement"]
-    }
+    },
+    vehicle: {bar: ["resources.health"], value: ["resources.movement"]}
   };
 
   // The 2014 rules replace the conditions that differ (a world setting; read during init, applied after a reload).
@@ -298,6 +302,11 @@ Hooks.once("init", () => {
     types: ["character", "npc"],
     makeDefault: true,
     label: "WILDPATH.SheetActor"
+  });
+  DocumentSheetConfig.registerSheet(WildPathActor, "wildpath", WildPathVehicleSheet, {
+    types: ["vehicle"],
+    makeDefault: true,
+    label: "WILDPATH.VEHICLE.Sheet"
   });
 
   DocumentSheetConfig.registerSheet(WildPathItem, "wildpath", WildPathItemSheet, {

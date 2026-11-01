@@ -11,12 +11,13 @@ export function zeroHpFor(actor, actorSystem) {
     if (!actor)
         return null;
     // Its features' rules, and its effects' (2024 Death Ward: "the target instead drops to 1 Hit Point, and the spell
-    // ends"): one from an effect names it (`effectUuid`), which ends once it is used.
+    // ends"): a Trigger from an effect names it (`effectUuid`), which ends once it is used; a Phase's effect stays.
     const owners = [...[...(actor.items ?? [])].filter((item) => item?.system?.active !== false).map((item) => ({ item, effect: null })),
         ...[...(actor.effects ?? [])].filter((effect) => !effect?.disabled).map((effect) => ({ item: effect, effect }))];
     for (const { item, effect } of owners) {
         for (const rule of item?.system?.ruleElements ?? []) {
-            const spec = ((rule?.type === "Trigger") && (rule.data?.event === "health.zero")) ? rule.data.zeroHp : null;
+            const spec = ((rule?.type === "Trigger") && (rule.data?.event === "health.zero")) ? rule.data.zeroHp
+                : ((rule?.type === "Phase") && (rule.data?.on === "zero-hp")) ? phaseSpec(actor, rule.data) : null;
             if (!spec || (spec.whileStatus && !actor.statuses?.has?.(spec.whileStatus)))
                 continue;
             const poolId = spec.pool ?? spec.dc?.usesPool ?? null;
@@ -29,7 +30,8 @@ export function zeroHpFor(actor, actorSystem) {
             const ability = spec.ability ?? null;
             const rollMode = ability ? combineRollModes(actor.getRollModes?.(["save", `save.${ability}`], {}) ?? []) : null;
             return { name: item.name ?? "", mode: (spec.mode === "save") ? "save" : "set", hitPoints: Math.max(Math.trunc(value(spec.hitPoints ?? 1) || 1), 1),
-                ...(effect?.uuid ? { effectUuid: effect.uuid } : {}),
+                ...((effect?.uuid && (rule.type === "Trigger")) ? { effectUuid: effect.uuid } : {}),
+                ...(spec.flag ? { flag: spec.flag, actorUuid: actor.uuid ?? null } : {}),
                 ...(ability ? { ability, saveBonus: resolveActorSaveStatistic(actor, ability)?.totalModifier ?? 0,
                     ...((rollMode && (rollMode !== "normal")) ? { rollMode } : {}) } : {}),
                 ...((spec.dc?.base != null) ? { dc: Number(spec.dc.base)
@@ -40,4 +42,26 @@ export function zeroHpFor(actor, actorSystem) {
         }
     }
     return null;
+}
+/**
+ * A `Phase` (a mythic creature's) as a zero-HP rule: it sets `restore` Hit Points and `mythicPhase`, the flag the `mythic`
+ * Forbid reads (actor.mjs); `once`, only while that is unset.
+ */
+function phaseSpec(actor, data) {
+    const flag = "mythicPhase";
+    if ((data.once !== false) && actor.flags?.wildpath?.[flag])
+        return null;
+    return { mode: "set", hitPoints: data.restore, flag };
+}
+/**
+ * A Phase that kept its creature up begins: its flag is set (`mythicPhase`, which the `mythic` Forbid reads), and everyone is
+ * told, as the card that dropped it is. The line names mythic actions, the only thing a phase unlocks yet.
+ */
+export async function beginPhase(actor, rule, { game = globalThis.game } = {}) {
+    if (!rule?.flag || (typeof actor?.setFlag !== "function"))
+        return;
+    await actor.setFlag("wildpath", rule.flag, true);
+    const text = game?.i18n?.format?.("WILDPATH.NOTIFY.PhaseBegan", { name: actor.name ?? "", feature: rule.name ?? "" }) ?? actor.name ?? "";
+    const escape = globalThis.foundry?.utils?.escapeHTML ?? ((value) => value);
+    await globalThis.ChatMessage?.create?.({ speaker: { alias: actor.name ?? "" }, content: `<p>${escape(String(text))}</p>` });
 }

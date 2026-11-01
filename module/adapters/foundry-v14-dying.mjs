@@ -1,7 +1,7 @@
 import { mutationTargetIdentity } from "../helpers/mutation-target.mjs";
 import { resolveTargetLookupValue, targetLookupRefs } from "../helpers/target-actor-refs.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
-import { zeroHpFor } from "./foundry-v14-zero-hp.mjs";
+import { zeroHpFor, beginPhase } from "./foundry-v14-zero-hp.mjs";
 import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
 import { commitActorResourceMutationPlan } from "../resolvers/resource-resolver.mjs";
 export const DEATH_SAVE_DC = 10;
@@ -256,6 +256,9 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
         // A ward from an effect (Death Ward) ends once it has kept its creature up.
         if (kept && rule.effectUuid)
             await (await globalThis.fromUuid?.(String(rule.effectUuid)))?.delete?.();
+        // A phase that kept it up (a mythic creature's) begins.
+        if (kept && rule.flag)
+            await beginPhase(actor, rule);
         return kept;
     }
     /** After an Action: each target whose health it changed, a critical hit counting as two failed saves at 0. */

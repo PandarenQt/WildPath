@@ -114,7 +114,7 @@ import {createMultiplayerActionCoordinator} from "./multiplayer-action-coordinat
 import {createPhysicalDiceProvider} from "./roll-provider-resolver.mjs";
 import {resolveActorResourcePayment} from "./resource-resolver.mjs";
 import {resolveActionConfiguration} from "../helpers/action-configuration.mjs";
-import {zeroHpFor} from "../adapters/foundry-v14-zero-hp.mjs";
+import {zeroHpFor, beginPhase} from "../adapters/foundry-v14-zero-hp.mjs";
 export {zeroHpFor};
 import {evaluatePredicate} from "../helpers/predicates.mjs";
 import {createMultiplayerMovementAuthority} from "./multiplayer-movement-authority.mjs";
@@ -207,9 +207,10 @@ export function registerFoundryV14MultiplayerResolution({
       await endEffectsOnTargets(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenSaved(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
       await endEffectsWhenDamaged(event, {fromUuid: globalThis.fromUuid ?? (() => null)});
-      // A ward that kept a creature up (Death Ward) ends.
+      // A ward that kept a creature up (Death Ward) ends; a phase that did (a mythic creature's) begins.
       for ( const record of event.state?.results?.zeroHp ?? [] ) {
         if ( record.kept && record.effectUuid ) await (await globalThis.fromUuid?.(record.effectUuid))?.delete?.();
+        if ( record.kept && record.flag && record.actorUuid ) await beginPhase(await globalThis.fromUuid?.(record.actorUuid), record, {game});
       }
       await endEffectsWhenChecked(event.options?.actor, event.state?.input?.check ?? null);
       await recordSlotSpell(event, {game});
@@ -784,9 +785,14 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     armor: forbid.name ?? ""});
   // 2024: a spell of 1st level or higher is cast only while prepared.
   if ( !authorityAction && isUnprepared(action) ) return refused("WILDPATH.ITEM.NotPrepared", {name: action.name ?? ""});
-  // What the Action requires of its creature (`requires`: Steady Aim, not moved this turn).
-  if ( !authorityAction && definition?.requires && !evaluatePredicate(definition.requires, {...requiresContext(actor, {game}), actorSystem,
-    tags: definition.tags ?? []}).ok ) return refused("WILDPATH.ITEM.CannotUse", {name: action.name ?? ""});
+  // What the Action requires of its creature (`requires`: Steady Aim, not moved this turn); a vehicle's, of the creature
+  // aboard using it (`aboard.crew`), so the controller is found first: one the sender owns that meets it, if any does.
+  const requiresMet = controllerActor => !definition?.requires || evaluatePredicate(definition.requires,
+    {...requiresContext(actor, {game, controller: controllerActor}), actorSystem, tags: definition.tags ?? []}).ok;
+  // A companion's Action may also cost the controller commanding it; the sender must own that controller.
+  const controller = await foundryActionController({action, actor, intent, sender, game, accepts: requiresMet});
+  if ( !controller.ok ) return {ok: false, code: controller.code, reason: controller.reason};
+  if ( !authorityAction && !requiresMet(controller.actor) ) return refused("WILDPATH.ITEM.CannotUse", {name: action.name ?? ""});
   // A magic item's Action (a wand's spell) needs its item equipped and, when it needs attunement, attuned (2024).
   // An Action it replaced (inactive: an Invocation, a Maneuver) is not used.
   if ( !authorityAction && (action.system?.active === false) ) return refused("WILDPATH.LEVELUP.Replaced", {name: action.name ?? ""});
@@ -805,9 +811,6 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     code: MULTIPLAYER_AUTHORITY_CODES.WRONG_USER,
     reason: "The Action sender must own the source Token."
   };
-  // A companion's Action may also cost the controller commanding it; the sender must own that controller.
-  const controller = await foundryActionController({action, actor, intent, sender, game});
-  if ( !controller.ok ) return {ok: false, code: controller.code, reason: controller.reason};
   let controllerSystem = null;
   try { controllerSystem = controller.actor ? foundryActorSystemSnapshot(controller.actor) : null; }
   catch (error) {
@@ -2109,21 +2112,25 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
 }
 
 /**
- * The controller that pays a companion's controller costs: the one the intent names, else the first listed
- * controller the sender owns (a GM owns every one). An Action without controller costs needs none.
+ * The controller that pays a companion's controller costs, or a vehicle's crew Action's (any creature aboard may be
+ * one; the Action's `requires` reads its role): the one the intent names, else the first listed controller the sender
+ * owns (a GM owns every one) that `accepts`, else the first it owns. An Action without controller costs needs none.
  */
-async function foundryActionController({action, actor, intent, sender, game}) {
+async function foundryActionController({action, actor, intent, sender, game, accepts=() => true}) {
   const result = actionDefinitionFromAction(action, {actorSystem: actor?.system ?? null});
   const cost = result.ok ? actionDefinitionActivationCost({costs: result.definition?.controllerCosts}) : {allOf: []};
   if ( !(cost.allOf?.length || cost.anyOf?.length) ) return {ok: true, actor: null};
-  const controllers = actor.system?.companion?.controllers ?? [];
+  const controllers = [...(actor.system?.companion?.controllers ?? []), ...(actor.system?.aboard ?? []).map(entry => entry.actorUuid)];
   const named = typeof intent.controllerRef === "string" ? [intent.controllerRef] : controllers;
-  for ( const ref of named.filter(entry => controllers.includes(entry)) ) {
+  const owned = [];
+  for ( const ref of [...new Set(named)].filter(entry => controllers.includes(entry)) ) {
     const candidate = await resolveFoundryDocumentRef(ref, {game, kind: "actor"});
-    if ( candidate && documentOwnedByUser(candidate, sender) ) return {ok: true, actor: candidate};
+    if ( candidate && documentOwnedByUser(candidate, sender) ) owned.push(candidate);
   }
+  const chosen = owned.find(candidate => accepts(candidate)) ?? owned[0];
+  if ( chosen ) return {ok: true, actor: chosen};
   return {ok: false, code: MULTIPLAYER_AUTHORITY_CODES.WRONG_USER,
-    reason: "This Action costs the companion's controller, and the sender controls none of its controllers."};
+    reason: "This Action costs its controller, and the sender controls none of its controllers."};
 }
 
 /**

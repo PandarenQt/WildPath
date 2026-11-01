@@ -43,6 +43,8 @@ Moves the world 7 days on.
   event is yours to run.
 - Every order then goes back to Maintain.
 
+Characters who share a Bastion have their lines listed together under their names. A member who chose to take the other members' defender losses loses its defenders first when another member is attacked. To remove a character from a shared Bastion, open its sheet (or any member's) and click ✕ beside its name.
+
 On a character's **Bastion map**, the **Make a Scene** button builds a Scene of it: each facility coloured and named, walls around them. Add the doors.
 
 ## Encounters and experience

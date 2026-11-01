@@ -57,7 +57,8 @@ test("the SRD 5.2 packs hold only CC-BY-4.0 content as valid WildPath Documents 
   assert.equal(new Set(items.map(item => item._id)).size, items.length, "unique Item ids");
   for ( const actor of sources("srd-creatures") ) {
     assert.equal(actor._key, `!actors!${actor._id}`, actor.name);
-    assert.equal(actor.type, "npc", actor.name);
+    // Creatures, and the vehicles (vehicles-and-mythic.md).
+    assert.ok(["npc", "vehicle"].includes(actor.type), actor.name);
     licensed(actor);
     for ( const item of actor.items ) {
       assert.equal(item._key, `!actors.items!${actor._id}.${item._id}`, `${actor.name}: ${item.name}`);

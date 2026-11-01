@@ -1,7 +1,7 @@
 import {mutationTargetIdentity} from "../helpers/mutation-target.mjs";
 import {resolveTargetLookupValue, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
-import {zeroHpFor} from "./foundry-v14-zero-hp.mjs";
+import {zeroHpFor, beginPhase} from "./foundry-v14-zero-hp.mjs";
 import {foundryActorSystemSnapshot} from "./foundry-v14-actor-system-adapter.mjs";
 import {commitActorResourceMutationPlan} from "../resolvers/resource-resolver.mjs";
 
@@ -281,6 +281,8 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
       {wildpath: {notHealing: true}});
     // A ward from an effect (Death Ward) ends once it has kept its creature up.
     if ( kept && rule.effectUuid ) await ((await (globalThis as unknown as {fromUuid?(uuid: string): Promise<unknown>}).fromUuid?.(String(rule.effectUuid))) as {delete?(): Promise<unknown>} | null)?.delete?.();
+    // A phase that kept it up (a mythic creature's) begins.
+    if ( kept && rule.flag ) await beginPhase(actor as unknown as Data, rule);
     return kept;
   }
 

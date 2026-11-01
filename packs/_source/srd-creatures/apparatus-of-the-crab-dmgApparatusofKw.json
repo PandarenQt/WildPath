@@ -1,0 +1,324 @@
+{
+  "_id": "dmgApparatusofKw",
+  "_key": "!actors!dmgApparatusofKw",
+  "name": "Apparatus of the Crab",
+  "type": "vehicle",
+  "img": "icons/svg/mystery-man.svg",
+  "system": {
+    "defenses": {
+      "ac": {
+        "value": 20
+      }
+    },
+    "resources": {
+      "health": {
+        "base": 200,
+        "value": 200,
+        "damageThreshold": 0
+      },
+      "movement": {
+        "base": 30,
+        "value": 30
+      }
+    },
+    "travelSpeed": 0,
+    "capacity": {
+      "crew": 2,
+      "passengers": 0,
+      "cargo": 0
+    },
+    "immunities": {
+      "damage": [
+        "poison",
+        "psychic"
+      ],
+      "conditions": []
+    },
+    "aboard": []
+  },
+  "prototypeToken": {
+    "name": "Apparatus of the Crab",
+    "width": 2,
+    "height": 2,
+    "disposition": 0,
+    "actorLink": false,
+    "texture": {
+      "src": "icons/svg/mystery-man.svg"
+    }
+  },
+  "items": [
+    {
+      "_id": "fmdWz6RQsUCHneZF",
+      "_key": "!actors.items!dmgApparatusofKw.fmdWz6RQsUCHneZF",
+      "name": "Claw Attack",
+      "type": "action",
+      "img": "icons/commodities/tech/metal-jaws.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Each extended claw makes the following melee attack: +8 to hit, reach 5 ft. <em>Hit:</em> 7 (2d6) Bludgeoning damage.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-claw-attack",
+          "tags": [
+            "magical"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "fixedBonus": 8
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 6
+              },
+              "damageType": "bludgeoning",
+              "provenance": "additional"
+            }
+          ],
+          "label": "Claw Attack",
+          "controllerCosts": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "requires": {
+            "equals": {
+              "path": "aboard.crew",
+              "value": true
+            }
+          }
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "attack-bonus",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "attack"
+              ],
+              "modifierType": "untyped",
+              "value": 8
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "fmdWz6RQsUCHneZF",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "new-feature",
+            "subtype": null
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "tgIjCBtGCZvMu8ij",
+      "_key": "!actors.items!dmgApparatusofKw.tgIjCBtGCZvMu8ij",
+      "name": "Grapple Attack (attack)",
+      "type": "action",
+      "img": "icons/commodities/tech/metal-jaws.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Each extended claw makes the following melee attack: +8 to hit, reach 5 ft. <em>Hit:</em> The target has the Grappled condition (escape DC 15).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-grapple-attack",
+          "tags": [
+            "magical"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "attack": {
+            "type": "melee",
+            "statistic": "weapon",
+            "defenseKey": "ac",
+            "proficient": true,
+            "fixedBonus": 8
+          },
+          "range": {
+            "type": "reach",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "label": "Grapple Attack (attack)",
+          "controllerCosts": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "requires": {
+            "equals": {
+              "path": "aboard.crew",
+              "value": true
+            }
+          }
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "attack-bonus",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "attack"
+              ],
+              "modifierType": "untyped",
+              "value": 8
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "tgIjCBtGCZvMu8ij",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "new-feature",
+            "subtype": null
+          },
+          "conversion": {
+            "notes": [
+              "rolled (attack); what it does is by hand"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "mfbjyc1cw49fq000",
+      "_key": "!actors.items!dmgApparatusofKw.mfbjyc1cw49fq000",
+      "name": "Grapple Attack (Grapple Escape Check)",
+      "type": "action",
+      "img": "icons/commodities/tech/metal-jaws.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Each extended claw makes the following melee attack: +8 to hit, reach 5 ft. <em>Hit:</em> The target has the Grappled condition (escape DC 15).</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-grapple-attack-grapple-escape-check",
+          "tags": [
+            "magical"
+          ],
+          "costs": {
+            "allOf": []
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "check": {
+            "skill": "acrobatics",
+            "dc": {
+              "value": 15
+            }
+          },
+          "label": "Grapple Attack (Grapple Escape Check)",
+          "controllerCosts": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              }
+            ]
+          },
+          "requires": {
+            "equals": {
+              "path": "aboard.crew",
+              "value": true
+            }
+          }
+        },
+        "ruleElements": []
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "tgIjCBtGCZvMu8ij",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "new-feature",
+            "subtype": null
+          },
+          "conversion": {
+            "notes": [
+              "check: a choice of acr/ath uses acr"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "actors24",
+        "id": "dmgApparatusofKw",
+        "type": "vehicle",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024"
+      },
+      "conversion": {
+        "notes": [
+          "Grapple Attack: rolled (attack); what it does is by hand",
+          "Grapple Attack: check: a choice of acr/ath uses acr"
+        ]
+      }
+    }
+  }
+}

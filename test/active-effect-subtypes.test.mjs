@@ -152,8 +152,9 @@ test("WildPath startup uses V14 sheet registration API instead of deprecated glo
 
   assert.doesNotMatch(source, /\bActors\.registerSheet\(/u);
   assert.doesNotMatch(source, /\bItems\.registerSheet\(/u);
-  assert.equal(registrations.length, 3);
+  assert.equal(registrations.length, 4);
   assert.match(source, /DocumentSheetConfig\.registerSheet\(WildPathActor,\s*"wildpath",\s*WildPathActorSheet/u);
+  assert.match(source, /DocumentSheetConfig\.registerSheet\(WildPathActor,\s*"wildpath",\s*WildPathVehicleSheet/u);
   assert.match(source, /DocumentSheetConfig\.registerSheet\(WildPathItem,\s*"wildpath",\s*WildPathItemSheet/u);
   assert.match(source, /DocumentSheetConfig\.registerSheet\(WildPathActiveEffect,\s*"wildpath",\s*WildPathEffectSheet/u);
 });

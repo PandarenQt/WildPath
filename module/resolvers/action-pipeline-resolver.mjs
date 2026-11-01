@@ -2691,7 +2691,9 @@ function zeroHpOutcomes(state, input, durabilityResolution) {
       } else {
         kept = true;
         records.push({targetKey: key, target: clonePlain(entry.target), name: rule.name, kept, hitPoints: rule.hitPoints,
-          ...(rule.effectUuid ? {effectUuid: rule.effectUuid} : {})});
+          ...(rule.effectUuid ? {effectUuid: rule.effectUuid} : {}),
+          // A Phase begins once the damage commits (its flag set on `actorUuid`).
+          ...(rule.flag ? {flag: rule.flag, actorUuid: rule.actorUuid ?? null} : {})});
       }
       if ( rule.payment ) plans.push({type: "resourcePayment", resolver: "ResourceResolver", plan: rule.payment.plan,
         payerRef: rule.payment.payerRef});
