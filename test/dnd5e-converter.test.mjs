@@ -1296,8 +1296,11 @@ test("\"Advantage on saving throws to avoid or end\" a condition is a RollMode o
   assert.deepEqual(brave.flags.wildpath.conversion.notes, [], "one that converts is not silent");
   const [swarm] = trait("Swarm", "The swarm can occupy another creature's space and vice versa. The swarm can't regain Hit Points or gain Temporary Hit Points.").items;
   assert.deepEqual(swarm.system.ruleElements.map(rule => [rule.type, rule.data]),
-    [["ResourceCap", {resources: ["healing", "temporaryHealth"], maximum: 0}]], "a swarm's own trait");
-  assert.deepEqual(swarm.flags.wildpath.conversion.notes, ["swarm: sharing another creature's space is by hand"]);
+    [["ResourceCap", {resources: ["healing", "temporaryHealth"], maximum: 0}],
+      ["Modifier", {domains: ["occupancy.share"], modifierType: "untyped", value: 1}]], "a swarm's own trait, sharing spaces");
+  assert.deepEqual(swarm.flags.wildpath.conversion.notes, []);
+  const [ghost] = trait("Incorporeal Movement", "The ghost can move through other creatures and objects as if they were Difficult Terrain.").items;
+  assert.deepEqual(ghost.system.ruleElements.map(rule => rule.data.domains[0]), ["occupancy.pass", "occupancy.difficult"]);
   assert.deepEqual(trait("Rot", "While Poisoned, the target can't regain Hit Points.").items[0].system.ruleElements, [],
     "a target's, while poisoned, is its effect's");
   const [asi] = trait("Ability Score Improvement", "You gain a +2 bonus to one ability score.").items;
@@ -1930,6 +1933,9 @@ test("Jack of All Trades and Remarkable Athlete: dnd5e's flags as WildPath rules
   const [athlete] = convertItem(flagged("remarkable-athlete", "flags.dnd5e.remarkableAthlete")).items;
   assert.deepEqual(athlete.system.ruleElements[0], {schemaVersion: 1, id: "remarkable-athlete-1", type: "RollMode",
     data: {domains: ["initiative", "check.athletics"], mode: "advantage"}});
+  const [nimble] = convertItem(flagged("halfling-nimbleness", "flags.dnd5e.halflingNimbleness")).items;
+  assert.deepEqual(nimble.system.ruleElements[0].data, {domains: ["occupancy.pass.larger"], modifierType: "untyped", value: 1});
+  assert.deepEqual(nimble.flags.wildpath.conversion.notes, []);
 });
 
 test("dnd5e's marked status: attack rolls against its creature have Advantage; only the next one when its text says so (Guiding Bolt)", () => {

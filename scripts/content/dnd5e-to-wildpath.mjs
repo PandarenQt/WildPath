@@ -567,7 +567,9 @@ const FREE_CASTS = Object.freeze({"faithful-steed": {spells: ["find-steed"], rec
   // The PHB's Favored Enemy is a feature beside the Hunter's Mark its ranger is granted (the SRD's is a Hunter's Mark
   // Action with this pool): its free casts by ranger level.
   "favored-enemy": {spells: ["hunters-mark"], recovery: "longRest",
-    maximum: {type: "table", key: {type: "class-level", class: "ranger"}, rows: {1: 2, 5: 3, 9: 4, 13: 5, 17: 6}}}});
+    maximum: {type: "table", key: {type: "class-level", class: "ranger"}, rows: {1: 2, 5: 3, 9: 4, 13: 5, 17: 6}}},
+  // 2024 Natural Recovery: one of the level 1+ spells its Circle of the Land Spells gave, once per Long Rest.
+  "natural-recovery": {spells: [], fromFeatures: ["circle-of-the-land-spells"], recovery: "longRest"}});
 const freeCastResource = identifier => `free-cast.${identifier}${FREE_CASTS[identifier]?.perItem ? ".{item}" : ""}`;
 
 /**
@@ -1008,6 +1010,32 @@ function slotRecovery({id, poolId, label, classId, ownPool=false}) {
           {id: "slots", type: "select-many", label: "Spell slots", required: false, min: 0, options: picks,
             budget: {type: "divide", numerator: {type: "class-level", class: classId}, denominator: {type: "constant", value: 2}, round: "ceil"}}]}}}],
     notes: []};
+}
+
+/**
+ * A choice asked as each Long Rest ends whose option gives Items (`grantItems`, runtime grantChosenItems): one option per
+ * captioned table of its description ("Arid Land"), each row a `classId` level and the Items linked in it (dnd5e uuids,
+ * which the SRD driver maps to the Items they became, as a progression's grants).
+ */
+function longRestGrantChoice(document, {id, choiceId, label, classId}) {
+  const tables = [...String(document.system?.description?.value ?? "").matchAll(/<table><caption>(.*?)<\/caption>(.*?)<\/table>/gsu)]
+    .map(([, caption, body]) => ({value: slugify(caption), label: caption, rows: Object.fromEntries([...body.matchAll(/<tr><td>(\d+)<\/td><td>(.*?)<\/td><\/tr>/gsu)]
+      .map(([, level, cell]) => [level, [...cell.matchAll(/@UUID\[([^\]]+)\]/gu)].map(match => match[1])]))}));
+  return {schemaVersion: 1, id, type: "Trigger", data: {kind: "automation", event: "rest.completed",
+    predicate: {equals: {path: "event.data.restType", value: "longRest"}},
+    action: {schemaVersion: 1, id: `action:srd-${id}`, label: document.name, costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"},
+      configuration: [{id: choiceId, type: "select-one", label, required: true,
+        options: tables.map(table => ({id: table.value, label: table.label, value: table.value}))}],
+      grantItems: {choiceId, class: classId, options: Object.fromEntries(tables.map(table => [table.value, table.rows]))}}}};
+}
+
+/** A rest choice's Items (longRestGrantChoice) as the Items they became (`uuidOf`, a driver's), as a progression's grants. */
+export function mapGrantItems(items, uuidOf) {
+  for ( const rule of items.flatMap(item => item.system?.ruleElements ?? []) ) {
+    for ( const rows of Object.values(rule?.data?.action?.grantItems?.options ?? {}) ) {
+      for ( const level of Object.keys(rows) ) rows[level] = rows[level].flatMap(uuid => uuidOf(uuid));
+    }
+  }
 }
 
 /** When its creature rolls Initiative, a pool of its own comes back up to `upTo` (an automation Trigger). */
@@ -1927,9 +1955,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       if ( !passive.some(entry => entry.id === rule.id) ) passive.push(rule);
     }
   }
-  // 2024 swarms share other creatures' spaces: movement does not yet let a creature end in an occupied space.
-  if ( (document.type === "feat") && /\boccupy another creature[’']s space\b/u.test(plainText(document)) ) {
-    allNotes.push("swarm: sharing another creature's space is by hand");
+  // A trait that moves through or shares other creatures' spaces (a swarm's, Incorporeal Movement).
+  if ( document.type === "feat" ) {
+    for ( const rule of occupancyRules(plainText(document), identifierOf(document)) ) {
+      if ( !passive.some(entry => entry.id === rule.id) ) passive.push(rule);
+    }
   }
   // Equipment is gear its owner equips (G7): armor's AC, and its passive effects. A potion or scroll is only its Actions.
   if ( GEAR_TYPES.has(document.type) && !((document.type === "consumable") && items.length) ) {
@@ -1985,7 +2015,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         ...(SPELL_CHOICES[identifierOf(document)] ? {spellChoice: structuredClone(SPELL_CHOICES[identifierOf(document)])} : {}),
         ...(CHOICES_FOR[identifierOf(document)] ? {choiceFor: structuredClone(CHOICES_FOR[identifierOf(document)])} : {}),
         ...(FREE_CASTS[identifierOf(document)] ? {freeCast: {spells: [...FREE_CASTS[identifierOf(document)].spells],
-          ...(FREE_CASTS[identifierOf(document)].granted ? {granted: true} : {}), resourceId: freeCastResource(identifierOf(document))}} : {}),
+          ...(FREE_CASTS[identifierOf(document)].granted ? {granted: true} : {}),
+          ...(FREE_CASTS[identifierOf(document)].fromFeatures ? {fromFeatures: [...FREE_CASTS[identifierOf(document)].fromFeatures]} : {}),
+          resourceId: freeCastResource(identifierOf(document))}} : {}),
         ...(FEAT_ADVANCEMENT[identifierOf(document)]?.castingAbilities
           ? {castingAbilities: [...FEAT_ADVANCEMENT[identifierOf(document)].castingAbilities]} : {}),
         // The Diviner's Portent (a monster's, used when it sees a roll, is an Action of its own).
@@ -2454,6 +2486,19 @@ function bearerHealingRules(text, base) {
   const temporary = sentences.some(sentence => /\bgain Temporary Hit Points\b/u.test(sentence));
   return [{schemaVersion: 1, id: `${base || "rule"}-no-healing`, type: "ResourceCap",
     data: {resources: ["healing", ...(temporary ? ["temporaryHealth"] : [])], maximum: 0}}];
+}
+
+/**
+ * A creature's own trait about other creatures' spaces (foundry-v14-occupancy): a swarm "can occupy another creature's
+ * space and vice versa" (`occupancy.share`); Incorporeal Movement "can move through other creatures and objects as if they
+ * were Difficult Terrain" (`occupancy.pass`, `occupancy.difficult`).
+ */
+function occupancyRules(text, base) {
+  const plain = String(text ?? "");
+  const domains = [...(/\bcan occupy another creature[’']s space\b/u.test(plain) ? ["occupancy.share"] : []),
+    ...(/\bcan move through other creatures\b/u.test(plain) ? ["occupancy.pass", "occupancy.difficult"] : [])];
+  return domains.map(domain => ({schemaVersion: 1, id: `${base || "rule"}-${domain.replaceAll(".", "-")}`, type: "Modifier",
+    data: {domains: [domain], modifierType: "untyped", value: 1}}));
 }
 
 /**
@@ -2947,10 +2992,14 @@ const TRAITS = Object.freeze({
   // Arcane Recovery and Natural Recovery's slots, chosen when a Short Rest ends (slotRecovery).
   "arcane-recovery": (document, {activities}) => ({...slotRecovery({id: "arcane-recovery-slots", poolId: "arcane-recovery",
     label: document.name, classId: "wizard", ownPool: true}), consumes: activities.filter(entry => entry.type === "utility")}),
+  // Its free Circle Spell is a free cast (FREE_CASTS).
   "natural-recovery": (document, {activities}) => ({...slotRecovery({id: "natural-recovery-slots", poolId: "natural-recovery-recover-spell-slots",
-    label: "Natural Recovery (Recover Spell Slots)", classId: "druid"}), consumes: activities.filter(entry => entry.name === "Recover Spell Slots"),
-    // Its free Circle Spell waits on Circle of the Land's spells (Q9).
-    notes: ['"Cast Spell" is passive or triggered: not automated']}),
+    label: "Natural Recovery (Recover Spell Slots)", classId: "druid"}),
+    consumes: activities.filter(entry => ["Recover Spell Slots", "Cast Spell"].includes(entry.name))}),
+  // 2024 Circle of the Land Spells: "Whenever you finish a Long Rest, choose one type of land ... you have the spells listed
+  // for your Druid level and lower prepared."
+  "circle-of-the-land-spells": document => ({rules: [longRestGrantChoice(document, {id: "circle-of-the-land-spells", choiceId: "land",
+    label: "Land", classId: "druid"})], notes: []}),
   // 2024 Boon of Fate: its use comes back when it rolls Initiative, as on a Short Rest.
   "boon-of-fate": () => ({rules: [{schemaVersion: 1, id: "boon-of-fate-initiative", type: "Trigger", data: {kind: "automation",
     event: "initiative.rolled", predicate: {all: [{poolBelowMax: "boon-of-fate"}]}, action: {schemaVersion: 1,
@@ -5504,6 +5553,9 @@ export function effectRules(effect, notes=[], {scales={}, text=""}={}) {
       modifier(["carrying.size"], 1);
     } else if ( ["flags.dnd5e.diamondSoul", "flags.dnd5e.halflingLucky"].includes(key) ) {
       // Disciplined Survivor's saves are its training (trainingKeys), Luck its test offer (HALFLING_LUCK).
+    } else if ( key === "flags.dnd5e.halflingNimbleness" ) {
+      // Halfling Nimbleness: through the space of any larger creature, without stopping there (foundry-v14-occupancy).
+      modifier(["occupancy.pass.larger"], {type: "constant", value: 1});
     } else if ( key === "flags.dnd5e.reliableTalent" ) {
       // 2024 Reliable Talent: on a check with a skill proficiency, a d20 of 9 or lower counts as 10.
       rule("RollOutcome", {domains: ["check.proficient"], outcome: "minimum-natural", threshold: 10});
@@ -5645,11 +5697,15 @@ function templateText(template={}) {
  * The source's own description with dnd5e's enrichers resolved: links become their labels, and inline rolls,
  * stat-block attacks, damage, saves and checks become the words dnd5e shows. A creature's numbers come from it.
  */
+/** Features WildPath automates where dnd5e's GM note says it does not, or says to track it by hand: the note goes. */
+const AUTOMATED_NOTES = new Set(["circle-of-the-land-spells", "natural-recovery"]);
+
 /**
  * A feature's text where WildPath's rules differ from the book's (maintainer decisions): the Defense Fighting Style's
  * +1 AC needs no armor (2026-10-15), so its armor clause and dnd5e's note about turning the effect off go.
  */
 export function houseText(document, html) {
+  if ( AUTOMATED_NOTES.has(identifierOf(document)) ) return html.replace(/<section[^>]*class="secret"[^>]*>[\s\S]*?<\/section>/gu, "");
   if ( (document.type !== "feat") || (document.system?.type?.subtype !== "fightingStyle") || (document.name !== "Defense") ) return html;
   return html.replace(/While you(?:'re|’re| are) wearing [^<.]*?armor, you gain/u, "You gain")
     .replace(/<section[^>]*class="secret"[^>]*>[\s\S]*?<\/section>/gu, "");

@@ -1,7 +1,7 @@
 import {mkdirSync, readFileSync, rmSync, writeFileSync} from "node:fs";
 import {contentStamp} from "./content-stamp.mjs";
 import {join} from "node:path";
-import {spellListsOf, PROGRESSION_TYPES, baseWeapons, beastsOf, convertActor, convertItem, convertProgression, convertTable, isSrd2024, nameIndex, scaleTables, slugify,
+import {spellListsOf, PROGRESSION_TYPES, baseWeapons, beastsOf, convertActor, convertItem, convertProgression, convertTable, isSrd2024, mapGrantItems, nameIndex, scaleTables, slugify,
   withRedirects} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 
@@ -81,6 +81,7 @@ for ( const pack of ITEM_PACKS ) {
 }
 // Classes, subclasses, species and backgrounds (G8), granting what was converted above.
 const uuidOf = uuid => (convertedIds.get(String(uuid).split(".").pop()) ?? []).map(id => `Compendium.wildpath.srd-items.Item.${id}`);
+mapGrantItems(items, uuidOf);
 for ( const pack of ITEM_PACKS ) {
   for ( const document of readPack(from, pack).filter(wanted) ) {
     if ( !PROGRESSION_TYPES[document.type] ) continue;

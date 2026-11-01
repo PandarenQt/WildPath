@@ -20,6 +20,14 @@
         "Name": "Shove as a Bonus Action (Baldur's Gate 3)",
         "Hint": "An optional rule from Baldur's Gate 3. On: Shove (to knock Prone or push 5 feet) costs a Bonus Action instead of an Action. Off: it takes an Action, as in the 2024 rules."
       },
+      "CreaturesBlockMovement": {
+        "Name": "Creatures block movement",
+        "Hint": "On: a creature can't move through a hostile creature's space unless that creature is Tiny or they are two sizes apart, and no creature can end its move in another's space. The GM's own drags are not checked. Off: any creature may move through or stop in any space."
+      },
+      "CreatureSpaceDifficultTerrain": {
+        "Name": "Moving through another creature is Difficult Terrain",
+        "Hint": "On: each step into the space of a creature that isn't Tiny or an ally costs twice the movement, as in the 2024 rules. Off: it costs nothing extra."
+      },
       "HighGround": {
         "Name": "High ground (Baldur's Gate 3)",
         "Hint": "An optional rule from Baldur's Gate 3. On: an attack from 8 feet or more above its target gets +2 to its attack roll, and one from 8 feet or more below gets -2. Off: height gives no bonus, as in the 2024 rules."

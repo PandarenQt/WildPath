@@ -153,6 +153,9 @@ export function normalizeActionDefinition(rawDefinition={}, {
     // Enchants one of its creature's Items (an Artificer's infusion: inventory.md): the Item its `choiceId` choice picked
     // gets the effect whose `level` range holds its creature's class level; at most `limit` with its `key` at once.
     ...(raw.enchant ? {enchant: normalizePlainComponent(raw.enchant)} : {}),
+    // Items its creature has while it lasts (a rest's choice: Circle of the Land Spells): the option its `choiceId` choice
+    // picked, `options.<value>` rows keyed by `class` level, each row's Item uuids from that level (runtime grantChosenItems).
+    ...(raw.grantItems ? {grantItems: normalizePlainComponent(raw.grantItems)} : {}),
     ...(raw.stabilize === true ? {stabilize: true} : {}),
     // A reaction whose target failing its save cancels the Action that triggered it (2024 Counterspell).
     ...(raw.counters === true ? {counters: true} : {}),
@@ -223,6 +226,9 @@ export function validateActionDefinition(rawDefinition={}, options={}) {
   }
   validateSummon(definition.summon, errors);
   validateEnchant(definition.enchant, errors);
+  if ( definition.grantItems && ((typeof definition.grantItems.choiceId !== "string") || !isPlainObject(definition.grantItems.options)) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "grantItems", "A grant names its choice and the Items of each option."));
+  }
   validatePush(definition.push, errors);
   validateTargetChoice(definition.targetChoice, errors);
   if ( definition.teleport && !(Number(definition.teleport.distance) > 0) ) {
@@ -466,7 +472,8 @@ function withSpellChoices(raw, item) {
 /**
  * A spell a feature lets its creature cast once without a slot (`flags.wildpath.freeCast: {spells, resourceId}` on an active
  * feature: Faithful Steed's Find Steed, once per Long Rest; `granted: true` for the spells the feature gave, Magic
- * Initiate's level 1 spell): its slot choice may spend that pool instead, at the spell's own level, while the pool is there.
+ * Initiate's level 1 spell; `fromFeatures` for those the features with these identifiers gave, Natural Recovery's Circle
+ * Spells): its slot choice may spend that pool instead, at the spell's own level, while the pool is there.
  */
 function withFreeCasts(raw, item) {
   const identifier = item?.flags?.wildpath?.source?.identifier;
@@ -474,9 +481,13 @@ function withFreeCasts(raw, item) {
   const level = choice ? spellBaseLevel(raw) : null;
   if ( !level ) return raw;
   const pools = new Set((item.actor?.system?.pools ?? []).map(pool => pool.id));
+  // The feature that gave it, by identifier (`fromFeatures`: Natural Recovery's Circle Spells).
+  const grantor = [...(item.actor?.items ?? [])].find(entry => entry?.id && (entry.id === item.flags?.wildpath?.grantedBy))
+    ?.flags?.wildpath?.source?.identifier ?? null;
   const capabilities = [...new Set([...(item.actor?.items ?? [])].filter(entry => entry?.system?.active !== false)
     .filter(entry => entry?.flags?.wildpath?.freeCast?.spells?.includes(identifier)
-      || (entry?.flags?.wildpath?.freeCast?.granted && entry.id && (entry.id === item.flags?.wildpath?.grantedBy)))
+      || (entry?.flags?.wildpath?.freeCast?.granted && entry.id && (entry.id === item.flags?.wildpath?.grantedBy))
+      || (grantor && entry?.flags?.wildpath?.freeCast?.fromFeatures?.includes(grantor)))
     // Each copy's own pool (`{item}`: Magic Initiate taken twice).
     .map(entry => String(entry.flags.wildpath.freeCast.resourceId).replaceAll("{item}", String(entry.id ?? "")))
     .filter(resourceId => pools.has(resourceId)))];

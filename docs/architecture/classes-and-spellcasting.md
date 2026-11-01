@@ -293,6 +293,23 @@ needing Warlock levels was offered. Armor of Shadows was added.
     (a GrantResource on it) gives the named spells' slot choice one more branch, paid from the pool at the spell's own
     level (`withFreeCasts`). Faithful Steed: Find Steed once per Long Rest (`free-cast.faithful-steed`); its paladin class
     grants the spell, so it is always prepared.
+    `fromFeatures: [<identifier>]` names the spells the features with those identifiers gave instead (the spell's
+    `grantedBy` Item's identifier).
+  - **A choice at each Long Rest that gives Items (2026-11-01, Q9).** An Action's `grantItems: {choiceId, class?,
+    options: {<value>: {<level>: [uuid, ...]}}}` (action-definitions; runtime `grantChosenItems`, once it completes):
+    the creature gets the rows of the option its `choiceId` choice picked up to its `class` level (every row without
+    one), as compendium copies granted by the feature whose Trigger the Action is (or the Action Item), so they go with
+    it and its spells are always prepared. What the other options gave before goes; what the chosen one gives already
+    stays. 2024 Circle of the Land Spells: a `rest.completed` Trigger on `longRest` asks the land (Arid, Polar,
+    Temperate, Tropical Land); the converter reads each land's table from the feature's description (its linked spells,
+    by druid level), and the drivers map them to the Items they became (`mapGrantItems`). A druid 5 choosing Polar has
+    Fog Cloud, Hold Person, Ray of Frost and Sleet Storm; Arid at the next Long Rest swaps them for Blur, Burning Hands,
+    Fire Bolt and Fireball. 2024 Natural Recovery: `freeCast: {fromFeatures: ["circle-of-the-land-spells"]}` with
+    `free-cast.natural-recovery` (1, Long Rest), so one level 1+ Circle Spell casts once without a slot, at its own
+    level; another spell does not. The feature keeps the land chosen (`flags.wildpath.grantChoice.<choiceId>`), so the
+    level-up dialog adds a new druid level's row at once (`grantItemsFor`), and asks the land when the feature first comes
+    (a druid made at level 3 or higher, or one just taking the Circle); dnd5e's GM notes on both features go
+    (`AUTOMATED_NOTES`).
 - **The pool chosen pays.** A resource choice's option is paid from the pool it named (`resourceId` on the requirement),
   not from another pool with the same capability: Pact Magic slots chosen are not swapped for a level-1 slot.
 

@@ -3,7 +3,7 @@ import {tmpdir} from "node:os";
 import {join, resolve} from "node:path";
 import {contentStamp} from "./content-stamp.mjs";
 import {extractPack} from "@foundryvtt/foundryvtt-cli";
-import {spellListsOf, convertTable, PROGRESSION_TYPES, baseWeapons, beastsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, nameIndex, scaleTables,
+import {spellListsOf, convertTable, PROGRESSION_TYPES, baseWeapons, beastsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, mapGrantItems, nameIndex, scaleTables,
   withRedirects} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 import {insideRepository, writeLocalModule} from "./local-module.mjs";
@@ -117,6 +117,7 @@ const uuidOf = uuid => {
   if ( convertedIds.has(id) ) return convertedIds.get(id).map(entry => `Compendium.wildpath-${moduleId}.items.Item.${entry}`);
   return String(uuid).startsWith("Compendium.dnd5e.") ? [`Compendium.wildpath.srd-items.Item.${id}`] : [];
 };
+mapGrantItems(items, uuidOf);
 for ( const pack of manifest.packs ?? [] ) {
   if ( pack.type !== "Item" ) continue;
   for ( const document of documents(pack) ) {

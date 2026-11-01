@@ -7,7 +7,20 @@
   "system": {
     "active": true,
     "description": "<p>You can move through the space of any creature that is a size larger than you, but you can't stop in the same space.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "halfling-nimbleness-1",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "occupancy.pass.larger"
+          ],
+          "modifierType": "untyped",
+          "value": 1
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -23,9 +36,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Halfling Nimbleness\" change flags.dnd5e.halflingNimbleness (override) not converted"
-        ]
+        "notes": []
       }
     }
   }

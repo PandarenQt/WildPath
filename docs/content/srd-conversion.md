@@ -745,7 +745,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Half Plate Armor | equipment24 | Half Plate Armor (gear) | — |
 | Half-Dragon | actors24 | Half-Dragon (6 items) | Leap: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Halfling | origins24 | Halfling (species) | — |
-| Halfling Nimbleness | origins24 | Halfling Nimbleness (feature) | effect: "Halfling Nimbleness" change flags.dnd5e.halflingNimbleness (override) not converted |
+| Halfling Nimbleness | origins24 | Halfling Nimbleness (feature) | — |
 | Hallow | spells24 | Hallow (manual) | not automated (utility): using it spends its cost; its description says the rest; activation: 24 hour is not an action-economy cost |
 | Hallucinatory Terrain | spells24 | Hallucinatory Terrain (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
 | Hammer of Thunderbolts | equipment24 | Hammer of Thunderbolts (Hurl Hammer) (automated), Hammer of Thunderbolts (Giants' Bane (On Crit)) (automated) | "Hammer of Thunderbolts" is passive or triggered: not automated |
@@ -1022,7 +1022,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Mysterious Deck | equipment24 | Mysterious Deck (gear) | "Check Deck Size" is passive or triggered (narrative): not automated; "Draw Cards" is passive or triggered (narrative): not automated |
 | Mystic Arcanum | classes24 | Mystic Arcanum (feature) | — |
 | Nalfeshnee | actors24 | Nalfeshnee (8 items) | Pursuit: not automated (utility): using it spends its cost; its description says the rest |
-| Natural Recovery | classes24 | Natural Recovery (feature) | "Cast Spell" is passive or triggered: not automated |
+| Natural Recovery | classes24 | Natural Recovery (feature) | — |
 | Naturally Stealthy | origins24 | Naturally Stealthy (feature) | — |
 | Nature's Sanctuary | classes24 | Nature's Sanctuary (Spectral Trees and Vines) (automated), Nature's Sanctuary (Move) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Nature's Veil | classes24 | Nature's Veil (automated) | — |
@@ -1487,13 +1487,13 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Supreme Healing | classes24 | Supreme Healing (feature) | — |
 | Supreme Sneak | classes24 | Supreme Sneak (feature) | — |
 | Survivor | classes24 | Survivor (feature) | — |
-| Swarm of Bats | actors24 | Swarm of Bats (4 items) | Swarm: swarm: sharing another creature's space is by hand |
-| Swarm of Crawling Claws | actors24 | Swarm of Crawling Claws (4 items) | Swarm: swarm: sharing another creature's space is by hand |
-| Swarm of Insects | actors24 | Swarm of Insects (5 items) | Swarm: swarm: sharing another creature's space is by hand |
-| Swarm of Piranhas | actors24 | Swarm of Piranhas (5 items) | Swarm: swarm: sharing another creature's space is by hand |
-| Swarm of Rats | actors24 | Swarm of Rats (4 items) | Swarm: swarm: sharing another creature's space is by hand |
-| Swarm of Ravens | actors24 | Swarm of Ravens (5 items) | Swarm: swarm: sharing another creature's space is by hand |
-| Swarm of Venomous Snakes | actors24 | Swarm of Venomous Snakes (4 items) | Swarm: swarm: sharing another creature's space is by hand |
+| Swarm of Bats | actors24 | Swarm of Bats (4 items) | — |
+| Swarm of Crawling Claws | actors24 | Swarm of Crawling Claws (4 items) | — |
+| Swarm of Insects | actors24 | Swarm of Insects (5 items) | — |
+| Swarm of Piranhas | actors24 | Swarm of Piranhas (5 items) | — |
+| Swarm of Rats | actors24 | Swarm of Rats (4 items) | — |
+| Swarm of Ravens | actors24 | Swarm of Ravens (5 items) | — |
+| Swarm of Venomous Snakes | actors24 | Swarm of Venomous Snakes (4 items) | — |
 | Sword of Life Stealing | equipment24 | Sword of Life Stealing (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Sword of Sharpness | equipment24 | Sword of Sharpness (manual) | not automated (enchant): using it spends its cost; its description says the rest |
 | Sword of Wounding | equipment24 | Sword of Wounding (Sword of Wounding Save) (automated) | "Sword of Wounding" is passive or triggered: not automated |

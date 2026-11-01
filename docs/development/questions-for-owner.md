@@ -70,6 +70,9 @@ end its move in an occupied space. Swarms (and a few others) ignore these.
 - Recommendation: yes, as an `occupancyPolicy` from the runtime, with a world setting "Creatures block movement" (on by
   default), the GM's own drags exempt, and a `swarm` trait (from the stat block's type) that ignores it.
 - **Answered 2026-10-31: the recommendation; keep the exceptions features give, and make the Difficult Terrain of moving through a creature optional (plan 3.4).**
+  Built 2026-11-01: `creatureOccupancyPolicy`, the settings "Creatures block movement" and "Moving through another
+  creature is Difficult Terrain", and `occupancy.*` Modifiers for swarms, Incorporeal Movement and Halfling Nimbleness
+  (movement-paths.md, "Creatures' spaces").
 
 ### Q6. Vehicles and mythic phases: four choices before building (plan 5.1) (2026-10-31)
 The design is in `docs/architecture/vehicles-and-mythic.md`. SRD 5.2 has 8 ships (numbers only: AC, HP, Damage
@@ -123,7 +126,8 @@ Circle Spells: the land is chosen at each Long Rest, and its spells aren't grant
     reads the mark.
 - Done meanwhile: nothing; both stay by hand.
 - Recommendation: (a); it removes two gaps and fits "nothing by hand". (b) only if (a) waits long.
-- **Answered 2026-10-31: (a) (plan 7.7).**
+- **Answered 2026-10-31: (a) (plan 7.7).** Built 2026-11-01: `grantItems`, Circle of the Land Spells' land at each Long
+  Rest and Natural Recovery's free cast (classes-and-spellcasting.md).
 
 ### Q10. Overchannel: an Action that damages its own caster (Evoker 14) (2026-10-31)
 2024 Overchannel: a wizard spell of level 1-5 that deals damage deals maximum damage; each later use before a Long Rest

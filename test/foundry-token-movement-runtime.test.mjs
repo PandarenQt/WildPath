@@ -753,6 +753,27 @@ test("movement with an empty reaction provider retains the uninterrupted no-trig
   assert.equal(fixture.semanticEvents.player.length, 0);
 });
 
+test("the runtime supplies creatures' spaces: a hostile Token blocks a Player's move, unless the world turns it off or the GM drags", async () => {
+  const approve = async ({blocks=null, user=PLAYER, disposition=-1, to=2}={}) => {
+    const fixture = createMovementRuntimeFixture();
+    const orc = fakeTokenDocument({id: "orc", actor: fakeActor("orc", {owners: []}), scene: fixture.scene, offset: {i: 1, j: 0}});
+    orc.disposition = disposition;
+    const settings = fixture.gmGame.settings.get;
+    fixture.gmGame.settings.get = (namespace, key) => ((key === "creaturesBlockMovement") && (blocks !== null) ? blocks
+      : settings(namespace, key));
+    const game = (user === GM) ? fixture.gmGame : fixture.playerGame;
+    const {intent} = buildFoundryMovementIntent({tokenDocument: fixture.token,
+      movement: movementOperation(fixture.token, {offsets: [{i: to, j: 0}]}), user, game});
+    return ((user === GM) ? fixture.gmAuthority : fixture.playerAuthority).requestMovementApproval(intent);
+  };
+  const blocked = await approve();
+  assert.deepEqual([blocked.approved, blocked.code], [false, "OCCUPANCY_BLOCKED"], "through a hostile Medium creature");
+  assert.equal((await approve({disposition: 1})).approved, true, "through an ally");
+  assert.equal((await approve({disposition: 1, to: 1})).approved, false, "ending in an ally's space");
+  assert.equal((await approve({blocks: false})).approved, true, "the world setting off: as before");
+  assert.equal((await approve({user: GM})).approved, true, "the GM's own drag");
+});
+
 /* -------------------------------------------- */
 /*  Fixtures                                    */
 /* -------------------------------------------- */

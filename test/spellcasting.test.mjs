@@ -279,3 +279,56 @@ test("2014 Long Rest: spent Hit Dice back up to half of all of them, at least on
     {"hit-die.d10": 3, "hit-die.d6": 2}, "one d10 is spent, the rest go to the d6s");
   assert.deepEqual(longRestHitDice([{id: "hit-die.d8", value: 0, max: 1}]), {"hit-die.d8": 1}, "at least one");
 });
+
+test("Circle of the Land: the land chosen at a Long Rest gives its spells to the druid level; Natural Recovery casts one free", async () => {
+  const fs = await import("node:fs");
+  const {actionDefinitionFromItem, validateActionDefinition} = await import("../module/helpers/action-definitions.mjs");
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const {grantChosenItems, grantItemsFor} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const {preparesSpell} = await import("../module/helpers/spellcasting.mjs");
+  const files = fs.readdirSync("packs/_source/srd-items");
+  const read = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${files.find(file => file.startsWith(prefix))}`, "utf8"));
+  const byId = id => JSON.parse(fs.readFileSync(`packs/_source/srd-items/${files.find(file => file.endsWith(`-${id}.json`))}`, "utf8"));
+  const land = {...read("circle-of-the-land-spells-phb"), id: "land",
+    async update(data) { for ( const [path, value] of Object.entries(data) ) this.flags.wildpath.grantChoice = {[path.split(".").pop()]: value}; }};
+  const recovery = {...read("natural-recovery-phb"), id: "recovery"};
+  const [trigger] = land.system.ruleElements;
+  assert.deepEqual([trigger.data.event, trigger.data.predicate.equals.value], ["rest.completed", "longRest"]);
+  const definition = trigger.data.action;
+  assert.equal(validateActionDefinition(definition).ok, true);
+  assert.equal(validateActionDefinition({...definition, grantItems: {options: {}}}).ok, false, "a grant names its choice");
+  let next = 0;
+  const druid = {items: [land, recovery], system: {classes: [{id: "druid", level: 5}],
+    pools: [{id: "free-cast.natural-recovery", value: 1, max: 1}]},
+  async createEmbeddedDocuments(type, data) { this.items.push(...data.map(entry => ({...entry, id: `granted${++next}`, actor: this}))); },
+  async deleteEmbeddedDocuments(type, ids) { this.items = this.items.filter(item => !ids.includes(item.id)); }};
+  const deps = {fromUuid: async uuid => ({...byId(uuid.split(".").pop()), uuid}),
+    game: {items: {fromCompendium: document => ({name: document.name, type: document.type, system: document.system,
+      flags: document.flags, _stats: {compendiumSource: document.uuid}})}}};
+  const rest = async value => grantChosenItems({options: {actor: druid},
+    state: {actionDefinition: definition, configuration: resolveActionConfiguration({actionDefinition: definition, responses: {land: value}}).configuration}},
+  deps);
+  const granted = () => druid.items.filter(item => item.flags?.wildpath?.grantedBy === "land").map(item => item.name).sort();
+  await rest("polar-land");
+  assert.deepEqual(granted(), ["Fog Cloud", "Hold Person", "Ray of Frost", "Sleet Storm"], "Polar to druid level 5, not Ice Storm");
+  await rest("arid-land");
+  assert.deepEqual(granted(), ["Blur", "Burning Hands", "Fire Bolt", "Fireball"], "Arid replaces Polar");
+  assert.equal(land.flags.wildpath.grantChoice.land, "arid-land", "the feature keeps the land chosen");
+  // A level-up brings the kept land's rows to the new druid level, without waiting for a Long Rest.
+  druid.system.classes = [{id: "druid", level: 7}];
+  await grantItemsFor(druid, land, definition.grantItems, land.flags.wildpath.grantChoice.land, deps);
+  assert.deepEqual(granted(), ["Blight", "Blur", "Burning Hands", "Fire Bolt", "Fireball"], "druid level 7 adds Blight");
+  const fireball = druid.items.find(item => item.name === "Fireball");
+  assert.equal(preparesSpell(fireball), false, "always prepared");
+  const slot = spell => actionDefinitionFromItem(spell).definition.configuration.find(choice => choice.id === "spell-slot");
+  const free = spell => slot(spell).levelByResourceId?.["free-cast.natural-recovery"];
+  assert.equal(free(fireball), 3, "a Circle Spell, free once at its own level");
+  assert.equal(free(druid.items.find(item => item.name === "Blur")), 2);
+  assert.equal(free({...byId("phbsplAid0000000"), actor: druid}), undefined, "not another spell");
+  assert.equal(free({...fireball, flags: {...fireball.flags, wildpath: {...fireball.flags.wildpath, grantedBy: null}}}), undefined,
+    "not its own Fireball");
+  assert.deepEqual(recovery.system.ruleElements.find(rule => rule.data.resourceId === "free-cast.natural-recovery").data,
+    {resourceId: "free-cast.natural-recovery", label: "Natural Recovery", maximum: 1, recovery: "longRest"}, "once per Long Rest");
+  druid.system.pools = [];
+  assert.equal(free(fireball), undefined, "spent");
+});

@@ -77,6 +77,18 @@
               ],
               "maximum": 0
             }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "swarm-occupancy-share",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "occupancy.share"
+              ],
+              "modifierType": "untyped",
+              "value": 1
+            }
           }
         ]
       },
@@ -94,9 +106,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "swarm: sharing another creature's space is by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -310,9 +320,7 @@
         "challenge": 2
       },
       "conversion": {
-        "notes": [
-          "Swarm: swarm: sharing another creature's space is by hand"
-        ]
+        "notes": []
       }
     }
   }

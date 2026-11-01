@@ -6,6 +6,7 @@ import { choiceOptions, groupedOptions, spellChoiceOptions, hitPointsForLevel, i
 import { hitDiePoolId } from "../helpers/spellcasting.mjs";
 import { actorAbilityModifier } from "../helpers/combat-statistics.mjs";
 import { classRecordsFromItems } from "../documents/actor.mjs";
+import { grantItemsFor } from "../resolvers/foundry-multiplayer-runtime.mjs";
 const globals = () => globalThis;
 const localize = (key) => globals().game.i18n.localize(key);
 const format = (key, data) => globals().game.i18n.format(key, data);
@@ -405,5 +406,37 @@ async function apply(actor, item, { level, steps, form, first, hitDie, fortitude
         if (created)
             await levelUp(actor, created, { level, confirm: false });
     }
+    await levelChoiceGrants(actor);
     return true;
+}
+/**
+ * A feature whose choice gives Items by class level (`grantItems`: Circle of the Land Spells, chosen again at each Long
+ * Rest) has the rows of its kept choice up to the level just reached; one just added is asked its choice now.
+ */
+async function levelChoiceGrants(actor) {
+    const { foundry: { applications: { api: { DialogV2 } } } } = globals();
+    await actor.recordsSettled?.();
+    for (const owner of actor.items.filter(entry => entry.system.active !== false)) {
+        for (const action of (owner.system.ruleElements ?? []).map(rule => rule?.data?.action)) {
+            const spec = action?.grantItems;
+            if (!spec)
+                continue;
+            let value = owner.flags?.wildpath?.grantChoice?.[spec.choiceId] ?? null;
+            if (!value) {
+                const choice = action.configuration?.find(entry => entry.id === spec.choiceId);
+                const options = (choice?.options ?? []).map(option => `<option value="${escape(option.value)}">${escape(option.label ?? option.value)}</option>`).join("");
+                const form = await DialogV2.wait({ classes: ["wildpath", "themed", "theme-light"],
+                    window: { title: format("WILDPATH.LEVELUP.Origin", { name: action.label ?? owner.name }) }, position: { width: 400 },
+                    content: `<div class="wildpath level-up"><label>${escape(choice?.label ?? "")} <select name="value">${options}</select></label></div>`,
+                    buttons: [{ action: "ok", label: localize("WILDPATH.LEVELUP.Confirm"), default: true,
+                            callback: (_event, button) => (button.form ? new FormData(button.form) : null) }],
+                    rejectClose: false });
+                value = (form instanceof FormData) ? String(form.get("value") ?? "") : "";
+                if (!value)
+                    continue;
+                await owner.update({ [`flags.wildpath.grantChoice.${spec.choiceId}`]: value });
+            }
+            await grantItemsFor(actor, owner, spec, value);
+        }
+    }
 }

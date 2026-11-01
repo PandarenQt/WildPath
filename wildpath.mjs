@@ -218,6 +218,26 @@ Hooks.once("init", () => {
     default: false
   });
 
+  // 2024 creatures' spaces in movement (foundry-v14-occupancy): on by default; off, any creature may move anywhere.
+  game.settings.register("wildpath", "creaturesBlockMovement", {
+    name: "WILDPATH.SETTINGS.CreaturesBlockMovement.Name",
+    hint: "WILDPATH.SETTINGS.CreaturesBlockMovement.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true
+  });
+
+  // 2024 optional (owner's Q5, off by default): another creature's space is Difficult Terrain.
+  game.settings.register("wildpath", "creatureSpaceDifficultTerrain", {
+    name: "WILDPATH.SETTINGS.CreatureSpaceDifficultTerrain.Name",
+    hint: "WILDPATH.SETTINGS.CreatureSpaceDifficultTerrain.Hint",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false
+  });
+
   // Baldur's Gate 3 rule (B3, off by default): +2 to attack rolls from 8 feet or more above the target, -2 from below.
   game.settings.register("wildpath", "highGround", {
     name: "WILDPATH.SETTINGS.HighGround.Name",

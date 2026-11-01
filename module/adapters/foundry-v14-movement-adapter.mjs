@@ -17,6 +17,7 @@ import {movementAllowance} from "../helpers/movement-modes.mjs";
 import {movementTracked} from "../helpers/combat.mjs";
 import {directedMovementPolicy} from "./foundry-v14-fear.mjs";
 import {difficultTerrainPolicy} from "./foundry-v14-terrain.mjs";
+import {creatureOccupancyPolicy, creatureSpaceTerrainPolicy} from "./foundry-v14-occupancy.mjs";
 import {
   createMovementPath,
   evaluateMovementPath
@@ -499,9 +500,19 @@ export async function authorizeFoundryMovementIntent({
   if ( !transitionPolicy && (documents.intent.movementKind === MOVEMENT_KINDS.VOLUNTARY) ) {
     transitionPolicy = directedMovementPolicy(documents.token);
   }
-  // 2024 Difficult Terrain: a step into it costs 1 extra foot per foot (foundry-v14-terrain.mts).
+  // 2024 Difficult Terrain: a step into it costs 1 extra foot per foot (foundry-v14-terrain.mts); another creature's space
+  // too, with the world's optional rule on (foundry-v14-occupancy.mts).
   if ( !stepCostPolicy && (documents.intent.movementKind === MOVEMENT_KINDS.VOLUNTARY) ) {
-    stepCostPolicy = difficultTerrainPolicy(documents.token);
+    stepCostPolicy = creatureSpaceTerrainPolicy(documents.token, difficultTerrainPolicy(documents.token),
+      {always: game?.settings?.get?.("wildpath", "creatureSpaceDifficultTerrain") === true,
+        elevation: documents.intent.destination?.elevation});
+  }
+  // 2024 creatures' spaces: not through a hostile one, never ending in one. The world may turn it off; the GM's own drags
+  // place a Token anywhere.
+  if ( !occupancyPolicy && (documents.intent.movementKind === MOVEMENT_KINDS.VOLUNTARY)
+    && (game?.settings?.get?.("wildpath", "creaturesBlockMovement") !== false)
+    && !game?.users?.get?.(documents.intent.sourceUserId)?.isGM ) {
+    occupancyPolicy = creatureOccupancyPolicy(documents.token, {elevation: documents.intent.destination?.elevation});
   }
   const resolvedMode = resolveMovementMeasurementMode({game, measurementMode});
   const budgetResult = movementBudgetForActor({

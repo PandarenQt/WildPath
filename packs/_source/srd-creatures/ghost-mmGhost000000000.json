@@ -100,7 +100,32 @@
       "system": {
         "active": true,
         "description": "<p>The ghost can move through other creatures and objects as if they were Difficult. It takes  damage if it ends its turn inside an object.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "incorporeal-movement-occupancy-pass",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "occupancy.pass"
+              ],
+              "modifierType": "untyped",
+              "value": 1
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "incorporeal-movement-occupancy-difficult",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "occupancy.difficult"
+              ],
+              "modifierType": "untyped",
+              "value": 1
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {

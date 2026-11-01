@@ -70,7 +70,32 @@
       "system": {
         "active": true,
         "description": "<p>The avatar can move through other creatures and objects as if they were DifficultTerrain. It takes 5 (1d10) Force damage if it ends its turn inside <span class=\"no-break\">an object.</span></p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "incorporeal-movement-occupancy-pass",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "occupancy.pass"
+              ],
+              "modifierType": "untyped",
+              "value": 1
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "incorporeal-movement-occupancy-difficult",
+            "type": "Modifier",
+            "data": {
+              "domains": [
+                "occupancy.difficult"
+              ],
+              "modifierType": "untyped",
+              "value": 1
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {

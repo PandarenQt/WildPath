@@ -189,6 +189,7 @@ export function registerFoundryV14MultiplayerResolution({
       await areas.afterResolution(event);
       await dying.afterResolution(event);
       await applyActionTransformation(event, {logger});
+      await grantChosenItems(event);
       await summons.afterResolution(event);
       await enchantments.afterResolution(event);
       await spendAmmunition(event, {game});
@@ -1506,6 +1507,51 @@ export async function recordAttackTurn({options, state}={}, {game=globalThis.gam
   const turn = combatTurnKey(game);
   if ( !turn || (typeof actor?.setFlag !== "function") || !state?.results?.attackResolution?.ok ) return;
   if ( actor.flags?.wildpath?.attackTurn !== turn ) await actor.setFlag("wildpath", "attackTurn", turn);
+}
+
+/**
+ * An Action giving its creature the Items its choice picked (`grantItems`: Circle of the Land Spells, as each Long Rest
+ * ends): once it completes, granted by the feature whose rule the Action is (or the Action Item itself), which keeps the
+ * choice (`flags.wildpath.grantChoice.<choiceId>`) so a level-up brings its rows to the new level (grantItemsFor).
+ */
+export async function grantChosenItems({options, state}={}, deps={}) {
+  const spec = state?.actionDefinition?.grantItems;
+  const actor = options?.actor ?? null;
+  const value = spec ? chosenFormRef({choiceId: spec.choiceId}, state.configuration?.choices) : null;
+  if ( !spec?.options?.[value] || (typeof actor?.createEmbeddedDocuments !== "function") ) return null;
+  const id = state.actionDefinition.id;
+  const granter = [...(actor.items ?? [])].find(item => (item.system?.ruleElements ?? []).some(rule => rule?.data?.action?.id === id))
+    ?? actor.items?.get?.(options.action?.id) ?? null;
+  if ( !granter ) return null;
+  if ( (granter.flags?.wildpath?.grantChoice?.[spec.choiceId] !== value) && (typeof granter.update === "function") ) {
+    await granter.update({[`flags.wildpath.grantChoice.${spec.choiceId}`]: value});
+  }
+  return grantItemsFor(actor, granter, spec, value, deps);
+}
+
+/**
+ * The Items `granter`'s `grantItems` option `value` gives its creature: its rows up to the `class` level (every row
+ * without one), granted by `granter`, so they go with it and a spell among them is always prepared. What the other options
+ * gave before goes; what both give stays. Its Items' own Actions come with them (WildPathItem#addGrantedActions).
+ */
+export async function grantItemsFor(actor, granter, spec, value, {fromUuid=globalThis.fromUuid, game=globalThis.game}={}) {
+  const rows = spec?.options?.[value];
+  if ( !rows ) return null;
+  const level = !spec.class ? Infinity : (actor.system?.classes ?? []).filter(entry => (entry?.id ?? entry?.identifier) === spec.class)
+    .reduce((sum, entry) => sum + (Number(entry.level ?? entry.levels) || 0), 0);
+  const wanted = Object.entries(rows).filter(([at]) => Number(at) <= level).flatMap(([, uuids]) => uuids);
+  const offered = new Set(Object.values(spec.options).flatMap(entry => Object.values(entry ?? {}).flat()));
+  const sourceOf = item => item._stats?.compendiumSource ?? null;
+  const held = [...(actor.items ?? [])].filter(item => (item.flags?.wildpath?.grantedBy === granter.id) && offered.has(sourceOf(item)));
+  const stale = held.filter(item => !wanted.includes(sourceOf(item))).map(item => item.id);
+  if ( stale.length ) await actor.deleteEmbeddedDocuments("Item", stale);
+  const documents = (await Promise.all(wanted.filter(uuid => !held.some(item => sourceOf(item) === uuid)).map(uuid => fromUuid?.(uuid))))
+    .filter(Boolean);
+  if ( !documents.length ) return null;
+  return actor.createEmbeddedDocuments("Item", documents.map(document => {
+    const data = game.items.fromCompendium(document);
+    return {...data, flags: {...data.flags, wildpath: {...data.flags?.wildpath, grantedBy: granter.id}}};
+  }));
 }
 
 /**

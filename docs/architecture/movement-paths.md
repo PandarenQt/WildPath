@@ -161,8 +161,9 @@ add `resize` as a WildPath `movementKind`.
 - `transitionPolicy`: validates a movement step from one footprint to the next.
 - `stepCostPolicy`: returns the cost of a transition.
 
-These policies can later express blocked fields, occupied fields, Tiny sharing, walls, squeezing,
-terrain, or movement-mode restrictions. They are not persisted inside `MovementPath`, and the
+The Foundry movement authority supplies the runtime's own for voluntary movement: creatures' spaces
+(`creatureOccupancyPolicy`), Frightened (`directedMovementPolicy`) and Difficult Terrain (`difficultTerrainPolicy`,
+with `creatureSpaceTerrainPolicy`). They can later express walls, squeezing, or movement-mode restrictions. They are not persisted inside `MovementPath`, and the
 returned result contains only plain data.
 
 ## Budget Integration
@@ -708,6 +709,37 @@ wall between them its attacks had no Disadvantage.
 Live (two browsers, 14.369): in combat, Player1's QA Caster walked two squares into a painted Region (walk 2) for 10 ft
 each and one square out of it for 5. With a `terrain.ignore` effect, a square into it cost 5. A Web area's Region had
 walk, fly, swim, burrow, crawl, climb and jump at 2 and blink and displace at 1.
+
+## Creatures' spaces (2026-11-01, owner's Q5)
+
+2024 "Moving Around Other Creatures" (`adapters/foundry-v14-occupancy.mts`), supplied by the movement authority as the
+`occupancyPolicy` of a voluntary move. Spaces and sizes are the tactical grid's TokenGridFootprints
+(`tokenToFootprint`, `foundryTokenCreatureSize`).
+- **Through.** A step into an ally's (or a neutral creature's) space is allowed; into a hostile one's (opposite
+  dispositions) only if it is Tiny, they are two or more sizes apart, or it is Incapacitated (incapacitated, stunned,
+  paralyzed, petrified, unconscious). A dead creature is not in the way. The origin is never checked.
+- **Height.** A creature on another Scene Level (`TokenDocument#level`), or above or below the mover (their
+  `footprint.levels` cubes don't overlap), is not in the way: a flyer passes over a hostile creature and may hover above
+  it. The mover's cubes come from its own elevation, and from the destination's on the last step; the anchors carry no
+  elevation, so a step between keeps the starting one.
+- **Ending.** The last anchor of a move may not be in another creature's space, ally or not. A move split by a reaction
+  pause is authorized as one route, so its pause is not its end.
+- **Who is checked.** Only voluntary moves: forced movement and teleports already find a free space. The world setting
+  "Creatures block movement" (`creaturesBlockMovement`, on by default) turns it off, and the GM's own drags (the intent's
+  `sourceUserId` is a GM, bound to the socket sender) are never checked.
+- **Exceptions** are Modifiers (value 1) on a creature, written by the converter: `occupancy.share` shares spaces both
+  ways, ending in one too (a swarm's "can occupy another creature's space and vice versa": the 7 SRD swarms);
+  `occupancy.pass` moves through any creature (Incorporeal Movement's "can move through other creatures": Ghost,
+  Specter, Will-o'-Wisp, Wraith, Avatar of Death); `occupancy.pass.larger` through any larger one (dnd5e's
+  `halflingNimbleness` flag: Halfling Nimbleness). None of them may stop in another's space except a swarm.
+- **Difficult Terrain.** The world setting "Moving through another creature is Difficult Terrain"
+  (`creatureSpaceDifficultTerrain`, off by default) makes a step into the space of a creature that isn't Tiny or the
+  mover's ally (same-sign disposition) cost twice its default; `occupancy.difficult` (Incorporeal Movement's "as if they
+  were Difficult Terrain") does so for its creature in every creature's space, whatever the setting. It wraps `difficultTerrainPolicy` and doesn't stack with it; `terrain.ignore` ignores it.
+
+shortcuts: an Action's own movement through others' spaces (Centaur Trooper's Trampling Charge, Gelatinous Cube's
+Engulf) is by hand; Foundry's ruler label doesn't show the extra cost of a creature's space; a hidden creature blocks
+like any other.
 
 ## Carrying a creature (2026-10-31)
 
