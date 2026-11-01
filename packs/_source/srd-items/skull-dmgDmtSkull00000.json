@@ -2,18 +2,64 @@
   "_id": "dmgDmtSkull00000",
   "_key": "!items!dmgDmtSkull00000",
   "name": "Skull",
-  "type": "gear",
+  "type": "action",
   "img": "icons/commodities/treasure/token-white-skull.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p>An <strong>Avatar of Death</strong> appears in an unoccupied space as close to you as possible. The avatar targets only you with its attacks, appearing as a ghostly skeleton clad in a tattered black robe and carrying a spectral scythe. The avatar disappears when it drops to 0 Hit Points or you die. If an ally of yours deals damage to the avatar, that ally summons another <strong>Avatar of Death</strong> . The new avatar appears in an unoccupied space as close to that ally as possible and targets only that ally with its attacks. You and your allies can each summon only one avatar as a consequence of this draw. A creature slain by an avatar can't be restored to life.</p>",
-    "quantity": 1,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [],
-    "attunement": "",
-    "armor": "",
-    "price": 0
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-skull-card-effect",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "skull",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.dmgAvatarofDeath",
+        "count": 1,
+        "bonuses": {
+          "hp": {
+            "type": "divide",
+            "numerator": {
+              "type": "resource-max",
+              "resource": "health"
+            },
+            "denominator": {
+              "type": "constant",
+              "value": 2
+            },
+            "round": "ceil"
+          }
+        }
+      },
+      "label": "Skull"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "skull-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "skull",
+          "label": "Skull",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -29,9 +75,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Card Effect\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

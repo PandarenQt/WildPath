@@ -32,7 +32,7 @@
       "conversion": {
         "notes": [
           "\"save\" is passive or triggered: not automated",
-          "\"Add Trapped Creature\" is passive or triggered: not automated",
+          "\"Add Trapped Creature\" is passive or triggered (narrative): not automated",
           "\"Free Trapped Creature\" is passive or triggered: not automated"
         ]
       }

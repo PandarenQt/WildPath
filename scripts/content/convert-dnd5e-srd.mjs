@@ -43,8 +43,11 @@ const SUMMON_REDIRECTS = {"5SgVGhQBswgWRwsF": "mmNightmare00000", "8SMQl75HLjhuS
   aAqfEHPiVbhMwZ6j: "mmGiantHyena0000", banHjKDMCegbUwYE: "mmAirElemental00", h052EIIUmRwJum65: "mmGriffon0000000",
   h98AuPfomEPcCibP: "mmIronGolem00000", hQt3qIahnB1Odb40: "mmGiantElk000000", kz1t6xeXVwODpYb2: "mmBerserker00000",
   namJz755U1EhvEJa: "mmWaterElemental", q1YJIeIt6rK8fCKn: "mmGiantRat000000", sApYLZj9PTZ40wJr: "mmEarthElemental",
-  t8WYD7ak07X7xpx8: "mmMummy000000000", z3gSIXHHWYaHjfBT: "mmStoneGolem0000"};
-const creatures = withRedirects(Object.fromEntries(readPack(from, "actors24").filter(document => isSrd2024(document) && (document.type === "npc"))
+  t8WYD7ak07X7xpx8: "mmMummy000000000", z3gSIXHHWYaHjfBT: "mmStoneGolem0000",
+  // Create Undead's Ghoul, Ghasts and Wights (its text links them by these ids); the Ivory Goats' Giant Goat (its text's).
+  OBujQLLPSmlJiZnL: "mmGhoul000000000", IyIybE5t2adMEVUM: "mmGhast000000000", rbyp54px2D0ql4QK: "mmWight000000000",
+  BNJCponnrcqBAxpI: "mmGiantGoat00000", phbmobGiantGoat0: "mmGiantGoat00000"};
+const creatures = withRedirects(Object.fromEntries(readPack(from, "actors24").filter(document => isSrd2024(document) && ["npc", "vehicle"].includes(document.type))
   .map(document => [document._id, `Compendium.wildpath.srd-creatures.Actor.${document._id}`])), SUMMON_REDIRECTS);
 // The Beasts Polymorph may choose.
 const beasts = beastsOf(readPack(from, "actors24").filter(isSrd2024), document => creatures[document._id]);

@@ -25,6 +25,10 @@
       },
       "save": {
         "ability": "might",
+        "abilities": [
+          "might",
+          "agility"
+        ],
         "dc": {
           "valueExpression": {
             "type": "add",
@@ -113,9 +117,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "save: a choice of str/dex uses str"
-        ]
+        "notes": []
       }
     }
   }

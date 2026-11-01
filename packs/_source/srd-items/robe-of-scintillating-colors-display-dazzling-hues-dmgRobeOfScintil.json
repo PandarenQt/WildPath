@@ -25,6 +25,72 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "wits",
+        "dc": {
+          "value": 15
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "stunned",
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "sourceTurnEnd"
+          }
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Dazzling Hues",
+          "img": "icons/svg/light.svg",
+          "appliesTo": "source",
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "sourceTurnEnd"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "dazzling-light",
+              "type": "GrantLight",
+              "data": {
+                "bright": 30,
+                "dim": 60
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "dazzling-hues",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ]
+        }
+      ],
       "label": "Robe of Scintillating Colors (Display Dazzling Hues)"
     },
     "ruleElements": [
@@ -65,9 +131,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "price": 40000,
       "rarity": "veryRare"

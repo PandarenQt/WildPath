@@ -860,8 +860,7 @@
           },
           "conversion": {
             "notes": [
-              "save: a failure marks its creature only; what it does is by hand",
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "save: a failure marks its creature (narrative)"
             ]
           }
         }
@@ -1907,8 +1906,7 @@
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
-          "Spellcasting: save: a failure marks its creature only; what it does is by hand",
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: save: a failure marks its creature (narrative)",
           "Spellcasting: activation: 1 hour is not an action-economy cost"
         ]
       }

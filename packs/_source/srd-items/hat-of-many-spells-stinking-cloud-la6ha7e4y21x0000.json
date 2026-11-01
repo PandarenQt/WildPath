@@ -48,7 +48,86 @@
             "value": 10
           },
           "concentration": true,
-          "obscures": "heavily"
+          "obscures": "heavily",
+          "triggers": [
+            {
+              "on": [
+                "turn.started"
+              ],
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-stinking-cloud-create-cloud:lasting",
+                "label": "Stinking Cloud",
+                "costs": {
+                  "allOf": []
+                },
+                "tags": [
+                  "spell",
+                  "school:conjuration",
+                  "spell:stinking-cloud"
+                ],
+                "save": {
+                  "ability": "fortitude",
+                  "dc": {
+                    "valueExpression": {
+                      "type": "add",
+                      "terms": [
+                        {
+                          "type": "constant",
+                          "value": 8
+                        },
+                        {
+                          "type": "proficiency-bonus"
+                        },
+                        {
+                          "type": "spellcasting-modifier"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "condition",
+                    "conditionId": "poisoned",
+                    "saveOutcomePolicy": "failure",
+                    "duration": {
+                      "value": 1,
+                      "units": "turns",
+                      "expiry": "turnStart"
+                    }
+                  },
+                  {
+                    "id": "effect-2",
+                    "type": "effect",
+                    "name": "Stinking Poison",
+                    "img": "icons/magic/acid/dissolve-vomit-green-brown.webp",
+                    "ruleElements": [
+                      {
+                        "schemaVersion": 1,
+                        "id": "stinking-poison",
+                        "type": "ResourceCap",
+                        "data": {
+                          "resources": [
+                            "action",
+                            "bonus"
+                          ],
+                          "maximum": 0
+                        }
+                      }
+                    ],
+                    "duration": {
+                      "value": 0,
+                      "units": "turns",
+                      "expiry": "turnEnd"
+                    },
+                    "saveOutcomePolicy": "failure"
+                  }
+                ]
+              }
+            }
+          ]
         }
       },
       "metadata": {
@@ -73,10 +152,7 @@
         "castBy": "Hat of Many Spells"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): its area obscures; the rest of its description is by hand",
-          "\"Start of Turn Save\" is passive or triggered: not automated"
-        ]
+        "notes": []
       },
       "price": 40000,
       "rarity": "veryRare"

@@ -1537,7 +1537,7 @@
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest",
-          "Weight of Years: \"Years Older\" is passive or triggered: not automated"
+          "Weight of Years: \"Years Older\" is passive or triggered (narrative): not automated"
         ]
       }
     }

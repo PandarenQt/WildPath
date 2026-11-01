@@ -33,6 +33,15 @@
           "value": 15
         }
       },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "exhaustion",
+          "saveOutcomePolicy": "failure",
+          "levels": 1
+        }
+      ],
       "label": "Ring of X-ray Vision (save)"
     },
     "ruleElements": []
@@ -51,9 +60,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "rolled (save); what it does is by hand"
-        ]
+        "notes": []
       },
       "price": 4000,
       "rarity": "rare"

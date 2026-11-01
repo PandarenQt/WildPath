@@ -516,6 +516,12 @@
               }
             ]
           },
+          "targeting": {
+            "type": "self"
+          },
+          "teleport": {
+            "distance": 60
+          },
           "label": "Teleport"
         },
         "ruleElements": []
@@ -534,9 +540,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -751,8 +755,7 @@
       },
       "conversion": {
         "notes": [
-          "Fire Aura: activation: turnEnd is not an action-economy cost",
-          "Teleport: not automated (utility): using it spends its cost; its description says the rest"
+          "Fire Aura: activation: turnEnd is not an action-economy cost"
         ]
       }
     }

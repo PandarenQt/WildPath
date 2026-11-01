@@ -1,0 +1,86 @@
+{
+  "_id": "10vqif219eqcg600",
+  "_key": "!items!10vqif219eqcg600",
+  "name": "Euryale",
+  "type": "action",
+  "img": "icons/creatures/reptiles/snake-fangs-bite-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p> The card's medusa-like visage curses you. You take a −2 penalty to saving throws while cursed in this way. Only a god or the magic of the Fates card can end this curse.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-euryale",
+      "label": "Euryale",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "euryale",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Euryale's Curse",
+          "img": "icons/svg/skull.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "euryale-curse",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "save"
+                ],
+                "modifierType": "untyped",
+                "value": -2
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "euryale-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "euryale",
+          "label": "Euryale",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDmtEuryale000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "euryale",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

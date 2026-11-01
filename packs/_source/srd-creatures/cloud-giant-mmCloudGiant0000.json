@@ -1090,9 +1090,7 @@
             "castBy": "Misty Step"
           },
           "conversion": {
-            "notes": [
-              "consumption: itemUses 1 not converted"
-            ]
+            "notes": []
           }
         }
       }
@@ -1161,8 +1159,7 @@
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: effect: \"Gaseous Form\" change img (override) not converted",
-          "Spellcasting: save: a failure marks its creature only; what it does is by hand",
-          "Misty Step: consumption: itemUses 1 not converted"
+          "Spellcasting: save: a failure marks its creature only; what it does is by hand"
         ]
       }
     }

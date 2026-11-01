@@ -26,6 +26,13 @@
           }
         ]
       },
+      "restores": [
+        {
+          "resourceId": "freezing-sphere",
+          "amount": 1,
+          "refuseWhenFull": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -90,7 +97,8 @@
             "type": "constant",
             "value": 1
           },
-          "recovery": "none"
+          "recovery": "none",
+          "current": 0
         }
       }
     ]
@@ -110,9 +118,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "consumption: itemUses -1 not converted",
-          "consumption: itemUses -1 not converted"
+          "not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

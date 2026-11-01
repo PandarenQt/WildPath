@@ -81,7 +81,21 @@
           "type": "effect",
           "name": "Befuddled",
           "img": "icons/skills/trades/academics-investigation-puzzles.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "befuddled",
+              "type": "Forbid",
+              "data": {
+                "actions": {
+                  "tagsAny": [
+                    "spell",
+                    "magical"
+                  ]
+                }
+              }
+            }
+          ],
           "saveOutcomePolicy": "failure"
         }
       ],
@@ -141,9 +155,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Befuddled\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

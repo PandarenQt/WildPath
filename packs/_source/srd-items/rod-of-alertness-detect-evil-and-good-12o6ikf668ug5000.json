@@ -1,0 +1,101 @@
+{
+  "_id": "12o6ikf668ug5000",
+  "_key": "!items!12o6ikf668ug5000",
+  "name": "Rod of Alertness: Detect Evil and Good",
+  "type": "action",
+  "img": "icons/magic/perception/eye-ringed-green.webp",
+  "system": {
+    "active": true,
+    "description": "<p>For the duration, you sense the location of any Aberration, Celestial, Elemental, Fey, Fiend, or Undead within 30 feet of yourself. You also sense whether the <em>Hallow</em> spell is active there and, if so, where.</p><p>The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-rod-of-alertness-detect-evil-and-good",
+      "tags": [
+        "spell",
+        "school:divination",
+        "spell:detect-evil-and-good",
+        "component:verbal",
+        "component:somatic"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Detect Evil and Good",
+          "img": "icons/magic/perception/eye-ringed-green.webp",
+          "ruleElements": [],
+          "duration": {
+            "value": 600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true
+        }
+      ],
+      "metadata": {
+        "spellLevel": 1
+      },
+      "label": "Rod of Alertness: Detect Evil and Good"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "rod-of-alertness-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "rod-of-alertness",
+          "label": "Rod of Alertness",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "longRest"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "phbsplDetectEvil",
+        "type": "spell",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "detect-evil-and-good",
+        "subtype": null,
+        "castBy": "Rod of Alertness"
+      },
+      "conversion": {
+        "notes": [
+          "effect: \"Detect Evil and Good\" marks its creature (narrative)"
+        ]
+      },
+      "price": 40000,
+      "rarity": "veryRare"
+    }
+  }
+}

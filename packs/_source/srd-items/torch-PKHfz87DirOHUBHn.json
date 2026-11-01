@@ -66,9 +66,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "consumption: itemUses 1 not converted"
-        ]
+        "notes": []
       },
       "price": 0.01
     }

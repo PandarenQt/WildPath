@@ -829,8 +829,7 @@
           },
           "conversion": {
             "notes": [
-              "save: a failure marks its creature only; what it does is by hand",
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "save: a failure marks its creature (narrative)"
             ]
           }
         }
@@ -1653,8 +1652,7 @@
           "Spellcasting: effect: \"Detect Evil and Good\" marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Indifference\" marks its creature (narrative)",
-          "Spellcasting: save: a failure marks its creature only; what it does is by hand",
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: save: a failure marks its creature (narrative)",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
           "Charging Horn: not automated (utility): using it spends its cost; its description says the rest"
         ]

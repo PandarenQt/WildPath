@@ -29,11 +29,11 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Card Effect: Advantage\" is passive or triggered: not automated",
-          "\"Card Effect: Draw Two\" is passive or triggered: not automated"
-        ]
-      }
+        "notes": []
+      },
+      "grants": [
+        "lb2ig01kjd07y000"
+      ]
     }
   }
 }

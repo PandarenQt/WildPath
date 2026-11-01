@@ -70,7 +70,67 @@
       "system": {
         "active": true,
         "description": "<p class=\"feature\">If the water elemental takes Cold damage, its Speed decreases by 20 feet until the end of its next turn.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "reaction",
+            "type": "Trigger",
+            "data": {
+              "kind": "reaction",
+              "event": "damage.applied",
+              "match": {
+                "phase": "before",
+                "targetTokenId": "{self}",
+                "tagsAll": [
+                  "damage:cold"
+                ]
+              },
+              "action": {
+                "schemaVersion": 1,
+                "id": "action:srd-freeze",
+                "label": "Freeze",
+                "costs": {
+                  "allOf": []
+                },
+                "range": {
+                  "type": "self"
+                },
+                "targeting": {
+                  "type": "self"
+                },
+                "effects": [
+                  {
+                    "id": "effect-1",
+                    "type": "effect",
+                    "name": "Frozen",
+                    "img": "icons/svg/frozen.svg",
+                    "duration": {
+                      "value": 1,
+                      "units": "rounds",
+                      "expiry": "turnEnd"
+                    },
+                    "ruleElements": [
+                      {
+                        "schemaVersion": 1,
+                        "id": "freeze",
+                        "type": "Modifier",
+                        "data": {
+                          "domains": [
+                            "resources.movement.max",
+                            "speed"
+                          ],
+                          "modifierType": "untyped",
+                          "value": -20
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              "policy": "always"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -86,9 +146,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"Use\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -533,9 +591,7 @@
         "challenge": 5
       },
       "conversion": {
-        "notes": [
-          "Freeze: \"Use\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

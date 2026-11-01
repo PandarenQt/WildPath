@@ -157,8 +157,7 @@
       },
       "conversion": {
         "notes": [
-          "activation: 1 hour is not an action-economy cost",
-          "consumption: attribute 1 not converted"
+          "activation: 1 hour is not an action-economy cost"
         ]
       },
       "prerequisites": {

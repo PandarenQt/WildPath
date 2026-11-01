@@ -260,6 +260,18 @@
               "value": 5
             }
           },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "grappled",
+              "saveOutcomePolicy": "failure",
+              "maxSize": "huge",
+              "metadata": {
+                "escapeDC": 5
+              }
+            }
+          ],
           "label": "Grasping Hand (Grapple)"
         },
         "ruleElements": []
@@ -278,9 +290,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "rolled (save); what it does is by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -521,7 +531,7 @@
           },
           "conversion": {
             "notes": [
-              "effect: \"Interposed\" marks its creature only; its rules are by hand"
+              "effect: \"Interposed\" marks its creature (narrative)"
             ]
           }
         }
@@ -543,8 +553,7 @@
       "conversion": {
         "notes": [
           "Forceful Hand: rolled (save); what it does is by hand",
-          "Grasping Hand: rolled (save); what it does is by hand",
-          "Interposing Hand: effect: \"Interposed\" marks its creature only; its rules are by hand"
+          "Interposing Hand: effect: \"Interposed\" marks its creature (narrative)"
         ]
       }
     }

@@ -1,0 +1,91 @@
+{
+  "_id": "lb2ig01kjd07y000",
+  "_key": "!items!lb2ig01kjd07y000",
+  "name": "Jester (Advantage)",
+  "type": "action",
+  "img": "icons/creatures/magical/spirit-fire-yellow.webp",
+  "system": {
+    "active": true,
+    "description": "<p> You have Advantage on D20 Tests for the next 72 hours, or you can draw two additional cards beyond your declared draws.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-jester-advantage",
+      "label": "Jester (Advantage)",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "jester",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Jester",
+          "img": "icons/svg/upgrade.svg",
+          "duration": {
+            "value": 72,
+            "units": "hours"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "jester",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attack",
+                  "check",
+                  "save"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "jester-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "jester",
+          "label": "Jester",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDmtJester0000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "jester",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

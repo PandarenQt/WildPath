@@ -72,9 +72,76 @@
         {
           "id": "effect-2",
           "type": "effect",
+          "name": "Irresistible Dance",
+          "img": "systems/dnd5e/icons/svg/statuses/charmed.svg",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "dancing",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "movement"
+                ],
+                "maximum": 0
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "dancing-clumsy",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save.agility",
+                  "attack"
+                ],
+                "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "dancing-exposed",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "mode": "advantage"
+              }
+            }
+          ],
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "saveOutcomePolicy": "failure",
+          "concentration": true
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
           "name": "Short Dance",
           "img": "icons/magic/time/clock-analog-gray.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "short-dance",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "movement"
+                ],
+                "maximum": 0
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "turnEnd"
+          },
+          "saveOutcomePolicy": "success",
           "concentration": true
         }
       ],
@@ -142,14 +209,16 @@
               "type": "keepEffect",
               "effectIds": [
                 "effect-1",
-                "effect-2"
+                "effect-2",
+                "effect-3"
               ],
               "keep": {
                 "effect-option-1": [
-                  "effect-1"
+                  "effect-1",
+                  "effect-2"
                 ],
                 "effect-option-2": [
-                  "effect-2"
+                  "effect-3"
                 ]
               }
             }
@@ -181,9 +250,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Short Dance\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

@@ -59,7 +59,24 @@
           "type": "effect",
           "name": "Burial",
           "img": "systems/dnd5e/icons/svg/statuses/burrowing.svg",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "imprisoned-unaffected",
+              "type": "Unaffected",
+              "data": {
+                "actions": {}
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "imprisoned-sealed",
+              "type": "Forbid",
+              "data": {
+                "actions": {}
+              }
+            }
+          ],
           "saveOutcomePolicy": "failure"
         },
         {
@@ -73,7 +90,24 @@
           "type": "effect",
           "name": "Hedged Prison",
           "img": "systems/dnd5e/icons/svg/activity/summon.svg",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "imprisoned-unaffected",
+              "type": "Unaffected",
+              "data": {
+                "actions": {}
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "imprisoned-sealed",
+              "type": "Forbid",
+              "data": {
+                "actions": {}
+              }
+            }
+          ],
           "saveOutcomePolicy": "failure"
         },
         {
@@ -81,7 +115,24 @@
           "type": "effect",
           "name": "Minimus Containment",
           "img": "icons/svg/down.svg",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "imprisoned-unaffected",
+              "type": "Unaffected",
+              "data": {
+                "actions": {}
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "imprisoned-sealed",
+              "type": "Forbid",
+              "data": {
+                "actions": {}
+              }
+            }
+          ],
           "saveOutcomePolicy": "failure"
         },
         {
@@ -201,10 +252,7 @@
       },
       "conversion": {
         "notes": [
-          "activation: 1 minute is not an action-economy cost",
-          "effect: \"Burial\" marks its creature only; its rules are by hand",
-          "effect: \"Hedged Prison\" marks its creature only; its rules are by hand",
-          "effect: \"Minimus Containment\" marks its creature only; its rules are by hand"
+          "activation: 1 minute is not an action-economy cost"
         ]
       }
     }

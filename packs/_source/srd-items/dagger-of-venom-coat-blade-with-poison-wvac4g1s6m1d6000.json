@@ -10,9 +10,7 @@
     "definition": {
       "schemaVersion": 1,
       "id": "action:srd-dagger-of-venom-coat-blade-with-poison",
-      "tags": [
-        "magical"
-      ],
+      "label": "Dagger of Venom (Coat Blade with Poison)",
       "costs": {
         "allOf": [
           {
@@ -25,7 +23,100 @@
           }
         ]
       },
-      "label": "Dagger of Venom (Coat Blade with Poison)"
+      "tags": [
+        "magical"
+      ],
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Dagger of Venom",
+          "img": "icons/weapons/daggers/dagger-double-skull-pink.webp",
+          "duration": {
+            "value": 1,
+            "units": "minutes"
+          },
+          "endsWhen": "hits",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "coat",
+              "type": "Trigger",
+              "data": {
+                "kind": "reaction",
+                "event": "attack.hit",
+                "match": {
+                  "phase": "interrupt",
+                  "sourceTokenId": "{self}",
+                  "tagsAll": [
+                    "weapon"
+                  ]
+                },
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:srd-dagger-of-venom-coat-blade-with-poison:coat",
+                  "tags": [
+                    "magical"
+                  ],
+                  "save": {
+                    "ability": "fortitude",
+                    "dc": {
+                      "value": 15
+                    }
+                  },
+                  "damage": [
+                    {
+                      "id": "damage-1",
+                      "expression": {
+                        "type": "dice",
+                        "number": 2,
+                        "faces": 10
+                      },
+                      "damageType": "poison",
+                      "provenance": "additional",
+                      "saveOutcomePolicy": {
+                        "success": "none",
+                        "failure": "full"
+                      }
+                    }
+                  ],
+                  "effects": [
+                    {
+                      "id": "effect-1",
+                      "type": "condition",
+                      "conditionId": "poisoned",
+                      "saveOutcomePolicy": "failure",
+                      "duration": {
+                        "value": 60,
+                        "units": "seconds",
+                        "expiry": "turnStart"
+                      }
+                    }
+                  ],
+                  "label": "Dagger of Venom",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "range": {
+                    "type": "special"
+                  },
+                  "targeting": {
+                    "type": "single",
+                    "required": true,
+                    "count": 1
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
     },
     "ruleElements": [
       {
@@ -58,9 +149,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "price": 4000,
       "rarity": "rare"

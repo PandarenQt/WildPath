@@ -104,12 +104,7 @@
             "magical"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "bonus-action",
-                "amount": 1
-              }
-            ]
+            "allOf": []
           },
           "range": {
             "type": "ranged",
@@ -128,6 +123,14 @@
             "dc": {
               "value": 5
             }
+          },
+          "controllerCosts": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              }
+            ]
           },
           "label": "Roll"
         },

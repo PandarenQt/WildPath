@@ -22,6 +22,13 @@
       "costs": {
         "allOf": []
       },
+      "restores": [
+        {
+          "resourceId": "heroes-feast",
+          "amount": 12,
+          "refuseWhenFull": true
+        }
+      ],
       "configuration": [
         {
           "id": "spell-slot",
@@ -87,7 +94,8 @@
             "type": "constant",
             "value": 12
           },
-          "recovery": "none"
+          "recovery": "none",
+          "current": 0
         }
       }
     ]
@@ -107,11 +115,9 @@
       },
       "conversion": {
         "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
+          "not automated (utility, narrative): using it spends its cost; its description says the rest",
           "activation: 10 minute is not an action-economy cost",
-          "consumption: itemUses -12 not converted",
-          "activation: 10 minute is not an action-economy cost",
-          "consumption: itemUses -12 not converted"
+          "activation: 10 minute is not an action-economy cost"
         ]
       }
     }

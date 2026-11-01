@@ -21,6 +21,49 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "emanation",
+        "size": {
+          "value": 30,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "value": 17
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "multiply",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 4
+              },
+              {
+                "type": "resource-current",
+                "resource": "staff-of-power"
+              }
+            ]
+          },
+          "damageType": "force",
+          "provenance": "additional",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
       "label": "Staff of Power (Retributive Strike)"
     },
     "ruleElements": [
@@ -71,8 +114,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (damage): using it spends its cost; its description says the rest",
-          "damage 1: custom formula \"16 * @item.uses.value\" not converted"
+          "\"Retributive Strike\": what it does besides the others' save (to its user, to the item) is by hand"
         ]
       },
       "price": 40000,

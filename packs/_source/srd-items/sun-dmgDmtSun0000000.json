@@ -29,10 +29,11 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Card Effect\" is passive or triggered: not automated"
-        ]
-      }
+        "notes": []
+      },
+      "grants": [
+        "nad3grpqqgup0000"
+      ]
     }
   }
 }

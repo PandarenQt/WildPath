@@ -31,15 +31,14 @@
       },
       "conversion": {
         "notes": [
-          "not automated (cast): using it spends its cost; its description says the rest",
-          "cast: its spell was not found among the converted spells",
+          "effect: \"Detect Evil and Good\" marks its creature (narrative)",
           "effect: \"Detect Magic\" marks its creature (narrative)",
           "effect: \"Detect Poison and Disease\" marks its creature (narrative)"
         ]
       },
       "grants": [
         "dmgRodOfAlertnes",
-        "aocl0w1ydrui4000",
+        "12o6ikf668ug5000",
         "jrff8xaknotn0000",
         "1bm7d63pvqmed000",
         "53hi0982oeyh0000"

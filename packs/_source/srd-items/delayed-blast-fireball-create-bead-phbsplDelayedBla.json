@@ -89,7 +89,8 @@
             "type": "constant",
             "value": 10
           },
-          "recovery": "none"
+          "recovery": "none",
+          "current": 0
         }
       }
     ]

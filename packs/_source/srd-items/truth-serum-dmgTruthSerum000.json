@@ -2,18 +2,75 @@
   "_id": "dmgTruthSerum000",
   "_key": "!items!dmgTruthSerum000",
   "name": "Truth Serum",
-  "type": "gear",
+  "type": "action",
   "img": "icons/consumables/potions/bottle-pear-corked-labeled-ornamental-purple.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p><em>Ingested Poison</em></p><p>A creature subjected to Truth Serum must succeed on a DC 11 Constitution saving throw or have the Poisoned condition for 1 hour. The Poisoned creature can't knowingly communicate a lie.</p>",
-    "quantity": 1,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [],
-    "attunement": "",
-    "armor": "",
-    "price": 150
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-truth-serum-use-poison",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "truth-serum",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
+      "targeting": {
+        "type": "single",
+        "required": true,
+        "count": 1
+      },
+      "save": {
+        "ability": "fortitude",
+        "dc": {
+          "value": 10
+        }
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "condition",
+          "conditionId": "poisoned",
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 3600,
+            "units": "seconds",
+            "expiry": "turnStart"
+          }
+        }
+      ],
+      "label": "Truth Serum"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "truth-serum-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "truth-serum",
+          "label": "Truth Serum",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -29,10 +86,9 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Use Poison\" is passive or triggered: not automated"
-        ]
-      }
+        "notes": []
+      },
+      "price": 150
     }
   }
 }

@@ -82,10 +82,53 @@
           "effects": []
         }
       ],
-      "concentration": {
-        "duration": {
-          "value": 10,
-          "units": "minutes"
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 60,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbmobGiantInsec",
+        "count": 1,
+        "rounds": 100,
+        "concentration": true,
+        "bonuses": {
+          "ac": {
+            "type": "context",
+            "path": "castLevel"
+          },
+          "hp": {
+            "type": "multiply",
+            "terms": [
+              {
+                "type": "constant",
+                "value": 10
+              },
+              {
+                "type": "subtract",
+                "terms": [
+                  {
+                    "type": "context",
+                    "path": "castLevel"
+                  },
+                  {
+                    "type": "constant",
+                    "value": 4
+                  }
+                ]
+              }
+            ]
+          },
+          "attackDamage": {
+            "type": "context",
+            "path": "castLevel"
+          }
+        },
+        "spellLevel": 4,
+        "match": {
+          "attacks": true
         }
       },
       "metadata": {
@@ -112,11 +155,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest",
-          "summon: its creature is not among the converted creatures",
-          "concentration: its caster concentrates; what it sustains is by hand"
-        ]
+        "notes": []
       }
     }
   }

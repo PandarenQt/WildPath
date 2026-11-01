@@ -566,6 +566,243 @@
       }
     },
     {
+      "_id": "seie1w1srrl4o000",
+      "_key": "!actors.items!mmPriest00000000.seie1w1srrl4o000",
+      "name": "Spirit Guardians",
+      "type": "action",
+      "img": "icons/magic/light/orb-hands-humanoid-yellow.webp",
+      "system": {
+        "active": true,
+        "description": "<p>Protective spirits flit around you in a 15-foot Emanation for the duration. If you are good or neutral, their spectral form appears angelic or fey (your choice). If you are evil, they appear fiendish.</p><p>When you cast this spell, you can designate creatures to be unaffected by it. Any other creature's Speed is halved in the Emanation, and whenever the Emanation enters a creature's space and whenever a creature enters the Emanation or ends its turn there, the creature must make a Wisdom saving throw. On a failed save, the creature takes 3d8 Radiant damage (if you are good or neutral) or 3d8 Necrotic damage (if you are evil). On a successful save, the creature takes half as much damage. A creature makes this save only once per turn.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for each spell slot level above 3.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-spellcasting-spirit-guardians",
+          "tags": [
+            "spell",
+            "school:conjuration",
+            "spell:spirit-guardians",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
+            "damage:necrotic"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "action",
+                "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplspiritguar",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "area"
+          },
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 15,
+              "unit": "ft"
+            },
+            "persistence": {
+              "duration": {
+                "unit": "round",
+                "value": 100
+              },
+              "concentration": true,
+              "affects": "enemies",
+              "triggers": [
+                {
+                  "on": [
+                    "area.entered",
+                    "turn.ended"
+                  ],
+                  "action": {
+                    "schemaVersion": 1,
+                    "id": "action:srd-spirit-guardians-cast-and-save:lasting",
+                    "label": "Spirit Guardians",
+                    "costs": {
+                      "allOf": []
+                    },
+                    "tags": [
+                      "spell",
+                      "school:conjuration",
+                      "spell:spirit-guardians"
+                    ],
+                    "save": {
+                      "ability": "wits",
+                      "dc": {
+                        "value": 13
+                      }
+                    },
+                    "damage": [
+                      {
+                        "id": "damage-1",
+                        "expression": {
+                          "type": "dice",
+                          "number": 3,
+                          "faces": 8
+                        },
+                        "damageType": "necrotic",
+                        "provenance": "spell-base",
+                        "saveOutcomePolicy": {
+                          "success": "half",
+                          "failure": "full"
+                        }
+                      }
+                    ],
+                    "effects": [
+                      {
+                        "id": "effect-1",
+                        "type": "effect",
+                        "name": "Half Speed",
+                        "img": "icons/magic/movement/abstract-ribbons-red-orange.webp",
+                        "ruleElements": [
+                          {
+                            "schemaVersion": 1,
+                            "id": "half-speed-1",
+                            "type": "Modifier",
+                            "data": {
+                              "domains": [
+                                "speed.multiplier"
+                              ],
+                              "modifierType": "untyped",
+                              "value": 0.5
+                            }
+                          }
+                        ],
+                        "duration": {
+                          "value": 600,
+                          "units": "seconds",
+                          "expiry": "turnStart"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "save": {
+            "ability": "wits",
+            "dc": {
+              "value": 13
+            }
+          },
+          "damage": [
+            {
+              "id": "damage-1",
+              "expression": {
+                "type": "dice",
+                "number": 3,
+                "faces": 8
+              },
+              "damageType": "necrotic",
+              "provenance": "spell-base",
+              "saveOutcomePolicy": {
+                "success": "half",
+                "failure": "full"
+              }
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Half Speed",
+              "img": "icons/magic/movement/abstract-ribbons-red-orange.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "half-speed-1",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0.5
+                  }
+                }
+              ],
+              "duration": {
+                "value": 600,
+                "units": "seconds",
+                "expiry": "turnStart"
+              },
+              "concentration": true
+            }
+          ],
+          "configuration": [
+            {
+              "id": "damage-type-1",
+              "type": "damage-type",
+              "label": "Damage type",
+              "required": true,
+              "allowedDamageTypes": [
+                "necrotic",
+                "radiant"
+              ],
+              "effects": [
+                {
+                  "type": "replaceDamageType",
+                  "componentIds": [
+                    "damage-1"
+                  ],
+                  "damageTypeChoiceId": "damage-type-1"
+                }
+              ]
+            }
+          ],
+          "metadata": {
+            "spellLevel": 3
+          },
+          "label": "Spirit Guardians"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplspiritguar-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplspiritguar",
+              "label": "Spellcasting (Spirit Guardians)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplSpiritGuar",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "spirit-guardians",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
       "_id": "16u2c7s4bagfm000",
       "_key": "!actors.items!mmPriest00000000.16u2c7s4bagfm000",
       "name": "Bless",

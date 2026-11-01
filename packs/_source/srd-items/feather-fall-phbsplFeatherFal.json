@@ -111,9 +111,56 @@
           "wizard"
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "rider": {
+        "reduceDamage": {
+          "dice": {
+            "type": "constant",
+            "value": 120
+          }
+        },
+        "protects": "target"
+      },
       "label": "Feather Fall"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "damage.applied",
+          "match": {
+            "phase": "before",
+            "tagsAll": [
+              "fall"
+            ]
+          },
+          "triggerPredicate": {
+            "all": [
+              {
+                "equals": {
+                  "path": "toTarget.{self}.sees",
+                  "value": true
+                }
+              },
+              {
+                "atMost": {
+                  "path": "toTarget.{self}.distance",
+                  "value": 60
+                }
+              }
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -129,9 +176,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

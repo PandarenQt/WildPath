@@ -65,16 +65,14 @@
                 "effects": [
                   {
                     "id": "effect-1",
-                    "type": "effect",
-                    "name": "Poisoned Needle",
-                    "img": "systems/dnd5e/icons/svg/statuses/poisoned.svg",
-                    "ruleElements": [],
+                    "type": "condition",
+                    "conditionId": "poisoned",
+                    "saveOutcomePolicy": "failure",
                     "duration": {
                       "value": 3600,
                       "units": "seconds",
                       "expiry": "turnStart"
-                    },
-                    "saveOutcomePolicy": "failure"
+                    }
                   }
                 ]
               }
@@ -100,9 +98,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Poisoned Needle\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

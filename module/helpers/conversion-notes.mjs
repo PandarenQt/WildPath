@@ -28,6 +28,7 @@ const RULES = [
   [/concentration: nothing it sustains/, () => "concentration effect not converted"],
   [/summon: what it gains with the spell's level/, () => "summon: what it gains with the spell's level (not added)"],
   [/summon: a creature chosen by Challenge Rating/, () => "summon: a creature chosen by Challenge Rating"],
+  [/^summon: not in the SRD/, () => "summon: forms outside the SRD left out"],
   [/summon: its creature is not among the converted/, () => "summon: its creature is not converted"],
   [/summon: a count of/, () => "summon: a count from a formula"],
   [/^not automated \((\w+), narrative\)/, () => "narrative use (its cost is all there is)"],
@@ -36,6 +37,7 @@ const RULES = [
   [/save: a failure gives/, () => "save: conditions from its text (the rest by hand)"],
   [/save: a failure marks its creature \(narrative\)/, () => "narrative save (it tells or hides; nothing to automate)"],
   [/save: a failure marks its creature only/, () => "save: a failure marks its creature (rules by hand)"],
+  [/^rolled \(\w+, narrative\)/, () => "narrative save (it tells or hides; nothing to automate)"],
   [/^rolled \((\w+)\); what it does is by hand/, match => `rolled, consequences by hand: ${match[1]} activity`],
   [/^not automated:/, () => "used, not automated: no activity"],
   [/consumption: (\w+)/, match => `consumption: ${match[1]}`],
@@ -54,13 +56,15 @@ const RULES = [
   [/AC: /, () => "AC calculation"],
   [/healing: temporary/, () => "temporary Hit Points"],
   // A feature that converted to nothing that acts while its text names a rule (convertItem's silent check).
-  [/^silent: /, () => "silent: a rule in its text, nothing converted"]
+  [/^silent: /, () => "silent: a rule in its text, nothing converted"],
+  [/^free cast: /, () => "free cast: an option of its cast (by hand)"]
 ];
 /** Reasons that say how something is handled rather than what is missing: counted apart from the real gaps. */
 export const INFORMATIONAL = new Set(["narrative use (its cost is all there is)", "passive trait (its text is its rule)",
   "narrative marker (a reminder, nothing to automate)", "narrative save (it tells or hides; nothing to automate)", "effect image (how it looks)",
   "concentration sustained (its effect is noted apart)",
-  "long activation (minutes, hours)", "resistance bypasses"]);
+  "long activation (minutes, hours)", "resistance bypasses",
+  "summon: forms outside the SRD left out"]);
 
 export const noteReason = note => {
   // A creature's notes name the item first ("Multiattack: not automated..."); the reason is what follows.

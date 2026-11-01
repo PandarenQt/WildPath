@@ -13,6 +13,55 @@
     "ruleElements": [
       {
         "schemaVersion": 1,
+        "id": "robe-of-eyes-light",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "action.declared",
+          "match": {
+            "phase": "interrupt",
+            "targetTokenId": "{self}",
+            "tagsAll": [
+              "spell:light"
+            ]
+          },
+          "policy": "always",
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-robe-of-eyes-light",
+            "label": "Robe of Eyes",
+            "costs": {
+              "allOf": []
+            },
+            "range": {
+              "type": "self"
+            },
+            "targeting": {
+              "type": "self"
+            },
+            "effects": [
+              {
+                "id": "effect-1",
+                "type": "condition",
+                "conditionId": "blinded",
+                "duration": {
+                  "value": 1,
+                  "units": "minutes"
+                },
+                "metadata": {
+                  "repeatSave": {
+                    "timing": "turnEnd",
+                    "ability": "fortitude",
+                    "dc": 11
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        "schemaVersion": 1,
         "id": "special-senses-1",
         "type": "GrantSense",
         "data": {
@@ -50,7 +99,6 @@
       },
       "conversion": {
         "notes": [
-          "\"Light Save\" is passive or triggered: not automated",
           "\"Daylight Save\" is passive or triggered: not automated"
         ]
       }

@@ -367,11 +367,11 @@
           "costs": {
             "allOf": [
               {
-                "capability": "reaction",
+                "capability": "protective-magic",
                 "amount": 1
               },
               {
-                "capability": "protective-magic",
+                "capability": "reaction",
                 "amount": 1
               }
             ]
@@ -500,11 +500,11 @@
           "costs": {
             "allOf": [
               {
-                "capability": "reaction",
+                "capability": "protective-magic",
                 "amount": 1
               },
               {
-                "capability": "protective-magic",
+                "capability": "reaction",
                 "amount": 1
               }
             ]

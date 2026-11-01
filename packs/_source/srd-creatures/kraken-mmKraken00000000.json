@@ -616,6 +616,48 @@
               "type": "condition",
               "conditionId": "restrained",
               "saveOutcomePolicy": "failure"
+            },
+            {
+              "id": "effect-3",
+              "type": "effect",
+              "name": "Swallow (start of turn)",
+              "slug": "swallow-turn-damage",
+              "img": "icons/svg/poison.svg",
+              "saveOutcomePolicy": "failure",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "swallow-turn-damage",
+                  "type": "Trigger",
+                  "data": {
+                    "kind": "automation",
+                    "event": "turn.started",
+                    "predicate": {
+                      "hasCondition": "coverTotal"
+                    },
+                    "action": {
+                      "schemaVersion": 1,
+                      "id": "action:swallow-turn-damage",
+                      "label": "Swallow",
+                      "costs": {
+                        "allOf": []
+                      },
+                      "damage": [
+                        {
+                          "id": "turn-1",
+                          "expression": {
+                            "type": "dice",
+                            "number": 7,
+                            "faces": 6
+                          },
+                          "damageType": "acid",
+                          "provenance": "additional"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
             }
           ],
           "label": "Swallow (Save)"
@@ -996,7 +1038,6 @@
       },
       "conversion": {
         "notes": [
-          "Swallow: \"Damage: Swallowed\" is passive or triggered: not automated",
           "Storm Bolt: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }

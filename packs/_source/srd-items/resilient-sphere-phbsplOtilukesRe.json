@@ -64,7 +64,49 @@
           "type": "effect",
           "name": "Enclosed in Sphere",
           "img": "icons/commodities/gems/gem-amber-insect-orange.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "sphere-unaffected",
+              "type": "Unaffected",
+              "data": {
+                "actions": {}
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "sphere-sealed",
+              "type": "Forbid",
+              "data": {
+                "actions": {
+                  "any": [
+                    {
+                      "tagsAny": [
+                        "attack"
+                      ]
+                    },
+                    {
+                      "tagsAny": [
+                        "damage:acid",
+                        "damage:bludgeoning",
+                        "damage:cold",
+                        "damage:fire",
+                        "damage:force",
+                        "damage:lightning",
+                        "damage:necrotic",
+                        "damage:piercing",
+                        "damage:poison",
+                        "damage:psychic",
+                        "damage:radiant",
+                        "damage:slashing",
+                        "damage:thunder"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
@@ -154,9 +196,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Enclosed in Sphere\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

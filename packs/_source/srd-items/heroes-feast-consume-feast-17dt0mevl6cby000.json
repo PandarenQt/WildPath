@@ -150,7 +150,8 @@
             "type": "constant",
             "value": 12
           },
-          "recovery": "none"
+          "recovery": "none",
+          "current": 0
         }
       }
     ]

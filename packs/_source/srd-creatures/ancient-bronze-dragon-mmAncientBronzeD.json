@@ -166,9 +166,49 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack-rend",
+              "amount": 3
+            },
+            {
+              "resourceId": "multiattack-replace",
+              "amount": 1
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-rend-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-rend",
+              "label": "Multiattack (Rend)",
+              "maximum": 3,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-replace-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-replace",
+              "label": "Multiattack (replace an attack)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -184,9 +224,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility, narrative): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -208,6 +246,12 @@
               [
                 {
                   "capability": "move-attack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "multiattack-rend",
                   "amount": 1
                 }
               ],
@@ -295,11 +339,23 @@
           "schemaVersion": 1,
           "id": "action:srd-repulsion-breath-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -562,11 +618,23 @@
             "damage:radiant"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -1434,11 +1502,27 @@
             "damage:radiant"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "legendary-action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-replace",
+                  "amount": 1
+                },
+                {
+                  "capability": "multiattack-rend",
+                  "amount": 1
+                },
+                {
+                  "capability": "legendary-action",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "legendary-action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -1867,7 +1951,6 @@
       },
       "conversion": {
         "notes": [
-          "Multiattack: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
           "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",

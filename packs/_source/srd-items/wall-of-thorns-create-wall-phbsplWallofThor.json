@@ -99,7 +99,7 @@
                       "number": 7,
                       "faces": 8
                     },
-                    "damageType": "piercing",
+                    "damageType": "slashing",
                     "provenance": "spell-base",
                     "saveOutcomePolicy": {
                       "success": "half",

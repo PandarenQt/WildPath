@@ -112,7 +112,7 @@
           },
           "conversion": {
             "notes": [
-              "\"Self Damage\" is passive or triggered: not automated"
+              "\"Self Damage\" is passive or triggered (narrative): not automated"
             ]
           }
         }
@@ -138,9 +138,42 @@
               }
             ]
           },
-          "label": "Multiattack"
+          "label": "Multiattack",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "multiattack-reaping-scythe",
+              "amount": 5
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-reaping-scythe-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-reaping-scythe",
+              "label": "Multiattack (Reaping Scythe)",
+              "maximum": {
+                "type": "divide",
+                "numerator": {
+                  "type": "controller-proficiency-bonus"
+                },
+                "denominator": {
+                  "type": "constant",
+                  "value": 2
+                },
+                "round": "ceil"
+              },
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -156,9 +189,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -176,11 +207,19 @@
           "schemaVersion": 1,
           "id": "action:srd-reaping-scythe-attack",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-reaping-scythe",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -330,8 +369,7 @@
       },
       "conversion": {
         "notes": [
-          "Incorporeal Movement: \"Self Damage\" is passive or triggered: not automated",
-          "Multiattack: not automated (utility): using it spends its cost; its description says the rest"
+          "Incorporeal Movement: \"Self Damage\" is passive or triggered (narrative): not automated"
         ]
       }
     }

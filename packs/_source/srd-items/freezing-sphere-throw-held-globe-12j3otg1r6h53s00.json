@@ -151,7 +151,8 @@
             "type": "constant",
             "value": 1
           },
-          "recovery": "none"
+          "recovery": "none",
+          "current": 0
         }
       }
     ]

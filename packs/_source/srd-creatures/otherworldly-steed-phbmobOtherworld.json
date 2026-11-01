@@ -289,6 +289,155 @@
           }
         }
       }
+    },
+    {
+      "_id": "phbaoiFeyStepFey",
+      "_key": "!actors.items!phbmobOtherworld.phbaoiFeyStepFey",
+      "name": "Fey Step",
+      "type": "action",
+      "img": "icons/creatures/magical/humanoid-silhouette-dashing-blue.webp",
+      "system": {
+        "active": true,
+        "description": "<p> The steed teleports, along with its rider, to an unoccupied space of your choice up to 60 feet away from itself.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-fey-step-teleport",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "fey-step",
+                "amount": 1
+              }
+            ]
+          },
+          "label": "Fey Step"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "fey-step-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "fey-step",
+              "label": "Fey Step",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiFeyStepFey",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "fey-step",
+            "subtype": null
+          },
+          "conversion": {
+            "notes": [
+              "not automated (utility): using it spends its cost; its description says the rest"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "phbaoiHealingTou",
+      "_key": "!actors.items!phbmobOtherworld.phbaoiHealingTou",
+      "name": "Healing Touch",
+      "type": "action",
+      "img": "icons/magic/life/heart-pink.webp",
+      "system": {
+        "active": true,
+        "description": "<p> One creature within 5 feet of the steed regains a number of Hit Points equal to 2d8 plus the spell's level.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-healing-touch",
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "healing-touch",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "healing": [
+            {
+              "id": "healing-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 8
+              },
+              "healingType": "healing"
+            }
+          ],
+          "label": "Healing Touch"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "healing-touch-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "healing-touch",
+              "label": "Healing Touch",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbaoiHealingTou",
+            "type": "feat",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "healing-touch",
+            "subtype": null
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
     }
   ],
   "flags": {
@@ -305,8 +454,7 @@
       },
       "conversion": {
         "notes": [
-          "Fey Step: not SRD 5.2 (CC-BY-4.0)",
-          "Healing Touch: not SRD 5.2 (CC-BY-4.0)"
+          "Fey Step: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

@@ -18,6 +18,16 @@
           }
         ]
       },
+      "targeting": {
+        "type": "self"
+      },
+      "metadata": {
+        "test": {
+          "skills": [
+            "sleight-of-hand"
+          ]
+        }
+      },
       "label": "Fast Hands (Thieves' Tools)"
     },
     "ruleElements": []
@@ -36,10 +46,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (check): using it spends its cost; its description says the rest",
-          "check: dex DC (?) not converted"
-        ]
+        "notes": []
       }
     }
   }

@@ -25,6 +25,26 @@
           }
         ]
       },
+      "restores": [
+        {
+          "resourceId": "ivory-goats",
+          "amount": 1,
+          "amountExpression": {
+            "type": "subtract",
+            "terms": [
+              {
+                "type": "resource-max",
+                "resource": "ivory-goats"
+              },
+              {
+                "type": "resource-current",
+                "resource": "ivory-goats"
+              }
+            ]
+          },
+          "refuseWhenFull": true
+        }
+      ],
       "range": {
         "type": "ranged",
         "normal": {
@@ -86,9 +106,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "consumption: itemUses -@item.uses.spent not converted"
-        ]
+        "notes": []
       },
       "price": 4000,
       "rarity": "rare"

@@ -72,6 +72,9 @@
           "schemaVersion": 1,
           "id": "action:srd-move",
           "costs": {
+            "allOf": []
+          },
+          "controllerCosts": {
             "allOf": [
               {
                 "capability": "bonus-action",
@@ -79,6 +82,39 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Move",
+              "img": "icons/svg/wingfoot.svg",
+              "duration": {
+                "value": 0,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "moved",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "resources.movement.max"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 30
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Move"
         },
         "ruleElements": []
@@ -97,9 +133,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -147,9 +181,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Move: not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

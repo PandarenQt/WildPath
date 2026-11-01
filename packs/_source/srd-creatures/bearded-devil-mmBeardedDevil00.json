@@ -439,7 +439,37 @@
               "type": "effect",
               "name": "Infernal Glaive",
               "img": "icons/weapons/polearms/glaive-hooked-steel.webp",
-              "ruleElements": [],
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "infernal-glaive-turn-damage",
+                  "type": "Trigger",
+                  "data": {
+                    "kind": "automation",
+                    "event": "turn.started",
+                    "action": {
+                      "schemaVersion": 1,
+                      "id": "action:infernal-glaive-turn-damage",
+                      "label": "Infernal Glaive",
+                      "costs": {
+                        "allOf": []
+                      },
+                      "damage": [
+                        {
+                          "id": "turn-1",
+                          "expression": {
+                            "type": "dice",
+                            "number": 1,
+                            "faces": 10
+                          },
+                          "damageType": "untyped",
+                          "provenance": "additional"
+                        }
+                      ]
+                    }
+                  }
+                }
+              ],
               "duration": {
                 "value": 1,
                 "units": "minutes"
@@ -486,7 +516,7 @@
           },
           "conversion": {
             "notes": [
-              "save: a failure marks its creature only; what it does is by hand"
+              "save: what ends its wound early (its text) is by hand"
             ]
           },
           "reactionPolicy": "always"
@@ -630,8 +660,7 @@
       },
       "conversion": {
         "notes": [
-          "Infernal Glaive: save: a failure marks its creature only; what it does is by hand",
-          "Infernal Glaive: \"Damage: Infernal Wound\" is passive or triggered: not automated"
+          "Infernal Glaive: save: what ends its wound early (its text) is by hand"
         ]
       }
     }

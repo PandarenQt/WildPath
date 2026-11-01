@@ -21,6 +21,69 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "weapon",
+          "type": "select-one",
+          "label": "Weapon",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "weapons"
+          },
+          "effects": [
+            {
+              "type": "bindChoice"
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Helm of Brilliance",
+          "img": "icons/equipment/head/helm-norman-engraved.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "helm-of-brilliance-1",
+              "type": "ExtraDamage",
+              "data": {
+                "domains": [
+                  "damage.weapon"
+                ],
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 6
+                },
+                "damageType": "fire"
+              },
+              "predicate": {
+                "tagsAny": [
+                  "weapon:{{weapon}}"
+                ]
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "helm-of-brilliance-2",
+              "type": "GrantLight",
+              "data": {
+                "bright": 10,
+                "dim": 20
+              }
+            }
+          ]
+        }
+      ],
       "label": "Helm of Brilliance (Fire Opal Flames)"
     },
     "ruleElements": []
@@ -39,9 +102,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "price": 0,
       "rarity": "veryRare"

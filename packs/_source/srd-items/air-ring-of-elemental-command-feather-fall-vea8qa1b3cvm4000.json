@@ -20,13 +20,28 @@
       "costs": {
         "allOf": [
           {
-            "capability": "action",
+            "capability": "reaction",
             "amount": 1
           }
         ]
       },
       "metadata": {
         "spellLevel": 1
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "rider": {
+        "reduceDamage": {
+          "dice": {
+            "type": "constant",
+            "value": 120
+          }
+        },
+        "protects": "target"
       },
       "label": "Air Ring of Elemental Command: Feather Fall"
     },
@@ -60,6 +75,37 @@
             }
           }
         }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "damage.applied",
+          "match": {
+            "phase": "before",
+            "tagsAll": [
+              "fall"
+            ]
+          },
+          "triggerPredicate": {
+            "all": [
+              {
+                "equals": {
+                  "path": "toTarget.{self}.sees",
+                  "value": true
+                }
+              },
+              {
+                "atMost": {
+                  "path": "toTarget.{self}.distance",
+                  "value": 60
+                }
+              }
+            ]
+          }
+        }
       }
     ]
   },
@@ -78,9 +124,7 @@
         "castBy": "Air Ring of Elemental Command"
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "price": 200000,
       "rarity": "legendary"

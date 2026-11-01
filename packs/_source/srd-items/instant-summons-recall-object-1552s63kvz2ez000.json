@@ -47,7 +47,8 @@
             "type": "constant",
             "value": 9
           },
-          "recovery": "none"
+          "recovery": "none",
+          "current": 0
         }
       }
     ]

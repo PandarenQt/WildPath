@@ -22,23 +22,42 @@ export const ABILITY_MAP = Object.freeze({str: "might", dex: "agility", con: "fo
  * "Failure: The target has the Charmed condition"; 2014 "or become frightened for 1 minute", with how long the 2014
  * wording says (`duration`, when every one says the same). Not one put on its user ("on you").
  */
-function failedSaveOutcome(document) {
+function failedSaveOutcome(document, {onHit=false}={}) {
   const found = new Set();
   const durations = new Set();
+  const levels = {};
   const text = plainText(document).replace(/&amp;Reference\[(\w+)[^\]]*\]/g, "$1");
+  // An attack's: those its hit gives ("Hit: The target has the Grappled condition (escape DC 15)").
+  const outcome = onHit ? /\bhit:/i : /on a failed save|failure:|saving throw,?(?: \([^)]*\))? or (?:the target )?(?:have|has|be|become|gain)\b/i;
   for ( const sentence of text.split(/(?<=[.!?])\s+/) ) {
-    if ( !/on a failed save|failure:|saving throw,?(?: \([^)]*\))? or (?:have|has|be|become)\b/i.test(sentence) || /\bon you\b/i.test(sentence) ) continue;
-    for ( const [, named, plain] of sentence.matchAll(/\b(?:(?:has|have) the (\w+) condition|(?:be|becomes?) (\w+)(?= for\b| until\b|[.,;]))/gi) ) {
+    if ( !outcome.test(sentence) || /\bon you\b/i.test(sentence) ) continue;
+    for ( const match of sentence.matchAll(/\b(?:(?:has|have) the (\w+) condition|(?:be|becomes?) (\w+)(?= for\b| until\b|[.,;]))/gi) ) {
+      const [, named, plain] = match;
       const condition = CONDITION_MAP[String(named ?? plain).toLowerCase()];
       if ( !condition ) continue;
       found.add(condition);
-      const lasting = plain ? /\bfor (\d+|one) (round|minute|hour)s?\b/i.exec(sentence) : null;
+      // 2014 "become frightened for 1 minute" anywhere in its sentence; 2024 "have the Poisoned condition for 1 minute" right after.
+      const lasting = plain ? /\bfor (\d+|one) (round|minute|hour)s?\b/i.exec(sentence)
+        : /^ for (\d+|one) (round|minute|hour)s?\b/i.exec(sentence.slice(match.index + match[0].length));
       durations.add(lasting ? `${Number(lasting[1]) || 1}:${LASTING_UNITS[lasting[2].toLowerCase()]}` : "");
     }
+    // "or gain 1 Exhaustion level" (a Ring of X-ray Vision's): that many levels.
+    const exhaustion = /\bor gains? (\d+) Exhaustion levels?\b/i.exec(sentence);
+    if ( exhaustion ) {
+      found.add("exhaustion");
+      levels.exhaustion = Number(exhaustion[1]);
+      durations.add("");
+    }
+  }
+  // "The creature also has the Paralyzed condition while Poisoned in this way" (Crawler Mucus): it comes with the other.
+  // shortcut: two effects, so ending the first early (Lesser Restoration) leaves the second; upgrade when an effect can
+  // end with another's.
+  for ( const [, extra, carrier] of text.matchAll(/\balso (?:has|have) the (\w+) condition while (\w+) in this way\b/gi) ) {
+    if ( found.has(CONDITION_MAP[carrier.toLowerCase()]) && CONDITION_MAP[extra.toLowerCase()] ) found.add(CONDITION_MAP[extra.toLowerCase()]);
   }
   const [only] = durations.size === 1 ? [...durations] : [""];
   const [value, units] = (only ?? "").split(":");
-  return {conditions: [...found], ...(units ? {duration: {value: Number(value), units}} : {})};
+  return {conditions: [...found], ...(Object.keys(levels).length ? {levels} : {}), ...(units ? {duration: {value: Number(value), units}} : {})};
 }
 
 /**
@@ -46,7 +65,56 @@ function failedSaveOutcome(document) {
  * Light on a held object): the marker on those that fail, for as long as it lasts, is all there is to automate.
  */
 const NARRATIVE_SAVES = new Set(["scrying", "detect-thoughts", "seeming", "light", "read-thoughts", "crystal-ball", "crystal-ball-of-mind-reading",
-  "crystal-ball-of-telepathy", "crystal-ball-of-true-seeing", "helm-of-telepathy", "medallion-of-thoughts", "potion-of-mind-reading"]);
+  "crystal-ball-of-telepathy", "crystal-ball-of-true-seeing", "helm-of-telepathy", "medallion-of-thoughts", "potion-of-mind-reading",
+  // A Sprite's Heart Sight (emotions and alignment); a creature sent off the Scene (Plane Shift's precedent: it leaves): an
+  // Iron Flask's prisoner, Dispel Evil and Good's Dismissal; Reverse Gravity's upward fall (heights are not tracked).
+  "heart-sight", "iron-flask", "dispel-evil-and-good", "reverse-gravity"]);
+
+/**
+ * Saves whose failure the conditions its text gives (failedSaveOutcome) are all of, with their duration, size limit,
+ * escape DC, repeated save and Exhaustion levels: nothing of them is by hand. Not a Net: its own AC and Hit Points
+ * (destroying it frees its creature) are by hand, so its note stays until objects are modelled.
+ */
+const FAILURE_TEXT_COMPLETE = new Set(["crawler-mucus", "ring-of-x-ray-vision", "grasping-hand"]);
+
+/** The sizes of creatures, smallest first. */
+const CREATURE_SIZES = ["tiny", "small", "medium", "large", "huge", "gargantuan"];
+
+/**
+ * The largest creature its failed save's conditions take: "grapple a Huge or smaller creature"; "The target succeeds
+ * automatically if it is Huge or larger" (a Net) is one size smaller. Null when its text sets none.
+ */
+function sizeLimitOf(document) {
+  const text = plainText(document);
+  const smaller = /\b(Tiny|Small|Medium|Large|Huge) or smaller creature\b/i.exec(text);
+  if ( smaller ) return smaller[1].toLowerCase();
+  const larger = /\bsucceeds automatically if it is (Small|Medium|Large|Huge|Gargantuan) or larger\b/i.exec(text);
+  return larger ? CREATURE_SIZES[CREATURE_SIZES.indexOf(larger[1].toLowerCase()) - 1] : null;
+}
+
+/**
+ * What a summoned creature's feature costs its summoner instead of itself: dnd5e's activation condition "Bonus Action used
+ * by summoner", or its text's "As a Bonus Action, you can move the eye up to 30 feet" (you: the summoner). `{capability,
+ * feet}` (feet: how far it moves, when it says), or null.
+ */
+function summonerPaid(document, activity) {
+  const used = /\bused by (?:its |the )?summoner\b/i.test(activity.activation?.condition ?? "");
+  const move = /\bAs an? (Bonus Action|Magic action|action), you can move the [^.]*?\bup to (\d+) feet\b/i.exec(plainText(document));
+  if ( !used && !move ) return null;
+  const type = used ? activity.activation?.type : (/bonus/i.test(move[1]) ? "bonus" : "action");
+  return {capability: (type === "bonus") ? "bonus-action" : "action", feet: move ? Number(move[2]) : null};
+}
+
+/** An ability by its name in a dnd5e activity's name (dnd5e's "Activate Sword: Stength" too). */
+const ABILITY_WORDS = Object.freeze({str: /\bStr?ength\b/i, dex: /\bDexterity\b/i, con: /\bConstitution\b/i, int: /\bIntelligence\b/i,
+  wis: /\bWisdom\b/i, cha: /\bCharisma\b/i});
+
+/** The save a "coat the blade with poison" enchantment applies on its next hit (a Dagger of Venom's Poison Save), or null. */
+const coatingSave = (document, activities) => ((/\bcoat (?:the|its) blade with poison\b/iu.test(plainText(document))
+  && activities.some(entry => entry.type === "enchant")) ? (activities.find(entry => entry.type === "save") ?? null) : null);
+
+/** A save whose failure is narrative: by its document (NARRATIVE_SAVES) or its activity's dnd5e name (NARRATIVE_ACTIVITIES). */
+const narrativeSave = (document, activity) => NARRATIVE_SAVES.has(identifierOf(document)) || NARRATIVE_ACTIVITIES.has(activity?.name ?? "");
 
 /**
  * A stat block's "Failure by 5 or More:" section (2024 Homunculus, Pseudodragon): the conditions only it names (not the
@@ -149,6 +217,11 @@ const REACTIONS = Object.freeze({
   // to 0 Hit Points is still asked, as in every planned-damage window; upgrade with an incapacitation check in discovery.
   "dwarven-plate": {event: "push.applied", match: {phase: "before", targetTokenId: "{self}"}, reducesPush: 10},
   "deflect-energy": {event: "damage.applied", match: {phase: "before", targetTokenId: "{self}", tagsAll: ["hit"]}, reduces: DEFLECTION},
+  // 2024 Feather Fall: a falling creature it sees within 60 feet (itself too) "takes no damage from the fall": all of that
+  // fall's damage (20d6 at most) comes off, and with none taken its Prone (`whenDamaged`) goes too. shortcut: one creature
+  // a reaction (not up to five), and its 60 feet a round of descent is not tracked; upgrade with several protected targets.
+  "feather-fall": {event: "damage.applied", match: {phase: "before", tagsAll: ["fall"]}, triggerPredicate: {all: seenTargetWithin(60)},
+    reduces: {dice: {type: "constant", value: 120}}, protects: "target"},
   // 2024 Interception: "When a creature you can see hits another creature within 5 feet of you with an attack roll": 1d10 +
   // its Proficiency Bonus off the damage that creature takes. shortcut: its "holding a Shield or a Simple or Martial
   // weapon" isn't checked; upgrade with an equipment predicate.
@@ -326,7 +399,13 @@ const ENCHANTS = Object.freeze({
     terms: [{type: "constant", value: 1}, {type: "ability-modifier", ability: "presence"}]}}, predicate: {tagsAny: ["weapon:{{weapon}}"]}}]},
   "pact-of-the-blade": {melee: true, rules: ["attack", "damage"].flatMap(domain => swap({type: "ability-modifier", ability: "presence"}, domain))},
   shillelagh: {melee: true, bases: ["club", "quarterstaff"],
-    rules: ["attack", "damage"].flatMap(domain => swap({type: "spellcasting-modifier"}, domain))}
+    rules: ["attack", "damage"].flatMap(domain => swap({type: "spellcasting-modifier"}, domain))},
+  // 2024 Helm of Brilliance's Fire Opal Flames: the weapon's hits deal an extra 1d6 Fire, and it sheds Bright Light 10 feet
+  // and Dim Light 10 more, until its wielder ends it. shortcut: "at least one fire opal" left, putting the flames out with
+  // a Bonus Action (ending the effect) and dropping or sheathing the weapon are by hand.
+  "helm-of-brilliance/Fire Opal Flames": {rules: [{type: "ExtraDamage", data: {domains: ["damage.weapon"],
+    expression: {type: "dice", number: 1, faces: 6}, damageType: "fire"}, predicate: {tagsAny: ["weapon:{{weapon}}"]}},
+  {type: "GrantLight", data: {bright: 10, dim: 20}}]}
 });
 
 /** The class whose level an enchantment of this kind reads (Tasha's infusions: "when you reach 10th level in this class"). */
@@ -372,6 +451,14 @@ function enchantmentRules(effect) {
  * Half Cover when making a spell attack roll" (`cover.ignored`, the authority's cover).
  */
 const ENCHANT_TEXT_RULES = Object.freeze({
+  // 2024 Oathbow: against its sworn enemy (the `sworn-enemy` mark its Swear Oath gives), Advantage on its attack rolls and
+  // an extra 3d6 Piercing on a hit. shortcut: ignoring Half and Three-Quarters Cover and long range's Disadvantage, one
+  // sworn enemy at a time, and Disadvantage with other weapons while it lives are by hand; upgrade when cover rules see
+  // the attack's weapon and its target's marks.
+  oathbow: ["attack", "damage"].map(domain => ({schemaVersion: 1, id: `oathbow-${domain}`,
+    ...((domain === "attack") ? {type: "RollMode", data: {domains: ["attack"], mode: "advantage"}}
+      : {type: "ExtraDamage", data: {domains: ["damage.weapon"], expression: {type: "dice", number: 3, faces: 6}, damageType: "piercing"}}),
+    predicate: {all: [{tagsAny: ["weapon:{{host}}"]}, {equals: {path: "attack.fromAttacker.sworn-enemy", value: true}}]}})),
   "1-wand-of-the-war-mage": [{schemaVersion: 1, id: "war-mage-cover", type: "Modifier", predicate: {tagsAll: ["spell", "attack"]},
     data: {domains: ["cover.ignored"], modifierType: "untyped", value: 1}}]
 });
@@ -561,6 +648,9 @@ const SPELL_CHOICES = Object.freeze({
  * Faithful Steed's Find Steed once per Long Rest (its paladin class grants the spell, always prepared).
  */
 const FREE_CASTS = Object.freeze({"faithful-steed": {spells: ["find-steed"], recovery: "longRest"},
+  // 2024 Dragon Companion: Summon Dragon once per Long Rest without a slot (its dnd5e uses are this pool). shortcut: casting it
+  // without Concentration (1 minute) is by hand; upgrade with a free cast's own configuration.
+  "dragon-companion": {spells: ["summon-dragon"], recovery: "longRest", note: "free cast: Summon Dragon without Concentration (1 minute) is by hand"},
   // Its level 1 spell, whichever it gave (`granted`); each copy of the feat its own pool (`perItem`: `{item}` in the pool's
   // id is the feat Item's id), since the feat may be taken again with another list.
   "magic-initiate": {spells: [], granted: true, perItem: true, recovery: "longRest"},
@@ -1239,7 +1329,7 @@ const add = terms => (terms.length === 1 ? terms[0] : {type: "add", terms});
 /** Scale values dnd5e's own formulas name differently from the class's table (Persistent Rage's "@scale.barbarian.rage"). */
 const SCALE_ALIASES = Object.freeze({"barbarian.rage": "barbarian.rages"});
 
-export function formulaExpression(formula, {spell=false, ability=null, scales={}, castLevel=null, challenge=null, spellDC=null}={}) {
+export function formulaExpression(formula, {spell=false, ability=null, scales={}, castLevel=null, challenge=null, spellDC=null, pool=null}={}) {
   let text = String(formula ?? "").trim();
   if ( !text ) return null;
   const variables = {};
@@ -1291,7 +1381,12 @@ export function formulaExpression(formula, {spell=false, ability=null, scales={}
     .replace(/@classes\.([a-z0-9-]+)\.levels/gi, (_, id) => `level(${id.toLowerCase()})`)
     .replace(/@details\.level/g, "level")
     .replace(/@item\.level/g, castLevel == null ? "@item.level" : String(castLevel))
-    .replace(/@details\.cr/g, challenge == null ? "@details.cr" : String(challenge));
+    .replace(/@details\.cr/g, challenge == null ? "@details.cr" : String(challenge))
+    // Its item's pool (`pool`): its charges left (a Staff of Power's "16 * @item.uses.value"), its maximum, and what is spent
+    // (an Ivory Goat's "-@item.uses.spent": all of it given back).
+    .replace(/@item\.uses\.(value|max|spent)\b/g, (match, part) => (!pool ? match : variable({value: {type: "resource-current", resource: pool},
+      max: {type: "resource-max", resource: pool}, spent: {type: "subtract", terms: [{type: "resource-max", resource: pool},
+        {type: "resource-current", resource: pool}]}}[part])));
   // "(max(1,@abilities.wis.mod))d6", "(@prof)d4": dice as many as the parentheses work out to.
   text = text.replace(/\(((?:[^()]|\((?:[^()]|\([^()]*\))*\))*)\)\s*d\s*(\d+)/g, (match, inner, faces) => {
     const count = inner.includes("@") ? null : parseFormula(inner.trim(), {variables});
@@ -1314,7 +1409,7 @@ const cantripTable = expression => ({type: "table", key: {type: "character-level
   rows: {1: expression, 5: multiplyDice(expression, 2), 11: multiplyDice(expression, 3), 17: multiplyDice(expression, 4)}});
 
 /** A dnd5e damage or healing part as a ValueExpression; notes what it leaves out. */
-function partExpression(part, {spell, ability, scales, notes, label}) {
+function partExpression(part, {spell, ability, scales, notes, label, pool=null}) {
   // Exploding dice (2024 Sorcerous Burst's "1d8x@mod=8"): its dice. shortcut: an 8 rolls no extra die; upgrade when dice explode.
   const exploding = /^\s*(\d+)d(\d+)x/iu.exec(String(part?.custom?.formula ?? ""));
   if ( part?.custom?.enabled && exploding ) {
@@ -1322,7 +1417,7 @@ function partExpression(part, {spell, ability, scales, notes, label}) {
     return dice(Number(exploding[1]), Number(exploding[2]));
   }
   if ( part?.custom?.enabled ) {
-    const custom = formulaExpression(part.custom.formula, {spell, ability, scales});
+    const custom = formulaExpression(part.custom.formula, {spell, ability, scales, pool});
     if ( !custom ) notes.push(`${label}: custom formula "${part.custom.formula}" not converted`);
     return custom;
   }
@@ -1517,12 +1612,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const system = document.system ?? {};
   // An activity with no type is a stale leftover (Tasha's infusions carry one), not something it does.
   const activities = Object.values(system.activities ?? {}).filter(activity => activity?.type)
-    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)).map(activity => poisonUse(system, activity))
+    .sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)).map(activity => activationByHand(document, poisonUse(activity)))
     // "Action or Bonus Action" (2024 Scimitar of Speed: "one attack with it as a Bonus Action on each of your turns"): an
     // attack that costs the Action, and a copy that costs the Bonus Action.
     .map(activity => (((activity.type === "attack") && (activity.activation?.type === "special")
       && /^Action or Bonus Action$/iu.test(activity.activation?.condition ?? ""))
       ? {...activity, activation: {...activity.activation, type: "action", override: true}, bonusToo: true} : activity));
+  activities.push(...missingCasts(document, activities));
   const spell = document.type === "spell";
   const level = number(system.level) ?? 0;
   const pool = usesPool({document, scales}) ?? spentPool(activities, names);
@@ -1537,6 +1633,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const items = [];
   const allNotes = [];
   const initiativeRules = [];
+  // Activities another Action folds in (a lasting area's repeat: areaRepeat; ACTIONS_BY_HAND `folds`): not passive abilities.
+  const folded = new Set();
   let testOffer = null;
   const trait = traitOf(document, {activities, system, spell, level, scales, pool, saveDC, creature});
   // A Metamagic option (Quickened Spell: "quickened"), which its sorcerer's spells offer (metamagic.mjs).
@@ -1546,7 +1644,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const usable = activities.length ? activities : (spell ? [{type: "manual", activation: {override: false}}] : []);
   // The tag a stat block attack's own save answers (attackRider), on that attack's Action.
   const riderTag = activities.map(entry => attackRider(document, entry, activities)).find(Boolean)?.tagsAll[0] ?? null;
-  for ( const [index, activity] of usable.entries() ) {
+  for ( const [index, listed] of usable.entries() ) {
+    let activity = listed;
     const notes = [...(pool?.notes ?? [])];
     const label = activity.name || activity.type;
     // An activity a common trait automates (Regeneration's healing) is the trait's, not an Action; one the engine offers
@@ -1577,8 +1676,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       ?? attackRider(document, activity, activities);
     // An enchantment of one of its creature's weapons (Magic Weapon, Sacred Weapon): its weapon's attacks change instead.
     // Not a weapon of the same name (a creature's Sacred Weapon attack is no Channel Divinity).
-    const enchant = (document.type !== "weapon") ? (ENCHANTS[identifierOf(document)] ?? null) : null;
-    if ( enchant && (activity.type !== "enchant") ) continue;
+    // One of its activities by name (a Helm of Brilliance's Fire Opal Flames) leaves its others be (its casts and saves).
+    const enchantByName = ENCHANTS[`${identifierOf(document)}/${activity.name}`] ?? null;
+    const enchant = (document.type !== "weapon") ? (enchantByName ?? ENCHANTS[identifierOf(document)] ?? null) : null;
+    if ( enchant && !enchantByName && (activity.type !== "enchant") ) continue;
     // A template's enchantment is an Action even with no activation (null when it changes nothing: Adamantine Armor).
     const template = templateEnchant(document, activities)
       ? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales}) : null;
@@ -1592,6 +1693,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A stat block's damage at the start of each of the target's turns while its save's condition lasts (a Pit Fiend's
     // Bite) is that condition's effect's own (turnStartDamageEffects), not an Action.
     if ( turnStartDamage(document, activity) ) continue;
+    // One another of its Actions stands in for (ACTIONS_BY_HAND `drops`: an Oathbow's Attack Sworn Enemy) is none of its own.
+    if ( activities.some(entry => ACTIONS_BY_HAND[`${identifierOf(document)}/${entry.name}`]?.drops?.includes(activity.name)) ) continue;
+    // The save a coating applies on its next hit (a Dagger of Venom's Poison Save) is that coating's own (below).
+    if ( (activity.type === "save") && (coatingSave(document, activities)?._id === activity._id) ) continue;
+    // The check escaping its grapple ("escape DC 15") is the DC on that condition (escapeDCOf), which the common Escape
+    // action rolls against with the better of Athletics and Acrobatics: not an Action of its own, whatever its activation
+    // (a vehicle's are all Actions). Escaping Manacles or a Net, with no "escape DC", stays its own check.
+    if ( (activity.type === "check") && /escape/i.test(activity.name ?? "") && /\bescape DC\b/i.test(plainText(document)) ) continue;
     // Brutal Strike's Actions are its own (brutalStrikeActions), not its dnd5e damage activity.
     if ( ["brutal-strike", "improved-brutal-strike", "elemental-affinity", "defensive-tactics"].includes(identifierOf(document)) ) continue;
     // A choice it adds to another feature's Action (Restoring Touch on Lay on Hands) is its flag, not an Action.
@@ -1603,8 +1712,28 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // What hitting it costs the attacker (a Black Pudding's Corrosive Form, an Azer's Heated Body): an Action of its own,
     // answering the hit at once (RETALIATION).
     const retaliates = (activity.type === "damage") && RETALIATION_TEXT.test(plainText(document));
+    // The others' save of an Action dnd5e splits in two ("Retributive Strike" and its "Retributive Strike: Save": the
+    // explosion around a broken Staff of Power) is that Action: its cost, the save in an Emanation around its user. Not a
+    // free Action of its own. What else the Action does (its user's own damage, a chance to escape it, the staff's
+    // destruction) is noted by hand.
+    const companionOf = entry => (entry.type === "save") && usable.some(main => (main !== entry) && (`${main.name}: Save` === entry.name)
+      && !["", "none", "special"].includes(main.activation?.type ?? ""));
+    if ( companionOf(activity) ) continue;
+    const split = usable.find(entry => companionOf(entry) && (entry.name === `${activity.name}: Save`));
+    if ( split ) {
+      activity = {...split, _id: listed._id, name: listed.name, activation: listed.activation, range: {units: "self", override: true}};
+      notes.push(`"${label}": what it does besides the others' save (to its user, to the item) is by hand`);
+    }
+    // A light source's Light (a Candle's, which dnd5e leaves without an activation) is lit with a Bonus Action (below).
+    const lights = (activity.name === "Light") && Boolean(LIGHT_SOURCES[identifierOf(document)]);
+    // A creature made over days (a Manual of Golems' golem: "special", its time the table's) is still summoned when it is
+    // done, spending the item's one use (madeOnce: "the book is consumed"). shortcut: its holder picks any of its golems,
+    // not the one the GM chose.
+    const crafted = (activity.type === "summon") && (activation === "special");
+    if ( crafted && madeOnce(document) ) activity = {...activity, consumption: {...(activity.consumption ?? {}),
+      targets: [...(activity.consumption?.targets ?? []), {type: "itemUses", value: "1"}]}};
     if ( ["", "none", "special"].includes(activation) && !onHit && !enchant && !template && !trades && !trapTier && !retaliates
-      && !USED_AT_TURN_START.has(identifierOf(document)) ) {
+      && !lights && !crafted && !listed.activation?.free && !USED_AT_TURN_START.has(identifierOf(document)) ) {
       // A recharge when its creature rolls Initiative (Persistent Rage, Uncanny Metabolism, Archdruid): automatic.
       const recharge = initiativeTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature,
         beasts}) ?? restTrigger(document, activity);
@@ -1637,7 +1766,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       // A feature the engine offers on its own (Eldritch Master, in Magical Cunning) needs no Action; one that becomes its
       // own Action (Action Surge: FEATURE_ACTIONS) is not passive.
       const escape = (activity.type === "check") && /escape/i.test(activity.name ?? "");
-      if ( !trait && !marked && !metamagic && !escape && !OFFERED_BY_ENGINE.has(identifierOf(document)) && !FEATURE_ACTIONS[identifierOf(document)] ) {
+      // A free cast's own use (Dragon Companion's Expend Use) is its free cast.
+      if ( !trait && !marked && !metamagic && !escape && !OFFERED_BY_ENGINE.has(identifierOf(document)) && !FEATURE_ACTIONS[identifierOf(document)]
+        && !FREE_CASTS[identifierOf(document)] ) {
         // A trait whose text names no game rule (an option's heading, a 2014 trait's flavor) is its own description.
         const narrative = NARRATIVE_ACTIVITIES.has(activity.name ?? "")
           || !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`);
@@ -1650,7 +1781,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       const cast = castSpell({document, activity, system, notes, pool, options: {scales, pack, saveDC, names, creature, book, images, spells,
         creatures, beasts, tables}});
       if ( cast ) {
-        items.push(cast);
+        items.push(...cast);
         allNotes.push(...notes);
         continue;
       }
@@ -1678,6 +1809,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       definition = {...definition, effects: definition.effects.map(effect => ((effect.type === "effect") ? {...effect, drawsAtTurnStart: turnTable} : effect))};
       notes.splice(0, notes.length, ...notes.filter(note => !marked.some(name => note === `effect: "${name}" marks its creature only; its rules are by hand`)));
     }
+    const byHand = ACTIONS_BY_HAND[`${identifierOf(document)}/${activity.name}`];
+    if ( byHand ) {
+      definition = byHand.definition(definition ?? manualDefinition({document, activity, system, spell, level, notes: [], pool, names, scales}));
+      for ( const entry of activities.filter(entry => byHand.folds.includes(entry.name || entry.type)) ) folded.add(entry);
+      notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")), ...(byHand.notes ?? []));
+    }
     const light = (activity.name === "Light") ? LIGHT_SOURCES[identifierOf(document)] : null;
     if ( light ) {
       definition ??= manualDefinition({document, activity, system, spell, level, notes: [], pool, names, scales});
@@ -1689,18 +1826,49 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( definition && (system.type?.value === "poison") && (system.type?.subtype === "injury") && (activity.name === "Use Poison") ) {
       definition = coatDefinition(definition, document, img);
     }
+    // "You can take a Bonus Action to magically coat the blade with poison" (a Dagger of Venom): its enchantment is the
+    // coating, and its save the poison's, as a poison's Use Poison is (coatDefinition). shortcut: the coating's next hit
+    // with any weapon of its creature's spends it, not only this one's; upgrade when a hit's event names its weapon.
+    const coated = (!definition && (activity.type === "enchant")) ? coatingSave(document, activities) : null;
+    const poison = coated ? convertActivity({document, activity: coated, system, spell, level, scales, notes: [], pool, saveDC, spellDC, creature,
+      beasts, names}) : null;
+    if ( poison ) {
+      const own = manualDefinition({document, activity, system, spell, level, notes: [], pool, names, scales});
+      definition = coatDefinition({...poison, id: own.id, costs: own.costs}, document, img);
+    }
     if ( !definition ) {
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
       // A use whose text names no game rule (Alarm, Create or Destroy Water, a Tinderbox) is narrative: spending its cost is
       // all there is to automate.
       // So is a Spellcasting feature's own heading beside the spells it casts (its cast activities are the rules).
       const casts = Object.values(system.activities ?? {}).some(entry => entry.type === "cast");
-      // So is a teleport off the Scene (Teleport, Plane Shift, Word of Recall: miles, another plane): its creature leaves.
-      const narrative = ((activity.type === "utility") && (casts || NARRATIVE_USES.has(identifierOf(document))
-        || !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`)))
-        || ((activity.type === "teleport") && !((number(activity.teleport?.value) > 0) && ((activity.teleport?.units ?? "ft") === "ft")));
-      notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type}${narrative ? ", narrative" : ""})`}: using it spends its cost; its description says the rest`);
       definition = manualDefinition({document, activity, system, spell, level, notes, pool, names, scales});
+      // So is a teleport off the Scene (Teleport, Plane Shift, Word of Recall: miles, another plane): its creature leaves.
+      // So is a spell's use that fills its own pool for its other Actions (Freezing Sphere's Cast and Hold): that is all it does.
+      const narrative = ((activity.type === "utility") && (casts || NARRATIVE_USES.has(identifierOf(document))
+        || !MECHANICAL_TEXT.test(`${plainText(document)} ${activity.description?.chatFlavor ?? ""}`) || (spell && definition.restores?.length)))
+        || ((activity.type === "teleport") && !((number(activity.teleport?.value) > 0) && ((activity.teleport?.units ?? "ft") === "ft")))
+        || NARRATIVE_ACTIVITIES.has(activity.name ?? "");
+      // A narrative use's area is what it is used on (Sovereign Glue's surfaces). One named narrative (NARRATIVE_ACTIVITIES,
+      // NARRATIVE_USES) keeps its counter (a Deck of Illusions' missing cards) and summons (an Iron Flask's trapped creature,
+      // whatever it is) as its table's bookkeeping; any other's (a staff's charges from a spell it absorbs) stay noted.
+      const named = NARRATIVE_ACTIVITIES.has(activity.name ?? "") || NARRATIVE_USES.has(identifierOf(document));
+      if ( narrative ) notes.splice(0, notes.length, ...notes.filter(note => !(named ? /^(?:area|consumption|summon): / : /^area: /).test(note)));
+      notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type}${narrative ? ", narrative" : ""})`}: using it spends its cost; its description says the rest`);
+    }
+    // What a summoned creature does at its summoner's cost (dnd5e's "Bonus Action used by summoner"; "As a Bonus Action,
+    // you can move the sphere up to 30 feet"): its summoner pays (`controllerCosts`), and moving it is a move of that many
+    // feet more this turn (an Arcane Eye's Move). shortcut: the move is its Dash (a Speed's worth), or that many feet added
+    // to its Speed when they differ; a creature its moving reaches (a Flaming Sphere's save) is the GM's to pick.
+    const paid = (creature && !spell) ? summonerPaid(document, activity) : null;
+    if ( paid ) {
+      definition = {...definition, costs: {allOf: []}, controllerCosts: {allOf: [{capability: paid.capability, amount: 1}]},
+        ...((activity.type === "utility") && paid.feet ? {range: {type: "self"}, targeting: {type: "self"}, effects: [{id: "effect-1",
+          type: "effect", name: document.name, img: "icons/svg/wingfoot.svg", duration: {value: 0, units: "turns", expiry: "turnEnd"},
+          ruleElements: [{schemaVersion: 1, id: "moved", type: "Modifier", data: (paid.feet === creature.speed)
+            ? {domains: ["speed.dash"], modifierType: "untyped", value: 1}
+            : {domains: ["resources.movement.max"], modifierType: "untyped", value: paid.feet}}]}]} : {})};
+      if ( (activity.type === "utility") && paid.feet ) notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated")));
     }
     // Spare the Dying, a Healer's Kit: the creature it touches at 0 Hit Points becomes Stable (the dying adapter's
     // `stabilize`), not a marker beside it.
@@ -1713,6 +1881,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       if ( !definition.effects.length ) delete definition.effects;
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated") && !/^effect: (?:"Stabilized"|stable )/.test(note)));
     }
+    // One that acts on what its user touches (a Feather Token's Anchor on a vessel, Manacles on a creature): that one.
+    if ( TOUCHES.has(`${identifierOf(document)}/${activity.name}`) ) definition = {...definition,
+      range: {type: "touch", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1}};
     // What it may be used only while wearing (2024 Rage: "if you aren't wearing Heavy armor"). shortcut: a Rage going on
     // isn't ended by donning Heavy armor.
     if ( USED_WHILE_WEARING[identifierOf(document)] ) definition = {...definition, requires: definition.requires
@@ -1728,14 +1899,20 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A spell that fills its area with light (2024 Daylight's sunlight) is a lasting area shedding it.
     // So does an item whose utility area is Heavily Obscured (an Eversmoking Bottle's smoke). shortcut: with no duration of
     // its own it lasts until removed; the bottle's growth each minute is its size step, and closing it is by hand.
-    const shedding = sheddingArea({document, activity, system, definition, scales, spell: Boolean(spell)});
+    // Its area's repeat, a save dnd5e leaves passive (Stinking Cloud's Start of Turn Save, Wall of Thorns' Traversal Save):
+    // what the lasting area does to a creature in it, not an Action.
+    const repeatActivity = areaRepeat(system, activity);
+    const repeat = repeatActivity ? convertActivity({document, activity: repeatActivity, system, spell, level, scales, notes: [], pool, saveDC,
+      spellDC, creature, beasts, names}) : null;
+    const shedding = sheddingArea({document, activity, system, definition, scales, spell: Boolean(spell), repeat});
     if ( shedding ) {
       definition = {...definition, ...shedding.definition};
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("not automated") && !note.startsWith("concentration: nothing")),
         ...shedding.notes);
     }
     // An area that keeps acting while it lasts (Moonbeam, Web, Cloudkill): a lasting area whose trigger repeats it.
-    const lasting = shedding ? null : lastingArea({document, system, definition, activity});
+    const lasting = shedding ? null : lastingArea({document, system, definition, activity, repeat});
+    if ( shedding?.repeated || (lasting && repeat && lasting.area.persistence.triggers.length) ) folded.add(repeatActivity);
     if ( lasting ) {
       definition = lasting;
       notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("concentration: nothing")));
@@ -1938,6 +2115,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( twoHanded ) items.push(action(stableId(`${id}:two-handed`), `${document.name}${suffix} (Two-Handed)`, twoHanded));
     allNotes.push(...notes);
   }
+  for ( const entry of folded ) {
+    const note = `"${entry.name || entry.type}" is passive or triggered`;
+    allNotes.splice(0, allNotes.length, ...allNotes.filter(each => !each.startsWith(note)));
+  }
   // What it gives while it is had (worn, for gear): its passive effects' rules.
   const passive = [...passiveEffects(document).flatMap(effect => effectRules(effect, allNotes, {scales, text: plainText(document)})), ...emptyPassiveRules(document, allNotes)]
     // Only while its creature wears what its text allows (Unarmored Movement: no armor or Shield; Fast Movement: no Heavy armor).
@@ -1968,7 +2149,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( trainingKeys(document).length ) allNotes.splice(0, allNotes.length, ...allNotes.filter(note => !/traits\.(armorProf|weaponProf|languages)/.test(note)));
     items.unshift({_id: gearId, _key: `!items!${gearId}`, name: document.name, type: "gear", img,
       system: {active: false, description, quantity: Math.max(0, Math.round(number(system.quantity) ?? 1)),
-        weight: number(system.weight?.value ?? system.weight) ?? 0, slot: "", ruleElements: [...armorRules(document, allNotes), ...passive],
+        weight: number(system.weight?.value ?? system.weight) ?? 0, slot: "", ruleElements: [...armorRules(document, allNotes), ...(trait?.rules ?? []), ...passive],
         attunement: (system.attunement === "required") ? "required" : "", armor: (document.type === "equipment" ? armorKind(system) : null) ?? "",
         // Its price in gold, and its rarity (crafting it).
         price: priceInGold(system.price), ...(system.rarity ? {rarity: system.rarity} : {}),
@@ -1987,14 +2168,19 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const {bonusFormula, ...row} = TEST_OFFERS[identifierOf(document)];
     testOffer ??= {...structuredClone(row), ...(bonusFormula ? {bonus: formulaExpression(bonusFormula, {scales})} : {})};
   }
+  if ( FREE_CASTS[identifierOf(document)]?.note ) allNotes.push(FREE_CASTS[identifierOf(document)].note);
   // Nothing to use: a passive ability is a feature carrying its text (and any uses its other Actions spend).
   if ( !items.length ) {
     // Its training is its flag (`flags.wildpath.training`), no longer a note.
     if ( trainingKeys(document).length ) allNotes.splice(0, allNotes.length, ...allNotes.filter(note => !/traits\.(armorProf|weaponProf|languages)/.test(note)));
+    // An extra cantrip is its cantrip choice (FEAT_ADVANCEMENT), not dnd5e's raised cantrips-known scale.
+    if ( FEAT_ADVANCEMENT[identifierOf(document)]?.advancement.some(entry => entry.pool?.spellLevel === 0) ) {
+      allNotes.splice(0, allNotes.length, ...allNotes.filter(note => !/change system\.scale\.\w+\.cantrips-known\.value/.test(note)));
+    }
     items.push({_id: document._id, _key: `!items!${document._id}`, name: document.name, type: "feature", img,
       // Portent's and Infuse Item's dnd5e use counts are no pool: its dice are (portentDice), and its limit is the
       // enchantments' (itemEnchantDefinition).
-      system: {active: true, description, ruleElements: [["portent", "infuse-item"].includes(identifierOf(document)) ? null : pool?.rule,
+      system: {active: true, description, ruleElements: [(["portent", "infuse-item"].includes(identifierOf(document)) || FREE_CASTS[identifierOf(document)]) ? null : pool?.rule,
         ...(trait?.rules ?? []), ...initiativeRules,
         // A paladin's aura is what it grants those around it, not what its dnd5e effect gives the paladin alone.
         ...(PALADIN_AURAS[identifierOf(document)] ? [paladinAura(identifierOf(document))] : passive),
@@ -2106,8 +2292,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         featureAction.trigger ? {schemaVersion: 1, id: "reaction", type: "Trigger", data: structuredClone(featureAction.trigger)} : null]
         .filter(Boolean)},
       flags: {wildpath: {source, conversion: {notes: []}, ...(featureAction.policy ? {reactionPolicy: featureAction.policy} : {})}}});
-    // A feat is taken alone (an Epic Boon chosen at level 19), so its feature brings its Action; a class grants both.
-    if ( (system.type?.value === "feat") && (items[0]?.type === "feature") ) items[0].flags.wildpath.grants = [...(items[0].flags.wildpath.grants ?? []), id];
+    // A feat is taken alone (an Epic Boon chosen at level 19), so its feature brings its Action; a class grants both. Gear
+    // brings its own (a Deck of Many Things card).
+    if ( ((system.type?.value === "feat") && (items[0]?.type === "feature")) || (items[0]?.type === "gear") ) {
+      items[0].flags.wildpath.grants = [...(items[0].flags.wildpath.grants ?? []), id];
+    }
   }
   // What it costs and how rare it is, on Actions that stand for it with no gear (an SRD Longbow, a Potion of Healing).
   const price = priceInGold(system.price);
@@ -2169,7 +2358,9 @@ const ENGINE_FEATURES = new Set(["ability-score-improvement", "divine-order", "p
   // subclass's or class's trait steps give them.
   "bonus-proficiencies",
   // A Rune Knight's Rune Carver: its runes are its subclass's "Runes Known" choices, each rune's Items one option.
-  "rune-carver"]);
+  "rune-carver",
+  // A Draconic Spirit's Shared Resistances: Summon Dragon's choice as it is cast (SUMMON_RULES).
+  "shared-resistances"]);
 /**
  * Features whose rule nothing in play exercises, so their text is their rule (an informational note, not a gap): what a
  * creature can't carry (Ephemeral), thoughts no one reads (Shielded Mind, Inscrutable: an Insight check is the GM's call
@@ -2329,6 +2520,30 @@ const FEATURE_ACTIONS = Object.freeze({
   // success (so no damage): an Action with no save. What the patron answers is the GM's.
   "contact-patron": {costs: [{capability: "contact-patron", amount: 1}], pool: {schemaVersion: 1, id: "contact-patron-uses",
     type: "GrantResource", data: {resourceId: "contact-patron", label: "Contact Patron", maximum: 1, recovery: "longRest"}}},
+  // Deck of Many Things cards (2024 DMG), drawn: Euryale's curse ("a -2 penalty to saving throws while cursed in this way",
+  // ended only by a god or the Fates card: no duration, not a curse Remove Curse ends); the Fool's Disadvantage and the
+  // Jester's Advantage on D20 Tests for 72 hours (the Fool's further draw and the Jester's two more cards are the table's);
+  // the Sun's 10 Temporary Hit Points daily at dawn (its magic item is the GM's).
+  // Each spends its card's one use (dnd5e's pool), so it is drawn once.
+  euryale: {effects: [{id: "effect-1", type: "effect", name: "Euryale's Curse", img: "icons/svg/skull.svg", ruleElements: [
+    {schemaVersion: 1, id: "euryale-curse", type: "Modifier", data: {domains: ["save"], modifierType: "untyped", value: -2}}]}]},
+  fool: {effects: [{id: "effect-1", type: "effect", name: "Fool", img: "icons/svg/downgrade.svg",
+    duration: {value: 72, units: "hours"}, ruleElements: [{schemaVersion: 1, id: "fool", type: "RollMode",
+      data: {domains: ["attack", "check", "save"], mode: "disadvantage"}}]}]},
+  jester: {name: "Advantage", effects: [{id: "effect-1", type: "effect", name: "Jester", img: "icons/svg/upgrade.svg",
+    duration: {value: 72, units: "hours"}, ruleElements: [{schemaVersion: 1, id: "jester", type: "RollMode",
+      data: {domains: ["attack", "check", "save"], mode: "advantage"}}]}]},
+  sun: {effects: [{id: "effect-1", type: "effect", name: "Sun", img: "icons/svg/sun.svg", ruleElements: [{schemaVersion: 1,
+    id: "sun-dawn", type: "Trigger", data: {kind: "automation", event: "rest.completed", predicate: {equals: {path: "event.data.restType",
+      value: "longRest"}}, action: {schemaVersion: 1, id: "action:srd-sun-dawn", label: "Sun", costs: {allOf: []}, range: {type: "self"},
+      targeting: {type: "self"}, healing: [{id: "healing-1", healingType: "temporary", expression: {type: "constant", value: 10}}]}}}]}]},
+  // 2024 Water Elemental's Freeze: "If the elemental takes Cold damage, its Speed decreases by 20 feet until the end of its
+  // next turn" (free, always).
+  freeze: {free: true, policy: "always", trigger: {kind: "reaction", event: "damage.applied", match: {phase: "before", targetTokenId: "{self}",
+    tagsAll: ["damage:cold"]}},
+  effects: [{id: "effect-1", type: "effect", name: "Frozen", img: "icons/svg/frozen.svg", duration: {value: 1, units: "rounds", expiry: "turnEnd"},
+    ruleElements: [{schemaVersion: 1, id: "freeze", type: "Modifier", data: {domains: ["resources.movement.max", "speed"], modifierType: "untyped",
+      value: -20}}]}]},
   // 2024 Nightmare: "can grant Resistance to Fire damage to a rider while it is on the nightmare". shortcut: there are no
   // mounts, so it lasts until removed and any creature it touches may have it.
   "confer-fire-resistance": {free: true, range: {type: "touch", distance: {value: 5, unit: "ft"}},
@@ -2709,6 +2924,9 @@ function armorRules(document, notes) {
   const cap = number(system.armor?.dex);
   const kind = armorKind(system);
   if ( !kind ) return [];
+  // A Shield is one kind (2024: +2); only armor of another kind needs its base by hand.
+  if ( (base == null) && (kind === "shield") ) return [{schemaVersion: 1, id: slugify(document.name), type: "Modifier",
+    data: {domains: ["defense.ac"], modifierType: "untyped", value: 2 + (number(system.armor?.magicalBonus) ?? 0)}}];
   if ( base == null ) {
     notes.push("armor: of any kind; give it its armor's AC by hand");
     return [];
@@ -2736,6 +2954,26 @@ function armorRules(document, notes) {
  * The activities a trait automates (`consumes`: Regeneration's healing, however dnd5e activates it) are not Actions.
  */
 const TRAITS = Object.freeze({
+  // A Draconic Spirit's Shared Resistances: its summoner's choice as Summon Dragon is cast (SUMMON_RULES), not the spirit's.
+  "shared-resistances": (document, {activities}) => ({rules: [], consumes: [...activities], notes: []}),
+  // Talismans (2024 DMG): a Fiend or an Undead holding a Talisman of Pure Good takes its Radiant damage each time it ends
+  // its turn; any other creature holding a Talisman of Ultimate Evil takes its Necrotic damage.
+  "talisman-of-pure-good": (document, options) => heldTurnEndDamage(document, options, "Fiend and Undead Damage", FIEND_OR_UNDEAD),
+  "talisman-of-ultimate-evil": (document, options) => heldTurnEndDamage(document, options, "Non-Fiend or Undead Damage",
+    {not: FIEND_OR_UNDEAD}),
+  // 2024 Robe of Eyes: "A Light spell cast on the robe ... gives you the Blinded condition for 1 minute. At the end of each
+  // of your turns, you make a Constitution saving throw (DC 11 for Light ...), ending the condition on yourself on a
+  // success": Light cast on its wearer (free, always). shortcut: it blinds as Light is declared, even if Light is
+  // countered. Daylight "cast within 5 feet of the robe" (DC 15) is by hand until a cast area's distance reaches a Trigger.
+  "robe-of-eyes": (document, {activities}) => {
+    const light = activities.find(entry => entry.name === "Light Save");
+    return light ? {rules: [{schemaVersion: 1, id: "robe-of-eyes-light", type: "Trigger", data: {kind: "reaction", event: "action.declared",
+      match: {phase: "interrupt", targetTokenId: "{self}", tagsAll: ["spell:light"]}, policy: "always",
+      action: {schemaVersion: 1, id: "action:srd-robe-of-eyes-light", label: document.name, costs: {allOf: []}, range: {type: "self"},
+        targeting: {type: "self"}, effects: [{id: "effect-1", type: "condition", conditionId: "blinded", duration: {value: 1, units: "minutes"},
+          metadata: {repeatSave: {timing: "turnEnd", ability: "fortitude", dc: 11}}}]}}}], consumes: [light],
+    notes: activities.filter(entry => entry !== light).map(entry => `"${entry.name || entry.type}" is passive or triggered: not automated`)} : null;
+  },
   // Human Resourceful: a point of Heroic Inspiration on each Long Rest, kept in the character's pool of 4 (BG3, G8).
   "resourceful": () => ({rules: [{schemaVersion: 1, id: "resourceful", type: "GrantResource",
     data: {resourceId: "heroic-inspiration", maximum: 0, regain: {longRest: 1}}}], notes: []}),
@@ -3109,6 +3347,10 @@ const SHEDS_LIGHT = Object.freeze({
   daylight: size => ({bright: size, dim: size + 60, sunlight: true, dispels: 3}),
   darkness: size => ({bright: size, darkness: true, dispels: 2})
 });
+/** A creature's or item's own (not a spell's): a Darkmantle's Darkness Aura, which no light illuminates. */
+const OWN_LIGHT = Object.freeze({
+  "darkness-aura": size => ({bright: size, darkness: true})
+});
 /** "Alternatively, you cast the spell on an object that isn't being worn or carried": the Token at its center. */
 const ON_OBJECT = Object.freeze({id: "on-object", type: "boolean", label: "Cast on an object (the Token at its center)", required: false});
 const ROUNDS = Object.freeze({round: 1, minute: 10, hour: 600});
@@ -3134,8 +3376,8 @@ function obscuredFromCast(document) {
  * is Heavily Obscured (2024 Fog Cloud: "The Sphere is Heavily Obscured"), its radius growing with a higher slot. Null when
  * the spell is neither or has no area.
  */
-function sheddingArea({document, activity, system, definition, scales={}, spell=true}) {
-  const light = spell ? SHEDS_LIGHT[system.identifier] : null;
+function sheddingArea({document, activity, system, definition, scales={}, spell=true, repeat=null}) {
+  const light = (spell ? SHEDS_LIGHT : OWN_LIGHT)[system.identifier] ?? null;
   const obscures = !light && (activity.type === "utility") && obscuredFromCast(document);
   const level = spell ? (Number(system.level) || 0) : 0;
   const {targeting, area, areaPerLevel=0, areaScaling=null} = (light || obscures) ? targetingOf({activity, system, notes: [], level, scales}) : {};
@@ -3143,19 +3385,27 @@ function sheddingArea({document, activity, system, definition, scales={}, spell=
   // An item's or creature's with no duration of its own, the one its text names for the obscurement ("Heavily Obscured for
   // 1 minute": an Ink Cloud). Else none: an Eversmoking Bottle's smoke lasts while it is open, until removed.
   const written = spell ? null : /\bheavily ?obscured\b[^.]{0,40}?\bfor (\d+) (minute|hour)s?\b/iu.exec(plainText(document));
+  // A creature's own lasts as its activity says ("maintains Concentration on it, up to 10 minutes").
+  const lasting = pick(activity, system, "duration");
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0)
-    || (written ? Number(written[1]) * ROUNDS[written[2].toLowerCase()] : 0);
+    || (written ? Number(written[1]) * ROUNDS[written[2].toLowerCase()] : 0)
+    || ((!spell && light) ? (Number(lasting.value) || 0) * (ROUNDS[lasting.units] ?? 0) : 0);
+  const concentration = (system.properties ?? []).includes("concentration") || Boolean(!spell && light && lasting.concentration);
   const configuration = [...(definition.configuration ?? []).filter(choice => choice.id !== "area-scaling")
     .map(choice => ((areaPerLevel && (choice.id === "spell-slot"))
       ? {...choice, effects: [...(choice.effects ?? []), ...levelScaling("spell-slot", level, [], {areaPerLevel})]} : choice)),
   ...(areaScaling ? [scalingChoice(areaScaling)] : [])];
-  return {definition: {targeting, range: rangeOf({activity, system, document, attack: null}),
-    configuration: light ? [...configuration, {...ON_OBJECT}] : configuration,
+  // Its repeat on a creature that starts or ends its turn in it (Stinking Cloud's Constitution save).
+  const turn = (!light && repeat) ? /\b(starts|ends) (?:its|their) turn in\b/iu.exec(plainText(document)) : null;
+  const triggers = turn ? [{on: [(turn[1].toLowerCase() === "starts") ? "turn.started" : "turn.ended"], action: repeatAction(definition, document, repeat)}] : [];
+  return {...(triggers.length ? {repeated: true} : {}), definition: {targeting, range: rangeOf({activity, system, document, attack: null}),
+    configuration: (light && spell) ? [...configuration, {...ON_OBJECT}] : configuration,
     area: {...area, persistence: {
-      ...(rounds ? {duration: {unit: "round", value: rounds}} : {}), ...((system.properties ?? []).includes("concentration") ? {concentration: true} : {}),
-      ...(light ? {light: {...light(area.size.value), spellLevel: level}, onObject: ON_OBJECT.id} : {obscures: "heavily"})}}},
-    // Its fog is its area; what else the spell does (Stinking Cloud's start-of-turn save) stays by hand.
-    notes: (!light && (!spell || (Object.keys(system.activities ?? {}).length > 1)))
+      ...(rounds ? {duration: {unit: "round", value: rounds}} : {}), ...(concentration ? {concentration: true} : {}),
+      ...(light ? {light: {...light(area.size.value), spellLevel: level}, ...(spell ? {onObject: ON_OBJECT.id} : {})} : {obscures: "heavily"}),
+      ...(triggers.length ? {triggers} : {})}}},
+    // Its fog is its area; what else it does with no repeat of its own stays by hand.
+    notes: (!light && !triggers.length && (!spell || (Object.keys(system.activities ?? {}).length > 1)))
       ? ["not automated (utility): its area obscures; the rest of its description is by hand"] : []};
 }
 
@@ -3166,6 +3416,25 @@ function scalingChoice({perStep, steps}) {
 }
 
 /** "A creature also makes this save when it enters the spell's area or ends its turn there": an area's repeat. */
+/**
+ * A lasting area's repeat dnd5e gives as a save of its own with no activation, beside `activity` (an Action): Stinking
+ * Cloud's Start of Turn Save, Wall of Thorns' Traversal Save. Null for none, or several.
+ */
+function areaRepeat(system, activity) {
+  if ( !ACTIVATION_COST[activity?.activation?.type] ) return null;
+  const saves = Object.values(system.activities ?? {}).filter(entry => (entry !== activity) && (entry.type === "save")
+    && !entry.activation?.type);
+  return (saves.length === 1) ? saves[0] : null;
+}
+
+/** The trigger Action a lasting area repeats from its own repeat (areaRepeat's, converted), at no cost. */
+function repeatAction(definition, document, repeat) {
+  return {schemaVersion: 1, id: `${definition.id}:lasting`, label: definition.label ?? document.name, costs: {allOf: []},
+    ...(definition.tags ? {tags: definition.tags} : {}), ...(repeat.save ? {save: repeat.save} : {}),
+    ...(repeat.damage?.length ? {damage: repeat.damage} : {}),
+    ...(repeat.effects?.length ? {effects: repeat.effects.map(({concentration: _held, ...effect}) => effect)} : {})};
+}
+
 const LASTING_WORDING = /[^.]*\b(?:enters?|moves? into)\b[^.]*?\b(starts|ends) (?:its|their) turn\b/iu;
 /** A lasting area's later damage as an unnamed passive activity with no save (Wall of Fire's): the repeat's, unsaved. */
 const unsavedRepeat = system => Object.values(system.activities ?? {}).find(entry => (entry.type === "damage") && !entry.name
@@ -3178,7 +3447,7 @@ const unsavedRepeat = system => Object.values(system.activities ?? {}).find(entr
  * creature once per turn. Null for an area without that wording, or with nothing to repeat. Its damage keeps the ids of
  * the Action's own, so a higher slot's dice reach the repeat too (action-configuration.mjs `applyScaleDamageEffect`).
  */
-export function lastingArea({document, system, definition, activity=null}) {
+export function lastingArea({document, system, definition, activity=null, repeat=null}) {
   if ( (definition.targeting?.type !== "area") || !definition.area || definition.area.persistence ) return null;
   // An area that is Difficult Terrain lasts for that alone (Spike Growth, Entangle).
   const terrain = difficultTerrainOf(document, activity);
@@ -3193,7 +3462,9 @@ export function lastingArea({document, system, definition, activity=null}) {
   // The repeat is the same save and outcome on one creature; the area itself holds the concentration.
   // Its damage with no save of its own (2024 Wall of Fire: "A creature takes the same damage when it enters the wall").
   const unsaved = Boolean(unsavedRepeat(system));
-  const action = {schemaVersion: 1, id: `${definition.id}:lasting`, label: definition.label ?? document.name, costs: {allOf: []},
+  // A repeat of its own (Wall of Thorns' Traversal Save: Slashing, where its creation is Piercing) is the repeat.
+  const action = repeat ? repeatAction(definition, document, repeat) : {schemaVersion: 1, id: `${definition.id}:lasting`,
+    label: definition.label ?? document.name, costs: {allOf: []},
     ...(definition.tags ? {tags: definition.tags} : {}), ...((definition.save && !unsaved) ? {save: definition.save} : {}),
     ...(definition.damage?.length ? {damage: unsaved ? definition.damage.map(({saveOutcomePolicy: _saved, ...part}) => part)
       : definition.damage} : {}),
@@ -3248,14 +3519,31 @@ const NARRATIVE_MARKERS = new Set(["Detect Magic", "Detect Evil and Good", "Dete
   // Arcanist's Magic Aura's "Masked"; telepathy and speech only.
   "Masked", "Psychic Whispers", "Telepathically Linked", "Universal Speech",
   // Levitate's hovering (heights are not tracked), Divine Sense, a cloak's water breathing, a changed look, a ring's sight.
-  "Levitating", "Divine Sense", "Water Breather", "Changed Appearance", "X-Ray Vision"]);
+  "Levitating", "Divine Sense", "Water Breather", "Changed Appearance", "X-Ray Vision",
+  // An Animated Shield hovering (hands are not tracked; its AC counts while equipped), Arcane Hand's Interposing Hand
+  // (its Half Cover is the other option), a Fan token's wind (a ship's travel speed is not a rule), and Alter Self's
+  // chosen Natural Weapons (their attacks are Actions of their own). Not Phantasmal Force's "Seeing Illusions": its
+  // phantasm's damage each turn is by hand, noted on the marker.
+  "Animated Shield", "Interposed", "Feather Token: Fan", "Natural Weapon"]);
 
 /**
  * Activities that only tell the table something, by their dnd5e name: Scrying's sensor, a revival or re-forming days
- * later (a Lemure, a Lich), counting a bag's beans.
+ * later (a Lemure, a Lich). Not counting a Bag of Beans' beans: its 3d4 is the bag's starting count (its pool starts full,
+ * at 12), a gap.
  */
-const NARRATIVE_ACTIVITIES = new Set(["Create Sensor", "Revive: Days", "Days to Reform", "Count Beans", "Determine Number of Pots",
-  "Count Number of Cards"]);
+const NARRATIVE_ACTIVITIES = new Set(["Create Sensor", "Revive: Days", "Days to Reform", "Determine Number of Pots",
+  "Count Number of Cards",
+  // An Iron Flask's trapped creature: whatever it holds, which the GM keeps track of.
+  "Add Trapped Creature", "Release Creature",
+  // Rolling a necklace's starting beads; a rope's own Hit Points and an Immovable Rod's shifting (objects are not modelled);
+  // a bean planted (the GM's table a minute later) and a Jester's two more cards.
+  "Determine Number of Beads", "Damage Rope", "Repair Rope", "Attempt to Move", "Plant Bean", "Card Effect: Draw Two",
+  // Ending a turn inside an object (the Scene has no object volumes), looking years older, a vampire's rest once its mist
+  // reaches its coffin (hours later), a wight's zombie a day later.
+  "Self Damage", "Years Older", "Paralyzed", "Zombie Rises",
+  // An Aboleth's new body days later; a broom flown off alone; commanding or keeping control of what a spell made (its
+  // creatures' controller moves and acts with them); Prismatic Spray's violet ray (another plane: it leaves the Scene).
+  "Days: New Body", "Send Alone or Recall", "Mentally Command", "Reassert Control", "Move Lights", "Violet Save (Wis)"]);
 
 /**
  * Items and spells whose use only lights or starts something else (a Tinderbox lights a Torch, whose own Action sheds its
@@ -3267,6 +3555,12 @@ const NARRATIVE_USES = new Set(["tinderbox", "prestidigitation", "mending", "ill
   "immovable-rod", "instant-summons", "dust-of-dryness", "detect-thoughts", "helm-of-telepathy", "medallion-of-thoughts",
   "mind-reading-crystal-ball-of", "gaze-of-two-minds", "whispers-of-the-grave", "word-of-recall", "awaken", "divine-intervention",
   "gift-of-the-protectors", "true-resurrection", "apparatus-of-the-crab"]);
+
+/**
+ * Features whose casts dnd5e pays with a spell slot though its caster has one that needs none (Investment of the Chain
+ * Master's Find Familiar, cast through Pact of the Chain "without expending a spell slot").
+ */
+const SLOTLESS = new Set(["investment-of-the-chain-master"]);
 
 /** What makes a creature at 0 Hit Points Stable when it touches it (`stabilize`). */
 const STABILIZES = new Set(["spare-the-dying", "healers-kit"]);
@@ -3308,10 +3602,16 @@ function lingeringAcid(document) {
 /**
  * A stat block's damage activity dnd5e fires at the start of the target's turn (`turnStart`: a Pit Fiend's "Bite (Add'l
  * Poison Damage)") beside a save that gives a condition: it belongs to that condition's effect (turnStartDamageEffects).
+ * So does one dnd5e leaves without an activation whose text deals it "at the start of each of its turns" (a Kraken's
+ * swallowed creature, a Shambling Mound's engulfed one).
  */
 function turnStartDamage(document, activity) {
-  return (activity?.type === "damage") && (activity.activation?.type === "turnStart")
-    && Object.values(document.system?.activities ?? {}).some(entry => (entry.type === "save") && (entry.effects ?? []).length);
+  const activation = activity?.activation?.type ?? "";
+  return (activity?.type === "damage")
+    && ((activation === "turnStart") || (!activation && /\bat the start of each of its turns\b/iu.test(plainText(document))))
+    && Object.values(document.system?.activities ?? {}).some(entry => (entry.type === "save") && ((entry.effects ?? []).length
+      // A save with nothing but how long it lasts (a Bearded Devil's infernal wound, 1 minute): its marker carries it.
+      || (!(entry.damage?.parts ?? []).length && lastingDuration(entry.duration))));
 }
 
 /**
@@ -3322,18 +3622,31 @@ function turnStartDamage(document, activity) {
 function turnStartDamageEffects(document, effects, {spell, scales, notes}) {
   const carrier = effects.find(effect => effect.type === "condition");
   if ( !carrier ) return [];
+  return turnStartDamageRules(document, {spell, scales, notes, predicate: {hasCondition: carrier.conditionId}}).map((rule, index) => ({
+    id: `effect-${effects.length + index + 1}`, type: "effect", name: `${document.name} (start of turn)`, slug: rule.id,
+    img: "icons/svg/poison.svg", ...(carrier.saveOutcomePolicy ? {saveOutcomePolicy: carrier.saveOutcomePolicy} : {}),
+    ...(carrier.duration ? {duration: structuredClone(carrier.duration)} : {}), ruleElements: [rule]}));
+}
+
+/**
+ * Its damage at the start of each of its creature's turns (turnStartDamage) as automation Triggers, while `predicate`
+ * holds (its condition), else while the effect carrying them lasts. Damage of no type ("loses 5 (1d10) Hit Points") is
+ * untyped.
+ */
+function turnStartDamageRules(document, {spell, scales, notes, predicate=null}) {
   return Object.values(document.system?.activities ?? {}).filter(activity => turnStartDamage(document, activity)).map((activity, index) => {
     const damage = (activity.damage?.parts ?? []).map((part, at) => ({id: `turn-${at + 1}`,
       expression: partExpression(part, {spell, ability: null, scales, notes, label: activity.name ?? "damage"}),
-      ...(part.types?.length === 1 ? {damageType: part.types[0]} : {}), provenance: "additional"})).filter(component => component.expression);
+      ...(part.types?.length === 1 ? {damageType: part.types[0]} : (part.types?.length ? {} : {damageType: "untyped"})), provenance: "additional"}))
+      .filter(component => component.expression);
     if ( !damage.length ) return null;
+    // A spell slot's scaling (scaleDamage) reaches its Action's own damage, not a Trigger's in its effect (Ensnaring Strike).
+    if ( spell && (activity.damage?.parts ?? []).some(part => part.scaling?.number || part.scaling?.formula) ) {
+      notes.push(`"${activity.name ?? "damage"}": its damage at the start of each turn doesn't grow with a higher spell slot (by hand)`);
+    }
     const slug = `${slugify(document.name)}-turn-damage${index ? `-${index + 1}` : ""}`;
-    return {id: `effect-${effects.length + index + 1}`, type: "effect", name: `${document.name} (start of turn)`, slug,
-      img: "icons/svg/poison.svg", ...(carrier.saveOutcomePolicy ? {saveOutcomePolicy: carrier.saveOutcomePolicy} : {}),
-      ...(carrier.duration ? {duration: structuredClone(carrier.duration)} : {}),
-      ruleElements: [{schemaVersion: 1, id: slug, type: "Trigger", data: {kind: "automation", event: "turn.started",
-        predicate: {hasCondition: carrier.conditionId},
-        action: {schemaVersion: 1, id: `action:${slug}`, label: document.name, costs: {allOf: []}, damage}}}]};
+    return {schemaVersion: 1, id: slug, type: "Trigger", data: {kind: "automation", event: "turn.started", ...(predicate ? {predicate} : {}),
+      action: {schemaVersion: 1, id: `action:${slug}`, label: document.name, costs: {allOf: []}, damage}}};
   }).filter(Boolean);
 }
 
@@ -3365,6 +3678,23 @@ function sunlightTrait(document, {activities, ...options}) {
     .map(entry => `"${entry.name || entry.type}" is passive or triggered: not automated`)};
 }
 
+/** Its creature is a Fiend or an Undead (`actor`: the one whose Trigger it is). */
+const FIEND_OR_UNDEAD = Object.freeze({oneOf: {path: "actor.system.details.type", values: ["fiend", "undead"]}});
+
+/**
+ * The damage activity `name` its holder takes each time it ends its turn while `predicate` holds (a Talisman of Pure
+ * Good's on a Fiend or an Undead): an automation Trigger on its gear, which counts only while equipped. shortcut: the
+ * damage of first touching it is by hand.
+ */
+function heldTurnEndDamage(document, {activities, ...options}, name, predicate) {
+  const activity = activities.find(entry => entry.name === name);
+  const burn = activity ? convertActivity({document, activity, ...options, notes: []}) : null;
+  if ( !burn?.damage?.length ) return null;
+  return {rules: [{schemaVersion: 1, id: `${identifierOf(document)}-held`, type: "Trigger", data: {event: "turn.ended",
+    predicate: structuredClone(predicate), action: {...burn, costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"}}}}],
+  consumes: [activity], notes: []};
+}
+
 /** Not Incapacitated: none of the conditions that include it. */
 const NOT_INCAPACITATED = Object.freeze({not: {any: ["incapacitated", "stunned", "paralyzed", "petrified", "unconscious", "dead"]
   .map(condition => ({hasCondition: condition}))}});
@@ -3390,6 +3720,9 @@ const EFFECTS_BY_HAND = Object.freeze({
   // +1 save DC). shortcut: any spell, not only Sorcerer spells.
   "innate-sorcery": {extraRules: [{schemaVersion: 1, id: "innate-sorcery-attacks", type: "RollMode", predicate: {tagsAny: ["spell"]},
     data: {domains: ["attack"], mode: "advantage"}}]},
+  // An Oathbow's sworn enemy: its own mark (slug), which its wielder's Oathbow rules read (ENCHANT_TEXT_RULES). shortcut:
+  // "until it dies or until dawn 7 days later": it lasts until removed.
+  "oathbow/Swear Oath": {slug: "sworn-enemy", ruleElements: []},
   // "Any creature has Disadvantage on attack rolls against you."
   "blur": {ruleElements: [{schemaVersion: 1, id: "blur", type: "RollMode", data: {domains: ["attacked"], mode: "disadvantage"}}]},
   // "It has Disadvantage on the next attack roll it makes before the end of its next turn."
@@ -3456,7 +3789,10 @@ const REMOVALS = Object.freeze({
   "heal": {conditions: ["blinded", "deafened", "poisoned"]},
   "power-word-heal": {conditions: ["charmed", "frightened", "paralyzed", "poisoned", "stunned"]},
   "protection-from-poison": {conditions: ["poisoned"]},
-  "lay-on-hands": {conditions: ["poisoned"], activity: "Remove Poison"}
+  "lay-on-hands": {conditions: ["poisoned"], activity: "Remove Poison"},
+  // shortcut: only a Celestial's, Elemental's, Fey's, Fiend's or Undead's Charmed or Frightened ends, and its spell with
+  // it, and possession ends too: by hand; upgrade when a condition records the kind of creature that gave it.
+  "dispel-evil-and-good": {conditions: ["charmed", "frightened"], activity: "Break Enchantment"}
 });
 
 /** A dnd5e document's identifier, else its name as a slug. */
@@ -3473,12 +3809,45 @@ function traitOf(document, options) {
 }
 
 /**
+ * The spells a Spellcasting feature's list links that dnd5e gives no cast activity (2024 Adult Brass Dragon's Scorching
+ * Ray), as cast activities like its others, at their list's frequency ("At Will:", "1/Day Each:"). None for a document
+ * with no cast activity.
+ */
+function missingCasts(document, activities) {
+  const casts = activities.filter(activity => activity.type === "cast");
+  if ( !casts.length ) return [];
+  const cast = new Set(casts.map(activity => String(activity.spell?.uuid ?? "").split(".").pop()));
+  const added = [];
+  for ( const paragraph of String(document.system?.description?.value ?? "").split(/<\/p>/i) ) {
+    const heading = /<strong>\s*(At Will|(\d+)\/Day(?: Each)?)\s*:\s*<\/strong>/i.exec(paragraph);
+    if ( !heading ) continue;
+    const perDay = number(heading[2]);
+    for ( const [, uuid, id] of paragraph.matchAll(/@UUID\[(Compendium\.dnd5e\.spells\w*\.Item\.(\w+))\]/g) ) {
+      if ( cast.has(id) ) continue;
+      cast.add(id);
+      added.push({...structuredClone(casts[0]), _id: id, name: "", sort: (casts.at(-1).sort ?? 0) + added.length + 1,
+        spell: {...(casts[0].spell?.ability ? {ability: casts[0].spell.ability} : {}), uuid},
+        consumption: {...(casts[0].consumption ?? {}), targets: perDay ? [{type: "activityUses", value: "1"}] : []},
+        uses: perDay ? {spent: 0, max: String(perDay), recovery: [{period: "day", type: "recoverAll"}]} : {spent: 0, max: "", recovery: []}});
+    }
+  }
+  return added;
+}
+
+/**
+ * 2014 spells a 2024 item still casts by their old compendium id, as their 2024 SRD id (a Rod of Alertness's Detect Evil
+ * and Good).
+ */
+const LEGACY_SPELLS = Object.freeze({Mzh95utKDPIrjiH8: "phbsplDetectEvil"});
+
+/**
  * A cast activity (a monster's Spellcasting, an item's spell) as its spell's Action: the spell converted with the
  * creature's own save DC and casting ability, at the activity's cost and uses, with no spell slot. Null when the
  * spell is not among `spells`, so the activity stays a manual Action.
  */
 function castSpell({document, activity, system, notes, pool: itemPool=null, options}) {
-  const spellDocument = options.spells?.[String(activity.spell?.uuid ?? "").split(".").pop()];
+  const linked = String(activity.spell?.uuid ?? "").split(".").pop();
+  const spellDocument = options.spells?.[LEGACY_SPELLS[linked] ?? linked];
   if ( !spellDocument ) {
     notes.push("cast: its spell was not found among the converted spells");
     return null;
@@ -3500,9 +3869,13 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   const paying = charge ? {...activity, consumption: {...activity.consumption, targets: [{type: "itemUses", value: charge[1]}]}} : activity;
   const base = baseDefinition({document, activity: paying, system, spell: false, notes, pool: itemPool, names: options.names ?? {},
     scales: options.scales ?? {}});
+  // A reaction spell (a ring's Feather Fall) is still cast with its Reaction, whatever the item's cast activity says.
+  const reacts = (action.system.definition.costs?.allOf ?? []).some(cost => cost.capability === "reaction");
+  const costs = reacts ? {...base.costs, allOf: [...(base.costs?.allOf ?? []).filter(cost => !["action", "bonus-action", "reaction"]
+    .includes(cost.capability)), {capability: "reaction", amount: 1}]} : base.costs;
   const definition = {...action.system.definition, id: `${base.id}-${slugify(spellDocument.name)}`,
     label: options.creature ? spellDocument.name : `${document.name}: ${spellDocument.name}`,
-    tags: [...new Set([...(action.system.definition.tags ?? []), "spell"])], costs: base.costs};
+    tags: [...new Set([...(action.system.definition.tags ?? []), "spell"])], costs};
   // Cast without a slot; its other choices stay (Polymorph's Beast, a damage type, one of its effects). One cast above its
   // own level (a Lich's 5th-level Fireball) keeps the slot choice's scaling at that level, a choice the authority answers.
   const castLevel = Number(activity.spell?.level);
@@ -3519,12 +3892,23 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   const id = stableId(`${document._id}:cast:${activity._id ?? spellDocument._id}`);
   // A creature's spell keeps its name; a magic item's is named after the item too ("Wand of Fireballs: Fireball").
   const name = options.creature ? spellDocument.name : `${document.name}: ${spellDocument.name}`;
-  return {_id: id, _key: `!items!${id}`, name, type: "action",
+  // A pool the cast fills (Heroes' Feast's servings) comes with it, and so do the spell's Actions that spend it (Consume Feast).
+  const filled = new Set((definition.restores ?? []).map(entry => entry.resourceId));
+  const spellPools = (action.system.ruleElements ?? []).filter(rule => (rule.type === "GrantResource") && filled.has(rule.data?.resourceId));
+  const followUps = converted.items.filter(item => (item !== action) && (item.type === "action")
+    && (item.system.definition?.costs?.allOf ?? []).some(cost => filled.has(cost.capability)));
+  const source = {...action.flags.wildpath.source, castBy: document.name};
+  return [{_id: id, _key: `!items!${id}`, name, type: "action",
     img: kept(spellDocument.img, options.images ?? ["icons/"]) ?? action.img,
-    system: {active: true, description: action.system.description, definition, ruleElements: [itemPool?.rule, pool?.rule,
+    system: {active: true, description: action.system.description, definition, ruleElements: [itemPool?.rule, pool?.rule, ...spellPools,
       // A spell's reaction Trigger (a Mage's Counterspell) comes with it.
       ...(action.system.ruleElements ?? []).filter(rule => rule.type === "Trigger")].filter(Boolean)},
-    flags: {wildpath: {source: {...action.flags.wildpath.source, castBy: document.name}, conversion: {notes: [...notes]}}}};
+    flags: {wildpath: {source, conversion: {notes: [...notes]}}}},
+  ...followUps.map(item => {
+    const followUpId = stableId(`${id}:${item._id}`);
+    return {...structuredClone(item), _id: followUpId, _key: `!items!${followUpId}`,
+      name: options.creature ? item.name : `${document.name}: ${item.name}`, flags: {wildpath: {source, conversion: {notes: []}}}};
+  })];
 }
 
 /**
@@ -3532,12 +3916,59 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
  * (a contact, ingested or inhaled poison), its save and what a failure does as dnd5e gives them. An injury poison coats
  * a weapon instead (coatDefinition).
  */
-function poisonUse(system, activity) {
-  if ( (system.type?.value !== "poison") || (activity.name !== "Use Poison") || !["", "none", "special"].includes(activity.activation?.type ?? "") ) {
+function poisonUse(activity) {
+  // By its name, whatever its type: a Truth Serum is a potion.
+  if ( (activity.name !== "Use Poison") || !["", "none", "special"].includes(activity.activation?.type ?? "") ) {
     return activity;
   }
   return {...activity, activation: {type: "action", value: 1, override: true}, range: {value: "5", units: "ft", override: true},
     target: {...(activity.target ?? {}), affects: {...(activity.target?.affects ?? {}), type: "creature", count: "1"}, override: true}};
+}
+
+/**
+ * Actions whose 2024 text the converter writes, by `<identifier>/<activity name>`: the definition dnd5e's activity
+ * leaves out, and the activities of the same item it folds in (`folds`, by name, else type), which are then no passive
+ * abilities of their own. What of its text stays by hand is its `notes`.
+ */
+const ACTIONS_BY_HAND = Object.freeze({
+  // 2024 Oathbow: "The target of your attack becomes your sworn enemy until it dies or until dawn seven days later": the
+  // creature it is about to shoot, marked for 7 days; sworn once until dawn (its use: ACTIVATIONS_BY_HAND). Its "Attack
+  // Sworn Enemy" (a flat 3d6 attack with no bow die) is the Oathbow's own rules on the bow's attacks instead (`drops`).
+  "oathbow/Swear Oath": {folds: [], drops: ["Attack Sworn Enemy"], definition: definition => ({...definition, range: {type: "special"},
+    targeting: {type: "single", required: true, count: 1}, effects: (definition.effects ?? []).map(effect => ((effect.name === "Sworn Enemy")
+      ? {...effect, duration: {value: 7, units: "days"}} : effect))}),
+  notes: ["Swear Oath: one sworn enemy at a time (a new one only after it dies) and Disadvantage with other weapons are by hand"]},
+  // 2024 Robe of Scintillating Colors: a Magic action and a charge; "until the end of your next turn" the robe sheds Bright
+  // Light 30 feet and Dim Light 30 more, and attack rolls against its wearer have Disadvantage; each creature in the Bright
+  // Light makes a DC 15 Wisdom save or is Stunned for as long. shortcut: "that can see you" is not checked.
+  "robe-of-scintillating-colors/Display Dazzling Hues": {folds: ["save"], definition: definition => {
+    const until = {value: 1, units: "rounds", expiry: "sourceTurnEnd"};
+    return {...definition, range: {type: "self"}, targeting: {type: "area"}, area: {shape: "emanation", size: {value: 30, unit: "ft"}},
+      save: {ability: "wits", dc: {value: 15}}, effects: [
+        {id: "effect-1", type: "condition", conditionId: "stunned", saveOutcomePolicy: "failure", duration: until},
+        {id: "effect-2", type: "effect", name: "Dazzling Hues", img: "icons/svg/light.svg", appliesTo: "source", duration: until,
+          ruleElements: [{schemaVersion: 1, id: "dazzling-light", type: "GrantLight", data: {bright: 30, dim: 60}},
+            {schemaVersion: 1, id: "dazzling-hues", type: "RollMode", data: {domains: ["attacked"], mode: "disadvantage"}}]}]};
+  }}
+});
+
+/**
+ * Uses dnd5e leaves without an activation though their text gives one, by `<identifier>/<activity name>`: dumping a Bag
+ * of Beans (the Utilize action), peering into a Dragon Orb (a Magic action). One that happens at once, at no cost, is
+ * `free`: the Skull card's Avatar of Death, appearing as it is drawn. One its text limits (`uses`, spent when used) is
+ * `{type, uses}`: an Oathbow's oath, sworn once until dawn.
+ */
+const ACTIVATIONS_BY_HAND = Object.freeze({"bag-of-beans/Dump Beans": "action", "dragon-orb/Attunement Save": "action",
+  "skull/Card Effect": "free", "oathbow/Swear Oath": {type: "free", uses: {max: "1", recovery: [{period: "dawn", type: "recoverAll"}]}}});
+
+function activationByHand(document, activity) {
+  const byHand = ACTIVATIONS_BY_HAND[`${identifierOf(document)}/${activity.name}`];
+  if ( !byHand ) return activity;
+  const {type, uses} = (typeof byHand === "string") ? {type: byHand} : byHand;
+  return {...activity, activation: {...(activity.activation ?? {}), override: true,
+    ...((type === "free") ? {type: "", value: null, free: true} : {type, value: 1})},
+    ...(uses ? {uses: structuredClone(uses), consumption: {...(activity.consumption ?? {}),
+      targets: [...(activity.consumption?.targets ?? []), {type: "activityUses", value: "1"}]}} : {})};
 }
 
 /**
@@ -3690,6 +4121,21 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
     notes.push("summon: a creature chosen by Challenge Rating is not converted");
     return null;
   }
+  // Forms dnd5e splits from the one stat block the SRD prints ("uses the Giant Insect stat block": its centipede, spider
+  // and wasp), none converted: that stat block. shortcut: what the form chosen changes in it (Web Bolt, a spider's only)
+  // is its player's to pick; upgrade when a summon can pick a stat block's variant.
+  const block = (!byChallenge && profiles.length && profiles.every(entry => !entry.ref)
+    && (new Set(profiles.map(({profile}) => String(profile.count ?? ""))).size === 1))
+    ? creatureRef(creatures, /\buses the @UUID\[[^\]]*\.Actor\.(\w+)\][^.]*?\bstat block\b/iu.exec(plainText(document))?.[1] ?? "")
+    : null;
+  if ( block ) profiles.splice(0, profiles.length, {profile: {...profiles[0].profile, name: ""}, ref: block});
+  // Forms dnd5e has that the SRD does not (Pact of the Chain's Slaad Tadpole): left out, the others kept.
+  const unlicensed = profiles.filter(entry => !entry.ref);
+  if ( unlicensed.length && (unlicensed.length < profiles.length)
+    && unlicensed.every(({profile}) => names?.[String(profile.uuid ?? "").split(".").pop()]) ) {
+    notes.push(`summon: not in the SRD, so not offered: ${unlicensed.map(({profile}) => names[String(profile.uuid).split(".").pop()]).join(", ")}`);
+    profiles.splice(0, profiles.length, ...profiles.filter(entry => entry.ref));
+  }
   if ( !profiles.length || profiles.some(entry => !entry.ref) ) {
     notes.push("summon: its creature is not among the converted creatures");
     return null;
@@ -3702,6 +4148,12 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
   const chosenCount = scaling && profiles.every(({profile}) => String(profile.count ?? "").trim() === "@scaling");
   const counts = profiles.map(({profile}) => (chosenCount || (String(profile.count ?? "").trim() === "") ? 1
     : (Number.isInteger(Number(profile.count)) ? Number(profile.count) : summonCount(profile.count, level))));
+  // A spell's creature only from a higher slot (Create Undead's Ghasts and Wights from 8th, Mummies from 9th): none below it.
+  if ( spell ) for ( const [index, {profile}] of profiles.entries() ) {
+    const from = number(profile.level?.min);
+    if ( (from > (Number(level) || 0)) && (counts[index] !== null) ) counts[index] = {type: "table", key: {type: "context", path: "castLevel"},
+      rows: {[from]: (typeof counts[index] === "object") ? counts[index] : {type: "constant", value: counts[index]}}, default: {type: "constant", value: 0}};
+  }
   if ( counts.some(count => (count === null) || (Number.isInteger(count) && (count < 1))) ) {
     notes.push(`summon: a count of "${profiles.map(({profile}) => profile.count).join(", ")}" is not converted`);
     return null;
@@ -3729,8 +4181,12 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
   for ( const [name, formula] of Object.entries(activity.bonuses ?? {}) ) {
     if ( !formula || (String(formula).trim() === "0") ) continue;
     // A spell's by its level; a class feature's by its summoner (a Steel Defender's: Intelligence + 5 per artificer level).
+    // A magic item's by its wielder, with the ability its use names (a Dancing Sword's "Activate Sword: Dexterity": `@mod`).
+    const wielded = (!spell && (document.type !== "feat")) ? Object.entries(ABILITY_WORDS).find(([, pattern]) => pattern.test(activity.name ?? ""))?.[0]
+      : null;
     const expression = ["hp", "ac", "attackDamage", "saveDamage"].includes(name)
-      ? (summonBonus(formula, level, spell) ?? ((document.type === "feat") ? formulaExpression(formula, {scales}) : null)) : null;
+      ? (summonBonus(formula, level, spell) ?? ((document.type === "feat") ? formulaExpression(formula, {scales})
+        : (wielded ? formulaExpression(String(formula).replace(/@mod\b/g, `@abilities.${wielded}.mod`), {scales}) : null))) : null;
     if ( expression ) bonuses[name] = expression;
     else lost.push(name);
   }
@@ -3748,6 +4204,9 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
   const levelOf = profile => (((profile.level?.min ?? null) !== null) || ((profile.level?.max ?? null) !== null)
     ? {level: {...(profile.level.min != null ? {min: profile.level.min} : {}), ...(profile.level.max != null ? {max: profile.level.max} : {}),
       ...(activity.summon?.identifier ? {class: activity.summon.identifier} : {})}} : {});
+  const gains = rules.choose ? summonerChoice(rules.choose, concentration) : null;
+  if ( gains ) Object.assign(definition, {effects: [...(definition.effects ?? []), ...gains.effects],
+    configuration: [...(definition.configuration ?? []), ...gains.configuration]});
   if ( profiles.length === 1 ) return {...definition, ...(range ? {range} : {}), summon: {actorRef: profiles[0].ref, ...timing}};
   const choice = {id: "summon-creature", type: "select-one", label: "Creature", required: true,
     options: profiles.map(({profile, ref}) => ({id: ref, label: profile.name || names[String(profile.uuid).split(".").pop()]
@@ -3858,6 +4317,14 @@ const EFFECTS_BY_NAME = Object.freeze({
   // Dispel Evil and Good: "Celestials, Elementals, Fey, Fiends, and Undead have Disadvantage on attack rolls against you".
   "Dispelling Evil and Good": {duration: {value: 10, units: "rounds"}, ruleElements: [rollModeRule("dispelling", ["attacked"], "disadvantage", {oneOf: {path: "attack.attackerType",
     values: ["celestial", "elemental", "fey", "fiend", "undead"]}})]},
+  // Stinking Cloud (2024): "While Poisoned in this way, the creature can't take an action or a Bonus Action" (that turn).
+  "Stinking Poison": {duration: {value: 0, units: "turns", expiry: "turnEnd"}, ruleElements: [{schemaVersion: 1, id: "stinking-poison",
+    type: "ResourceCap", data: {resources: ["action", "bonus"], maximum: 0}}]},
+  // Starry Wisp (2024): "the target emits Dim Light in a 10-foot radius and can't benefit from the Invisible condition until
+  // the end of your next turn" (an immune condition is suppressed).
+  "Illuminated": {duration: {value: 1, units: "rounds", expiry: "sourceTurnEnd"}, ruleElements: [
+    {schemaVersion: 1, id: "illuminated-light", type: "GrantLight", data: {bright: 0, dim: 10}},
+    {schemaVersion: 1, id: "illuminated-visible", type: "ConditionImmunity", data: {conditions: ["invisible"]}}]},
   "See Invisibility": {ruleElements: [{schemaVersion: 1, id: "see-invisibility", type: "GrantSense",
     data: {sense: "seeInvisibility", range: 5280}}]},
   "Disadv.: Attacks & Checks": {ruleElements: [rollModeRule("attacks-checks", ["attack", "check"], "disadvantage")]},
@@ -3936,8 +4403,46 @@ const EFFECTS_BY_NAME = Object.freeze({
   // Glibness: "When you make a Charisma check, you can replace the number you roll with 15".
   "Glib": {ruleElements: [{schemaVersion: 1, id: "glib", type: "RollOutcome", data: {domains: ["check.presence"], outcome: "minimum-natural",
     threshold: 15}}]},
-  "Riding Broom (High Weight)": {ruleElements: [{schemaVersion: 1, id: "broom", type: "GrantMovement", data: {mode: "fly", distance: 30, hover: true}}]}
+  "Riding Broom (High Weight)": {ruleElements: [{schemaVersion: 1, id: "broom", type: "GrantMovement", data: {mode: "fly", distance: 30, hover: true}}]},
+  // Draconic Flight: "a Fly Speed equal to your Speed". shortcut: its end on the Incapacitated condition is by hand.
+  "Draconic Flight": {ruleElements: [{schemaVersion: 1, id: "draconic-flight", type: "GrantMovement",
+    data: {mode: "fly", distance: {type: "context", path: "actorSystem.resources.movement.max"}}}]},
+  // Befuddlement: "can't cast spells or take the Magic action" (a magic item's Actions are tagged `magical`). shortcut:
+  // its repeat save every 30 days, and its end by Greater Restoration or Heal, are by hand.
+  "Befuddled": {ruleElements: [{schemaVersion: 1, id: "befuddled", type: "Forbid", data: {actions: {tagsAny: ["spell", "magical"]}}}]},
+  // A lit Candle of Invocation: Dim Light in a 30-foot radius and "Advantage on D20 Tests" within it. shortcut: on its
+  // bearer, not those in its light; a Cleric's or Druid's slotless level 1 spells in it are by hand.
+  "Lit Candle of Invocation": {ruleElements: [rollModeRule("d20-tests", ["attack", "check", "save"], "advantage"),
+    {schemaVersion: 1, id: "candle-light", type: "GrantLight", data: {bright: 0, dim: 30}}]},
+  // Resilient Sphere (a Cube of Force's too): nothing from outside affects its creature, and it can't damage anything
+  // outside. shortcut: rolling the sphere at half Speed, and Disintegrate ending it, are by hand.
+  "Enclosed in Sphere": {ruleElements: [{schemaVersion: 1, id: "sphere-unaffected", type: "Unaffected", data: {actions: {}}},
+    {schemaVersion: 1, id: "sphere-sealed", type: "Forbid", data: {actions: {any: [{tagsAny: ["attack"]},
+      {tagsAny: ["acid", "bludgeoning", "cold", "fire", "force", "lightning", "necrotic", "piercing", "poison", "psychic", "radiant",
+        "slashing", "thunder"].map(type => `damage:${type}`)}]}}}]},
+  // Imprisonment's Burial, Hedged Prison and Minimus Containment: sealed away, nothing gets in or out. shortcut: a
+  // creature that saves being immune to the spell for 24 hours is by hand.
+  ...Object.fromEntries(["Burial", "Hedged Prison", "Minimus Containment"].map(name => [name, {ruleElements: [
+    {schemaVersion: 1, id: "imprisoned-unaffected", type: "Unaffected", data: {actions: {}}},
+    {schemaVersion: 1, id: "imprisoned-sealed", type: "Forbid", data: {actions: {}}}]}])),
+  // A Feather Token's Anchor: "the vessel can't be moved by any means". shortcut: its moves are capped; being pushed or
+  // pulled anyway is by hand.
+  "Anchor": {ruleElements: [{schemaVersion: 1, id: "anchored", type: "ResourceCap", data: {resources: ["movement"], maximum: 0}}]},
+  // Irresistible Dance, on a successful save: "dances comically until the end of its next turn, during which it must spend
+  // all its movement to dance in place".
+  "Short Dance": {saveOutcomePolicy: "success", duration: {value: 1, units: "rounds", expiry: "turnEnd"},
+    ruleElements: [{schemaVersion: 1, id: "short-dance", type: "ResourceCap", data: {resources: ["movement"], maximum: 0}}]},
+  // On a failure, beside its Charmed condition: all its movement spent dancing, "Disadvantage on Dexterity saving throws and
+  // attack rolls, and other creatures have Advantage on attack rolls against it".
+  "Irresistible Dance": {ruleElements: [{schemaVersion: 1, id: "dancing", type: "ResourceCap", data: {resources: ["movement"], maximum: 0}},
+    rollModeRule("dancing-clumsy", ["save.agility", "attack"], "disadvantage"), rollModeRule("dancing-exposed", ["attacked"], "advantage")]},
+  // Manacles: "While bound, a creature has Disadvantage on attack rolls". shortcut: Restrained when chained in place, and
+  // escaping or bursting them (its own checks), are the GM's.
+  "Manacled": {ruleElements: [rollModeRule("manacled", ["attack"], "disadvantage")]}
 });
+
+/** Uses that act on the creature or vessel they touch, though dnd5e leaves them on their user: by identifier and activity. */
+const TOUCHES = new Set(["anchor-feather-token/Use", "manacles/Bind"]);
 
 /**
  * A creature's own teleport written as a utility use (2024 Blink Dog: "teleports up to 40 feet to an unoccupied space it
@@ -3950,8 +4455,13 @@ function utilityTeleport(document, activity, system) {
   if ( (pick(activity, system, "activation").type === "reaction") || pick(activity, system, "target").template?.type
     || activity.damage?.parts?.length ) return null;
   const text = plainText(document);
-  if ( !/\bteleports up to (?:\[\[lookup @range\.value[^\]]*\]\]|\d+)/iu.test(text) ) return null;
-  const value = number(pick(activity, system, "range").value) ?? number(/\bteleports up to (\d+) feet/iu.exec(text)?.[1]);
+  // "you magically teleport up to 30 feet" (Cloud's Jaunt); "teleports itself or a willing demon within 10 feet of itself
+  // up to 60 feet" (a Balor). shortcut: only its user goes; the other it may take is moved by hand.
+  const teleports = /\bteleports? (?:\[\[lookup @target[^\]]*\]\] of itself |itself(?: or [^.]*?)? )?up to (?:\[\[lookup @range\.value[^\]]*\]\]|(\d+))/iu
+    .exec(text);
+  // Not one that attacks too (a Sphinx's Arcane Prowl: "and it makes one Claw attack").
+  if ( !teleports || /\battack\b/iu.test(text.slice(teleports.index).split(/(?<=[.!?])\s/u)[0]) ) return null;
+  const value = number(pick(activity, system, "range").value) ?? number(teleports[1]);
   return (value > 0) ? {...activity, teleport: {value, units: "ft"}} : null;
 }
 
@@ -3973,8 +4483,9 @@ export function teleportDefinition({document, activity, system, spell, level, no
  * `@attributes.spell.mod` its caster's spellcasting modifier. Null when it does not parse.
  */
 function summonCount(formula, level) {
-  const text = String(formula).replace(/@scaling\.increase/g, "scalingx").replace(/@attributes\.spell\.mod/g, "spellmodx").trim();
-  const parsed = parseFormula(text, {variables: {
+  const text = String(formula).replace(/@scaling\.increase/g, "scalingx").replace(/@attributes\.spell\.mod/g, "spellmodx")
+    .replace(/@item\.level/g, "itemlevelx").trim();
+  const parsed = parseFormula(text, {variables: {itemlevelx: {type: "context", path: "castLevel"},
     scalingx: {type: "subtract", left: {type: "context", path: "castLevel"}, right: {type: "constant", value: Number(level) || 0}},
     spellmodx: {type: "spellcasting-modifier"}}});
   return parsed.ok ? parsed.expression : null;
@@ -3991,12 +4502,26 @@ const COMMANDED = new Set(["tcoeSmithSteelDe", "tcoeImprovedStee", "oHIHDsxgQ8zo
 /**
  * How many of a feature's summons may be out at once, and whether they go when their summoner dies: one Steel Defender,
  * one Homunculus Servant (which dies with its artificer), an artillerist's Eldritch Cannons by its uses (1, 2 from 15).
+ * What its summoner gains, chosen as it summons (`choose`): Summon Dragon's Draconic Spirit's Shared Resistances, "choose
+ * one of its Resistances. You have Resistance to the chosen damage type until the spell ends".
  */
 const SUMMON_RULES = Object.freeze({
   "steel-defender": {limit: 1},
   "homunculus-servant": {limit: 1, endsWithSummoner: true},
-  "eldritch-cannon": {limit: "uses"}
+  "eldritch-cannon": {limit: "uses"},
+  "summon-dragon": {choose: {label: "Shared Resistance", options: ["acid", "cold", "fire", "lightning", "poison"].map(type => ({id: type,
+    label: `${type.charAt(0).toUpperCase()}${type.slice(1)}`, effect: {id: type, type: "effect", name: "Shared Resistance",
+      img: "icons/svg/fire-shield.svg", appliesTo: "source", ruleElements: [{schemaVersion: 1, id: `shared-${type}-resistance`,
+        type: "GrantResistance", data: {damageTypes: [type]}}]}}))}}
 });
+
+/** A summon's choice of what its summoner gains (SUMMON_RULES `choose`), as its effects on the summoner and that choice. */
+function summonerChoice(choose, concentration) {
+  return {effects: choose.options.map(option => ({...structuredClone(option.effect), ...(concentration ? {concentration: true} : {})})),
+    configuration: [{id: "summoner-gains", type: "select-one", label: choose.label, required: true,
+      options: choose.options.map(option => ({id: option.id, label: option.label, value: option.id})),
+      effects: [{type: "keepEffect", effectIds: choose.options.map(option => option.effect.id)}]}]};
+}
 
 function summonBonus(formula, level=0, spell=true) {
   // The summoner's numbers, worked out when cast: its spellcasting modifier (a spell's `@mod`: Conjure Fey's), its Hit
@@ -4048,8 +4573,27 @@ function sustainsConcentration(definition) {
 /** An item's limited uses as a resource pool its Actions spend, with the dnd5e recovery. */
 function usesPool({document, scales}) {
   const uses = (identifierOf(document) === "wild-shape") ? WILD_SHAPE_2014.uses
-    : (document.system?.uses?.max ? document.system.uses : (chargesInText(document) ?? document.system?.uses));
-  return poolOf(uses, {id: slugify(document.name), label: document.name, scales});
+    : (document.system?.uses?.max ? document.system.uses : (chargesInText(document) ?? drunkOnce(document) ?? madeOnce(document)
+      ?? document.system?.uses));
+  const pool = poolOf(uses, {id: slugify(document.name), label: document.name, scales});
+  // A spell's pool dnd5e starts spent (Freezing Sphere's held globe, Heroes' Feast's servings) starts empty: an Action
+  // of the spell fills it.
+  if ( pool && (document.type === "spell") && (number(uses.spent) > 0) && (number(uses.spent) >= number(uses.max)) ) pool.rule.data.current = 0;
+  return pool;
+}
+
+/** A potion whose uses dnd5e leaves empty though drinking it spends one (Potion of Mind Reading): one use, as every other potion's. */
+function drunkOnce(document) {
+  const spends = Object.values(document.system?.activities ?? {}).some(activity => (activity?.consumption?.targets ?? [])
+    .some(target => (target.type === "itemUses") && !target.target && !givesBack(target.value)));
+  return ((document.type === "consumable") && (document.system?.type?.value === "potion") && spends) ? {max: "1", recovery: []} : null;
+}
+
+/** An item a creature is made from over days, used up when it is done (2024 Manual of Golems: "the book is consumed"): one use. */
+function madeOnce(document) {
+  const crafts = Object.values(document.system?.activities ?? {}).some(activity => (activity?.type === "summon")
+    && (activity.activation?.type === "special"));
+  return (crafts && /\bis consumed\b/iu.test(plainText(document))) ? {max: "1", recovery: []} : null;
 }
 
 /** Charges its text gives when dnd5e leaves its uses empty though its activities spend them (2024 Dragon Orb: "The orb has 7
@@ -4280,16 +4824,30 @@ function consumptionDefinition(definition, {document, activity, notes, pool, nam
   const slotLevels = [];
   const scaled = [];
   const note = target => notes.push(`consumption: ${target.type} ${target.value ?? ""} not converted`.trim());
+  // An activity's own uses, else (dnd5e keeps a once-a-day on the item, its activity spending "activityUses": a Dretch's
+  // Fetid Cloud) the item's.
   const poolOfTarget = target => ((target.type === "itemUses") ? targetPoolId(target, pool, names)
-    : ((target.type === "activityUses") ? activityPool({document, activity})?.id ?? null : null));
+    : ((target.type === "activityUses") ? (activityPool({document, activity})?.id ?? (document.system?.uses?.max ? pool?.id : null) ?? null)
+      : null));
   for ( const target of targets ) {
     if ( target === byLevel ) continue;
     // dnd5e's own count of the Legendary or Lair Action its activation already costs (Pounce): paid as that.
     if ( (target.type === "attribute") && ({"resources.legact.value": "legendary", "resources.lair.value": "lair"}[target.target]
       === activity.activation?.type) ) continue;
+    // A spell slot its text says it doesn't spend (2024 Pact of the Chain: "cast it as a Magic action without expending a
+    // spell slot"), or that a feature casting that way spends in dnd5e (Investment of the Chain Master's Find Familiar).
+    if ( (target.type === "attribute") && /^spells\.\w+\.value$/.test(String(target.target ?? ""))
+      && (SLOTLESS.has(identifierOf(document)) || /\bwithout expending a spell slot\b/i.test(plainText(document))) ) continue;
+    // Its own uses when it has none (a Torch's attack, a Cloud Giant's Misty Step: dnd5e spends nothing either).
+    if ( (target.type === "itemUses") && !target.target && !pool ) continue;
     const text = String(target.value ?? "").trim();
+    // A spell's own pool given back where another of its Actions spends it (Freezing Sphere's held globe, Heroes' Feast's
+    // servings) is what that Action draws on: a restore.
+    const refills = spell && (target.type === "itemUses") && !target.target && (number(text) < 0) && Object.values(document.system?.activities ?? {})
+      .some(other => (other !== activity) && !["", "none", "special"].includes(other?.activation?.type ?? "")
+        && (other.consumption?.targets ?? []).some(entry => (entry.type === "itemUses") && !entry.target && !givesBack(entry.value)));
     // An amount chosen when used (Ioun Stone of Reserve's "by level"), or rolled (Bag of Beans' 3d4), stays by hand.
-    if ( givesBack(text) && ((scaling.allowed && (target.scaling?.mode === "amount") && !text.includes("@scaling"))
+    if ( !refills && givesBack(text) && ((scaling.allowed && (target.scaling?.mode === "amount") && !text.includes("@scaling"))
       || /\dd\d/i.test(text) || spell) ) {
       note(target);
       continue;
@@ -4311,7 +4869,7 @@ function consumptionDefinition(definition, {document, activity, notes, pool, nam
     }
     const id = poolOfTarget(target);
     // A formula given back (Persistent Rage's "-@scale.barbarian.rage"): worked out for its creature when used.
-    const expression = ((amount == null) && text.startsWith("-")) ? formulaExpression(text.slice(1), {scales}) : null;
+    const expression = ((amount == null) && text.startsWith("-")) ? formulaExpression(text.slice(1), {scales, pool: id}) : null;
     if ( !id || !(amount || expression) ) note(target);
     else if ( amount > 0 ) definition.costs.allOf.push({capability: id, amount});
     else restores.push({resourceId: id, amount: expression ? 1 : -amount, ...(expression ? {amountExpression: expression} : {}),
@@ -4459,7 +5017,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
   if ( activity.type === "save" ) {
     const abilities = saveAbilitiesOf(document, activity);
     const ability = ABILITY_MAP[abilities[0]] ?? null;
-    if ( abilities.length > 1 ) notes.push(`save: a choice of ${abilities.join("/")} uses ${abilities[0]}`);
+    // Several: its target makes the one it is likelier to pass (`save.abilities`, as the common Grapple and Shove).
+    const choices = abilities.map(key => ABILITY_MAP[key]).filter(Boolean);
     const dc = activity.save?.dc ?? {};
     // An ability calculation wins (dnd5e keeps a stale `formula` beside it): a creature's is fixed from its numbers, a
     // character's is 8 + proficiency + that ability's modifier. Else a written formula ("@attributes.spell.dc + 2").
@@ -4475,16 +5034,20 @@ function convertActivity({document, activity, system, spell, level, scales, note
       notes.push(`save: ${abilities.join("/") || "?"} DC (${dc.calculation || dc.formula || "?"}) not converted`);
       return null;
     }
-    definition.save = {ability, dc: value};
+    definition.save = {ability, ...((choices.length > 1) ? {abilities: choices} : {}), dc: value};
   }
 
   // An ability check its user makes against a DC (picking a lock, slipping manacles): the creature's own check.
   if ( activity.type === "check" ) {
     // A spell's check is its target's (Maze's escape), not the caster's: by hand.
     if ( spell ) return null;
-    const check = checkOf(activity.check ?? {}, {spell, scales, notes});
-    if ( !check ) return null;
-    definition.check = check;
+    // One whose DC the GM sets (Fast Hands' Sleight of Hand): its skill, chosen and checked when it is used, the GM judging
+    // it (Search's shape: `metadata.test`).
+    const judged = judgedCheck(activity.check ?? {});
+    const check = judged ? null : checkOf(activity.check ?? {}, {spell, scales, notes});
+    if ( !check && !judged ) return null;
+    if ( check ) definition.check = check;
+    else definition.metadata = {...(definition.metadata ?? {}), test: judged};
     // The user checks; nobody else is targeted.
     definition.targeting = {type: "self"};
     delete definition.range;
@@ -4516,7 +5079,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const faces = perUse(part)?.[1];
     if ( faces ) spent = {id: `damage-${index + 1}`, faces: Number(faces), collection: "damage"};
     const expression = faces ? dice(1, Number(faces))
-      : partExpression(part, {spell, ability: attackAbility, scales, notes, label: `damage ${index + 1}`});
+      : partExpression(part, {spell, ability: attackAbility, scales, notes, label: `damage ${index + 1}`, pool: pool?.id});
     if ( !expression ) continue;
     const types = (part.types ?? []).filter(type => DAMAGE_TYPES.includes(type));
     if ( types.length > 1 ) typeChoices.push({id: `damage-type-${index + 1}`, type: "damage-type", label: "Damage type", required: true,
@@ -4612,7 +5175,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const marked = statuses.includes("marked") && !byHand?.slug;
     if ( marked ) rules.push({schemaVersion: 1, id: "marked", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}});
     const nextAttack = marked && /\bnext attack roll[^.]*against/i.test(plainText(document));
-    if ( rules.length || named?.slug || named?.restsLeft ) {
+    if ( rules.length || named?.slug || named?.restsLeft || byHand?.slug ) {
       // "before the end of your next turn": a round, from its caster's turn (V14 starts it on the source's Combatant).
       const untilNextTurnEnd = nextAttack && /before the end of your next turn/i.test(plainText(document))
         ? {value: 1, units: "rounds", expiry: "turnEnd"} : null;
@@ -4626,8 +5189,18 @@ function convertActivity({document, activity, system, spell, level, scales, note
         ...(restsLeft ? {restsLeft} : {}),
         ...(effect.img ? {img: effect.img} : {}),
         ruleElements: rules, ...(duration ? {duration} : {}), ...(((hand ?? named)?.endsWhen ?? (nextAttack ? "attacked" : null))
-          ? {endsWhen: (hand ?? named)?.endsWhen ?? "attacked"} : {}), ...(onUser ? {appliesTo: "source"} : onFailure),
+          ? {endsWhen: (hand ?? named)?.endsWhen ?? "attacked"} : {}),
+        // One its text gives on a successful save only (Irresistible Dance's Short Dance), where dnd5e applies it on either.
+        ...(onUser ? {appliesTo: "source"} : ((definition.save && named?.saveOutcomePolicy) ? {saveOutcomePolicy: named.saveOutcomePolicy} : onFailure)),
         ...(concentration ? {concentration: true} : {})});
+    } else if ( effect && !known.length && !statuses.length
+      && failedSaveOutcome(document, {onHit: !definition.save}).conditions.length ) {
+      // One with no status whose text names the conditions it gives (a Poisoned Needle's "has the Poisoned condition for
+      // 1 hour"): those conditions, for its duration.
+      for ( const conditionId of failedSaveOutcome(document, {onHit: !definition.save}).conditions ) {
+        effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId, ...onFailure, ...(lasts ? {duration: lasts} : {}),
+          ...(concentration ? {concentration: true} : {})});
+      }
     } else if ( effect && !known.length ) {
       // Nothing of it maps (Alter Self, Acid Arrow's lingering acid): it still marks its creature, for its duration and
       // its caster's concentration, and what it does is by hand.
@@ -4678,6 +5251,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const faces = formulaExpression("@scale.bard.inspiration.faces", {scales});
     if ( faces ) for ( const effect of effects.filter(entry => entry.type === "effect") ) {
       effect.metadata = {...(effect.metadata ?? {}), addDie: {faces}};
+      // Its die is its rule (effect-sources.mjs offers it), not a bare marker.
+      notes.splice(0, notes.length, ...notes.filter(note => note !== `effect: "${effect.name}" marks its creature only; its rules are by hand`));
     }
   }
   // "At the end of each of its turns, the target repeats the save, ending the spell on itself on a success" (Hold
@@ -4769,31 +5344,57 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // A save with nothing else converted (Grease, Zone of Truth): the conditions its 2024 text gives on a failure, else a
   // marker on the creatures that fail it, for as long as it lasts. What else it does is by hand.
   // A push or pull is its own (forcedMovement, added after: Gust of Wind).
-  if ( definition.save && !damage.length && !healing.length && !effects.length && !definition.check && !forcedMovement(document, definition) ) {
-    const {conditions, duration: lasts} = failedSaveOutcome(document);
-    const escapeAt = conditions.some(conditionId => ["grappled", "restrained"].includes(conditionId)) ? escapeDCOf(document, {creature, saveDC}) : null;
+  // An attack with nothing else converted: the conditions its hit gives, from its text (an Apparatus of the Crab's claw).
+  if ( definition.attack && !definition.save && !damage.length && !healing.length && !effects.length ) {
+    const {conditions, duration: lasts} = failedSaveOutcome(document, {onHit: true});
+    const escapeAt = escapeDCOf(document, {creature, saveDC});
     for ( const conditionId of conditions ) effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId,
-      saveOutcomePolicy: "failure", ...(lasts ? {duration: lasts} : {}), ...(concentration ? {concentration: true} : {}),
+      ...(lasts ? {duration: lasts} : {}),
+      ...(((escapeAt != null) && ["grappled", "restrained"].includes(conditionId)) ? {metadata: {escapeDC: escapeAt}} : {})});
+    if ( effects.length ) definition.effects = effects;
+  }
+  if ( definition.save && !damage.length && !healing.length && !effects.length && !definition.check && !forcedMovement(document, definition) ) {
+    const {conditions, levels, duration: lasts} = failedSaveOutcome(document);
+    // "with an escape DC equal to your spell save DC" (Arcane Hand's Grasping Hand): its save's own DC.
+    const escapeAt = conditions.some(conditionId => ["grappled", "restrained"].includes(conditionId)) ? (escapeDCOf(document, {creature, saveDC})
+      ?? (/\bescape DC equal to (?:your|its) spell save DC\b/i.test(plainText(document)) ? number(definition.save.dc?.value) : null)) : null;
+    // "a Huge or smaller creature", "succeeds automatically if it is Huge or larger" (a Net): none bigger is affected.
+    const maxSize = sizeLimitOf(document);
+    for ( const conditionId of conditions ) effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId,
+      saveOutcomePolicy: "failure", ...(levels?.[conditionId] ? {levels: levels[conditionId]} : {}), ...(lasts ? {duration: lasts} : {}),
+      ...(maxSize ? {maxSize} : {}), ...((repeat && (conditionId !== "exhaustion")) ? {repeatSave: repeat} : {}),
+      ...(concentration ? {concentration: true} : {}),
       ...(((escapeAt != null) && ["grappled", "restrained"].includes(conditionId)) ? {metadata: {escapeDC: escapeAt}} : {})});
     const lasting = conditions.length ? null : lastingDuration(pick(activity, system, "duration"));
+    // Its damage at the start of each of its creature's turns while it lasts (a Bearded Devil's infernal wound): the
+    // marker's own. A spell restoring its Hit Points, or a creature's Stanch Wound check, ends it by hand (noted); upgrade
+    // with an `endsWhen` for healing.
+    const wound = (lasting && (activity.type === "save")) ? turnStartDamageRules(document, {spell, scales, notes}) : [];
     if ( lasting || (!conditions.length && concentration) ) effects.push({id: "effect-1", type: "effect", name: document.name,
-      ...(document.img ? {img: document.img} : {}), ruleElements: [], ...(lasting ? {duration: lasting} : {}), saveOutcomePolicy: "failure",
+      ...(document.img ? {img: document.img} : {}), ruleElements: wound, ...(lasting ? {duration: lasting} : {}), saveOutcomePolicy: "failure",
       ...(concentration ? {concentration: true} : {})});
-    if ( effects.length ) {
+    if ( effects.length && wound.length ) {
       definition.effects = effects;
-      notes.push(conditions.length ? `save: a failure gives ${conditions.join(", ")} (its text); the rest is by hand`
-        : (NARRATIVE_SAVES.has(identifierOf(document)) ? "save: a failure marks its creature (narrative)"
+      notes.push("save: what ends its wound early (its text) is by hand");
+    }
+    else if ( effects.length ) {
+      definition.effects = effects;
+      if ( !conditions.length || !FAILURE_TEXT_COMPLETE.has(identifierOf(document)) ) notes.push(conditions.length
+        ? `save: a failure gives ${conditions.join(", ")} (its text); the rest is by hand`
+        : (narrativeSave(document, activity) ? "save: a failure marks its creature (narrative)"
           : "save: a failure marks its creature only; what it does is by hand"));
     }
   }
   // A follow-up (Flame Blade's attack, Heat Metal's reheat) goes on with its spell's concentration; it sustains nothing.
   if ( concentration && !effects.length && (activity.consumption?.spellSlot !== false) ) notes.push("concentration: nothing it sustains was converted");
-  if ( damage.length || healing.length || effects.length || definition.check ) return definition;
+  if ( damage.length || healing.length || effects.length || definition.check || definition.metadata?.test ) return definition;
   // An attack or save with nothing converted on it still rolls (Command, Counterspell, a Net): the card shows who
   // saved or was hit, and the description says what follows.
   if ( definition.save || definition.attack ) {
-    // Its push or pull is what follows (Gust of Wind, Open Hand Technique's Push), added after.
-    if ( !forcedMovement(document, definition) ) notes.push(`rolled (${activity.type}); what it does is by hand`);
+    // Its push or pull is what follows (Gust of Wind, Open Hand Technique's Push), added after. A save whose failure only
+    // tells or sends its creature off the Scene (Heart Sight, an Iron Flask) is narrative: who failed is all there is.
+    if ( !forcedMovement(document, definition) ) notes.push((definition.save && narrativeSave(document, activity))
+      ? "rolled (save, narrative): who failed is all there is; its description says the rest" : `rolled (${activity.type}); what it does is by hand`);
     return definition;
   }
   return null;
@@ -4815,6 +5416,20 @@ export function checkOf(check, {spell=false, scales={}, notes=[]}={}) {
     return null;
   }
   return {...(ability ? {ability} : {}), ...(skill ? {skill} : {}), dc: dc.type === "constant" ? {value: dc.value} : {valueExpression: dc}};
+}
+
+/**
+ * Tools whose check stands in as a skill's. shortcut: Thieves' Tools is checked as Sleight of Hand; upgrade when tool
+ * checks exist.
+ */
+const TOOL_SKILLS = Object.freeze({thief: "sleight-of-hand"});
+
+/** A dnd5e check with no DC (the GM's to set) as the skills its user checks (`metadata.test`), or null. */
+function judgedCheck(check) {
+  if ( check.dc?.formula || check.dc?.calculation ) return null;
+  const skills = [...new Set([].concat(check.associated ?? []).map(key => (DND_SKILLS[key] ? slugify(DND_SKILLS[key]) : TOOL_SKILLS[key]))
+    .filter(Boolean))];
+  return skills.length ? {skills} : null;
 }
 
 /** A damage or healing part's dice per spell level above its own, or null (a cantrip grows by character level instead). */
@@ -4857,6 +5472,15 @@ export function scaleTables(documents=[]) {
 const SIZES = Object.freeze({tiny: 0.5, sm: 1, med: 1, lg: 2, huge: 3, grg: 4});
 const SPEEDS = Object.freeze(["fly", "swim", "climb", "burrow"]);
 
+/**
+ * A stat block's text dnd5e left as an unfilled template, by creature and item id: the SRD 5.2.1 wording, in dnd5e's
+ * enricher form ("makes {count} [[/item]] attacks and uses [[/item]].": the 2024 Ancient Gold Dragon's Multiattack).
+ */
+const SOURCE_TEXT = Object.freeze({
+  "mmAncientGoldDra/mmMultiattack000": "<p>The [[lookup @name lowercase]]{monster} makes three [[/item Rend]] attacks. It can replace one attack "
+    + "with a use of (A) [[/item Spellcasting]] to cast <em>Guiding Bolt</em> (level 4 version) or (B) [[/item Weakening Breath]].</p>"
+});
+
 /** 2024 proficiency bonus by Challenge Rating. */
 export const proficiencyForChallenge = challenge => Math.max(2, Math.floor((Math.max(Number(challenge) || 0, 1) - 1) / 4) + 2);
 
@@ -4891,12 +5515,19 @@ export function convertActor(document, options={}) {
   const creature = {name: document.name, modifier, proficiency, saveDC, challenge, passive,
     spellDC: ABILITY_MAP[casting] ? 8 + proficiency + modifier(casting) : null, castingAbility: ABILITY_MAP[casting] ?? null,
     legendaryResistances: number(system.resources?.legres?.max) ?? 0,
+    // Its fastest Speed (an Arcane Eye's fly 30), for a move its summoner pays (summonerPaid).
+    speed: Math.max(0, ...Object.values(system.attributes?.movement ?? {}).map(number).filter(Number.isFinite)),
     itemNames: Object.fromEntries((document.items ?? []).map(item => [item._id, item.name]))};
 
   const items = [];
-  for ( const item of document.items ?? [] ) {
+  for ( const source of document.items ?? [] ) {
     // dnd5e's cached copy of a spell a cast activity casts: the cast activity converts it.
-    if ( (item.type === "equipment") || item.flags?.dnd5e?.cachedFor ) continue;
+    if ( (source.type === "equipment") || source.flags?.dnd5e?.cachedFor ) continue;
+    const fixed = SOURCE_TEXT[`${actorId}/${source._id}`];
+    // A part of its licensed stat block that dnd5e leaves without a license of its own (a Deva's Divine Aid) is the stat block's.
+    const inherited = (!source.system?.source?.license && (source.system?.source?.rules === "2024") && document.system?.source?.license)
+      ? {...source, system: {...source.system, source: {...source.system.source, license: document.system.source.license}}} : source;
+    const item = fixed ? {...inherited, system: {...inherited.system, description: {...inherited.system?.description, value: fixed}}} : inherited;
     const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images, spells, creatures, beasts, tables});
     if ( !result.ok ) {
       notes.push(`${item.name}: ${result.reason}`);
@@ -5125,6 +5756,10 @@ const FEAT_ADVANCEMENT = Object.freeze({
     data: {domains: ["damage.spell"], minimum: 2, damageTypes: ["{training:adept}"]}},
   {schemaVersion: 1, id: "elemental-adept-resistance", type: "RollOutcome", predicate: {tagsAll: ["spell"]},
     data: {outcome: "ignore-resistance", domains: ["damage.spell"], damageTypes: ["{training:adept}"]}}]},
+  // 2024 Divine Order: Thaumaturge and Primal Order: Magician: "You know one extra cantrip" from the Cleric or Druid list
+  // (dnd5e raises the class's cantrips-known scale instead).
+  "divine-order-thaumaturge": {advancement: [{level: 0, type: "choice", title: "Cantrip", count: 1, pool: {spellLists: ["cleric"], spellLevel: 0}}]},
+  "primal-order-magician": {advancement: [{level: 0, type: "choice", title: "Cantrip", count: 1, pool: {spellLists: ["druid"], spellLevel: 0}}]},
   "metamagic-adept": {advancement: [{level: 0, type: "choice", title: "Metamagic", count: 2, pool: {subtype: "metamagic"}}],
     rules: [{schemaVersion: 1, id: "metamagic-adept-points", type: "GrantResource", data: {resourceId: "font-of-magic", label: "Sorcery Points",
       maximum: 2, recovery: "longRest"}}]}
@@ -5236,6 +5871,10 @@ export function multiattackPlans(description, attackNames=[]) {
 const HALF_SUMMON_LEVEL = Object.freeze({type: "divide", numerator: {type: "context", path: "actor.flags.wildpath.summonLevel"},
   denominator: {type: "constant", value: 2}, round: "floor"});
 
+/** Half its summoner's Proficiency Bonus, rounded up (0 while it has no controller). */
+const HALF_CONTROLLER_PROFICIENCY = Object.freeze({type: "divide", numerator: {type: "controller-proficiency-bonus"},
+  denominator: {type: "constant", value: 2}, round: "ceil"});
+
 /**
  * What a Multiattack lets its creature do besides, or instead of, its attacks, as the Actions its text names:
  * - `uses`: "makes two Tentacle attacks and uses Constrict" (or "either A or B"): one use, shared by those Actions;
@@ -5290,22 +5929,33 @@ const SPELLS = "*spells*";
  */
 function multiattack(items, notes) {
   const item = items.find(entry => (entry.name === "Multiattack") && (entry.type === "action"));
-  const count = item ? multiattackCount(item.system.description) : null;
-  // A summoned spirit's: "a number of attacks equal to half this spell's level (round down)", by the level it was
-  // summoned at (`flags.wildpath.summonLevel`, set when it is summoned).
-  const byLevel = !count && item && /half (?:this|the) spell['’]s level/i.test(String(item.system.description).replace(/<[^>]+>/g, " "));
-  if ( !count && !byLevel ) return;
+  if ( !item ) return;
   // A spell the creature casts is not one of its Multiattack's attacks.
+  const costsAction = action => (action.system?.definition?.costs?.allOf ?? []).some(cost => cost.capability === "action");
   const attacks = items.filter(action => (action !== item) && action.system?.definition?.attack && !action.flags?.wildpath?.source?.castBy
-    && (action.system.definition.costs?.allOf ?? []).some(cost => cost.capability === "action"));
+    && costsAction(action));
   const bare = name => name.replace(/\s*\(.*\)\s*$/, "");
-  const text = String(item.system.description).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
-  // "makes a number of Rend attacks equal to half this spell's level": its Rend.
+  // "Makes three Rend." (2024 Ancient Bronze Dragon): a count before one of its attacks' names is that many of those attacks.
+  const attackNames = attacks.map(action => bare(action.name).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const description = attackNames.length ? String(item.system.description).replace(new RegExp(`\\b${COUNT}\\s+(${attackNames.join("|")})\\b(?!\\s+attacks?\\b)`,
+    "gi"), "$1 $2 attacks") : String(item.system.description);
+  const text = description.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+  const count = multiattackCount(description);
+  // A summoned spirit's: "a number of attacks equal to half this spell's level (round down)", by the level it was
+  // summoned at (`flags.wildpath.summonLevel`, set when it is summoned); a summoned avatar's: "equal to half the
+  // summoner's Proficiency Bonus (rounded up)", its controller's (`controller-proficiency-bonus`).
+  const byProficiency = !count && /half the summoner['’]s Proficiency Bonus/i.test(text);
+  const byLevel = !count && (byProficiency || /half (?:this|the) spell['’]s level/i.test(text));
+  if ( !count && !byLevel ) return;
+  // "makes a number of Rend attacks equal to half this spell's level": its Rend; an Action that hits without an attack
+  // roll (an Avatar of Death's Reaping Scythe) too.
   const levelName = byLevel ? /\bmakes a number of ([\w'’ -]+?) attacks equal to half/i.exec(text)?.[1] : null;
-  const levelAttack = levelName ? attacks.find(action => bare(action.name).toLowerCase() === levelName.trim().toLowerCase()) : null;
-  // At most half of 9th level: a restore that fills the spirit's pool whatever its size.
-  const plans = (byLevel ? (levelAttack ? [[{names: [levelAttack.name], amount: 4}]] : null)
-    : multiattackPlans(item.system.description, attacks.map(action => action.name)))
+  const levelAttack = levelName ? [...attacks, ...items.filter(action => (action !== item) && (action.type === "action") && costsAction(action)
+    && !action.flags?.wildpath?.source?.castBy)].find(action => bare(action.name).toLowerCase() === levelName.trim().toLowerCase()) : null;
+  if ( levelAttack && !attacks.includes(levelAttack) ) attacks.push(levelAttack);
+  // At most half of 9th level, or of a Proficiency Bonus of 9: a restore that fills the pool whatever its size.
+  const plans = (byLevel ? (levelAttack ? [[{names: [levelAttack.name], amount: byProficiency ? 5 : 4}]] : null)
+    : multiattackPlans(description, attacks.map(action => action.name)))
     ?? [[{names: null, amount: count ?? 4}]];
   const poolOf = group => (group.names?.length === 1 ? `multiattack-${slugify(bare(group.names[0]))}` : "multiattack");
   const labelOf = group => (group.names?.length === 1 ? `Multiattack (${bare(group.names[0])})` : "Multiattack");
@@ -5319,8 +5969,10 @@ function multiattack(items, notes) {
   const named = plans.flat().every(group => group.names);
   // What else it lets the creature do: another Action it uses, or one that replaces an attack.
   const others = items.filter(action => (action !== item) && (action.type === "action") && !action.name.startsWith("Multiattack"));
-  const extras = multiattackExtras(item.system.description, others.map(action => action.name));
-  const extraActions = names => others.filter(action => names.includes(action.name)
+  // A spell is named by the ability casting it too (a Succubus's "uses Charm": Dominate Person, cast by Charm).
+  const extras = multiattackExtras(description, [...new Set(others.flatMap(action => [action.name, action.flags?.wildpath?.source?.castBy])
+    .filter(Boolean))]);
+  const extraActions = names => others.filter(action => names.includes(action.name) || names.includes(action.flags?.wildpath?.source?.castBy)
     || (names.includes(SPELLS) && action.flags?.wildpath?.source?.castBy));
   const usesPool = extras.uses ? {id: extras.uses.names.length === 1 ? `multiattack-${slugify(bare(extras.uses.names[0]))}`
     : `multiattack-${slugify(extras.uses.names.map(bare).join(" or "))}`, label: `Multiattack (${extras.uses.names.map(bare).join(" or ")})`
@@ -5330,7 +5982,7 @@ function multiattack(items, notes) {
   for ( const pool of [usesPool, replacePool] ) if ( pool ) pools.set(pool.id, {...pool, names: []});
   // shortcut: without names, any of the creature's attacks may be each of them; other parts of it are used by hand.
   // Other parts it does not name ("and uses Frightful Presence" when it has no such Action) are used by hand too.
-  const rest = /\breplace|\buses?\b/i.test(String(item.system.description).replace(/<[^>]+>/g, " ")) && (extras.unknown
+  const rest = /\breplace|\buses?\b/i.test(text) && (extras.unknown
     || !(extras.uses || extras.replace));
   // A text that names none of its attacks ("makes a number of attacks equal to half this spell's level") means any of them.
   const mentions = attacks.some(action => nameWord(bare(action.name)).test(text));
@@ -5353,7 +6005,8 @@ function multiattack(items, notes) {
   });
   multiattacks[0].system.ruleElements.push(...[...pools.values()].map(pool => ({schemaVersion: 1, id: `${pool.id}-uses`,
     type: "GrantResource", data: {resourceId: pool.id, label: pool.label,
-      maximum: (byLevel && (!pool.names || ((pool.names.length === 1) && (pool.names[0] === levelAttack?.name)))) ? HALF_SUMMON_LEVEL : pool.maximum,
+      maximum: (byLevel && (!pool.names || ((pool.names.length === 1) && (pool.names[0] === levelAttack?.name))))
+        ? (byProficiency ? HALF_CONTROLLER_PROFICIENCY : HALF_SUMMON_LEVEL) : pool.maximum,
       current: 0, recovery: "none", emptiesAtTurnStart: true}})));
   items.splice(items.indexOf(item) + 1, 0, ...multiattacks.slice(1));
   notes.splice(0, notes.length, ...notes.filter(entry => !entry.startsWith("Multiattack: not automated")), ...(note ? [`Multiattack: ${note.slice(13)}`] : []));
@@ -5600,6 +6253,14 @@ export function effectRules(effect, notes=[], {scales={}, text=""}={}) {
       rule("ArmorClass", {label: effect.name, value: {type: "add", terms: [{type: "constant", value: UNARMORED_AC[change.value][0]},
         ...UNARMORED_AC[change.value].slice(1).map(ability => ({type: "ability-modifier", ability}))]}},
       {wearing: {armor: false, ...(["unarmoredMonk", "unarmoredBard"].includes(change.value) ? {shield: false} : {})}});
+    } else if ( (key === "system.attributes.ac.calc") && (change.value === "custom")
+      && formulaExpression(changes.find(entry => entry.key === "system.attributes.ac.formula")?.value) ) {
+      // A formula of its own (Robe of the Archmagi: "15 + @abilities.dex.mod" if you aren't wearing armor).
+      rule("ArmorClass", {label: effect.name, value: formulaExpression(changes.find(entry => entry.key === "system.attributes.ac.formula").value)},
+        {wearing: {armor: false}});
+    } else if ( (key === "system.attributes.ac.formula") && changes.some(entry => (entry.key === "system.attributes.ac.calc")
+      && (entry.value === "custom")) && formulaExpression(change.value) ) {
+      // Read with its "custom" calculation, above.
     } else if ( (key === "system.attributes.init.bonus") && (type === "add") && value ) {
       modifier(["initiative"], value);
     } else if ( (key === "system.attributes.init.roll.mode") && number ) {

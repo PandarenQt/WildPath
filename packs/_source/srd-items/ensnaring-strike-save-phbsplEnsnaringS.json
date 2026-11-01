@@ -79,6 +79,53 @@
             "expiry": "turnStart"
           },
           "concentration": true
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Ensnaring Strike (start of turn)",
+          "slug": "ensnaring-strike-turn-damage",
+          "img": "icons/svg/poison.svg",
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "ensnaring-strike-turn-damage",
+              "type": "Trigger",
+              "data": {
+                "kind": "automation",
+                "event": "turn.started",
+                "predicate": {
+                  "hasCondition": "restrained"
+                },
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:ensnaring-strike-turn-damage",
+                  "label": "Ensnaring Strike",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "damage": [
+                    {
+                      "id": "turn-1",
+                      "expression": {
+                        "type": "dice",
+                        "number": 1,
+                        "faces": 6
+                      },
+                      "damageType": "piercing",
+                      "provenance": "additional"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
         }
       ],
       "configuration": [
@@ -196,7 +243,9 @@
         "subtype": null
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "\"Start of Turn Damage\": its damage at the start of each turn doesn't grow with a higher spell slot (by hand)"
+        ]
       }
     }
   }

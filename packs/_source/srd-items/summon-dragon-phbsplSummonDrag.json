@@ -74,6 +74,153 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "summoner-gains",
+          "type": "select-one",
+          "label": "Shared Resistance",
+          "required": true,
+          "options": [
+            {
+              "id": "acid",
+              "label": "Acid",
+              "value": "acid"
+            },
+            {
+              "id": "cold",
+              "label": "Cold",
+              "value": "cold"
+            },
+            {
+              "id": "fire",
+              "label": "Fire",
+              "value": "fire"
+            },
+            {
+              "id": "lightning",
+              "label": "Lightning",
+              "value": "lightning"
+            },
+            {
+              "id": "poison",
+              "label": "Poison",
+              "value": "poison"
+            }
+          ],
+          "effects": [
+            {
+              "type": "keepEffect",
+              "effectIds": [
+                "acid",
+                "cold",
+                "fire",
+                "lightning",
+                "poison"
+              ]
+            }
+          ]
+        }
+      ],
+      "effects": [
+        {
+          "id": "acid",
+          "type": "effect",
+          "name": "Shared Resistance",
+          "img": "icons/svg/fire-shield.svg",
+          "appliesTo": "source",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "shared-acid-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "acid"
+                ]
+              }
+            }
+          ],
+          "concentration": true
+        },
+        {
+          "id": "cold",
+          "type": "effect",
+          "name": "Shared Resistance",
+          "img": "icons/svg/fire-shield.svg",
+          "appliesTo": "source",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "shared-cold-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "cold"
+                ]
+              }
+            }
+          ],
+          "concentration": true
+        },
+        {
+          "id": "fire",
+          "type": "effect",
+          "name": "Shared Resistance",
+          "img": "icons/svg/fire-shield.svg",
+          "appliesTo": "source",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "shared-fire-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "fire"
+                ]
+              }
+            }
+          ],
+          "concentration": true
+        },
+        {
+          "id": "lightning",
+          "type": "effect",
+          "name": "Shared Resistance",
+          "img": "icons/svg/fire-shield.svg",
+          "appliesTo": "source",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "shared-lightning-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "lightning"
+                ]
+              }
+            }
+          ],
+          "concentration": true
+        },
+        {
+          "id": "poison",
+          "type": "effect",
+          "name": "Shared Resistance",
+          "img": "icons/svg/fire-shield.svg",
+          "appliesTo": "source",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "shared-poison-resistance",
+              "type": "GrantResistance",
+              "data": {
+                "damageTypes": [
+                  "poison"
+                ]
+              }
+            }
+          ],
+          "concentration": true
         }
       ],
       "range": {

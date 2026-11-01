@@ -10,15 +10,12 @@
     "ruleElements": [
       {
         "schemaVersion": 1,
-        "id": "dragon-companion-uses",
+        "id": "dragon-companion-free-cast",
         "type": "GrantResource",
         "data": {
-          "resourceId": "dragon-companion",
+          "resourceId": "free-cast.dragon-companion",
           "label": "Dragon Companion",
-          "maximum": {
-            "type": "constant",
-            "value": 1
-          },
+          "maximum": 1,
           "recovery": "longRest"
         }
       }
@@ -39,8 +36,14 @@
       },
       "conversion": {
         "notes": [
-          "\"Expend Use\" is passive or triggered: not automated"
+          "free cast: Summon Dragon without Concentration (1 minute) is by hand"
         ]
+      },
+      "freeCast": {
+        "spells": [
+          "summon-dragon"
+        ],
+        "resourceId": "free-cast.dragon-companion"
       }
     }
   }

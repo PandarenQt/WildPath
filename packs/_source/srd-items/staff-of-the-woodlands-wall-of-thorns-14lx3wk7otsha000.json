@@ -103,7 +103,7 @@
                       "number": 7,
                       "faces": 8
                     },
-                    "damageType": "piercing",
+                    "damageType": "slashing",
                     "provenance": "spell-base",
                     "saveOutcomePolicy": {
                       "success": "half",
@@ -196,9 +196,7 @@
         "castBy": "Staff of the Woodlands"
       },
       "conversion": {
-        "notes": [
-          "\"Traversal Save\" is passive or triggered: not automated"
-        ]
+        "notes": []
       },
       "price": 4000,
       "rarity": "rare"

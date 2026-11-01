@@ -293,6 +293,32 @@
               }
             ]
           },
+          "targeting": {
+            "type": "area"
+          },
+          "range": {
+            "type": "self"
+          },
+          "configuration": [],
+          "area": {
+            "shape": "emanation",
+            "size": {
+              "value": 15,
+              "unit": "ft"
+            },
+            "persistence": {
+              "duration": {
+                "unit": "round",
+                "value": 100
+              },
+              "concentration": true,
+              "light": {
+                "bright": 15,
+                "darkness": true,
+                "spellLevel": 0
+              }
+            }
+          },
           "label": "Darkness Aura"
         },
         "ruleElements": [
@@ -326,9 +352,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -399,9 +423,7 @@
         "challenge": 0.5
       },
       "conversion": {
-        "notes": [
-          "Darkness Aura: not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

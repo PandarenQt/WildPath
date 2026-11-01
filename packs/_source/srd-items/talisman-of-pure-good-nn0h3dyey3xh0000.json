@@ -13,6 +13,51 @@
     "ruleElements": [
       {
         "schemaVersion": 1,
+        "id": "talisman-of-pure-good-held",
+        "type": "Trigger",
+        "data": {
+          "event": "turn.ended",
+          "predicate": {
+            "oneOf": {
+              "path": "actor.system.details.type",
+              "values": [
+                "fiend",
+                "undead"
+              ]
+            }
+          },
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-talisman-of-pure-good-fiend-and-undead-damage",
+            "tags": [
+              "magical"
+            ],
+            "costs": {
+              "allOf": []
+            },
+            "range": {
+              "type": "self"
+            },
+            "targeting": {
+              "type": "self"
+            },
+            "damage": [
+              {
+                "id": "damage-1",
+                "expression": {
+                  "type": "dice",
+                  "number": 8,
+                  "faces": 6
+                },
+                "damageType": "radiant",
+                "provenance": "additional"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "schemaVersion": 1,
         "id": "holy-symbol-1",
         "type": "Modifier",
         "predicate": {
@@ -65,9 +110,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Fiend and Undead Damage\" is passive or triggered: not automated"
-        ]
+        "notes": []
       },
       "grants": [
         "dmgTalismanOfPur"

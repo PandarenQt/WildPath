@@ -157,6 +157,10 @@
             {
               "resourceId": "multiattack-fiendish-touch",
               "amount": 1
+            },
+            {
+              "resourceId": "multiattack-charm-or-draining-kiss",
+              "amount": 1
             }
           ]
         },
@@ -168,6 +172,19 @@
             "data": {
               "resourceId": "multiattack-fiendish-touch",
               "label": "Multiattack (Fiendish Touch)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "multiattack-charm-or-draining-kiss-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "multiattack-charm-or-draining-kiss",
+              "label": "Multiattack (Charm or Draining Kiss)",
               "maximum": 1,
               "current": 0,
               "recovery": "none",
@@ -190,9 +207,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -299,11 +314,19 @@
             "component:somatic"
           ],
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-charm-or-draining-kiss",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -394,11 +417,19 @@
           "schemaVersion": 1,
           "id": "action:srd-draining-kiss-save",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "multiattack-charm-or-draining-kiss",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "range": {
@@ -578,8 +609,7 @@
       },
       "conversion": {
         "notes": [
-          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest",
-          "Multiattack: its other parts (a replacement, an ability it uses) are used by hand"
+          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
         ]
       }
     }

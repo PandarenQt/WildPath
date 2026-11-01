@@ -916,6 +916,366 @@
       }
     },
     {
+      "_id": "1v3e7pv1h0aeef00",
+      "_key": "!actors.items!mmDeva0000000000.1v3e7pv1h0aeef00",
+      "name": "Cure Wounds",
+      "type": "action",
+      "img": "icons/magic/nature/leaf-drip-light-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>A creature you touch regains a number of Hit Points equal to 2d8 plus your spellcasting ability modifier.</p><p><strong>Using a Higher-Level Spell Slot.</strong> The healing increases by 2d8 for each spell slot level above 1.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-divine-aid-cure-wounds",
+          "tags": [
+            "spell",
+            "school:abjuration",
+            "spell:cure-wounds",
+            "component:verbal",
+            "component:somatic"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "divine-aid",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "healing": [
+            {
+              "id": "healing-1",
+              "expression": {
+                "type": "add",
+                "terms": [
+                  {
+                    "type": "dice",
+                    "number": 2,
+                    "faces": 8
+                  },
+                  {
+                    "type": "spellcasting-modifier"
+                  }
+                ]
+              },
+              "healingType": "healing"
+            }
+          ],
+          "metadata": {
+            "spellLevel": 1
+          },
+          "label": "Cure Wounds"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "divine-aid-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "divine-aid",
+              "label": "Divine Aid",
+              "maximum": {
+                "type": "constant",
+                "value": 2
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplCureWounds",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "cure-wounds",
+            "subtype": null,
+            "castBy": "Divine Aid"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "mn4jdm83waqe0000",
+      "_key": "!actors.items!mmDeva0000000000.mn4jdm83waqe0000",
+      "name": "Lesser Restoration",
+      "type": "action",
+      "img": "icons/magic/holy/prayer-hands-glowing-yellow-green.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You touch a creature and end one condition on it: Blinded, Deafened, Paralyzed, or Poisoned.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-divine-aid-lesser-restoration",
+          "tags": [
+            "spell",
+            "school:abjuration",
+            "spell:lesser-restoration",
+            "component:verbal",
+            "component:somatic"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "divine-aid",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "blinded",
+              "levels": -1
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "deafened",
+              "levels": -1
+            },
+            {
+              "id": "effect-3",
+              "type": "condition",
+              "conditionId": "paralyzed",
+              "levels": -1
+            },
+            {
+              "id": "effect-4",
+              "type": "condition",
+              "conditionId": "poisoned",
+              "levels": -1
+            }
+          ],
+          "configuration": [
+            {
+              "id": "effect-choice",
+              "type": "option",
+              "label": "Condition",
+              "required": true,
+              "options": [
+                {
+                  "id": "effect-option-1",
+                  "label": "Blinded",
+                  "value": "effect-option-1"
+                },
+                {
+                  "id": "effect-option-2",
+                  "label": "Deafened",
+                  "value": "effect-option-2"
+                },
+                {
+                  "id": "effect-option-3",
+                  "label": "Paralyzed",
+                  "value": "effect-option-3"
+                },
+                {
+                  "id": "effect-option-4",
+                  "label": "Poisoned",
+                  "value": "effect-option-4"
+                }
+              ],
+              "effects": [
+                {
+                  "type": "keepEffect",
+                  "effectIds": [
+                    "effect-1",
+                    "effect-2",
+                    "effect-3",
+                    "effect-4"
+                  ],
+                  "keep": {
+                    "effect-option-1": [
+                      "effect-1"
+                    ],
+                    "effect-option-2": [
+                      "effect-2"
+                    ],
+                    "effect-option-3": [
+                      "effect-3"
+                    ],
+                    "effect-option-4": [
+                      "effect-4"
+                    ]
+                  }
+                }
+              ]
+            }
+          ],
+          "metadata": {
+            "spellLevel": 2
+          },
+          "label": "Lesser Restoration"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "divine-aid-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "divine-aid",
+              "label": "Divine Aid",
+              "maximum": {
+                "type": "constant",
+                "value": 2
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplLesserRest",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "lesser-restoration",
+            "subtype": null,
+            "castBy": "Divine Aid"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
+      "_id": "1oetud41x1rhu400",
+      "_key": "!actors.items!mmDeva0000000000.1oetud41x1rhu400",
+      "name": "Remove Curse",
+      "type": "action",
+      "img": "icons/skills/melee/sword-damaged-broken-glow-red.webp",
+      "system": {
+        "active": true,
+        "description": "<p>At your touch, all curses affecting one creature or object end. If the object is a cursed magic item, its curse remains, but the spell breaks its owner's Attunement to the object so it can be removed or discarded.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-divine-aid-remove-curse",
+          "tags": [
+            "spell",
+            "school:abjuration",
+            "spell:remove-curse",
+            "component:verbal",
+            "component:somatic"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "bonus-action",
+                "amount": 1
+              },
+              {
+                "capability": "divine-aid",
+                "amount": 1
+              }
+            ]
+          },
+          "metadata": {
+            "spellLevel": 3
+          },
+          "ends": {
+            "tags": [
+              "curse"
+            ]
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "range": {
+            "type": "touch",
+            "distance": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "label": "Remove Curse"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "divine-aid-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "divine-aid",
+              "label": "Divine Aid",
+              "maximum": {
+                "type": "constant",
+                "value": 2
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplRemoveCurs",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "remove-curse",
+            "subtype": null,
+            "castBy": "Divine Aid"
+          },
+          "conversion": {
+            "notes": []
+          }
+        }
+      }
+    },
+    {
       "_id": "mmDeva000000trts",
       "_key": "!actors.items!mmDeva0000000000.mmDeva000000trts",
       "name": "Traits",
@@ -984,8 +1344,7 @@
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
-          "Spellcasting: activation: 1 hour is not an action-economy cost",
-          "Divine Aid: not SRD 5.2 (CC-BY-4.0)"
+          "Spellcasting: activation: 1 hour is not an action-economy cost"
         ]
       }
     }

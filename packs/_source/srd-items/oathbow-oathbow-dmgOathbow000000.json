@@ -21,6 +21,96 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "configuration": [
+        {
+          "id": "item",
+          "type": "select-one",
+          "label": "Item",
+          "required": true,
+          "options": [],
+          "optionsFrom": {
+            "type": "gear",
+            "kinds": [
+              "weapon"
+            ]
+          }
+        }
+      ],
+      "enchant": {
+        "choiceId": "item",
+        "key": "oathbow",
+        "effects": [
+          {
+            "name": "Oathbow",
+            "img": "systems/dnd5e/icons/spell-tiers/spell4.webp",
+            "ruleElements": [
+              {
+                "schemaVersion": 1,
+                "id": "oathbow-attack",
+                "type": "RollMode",
+                "data": {
+                  "domains": [
+                    "attack"
+                  ],
+                  "mode": "advantage"
+                },
+                "predicate": {
+                  "all": [
+                    {
+                      "tagsAny": [
+                        "weapon:{{host}}"
+                      ]
+                    },
+                    {
+                      "equals": {
+                        "path": "attack.fromAttacker.sworn-enemy",
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "schemaVersion": 1,
+                "id": "oathbow-damage",
+                "type": "ExtraDamage",
+                "data": {
+                  "domains": [
+                    "damage.weapon"
+                  ],
+                  "expression": {
+                    "type": "dice",
+                    "number": 3,
+                    "faces": 6
+                  },
+                  "damageType": "piercing"
+                },
+                "predicate": {
+                  "all": [
+                    {
+                      "tagsAny": [
+                        "weapon:{{host}}"
+                      ]
+                    },
+                    {
+                      "equals": {
+                        "path": "attack.fromAttacker.sworn-enemy",
+                        "value": true
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        ]
+      },
       "label": "Oathbow (Oathbow)"
     },
     "ruleElements": []
@@ -39,9 +129,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (enchant): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "price": 40000,
       "rarity": "veryRare"

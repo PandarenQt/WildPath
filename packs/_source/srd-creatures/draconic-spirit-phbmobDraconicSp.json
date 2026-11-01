@@ -87,13 +87,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "\"Share Acid Resistance\" is passive or triggered: not automated",
-              "\"Share Cold Resistance\" is passive or triggered: not automated",
-              "\"Share Fire Resistance\" is passive or triggered: not automated",
-              "\"Share Lightning Resistance\" is passive or triggered: not automated",
-              "\"Share Poison Resistance\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -488,13 +482,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Shared Resistances: \"Share Acid Resistance\" is passive or triggered: not automated",
-          "Shared Resistances: \"Share Cold Resistance\" is passive or triggered: not automated",
-          "Shared Resistances: \"Share Fire Resistance\" is passive or triggered: not automated",
-          "Shared Resistances: \"Share Lightning Resistance\" is passive or triggered: not automated",
-          "Shared Resistances: \"Share Poison Resistance\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

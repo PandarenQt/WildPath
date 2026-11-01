@@ -86,7 +86,32 @@
           "type": "effect",
           "name": "Illuminated",
           "img": "icons/sundries/lights/lantern-iron-lit-yellow.webp",
-          "ruleElements": []
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "illuminated-light",
+              "type": "GrantLight",
+              "data": {
+                "bright": 0,
+                "dim": 10
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "illuminated-visible",
+              "type": "ConditionImmunity",
+              "data": {
+                "conditions": [
+                  "invisible"
+                ]
+              }
+            }
+          ],
+          "duration": {
+            "value": 1,
+            "units": "rounds",
+            "expiry": "sourceTurnEnd"
+          }
         }
       ],
       "metadata": {
@@ -114,9 +139,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Illuminated\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

@@ -2,18 +2,73 @@
   "_id": "ts2DfyhdfsR092Td",
   "_key": "!items!ts2DfyhdfsR092Td",
   "name": "Candle",
-  "type": "gear",
+  "type": "action",
   "img": "icons/sundries/lights/candle-unlit-tan.webp",
   "system": {
-    "active": false,
+    "active": true,
     "description": "<p>For 1 hour, a lit Candle sheds Bright Light in a 5-foot radius and Dim Light for an additional 5 feet.</p>",
-    "quantity": 10,
-    "weight": 0,
-    "slot": "",
-    "ruleElements": [],
-    "attunement": "",
-    "armor": "",
-    "price": 0.01
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-candle-light",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "bonus-action",
+            "amount": 1
+          },
+          {
+            "capability": "candle",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Candle (lit)",
+          "img": "icons/sundries/lights/candle-unlit-tan.webp",
+          "duration": {
+            "value": 1,
+            "units": "hours"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "light",
+              "type": "GrantLight",
+              "data": {
+                "bright": 5,
+                "dim": 10
+              }
+            }
+          ]
+        }
+      ],
+      "label": "Candle"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "candle-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "candle",
+          "label": "Candle",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -29,10 +84,9 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Light\" is passive or triggered: not automated"
-        ]
-      }
+        "notes": []
+      },
+      "price": 0.01
     }
   }
 }

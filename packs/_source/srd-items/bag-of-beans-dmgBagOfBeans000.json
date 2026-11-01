@@ -31,11 +31,13 @@
       },
       "conversion": {
         "notes": [
-          "\"Count Beans\" is passive or triggered (narrative): not automated",
-          "\"Dump Beans\" is passive or triggered: not automated",
-          "\"Plant Bean\" is passive or triggered: not automated"
+          "\"Count Beans\" is passive or triggered: not automated",
+          "\"Plant Bean\" is passive or triggered (narrative): not automated"
         ]
-      }
+      },
+      "grants": [
+        "8xicj61dy3eig000"
+      ]
     }
   }
 }

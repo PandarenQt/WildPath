@@ -10,7 +10,20 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "shield-1-2-or-3",
+        "type": "Modifier",
+        "data": {
+          "domains": [
+            "defense.ac"
+          ],
+          "modifierType": "untyped",
+          "value": 2
+        }
+      }
+    ],
     "attunement": "",
     "armor": "shield",
     "price": 0
@@ -29,9 +42,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "armor: of any kind; give it its armor's AC by hand"
-        ]
+        "notes": []
       },
       "grants": [
         "dmgShield12or300"

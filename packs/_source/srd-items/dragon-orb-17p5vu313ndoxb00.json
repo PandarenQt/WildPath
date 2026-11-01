@@ -1,6 +1,6 @@
 {
-  "_id": "dmgOrbOfDragonki",
-  "_key": "!items!dmgOrbOfDragonki",
+  "_id": "17p5vu313ndoxb00",
+  "_key": "!items!17p5vu313ndoxb00",
   "name": "Dragon Orb",
   "type": "gear",
   "img": "icons/commodities/gems/pearl-storm.webp",
@@ -31,7 +31,6 @@
       },
       "conversion": {
         "notes": [
-          "\"Attunement Save\" is passive or triggered: not automated",
           "not automated (utility, narrative): using it spends its cost; its description says the rest",
           "effect: \"Detect Magic\" marks its creature (narrative)",
           "activation: 10 minute is not an action-economy cost",
@@ -40,6 +39,7 @@
         ]
       },
       "grants": [
+        "dmgOrbOfDragonki",
         "jrh9hnyf5kpb0000",
         "1bkni9egx5nbo000",
         "1v6r568p8l0ok000",

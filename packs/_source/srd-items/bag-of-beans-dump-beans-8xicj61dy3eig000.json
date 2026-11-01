@@ -1,0 +1,102 @@
+{
+  "_id": "8xicj61dy3eig000",
+  "_key": "!items!8xicj61dy3eig000",
+  "name": "Bag of Beans (Dump Beans)",
+  "type": "action",
+  "img": "icons/containers/bags/coinpouch-simple-leather-tan.webp",
+  "system": {
+    "active": true,
+    "description": "<p><em>Wondrous Item, Rare</em></p><p>This heavy cloth bag contains 3d4 dry beans when found. The bag weighs half a pound regardless of how many beans it contains and becomes a nonmagical item when it no longer contains any beans.</p><p>If you dump one or more beans out of the bag, they explode in a 10-foot-radius Sphere centered on them. All the dumped beans are destroyed in the explosion, and each creature in the Sphere, including you, makes a DC 15 Dexterity saving throw, taking 5d4 Force damage on a failed save or half as much damage on a successful one.</p><p>If you remove a bean from the bag, plant it in dirt or sand, and then water it, the bean disappears as it produces an effect 1 minute later from the ground where it was planted. The GM can choose an effect from the following table or determine it randomly.</p><details><summary>Bag of Beans Effect (click to expand)</summary><p></p></details><p></p><section class=\"secret\" id=\"secret-Ksf2KyYXOK1HhLmm\"><p><strong>Foundry Note</strong></p><p>Upon obtaining this item, the <strong>Count Beans</strong> activity can be used to determine the number of dry beans contained within and set this item's number of uses accordingly.</p></section>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-bag-of-beans-dump-beans",
+      "tags": [
+        "magical"
+      ],
+      "costs": {
+        "allOf": [
+          {
+            "capability": "action",
+            "amount": 1
+          },
+          {
+            "capability": "bag-of-beans",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "area"
+      },
+      "area": {
+        "shape": "radial",
+        "size": {
+          "value": 10,
+          "unit": "ft"
+        }
+      },
+      "save": {
+        "ability": "agility",
+        "dc": {
+          "value": 15
+        }
+      },
+      "damage": [
+        {
+          "id": "damage-1",
+          "expression": {
+            "type": "dice",
+            "number": 5,
+            "faces": 4
+          },
+          "damageType": "force",
+          "provenance": "additional",
+          "saveOutcomePolicy": {
+            "success": "half",
+            "failure": "full"
+          }
+        }
+      ],
+      "label": "Bag of Beans (Dump Beans)"
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "bag-of-beans-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "bag-of-beans",
+          "label": "Bag of Beans",
+          "maximum": {
+            "type": "constant",
+            "value": 12
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgBagOfBeans000",
+        "type": "equipment",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "bag-of-beans",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      },
+      "price": 2000,
+      "rarity": "rare"
+    }
+  }
+}

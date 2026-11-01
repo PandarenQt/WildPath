@@ -18,6 +18,55 @@
           }
         ]
       },
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 10,
+          "unit": "ft"
+        }
+      },
+      "configuration": [
+        {
+          "id": "summon-creature",
+          "type": "select-one",
+          "label": "Creature",
+          "required": true,
+          "options": [
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmImp00000000000",
+              "label": "Imp"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPseudodragon00",
+              "label": "Pseudodragon"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmQuasit00000000",
+              "label": "Quasit"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSphinxOfWonder",
+              "label": "Sphinx of Wonder"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSkeleton000000",
+              "label": "Skeleton"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSprite00000000",
+              "label": "Sprite"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmVenomousSnake0",
+              "label": "Venomous Snake"
+            }
+          ]
+        }
+      ],
+      "summon": {
+        "choiceId": "summon-creature",
+        "count": 1
+      },
       "label": "Pact of the Chain (Find Familiar (Expanded Options))"
     },
     "ruleElements": []
@@ -37,9 +86,7 @@
       },
       "conversion": {
         "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest",
-          "summon: its creature is not among the converted creatures",
-          "consumption: attribute 1 not converted"
+          "summon: not in the SRD, so not offered: Slaad Tadpole"
         ]
       }
     }

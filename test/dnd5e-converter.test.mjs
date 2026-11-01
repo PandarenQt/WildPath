@@ -144,9 +144,10 @@ test("what WildPath cannot automate is a manual Action that spends its cost, nam
 
   const tripped = convertItem(trip);
   valid(tripped.items[0]);
-  assert.deepEqual(tripped.items[0].system.definition.save, {ability: "might", dc: {value: 13}});
+  assert.deepEqual(tripped.items[0].system.definition.save, {ability: "might", abilities: ["might", "agility"], dc: {value: 13}},
+    "a choice of saves: its target makes the one it is likelier to pass, as the common Grapple and Shove");
   assert.deepEqual(tripped.items[0].system.definition.effects, [{id: "effect-1", type: "condition", conditionId: "prone", saveOutcomePolicy: "failure"}]);
-  assert.deepEqual(tripped.notes, ["save: a choice of str/dex uses str"]);
+  assert.deepEqual(tripped.notes, []);
 
   assert.deepEqual(formulaExpression("@abilities.str.mod"), {type: "ability-modifier", ability: "might"});
   assert.deepEqual(formulaExpression("max(1, @abilities.cha.mod)"), {type: "max", terms: [{type: "constant", value: 1},
@@ -2959,4 +2960,131 @@ test("Unaffected (plan 7.10): a spell is tagged by itself; immunity to named spe
   assert.deepEqual(rules(feat("spell-immunity", "Spell Immunity", "<p>Immune to three spells.</p>")), [], "none linked: by hand");
   assert.deepEqual(rules(feat("telepathic-shroud", "Telepathic Shroud", "<p>Rule text.</p>")).map(rule => [rule.type, rule.data.actions]),
     [["Unaffected", {tagsAll: ["school:divination"]}]]);
+});
+
+test("costs dnd5e gives that spend nothing, a potion's single use, an item's pool for its activity, a spell's own pool refilled", () => {
+  const item = (type, system, activities) => ({_id: `test${type}`.padEnd(16, "0"), name: `Test ${type}`, type, img: "icons/svg/item-bag.svg",
+    effects: [], system: {source: SRD, ...system, activities}});
+  const spend = (value, extra={}) => ({consumption: {targets: [{type: "itemUses", value, target: ""}]}, ...extra});
+  const only = document => convertItem(document).items.find(entry => entry.type === "action");
+  // Its own uses when it has none (a Torch's attack): nothing spent, nothing noted.
+  const torch = convertItem(item("consumable", {type: {value: "trinket"}, uses: {max: ""}, properties: []},
+    {a: activity("attack", {attack: {type: {value: "melee"}}, damage: {parts: []}, ...spend("1")})}));
+  assert.deepEqual(torch.items.find(entry => entry.type === "action").system.definition.costs, {allOf: [{capability: "action", amount: 1}]});
+  assert.equal(torch.notes.some(note => note.startsWith("consumption:")), false);
+  // A potion dnd5e leaves without uses: drunk once.
+  const potion = only(item("consumable", {type: {value: "potion"}, uses: {max: ""}}, {a: activity("utility", spend("1"))}));
+  assert.deepEqual(potion.system.definition.costs.allOf.at(-1), {capability: "test-consumable", amount: 1});
+  assert.equal(potion.system.ruleElements[0].data.maximum.value, 1);
+  // Uses on the item, spent through its activity's ("activityUses": a Dretch's Fetid Cloud).
+  const daily = convertItem(item("feat", {uses: {max: "1", recovery: [{period: "day", type: "recoverAll"}]}},
+    {a: activity("utility", {consumption: {targets: [{type: "activityUses", value: "1"}]}, uses: {max: ""}})}));
+  assert.deepEqual(daily.items[0].system.definition.costs.allOf.at(-1), {capability: "test-feat", amount: 1});
+  assert.equal(daily.notes.some(note => note.startsWith("consumption:")), false);
+  // A slot its text says it doesn't spend (Pact of the Chain).
+  const pact = convertItem(item("feat", {description: {value: "<p>Cast it without expending a spell slot.</p>"}},
+    {a: activity("utility", {consumption: {targets: [{type: "attribute", value: "1", target: "spells.pact.value"}]}})}));
+  assert.deepEqual([pact.items[0].system.definition.costs, pact.notes.some(note => note.startsWith("consumption:"))],
+    [{allOf: [{capability: "action", amount: 1}]}, false]);
+  // A spell's own pool, started spent, given back by one Action and spent by another (Freezing Sphere's held globe).
+  const hold = convertItem(item("spell", {level: 6, preparation: {mode: "prepared"}, properties: [], uses: {max: "1", spent: 1, recovery: []}},
+    {a: activity("utility", {name: "Hold", ...spend("-1")}), b: activity("utility", {_id: "actthrow", name: "Throw", ...spend("1")})}));
+  const [held, thrown] = hold.items;
+  assert.deepEqual(held.system.definition.restores, [{resourceId: "test-spell", amount: 1, refuseWhenFull: true}]);
+  assert.equal(held.system.ruleElements[0].data.current, 0, "the pool starts empty");
+  assert.ok(thrown.system.definition.costs.allOf.some(cost => cost.capability === "test-spell"));
+  assert.equal(hold.notes.some(note => note.startsWith("consumption:")), false);
+  // "Give back everything spent" (an Ivory Goat's "-@item.uses.spent"): its maximum less what is left, clamped by the restore.
+  const goat = only(item("equipment", {uses: {max: "24", recovery: []}}, {a: activity("utility", spend("-@item.uses.spent"))}));
+  assert.deepEqual(goat.system.definition.restores, [{resourceId: "test-equipment", amount: 1, refuseWhenFull: true, amountExpression: {type: "subtract",
+    terms: [{type: "resource-max", resource: "test-equipment"}, {type: "resource-current", resource: "test-equipment"}]}}]);
+  assert.deepEqual(formulaExpression("16 * @item.uses.value", {pool: "staff"}), {type: "multiply", terms: [{type: "constant", value: 16},
+    {type: "resource-current", resource: "staff"}]});
+  assert.equal(formulaExpression("16 * @item.uses.value"), null, "without its pool, by hand");
+});
+
+test("SRD gaps closed: Multiattack counts, casts and names; escapes; effects by name; refilled pools; a staff's Retributive Strike", async () => {
+  const fs = await import("node:fs");
+  const {realGapNotes} = await import("../module/helpers/conversion-notes.mjs");
+  const read = (folder, prefix) => JSON.parse(fs.readFileSync(`packs/_source/${folder}/${fs.readdirSync(`packs/_source/${folder}`)
+    .find(file => file.startsWith(prefix))}`, "utf8"));
+  const actions = creature => Object.fromEntries(read("srd-creatures", creature).items.filter(entry => entry.type === "action")
+    .map(entry => [entry.name, entry]));
+  const anyOf = entry => entry.system.definition.costs.anyOf.map(option => option.map(cost => cost.capability));
+  // "Makes three Rend." and a text dnd5e left as a template (Ancient Gold): three Rend, and the replacement.
+  for ( const dragon of ["ancient-bronze-dragon", "ancient-gold-dragon"] ) {
+    const {Multiattack: multi} = actions(dragon);
+    assert.deepEqual(multi.system.definition.restores, [{resourceId: "multiattack-rend", amount: 3},
+      {resourceId: "multiattack-replace", amount: 1}], dragon);
+  }
+  assert.match(actions("ancient-gold-dragon").Multiattack.system.description, /makes three Rend attacks/u);
+  // A spell its Spellcasting lists without a cast (Adult Brass Dragon's Scorching Ray) is cast, and replaces an attack.
+  assert.deepEqual(anyOf(actions("adult-brass-dragon")["Scorching Ray"])[0], ["multiattack-replace", "multiattack-rend"]);
+  // A spell named by the ability casting it (a Succubus's Charm: Dominate Person).
+  assert.deepEqual(anyOf(actions("succubus")["Dominate Person"])[0], ["multiattack-charm-or-draining-kiss"]);
+  // Half its summoner's Proficiency Bonus, rounded up, of an Action without an attack roll (an Avatar of Death's Reaping Scythe).
+  const avatar = actions("avatar-of-death");
+  assert.deepEqual(avatar.Multiattack.system.ruleElements[0].data.maximum, {type: "divide", numerator: {type: "controller-proficiency-bonus"},
+    denominator: {type: "constant", value: 2}, round: "ceil"});
+  assert.deepEqual(anyOf(avatar["Reaping Scythe"]), [["multiattack-reaping-scythe"], ["action"]]);
+  // A grapple's escape is its condition's DC, not an Action; an attack's hit gives its text's condition.
+  const crab = Object.values(actions("apparatus-of-the-crab"));
+  assert.deepEqual(crab.find(entry => /^Grapple Attack/u.test(entry.name)).system.definition.effects,
+    [{id: "effect-1", type: "condition", conditionId: "grappled", metadata: {escapeDC: 15}}]);
+  assert.equal(crab.some(entry => /Escape/u.test(entry.name)), false);
+  assert.equal(Object.keys(actions("shambling-mound")).some(name => /Escape/u.test(name)), false);
+  // A Sphinx of Valor's Heroes' Feast fills its servings, and its Consume Feast comes with it.
+  const sphinx = actions("sphinx-of-valor");
+  assert.deepEqual(sphinx["Heroes' Feast"].system.definition.restores, [{resourceId: "heroes-feast", amount: 12, refuseWhenFull: true}]);
+  assert.deepEqual(sphinx["Heroes' Feast (Consume Feast)"].system.definition.costs, {allOf: [{capability: "heroes-feast", amount: 1}]});
+  // Retributive Strike: one Magic action, the others' save in a 30-foot Emanation at 4 times the staff's charges. Its
+  // dnd5e save half is no free Action of its own; its user's damage (or escape) and the staff's destruction stay noted.
+  for ( const staff of ["staff-of-power", "staff-of-the-magi"] ) {
+    const item = read("srd-items", `${staff}-retributive-strike-1`);
+    const strike = item.system.definition;
+    assert.deepEqual([strike.costs, strike.area, strike.save, strike.damage[0].saveOutcomePolicy, strike.damage[0].expression.terms[1]],
+      [{allOf: [{capability: "action", amount: 1}]}, {shape: "emanation", size: {value: 30, unit: "ft"}}, {ability: "agility", dc: {value: 17}},
+        {success: "half", failure: "full"}, {type: "resource-current", resource: staff}]);
+    assert.equal(realGapNotes(item.flags.wildpath.conversion.notes).length, 1);
+    assert.equal(fs.readdirSync("packs/_source/srd-items").some(file => file.startsWith(`${staff}-retributive-strike-save`)), false,
+      "no free Action of its own");
+  }
+  // A custom AC formula while unarmored (Robe of the Archmagi); an extra cantrip as a choice.
+  assert.deepEqual(read("srd-items", "robe-of-the-archmagi").system.ruleElements.find(rule => rule.type === "ArmorClass").data.value,
+    {type: "add", terms: [{type: "constant", value: 15}, {type: "ability-modifier", ability: "agility"}]});
+  assert.deepEqual(read("srd-items", "divine-order-thaumaturge").system.advancement[0].pool, {spellLists: ["cleric"], spellLevel: 0});
+  // Effects by name.
+  const effect = (prefix, name) => read("srd-items", prefix).system.definition.effects.find(entry => entry.name === name);
+  assert.deepEqual(effect("befuddlement", "Befuddled").ruleElements[0].data, {actions: {tagsAny: ["spell", "magical"]}});
+  assert.deepEqual(effect("resilient-sphere", "Enclosed in Sphere").ruleElements.map(rule => rule.type), ["Unaffected", "Forbid"]);
+  assert.deepEqual(effect("imprisonment", "Burial").ruleElements.map(rule => [rule.type, rule.data.actions]), [["Unaffected", {}], ["Forbid", {}]]);
+  assert.equal(effect("irresistible-dance", "Short Dance").saveOutcomePolicy, "success");
+  assert.equal(effect("draconic-flight", "Draconic Flight").ruleElements[0].data.mode, "fly");
+  assert.equal(effect("feather-token-anchor", "Anchor").ruleElements[0].type, "ResourceCap");
+  assert.deepEqual(read("srd-items", "manacles-bind").system.definition.targeting, {type: "single", required: true, count: 1});
+  assert.ok(read("srd-items", "unarmed-strike-grapple-shove").system.definition.save.abilities.includes("agility"));
+  for ( const prefix of ["staff-of-power-retributive-strike-1", "manacles-bind", "feather-token-anchor", "potion-of-mind-reading-detect",
+    "freezing-sphere-cast-and-hold", "ivory-goats-goat-of-traveling"] ) valid(read("srd-items", prefix));
+  // None of them keeps a note naming its gap (the creatures' other features aside).
+  for ( const [folder, prefix] of [["srd-creatures", "ancient-bronze-dragon"], ["srd-creatures", "ancient-gold-dragon"],
+    ["srd-creatures", "adult-brass-dragon"], ["srd-creatures", "dretch"], ["srd-creatures", "avatar-of-death"], ["srd-creatures", "succubus"],
+    ["srd-creatures", "apparatus-of-the-crab"], ["srd-creatures", "cloud-giant"], ["srd-creatures", "sphinx-of-valor"],
+    ["srd-items", "sovereign-glue"], ["srd-items", "universal-solvent"], ["srd-items", "torch-phbag"], ["srd-items", "potion-of-mind-reading-detect"],
+    ["srd-items", "deck-of-illusions"], ["srd-items", "marvelous-pigments"], ["srd-items", "instant-summons-inscribe"],
+    ["srd-items", "iron-flask-add"], ["srd-items", "iron-flask-release"], ["srd-items", "ivory-goats-goat-of-traveling"],
+    ["srd-items", "freezing-sphere-cast-and-hold"], ["srd-items", "heroes-feast-conjure"], ["srd-items", "pact-of-the-chain-find-familiar-phb"],
+    ["srd-items", "investment-of-the-chain-master"], ["srd-items", "robe-of-the-archmagi"], ["srd-items", "divine-order-thaumaturge"],
+    ["srd-items", "primal-order-magician"], ["srd-items", "alter-self-natural"], ["srd-items", "master-of-myriad-forms-natural"],
+    ["srd-items", "animated-shield"], ["srd-items", "bardic-inspiration"], ["srd-items", "befuddlement"], ["srd-items", "candle-of-invocation-light"],
+    ["srd-items", "cube-of-force-resilient"], ["srd-items", "resilient-sphere"], ["srd-items", "imprisonment"], ["srd-items", "draconic-flight"],
+    ["srd-items", "feather-token-anchor"], ["srd-items", "feather-token-fan"],
+    ["srd-items", "irresistible-dance"], ["srd-items", "manacles-bind"], ["srd-items", "unarmed-strike-grapple"],
+    ["srd-items", "staff-of-power-retributive-strike-1"], ["srd-items", "staff-of-the-magi-retributive-strike-1"]] ) {
+    const document = read(folder, prefix);
+    const notes = [document, ...(document.items ?? [])].flatMap(entry => entry.flags?.wildpath?.conversion?.notes ?? []);
+    const named = /^(?:Multiattack|Grapple Attack|Fetid Cloud|Misty Step): |consumption: |a choice of |area: |change system\.(?:scale|attributes\.ac)|custom formula|(?:^|: )effect: "[^"]*" marks its creature only/u;
+    assert.deepEqual(realGapNotes(notes).filter(note => named.test(note)), [], document.name);
+  }
+  // Phantasmal Force's phantasm damage is by hand, so its marker stays a gap, not narrative.
+  assert.equal(realGapNotes(read("srd-items", "phantasmal-force-cast").flags.wildpath.conversion.notes).length, 1);
 });

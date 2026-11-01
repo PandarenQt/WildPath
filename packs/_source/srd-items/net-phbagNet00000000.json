@@ -57,6 +57,7 @@
           "type": "condition",
           "conditionId": "restrained",
           "saveOutcomePolicy": "failure",
+          "maxSize": "large",
           "metadata": {
             "escapeDC": 10
           }

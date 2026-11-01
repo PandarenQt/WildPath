@@ -22,6 +22,12 @@
           }
         ]
       },
+      "targeting": {
+        "type": "self"
+      },
+      "teleport": {
+        "distance": 30
+      },
       "label": "Cloud's Jaunt"
     },
     "ruleElements": [
@@ -54,9 +60,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

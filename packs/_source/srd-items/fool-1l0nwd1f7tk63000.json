@@ -1,0 +1,91 @@
+{
+  "_id": "1l0nwd1f7tk63000",
+  "_key": "!items!1l0nwd1f7tk63000",
+  "name": "Fool",
+  "type": "action",
+  "img": "icons/tools/instruments/bell-brass.webp",
+  "system": {
+    "active": true,
+    "description": "<p> You have Disadvantage on D20 Tests for the next 72 hours. Draw another card; this draw doesn't count as one of your declared draws.</p>",
+    "definition": {
+      "schemaVersion": 1,
+      "id": "action:srd-fool",
+      "label": "Fool",
+      "costs": {
+        "allOf": [
+          {
+            "capability": "fool",
+            "amount": 1
+          }
+        ]
+      },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Fool",
+          "img": "icons/svg/downgrade.svg",
+          "duration": {
+            "value": 72,
+            "units": "hours"
+          },
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "fool",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attack",
+                  "check",
+                  "save"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "fool-uses",
+        "type": "GrantResource",
+        "data": {
+          "resourceId": "fool",
+          "label": "Fool",
+          "maximum": {
+            "type": "constant",
+            "value": 1
+          },
+          "recovery": "none"
+        }
+      }
+    ]
+  },
+  "flags": {
+    "wildpath": {
+      "source": {
+        "system": "dnd5e",
+        "pack": "equipment24",
+        "id": "dmgDmtFool000000",
+        "type": "consumable",
+        "book": "SRD 5.2",
+        "license": "CC-BY-4.0",
+        "rules": "2024",
+        "identifier": "fool",
+        "subtype": null
+      },
+      "conversion": {
+        "notes": []
+      }
+    }
+  }
+}

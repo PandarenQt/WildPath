@@ -26,10 +26,16 @@
         ]
       },
       "range": {
-        "type": "self"
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
       },
       "targeting": {
-        "type": "self"
+        "type": "single",
+        "required": true,
+        "count": 1
       },
       "effects": [
         {
@@ -37,7 +43,19 @@
           "type": "effect",
           "name": "Anchor",
           "img": "icons/tools/nautical/anchor-blue-orange.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "anchored",
+              "type": "ResourceCap",
+              "data": {
+                "resources": [
+                  "movement"
+                ],
+                "maximum": 0
+              }
+            }
+          ],
           "duration": {
             "value": 86400,
             "units": "seconds",
@@ -78,9 +96,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Anchor\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       },
       "price": 200,
       "rarity": "uncommon"

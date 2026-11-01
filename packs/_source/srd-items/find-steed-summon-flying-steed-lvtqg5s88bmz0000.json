@@ -126,6 +126,68 @@
       "summon": {
         "choiceId": "summon-creature",
         "count": 1,
+        "counts": [
+          {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbostCelestial0",
+            "count": {
+              "type": "table",
+              "key": {
+                "type": "context",
+                "path": "castLevel"
+              },
+              "rows": {
+                "4": {
+                  "type": "constant",
+                  "value": 1
+                }
+              },
+              "default": {
+                "type": "constant",
+                "value": 0
+              }
+            }
+          },
+          {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbostFey0000000",
+            "count": {
+              "type": "table",
+              "key": {
+                "type": "context",
+                "path": "castLevel"
+              },
+              "rows": {
+                "4": {
+                  "type": "constant",
+                  "value": 1
+                }
+              },
+              "default": {
+                "type": "constant",
+                "value": 0
+              }
+            }
+          },
+          {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbostFiend00000",
+            "count": {
+              "type": "table",
+              "key": {
+                "type": "context",
+                "path": "castLevel"
+              },
+              "rows": {
+                "4": {
+                  "type": "constant",
+                  "value": 1
+                }
+              },
+              "default": {
+                "type": "constant",
+                "value": 0
+              }
+            }
+          }
+        ],
         "bonuses": {
           "ac": {
             "type": "context",

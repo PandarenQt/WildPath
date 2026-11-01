@@ -132,7 +132,7 @@
       "drawn": false,
       "img": "icons/svg/d20-black.svg",
       "name": "",
-      "description": "Rowboat (12 feet long)"
+      "description": "@UUID[Compendium.wildpath.srd-creatures.Actor.phbmobRowboat000]{Rowboat} (12 feet long)"
     },
     {
       "_id": "6cvuu0JdRm1kxS3d",

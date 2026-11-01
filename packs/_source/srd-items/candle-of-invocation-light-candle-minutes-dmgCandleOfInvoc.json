@@ -37,7 +37,30 @@
           "type": "effect",
           "name": "Lit Candle of Invocation",
           "img": "icons/sundries/lights/candles-lit-red-evil.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "d20-tests",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attack",
+                  "check",
+                  "save"
+                ],
+                "mode": "advantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "candle-light",
+              "type": "GrantLight",
+              "data": {
+                "bright": 0,
+                "dim": 30
+              }
+            }
+          ],
           "duration": {
             "value": 60,
             "units": "seconds",
@@ -78,9 +101,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Lit Candle of Invocation\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       },
       "price": 20000,
       "rarity": "veryRare"

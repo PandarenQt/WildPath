@@ -62,8 +62,140 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "summon-creature",
+          "type": "select-one",
+          "label": "Creature",
+          "required": true,
+          "options": [
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGhoul000000000",
+              "label": "Ghoul"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGhast000000000",
+              "label": "Ghast"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWight000000000",
+              "label": "Wight"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmMummy000000000",
+              "label": "Mummy"
+            }
+          ]
         }
       ],
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 10,
+          "unit": "ft"
+        }
+      },
+      "summon": {
+        "choiceId": "summon-creature",
+        "count": 1,
+        "counts": [
+          {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmGhoul000000000",
+            "count": {
+              "type": "subtract",
+              "terms": [
+                {
+                  "type": "context",
+                  "path": "castLevel"
+                },
+                {
+                  "type": "constant",
+                  "value": 3
+                }
+              ]
+            }
+          },
+          {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmGhast000000000",
+            "count": {
+              "type": "table",
+              "key": {
+                "type": "context",
+                "path": "castLevel"
+              },
+              "rows": {
+                "8": {
+                  "type": "subtract",
+                  "terms": [
+                    {
+                      "type": "context",
+                      "path": "castLevel"
+                    },
+                    {
+                      "type": "constant",
+                      "value": 6
+                    }
+                  ]
+                }
+              },
+              "default": {
+                "type": "constant",
+                "value": 0
+              }
+            }
+          },
+          {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmWight000000000",
+            "count": {
+              "type": "table",
+              "key": {
+                "type": "context",
+                "path": "castLevel"
+              },
+              "rows": {
+                "8": {
+                  "type": "subtract",
+                  "terms": [
+                    {
+                      "type": "context",
+                      "path": "castLevel"
+                    },
+                    {
+                      "type": "constant",
+                      "value": 6
+                    }
+                  ]
+                }
+              },
+              "default": {
+                "type": "constant",
+                "value": 0
+              }
+            }
+          },
+          {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmMummy000000000",
+            "count": {
+              "type": "table",
+              "key": {
+                "type": "context",
+                "path": "castLevel"
+              },
+              "rows": {
+                "9": {
+                  "type": "constant",
+                  "value": 2
+                }
+              },
+              "default": {
+                "type": "constant",
+                "value": 0
+              }
+            }
+          }
+        ],
+        "spellLevel": 6
+      },
       "metadata": {
         "spellLevel": 6,
         "spellLists": [
@@ -91,8 +223,6 @@
       },
       "conversion": {
         "notes": [
-          "not automated (summon): using it spends its cost; its description says the rest",
-          "summon: its creature is not among the converted creatures",
           "activation: 1 minute is not an action-economy cost"
         ]
       }

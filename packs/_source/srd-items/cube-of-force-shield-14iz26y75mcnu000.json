@@ -20,11 +20,11 @@
       "costs": {
         "allOf": [
           {
-            "capability": "action",
+            "capability": "cube-of-force",
             "amount": 1
           },
           {
-            "capability": "cube-of-force",
+            "capability": "reaction",
             "amount": 1
           }
         ]

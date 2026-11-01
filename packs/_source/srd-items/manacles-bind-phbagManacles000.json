@@ -23,7 +23,9 @@
         ]
       },
       "targeting": {
-        "type": "self"
+        "type": "single",
+        "required": true,
+        "count": 1
       },
       "check": {
         "skill": "sleight-of-hand",
@@ -37,9 +39,28 @@
           "type": "effect",
           "name": "Manacled",
           "img": "icons/sundries/survival/cuffs-shackles-steel.webp",
-          "ruleElements": []
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "manacled",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attack"
+                ],
+                "mode": "disadvantage"
+              }
+            }
+          ]
         }
       ],
+      "range": {
+        "type": "touch",
+        "distance": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
       "label": "Manacles (Bind)"
     },
     "ruleElements": [
@@ -73,9 +94,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Manacled\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       },
       "price": 2
     }

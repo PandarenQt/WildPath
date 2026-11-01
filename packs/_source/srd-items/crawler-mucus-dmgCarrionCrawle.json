@@ -45,7 +45,23 @@
           "id": "effect-1",
           "type": "condition",
           "conditionId": "poisoned",
-          "saveOutcomePolicy": "failure"
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 1,
+            "units": "minutes"
+          },
+          "repeatSave": "turnEnd"
+        },
+        {
+          "id": "effect-2",
+          "type": "condition",
+          "conditionId": "paralyzed",
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 1,
+            "units": "minutes"
+          },
+          "repeatSave": "turnEnd"
         }
       ],
       "label": "Crawler Mucus"
@@ -81,9 +97,7 @@
         "subtype": "contact"
       },
       "conversion": {
-        "notes": [
-          "save: a failure gives poisoned (its text); the rest is by hand"
-        ]
+        "notes": []
       },
       "price": 200
     }

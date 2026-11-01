@@ -13,6 +13,53 @@
     "ruleElements": [
       {
         "schemaVersion": 1,
+        "id": "talisman-of-ultimate-evil-held",
+        "type": "Trigger",
+        "data": {
+          "event": "turn.ended",
+          "predicate": {
+            "not": {
+              "oneOf": {
+                "path": "actor.system.details.type",
+                "values": [
+                  "fiend",
+                  "undead"
+                ]
+              }
+            }
+          },
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-talisman-of-ultimate-evil-non-fiend-or-undead-damage",
+            "tags": [
+              "magical"
+            ],
+            "costs": {
+              "allOf": []
+            },
+            "range": {
+              "type": "self"
+            },
+            "targeting": {
+              "type": "self"
+            },
+            "damage": [
+              {
+                "id": "damage-1",
+                "expression": {
+                  "type": "dice",
+                  "number": 8,
+                  "faces": 6
+                },
+                "damageType": "necrotic",
+                "provenance": "additional"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "schemaVersion": 1,
         "id": "holy-symbol-1",
         "type": "Modifier",
         "predicate": {
@@ -65,9 +112,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Non-Fiend or Undead Damage\" is passive or triggered: not automated"
-        ]
+        "notes": []
       },
       "grants": [
         "dmgTalismanOfUlt"

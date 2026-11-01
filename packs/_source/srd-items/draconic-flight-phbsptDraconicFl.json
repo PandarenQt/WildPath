@@ -34,7 +34,20 @@
           "type": "effect",
           "name": "Draconic Flight",
           "img": "icons/magic/holy/angel-wings-gray.webp",
-          "ruleElements": [],
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "draconic-flight",
+              "type": "GrantMovement",
+              "data": {
+                "mode": "fly",
+                "distance": {
+                  "type": "context",
+                  "path": "actorSystem.resources.movement.max"
+                }
+              }
+            }
+          ],
           "duration": {
             "value": 600,
             "units": "seconds",
@@ -75,9 +88,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Draconic Flight\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       }
     }
   }

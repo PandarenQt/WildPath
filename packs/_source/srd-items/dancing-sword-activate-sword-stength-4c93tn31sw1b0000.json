@@ -30,7 +30,13 @@
       },
       "summon": {
         "actorRef": "Compendium.wildpath.srd-creatures.Actor.dmggwsDancingSwo",
-        "count": 1
+        "count": 1,
+        "bonuses": {
+          "attackDamage": {
+            "type": "ability-modifier",
+            "ability": "might"
+          }
+        }
       },
       "label": "Dancing Sword (Activate Sword: Stength)"
     },
@@ -50,9 +56,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "summon: what it gains with the spell's level (attackDamage) is not added"
-        ]
+        "notes": []
       },
       "price": 40000,
       "rarity": "veryRare"

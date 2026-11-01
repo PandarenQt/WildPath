@@ -1200,6 +1200,13 @@
               }
             ]
           },
+          "restores": [
+            {
+              "resourceId": "heroes-feast",
+              "amount": 12,
+              "refuseWhenFull": true
+            }
+          ],
           "metadata": {
             "spellLevel": 6
           },
@@ -1218,6 +1225,21 @@
                 "value": 1
               },
               "recovery": "longRest"
+            }
+          },
+          {
+            "schemaVersion": 1,
+            "id": "heroes-feast-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "heroes-feast",
+              "label": "Heroes' Feast",
+              "maximum": {
+                "type": "constant",
+                "value": 12
+              },
+              "recovery": "none",
+              "current": 0
             }
           }
         ]
@@ -1238,11 +1260,183 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest",
+              "not automated (utility, narrative): using it spends its cost; its description says the rest",
               "activation: 10 minute is not an action-economy cost",
-              "consumption: itemUses -12 not converted",
               "activation: 1 hour is not an action-economy cost"
             ]
+          }
+        }
+      }
+    },
+    {
+      "_id": "1qvkwml1nu0c6700",
+      "_key": "!actors.items!mmSphinxOfValor0.1qvkwml1nu0c6700",
+      "name": "Heroes' Feast (Consume Feast)",
+      "type": "action",
+      "img": "icons/consumables/food/cooked-hock-glowing-orange.webp",
+      "system": {
+        "active": true,
+        "description": "<p>You conjure a feast that appears on a surface in an unoccupied 10-foot Cube next to you. The feast takes 1 hour to consume and disappears at the end of that time, and the beneficial effects don't set in until this hour is over. Up to twelve creatures can partake of the feast.</p><p>A creature that partakes gains several benefits, which last for 24 hours. The creature has Resistance to Poison damage, and it has Immunity to the Frightened and Poisoned conditions. Its Hit Point maximum also increases by 2d10, and it gains the same number of Hit Points.</p>",
+        "definition": {
+          "schemaVersion": 1,
+          "id": "action:srd-heroes-feast-consume-feast",
+          "tags": [
+            "spell",
+            "school:conjuration",
+            "spell:heroes-feast",
+            "component:verbal",
+            "component:somatic",
+            "component:material",
+            "component:costly-material"
+          ],
+          "costs": {
+            "allOf": [
+              {
+                "capability": "heroes-feast",
+                "amount": 1
+              }
+            ]
+          },
+          "range": {
+            "type": "special"
+          },
+          "targeting": {
+            "type": "single",
+            "required": true,
+            "count": 1
+          },
+          "healing": [
+            {
+              "id": "healing-1",
+              "expression": {
+                "type": "dice",
+                "number": 2,
+                "faces": 10
+              },
+              "healingType": "healing"
+            }
+          ],
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Feast's Benefits",
+              "img": "icons/consumables/food/cooked-ribs-rack-glazed-bones-brown-white.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "feast-s-benefits-1",
+                  "type": "GrantResistance",
+                  "data": {
+                    "damageTypes": [
+                      "poison"
+                    ]
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "feast-s-benefits-2",
+                  "type": "ConditionImmunity",
+                  "data": {
+                    "conditions": [
+                      "frightened",
+                      "poisoned"
+                    ]
+                  }
+                }
+              ],
+              "duration": {
+                "value": 86400,
+                "units": "seconds",
+                "expiry": "turnStart"
+              }
+            }
+          ],
+          "configuration": [
+            {
+              "id": "cast-level",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-6",
+                  "label": "6",
+                  "value": 6
+                },
+                {
+                  "id": "level-7",
+                  "label": "7",
+                  "value": 7
+                },
+                {
+                  "id": "level-8",
+                  "label": "8",
+                  "value": 8
+                },
+                {
+                  "id": "level-9",
+                  "label": "9",
+                  "value": 9
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleHealing",
+                  "levelChoiceId": "cast-level",
+                  "baseLevel": 6,
+                  "componentIds": [
+                    "healing-1"
+                  ],
+                  "dice": {
+                    "number": 1,
+                    "faces": 10
+                  }
+                }
+              ]
+            }
+          ],
+          "metadata": {
+            "followUp": true,
+            "spellLevel": 6
+          },
+          "label": "Heroes' Feast (Consume Feast)"
+        },
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "heroes-feast-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "heroes-feast",
+              "label": "Heroes' Feast",
+              "maximum": {
+                "type": "constant",
+                "value": 12
+              },
+              "recovery": "none",
+              "current": 0
+            }
+          }
+        ]
+      },
+      "flags": {
+        "wildpath": {
+          "source": {
+            "system": "dnd5e",
+            "pack": "actors24",
+            "id": "phbsplHeroesFeas",
+            "type": "spell",
+            "book": "SRD 5.2",
+            "license": "CC-BY-4.0",
+            "rules": "2024",
+            "identifier": "heroes-feast",
+            "subtype": null,
+            "castBy": "Spellcasting"
+          },
+          "conversion": {
+            "notes": []
           }
         }
       }
@@ -1657,13 +1851,12 @@
           "Inscrutable: \"Inscrutable\" is passive or triggered (narrative): not automated",
           "Spellcasting: effect: \"Detect Evil and Good\" marks its creature (narrative)",
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: not automated (utility): using it spends its cost; its description says the rest",
+          "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
-          "Spellcasting: consumption: itemUses -12 not converted",
           "Spellcasting: activation: 1 hour is not an action-economy cost",
           "Spellcasting: effect: \"Cannot Lie\" marks its creature (narrative)",
           "Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest",
-          "Weight of Years: \"Years Older\" is passive or triggered: not automated"
+          "Weight of Years: \"Years Older\" is passive or triggered (narrative): not automated"
         ]
       }
     }

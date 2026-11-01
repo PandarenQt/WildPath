@@ -56,6 +56,20 @@
           }
         }
       }
+    ],
+    "advancement": [
+      {
+        "level": 0,
+        "type": "choice",
+        "title": "Cantrip",
+        "count": 1,
+        "pool": {
+          "spellLists": [
+            "cleric"
+          ],
+          "spellLevel": 0
+        }
+      }
     ]
   },
   "flags": {
@@ -72,9 +86,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Thaumaturge\" change system.scale.cleric.cantrips-known.value (add) not converted"
-        ]
+        "notes": []
       }
     }
   }
