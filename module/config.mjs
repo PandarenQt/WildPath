@@ -380,7 +380,7 @@ WILDPATH.CONDITIONS = {
   // 2024 Burning (Alchemist's Fire, a Fire Elemental's touch): 1d4 Fire damage at the start of each of its turns, until
   // it is put out (an action, by hand: remove it).
   burning: damageOverTimeCondition({id: "burning", name: "WILDPATH.CONDITIONS.Burning", summary: "WILDPATH.CONDITIONS.Summary.Burning",
-    img: "icons/magic/fire/flame-burning-creature-orange.webp", damageType: "fire", amount: {type: "dice", number: 1, faces: 4}, stacking: false,
+    img: "icons/magic/fire/flame-burning-embers-orange.webp", damageType: "fire", amount: {type: "dice", number: 1, faces: 4}, stacking: false,
     label: "WILDPATH.CONDITIONS.TurnDamageOf.Burning"}),
   // 2024 Surprise: "If a combatant is surprised by combat starting, that combatant has Disadvantage on their Initiative
   // roll." The GM marks it from the Token HUD; rolling its initiative ends it (foundry-multiplayer-runtime.mjs).
