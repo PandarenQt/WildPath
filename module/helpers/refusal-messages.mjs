@@ -25,6 +25,9 @@ const MOVEMENT_PATTERNS = Object.freeze([
   [/MOVEMENT_MODE_NOT_SUPPORTED/, "WILDPATH.REFUSAL.MovementMode"],
   [/reaction stopped|reaction-stopped/i, "WILDPATH.REFUSAL.ReactionStopped"],
   [/displaced during a reaction/i, "WILDPATH.REFUSAL.Displaced"],
+  // Creatures' spaces (foundry-v14-occupancy): said as such, before any other block.
+  [/hostile creature's space/i, "WILDPATH.REFUSAL.CreatureInWay"],
+  [/end in an occupied space/i, "WILDPATH.REFUSAL.OccupiedSpace"],
   [/blocked|occupied|wall/i, "WILDPATH.REFUSAL.Blocked"]
 ]);
 

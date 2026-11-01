@@ -1295,6 +1295,8 @@
       "ReactionStopped": "A reaction stopped the move.",
       "Displaced": "A reaction moved the creature; its move ends there.",
       "Blocked": "Something blocks that path.",
+      "CreatureInWay": "A hostile creature is in the way.",
+      "OccupiedSpace": "A move can't end in another creature's space.",
       "Ethereal": "A creature on the Ethereal Plane and one that is not can't target each other.",
       "NoAmmunition": "Out of ammunition for that weapon."
     },

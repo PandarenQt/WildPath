@@ -2,6 +2,7 @@ import {test} from "node:test";
 import assert from "node:assert/strict";
 import {creatureOccupancyPolicy, creatureSpaceTerrainPolicy} from "../module/adapters/foundry-v14-occupancy.mjs";
 import {evaluateMovementPath} from "../module/helpers/movement-paths.mjs";
+import {movementMessage} from "../module/helpers/refusal-messages.mjs";
 
 /**
  * A 100-px, 5-ft square Scene: the mover at square 0 of row 0, each other creature at its own square of that row.
@@ -83,4 +84,11 @@ test("a creature above another, or on another Scene Level, is not in its way", (
   assert.equal(walk(world({others: [["orc", 1, {level: "upper"}]]}), 1).ok, true, "another Scene Level");
   const neutral = world({elevation: 30, others: [["neutral", 1, {disposition: 0}]]});
   assert.equal(walk(neutral, 2, {stepCost: creatureSpaceTerrainPolicy(neutral, null, {always: true})}).cost, 10, "no Difficult Terrain over it");
+});
+
+test("a move refused for a creature's space says so, not just that something blocks it", () => {
+  const game = {user: {isGM: false}, i18n: {localize: key => `loc:${key}`}};
+  assert.equal(movementMessage({reason: "Movement is blocked by a hostile creature's space."}, game), "loc:WILDPATH.REFUSAL.CreatureInWay");
+  assert.equal(movementMessage({reason: "Movement can't end in an occupied space."}, game), "loc:WILDPATH.REFUSAL.OccupiedSpace");
+  assert.equal(movementMessage({reason: "Movement is blocked by a wall."}, game), "loc:WILDPATH.REFUSAL.Blocked");
 });
