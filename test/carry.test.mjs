@@ -107,7 +107,7 @@ test("riding along: Tokens standing on a vehicle where it set out move with it b
   const moved = await carry.onMovementEvent(sailed);
   assert.deepEqual(moved.map(token => token.id), ["bow", "stern"], "whoever stands on it, aboard or not; the one ahead first");
   assert.deepEqual(scene.tokens.get("bow").updates, [{data: {x: 1300, y: 1000}, operation: {movement: {bow: {waypoints:
-    [{x: 1300, y: 1000, action: "blink"}], showRuler: false}}, wildpath: {movementKind: "forced"}}}], "one jump by its offset");
+    [{x: 1300, y: 1000, action: "blink"}], showRuler: false}}, wildpath: {movementKind: "teleport"}}}], "one jump by its offset");
   assert.deepEqual(position(scene.tokens.get("stern")), {x: 1200, y: 1100});
   assert.deepEqual(scene.tokens.get("swimmer").updates, [], "off its deck: it stays");
   assert.deepEqual(await carry.onMovementEvent({...sailed, data: {...sailed.data, movementKind: "forced"}}), [],

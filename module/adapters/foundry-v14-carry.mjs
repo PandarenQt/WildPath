@@ -91,7 +91,8 @@ export function createFoundryCarry({ game }) {
         const moved = [];
         for (const token of riders.sort((a, b) => ahead(b) - ahead(a))) {
             const to = { x: token.x + end.x - start.x, y: token.y + end.y - start.y };
-            await token.update(to, { movement: { [token.id]: { waypoints: [{ ...to, action: "blink" }], showRuler: false } }, wildpath: { movementKind: "forced" } });
+            // One jump, so a teleport's kind: a forced move must walk adjacent steps (found live: the jump was refused).
+            await token.update(to, { movement: { [token.id]: { waypoints: [{ ...to, action: "blink" }], showRuler: false } }, wildpath: { movementKind: "teleport" } });
             moved.push(token);
         }
         return moved;
