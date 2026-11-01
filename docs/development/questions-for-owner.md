@@ -245,3 +245,29 @@ The branch `milestone/action-runtime-live-proof` is 613 commits ahead of `main`,
   release's `system.json` is Foundry's usual pattern); (4) a CHANGELOG.md written from the plans and the Development Log.
 - Recommendation: 0.10.0, after one full Quench run and the two-browser pass; the standard GitHub release URLs; a
   changelog grouped by feature, not by commit.
+
+### Q18. SRD gap sweep: rules choices before 17 items can be automated (2026-11-01)
+The SRD gap sweep (`bf042e2b`) automated about 105 items. These need a choice first; each stays by hand meanwhile.
+
+1. **Ice Knife in the silver dragons' Spellcasting.** dnd5e's Ice Knife has no license (it is not SRD 5.2), but two SRD
+   stat blocks cast it. Convert it for those stat blocks' casting in the SRD pack? Recommend: no; keep it by hand in the
+   SRD pack (your local world gets it from the PHB). The rest of the Multiattack (Paralyzing Breath) is built regardless.
+2. **Hide and Search as a contest (Cloak of Elvenkind).** Today Hide gives Invisible at a fixed DC 15 and Search is a
+   plain check. Make Search contest the Hide's stored Stealth total (2024 rules), with a `perceived` roll-mode domain
+   the cloak (and homebrew) can use? Recommend: yes, medium.
+3. **Damageable wall sections (Wall of Ice's Frigid Air: Ice Devil, Staff of Frost, Water Ring).** Give wall spells
+   sections with HP (a Region per panel), so a broken section can leave its sheet of cold air? Recommend: not now (large);
+   mark Frigid Air by hand.
+4. **Earthquake's fissures (Earth Ring).** GM-placed line areas with a save and a fall, or narrative? Recommend: GM-placed
+   lines; "Collapsing Structure" narrative either way.
+5. **Helm of Brilliance's gems.** Track the four gem counts as pools (rolled once), spent by its casts and read by its
+   Explosive Emanation? Recommend: yes, small to medium.
+6. **Pipes of the Sewers' swayed rats.** Should a swayed swarm flip its Token's disposition / become a controlled
+   companion? Recommend: yes, as companion control while the piper keeps playing.
+7. **Mirror of Life Trapping.** When is the save made (on activation, on entering 30 ft, at turn start), and is a trapped
+   creature removed from the Scene? Recommend: on entering 30 ft or starting a turn there; trapped = removed (a status).
+8. **Contingency.** A fixed list of WildPath events to pick from (drops to 0 HP, Bloodied, falls, submerged…), storing the
+   spell and its slot? Recommend: yes, a list.
+9. **Large ones: Antimagic Field, Magic Jar (possession), Simulacrum.** Automate any of them now? Recommend: Antimagic
+   Field yes (Forbid spells/magic Actions inside, suppress magical effects and rules inside; large); Magic Jar and
+   Simulacrum by hand for now.
