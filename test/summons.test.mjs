@@ -109,6 +109,9 @@ test("what a summon gains with the spell's level: Hit Points, AC, and its attack
     ["Modifier", {tagsAny: ["melee", "ranged"]}, 5],
     ["ExtraDamage", {not: {tagsAny: ["melee", "ranged"]}}, {type: "dice", number: 2, faces: 10}]], "+5 on its attacks, 2d10 on its other damage");
   assert.deepEqual(summonBonusesAt({}, 5), {hp: 0, ac: 0, rules: []});
+  // A Find Steed steed's Healing Touch heals the spell's level more: a Modifier on its healing.
+  assert.deepEqual(summonBonusesAt({healing: level}, 3).rules, [{schemaVersion: 1, id: "summon-healing", type: "Modifier",
+    data: {domains: ["healing"], modifierType: "untyped", value: 3}}]);
   // Conjure Fey at 7th: its caster's spellcasting modifier (from the caster, not the spirit) plus 1d12 per level above 6th.
   const caster = {actorSystem: {abilities: {intellect: {value: 18}}, spellcasting: {ability: "intellect"}}};
   const fey = summonBonusesAt({attackDamage: {type: "add", terms: [{type: "constant", value: 4},

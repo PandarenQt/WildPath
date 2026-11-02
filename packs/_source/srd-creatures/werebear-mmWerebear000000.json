@@ -582,6 +582,42 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Speed: Bear Form",
+              "img": "icons/skills/movement/figure-running-gray.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "speed-bear-form-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 40
+                  }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "speed-bear-form-2",
+                  "type": "GrantMovement",
+                  "data": {
+                    "mode": "climb",
+                    "distance": 30
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Shape-Shift"
         },
         "ruleElements": []
@@ -600,9 +636,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -664,9 +698,7 @@
         "challenge": 5
       },
       "conversion": {
-        "notes": [
-          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

@@ -112,6 +112,26 @@ test("converted Lash and Tail Swipe: one attack from the pool, no movement; a te
   assert.deepEqual(lash.flags.wildpath.conversion.notes, []);
   const swipe = creature("adult-blue-dragon-").items.find(item => item.name === "Tail Swipe");
   assert.deepEqual(swipe.system.definition.restores, [{resourceId: "move-attack-rend", amount: 1}]);
-  assert.equal(creature("sphinx-of-lore-").items.find(item => item.name === "Arcane Prowl").system.definition.restores, undefined,
-    "its teleport is not a plain attack");
+  // "can teleport up to 30 feet ..., and it makes one Claw attack": that teleport, and the attack from the pool.
+  const prowl = creature("sphinx-of-lore-").items.find(item => item.name === "Arcane Prowl").system.definition;
+  assert.deepEqual([prowl.teleport, prowl.restores, prowl.targeting], [{distance: 30}, [{resourceId: "move-attack-claw", amount: 1}], {type: "self"}]);
+  assert.deepEqual(prowl.costs, {allOf: [{capability: "legendary-action", amount: 1}]}, "still a Legendary Action");
+  assert.equal(validateActionDefinition(prowl).ok, true);
+});
+
+test("converted Onslaught and Charging Horn: 'one Claw or Tail attack' pays either; 'without provoking' is Disengaged too", async () => {
+  const fs = await import("node:fs");
+  const creature = prefix => JSON.parse(fs.readFileSync(`packs/_source/srd-creatures/${fs.readdirSync("packs/_source/srd-creatures")
+    .find(name => name.startsWith(prefix))}`, "utf8"));
+  const tarrasque = creature("tarrasque-");
+  const onslaught = tarrasque.items.find(item => item.name === "Onslaught");
+  assert.deepEqual(onslaught.system.definition.restores.map(entry => entry.resourceId), ["movement", "move-attack-claw"]);
+  for ( const name of ["Claw", "Tail"] ) {
+    assert.deepEqual(tarrasque.items.find(item => item.name === name).system.definition.costs.anyOf[0], [{capability: "move-attack-claw", amount: 1}], name);
+  }
+  assert.deepEqual(onslaught.flags.wildpath.conversion.notes, []);
+  const horn = creature("unicorn-").items.find(item => item.name === "Charging Horn").system.definition;
+  assert.deepEqual(horn.effects.map(effect => effect.slug), ["disengaged"]);
+  assert.deepEqual(horn.costs, {allOf: [{capability: "legendary-action", amount: 1}]});
+  assert.equal(validateActionDefinition(horn).ok, true);
 });

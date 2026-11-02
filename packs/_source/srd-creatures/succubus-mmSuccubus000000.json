@@ -509,6 +509,34 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Shape-Shift",
+              "img": "icons/magic/control/silhouette-grow-shrink-tan.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "no-fly",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.fly.multiplier"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Shape-Shift"
         },
         "ruleElements": []
@@ -527,9 +555,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -608,9 +634,7 @@
         "challenge": 4
       },
       "conversion": {
-        "notes": [
-          "Shape-Shift: not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

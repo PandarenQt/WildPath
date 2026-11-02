@@ -155,6 +155,8 @@ Live (two browsers, 14.369):
 authority refuses the intent otherwise ("can't be used now"), and the action bar greys it (`REQUIRES_NOT_MET`, reason
 `WILDPATH.ACTIONBAR.Reason.Requires`). Steady Aim requires that it hasn't moved this turn:
 `{equals: {path: "actorSystem.resources.movement.spent", value: 0}}`. shortcut: outside combat movement is never reset.
+It also sees its creature's statuses (2026-11-01, `hasCondition`, `requiresContext`): Expeditious Retreat's Bonus Action
+Dash requires `{hasCondition: "expeditious-retreat"}`, the marker its cast puts on its caster.
 
 ## Restores (2026-10-14)
 
@@ -441,6 +443,8 @@ mechanical resolver payload.
 `ends` (optional) names what an Action ends on its targets once it completes (`endEffectsOnTargets`, run by the GM):
 - `{tags: ["curse"]}`: effects whose metadata carries one of the tags (Remove Curse). The converter tags as `curse` what
   dnd5e's `cursed` status became (Bestow Curse, a lycanthrope's bite) and Hex.
+- `{contagions: true}` (2026-11-01): magical contagions, effects whose metadata names one (`metadata.contagion`,
+  helpers/contagions.mjs): an Elixir of Health.
 - `{spells: "slot"}` or a level: spells up to that level (Dispel Magic, the level it is cast at). A spell's effects carry
   `metadata.spellLevel`, the slot it was cast with (else the spell's own level, from the definition's
   `metadata.spellLevel`).

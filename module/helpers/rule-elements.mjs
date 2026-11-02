@@ -816,12 +816,14 @@ function actionsRuleElement(type, key) {
 }
 
 /**
- * The tags a Forbid or Unaffected tests an Action by: its own, `attack` when it makes an attack roll, `spell:leveled`
- * for a spell of level 1+, its id (`id:common:dash`), and what it always costs (`cost:action`, `cost:bonus-action`).
+ * The tags a Forbid or Unaffected tests an Action by: its own, `attack` when it makes an attack roll (and
+ * `attack:<type>`, `attack:ranged`: a Tarrasque's Reflective Carapace), `teleport` when it teleports (Dimensional
+ * Shackles), `spell:leveled` for a spell of level 1+, its id (`id:common:dash`), and what it always costs (`cost:action`, `cost:bonus-action`).
  */
 export function actionTags(definition) {
   const leveled = definition?.tags?.includes("spell") && (Number(definition.metadata?.spellLevel) >= 1);
-  return [...(definition?.tags ?? []), ...(definition?.attack ? ["attack"] : []), ...(leveled ? ["spell:leveled"] : []),
+  const attack = definition?.attack ? ["attack", ...(definition.attack.type ? [`attack:${definition.attack.type}`] : [])] : [];
+  return [...(definition?.tags ?? []), ...attack, ...(definition?.teleport ? ["teleport"] : []), ...(leveled ? ["spell:leveled"] : []),
     ...(definition?.id ? [`id:${definition.id}`] : []),
     ...(definition?.costs?.allOf ?? []).flatMap(cost => (cost?.capability ? [`cost:${cost.capability}`] : []))];
 }

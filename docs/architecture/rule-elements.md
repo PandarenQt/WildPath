@@ -1045,7 +1045,9 @@ the authority's separate refusals:
 
 - The last six are state, not stored data: `grantOwners` (actor.mjs) adds their rules while the state holds, as it
   does for untrained armor's Disadvantage; a status's are in `STATUS_FORBIDS`. Existing worlds need no migration.
-- `actionTags` adds `spell:leveled` to a spell of level 1 or higher (`metadata.spellLevel`).
+- `actionTags` adds `spell:leveled` to a spell of level 1 or higher (`metadata.spellLevel`), `attack:<type>` beside
+  `attack` (`attack:ranged`: a Tarrasque's Reflective Carapace is Unaffected by spells with a ranged attack roll), and
+  `teleport` to an Action with a `teleport` (Dimensional Shackles' Forbid).
 - `actor.forbiddingRule(definition)` returns the first match, named after its owner (the effect or armor). The
   authority refuses the intent with the rule's `reason`, or `WILDPATH.REFUSAL.Forbidden` ("{name} can't do that:
   {by}"). The reaction provider doesn't offer a forbidden reaction (a Silenced wizard's Shield), and the action bar

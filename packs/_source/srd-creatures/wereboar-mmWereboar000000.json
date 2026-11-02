@@ -678,6 +678,33 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Speed: Boar Form",
+              "img": "icons/skills/movement/figure-running-gray.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "speed-boar-form-1",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "movement"
+                    ],
+                    "maximum": 40
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Shape-Shift"
         },
         "ruleElements": []
@@ -696,9 +723,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility, narrative): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -751,9 +776,7 @@
         "challenge": 4
       },
       "conversion": {
-        "notes": [
-          "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

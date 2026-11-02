@@ -95,6 +95,8 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
   - Each summoned Token's own Actor gains the Hit Points and the AC.
   - Its damage bonuses become a feature, "Summoned at level N": a Modifier for a number, or an ExtraDamage for dice.
     `attackDamage` is on its attacks (`melee`, `ranged`), `saveDamage` on its other damage.
+  - `healing` (2026-11-01) is a Modifier on its healing (`healing` domain): a Find Steed steed's Healing Touch heals the
+    spell's level more. dnd5e's `hd` (Hit Dice by level) is not added: they are spent only on a rest (noted).
   - Live (two browsers): Player1 cast the SRD Find Steed with a 2nd-level slot and chose the Celestial Steed. It
     arrived where Player1 clicked, owned by Player1, with 25 Hit Points (5 + 20) and AC 13 (11 + 2). Its Otherworldly
     Slam added +2 damage.

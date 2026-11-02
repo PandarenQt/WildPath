@@ -90,7 +90,7 @@ export function withSummonNumbers(expression: unknown, numbers: {level: number; 
 /**
  * What a summon gains with the spell's level (2024 Summon spells, dnd5e's bonuses), at `level`: Hit Points and AC as
  * numbers, and rules for its damage, on attacks (`attackDamage`) and on everything else, saves (`saveDamage`): a
- * Modifier for a number, an ExtraDamage for dice.
+ * Modifier for a number, an ExtraDamage for dice; and for its healing (`healing`), a Modifier.
  */
 export function summonBonusesAt(bonuses: Data | null | undefined, level: number, context: Data = {}) {
   // Its caster's own numbers too (`context`: a Steel Defender's Hit Points, Intelligence + 5 per artificer level).
@@ -115,6 +115,10 @@ export function summonBonusesAt(bonuses: Data | null | undefined, level: number,
       ...rolled.map((part, index) => ({schemaVersion: 1, id: `summon-${name}${index ? `-${index}` : ""}${flat ? "-dice" : ""}`, type: "ExtraDamage",
         predicate, data: {domains: ["damage"], expression: part}}))];
   });
+  // Its healing (`healing`: a Find Steed steed's Healing Touch heals the spell's level more), a Modifier on its healing.
+  const healing = number("healing");
+  if ( healing ) rules.push({schemaVersion: 1, id: "summon-healing", type: "Modifier",
+    data: {domains: ["healing"], modifierType: "untyped", value: healing}});
   return {hp: number("hp"), ac: number("ac"), rules};
 }
 

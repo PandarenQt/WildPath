@@ -22,6 +22,9 @@ test("a spell cast with the Action is this turn's Magic action; Boon of Dimensio
   await recordMagicTurn({options: {actor}, ...cast("action")}, {game});
   assert.equal(requiresContext(actor, {game}).magicActionThisTurn, true);
   assert.equal(requiresContext(actor, {game: {combat: {...game.combat, turn: 1}}}).magicActionThisTurn, false, "another turn");
+  // Its statuses, for `hasCondition` (Expeditious Retreat's Bonus Action Dash).
+  assert.equal(evaluatePredicate({hasCondition: "expeditious-retreat"}, requiresContext({...actor, statuses: new Set(["expeditious-retreat"])}, {game})).ok, true);
+  assert.equal(evaluatePredicate({hasCondition: "expeditious-retreat"}, requiresContext(actor, {game})).ok, false);
   const boon = JSON.parse(fs.readFileSync("packs/_source/srd-items/boon-of-dimensional-travel-5nr432zyvqpw0000.json", "utf8")).system;
   assert.deepEqual([boon.definition.teleport, boon.ruleElements[0].data.recovery], [{distance: 30}, "turn"]);
   const allowed = context => evaluatePredicate(boon.definition.requires, context).ok;

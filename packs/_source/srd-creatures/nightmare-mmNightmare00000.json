@@ -294,6 +294,31 @@
               }
             ]
           },
+          "targeting": {
+            "type": "multiple",
+            "required": false,
+            "count": 3
+          },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "condition",
+              "conditionId": "ethereal"
+            },
+            {
+              "id": "effect-2",
+              "type": "condition",
+              "conditionId": "ethereal",
+              "appliesTo": "source"
+            }
+          ],
           "label": "Ethereal Stride"
         },
         "ruleElements": []
@@ -312,9 +337,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -373,9 +396,7 @@
         "challenge": 3
       },
       "conversion": {
-        "notes": [
-          "Ethereal Stride: not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

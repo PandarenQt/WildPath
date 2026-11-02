@@ -210,6 +210,12 @@
             "anyOf": [
               [
                 {
+                  "capability": "move-attack-rotting-fist",
+                  "amount": 1
+                }
+              ],
+              [
+                {
                   "capability": "multiattack-rotting-fist",
                   "amount": 1
                 }
@@ -1104,11 +1110,19 @@
           "schemaVersion": 1,
           "id": "action:srd-channel-negative-energy",
           "costs": {
-            "allOf": [
-              {
-                "capability": "action",
-                "amount": 1
-              }
+            "anyOf": [
+              [
+                {
+                  "capability": "move-attack-rotting-fist",
+                  "amount": 1
+                }
+              ],
+              [
+                {
+                  "capability": "action",
+                  "amount": 1
+                }
+              ]
             ]
           },
           "attack": {
@@ -1668,9 +1682,32 @@
               }
             ]
           },
-          "label": "Necrotic Strike"
+          "label": "Necrotic Strike",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "move-attack-rotting-fist",
+              "amount": 1
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "move-attack-rotting-fist-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "move-attack-rotting-fist",
+              "label": "Necrotic Strike (Rotting Fist (attack) or Channel Negative Energy)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -1686,9 +1723,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility, narrative): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1919,8 +1954,7 @@
           "Undead Restoration: \"Undead Restoration\" is passive or triggered (narrative): not automated",
           "Rotting Fist: not automated (utility): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
-          "Glare: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Necrotic Strike: not automated (utility, narrative): using it spends its cost; its description says the rest"
+          "Glare: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

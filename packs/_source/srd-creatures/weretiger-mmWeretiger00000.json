@@ -631,6 +631,67 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "dashing",
+              "type": "effect",
+              "name": "Dashing",
+              "slug": "dashing",
+              "img": "icons/svg/wingfoot.svg",
+              "duration": {
+                "value": 0,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "stack": "separate",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "dash",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.dash"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 1
+                  }
+                }
+              ]
+            },
+            {
+              "id": "disengaged",
+              "type": "effect",
+              "name": "Disengaged",
+              "slug": "disengaged",
+              "img": "icons/svg/walk.svg",
+              "duration": {
+                "value": 0,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "ruleElements": []
+            },
+            {
+              "id": "hidden",
+              "type": "condition",
+              "conditionId": "invisible",
+              "checkOutcomePolicy": "success"
+            }
+          ],
+          "check": {
+            "ability": "agility",
+            "skill": "stealth",
+            "dc": {
+              "value": 15
+            }
+          },
           "label": "Prowl (Tiger or Hybrid Form Only)"
         },
         "ruleElements": []
@@ -649,9 +710,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -700,8 +759,7 @@
       },
       "conversion": {
         "notes": [
-          "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "Prowl (Tiger or Hybrid Form Only): not automated (utility): using it spends its cost; its description says the rest"
+          "Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest"
         ]
       }
     }

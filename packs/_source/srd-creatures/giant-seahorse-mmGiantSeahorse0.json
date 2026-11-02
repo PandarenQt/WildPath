@@ -233,6 +233,54 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "dashing",
+              "type": "effect",
+              "name": "Dashing",
+              "slug": "dashing",
+              "img": "icons/svg/wingfoot.svg",
+              "duration": {
+                "value": 0,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "stack": "separate",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "dash",
+                  "type": "Modifier",
+                  "data": {
+                    "domains": [
+                      "speed.dash"
+                    ],
+                    "modifierType": "untyped",
+                    "value": 0.5
+                  }
+                }
+              ]
+            },
+            {
+              "id": "disengaged",
+              "type": "effect",
+              "name": "Disengaged",
+              "slug": "disengaged",
+              "img": "icons/svg/walk.svg",
+              "duration": {
+                "value": 0,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "ruleElements": []
+            }
+          ],
           "label": "Bubble Dash"
         },
         "ruleElements": []
@@ -251,9 +299,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -331,9 +377,7 @@
         "challenge": 0.5
       },
       "conversion": {
-        "notes": [
-          "Bubble Dash: not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

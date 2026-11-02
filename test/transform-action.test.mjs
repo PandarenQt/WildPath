@@ -114,6 +114,11 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
   deleted.length = 0;
   await endEffectsOnTargets({state: state({tags: ["curse"]})}, {fromUuid, game: {}});
   assert.deepEqual(deleted, ["curse"], "Remove Curse: only curses");
+  deleted.length = 0;
+  actor.effects.push(effect("sight-rot", {contagion: "sight-rot"}));
+  await endEffectsOnTargets({state: state({contagions: true})}, {fromUuid, game: {}});
+  assert.deepEqual(deleted, ["sight-rot"], "an Elixir of Health: only magical contagions");
+  actor.effects.pop();
 
   // A lasting spell area chosen in place of a creature: at or below the slot's level it ends; above it, on the check.
   const regions = new Map();

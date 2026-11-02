@@ -26,6 +26,7 @@ const RULES = [
   [/is passive or triggered \(narrative\)/, () => "passive trait (its text is its rule)"],
   [/is passive or triggered/, () => "passive or triggered ability"],
   [/concentration: nothing it sustains/, () => "concentration effect not converted"],
+  [/summon: its Hit Dice by the spell's level/, () => "summon: Hit Dice by level (spent only on a rest)"],
   [/summon: what it gains with the spell's level/, () => "summon: what it gains with the spell's level (not added)"],
   [/summon: a creature chosen by Challenge Rating/, () => "summon: a creature chosen by Challenge Rating"],
   [/^summon: not in the SRD/, () => "summon: forms outside the SRD left out"],
@@ -64,7 +65,7 @@ export const INFORMATIONAL = new Set(["narrative use (its cost is all there is)"
   "narrative marker (a reminder, nothing to automate)", "narrative save (it tells or hides; nothing to automate)", "effect image (how it looks)",
   "concentration sustained (its effect is noted apart)",
   "long activation (minutes, hours)", "resistance bypasses",
-  "summon: forms outside the SRD left out"]);
+  "summon: forms outside the SRD left out", "summon: Hit Dice by level (spent only on a rest)"]);
 
 export const noteReason = note => {
   // A creature's notes name the item first ("Multiattack: not automated..."); the reason is what follows.

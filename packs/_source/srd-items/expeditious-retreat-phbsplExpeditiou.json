@@ -103,12 +103,54 @@
           "effects": []
         }
       ],
-      "concentration": {
-        "duration": {
-          "value": 10,
-          "units": "minutes"
-        }
+      "range": {
+        "type": "self"
       },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "dashing",
+          "type": "effect",
+          "name": "Dashing",
+          "slug": "dashing",
+          "img": "icons/svg/wingfoot.svg",
+          "duration": {
+            "value": 0,
+            "units": "turns",
+            "expiry": "turnEnd"
+          },
+          "stack": "separate",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "dash",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "speed.dash"
+                ],
+                "modifierType": "untyped",
+                "value": 1
+              }
+            }
+          ]
+        },
+        {
+          "id": "effect-2",
+          "type": "effect",
+          "name": "Expeditious Retreat",
+          "slug": "expeditious-retreat",
+          "img": "icons/skills/movement/feet-winged-boots-brown.webp",
+          "duration": {
+            "value": 10,
+            "units": "minutes"
+          },
+          "concentration": true,
+          "ruleElements": []
+        }
+      ],
       "metadata": {
         "spellLevel": 1,
         "spellLists": [
@@ -135,10 +177,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: its caster concentrates; what it sustains is by hand"
-        ]
+        "notes": []
       }
     }
   }

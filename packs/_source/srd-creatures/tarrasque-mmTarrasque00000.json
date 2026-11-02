@@ -383,6 +383,12 @@
             "anyOf": [
               [
                 {
+                  "capability": "move-attack-claw",
+                  "amount": 1
+                }
+              ],
+              [
+                {
                   "capability": "multiattack",
                   "amount": 1
                 }
@@ -462,6 +468,12 @@
           "id": "action:srd-tail",
           "costs": {
             "anyOf": [
+              [
+                {
+                  "capability": "move-attack-claw",
+                  "amount": 1
+                }
+              ],
               [
                 {
                   "capability": "multiattack",
@@ -829,9 +841,52 @@
               }
             ]
           },
-          "label": "Onslaught"
+          "label": "Onslaught",
+          "targeting": {
+            "type": "none"
+          },
+          "restores": [
+            {
+              "resourceId": "movement",
+              "amount": 1,
+              "amountExpression": {
+                "type": "floor",
+                "value": {
+                  "type": "multiply",
+                  "terms": [
+                    {
+                      "type": "resource-max",
+                      "id": "movement"
+                    },
+                    {
+                      "type": "constant",
+                      "value": 0.5
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "resourceId": "move-attack-claw",
+              "amount": 1
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "move-attack-claw-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "move-attack-claw",
+              "label": "Onslaught (Claw or Tail)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -847,9 +902,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1080,8 +1133,7 @@
       },
       "conversion": {
         "notes": [
-          "Reflective Carapace: \"Roll d6\" is passive or triggered: not automated",
-          "Onslaught: not automated (utility): using it spends its cost; its description says the rest"
+          "Reflective Carapace: \"Roll d6\" is passive or triggered: not automated"
         ]
       }
     }

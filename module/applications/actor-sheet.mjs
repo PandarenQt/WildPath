@@ -485,8 +485,10 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
     const item = this.actor.items.get(target.closest("[data-item-id]")?.dataset.itemId);
     if ( !item ) return;
     const attuning = item.system.attunement === "required";
-    if ( attuning && (this.actor.items.filter(entry => entry.system?.attunement === "attuned").length >= 3) ) {
-      return void ui.notifications.warn(game.i18n.localize("WILDPATH.SHEET.AttuneLimit"));
+    // 2024: three, and more with its rules' `attunement.max` Modifiers (a Thief's Use Magic Device: four).
+    const max = 3 + (Math.trunc(Number(this.actor.getStatistic?.("attunement.max")?.totalModifier)) || 0);
+    if ( attuning && (this.actor.items.filter(entry => entry.system?.attunement === "attuned").length >= max) ) {
+      return void ui.notifications.warn(game.i18n.format("WILDPATH.SHEET.AttuneLimit", {max}));
     }
     await item.update({"system.attunement": attuning ? "attuned" : "required"});
   }

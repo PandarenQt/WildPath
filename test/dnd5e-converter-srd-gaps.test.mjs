@@ -472,3 +472,107 @@ test("Fire Opal Flames enchant a weapon and leave the helm's other uses; a Dagge
     {resourceId: "oathbow-swear-oath", label: "Oathbow (Swear Oath)", maximum: {type: "constant", value: 1}, recovery: "longRest"});
   assert.equal(realGapNotes(bow.notes).length, 1);
 });
+
+test("a use that sheds Bright and Dim Light is that light on its user: a spell's for its duration and concentration; not an arrow that emits it", () => {
+  const blade = convertItem(doc("spell", "Flame Blade", "flame-blade", {level: 2, preparation: {mode: "prepared"}, properties: ["concentration"],
+    duration: {value: "10", units: "minute"}, description: {value: "<p>The flaming blade sheds Bright Light in a 10-foot radius and Dim Light for an additional 10 feet.</p>"},
+    activities: {a: activity("utility", {name: "Evoke Blade", activation: {type: "bonus"}})}}));
+  const [evoke] = actions(blade);
+  assert.deepEqual(evoke.system.definition.effects[0].ruleElements, [{schemaVersion: 1, id: "light", type: "GrantLight", data: {bright: 10, dim: 20}}]);
+  assert.deepEqual([evoke.system.definition.effects[0].duration, evoke.system.definition.effects[0].concentration], [{value: 10, units: "minutes"}, true]);
+  assert.deepEqual(realGapNotes(blade.notes), []);
+  valid(evoke);
+  const lantern = convertItem(doc("equipment", "Lantern of Revealing", "lantern-of-revealing", {description: {value: "<p>While lit, this hooded lantern "
+    + "burns for 6 hours on 1 pint of oil, shedding Bright Light in a 30-foot radius and Dim Light for an additional 30 feet. Invisible creatures "
+    + "and objects are visible as long as they are in the lantern's Bright Light.</p>"}, activities: {a: activity("utility", {name: "Consume Oil"})}}));
+  const lit = actions(lantern)[0].system.definition.effects[0];
+  assert.deepEqual([lit.duration, lit.ruleElements[1].data], [{value: 6, units: "hours"}, {sense: "seeInvisibility", range: 30}]);
+  const bow = convertItem(doc("weapon", "Test Bow", "test-bow", {description: {value: "<p>The arrow emits Bright Light in a 20-foot radius and Dim Light "
+    + "for an additional 20 feet.</p>"}, activities: {a: activity("utility", {name: "Arrow"})}}));
+  assert.equal(actions(bow)[0].system.definition.effects, undefined);
+});
+
+test("a creature's move written as a use: a Dash of its Speed or half, Disengaged without provoking, Hide after; not one ending in an attack", () => {
+  const move = text => actions(convertItem(doc("feat", "Bubble Dash", "bubble-dash", {description: {value: `<p>${text}</p>`},
+    activities: {a: activity("utility", {activation: {type: "bonus"}})}})))[0].system.definition;
+  const dash = move("While underwater, the seahorse moves up to half its Swim Speed without provoking &amp;Reference[Opportunity Attacks].");
+  assert.deepEqual(dash.effects.map(effect => effect.slug), ["dashing", "disengaged"]);
+  assert.equal(dash.effects[0].ruleElements[0].data.value, 0.5);
+  assert.deepEqual(dash.costs, {allOf: [{capability: "bonus-action", amount: 1}]});
+  valid({name: "Bubble Dash", system: {definition: {...dash, label: "Bubble Dash"}}});
+  const prowl = move("The weretiger moves up to its Speed without provoking OpportunityAttacks. At the end of this movement, the weretiger can take the "
+    + "&amp;Reference[Hide apply=false] action.");
+  assert.deepEqual([prowl.effects[0].ruleElements[0].data.value, prowl.check?.skill], [1, "stealth"]);
+  assert.equal(move("The hyena moves up to half its Speed, and it makes one [[/item .mmBite0000000000]] attack.").effects, undefined,
+    "moveThenAttack's");
+});
+
+test("Tree Stride teleports as far as both of its distances; Fey Step's rider is noted; the Ethereal Plane is the Ethereal condition", () => {
+  const tree = convertItem(doc("feat", "Tree Stride", "tree-stride", {description: {value: "<p>The dryad teleports to an unoccupied space within "
+    + "[[lookup @range.value activity=x]] feet of a second [[lookup @target.affects.special activity=x]] that is within 60 feet of the previous tree.</p>"},
+    activities: {a: activity("utility", {activation: {type: "bonus"}, range: {value: "5", units: "ft"}})}}));
+  assert.deepEqual(actions(tree)[0].system.definition.teleport, {distance: 65});
+  const step = convertItem(doc("feat", "Fey Step", "fey-step", {description: {value: "<p>The steed teleports, along with its rider, to an unoccupied space "
+    + "of your choice up to 60 feet away from itself.</p>"}, activities: {a: activity("utility", {activation: {type: "bonus"}, range: {value: "60", units: "ft"}})}}));
+  assert.deepEqual([actions(step)[0].system.definition.teleport, step.notes], [{distance: 60}, ["teleport: a creature it brings along is moved by hand"]]);
+  const stride = convertItem(doc("feat", "Ethereal Stride", "ethereal-stride", {description: {value: "<p>The nightmare and up to three willing creatures "
+    + "within 5 feet of it teleport to the Ethereal Plane from the Material Plane or vice versa.</p>"}, activities: {a: activity("utility", {
+      range: {value: "5", units: "ft"}, target: {override: false, template: {}, affects: {type: "willing", count: "3"}}})}}));
+  const definition = actions(stride)[0].system.definition;
+  assert.deepEqual(definition.effects, [{id: "effect-1", type: "condition", conditionId: "ethereal"},
+    {id: "effect-2", type: "condition", conditionId: "ethereal", appliesTo: "source"}]);
+  assert.deepEqual(definition.targeting, {type: "multiple", required: false, count: 3}, "it may go alone");
+  assert.deepEqual(stride.notes, []);
+});
+
+test("a form that loses a Speed, a toggled form effect, a swallow with no save, and Elixir of Health's conditions and contagions", () => {
+  const self = {override: false, template: {}, affects: {type: "self"}};
+  const succubus = convertItem(doc("feat", "Shape-Shift", "shape-shift", {description: {value: "<p>Its game statistics are the same in each form, except "
+    + "its Fly Speed is available only in its true form.</p>"}, activities: {a: activity("utility", {activation: {type: "bonus"}, target: self})}}));
+  assert.deepEqual(actions(succubus)[0].system.definition.effects[0].ruleElements[0].data,
+    {domains: ["speed.fly.multiplier"], modifierType: "untyped", value: 0});
+  const bear = convertItem(doc("feat", "Shape-Shift", "shape-shift", {description: {value: "<p>Its game statistics are the same in each form.</p>"},
+    activities: {a: activity("utility", {activation: {type: "bonus"}, target: self})}},
+  [{_id: "bearform00000000", name: "Speed: Bear Form", transfer: true, disabled: true, statuses: [], changes: [
+    {key: "system.attributes.movement.climb", mode: 4, value: "30"}]}]));
+  assert.deepEqual(actions(bear)[0].system.definition.effects.map(effect => effect.name), ["Speed: Bear Form"]);
+  const toad = convertItem(doc("feat", "Swallow", "swallow", {description: {value: "<p>The toad swallows a Medium or smaller target it is grappling. "
+    + "While swallowed, the target has the Blinded and Restrained conditions, and it has Total Cover.</p>"}, activities: {a: activity("utility")}}));
+  assert.deepEqual(actions(toad)[0].system.definition.effects.map(effect => [effect.conditionId, effect.maxSize]),
+    [["coverTotal", "medium"], ["blinded", "medium"], ["restrained", "medium"]]);
+  const elixir = convertItem(doc("consumable", "Elixir of Health", "elixir-of-health", {activities: {a: activity("utility", {target: self})}}));
+  const drunk = actions(elixir)[0].system.definition;
+  assert.deepEqual([drunk.effects.map(effect => effect.conditionId), drunk.ends], [["blinded", "deafened", "paralyzed", "poisoned"], {contagions: true}]);
+});
+
+test("Expeditious Retreat: its cast is a Dash and its marker; the Bonus Action Dash requires the marker and spends no slot", () => {
+  const retreat = convertItem(doc("spell", "Expeditious Retreat", "expeditious-retreat", {level: 1, preparation: {mode: "prepared"},
+    properties: ["concentration"], duration: {value: "10", units: "minute"}, activation: {type: "bonus"},
+    description: {value: "<p>You take the Dash action, and until the spell ends, you can take that action again as a Bonus Action.</p>"},
+    activities: {a: activity("utility", {activation: {type: "bonus"}})}}));
+  const [cast, again] = actions(retreat);
+  assert.deepEqual(cast.system.definition.effects.map(effect => effect.slug), ["dashing", "expeditious-retreat"]);
+  assert.equal(cast.system.definition.effects[1].concentration, true);
+  assert.deepEqual([again.name, again.system.definition.costs, again.system.definition.requires], ["Expeditious Retreat (Dash)",
+    {allOf: [{capability: "bonus-action", amount: 1}]}, {hasCondition: "expeditious-retreat"}]);
+  assert.equal(again.system.definition.configuration, undefined, "no slot");
+  assert.deepEqual(realGapNotes(retreat.notes), []);
+  valid(cast);
+  valid(again);
+  assert.equal(evaluatePredicate(again.system.definition.requires, {conditions: ["expeditious-retreat"]}).ok, true);
+  assert.equal(evaluatePredicate(again.system.definition.requires, {conditions: []}).ok, false);
+});
+
+test("Gloves of Missile Snaring take 1d10 + Dexterity off a ranged weapon's hit; Attack Deflection's +5 AC is read from its text", () => {
+  const gloves = convertItem(doc("equipment", "Gloves of Missile Snaring", "gloves-of-missile-snaring", {activities: {a: activity("utility", {
+    activation: {type: "reaction"}})}}));
+  const snare = actions(gloves)[0];
+  assert.deepEqual(snare.system.ruleElements.find(rule => rule.type === "Trigger").data.match, {phase: "before", targetTokenId: "{self}",
+    tagsAll: ["hit", "ranged", "weapon"]});
+  assert.equal(snare.system.definition.rider.reduceDamage.bonus.ability, "agility");
+  const staff = convertItem(doc("weapon", "Quarterstaff of the Acrobat", "quarterstaff-of-the-acrobat", {description: {value: "<p>When you are hit by "
+    + "an attack while holding the weapon, you can take a Reaction to twirl the weapon around you, gaining a +5 bonus to your Armor Class against "
+    + "the triggering attack.</p>"}, activities: {a: activity("utility", {name: "Attack Deflection", activation: {type: "reaction"}})}}));
+  const deflect = actions(staff)[0].system.definition;
+  assert.equal(deflect.effects[0].ruleElements[0].data.value, 5);
+});

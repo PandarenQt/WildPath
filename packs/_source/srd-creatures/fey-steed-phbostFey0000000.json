@@ -204,6 +204,12 @@
               }
             ]
           },
+          "targeting": {
+            "type": "self"
+          },
+          "teleport": {
+            "distance": 60
+          },
           "label": "Fey Step"
         },
         "ruleElements": [
@@ -238,7 +244,7 @@
           },
           "conversion": {
             "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
+              "teleport: a creature it brings along is moved by hand"
             ]
           }
         }
@@ -259,7 +265,7 @@
       },
       "conversion": {
         "notes": [
-          "Fey Step: not automated (utility): using it spends its cost; its description says the rest"
+          "Fey Step: teleport: a creature it brings along is moved by hand"
         ]
       }
     }

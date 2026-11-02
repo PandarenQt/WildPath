@@ -229,6 +229,31 @@
               }
             ]
           },
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "effects": [
+            {
+              "id": "effect-1",
+              "type": "effect",
+              "name": "Ignited Illumination",
+              "img": "icons/magic/fire/explosion-embers-evade-silhouette.webp",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "light",
+                  "type": "GrantLight",
+                  "data": {
+                    "bright": 10,
+                    "dim": 20
+                  }
+                }
+              ]
+            }
+          ],
           "label": "Ignited Illumination"
         },
         "ruleElements": []
@@ -247,9 +272,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -307,9 +330,7 @@
         "challenge": 0.5
       },
       "conversion": {
-        "notes": [
-          "Ignited Illumination: not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

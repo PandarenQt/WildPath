@@ -21,9 +21,47 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "rider": {
+        "reduceDamage": {
+          "dice": {
+            "type": "dice",
+            "number": 1,
+            "faces": 10
+          },
+          "bonus": {
+            "type": "ability-modifier",
+            "ability": "agility"
+          }
+        }
+      },
       "label": "Gloves of Missile Snaring"
     },
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "damage.applied",
+          "match": {
+            "phase": "before",
+            "targetTokenId": "{self}",
+            "tagsAll": [
+              "hit",
+              "ranged",
+              "weapon"
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {
@@ -39,9 +77,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "price": 400,
       "rarity": "uncommon"

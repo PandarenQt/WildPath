@@ -5,7 +5,7 @@ says CC-BY-4.0, what it became, and what WildPath does not automate. An **automa
 Action spends its cost (an Action, a Reaction, a spell slot) and its description says the rest; a **feature** is a
 passive ability with its text. Descriptions are the SRD's own text, copied as placeholders.
 
-Items: 1026 automated, 214 manual, 226 features. Creatures: 383.
+Items: 1035 automated, 206 manual, 226 features. Creatures: 383.
 
 This work includes material from the System Reference Document 5.2 ("SRD 5.2") by Wizards of the Coast LLC, available at
 https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License,
@@ -459,7 +459,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Druidic Focus (Varies) | equipment24 | Druidic Focus (Varies) (gear) | — |
 | Druidic Warrior | classes24 | Druidic Warrior (feature) | — |
 | Drum | equipment24 | Drum (gear), Drum (Play a Known Tune) (automated), Drum (Improvise a Song) (automated) | — |
-| Dryad | actors24 | Dryad (12 items) | Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Tree Stride: not automated (utility): using it spends its cost; its description says the rest |
+| Dryad | actors24 | Dryad (12 items) | Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Dulcimer | equipment24 | Dulcimer (gear), Dulcimer (Play a Known Tune) (automated), Dulcimer (Improvise a Song) (automated) | — |
 | Dungeoneer's Pack | equipment24 | Dungeoneer's Pack (gear) | — |
 | Duplicate | actors24 | Duplicate (0 items) | — |
@@ -500,7 +500,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Elf, Drow | origins24 | Elf, Drow (species) | — |
 | Elf, High | origins24 | Elf, High (species) | — |
 | Elf, Wood | origins24 | Elf, Wood (species) | — |
-| Elixir of Health | equipment24 | Elixir of Health (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Elixir of Health | equipment24 | Elixir of Health (automated) | — |
 | Elk | actors24 | Elk (3 items) | — |
 | Elusive | classes24 | Elusive (feature) | — |
 | Elven Chain | equipment24 | Elven Chain (gear), Elven Chain (automated) | — |
@@ -511,7 +511,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Empowered Evocation | classes24 | Empowered Evocation (feature) | — |
 | Empowered Spell | classes24 | Empowered Spell (feature) | — |
 | Empowered Strikes | classes24 | Empowered Strikes (automated) | — |
-| Energy Bow | equipment24 | Energy Bow (attack) (automated), Energy Bow (Arrow of Transport) (manual), Energy Bow (Energy Ladder) (manual), Energy Bow (Energy Bow) (automated) | not automated (utility): using it spends its cost; its description says the rest; "Arrow of Restraint" is passive or triggered: not automated |
+| Energy Bow | equipment24 | Energy Bow (attack) (automated), Energy Bow (Arrow of Transport) (manual), Energy Bow (Energy Ladder) (manual), Energy Bow (Energy Bow) (automated) | not automated (utility): using it spends its cost; its description says the rest; "Arrow of Restraint" is passive or triggered: not automated; not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Enhance Ability | spells24 | Enhance Ability (automated) | — |
 | Enlarge/Reduce | spells24 | Enlarge/Reduce (automated) | — |
 | Ensnaring Strike | spells24 | Ensnaring Strike (save) (automated) | "Start of Turn Damage": its damage at the start of each turn doesn't grow with a higher spell slot (by hand) |
@@ -541,7 +541,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Eversmoking Bottle | equipment24 | Eversmoking Bottle (gear), Eversmoking Bottle (manual) | not automated (utility): its area obscures; the rest of its description is by hand |
 | Evocation Savant | classes24 | Evocation Savant (feature) | — |
 | Evoker | classes24 | Evoker (subclass) | — |
-| Expeditious Retreat | spells24 | Expeditious Retreat (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
+| Expeditious Retreat | spells24 | Expeditious Retreat (automated), Expeditious Retreat (Dash) (automated) | — |
 | Expertise | classes24 | Expertise (feature) | — |
 | Expertise | classes24 | Expertise (feature) | — |
 | Expertise | classes24 | Expertise (feature) | — |
@@ -558,7 +558,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Eyes of the Eagle | equipment24 | Eyes of the Eagle (gear) | — |
 | Fabricate | spells24 | Fabricate (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
 | Faerie Fire | spells24 | Faerie Fire (automated) | — |
-| Faithful Hound | spells24 | Faithful Hound (summon) (automated), Faithful Hound (Move Hound) (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Faithful Hound | spells24 | Faithful Hound (summon) (automated), Faithful Hound (Move Hound) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Faithful Hound | actors24 | Faithful Hound (2 items) | Bite: "save" is passive or triggered: not automated |
 | Faithful Steed | classes24 | Faithful Steed (feature) | — |
 | Falling Net | equipment24 | Falling Net (gear), Falling Net (Trigger (1-4)) (automated), Falling Net (Trigger (5-10)) (automated), Falling Net (Trigger (11-16)) (automated), Falling Net (Trigger (17-20)) (automated), Falling Net (Escape Check (1-4)) (automated), Falling Net (Escape Check (5-10)) (automated), Falling Net (Escape Check (11-16)) (automated), Falling Net (Escape Check (17-20)) (automated), Falling Net (Set Trap) (automated) | activation: 10 minute is not an action-economy cost |
@@ -579,7 +579,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Feral Instinct | classes24 | Feral Instinct (feature) | — |
 | Feral Senses | classes24 | Feral Senses (feature) | — |
 | Fey Ancestry | origins24 | Fey Ancestry (feature) | — |
-| Fey Steed | actors24 | Fey Steed (3 items) | Fey Step: not automated (utility): using it spends its cost; its description says the rest |
+| Fey Steed | actors24 | Fey Steed (3 items) | Fey Step: teleport: a creature it brings along is moved by hand |
 | Fiend Patron | classes24 | Fiend Patron (subclass) | — |
 | Fiend Spells | classes24 | Fiend Spells (feature) | — |
 | Fiend Steed | actors24 | Fiend Steed (3 items) | — |
@@ -608,7 +608,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Fire's Burn | origins24 | Fire's Burn (automated) | — |
 | Fireball | spells24 | Fireball (automated) | — |
 | Flail | equipment24 | Flail (automated) | — |
-| Flame Blade | spells24 | Flame Blade (Evoke Blade) (manual), Flame Blade (attack) (automated) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
+| Flame Blade | spells24 | Flame Blade (Evoke Blade) (automated), Flame Blade (attack) (automated) | — |
 | Flame Strike | spells24 | Flame Strike (automated) | — |
 | Flame Tongue | equipment24 | Flame Tongue (Engulf in Flames) (automated) | "Flame Tongue" is passive or triggered: not automated |
 | Flames | equipment24 | Flames (gear) | "Card Effect" is passive or triggered (narrative): not automated |
@@ -650,7 +650,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Geas | spells24 | Geas (automated) | activation: 1 minute is not an action-economy cost |
 | Gelatinous Cube | actors24 | Gelatinous Cube (5 items) | Ooze Cube: "Total Cover" is passive or triggered: not automated; Ooze Cube: "Pull Check" is passive or triggered: not automated; Ooze Cube: "Puller Damage" is passive or triggered: not automated; Transparent: "check" is passive or triggered (narrative): not automated |
 | Gem | equipment24 | Gem (gear) | "Card Effect: Jewelry" is passive or triggered (narrative): not automated; "Card Effect: Gems" is passive or triggered (narrative): not automated |
-| Gem of Brightness | equipment24 | Gem of Brightness (gear), Gem of Brightness (First Command Word) (manual), Gem of Brightness (Second Command Word) (automated), Gem of Brightness (Third Command Word) (automated) | not automated (utility): using it spends its cost; its description says the rest |
+| Gem of Brightness | equipment24 | Gem of Brightness (gear), Gem of Brightness (First Command Word) (automated), Gem of Brightness (Second Command Word) (automated), Gem of Brightness (Third Command Word) (automated) | — |
 | Gem of Seeing | equipment24 | Gem of Seeing (gear), Gem of Seeing (automated) | — |
 | Gentle Repose | spells24 | Gentle Repose (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Ghast | actors24 | Ghast (5 items) | — |
@@ -678,11 +678,11 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Giant Owl | actors24 | Giant Owl (6 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: activation: 10 minute is not an action-economy cost |
 | Giant Rat | actors24 | Giant Rat (3 items) | — |
 | Giant Scorpion | actors24 | Giant Scorpion (4 items) | — |
-| Giant Seahorse | actors24 | Giant Seahorse (5 items) | Bubble Dash: not automated (utility): using it spends its cost; its description says the rest |
+| Giant Seahorse | actors24 | Giant Seahorse (5 items) | — |
 | Giant Shark | actors24 | Giant Shark (4 items) | — |
 | Giant Slayer | equipment24 | Giant Slayer (Attack vs Giant) (automated) | "Giant Slayer" is passive or triggered: not automated |
 | Giant Spider | actors24 | Giant Spider (5 items) | — |
-| Giant Toad | actors24 | Giant Toad (6 items) | Swallow: not automated (utility): using it spends its cost; its description says the rest; Swallow: "Escape Corpse" is passive or triggered: not automated |
+| Giant Toad | actors24 | Giant Toad (6 items) | Swallow: "Escape Corpse" is passive or triggered: not automated |
 | Giant Venomous Snake | actors24 | Giant Venomous Snake (2 items) | — |
 | Giant Vulture | actors24 | Giant Vulture (3 items) | — |
 | Giant Weasel | actors24 | Giant Weasel (2 items) | — |
@@ -697,7 +697,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Glassblower's Tools | equipment24 | Glassblower's Tools (gear), Glassblower's Tools (automated) | — |
 | Glibness | spells24 | Glibness (automated) | — |
 | Globe of Invulnerability | spells24 | Globe of Invulnerability (manual) | not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
-| Gloves of Missile Snaring | equipment24 | Gloves of Missile Snaring (gear), Gloves of Missile Snaring (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Gloves of Missile Snaring | equipment24 | Gloves of Missile Snaring (gear), Gloves of Missile Snaring (automated) | — |
 | Gloves of Swimming and Climbing | equipment24 | Gloves of Swimming and Climbing (gear) | — |
 | Gloves of Thievery | equipment24 | Gloves of Thievery (gear) | — |
 | Glyph of Warding | spells24 | Glyph of Warding (Spell Glyph) (manual), Glyph of Warding (Explosive Rune) (automated) | not automated (utility): using it spends its cost; its description says the rest; activation: 1 hour is not an action-economy cost |
@@ -902,7 +902,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Lamp | equipment24 | Lamp (gear), Lamp (automated) | — |
 | Lance | equipment24 | Lance (automated) | — |
 | Land's Aid | classes24 | Land's Aid (save) (automated) | "heal" is passive or triggered: not automated |
-| Lantern of Revealing | equipment24 | Lantern of Revealing (gear), Lantern of Revealing (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Lantern of Revealing | equipment24 | Lantern of Revealing (gear), Lantern of Revealing (automated) | — |
 | Lantern, Bullseye | equipment24 | Lantern, Bullseye (gear), Lantern, Bullseye (automated) | — |
 | Lantern, Hooded | equipment24 | Lantern, Hooded (gear), Lantern, Hooded (automated) | — |
 | Large Animated Object | actors24 | Large Animated Object (2 items) | — |
@@ -957,7 +957,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Magical Discoveries | classes24 | Magical Discoveries (feature) | — |
 | Magical Secrets | classes24 | Magical Secrets (feature) | — |
 | Magma Mephit | actors24 | Magma Mephit (4 items) | — |
-| Magmin | actors24 | Magmin (4 items) | Ignited Illumination: not automated (utility): using it spends its cost; its description says the rest |
+| Magmin | actors24 | Magmin (4 items) | — |
 | Magnificent Mansion | spells24 | Magnificent Mansion (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost |
 | Magnifying Glass | equipment24 | Magnifying Glass (gear) | — |
 | Major Image | spells24 | Major Image (automated) | — |
@@ -1022,7 +1022,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Move Earth | spells24 | Move Earth (Initial Cast) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; "Affect New Area" is passive or triggered (narrative): not automated |
 | Mule | actors24 | Mule (2 items) | — |
 | Mummy | actors24 | Mummy (5 items) | Rotting Fist: not automated (utility): using it spends its cost; its description says the rest |
-| Mummy Lord | actors24 | Mummy Lord (18 items) | Undead Restoration: "Undead Restoration" is passive or triggered (narrative): not automated; Rotting Fist: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Glare: not automated (utility, narrative): using it spends its cost; its description says the rest; Necrotic Strike: not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Mummy Lord | actors24 | Mummy Lord (18 items) | Undead Restoration: "Undead Restoration" is passive or triggered (narrative): not automated; Rotting Fist: not automated (utility): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Glare: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Musket | equipment24 | Musket (automated) | — |
 | Mysterious Deck | equipment24 | Mysterious Deck (gear) | "Check Deck Size" is passive or triggered (narrative): not automated; "Draw Cards" is passive or triggered (narrative): not automated |
 | Mystic Arcanum | classes24 | Mystic Arcanum (feature) | — |
@@ -1039,7 +1039,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Needles | equipment24 | Needles (gear) | — |
 | Net | equipment24 | Net (gear), Net (automated) | save: a failure gives restrained (its text); the rest is by hand |
 | Night Hag | actors24 | Night Hag (18 items) | Coven Magic: not automated (utility, narrative): using it spends its cost; its description says the rest; Coven Magic: activation: 1 minute is not an action-economy cost; Coven Magic: activation: 1 hour is not an action-economy cost; Coven Magic: concentration: its caster concentrates; what it sustains is by hand; Coven Magic: activation: 10 minute is not an action-economy cost; Coven Magic: save: a failure marks its creature (narrative); Coven Magic: "Create Sensor" is passive or triggered (narrative): not automated; Soul Bag: "Soul Bag" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: effect: "Fears Manifested" marks its creature only; its rules are by hand; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Nightmare Haunting: activation: 1 minute is not an action-economy cost |
-| Nightmare | actors24 | Nightmare (6 items) | Ethereal Stride: not automated (utility): using it spends its cost; its description says the rest |
+| Nightmare | actors24 | Nightmare (6 items) | — |
 | Nine Lives Stealer | equipment24 | Nine Lives Stealer (Life Stealing) (automated) | rolled (save); what it does is by hand; "Nine Lives Stealer" is passive or triggered: not automated |
 | Noble | actors24 | Noble (2 items) | — |
 | Nondetection | spells24 | Nondetection (automated) | effect: "Hidden from Divination" marks its creature (narrative) |
@@ -1070,7 +1070,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Orc | origins24 | Orc (species) | — |
 | Otherworldly Leap | classes24 | Otherworldly Leap (automated) | effect: "Jump" marks its creature (narrative) |
 | Otherworldly Presence | origins24 | Otherworldly Presence (feature) | — |
-| Otherworldly Steed | actors24 | Otherworldly Steed (5 items) | Fey Step: not automated (utility): using it spends its cost; its description says the rest |
+| Otherworldly Steed | actors24 | Otherworldly Steed (5 items) | Fey Step: teleport: a creature it brings along is moved by hand |
 | Otyugh | actors24 | Otyugh (5 items) | Bite: "save" is passive or triggered: not automated |
 | Overchannel | classes24 | Overchannel (feature) | — |
 | Owl | actors24 | Owl (3 items) | — |
@@ -1108,7 +1108,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Phantasmal Killer | spells24 | Phantasmal Killer (automated) | effect: "Fears Manifested" marks its creature only; its rules are by hand |
 | Phantom Steed | spells24 | Phantom Steed (automated) | activation: 1 minute is not an action-economy cost |
 | Phantom Steed | actors24 | Phantom Steed (1 items) | — |
-| Phase Spider | actors24 | Phase Spider (7 items) | Ethereal Jaunt: not automated (utility): using it spends its cost; its description says the rest |
+| Phase Spider | actors24 | Phase Spider (7 items) | — |
 | Philter of Love | equipment24 | Philter of Love (automated) | — |
 | Pike | equipment24 | Pike (automated) | — |
 | Pipes of Haunting | equipment24 | Pipes of Haunting (gear), Pipes of Haunting (automated) | — |
@@ -1189,7 +1189,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Prismatic Spray | spells24 | Prismatic Spray (Cast) (automated), Prismatic Spray (Indigo Save (Con)) (automated), Prismatic Spray (Violet Save (Wis)) (automated) | rolled (save); what it does is by hand; rolled (save, narrative): who failed is all there is; its description says the rest |
 | Prismatic Wall | spells24 | Prismatic Wall (Create Wall) (manual), Prismatic Wall (Create Globe) (manual) | not automated (utility): using it spends its cost; its description says the rest; "Blinding Save" is passive or triggered: not automated; "Traversal Save" is passive or triggered: not automated |
 | Private Sanctum | spells24 | Private Sanctum (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 10 minute is not an action-economy cost |
-| Produce Flame | spells24 | Produce Flame (Cast) (manual), Produce Flame (Hurl Fire) (automated) | not automated (utility): using it spends its cost; its description says the rest |
+| Produce Flame | spells24 | Produce Flame (Cast) (automated), Produce Flame (Hurl Fire) (automated) | — |
 | Programmed Illusion | spells24 | Programmed Illusion (automated) | — |
 | Project Image | spells24 | Project Image (automated) | — |
 | Protection from Energy | spells24 | Protection from Energy (automated) | — |
@@ -1202,7 +1202,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Purple Worm Poison | equipment24 | Purple Worm Poison (automated) | — |
 | Puzzle | equipment24 | Puzzle (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Quarterstaff | equipment24 | Quarterstaff (automated), Quarterstaff (Two-Handed) (automated) | — |
-| Quarterstaff of the Acrobat | equipment24 | Quarterstaff of the Acrobat (attack) (automated), Quarterstaff of the Acrobat (attack) (Two-Handed) (automated), Quarterstaff of the Acrobat (Attack Deflection) (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Quarterstaff of the Acrobat | equipment24 | Quarterstaff of the Acrobat (attack) (automated), Quarterstaff of the Acrobat (attack) (Two-Handed) (automated), Quarterstaff of the Acrobat (Attack Deflection) (automated) | — |
 | Quasit | actors24 | Quasit (6 items) | — |
 | Quickened Spell | classes24 | Quickened Spell (feature) | — |
 | Quiver | equipment24 | Quiver (gear) | — |
@@ -1268,7 +1268,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ring of Spell Turning | equipment24 | Ring of Spell Turning (gear), Ring of Spell Turning (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Ring of Swimming | equipment24 | Ring of Swimming (gear) | — |
 | Ring of Telekinesis | equipment24 | Ring of Telekinesis (gear), Ring of Telekinesis: Telekinesis (automated) | save: a failure marks its creature only; what it does is by hand |
-| Ring of the Ram | equipment24 | Ring of the Ram (gear), Ring of the Ram (attack) (automated), Ring of the Ram (Break Item) (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Ring of the Ram | equipment24 | Ring of the Ram (gear), Ring of the Ram (attack) (automated), Ring of the Ram (Break Item) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Ring of Three Wishes | equipment24 | Ring of Three Wishes (gear), Ring of Three Wishes: Wish (automated) | — |
 | Ring of Warmth | equipment24 | Ring of Warmth (gear) | — |
 | Ring of Water Walking | equipment24 | Ring of Water Walking (gear), Ring of Water Walking: Water Walk (automated) | effect: "Water Walking" marks its creature (narrative) |
@@ -1281,14 +1281,14 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Robe of Stars | equipment24 | Robe of Stars (gear), Robe of Stars: Magic Missile (automated), Robe of Stars (Enter/Exit Astral Plane) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Robe of the Archmagi | equipment24 | Robe of the Archmagi (gear) | — |
 | Robe of Useful Items | equipment24 | Robe of Useful Items (gear), Robe of Useful Items (Bullseye Lantern) (manual), Robe of Useful Items (Dagger) (manual), Robe of Useful Items (Mirror) (manual), Robe of Useful Items (Pole) (manual), Robe of Useful Items (Rope (Coiled)) (manual), Robe of Useful Items (Sack) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Roc | actors24 | Roc (5 items) | Swoop: not automated (utility): using it spends its cost; its description says the rest |
+| Roc | actors24 | Roc (5 items) | — |
 | Rod | equipment24 | Rod (gear) | — |
 | Rod of Absorption | equipment24 | Rod of Absorption (gear), Rod of Absorption (Absorb Spell) (manual) | "Restore Slots" is passive or triggered: not automated; not automated (utility): using it spends its cost; its description says the rest |
 | Rod of Alertness | equipment24 | Rod of Alertness (gear), Rod of Alertness (Plant Rod) (automated), Rod of Alertness: Detect Evil and Good (automated), Rod of Alertness: Detect Magic (automated), Rod of Alertness: Detect Poison and Disease (automated), Rod of Alertness: See Invisibility (automated) | effect: "Detect Evil and Good" marks its creature (narrative); effect: "Detect Magic" marks its creature (narrative); effect: "Detect Poison and Disease" marks its creature (narrative) |
 | Rod of Lordly Might | equipment24 | Rod of Lordly Might (attack) (automated), Rod of Lordly Might (Button 1 Attack) (automated), Rod of Lordly Might (Button 2 Attack) (automated), Rod of Lordly Might (Button 2 Versatile Attack) (automated), Rod of Lordly Might (Button 3 Attack) (automated), Rod of Lordly Might (Drain Life) (automated), Rod of Lordly Might (Paralyze) (automated), Rod of Lordly Might (Terrify) (automated) | — |
 | Rod of Resurrection | equipment24 | Rod of Resurrection (gear), Rod of Resurrection: Heal (automated), Rod of Resurrection: Resurrection (automated) | activation: 1 hour is not an action-economy cost |
 | Rod of Rulership | equipment24 | Rod of Rulership (gear), Rod of Rulership (automated) | — |
-| Rod of Security | equipment24 | Rod of Security (gear), Rod of Security (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Rod of Security | equipment24 | Rod of Security (gear), Rod of Security (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Rogue | equipment24 | Rogue (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Rogue | classes24 | Rogue (class) | — |
 | Rolling Stone | equipment24 | Rolling Stone (gear), Rolling Stone (Slow) (automated) | "save" is passive or triggered: not automated |
@@ -1311,7 +1311,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Sacred Weapon | classes24 | Sacred Weapon (automated) | — |
 | Sage | equipment24 | Sage (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Sage | origins24 | Sage (background) | — |
-| Sahuagin Warrior | actors24 | Sahuagin Warrior (7 items) | Aquatic Charge: not automated (utility): using it spends its cost; its description says the rest |
+| Sahuagin Warrior | actors24 | Sahuagin Warrior (7 items) | — |
 | Sailing Ship | actors24 | Sailing Ship (0 items) | — |
 | Salamander | actors24 | Salamander (5 items) | Fire Aura: activation: turnEnd is not an action-economy cost |
 | Sanctuary | spells24 | Sanctuary (Cast) (automated) | "Save on Target" is passive or triggered: not automated |
@@ -1330,7 +1330,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Scrying | spells24 | Scrying (Secondhand and Picture) (automated), Scrying (Secondhand and Garment) (automated), Scrying (Secondhand and Body Part) (automated), Scrying (Firsthand and Picture) (automated), Scrying (Firsthand and Garment) (automated), Scrying (Firsthand and Body Part) (automated), Scrying (Extensive and Picture) (automated), Scrying (Extensive and Garment) (automated), Scrying (Extensive and Body Part) (automated) | activation: 10 minute is not an action-economy cost; save: a failure marks its creature (narrative); "Create Sensor" is passive or triggered (narrative): not automated |
 | Sculpt Spells | classes24 | Sculpt Spells (feature) | — |
 | Sea Hag | actors24 | Sea Hag (12 items) | Coven Magic: not automated (utility, narrative): using it spends its cost; its description says the rest; Coven Magic: activation: 1 minute is not an action-economy cost; Coven Magic: activation: 1 hour is not an action-economy cost; Coven Magic: concentration: its caster concentrates; what it sustains is by hand; Coven Magic: activation: 10 minute is not an action-economy cost; Coven Magic: save: a failure marks its creature (narrative); Coven Magic: "Create Sensor" is passive or triggered (narrative): not automated; Illusory Appearance: effect: "Disguised" marks its creature (narrative) |
-| Seahorse | actors24 | Seahorse (3 items) | Bubble Dash: not automated (utility): using it spends its cost; its description says the rest |
+| Seahorse | actors24 | Seahorse (3 items) | — |
 | Sear Undead | classes24 | Sear Undead (automated) | — |
 | Searing Smite | spells24 | Searing Smite (Start of Turn Save) (automated), Searing Smite (Damage) (automated) | effect: "Seared" marks its creature only; its rules are by hand |
 | Second Wind | classes24 | Second Wind (automated) | — |
@@ -1364,7 +1364,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Shortbow | equipment24 | Shortbow (automated) | — |
 | Shortsword | equipment24 | Shortsword (automated) | — |
 | Shovel | equipment24 | Shovel (gear) | — |
-| Shrieker Fungus | actors24 | Shrieker Fungus (2 items) | Shriek: not automated (utility): using it spends its cost; its description says the rest |
+| Shrieker Fungus | actors24 | Shrieker Fungus (2 items) | Shriek: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Sickle | equipment24 | Sickle (automated) | — |
 | Signal Whistle | equipment24 | Signal Whistle (gear), Signal Whistle (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Signature Spells | classes24 | Signature Spells (feature) | — |
@@ -1425,8 +1425,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Spellcasting | classes24 | Spellcasting (feature) | — |
 | Spellguard Shield | equipment24 | Spellguard Shield (gear) | — |
 | Sphere of Annihilation | equipment24 | Sphere of Annihilation (gear), Sphere of Annihilation (Control the Sphere) (automated) | "Engulfed" is passive or triggered: not automated; "save" is passive or triggered: not automated |
-| Sphinx of Lore | actors24 | Sphinx of Lore (19 items) | Inscrutable: "Inscrutable" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest; Weight of Years: "Years Older" is passive or triggered (narrative): not automated |
-| Sphinx of Valor | actors24 | Sphinx of Valor (18 items) | Inscrutable: "Inscrutable" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: activation: 1 hour is not an action-economy cost; Spellcasting: effect: "Cannot Lie" marks its creature (narrative); Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest; Weight of Years: "Years Older" is passive or triggered (narrative): not automated |
+| Sphinx of Lore | actors24 | Sphinx of Lore (19 items) | Inscrutable: "Inscrutable" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Weight of Years: "Years Older" is passive or triggered (narrative): not automated |
+| Sphinx of Valor | actors24 | Sphinx of Valor (18 items) | Inscrutable: "Inscrutable" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: activation: 1 hour is not an action-economy cost; Spellcasting: effect: "Cannot Lie" marks its creature (narrative); Weight of Years: "Years Older" is passive or triggered (narrative): not automated |
 | Sphinx of Wonder | actors24 | Sphinx of Wonder (4 items) | Burst of Ingenuity: not automated (utility): using it spends its cost; its description says the rest |
 | Spider | actors24 | Spider (4 items) | — |
 | Spider Climb | spells24 | Spider Climb (automated) | — |
@@ -1479,7 +1479,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Studied Attacks | classes24 | Studied Attacks (feature) | — |
 | Stunning Strike | classes24 | Stunning Strike (automated) | — |
 | Subtle Spell | classes24 | Subtle Spell (feature) | — |
-| Succubus | actors24 | Succubus (7 items) | Shape-Shift: not automated (utility): using it spends its cost; its description says the rest |
+| Succubus | actors24 | Succubus (7 items) | — |
 | Suggestion | spells24 | Suggestion (automated) | — |
 | Summon Dragon | spells24 | Summon Dragon (automated) | — |
 | Sun | equipment24 | Sun (gear), Sun (automated) | — |
@@ -1513,7 +1513,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Talisman of Ultimate Evil | equipment24 | Talisman of Ultimate Evil (gear), Talisman of Ultimate Evil (Ultimate End) (automated) | — |
 | Talons | equipment24 | Talons (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Tan Bag of Tricks | equipment24 | Tan Bag of Tricks (gear), Tan Bag of Tricks (automated) | — |
-| Tarrasque | actors24 | Tarrasque (13 items) | Reflective Carapace: "Roll d6" is passive or triggered: not automated; Onslaught: not automated (utility): using it spends its cost; its description says the rest |
+| Tarrasque | actors24 | Tarrasque (13 items) | Reflective Carapace: "Roll d6" is passive or triggered: not automated |
 | Telekinesis | spells24 | Telekinesis (automated) | save: a failure marks its creature only; what it does is by hand |
 | Telepathic Bond | spells24 | Telepathic Bond (automated) | — |
 | Teleport | spells24 | Teleport (manual) | not automated (teleport, narrative): using it spends its cost; its description says the rest |
@@ -1584,7 +1584,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Unarmored Movement | classes24 | Unarmored Movement (feature) | — |
 | Uncanny Dodge | classes24 | Uncanny Dodge (automated) | — |
 | Uncanny Metabolism | classes24 | Uncanny Metabolism (feature) | — |
-| Unicorn | actors24 | Unicorn (17 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Indifference" marks its creature (narrative); Spellcasting: save: a failure marks its creature (narrative); Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Charging Horn: not automated (utility): using it spends its cost; its description says the rest |
+| Unicorn | actors24 | Unicorn (17 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Indifference" marks its creature (narrative); Spellcasting: save: a failure marks its creature (narrative); Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest |
 | Universal Solvent | equipment24 | Universal Solvent (gear), Universal Solvent (Apply Glue) (manual) | "Determine Ounces" is passive or triggered (narrative): not automated; not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Unseen Servant | spells24 | Unseen Servant (automated) | — |
 | Unseen Servant | actors24 | Unseen Servant (0 items) | — |
@@ -1613,7 +1613,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Wall of Thorns | spells24 | Wall of Thorns (Create Wall) (automated), Wall of Thorns (Create Circle) (automated) | — |
 | Wand | equipment24 | Wand (gear) | — |
 | Wand of Binding | equipment24 | Wand of Binding (gear), Wand of Binding: Hold Monster (automated), Wand of Binding: Hold Person (automated) | — |
-| Wand of Enemy Detection | equipment24 | Wand of Enemy Detection (gear), Wand of Enemy Detection (manual) | not automated (utility): using it spends its cost; its description says the rest |
+| Wand of Enemy Detection | equipment24 | Wand of Enemy Detection (gear), Wand of Enemy Detection (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Wand of Fear | equipment24 | Wand of Fear (gear), Wand of Fear (attack) (automated), Wand of Fear: Command (automated), Wand of Fear: Fear (automated) | rolled (attack); what it does is by hand |
 | Wand of Fireballs | equipment24 | Wand of Fireballs (gear), Wand of Fireballs: Fireball (automated) | — |
 | Wand of Lightning Bolts | equipment24 | Wand of Lightning Bolts (gear), Wand of Lightning Bolts: Lightning Bolt (automated) | — |
@@ -1664,10 +1664,10 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Web | spells24 | Web (automated) | — |
 | Weird | spells24 | Weird (save) (automated) | "End of Turn Save" is passive or triggered: not automated |
 | Well of Many Worlds | equipment24 | Well of Many Worlds (gear), Well of Many Worlds (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Werebear | actors24 | Werebear (8 items) | Shape-Shift: not automated (utility): using it spends its cost; its description says the rest |
-| Wereboar | actors24 | Wereboar (9 items) | Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest |
+| Werebear | actors24 | Werebear (8 items) | — |
+| Wereboar | actors24 | Wereboar (9 items) | — |
 | Wererat | actors24 | Wererat (8 items) | Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Weretiger | actors24 | Weretiger (9 items) | Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Prowl (Tiger or Hybrid Form Only): not automated (utility): using it spends its cost; its description says the rest |
+| Weretiger | actors24 | Weretiger (9 items) | Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Werewolf | actors24 | Werewolf (9 items) | — |
 | Whip | equipment24 | Whip (automated) | — |
 | Whispers of the Grave | classes24 | Whispers of the Grave (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |

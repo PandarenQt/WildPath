@@ -473,7 +473,9 @@ test("summons (G4): its creature, a choice of creatures, for the spell's duratio
   assert.deepEqual([summon.actorRef, summon.count, summon.rounds, summon.concentration, summon.spellLevel],
     ["Compendium.wildpath.srd-creatures.Actor.spirit000000001", 1, 600, true, 3]);
   assert.deepEqual(summon.bonuses.ac, {type: "context", path: "castLevel"}, "AC + the level it was cast at");
-  assert.ok(one.flags.wildpath.conversion.notes.some(note => note.includes("(healing) is not added")), "healing is not converted");
+  // Healing with the level is converted too (a steed's Healing Touch), as a Modifier on the summon's healing.
+  assert.equal(one.flags.wildpath.conversion.notes.some(note => note.includes("(healing) is not added")), false);
+  assert.deepEqual(summon.bonuses.healing, {type: "context", path: "castLevel"});
   const choice = convertItem(summoning({profiles: [profile("spirit000000001", "Spirit"), profile("beast00000000001", "Beast")]}), {creatures}).items[0];
   valid(choice);
   assert.equal(choice.system.definition.summon.choiceId, "summon-creature");

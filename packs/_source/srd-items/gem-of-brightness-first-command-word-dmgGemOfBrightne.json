@@ -21,6 +21,31 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Gem of Brightness",
+          "img": "icons/commodities/gems/gem-faceted-octagon-yellow.webp",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "light",
+              "type": "GrantLight",
+              "data": {
+                "bright": 30,
+                "dim": 60
+              }
+            }
+          ]
+        }
+      ],
       "label": "Gem of Brightness (First Command Word)"
     },
     "ruleElements": [
@@ -54,9 +79,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "price": 200,
       "rarity": "uncommon"

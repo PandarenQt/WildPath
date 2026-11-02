@@ -679,7 +679,8 @@ offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a
 - **Flash of Genius (Tasha's, 2026-10-20):** a ranged test offer with no `against`: any failed check or save, its own
   or an ally's within 30 ft (`withAllyTestOffers`, now on checks too). `addAbility: "intellect"` adds its modifier
   (`addFlat` in `inspirationReroll`), paid with a use and its Reaction (`reaction`). shortcut: "a creature you can see"
-  is any ally in range.
+  is any ally in range. `add` (2026-11-01) adds a number or a value expression instead: a Sphinx of Wonder's Burst of
+  Ingenuity (`add: 2`, 30 ft, a use and its Reaction).
 - **Boon of Fate (2026-10-31):** a ranged test offer adding dice (`faces`, `number`: 2d4) to a failed D20 Test of its
   bearer or an ally within 60 feet, paid with its use, which a Short Rest or rolling Initiative restores (an automation
   Trigger on `initiative.rolled`). shortcut: offers come on a failure only, so its penalty on another creature's

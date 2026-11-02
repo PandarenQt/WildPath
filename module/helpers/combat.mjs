@@ -53,6 +53,8 @@ export function requiresContext(actor, {game=globalThis.game, controller=null}={
   const turn = combatTurnKey(game);
   // `actor`: what it wears (`wearing`: Martial Arts' strikes need no armor or Shield).
   return {actor: actor ?? null, actorSystem: actor?.system ?? null, attackedThisTurn: (turn !== null) && (actor?.flags?.wildpath?.attackTurn === turn),
+    // Its statuses (`hasCondition`: Expeditious Retreat's Bonus Action Dash while its spell's marker lasts).
+    conditions: [...(actor?.statuses ?? [])],
     // Quickened Spell this turn: no other spell of level 1+ (`flags.wildpath.quickenedTurn`).
     quickenedThisTurn: (turn !== null) && (actor?.flags?.wildpath?.quickenedTurn === turn),
     // A Magic action this turn (`flags.wildpath.magicTurn`: a spell cast with the Action).

@@ -1223,7 +1223,8 @@ export function redirectCandidates(scene, game, targetActors, {tokenIds=null, ar
 }
 
 /**
- * What an Action with `ends` ends on its targets once it completes (Remove Curse: effects tagged "curse"; Dispel Magic:
+ * What an Action with `ends` ends on its targets once it completes (Remove Curse: effects tagged "curse"; `contagions`:
+ * magical contagions, an Elixir of Health; Dispel Magic:
  * spells up to the level it was cast at). For a spell above that level its caster makes an ability check with its
  * spellcasting ability, DC 10 + that spell's level (2024 Dispel Magic), rolled as a sheet check (its bonuses, the
  * table's dice policy), and the spell ends on a success; the GM is told which ended and which stayed. Returns the ids it
@@ -1261,7 +1262,8 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
     for ( const effect of actor.effects ) {
       const metadata = effect.flags?.wildpath?.conditionEffect?.metadata ?? {};
       const level = Number(metadata.spellLevel);
-      if ( (metadata.tags ?? []).some(tag => tags.has(tag)) ) ids.push(effect.id);
+      // A magical contagion's effect names it (`metadata.contagion`, helpers/contagions.mjs).
+      if ( (metadata.tags ?? []).some(tag => tags.has(tag)) || (ends.contagions && metadata.contagion) ) ids.push(effect.id);
       else if ( Number.isFinite(limit) && Number.isFinite(level) ) {
         if ( level <= limit ) ids.push(effect.id);
         else beyond.push({actor, effect, level});
@@ -1970,9 +1972,11 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
         ...((spec.reaction && (spec.pool !== "reaction")) ? [{capability: "reaction", amount: 1}] : [])]}});
       if ( !payment.ok ) continue;
       register(bearer);
-      // Flash of Genius adds its bearer's modifier (`addAbility`) to the roll; Countercharm rerolls it.
-      const added = spec.addAbility ? Math.trunc(Number(evaluateValueExpression({type: "ability-modifier", ability: spec.addAbility},
-        {actor: bearer, actorSystem: system}).value) || 0) : 0;
+      // Flash of Genius adds its bearer's modifier (`addAbility`) to the roll, a Sphinx of Wonder's Burst of Ingenuity a
+      // number (`add`: a number or a value expression); Countercharm rerolls it.
+      const adds = spec.addAbility ? {type: "ability-modifier", ability: spec.addAbility}
+        : (spec.add != null) ? ((typeof spec.add === "object") ? spec.add : {type: "constant", value: Number(spec.add)}) : null;
+      const added = adds ? Math.trunc(Number(evaluateValueExpression(adds, {actor: bearer, actorSystem: system}).value) || 0) : 0;
       // Boon of Fate adds dice (`faces`, `number`: 2d4).
       const faces = spec.faces ? Math.trunc(Number(evaluateValueExpression(spec.faces, {actor: bearer, actorSystem: system}).value) || 0) : 0;
       const number = Math.max(1, Math.trunc(Number(spec.number) || 1));
@@ -1980,11 +1984,11 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
       const deciders = (token.id !== saverToken.id) ? controllerAuthority(bearer, game) : null;
       options.push({value: `ally-offer:${bearer.uuid}:${item.id}`, payerRef: bearer.uuid, plan: payment.mutationPlan,
         ...(deciders ? {authority: deciders.userIds.length ? deciders : {kind: ROLL_AUTHORITY.GM}} : {}),
-        ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), ...(spec.addAbility ? {addFlat: added} : {}),
+        ...(spec.rollMode ? {rollMode: spec.rollMode} : {}), ...(adds ? {addFlat: added} : {}),
         ...((faces > 0) ? {addDice: {number, faces}} : {}),
         // Only when the d20 shows this number (Bountiful Luck's 1).
         ...(Number(spec.natural) > 0 ? {natural: Number(spec.natural)} : {}),
-        label: format((faces > 0) ? "WILDPATH.INSPIRATION.AllyDice" : spec.addAbility ? "WILDPATH.INSPIRATION.AllyAdd"
+        label: format((faces > 0) ? "WILDPATH.INSPIRATION.AllyDice" : adds ? "WILDPATH.INSPIRATION.AllyAdd"
           : "WILDPATH.INSPIRATION.AllyReroll", {name: bearer.name ?? "", feature: item.name ?? "", value: added, number, faces})});
     }
   }

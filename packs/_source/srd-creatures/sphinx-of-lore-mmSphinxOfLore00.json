@@ -231,6 +231,12 @@
             "anyOf": [
               [
                 {
+                  "capability": "move-attack-claw",
+                  "amount": 1
+                }
+              ],
+              [
+                {
                   "capability": "multiattack-claw",
                   "amount": 1
                 }
@@ -1304,9 +1310,38 @@
               }
             ]
           },
-          "label": "Arcane Prowl"
+          "label": "Arcane Prowl",
+          "range": {
+            "type": "self"
+          },
+          "targeting": {
+            "type": "self"
+          },
+          "teleport": {
+            "distance": 30
+          },
+          "restores": [
+            {
+              "resourceId": "move-attack-claw",
+              "amount": 1
+            }
+          ]
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "move-attack-claw-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "move-attack-claw",
+              "label": "Arcane Prowl (Claw)",
+              "maximum": 1,
+              "current": 0,
+              "recovery": "none",
+              "emptiesAtTurnStart": true
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -1322,9 +1357,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
           }
         }
       }
@@ -1536,7 +1569,6 @@
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
-          "Arcane Prowl: not automated (utility): using it spends its cost; its description says the rest",
           "Weight of Years: \"Years Older\" is passive or triggered (narrative): not automated"
         ]
       }

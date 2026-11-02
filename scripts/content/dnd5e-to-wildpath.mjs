@@ -217,6 +217,12 @@ const REACTIONS = Object.freeze({
   // to 0 Hit Points is still asked, as in every planned-damage window; upgrade with an incapacitation check in discovery.
   "dwarven-plate": {event: "push.applied", match: {phase: "before", targetTokenId: "{self}"}, reducesPush: 10},
   "deflect-energy": {event: "damage.applied", match: {phase: "before", targetTokenId: "{self}", tagsAll: ["hit"]}, reduces: DEFLECTION},
+  // "hit by an attack roll made with a Ranged or Thrown weapon" (a thrown weapon's attack is a ranged one): 1d10 + its
+  // Dexterity modifier off it. shortcut: its free hand and catching the missile are not checked.
+  "gloves-of-missile-snaring": {event: "damage.applied", match: {phase: "before", targetTokenId: "{self}", tagsAll: ["hit", "ranged", "weapon"]},
+    reduces: {dice: {type: "dice", number: 1, faces: 10}, bonus: {type: "ability-modifier", ability: "agility"}}},
+  // Attack Deflection: "gaining a +5 bonus to your Armor Class against the triggering attack" (its text, acFromText).
+  "quarterstaff-of-the-acrobat": {event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}"}, acFromText: true},
   // 2024 Feather Fall: a falling creature it sees within 60 feet (itself too) "takes no damage from the fall": all of that
   // fall's damage (20d6 at most) comes off, and with none taken its Prone (`whenDamaged`) goes too. shortcut: one creature
   // a reaction (not up to five), and its 60 feet a round of descent is not tracked; upgrade with several protected targets.
@@ -302,12 +308,14 @@ const MIRROR_IMAGE = Object.freeze({schemaVersion: 1, id: "mirror-image", type: 
     targeting: {type: "self"}, rider: {missChance: {dice: {type: "dice", number: "{{level}}", faces: 6}, keep: "highest", atLeast: 3}}}}});
 
 /**
- * What a spell ends on its target, by identifier: curses (effects tagged "curse"), or spells up to its own level; with
- * `areas`, a lasting spell area chosen in place of a creature (Dispel Magic's "magical effect").
+ * What a spell ends on its target, by identifier: curses (effects tagged "curse"), magical contagions (`contagions`), or
+ * spells up to its own level; with `areas`, a lasting spell area chosen in place of a creature (Dispel Magic's "magical effect").
  */
 const ENDS = Object.freeze({
   "remove-curse": {tags: ["curse"]},
-  "dispel-magic": {spells: "slot", areas: true}
+  "dispel-magic": {spells: "slot", areas: true},
+  // "you are cured of all magical contagions" (helpers/contagions.mjs).
+  "elixir-of-health": {contagions: true}
 });
 
 /** The spell a feature casts with a spell slot, as its tags: 2024 Wild Companion's Find Familiar, without its Material component. */
@@ -709,6 +717,9 @@ const TEST_OFFERS = Object.freeze({
   // modifier is added, for its Reaction and a use (its own pool, named by its identifier). shortcut: "you can see" is any
   // ally within range, and it is offered only on a failure (as every test offer is).
   "flash-of-genius": {tests: ["check", "save"], pool: "flash-of-genius", reaction: true, range: 30, addAbility: "intellect"},
+  // A Sphinx of Wonder's Burst of Ingenuity: when it or a creature within 30 feet makes a check or save, 2 added to the
+  // roll, for its Reaction and a use (2/Day). shortcut: offered only on a failure, and to its allies only.
+  "burst-of-ingenuity": {tests: ["check", "save"], pool: "burst-of-ingenuity", reaction: true, range: 30, add: 2},
   // 2024 Boon of Fate (Improve Fate): when it or a creature within 60 feet fails a D20 Test, 2d4 added to the roll, once
   // per Short Rest or Initiative (TRAITS restores it). shortcut: offered on a failure only, so the 2d4 penalty on another
   // creature's success is by hand (noted).
@@ -1799,7 +1810,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
             : (enchant ? enchantDefinition({document, activity, system, spell, level, pool, enchant})
               : ((activity.type === "enchant")
                 ? (template ?? itemEnchantDefinition({document, activity, system, spell, level, pool, usesOf, scales}))
-                : null))))));
+                : null))))))
+      ?? moveUse({document, activity, system, spell, level, pool}) ?? commonAgainDefinition({document, activity, system, spell, level, pool, img});
     if ( definition && trapTier ) definition = trapDefinition(definition, document.name);
     // 2024 Confusion: "must roll 1d10 at the start of each of its turns to determine its behavior for that turn, consulting
     // the table below": its effect draws that table as each of its creature's turns starts (the dispatcher's).
@@ -1836,6 +1848,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       const own = manualDefinition({document, activity, system, spell, level, notes: [], pool, names, scales});
       definition = coatDefinition({...poison, id: own.id, costs: own.costs}, document, img);
     }
+    definition ??= shedsLightDefinition({document, activity, system, spell, level, pool, names, scales, img})
+      ?? etherealDefinition({document, activity, system, spell, level, pool, names, scales})
+      ?? otherFormDefinition({document, activity, system, spell, level, pool, names, scales, img})
+      ?? swallowDefinition({document, activity, system, spell, level, pool, names, scales});
+    // What a text rule made it sustain (Flame Blade's light, Expeditious Retreat's marker) is what it concentrates on.
+    if ( definition && sustainsConcentration(definition) ) notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("concentration: nothing")));
     if ( !definition ) {
       // Used but not automated: using it spends its cost (and a spell's slot); its description says the rest.
       // A use whose text names no game rule (Alarm, Create or Destroy Water, a Tinderbox) is narrative: spending its cost is
@@ -2028,7 +2046,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // until the attack is over.
     // A number, or a formula (the 2024 Monster Manual's "adds its Proficiency Bonus": `@prof`).
     const bonusAC = reaction?.acFromText ? (number(activity.roll?.formula)
-      ?? number(/\badds (\d+) to its AC against that attack/i.exec(plainText(document))?.[1])
+      ?? number(/\b(?:adds (\d+) to its AC|gaining a \+(\d+) bonus to your Armor Class) against (?:that|the triggering) attack/i
+        .exec(plainText(document))?.slice(1).find(Boolean))
       ?? formulaExpression(String(activity.roll?.formula ?? ""), {scales})) : null;
     if ( reaction?.halves && !definition.effects?.length ) {
       definition = {...definition, range: {type: "self"}, targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect",
@@ -2097,6 +2116,11 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     }
     for ( const other of choices?.slice(1) ?? [] ) items.push(action(stableId(`${id}:${other}`), `${document.name}${suffix}${title(other)}`,
       commonActivity({document, activity, system, spell, level, pool}, [other])));
+    // Its common action again as a Bonus Action while its spell lasts (Expeditious Retreat): its own Action, no slot spent.
+    const again = commonAgain(document, activity);
+    if ( again ) items.push(action(stableId(`${id}:again`), `${document.name}${suffix}${title(again)}`, {schemaVersion: 1,
+      id: `${definition.id}-again`, costs: {allOf: [{capability: "bonus-action", amount: 1}]}, ...commonRules(again),
+      requires: {hasCondition: identifierOf(document)}}));
     // A lasting area its caster can move ("a Magic action ... to move the Cylinder up to 60 feet"): its own Action.
     const moveArea = moveAreaDefinition(document, definition);
     if ( moveArea ) items.push(action(stableId(`${id}:move`), `${document.name}${suffix} (Move)`, moveArea));
@@ -2574,6 +2598,82 @@ function lightDefinition(definition, light, document, img) {
   return {...definition, range: {type: "self"}, targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect",
     name: `${document.name} (lit)`, img, duration: {value: light.hours, units: "hours"}, ruleElements: [{schemaVersion: 1, id: "light",
       type: "GrantLight", data: {bright: light.bright, dim: light.dim, ...(light.angle ? {angle: light.angle} : {})}}]}]};
+}
+
+/**
+ * A use whose text says what it lights "sheds Bright Light in a 10-foot radius and Dim Light for an additional 10 feet"
+ * (Flame Blade, Produce Flame, a Gem of Brightness, a Lantern of Revealing, a Magmin): its user sheds that light
+ * (`GrantLight`), for its spell's duration and concentration, else as long as its text says it "burns" ("for 6 hours"),
+ * else until removed. Not "emits" (an Energy Bow's arrow: the light of what it makes). Null for anything else.
+ * shortcut: putting it out early (a second command word, extinguishing a Magmin) is removing its effect.
+ */
+const SHEDS_LIGHT_TEXT = /\b(?:sheds|shedding) Bright Light in an? (\d+)-foot radius and Dim Light for an additional (\d+) feet/iu;
+function shedsLightDefinition({document, activity, system, spell, level, pool, names, scales, img}) {
+  const light = (activity.type === "utility") ? SHEDS_LIGHT_TEXT.exec(plainText(document)) : null;
+  if ( !light ) return null;
+  const burns = /\bburns for (\d+) (hour|minute)s?\b/iu.exec(plainText(document));
+  const duration = spell ? lastingDuration(system.duration) : (burns ? {value: Number(burns[1]), units: `${burns[2].toLowerCase()}s`} : null);
+  const concentration = Boolean(spell) && (system.properties ?? []).includes("concentration");
+  // "Invisible creatures and objects are visible as long as they are in the lantern's Bright Light" (a Lantern of
+  // Revealing): its user sees the Invisible that far. shortcut: only its user, where its text reveals them to everyone in
+  // that light; upgrade with a light that reveals.
+  const reveals = /\bInvisible\b[^.]*\bvisible\b[^.]*\bBright Light\b/iu.test(plainText(document));
+  return {...manualDefinition({document, activity, system, spell, level, notes: [], pool, names, scales}), range: {type: "self"},
+    targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect", name: document.name, ...(img ? {img} : {}),
+      ...(duration ? {duration} : {}), ...(concentration ? {concentration: true} : {}), ruleElements: [{schemaVersion: 1, id: "light",
+        type: "GrantLight", data: {bright: Number(light[1]), dim: Number(light[1]) + Number(light[2])}},
+      ...(reveals ? [{schemaVersion: 1, id: "reveals", type: "GrantSense", data: {sense: "seeInvisibility", range: Number(light[1])}}] : [])]}]};
+}
+
+/**
+ * A use that "teleports from the Material Plane to the Ethereal Plane" (a Phase Spider's Ethereal Jaunt; a Nightmare's
+ * Ethereal Stride, "and up to three willing creatures within 5 feet of it"): the Ethereal condition on its user, and on
+ * the creatures it takes. Null for anything else.
+ * shortcut: "or vice versa" (back to the Material Plane) is removing the condition.
+ */
+function etherealDefinition({document, activity, system, spell, level, pool, names, scales}) {
+  if ( (activity.type !== "utility") || !/\bteleports? (?:from the Material Plane )?to the Ethereal Plane\b/iu.test(plainText(document)) ) return null;
+  const ethereal = {type: "condition", conditionId: "ethereal"};
+  const {targeting} = targetingOf({activity, system, notes: [], level, scales});
+  const range = rangeOf({activity, system, document, attack: null});
+  // "up to three": none at all too (it may go alone).
+  const {refinementPolicy: _least, ...open} = targeting ?? {};
+  const others = ["single", "multiple"].includes(targeting?.type) ? {targeting: {...open, required: false}, ...(range ? {range} : {})} : null;
+  return {...manualDefinition({document, activity, system, spell, level, notes: [], pool, names, scales}),
+    ...(others ?? {range: {type: "self"}, targeting: {type: "self"}}),
+    effects: others ? [{id: "effect-1", ...ethereal}, {id: "effect-2", ...ethereal, appliesTo: "source"}] : [{id: "effect-1", ...ethereal}]};
+}
+
+/**
+ * A shape-shift whose other form loses a Speed ("its Fly Speed is available only in its true form": a Succubus): in that
+ * form (an effect on its user), that Speed's factor is 0 (`speed.<mode>.multiplier`). Null for anything else.
+ * shortcut: returning to its true form is removing the effect; how it looks is the table's.
+ */
+function otherFormDefinition({document, activity, system, spell, level, pool, names, scales, img}) {
+  const lost = (activity.type === "utility") ? /\bits (\w+) Speed is available only in its true form\b/iu.exec(plainText(document)) : null;
+  if ( !lost ) return null;
+  const mode = lost[1].toLowerCase();
+  return {...manualDefinition({document, activity, system, spell, level, notes: [], pool, names, scales}), range: {type: "self"},
+    targeting: {type: "self"}, effects: [{id: "effect-1", type: "effect", name: document.name, ...(img ? {img} : {}),
+      ruleElements: [{schemaVersion: 1, id: `no-${mode}`, type: "Modifier", data: {domains: [`speed.${mode}.multiplier`], modifierType: "untyped",
+        value: 0}}]}]};
+}
+
+/**
+ * A swallow with no save ("swallows a Medium or smaller target it is grappling. While swallowed, the target ... has the
+ * Blinded and Restrained conditions, and it has Total Cover": a Giant Toad's): those conditions on the creature it
+ * touches, no larger than that, as a Purple Worm's save gives them (the dispatcher's swallowed creatures are those with
+ * the Total Cover it gave). Null for anything else.
+ * shortcut: its grapple ending, one creature at a time and its Bite barred meanwhile are by hand.
+ */
+function swallowDefinition({document, activity, system, spell, level, pool, names, scales}) {
+  const text = plainText(document);
+  const swallows = (activity.type === "utility") ? /\bswallows an? (\w+) or smaller (?:target|creature)\b[^.]*\bgrappl/iu.exec(text) : null;
+  const maxSize = CREATURE_SIZES.find(size => size === swallows?.[1].toLowerCase());
+  if ( !maxSize || !/\bBlinded\b/u.test(text) || !/\bRestrained\b/u.test(text) || !/\bTotal Cover\b/u.test(text) ) return null;
+  return {...manualDefinition({document, activity, system, spell, level, notes: [], pool, names, scales}),
+    range: {type: "touch", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+    effects: ["coverTotal", "blinded", "restrained"].map((conditionId, index) => ({id: `effect-${index + 1}`, type: "condition", conditionId, maxSize}))};
 }
 
 /** Each dnd5e base armor's kind. */
@@ -3077,6 +3177,11 @@ const TRAITS = Object.freeze({
   "telepathic-shroud": () => ({rules: [{schemaVersion: 1, id: "telepathic-shroud", type: "Unaffected",
     data: {actions: {tagsAll: ["school:divination"]}}}],
   notes: ["Telepathic Shroud: immunity to mind-reading effects other than spells is by hand"]}),
+  // A Tarrasque's Reflective Carapace: Magic Missile and spells with a ranged attack roll targeting it leave it
+  // unaffected, whatever its d6 shows (`attack:ranged`, actionTags). Reflecting the spell on a 6 stays by hand.
+  "reflective-carapace": (document, {activities}) => ({rules: [{schemaVersion: 1, id: "reflective-carapace", type: "Unaffected",
+    data: {actions: {any: [{tagsAny: ["spell:magic-missile"]}, {tagsAll: ["spell", "attack:ranged"]}]}}}],
+  consumes: [...activities], notes: ["Reflective Carapace: reflecting the spell back at its caster on a 6 is by hand"]}),
   // A golem's Immutable Form: "can't shape-shift" (2014: immune to effects that alter its form); no Polymorph takes it.
   "immutable-form": () => ({rules: [{schemaVersion: 1, id: "immutable-form", type: "ConditionImmunity",
     data: {conditions: ["transformed"]}}], notes: []}),
@@ -3543,7 +3648,9 @@ const NARRATIVE_ACTIVITIES = new Set(["Create Sensor", "Revive: Days", "Days to 
   "Self Damage", "Years Older", "Paralyzed", "Zombie Rises",
   // An Aboleth's new body days later; a broom flown off alone; commanding or keeping control of what a spell made (its
   // creatures' controller moves and acts with them); Prismatic Spray's violet ray (another plane: it leaves the Scene).
-  "Days: New Body", "Send Alone or Recall", "Mentally Command", "Reassert Control", "Move Lights", "Violet Save (Wis)"]);
+  "Days: New Body", "Send Alone or Recall", "Mentally Command", "Reassert Control", "Move Lights", "Violet Save (Wis)",
+  // An Energy Bow's climbable ladder (climbing is not modelled); a Faithful Hound moved by its summoner (its controller moves it).
+  "Energy Ladder", "Move Hound"]);
 
 /**
  * Items and spells whose use only lights or starts something else (a Tinderbox lights a Torch, whose own Action sheds its
@@ -3554,7 +3661,9 @@ const NARRATIVE_USES = new Set(["tinderbox", "prestidigitation", "mending", "ill
   "decanter-of-endless-water", "boat-utility", "swan-boat-feather-token", "portable-hole", "rope-of-climbing", "instant-fortress",
   "immovable-rod", "instant-summons", "dust-of-dryness", "detect-thoughts", "helm-of-telepathy", "medallion-of-thoughts",
   "mind-reading-crystal-ball-of", "gaze-of-two-minds", "whispers-of-the-grave", "word-of-recall", "awaken", "divine-intervention",
-  "gift-of-the-protectors", "true-resurrection", "apparatus-of-the-crab"]);
+  "gift-of-the-protectors", "true-resurrection", "apparatus-of-the-crab",
+  // Breaking an object (objects have no Hit Points here); a demiplane off the Scene; an alarm; the nearest foe's direction.
+  "ring-of-the-ram", "rod-of-security", "shriek", "wand-of-enemy-detection"]);
 
 /**
  * Features whose casts dnd5e pays with a spell slot though its caster has one that needs none (Investment of the Chain
@@ -3792,7 +3901,9 @@ const REMOVALS = Object.freeze({
   "lay-on-hands": {conditions: ["poisoned"], activity: "Remove Poison"},
   // shortcut: only a Celestial's, Elemental's, Fey's, Fiend's or Undead's Charmed or Frightened ends, and its spell with
   // it, and possession ends too: by hand; upgrade when a condition records the kind of creature that gave it.
-  "dispel-evil-and-good": {conditions: ["charmed", "frightened"], activity: "Break Enchantment"}
+  "dispel-evil-and-good": {conditions: ["charmed", "frightened"], activity: "Break Enchantment"},
+  // Its magical contagions end too (ENDS).
+  "elixir-of-health": {conditions: ["blinded", "deafened", "paralyzed", "poisoned"]}
 });
 
 /** A dnd5e document's identifier, else its name as a slug. */
@@ -4174,8 +4285,8 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
   const rounds = (Number(system.duration?.value) || 0) * (ROUNDS[system.duration?.units] ?? 0);
   const concentration = (system.properties ?? []).includes("concentration");
   const range = rangeOf({activity, system, document, attack: null});
-  // What it gains with the spell's level: Hit Points, AC and damage, as expressions of the cast level. Healing and
-  // Hit Dice, and formulas of anything but the level, are not converted.
+  // What it gains with the spell's level: Hit Points, AC, damage and healing, as expressions of the cast level. Hit
+  // Dice (spent only on a rest: noted), and formulas of anything but the level, are not converted.
   const bonuses = {};
   const lost = [];
   for ( const [name, formula] of Object.entries(activity.bonuses ?? {}) ) {
@@ -4184,13 +4295,14 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
     // A magic item's by its wielder, with the ability its use names (a Dancing Sword's "Activate Sword: Dexterity": `@mod`).
     const wielded = (!spell && (document.type !== "feat")) ? Object.entries(ABILITY_WORDS).find(([, pattern]) => pattern.test(activity.name ?? ""))?.[0]
       : null;
-    const expression = ["hp", "ac", "attackDamage", "saveDamage"].includes(name)
+    const expression = ["hp", "ac", "attackDamage", "saveDamage", "healing"].includes(name)
       ? (summonBonus(formula, level, spell) ?? ((document.type === "feat") ? formulaExpression(formula, {scales})
         : (wielded ? formulaExpression(String(formula).replace(/@mod\b/g, `@abilities.${wielded}.mod`), {scales}) : null))) : null;
     if ( expression ) bonuses[name] = expression;
     else lost.push(name);
   }
-  if ( lost.length ) notes.push(`summon: what it gains with the spell's level (${lost.join(", ")}) is not added`);
+  if ( lost.includes("hd") ) notes.push("summon: its Hit Dice by the spell's level are not added (spent only on a rest)");
+  if ( lost.some(name => name !== "hd") ) notes.push(`summon: what it gains with the spell's level (${lost.filter(name => name !== "hd").join(", ")}) is not added`);
   const rules = SUMMON_RULES[identifierOf(document)] ?? {};
   const limit = (rules.limit === "uses") ? formulaExpression(String(system.uses?.max ?? ""), {scales}) : rules.limit;
   const timing = {count: uniform ? counts[0] : 1, ...(byCreature ? {counts: byCreature} : {}), ...(rounds ? {rounds} : {}),
@@ -4265,6 +4377,47 @@ function commonActivity({document, activity, system, spell, level, pool}, ids=co
   const rules = ids.map(commonRules);
   return {...manualDefinition({document, activity, system, spell, level, notes: [], pool}), ...Object.assign({}, ...rules),
     effects: rules.flatMap(rule => rule.effects ?? [])};
+}
+
+/**
+ * A creature's move written as a use ("moves up to half its Swim Speed without provoking Opportunity Attacks": a Giant
+ * Seahorse's Bubble Dash; "flies up to half its Fly Speed": a Roc's Swoop): a Dash of that much (its Speed once more, or
+ * half of it: `speed.dash` 0.5), Disengage when it provokes none, and Hide when it "can take the Hide action" after (a
+ * Weretiger's Prowl). Null for anything else, and for a move that ends in an attack (moveThenAttack's) or a reaction's.
+ * shortcut: its movement mode ("Swim", "Fly") and "while underwater" are not checked: every Speed gains it; Hide is
+ * rolled when it is used, not after the move.
+ */
+const MOVE_USE = /\b(?:moves|flies|swims) up to (half )?its (?:\w+ )?Speed\b([^.]*?\bwithout provoking (?:&(?:amp;)?Reference\[)?Opportunity ?Attacks)?/iu;
+function moveUse({document, activity, system, spell, level, pool}) {
+  if ( (activity.type !== "utility") || (pick(activity, system, "activation").type === "reaction") ) return null;
+  const text = plainText(document);
+  const match = MOVE_USE.exec(text);
+  // "..., and it makes one [[/item .mmBite]] attack" (a link's dot is no sentence's end).
+  if ( !match || /^[^.]*?,? (?:and|then) (?:it )?(?:can )?makes? one\b/iu.test(text.slice(match.index + match[0].length)) ) return null;
+  const hides = /\bcan take the (?:&(?:amp;)?Reference\[)?Hide\b/iu.test(text);
+  const definition = commonActivity({document, activity, system, spell, level, pool}, ["dash", ...(match[2] ? ["disengage"] : []),
+    ...(hides ? ["hide"] : [])]);
+  if ( match[1] ) definition.effects = definition.effects.map(effect => ((effect.slug === "dashing") ? {...effect, ruleElements: effect.ruleElements
+    .map(rule => ({...rule, data: {...rule.data, value: 0.5}}))} : effect));
+  return definition;
+}
+
+/**
+ * "You take the Dash action, and until the spell ends, you can take that action again as a Bonus Action" (Expeditious
+ * Retreat): its common action's id, else null. Its cast is that action and a marker of the spell on its caster (its
+ * identifier as a status, for its duration and concentration); the action again is an Action of its own, a Bonus Action
+ * that requires the marker (`requires: {hasCondition}`).
+ */
+const COMMON_AGAIN = /\byou take the (Dash|Disengage|Dodge|Hide) action, and until the spell ends, you can take that action again as a Bonus Action\b/iu;
+const commonAgain = (document, activity) => ((activity.type === "utility") ? COMMON_AGAIN.exec(plainText(document))?.[1].toLowerCase() ?? null : null);
+function commonAgainDefinition({document, activity, system, spell, level, pool, img}) {
+  const id = commonAgain(document, activity);
+  if ( !id ) return null;
+  const duration = lastingDuration(system.duration);
+  const definition = commonActivity({document, activity, system, spell, level, pool}, [id]);
+  return {...definition, effects: [...definition.effects, {id: `effect-${definition.effects.length + 1}`, type: "effect", name: document.name,
+    slug: identifierOf(document), ...(img ? {img} : {}), ...(duration ? {duration} : {}),
+    ...((system.properties ?? []).includes("concentration") ? {concentration: true} : {}), ruleElements: []}]};
 }
 
 /**
@@ -4438,7 +4591,14 @@ const EFFECTS_BY_NAME = Object.freeze({
     rollModeRule("dancing-clumsy", ["save.agility", "attack"], "disadvantage"), rollModeRule("dancing-exposed", ["attacked"], "advantage")]},
   // Manacles: "While bound, a creature has Disadvantage on attack rolls". shortcut: Restrained when chained in place, and
   // escaping or bursting them (its own checks), are the GM's.
-  "Manacled": {ruleElements: [rollModeRule("manacled", ["attack"], "disadvantage")]}
+  "Manacled": {ruleElements: [rollModeRule("manacled", ["attack"], "disadvantage")]},
+  // Dimensional Shackles: "can't use any method of extradimensional movement, including teleportation or travel to a
+  // different plane of existence": any Action that teleports (`teleport`, actionTags) and the spells that do. shortcut:
+  // escaping or breaking them (their own checks) is the GM's.
+  "Dimensionally Bound": {ruleElements: [{schemaVersion: 1, id: "dimensionally-bound", type: "Forbid", data: {actions: {tagsAny: [
+    "teleport", ...["arcane-gate", "astral-projection", "blink", "dimension-door", "etherealness", "far-step", "gate",
+      "misty-step", "plane-shift", "scatter", "teleport", "teleportation-circle", "thunder-step", "transport-via-plants",
+      "tree-stride", "word-of-recall"].map(spell => `spell:${spell}`)]}}}]}
 });
 
 /** Uses that act on the creature or vessel they touch, though dnd5e leaves them on their user: by identifier and activity. */
@@ -4456,12 +4616,19 @@ function utilityTeleport(document, activity, system) {
     || activity.damage?.parts?.length ) return null;
   const text = plainText(document);
   // "you magically teleport up to 30 feet" (Cloud's Jaunt); "teleports itself or a willing demon within 10 feet of itself
-  // up to 60 feet" (a Balor). shortcut: only its user goes; the other it may take is moved by hand.
-  const teleports = /\bteleports? (?:\[\[lookup @target[^\]]*\]\] of itself |itself(?: or [^.]*?)? )?up to (?:\[\[lookup @range\.value[^\]]*\]\]|(\d+))/iu
+  // up to 60 feet" (a Balor); "teleports, along with its rider, to an unoccupied space ... up to 60 feet away" (a Fey
+  // Steed). shortcut: only its user goes; the other it may take is moved by hand.
+  const teleports = /\bteleports?(?:, along with (?:its|their) riders?,)? (?:\[\[lookup @target[^\]]*\]\] of itself |itself(?: or [^.]*?)? |to [^.]{0,60}?)?up to (?:\[\[lookup @range\.value[^\]]*\]\]|(\d+))/iu
     .exec(text);
+  // "teleports to an unoccupied space within 5 feet of a second tree that is within 60 feet of the previous tree" (a
+  // Dryad's Tree Stride): as far as both (65 feet). shortcut: that a tree is there is not checked.
+  const beside = teleports ? null : /\bteleports? to an unoccupied space within (?:\[\[lookup @range\.value[^\]]*\]\]|(\d+)) feet of an? (?:[^.]|\.(?=\w))*?\bwithin (\d+) feet of\b/iu
+    .exec(text);
+  const found = teleports ?? beside;
   // Not one that attacks too (a Sphinx's Arcane Prowl: "and it makes one Claw attack").
-  if ( !teleports || /\battack\b/iu.test(text.slice(teleports.index).split(/(?<=[.!?])\s/u)[0]) ) return null;
-  const value = number(pick(activity, system, "range").value) ?? number(teleports[1]);
+  if ( !found || /\battack\b/iu.test(text.slice(found.index).split(/(?<=[.!?])\s/u)[0]) ) return null;
+  const near = number(pick(activity, system, "range").value) ?? number(found[1]);
+  const value = beside ? (near ?? 0) + Number(beside[2]) : near;
   return (value > 0) ? {...activity, teleport: {value, units: "ft"}} : null;
 }
 
@@ -4473,7 +4640,7 @@ export function teleportDefinition({document, activity, system, spell, level, no
   const distance = number(activity.teleport?.value);
   if ( !(distance > 0) || ((activity.teleport?.units ?? "ft") !== "ft") ) return null;
   // shortcut: only its creature goes; a willing creature it brings (Dimension Door) is moved by hand.
-  if ( /\bwilling creature\b/i.test(plainText(document)) ) notes.push("teleport: a creature it brings along is moved by hand");
+  if ( /\bwilling creature\b|\balong with (?:its|their) riders?\b/i.test(plainText(document)) ) notes.push("teleport: a creature it brings along is moved by hand");
   return {...manualDefinition({document, activity, system, spell, level, notes, pool}), targeting: {type: "self"}, teleport: {distance}};
 }
 
@@ -5110,8 +5277,13 @@ function convertActivity({document, activity, system, spell, level, scales, note
   const effects = [];
   const concentration = (system.properties ?? []).includes("concentration");
   // A spell given its rules by hand whose activity names no effect (Blur's) uses the spell's own effect.
+  // A utility whose item's only effect is one dnd5e leaves switched off for its user to enable (a Werebear's "Speed: Bear
+  // Form", which its Shape-Shift doesn't link; a Werewolf's does) is that effect's use. A feature's on its user only: an
+  // item's switched-off effect is its enchantment or its passive (Dwarven Plate, an Arrow-Catching Shield).
+  const toggled = ((activity.type === "utility") && (document.type === "feat") && (pick(activity, system, "target").affects?.type === "self")
+    && ((document.effects ?? []).length === 1) && document.effects[0].transfer && document.effects[0].disabled) ? [{_id: document.effects[0]._id}] : [];
   const references = activity.effects?.length ? activity.effects : (effectsByHand(document, activity)
-    ? (document.effects ?? []).filter(effect => !effect.transfer).map(effect => ({_id: effect._id})) : []);
+    ? (document.effects ?? []).filter(effect => !effect.transfer).map(effect => ({_id: effect._id})) : toggled);
   const byHand = effectsByHand(document, activity);
   // A grapple's or restraint's escape DC, from its Escape Check activity or "(escape DC 13)" in the text.
   const escapeDC = escapeDCOf(document, {creature, saveDC});
@@ -6040,30 +6212,46 @@ function multiattack(items, notes) {
  * gives back that much movement, and fills a one-attack pool its named attack may be paid from (as a Multiattack's), for
  * the creature to move and strike. Its note goes; what else its text says (extra damage, a push) stays by hand.
  * One whose whole text is "makes one Tentacle attack" (an Aboleth's Lash, a dragon's Tail Swipe) fills the pool alone.
+ * "one Claw or Tail attack" (a Tarrasque's Onslaught): either may be paid from it. "without provoking Opportunity Attacks"
+ * (a Unicorn's Charging Horn): Disengaged too, until its turn ends. "can teleport up to 30 feet ..., and it makes one Claw
+ * attack" (a Sphinx's Arcane Prowl): that teleport (`teleport.distance`) in place of the movement.
  */
 function moveThenAttack(items, notes) {
   const attacks = items.filter(action => action.system?.definition?.attack);
+  const bare = name => name.replace(/\s*\(.*\)\s*$/, "").toLowerCase();
   for ( const action of items.filter(entry => entry.type === "action") ) {
     const text = String(action.system?.description ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
-    const match = /moves? (?:up to )?(half )?(?:its|their) Speed(?: or less)?,? (?:and|then) (?:it )?(?:can )?makes? one ([\w' -]+?) attack/i.exec(text)
-      ?? /^\s*(?:The [\w' -]+?|It) ()makes one ([\w' -]+?) attack\.?\s*$/i.exec(text);
-    const moves = !match || (match[1] !== "");
-    const attack = match ? attacks.find(entry => entry !== action && entry.name.replace(/\s*\(.*\)\s*$/, "").toLowerCase() === match[2].trim().toLowerCase()) : null;
-    if ( !attack ) continue;
-    const pool = `move-attack-${slugify(attack.name.replace(/\s*\(.*\)\s*$/, ""))}`;
+    // The describer leaves "Opportunity" of "&Reference[Opportunity Attacks]" (and "OpportunityAttacks" unspaced).
+    const moving = /moves? (?:up to )?(?<half>half )?(?:its|their) Speed(?: or less)?(?<free> without provoking Opportunity(?: ?Attacks)?)?,? (?:and|then) (?:it )?(?:can )?makes? one (?<names>[\w' -]+?) attack/i.exec(text);
+    const jumping = moving ? null : /\bcan teleport up to (?<feet>\d+) feet\b[^.]*?, (?:and|then) (?:it )?(?:can )?makes? one (?<names>[\w' -]+?) attack/i.exec(text);
+    const groups = (moving ?? jumping ?? /^\s*(?:The [\w' -]+?|It) makes one (?<names>[\w' -]+?) attack\.?\s*$/i.exec(text))?.groups;
+    if ( !groups ) continue;
+    const teleport = Number(groups.feet) || null;
+    const named = groups.names.trim().toLowerCase().split(/ or /u);
+    // One Action of each name (a weapon's Two-Handed or Thrown is another Action of it).
+    const struck = named.map(name => attacks.find(entry => (entry !== action) && (bare(entry.name) === name))).filter(Boolean);
+    if ( !struck.length || (struck.length < named.length) ) continue;
+    const pool = `move-attack-${slugify(struck[0].name.replace(/\s*\(.*\)\s*$/, ""))}`;
     const movement = {type: "floor", value: {type: "multiply", terms: [{type: "resource-max", id: "movement"}, {type: "constant",
-      value: match[1] ? 0.5 : 1}]}};
+      value: groups.half ? 0.5 : 1}]}};
     const definition = action.system.definition;
-    action.system.definition = {...definition, targeting: {type: "none"}, restores: [...(definition.restores ?? []),
-      ...(moves ? [{resourceId: "movement", amount: 1, amountExpression: movement}] : []), {resourceId: pool, amount: 1}]};
+    const disengages = Boolean(groups.free);
+    action.system.definition = {...definition, ...((disengages || teleport) ? {range: {type: "self"}, targeting: {type: "self"}} : {targeting: {type: "none"}}),
+      ...(teleport ? {teleport: {distance: teleport}} : {}),
+      ...(disengages ? {effects: [...(definition.effects ?? []), {...commonRules("disengage").effects[0], id: `effect-${(definition.effects?.length ?? 0) + 1}`}]} : {}),
+      restores: [...(definition.restores ?? []), ...(moving ? [{resourceId: "movement", amount: 1, amountExpression: movement}] : []),
+        {resourceId: pool, amount: 1}]};
     action.system.ruleElements = [...(action.system.ruleElements ?? []), {schemaVersion: 1, id: `${pool}-uses`, type: "GrantResource",
-      data: {resourceId: pool, label: `${action.name} (${attack.name})`, maximum: 1, current: 0, recovery: "none", emptiesAtTurnStart: true}}];
-    const costs = attack.system.definition.costs;
-    const options = costs.anyOf ?? [costs.allOf ?? []];
-    // Its other costs (a use) still paid: those beside its Action, not another pool's option (a Multiattack's).
-    const own = options.find(option => option.some(cost => cost.capability === "action")) ?? [];
-    const rest = own.filter(cost => cost.capability !== "action");
-    attack.system.definition.costs = {anyOf: [[{capability: pool, amount: 1}, ...rest], ...options]};
+      data: {resourceId: pool, label: `${action.name} (${struck.map(entry => entry.name).join(" or ")})`, maximum: 1, current: 0, recovery: "none",
+        emptiesAtTurnStart: true}}];
+    for ( const each of struck ) {
+      const costs = each.system.definition.costs;
+      const options = costs.anyOf ?? [costs.allOf ?? []];
+      // Its other costs (a use) still paid: those beside its Action, not another pool's option (a Multiattack's).
+      const own = options.find(option => option.some(cost => cost.capability === "action")) ?? [];
+      const rest = own.filter(cost => cost.capability !== "action");
+      each.system.definition.costs = {anyOf: [[{capability: pool, amount: 1}, ...rest], ...options]};
+    }
     action.flags.wildpath.conversion.notes = (action.flags.wildpath.conversion.notes ?? []).filter(note => !note.startsWith("not automated"));
     notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith(`${action.name}: not automated`)));
   }

@@ -25,6 +25,35 @@
           }
         ]
       },
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "effects": [
+        {
+          "id": "effect-1",
+          "type": "effect",
+          "name": "Quarterstaff of the Acrobat",
+          "img": "icons/weapons/staves/staff-simple-wrapped.webp",
+          "endsWhen": "attacked",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "parry",
+              "type": "Modifier",
+              "data": {
+                "domains": [
+                  "defense.ac"
+                ],
+                "modifierType": "untyped",
+                "value": 5
+              }
+            }
+          ]
+        }
+      ],
       "label": "Quarterstaff of the Acrobat (Attack Deflection)"
     },
     "ruleElements": [
@@ -40,6 +69,19 @@
             "value": 1
           },
           "recovery": "shortRest"
+        }
+      },
+      {
+        "schemaVersion": 1,
+        "id": "reaction",
+        "type": "Trigger",
+        "data": {
+          "kind": "reaction",
+          "event": "attack.hit",
+          "match": {
+            "phase": "interrupt",
+            "targetTokenId": "{self}"
+          }
         }
       }
     ]
@@ -58,9 +100,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       },
       "price": 40000,
       "rarity": "veryRare"
