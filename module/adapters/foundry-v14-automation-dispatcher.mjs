@@ -57,22 +57,27 @@ export async function runAuthorityAction({ coordinator, resolveAction, senderUse
 const REPEAT_SAVE_EVENTS = { "turn.ended": "turnEnd", "turn.started": "turnStart" };
 /**
  * The saves a creature repeats at this turn boundary (2024 Hold Person: "At the end of each of its turns, the target
- * repeats the save, ending the spell on itself on a success"): one per Action and source, with every effect that
- * save ends. Each effect stored its save (`metadata.repeatSave`: timing, ability, DC) when it was applied.
+ * repeats the save, ending the spell on itself on a success"), or as it takes damage (`damage.taken`, `onDamage`:
+ * Dominate Person): one per Action and source, with every effect that save ends. Each effect stored its save
+ * (`metadata.repeatSave`: timing, onDamage, ability, DC) when it was applied.
  */
 export function repeatSaveGroups(effects, eventType) {
     const timing = REPEAT_SAVE_EVENTS[eventType];
+    const damaged = eventType === "damage.taken";
     const groups = new Map();
-    if (!timing)
+    if (!timing && !damaged)
         return [];
     for (const effect of effects) {
         const flag = effect.flags?.wildpath?.conditionEffect;
         const repeat = flag?.metadata?.repeatSave;
-        if (effect.disabled || (repeat?.timing !== timing) || !repeat.ability || !Number.isFinite(Number(repeat.dc)))
+        if (effect.disabled || !repeat || (damaged ? (repeat.onDamage !== true) : (repeat.timing !== timing)) || !repeat.ability
+            || !Number.isFinite(Number(repeat.dc)))
             continue;
         const key = `${String(flag?.metadata?.actionDefinitionId ?? effect.id)}|${String(flag?.sourceRef ?? "")}`;
+        // A save its creature's damage brought is tagged so (`repeat:damaged`: Hideous Laughter's Advantage on it).
         const group = groups.get(key) ?? { key, name: String(effect.name ?? ""), ability: repeat.ability, dc: Number(repeat.dc), effectIds: [],
-            against: [], tags: Array.isArray(repeat.tags) ? repeat.tags.filter(tag => typeof tag === "string") : [] };
+            against: [], tags: [...(Array.isArray(repeat.tags) ? repeat.tags.filter(tag => typeof tag === "string") : []),
+                ...(damaged ? ["repeat:damaged"] : [])] };
         group.effectIds.push(effect.id);
         // The conditions it ends, which the save is against (Antitoxin: Advantage on saves to end Poisoned).
         for (const status of effect.statuses ?? [])

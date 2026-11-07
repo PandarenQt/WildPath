@@ -58,7 +58,8 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "repeatOnDamage": true
         }
       ],
       "metadata": {
@@ -105,7 +106,9 @@
         "castBy": "Trident of Fish Command"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "save: its Advantage if you or your allies are fighting it is by hand"
+        ]
       },
       "price": 400,
       "rarity": "uncommon"

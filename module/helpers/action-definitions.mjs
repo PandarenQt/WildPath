@@ -780,8 +780,10 @@ function resolverRequestFromEffectsDefinition(definition, runtimeEffects) {
         ...(effect.metadata ?? {}),
         actionDefinitionId: definition.id,
         effectDefinitionId: effect.id,
-        // Its timing; the Action's save stamps the ability and DC when it resolves (action-pipeline-resolver.mjs).
-        ...(effect.repeatSave ? {repeatSave: {timing: effect.repeatSave}} : {})
+        // Its timing, and whether its creature taking damage repeats it too (Dominate Person); the Action's save stamps the
+        // ability and DC when it resolves (action-pipeline-resolver.mjs).
+        ...((effect.repeatSave || effect.repeatOnDamage) ? {repeatSave: {...(effect.repeatSave ? {timing: effect.repeatSave} : {}),
+          ...(effect.repeatOnDamage ? {onDamage: true} : {})}} : {})
       }
     }));
   return mergeResolverRequest({
@@ -1489,6 +1491,7 @@ function normalizeEffectApplicationDefinition(effect={}, index=0) {
       // A RollTable its creature draws as each of its turns starts (Confusion's behavior): the automation dispatcher.
       ...(effect.drawsAtTurnStart ? {drawsAtTurnStart: String(effect.drawsAtTurnStart)} : {})} : {}),
     ...(effect.repeatSave ? {repeatSave: String(effect.repeatSave)} : {}),
+    ...(effect.repeatOnDamage === true ? {repeatOnDamage: true} : {}),
     // Only on a creature no bigger than this (Eldritch Smite's Prone: Huge or smaller).
     ...(effect.maxSize ? {maxSize: String(effect.maxSize)} : {}),
     // Only on a creature its Action damaged (a fall's Prone: "unless it avoids taking damage from the fall").

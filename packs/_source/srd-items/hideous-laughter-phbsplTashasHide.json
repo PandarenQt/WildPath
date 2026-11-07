@@ -69,7 +69,9 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "repeatSave": "turnEnd",
+          "repeatOnDamage": true
         },
         {
           "id": "effect-2",
@@ -81,7 +83,42 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "concentration": true
+          "concentration": true,
+          "repeatSave": "turnEnd",
+          "repeatOnDamage": true
+        },
+        {
+          "id": "effect-3",
+          "type": "effect",
+          "name": "Hideous Laughter",
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "damaged-save-advantage",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "save"
+                ],
+                "mode": "advantage"
+              },
+              "predicate": {
+                "tagsAll": [
+                  "repeat:damaged",
+                  "spell:hideous-laughter"
+                ]
+              }
+            }
+          ],
+          "saveOutcomePolicy": "failure",
+          "duration": {
+            "value": 60,
+            "units": "seconds",
+            "expiry": "turnStart"
+          },
+          "concentration": true,
+          "repeatSave": "turnEnd",
+          "repeatOnDamage": true
         }
       ],
       "configuration": [
@@ -195,7 +232,9 @@
         "subtype": null
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "effect: its creature can't end Prone on itself, which is by hand"
+        ]
       }
     }
   }

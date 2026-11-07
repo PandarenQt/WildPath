@@ -496,7 +496,8 @@
               "id": "effect-1",
               "type": "condition",
               "conditionId": "charmed",
-              "saveOutcomePolicy": "failure"
+              "saveOutcomePolicy": "failure",
+              "repeatOnDamage": true
             }
           ],
           "label": "Dominate Mind"

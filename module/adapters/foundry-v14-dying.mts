@@ -87,6 +87,8 @@ export function deathSaveResult({natural, total, deathSaves=RESET}: {natural: nu
 }
 
 interface RegenerationRule {type?: string; enabled?: boolean; data?: {stoppedBy?: string[]; deferDeath?: boolean}}
+interface RepeatingEffect {disabled?: boolean; flags?: {wildpath?: {conditionEffect?: {metadata?: {repeatSave?: {onDamage?: boolean}}}}}}
+
 interface DyingActor {
   uuid: string; id: string; type?: string; name?: string; hasPlayerOwner?: boolean; isToken?: boolean; token?: unknown;
   getActiveTokens?(linked?: boolean, document?: boolean): unknown[];
@@ -203,13 +205,16 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
 
   /**
    * What a creature took, by type, for its own `damage.taken` automation triggers (a Flesh Golem's Aversion to Fire):
-   * `event.data.damageTaken.<type>` is true for each type it took more than 0 of. Only a creature that has such a trigger
-   * is dispatched for, so every other hit costs nothing.
+   * `event.data.damageTaken.<type>` is true for each type it took more than 0 of. Only a creature that has such a trigger,
+   * or an effect whose save its damage repeats, is dispatched for, so every other hit costs nothing.
    */
   async function dispatchDamageTaken(actor: DyingActor, entry: Data) {
     const listens = [...((actor as unknown as {items?: Iterable<{system?: {active?: boolean; ruleElements?: Data[]}}>}).items ?? [])]
       .some(item => (item.system?.active !== false) && (item.system?.ruleElements ?? [])
-        .some(rule => (rule.type === "Trigger") && ((rule.data as Data | undefined)?.event === "damage.taken")));
+        .some(rule => (rule.type === "Trigger") && ((rule.data as Data | undefined)?.event === "damage.taken")))
+      // An effect whose save its creature repeats as it takes damage (Dominate Person: the automation dispatcher).
+      || [...((actor as unknown as {effects?: Iterable<RepeatingEffect>}).effects ?? [])]
+        .some(effect => !effect.disabled && (effect.flags?.wildpath?.conditionEffect?.metadata?.repeatSave?.onDamage === true));
     if ( !listens ) return;
     const taken = ((entry.plan as {metadata?: {damageResult?: {byDamageType?: Record<string, number>}}} | undefined)
       ?.metadata?.damageResult?.byDamageType) ?? {};
@@ -234,9 +239,11 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
     for ( const entry of plans ) {
       const change = ((entry.plan as DurabilityChange | undefined) ?? entry) as DurabilityChange & {type?: string};
       const type = String((entry.plan ? (change.type ?? entry.type) : entry.type) ?? "");
-      if ( rescue && DAMAGE.has(type) && await rescueAtZero(actor, change as DurabilityChange & Data, critical) ) continue;
+      const rescued = rescue && DAMAGE.has(type) && await rescueAtZero(actor, change as DurabilityChange & Data, critical);
+      // Kept up at 1, it still took the damage (a dominated Zombie's repeated save).
       if ( DAMAGE.has(type) ) await recordStoppingDamage(actor, entry);
       if ( DAMAGE.has(type) ) await dispatchDamageTaken(actor, entry);
+      if ( rescued ) continue;
       let consequence = dyingAfterChange({change: {...change, type}, critical, character: savesForDeath(actor),
         deathSaves: deathSavesOf(actor)});
       // A creature whose Regeneration puts off its death lies at 0 until its turn starts.

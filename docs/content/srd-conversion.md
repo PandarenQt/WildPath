@@ -429,9 +429,9 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Divine Smite | spells24 | Divine Smite (automated), Divine Smite (Undead or Fiend) (automated) | — |
 | Divine Word | spells24 | Divine Word (automated) | — |
 | Djinni | actors24 | Djinni (19 items) | Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: effect: "Gaseous Form" change img (override) not converted; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest |
-| Dominate Beast | spells24 | Dominate Beast (automated) | — |
-| Dominate Monster | spells24 | Dominate Monster (automated) | — |
-| Dominate Person | spells24 | Dominate Person (automated) | — |
+| Dominate Beast | spells24 | Dominate Beast (automated) | save: its Advantage if you or your allies are fighting it is by hand |
+| Dominate Monster | spells24 | Dominate Monster (automated) | save: its Advantage if you or your allies are fighting it is by hand |
+| Dominate Person | spells24 | Dominate Person (automated) | save: its Advantage if you or your allies are fighting it is by hand |
 | Donjon | equipment24 | Donjon (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Doppelganger | actors24 | Doppelganger (6 items) | Read Thoughts: not automated (utility, narrative): using it spends its cost; its description says the rest; Read Thoughts: concentration: its caster concentrates; what it sustains is by hand; Read Thoughts: save: a failure marks its creature (narrative); Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Draconic Flight | origins24 | Draconic Flight (automated) | — |
@@ -783,7 +783,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Hezrou | actors24 | Hezrou (7 items) | Leap: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Hidden Pit | equipment24 | Hidden Pit (gear), Hidden Pit (Trigger (1-4)) (automated), Hidden Pit (Trigger (5-10)) (automated), Hidden Pit (Trigger (11-16)) (automated), Hidden Pit (Trigger (17-20)) (automated) | — |
 | Hide Armor | equipment24 | Hide Armor (gear) | — |
-| Hideous Laughter | spells24 | Hideous Laughter (automated) | — |
+| Hideous Laughter | spells24 | Hideous Laughter (automated) | effect: its creature can't end Prone on itself, which is by hand |
 | Hill Giant | actors24 | Hill Giant (4 items) | — |
 | Hill's Tumble | origins24 | Hill's Tumble (automated) | — |
 | Hippogriff | actors24 | Hippogriff (4 items) | — |
@@ -1479,7 +1479,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Studied Attacks | classes24 | Studied Attacks (feature) | — |
 | Stunning Strike | classes24 | Stunning Strike (automated) | — |
 | Subtle Spell | classes24 | Subtle Spell (feature) | — |
-| Succubus | actors24 | Succubus (7 items) | — |
+| Succubus | actors24 | Succubus (7 items) | Charm: save: its Advantage if you or your allies are fighting it is by hand |
 | Suggestion | spells24 | Suggestion (automated) | — |
 | Summon Dragon | spells24 | Summon Dragon (automated) | — |
 | Sun | equipment24 | Sun (gear), Sun (automated) | — |
@@ -1564,7 +1564,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Tree Stride | spells24 | Tree Stride (automated) | concentration: its caster concentrates; what it sustains is by hand |
 | Triceratops | actors24 | Triceratops (3 items) | — |
 | Trident | equipment24 | Trident (automated), Trident (Thrown) (automated), Trident (Two-Handed) (automated) | — |
-| Trident of Fish Command | equipment24 | Trident of Fish Command (attack) (automated), Trident of Fish Command (attack) (Two-Handed) (automated), Trident of Fish Command: Dominate Beast (automated) | — |
+| Trident of Fish Command | equipment24 | Trident of Fish Command (attack) (automated), Trident of Fish Command (attack) (Two-Handed) (automated), Trident of Fish Command: Dominate Beast (automated) | save: its Advantage if you or your allies are fighting it is by hand |
 | Troll | actors24 | Troll (6 items) | Charge: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Troll Limb | actors24 | Troll Limb (4 items) | Troll Spawn: "Troll" is passive or triggered (narrative): not automated |
 | True Polymorph | spells24 | True Polymorph (automated) | save: a failure marks its creature only; what it does is by hand |

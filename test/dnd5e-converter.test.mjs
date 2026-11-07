@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {activityText, checkOf, convertActor, convertFacility, convertItem, convertTable, creatureRef, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex,
   failureByMargin, healingBlockedWhile, scaleTables, textBoundExpiry, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
+import {noteReason} from "../module/helpers/conversion-notes.mjs";
+import {repeatSaveGroups} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import * as valueExpressions from "../module/helpers/value-expressions.mjs";
 import {conditionImmunitiesFromRuleElements, rollModesFromRuleElements} from "../module/helpers/rule-elements.mjs";
 
@@ -1704,6 +1706,44 @@ test("a save its 2024 text repeats at each of the creature's turns marks the eff
   assert.equal(held("<p>It takes 21 Poison damage at the start of each of its turns, and it repeats the save at the end of each of its"
     + " turns, ending the effect on itself on a success.</p>"), "turnEnd", "a Pit Fiend's: the save is at the end");
   assert.equal(held("<p>The target repeats the save at the end of each of its turns.</p>"), undefined, "nothing ends on a success");
+  // 2014 wordings.
+  assert.equal(held("<p>A creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a"
+    + " success.</p>"), "turnEnd", "Frightful Presence");
+  assert.equal(held("<p>At the end of each of its turns, the target can make another Wisdom saving throw. On a success, the spell ends"
+    + " on the target.</p>"), "turnEnd");
+});
+
+test("a save its text repeats as the creature takes damage (Dominate Person, Hideous Laughter) marks the effects it gives", () => {
+  const converted = text => convertItem({...hold, _id: "testDamageRepeat", system: {...hold.system, description: {value: text}}});
+  const dominate = converted("<p>The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes"
+    + " damage, it repeats the save, ending the spell on itself on a success.</p>");
+  assert.deepEqual(dominate.items[0].system.definition.effects.map(effect => [effect.conditionId, effect.repeatSave, effect.repeatOnDamage]),
+    [["paralyzed", undefined, true]]);
+  assert.equal(dominate.notes.includes("save: its Advantage if you or your allies are fighting it is by hand"), true);
+  assert.equal(noteReason(`Charm: ${dominate.notes[0]}`), "save: Advantage in a case its text names (by hand)");
+
+  const laughter = converted("<p>It can't end the Prone condition on itself.</p><p>At the end of each of its turns and each time it takes"
+    + " damage, it makes another [[/save ability=wis dc=@attributes.spell.dc]] saving throw. The target has Advantage on the save if the"
+    + " save is triggered by damage. On a successful save, the spell ends.</p>");
+  const {effects} = laughter.items[0].system.definition;
+  valid(laughter.items[0]);
+  assert.deepEqual(effects.map(effect => [effect.repeatSave, effect.repeatOnDamage]), [["turnEnd", true], ["turnEnd", true]],
+    "its condition, and a marker its repeated save ends with it");
+  const advantage = context => rollModesFromRuleElements([{ruleElements: effects[1].ruleElements}], {domains: ["save"], context})
+    .map(entry => entry.mode);
+  // On a creature also under another spell whose save its damage repeats (Dominate Person), the Advantage is its own save's.
+  const {id, tags} = laughter.items[0].system.definition;
+  const held = (effectId, actionDefinitionId, savedTags) => ({id: effectId, name: effectId, flags: {wildpath: {conditionEffect: {sourceRef: "caster",
+    metadata: {actionDefinitionId, repeatSave: {onDamage: true, ability: "wits", dc: 13, tags: savedTags}}}}}});
+  const groups = repeatSaveGroups([held("laughing", id, tags), held("charmed", "action:srd-dominate-person", ["spell",
+    "spell:dominate-person"])], "damage.taken");
+  assert.deepEqual(groups.map(group => advantage({tags: group.tags})), [["advantage"], []], "not on Dominate Person's save");
+  assert.deepEqual(advantage({tags}), [], "nor on its own save at a turn's end");
+  assert.deepEqual(laughter.notes, ["effect: its creature can't end Prone on itself, which is by hand"]);
+  assert.deepEqual(converted("<p>It can’t end the Prone condition on itself.</p>").notes,
+    ["effect: its creature can't end Prone on itself, which is by hand"], "a curly apostrophe (the premium books)");
+  assert.equal(converted("<p>Each time it takes damage, it makes another Wisdom saving throw, taking 1d6 on a failure.</p>").items[0]
+    .system.definition.effects[0].repeatOnDamage, undefined, "nothing ends on a success");
 });
 
 test("a 2014 spell a document casts or carries is the converted 2024 spell of its name", () => {

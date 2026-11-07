@@ -394,6 +394,14 @@ Confusion, a dragon's Paralyzing Breath: 18 SRD Actions); the Builder's effect r
 browsers): Player1's QA Caster held the Bandit Captain (Paralyzed, DC 14); at the end of the Captain's turn in combat it
 saved again, 17, and Paralyzed ended.
 
+An effect row may also say `repeatOnDamage: true` (with or without `repeatSave`): "Whenever the target takes damage, it
+repeats the save" (Dominate Person). Its stored save carries `onDamage: true`; the dying adapter dispatches
+`damage.taken` to a creature bearing such an effect, and the dispatcher repeats that save then, tagged `repeat:damaged`,
+so a RollMode predicate (`tagsAll: ["repeat:damaged", "spell:hideous-laughter"]`, the second tag one its Action's save
+keeps) can give Advantage on it alone, not on another effect's damage-repeated save (Hideous Laughter's marker effect). The converter also reads the 2014 "can repeat the saving throw at the end of each of its turns" and "the
+target can make another Wisdom saving throw. On a success, the spell ends". The Builder's rows do not edit it. Not yet
+checked in live Foundry.
+
 **Automatic triggers.** A `Trigger` of kind `automation` (the default) on a creature's active Item or
 enabled non-condition effect runs without asking anyone. The general automation dispatcher
 (`module/adapters/foundry-v14-automation-dispatcher.mts`, `game.wildpath.automation`) runs it when its event

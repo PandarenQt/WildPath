@@ -26,6 +26,31 @@ test("the saves a creature repeats at a turn boundary: one per Action and source
     effect("m", "action:sting", "s", held)], "turn.ended")[0].against, ["poisoned"]);
 });
 
+test("a save repeated as its creature takes damage (Dominate Person) answers damage.taken, tagged repeat:damaged", () => {
+  const save = {ability: "wits", dc: 15, tags: ["spell"]};
+  const effects = [effect("charmed", "action:dominate", "s", {...save, onDamage: true}),
+    effect("laughing", "action:laughter", "s", {...save, timing: "turnEnd", onDamage: true}),
+    effect("held", "action:hold", "s", {...save, timing: "turnEnd"})];
+  assert.deepEqual(repeatSaveGroups(effects, "damage.taken").map(group => [group.effectIds, group.tags]),
+    [[["charmed"], ["spell", "repeat:damaged"]], [["laughing"], ["spell", "repeat:damaged"]]]);
+  assert.deepEqual(repeatSaveGroups(effects, "turn.ended").map(group => [group.effectIds, group.tags]),
+    [[["laughing"], ["spell"]], [["held"], ["spell"]]], "a damage-only repeat waits for no turn");
+
+  const dominate = {schemaVersion: 1, id: "action:dominate", label: "Dominate Person", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, save: {ability: "wits", dc: {value: 15}},
+    effects: [{id: "effect-1", type: "condition", conditionId: "charmed", saveOutcomePolicy: "failure", repeatOnDamage: true}]};
+  assert.equal(validateActionDefinition(dominate).ok, true);
+  const plan = planStagedActionResolution({id: "resolution:dominate", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {id: dominate.id, type: "action", name: dominate.label, system: {definition: dominate}}, source: {actorId: "actor-source"},
+    targets: [{id: "orc", actorId: "actor-orc", tokenId: "token-orc", disposition: "enemy"}]});
+  const request = plan.state.pendingRequests[0];
+  const done = resumeStagedActionResolution({state: plan.state, response: {resolutionId: plan.state.id, requestId: request.id,
+    type: RESOLUTION_REQUEST_TYPES.ROLL, value: {requestId: request.payload.rollRequest.id, resolutionId: plan.state.id,
+      type: request.payload.rollRequest.type, natural: 3, total: 3}}});
+  assert.deepEqual(done.state.mutationPlans.find(entry => entry.type === "conditionEffect")?.metadata?.repeatSave,
+    {onDamage: true, ability: "wits", dc: 15});
+});
+
 test("an effect whose save repeats keeps the save it was let in by: its ability and the DC it resolved to", () => {
   const hold = {schemaVersion: 1, id: "action:hold", label: "Hold Person", costs: {allOf: []}, tags: ["spell", "school:enchantment"],
     targeting: {type: "single", required: true, count: 1}, save: {ability: "wits", dc: {value: 14}},

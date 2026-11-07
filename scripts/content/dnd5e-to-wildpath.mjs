@@ -266,15 +266,25 @@ function componentTags(system) {
 }
 
 /**
- * When its 2024 text has a creature repeat the save that let its effect in, ending it on a success: `turnEnd` ("repeats
- * the save at the end of each of its turns"), `turnStart`, or null. "repeats the save at ..." is read first, so a
- * text naming another start-of-turn event before it (a Pit Fiend's poison) still reads right.
+ * When its text has a creature repeat the save that let its effect in, ending it on a success: `repeatSave` `turnEnd`
+ * ("repeats the save at the end of each of its turns"; 2014 "can repeat the saving throw at the end of each of its
+ * turns", "the target can make another Wisdom saving throw. On a success, the spell ends") or `turnStart`, and
+ * `repeatOnDamage` ("Whenever the target takes damage, it repeats the save": Dominate Person). "repeats the save at ..."
+ * is read first, so a text naming another start-of-turn event before it (a Pit Fiend's poison) still reads right.
  */
-function repeatSaveTiming(document) {
-  const text = plainText(document).replace(/&amp;Reference\[(\w+)[^\]]*\]/g, "$1");
-  const found = /repeats? the save at the (end|start) of each of its turns[^.]*\b(?:ending|ends?)\b[^.]*on a success/i.exec(text)
-    ?? /at the (end|start) of each of its turns,? [^.]*repeats? the save[^.]*\b(?:ending|ends?)\b[^.]*on a success/i.exec(text);
-  return found ? (found[1].toLowerCase() === "end" ? "turnEnd" : "turnStart") : null;
+function repeatSaveFields(document) {
+  // An inline save ("another [[/save ability=wis dc=@attributes.spell.dc]] saving throw") is a word, its dots no sentence end.
+  const text = plainText(document).replace(/&amp;Reference\[(\w+)[^\]]*\]/g, "$1").replace(/\[\[[^\]]*\]\](?:\{[^}]*\})?/g, "it");
+  // "it makes another Wisdom saving throw. The target has Advantage on ... . On a successful save, the spell ends."
+  const another = String.raw`(?:the target|it) (?:can make|makes) another \w+ saving throw\b[^.]*\.(?: [^.]*\.)? On a success(?:ful save)?, the (?:spell|effect) ends`;
+  const found = /repeats? the sav(?:e|ing throw) at the (end|start) of each of its turns[^.]*\b(?:ending|ends?)\b[^.]*on a success/i.exec(text)
+    ?? /at the (end|start) of each of its turns,? [^.]*repeats? the save[^.]*\b(?:ending|ends?)\b[^.]*on a success/i.exec(text)
+    ?? new RegExp(String.raw`at the (end|start) of each of its turns(?: and each time it takes damage)?,? ${another}`, "i").exec(text);
+  const onDamage = /\brepeats? the save whenever it takes damage\b[^.]*\bon a success/i.test(text)
+    || /\b(?:whenever|each time) (?:the target|it) takes damage, it repeats the save\b[^.]*\bon a success/i.test(text)
+    || new RegExp(String.raw`\beach time it takes damage, ${another}`, "i").test(text);
+  return {...(found ? {repeatSave: found[1].toLowerCase() === "end" ? "turnEnd" : "turnStart"} : {}),
+    ...(onDamage ? {repeatOnDamage: true} : {})};
 }
 
 /**
@@ -5513,11 +5523,26 @@ function convertActivity({document, activity, system, spell, level, scales, note
     }
   }
   // "At the end of each of its turns, the target repeats the save, ending the spell on itself on a success" (Hold
-  // Person): each effect a failed save gives is saved against again then.
-  const repeat = definition.save ? repeatSaveTiming(document) : null;
-  if ( repeat ) for ( const effect of effects ) {
-    if ( (effect.saveOutcomePolicy === "failure") && !((effect.levels ?? 1) < 0) ) effect.repeatSave = repeat;
+  // Person): each effect a failed save gives is saved against again then, or as its creature takes damage.
+  const repeat = definition.save ? repeatSaveFields(document) : {};
+  for ( const effect of effects ) {
+    if ( (effect.saveOutcomePolicy === "failure") && !((effect.levels ?? 1) < 0) ) Object.assign(effect, repeat);
   }
+  const repeated = effects.find(effect => effect.repeatOnDamage);
+  const advantageIf = definition.save ? /\bhas Advantage on the save if ([^.]+)\./i.exec(plainText(document))?.[1] : null;
+  // "The target has Advantage on the save if the save is triggered by damage" (Hideous Laughter): a marker its repeated
+  // save ends with the rest, giving Advantage on the save its damage brings (`repeat:damaged`). The repeated save keeps its
+  // spell's tags, so `spell:<identifier>` keeps the Advantage off another spell's damage-repeated save (Dominate Person).
+  if ( repeated && spell && /^the save is triggered by damage$/i.test(advantageIf ?? "") ) {
+    effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: document.name, ruleElements: [{schemaVersion: 1,
+      id: "damaged-save-advantage", type: "RollMode", data: {domains: ["save"], mode: "advantage"},
+      predicate: {tagsAll: ["repeat:damaged", `spell:${identifierOf(document)}`]}}],
+      saveOutcomePolicy: "failure", ...(repeated.duration ? {duration: structuredClone(repeated.duration)} : {}),
+      ...(repeated.concentration ? {concentration: true} : {}), ...repeat});
+  } else if ( advantageIf ) notes.push(`save: its Advantage if ${advantageIf} is by hand`);
+  // "it can't end the Prone condition on itself" (Hideous Laughter): standing up is not stopped.
+  const kept = definition.save ? /\bcan[’']t end the (\w+) condition on itself\b/i.exec(plainText(document))?.[1] : null;
+  if ( kept ) notes.push(`effect: its creature can't end ${kept} on itself, which is by hand`);
   if ( effects.length ) definition.effects = effects;
 
   // A spell of level 1 or higher spends a slot of its level or higher; damage dice that scale grow per level above.
@@ -5620,7 +5645,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const maxSize = sizeLimitOf(document);
     for ( const conditionId of conditions ) effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId,
       saveOutcomePolicy: "failure", ...(levels?.[conditionId] ? {levels: levels[conditionId]} : {}), ...(lasts ? {duration: lasts} : {}),
-      ...(maxSize ? {maxSize} : {}), ...((repeat && (conditionId !== "exhaustion")) ? {repeatSave: repeat} : {}),
+      ...(maxSize ? {maxSize} : {}), ...((conditionId !== "exhaustion") ? repeat : {}),
       ...(concentration ? {concentration: true} : {}),
       ...(((escapeAt != null) && ["grappled", "restrained"].includes(conditionId)) ? {metadata: {escapeDC: escapeAt}} : {})});
     const lasting = conditions.length ? null : lastingDuration(pick(activity, system, "duration"));

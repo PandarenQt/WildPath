@@ -270,6 +270,25 @@ test("a creature with a damage.taken trigger (Aversion to Fire) is dispatched wh
     ogre.items = [];
     await dying.afterPlans(ogre, [hit({fire: 6})]);
     assert.equal(dispatched.length, 1, "no trigger, no dispatch");
+    // Dominate Person: an effect whose save its creature repeats as it takes damage listens too; a disabled one does not.
+    const dominated = onDamage => ({flags: {wildpath: {conditionEffect: {metadata: {repeatSave: {onDamage, ability: "wits", dc: 15}}}}}});
+    ogre.effects = [{...dominated(true), disabled: true}, dominated(false)];
+    await dying.afterPlans(ogre, [hit({fire: 6})]);
+    assert.equal(dispatched.length, 1, "nothing repeats on damage");
+    ogre.effects = [dominated(true)];
+    await dying.afterPlans(ogre, [hit({fire: 6})]);
+    assert.deepEqual(dispatched.at(-1), ["damage.taken", {damageTaken: {fire: true}}]);
+    // A drop to 0 its zero-HP rule keeps it up from (Relentless Endurance) still took the damage.
+    const orc = creature({type: "npc", health: 0});
+    orc.items = [{system: {active: true, ruleElements: [{type: "Trigger", data: {event: "damage.taken"}}]}},
+      {name: "Relentless Endurance", system: {active: true, ruleElements: [{type: "Trigger",
+        data: {kind: "zero-hp", event: "health.zero", zeroHp: {mode: "set", hitPoints: 1, pool: "relentless-endurance"}}}]}}];
+    orc.system.pools = [{id: "relentless-endurance", value: 1, max: 1}];
+    orc.toObject = function () { return {system: structuredClone(this.system)}; };
+    await dying.afterPlans(orc, [{type: "durabilityDamage", plan: {...damage(2, 3), metadata: {damageResult: {byDamageType: {cold: 3}}}}}],
+      {rescue: true});
+    assert.equal(orc.system.resources.health.value, 1, "kept at 1 HP");
+    assert.deepEqual(dispatched.at(-1), ["damage.taken", {damageTaken: {cold: true}}]);
   } finally {
     globalThis.game = previous;
   }

@@ -358,7 +358,8 @@
                 "units": "seconds",
                 "expiry": "turnStart"
               },
-              "concentration": true
+              "concentration": true,
+              "repeatOnDamage": true
             }
           ],
           "metadata": {
@@ -399,7 +400,9 @@
             "castBy": "Charm"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "save: its Advantage if you or your allies are fighting it is by hand"
+            ]
           }
         }
       }
@@ -634,7 +637,9 @@
         "challenge": 4
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "Charm: save: its Advantage if you or your allies are fighting it is by hand"
+        ]
       }
     }
   }
