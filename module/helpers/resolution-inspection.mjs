@@ -1,11 +1,4 @@
-import { rollFormulaForRequest } from "./rolls.mjs";
-/** A roll's total as it counted: at least its floor (`totalMinimum`, Indomitable Might). */
-function countedTotal(roll) {
-    const total = roll?.total;
-    if ((total === undefined) || !Number.isFinite(total))
-        return null;
-    return (Number(roll?.totalMinimum) > total) ? Number(roll.totalMinimum) : total;
-}
+import { countedRollTotal, rollFormulaForRequest } from "./rolls.mjs";
 const formulaOf = rollFormulaForRequest;
 const refsOf = (target) => [target?.id, target?.uuid, target?.actorRef, target?.actorId, target?.tokenId].filter(Boolean);
 const DURABILITY = new Set(["durabilityDamage", "durabilityHealing", "durabilityAbsorption"]);
@@ -29,7 +22,7 @@ export function inspectResolution(record) {
             mode: entry.rollRequest?.rollMode ?? "normal",
             natural: entry.rollResult?.natural ?? entry.rollResult?.die ?? null,
             // As it counted: at least its floor (Indomitable Might).
-            total: countedTotal(entry.rollResult),
+            total: countedRollTotal(entry.rollResult),
             method: entry.rollResult?.provenance?.method ?? null
         })),
         attacks: (state.results?.attackResolution?.results ?? []).filter(result => result.outcome).map(result => ({

@@ -114,7 +114,7 @@ test("an Action that ends effects (Dispel Magic, Remove Curse) ends them on its 
     targets: [{tokenId: "orc"}]});
   const fromUuid = async () => ({parent: scene});
   // Above the slot's level (Fly, 4): the caster's spellcasting check against DC 14.
-  const caster = total => ({system: {spellcasting: {ability: "intellect"}}, rollTest: async ({ability}) => (ability === "intellect" ? total : 0)});
+  const caster = total => ({system: {spellcasting: {ability: "intellect"}}, rollTest: async ({ability}) => ({total: ability === "intellect" ? total : 0})});
   await endEffectsOnTargets({options: {actor: caster(15)}, state: state({spells: "slot"})}, {fromUuid, game: {}});
   assert.deepEqual(deleted, ["bless", "haste", "curse", "fly"], "spells up to the slot's level, a spell's curse too, and Fly on a 15");
   assert.match(posted[0].content, /bless \(Orc\), haste \(Orc\), fly \(Orc\), curse \(Orc\)/u, "everyone sees what it ended");

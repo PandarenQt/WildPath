@@ -11,6 +11,7 @@ import {resolveActorCheckStatistic} from "../helpers/combat-statistics.mjs";
 import {traitUpdates} from "../helpers/level-up.mjs";
 import {refuseBrokenRules, refuseBrokenSpellChoice, refusePlayerMechanics} from "../helpers/rule-guard.mjs";
 import {consumeScrollOf, highestSpellLevel, onSpellList, spellLevelOf} from "../helpers/spell-scrolls.mjs";
+import {countedRollTotal} from "../helpers/rolls.mjs";
 import {admitFacility, payFacility} from "../applications/bastions.mjs";
 import {resolveActionConfiguration} from "../helpers/action-configuration.mjs";
 
@@ -168,10 +169,10 @@ export default class WildPathItem extends Item {
       return false;
     }
     if ( (level <= 0) || (level <= highestSpellLevel(this.actor)) ) return true;
-    const total = await this.actor.rollTest?.({ability});
+    const total = countedRollTotal(await this.actor.rollTest?.({ability}));
     // A check closed unrolled (physical dice) is no failure: the scroll is kept, unread.
     if ( total == null ) return false;
-    if ( Number(total) >= (10 + level) ) return true;
+    if ( total >= (10 + level) ) return true;
     globalThis.ui?.notifications?.warn?.(game.i18n.format("WILDPATH.SCROLL.Lost", {name: this.name, dc: 10 + level}));
     await consumeScrollOf(this);
     return false;

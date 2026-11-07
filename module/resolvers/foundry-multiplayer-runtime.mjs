@@ -90,7 +90,7 @@ import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefini
 import {tokenRef} from "../helpers/entity-refs.mjs";
 import {completedTargetRefs, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
-import {ROLL_AUTHORITY, combineRollModes, d20Chance} from "../helpers/rolls.mjs";
+import {ROLL_AUTHORITY, combineRollModes, countedRollTotal, d20Chance} from "../helpers/rolls.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {conditionsFrom, creatureRefs, effectAddedDice, effectsFrom, revealedTo} from "../helpers/effect-sources.mjs";
 import {CREATURE_SIZE_ORDER, customEffectId} from "../helpers/action-definitions.mjs";
@@ -110,7 +110,7 @@ import {
   resolveActorDefense,
   slotRecallFor
 } from "../helpers/combat-statistics.mjs";
-import {createMultiplayerActionCoordinator} from "./multiplayer-action-coordinator.mjs";
+import {answerRollLocally, createMultiplayerActionCoordinator} from "./multiplayer-action-coordinator.mjs";
 import {createPhysicalDiceProvider} from "./roll-provider-resolver.mjs";
 import {resolveActorResourcePayment} from "./resource-resolver.mjs";
 import {resolveActionConfiguration} from "../helpers/action-configuration.mjs";
@@ -156,15 +156,19 @@ export function registerFoundryV14MultiplayerResolution({
     (logger ?? console).warn("Wild Path | This user lacks the QUERY_USER permission; private multiplayer replies "
       + "(prompt answers, roll results) cannot be sent from this client and will fail closed.");
   }
+  // An Action's rolls and a sheet roll (requestRoll, below) share these: one dice policy, one roll prompt.
+  const promptPorts = [createFoundryV14PromptAdapter()];
+  const rollProviders = [createFoundryDigitalRollProvider(), createPhysicalDiceProvider()];
+  const rollContext = dicePolicyRollContext(game);
   const coordinator = createMultiplayerActionCoordinator({
     userId: game.user?.id ?? game.userId ?? null,
     users: () => foundryUserDirectory(game),
     activeGMUserId: () => game.users?.activeGM?.id ?? null,
     transport,
     onClientReady: userId => setPassBackAvailable(userId, true),
-    promptPorts: [createFoundryV14PromptAdapter()],
-    rollProviders: [createFoundryDigitalRollProvider(), createPhysicalDiceProvider()],
-    rollContext: dicePolicyRollContext(game),
+    promptPorts,
+    rollProviders,
+    rollContext,
     actionIntentResolver: ({intent, envelope}) => intent.resolutionKind === "movement"
       ? foundryMovementIntentToStagedOptions({intent, resolutionId: envelope.resolutionId,
         senderUserId: envelope.senderUserId, game, persistencePort})
@@ -415,6 +419,9 @@ export function registerFoundryV14MultiplayerResolution({
     dying,
     summons,
     resolutionTransport: transport,
+    // A roll outside an Action (Actor#rollTest): one RollRequest to its RollResult, or null when not rolled.
+    requestRoll: (rollRequest, {title=null}={}) => answerRollLocally({rollRequest, title, promptPorts, rollProviders,
+      context: {...rollContext}, notify: event => notifyMultiplayerFailure(event, {logger})}),
     executeActionIntent: runtime.executeActionIntent,
     executeMovementIntent: runtime.executeMovementIntent
   };
@@ -1259,9 +1266,10 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
   const caster = options?.actor ?? null;
   const ability = caster?.system?.spellcasting?.ability || null;
   const check = async entry => {
-    const total = (ability && (typeof caster?.rollTest === "function")) ? await caster.rollTest({ability}) : null;
+    const total = (ability && (typeof caster?.rollTest === "function"))
+      ? countedRollTotal(await caster.rollTest({ability})) : null;
     entry.total = total;
-    entry.ended = Number.isFinite(Number(total)) && (Number(total) >= (10 + entry.level));
+    entry.ended = (total != null) && (total >= (10 + entry.level));
     return entry.ended;
   };
   const targets = completedTargetRefs(state);

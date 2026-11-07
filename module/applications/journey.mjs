@@ -1,3 +1,5 @@
+import {countedRollTotal} from "../helpers/rolls.mjs";
+
 /**
  * Journeys (2024 DMG travel, 2026-10-22): a GM tool among the Token controls. The party travels some hours at a pace:
  * - Fast 4, Normal 3, Slow 2 miles an hour. Fast: Disadvantage on Wits (Perception) and (Survival) checks; Slow:
@@ -35,9 +37,9 @@ export async function travel({pace, hours, actors, time=globalThis.game?.time, i
     for ( const old of [...(actor.effects ?? [])].filter(entry => entry.flags?.wildpath?.journeyPace) ) await old.delete();
     if ( effect ) await actor.createEmbeddedDocuments("ActiveEffect", [{...effect, flags: {wildpath: {journeyPace: pace}}}]);
     for ( const dc of plan.forcedMarch ) {
-      const total = await actor.rollTest?.({save: "fortitude"});
+      const total = countedRollTotal(await actor.rollTest?.({save: "fortitude"}));
       // A roll closed unrolled (physical dice) is no failure.
-      if ( (total != null) && !(Number(total) >= dc) ) {
+      if ( (total != null) && !(total >= dc) ) {
         await actor.toggleCondition?.("exhaustion");
         exhausted.push(actor.name);
       }

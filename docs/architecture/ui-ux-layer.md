@@ -240,7 +240,9 @@ leaves the rules to the documents:
 - **Rolling tests (G8, 2026-10-15):** each ability has a check and a saving throw button, and each skill's name rolls
   its check (`Actor#rollTest`): the creature's bonus (proficiency or expertise included), its bonus dice and its
   Advantage or Disadvantage (armor's Stealth, untrained armor, conditions), to chat as "Stealth (Agility) check
-  (2d20kl + 4)". With physical dice the roller types the total. Live (Player1's browser): QA Fighter's Athletics
+  (2d20kl + 4)". It is one RollRequest answered by the same RollProviders and roll prompt as an Action's rolls
+  (`game.wildpath.requestRoll`), so with physical dice the roller types the d20 (and the total with bonus dice) and the
+  caller gets a RollResult with its natural die either way. Live (Player1's browser): QA Fighter's Athletics
   rolled 1d20 + 6, Stealth in Chain Mail 2d20kl + 4, a Might save 1d20 + 6 and a Wits check 1d20 + 2. The ability
   cards now show their full names, two to a row.
 - **Editing:** abilities, current values, and each resource's and pool's base (which sets its maximum).

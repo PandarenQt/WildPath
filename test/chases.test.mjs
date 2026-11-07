@@ -5,7 +5,7 @@ import {afterChaseAction, freeDashes} from "../module/applications/chases.mjs";
 test("in a chase, Dashes past 3 + Fortitude modifier take a DC 10 check or give Exhaustion", async () => {
   assert.deepEqual([freeDashes({system: {abilities: {fortitude: {value: 14}}}}), freeDashes({system: {abilities: {fortitude: {value: 2}}}})], [5, 0]);
   const toggled = [];
-  const rolls = [12, 4];
+  const rolls = [{total: 12}, {total: 4}];
   const actor = {uuid: "Actor.runner", flags: {wildpath: {}}, system: {abilities: {fortitude: {value: 10}}},
     setFlag: async (scope, key, value) => { actor.flags.wildpath[key] = value; }, rollTest: async () => rolls.shift(),
     toggleCondition: async id => toggled.push(id)};

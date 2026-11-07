@@ -1,5 +1,6 @@
 import {CONTAGIONS, fightContagion} from "../helpers/contagions.mjs";
 import {worldCreatures} from "./foundry-v14-automation-dispatcher.mjs";
+import {countedRollTotal} from "../helpers/rolls.mjs";
 
 /**
  * Contagions on Foundry (helpers/contagions.mjs), run by the active GM: an infection's incubation when it is caught, its
@@ -72,8 +73,8 @@ export function createFoundryContagions({game, logger=globalThis.console, roll=a
       const state = effect.flags?.wildpath?.contagion;
       const fight = id ? CONTAGIONS[id].fight : null;
       if ( !fight || !state?.started ) continue;
-      const total = await actor.rollTest?.({save: fight.ability});
-      const result = fightContagion(id, state, Number(total) >= fight.dc, {exhaustionLevel: exhaustionOf(actor)});
+      const saved = countedRollTotal(await actor.rollTest?.({save: fight.ability})) >= fight.dc;
+      const result = fightContagion(id, state, saved, {exhaustionLevel: exhaustionOf(actor)});
       if ( result.exhaustion ) await actor.toggleCondition("exhaustion", {levels: result.exhaustion});
       if ( result.ended ) await end(effect);
       else await effect.setFlag("wildpath", "contagion", result.state);

@@ -491,6 +491,24 @@ export function rollFormulaForRequest(request) {
 
 /* -------------------------------------------- */
 
+/** A RollResult's total as it counts: at least its floor (`totalMinimum`, Indomitable Might); null when there is none. */
+export function countedRollTotal(result) {
+  const total = Number.isFinite(result?.total) ? result.total : null;
+  return ((total != null) && (Number(result.totalMinimum) > total)) ? Number(result.totalMinimum) : total;
+}
+
+/**
+ * A d20 request's dice with its bonus dice (Bless +1d4), for an Action's roll or a sheet roll. With bonus dice, the total
+ * is no longer the natural d20 plus the modifier, so only the formula's bounds check it (a physical roller types it).
+ */
+export function bonusDiceRequest(dice, modifier) {
+  const bonus = (Array.isArray(dice) ? dice : []).filter(die => (Number(die?.number) > 0) && (Number(die?.faces) > 0));
+  if ( !bonus.length ) return {};
+  return {definition: {dice: [{id: "d20", number: 1, faces: 20, purpose: "d20"}, ...bonus.map((die, index) => ({
+    id: `bonus:${die.id ?? index}`, number: die.number, faces: die.faces, purpose: "bonus", ...(die.sign < 0 ? {sign: -1} : {})}))]},
+  expected: {validateTotalFromNatural: modifier.known, modifierTotal: null}};
+}
+
 export function rollResultToResolverRoll(result) {
   const data = normalizeRollResult(result);
   return {

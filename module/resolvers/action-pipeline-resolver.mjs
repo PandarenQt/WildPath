@@ -54,6 +54,7 @@ import {
 import {
   ROLL_AUTHORITY,
   ROLL_TYPES,
+  bonusDiceRequest,
   createD20RollRequest,
   createDamageRollRequest,
   normalizeRollResponseValue,
@@ -4225,18 +4226,6 @@ function hasRollTotal(roll) {
 
 function rollRequestFromAcceptedResponse(accepted, fallbackFactory) {
   return accepted?.request?.payload?.rollRequest ?? fallbackFactory();
-}
-
-/**
- * A d20 request's dice with its bonus dice (Bless +1d4). With bonus dice, the total is no longer the natural d20
- * plus the modifier, so only the formula's bounds check it.
- */
-function bonusDiceRequest(dice, modifier) {
-  const bonus = (Array.isArray(dice) ? dice : []).filter(die => (Number(die?.number) > 0) && (Number(die?.faces) > 0));
-  if ( !bonus.length ) return {};
-  return {definition: {dice: [{id: "d20", number: 1, faces: 20, purpose: "d20"}, ...bonus.map((die, index) => ({
-    id: `bonus:${die.id ?? index}`, number: die.number, faces: die.faces, purpose: "bonus", ...(die.sign < 0 ? {sign: -1} : {})}))]},
-  expected: {validateTotalFromNatural: modifier.known, modifierTotal: null}};
 }
 
 /**

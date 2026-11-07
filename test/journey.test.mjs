@@ -9,7 +9,7 @@ test("a journey's distance by pace, its pace effect, and a forced march past 8 h
   assert.deepEqual(paceEffect("fast", 8, "Fast").system.ruleElements[0].data, {domains: ["check.perception", "check.survival"], mode: "disadvantage"});
   const created = [];
   const toggled = [];
-  const rolls = [12, 5];
+  const rolls = [{total: 12}, {total: 5}];
   const actor = {name: "Ana", effects: [], createEmbeddedDocuments: async (type, data) => created.push(...data),
     rollTest: async () => rolls.shift(), toggleCondition: async id => toggled.push(id)};
   const advanced = [];

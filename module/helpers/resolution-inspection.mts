@@ -1,4 +1,4 @@
-import {rollFormulaForRequest} from "./rolls.mjs";
+import {countedRollTotal, rollFormulaForRequest} from "./rolls.mjs";
 
 /**
  * The Rules Inspector's view of one resolution (M6): GM-facing, read from the authority's own record, so it may
@@ -13,12 +13,6 @@ interface RollEntry {type?: string; semanticType?: string; rollRequest?: Data & 
 interface AttackResult {target?: Named; roll?: Roll; defense?: {value?: number}; outcome?: string; ok?: boolean}
 interface SaveResult {target?: Named; roll?: Roll | null; total?: number; dc?: {value?: number}; outcome?: string; automatic?: boolean}
 
-/** A roll's total as it counted: at least its floor (`totalMinimum`, Indomitable Might). */
-function countedTotal(roll: Roll | undefined): number | null {
-  const total = roll?.total;
-  if ( (total === undefined) || !Number.isFinite(total) ) return null;
-  return (Number(roll?.totalMinimum) > total) ? Number(roll!.totalMinimum) : total;
-}
 interface Plan {type?: string; target?: Named; payerRef?: string; conditionId?: string; action?: string; definition?: {name?: string};
   plan?: {from?: number; to?: number; amount?: number; target?: Named; payments?: Array<{resourceId?: string; from?: number; to?: number}>}}
 interface State {
@@ -54,7 +48,7 @@ export function inspectResolution(record: ResolutionRecord) {
       mode: entry.rollRequest?.rollMode ?? "normal",
       natural: entry.rollResult?.natural ?? entry.rollResult?.die ?? null,
       // As it counted: at least its floor (Indomitable Might).
-      total: countedTotal(entry.rollResult),
+      total: countedRollTotal(entry.rollResult),
       method: entry.rollResult?.provenance?.method ?? null
     })),
     attacks: (state.results?.attackResolution?.results ?? []).filter(result => result.outcome).map(result => ({

@@ -36,7 +36,7 @@ import {
   planStagedActionResolution,
   resumeStagedActionResolution
 } from "./action-pipeline-resolver.mjs";
-import {createChoiceCoordinator} from "./choice-coordinator.mjs";
+import {CHOICE_COORDINATOR_CODES, createChoiceCoordinator} from "./choice-coordinator.mjs";
 import {createTriggeredEventHost} from "./triggered-event-host.mjs";
 import {executeRollRequest} from "./roll-provider-resolver.mjs";
 
@@ -1353,6 +1353,28 @@ export async function answerPendingRequestLocally({
       ? {...coordinated.response, value: withRollerVisibility(coordinated.response?.value, context)}
       : coordinated.response, context)
   };
+}
+
+/**
+ * One roll outside an Action (a sheet roll), answered on this client as an Action's is: by the dice policy's RollProvider,
+ * else the roll prompt (physical dice), a rejected answer asked again. The RollResult, or null when it was not rolled.
+ */
+export async function answerRollLocally({rollRequest, title=null, promptPorts=[], rollProviders=[], context={}, notify=null}={}) {
+  const request = {id: rollRequest.id, resolutionId: rollRequest.resolutionId, type: RESOLUTION_REQUEST_TYPES.ROLL,
+    expectedResponseType: "roll-result", payload: {rollRequest}, metadata: {title}};
+  for ( let attempt = 1; attempt <= MAX_PROMPT_ATTEMPTS; attempt++ ) {
+    const answered = await answerPendingRequestLocally({request, promptPorts, rollProviders, context});
+    if ( answered.ok ) return answered.response.value;
+    // Closing the prompt is no failure: a roll is a required request, so its close comes back as REQUIRED_REQUEST_CANCELLED.
+    if ( [CHOICE_COORDINATOR_CODES.PROMPT_CANCELLED, CHOICE_COORDINATOR_CODES.REQUIRED_REQUEST_CANCELLED].includes(answered.code) ) return null;
+    // A rejected entry is asked again, so the roller is told why only while another try follows.
+    const again = REPROMPT_CODES.has(answered.code);
+    if ( !again || (attempt < MAX_PROMPT_ATTEMPTS) ) {
+      notify?.({type: "answer-rejected", error: {code: answered.code, reason: answered.reason, requestId: request.id}});
+    }
+    if ( !again ) return null;
+  }
+  return null;
 }
 
 /**

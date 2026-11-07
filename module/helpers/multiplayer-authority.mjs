@@ -1,5 +1,5 @@
 import {RESOLUTION_REQUEST_TYPES} from "./resolution-state.mjs";
-import {ROLL_AUTHORITY, ROLL_TYPES, ROLL_VISIBILITY, normalizeRollVisibility, rollFormulaForRequest} from "./rolls.mjs";
+import {ROLL_AUTHORITY, ROLL_TYPES, ROLL_VISIBILITY, countedRollTotal, normalizeRollVisibility, rollFormulaForRequest} from "./rolls.mjs";
 
 import {
   DISCLOSURE_CLASSIFICATIONS,
@@ -544,19 +544,13 @@ function projectPublicResolutionResult(data) {
         type: entry.type ?? null,
         visibility: entry.visibility,
         natural: entry.rollResult?.natural ?? null,
-        total: countedTotal(entry.rollResult),
+        total: countedRollTotal(entry.rollResult),
         formula: entry.formula ?? null,
         label: projectRollLabel(entry.label),
         // A floored total is shown as entered: the dice would show the lower roll.
-        foundryRoll: (countedTotal(entry.rollResult) === (entry.rollResult?.total ?? null)) ? publicFoundryRoll(entry.rollResult) : null
+        foundryRoll: (countedRollTotal(entry.rollResult) === (entry.rollResult?.total ?? null)) ? publicFoundryRoll(entry.rollResult) : null
       }))
   }, "resolutionResult.broadcast");
-}
-
-/** A roll's total as it counted: at least its floor (`totalMinimum`, Indomitable Might). */
-function countedTotal(rollResult) {
-  const total = rollResult?.total ?? null;
-  return (Number.isFinite(total) && (Number(rollResult?.totalMinimum) > total)) ? Number(rollResult.totalMinimum) : total;
 }
 
 /** An effect resolution's condition plans as the card shows them: who, which, and whether it ended. */

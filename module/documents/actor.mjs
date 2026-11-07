@@ -21,7 +21,7 @@ import {floatHealthChange} from "../applications/floating-text.mjs";
 import {effectiveSpellcasting, hitDiceHealing, hitDiePoolId, longRestHitDice} from "../helpers/spellcasting.mjs";
 import {actorAbilityModifier, actorProficiencyBonus, checkRollModeDomains, resolveActorCheckStatistic, resolveActorSaveStatistic}
   from "../helpers/combat-statistics.mjs";
-import {combineRollModes, d20FormulaWith} from "../helpers/rolls.mjs";
+import {ROLL_TYPES, bonusDiceRequest, combineRollModes, countedRollTotal, createD20RollRequest, d20FormulaWith} from "../helpers/rolls.mjs";
 import {executeConditionEffect} from "../resolvers/effect-resolver.mjs";
 import {executeEffectLifecycleCommit} from "../resolvers/effect-lifecycle-commit-resolver.mjs";
 import {planConditionTriggerConsequences} from "../resolvers/condition-trigger-resolver.mjs";
@@ -824,9 +824,11 @@ export default class WildPathActor extends Actor {
   /**
    * A d20 test outside an Action, from the sheet (G8): a saving throw (`save`), a skill check (`skill`, with its
    * ability unless `ability` names another) or an ability check (`ability`). Its bonus, bonus dice (Guidance) and
-   * Advantage or Disadvantage are the creature's own; the roll goes to chat. With physical dice (the `dicePolicy`
-   * setting) the roller types the total. Its card may be rerolled with Heroic Inspiration (`rerolled`: this is that
-   * reroll; applications/inspiration-reroll.mts). Returns the total, or null when cancelled.
+   * Advantage or Disadvantage are the creature's own; the roll goes to chat. It is one RollRequest answered as an
+   * Action's rolls are (`game.wildpath.requestRoll`): digital or physical dice by the `dicePolicy` setting, each giving
+   * the same RollResult with its natural d20. Its card may be rerolled with Heroic Inspiration (`rerolled`: this is that
+   * reroll; applications/inspiration-reroll.mts). Returns the RollResult (its total as it counts: countedRollTotal), or
+   * null when not rolled.
    */
   async rollTest({ability=null, skill=null, save=null, rerolled=false}={}) {
     const {ABILITIES, SKILLS} = CONFIG.WILDPATH;
@@ -835,8 +837,7 @@ export default class WildPathActor extends Actor {
     const statistic = save ? resolveActorSaveStatistic(this, save) : resolveActorCheckStatistic(this, {ability: used, skill});
     const domains = save ? ["save", `save.${save}`] : checkRollModeDomains(this, {ability: used, skill});
     const rollMode = combineRollModes(this.getRollModes(domains, {context: save ? {} : {check: {ability: used, skill}}}));
-    const bonus = (statistic?.dice ?? []).filter(die => (Number(die?.number) > 0) && (Number(die?.faces) > 0))
-      .map(die => `${die.sign < 0 ? "-" : "+"} ${die.number}d${die.faces}`);
+    const bonus = (statistic?.dice ?? []).filter(die => (Number(die?.number) > 0) && (Number(die?.faces) > 0));
     // The die of help this check uses up (Assist from Inspiring Help: `addDie` for "check", `endsWhen: "checks"`) goes on
     // it: a sheet roll has no DC to fail first, and the check ends that effect either way (endEffectsWhenChecked).
     const checked = new Set(["check", `check.${used}`, skill ? `check.${skill}` : null]);
@@ -844,27 +845,32 @@ export default class WildPathActor extends Actor {
       && (effect.system?.ruleElements ?? []).some(rule => (rule.data?.domains ?? []).some(domain => checked.has(domain)));
     if ( !save ) for ( const effect of this.effects ?? [] ) {
       const dice = usedUp(effect) ? effectAddedDice(effect, this, {test: "check"}) : null;
-      if ( dice ) bonus.push(`+ ${dice.number}d${dice.faces}`);
+      if ( dice ) bonus.push({number: dice.number, faces: dice.faces});
     }
-    const formula = d20FormulaWith(["1d20", ...bonus].join(" "), {rollMode, modifier: statistic?.totalModifier ?? 0,
-      naturalMinimum: statistic?.naturalMinimum ?? null});
+    const modifier = statistic?.totalModifier ?? 0;
+    const formula = d20FormulaWith(["1d20", ...bonus.map(die => `${die.sign < 0 ? "-" : "+"} ${die.number}d${die.faces}`)].join(" "),
+      {rollMode, modifier, naturalMinimum: statistic?.naturalMinimum ?? null});
     const abilityLabel = game.i18n.localize(ABILITIES[used]?.label ?? used);
     const label = save ? game.i18n.format("WILDPATH.ROLL.Save", {ability: abilityLabel})
       : skill ? game.i18n.format("WILDPATH.ROLL.Skill", {skill: game.i18n.localize(SKILLS[skill]?.label ?? skill), ability: abilityLabel})
       : game.i18n.format("WILDPATH.ROLL.Check", {ability: abilityLabel});
-    let roll;
-    if ( game.settings.get("wildpath", "dicePolicy") === "physical" ) {
-      const answer = await foundry.applications.api.DialogV2.input({classes: ["wildpath", "themed", "theme-light"], window: {title: label},
-        content: `<label>${game.i18n.format("WILDPATH.PROMPT.Roll.Total", {formula})} <input type="number" name="total" autofocus></label>`,
-        ok: {label: game.i18n.localize("WILDPATH.PROMPT.Confirm")}, rejectClose: false});
-      const total = Number(answer?.total);
-      if ( (answer?.total == null) || (answer.total === "") || !Number.isFinite(total) ) return null;
-      roll = await new Roll(String(total)).evaluate();
-    } else roll = await new Roll(formula).evaluate();
-    // Its total counts as at least its floor (Indomitable Might: the Might score).
-    const total = Math.max(roll.total, Number(statistic?.totalMinimum) || -Infinity);
+    const resolutionId = `roll-test:${foundry.utils.randomID()}`;
+    // Bonus dice (Guidance) leave the total to the roller, as on an Action's check: a physical roller types the d20 and the total.
+    const dice = bonusDiceRequest(bonus, {known: true, value: modifier});
+    const request = createD20RollRequest({id: `${resolutionId}:roll`, resolutionId, formula, rollMode, modifier,
+      type: save ? ROLL_TYPES.SAVING_THROW : skill ? ROLL_TYPES.SKILL_CHECK : ROLL_TYPES.ABILITY_CHECK, ...dice,
+      expected: {...(dice.expected ?? {}),
+        ...((Number(statistic?.naturalMinimum) > 1) ? {naturalMinimum: Math.trunc(statistic.naturalMinimum)} : {}),
+        // Its total counts as at least its floor (Indomitable Might: the Might score).
+        ...((Number(statistic?.totalMinimum) > 1) ? {totalMinimum: Math.trunc(statistic.totalMinimum)} : {})},
+      metadata: {rollKind: save ? "save" : "check", ability: used, skill, saveKey: save}});
+    const result = await game.wildpath.requestRoll(request, {title: label});
+    if ( !result ) return null;
+    // Digital dice show as rolled; typed (physical) dice show their total.
+    const roll = result.raw?.foundryRoll ? Roll.fromData(result.raw.foundryRoll) : await new Roll(String(result.total)).evaluate();
+    const total = countedRollTotal(result);
     const note = [rerolled ? game.i18n.localize("WILDPATH.INSPIRATION.Rerolled") : null,
-      (total > roll.total) ? game.i18n.format("WILDPATH.ROLL.AtLeast", {total}) : null].filter(Boolean).map(text => `, ${text}`).join("");
+      (total > result.total) ? game.i18n.format("WILDPATH.ROLL.AtLeast", {total}) : null].filter(Boolean).map(text => `, ${text}`).join("");
     // Its Token speaks, so a Diviner who sees it may replace the d20 (adapters/foundry-v14-portent).
     await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this, token: this.token ?? this.getActiveTokens?.()[0]?.document}),
       flavor: `${label} (${formula}${note})`,
@@ -873,7 +879,7 @@ export default class WildPathActor extends Actor {
         ...((Number(statistic?.totalMinimum) > 1) ? {totalMinimum: Number(statistic.totalMinimum)} : {})}}}});
     // A check uses up the help it had (Assist's Advantage).
     if ( !save ) await game.wildpath?.endEffectsWhenChecked?.(this, {ability: used, skill});
-    return total;
+    return result;
   }
 
   /**

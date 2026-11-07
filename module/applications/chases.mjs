@@ -1,3 +1,5 @@
+import {countedRollTotal} from "../helpers/rolls.mjs";
+
 /**
  * Chases (2024 DMG, 2026-10-22). The GM turns the running combat into a chase (a Token control; `flags.wildpath.chase`
  * on the Combat):
@@ -24,9 +26,9 @@ export async function afterChaseAction({options, state}, {game=globalThis.game}=
   const dashes = (Number(actor.flags?.wildpath?.chaseDashes) || 0) + 1;
   await actor.setFlag("wildpath", "chaseDashes", dashes);
   if ( dashes <= freeDashes(actor) ) return {dashes, free: true};
-  const total = await actor.rollTest?.({ability: "fortitude"});
+  const total = countedRollTotal(await actor.rollTest?.({ability: "fortitude"}));
   // A roll closed unrolled (physical dice) is no failure.
-  const failed = (total != null) && !(Number(total) >= 10);
+  const failed = (total != null) && !(total >= 10);
   if ( failed ) await actor.toggleCondition?.("exhaustion");
   return {dashes, free: false, failed};
 }
