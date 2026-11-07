@@ -20,8 +20,9 @@ function amountText(expression: DiceLike | undefined | null): string {
   return formatFormula(expression) ?? expression?.type ?? "?";
 }
 
-/** One line per part of the definition, as [label, text] pairs; an absent part has no line. */
-export function summarizeActionDefinition(definition: Data | null | undefined): Array<[string, string]> {
+/** One line per part of the definition, as [label, text] pairs; an absent part has no line. `localize` reads the lang keys. */
+export function summarizeActionDefinition(definition: Data | null | undefined,
+  localize: (key: string) => string = key => key): Array<[string, string]> {
   if ( !definition ) return [];
   const d = definition as {costs?: Parameters<typeof costText>[0]; controllerCosts?: Parameters<typeof costText>[0];
     targeting?: {type?: string; count?: number}; range?: {type?: string; distance?: {value?: number}; normal?: {value?: number};
@@ -33,25 +34,30 @@ export function summarizeActionDefinition(definition: Data | null | undefined): 
     summon?: {actorRef?: string; choiceId?: string; count?: number; concentration?: boolean}; configuration?: unknown[];
     stabilize?: boolean};
   const lines: Array<[string, string | null]> = [
-    ["Cost", costText(d.costs) ?? "free"],
-    ["Controller cost", costText(d.controllerCosts)],
-    ["Targets", d.targeting?.type ? `${d.targeting.type}${d.targeting.count ? ` (${d.targeting.count})` : ""}` : null],
-    ["Range", d.range?.type ? `${d.range.type} ${d.range.distance?.value ?? d.range.normal?.value ?? ""}${d.range.long?.value
-      ? `/${d.range.long.value}` : ""} ft` : null],
-    ["Area", d.area?.shape ? `${d.area.shape} ${d.area.size?.value ?? "?"} ft${d.area.persistence ? ", lasting" : ""}` : null],
-    ["Attack", d.attack ? `${d.attack.type ?? "?"} vs ${d.attack.defenseKey ?? "ac"}${d.attack.properties?.length
+    ["WILDPATH.BUILDER.Section.costs", costText(d.costs) ?? localize("WILDPATH.BUILDER.Costs.Free")],
+    ["WILDPATH.BUILDER.Summary.ControllerCost", costText(d.controllerCosts)],
+    ["WILDPATH.BUILDER.Section.targets", d.targeting?.type
+      ? `${d.targeting.type}${d.targeting.count ? ` (${d.targeting.count})` : ""}` : null],
+    ["WILDPATH.BUILDER.Section.range", d.range?.type ? `${d.range.type} ${d.range.distance?.value ?? d.range.normal?.value ?? ""}${
+      d.range.long?.value ? `/${d.range.long.value}` : ""} ft` : null],
+    ["WILDPATH.BUILDER.Section.area", d.area?.shape
+      ? `${d.area.shape} ${d.area.size?.value ?? "?"} ft${d.area.persistence ? ", lasting" : ""}` : null],
+    ["WILDPATH.BUILDER.Summary.Attack", d.attack ? `${d.attack.type ?? "?"} vs ${d.attack.defenseKey ?? "ac"}${d.attack.properties?.length
       ? ` (${d.attack.properties.join(", ")})` : ""}${d.attack.proficient ? ", proficient" : ""}` : null],
-    ["Save", d.save ? `${d.save.ability ?? "?"} DC ${d.save.dc?.value ?? "?"}` : null],
-    ["Check", d.check ? `${[d.check.ability, d.check.skill && `(${d.check.skill})`].filter(Boolean).join(" ")} DC ${d.check.dc?.value ?? "?"}`
-      : null],
-    ["Damage", d.damage?.length ? d.damage.map(entry => `${amountText(entry.expression)} ${entry.damageType ?? ""}`.trim()).join(", ") : null],
-    ["Healing", d.healing?.length ? d.healing.map(entry => amountText(entry.expression)).join(", ") : null],
-    ["Effects", d.effects?.length ? d.effects.map(entry => entry.name ?? entry.conditionId ?? entry.type ?? "?").join(", ") : null],
-    ["Choices", d.configuration?.length ? String(d.configuration.length) : null],
-    ["Transform", d.transform ? (d.transform.revert ? "revert" : d.transform.formRef ?? `choice ${d.transform.choiceId}`) : null],
-    ["Summon", d.summon ? `${d.summon.actorRef ?? `choice ${d.summon.choiceId}`} ×${d.summon.count ?? 1}${d.summon.concentration
-      ? ", concentration" : ""}` : null],
-    ["Stabilize", d.stabilize ? "dying targets" : null]
+    ["WILDPATH.BUILDER.Summary.Save", d.save ? `${d.save.ability ?? "?"} DC ${d.save.dc?.value ?? "?"}` : null],
+    ["WILDPATH.BUILDER.Summary.Check", d.check
+      ? `${[d.check.ability, d.check.skill && `(${d.check.skill})`].filter(Boolean).join(" ")} DC ${d.check.dc?.value ?? "?"}` : null],
+    ["WILDPATH.BUILDER.Section.damage", d.damage?.length
+      ? d.damage.map(entry => `${amountText(entry.expression)} ${entry.damageType ?? ""}`.trim()).join(", ") : null],
+    ["WILDPATH.BUILDER.Section.healing", d.healing?.length ? d.healing.map(entry => amountText(entry.expression)).join(", ") : null],
+    ["WILDPATH.BUILDER.Section.effects", d.effects?.length
+      ? d.effects.map(entry => entry.name ?? entry.conditionId ?? entry.type ?? "?").join(", ") : null],
+    ["WILDPATH.BUILDER.Summary.Choices", d.configuration?.length ? String(d.configuration.length) : null],
+    ["WILDPATH.BUILDER.Summary.Transform", d.transform
+      ? (d.transform.revert ? "revert" : d.transform.formRef ?? `choice ${d.transform.choiceId}`) : null],
+    ["WILDPATH.BUILDER.Summary.Summon", d.summon ? `${d.summon.actorRef ?? `choice ${d.summon.choiceId}`} ×${d.summon.count ?? 1}${
+      d.summon.concentration ? ", concentration" : ""}` : null],
+    ["WILDPATH.BUILDER.Summary.Stabilize", d.stabilize ? "dying targets" : null]
   ];
-  return lines.filter((line): line is [string, string] => line[1] !== null);
+  return lines.filter((line): line is [string, string] => line[1] !== null).map(([label, text]) => [localize(label), text]);
 }

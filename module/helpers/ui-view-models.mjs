@@ -53,7 +53,8 @@ export function createActionBarViewModel({
     ?? normalizeEntityRef(actor, {kind: ENTITY_REF_KINDS.ACTOR});
   const system = actorSystem ?? actor?.system ?? {};
   const resources = economyResourcesFromActorResources(system);
-  const resourceViews = resources.map(createEconomyResourceView);
+  const resourceViews = resources.map(resource => createEconomyResourceView(resource,
+    {cap: system.resourceCaps?.[resource.source?.slug]}));
   const selectedRef = selectedActionRef ? normalizeActionRef({ref: selectedActionRef}) : null;
   const actionInputs = (actions ?? collectionContents(actor?.items) ?? []).filter(isActionBarAction);
   const actionViews = actionInputs.map(action => createActionBarEntry({
@@ -184,9 +185,16 @@ export function createConcentrationCheckPromptViewModel({
 
 /* -------------------------------------------- */
 
-export function createEconomyResourceView(resource) {
+/**
+ * One resource as the UI shows it. `cap` is the creature's ResourceCap ceiling on it (`actorSystem.resourceCaps`), if
+ * any: a resource the cap holds down (Incapacitated's Action at 0) is `capped`, and empty means unavailable. The
+ * maximum here is already capped, so a cap above it (40 feet on a Speed of 30) limits nothing.
+ */
+export function createEconomyResourceView(resource, {cap}={}) {
   const maximum = Math.max(Number(resource.maximum ?? resource.max ?? 0) || 0, 0);
   const current = clamp(Number(resource.current ?? resource.value ?? 0) || 0, 0, maximum);
+  // shortcut: a cap exactly equal to the natural maximum also reads as capped; keep the uncapped maximum if that matters.
+  const capped = Number.isFinite(cap) && (maximum >= cap);
   return {
     id: String(resource.id),
     category: resource.category ?? resource.id,
@@ -194,7 +202,8 @@ export function createEconomyResourceView(resource) {
     current,
     maximum,
     unit: resource.unit ?? "uses",
-    depleted: current <= 0 && maximum > 0,
+    depleted: current <= 0 && (maximum > 0 || capped),
+    capped,
     full: maximum > 0 && current >= maximum,
     ratio: maximum > 0 ? current / maximum : 0,
     paymentCapabilities: uniqueStrings(resource.paymentCapabilities ?? []),

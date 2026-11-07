@@ -15,7 +15,8 @@ import {requiresContext} from "./combat.mjs";
  */
 
 type Data = Record<string, unknown>;
-interface ResourceView {id: string; category: string; label: string; current: number; maximum: number; depleted: boolean}
+interface ResourceView {id: string; category: string; label: string; current: number; maximum: number; depleted: boolean;
+  capped: boolean}
 interface ActionView {id: string | null; ref: string; label: string; img: string | null; enabled: boolean; group: string;
   disabledCode: string | null; payment?: {failures?: Array<{resourceId?: string | null; code?: string | null}>}}
 interface GroupView {id: string; label: string; actions: string[]}
@@ -193,7 +194,7 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[], loca
     name: actor.name ?? bar.actorName ?? "",
     img: actor.img ?? null,
     resources: [...bar.resources].sort((a, b) => order(a) - order(b)).map(resource => ({id: resource.id, label: resource.label,
-      current: resource.current, maximum: resource.maximum, depleted: resource.depleted,
+      current: resource.current, maximum: resource.maximum, depleted: resource.depleted, capped: resource.capped,
       // Legendary Resistance has a setting like a reaction's: the creature's own, as a common reaction's is.
       ...(resource.id === "legendary-resistance" ? {policy: legendaryPolicy(actor)} : {})})),
     groups: [...[...bar.groups.map(group => group.id), ...EXTRA_GROUPS].flatMap(groupId => {

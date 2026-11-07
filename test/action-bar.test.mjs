@@ -35,6 +35,26 @@ test("a spent Action greys out its Actions with the reason, and the bar shows ac
     "a disabled condition effect is not shown");
 });
 
+test("an Action an effect caps at 0 (Incapacitated) reads as spent and unavailable, with a tooltip saying why", () => {
+  const hero = creature();
+  hero.system.resources.action = {value: 0, max: 0};
+  hero.system.resources.movement = {value: 5, max: 5};
+  hero.system.resourceCaps = {action: 0, movement: 5};
+  const resources = new Map(actionBarContext({actor: hero, conditions}).resources.map(resource => [resource.id, resource]));
+  assert.deepEqual([resources.get("economy.action").depleted, resources.get("economy.action").capped], [true, true]);
+  assert.deepEqual([resources.get("economy.movement").depleted, resources.get("economy.movement").capped], [false, true],
+    "a cap above 0 limits the resource but leaves it usable");
+  assert.deepEqual([resources.get("economy.bonus-action").depleted, resources.get("economy.bonus-action").capped], [false, false]);
+  const wolf = creature();
+  wolf.system.resources.movement = {value: 30, max: 30};
+  wolf.system.resourceCaps = {movement: 40};
+  assert.equal(actionBarContext({actor: wolf, conditions}).resources.find(resource => resource.id === "economy.movement").capped,
+    false, "a cap above the Speed (a Werewolf's 40-foot wolf form on a Speed of 30) limits nothing");
+  const uncapped = creature();
+  uncapped.system.resources.action = {value: 0, max: 0};
+  assert.equal(actionBarContext({actor: uncapped, conditions}).resources[0].depleted, false, "a resource it never had is not spent");
+});
+
 test("Legendary Resistance's counter shows its setting: Ask by default, the creature's own", () => {
   const dragon = creature();
   dragon.system.pools.push({id: "legendary-resistance", label: "Legendary Resistance", value: 3, max: 3});

@@ -479,7 +479,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
       editable: this.#mechanicsEditable,
       listId: this.id,
       values,
-      summary: summarizeActionDefinition(definition).map(([label, text]) => ({label, text})),
+      summary: summarizeActionDefinition(definition, key => game.i18n.localize(key)).map(([label, text]) => ({label, text})),
       issues: draft ? [{level: "error", text: game.i18n.localize("WILDPATH.ITEMSHEET.NotSaved")}, ...issues] : issues,
       templates: Object.fromEntries(Object.keys(ACTION_TEMPLATES).map(key => [key, `WILDPATH.BUILDER.Template.${key}`])),
       capabilities: [...Object.values(CONFIG.WILDPATH.ECONOMY_CAPABILITIES), ...Array.from({length: 9}, (_, i) => `spell-slot.${i + 1}`), "spell-slot.pact"],

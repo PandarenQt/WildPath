@@ -597,6 +597,7 @@
     "ACTIONBAR": {
       "NoActions": "No actions",
       "Unavailable": "Not available now",
+      "Capped": "Lowered by a condition, effect or carried load",
       "Reason": {
         "Spent": "no {name} left",
         "ItemNotReady": "{name} must be equipped, and attuned if it needs it",
@@ -846,6 +847,16 @@
         "healing": "Healing",
         "effects": "Effects",
         "advanced": "Advanced"
+      },
+      "Summary": {
+        "ControllerCost": "Controller cost",
+        "Attack": "Attack",
+        "Save": "Save",
+        "Check": "Check",
+        "Choices": "Choices",
+        "Transform": "Transform",
+        "Summon": "Summon",
+        "Stabilize": "Stabilize"
       },
       "Issue": {
         "NoTargets": "it has outcomes but no targets.",
