@@ -105,41 +105,6 @@
           ]
         }
       },
-      "save": {
-        "ability": "presence",
-        "dc": {
-          "valueExpression": {
-            "type": "add",
-            "terms": [
-              {
-                "type": "constant",
-                "value": 8
-              },
-              {
-                "type": "proficiency-bonus"
-              },
-              {
-                "type": "spellcasting-modifier"
-              }
-            ]
-          }
-        }
-      },
-      "effects": [
-        {
-          "id": "effect-1",
-          "type": "effect",
-          "name": "Cannot Lie",
-          "img": "icons/skills/social/wave-halt-stop.webp",
-          "ruleElements": [],
-          "duration": {
-            "value": 600,
-            "units": "seconds",
-            "expiry": "turnStart"
-          },
-          "saveOutcomePolicy": "failure"
-        }
-      ],
       "configuration": [
         {
           "id": "spell-slot",

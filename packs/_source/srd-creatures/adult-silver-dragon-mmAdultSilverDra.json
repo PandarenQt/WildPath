@@ -984,6 +984,10 @@
               {
                 "capability": "action",
                 "amount": 1
+              },
+              {
+                "capability": "spellcasting-phbsplzoneoftrut",
+                "amount": 1
               }
             ]
           },
@@ -1053,33 +1057,27 @@
               ]
             }
           },
-          "save": {
-            "ability": "presence",
-            "dc": {
-              "value": 19
-            }
-          },
-          "effects": [
-            {
-              "id": "effect-1",
-              "type": "effect",
-              "name": "Cannot Lie",
-              "img": "icons/skills/social/wave-halt-stop.webp",
-              "ruleElements": [],
-              "duration": {
-                "value": 600,
-                "units": "seconds",
-                "expiry": "turnStart"
-              },
-              "saveOutcomePolicy": "failure"
-            }
-          ],
           "metadata": {
             "spellLevel": 2
           },
           "label": "Zone of Truth"
         },
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "spellcasting-phbsplzoneoftrut-uses",
+            "type": "GrantResource",
+            "data": {
+              "resourceId": "spellcasting-phbsplzoneoftrut",
+              "label": "Spellcasting (Zone of Truth)",
+              "maximum": {
+                "type": "constant",
+                "value": 1
+              },
+              "recovery": "longRest"
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {

@@ -16,8 +16,7 @@
         "spell:web",
         "component:verbal",
         "component:somatic",
-        "component:material",
-        "damage:fire"
+        "component:material"
       ],
       "costs": {
         "allOf": [
@@ -82,16 +81,12 @@
                     "value": 13
                   }
                 },
-                "damage": [
+                "effects": [
                   {
-                    "id": "damage-1",
-                    "expression": {
-                      "type": "dice",
-                      "number": 2,
-                      "faces": 4
-                    },
-                    "damageType": "fire",
-                    "provenance": "spell-base"
+                    "id": "effect-1",
+                    "type": "condition",
+                    "conditionId": "restrained",
+                    "saveOutcomePolicy": "failure"
                   }
                 ]
               }
@@ -99,24 +94,6 @@
           ]
         }
       },
-      "save": {
-        "ability": "agility",
-        "dc": {
-          "value": 13
-        }
-      },
-      "damage": [
-        {
-          "id": "damage-1",
-          "expression": {
-            "type": "dice",
-            "number": 2,
-            "faces": 4
-          },
-          "damageType": "fire",
-          "provenance": "spell-base"
-        }
-      ],
       "metadata": {
         "spellLevel": 2
       },
@@ -170,7 +147,10 @@
         "castBy": "Wand of Web"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "damage: what its text deals apart from the save is by hand",
+          "save: a failure gives restrained (its text); the rest is by hand"
+        ]
       },
       "price": 400,
       "rarity": "uncommon"

@@ -288,7 +288,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Clay Golem | actors24 | Clay Golem (9 items) | Berserk: "Berserk Check" is passive or triggered (narrative): not automated |
 | Cleric | classes24 | Cleric (class) | — |
 | Climber's Kit | equipment24 | Climber's Kit (gear) | — |
-| Cloak of Arachnida | equipment24 | Cloak of Arachnida (gear), Cloak of Arachnida: Web (automated) | — |
+| Cloak of Arachnida | equipment24 | Cloak of Arachnida (gear), Cloak of Arachnida: Web (automated) | damage: what its text deals apart from the save is by hand; save: a failure gives restrained (its text); the rest is by hand |
 | Cloak of Displacement | equipment24 | Cloak of Displacement (gear) | — |
 | Cloak of Elvenkind | equipment24 | Cloak of Elvenkind (gear) | text: "Wondrous Item, Uncommon (Requires Attunement)    While you wear this cloak, Wisdom (Perception) checks made to perceive you have Disadvantage, and you have Advantage on Dexterity (Stealth) checks." not converted |
 | Cloak of Invisibility | equipment24 | Cloak of Invisibility (gear), Cloak of Invisibility (automated) | — |
@@ -451,7 +451,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Dragonchess | equipment24 | Dragonchess (gear), Dragonchess (Catch Cheating) (automated), Dragonchess (Play to Win) (automated) | — |
 | Dream | spells24 | Dream (automated) | activation: 1 minute is not an action-economy cost |
 | Dretch | actors24 | Dretch (3 items) | — |
-| Drider | actors24 | Drider (10 items) | — |
+| Drider | actors24 | Drider (10 items) | Magic of the Spider Queen: damage: what its text deals apart from the save is by hand; Magic of the Spider Queen: save: a failure gives restrained (its text); the rest is by hand |
 | Druid | classes24 | Druid (class) | — |
 | Druid | actors24 | Druid (10 items) | Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Carrying Message" marks its creature (narrative) |
 | Druidcraft | spells24 | Druidcraft (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
@@ -722,7 +722,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Grappling Hook | equipment24 | Grappling Hook (gear), Grappling Hook (automated) | — |
 | Gray Bag of Tricks | equipment24 | Gray Bag of Tricks (gear), Gray Bag of Tricks (automated) | — |
 | Gray Ooze | actors24 | Gray Ooze (4 items) | — |
-| Grease | spells24 | Grease (automated) | save: a failure gives prone (its text); the rest is by hand |
+| Grease | spells24 | Grease (automated) | — |
 | Great Weapon Fighting | feats24 | Great Weapon Fighting (feature) | — |
 | Greataxe | equipment24 | Greataxe (automated) | — |
 | Greatclub | equipment24 | Greatclub (automated) | — |
@@ -1060,7 +1060,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Oil | equipment24 | Oil (Throw) (automated), Oil (Douse Space) (automated) | rolled (save); what it does is by hand |
 | Oil of Etherealness | equipment24 | Oil of Etherealness (automated) | — |
 | Oil of Sharpness | equipment24 | Oil of Sharpness (Apply Oil to Weapon) (automated), Oil of Sharpness (Apply Oil to Ammunition) (automated) | — |
-| Oil of Slipperiness | equipment24 | Oil of Slipperiness: Freedom of Movement (automated), Oil of Slipperiness: Grease (automated) | activation: 10 minute is not an action-economy cost; save: a failure gives prone (its text); the rest is by hand |
+| Oil of Slipperiness | equipment24 | Oil of Slipperiness: Freedom of Movement (automated), Oil of Slipperiness: Grease (automated) | cast: its 8 hours (its text) is by hand; it lasts as the spell does; activation: 10 minute is not an action-economy cost |
 | Oil of Taggit | equipment24 | Oil of Taggit (automated) | — |
 | One with Shadows | classes24 | One with Shadows (automated) | — |
 | Oni | actors24 | Oni (11 items) | Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Gaseous Form" change img (override) not converted |
@@ -1152,7 +1152,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Potion of Giant Strength (Hill) | equipment24 | Potion of Giant Strength (Hill) (automated) | — |
 | Potion of Giant Strength (Stone) | equipment24 | Potion of Giant Strength (Stone) (automated) | — |
 | Potion of Giant Strength (Storm) | equipment24 | Potion of Giant Strength (Storm) (automated) | — |
-| Potion of Growth | equipment24 | Potion of Growth: Enlarge/Reduce (automated) | — |
+| Potion of Growth | equipment24 | Potion of Growth: Enlarge/Reduce (automated) | cast: its 10 minutes (its text) is by hand; it lasts as the spell does |
 | Potion of Healing | equipment24 | Potion of Healing (automated) | — |
 | Potion of Healing | equipment24 | Potion of Healing (automated) | — |
 | Potion of Healing (Greater) | equipment24 | Potion of Healing (Greater) (automated) | — |
@@ -1162,7 +1162,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Potion of Invisibility | equipment24 | Potion of Invisibility (automated) | — |
 | Potion of Invulnerability | equipment24 | Potion of Invulnerability (automated) | — |
 | Potion of Longevity | equipment24 | Potion of Longevity (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Potion of Mind Reading | equipment24 | Potion of Mind Reading: Detect Thoughts (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; save: a failure marks its creature (narrative) |
+| Potion of Mind Reading | equipment24 | Potion of Mind Reading: Detect Thoughts (manual) | cast: its 10 minutes (its text) is by hand; it lasts as the spell does; not automated (utility, narrative): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; save: a failure marks its creature (narrative) |
 | Potion of Poison | equipment24 | Potion of Poison (automated) | — |
 | Potion of Resistance | equipment24 | Potion of Resistance (automated) | — |
 | Potion of Speed | equipment24 | Potion of Speed: Haste (automated) | "Apply Lethargy" is passive or triggered: not automated |
@@ -1451,7 +1451,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Staff of Power | equipment24 | Staff of Power (attack) (automated), Staff of Power (attack) (Two-Handed) (automated), Staff of Power (Retributive Strike) (automated), Staff of Power: Cone of Cold (automated), Staff of Power: Fireball (automated), Staff of Power: Globe of Invulnerability (manual), Staff of Power: Hold Monster (automated), Staff of Power: Levitate (automated), Staff of Power: Lightning Bolt (automated), Staff of Power: Magic Missile (automated), Staff of Power: Ray of Enfeeblement (automated), Staff of Power: Wall of Force (manual) | "Retributive Strike": what it does besides the others' save (to its user, to the item) is by hand; not automated (utility): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; effect: "Levitating" marks its creature (narrative) |
 | Staff of Striking | equipment24 | Staff of Striking (attack) (automated), Staff of Striking (attack) (Two-Handed) (automated), Staff of Striking (Charge Damage) (automated) | — |
 | Staff of Swarming Insects | equipment24 | Staff of Swarming Insects (attack) (automated), Staff of Swarming Insects (attack) (Two-Handed) (automated), Staff of Swarming Insects (Insect Cloud) (manual), Staff of Swarming Insects: Giant Insect (automated), Staff of Swarming Insects: Insect Plague (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Staff of the Magi | equipment24 | Staff of the Magi (attack) (automated), Staff of the Magi (attack) (Two-Handed) (automated), Staff of the Magi (Spell Absorption) (manual), Staff of the Magi (Retributive Strike) (automated), Staff of the Magi: Arcane Lock (manual), Staff of the Magi: Conjure Elemental (automated), Staff of the Magi: Detect Magic (automated), Staff of the Magi: Dispel Magic (automated), Staff of the Magi: Enlarge/Reduce (automated), Staff of the Magi: Fireball (automated), Staff of the Magi: Flaming Sphere (automated), Staff of the Magi: Ice Storm (automated), Staff of the Magi: Invisibility (automated), Staff of the Magi: Knock (manual), Staff of the Magi: Light (automated), Staff of the Magi: Lightning Bolt (automated), Staff of the Magi: Mage Hand (automated), Staff of the Magi: Passwall (manual), Staff of the Magi: Plane Shift (manual), Staff of the Magi: Protection from Evil and Good (automated), Staff of the Magi: Telekinesis (automated), Staff of the Magi: Wall of Fire (automated), Staff of the Magi: Web (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted; "Retributive Strike": what it does besides the others' save (to its user, to the item) is by hand; effect: "Detect Magic" marks its creature (narrative); concentration: its caster concentrates; what it sustains is by hand; not automated (teleport, narrative): using it spends its cost; its description says the rest; save: a failure marks its creature only; what it does is by hand |
+| Staff of the Magi | equipment24 | Staff of the Magi (attack) (automated), Staff of the Magi (attack) (Two-Handed) (automated), Staff of the Magi (Spell Absorption) (manual), Staff of the Magi (Retributive Strike) (automated), Staff of the Magi: Arcane Lock (manual), Staff of the Magi: Conjure Elemental (automated), Staff of the Magi: Detect Magic (automated), Staff of the Magi: Dispel Magic (automated), Staff of the Magi: Enlarge/Reduce (automated), Staff of the Magi: Fireball (automated), Staff of the Magi: Flaming Sphere (automated), Staff of the Magi: Ice Storm (automated), Staff of the Magi: Invisibility (automated), Staff of the Magi: Knock (manual), Staff of the Magi: Light (automated), Staff of the Magi: Lightning Bolt (automated), Staff of the Magi: Mage Hand (automated), Staff of the Magi: Passwall (manual), Staff of the Magi: Plane Shift (manual), Staff of the Magi: Protection from Evil and Good (automated), Staff of the Magi: Telekinesis (automated), Staff of the Magi: Wall of Fire (automated), Staff of the Magi: Web (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted; "Retributive Strike": what it does besides the others' save (to its user, to the item) is by hand; effect: "Detect Magic" marks its creature (narrative); concentration: its caster concentrates; what it sustains is by hand; not automated (teleport, narrative): using it spends its cost; its description says the rest; save: a failure marks its creature only; what it does is by hand; damage: what its text deals apart from the save is by hand; save: a failure gives restrained (its text); the rest is by hand |
 | Staff of the Python | equipment24 | Staff of the Python (attack) (automated), Staff of the Python (Transform into Snake) (automated) | — |
 | Staff of the Woodlands | equipment24 | Staff of the Woodlands (attack) (automated), Staff of the Woodlands (attack) (Two-Handed) (automated), Staff of the Woodlands: Animal Friendship (automated), Staff of the Woodlands: Awaken (manual), Staff of the Woodlands: Barkskin (automated), Staff of the Woodlands: Locate Animals or Plants (manual), Staff of the Woodlands: Pass without Trace (automated), Staff of the Woodlands: Speak with Animals (automated), Staff of the Woodlands: Speak with Plants (automated), Staff of the Woodlands: Wall of Thorns (automated), Staff of the Woodlands (Tree Form) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 8 hour is not an action-economy cost; effect: "Speaking with Plants" marks its creature (narrative) |
 | Staff of Thunder and Lightning | equipment24 | Staff of Thunder and Lightning (attack) (automated), Staff of Thunder and Lightning (attack) (Two-Handed) (automated), Staff of Thunder and Lightning (Lightning) (automated), Staff of Thunder and Lightning (Thunder) (automated), Staff of Thunder and Lightning (Thunder & Lightning) (automated), Staff of Thunder and Lightning (Lightning Strike) (automated), Staff of Thunder and Lightning (Thunderclap) (automated) | — |
@@ -1623,7 +1623,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Wand of Polymorph | equipment24 | Wand of Polymorph (gear), Wand of Polymorph: Polymorph (automated) | transform: a Beast the caster chooses; what the creature may do in its form is by hand |
 | Wand of Secrets | equipment24 | Wand of Secrets (gear), Wand of Secrets (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Wand of the War Mage, +1, +2, or +3 | equipment24 | Wand of the War Mage, +1, +2, or +3 (gear), Wand of the War Mage, +1, +2, or +3 (automated) | — |
-| Wand of Web | equipment24 | Wand of Web (gear), Wand of Web: Web (automated) | — |
+| Wand of Web | equipment24 | Wand of Web (gear), Wand of Web: Web (automated) | damage: what its text deals apart from the save is by hand; save: a failure gives restrained (its text); the rest is by hand |
 | Wand of Wonder | equipment24 | Wand of Wonder (gear) | "cast" is passive or triggered: not automated; "Heavy Rain (36-40)" is passive or triggered: not automated; "Cloud of Oversized Butterflies (41-45)" is passive or triggered: not automated; "Grass Cover (61-64)" is passive or triggered: not automated; "Burst of Colorful Light (78-82)" is passive or triggered: not automated; "Stream of Gems (88-92)" is passive or triggered: not automated |
 | War Pick | equipment24 | War Pick (automated), War Pick (Two-Handed) (automated) | — |
 | Warding Bond | spells24 | Warding Bond (automated) | — |
@@ -1661,7 +1661,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Weapon, +1, +2, or +3 | equipment24 | Weapon, +1, +2, or +3 (automated) | — |
 | Weasel | actors24 | Weasel (2 items) | — |
 | Weaver's Tools | equipment24 | Weaver's Tools (gear), Weaver's Tools (automated) | — |
-| Web | spells24 | Web (automated) | — |
+| Web | spells24 | Web (automated) | damage: what its text deals apart from the save is by hand; save: a failure gives restrained (its text); the rest is by hand |
 | Weird | spells24 | Weird (save) (automated) | "End of Turn Save" is passive or triggered: not automated |
 | Well of Many Worlds | equipment24 | Well of Many Worlds (gear), Well of Many Worlds (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Werebear | actors24 | Werebear (8 items) | — |

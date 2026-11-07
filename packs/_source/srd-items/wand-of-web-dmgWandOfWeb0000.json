@@ -30,7 +30,10 @@
         "subtype": null
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "damage: what its text deals apart from the save is by hand",
+          "save: a failure gives restrained (its text); the rest is by hand"
+        ]
       },
       "grants": [
         "82yotvgq9sy90000"

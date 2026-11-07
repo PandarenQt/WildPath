@@ -233,9 +233,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "save: a failure gives prone (its text); the rest is by hand"
-        ]
+        "notes": []
       }
     }
   }

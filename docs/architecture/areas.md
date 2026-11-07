@@ -305,7 +305,9 @@ Dimension Door's 500).
   no movement spent, no path walked, no Opportunity Attack.
 - **Converted:** dnd5e teleport activities with a distance in feet. SRD: Misty Step, Dimension Door, Tree Stride, the
   Cape of the Mountebank, and the Archmage's, Mage's, Cloud Giant's, Lich's and Spirit Naga's casts. Teleport, Plane
-  Shift and Word of Recall have no distance and stay by hand.
+  Shift and Word of Recall have no distance and stay by hand. A spell with no teleport activity whose text says "You
+  teleport ... to a location / any other spot / an unoccupied space ... within range", with a range in feet, gets one
+  first (`missingTeleport`): the Player's Handbook module's Dimension Door, whose older data holds only its damage.
 - **Bringing creatures along.** With `teleport: {distance, withTargets: true}` the Action's targets go too, each
   Blinked to the free space beside the landing nearest it (`spaceBeside`). The converter gives Dimension Door and a
   Fey Steed's or Otherworldly Steed's Fey Step one optional, non-hostile target other than itself within 5 feet; with

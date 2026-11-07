@@ -105,26 +105,6 @@
           ]
         }
       },
-      "save": {
-        "ability": "agility",
-        "dc": {
-          "valueExpression": {
-            "type": "add",
-            "terms": [
-              {
-                "type": "constant",
-                "value": 8
-              },
-              {
-                "type": "proficiency-bonus"
-              },
-              {
-                "type": "spellcasting-modifier"
-              }
-            ]
-          }
-        }
-      },
       "configuration": [
         {
           "id": "spell-slot",
@@ -187,15 +167,6 @@
             "spell-slot.9": 9
           },
           "effects": []
-        }
-      ],
-      "effects": [
-        {
-          "id": "effect-1",
-          "type": "condition",
-          "conditionId": "prone",
-          "saveOutcomePolicy": "failure",
-          "concentration": true
         }
       ],
       "metadata": {

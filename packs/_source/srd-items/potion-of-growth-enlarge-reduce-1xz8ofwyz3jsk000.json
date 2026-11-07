@@ -320,7 +320,9 @@
         "castBy": "Potion of Growth"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "cast: its 10 minutes (its text) is by hand; it lasts as the spell does"
+        ]
       },
       "price": 200,
       "rarity": "uncommon"

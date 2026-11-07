@@ -97,6 +97,16 @@ test("Misty Step converts to a self teleport of 30 feet; Dimension Door may take
     {type: "single", required: false, count: 1, notHostile: true, notSelf: true}, {type: "ranged", normal: {value: 5, unit: "ft"}}]);
   assert.equal(validateActionDefinition(doorDefinition).ok, true);
   assert.deepEqual(door.flags.wildpath.conversion.notes, []);
+  // The Player's Handbook module's Dimension Door predates dnd5e's teleport activity: only its failed arrival's damage.
+  const older = spell("testDimensionDr2", "Dimension Door", null, "<p>You teleport to a location within range. You can also teleport one "
+    + "willing creature.</p>");
+  older.system.range = {value: "500", units: "ft"};
+  older.system.activities = {a: {...older.system.activities.a, _id: "actdamage", type: "damage", teleport: undefined,
+    damage: {parts: [{number: 4, denomination: 6, types: ["force"]}]}}};
+  const [teleports, failed] = convertItem(older).items;
+  assert.deepEqual([teleports._id, teleports.name, teleports.system.definition.teleport, failed.name, failed.system.definition.damage.length],
+    ["testDimensionDr2", "Dimension Door (teleport)", {distance: 500, withTargets: true}, "Dimension Door (damage)", 1]);
+  assert.equal(validateActionDefinition(teleports.system.definition).ok, true);
   const [far] = convertItem(spell("testTeleport0001", "Teleport", {override: true, units: "ft"})).items;
   assert.equal(far.system.definition.teleport, undefined);
   assert.match(far.flags.wildpath.conversion.notes[0], /not automated \(teleport, narrative\)/u, "it leaves the Scene: narrative");

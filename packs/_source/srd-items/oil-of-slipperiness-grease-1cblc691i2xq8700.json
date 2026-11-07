@@ -23,6 +23,10 @@
           {
             "capability": "action",
             "amount": 1
+          },
+          {
+            "capability": "oil-of-slipperiness",
+            "amount": 1
           }
         ]
       },
@@ -168,7 +172,7 @@
       },
       "conversion": {
         "notes": [
-          "save: a failure gives prone (its text); the rest is by hand"
+          "cast: its 8 hours (its text) is by hand; it lasts as the spell does"
         ]
       },
       "price": 200,

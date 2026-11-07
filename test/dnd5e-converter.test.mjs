@@ -887,8 +887,13 @@ test("an area that keeps acting by its 2024 wording becomes a lasting area repea
   assert.equal(validateActionDefinition(lasting).ok, true);
   const guardians = lastingArea(spell("Whenever an enemy you can see enters the Emanation or ends its turn there, it makes a save."));
   assert.equal(guardians.area.persistence.affects, "enemies");
-  assert.deepEqual(lastingArea(spell("The first time a creature enters the webs on a turn or starts its turn there, it saves."))
-    .area.persistence.triggers[0].on, ["area.entered", "turn.started"]);
+  // 2024 Sleet Storm, Web: a creature saves on entering or starting its turn there, not when it is cast; the trigger does it all.
+  const sleet = lastingArea(spell("When a creature enters the Cylinder for the first time on a turn or starts its turn there, it saves."));
+  assert.deepEqual([sleet.area.persistence.triggers[0].on, sleet.save, sleet.damage, sleet.effects, sleet.area.persistence.triggers[0].action.save],
+    [["area.entered", "turn.started"], undefined, undefined, undefined, definition.save]);
+  assert.equal(validateActionDefinition(sleet).ok, true);
+  assert.deepEqual(lastingArea(spell("When it appears, each creature in it saves. A creature that enters it or starts its turn there saves."))
+    .save, definition.save, "one that also acts when it appears keeps its cast's save");
   assert.equal(lastingArea(spell("It burns when a creature enters it or ends its turn there.", {})), null, "no duration (Oil)");
   assert.equal(lastingArea(spell("Each creature in the area makes a save.")), null, "no repeating wording");
 });
@@ -1553,10 +1558,13 @@ test("a save with nothing else converted: the conditions its text gives on a fai
       activation: {type: "action"}, range: {value: "60", units: "ft"}, target: {affects: {type: "creature", count: 1}, template: {}},
       description: {value: text}, duration: {value: "", units: "inst"}, ...extra,
       activities: {a: activity("save", {save: {ability: ["dex"], dc: {calculation: "spellcasting", formula: ""}}})}}});
-  const [grease] = convertItem(spell("testGreaseSpell1", "Grease",
-    "<p>Each creature in its area must succeed on a Dexterity saving throw or have the &amp;Reference[Prone apply=false] condition.</p>")).items;
-  assert.deepEqual(grease.system.definition.effects.map(effect => [effect.conditionId, effect.saveOutcomePolicy]), [["prone", "failure"]]);
-  assert.ok(grease.flags.wildpath.conversion.notes.some(note => /a failure gives prone/.test(note)));
+  const slick = "<p>Each creature in its area must succeed on a Dexterity saving throw or have the &amp;Reference[Prone apply=false] condition.</p>";
+  const [floor] = convertItem(spell("testSlickFloor01", "Slick Floor", slick)).items;
+  assert.deepEqual(floor.system.definition.effects.map(effect => [effect.conditionId, effect.saveOutcomePolicy]), [["prone", "failure"]]);
+  assert.ok(floor.flags.wildpath.conversion.notes.some(note => /a failure gives prone/.test(note)));
+  // Grease: its Difficult Terrain and repeats are its lasting area's, so nothing of it is by hand.
+  const [grease] = convertItem(spell("testGreaseSpell1", "Grease", slick)).items;
+  assert.deepEqual(grease.flags.wildpath.conversion.notes, []);
 
   const [truth] = convertItem(spell("testZoneOfTruth1", "Zone of Truth", "<p>A creature that fails can't lie.</p>",
     {duration: {value: "10", units: "minute"}})).items;
@@ -3259,4 +3267,14 @@ test("SRD gaps closed: Multiattack counts, casts and names; escapes; effects by 
   }
   // Phantasmal Force's phantasm damage is by hand, so its marker stays a gap, not narrative.
   assert.equal(realGapNotes(read("srd-items", "phantasmal-force-cast").flags.wildpath.conversion.notes).length, 1);
+  // A listed cast dnd5e leaves without uses ("1/Day Each: ... Zone of Truth", Adult Silver Dragon) has its list's.
+  assert.ok(actions("adult-silver-dragon")["Zone of Truth"].system.definition.costs.allOf
+    .some(cost => cost.capability === "spellcasting-phbsplzoneoftrut"));
+  // A consumable's cast that dnd5e leaves spending nothing uses the item up; the length its text gives is by hand.
+  const oil = read("srd-items", "oil-of-slipperiness-grease");
+  assert.ok(oil.system.definition.costs.allOf.some(cost => cost.capability === "oil-of-slipperiness"));
+  assert.deepEqual(oil.flags.wildpath.conversion.notes, ["cast: its 8 hours (its text) is by hand; it lasts as the spell does"]);
+  // Web's burning (2d4 Fire to a creature starting its turn in the fire) is not its save's: a failure Restrains.
+  const web = read("srd-items", "web-phbsplWeb").system.definition.area.persistence.triggers[0].action;
+  assert.deepEqual([web.damage, web.effects.map(effect => effect.conditionId)], [undefined, ["restrained"]]);
 });

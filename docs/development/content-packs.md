@@ -340,6 +340,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
   - The area lasts the spell's duration and ends with its concentration. Its trigger repeats the save, damage and
     effects on the creature, at most once per turn.
   - Spirit Guardians ("you can designate creatures to be unaffected") spares its caster's side.
+  - One whose wording is "enters it for the first time on a turn or starts its turn there", with nothing when it
+    appears (2024 Sleet Storm, Web, Zone of Truth), has no save of its own when cast: a creature already inside saves
+    as its turn starts (2026-11-07). Sleet Storm's lost Concentration stays by hand.
   - A higher slot's dice reach the repeat too, for the area's whole life: the slot's scaling applies to the triggers'
     damage (same ids), and the Region stores the configured definition (2026-10-18).
   - Live (2026-10-18): QA Caster's Moonbeam at 3rd level hit the Bandit Captain for 10 and left a lasting Moonbeam

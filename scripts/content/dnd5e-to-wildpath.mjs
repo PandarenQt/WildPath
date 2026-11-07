@@ -75,7 +75,9 @@ const NARRATIVE_SAVES = new Set(["scrying", "detect-thoughts", "seeming", "light
  * escape DC, repeated save and Exhaustion levels: nothing of them is by hand. Not a Net: its own AC and Hit Points
  * (destroying it frees its creature) are by hand, so its note stays until objects are modelled.
  */
-const FAILURE_TEXT_COMPLETE = new Set(["crawler-mucus", "ring-of-x-ray-vision", "grasping-hand"]);
+const FAILURE_TEXT_COMPLETE = new Set(["crawler-mucus", "ring-of-x-ray-vision", "grasping-hand",
+  // Its Difficult Terrain and its repeat on entering or ending a turn there are its lasting area's (lastingArea).
+  "grease"]);
 
 /** The sizes of creatures, smallest first. */
 const CREATURE_SIZES = ["tiny", "small", "medium", "large", "huge", "gargantuan"];
@@ -1646,6 +1648,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       && /^Action or Bonus Action$/iu.test(activity.activation?.condition ?? ""))
       ? {...activity, activation: {...activity.activation, type: "action", override: true}, bonusToo: true} : activity));
   activities.push(...missingCasts(document, activities));
+  activities.unshift(...missingTeleport(document, activities));
   const spell = document.type === "spell";
   const level = number(system.level) ?? 0;
   const pool = usesPool({document, scales}) ?? spentPool(activities, names);
@@ -3592,7 +3595,12 @@ export function lastingArea({document, system, definition, activity=null, repeat
     ...(definition.damage?.length ? {damage: unsaved ? definition.damage.map(({saveOutcomePolicy: _saved, ...part}) => part)
       : definition.damage} : {}),
     ...(definition.effects?.length ? {effects: definition.effects.map(({concentration: _held, ...effect}) => effect)} : {})};
-  return {...definition, area: {...definition.area, persistence: {duration: {unit: "round", value: rounds},
+  // "enters it for the first time on a turn or starts its turn there", and nothing when it appears (2024 Sleet Storm, Web,
+  // Zone of Truth): one already in it saves as its turn starts, so the casting itself affects nobody.
+  const castActs = Boolean(repeat) || !wording || (wording[1].toLowerCase() !== "starts") || /\balso\b/iu.test(wording[0])
+    || /\b(?:appears|when you cast)\b/iu.test(plainText(document));
+  const {save: _save, damage: _damage, effects: _effects, ...cast} = definition;
+  return {...(castActs ? definition : cast), area: {...definition.area, persistence: {duration: {unit: "round", value: rounds},
     concentration: (system.properties ?? []).includes("concentration"),
     // "Whenever an enemy you can see enters", or "you can designate creatures to be unaffected" (Spirit Guardians): its
     // caster's side is spared. shortcut: the designated creatures are always the caster's allies.
@@ -3940,7 +3948,8 @@ function traitOf(document, options) {
 /**
  * The spells a Spellcasting feature's list links that dnd5e gives no cast activity (2024 Adult Brass Dragon's Scorching
  * Ray), as cast activities like its others, at their list's frequency ("At Will:", "1/Day Each:"). None for a document
- * with no cast activity.
+ * with no cast activity. A listed cast dnd5e leaves without its list's uses (2024 Adult Silver Dragon's Zone of Truth,
+ * "1/Day Each:") is given them in `activities`.
  */
 function missingCasts(document, activities) {
   const casts = activities.filter(activity => activity.type === "cast");
@@ -3951,16 +3960,37 @@ function missingCasts(document, activities) {
     const heading = /<strong>\s*(At Will|(\d+)\/Day(?: Each)?)\s*:\s*<\/strong>/i.exec(paragraph);
     if ( !heading ) continue;
     const perDay = number(heading[2]);
+    const listed = like => ({consumption: {...(like.consumption ?? {}), targets: perDay ? [{type: "activityUses", value: "1"}] : []},
+      uses: perDay ? {spent: 0, max: String(perDay), recovery: [{period: "day", type: "recoverAll"}]} : {spent: 0, max: "", recovery: []}});
     for ( const [, uuid, id] of paragraph.matchAll(/@UUID\[(Compendium\.dnd5e\.spells\w*\.Item\.(\w+))\]/g) ) {
+      const at = activities.findIndex(activity => (activity.type === "cast") && (String(activity.spell?.uuid ?? "").split(".").pop() === id));
+      const free = activities[at];
+      if ( free && perDay && !number(free.uses?.max) && !(free.consumption?.targets ?? []).length ) activities[at] = {...free, ...listed(free)};
       if ( cast.has(id) ) continue;
       cast.add(id);
       added.push({...structuredClone(casts[0]), _id: id, name: "", sort: (casts.at(-1).sort ?? 0) + added.length + 1,
         spell: {...(casts[0].spell?.ability ? {ability: casts[0].spell.ability} : {}), uuid},
-        consumption: {...(casts[0].consumption ?? {}), targets: perDay ? [{type: "activityUses", value: "1"}] : []},
-        uses: perDay ? {spent: 0, max: String(perDay), recovery: [{period: "day", type: "recoverAll"}]} : {spent: 0, max: "", recovery: []}});
+        ...listed(casts[0])});
     }
   }
   return added;
+}
+
+/** "You teleport to a location within range" (2024 Dimension Door), "You teleport yourself ... to any other spot within range". */
+const TELEPORTS_WITHIN_RANGE = /\bYou teleport (?:yourself )?(?:from your current location )?to (?:a location|any other spot|an unoccupied space)\b[^.]*?\bwithin range\b/iu;
+
+/**
+ * A spell that teleports its caster within its range but whose data has no teleport activity (the Player's Handbook
+ * module's Dimension Door, from before dnd5e had one, holds only its failed arrival's damage): that teleport, first, as the
+ * SRD's newer data gives it.
+ */
+function missingTeleport(document, activities) {
+  const range = document.system?.range ?? {};
+  if ( (document.type !== "spell") || activities.some(activity => activity.type === "teleport") || (range.units !== "ft")
+    || !(number(range.value) > 0) || !TELEPORTS_WITHIN_RANGE.test(plainText(document)) ) return [];
+  return [{_id: "missingteleport0", type: "teleport", name: "", sort: Math.min(0, ...activities.map(activity => activity.sort ?? 0)) - 1,
+    activation: {override: false}, range: {override: false}, target: {override: false, template: {}, affects: {}}, effects: [],
+    consumption: {targets: [], spellSlot: true}, teleport: {value: range.value, units: "ft"}}];
 }
 
 /**
@@ -4049,7 +4079,18 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   // dnd5e leaves some wands' charge out of their cast activity (Wand of Polymorph); its text gives it ("expend 1 charge to cast").
   const charge = (activity.consumption?.targets ?? []).length ? null
     : /\bexpend (\d+) (?:of its )?charges?\b[^.]*\bcast\b/i.exec(plainText(document));
-  const paying = charge ? {...activity, consumption: {...activity.consumption, targets: [{type: "itemUses", value: charge[1]}]}} : activity;
+  // A consumable's use is one of its own (Oil of Slipperiness's Pour on Ground, which dnd5e leaves spending nothing).
+  const used = !charge && !(activity.consumption?.targets ?? []).length && (document.type === "consumable")
+    && (number(document.system?.uses?.max) > 0);
+  const spends = charge?.[1] ?? (used ? "1" : null);
+  const paying = spends ? {...activity, consumption: {...activity.consumption, targets: [{type: "itemUses", value: spends}]}} : activity;
+  // "duplicating the effect of the Grease spell in that area for 8 hours": a length its text gives other than the spell's is by hand.
+  const lasts = new RegExp(`\\b${spellDocument.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\}? spell\\b[^.]*?\\bfor (\\d+) (minute|hour)s?\\b`, "i")
+    .exec(plainText(document));
+  const spellRounds = (Number(spellDocument.system?.duration?.value) || 0) * (ROUNDS[spellDocument.system?.duration?.units] ?? 0);
+  if ( lasts && (Number(lasts[1]) * ROUNDS[lasts[2].toLowerCase()] !== spellRounds) ) {
+    notes.push(`cast: its ${lasts[1]} ${lasts[2].toLowerCase()}${(lasts[1] === "1") ? "" : "s"} (its text) is by hand; it lasts as the spell does`);
+  }
   const base = baseDefinition({document, activity: paying, system, spell: false, notes, pool: itemPool, names: options.names ?? {},
     scales: options.scales ?? {}});
   // A reaction spell (a ring's Feather Fall) is still cast with its Reaction, whatever the item's cast activity says.
@@ -5360,6 +5401,15 @@ function convertActivity({document, activity, system, spell, level, scales, note
   const onSave = activity.damage?.onSave;
   if ( definition.save && damage.length && (onSave === "half" || onSave === "none") ) {
     for ( const component of damage ) component.saveOutcomePolicy = {success: onSave, failure: "full"};
+  }
+  // Damage dealt whatever the save, whose dice its text gives only apart from any saving throw (2024 Web: "dealing 2d4
+  // Fire damage to any creature that starts its turn in the fire"), is not the save's: by hand, and the save does what
+  // a failure gives.
+  const apart = String(system.description?.value ?? "").split(/<\/p>/i)
+    .filter(paragraph => (activity.damage?.parts ?? []).some(part => paragraph.includes(`${part.number}d${part.denomination}`)));
+  if ( definition.save && damage.length && (onSave === "full") && apart.length && !apart.some(paragraph => /\bsaving throw\b/i.test(paragraph)) ) {
+    notes.push("damage: what its text deals apart from the save is by hand");
+    damage.length = 0;
   }
 
   const healing = [];
