@@ -36,6 +36,37 @@ export function bastionTurn(actor) {
   return {special, orders, shut, quiet: special.length > 0 && !orders.length};
 }
 
+/**
+ * Related writes made one after another, each `[document, update]` or, last, a function; when one fails, those made are
+ * put back (the latest first) and the error rethrown, so an order pays and delivers once. Each order writes what
+ * its character gives up (stock, coins, the claim on a craft) before what it gains: a write that can't be put back leaves
+ * it short, with the error, never paid twice. shortcut: separate updates, not one; upgrade if Foundry gains multi-document
+ * transactions.
+ */
+async function writeInOrder(writes) {
+  const undo = [];
+  try {
+    for ( const write of writes ) {
+      if ( typeof write === "function" ) {
+        await write();
+        continue;
+      }
+      const [document, data] = write;
+      const before = structuredClone(Object.fromEntries(Object.keys(data).map(path =>
+        [path, path.split(".").reduce((value, key) => value?.[key], document)])));
+      await document.update(data);
+      undo.unshift(() => document.update(before));
+    }
+  } catch (error) {
+    try {
+      for ( const step of undo ) await step();
+    } catch (failed) {
+      throw new AggregateError([error, failed], "A Bastion write failed and what it had written could not be put back.");
+    }
+    throw error;
+  }
+}
+
 /** What one order yields this turn, as a line for the chat; it applies what it can. */
 export async function carryOut(actor, facility, order) {
   const name = actor.name;
@@ -52,10 +83,13 @@ export async function carryOut(actor, facility, order) {
     }
     const coins = spendGold(actor.system.currency ?? {}, plan.cost);
     if ( !coins ) return format("WILDPATH.BASTION.CraftPoor", {name, item: made.name, cost: plan.cost});
-    await actor.update({"system.currency": coins});
     const {_id, ...data} = made.toObject();
-    await actor.createEmbeddedDocuments("Item", [{...data, system: {...data.system, ...("quantity" in (data.system ?? {}) ? {quantity: 1} : {})}}]);
-    await facility.update({"system.current.craft": "", "system.current.progress": 0});
+    await writeInOrder([[facility, {"system.current.craft": "", "system.current.progress": 0}], [actor, {"system.currency": coins}],
+      async () => {
+        // Foundry resolves a refused creation (a _preCreate or hook returning false, invalid data) with none made.
+        const created = await actor.createEmbeddedDocuments("Item", [{...data, system: {...data.system, ...("quantity" in (data.system ?? {}) ? {quantity: 1} : {})}}]);
+        if ( !created?.length ) throw new Error(`${made.name} could not be created on ${actor.name}.`);
+      }]);
     return format("WILDPATH.BASTION.Crafted", {name, facility: facility.name, item: made.name, cost: plan.cost});
   }
   // Stocking an Armory: 100 GP plus 100 per Bastion Defender, half with a Smithy; stocked, defenders are harder to kill.
@@ -64,24 +98,21 @@ export async function carryOut(actor, facility, order) {
     const cost = (100 + (100 * (Number(actor.system.bastion?.defenders) || 0))) / (smithy ? 2 : 1);
     const coins = spendGold(actor.system.currency ?? {}, cost);
     if ( !coins ) return format("WILDPATH.BASTION.CraftPoor", {name, item: facility.name, cost});
-    await actor.update({"system.currency": coins});
-    await facility.update({"system.trade.stock": 1});
+    await writeInOrder([[actor, {"system.currency": coins}], [facility, {"system.trade.stock": 1}]]);
     return format("WILDPATH.BASTION.Stocked", {name, facility: facility.name, gold: cost});
   }
   if ( (order === "trade") && (Number(facility.system.trade?.stockMax) > 0) ) {
     const stock = Number(facility.system.trade.stock) || 0;
     if ( stock > 0 ) {
       const gold = tradeSale(stock, facility.system.trade.profit);
-      await actor.update({"system.currency.gp": (Number(actor.system.currency?.gp) || 0) + gold});
-      await facility.update({"system.trade.stock": 0});
+      await writeInOrder([[facility, {"system.trade.stock": 0}], [actor, {"system.currency.gp": (Number(actor.system.currency?.gp) || 0) + gold}]]);
       return format("WILDPATH.BASTION.Sold", {name, facility: facility.name, gold});
     }
     const spend = Math.min(Number(facility.system.trade.stockMax), Math.floor((Number(actor.system.currency?.pp) || 0) * 10
       + (Number(actor.system.currency?.gp) || 0)));
     const coins = spend > 0 ? spendGold(actor.system.currency ?? {}, spend) : null;
     if ( !coins ) return format("WILDPATH.BASTION.NoStock", {name, facility: facility.name});
-    await actor.update({"system.currency": coins});
-    await facility.update({"system.trade.stock": spend});
+    await writeInOrder([[actor, {"system.currency": coins}], [facility, {"system.trade.stock": spend}]]);
     return format("WILDPATH.BASTION.Stocked", {name, facility: facility.name, gold: spend});
   }
   if ( (order === "recruit") && (Number(facility.system.defenders) > 0) ) {
@@ -156,7 +187,16 @@ export async function runBastionTurn({game=globalThis.game, ChatMessage=globalTh
     const shared = [];
     for ( const group of bastionGroups(characters).values() ) {
       const lines = group[0].system?.bastion?.shared?.id ? [] : solo;
-      for ( const actor of group ) await bastionActor(actor, game, group, lines);
+      for ( const actor of group ) {
+        // One character's error ends only its part, said in the chat: running the whole turn again would give the others
+        // a second event and move time on twice.
+        try {
+          await bastionActor(actor, game, group, lines);
+        } catch (error) {
+          console.error(`Wild Path | ${actor.name}'s Bastion turn failed`, error);
+          lines.push(format(error instanceof AggregateError ? "WILDPATH.BASTION.FailedUndo" : "WILDPATH.BASTION.Failed", {name: actor.name}));
+        }
+      }
       if ( (lines !== solo) && lines.length ) shared.push({names: group.map(actor => actor.name).join(", "), lines});
     }
     await game.time?.advance?.(7 * 86400);
@@ -178,11 +218,19 @@ async function bastionActor(actor, game, group, lines) {
     lines.push(format("WILDPATH.BASTION.Repaired", {name: actor.name, facility: facility.name}));
     await facility.update({"system.current.shutDown": false});
   }
-  // Each order back to Maintain as soon as it is carried out: an error later never repeats it. One its player gave
+  // Each order back to Maintain before it is carried out, and given back if that fails having put back its own writes
+  // (writeInOrder), so the next turn carries it out; one whose writes could not be put back is not. One its player gave
   // while the turn ran (no longer the order carried out) stays for the next turn.
   for ( const {facility, order} of orders ) {
-    lines.push(await carryOut(actor, facility, order));
-    if ( facility.system?.current?.order === order ) await facility.update({"system.current.order": "maintain"});
+    const claimed = facility.system?.current?.order === order;
+    if ( claimed ) await facility.update({"system.current.order": "maintain"});
+    try {
+      lines.push(await carryOut(actor, facility, order));
+    } catch (error) {
+      const undone = !(error instanceof AggregateError);
+      if ( claimed && undone && (facility.system?.current?.order === "maintain") ) await facility.update({"system.current.order": order});
+      throw error;
+    }
   }
   if ( quiet ) lines.push(await bastionEvent(actor, game, group));
 }
@@ -239,8 +287,7 @@ export async function enlargeFacility(facility) {
     globalThis.ui?.notifications?.warn?.(format("WILDPATH.BASTION.CantBuild", {name: actor.name, cost}));
     return false;
   }
-  await actor.update({"system.currency": coins});
-  await facility.update({"system.size": size});
+  await writeInOrder([[actor, {"system.currency": coins}], [facility, {"system.size": size}]]);
   await ChatMessage.create({content: format("WILDPATH.BASTION.Enlarged", {name: actor.name, facility: facility.name, size: localize(`WILDPATH.BASTION.Sizes.${size}`), cost, days})});
   return true;
 }
@@ -264,6 +311,9 @@ export function registerBastions() {
     const tokens = controls?.tokens;
     if ( !tokens?.tools || !globalThis.game?.user?.isGM ) return;
     tokens.tools.bastionTurn = {name: "bastionTurn", title: "WILDPATH.BASTION.Turn", icon: "fa-solid fa-chess-rook", button: true,
-      order: Object.keys(tokens.tools).length + 1, onChange: () => void runBastionTurn()};
+      order: Object.keys(tokens.tools).length + 1, onChange: () => void runBastionTurn().catch(error => {
+        globalThis.ui?.notifications?.error?.(localize("WILDPATH.BASTION.TurnFailed"));
+        throw error;
+      })};
   });
 }

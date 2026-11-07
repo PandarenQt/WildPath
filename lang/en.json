@@ -1441,6 +1441,9 @@
       "Order": "{name}'s {facility} carries out its {order} order.",
       "Event": "{name}'s Bastion only maintained: a Bastion event (d100: {total}).",
       "Nothing": "No Bastion did anything this turn.",
+      "TurnFailed": "The Bastion Turn stopped on an error (see the console). Its orders may already be carried out: check before running it again.",
+      "Failed": "{name}'s Bastion stopped on an error (see the console). Its unfinished order is still issued for the next turn.",
+      "FailedUndo": "{name}'s Bastion stopped on an error, and what it had written could not be put back (see the console). The GM must check its coins and facilities.",
       "Level": "Character level",
       "Sizes": {
         "cramped": "Cramped",

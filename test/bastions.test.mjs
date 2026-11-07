@@ -76,7 +76,8 @@ test("a Bastion turn runs only on the active GM, and an order its player gave wh
     await runBastionTurn({game: game("gm1", "gm1"), ChatMessage: {create: async data => { messages.push(data); }}});
     assert.equal(messages.length, 1);
     assert.equal(facility.system.current.order, "trade", "the order given mid-turn is not reset to Maintain");
-    assert.equal(updates.some(data => data["system.current.order"] === "maintain"), false);
+    assert.deepEqual(updates.map(data => Object.keys(data)), [["system.current.order"], ["system.current.progress"]],
+      "Maintain is written before the order is carried out, never over the player's new order after it");
   } finally { globalThis.fromUuid = previous; }
 });
 
@@ -259,6 +260,130 @@ test("a Bastion turn lists a shared Bastion's lines under its members, and a cov
   assert.equal(content.split("<h4>").length, 2, "one heading for the shared Bastion");
   assert.match(content, /WILDPATH\.BASTION\.Covered/);
   assert.match(content, /WILDPATH\.BASTION\.EventDrawn/, "Bob draws his own event");
+});
+
+test("an order that fails at any write is put back and said in chat, and the next turn sells, buys, crafts, stocks and recruits once", async () => {
+  const {runBastionTurn} = await import("../module/applications/bastions.mjs");
+  const orders = {
+    sale: [{name: "Storehouse", order: "trade", trade: {stockMax: 500, stock: 100, profit: 10}}, {gp: 0}, {gp: 110}],
+    purchase: [{name: "Storehouse", order: "trade", trade: {stockMax: 500, stock: 0, profit: 10}}, {gp: 50}, {gp: 0}],
+    armory: [{name: "Armory", order: "trade", trade: {stockMax: 0, stock: 0}}, {gp: 150}, {gp: 50}],
+    crafted: [{name: "Workshop", order: "craft", craft: "Item.rope"}, {gp: 30}, {gp: 20}],
+    crafting: [{name: "Workshop", order: "craft", craft: "Item.boots"}, {gp: 30}, {gp: 30}],
+    recruit: [{name: "Barrack", order: "recruit", defenders: 12}, {gp: 0}, {gp: 0}]
+  };
+  const made = {"Item.rope": {name: "Rope", system: {price: 20}, flags: {}, toObject: () => ({_id: "r", name: "Rope", system: {price: 20, quantity: 5}})},
+    "Item.boots": {name: "Boots", system: {price: 5000, rarity: "rare"}, flags: {}}};
+  // Every document write (and the chat card) counts; the `failAt`th throws before it changes anything.
+  const world = (key, failAt) => {
+    const [{name, order, craft, trade, defenders}, gp] = structuredClone(orders[key]);
+    let writes = 0;
+    const tick = () => { if ( ++writes === failAt ) throw new Error("injected"); };
+    const facility = {type: "facility", name, system: {kind: "special", defenders, trade, current: {order, craft, progress: 0}}};
+    facility.update = async data => { tick(); await writer(facility)(data); };
+    const actor = {type: "character", hasPlayerOwner: true, name: "Hero", items: [facility],
+      system: {currency: {pp: 0, ...gp, ep: 0, sp: 0, cp: 0}, bastion: {defenders: 0}},
+      update: async data => { tick(); await writer(actor)(data); },
+      createEmbeddedDocuments: async (type, data) => { tick(); actor.items.push(...data); return data; }};
+    const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, actors: [actor], time: {advance: async () => {}}};
+    const cards = [];
+    return {turn: () => runBastionTurn({game, ChatMessage: {create: async ({content}) => { tick(); cards.push(content); }}}),
+      writes: () => writes, card: () => cards.at(-1), state: () => JSON.parse(JSON.stringify({system: actor.system, items: actor.items}))};
+  };
+  const previous = [globalThis.fromUuid, globalThis.Roll, console.error];
+  const logged = [];
+  console.error = (...args) => logged.push(args);
+  globalThis.fromUuid = async uuid => made[uuid];
+  // The next turn after the chat card failed: every order is done, so a quiet Bastion's d100 event, which writes nothing.
+  globalThis.Roll = class { async evaluate() { return Object.assign(this, {total: 50}); } };
+  try {
+    for ( const key of Object.keys(orders) ) {
+      const once = world(key);
+      await once.turn();
+      const expected = once.state();
+      const {pp, gp} = expected.system.currency;
+      assert.equal((pp * 10) + gp, orders[key][2].gp, `${key}: its gold after one turn`);
+      for ( let failAt = 1; failAt <= once.writes(); failAt++ ) {
+        const failed = world(key, failAt);
+        // Only the chat card, the turn's last write, fails the turn; a character's error is a line on it.
+        if ( failAt === once.writes() ) await assert.rejects(failed.turn(), /injected/);
+        else {
+          await failed.turn();
+          assert.ok(failed.card().includes("WILDPATH.BASTION.Failed<"), `${key}: write ${failAt} failed, and the chat says so`);
+          assert.equal(logged.at(-1)[1].message, "injected");
+        }
+        await failed.turn();
+        assert.deepEqual(failed.state(), expected, `${key}: write ${failAt} failed, and the next turn carried the order out`);
+      }
+    }
+    const results = Object.fromEntries(Object.keys(orders).map(key => [key, world(key)]));
+    for ( const {turn} of Object.values(results) ) await turn();
+    const [sale, purchase, armory, crafted, crafting, recruit] = Object.values(results).map(({state}) => state());
+    assert.deepEqual([sale.items[0].system.trade.stock, purchase.items[0].system.trade.stock, armory.items[0].system.trade.stock,
+      crafted.items.length, crafted.items[0].system.current, crafting.items[0].system.current.progress, recruit.system.bastion.defenders],
+    [0, 50, 1, 2, {order: "maintain", craft: "", progress: 0}, 7, 4]);
+  } finally { [globalThis.fromUuid, globalThis.Roll, console.error] = previous; }
+});
+
+test("one character's failed order does not stop the turn: the others are carried out, time moves on, and the chat lists all", async () => {
+  const {runBastionTurn} = await import("../module/applications/bastions.mjs");
+  const character = (name, current, gp) => {
+    const facility = {type: "facility", name: "Workshop", system: {kind: "special", current}};
+    facility.update = writer(facility);
+    const actor = {type: "character", hasPlayerOwner: true, name, items: [facility], system: {currency: {gp}, bastion: {}},
+      createEmbeddedDocuments: async () => []};
+    actor.update = writer(actor);
+    return actor;
+  };
+  // Bea's crafted item is refused (Foundry resolves a refused creation with none made): her coins and craft are put back.
+  const [ann, bea, cal] = [character("Ann", {order: "maintain"}, 0), character("Bea", {order: "craft", craft: "Item.rope", progress: 0}, 30),
+    character("Cal", {order: "maintain"}, 0)];
+  let advanced = 0;
+  const messages = [];
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, actors: [ann, bea, cal], time: {advance: async () => { advanced++; }}};
+  const previous = [globalThis.fromUuid, globalThis.Roll, console.error];
+  console.error = () => {};
+  globalThis.fromUuid = async () => ({name: "Rope", system: {price: 20}, flags: {}, toObject: () => ({_id: "r", name: "Rope", system: {}})});
+  globalThis.Roll = class { async evaluate() { return Object.assign(this, {total: 50}); } };
+  try {
+    await runBastionTurn({game, ChatMessage: {create: async ({content}) => { messages.push(content); }}});
+    assert.equal(advanced, 1);
+    assert.equal(messages.length, 1);
+    assert.equal(messages[0].match(/WILDPATH\.BASTION\.Event</g).length, 2, "Ann and Cal each have their event");
+    assert.ok(messages[0].includes("WILDPATH.BASTION.Failed<"), "Bea's error is a line on the card");
+    assert.deepEqual([bea.system.currency.gp, bea.items[0].system.current], [30, {order: "craft", craft: "Item.rope", progress: 0}],
+      "Bea paid nothing and her order is still issued");
+  } finally { [globalThis.fromUuid, globalThis.Roll, console.error] = previous; }
+});
+
+test("a craft whose item and refund both fail leaves its character short, says so, and is not carried out again", async () => {
+  const {runBastionTurn} = await import("../module/applications/bastions.mjs");
+  const facility = {type: "facility", name: "Workshop", system: {kind: "special", current: {order: "craft", craft: "Item.rope", progress: 0}}};
+  facility.update = writer(facility);
+  let refunds = 0;
+  const actor = {type: "character", hasPlayerOwner: true, name: "Hero", items: [facility], system: {currency: {gp: 30}, bastion: {}},
+    createEmbeddedDocuments: async () => { throw new Error("no item"); }};
+  actor.update = async data => {
+    if ( data["system.currency"].gp === 30 ) throw new Error(`no refund ${++refunds}`);
+    await writer(actor)(data);
+  };
+  const game = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, actors: [actor], time: {advance: async () => {}}};
+  const previous = [globalThis.fromUuid, globalThis.Roll, console.error];
+  const logged = [];
+  console.error = (...args) => logged.push(args[1]);
+  globalThis.fromUuid = async () => ({name: "Rope", system: {price: 20}, flags: {}, toObject: () => ({_id: "r", name: "Rope", system: {}})});
+  globalThis.Roll = class { async evaluate() { return Object.assign(this, {total: 50}); } };
+  const messages = [];
+  const ChatMessage = {create: async ({content}) => { messages.push(content); }};
+  try {
+    await runBastionTurn({game, ChatMessage});
+    assert.ok(messages[0].includes("WILDPATH.BASTION.FailedUndo<"), "the chat says the GM must check its coins and facilities");
+    assert.ok((logged[0] instanceof AggregateError) && (logged[0].errors.map(each => each.message).join() === "no item,no refund 1"));
+    assert.deepEqual(facility.system.current, {order: "maintain", craft: "", progress: 0}, "the craft stays claimed, its order not given back");
+    await runBastionTurn({game, ChatMessage});
+    assert.deepEqual([actor.system.currency.pp * 10 + actor.system.currency.gp, actor.items.length, refunds], [20, 1, 1],
+      "the next turn pays and makes nothing a second time");
+  } finally { [globalThis.fromUuid, globalThis.Roll, console.error] = previous; }
 });
 
 test("founding, joining and leaving a shared Bastion writes only the character's own id, and says so in chat", async () => {
