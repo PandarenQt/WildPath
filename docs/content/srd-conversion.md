@@ -248,7 +248,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Candle | equipment24 | Candle (automated) | — |
 | Candle | equipment24 | Candle (automated) | — |
 | Candle of Invocation | equipment24 | Candle of Invocation (Light Candle (Minutes)) (automated), Candle of Invocation: Gate (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand |
-| Cape of the Mountebank | equipment24 | Cape of the Mountebank (gear), Cape of the Mountebank: Dimension Door (automated) | teleport: a creature it brings along is moved by hand |
+| Cape of the Mountebank | equipment24 | Cape of the Mountebank (gear), Cape of the Mountebank: Dimension Door (automated) | — |
 | Careful Spell | classes24 | Careful Spell (feature) | — |
 | Carpenter's Tools | equipment24 | Carpenter's Tools (gear), Carpenter's Tools (automated) | — |
 | Carpet of Flying | equipment24 | Carpet of Flying (gear), Carpet of Flying (Activate (3 by 5 ft.)) (automated), Carpet of Flying (Activate (4 by 6 ft.)) (automated), Carpet of Flying (Activate (5 by 7 ft.)) (automated), Carpet of Flying (Activate (6 by 9 ft.)) (automated) | — |
@@ -407,8 +407,8 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Devious Strikes | classes24 | Devious Strikes (Daze) (automated), Devious Strikes (Knock Out) (automated), Devious Strikes (Obscure) (automated) | — |
 | Devouring Blade | classes24 | Devouring Blade (feature) | — |
 | Dice | equipment24 | Dice (gear), Dice (Catch Cheating) (automated), Dice (Play to Win) (automated) | — |
-| Dimension Door | spells24 | Dimension Door (teleport) (automated), Dimension Door (damage) (automated) | teleport: a creature it brings along is moved by hand |
-| Dimensional Shackles | equipment24 | Dimensional Shackles (gear), Dimensional Shackles (Place Shackles) (automated), Dimensional Shackles (Attempt Escape) (automated) | effect: "Dimensionally Bound" marks its creature only; its rules are by hand |
+| Dimension Door | spells24 | Dimension Door (teleport) (automated), Dimension Door (damage) (automated) | — |
+| Dimensional Shackles | equipment24 | Dimensional Shackles (gear), Dimensional Shackles (Place Shackles) (automated), Dimensional Shackles (Attempt Escape) (automated) | — |
 | Diplomat's Pack | equipment24 | Diplomat's Pack (gear) | — |
 | Dire Wolf | actors24 | Dire Wolf (3 items) | — |
 | Disciple of Life | classes24 | Disciple of Life (feature) | — |
@@ -579,7 +579,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Feral Instinct | classes24 | Feral Instinct (feature) | — |
 | Feral Senses | classes24 | Feral Senses (feature) | — |
 | Fey Ancestry | origins24 | Fey Ancestry (feature) | — |
-| Fey Steed | actors24 | Fey Steed (3 items) | Fey Step: teleport: a creature it brings along is moved by hand |
+| Fey Steed | actors24 | Fey Steed (3 items) | — |
 | Fiend Patron | classes24 | Fiend Patron (subclass) | — |
 | Fiend Spells | classes24 | Fiend Spells (feature) | — |
 | Fiend Steed | actors24 | Fiend Steed (3 items) | — |
@@ -594,7 +594,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Fighting Style | classes24 | Fighting Style (feature) | — |
 | Figurine of Wondrous Power | equipment24 | Figurine of Wondrous Power (gear) | — |
 | Find Familiar | spells24 | Find Familiar (automated) | activation: 1 hour is not an action-economy cost |
-| Find Steed | spells24 | Find Steed (Summon Steed) (automated), Find Steed (Summon Flying Steed) (automated) | summon: what it gains with the spell's level (hd, healing) is not added |
+| Find Steed | spells24 | Find Steed (Summon Steed) (automated), Find Steed (Summon Flying Steed) (automated) | summon: its Hit Dice by the spell's level are not added (spent only on a rest) |
 | Find the Path | spells24 | Find the Path (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost; concentration: its caster concentrates; what it sustains is by hand |
 | Find Traps | spells24 | Find Traps (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Finger of Death | spells24 | Finger of Death (Negative Energy Save) (automated) | "Raise Zombie" is passive or triggered: not automated |
@@ -915,7 +915,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Lesser Restoration | spells24 | Lesser Restoration (automated) | — |
 | Lessons of the First Ones | classes24 | Lessons of the First Ones (feature) | — |
 | Levitate | spells24 | Levitate (automated) | effect: "Levitating" marks its creature (narrative) |
-| Lich | actors24 | Lich (27 items) | Spirit Jar: "Days to Reform" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: teleport: a creature it brings along is moved by hand; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Spellcasting: "Raise Zombie" is passive or triggered: not automated; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated |
+| Lich | actors24 | Lich (27 items) | Spirit Jar: "Days to Reform" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Spellcasting: "Raise Zombie" is passive or triggered: not automated; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated |
 | Life Domain | classes24 | Life Domain (subclass) | — |
 | Life Domain Spells | classes24 | Life Domain Spells (feature) | — |
 | Lifedrinker | classes24 | Lifedrinker (damage) (automated) | "Heal (Largest Hit Die)" is passive or triggered: not automated; "Heal (Smallest Hit Die)" is passive or triggered: not automated |
@@ -1070,7 +1070,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Orc | origins24 | Orc (species) | — |
 | Otherworldly Leap | classes24 | Otherworldly Leap (automated) | effect: "Jump" marks its creature (narrative) |
 | Otherworldly Presence | origins24 | Otherworldly Presence (feature) | — |
-| Otherworldly Steed | actors24 | Otherworldly Steed (5 items) | Fey Step: teleport: a creature it brings along is moved by hand |
+| Otherworldly Steed | actors24 | Otherworldly Steed (5 items) | — |
 | Otyugh | actors24 | Otyugh (5 items) | Bite: "save" is passive or triggered: not automated |
 | Overchannel | classes24 | Overchannel (feature) | — |
 | Owl | actors24 | Owl (3 items) | — |
@@ -1427,7 +1427,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Sphere of Annihilation | equipment24 | Sphere of Annihilation (gear), Sphere of Annihilation (Control the Sphere) (automated) | "Engulfed" is passive or triggered: not automated; "save" is passive or triggered: not automated |
 | Sphinx of Lore | actors24 | Sphinx of Lore (19 items) | Inscrutable: "Inscrutable" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Weight of Years: "Years Older" is passive or triggered (narrative): not automated |
 | Sphinx of Valor | actors24 | Sphinx of Valor (18 items) | Inscrutable: "Inscrutable" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Evil and Good" marks its creature (narrative); Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: activation: 1 hour is not an action-economy cost; Spellcasting: effect: "Cannot Lie" marks its creature (narrative); Weight of Years: "Years Older" is passive or triggered (narrative): not automated |
-| Sphinx of Wonder | actors24 | Sphinx of Wonder (4 items) | Burst of Ingenuity: not automated (utility): using it spends its cost; its description says the rest |
+| Sphinx of Wonder | actors24 | Sphinx of Wonder (4 items) | — |
 | Spider | actors24 | Spider (4 items) | — |
 | Spider Climb | spells24 | Spider Climb (automated) | — |
 | Spider's Sting | equipment24 | Spider's Sting (automated) | — |
@@ -1435,7 +1435,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Spiked Pit | equipment24 | Spiked Pit (gear), Spiked Pit (Trigger (1-4)) (automated), Spiked Pit (Trigger (5-10)) (automated), Spiked Pit (Trigger (11-16)) (automated), Spiked Pit (Trigger (17-20)) (automated) | — |
 | Spikes, Iron | equipment24 | Spikes, Iron (gear) | — |
 | Spirit Guardians | spells24 | Spirit Guardians (automated) | — |
-| Spirit Naga | actors24 | Spirit Naga (13 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: effect: "Water Breathing" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: teleport: a creature it brings along is moved by hand |
+| Spirit Naga | actors24 | Spirit Naga (13 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: effect: "Water Breathing" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative) |
 | Spiritual Weapon | spells24 | Spiritual Weapon (automated) | — |
 | Spiritual Weapon | actors24 | Spiritual Weapon (1 items) | — |
 | Splint Armor | equipment24 | Splint Armor (gear) | — |
@@ -1513,7 +1513,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Talisman of Ultimate Evil | equipment24 | Talisman of Ultimate Evil (gear), Talisman of Ultimate Evil (Ultimate End) (automated) | — |
 | Talons | equipment24 | Talons (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Tan Bag of Tricks | equipment24 | Tan Bag of Tricks (gear), Tan Bag of Tricks (automated) | — |
-| Tarrasque | actors24 | Tarrasque (13 items) | Reflective Carapace: "Roll d6" is passive or triggered: not automated |
+| Tarrasque | actors24 | Tarrasque (13 items) | Reflective Carapace: Reflective Carapace: reflecting the spell back at its caster on a 6 is by hand |
 | Telekinesis | spells24 | Telekinesis (automated) | save: a failure marks its creature only; what it does is by hand |
 | Telepathic Bond | spells24 | Telepathic Bond (automated) | — |
 | Teleport | spells24 | Teleport (manual) | not automated (teleport, narrative): using it spends its cost; its description says the rest |

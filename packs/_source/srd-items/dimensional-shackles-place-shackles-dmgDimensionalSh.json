@@ -39,7 +39,36 @@
           "type": "effect",
           "name": "Dimensionally Bound",
           "img": "icons/magic/control/debuff-chains-shackles-movement-blue.webp",
-          "ruleElements": []
+          "ruleElements": [
+            {
+              "schemaVersion": 1,
+              "id": "dimensionally-bound",
+              "type": "Forbid",
+              "data": {
+                "actions": {
+                  "tagsAny": [
+                    "teleport",
+                    "spell:arcane-gate",
+                    "spell:astral-projection",
+                    "spell:blink",
+                    "spell:dimension-door",
+                    "spell:etherealness",
+                    "spell:far-step",
+                    "spell:gate",
+                    "spell:misty-step",
+                    "spell:plane-shift",
+                    "spell:scatter",
+                    "spell:teleport",
+                    "spell:teleportation-circle",
+                    "spell:thunder-step",
+                    "spell:transport-via-plants",
+                    "spell:tree-stride",
+                    "spell:word-of-recall"
+                  ]
+                }
+              }
+            }
+          ]
         }
       ],
       "label": "Dimensional Shackles (Place Shackles)"
@@ -60,9 +89,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "effect: \"Dimensionally Bound\" marks its creature only; its rules are by hand"
-        ]
+        "notes": []
       },
       "price": 4000,
       "rarity": "rare"

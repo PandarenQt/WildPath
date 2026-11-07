@@ -4,6 +4,8 @@
  * Action completes the active GM moves the Token as a teleport: V14's Blink, so it spends no movement, provokes no
  * Opportunity Attack and walks no path (`movementKind: "teleport"`).
  */
+import {completedTargetRefs} from "../helpers/target-actor-refs.mjs";
+
 interface Point {x: number; y: number}
 interface Offset {i: number; j: number}
 export interface TeleportToken {
@@ -64,14 +66,27 @@ export function spaceBeside(token: TeleportToken, nextTo: TeleportToken): Point 
   return landings.sort((a, b) => far(a) - far(b))[0] ?? null;
 }
 
+/** Moves `token` to `point` as V14's Blink: no movement spent, no Opportunity Attack, no path walked. */
+export function blink(token: Pick<TeleportToken, "id" | "update">, point: Point) {
+  return token.update(point, {movement: {[token.id]: {waypoints: [{...point, action: "blink"}], showRuler: false}},
+    wildpath: {movementKind: "teleport"}});
+}
+
+type TargetRef = {tokenId?: string | null} | null | undefined;
+
 /**
  * After an Action that teleports its creature (`options.teleport`: its Token and where it lands), or a reaction's rider
- * that moves its creature beside the one it protects (`state.input.riderTeleport`), on the active GM.
+ * that moves its creature beside the one it protects (`state.input.riderTeleport`), on the active GM. With
+ * `teleport.withTargets` the Action's targets go too (Dimension Door's willing creature, a Fey Steed's rider), each to the
+ * free space beside the landing nearest it.
+ * shortcut: a target with no free space beside the landing stays where it is (Dimension Door's 'teleportation fails, 4d6
+ * Force' is the separate manual damage item); upgrade by refusing the cast up front.
  */
 export function createFoundryTeleports({game}: {game: {user?: {id?: string}; users?: {activeGM?: {id?: string} | null};
   scenes?: {get(id: string): TeleportScene | undefined}}}) {
   async function afterResolution({options, state}: {options?: {teleport?: {sceneId: string; tokenId: string; x: number; y: number}};
-    state?: {source?: {tokenRef?: string | null}; input?: {riderTeleport?: {tokenId: string; nextTo: string}}}}) {
+    state?: {source?: {tokenRef?: string | null}; input?: {riderTeleport?: {tokenId: string; nextTo: string}};
+      actionDefinition?: {teleport?: {withTargets?: boolean}} | null; targets?: TargetRef[]; results?: object}}) {
     if ( !game.user?.id || (game.users?.activeGM?.id !== game.user.id) ) return null;
     const beside = state?.input?.riderTeleport;
     if ( beside ) {
@@ -79,16 +94,21 @@ export function createFoundryTeleports({game}: {game: {user?: {id?: string}; use
       const mover = scene?.tokens.get?.(beside.tokenId);
       const protectedToken = scene?.tokens.get?.(beside.nextTo);
       const point = (mover && protectedToken) ? spaceBeside(mover, protectedToken) : null;
-      if ( mover && point ) await mover.update(point, {movement: {[mover.id]: {waypoints: [{...point, action: "blink"}], showRuler: false}},
-        wildpath: {movementKind: "teleport"}});
+      if ( mover && point ) await blink(mover, point);
     }
     const teleport = options?.teleport;
     if ( !teleport ) return null;
-    const token = game.scenes?.get(teleport.sceneId)?.tokens.get?.(teleport.tokenId);
+    const scene = game.scenes?.get(teleport.sceneId);
+    const token = scene?.tokens.get?.(teleport.tokenId);
     if ( !token ) return null;
-    const {x, y} = teleport;
-    await token.update({x, y}, {movement: {[token.id]: {waypoints: [{x, y, action: "blink"}], showRuler: false}},
-      wildpath: {movementKind: "teleport"}});
+    await blink(token, {x: teleport.x, y: teleport.y});
+    if ( !state?.actionDefinition?.teleport?.withTargets ) return token;
+    for ( const target of completedTargetRefs(state) as TargetRef[] ) {
+      const other = scene?.tokens.get?.(String(target?.tokenId ?? ""));
+      if ( !other || (other === token) ) continue;
+      const point = spaceBeside(other, token);
+      if ( point ) await blink(other, point);
+    }
     return token;
   }
   return {afterResolution};

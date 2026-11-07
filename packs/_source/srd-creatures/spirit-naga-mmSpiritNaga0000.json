@@ -770,11 +770,23 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
           "targeting": {
-            "type": "self"
+            "type": "single",
+            "required": false,
+            "count": 1,
+            "notHostile": true,
+            "notSelf": true
           },
           "teleport": {
-            "distance": 500
+            "distance": 500,
+            "withTargets": true
           },
           "metadata": {
             "spellLevel": 4
@@ -813,9 +825,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "teleport: a creature it brings along is moved by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1170,8 +1180,7 @@
           "Spellcasting: effect: \"Water Breathing\" marks its creature (narrative)",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
-          "Spellcasting: save: a failure marks its creature (narrative)",
-          "Spellcasting: teleport: a creature it brings along is moved by hand"
+          "Spellcasting: save: a failure marks its creature (narrative)"
         ]
       }
     }

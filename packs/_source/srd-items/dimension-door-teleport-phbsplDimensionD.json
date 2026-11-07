@@ -81,11 +81,23 @@
           "effects": []
         }
       ],
+      "range": {
+        "type": "ranged",
+        "normal": {
+          "value": 5,
+          "unit": "ft"
+        }
+      },
       "targeting": {
-        "type": "self"
+        "type": "single",
+        "required": false,
+        "count": 1,
+        "notHostile": true,
+        "notSelf": true
       },
       "teleport": {
-        "distance": 500
+        "distance": 500,
+        "withTargets": true
       },
       "metadata": {
         "spellLevel": 4,
@@ -114,9 +126,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "teleport: a creature it brings along is moved by hand"
-        ]
+        "notes": []
       }
     }
   }

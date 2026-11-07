@@ -55,6 +55,8 @@ test("Metamagic: Twinned Hold Person at level 3 holds 3; Distant doubles its ran
   const distant = resolveActionConfiguration({definition: hold, actorSystem: actor.system,
     choices: {"spell-slot": {resourceId: "spell-slot.3"}, metamagic: "distant"}});
   assert.equal(distant.configuration.effectiveDefinition.range.normal.value, 120);
+  assert.equal(withMetamagic(spell("dimension-door-teleport"), sorcerer(["distant"])).configuration?.some(choice => choice.id === "metamagic") ?? false,
+    false, "Dimension Door's 5-ft range is its passenger's reach, not its 500-ft teleport: no Distant Spell");
   const bless = resolveActionConfiguration({definition: withMetamagic(spell("bless"), actor), actorSystem: actor.system,
     choices: {"spell-slot": {resourceId: "spell-slot.3"}, metamagic: "extended"}});
   assert.equal(bless.ok, true, JSON.stringify(bless.errors));

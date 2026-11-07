@@ -4617,7 +4617,7 @@ function utilityTeleport(document, activity, system) {
   const text = plainText(document);
   // "you magically teleport up to 30 feet" (Cloud's Jaunt); "teleports itself or a willing demon within 10 feet of itself
   // up to 60 feet" (a Balor); "teleports, along with its rider, to an unoccupied space ... up to 60 feet away" (a Fey
-  // Steed). shortcut: only its user goes; the other it may take is moved by hand.
+  // Steed: its rider goes too, teleportDefinition's `withTargets`). shortcut: a Balor's demon is not taken along.
   const teleports = /\bteleports?(?:, along with (?:its|their) riders?,)? (?:\[\[lookup @target[^\]]*\]\] of itself |itself(?: or [^.]*?)? |to [^.]{0,60}?)?up to (?:\[\[lookup @range\.value[^\]]*\]\]|(\d+))/iu
     .exec(text);
   // "teleports to an unoccupied space within 5 feet of a second tree that is within 60 feet of the previous tree" (a
@@ -4634,14 +4634,19 @@ function utilityTeleport(document, activity, system) {
 
 /**
  * A teleport of its own creature to a space within a distance (Misty Step's 30 feet, Dimension Door's 500): its cost
- * and `teleport: {distance}`. Null for one with no distance in feet (Teleport, Plane Shift), which stays by hand.
+ * and `teleport: {distance}`. Null for one with no distance in feet (Teleport, Plane Shift), which stays by hand. One
+ * that brings a willing creature (Dimension Door) or its rider (a Fey Steed) along targets it (`withTargets`), and may go
+ * alone.
  */
 export function teleportDefinition({document, activity, system, spell, level, notes, pool}) {
   const distance = number(activity.teleport?.value);
   if ( !(distance > 0) || ((activity.teleport?.units ?? "ft") !== "ft") ) return null;
-  // shortcut: only its creature goes; a willing creature it brings (Dimension Door) is moved by hand.
-  if ( /\bwilling creature\b|\balong with (?:its|their) riders?\b/i.test(plainText(document)) ) notes.push("teleport: a creature it brings along is moved by hand");
-  return {...manualDefinition({document, activity, system, spell, level, notes, pool}), targeting: {type: "self"}, teleport: {distance}};
+  const manual = manualDefinition({document, activity, system, spell, level, notes, pool});
+  // One creature within 5 feet: Dimension Door's "one willing creature ... within 5 feet of you"; a rider is adjacent.
+  if ( /\bwilling creature\b|\balong with (?:its|their) riders?\b/i.test(plainText(document)) ) return {...manual,
+    range: {type: "ranged", normal: {value: 5, unit: "ft"}},
+    targeting: {type: "single", required: false, count: 1, notHostile: true, notSelf: true}, teleport: {distance, withTargets: true}};
+  return {...manual, targeting: {type: "self"}, teleport: {distance}};
 }
 
 /** A summon bonus as a ValueExpression of the spell's cast level (`castLevel`): "10 * (@item.level - 4)", "(@item.level - 3)d10". */

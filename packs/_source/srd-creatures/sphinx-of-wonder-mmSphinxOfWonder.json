@@ -207,28 +207,11 @@
       "_id": "uiOacfEeMdLH84D7",
       "_key": "!actors.items!mmSphinxOfWonder.uiOacfEeMdLH84D7",
       "name": "Burst of Ingenuity",
-      "type": "action",
+      "type": "feature",
       "img": "icons/magic/light/orb-lightbulb-gray.webp",
       "system": {
         "active": true,
         "description": "<p><em>Trigger:</em> The Sphinx of Wonder or another creature within 30 feet makes an ability check or a saving throw. <em>Response:</em> The sphinx adds 2 to the roll.</p>",
-        "definition": {
-          "schemaVersion": 1,
-          "id": "action:srd-burst-of-ingenuity",
-          "costs": {
-            "allOf": [
-              {
-                "capability": "reaction",
-                "amount": 1
-              },
-              {
-                "capability": "burst-of-ingenuity",
-                "amount": 1
-              }
-            ]
-          },
-          "label": "Burst of Ingenuity"
-        },
         "ruleElements": [
           {
             "schemaVersion": 1,
@@ -260,9 +243,17 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "not automated (utility): using it spends its cost; its description says the rest"
-            ]
+            "notes": []
+          },
+          "testOffer": {
+            "tests": [
+              "check",
+              "save"
+            ],
+            "pool": "burst-of-ingenuity",
+            "reaction": true,
+            "range": 30,
+            "add": 2
           }
         }
       }
@@ -331,9 +322,7 @@
         "challenge": 1
       },
       "conversion": {
-        "notes": [
-          "Burst of Ingenuity: not automated (utility): using it spends its cost; its description says the rest"
-        ]
+        "notes": []
       }
     }
   }

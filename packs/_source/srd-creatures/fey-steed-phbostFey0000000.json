@@ -204,11 +204,23 @@
               }
             ]
           },
+          "range": {
+            "type": "ranged",
+            "normal": {
+              "value": 5,
+              "unit": "ft"
+            }
+          },
           "targeting": {
-            "type": "self"
+            "type": "single",
+            "required": false,
+            "count": 1,
+            "notHostile": true,
+            "notSelf": true
           },
           "teleport": {
-            "distance": 60
+            "distance": 60,
+            "withTargets": true
           },
           "label": "Fey Step"
         },
@@ -243,9 +255,7 @@
             "subtype": null
           },
           "conversion": {
-            "notes": [
-              "teleport: a creature it brings along is moved by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -264,9 +274,7 @@
         "challenge": 0
       },
       "conversion": {
-        "notes": [
-          "Fey Step: teleport: a creature it brings along is moved by hand"
-        ]
+        "notes": []
       }
     }
   }

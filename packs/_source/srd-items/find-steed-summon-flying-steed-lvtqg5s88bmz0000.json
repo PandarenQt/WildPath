@@ -209,6 +209,10 @@
           "attackDamage": {
             "type": "context",
             "path": "castLevel"
+          },
+          "healing": {
+            "type": "context",
+            "path": "castLevel"
           }
         },
         "spellLevel": 2,
@@ -241,7 +245,7 @@
       },
       "conversion": {
         "notes": [
-          "summon: what it gains with the spell's level (hd, healing) is not added"
+          "summon: its Hit Dice by the spell's level are not added (spent only on a rest)"
         ]
       }
     }

@@ -306,7 +306,13 @@ Dimension Door's 500).
 - **Converted:** dnd5e teleport activities with a distance in feet. SRD: Misty Step, Dimension Door, Tree Stride, the
   Cape of the Mountebank, and the Archmage's, Mage's, Cloud Giant's, Lich's and Spirit Naga's casts. Teleport, Plane
   Shift and Word of Recall have no distance and stay by hand.
-- shortcut: Dimension Door's willing passenger is moved by hand; Tree Stride's trees are not checked.
+- **Bringing creatures along.** With `teleport: {distance, withTargets: true}` the Action's targets go too, each
+  Blinked to the free space beside the landing nearest it (`spaceBeside`). The converter gives Dimension Door and a
+  Fey Steed's or Otherworldly Steed's Fey Step one optional, non-hostile target other than itself within 5 feet; with
+  none chosen the creature goes alone. Distant Spell is not offered on a teleport, since its 5-foot range is the reach
+  to that creature.
+- shortcut: a target with no free space beside the landing stays where it is; WildPath has no mount model, so a
+  steed's rider is whichever willing creature its controller targets; Tree Stride's trees are not checked.
 - The Builder edits it ("Does it teleport its user?").
 
 Live (two browsers, 14.369): Player1's QA Caster, beside the Bandit Captain with no movement left, cast the SRD Misty

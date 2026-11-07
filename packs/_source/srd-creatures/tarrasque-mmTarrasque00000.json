@@ -162,7 +162,30 @@
       "system": {
         "active": true,
         "description": "<p class=\"feature\">If the tarrasque is targeted by a <em>Magic Missile</em> spell or a spell that requires a ranged attack roll, roll 1d6.</p><p class=\"feature\">On a <strong>1–5</strong>, the tarrasque is unaffected.</p><p class=\"feature\">On a <strong>6</strong>, the tarrasque is unaffected and reflects the spell, turning the caster into the target.</p>",
-        "ruleElements": []
+        "ruleElements": [
+          {
+            "schemaVersion": 1,
+            "id": "reflective-carapace",
+            "type": "Unaffected",
+            "data": {
+              "actions": {
+                "any": [
+                  {
+                    "tagsAny": [
+                      "spell:magic-missile"
+                    ]
+                  },
+                  {
+                    "tagsAll": [
+                      "spell",
+                      "attack:ranged"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
       },
       "flags": {
         "wildpath": {
@@ -179,7 +202,7 @@
           },
           "conversion": {
             "notes": [
-              "\"Roll d6\" is passive or triggered: not automated"
+              "Reflective Carapace: reflecting the spell back at its caster on a 6 is by hand"
             ]
           }
         }
@@ -1133,7 +1156,7 @@
       },
       "conversion": {
         "notes": [
-          "Reflective Carapace: \"Roll d6\" is passive or triggered: not automated"
+          "Reflective Carapace: Reflective Carapace: reflecting the spell back at its caster on a 6 is by hand"
         ]
       }
     }

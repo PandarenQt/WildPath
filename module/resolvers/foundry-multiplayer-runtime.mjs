@@ -88,7 +88,7 @@ import {
 import {actionDefinitionActivationCost, actionDefinitionFromAction, actionDefinitionToResolverInput, startsConcentration}
   from "../helpers/action-definitions.mjs";
 import {tokenRef} from "../helpers/entity-refs.mjs";
-import {targetLookupRefs} from "../helpers/target-actor-refs.mjs";
+import {completedTargetRefs, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {ROLL_AUTHORITY, combineRollModes, d20Chance} from "../helpers/rolls.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
@@ -1252,8 +1252,7 @@ export async function endEffectsOnTargets({options, state}={}, {fromUuid=globalT
     entry.ended = Number.isFinite(Number(total)) && (Number(total) >= (10 + entry.level));
     return entry.ended;
   };
-  const targets = state.targets?.length ? state.targets
-    : (state.results?.targetResolution?.targetContexts ?? []).map(context => context?.target?.target ?? context?.target);
+  const targets = completedTargetRefs(state);
   for ( const target of targets ) {
     const token = scene?.tokens?.get?.(String(target?.tokenId ?? ""));
     const actor = token?.actor;

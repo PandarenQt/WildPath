@@ -4,6 +4,7 @@ import {parseEntityRef} from "../helpers/entity-refs.mjs";
 import {createFoundryV14TacticalGridAdapter} from "./foundry-v14-tactical-grid-adapter.mjs";
 import {footprintDistance} from "../helpers/grid-footprints.mjs";
 import {forcedStepBlocker, type PushScene, type PushToken} from "./foundry-v14-forced-movement.mjs";
+import {blink} from "./foundry-v14-teleport.mjs";
 /**
  * Carrying a creature along (2024 Heightened Focus' Step of the Wind: a `carried` effect from the mover). When a creature
  * finishes a voluntary move, or is interrupted in one, the active GM walks each creature carrying its `carried` effect
@@ -115,7 +116,7 @@ export function createFoundryCarry({game}: {game: {user?: {id?: string}; users?:
     for ( const token of riders.sort((a, b) => ahead(b) - ahead(a)) ) {
       const to = {x: token.x + end.x - start.x, y: token.y + end.y - start.y};
       // One jump, so a teleport's kind: a forced move must walk adjacent steps (found live: the jump was refused).
-      await token.update(to, {movement: {[token.id]: {waypoints: [{...to, action: "blink"}], showRuler: false}}, wildpath: {movementKind: "teleport"}});
+      await blink(token, to);
       moved.push(token);
     }
     return moved;

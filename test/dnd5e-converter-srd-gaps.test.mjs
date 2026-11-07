@@ -507,14 +507,17 @@ test("a creature's move written as a use: a Dash of its Speed or half, Disengage
     "moveThenAttack's");
 });
 
-test("Tree Stride teleports as far as both of its distances; Fey Step's rider is noted; the Ethereal Plane is the Ethereal condition", () => {
+test("Tree Stride teleports as far as both of its distances; Fey Step takes its rider; the Ethereal Plane is the Ethereal condition", () => {
   const tree = convertItem(doc("feat", "Tree Stride", "tree-stride", {description: {value: "<p>The dryad teleports to an unoccupied space within "
     + "[[lookup @range.value activity=x]] feet of a second [[lookup @target.affects.special activity=x]] that is within 60 feet of the previous tree.</p>"},
     activities: {a: activity("utility", {activation: {type: "bonus"}, range: {value: "5", units: "ft"}})}}));
   assert.deepEqual(actions(tree)[0].system.definition.teleport, {distance: 65});
   const step = convertItem(doc("feat", "Fey Step", "fey-step", {description: {value: "<p>The steed teleports, along with its rider, to an unoccupied space "
     + "of your choice up to 60 feet away from itself.</p>"}, activities: {a: activity("utility", {activation: {type: "bonus"}, range: {value: "60", units: "ft"}})}}));
-  assert.deepEqual([actions(step)[0].system.definition.teleport, step.notes], [{distance: 60}, ["teleport: a creature it brings along is moved by hand"]]);
+  const stepDefinition = actions(step)[0].system.definition;
+  assert.deepEqual([stepDefinition.teleport, stepDefinition.targeting, stepDefinition.range, step.notes], [{distance: 60, withTargets: true},
+    {type: "single", required: false, count: 1, notHostile: true, notSelf: true}, {type: "ranged", normal: {value: 5, unit: "ft"}}, []],
+    "its rider, the willing creature beside it, goes too; unridden it goes alone");
   const stride = convertItem(doc("feat", "Ethereal Stride", "ethereal-stride", {description: {value: "<p>The nightmare and up to three willing creatures "
     + "within 5 feet of it teleport to the Ethereal Plane from the Material Plane or vice versa.</p>"}, activities: {a: activity("utility", {
       range: {value: "5", units: "ft"}, target: {override: false, template: {}, affects: {type: "willing", count: "3"}}})}}));

@@ -93,6 +93,10 @@ function metamagicOptions(option, raw, actor) {
         }
         case "distant": {
             const range = raw.range;
+            // A teleport's range is the reach to a creature it brings along, not how far it goes.
+            // shortcut: no Distant Spell on a teleport; upgrade when the landing picker reads the configured `teleport.distance`.
+            if (raw.teleport)
+                return [];
             if (range?.type === "touch")
                 return one([{ type: "set-range", range: { type: "ranged", normal: { value: 30, unit: "ft" } } }]);
             if ((range?.type !== "ranged") || !(Number(range.normal?.value) > 0))

@@ -4,6 +4,7 @@ import { parseEntityRef } from "../helpers/entity-refs.mjs";
 import { createFoundryV14TacticalGridAdapter } from "./foundry-v14-tactical-grid-adapter.mjs";
 import { footprintDistance } from "../helpers/grid-footprints.mjs";
 import { forcedStepBlocker } from "./foundry-v14-forced-movement.mjs";
+import { blink } from "./foundry-v14-teleport.mjs";
 const ENDS = new Set([AUTOMATION_EVENT_TYPES.MOVEMENT_COMPLETED, AUTOMATION_EVENT_TYPES.MOVEMENT_INTERRUPTED]);
 const key = (offset) => `${offset.i}.${offset.j}`;
 export function createFoundryCarry({ game }) {
@@ -92,7 +93,7 @@ export function createFoundryCarry({ game }) {
         for (const token of riders.sort((a, b) => ahead(b) - ahead(a))) {
             const to = { x: token.x + end.x - start.x, y: token.y + end.y - start.y };
             // One jump, so a teleport's kind: a forced move must walk adjacent steps (found live: the jump was refused).
-            await token.update(to, { movement: { [token.id]: { waypoints: [{ ...to, action: "blink" }], showRuler: false } }, wildpath: { movementKind: "teleport" } });
+            await blink(token, to);
             moved.push(token);
         }
         return moved;

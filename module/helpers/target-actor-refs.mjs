@@ -21,6 +21,12 @@ export function targetLookupRefs(target={}) {
   ]);
 }
 
+/** A completed Action's targets: those its intent chose, or the resolved ones (chosen at a target prompt, or by area). */
+export function completedTargetRefs(state) {
+  return state?.targets?.length ? state.targets
+    : (state?.results?.targetResolution?.targetContexts ?? []).map(context => context?.target?.target ?? context?.target);
+}
+
 export function preferredTargetRef(target={}) {
   return normalizeEntityRef(target) ?? target.ref ?? target.actorId ?? target.tokenId ?? target.uuid ?? target.id ?? null;
 }
