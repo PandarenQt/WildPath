@@ -94,8 +94,12 @@ block attack's own save such as a Ghoul's Claw, a retaliation such as Fire Shiel
 Reaction its creature chooses. It is ordered after every reaction that is asked about and never offered in the
 same group as one, so a Shield or Cutting Words may turn the hit into a miss first. Once any reaction of the
 window resolves, the window still runs every such response not yet used (`siblingReoffer`), its stage answering
-them with no prompt, while the event it answers is unchanged: a hit made a miss ends it. Each other asked
-reaction still ends the window as before.
+them with no prompt, while the event it answers is unchanged: a hit made a miss ends it.
+
+**Every creature may react (2026-11-07).** Once a reaction of an Action's window resolves and the event it answers is
+unchanged, the window goes on to every creature that has not reacted in it yet, in the window's order: a bard's
+Cutting Words that leaves a hit a hit, then the target's own reaction; a second Counterspell after the first failed.
+A creature that has reacted is offered only its once-key siblings and its responses used at once, as above.
 
 Players switch it from the action bar. The authority reads it from the Item when it gathers reactions.
 

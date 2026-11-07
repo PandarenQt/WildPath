@@ -431,7 +431,7 @@ export function completeStagedReactionChildResolution({
       ?? ((context) => reevaluateParentAfterReaction({...context, services: reactionServices}))
   });
   let state = result.state ? createResolutionState(result.state) : parent;
-  // Its reactor may take another of its options in the same window (Improved Cunning Strike's second effect).
+  // Another creature may still react, and its reactor may take another of its options (Improved Cunning Strike's second).
   if ( result.ok && result.window ) state = siblingReoffer(state, result.window, reactionServices) ?? state;
   return {
     ...result,
@@ -453,21 +453,25 @@ const REACTION_STAGE_BY_TIMING = Object.freeze({
 });
 
 /**
- * Once a reaction resolves, its window offers again the options of the same reactor that share its once-key, while
- * that key's `uses` in this window allow (`payload.once.uses`: Improved Cunning Strike's two effects, Improved Brutal
- * Strike's two blows at level 17), and every response not yet used that is answered at once at no cost
- * (automaticReaction: an attack's own save, an effect's retaliation), while what the window answers still holds (a Shield
- * that turned the hit into a miss ends it). Its stage runs again for the answer, asking no one for an automatic one. Null
- * when nothing is offered again.
+ * Once a reaction resolves, its window offers again, in the window's order, every option of a creature that has not
+ * reacted in it yet (a second creature's Counterspell or Cutting Words on the same trigger), the options of a reactor that
+ * share its once-key while that key's `uses` in this window allow (`payload.once.uses`: Improved Cunning Strike's two
+ * effects, Improved Brutal Strike's two blows at level 17), and every response not yet used that is answered at once at
+ * no cost (automaticReaction: an attack's own save, an effect's retaliation), while what the window answers still holds
+ * (a Shield that turned the hit into a miss ends it). Its stage runs again for the answer, asking no one for an automatic
+ * one. Null when nothing is offered again.
  */
 function siblingReoffer(state, window, services) {
   const candidates = window.candidates ?? [];
   const used = new Map();
+  const reacted = new Set();
   for ( const candidate of candidates.filter(entry => window.resolvedCandidateIds.includes(entry.id)) ) {
     const key = candidate.payload?.once?.key;
     if ( key ) used.set(key, (used.get(key) ?? 0) + 1);
+    reacted.add(candidate.reactor?.actorId);
   }
   const siblings = candidates.filter(candidate => !window.handledCandidateIds.includes(candidate.id) && (automaticReaction(candidate)
+    || !reacted.has(candidate.reactor?.actorId)
     || (used.has(candidate.payload?.once?.key) && (used.get(candidate.payload.once.key) < (Number(candidate.payload.once.uses) || 1)))));
   const [stageId, select] = REACTION_STAGE_BY_TIMING[window.timing] ?? [];
   if ( !siblings.length || !stageId ) return null;

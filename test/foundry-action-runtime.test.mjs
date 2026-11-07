@@ -1408,10 +1408,11 @@ function counterattackFixture(t, {decision="use", reactor="target", event="attac
   const gm = createMultiplayerActionCoordinator({userId: "gm-a", users: () => hub.userDirectory(), activeGMUserId: "gm-a",
     transport: hub.createEndpoint({userId: "gm-a"}), publishResult: post => { posts.push(post); },
     ...(gmMessageMode ? {rollContext: {messageMode: gmMessageMode}} : {}),
-    promptPorts: [createTestPromptAdapter({id: "counterattack-choice", queue: [request => {
+    // One answer for each creature asked in turn (a bard's Cutting Words, then the target's own reaction).
+    promptPorts: [createTestPromptAdapter({id: "counterattack-choice", queue: Array.from({length: 2}, () => request => {
       offers.push(request);
       return decision === "use" ? {decision, candidateId: request.payload.candidates[0].id} : {decision};
-    }]})],
+    })})],
     rollProviders: [gmRolls],
     actionIntentResolver: ({intent, envelope}) => foundryActionIntentToStagedOptions({intent,
       senderUserId: envelope.senderUserId, game, persistencePort})});
@@ -1624,6 +1625,33 @@ for ( const decision of ["use", "decline"] ) test(`an effect's retaliation and t
     "only the Counterattack is asked about, first");
   assert.equal(sourceActor.system.resources.health.value, 20 - 4 - (decision === "use" ? 3 : 0), "the flame burns the attacker");
   assert.equal(targetActor.system.resources.health.value, 30 - 6 - 2, "the attack and its claw's own damage land");
+});
+
+test("two creatures' reactions to one hit: once the bard's Cutting Words leaves it a hit, the target is still asked for its own", async t => {
+  const fs = await import("node:fs");
+  const words = JSON.parse(fs.readFileSync("packs/_source/srd-items/cutting-words-phbbrdCuttingWor.json", "utf8"));
+  const {sourceActor, targetActor, holder, gm, player, offers, intent} = counterattackFixture(t, {reactor: "bystander",
+    holderItems: [{id: words._id, type: "action", name: words.name, system: words.system}], gmQueue: [{total: 1}]});
+  holder.system.classes = [{id: "bard", level: 10}];
+  holder.system.pools = [{id: "bardic-inspiration", value: 2, max: 2}];
+  targetActor.items = [{id: "counter", type: "action", name: "Counterattack", system: {active: true,
+    definition: {schemaVersion: 1, id: "action:counterattack", label: "Counterattack",
+      costs: {allOf: [{capability: ECONOMY_CAPABILITIES.REACTION, amount: 1}]},
+      range: {type: "reach", distance: {value: 5, unit: "ft"}}, targeting: {type: "single", required: true, count: 1},
+      attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+      damage: [{id: "riposte", expression: {type: "constant", value: 3}, damageType: "slashing", provenance: "weapon-base"}]},
+    ruleElements: [{schemaVersion: 1, id: "riposte", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+      match: {phase: "interrupt", targetTokenId: "{self}"}}}]}}];
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.deepEqual(offers.map(offer => offer.payload.candidates.map(candidate => candidate.actionId)),
+    [[words.system.definition.id], ["action:counterattack"]], "each creature asked once, in order");
+  assert.equal(record.state.results.attackResolution.hits.length, 1, "22 less 1 still hits AC 14");
+  assert.deepEqual([holder.system.resources.reaction.value, targetActor.system.resources.reaction.value], [0, 0],
+    "each spent its own Reaction");
+  assert.equal(sourceActor.system.resources.health.value, 17, "the counterattack hit the attacker for 3");
+  assert.equal(targetActor.system.resources.health.value, 24, "the attack's own damage still lands");
 });
 
 test("an effect's retaliation is not used when an asked reaction turned the hit into a miss (Cutting Words)", async t => {
