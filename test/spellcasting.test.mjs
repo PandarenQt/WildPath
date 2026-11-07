@@ -1,11 +1,19 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {casterLevel, deriveClassData, effectiveSpellcasting, hitDiceHealing, pactMagic, preparedSpellLimit, spellSlots} from "../module/helpers/spellcasting.mjs";
+import {casterLevel, deriveClassData, effectiveSpellcasting, hitDiceSpend, pactMagic, preparedSpellLimit, spellSlots} from "../module/helpers/spellcasting.mjs";
 
-test("spent Hit Dice heal each roll plus Fortitude, at least 1 a die (2024) or 0 (2014)", () => {
-  assert.equal(hitDiceHealing([7, 2], 2), 13);
-  assert.equal(hitDiceHealing([1, 4], -3), 2, "1 + 1");
-  assert.equal(hitDiceHealing([1, 4], -3, {minimum: 0}), 1, "0 + 1");
+test("spent Hit Dice heal each roll plus Fortitude, at least 1 a die (2024) or 0 (2014), from their total alone", () => {
+  const plain = hitDiceSpend(2, 8, 2);
+  assert.equal(plain.formula, "2d8", "no die can heal below 1");
+  assert.equal(plain.healing(7 + 2), 13);
+  // Rolled 1 and 4 with -3: each die floors at 4 (1 + 3), so a typed total of 4 + 4 heals 1 + 1.
+  const weak = hitDiceSpend(2, 8, -3);
+  assert.deepEqual([weak.formula, weak.healing(8)], ["2d8min4", 2]);
+  const legacy = hitDiceSpend(2, 8, -3, {minimum: 0});
+  assert.deepEqual([legacy.formula, legacy.healing(3 + 4)], ["2d8min3", 1], "0 + 1");
+  // A floor above the die: every die heals its minimum.
+  const frail = hitDiceSpend(3, 6, -7);
+  assert.deepEqual([frail.formula, frail.healing(18)], ["3d6min6", 3]);
 });
 import {evaluateValueExpression} from "../module/helpers/value-expressions.mjs";
 

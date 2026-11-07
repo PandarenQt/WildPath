@@ -9,6 +9,7 @@ import {hitDiePoolId} from "../helpers/spellcasting.mjs";
 import {actorAbilityModifier} from "../helpers/combat-statistics.mjs";
 import {classRecordsFromItems} from "../documents/actor.mjs";
 import {grantItemsFor} from "../resolvers/foundry-multiplayer-runtime.mjs";
+import {requestShownDice} from "../adapters/foundry-digital-roll-provider.mjs";
 
 type Data = Record<string, unknown>;
 interface ProgressionSystem {
@@ -38,7 +39,6 @@ interface Globals {
   CONFIG: {WILDPATH: {ABILITIES: Record<string, {label: string}>; SKILLS: Record<string, {label: string}>}};
   fromUuid(uuid: string): Promise<unknown>;
   fromUuidSync(uuid: string): {name?: string} | null;
-  Roll: new (formula: string) => {evaluate(): Promise<{total: number; toMessage(data: Data): Promise<unknown>}>};
   ui: {notifications: {warn(message: string): void}};
 }
 
@@ -384,10 +384,12 @@ async function apply(actor: LevelActor, item: LevelItem, {level, steps, form, fi
   if ( footprint ) Object.assign(updates, {"prototypeToken.width": footprint, "prototypeToken.height": footprint});
   if ( item.type === "class" ) {
     let gained = hitPointsForLevel({hitDie, first, fortitude});
-    if ( rolled ) {
-      const roll = await new (globals().Roll)(`1d${hitDie}`).evaluate();
-      await roll.toMessage({flavor: format("WILDPATH.LEVELUP.HitPointsRoll", {name: actor.name, class: item.name, level})});
-      gained = Math.max(1, roll.total + fortitude);
+    // Rolled with the table's dice (physical dice typed); closed unrolled, the fixed Hit Points stand.
+    const flavor = format("WILDPATH.LEVELUP.HitPointsRoll", {name: actor.name, class: item.name, level});
+    const shown = rolled ? await requestShownDice(`1d${hitDie}`, {title: flavor}) : null;
+    if ( shown ) {
+      await shown.roll.toMessage({flavor});
+      gained = Math.max(1, shown.result.total + fortitude);
     }
     // The base counts one Fortitude modifier for every level (`perLevelFortitude`): this level's. Levels gained with
     // another are brought to it first, so the maximum (which counts the current modifier) does not change by it.

@@ -404,7 +404,8 @@
       "Check": "{ability} check",
       "Skill": "{skill} ({ability}) check",
       "Save": "{ability} saving throw",
-      "AtLeast": "counts as {total}"
+      "AtLeast": "counts as {total}",
+      "Whose": "{name}: {roll}"
     },
     "ABILITYSCORES": {
       "Button": "Ability Scores",

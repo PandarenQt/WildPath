@@ -6,10 +6,12 @@ import assert from "node:assert/strict";
 globalThis.Actor = class {};
 globalThis.foundry = {
   data: {fields: {}, ActiveEffectTypeDataModel: class {}},
-  utils: {isEmpty: value => Object.keys(value).length === 0}
+  utils: {isEmpty: value => Object.keys(value).length === 0, randomID: () => "abc"}
 };
 Math.clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const {default: WildPathActor} = await import("../module/documents/actor.mjs");
+const {answerRollLocally} = await import("../module/resolvers/multiplayer-action-coordinator.mjs");
+const {createFoundryDigitalRollProvider} = await import("../module/adapters/foundry-digital-roll-provider.mjs");
 
 function fixture({recovery="shortRest", rejectUpdate=false}={}) {
   const source = {system: {
@@ -207,11 +209,18 @@ test("2024 long rest: all health back, but only for a creature with at least 1 h
 
 test("a partial refill on a rest: one use back on a short rest, a wand's rolled charges on a long one", async () => {
   const messages = [];
-  globalThis.Roll = class { constructor(formula) { this.formula = formula; }
+  globalThis.Roll = class Roll { static fromData(data) { return Object.assign(new Roll(data.formula), data); }
+    constructor(formula) { this.formula = formula; }
     async evaluate() { this.total = 4; return this; }
+    toJSON() { return {formula: this.formula, total: this.total}; }
     async toMessage(data, options) { messages.push({formula: this.formula, flavor: data.flavor, options}); } };
   globalThis.ChatMessage = {getSpeaker: () => ({})};
-  globalThis.game = {i18n: {format: (key, data) => `${key}:${data.name}:${data.amount}`}};
+  // Rolled by the dice policy (digital here), as every roll outside an Action is.
+  const asked = [];
+  globalThis.game = {i18n: {format: (key, data) => `${key}:${data.name}:${data.amount}`}, wildpath: {requestRoll: rollRequest => {
+    asked.push(rollRequest.formula);
+    return answerRollLocally({rollRequest, rollProviders: [createFoundryDigitalRollProvider()], context: {providerId: "foundry-digital"}});
+  }}};
   const grant = (resourceId, regain, recovery="none") => ({id: resourceId, type: "gear", system: {active: true, ruleElements: [{schemaVersion: 1,
     id: `${resourceId}-uses`, type: "GrantResource", data: {resourceId, label: resourceId, maximum: 6, recovery, regain}}]}});
   try {
@@ -224,6 +233,16 @@ test("a partial refill on a rest: one use back on a short rest, a wand's rolled 
     await wand.actor.rest("longRest");
     assert.equal(wand.source.system.pools[0].value, 4, "1d6 + 1 rolled 3 + 1, within its maximum of 4");
     assert.deepEqual(messages, [{formula: "1d6", flavor: "WILDPATH.REST.Regained:first:4", options: {messageMode: "gm"}}]);
+    assert.deepEqual(asked, ["1d6"], "its die is a RollRequest");
+
+    // Its die closed unrolled (physical dice): no charge comes back, not even the + 1.
+    globalThis.game.wildpath.requestRoll = async () => null;
+    const closed = fixture({recovery: "none"});
+    closed.actor.items = wand.actor.items;
+    closed.source.system.pools[0].value = 0;
+    closed.actor.system = {...closed.actor.system, pools: closed.actor.system.pools.map((pool, index) => (index ? pool : {...pool, value: 0}))};
+    await closed.actor.rest("longRest");
+    assert.equal(closed.source.system.pools[0].value, 0);
 
     const wind = fixture({recovery: "none"});
     wind.actor.items = [grant("second", {shortRest: 1}, "longRest")];

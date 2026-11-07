@@ -4,6 +4,7 @@
  * background's increases come after, when it is added (applications/level-up.mts).
  */
 import {POINT_BUY, STANDARD_ARRAY, pointBuySpent, usesPool} from "../helpers/level-up.mjs";
+import {requestShownDice} from "../adapters/foundry-digital-roll-provider.mjs";
 
 type Data = Record<string, unknown>;
 interface ScoreActor {name: string; update(data: Data): Promise<unknown>}
@@ -11,7 +12,6 @@ interface Globals {
   foundry: {applications: {api: {DialogV2: {wait(config: Data): Promise<unknown>}}}};
   game: {i18n: {localize(key: string): string; format(key: string, data: Data): string}};
   CONFIG: {WILDPATH: {ABILITIES: Record<string, {label: string}>}};
-  Roll: new (formula: string) => {evaluate(): Promise<{total: number; toMessage(data: Data): Promise<unknown>}>};
   ChatMessage: {getSpeaker(data: Data): Data};
 }
 
@@ -75,14 +75,17 @@ function watch(form: HTMLFormElement, abilities: string[], actor: ScoreActor) {
   form.addEventListener("input", check);
   form.addEventListener("change", check);
   rollButton.addEventListener("click", async () => {
-    const {Roll, ChatMessage} = globals();
-    rolled = [];
-    for ( const _ability of abilities ) {
-      const roll = await new Roll("4d6kh3").evaluate();
-      rolled.push(roll.total);
-      await roll.toMessage({speaker: ChatMessage.getSpeaker({actor}), flavor: format("WILDPATH.ABILITYSCORES.RollFlavor", {name: actor.name})});
-    }
+    const {ChatMessage} = globals();
+    const flavor = format("WILDPATH.ABILITYSCORES.RollFlavor", {name: actor.name});
     rollButton.disabled = true;
+    // With the table's dice (physical dice typed); closed unrolled, the next click rolls the rest, keeping these.
+    while ( rolled.length < abilities.length ) {
+      const shown = await requestShownDice("4d6kh3", {title: flavor});
+      if ( !shown ) break;
+      rolled.push(shown.result.total);
+      await shown.roll.toMessage({speaker: ChatMessage.getSpeaker({actor}), flavor});
+    }
+    rollButton.disabled = rolled.length === abilities.length;
     fill();
     check();
   });

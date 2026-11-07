@@ -26,9 +26,17 @@ export interface ClassRecord {
 /** The pool that holds a creature's Hit Dice of one size (`hit-die.d10`). */
 export const hitDiePoolId = (faces: number) => `hit-die.d${faces}`;
 
-/** What spent Hit Dice heal: each die's roll plus the Fortitude modifier, at least `minimum` (2024: 1; 2014: 0). */
-export const hitDiceHealing = (results: readonly number[], modifier: number, {minimum=1}: {minimum?: number}={}) =>
-  results.reduce((sum, result) => sum + Math.max(minimum, result + modifier), 0);
+/**
+ * Spending `count` Hit Dice of `faces`: each heals its roll plus the Fortitude modifier, at least `minimum` (2024: 1;
+ * 2014: 0). Each die counts as at least what reaches that minimum (its `min`, as Great Weapon Fighting's), so the dice's
+ * total alone, typed physical dice too, gives the healing: the total plus the modifier per die.
+ */
+export function hitDiceSpend(count: number, faces: number, modifier: number, {minimum=1}: {minimum?: number}={}) {
+  // A floor above the die (a modifier of -faces or less) leaves every die at its minimum: the healing's own floor.
+  const floor = Math.min(minimum - modifier, faces);
+  return {formula: `${count}d${faces}${floor > 1 ? `min${floor}` : ""}`,
+    healing: (total: number) => Math.max(count * minimum, total + (count * modifier))};
+}
 
 /**
  * 2014: a Long Rest gives back spent Hit Dice up to half of all of them (at least one), the largest dice first (a

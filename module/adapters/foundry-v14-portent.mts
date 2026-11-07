@@ -14,6 +14,7 @@ import {combatTurnKey} from "../helpers/combat.mjs";
 import {reactionPolicyOf} from "../helpers/automation-events.mjs";
 import {relationsToSource} from "./foundry-v14-reaction-provider.mjs";
 import {isRecentRoll} from "../helpers/chat-card-view-model.mjs";
+import {requestShownDice} from "./foundry-digital-roll-provider.mjs";
 
 type Data = Record<string, any>;
 export const PORTENT_QUERY = "wildpath.portent";
@@ -104,10 +105,19 @@ export async function rollPortentDice(actor: Data, game: Data) {
   if ( !feature ) return;
   const count = Math.trunc(Number(evaluateValueExpression(feature.flags.wildpath.portentDice, {actor, actorSystem: actor.system}).value) || 0);
   if ( count < 1 ) return;
-  const {Roll, ChatMessage} = globalThis as unknown as Data;
-  const roll = await new Roll(`${count}d20`).evaluate();
-  const values: number[] = roll.dice[0]?.results?.map((result: Data) => result.result) ?? [];
-  await roll.toMessage({speaker: ChatMessage.getSpeaker({actor}), flavor: game.i18n.format("WILDPATH.PORTENT.Rolled",
+  // Each die its own roll by the table's dice (a physical roller types each). One closed unrolled is not rolled: the old
+  // dice are lost all the same.
+  // Named for its creature: a GM's Party Rest asks the GM for each Diviner's dice.
+  const title = game.i18n.format("WILDPATH.ROLL.Whose", {name: actor.name, roll: game.i18n.localize("WILDPATH.PORTENT.Title")});
+  const rolls: Data[] = [];
+  for ( let index = 0; index < count; index++ ) {
+    const shown = await requestShownDice("1d20", {title, game});
+    if ( !shown ) break;
+    rolls.push(shown.roll);
+  }
+  const values: number[] = rolls.map(roll => Number(roll.total));
+  const {ChatMessage} = globalThis as unknown as Data;
+  if ( rolls.length ) await ChatMessage.create({speaker: ChatMessage.getSpeaker({actor}), rolls, flavor: game.i18n.format("WILDPATH.PORTENT.Rolled",
     {name: feature.name ?? "", values: values.join(", ")})}, {messageMode: "gm"});
   const slots = Object.fromEntries(Array.from({length: Math.max(count, 3)}, (_, index) => [String(index + 1), values[index] ?? 0]));
   await actor.update({"flags.wildpath.portent": slots, "flags.wildpath.portentTurn": null});

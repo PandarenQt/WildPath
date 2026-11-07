@@ -67,6 +67,25 @@ providers and passes `dicePolicyRollContext(game)`, whose `providerId` getter is
 `physical` the roller types the dice into the roll prompt (natural d20, or the total for damage and
 healing).
 
+**Rolls outside an Action (2026-11-07).** A sheet roll (`Actor#rollTest`), initiative, spent Hit Dice, level-up Hit
+Points, 4d6 ability scores, a rest's partial refill (a wand's charges), Recharge and Portent's foretelling rolls are each
+one RollRequest answered on the rolling client by the same policy (`game.wildpath.requestRoll`, through
+`requestShownRoll`/`requestShownDice` in `adapters/foundry-digital-roll-provider.mjs`). Digital dice are posted as rolled,
+typed dice as their total. Initiative is a d20 test (`Combatant#rollInitiativeDice`, used by `Combat#rollInitiative`
+and `Combatant#rollInitiative`), so a physical roller types the d20. The GM rolls Recharge at the turn start under the
+same policy, as the GM's monster saves are, after the turn's refills are written. Each Portent d20 is its own request,
+so a physical roller types each die. Spent Hit Dice floor each die (`hitDiceSpend`: `2d8min4` at Fortitude -3), so the
+total alone gives the healing. A creature's refill, Recharge and Portent prompts name it (`WILDPATH.ROLL.Whose`), since a
+GM's Party Rest asks the GM for every character's dice. Closing the prompt rolls nothing: Hit Dice stay unspent (no
+further size is asked for), initiative stays unrolled and the rest of the set waits, Recharge stays spent, level-up keeps
+the fixed Hit Points, a refill gives nothing back, the ability-score button rolls the rest on the next click, and
+Portent's unrolled dice are lost with the old ones.
+
+The rule for what stays on Foundry dice: a roll the rules give a creature (its test, its initiative, its Hit Dice, its
+feature's dice) follows the policy, whoever's client rolls it; a timer or event table the system rolls for the GM's
+bookkeeping, of no creature's own, still uses Foundry dice directly: a stable creature's 1d4 hours, contagion
+incubation, chase complications and Bastion events.
+
 **Several saves at once (2026-10-18).** When one client rolls two or more saves for an Action (the GM's
 monsters in a Fireball), its client setting `wildpath.batchSaves` decides (`answerSaveBatchLocally`):
 - `physical` (the default): one window under physical dice; otherwise each is rolled digitally as before.

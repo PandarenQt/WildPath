@@ -100,6 +100,34 @@ export default class WildPathCombat extends FoundryCombatDocument {
   }
 
   /**
+   * Foundry's V14 `Combat#rollInitiative`, each die by the dice policy (`Combatant#rollInitiativeDice`), so a physical
+   * roller types it. Closing one prompt stops there; those already rolled are kept.
+   * @override
+   */
+  async rollInitiative(ids, {formula=null, updateTurn=true, messageMode, messageOptions={}}={}) {
+    const updates = [];
+    const messages = [];
+    for ( const id of (typeof ids === "string" ? [ids] : ids) ) {
+      const combatant = this.combatants.get(id);
+      if ( !combatant?.isOwner ) continue;
+      const shown = await combatant.rollInitiativeDice(formula);
+      if ( !shown ) break;
+      updates.push({_id: id, initiative: shown.result.total});
+      const chatData = await shown.roll.toMessage(foundry.utils.mergeObject({
+        speaker: ChatMessage.getSpeaker({actor: combatant.actor, token: combatant.token, alias: combatant.name}),
+        flavor: game.i18n.format("COMBAT.RollsInitiative", {name: foundry.utils.escapeHTML(combatant.name)}),
+        flags: {core: {initiativeRoll: true}}
+      }, messageOptions), {messageMode: messageMode ?? (combatant.hidden ? "gm" : undefined), create: false});
+      if ( messages.length ) chatData.sound = null; // One sound for the whole set, as Foundry's.
+      messages.push(chatData);
+    }
+    if ( !updates.length ) return this;
+    await this.updateEmbeddedDocuments("Combatant", updates, {turnEvents: false, ...(updateTurn ? {} : {combatTurn: this.turn})});
+    await ChatMessage.create(messages);
+    return this;
+  }
+
+  /**
    * 2014 Lair Actions, at the top of the round (the maintainer's choice; initiative count 100, before anyone): on the
    * round's first turn every creature in the combat with such a pool (`refillsAtInitiative`) has it back, and the GM is
    * told who may take one. Recorded on the combat (`flags.wildpath.lairRound`) so a round does it once.

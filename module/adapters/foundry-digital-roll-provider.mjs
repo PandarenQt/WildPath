@@ -2,7 +2,9 @@ import {
   ROLL_CODES,
   ROLL_PROVIDER_OUTCOMES,
   ROLL_PROVENANCE_TYPES,
+  ROLL_TYPES,
   cloneRollData,
+  createRollRequest,
   createRollResult,
   rollFormulaForRequest,
   validateRollRequest
@@ -84,6 +86,32 @@ export function createFoundryDigitalRollProvider({
       }
     }
   };
+}
+
+/* -------------------------------------------- */
+
+/**
+ * A roll outside an Action (a sheet roll, a rest's Hit Dice, level-up Hit Points, ability scores, Recharge, Portent): one
+ * RollRequest answered by the dice policy as an Action's rolls are (`game.wildpath.requestRoll`), with a Foundry Roll to
+ * show in chat: digital dice as rolled, typed (physical) dice as their total. `{result, roll}`, or null when not rolled.
+ * @param {object} request
+ * @param {{title?: string|null, game?: object}} [options]
+ */
+export async function requestShownRoll(request, {title=null, game=globalThis.game}={}) {
+  const result = await game.wildpath.requestRoll(request, {title});
+  if ( !result ) return null;
+  const Roll = resolveRollClass({RollClass: null, context: {}});
+  return {result, roll: result.raw?.foundryRoll ? Roll.fromData(result.raw.foundryRoll) : await new Roll(String(result.total)).evaluate()};
+}
+
+/**
+ * `requestShownRoll` for dice with no d20 (`4d6kh3`, `2d8min3`): the roller types their total.
+ * @param {string} formula
+ * @param {{type?: string, title?: string|null, game?: object}} [options]
+ */
+export function requestShownDice(formula, {type=ROLL_TYPES.CUSTOM, title=null, game=globalThis.game}={}) {
+  const resolutionId = `roll:${globalThis.foundry.utils.randomID()}`;
+  return requestShownRoll(createRollRequest({id: `${resolutionId}:roll`, resolutionId, type, formula}), {title, game});
 }
 
 /* -------------------------------------------- */

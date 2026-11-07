@@ -11,8 +11,17 @@ export const spellSlotPoolId = (spellLevel) => `spell-slot.${spellLevel}`;
 export const PACT_SLOT_POOL = "spell-slot.pact";
 /** The pool that holds a creature's Hit Dice of one size (`hit-die.d10`). */
 export const hitDiePoolId = (faces) => `hit-die.d${faces}`;
-/** What spent Hit Dice heal: each die's roll plus the Fortitude modifier, at least `minimum` (2024: 1; 2014: 0). */
-export const hitDiceHealing = (results, modifier, { minimum = 1 } = {}) => results.reduce((sum, result) => sum + Math.max(minimum, result + modifier), 0);
+/**
+ * Spending `count` Hit Dice of `faces`: each heals its roll plus the Fortitude modifier, at least `minimum` (2024: 1;
+ * 2014: 0). Each die counts as at least what reaches that minimum (its `min`, as Great Weapon Fighting's), so the dice's
+ * total alone, typed physical dice too, gives the healing: the total plus the modifier per die.
+ */
+export function hitDiceSpend(count, faces, modifier, { minimum = 1 } = {}) {
+    // A floor above the die (a modifier of -faces or less) leaves every die at its minimum: the healing's own floor.
+    const floor = Math.min(minimum - modifier, faces);
+    return { formula: `${count}d${faces}${floor > 1 ? `min${floor}` : ""}`,
+        healing: (total) => Math.max(count * minimum, total + (count * modifier)) };
+}
 /**
  * 2014: a Long Rest gives back spent Hit Dice up to half of all of them (at least one), the largest dice first (a
  * multiclass character's d10s before its d6s: what heals most later). `pools` are `{id: "hit-die.d10", value, max}`;

@@ -1,5 +1,6 @@
 import {startedContagions} from "../adapters/foundry-v14-contagions.mjs";
 import {sunlightContext} from "../adapters/foundry-v14-sunlight.mjs";
+import {requestShownDice, requestShownRoll} from "../adapters/foundry-digital-roll-provider.mjs";
 import {carryingRules} from "../helpers/carrying.mjs";
 import {requiresContext} from "../helpers/combat.mjs";
 import {gmNotice} from "../helpers/gm-notice.mjs";
@@ -18,7 +19,7 @@ import {trainingRuleElements, withRecordedChoices} from "../helpers/level-up.mjs
 import {evaluateValueExpression, selectTableRows} from "../helpers/value-expressions.mjs";
 import WildPathConditionEffect from "../data/active-effect/condition.mjs";
 import {floatHealthChange} from "../applications/floating-text.mjs";
-import {effectiveSpellcasting, hitDiceHealing, hitDiePoolId, longRestHitDice} from "../helpers/spellcasting.mjs";
+import {effectiveSpellcasting, hitDiceSpend, hitDiePoolId, longRestHitDice} from "../helpers/spellcasting.mjs";
 import {actorAbilityModifier, actorProficiencyBonus, checkRollModeDomains, resolveActorCheckStatistic, resolveActorSaveStatistic}
   from "../helpers/combat-statistics.mjs";
 import {ROLL_TYPES, bonusDiceRequest, combineRollModes, countedRollTotal, createD20RollRequest, d20FormulaWith} from "../helpers/rolls.mjs";
@@ -32,22 +33,33 @@ import {
   validateTurnRecoveryContext
 } from "../helpers/combat.mjs";
 
-/** An amount regained on a rest, its dice rolled first: `{total, rolls}`. */
-async function rollAmount(expression, context) {
+/**
+ * An amount regained on a rest, its dice rolled first by the dice policy, one after another: `{total, rolls}`, or null
+ * when a die is closed unrolled.
+ */
+async function rollAmount(expression, context, title) {
   const rolls = [];
+  let closed = false;
   const roll = async node => {
     if ( !node || (typeof node !== "object") ) return node;
     if ( node.type === "dice" ) {
-      const result = await new Roll(`${node.number ?? 1}d${node.faces}`).evaluate();
-      rolls.push(result);
-      return {...node, total: result.total + (Number(node.bonus) || 0)};
+      const shown = closed ? null : await requestShownDice(`${node.number ?? 1}d${node.faces}`, {title});
+      if ( !shown ) closed = true;
+      else rolls.push(shown.roll);
+      return {...node, total: (shown?.result.total ?? 0) + (Number(node.bonus) || 0)};
     }
     const next = {...node};
-    if ( Array.isArray(next.terms) ) next.terms = await Promise.all(next.terms.map(roll));
+    if ( Array.isArray(next.terms) ) {
+      const terms = [];
+      for ( const term of next.terms ) terms.push(await roll(term));
+      next.terms = terms;
+    }
     for ( const key of ["value", "left", "right", "numerator", "denominator"] ) if ( next[key] ) next[key] = await roll(next[key]);
     return next;
   };
-  const result = evaluateValueExpression(await roll(expression), context);
+  const rolled = await roll(expression);
+  if ( closed ) return null;
+  const result = evaluateValueExpression(rolled, context);
   return {total: result.ok ? Math.floor(result.value) : 0, rolls};
 }
 
@@ -785,22 +797,29 @@ export default class WildPathActor extends Actor {
       pools[index].value = 0;
       updates["system.pools"] = pools;
     }
-    // Recharge: a spent pool whose grant says `recharge: 5` comes back on a d6 of 5 or more, rolled for the GM.
+    if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
+    // Recharge: a spent pool whose grant says `recharge: 5` comes back on a d6 of 5 or more, rolled by the GM (who runs
+    // the turn start) with the table's dice, as the GM's monster saves are; closed unrolled, it stays spent. Rolled after
+    // the turn's refills are written, and written from pools read after the rolls: its prompt may wait on the GM.
+    const recharged = [];
     for ( const grant of this.getGrantedResources().filter(entry => entry.recharge) ) {
-      const index = this.system.pools.findIndex(pool => pool.id === grant.id);
-      const pool = this.system.pools[index];
+      const pool = this.system.pools.find(entry => entry.id === grant.id);
       if ( !pool || (pool.value >= pool.max) ) continue;
-      const roll = await new Roll("1d6").evaluate();
-      const recharged = roll.total >= grant.recharge;
-      if ( recharged ) {
-        pools[index].value = pool.max;
-        updates["system.pools"] = pools;
-      }
+      const shown = await requestShownDice("1d6", {title: game.i18n.format("WILDPATH.ROLL.Whose", {name: this.name, roll: grant.label})});
+      if ( !shown ) continue;
+      const {roll} = shown;
+      const ready = roll.total >= grant.recharge;
+      if ( ready ) recharged.push(grant.id);
       await roll.toMessage({speaker: ChatMessage.getSpeaker({actor: this}),
-        flavor: game.i18n.format(recharged ? "WILDPATH.RECHARGE.Recharged" : "WILDPATH.RECHARGE.Spent",
+        flavor: game.i18n.format(ready ? "WILDPATH.RECHARGE.Recharged" : "WILDPATH.RECHARGE.Spent",
           {name: grant.label, range: grant.recharge === 6 ? "6" : `${grant.recharge}–6`})}, {messageMode: "gm"});
     }
-    if ( !foundry.utils.isEmpty(updates) ) await this.update(updates);
+    if ( recharged.length ) {
+      const current = this.toObject(true).system.pools;
+      for ( const [index, pool] of this.system.pools.entries() ) if ( recharged.includes(pool.id) ) current[index].value = pool.max;
+      updates["system.pools"] = current;
+      await this.update({"system.pools": current});
+    }
     // 2024 Command, Drop: "The target drops whatever it is holding": its weapons and Shield are no longer held.
     if ( this.statuses?.has("commanded-drop") ) await this.dropHeld();
     // Its condition damage resolves on its Token in this combat (which may be on a Scene no one is viewing).
@@ -864,10 +883,9 @@ export default class WildPathActor extends Actor {
         // Its total counts as at least its floor (Indomitable Might: the Might score).
         ...((Number(statistic?.totalMinimum) > 1) ? {totalMinimum: Math.trunc(statistic.totalMinimum)} : {})},
       metadata: {rollKind: save ? "save" : "check", ability: used, skill, saveKey: save}});
-    const result = await game.wildpath.requestRoll(request, {title: label});
-    if ( !result ) return null;
-    // Digital dice show as rolled; typed (physical) dice show their total.
-    const roll = result.raw?.foundryRoll ? Roll.fromData(result.raw.foundryRoll) : await new Roll(String(result.total)).evaluate();
+    const shown = await requestShownRoll(request, {title: label});
+    if ( !shown ) return null;
+    const {result, roll} = shown;
     const total = countedRollTotal(result);
     const note = [rerolled ? game.i18n.localize("WILDPATH.INSPIRATION.Rerolled") : null,
       (total > result.total) ? game.i18n.format("WILDPATH.ROLL.AtLeast", {total}) : null].filter(Boolean).map(text => `, ${text}`).join("");
@@ -896,8 +914,13 @@ export default class WildPathActor extends Actor {
       const pool = pools.find(entry => entry.id === hitDiePoolId(Number(faces)));
       const count = Math.min(Math.max(Math.floor(Number(wanted) || 0), 0), pool?.value ?? 0);
       if ( !count ) continue;
-      const roll = await new Roll(`${count}d${faces}`).evaluate();
-      const amount = hitDiceHealing(roll.dice[0].results.map(result => result.result), fortitude, {minimum});
+      const spend = hitDiceSpend(count, Number(faces), fortitude, {minimum});
+      const shown = await requestShownDice(spend.formula, {type: ROLL_TYPES.HEALING,
+        title: game.i18n.format("WILDPATH.REST.ShortRestTitle", {name: this.name})});
+      // Closed unrolled: the roller backs out, so no further size is asked for.
+      if ( !shown ) break;
+      const {roll} = shown;
+      const amount = spend.healing(shown.result.total);
       pool.value -= count;
       healed += amount;
       spent = true;
@@ -956,7 +979,10 @@ export default class WildPathActor extends Actor {
       const grant = grants.get(resource.id);
       const amount = grant?.regain?.[recovery] ?? (long ? grant?.regain?.shortRest : null);
       if ( (amount == null) || (resource.value >= resource.max) ) continue;
-      const {total, rolls} = await rollAmount(amount, {actor: this, actorSystem: this.system});
+      const regained = await rollAmount(amount, {actor: this, actorSystem: this.system},
+        game.i18n.format("WILDPATH.ROLL.Whose", {name: this.name, roll: grant.label}));
+      if ( !regained ) continue;
+      const {total, rolls} = regained;
       pools[index].value = Math.min(resource.max, resource.value + Math.max(total, 0));
       updates["system.pools"] = pools;
       if ( rolls.length ) await rolls[0].toMessage({speaker: ChatMessage.getSpeaker({actor: this}),
