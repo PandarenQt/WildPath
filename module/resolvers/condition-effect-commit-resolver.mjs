@@ -364,9 +364,10 @@ function findConditionEffect(actor, planOrSnapshot) {
   const conditionId = planOrSnapshot?.conditionId ?? planOrSnapshot?.data?.system?.type ?? null;
   const id = planOrSnapshot?.existingEffectId ?? planOrSnapshot?.id ?? planOrSnapshot?.data?._id ?? planOrSnapshot?.data?.id ?? null;
   const uuid = planOrSnapshot?.existingEffectUuid ?? planOrSnapshot?.uuid ?? planOrSnapshot?.data?.uuid ?? null;
-  return collectionContents(actor?.effects ?? []).find(effect => {
-    if ( id && (effect.id === id || effect._id === id) ) return true;
-    if ( uuid && effect.uuid === uuid ) return true;
+  const effects = collectionContents(actor?.effects ?? []);
+  // The effect a plan names comes first: another of its status earlier in the list (a first Dash) is not the one meant.
+  const named = effects.find(effect => (id && (effect.id === id || effect._id === id)) || (uuid && effect.uuid === uuid));
+  return named ?? effects.find(effect => {
     if ( conditionId && (effect.type === "condition") && (effect.system?.type === conditionId) ) return true;
     // A custom effect is matched by the status id it was created with, so applying it again refreshes it; a separate
     // one (a second Dash) is new each time.

@@ -271,3 +271,24 @@ The SRD gap sweep (`bf042e2b`) automated about 105 items. These need a choice fi
 9. **Large ones: Antimagic Field, Magic Jar (possession), Simulacrum.** Automate any of them now? Recommend: Antimagic
    Field yes (Forbid spells/magic Actions inside, suppress magical effects and rules inside; large); Magic Jar and
    Simulacrum by hand for now.
+
+### Q19. One condition from two sources: one effect, or one per source? (2026-11-07)
+A creature has one effect per condition (`findConditionEffect` in `condition-effect-commit-resolver.mjs`), and a
+second source's plan writes its own duration, concentration, source and escape DC over the first's. So a creature
+Restrained by a Net and then by a Web holds the Web's flags only: when the Web's caster loses concentration, the Net's
+hold ends with it, and its escape DC is the Web's. `action-definitions.md` ("two grapples of the same condition are one
+condition") and `areas.md` (`heldElsewhere`) document the one-effect model as a shortcut.
+
+- Question: should a non-stacking condition (Grappled, Restrained, Burning) from several sources be one effect per
+  source group (`effectGroupKey`: Action and source), each with its own duration, concentration and escape DC, the
+  condition lasting while any of them does? If yes:
+  1. Does Escape end only the hold it was rolled against (the highest DC), or every hold of that condition?
+  2. Does a removal with no effect id (a cure, standing up) end every effect of that condition, or one?
+  3. Do a non-stacking condition's own Triggers (Burning's 1d4) run once per creature however many sources it has?
+     (Today each effect's Trigger runs, so two effects would deal it twice.)
+  4. Does a sourced plan leave a GM-toggled, unflagged condition alone and add its own beside it, or take it over as now?
+- Cost if yes: the lookup and binary apply select by group; a second effect is built from the condition's status data
+  (V14 `toggleStatusEffect` creates nothing while one exists); Trigger deduplication; Escape names its hold;
+  `heldElsewhere` and the two shortcut notes go. Additive fields only, no migration.
+- Done meanwhile: nothing; the newer source's flags win. A plan that names its effect by id now finds that one first.
+- Recommendation: yes; (1) only the hold rolled against, (2) every effect of that condition, (3) once, (4) add beside it.

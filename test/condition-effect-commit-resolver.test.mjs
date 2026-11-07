@@ -227,6 +227,27 @@ test("a removal planned without seeing the target (Lesser Restoration's noop pla
   assert.equal((await commitConditionEffectMutationPlan(actor, removal("blinded", false))).ok, true, "a condition it lacks: nothing to do");
 });
 
+test("rolling back a second separate effect (a second Dash) removes that copy, not the first one of the same status", async () => {
+  const dash = () => ({type: "conditionEffect", conditionId: "dashed", levels: 1, action: "create", stacking: false,
+    definition: {id: "dashed", name: "Dashed", custom: true, separate: true,
+      ruleElements: [{schemaVersion: 1, id: "dash-speed", type: "Modifier", data: {domains: ["speed"], value: 30}}]},
+    metadata: {}});
+  const actor = actorWithEffects();
+  assert.equal((await commitConditionEffectMutationPlan(actor, dash())).ok, true);
+  const second = await commitConditionEffectMutationPlan(actor, dash());
+  assert.equal(second.ok, true);
+  assert.deepEqual(actor.effects.map(effect => effect.id), ["effect-1", "effect-2"], "a separate effect is new each time");
+  assert.equal(await rollbackConditionEffectMutationPlan(actor, dash(), null, second), true);
+  assert.deepEqual(actor.effects.map(effect => effect.id), ["effect-1"], "the rolled-back copy goes; the first Dash stays");
+
+  // A plan naming its effect (a spent added die's payment) ends that one, wherever it sits among others of its status.
+  assert.equal((await commitConditionEffectMutationPlan(actor, dash())).ok, true);
+  const spend = {type: "conditionEffect", conditionId: "dashed", levels: -1, action: "delete", stacking: false,
+    existingEffectId: actor.effects[1].id, definition: {id: "dashed", custom: true}, metadata: {}};
+  assert.equal((await commitConditionEffectMutationPlan(actor, spend)).ok, true);
+  assert.deepEqual(actor.effects.map(effect => effect.id), ["effect-1"], "the named copy ends, not the first one");
+});
+
 test("another choice of the same custom effect replaces it: Elemental Affinity's Cold after its Fire", async () => {
   const {planStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
   const affinity = type => ({id: type, type: "effect", name: `Elemental Affinity (${type})`, slug: "elemental-affinity",
