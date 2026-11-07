@@ -676,6 +676,14 @@ target's own `save` modes, so a reroll still cancels source for source. A save's
 the statuses of the effects the saver bears from the Action's user (Eldritch Strike's mark: `{equals: {path:
 "save.fromSource.eldritch-struck", value: true}}`), as `attack.fromAttacker` does for attacks.
 
+**An Action's own save modes (2026-11-07).** `save.rollModes` on an Action's definition holds ordinary `RollMode` rules for
+its saver, read by `saveRollModesFor` with the rest (optional, absent on most Actions). Their predicates see
+`save.fighting`: the saver's Token is a Combatant of any started combat (not only the one the authority views), hostile to
+the user's Token. The converter writes Charm Person's and the Dominate spells' "Advantage if you or your allies (2014: your
+companions) are fighting it" as `{equals: {path:
+"save.fighting", value: true}}`. Only the first save reads it: a repeated save keeps its ability, DC and tags, not its
+Action's roll modes. Allies fighting it while the caster is out of the combat, or before initiative, are the GM's call.
+
 **A minimum d20 (2026-10-19, Reliable Talent).** `RollOutcome {domains: ["check.proficient"], outcome: "minimum-natural",
 threshold: 10}`: a check with its skill's proficiency reads `check.proficient`, and `resolveActorCheckStatistic` returns the
 highest such threshold as `naturalMinimum`. Every check also reads `check.<ability>` and `check.<skill>`, proficient or

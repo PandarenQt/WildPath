@@ -2782,6 +2782,49 @@ test("the odds of an attack and of a save use the authority's own numbers, and s
   assert.equal(odds(meleeStrikeDefinition(), {isGM: false}).length, 1, "or the house rule shows odds to players");
 });
 
+test("a save's own Advantage while its target fights the caster's side (Charm Person): the target loop and the odds agree", async () => {
+  const scene = fakeScene(new FakeSquareGrid(), {id: "scene-fighting"});
+  const caster = withConditions(fakeActor("fighting-source", {system: actorSystem()}));
+  const target = withConditions(fakeActor("fighting-target", {system: targetActorSystem(20, 20, {ac: 14}),
+    statistics: {"save.wits": runtimeStatistic("save.wits", 0)}}));
+  const sourceToken = fakeTokenDocument({id: "fighting-source", actor: caster, scene, offset: {i: 0, j: 0}, disposition: 1});
+  const targetToken = fakeTokenDocument({id: "fighting-target", actor: target, scene, offset: {i: 1, j: 0}});
+  caster.tokens = [sourceToken];
+  target.tokens = [targetToken];
+  scene.tokens = [sourceToken, targetToken];
+  scene.tokens.get = id => scene.tokens.find(token => token.id === id);
+  const game = fakeGame({actors: [caster, target], scenes: [scene]});
+  const charm = {...fortitudeBlast("wits"), id: "action:runtime-charm", save: {ability: "wits", dc: {value: 13}, rollModes: [{schemaVersion: 1,
+    id: "fighting-advantage", type: "RollMode", data: {domains: ["save"], mode: "advantage"}, predicate: {equals: {path: "save.fighting", value: true}}}]}};
+  const action = actionItem(charm, caster);
+  const modes = async () => {
+    const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game, intent: {actorRef: caster.uuid,
+      actionRef: action.uuid, targetRefs: [{actorRef: target.uuid, tokenId: targetToken.id, sceneId: scene.id}]}});
+    assert.equal(resolved.ok, true, resolved.reason);
+    const planned = await planStagedActionResolution(resolved.options);
+    return [planned.state.rollRequests[0].rollMode,
+      foundryActionOdds({actor: caster, action, sourceToken, targetTokens: [targetToken], user: {isGM: true}, game})[0].rollMode];
+  };
+  assert.deepEqual(await modes(), ["normal", "normal"], "no combat");
+  const fight = {started: true, round: 1, turn: 0, id: "fight", combatants: [{tokenId: "fighting-target", sceneId: scene.id}]};
+  game.combats = [fight];
+  assert.deepEqual(await modes(), ["advantage", "advantage"], "a Combatant of a started combat, hostile to the caster");
+  // The authority's viewed combat is another Scene's: the saver's own combat still counts.
+  game.combat = {started: true, round: 1, turn: 0, id: "elsewhere", combatants: []};
+  game.combats = [game.combat, fight];
+  assert.deepEqual(await modes(), ["advantage", "advantage"], "its own combat, not the viewed one");
+  sourceToken.disposition = -1;
+  assert.deepEqual(await modes(), ["normal", "normal"], "on the caster's side");
+  sourceToken.disposition = 1;
+  fight.combatants = [{tokenId: "fighting-target", sceneId: "another-scene"}];
+  assert.deepEqual(await modes(), ["normal", "normal"], "a same-id Token of another Scene");
+  fight.combatants = [];
+  assert.deepEqual(await modes(), ["normal", "normal"], "not in the combat");
+  fight.combatants = [{tokenId: "fighting-target", sceneId: scene.id}];
+  fight.started = false;
+  assert.deepEqual(await modes(), ["normal", "normal"], "the combat not started");
+});
+
 test("a common action is built by the authority from its id: a client names it, never supplies its rules", async () => {
   const scene = fakeScene(new FakeSquareGrid(), {id: "scene-common"});
   const hero = fakeActor("common-hero", {system: {...actorSystem(), abilities: {might: {value: 16}}, details: {level: 5}},

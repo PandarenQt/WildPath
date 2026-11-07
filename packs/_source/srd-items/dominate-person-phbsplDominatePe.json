@@ -55,7 +55,26 @@
               }
             ]
           }
-        }
+        },
+        "rollModes": [
+          {
+            "schemaVersion": 1,
+            "id": "fighting-advantage",
+            "type": "RollMode",
+            "data": {
+              "domains": [
+                "save"
+              ],
+              "mode": "advantage"
+            },
+            "predicate": {
+              "equals": {
+                "path": "save.fighting",
+                "value": true
+              }
+            }
+          }
+        ]
       },
       "effects": [
         {
@@ -148,9 +167,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "save: its Advantage if you or your allies are fighting it is by hand"
-        ]
+        "notes": []
       }
     }
   }

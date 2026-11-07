@@ -45,7 +45,26 @@
         "ability": "wits",
         "dc": {
           "value": 15
-        }
+        },
+        "rollModes": [
+          {
+            "schemaVersion": 1,
+            "id": "fighting-advantage",
+            "type": "RollMode",
+            "data": {
+              "domains": [
+                "save"
+              ],
+              "mode": "advantage"
+            },
+            "predicate": {
+              "equals": {
+                "path": "save.fighting",
+                "value": true
+              }
+            }
+          }
+        ]
       },
       "effects": [
         {
@@ -106,9 +125,7 @@
         "castBy": "Trident of Fish Command"
       },
       "conversion": {
-        "notes": [
-          "save: its Advantage if you or your allies are fighting it is by hand"
-        ]
+        "notes": []
       },
       "price": 400,
       "rarity": "uncommon"

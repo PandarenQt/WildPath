@@ -5,7 +5,7 @@ import {createFoundryEnchantments} from "../adapters/foundry-v14-enchantments.mj
 import {controllerAuthority, portentOffer} from "../adapters/foundry-v14-portent.mjs";
 import {enchantedObjectsWithin} from "../adapters/foundry-v14-enchantments.mjs";
 import {WILDPATH} from "../config.mjs";
-import {actionTags} from "../helpers/rule-elements.mjs";
+import {actionTags, rollModesFromRuleElements} from "../helpers/rule-elements.mjs";
 import {createFoundryDigitalRollProvider} from "../adapters/foundry-digital-roll-provider.mjs";
 import {createFoundryV14DocumentPersistenceAdapter} from "../adapters/foundry-v14-persistence-adapter.mjs";
 import {closeFoundryPrompt, createFoundryV14PromptAdapter, setPassBackAvailable} from "../adapters/foundry-v14-prompt-adapter.mjs";
@@ -923,9 +923,9 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       const key = target.tokenId ?? target.id;
       const saverToken = targetTokenFor(targetActor, hint, game);
       // A choice of saves (2024 Grapple: Might or Agility): the one it is likelier to pass.
-      const ability = bestSaveAbility({definition, targetActor, saverToken, cover, actor, actorSystem, game});
+      const ability = bestSaveAbility({definition, targetActor, saverToken, cover, actor, actorSystem, sourceToken, game});
       if ( (definition.save.abilities?.length ?? 0) > 1 ) saveAbilityByTarget[key] = ability;
-      const modes = saveRollModesFor({targetActor, actor, definition, ability, token: saverToken, game}).map(entry => entry?.mode ?? entry);
+      const modes = saveRollModesFor({targetActor, actor, definition, ability, token: saverToken, sourceToken, game}).map(entry => entry?.mode ?? entry);
       saveRollModes[key] = combineRollModes(modes);
       // Its sources too, so a reroll with a mode of its own (Countercharm's Advantage) cancels source for source.
       if ( modes.length ) saveRollModeSources[key] = modes;
@@ -936,7 +936,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       if ( bonus?.dice?.length ) saveDice[key] = bonus.dice;
       if ( bonus?.totalMinimum ) saveTotalMinimums[key] = bonus.totalMinimum;
       const forced = targetActor.getRollOutcomes?.(["save", `save.${ability}`], saveContext(definition, ability, saverToken,
-        {saver: targetActor, source: actor, game})) ?? [];
+        {saver: targetActor, source: actor, sourceToken, game})) ?? [];
       if ( forced.some(entry => entry.outcome === "automatic-failure") ) saveOutcomes[key] = "automatic-failure";
       // A save it can't fail (Trance against sleep magic) wins over one it can't pass.
       if ( forced.some(entry => entry.outcome === "automatic-success") ) saveOutcomes[key] = "automatic-success";
@@ -2018,17 +2018,17 @@ export function monsterRerollPayers(game, scene) {
  * Dexterity saving throw (it chooses)"): the one it is likelier to pass against the Action's DC, from its own bonus,
  * cover, Advantage or Disadvantage and automatic failures. Else the Action's one save.
  */
-export function bestSaveAbility({definition, targetActor, saverToken, cover="none", actor=null, actorSystem=null, game=globalThis.game}) {
+export function bestSaveAbility({definition, targetActor, saverToken, cover="none", actor=null, actorSystem=null, sourceToken=null, game=globalThis.game}) {
   const save = definition.save ?? {};
   const choices = save.abilities?.length ? save.abilities : [save.ability ?? save.saveKey ?? null];
   if ( choices.length < 2 ) return choices[0];
   const dc = Number(save.dc?.value ?? evaluateValueExpression(save.dc?.valueExpression, {actor, actorSystem}).value) || 10;
   const chance = ability => {
-    const context = saveContext(definition, ability, saverToken, {saver: targetActor, source: actor, game});
+    const context = saveContext(definition, ability, saverToken, {saver: targetActor, source: actor, sourceToken, game});
     const forced = (targetActor.getRollOutcomes?.(["save", `save.${ability}`], context) ?? []).map(entry => entry.outcome);
     if ( forced.includes("automatic-success") ) return 1;
     if ( forced.includes("automatic-failure") ) return 0;
-    const modes = saveRollModesFor({targetActor, actor, definition, ability, token: saverToken, game}).map(entry => entry?.mode ?? entry);
+    const modes = saveRollModesFor({targetActor, actor, definition, ability, token: saverToken, sourceToken, game}).map(entry => entry?.mode ?? entry);
     const bonus = resolveActorSaveStatistic(targetActor, ability);
     // A total floor at or above the DC can't fail (Indomitable Might).
     if ( Number(bonus?.totalMinimum) >= dc ) return 1;
@@ -2042,14 +2042,21 @@ export function bestSaveAbility({definition, targetActor, saverToken, cover="non
  * What a save's RuleElement predicates see: its ability, and the Action's tags. Every spell is `magical` too, so
  * Magic Resistance (`{tagsAny: ["magical"]}`) covers spells and Actions tagged `magical` (a magic item's).
  * `save.fromSource`: the conditions the saver bears from the Action's user (`{eldritch-struck: true}`: Eldritch Strike).
+ * `save.fighting`: the saver's Token is a Combatant of a started combat, hostile to the user's Token ("Advantage if
+ * you or your allies are fighting it").
  */
-function saveContext(definition, ability, token=null, {saver=null, source=null, game=globalThis.game}={}) {
+function saveContext(definition, ability, token=null, {saver=null, source=null, sourceToken=null, game=globalThis.game}={}) {
   const tags = definition?.tags ?? [];
   // What the save is against (`against:poisoned`): the conditions a failure gives, or a repeated save ends
   // (`save.against`), so "Advantage on saves to avoid or end the Poisoned condition" is a RollMode on that tag.
   const against = [...new Set([...(definition?.effects ?? []).map(effect => effect?.conditionId),
     ...(definition?.save?.against ?? [])].filter(Boolean))].map(condition => `against:${condition}`);
-  return {context: {save: {ability, fromSource: (saver && source) ? conditionsFrom(saver, source, game) : {}},
+  const tokenId = token?.document?.id ?? token?.id;
+  const sceneId = token?.document?.parent?.id ?? token?.parent?.id;
+  // Any started combat holding its Token, not the viewed one (`game.combat`): the authority may view another Scene.
+  const fighting = Boolean(tokenId && hostileTo(sourceToken, token) && [...(game?.combats ?? [])].some(combat => combat?.started
+    && [...(combat.combatants ?? [])].some(entry => (entry.tokenId === tokenId) && (entry.sceneId === sceneId))));
+  return {context: {save: {ability, fighting, fromSource: (saver && source) ? conditionsFrom(saver, source, game) : {}},
     tags: [...tags, ...(tags.includes("spell") && !tags.includes("magical") ? ["magical"] : []), ...against],
     ...sunlightContext(token), ...fearContext(token)}};
 }
@@ -2057,12 +2064,15 @@ function saveContext(definition, ability, token=null, {saver=null, source=null, 
 /**
  * The Advantage and Disadvantage on `targetActor`'s save against `definition`: its own (`save`, `save.<ability>`), and
  * those the Action's user `actor` imposes on the saves its Actions force (`imposed.save`, `imposed.save.<ability>`:
- * Magical Ambush while Invisible). The target loop, the choice of save and the odds all read it, so they agree.
+ * Magical Ambush while Invisible), and the Action's own for its saver (`save.rollModes`: Charm Person's Advantage while
+ * fighting it). The target loop, the choice of save and the odds all read it, so they agree.
  */
-export function saveRollModesFor({targetActor, actor=null, definition, ability, token=null, game=globalThis.game}) {
-  const context = saveContext(definition, ability, token, {saver: targetActor, source: actor, game});
-  return [...(targetActor?.getRollModes?.(["save", `save.${ability}`], context) ?? []),
-    ...(actor?.getRollModes?.(["imposed.save", `imposed.save.${ability}`], context) ?? [])];
+export function saveRollModesFor({targetActor, actor=null, definition, ability, token=null, sourceToken=null, game=globalThis.game}) {
+  const context = saveContext(definition, ability, token, {saver: targetActor, source: actor, sourceToken, game});
+  const domains = ["save", `save.${ability}`];
+  return [...(targetActor?.getRollModes?.(domains, context) ?? []),
+    ...(actor?.getRollModes?.(["imposed.save", `imposed.save.${ability}`], context) ?? []),
+    ...rollModesFromRuleElements([{ruleElements: definition?.save?.rollModes ?? []}], {domains, context: context.context})];
 }
 
 /**
@@ -2099,8 +2109,8 @@ export function foundryActionOdds({actor, action, sourceToken=null, targetTokens
   const ability = definition.save.ability ?? definition.save.saveKey ?? null;
   if ( !Number.isFinite(dc) ) return [];
   return entries.map(({token, actor: target}) => {
-    const context = saveContext(definition, ability, token, {saver: target, source: actor, game});
-    const rollMode = combineRollModes(saveRollModesFor({targetActor: target, actor, definition, ability, token, game}));
+    const context = saveContext(definition, ability, token, {saver: target, source: actor, sourceToken, game});
+    const rollMode = combineRollModes(saveRollModesFor({targetActor: target, actor, definition, ability, token, sourceToken, game}));
     const statistic = resolveActorSaveStatistic(target, ability);
     const modifier = (statistic?.totalModifier ?? 0) + ((ability === "agility")
       ? (COVER_BONUS[actionCover({definition, sourceToken, targetToken: token})] ?? 0) : 0);

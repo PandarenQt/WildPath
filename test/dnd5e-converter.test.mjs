@@ -1734,8 +1734,28 @@ test("a save its text repeats as the creature takes damage (Dominate Person, Hid
     + " damage, it repeats the save, ending the spell on itself on a success.</p>");
   assert.deepEqual(dominate.items[0].system.definition.effects.map(effect => [effect.conditionId, effect.repeatSave, effect.repeatOnDamage]),
     [["paralyzed", undefined, true]]);
-  assert.equal(dominate.notes.includes("save: its Advantage if you or your allies are fighting it is by hand"), true);
-  assert.equal(noteReason(`Charm: ${dominate.notes[0]}`), "save: Advantage in a case its text names (by hand)");
+  // Its Advantage while fighting is the save's own RollMode, read by the runtime (`save.fighting`), not a note.
+  const {save} = dominate.items[0].system.definition;
+  assert.deepEqual(rollModesFromRuleElements([{ruleElements: save.rollModes}], {domains: ["save"], context: {save: {fighting: true}}})
+    .map(entry => entry.mode), ["advantage"]);
+  assert.deepEqual(rollModesFromRuleElements([{ruleElements: save.rollModes}], {domains: ["save"], context: {save: {fighting: false}}}), []);
+  assert.deepEqual(dominate.notes, []);
+  // 2024 Charm Person's wording: "It does so with Advantage if ...".
+  const charm = converted("<p>It does so with Advantage if you or your allies are fighting it.</p>");
+  valid(charm.items[0]);
+  assert.equal(charm.items[0].system.definition.save.rollModes[0].id, "fighting-advantage");
+  assert.deepEqual(charm.notes, []);
+  // 2014 Charm Person's: "... and does so with advantage if you or your companions are fighting it."
+  const charm2014 = converted("<p>It must make a Wisdom saving throw, and does so with advantage if you or your companions are fighting it.</p>");
+  assert.equal(charm2014.items[0].system.definition.save.rollModes[0].id, "fighting-advantage");
+  assert.deepEqual(charm2014.notes, []);
+  // Any other case its text names stays a note, in either wording.
+  for ( const text of ["<p>The target has Advantage on the save if it can see you.</p>", "<p>It does so with Advantage if it can see you.</p>"] ) {
+    const other = converted(text);
+    assert.equal(other.items[0].system.definition.save.rollModes, undefined);
+    assert.deepEqual(other.notes, ["save: its Advantage if it can see you is by hand"]);
+    assert.equal(noteReason(`Charm: ${other.notes[0]}`), "save: Advantage in a case its text names (by hand)");
+  }
 
   const laughter = converted("<p>It can't end the Prone condition on itself.</p><p>At the end of each of its turns and each time it takes"
     + " damage, it makes another [[/save ability=wis dc=@attributes.spell.dc]] saving throw. The target has Advantage on the save if the"

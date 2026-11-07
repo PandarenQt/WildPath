@@ -515,7 +515,26 @@
             "ability": "wits",
             "dc": {
               "value": 17
-            }
+            },
+            "rollModes": [
+              {
+                "schemaVersion": 1,
+                "id": "fighting-advantage",
+                "type": "RollMode",
+                "data": {
+                  "domains": [
+                    "save"
+                  ],
+                  "mode": "advantage"
+                },
+                "predicate": {
+                  "equals": {
+                    "path": "save.fighting",
+                    "value": true
+                  }
+                }
+              }
+            ]
           },
           "effects": [
             {

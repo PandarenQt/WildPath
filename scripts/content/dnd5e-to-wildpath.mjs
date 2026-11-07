@@ -5585,7 +5585,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
     if ( (effect.saveOutcomePolicy === "failure") && !((effect.levels ?? 1) < 0) ) Object.assign(effect, repeat);
   }
   const repeated = effects.find(effect => effect.repeatOnDamage);
-  const advantageIf = definition.save ? /\bhas Advantage on the sav(?:e|ing throw) if ([^.]+)\./i.exec(plainText(document))?.[1] : null;
+  const advantageIf = definition.save
+    ? /\b(?:has Advantage on the sav(?:e|ing throw)|does so with Advantage) if ([^.]+)\./i.exec(plainText(document))?.[1] : null;
   // "The target has Advantage on the save if the save is triggered by damage" (Hideous Laughter; 2014 "on the saving throw
   // if it's triggered by damage"): a marker its repeated save ends with the rest, giving Advantage on the save its damage
   // brings (`repeat:damaged`). The repeated save keeps its spell's tags, so `spell:<identifier>` keeps the Advantage off
@@ -5596,6 +5597,12 @@ function convertActivity({document, activity, system, spell, level, scales, note
       predicate: {tagsAll: ["repeat:damaged", `spell:${identifierOf(document)}`]}}],
       saveOutcomePolicy: "failure", ...(repeated.duration ? {duration: structuredClone(repeated.duration)} : {}),
       ...(repeated.concentration ? {concentration: true} : {}), ...repeat});
+  } else if ( /^you or your (?:allies|companions) are fighting it$/i.test(advantageIf ?? "") ) {
+    // "The target has Advantage on the save if you or your allies are fighting it" (the Dominate spells; Charm Person's
+    // "It does so with Advantage if ...", 2014 "your companions"): the Action's own RollMode for its saver, while it is
+    // fighting the caster's side (`save.fighting`). Only the first save: a repeated one keeps no roll modes of its Action.
+    definition.save.rollModes = [{schemaVersion: 1, id: "fighting-advantage", type: "RollMode",
+      data: {domains: ["save"], mode: "advantage"}, predicate: {equals: {path: "save.fighting", value: true}}}];
   } else if ( advantageIf ) notes.push(`save: its Advantage if ${advantageIf} is by hand`);
   // "it can't end the Prone condition on itself" (Hideous Laughter): standing up is not stopped.
   const kept = definition.save ? /\bcan[’']t end the (\w+) condition on itself\b/i.exec(plainText(document))?.[1] : null;
