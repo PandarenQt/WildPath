@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {coinsInCopper, craftingPlan, spendGold} from "../module/helpers/crafting.mjs";
+import {coinsInCopper, craftingPlan, craftingPlanOf, spendGold} from "../module/helpers/crafting.mjs";
 
 test("2024 crafting: mundane by price, magic by rarity (half for consumables), a scroll by its spell's level", () => {
   assert.deepEqual(craftingPlan({price: 50}), {days: 5, cost: 25}, "a Longbow");
@@ -8,6 +8,15 @@ test("2024 crafting: mundane by price, magic by rarity (half for consumables), a
   assert.deepEqual(craftingPlan({price: 400, rarity: "uncommon"}), {days: 10, cost: 200});
   assert.deepEqual(craftingPlan({price: 50, rarity: "common", consumable: true}), {days: 3, cost: 25}, "a Potion of Healing");
   assert.deepEqual(craftingPlan({scrollLevel: 3}), {days: 5, cost: 150});
+});
+
+test("an Item's crafting plan reads its system fields, else a converted Item's flags", () => {
+  assert.deepEqual(craftingPlanOf({system: {price: 50}}), {days: 5, cost: 25});
+  assert.deepEqual(craftingPlanOf({system: {}, flags: {wildpath: {price: 50, rarity: "common", source: {type: "consumable"}}}}),
+    {days: 3, cost: 25}, "a converted Potion of Healing");
+  assert.deepEqual(craftingPlanOf({system: {price: 1, rarity: "uncommon"}, flags: {wildpath: {price: 9, rarity: "rare"}}}),
+    {days: 10, cost: 200}, "the system fields win over the flags");
+  assert.deepEqual(craftingPlanOf({flags: {wildpath: {scrollLevel: 3}}}), {days: 5, cost: 150}, "a Spell Scroll");
 });
 
 test("spending gold makes change from a character's coins, or refuses when it has too little", () => {

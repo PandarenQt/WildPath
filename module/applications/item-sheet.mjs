@@ -1,6 +1,6 @@
 import {scrollItemData} from "../helpers/spell-scrolls.mjs";
 import {realGapNotes} from "../helpers/conversion-notes.mjs";
-import {craftingPlan, giveItem, spendGold, writeInOrder} from "../helpers/crafting.mjs";
+import {craftingPlanOf, giveItem, spendGold, writeInOrder} from "../helpers/crafting.mjs";
 import {CUSTOM_EFFECT_DURATION_UNITS, CUSTOM_EFFECT_EXPIRY_EVENTS, validateActionDefinition} from "../helpers/action-definitions.mjs";
 import {summarizeActionDefinition} from "../helpers/action-definition-summary.mjs";
 import {ACTION_TEMPLATES, AREA_SHAPES, addBuilderRow, applyActionTemplate, builderGaps, builderIssues, builderToDefinition,
@@ -330,9 +330,7 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
   static async #onCraft() {
     const characters = game.actors.filter(actor => (actor.type === "character") && actor.hasPlayerOwner);
     if ( !characters.length ) return;
-    const plan = craftingPlan({price: this.item.system.price ?? this.item.flags?.wildpath?.price,
-      rarity: this.item.system.rarity ?? this.item.flags?.wildpath?.rarity,
-      consumable: this.item.flags?.wildpath?.source?.type === "consumable", scrollLevel: this.item.flags?.wildpath?.scrollLevel ?? null});
+    const plan = craftingPlanOf(this.item);
     const answer = await foundry.applications.api.DialogV2.input({window: {title: game.i18n.format("WILDPATH.CRAFT.Title", {name: this.item.name})},
       content: `<p>${game.i18n.format("WILDPATH.CRAFT.Plan", plan)}</p><select name="actor">${characters.map(actor =>
         `<option value="${actor.id}">${foundry.utils.escapeHTML(actor.name)}</option>`).join("")}</select>`, rejectClose: false});

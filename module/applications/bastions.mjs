@@ -1,5 +1,5 @@
 import {BUILD_COST, ENLARGE_COST, bastionGroups, canAddSpecial, coverLosses, defendersLost, recruited, tradeSale} from "../helpers/bastions.mjs";
-import {craftingPlan, giveItem, spendGold, writeInOrder} from "../helpers/crafting.mjs";
+import {craftingPlanOf, giveItem, spendGold, writeInOrder} from "../helpers/crafting.mjs";
 
 /**
  * Bastions (2024 DMG, 2026-10-22). A character's Bastion is its facilities (Items) and `system.bastion` (its defenders and
@@ -43,8 +43,7 @@ export async function carryOut(actor, facility, order) {
   if ( (order === "craft") && facility.system.current?.craft ) {
     const made = await globalThis.fromUuid?.(facility.system.current.craft);
     if ( !made ) return format("WILDPATH.BASTION.CraftLost", {name, facility: facility.name});
-    const plan = craftingPlan({price: made.system?.price ?? made.flags?.wildpath?.price, rarity: made.system?.rarity ?? made.flags?.wildpath?.rarity,
-      consumable: made.flags?.wildpath?.source?.type === "consumable", scrollLevel: made.flags?.wildpath?.scrollLevel ?? null});
+    const plan = craftingPlanOf(made);
     const progress = (Number(facility.system.current.progress) || 0) + 7;
     if ( progress < plan.days ) {
       await facility.update({"system.current.progress": progress});

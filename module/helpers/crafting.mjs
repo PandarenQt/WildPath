@@ -24,6 +24,13 @@ export function craftingPlan({price=0, rarity="", consumable=false, scrollLevel=
   return {days: Math.max(Math.ceil(value / 10), 1), cost: value / 2};
 }
 
+/** What crafting an Item takes, read from its system fields or, for a converted Item without them, its WildPath flags. */
+export function craftingPlanOf(item) {
+  const flags = item.flags?.wildpath;
+  return craftingPlan({price: item.system?.price ?? flags?.price, rarity: item.system?.rarity ?? flags?.rarity,
+    consumable: flags?.source?.type === "consumable", scrollLevel: flags?.scrollLevel ?? null});
+}
+
 /** A character's coins worth in copper. */
 export const coinsInCopper = (currency={}) => Object.entries(COINS).reduce((total, [coin, value]) => total + ((Number(currency[coin]) || 0) * value), 0);
 
