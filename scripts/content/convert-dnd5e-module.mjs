@@ -3,7 +3,7 @@ import {tmpdir} from "node:os";
 import {join, resolve} from "node:path";
 import {contentStamp} from "./content-stamp.mjs";
 import {extractPack} from "@foundryvtt/foundryvtt-cli";
-import {spellListsOf, convertTable, PROGRESSION_TYPES, baseWeapons, beastsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, mapGrantItems, nameIndex, scaleTables,
+import {spellListsOf, convertTable, PROGRESSION_TYPES, baseWeapons, creatureFormsOf, convertActor, convertFacility, convertItem, convertProgression, isSrd2024, mapGrantItems, nameIndex, scaleTables,
   withRedirects} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 import {insideRepository, writeLocalModule} from "./local-module.mjs";
@@ -69,9 +69,9 @@ const creatures = withRedirects(Object.fromEntries([
     .map(document => [document._id, `Compendium.wildpath.srd-creatures.Actor.${document._id}`]),
   ...(manifest.packs ?? []).filter(pack => pack.type === "Actor").flatMap(documents).filter(document => document.type === "npc")
     .map(document => [document._id, `Compendium.wildpath-${moduleId}.creatures.Actor.${document._id}`])]), redirects);
-// The Beasts Polymorph may choose: the SRD's and the book's own.
-const beasts = beastsOf([...srdDocuments.filter(isSrd2024), ...(manifest.packs ?? []).filter(pack => pack.type === "Actor").flatMap(documents)],
-  document => creatures[document._id]).filter(beast => beast.uuid);
+// The creatures a transformation may choose (Polymorph and Wild Shape the Beasts among them): the SRD's and the book's own.
+const forms = creatureFormsOf([...srdDocuments.filter(isSrd2024), ...(manifest.packs ?? []).filter(pack => pack.type === "Actor").flatMap(documents)],
+  document => creatures[document._id]).filter(form => form.uuid);
 // Each document's uses by id (a formula): an enchantment's limit is the uses of the Item it spends (Infuse Item).
 const usesOf = Object.fromEntries(all.filter(document => (typeof document.system?.uses?.max === "string") && document.system.uses.max)
   .map(document => [document._id, document.system.uses.max]));
@@ -82,7 +82,7 @@ const srdTables = existsSync("packs/_source/srd-tables") ? readdirSync("packs/_s
   JSON.parse(readFileSync(join("packs/_source/srd-tables", file), "utf8"))._id).map(id => [id, `Compendium.wildpath.srd-tables.RollTable.${id}`]) : [];
 const tableIds = Object.fromEntries([...srdTables, ...(manifest.packs ?? []).filter(pack => pack.type === "RollTable").flatMap(documents)
   .filter(table => table.results?.length).map(table => [table._id, `Compendium.wildpath-${moduleId}.tables.RollTable.${table._id}`])]);
-const options = {scales, names, licensed: () => true, book: manifest.title, images: ["icons/", `modules/${moduleId}/`], spells, creatures, beasts,
+const options = {scales, names, licensed: () => true, book: manifest.title, images: ["icons/", `modules/${moduleId}/`], spells, creatures, forms,
   usesOf, spellLists, weapons: baseWeapons([...srdDocuments, ...all]), tables: tableIds};
 
 const items = [];

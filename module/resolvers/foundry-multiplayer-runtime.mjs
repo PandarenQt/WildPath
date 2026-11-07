@@ -1369,23 +1369,27 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
     gmNotice("WILDPATH.NOTICE.FormMissing", {}, formRef);
     return null;
   }
-  const policy = {...(spec.takes ? {takes: spec.takes} : {}), ...(spec.keepItemTypes ? {keepItemTypes: spec.keepItemTypes} : {})};
+  const policy = {...(spec.takes ? {takes: spec.takes} : {}), ...(spec.keepItemTypes ? {keepItemTypes: spec.keepItemTypes} : {}),
+    ...(spec.keepsSpellcasting ? {keepsSpellcasting: true} : {})};
   if ( !spec.targets ) {
     // 2014 Wild Shape: the form's Hit Points as Temporary Hit Points, reverting once they are gone (its limits were
-    // checked when it was used).
-    // It lasts a share of its class's level (Wild Shape: half the druid level, in hours, rounded down).
+    // checked when it was used). 2024 Shapechange (`untilTemporaryHealthLost: false`) goes on without them.
+    // It lasts a share of its class's level (Wild Shape: half the druid level, in hours, rounded down), or a fixed
+    // duration (Shapechange's hour), and with `concentration` ends with its user's concentration too.
     const levels = Number(actor.system?.classes?.find?.(entry => entry.id === spec.duration?.class)?.level) || 0;
-    const value = spec.duration ? Math.floor(levels * (Number(spec.duration.perLevel) || 0)) : 0;
+    const value = !spec.duration ? 0 : (spec.duration.class ? Math.floor(levels * (Number(spec.duration.perLevel) || 0))
+      : (Number(spec.duration.value) || 0));
+    const tokenId = state.source?.tokenId ?? null;
     return actor.transform(form, {...policy, ...((spec.temporaryHealth === "form")
-      ? {temporaryHealth: Number(form.system?.resources?.health?.max) || 0, untilTemporaryHealthLost: true} : {}),
-    ...(value > 0 ? {duration: {value, units: spec.duration.units ?? "hours"}} : {})});
+      ? {temporaryHealth: Number(form.system?.resources?.health?.max) || 0, untilTemporaryHealthLost: spec.untilTemporaryHealthLost !== false} : {}),
+    ...(value > 0 ? {duration: {value, units: spec.duration.units ?? "hours"}} : {}),
+    ...((spec.concentration && tokenId) ? {concentrationRef: `token:${tokenId}`} : {})});
   }
   // Polymorph: each creature that failed its save takes the form, unless the form's Challenge Rating is above its own
   // (or its level). It gains the form's Hit Points as Temporary Hit Points, and reverts when they are gone or when its
   // caster's concentration ends.
   const source = await fromUuid?.(String(state.source?.tokenRef ?? ""));
   const scene = source?.parent ?? null;
-  const rank = creature => Number(creature?.system?.details?.level ?? creature?.system?.details?.threat) || 0;
   const transformed = [];
   for ( const entry of state.results?.saveResolution?.results ?? [] ) {
     const target = (entry.ok && (entry.success === false)) ? scene?.tokens?.get?.(String(entry.target?.tokenId ?? ""))?.actor : null;
@@ -1395,7 +1399,7 @@ export async function applyActionTransformation({options, state}={}, {logger=glo
       gmNotice("WILDPATH.NOTICE.CannotShapeShift", {name: target.name ?? ""});
       continue;
     }
-    if ( rank(form) > Math.max(rank(target), 0) ) {
+    if ( creatureRank(form) > Math.max(creatureRank(target), 0) ) {
       gmNotice("WILDPATH.NOTICE.FormTooStrong", {form: form.name ?? "", name: target.name ?? ""});
       globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.format?.("WILDPATH.TRANSFORMATION.TooMighty",
         {form: form.name, target: target.name}) ?? `${form.name} is beyond ${target.name}.`);
@@ -1568,19 +1572,28 @@ function chosenFormRef(spec, choices) {
   return spec.formRef ?? (typeof chosen === "string" ? chosen : chosen?.value ?? chosen?.optionId ?? null);
 }
 
+/** A creature's level, else its Challenge Rating: what a form's Challenge Rating may not exceed (Polymorph, Shapechange). */
+const creatureRank = creature => Number(creature?.system?.details?.level ?? creature?.system?.details?.threat) || 0;
+
 /**
  * Why a form is beyond its creature's limits, or null (2014 Wild Shape: CR 1/4 and no Fly or Swim Speed until druid
  * level 4, CR 1/2 and no Fly Speed until 8, then CR 1). `limits`: `{class, rows: {level: {cr, fly, swim}}}`; the row for
- * its class level. A row without `swim` allows swimming.
+ * its class level. A row without `swim` allows swimming. `{challenge: "self"}` (2024 Shapechange): no Challenge Rating
+ * above its creature's level or Challenge Rating.
  */
 export function formBeyondLimits(limits, actor, form) {
+  const name = form?.name ?? "";
+  const challenge = Number(form?.flags?.wildpath?.source?.challenge ?? form?.system?.details?.threat ?? 0);
+  if ( limits?.challenge === "self" ) {
+    const rank = creatureRank(actor);
+    return (challenge > rank) ? (globalThis.game?.i18n?.format?.("WILDPATH.TRANSFORMATION.BeyondChallenge", {form: name, challenge, rank})
+      ?? `${name} (CR ${challenge}) is beyond level or CR ${rank}.`) : null;
+  }
   if ( !limits?.rows ) return null;
   const level = (actor?.system?.classes ?? []).filter(entry => (entry?.id ?? entry?.identifier) === limits.class)
     .reduce((sum, entry) => sum + (Number(entry.level ?? entry.levels) || 0), 0);
   const row = Object.entries(limits.rows).filter(([at]) => Number(at) <= level).sort((a, b) => Number(b[0]) - Number(a[0]))[0]?.[1];
-  const name = form?.name ?? "";
   if ( !row ) return `${name}: no form yet at ${limits.class} level ${level}.`;
-  const challenge = Number(form?.flags?.wildpath?.source?.challenge ?? form?.system?.details?.threat ?? 0);
   if ( challenge > Number(row.cr) ) return `${name} (CR ${challenge}) is beyond CR ${row.cr} at ${limits.class} level ${level}.`;
   const moves = mode => [...(form?.items ?? [])].some(item => (item.system?.ruleElements ?? [])
     .some(rule => (rule.type === "GrantMovement") && (rule.data?.mode === mode)));

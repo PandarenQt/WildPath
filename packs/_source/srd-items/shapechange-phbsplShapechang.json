@@ -46,9 +46,1239 @@
             "spell-slot.9": 9
           },
           "effects": []
+        },
+        {
+          "id": "form",
+          "type": "select-one",
+          "label": "Form",
+          "required": true,
+          "options": [
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAwakenedShrub0",
+              "label": "Awakened Shrub (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBaboon00000000",
+              "label": "Baboon (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBadger00000000",
+              "label": "Badger (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBat00000000000",
+              "label": "Bat (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCat00000000000",
+              "label": "Cat (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCommoner000000",
+              "label": "Commoner (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCrab0000000000",
+              "label": "Crab (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDeer0000000000",
+              "label": "Deer (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmEagle000000000",
+              "label": "Eagle (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmFrog0000000000",
+              "label": "Frog (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantFireBeetl",
+              "label": "Giant Fire Beetle (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.dmgGiantFly00000",
+              "label": "Giant Fly (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGoat0000000000",
+              "label": "Goat (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHawk0000000000",
+              "label": "Hawk (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHyena000000000",
+              "label": "Hyena (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmJackal00000000",
+              "label": "Jackal (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmLemure00000000",
+              "label": "Lemure (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmLizard00000000",
+              "label": "Lizard (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmOctopus0000000",
+              "label": "Octopus (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmOwl00000000000",
+              "label": "Owl (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPiranha0000000",
+              "label": "Piranha (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmRat00000000000",
+              "label": "Rat (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmRaven000000000",
+              "label": "Raven (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmScorpion000000",
+              "label": "Scorpion (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSeahorse000000",
+              "label": "Seahorse (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmShriekerFungus",
+              "label": "Shrieker Fungus (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSpider00000000",
+              "label": "Spider (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmVulture0000000",
+              "label": "Vulture (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWeasel00000000",
+              "label": "Weasel (CR 0)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBandit00000000",
+              "label": "Bandit (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBloodHawk00000",
+              "label": "Blood Hawk (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCamel000000000",
+              "label": "Camel (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCultist0000000",
+              "label": "Cultist (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmFlyingSnake000",
+              "label": "Flying Snake (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantCrab00000",
+              "label": "Giant Crab (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantRat000000",
+              "label": "Giant Rat (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantWeasel000",
+              "label": "Giant Weasel (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGoblinMinion00",
+              "label": "Goblin Minion (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGuard000000000",
+              "label": "Guard (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmKoboldWarrior0",
+              "label": "Kobold Warrior (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmMastiff0000000",
+              "label": "Mastiff (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmMerfolkSkirmis",
+              "label": "Merfolk Skirmisher (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmMule0000000000",
+              "label": "Mule (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmNoble000000000",
+              "label": "Noble (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPony0000000000",
+              "label": "Pony (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmStirge00000000",
+              "label": "Stirge (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmVenomousSnake0",
+              "label": "Venomous Snake (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWarriorInfantr",
+              "label": "Warrior Infantry (CR 0.125)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAxeBeak0000000",
+              "label": "Axe Beak (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBlinkDog000000",
+              "label": "Blink Dog (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBoar0000000000",
+              "label": "Boar (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmConstrictorSna",
+              "label": "Constrictor Snake (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDraftHorse0000",
+              "label": "Draft Horse (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDretch00000000",
+              "label": "Dretch (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmElk00000000000",
+              "label": "Elk (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantBadger000",
+              "label": "Giant Badger (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantBat000000",
+              "label": "Giant Bat (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantFrog00000",
+              "label": "Giant Frog (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantLizard000",
+              "label": "Giant Lizard (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantOwl000000",
+              "label": "Giant Owl (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantVenomousS",
+              "label": "Giant Venomous Snake (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantWolfSpide",
+              "label": "Giant Wolf Spider (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.dmgGoatofTraveli",
+              "label": "Goat of Traveling (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGoblinWarrior0",
+              "label": "Goblin Warrior (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGrimlock000000",
+              "label": "Grimlock (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPanther0000000",
+              "label": "Panther (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.phbsumPhantomSte",
+              "label": "Phantom Steed (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPriestAcolyte0",
+              "label": "Priest Acolyte (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPseudodragon00",
+              "label": "Pseudodragon (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPteranodon0000",
+              "label": "Pteranodon (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmRidingHorse000",
+              "label": "Riding Horse (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSprite00000000",
+              "label": "Sprite (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSteamMephit000",
+              "label": "Steam Mephit (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSwarmOfBats000",
+              "label": "Swarm of Bats (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSwarmOfRats000",
+              "label": "Swarm of Rats (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSwarmOfRavens0",
+              "label": "Swarm of Ravens (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmVioletFungus00",
+              "label": "Violet Fungus (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWolf0000000000",
+              "label": "Wolf (CR 0.25)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmApe00000000000",
+              "label": "Ape (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBlackBear00000",
+              "label": "Black Bear (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCockatrice0000",
+              "label": "Cockatrice (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCrocodile00000",
+              "label": "Crocodile (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDarkmantle0000",
+              "label": "Darkmantle (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDustMephit0000",
+              "label": "Dust Mephit (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantGoat00000",
+              "label": "Giant Goat (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantSeahorse0",
+              "label": "Giant Seahorse (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGnollWarrior00",
+              "label": "Gnoll Warrior (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGrayOoze000000",
+              "label": "Gray Ooze (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHobgoblinWarri",
+              "label": "Hobgoblin Warrior (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmIceMephit00000",
+              "label": "Ice Mephit (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmMagmaMephit000",
+              "label": "Magma Mephit (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmMagmin00000000",
+              "label": "Magmin (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmReefShark00000",
+              "label": "Reef Shark (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmRustMonster000",
+              "label": "Rust Monster (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSahuaginWarrio",
+              "label": "Sahuagin Warrior (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSatyr000000000",
+              "label": "Satyr (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmScout000000000",
+              "label": "Scout (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSwarmOfInsects",
+              "label": "Swarm of Insects (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmTough000000000",
+              "label": "Tough (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmTrollLimb00000",
+              "label": "Troll Limb (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWarhorse000000",
+              "label": "Warhorse (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWorg0000000000",
+              "label": "Worg (CR 0.5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBrassDragonWyr",
+              "label": "Brass Dragon Wyrmling (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBrownBear00000",
+              "label": "Brown Bear (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBugbearWarrior",
+              "label": "Bugbear Warrior (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCopperDragonWy",
+              "label": "Copper Dragon Wyrmling (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDeathDog000000",
+              "label": "Death Dog (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDireWolf000000",
+              "label": "Dire Wolf (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDryad000000000",
+              "label": "Dryad (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantEagle0000",
+              "label": "Giant Eagle (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantHyena0000",
+              "label": "Giant Hyena (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantOctopus00",
+              "label": "Giant Octopus (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantSpider000",
+              "label": "Giant Spider (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantToad00000",
+              "label": "Giant Toad (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantVulture00",
+              "label": "Giant Vulture (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGoblinBoss0000",
+              "label": "Goblin Boss (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHarpy000000000",
+              "label": "Harpy (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHippogriff0000",
+              "label": "Hippogriff (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmImp00000000000",
+              "label": "Imp (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmLion0000000000",
+              "label": "Lion (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPirate00000000",
+              "label": "Pirate (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmQuasit00000000",
+              "label": "Quasit (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSphinxOfWonder",
+              "label": "Sphinx of Wonder (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSpy00000000000",
+              "label": "Spy (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSwarmOfPiranha",
+              "label": "Swarm of Piranhas (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmTiger000000000",
+              "label": "Tiger (CR 1)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAllosaurus0000",
+              "label": "Allosaurus (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAnkheg00000000",
+              "label": "Ankheg (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAwakenedTree00",
+              "label": "Awakened Tree (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAzerSentinel00",
+              "label": "Azer Sentinel (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBanditCaptain0",
+              "label": "Bandit Captain (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBerserker00000",
+              "label": "Berserker (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBlackDragonWyr",
+              "label": "Black Dragon Wyrmling (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBronzeDragonWy",
+              "label": "Bronze Dragon Wyrmling (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCentaurTrooper",
+              "label": "Centaur Trooper (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCultistFanatic",
+              "label": "Cultist Fanatic (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDruid000000000",
+              "label": "Druid (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmEttercap000000",
+              "label": "Ettercap (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGargoyle000000",
+              "label": "Gargoyle (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGelatinousCube",
+              "label": "Gelatinous Cube (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantBoar00000",
+              "label": "Giant Boar (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantConstrict",
+              "label": "Giant Constrictor Snake (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantElk000000",
+              "label": "Giant Elk (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGibberingMouth",
+              "label": "Gibbering Mouther (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGreenDragonWyr",
+              "label": "Green Dragon Wyrmling (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGrick000000000",
+              "label": "Grick (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGriffon0000000",
+              "label": "Griffon (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHunterShark000",
+              "label": "Hunter Shark (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmMerrow00000000",
+              "label": "Merrow (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmMimic000000000",
+              "label": "Mimic (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmOchreJelly0000",
+              "label": "Ochre Jelly (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmOgre0000000000",
+              "label": "Ogre (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPegasus0000000",
+              "label": "Pegasus (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPlesiosaurus00",
+              "label": "Plesiosaurus (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPolarBear00000",
+              "label": "Polar Bear (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPriest00000000",
+              "label": "Priest (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmRhinoceros0000",
+              "label": "Rhinoceros (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSabertoothedTi",
+              "label": "Saber-Toothed Tiger (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSeaHag00000000",
+              "label": "Sea Hag (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSilverDragonWy",
+              "label": "Silver Dragon Wyrmling (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSwarmOfVenomou",
+              "label": "Swarm of Venomous Snakes (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWererat0000000",
+              "label": "Wererat (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWhiteDragonWyr",
+              "label": "White Dragon Wyrmling (CR 2)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAnkylosaurus00",
+              "label": "Ankylosaurus (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBasilisk000000",
+              "label": "Basilisk (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBeardedDevil00",
+              "label": "Bearded Devil (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBlueDragonWyrm",
+              "label": "Blue Dragon Wyrmling (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBugbearStalker",
+              "label": "Bugbear Stalker (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDoppelganger00",
+              "label": "Doppelganger (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantScorpion0",
+              "label": "Giant Scorpion (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGoldDragonWyrm",
+              "label": "Gold Dragon Wyrmling (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGreenHag000000",
+              "label": "Green Hag (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHellHound00000",
+              "label": "Hell Hound (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHobgoblinCapta",
+              "label": "Hobgoblin Captain (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmKillerWhale000",
+              "label": "Killer Whale (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmKnight00000000",
+              "label": "Knight (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmManticore00000",
+              "label": "Manticore (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmMinotaurOfBaph",
+              "label": "Minotaur of Baphomet (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmNightmare00000",
+              "label": "Nightmare (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmOwlbear0000000",
+              "label": "Owlbear (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPhaseSpider000",
+              "label": "Phase Spider (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmVampireFamilia",
+              "label": "Vampire Familiar (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWarriorVeteran",
+              "label": "Warrior Veteran (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWerewolf000000",
+              "label": "Werewolf (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWinterWolf0000",
+              "label": "Winter Wolf (CR 3)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmArchelon000000",
+              "label": "Archelon (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBlackPudding00",
+              "label": "Black Pudding (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmChuul000000000",
+              "label": "Chuul (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCouatl00000000",
+              "label": "Couatl (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmElephant000000",
+              "label": "Elephant (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmEttin000000000",
+              "label": "Ettin (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGuardCaptain00",
+              "label": "Guard Captain (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHippopotamus00",
+              "label": "Hippopotamus (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmIncubus0000000",
+              "label": "Incubus (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmLamia000000000",
+              "label": "Lamia (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmRedDragonWyrml",
+              "label": "Red Dragon Wyrmling (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSuccubus000000",
+              "label": "Succubus (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmToughBoss00000",
+              "label": "Tough Boss (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWereboar000000",
+              "label": "Wereboar (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWeretiger00000",
+              "label": "Weretiger (CR 4)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAirElemental00",
+              "label": "Air Elemental (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBarbedDevil000",
+              "label": "Barbed Devil (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBulette0000000",
+              "label": "Bulette (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmEarthElemental",
+              "label": "Earth Elemental (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmFireElemental0",
+              "label": "Fire Elemental (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantCrocodile",
+              "label": "Giant Crocodile (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantShark0000",
+              "label": "Giant Shark (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGladiator00000",
+              "label": "Gladiator (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHalfdragon0000",
+              "label": "Half-Dragon (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHillGiant00000",
+              "label": "Hill Giant (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmNightHag000000",
+              "label": "Night Hag (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmOtyugh00000000",
+              "label": "Otyugh (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmRoper000000000",
+              "label": "Roper (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSalamander0000",
+              "label": "Salamander (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmShamblingMound",
+              "label": "Shambling Mound (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmTriceratops000",
+              "label": "Triceratops (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmTroll000000000",
+              "label": "Troll (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmUnicorn0000000",
+              "label": "Unicorn (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWaterElemental",
+              "label": "Water Elemental (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWerebear000000",
+              "label": "Werebear (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmXorn0000000000",
+              "label": "Xorn (CR 5)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmChimera0000000",
+              "label": "Chimera (CR 6)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDrider00000000",
+              "label": "Drider (CR 6)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmInvisibleStalk",
+              "label": "Invisible Stalker (CR 6)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmMage0000000000",
+              "label": "Mage (CR 6)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmMammoth0000000",
+              "label": "Mammoth (CR 6)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmMedusa00000000",
+              "label": "Medusa (CR 6)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPirateCaptain0",
+              "label": "Pirate Captain (CR 6)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmVrock000000000",
+              "label": "Vrock (CR 6)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmWyvern00000000",
+              "label": "Wyvern (CR 6)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmYoungBrassDrag",
+              "label": "Young Brass Dragon (CR 6)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmYoungWhiteDrag",
+              "label": "Young White Dragon (CR 6)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGiantApe000000",
+              "label": "Giant Ape (CR 7)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmOni00000000000",
+              "label": "Oni (CR 7)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmStoneGiant0000",
+              "label": "Stone Giant (CR 7)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmYoungBlackDrag",
+              "label": "Young Black Dragon (CR 7)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmYoungCopperDra",
+              "label": "Young Copper Dragon (CR 7)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAssassin000000",
+              "label": "Assassin (CR 8)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmChainDevil0000",
+              "label": "Chain Devil (CR 8)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCloaker0000000",
+              "label": "Cloaker (CR 8)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmFrostGiant0000",
+              "label": "Frost Giant (CR 8)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHezrou00000000",
+              "label": "Hezrou (CR 8)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHydra000000000",
+              "label": "Hydra (CR 8)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSpiritNaga0000",
+              "label": "Spirit Naga (CR 8)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmTyrannosaurusR",
+              "label": "Tyrannosaurus Rex (CR 8)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmYoungBronzeDra",
+              "label": "Young Bronze Dragon (CR 8)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmYoungGreenDrag",
+              "label": "Young Green Dragon (CR 8)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBoneDevil00000",
+              "label": "Bone Devil (CR 9)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmCloudGiant0000",
+              "label": "Cloud Giant (CR 9)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmFireGiant00000",
+              "label": "Fire Giant (CR 9)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGlabrezu000000",
+              "label": "Glabrezu (CR 9)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmTreant00000000",
+              "label": "Treant (CR 9)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmYoungBlueDrago",
+              "label": "Young Blue Dragon (CR 9)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmYoungSilverDra",
+              "label": "Young Silver Dragon (CR 9)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAboleth0000000",
+              "label": "Aboleth (CR 10)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDeva0000000000",
+              "label": "Deva (CR 10)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmGuardianNaga00",
+              "label": "Guardian Naga (CR 10)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmYoungGoldDrago",
+              "label": "Young Gold Dragon (CR 10)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmYoungRedDragon",
+              "label": "Young Red Dragon (CR 10)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBehir000000000",
+              "label": "Behir (CR 11)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDjinni00000000",
+              "label": "Djinni (CR 11)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmEfreeti0000000",
+              "label": "Efreeti (CR 11)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmHornedDevil000",
+              "label": "Horned Devil (CR 11)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmRemorhaz000000",
+              "label": "Remorhaz (CR 11)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmRoc00000000000",
+              "label": "Roc (CR 11)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSphinxOfLore00",
+              "label": "Sphinx of Lore (CR 11)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmArchmage000000",
+              "label": "Archmage (CR 12)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmErinyes0000000",
+              "label": "Erinyes (CR 12)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAdultBrassDrag",
+              "label": "Adult Brass Dragon (CR 13)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAdultWhiteDrag",
+              "label": "Adult White Dragon (CR 13)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmNalfeshnee0000",
+              "label": "Nalfeshnee (CR 13)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmRakshasa000000",
+              "label": "Rakshasa (CR 13)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmStormGiant0000",
+              "label": "Storm Giant (CR 13)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAdultBlackDrag",
+              "label": "Adult Black Dragon (CR 14)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAdultCopperDra",
+              "label": "Adult Copper Dragon (CR 14)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmIceDevil000000",
+              "label": "Ice Devil (CR 14)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAdultBronzeDra",
+              "label": "Adult Bronze Dragon (CR 15)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAdultGreenDrag",
+              "label": "Adult Green Dragon (CR 15)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPurpleWorm0000",
+              "label": "Purple Worm (CR 15)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAdultBlueDrago",
+              "label": "Adult Blue Dragon (CR 16)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAdultSilverDra",
+              "label": "Adult Silver Dragon (CR 16)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmMarilith000000",
+              "label": "Marilith (CR 16)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPlanetar000000",
+              "label": "Planetar (CR 16)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAdultGoldDrago",
+              "label": "Adult Gold Dragon (CR 17)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAdultRedDragon",
+              "label": "Adult Red Dragon (CR 17)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmDragonTurtle00",
+              "label": "Dragon Turtle (CR 17)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSphinxOfValor0",
+              "label": "Sphinx of Valor (CR 17)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmBalor000000000",
+              "label": "Balor (CR 19)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAncientBrassDr",
+              "label": "Ancient Brass Dragon (CR 20)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAncientWhiteDr",
+              "label": "Ancient White Dragon (CR 20)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmPitFiend000000",
+              "label": "Pit Fiend (CR 20)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAncientBlackDr",
+              "label": "Ancient Black Dragon (CR 21)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAncientCopperD",
+              "label": "Ancient Copper Dragon (CR 21)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmSolar000000000",
+              "label": "Solar (CR 21)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAncientBronzeD",
+              "label": "Ancient Bronze Dragon (CR 22)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAncientGreenDr",
+              "label": "Ancient Green Dragon (CR 22)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAncientBlueDra",
+              "label": "Ancient Blue Dragon (CR 23)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAncientSilverD",
+              "label": "Ancient Silver Dragon (CR 23)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmKraken00000000",
+              "label": "Kraken (CR 23)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAncientGoldDra",
+              "label": "Ancient Gold Dragon (CR 24)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmAncientRedDrag",
+              "label": "Ancient Red Dragon (CR 24)"
+            },
+            {
+              "id": "Compendium.wildpath.srd-creatures.Actor.mmTarrasque00000",
+              "label": "Tarrasque (CR 30)"
+            }
+          ]
         }
       ],
-      "concentration": {
+      "range": {
+        "type": "self"
+      },
+      "targeting": {
+        "type": "self"
+      },
+      "transform": {
+        "choiceId": "form",
+        "temporaryHealth": "form",
+        "untilTemporaryHealthLost": false,
+        "concentration": true,
+        "keepsSpellcasting": true,
+        "limits": {
+          "challenge": "self"
+        },
         "duration": {
           "value": 1,
           "units": "hours"
@@ -79,10 +1309,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "not automated (utility): using it spends its cost; its description says the rest",
-          "concentration: its caster concentrates; what it sustains is by hand"
-        ]
+        "notes": []
       }
     }
   }

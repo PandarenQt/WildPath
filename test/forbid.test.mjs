@@ -81,6 +81,80 @@ test("states forbid by rule: Gaseous Form attacks and spells, a transformation s
     "an untrained Shield doesn't stop casting");
 });
 
+test("Shapechange: a form that keeps spellcasting forbids no spell, and its creature's concentration ending ends the form", async () => {
+  const {sustainedEffects, endConcentrationOnIncapacitation} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const previous = {game: globalThis.game, setProperty: globalThis.foundry.utils.setProperty};
+  globalThis.game = {i18n: {format: (key, data) => `${key}:${data.form}`}, scenes: []};
+  globalThis.foundry.utils.setProperty = (object, path, value) => { object[path] = value; };
+  try {
+    const druid = creature({system: {resources: {health: {temp: 0}}}, isToken: true, token: null, deleted: [],
+      async createEmbeddedDocuments(type, data) {
+        const made = data.map((entry, index) => ({id: `${type}-${index}`, uuid: `Actor.caster.${type}.${index}`, disabled: false, ...entry}));
+        if ( type === "ActiveEffect" ) this.effects.push(...made);
+        return made;
+      },
+      async update(changes) { this.system.resources.health.temp = changes["system.resources.health.temp"]; },
+      async deleteEmbeddedDocuments(type, ids) { this.deleted.push(...ids); }});
+    const bear = {uuid: "Actor.bear", name: "Bear", img: "bear.webp", items: []};
+    await druid.transform(bear, {temporaryHealth: 34, untilTemporaryHealthLost: false, concentrationRef: "token:caster-token",
+      keepsSpellcasting: true, duration: {value: 1, units: "hours"}});
+    const [form] = druid.effects;
+    assert.deepEqual([form.flags.wildpath.transformation.keepsSpellcasting, form.flags.wildpath.transformation.temporaryHealthVanishes,
+      form.flags.wildpath.transformation.untilTemporaryHealthLost, form.duration], [true, 34, undefined, {value: 1, units: "hours"}]);
+    assert.equal(druid.system.resources.health.temp, 34);
+    assert.equal(druid.forbiddingRule(spell("verbal")), null, "it keeps its spellcasting");
+    form.flags.wildpath.transformation.keepsSpellcasting = false;
+    assert.equal(druid.forbiddingRule(spell("verbal"))?.reason, "WILDPATH.REFUSAL.Transformed", "a form without it can't cast");
+
+    const scene = {id: "scene-a", tokens: [{id: "caster-token", uuid: "Scene.scene-a.Token.caster-token", actorLink: true,
+      actorId: "caster", actor: druid, parent: null}]};
+    scene.tokens[0].parent = scene;
+    const world = {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, actors: [druid], scenes: [scene]};
+    assert.deepEqual(sustainedEffects(druid, world).map(({effect}) => effect.id), [form.id], "the form is what it concentrates on");
+    await endConcentrationOnIncapacitation({system: {type: "stunned"}, parent: druid}, world);
+    assert.deepEqual(druid.deleted, [form.id], "Incapacitated: its concentration and the form end");
+  } finally {
+    globalThis.game = previous.game;
+    globalThis.foundry.utils.setProperty = previous.setProperty;
+  }
+});
+
+test("Shapechange's end clears only the Temporary Hit Points its form gave, not a larger pool from another source", async () => {
+  const previous = {game: globalThis.game, setProperty: globalThis.foundry.utils.setProperty};
+  globalThis.game = {i18n: {format: (key, data) => `${key}:${data.form}`}, scenes: []};
+  globalThis.foundry.utils.setProperty = (object, path, value) => { object[path] = value; };
+  const shapechanged = async temp => {
+    const caster = creature({system: {resources: {health: {temp}}}, isToken: true, token: null,
+      async createEmbeddedDocuments(type, data) {
+        const made = data.map((entry, index) => ({id: `${type}-${index}`, ...entry}));
+        if ( type === "ActiveEffect" ) this.effects.push(...made);
+        return made;
+      },
+      async update(changes) { this.system.resources.health.temp = changes["system.resources.health.temp"]; }});
+    await caster.transform({uuid: "Actor.wolf", name: "Wolf", items: []}, {temporaryHealth: 34, keepsSpellcasting: true});
+    return caster;
+  };
+  try {
+    const kept = await shapechanged(60);
+    assert.equal(kept.effects[0].flags.wildpath.transformation.temporaryHealthVanishes, undefined, "the form gave none");
+    await kept.deleteTransformationCopies(kept.effects[0].id, kept.effects[0]);
+    assert.equal(kept.system.resources.health.temp, 60, "a larger pool from before the form stays");
+
+    const given = await shapechanged(0);
+    given.system.resources.health.temp = 10;
+    await given.deleteTransformationCopies(given.effects[0].id, given.effects[0]);
+    assert.equal(given.system.resources.health.temp, 0, "what is left of the form's vanishes");
+
+    const gained = await shapechanged(0);
+    gained.system.resources.health.temp = 50;
+    await gained.deleteTransformationCopies(gained.effects[0].id, gained.effects[0]);
+    assert.equal(gained.system.resources.health.temp, 50, "a larger pool gained in the form (False Life) stays");
+  } finally {
+    globalThis.game = previous.game;
+    globalThis.foundry.utils.setProperty = previous.setProperty;
+  }
+});
+
 test("a Quickened spell this combat turn forbids spells of level 1+, not cantrips, until the next turn", () => {
   const previous = globalThis.game;
   globalThis.game = {combat: {started: true, id: "c", round: 1, turn: 0}};

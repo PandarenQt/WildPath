@@ -1,7 +1,7 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
 import {activityText, checkOf, convertActor, convertFacility, convertItem, convertTable, creatureRef, describe, formulaExpression, houseText, lastingArea, moveAreaDefinition, isSrd2024, nameIndex,
-  failureByMargin, healingBlockedWhile, scaleTables, textBoundExpiry, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
+  creatureFormsOf, failureByMargin, healingBlockedWhile, scaleTables, textBoundExpiry, withRedirects} from "../scripts/content/dnd5e-to-wildpath.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {noteReason} from "../module/helpers/conversion-notes.mjs";
 import {repeatSaveGroups} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
@@ -1618,6 +1618,47 @@ test("Polymorph: a failed save transforms the creature into a Beast its caster c
     {beasts, spells: {testPolymorph001: polymorph}}).items.find(item => item.type === "action");
   assert.deepEqual(charged.system.definition.costs.allOf.map(cost => cost.capability), ["action", "wand-of-polymorph"],
     "its charge, from its text when dnd5e leaves it out");
+});
+
+test("Shapechange: its caster takes a form that is no Construct or Undead; a stat block's copy reads its limit", () => {
+  const shapechange = {_id: "phbsplShapechang", name: "Shapechange", type: "spell", img: "systems/dnd5e/icons/spell.webp", effects: [],
+    system: {source: SRD, identifier: "shapechange", level: 9, preparation: {mode: "prepared"}, properties: ["vocal", "concentration"],
+      activation: {type: "action"}, range: {units: "self"}, target: {template: {}}, duration: {value: "1", units: "hour"},
+      description: {value: "<p>You shape-shift into another creature.</p>"}, activities: {a: activity("utility")}}};
+  const form = (id, name, cr, type) => ({uuid: `Compendium.wildpath.srd-creatures.Actor.${id}`, name, cr, type});
+  const forms = [form("wolf", "Wolf", 0.25, "beast"), form("guard", "Guard", 0.125, "humanoid"), form("zombie", "Zombie", 0.25, "undead"),
+    form("golem", "Clay Golem", 9, "construct"), form("unicorn", "Unicorn", 5, "celestial")];
+  const [spell] = convertItem(shapechange, {forms}).items;
+  const {transform, configuration, targeting, concentration} = spell.system.definition;
+  assert.deepEqual(transform, {choiceId: "form", temporaryHealth: "form", untilTemporaryHealthLost: false, concentration: true,
+    keepsSpellcasting: true, limits: {challenge: "self"}, duration: {value: 1, units: "hours"}});
+  assert.deepEqual(configuration.find(choice => choice.id === "form").options.map(option => option.label),
+    ["Wolf (CR 0.25)", "Guard (CR 0.125)", "Unicorn (CR 5)"], "neither the Zombie nor the Clay Golem");
+  assert.deepEqual([targeting.type, concentration], ["self", undefined], "its form is what it concentrates on");
+  assert.equal(spell.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated")), false);
+  valid(spell);
+
+  const casting = {_id: "spellcasting0002", name: "Spellcasting", type: "feat", system: {source: SRD, description: {value:
+    "<p><strong>At Will:</strong> <em>@UUID[Compendium.dnd5e.spells24.Item.phbsplShapechang]{Shapechange}</em> (Beast or Humanoid form only, "
+    + "no Temporary Hit Points gained from the spell, and no Concentration or Temporary Hit Points required to maintain the spell)</p>"},
+  activities: {a: activity("cast", {spell: {uuid: "Compendium.dnd5e.spells24.Item.phbsplShapechang", level: 9, ability: ""}})}}};
+  const dragon = {_id: "testDragon000001", name: "Test Dragon", type: "npc", system: {source: SRD, details: {cr: 13},
+    abilities: {cha: {value: 19}}, attributes: {hp: {max: 172}, movement: {walk: "40"}, spellcasting: "cha"}, traits: {size: "huge"}}, items: [casting]};
+  const {actor} = convertActor(dragon, {spells: {phbsplShapechang: shapechange}, forms});
+  const copy = actor.items.find(item => item.name === "Shapechange");
+  valid(copy);
+  assert.deepEqual(copy.system.definition.transform, {choiceId: "form", keepsSpellcasting: true, limits: {challenge: "self"},
+    duration: {value: 1, units: "hours"}}, "no Temporary Hit Points, no Concentration");
+  assert.deepEqual(copy.system.definition.configuration.find(choice => choice.id === "form").options.map(option => option.label),
+    ["Wolf (CR 0.25)", "Guard (CR 0.125)"], "Beast or Humanoid only");
+  assert.deepEqual(copy.system.definition.costs.allOf, [{capability: "action", amount: 1}], "at will, for its Action");
+  assert.equal(copy.flags.wildpath.conversion.notes.some(note => /limit is by hand|not automated/.test(note)), false);
+
+  const npc = (_id, name, cr, type) => ({_id, name, type: "npc", system: {details: {cr, type: {value: type}}}});
+  assert.deepEqual(creatureFormsOf([npc("w", "Wolf", 0.25, "beast"), npc("d", "Draconic Spirit", null, "dragon"),
+    npc("e", "Arcane Eye", 0, "custom"), npc("g", "Goblin", 0.25, "humanoid")], document => document._id),
+  [{uuid: "g", name: "Goblin", cr: 0.25, type: "humanoid"}, {uuid: "w", name: "Wolf", cr: 0.25, type: "beast"}],
+  "no summon without a Challenge Rating, no stat block without a creature type");
 });
 
 test("reactions by their 2024 trigger: Shield and Parry when hit, Counterspell when a spell is declared", () => {

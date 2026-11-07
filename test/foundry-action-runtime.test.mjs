@@ -2534,6 +2534,26 @@ test("a transformed creature can't cast spells, but its other Actions still reso
   assert.equal(bite.ok, true, JSON.stringify(bite.reason));
 });
 
+test("Shapechange: a form above its user's level is refused before anything is paid; one within it is not", async t => {
+  const shapechange = form => ({schemaVersion: 1, id: "action:shapechange", label: "Shapechange", tags: ["spell"],
+    costs: {allOf: [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]}, range: {type: "self"}, targeting: {type: "self"},
+    transform: {formRef: form, limits: {challenge: "self"}, keepsSpellcasting: true}});
+  const forms = {"Actor.mammoth": {name: "Mammoth", system: {details: {threat: 6}}}, "Actor.crocodile": {name: "Giant Crocodile", system: {details: {threat: 5}}}};
+  for ( const [form, refused] of [["Actor.mammoth", true], ["Actor.crocodile", false]] ) {
+    const fixture = syntheticRuntimeFixture(t, shapechange(form));
+    fixture.sourceActor.system.details = {level: 5};
+    const resolve = globalThis.fromUuid;
+    globalThis.fromUuid = async ref => forms[ref] ?? resolve(ref);
+    const staged = await foundryActionIntentToStagedOptions({intent: fixture.intent, senderUserId: "player-a", game: fixture.game});
+    globalThis.fromUuid = resolve;
+    if ( refused ) {
+      assert.equal(staged.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED);
+      assert.match(staged.reason, /BeyondChallenge|beyond level or CR 5/);
+      assert.equal(fixture.sourceActor.system.resources.action.value, 1, "nothing paid");
+    } else assert.equal(staged.ok, true, JSON.stringify(staged.reason));
+  }
+});
+
 test("an effect's Forbid (Spell Taxed) refuses its creature's spells, saying which effect; its attacks still resolve", async t => {
   const taxed = {name: "Spell Taxed", disabled: false, isSuppressed: false, system: {ruleElements: [{schemaVersion: 1, id: "taxed",
     type: "Forbid", data: {actions: {tagsAny: ["spell"]}}}]}};

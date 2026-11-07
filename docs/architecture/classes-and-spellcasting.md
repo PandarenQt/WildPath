@@ -403,9 +403,23 @@ the 1×1 Token.
   and the Bear's Multiattack, Bite and Claw. Its Temporary Hit Points reaching 0 reverted it; so did the caster's
   next concentration spell (Bless), which also cleared the Temporary Hit Points left. The wand's charge went 7 to 6.
 
+- **Its user's own form, keeping its spellcasting (2026-11-07, 2024 Shapechange).** `keepsSpellcasting: true` is kept on the
+  transformation and lifts the "transformed can't cast spells" refusal. `limits: {challenge: "self"}` refuses, before
+  anything is paid, a form whose Challenge Rating is above its user's level (else its Challenge Rating). On its user
+  (no `targets`), `concentration: true` names the user's Token, so the form ends with that concentration, and
+  `duration: {value, units}` without a `class` is a fixed duration (Shapechange's hour). With `temporaryHealth: "form"`
+  and `untilTemporaryHealthLost: false` the form's Hit Points come as Temporary Hit Points that vanish when it ends
+  (`temporaryHealthVanishes` on the transformation, the amount given; a larger pool, kept or gained in the form, is
+  another source's and stays) but whose loss does not end it. The converter's `SELF_TRANSFORM`
+  table offers every converted creature but a Construct or an Undead (a stat block without a creature type of its own,
+  an Arcane Eye, is no form). A stat block's copy reads its limit: "Beast or Humanoid form only" keeps those types,
+  "no Temporary Hit Points" and "no Concentration" drop them (the metallic dragons, the Couatl, the Deva). By hand:
+  shape-shifting into another form with a Magic action is a recast (a slot for a caster with slots); having seen the
+  creature and whether equipment falls or melds are the player's to keep, as with Wild Shape. Nothing checked in live
+  Foundry yet.
+
 Not yet:
 
-- A form that keeps spellcasting (2024 Shapechange-style). Every transformation stops it for now.
 - True Polymorph (an object, a creature into an object, permanence) and what a creature may do in its form (speech).
 
 Live (two browsers, 14.369): Player1 turned their Shifter into a Bear, which gave Might 18 and AC 13, and

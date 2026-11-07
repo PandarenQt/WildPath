@@ -526,28 +526,33 @@ export default class WildPathActor extends Actor {
    * they are gone (`untilTemporaryHealthLost`), and with its caster's concentration (`concentrationRef`).
    * @param {Actor} form
    * A `duration` (`{value, units}`: Wild Shape's hours) ends it when it runs out, as V14 expires effects.
+   * 2024 Shapechange keeps its spellcasting (`keepsSpellcasting`), and its Temporary Hit Points vanish when it ends
+   * without ending it when they are gone.
    * @param {{takes?: string[], keepItemTypes?: string[], temporaryHealth?: number, untilTemporaryHealthLost?: boolean,
-   *   concentrationRef?: string, duration?: {value: number, units: string}|null}} [policy]
+   *   concentrationRef?: string, duration?: {value: number, units: string}|null, keepsSpellcasting?: boolean}} [policy]
    * @returns {Promise<ActiveEffect>}
    */
   async transform(form, {takes=DEFAULT_FORM_STATISTICS, keepItemTypes=DEFAULT_KEPT_ITEM_TYPES, temporaryHealth=0,
-    untilTemporaryHealthLost=false, concentrationRef=null, duration=null}={}) {
+    untilTemporaryHealthLost=false, concentrationRef=null, duration=null, keepsSpellcasting=false}={}) {
     if ( this.transformation ) await this.revertTransformation();
     // The creature's Tokens take the form's size; each one's own is kept to restore on revert.
     const tokens = tokensOf(this);
     const size = {width: form.prototypeToken?.width ?? 1, height: form.prototypeToken?.height ?? 1};
+    const existingTemporaryHealth = Number(this.system.resources?.health?.temp) || 0;
     const [effect] = await this.createEmbeddedDocuments("ActiveEffect", [{
       name: game.i18n.format("WILDPATH.TRANSFORMATION.Effect", {form: form.name}), type: "effect", system: {}, img: form.img,
       flags: {wildpath: {transformation: {formRef: form.uuid, takes: [...takes], keepItemTypes: [...keepItemTypes],
         tokenSizes: tokens.map(token => ({uuid: token.uuid, width: token.width, height: token.height})),
         // The form's own Hit Points, which healing in it restores (2014 Wild Shape).
-        ...(untilTemporaryHealthLost ? {untilTemporaryHealthLost: true, formHealth: temporaryHealth} : {})},
+        ...(untilTemporaryHealthLost ? {untilTemporaryHealthLost: true, formHealth: temporaryHealth} : {}),
+        // The Temporary Hit Points the form gave, only if they replaced a smaller pool: a larger one is another source's.
+        ...((temporaryHealth > existingTemporaryHealth) ? {temporaryHealthVanishes: temporaryHealth} : {}),
+        ...(keepsSpellcasting ? {keepsSpellcasting: true} : {})},
       // It ends with its caster's concentration (sustainedEffects), as a lasting area's marker does.
       ...(concentrationRef ? {conditionEffect: {concentration: {sourceRef: concentrationRef}}} : {})}},
       ...(duration ? {duration: {value: duration.value, units: duration.units}} : {})
     }]);
-    if ( temporaryHealth > 0 ) await this.update({"system.resources.health.temp":
-      Math.max(Number(this.system.resources?.health?.temp) || 0, temporaryHealth)});
+    if ( temporaryHealth > 0 ) await this.update({"system.resources.health.temp": Math.max(existingTemporaryHealth, temporaryHealth)});
     // A pure resize is a "displace" movement in V14; the movement authority approves it without cost.
     for ( const token of tokens ) {
       if ( (token.width !== size.width) || (token.height !== size.height) ) await token.move([{...size, action: "displace"}]);
@@ -576,8 +581,12 @@ export default class WildPathActor extends Actor {
     const copies = this.items.filter(entry => entry.flags?.wildpath?.transformedBy === effectId).map(entry => entry.id);
     if ( copies.length ) await this.deleteEmbeddedDocuments("Item", copies);
     const effect = deletedEffect ?? this.effects.get(effectId) ?? null;
-    // 2024 Polymorph: Temporary Hit Points left from the form vanish when it ends.
-    if ( effect?.flags?.wildpath?.transformation?.untilTemporaryHealthLost && this.system.resources?.health?.temp ) {
+    // 2024 Polymorph and Shapechange: Temporary Hit Points left from the form vanish when it ends. The form's only
+    // shrink, so a pool above what it gave came from elsewhere (False Life cast in a Shapechanged form) and stays.
+    // shortcut: a smaller replacement pool cast in the form is cleared too; track each pool's source to tell them apart.
+    const policy = effect?.flags?.wildpath?.transformation;
+    const temp = Number(this.system.resources?.health?.temp) || 0;
+    if ( temp && (policy?.untilTemporaryHealthLost || (temp <= (Number(policy?.temporaryHealthVanishes) || 0))) ) {
       await this.update({"system.resources.health.temp": 0}, {wildpath: {reverting: true}});
     }
     for ( const {uuid, width, height} of effect?.flags?.wildpath?.transformation?.tokenSizes ?? [] ) {
@@ -1157,7 +1166,7 @@ function grantOwners(actor) {
   return [...items, ...effects,
     ...(hindering ? [{ruleElements: [UNTRAINED_ARMOR, UNTRAINED_CASTING], source: documentRuleElementSource(hindering, "item")}] : []),
     ...Object.entries(STATUS_FORBIDS).flatMap(([status, rule]) => (actor.statuses?.has?.(status) ? [state(status, [rule])] : [])),
-    ...(transformation ? [state("transformed", [TRANSFORMED])] : []),
+    ...((transformation && !transformation.policy?.keepsSpellcasting) ? [state("transformed", [TRANSFORMED])] : []),
     ...(requiresContext(actor).quickenedThisTurn ? [state("quickened", [QUICKENED])] : []),
     // Until its mythic phase begins (a Phase rule's flag), its Actions tagged `mythic` wait.
     ...(actor.flags?.wildpath?.mythicPhase ? [] : [state("mythic", [MYTHIC])]),
@@ -1200,7 +1209,7 @@ const STATUS_FORBIDS = Object.freeze({
 });
 /**
  * 2024 Wild Shape and Polymorph: a transformed creature can't cast spells. Spells it already cast (their lasting areas,
- * which run as authority Actions) go on.
+ * which run as authority Actions) go on. A form that keeps spellcasting (Shapechange: `keepsSpellcasting`) lifts it.
  */
 const TRANSFORMED = Object.freeze({schemaVersion: 1, id: "transformed", type: "Forbid",
   data: {actions: {tagsAny: ["spell"]}, reason: "WILDPATH.REFUSAL.Transformed"}});

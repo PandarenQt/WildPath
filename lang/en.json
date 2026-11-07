@@ -1238,7 +1238,8 @@
     },
     "TRANSFORMATION": {
       "Effect": "Transformed: {form}",
-      "TooMighty": "{form} is beyond {target}'s Challenge Rating or level: no transformation."
+      "TooMighty": "{form} is beyond {target}'s Challenge Rating or level: no transformation.",
+      "BeyondChallenge": "{form} (CR {challenge}) is beyond your level or Challenge Rating ({rank})."
     },
     "SPELLCASTING": {
       "SlotPool": "Level {level} spell slots",

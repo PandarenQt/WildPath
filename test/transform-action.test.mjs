@@ -61,6 +61,18 @@ test("Polymorph turns each creature that failed its save into the Beast chosen, 
   assert.deepEqual(mightier.calls, [], "a Bear (CR 1) is beyond a CR 0 creature");
 });
 
+test("Shapechange: its user takes the form with Temporary Hit Points that don't end it, its spellcasting, its hour and its concentration", async () => {
+  const definition = {...WILD_SHAPE, transform: {choiceId: "form", temporaryHealth: "form", untilTemporaryHealthLost: false, concentration: true,
+    keepsSpellcasting: true, limits: {challenge: "self"}, duration: {value: 1, units: "hours"}}};
+  const {configuration} = resolveActionConfiguration({actionDefinition: definition, responses: {form: "Actor.bear"}});
+  const actor = shifter();
+  const bear = {name: "Bear", system: {details: {threat: 1}, resources: {health: {max: 34}}}};
+  await applyActionTransformation({options: {actor}, state: {actionDefinition: definition, configuration, source: {tokenId: "druid-token"}}},
+    {fromUuid: async uuid => (uuid === "Actor.bear" ? bear : null)});
+  assert.deepEqual(actor.calls, [["transform", "Bear", {keepsSpellcasting: true, temporaryHealth: 34, untilTemporaryHealthLost: false,
+    duration: {value: 1, units: "hours"}, concentrationRef: "token:druid-token"}]]);
+});
+
 test("a countered spell wastes the Action that cast it, never its slot, and says what stopped it", async () => {
   const {afterCountered} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
   const updates = [];
@@ -235,6 +247,16 @@ test("Wild Shape's limits (2014): CR, Fly and Swim Speed by druid level", async 
   assert.match(formBeyondLimits(limits, druid(5), beast("Giant Owl", 0.25, "fly")), /Fly Speed/);
   assert.equal(formBeyondLimits(limits, druid(8), beast("Giant Owl", 0.25, "fly")), null, "flying from level 8");
   assert.equal(formBeyondLimits(null, druid(1), beast("Mammoth", 6)), null, "no limits, no refusal");
+});
+
+test("Shapechange's limit: no form above its user's level or Challenge Rating", async () => {
+  const {formBeyondLimits} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const limits = {challenge: "self"};
+  const beast = (name, challenge) => ({name, flags: {wildpath: {source: {challenge}}}});
+  const caster = {name: "Wizard", system: {details: {level: 5}}};
+  assert.match(formBeyondLimits(limits, caster, beast("Mammoth", 6)), /BeyondChallenge|beyond level or CR 5/);
+  assert.equal(formBeyondLimits(limits, caster, beast("Giant Crocodile", 5)), null, "its own level is allowed");
+  assert.equal(formBeyondLimits(limits, {system: {details: {threat: 13}}}, beast("Mammoth", 6)), null, "a dragon's Challenge Rating");
 });
 
 test("a spell cast with a slot in combat is recorded for its turn; a smite, a cantrip, or no combat is not", async () => {

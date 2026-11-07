@@ -159,10 +159,30 @@ const TRANSFORM_ON_FAILURE = Object.freeze({
   temporaryHealth: "form"}
 });
 
-/** The Beasts a transformation may choose from, by their dnd5e creature documents: `{uuid, name, cr}`, weakest first. */
-export function beastsOf(documents, uuidOf) {
-  return documents.filter(document => (document.type === "npc") && (document.system?.details?.type?.value === "beast"))
-    .map(document => ({uuid: uuidOf(document), name: document.name, cr: number(document.system?.details?.cr) ?? 0}))
+/**
+ * Spells that transform their caster (2024 Shapechange): into one of the converted creatures but those of the types it
+ * excludes, of a Challenge Rating no higher than the caster's level or Challenge Rating (refused before anything is paid).
+ * The caster keeps its Intelligence, Wisdom and Charisma (the default form statistics) and its spellcasting, gains the form's
+ * Hit Points as Temporary Hit Points, which vanish when it ends (it does not end when they are gone), and concentrates on it
+ * for up to its hour. shortcut: shape-shifting into another form with a Magic action during the spell is a recast, which
+ * costs a caster with slots another slot; upgrade when a spell's follow-up Action can transform.
+ */
+const SELF_TRANSFORM = Object.freeze({
+  shapechange: {temporaryHealth: "form", untilTemporaryHealthLost: false, concentration: true, keepsSpellcasting: true,
+    limits: {challenge: "self"}, duration: {value: 1, units: "hours"}, excludeTypes: ["construct", "undead"]}
+});
+
+/**
+ * The creatures a transformation may choose from, by their dnd5e creature documents: `{uuid, name, cr, type}` (its creature
+ * type: Polymorph's and Wild Shape's are the Beasts), weakest first. Not a spell's or an item's own stat block, which has no
+ * creature type of its own ("custom": an Arcane Eye, a Carpet of Flying, an illusion) or no Challenge Rating (a summon
+ * whose statistics scale with its spell: Draconic Spirit, Find Steed's steeds, Giant Insect, the Animated Objects).
+ */
+export function creatureFormsOf(documents, uuidOf) {
+  return documents.filter(document => (document.type === "npc") && (document.system?.details?.cr != null)
+    && !["", "custom"].includes(document.system?.details?.type?.value ?? ""))
+    .map(document => ({uuid: uuidOf(document), name: document.name, cr: number(document.system?.details?.cr) ?? 0,
+      type: document.system?.details?.type?.value ?? ""}))
     .sort((a, b) => (a.cr - b.cr) || a.name.localeCompare(b.name));
 }
 
@@ -388,6 +408,19 @@ function wildShapeDefinition({document, activity, system, spell, level, notes, p
     configuration: [...(definition.configuration ?? []), choice],
     transform: {choiceId: choice.id, limits: {class: owner, rows}, temporaryHealth: "form",
       duration: {class: owner, perLevel: 0.5, units: "hours"}}};
+}
+
+/** A spell that transforms its caster (SELF_TRANSFORM): a choice of form. Null for another, or without creatures to choose. */
+function selfTransformDefinition({document, activity, system, spell, level, notes, pool, forms=[]}) {
+  const entry = SELF_TRANSFORM[identifierOf(document)];
+  const eligible = entry ? forms.filter(form => !entry.excludeTypes.includes(form.type)) : [];
+  if ( !eligible.length ) return null;
+  const {excludeTypes, ...transform} = structuredClone(entry);
+  const choice = {id: "form", type: "select-one", label: "Form", required: true,
+    options: eligible.map(form => ({id: form.uuid, label: `${form.name} (CR ${form.cr})`}))};
+  const definition = manualDefinition({document, activity, system, spell, level, notes, pool});
+  return {...definition, range: {type: "self"}, targeting: {type: "self"}, configuration: [...(definition.configuration ?? []), choice],
+    transform: {choiceId: choice.id, ...transform}};
 }
 
 /**
@@ -1631,7 +1664,8 @@ export function baseWeapons(documents) {
  * @returns {{ok: true, items: object[], notes: string[]} | {ok: false, reason: string}}
  */
 export function convertItem(document, {scales={}, pack=null, saveDC=null, spellDC=null, names={}, creature=null, licensed=isSrd2024, book="SRD 5.2",
-  images=["icons/"], spells={}, creatures={}, beasts=[], usesOf={}, tables={}, spellLists={}, weapons={}}={}) {
+  images=["icons/"], spells={}, creatures={}, forms=[], beasts=forms.filter(form => form.type === "beast"), usesOf={}, tables={}, spellLists={},
+  weapons={}}={}) {
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   document = upgradeLegacy(document);
   // A magic weapon dnd5e leaves without damage of its own (an Energy Bow): its base weapon's, as dnd5e fills it when used.
@@ -1811,7 +1845,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // Monster spellcasting (G4): a cast activity is its spell, at the activity's cost and uses rather than a slot.
     if ( activity.type === "cast" ) {
       const cast = castSpell({document, activity, system, notes, pool, options: {scales, pack, saveDC, names, creature, book, images, spells,
-        creatures, beasts, tables}});
+        creatures, forms, beasts, tables}});
       if ( cast ) {
         items.push(...cast);
         allNotes.push(...notes);
@@ -1819,7 +1853,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       }
     }
     const ownTeleport = utilityTeleport(document, activity, system);
-    let definition = ((trades && (activity.type === "utility")) ? {...manualDefinition({document, activity, system, spell, level, notes,
+    let definition = selfTransformDefinition({document, activity, system, spell, level, notes, pool, forms})
+      ?? ((trades && (activity.type === "utility")) ? {...manualDefinition({document, activity, system, spell, level, notes,
       pool, names, scales}), range: {type: "self"}, targeting: {type: "self"}} : null)
       ?? (ownTeleport ? teleportDefinition({document, activity: ownTeleport, system, spell, level, notes, pool}) : null)
       ?? commonActivity({document, activity, system, spell, level, pool}) ?? (ACTIVITIES.has(activity.type)
@@ -2145,8 +2180,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // A lasting area its caster can move ("a Magic action ... to move the Cylinder up to 60 feet"): its own Action.
     const moveArea = moveAreaDefinition(document, definition);
     if ( moveArea ) items.push(action(stableId(`${id}:move`), `${document.name}${suffix} (Move)`, moveArea));
-    // Wild Shape's "leave the form early as a Bonus Action": its own Action.
-    if ( definition.transform?.limits ) items.push(action(stableId(`${id}:revert`), `${document.name}${suffix} (Revert)`,
+    // Wild Shape's "leave the form early as a Bonus Action" (its class level's limits): its own Action. A concentration
+    // form (Shapechange) ends as its concentration does.
+    if ( definition.transform?.limits?.rows ) items.push(action(stableId(`${id}:revert`), `${document.name}${suffix} (Revert)`,
       {schemaVersion: 1, id: `${definition.id}-revert`, costs: {allOf: [{capability: "bonus-action", amount: 1}]},
         range: {type: "self"}, targeting: {type: "self"}, transform: {revert: true}}));
     // Its Bonus Action attack (Scimitar of Speed), once a turn as the Bonus Action is.
@@ -4101,7 +4137,6 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   // the spell ("Telekinesis Using Psionic Die"); a limit the name gives ("Plane Shift (to layers of the Abyss only)") is by hand.
   const own = String(activity.name ?? "");
   const named = own.toLowerCase().startsWith(spellDocument.name.toLowerCase()) ? own : spellDocument.name;
-  if ( !options.creature && /\(.+\)/.test(named) ) notes.push(`cast: "${named}" is the whole spell; its limit is by hand`);
   const name = options.creature ? spellDocument.name : `${document.name}: ${named}`;
   const definition = {...action.system.definition, id: `${base.id}-${slugify(spellDocument.name)}`, label: name,
     tags: [...new Set([...(action.system.definition.tags ?? []), "spell"])], costs};
@@ -4115,6 +4150,14 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
     options: [{id: `level-${castLevel}`, label: String(castLevel), value: castLevel, metadata: {castingLevel: castLevel}}], effects: slot.effects});
   if ( choices.length ) definition.configuration = choices;
   else delete definition.configuration;
+  // A limit in parentheses, in an item's activity name or after the spell's link in a creature's text ("Shapechange (Beast or
+  // Humanoid form only, no Temporary Hit Points gained from the spell, and no Concentration ...)"): a transform's is read.
+  const limit = !options.creature ? /\((.+)\)/.exec(named)?.[1]
+    : new RegExp(`@UUID\\[[^\\]]*\\.Item\\.${linked}\\]\\{[^}]*\\}(?:</em>)?\\s*\\(([^)]+)\\)`).exec(String(document.system?.description?.value ?? ""))?.[1];
+  const unread = (limit && definition.transform) ? limitTransform(definition, limit, options.forms ?? []) : [limit];
+  if ( limit && unread.length && (!options.creature || definition.transform) ) {
+    notes.push(`cast: "${options.creature ? `${named} (${limit})` : named}" is the whole spell; its limit is by hand`);
+  }
   if ( definition.attack && casting ) definition.attack = {...definition.attack, ability: casting};
   notes.push(...converted.notes.filter(note => !note.startsWith("uses:")));
   const pool = activityPool({document, activity, scales: options.scales, spellName: spellDocument.name});
@@ -4136,6 +4179,37 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
     return {...structuredClone(item), _id: followUpId, _key: `!items!${followUpId}`,
       name: options.creature ? item.name : `${document.name}: ${item.name}`, flags: {wildpath: {source, conversion: {notes: []}}}};
   })];
+}
+
+/**
+ * A cast copy's limit on its transform, clause by clause: "Beast or Humanoid form only" keeps only forms of those creature
+ * types, "no Temporary Hit Points ..." drops the form's Temporary Hit Points, "no Concentration ..." its concentration.
+ * Changes `definition`; returns the clauses it could not read.
+ */
+function limitTransform(definition, limit, forms) {
+  const typeOf = new Map(forms.map(form => [form.uuid, form.type]));
+  const transform = definition.transform = {...definition.transform};
+  return limit.split(/,\s*(?:and\s+)?/u).filter(clause => {
+    const only = /^(.+?) forms? only$/iu.exec(clause);
+    if ( only ) {
+      const types = only[1].toLowerCase().split(/,\s*(?:or\s+)?|\s+or\s+/u);
+      const choice = (definition.configuration ?? []).find(entry => entry.id === transform.choiceId);
+      const options = (choice?.options ?? []).filter(option => types.includes(typeOf.get(option.id)));
+      if ( !options.length ) return true;
+      definition.configuration = definition.configuration.map(entry => ((entry === choice) ? {...entry, options} : entry));
+      return false;
+    }
+    if ( /^no Temporary Hit Points\b/iu.test(clause) ) {
+      delete transform.temporaryHealth;
+      delete transform.untilTemporaryHealthLost;
+      return false;
+    }
+    if ( /^no Concentration\b/iu.test(clause) ) {
+      delete transform.concentration;
+      return false;
+    }
+    return true;
+  });
 }
 
 /**
@@ -5842,7 +5916,7 @@ export const proficiencyForChallenge = challenge => Math.max(2, Math.floor((Math
  * @returns {{ok: true, actor: object, notes: string[]} | {ok: false, reason: string}}
  */
 export function convertActor(document, options={}) {
-  const {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2", images=["icons/"], spells={}, creatures={}, beasts=[],
+  const {scales={}, pack=null, names={}, licensed=isSrd2024, book="SRD 5.2", images=["icons/"], spells={}, creatures={}, forms=[],
     tables={}} = options;
   if ( !licensed(document) ) return {ok: false, reason: "not SRD 5.2 (CC-BY-4.0)"};
   if ( document.type === "vehicle" ) return convertVehicle(document, options);
@@ -5879,7 +5953,7 @@ export function convertActor(document, options={}) {
     const inherited = (!source.system?.source?.license && (source.system?.source?.rules === "2024") && document.system?.source?.license)
       ? {...source, system: {...source.system, source: {...source.system.source, license: document.system.source.license}}} : source;
     const item = fixed ? {...inherited, system: {...inherited.system, description: {...inherited.system?.description, value: fixed}}} : inherited;
-    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images, spells, creatures, beasts, tables});
+    const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images, spells, creatures, forms, tables});
     if ( !result.ok ) {
       notes.push(itemNote(item.name, result.reason));
       continue;

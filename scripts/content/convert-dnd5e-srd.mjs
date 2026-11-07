@@ -1,7 +1,7 @@
 import {mkdirSync, readFileSync, rmSync, writeFileSync} from "node:fs";
 import {contentStamp} from "./content-stamp.mjs";
 import {join} from "node:path";
-import {spellListsOf, PROGRESSION_TYPES, baseWeapons, beastsOf, convertActor, convertItem, convertProgression, convertTable, isSrd2024, mapGrantItems, nameIndex, scaleTables, slugify,
+import {spellListsOf, PROGRESSION_TYPES, baseWeapons, creatureFormsOf, convertActor, convertItem, convertProgression, convertTable, isSrd2024, mapGrantItems, nameIndex, scaleTables, slugify,
   withRedirects} from "./dnd5e-to-wildpath.mjs";
 import {readPack} from "./packs.mjs";
 
@@ -49,8 +49,8 @@ const SUMMON_REDIRECTS = {"5SgVGhQBswgWRwsF": "mmNightmare00000", "8SMQl75HLjhuS
   BNJCponnrcqBAxpI: "mmGiantGoat00000", phbmobGiantGoat0: "mmGiantGoat00000"};
 const creatures = withRedirects(Object.fromEntries(readPack(from, "actors24").filter(document => isSrd2024(document) && ["npc", "vehicle"].includes(document.type))
   .map(document => [document._id, `Compendium.wildpath.srd-creatures.Actor.${document._id}`])), SUMMON_REDIRECTS);
-// The Beasts Polymorph may choose.
-const beasts = beastsOf(readPack(from, "actors24").filter(isSrd2024), document => creatures[document._id]);
+// The creatures a transformation may choose (Polymorph and Wild Shape the Beasts among them, Shapechange others).
+const forms = creatureFormsOf(readPack(from, "actors24").filter(isSrd2024), document => creatures[document._id]);
 
 // Its tables: only those of an SRD 5.2 magic item or spell (a table's id begins as its owner's: dmgWandOfWonderE of the
 // Wand of Wonder; or its name does: Gray Bag of Tricks), never a creature's lore table, which this export does not license.
@@ -74,7 +74,7 @@ const convertedIds = new Map();
 for ( const pack of ITEM_PACKS ) {
   for ( const document of readPack(from, pack).filter(wanted) ) {
     if ( !["spell", "weapon", "feat", "equipment", "consumable", "tool", "loot", "container"].includes(document.type) ) continue;
-    const result = convertItem(document, {scales, pack, names, creatures, spells, beasts, tables, spellLists, weapons});
+    const result = convertItem(document, {scales, pack, names, creatures, spells, forms, tables, spellLists, weapons});
     items.push(...result.items);
     const gear = result.items.filter(item => item.type === "gear");
     const granting = result.items.filter(item => item.flags?.wildpath?.grants?.length);
@@ -95,7 +95,7 @@ for ( const pack of ITEM_PACKS ) {
   }
 }
 for ( const document of readPack(from, "actors24").filter(wanted) ) {
-  const result = convertActor(document, {scales, pack: "actors24", names, spells, creatures, beasts, tables});
+  const result = convertActor(document, {scales, pack: "actors24", names, spells, creatures, forms, tables});
   if ( !result.ok ) continue;
   actors.push(result.actor);
   report.push({pack: "actors24", name: document.name, converted: [`${result.actor.name} (${result.actor.items.length} items)`], notes: result.notes});
