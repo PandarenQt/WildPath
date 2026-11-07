@@ -938,7 +938,7 @@ const OWN_HIT = Object.freeze({
   // Eldritch Invocation Eldritch Smite: a Pact Magic slot spent on a weapon hit, (1 + its level)d8 Force, and Prone if its
   // warlock chooses ("can"; on by default) and the creature is Huge or smaller. shortcut: any weapon, not only its pact
   // weapon.
-  "eldritch-smite/Smite": {...weaponHit("eldritch-smite"), dropNotes: /^consumption: attribute|custom formula/, definition: ({consumption: _consumption, ...definition}) => ({...definition,
+  "eldritch-smite/Smite": {...weaponHit("eldritch-smite"), dropNotes: /custom formula/, definition: ({consumption: _consumption, ...definition}) => ({...definition,
     costs: {allOf: []}, damage: [{id: "damage-1", expression: {type: "dice", number: 1, faces: 8}, damageType: "force", provenance: "additional"}],
     configuration: [{id: "spell-slot", type: "resource", label: "Pact Magic slot", required: true,
       cost: {anyOf: [[{capability: PACT_SLOT_POOL, amount: 1}]]},
@@ -948,8 +948,7 @@ const OWN_HIT = Object.freeze({
       effects: [{type: "keepEffect", effectIds: ["effect-1"], keep: {prone: ["effect-1"], standing: []}}]}],
     effects: [{id: "effect-1", type: "condition", conditionId: "prone", maxSize: "huge"}]})},
   // 2024 Hurl Through Hell (Fiend Patron 14): once a turn, on any attack hit, a Charisma save; on a failure 8d10 Psychic
-  // and Incapacitated until the end of the warlock's next turn. shortcut: a Fiend's immunity to the damage, and Regain
-  // Use (a Pact Magic slot for its use), are by hand.
+  // and Incapacitated until the end of the warlock's next turn. shortcut: a Fiend's immunity to the damage is by hand.
   "hurl-through-hell/Hurl Through Hell": {spell: true, tagsAll: [], once: "turn", definition: definition => ({...definition,
     damage: (definition.damage ?? []).map(component => ({...component, saveOutcomePolicy: {success: "none", failure: "full"}})),
     effects: [{id: "effect-1", type: "condition", conditionId: "incapacitated", saveOutcomePolicy: "failure",
@@ -1791,7 +1790,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( ["brutal-strike", "improved-brutal-strike", "elemental-affinity", "defensive-tactics"].includes(identifierOf(document)) ) continue;
     // A choice it adds to another feature's Action (Restoring Touch on Lay on Hands) is its flag, not an Action.
     if ( CHOICES_FOR[identifierOf(document)] ) continue;
-    // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use): used, though dnd5e may leave it passive.
+    // One pool traded for another (Wild Resurgence, Font of Magic, Restore Use, Regain Use): used, though dnd5e may leave
+    // it passive.
     const trades = tradesPools({document, activity, pool, names, scales});
     // A trap's tier ("Trigger (5-10)", 2024 DMG) is set by the GM as a lasting area (trapDefinition).
     const trapTier = /^Trigger \(\d+[–-]\d+\)$/u.test(activity.name ?? "") && ["save", "damage", "attack"].includes(activity.type);
@@ -2951,7 +2951,13 @@ export function healingBlockedWhile(text) {
  * `speed.multiplier` and no Reaction. Read from the effect's own description, else from its item's failed save
  * ("Failure: ...", "On a failed save, ..."). A rule of a kind `given` already holds (its own changes', or an earlier
  * effect's of the same Action: the Beholder's Slowing Ray and its copy) is left out, so Speed is not halved twice.
+ * "Disadvantage on attack rolls against creatures other than you" (Compelled Duel, Goading Attack, Thunder Gauntlets),
+ * where "you" is the effect's source: the effect's own slug, and a RollMode on its creature's attacks unless
+ * `attack.fromTarget` holds that slug (the target is where the effect came from), lasting to the start or end of its
+ * source's next turn when that sentence says so.
  * shortcut: any Speed Modifier given stands for "Speed is halved"; upgrade if one ever adds rather than halves.
+ * shortcut: two copies from different sources share the slug, so attacking either source lifts both (as Grappled's);
+ * upgrade with one effect per source (questions-for-owner Q19).
  */
 function effectTextRules(document, effect, given=[]) {
   const own = String(effect?.description ?? "").replace(/<[^>]+>/gu, " ");
@@ -2968,14 +2974,23 @@ function effectTextRules(document, effect, given=[]) {
   };
   const kinds = entry => (entry.data?.domains ?? entry.data?.resources ?? []).map(key => `${entry.type}:${String(key).split(".")[0]}`);
   const held = new Set(given.flatMap(kinds));
+  const others = sentences.find(part => OTHERS_THAN_SOURCE.test(part));
+  const slug = /\bcan(?:not|[’']t) make Opportunity ?Attacks\b/iu.test(words) ? "no-opportunity-attacks"
+    : (others ? (slugify(effect?.name) || null) : null);
   const read = [...rule(/\bSpeed is halved\b/iu, {id: "speed-halved", type: "Modifier", data: {domains: ["speed.multiplier"], modifierType: "untyped", value: 0.5}}),
     ...rule(/\bcan(?:not|[’']t) (?:use|take) (?:a )?reactions?\b/iu, {id: "no-reaction", type: "ResourceCap",
-      data: {resources: ["reaction"], maximum: 0}})];
+      data: {resources: ["reaction"], maximum: 0}}),
+    ...((others && slug) ? [{schemaVersion: 1, id: "others-disadvantage", type: "RollMode", data: {domains: ["attack"], mode: "disadvantage"},
+      predicate: {not: {equals: {path: `attack.fromTarget.${slug}`, value: true}}}}] : [])];
   const ruleElements = read.filter(made => !kinds(made).some(kind => held.has(kind)));
+  const until = others ? /\buntil the (start|end) of your next turn\b/iu.exec(others)?.[1]?.toLowerCase() : null;
   // `repeats`: some of what it says is already given.
-  return {slug: /\bcan(?:not|[’']t) make Opportunity ?Attacks\b/iu.test(words) ? "no-opportunity-attacks" : null, ruleElements,
-    repeats: ruleElements.length < read.length};
+  return {slug, ruleElements, repeats: ruleElements.length < read.length,
+    ...(until ? {duration: {value: 1, units: "rounds", expiry: (until === "end") ? "sourceTurnEnd" : "sourceTurnStart"}} : {})};
 }
+// The sentence of an effect that hinders its creature's attacks on anyone but its source (effectTextRules). Not one that
+// spares others too ("other than you or another Barbarian": Power of the Wilds' Lion), which one slug cannot say.
+const OTHERS_THAN_SOURCE = /\bdisadvantage on attack rolls against (?:targets|creatures) other than you\b(?! or\b)/iu;
 
 /**
  * The rules an effect with none of its own takes from its item's text (Antitoxin's Advantage on saves against Poisoned)
@@ -2983,7 +2998,8 @@ function effectTextRules(document, effect, given=[]) {
  */
 function textEffect(document, told) {
   const rules = [...savesAgainstRules(plainText(document), identifierOf(document)), ...told.ruleElements];
-  return (rules.length || told.slug) ? {...(told.slug ? {slug: told.slug} : {}), ruleElements: rules} : null;
+  return (rules.length || told.slug) ? {...(told.slug ? {slug: told.slug} : {}), ruleElements: rules,
+    ...(told.duration ? {duration: told.duration} : {})} : null;
 }
 
 function emptyPassiveRules(document, notes=[]) {
@@ -3002,7 +3018,12 @@ function emptyPassiveRules(document, notes=[]) {
         data: {domains: [`check.${skill}`], mode: mode.toLowerCase()}});
       rest = rest.replace(phrase, "");
     }
+    // What an effect it applies does to its creature's attacks (Goading Attack's Goaded) is that effect's rule, when one
+    // of its effects reads it.
     rest = rest.replace(SAVES_AGAINST, "");
+    if ( (document.effects ?? []).some(effect => effectTextRules(document, effect).ruleElements.some(rule => rule.id === "others-disadvantage")) ) {
+      rest = rest.replace(OTHERS_THAN_SOURCE, "");
+    }
     // What else it says of Advantage (others' checks "made to see you") is not read.
     if ( /\b(?:Advantage|Disadvantage)\b/u.test(rest) ) notes.push(`text: "${sentence.trim()}" not converted`);
   }
@@ -5508,8 +5529,8 @@ function intervalTrigger({document, activity, system, spell, level, scales, note
 
 /**
  * Whether an activity trades one pool for another, all of it converted (it spends one and gives another back): Wild
- * Resurgence, Font of Magic, Font of Inspiration's and Holy Nimbus' recharges. Not one used when its creature rolls
- * Initiative, nor a pact slot's (Hurl Through Hell).
+ * Resurgence, Font of Magic, Font of Inspiration's and Holy Nimbus' recharges, Hurl Through Hell's for a Pact Magic slot.
+ * Not one used when its creature rolls Initiative.
  */
 function tradesPools({document, activity, pool, names, scales}) {
   const targets = activity?.consumption?.targets ?? [];
@@ -5553,9 +5574,11 @@ function consumptionDefinition(definition, {document, activity, notes, pool, nam
   const note = target => notes.push(`consumption: ${target.type} ${target.value ?? ""} not converted`.trim());
   // An activity's own uses, else (dnd5e keeps a once-a-day on the item, its activity spending "activityUses": a Dretch's
   // Fetid Cloud) the item's.
+  // A Pact Magic slot (Hurl Through Hell's Regain Use, a Rod of the Pact Keeper) is the pact pool. Magical Cunning's
+  // half of them back stays noted (formulaExpression reads no `@spells.pact.max`): MAGICAL_CUNNING_RESTORE gives them.
   const poolOfTarget = target => ((target.type === "itemUses") ? targetPoolId(target, pool, names)
     : ((target.type === "activityUses") ? (activityPool({document, activity})?.id ?? (document.system?.uses?.max ? pool?.id : null) ?? null)
-      : null));
+      : (((target.type === "attribute") && (target.target === "spells.pact.value")) ? PACT_SLOT_POOL : null)));
   for ( const target of targets ) {
     if ( target === byLevel ) continue;
     // dnd5e's own count of the Legendary or Lair Action its activation already costs (Pounce): paid as that.

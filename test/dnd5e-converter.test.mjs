@@ -1726,6 +1726,63 @@ test("an affected creature's effect has a Fiend or Undead hitting it save at its
   assert.equal(aura.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), false);
 });
 
+test("Disadvantage on attack rolls against creatures other than you: the effect's slug, a RollMode lifted against its source", async () => {
+  const {evaluatePredicate} = await import("../module/helpers/predicates.mjs");
+  const told = (name, text, extra={}) => ({_id: name.slice(0, 1).toLowerCase(), name, transfer: false, statuses: [], description: `<p>${text}</p>`,
+    duration: {value: 60, units: "seconds"}, system: {changes: []}, ...extra});
+  // A save spell (Compelled Duel): its 60 seconds and its caster's concentration stay.
+  const [duel] = convertItem(carrier({id: "testDuel00000001", name: "Test Duel", level: 1, properties: ["vocal", "concentration"],
+    duration: {value: "1", units: "minute"}, text: "<p>On a failed save, the target has Disadvantage on attack rolls against creatures "
+      + "other than you.</p>", effects: [told("Compelled", "The target has Disadvantage on attack rolls against creatures other than you, "
+      + "and it can’t willingly move to a space that is more than 30 feet away from you.")], activities: {a: activity("save", {
+      effects: [{_id: "c"}], save: {ability: ["wis"], dc: {calculation: "spellcasting", formula: ""}}, damage: {parts: [], onSave: "half"}})}})).items;
+  // A hit's save (Goading Attack), its effect marked transfer as dnd5e marks Goaded.
+  const sentence = "The target must succeed on a Wisdom saving throw or have Disadvantage on attack rolls against targets other than you "
+    + "until the end of your next turn.";
+  const goad = convertItem({_id: "testGoad00000001", name: "Test Goad", type: "feat", img: "icons/svg/sword.svg",
+    effects: [told("Goaded", "The target has Disadvantage on attack rolls against targets other than you until the end of your next turn.",
+      {transfer: true, duration: {value: 1, units: "turns", expiry: "turnStart"}})],
+    system: {source: SRD, identifier: "test-goad", type: {value: "class", subtype: "maneuver"}, uses: {max: "", recovery: []},
+      description: {value: `<p>When you hit a creature with an attack roll, you can goad it. ${sentence}</p>`},
+      activities: {a: activity("save", {activation: {type: "", override: false, condition: "When you hit a creature with an attack roll"},
+        effects: [{_id: "g"}], save: {ability: ["wis"], dc: {calculation: "", formula: "8 + @prof"}}, damage: {parts: [], onSave: "full"}})}}});
+  // A weapon's hit (Thunder Gauntlets), its dnd5e duration in the older `{rounds}` shape.
+  const [gauntlet] = convertItem({...weapon, _id: "testGauntlet0001", name: "Test Gauntlet", effects: [told("Thunder Gauntlets: Disadvantage",
+    "A creature hit by the gauntlet has disadvantage on attack rolls against targets other than you until the start of your next turn.",
+    {duration: {rounds: 1}})], system: {...weapon.system, activities: {a: {...weapon.system.activities.a, effects: [{_id: "t"}]}}}}).items
+    .filter(item => item.type === "action");
+  const found = [[duel, "compelled"], [goad.items[0], "goaded"], [gauntlet, "thunder-gauntlets-disadvantage"]].map(([item, slug]) => {
+    const effect = item.system.definition.effects.find(entry => entry.type === "effect");
+    assert.equal(effect.slug, slug, item.name);
+    const rule = effect.ruleElements.find(entry => entry.id === "others-disadvantage");
+    assert.deepEqual([rule.type, rule.data], ["RollMode", {domains: ["attack"], mode: "disadvantage"}], item.name);
+    assert.deepEqual([evaluatePredicate(rule.predicate, {attack: {fromTarget: {[slug]: true}}}).ok,
+      evaluatePredicate(rule.predicate, {attack: {fromTarget: {}}}).ok], [false, true], `${item.name}: none against its source, else Disadvantage`);
+    assert.equal(validateActionDefinition(item.system.definition).ok, true, JSON.stringify(validateActionDefinition(item.system.definition).errors));
+    return effect;
+  });
+  assert.deepEqual(found.map(effect => effect.duration), [{value: 60, units: "seconds"}, {value: 1, units: "rounds", expiry: "sourceTurnEnd"},
+    {value: 1, units: "rounds", expiry: "sourceTurnStart"}], "the duel's minute; to the end or start of the source's next turn");
+  assert.equal(found[0].concentration, true);
+  assert.equal(goad.notes.some(note => note.startsWith("text:")), false, "the applied effect's sentence is no passive rule left by hand");
+});
+
+test("Disadvantage against creatures other than you stays by hand when no effect reads it, or when it spares others too", () => {
+  const passive = (id, name, text, description="") => convertItem({_id: id, name, type: "feat", img: "icons/svg/sword.svg",
+    effects: [{_id: "p", name, transfer: true, statuses: [], description, system: {changes: []}}],
+    system: {source: SRD, identifier: name.toLowerCase().replace(/ /gu, "-"), type: {value: "class", subtype: ""}, uses: {max: "", recovery: []},
+      description: {value: `<p>${text}</p>`}, activities: {}}});
+  // An empty passive effect with no words of its own: nothing takes the rule.
+  const bare = passive("testBareTaunt001", "Bare Taunt", "Creatures within 5 feet of you have Disadvantage on attack rolls against creatures other than you.");
+  // "or another Barbarian" (Power of the Wilds' Lion): one slug cannot spare the others.
+  const lion = "Your enemies within 5 feet of you have Disadvantage on attack rolls against targets other than you or another Barbarian who has this option active.";
+  const roar = passive("testLionRoar0001", "Lion Roar", lion, `<p>${lion}</p>`);
+  for ( const converted of [bare, roar] ) {
+    assert.equal(converted.notes.some(note => note.startsWith("text:")), true, JSON.stringify(converted.notes));
+    assert.equal(converted.items.some(item => JSON.stringify(item).includes("others-disadvantage")), false);
+  }
+});
+
 test("a passive aura of Advantage is an Aura of RollModes on its allies (Aura of Authority)", () => {
   const [warlord] = convertItem({_id: "testAuthority001", name: "Aura of Authority", type: "feat", effects: [], system: {source: SRD,
     description: {value: "<p>While in a [[lookup @target.template.size activity=x]]-foot Emanation originating from the [[lookup @name "
@@ -2596,6 +2653,25 @@ test("consumption targets: a pool traded for another is an Action spending one a
     "a converter path without names still charges its feature's pool");
   assert.equal(fs.readdirSync("packs/_source/srd-items").some(file => file.startsWith("bag-of-beans-count-beans")), false,
     "a rolled give-back (3d4 beans) is no Action");
+  // A Pact Magic slot for its use (Hurl Through Hell's Regain Use): no action, but never free.
+  const regain = fs.readdirSync("packs/_source/srd-items").find(file => file.startsWith("hurl-through-hell-regain-use-"));
+  assert.deepEqual(shape(regain.replace(/\.json$/u, "")), {costs: ["spell-slot.pact"], restores: ["hurl-through-hell"], choices: []});
+  assert.equal(read(regain.replace(/\.json$/u, "")).system.definition.restores[0].refuseWhenFull, true, "refused while its use is there");
+  // A Pact Magic slot given back (a Rod of the Pact Keeper's), once.
+  const [rod] = convertItem({_id: "testPactRod00001", name: "Test Pact Rod", type: "equipment", img: "icons/svg/item-bag.svg", effects: [],
+    system: {source: SRD, identifier: "test-pact-rod", type: {value: "rod"}, uses: {max: "", recovery: []}, description: {value: "<p>A rod.</p>"},
+      activities: {a: activity("utility", {name: "Regain Spell Slot", uses: {max: "1", spent: 0, recovery: [{period: "lr", type: "recoverAll"}]},
+        consumption: {targets: [{type: "activityUses", value: "1", target: ""}, {type: "attribute", value: "-1", target: "spells.pact.value"}]}})}}})
+    .items.filter(item => item.type === "action");
+  assert.deepEqual([rod.system.definition.restores, rod.flags.wildpath.conversion.notes],
+    [[{resourceId: "spell-slot.pact", amount: 1, refuseWhenFull: true}], []]);
+  // Its action and its own once-per-Long-Rest use: never a free, unlimited slot.
+  assert.deepEqual(rod.system.definition.costs.allOf.map(cost => cost.capability), ["action", "test-pact-rod-regain-spell-slot"]);
+  assert.deepEqual(rod.system.ruleElements.filter(rule => rule.type === "GrantResource")
+    .map(rule => [rule.data.resourceId, rule.data.recovery]), [["test-pact-rod-regain-spell-slot", "longRest"]]);
+  // Magical Cunning's half its slots back is its own restore, not a second one from its dnd5e formula.
+  assert.equal(read(fs.readdirSync("packs/_source/srd-items").find(file => file.startsWith("magical-cunning-")).replace(/\.json$/u, ""))
+    .system.definition.restores.length, 1);
 });
 
 test("monk: Martial Arts brings three Unarmed Strikes, Flurry of Blows fills its strikes, Open Hand answers a Flurry hit", async () => {

@@ -447,12 +447,15 @@ This covers:
 - Wild Resurgence, both ways;
 - Recharge with Rage;
 - Restore Use for Dragon Wings and Holy Nimbus;
+- Regain Use for Hurl Through Hell and Clairvoyant Combatant, spending a Pact Magic slot;
 - Sorcery Incarnate;
 - Sorcerous Restoration;
 - Pearl of Power;
 - Font of Magic.
 
-Pact-slot targets, rolled give-backs (Bag of Beans), amounts chosen when used (Ioun Stone of Reserve) and a spell's own
+A Pact Magic slot target (`attribute` `spells.pact.value`) is the `spell-slot.pact` pool: spent as a cost, or given back
+as a restore (a Rod of the Pact Keeper's Regain Spell Slot). Its text's "without expending a spell slot" (Pact of the
+Chain) still spends nothing, and Magical Cunning's half of its slots back stays its own restore. Rolled give-backs (Bag of Beans), amounts chosen when used (Ioun Stone of Reserve) and a spell's own
 bookkeeping uses stay notes. Arcane Recovery and Natural Recovery stay manual. Live (two browsers, 14.369): QA Caster
 with Wild Resurgence and 0 of 2 Wild Shape used Regain Wild Shape twice, each spending a level-1 slot. The third use, with
 Wild Shape full, was refused (`RESOURCE_FULL`).

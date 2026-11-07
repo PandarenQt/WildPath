@@ -389,8 +389,9 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
     only on one Huge or smaller (`maxSize`). It is offered only while a Pact Magic slot is left. shortcut: any weapon,
     not only its pact weapon.
   - **Hurl Through Hell** (Fiend Patron 14): any attack hit, once a turn, from its pool: a Charisma save; on a failure
-    8d10 Psychic and Incapacitated until the end of the warlock's next turn. shortcuts: a Fiend's immunity to the
-    damage and Regain Use are by hand.
+    8d10 Psychic and Incapacitated until the end of the warlock's next turn. Its Regain Use is an Action spending a
+    Pact Magic slot (classes-and-spellcasting.md, "Trading one pool for another"). shortcut: a Fiend's immunity to the
+    damage is by hand.
   - **Giant Ancestry** (Goliath): Fire's Burn (+1d10 Fire), Frost's Chill (+1d6 Cold, Speed -10 until the start of the
     goliath's next turn) and Hill's Tumble (Prone, offered only against a creature Large or smaller) answer any attack
     hit, each paid from its pool.

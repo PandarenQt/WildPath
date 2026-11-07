@@ -1022,6 +1022,24 @@ Live (two browsers, 14.369): Player1's rogue's dagger with a once-per-turn "+1d6
 "1d6" on its first hit, only "1d4" on its second hit that turn, and "2d4" and "2d6" on a critical in its next
 turn.
 
+**On its bearer's attacks: against its source, or anyone else (2026-11-07).** A rule on an effect's attacker side sees
+`attack.fromTarget`: the statuses of the effects the attacker bears whose source (`sourceRef`, else `originRef` or
+`origin`) is the attack's target, its Actor, one of its Tokens or one of its Items (`conditionsFrom`). A custom effect's
+status is its `slug`, so an effect can name itself. Two forms, as data a homebrewer writes on any effect:
+- **Against you**: predicate `{equals: {path: "attack.fromTarget.<slug>", value: true}}`. Bestow Curse's Curse Attacks
+  (`cursed-attacks`) gives Disadvantage on its bearer's attacks against the caster.
+- **Against anyone but you**: `{not: {equals: {path: "attack.fromTarget.<slug>", value: true}}}`. Grappled
+  (`attack.fromTarget.grappled`) does this. So does the converter's reading of "Disadvantage on attack rolls against
+  creatures (or targets) other than you" (`effectTextRules`: Compelled Duel's Compelled, Goading Attack's Goaded,
+  Thunder Gauntlets): the effect's slug from its name, the RollMode
+  `{id: "others-disadvantage", domains: ["attack"], mode: "disadvantage"}`, and, when that sentence says "until the
+  start/end of your next turn", a one-round `sourceTurnStart`/`sourceTurnEnd` duration.
+- shortcut: two copies from different sources (two clerics' Compelled Duels) share the slug, so attacking either source
+  lifts both; upgrade with one effect per source (questions-for-owner Q19).
+- An aura's granted rules cannot name their bearer this way (Power of the Wilds' Lion); that needs a bearer fact. The
+  converter also leaves "other than you or another ..." (Lion's) unread, since one slug cannot spare the others, and
+  drops the sentence from an item's by-hand text notes only when one of its effects takes the rule.
+
 ## Aura (2026-10-14)
 
 `{type: "Aura", data: {radius, affects: "allies" | "enemies" | "all", bearerOnly?, ruleElements: [...]}}` grants its nested
