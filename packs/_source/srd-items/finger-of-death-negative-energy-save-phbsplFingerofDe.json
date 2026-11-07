@@ -119,6 +119,14 @@
           "effects": []
         }
       ],
+      "summon": {
+        "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmZombie00000000",
+        "fromKilled": {
+          "types": [
+            "humanoid"
+          ]
+        }
+      },
       "metadata": {
         "spellLevel": 7,
         "spellLists": [

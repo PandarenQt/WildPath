@@ -122,16 +122,19 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
             logger.warn("Wild Path | A death trigger failed", error);
         }
     }
+    /** True when it killed `actor`: one already dead (a corpse, even one healed since) is never killed again. */
     async function apply(actor, given) {
         if (!given || isDead(actor))
-            return;
+            return false;
         // A creature that can't regain Hit Points (Chill Touch) neither heals nor wakes, and its death saves don't start over.
         const blocked = (actor.system?.resourceCaps?.healing === 0)
             && Boolean(given.heal || given.wake);
         const { deathSaves: _reset, ...kept } = given;
         const consequence = blocked ? { ...kept, heal: 0, wake: false } : given;
-        if (consequence.die)
-            return die(actor);
+        if (consequence.die) {
+            await die(actor);
+            return true;
+        }
         const update = {};
         if (consequence.deathSaves)
             update["system.deathSaves"] = consequence.deathSaves;
@@ -148,6 +151,7 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
             await actor.toggleCondition("unconscious");
         if (consequence.wake && hasCondition(actor, "unconscious"))
             await actor.toggleCondition("unconscious", { levels: -1 });
+        return false;
     }
     /**
      * The damage types that stop a creature's Regeneration, recorded when it takes them (more than 0); they count until
@@ -193,11 +197,12 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
     /**
      * The health changes `plans` committed on `actor` (a condition's damage at turn start). With `rescue`, damage outside
      * an Action that dropped it to 0 may keep it up first (rescueAtZero); an Action's own damage was checked before
-     * commit, so `afterResolution` rescues only a drop its commit's rebase newly made (`zeroHpUnchecked`).
+     * commit, so `afterResolution` rescues only a drop its commit's rebase newly made (`zeroHpUnchecked`). True when they killed it.
      */
     async function afterPlans(actor, plans = [], { critical = false, rescue = false } = {}) {
         if (!actor || !isActiveGM())
-            return;
+            return false;
+        let killed = false;
         for (const entry of plans) {
             const change = (entry.plan ?? entry);
             const type = String((entry.plan ? (change.type ?? entry.type) : entry.type) ?? "");
@@ -215,8 +220,9 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
             if (consequence?.die && !savesForDeath(actor) && regenerationsOf(actor).some(rule => rule.data?.deferDeath)) {
                 consequence = { unconscious: true };
             }
-            await apply(actor, consequence);
+            killed = await apply(actor, consequence) || killed;
         }
+        return killed;
     }
     /**
      * Damage outside an Action that dropped `actor` from above 0 to 0, not by massive damage: its drop-to-0 rule
@@ -267,10 +273,14 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
             await beginPhase(actor, rule);
         return kept;
     }
-    /** After an Action: each target whose health it changed, a critical hit counting as two failed saves at 0. */
+    /**
+     * After an Action: each target whose health it changed, a critical hit counting as two failed saves at 0. The uuids
+     * of the creatures it killed (a `summon.fromKilled` Action raises them).
+     */
     async function afterResolution({ options, state }) {
+        const killed = [];
         if (!isActiveGM())
-            return;
+            return killed;
         await stabilizeTargets({ options, state });
         const hits = state?.results?.attackResolution?.hits ?? [];
         const criticalRefs = new Set(hits.filter(hit => hit.outcome === "criticalHit").flatMap(hit => refsOf(hit.target ?? {})));
@@ -279,9 +289,11 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
                 continue;
             const target = mutationTargetIdentity((entry.target ?? entry.plan?.target ?? {}));
             const actor = lookupActor(options?.targetActors, target, entry, { selectValue: value => value?.actor ?? value });
-            await afterPlans(actor, [entry], { critical: refsOf(target).some(ref => criticalRefs.has(ref)),
-                rescue: entry.plan?.zeroHpUnchecked === true });
+            if (await afterPlans(actor, [entry], { critical: refsOf(target).some(ref => criticalRefs.has(ref)),
+                rescue: entry.plan?.zeroHpUnchecked === true }) && actor)
+                killed.push(actor.uuid);
         }
+        return killed;
     }
     /**
      * A `stabilize` Action (2024: Spare the Dying, or an ally's DC 10 Medicine check) makes each dying target stable:

@@ -511,6 +511,28 @@ test("summons (G4): its creature, a choice of creatures, for the spell's duratio
   assert.deepEqual(horn.flags.wildpath.conversion.notes, [], "its consumption is converted, and a summon's notes are kept");
 });
 
+test("a creature its damage kills rises as its user's: the passive summon folds into the damaging Action (fromKilled)", () => {
+  const zombie = "Compendium.wildpath.srd-creatures.Actor.mmZombie00000000";
+  const killing = (text, name="Raise Zombie") => convertItem({_id: "killSpell0000001", name: "Kill Test", type: "spell", system: {source: SRD, level: 7,
+    preparation: {mode: "prepared"}, activation: {type: "action"}, range: {value: "60", units: "ft"}, description: {value: text},
+    activities: {a: activity("save", {save: {ability: ["con"], dc: {calculation: "spellcasting"}},
+      damage: {onSave: "half", parts: [{number: 7, denomination: 8, bonus: "30", types: ["necrotic"]}]}}),
+    b: activity("summon", {_id: "actsummon2", name, activation: {type: "", override: true}, sort: 1, bonuses: {}, summon: {mode: ""},
+      profiles: [{_id: "p1", uuid: "Compendium.dnd5e.actors24.Actor.mmZombie00000000", count: "", level: {min: null, max: null}}]})}}},
+  {creatures: {mmZombie00000000: zombie}});
+  const killed = killing("<p>A Humanoid killed by this spell rises at the start of your next turn as a @UUID[Compendium.dnd5e.actors24.Actor.mmZombie00000000]{Zombie}.</p>");
+  assert.equal(killed.items.length, 1);
+  valid(killed.items[0]);
+  assert.deepEqual(killed.items[0].system.definition.summon, {actorRef: zombie, fromKilled: {types: ["humanoid"]}});
+  assert.deepEqual(killed.notes, [], "the passive summon is folded in");
+  // "reduced to 0 Hit Points by this damage dies" (Shadow Breath), the creature's link inside the sentence: a character is dying, by hand.
+  const breath = killing("<p>A Humanoid reduced to 0 Hit Points by this damage dies, and a @UUID[Compendium.dnd5e.actors24.Actor.mmZombie00000000]{Zombie} rises from its corpse.</p>", "Rises");
+  assert.deepEqual(breath.items[0].system.definition.summon.fromKilled, {types: ["humanoid"]});
+  assert.deepEqual(breath.notes.map(noteReason), ["summon: a character its text kills at 0 Hit Points is dying (by hand)"]);
+  // "slain by this attack rises 24 hours later" (a Wight's Life Drain) is not this.
+  assert.equal(killing("<p>A Humanoid slain by this attack rises 24 hours later as a Zombie.</p>").items[0].system.definition.summon, undefined);
+});
+
 test("the monster toolkit (G4): Multiattack's attacks, a Spellcasting's spells at their own uses, and Recharge", async () => {
   const {multiattackCount} = await import("../scripts/content/dnd5e-to-wildpath.mjs");
   assert.equal(multiattackCount("<p>The dragon makes three Rend attacks. It can replace one attack.</p>"), 3);

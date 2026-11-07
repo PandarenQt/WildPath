@@ -597,7 +597,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Find Steed | spells24 | Find Steed (Summon Steed) (automated), Find Steed (Summon Flying Steed) (automated) | summon: its Hit Dice by the spell's level are not added (spent only on a rest) |
 | Find the Path | spells24 | Find the Path (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest; activation: 1 minute is not an action-economy cost; concentration: its caster concentrates; what it sustains is by hand |
 | Find Traps | spells24 | Find Traps (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Finger of Death | spells24 | Finger of Death (Negative Energy Save) (automated) | "Raise Zombie" is passive or triggered: not automated |
+| Finger of Death | spells24 | Finger of Death (Negative Energy Save) (automated) | — |
 | Fire Bolt | spells24 | Fire Bolt (automated) | — |
 | Fire Elemental | actors24 | Fire Elemental (7 items) | Fire Aura: activation: turnEnd is not an action-economy cost; Fire Form: "damage" is passive or triggered: not automated; Water Susceptibility: "Cold Damage" is passive or triggered: not automated |
 | Fire Giant | actors24 | Fire Giant (4 items) | — |
@@ -915,7 +915,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Lesser Restoration | spells24 | Lesser Restoration (automated) | — |
 | Lessons of the First Ones | classes24 | Lessons of the First Ones (feature) | — |
 | Levitate | spells24 | Levitate (automated) | effect: "Levitating" marks its creature (narrative) |
-| Lich | actors24 | Lich (27 items) | Spirit Jar: "Days to Reform" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Spellcasting: "Raise Zombie" is passive or triggered: not automated; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated |
+| Lich | actors24 | Lich (27 items) | Spirit Jar: "Days to Reform" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated |
 | Life Domain | classes24 | Life Domain (subclass) | — |
 | Life Domain Spells | classes24 | Life Domain Spells (feature) | — |
 | Lifedrinker | classes24 | Lifedrinker (damage) (automated) | "Heal (Largest Hit Die)" is passive or triggered: not automated; "Heal (Smallest Hit Die)" is passive or triggered: not automated |

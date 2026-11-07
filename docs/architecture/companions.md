@@ -154,6 +154,20 @@ by Player1.
 - **Live (two browsers, 14.369):** Player1's QA Caster cast Find Familiar, chose an Owl from 26 CR 0 Beasts and
   clicked where it appeared. Dancing Lights with the small lights gave four.
 
+## Risen from the killed (2026-11-07)
+
+- `summon.fromKilled: {types: ["humanoid"]}`: each target of a listed creature type the Action killed rises as the
+  summon, one each, in its corpse's space (the corpse no obstacle, its caster's range and sight not checked). Killed
+  by it: the dying adapter's `afterResolution` returns the uuids of the creatures the Action's damage killed (its
+  `die`), which the runtime hands to the summons adapter. One already dead, even one healed since, is never killed
+  again, so a corpse does not rise twice; a dying creature finished off at 0 is killed and rises. None killed:
+  nothing, and no notice. Nothing to click when used. Control, combat order and the world import are the usual summon's.
+- The converter folds a summon activity with no activation into its document's damaging Action when its text says
+  "<Type> killed by this ... rises" or "<Type> reduced to 0 Hit Points by this ... dies ... rises": Finger of Death and
+  its casts (a Lich's), a Shadow Dragon's Shadow Breath.
+- shortcut: it rises at once, not "at the start of your next turn" (Finger of Death); a character "reduced to 0 Hit Points dies" (Shadow Breath) is dying, so none rises from one (noted
+  by hand). A Death Tyrant's Negative Energy Cone (any corpse in the cone) and a Wight's "24 hours later" stay by hand.
+
 ## An artificer's summons (2026-10-20)
 
 Tasha's Steel Defender, Homunculus Servant and Eldritch Cannon, through the local book module.

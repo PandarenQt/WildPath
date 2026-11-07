@@ -286,7 +286,8 @@ export default class WildPathItem extends Item {
       built.intent.source = {tokenId: sourceToken.id, tokenRef: sourceToken.uuid, sceneId: sourceToken.parent?.id ?? null};
     }
     // A summon's creatures appear where the caster clicks; without a Token on the canvas the authority places them.
-    const summon = definition.ok ? definition.definition?.summon : null;
+    // One risen from the killed (`fromKilled`) appears where each corpse lies: nothing to click.
+    const summon = (definition.ok && !definition.definition?.summon?.fromKilled) ? definition.definition?.summon : null;
     const summoner = summon ? (this.actor.token ?? this.actor.getActiveTokens?.(false, true)?.[0] ?? null) : null;
     if ( summoner && globalThis.canvas?.ready && (summoner.parent === globalThis.canvas.scene) ) {
       const placed = await placeFoundrySummons({definition: definition.definition, sourceToken: summoner,

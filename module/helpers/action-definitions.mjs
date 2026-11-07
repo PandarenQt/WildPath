@@ -947,6 +947,11 @@ function validateSummon(summon, errors) {
   if ( (summon.counts != null) && (!Array.isArray(summon.counts) || summon.counts.some(entry => !entry?.actorRef || (entry.count == null))) ) {
     errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "summon.counts", "A summon's counts by creature are [{actorRef, count}]."));
   }
+  // The creature types whose killed targets rise as the summon (Finger of Death: ["humanoid"]).
+  if ( (summon.fromKilled != null) && (!Array.isArray(summon.fromKilled.types) || !summon.fromKilled.types.length
+    || summon.fromKilled.types.some(type => (typeof type !== "string") || !type)) ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_DEFINITION, "summon.fromKilled", "A summon's fromKilled is {types: [creature types]}."));
+  }
 }
 
 /** The creature sizes, smallest first: a `maxSize` names one. */

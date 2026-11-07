@@ -187,10 +187,10 @@ export function registerFoundryV14MultiplayerResolution({
       await endEarlierConcentration(event);
       await areas.create(event);
       await areas.afterResolution(event);
-      await dying.afterResolution(event);
+      const killed = await dying.afterResolution(event);
       await applyActionTransformation(event, {logger});
       await grantChosenItems(event);
-      await summons.afterResolution(event);
+      await summons.afterResolution({...event, killed});
       await enchantments.afterResolution(event);
       await spendAmmunition(event, {game});
       await afterChaseAction(event, {game});

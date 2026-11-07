@@ -32,6 +32,7 @@ const RULES = [
   [/^summon: not in the SRD/, () => "summon: forms outside the SRD left out"],
   [/summon: its creature is not among the converted/, () => "summon: its creature is not converted"],
   [/summon: a count of/, () => "summon: a count from a formula"],
+  [/summon: ".*" raises no character: /, () => "summon: a character its text kills at 0 Hit Points is dying (by hand)"],
   [/^not automated \((\w+), narrative\)/, () => "narrative use (its cost is all there is)"],
   [/concentration: its caster concentrates/, () => "concentration sustained (its effect is noted apart)"],
   [/^not automated \((\w+)\)/, match => `used, not automated: ${match[1]} activity`],

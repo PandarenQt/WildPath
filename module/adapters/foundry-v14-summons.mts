@@ -26,7 +26,7 @@ interface SummonToken {
   parent?: SummonScene | null;
   actor?: {uuid: string; update?(data: Data): Promise<unknown>; createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown>;
     setFlag?(scope: string, key: string, value: unknown): Promise<unknown>; syncItemRecords?(): Promise<unknown>;
-    system?: {resources?: {health?: {base?: number; value?: number}}; defenses?: {ac?: {value?: number}}}} | null;
+    system?: {resources?: {health?: {base?: number; value?: number}}; defenses?: {ac?: {value?: number}}; details?: {type?: string}}} | null;
   flags?: {wildpath?: {summon?: SummonFlag}};
   getOccupiedGridSpaceOffsets?(data?: {x: number; y: number}): Offset[];
   object?: {checkCollision?(destination: {x: number; y: number}, options: {type: string; mode: string}): boolean} | null;
@@ -213,11 +213,11 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     return ActorClass?.create({...data, flags: {...((data.flags as Data) ?? {}), wildpath: {summonSource: source.uuid}}}) ?? null;
   }
 
-  async function afterResolution({options, state}: {options?: {actor?: CasterActor; summonPoints?: Array<{x: number; y: number}>};
-    state?: Data}) {
+  async function afterResolution({options, state, killed: killedRefs=[]}: {options?: {actor?: CasterActor;
+    summonPoints?: Array<{x: number; y: number}>}; state?: Data; killed?: readonly string[]}) {
     const definition = state?.actionDefinition as {label?: string; summon?: {actorRef?: string; choiceId?: string; count?: number;
       counts?: Array<{actorRef?: string; count?: unknown}>; rounds?: number; concentration?: boolean; bonuses?: Data; spellLevel?: number;
-      limit?: number | Data; endsWithSummoner?: boolean; match?: {attacks?: boolean}};
+      limit?: number | Data; endsWithSummoner?: boolean; match?: {attacks?: boolean}; fromKilled?: {types?: string[]}};
       range?: {normal?: {value?: number}; distance?: {value?: number}} | null} | undefined;
     const spec = definition?.summon;
     const caster = options?.actor;
@@ -228,6 +228,14 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
       gmNotice("WILDPATH.NOTICE.SummonNoToken", {}, undefined, {logger});
       return [];
     }
+    // `fromKilled` (Finger of Death's Zombie): each target of a listed creature type this Action killed (`killed`, the
+    // dying adapter's: a corpse hit again, even one healed since, is not killed twice) rises as the summon, in its corpse's space.
+    // shortcut: it rises at once, not "at the start of your next turn", upgrade with a turn-start trigger if the delay matters.
+    const killed = !spec.fromKilled ? null : [...new Set(((state?.mutationPlans as Data[] | undefined) ?? [])
+      .map(entry => String((entry.target as Data | undefined)?.tokenId ?? "")))].map(id => scene.tokens.get(id))
+      .filter((token): token is SummonToken => Boolean(token?.actor && killedRefs.includes(String(token.actor.uuid))
+        && (spec.fromKilled?.types ?? []).includes(String(token.actor.system?.details?.type ?? ""))));
+    if ( killed && !killed.length ) return [];
     const choices = (state?.configuration as {choices?: unknown} | undefined)?.choices;
     const chosen = !spec.choiceId ? null : Array.isArray(choices) ? choices.find(entry => entry?.id === spec.choiceId) : null;
     const source = await fromUuid(String(spec.actorRef ?? chosen?.value ?? chosen?.optionId ?? "")) as SummonActor | null;
@@ -236,7 +244,8 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
       gmNotice("WILDPATH.NOTICE.SummonMissing", {}, spec, {logger});
       return [];
     }
-    const occupied = new Set([...scene.tokens].flatMap(token => (token.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
+    // A corpse it rises from is no obstacle.
+    const occupied = new Set([...scene.tokens].filter(token => !killed?.includes(token)).flatMap(token => (token.getOccupiedGridSpaceOffsets?.() ?? []).map(key)));
     const start = scene.grid.getOffset({x: casterToken.x, y: casterToken.y});
     // The summon's own size and shape on this Scene's grid, and (2024) a space its caster can see.
     const shape = await base.getTokenDocument({actorLink: false}, {parent: scene});
@@ -265,7 +274,7 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     const castLevel = Number((state?.configuration as {castingLevel?: number | null} | undefined)?.castingLevel ?? spec.spellLevel) || 0;
     const ref = String(spec.actorRef ?? chosen?.value ?? chosen?.optionId ?? "");
     const byOption = spec.counts?.find(entry => entry.actorRef === ref)?.count;
-    const counted = (byOption == null) ? (Number(spec.count) || 1)
+    const counted = killed ? killed.length : (byOption == null) ? (Number(spec.count) || 1)
       : Math.floor(Number((typeof byOption === "object") ? evaluate(atLevel(byOption, castLevel), {actor: caster, actorSystem: caster.system}).value
         : byOption) || 0);
     if ( counted < 1 ) {
@@ -275,13 +284,15 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     const count = Math.min(counted, 20);
     const taken = new Set(occupied);
     const place = (from: Offset, wanted: number) => {
-      const found = summonPlacements({start: from, count: wanted, occupied: taken, footprint, allowed,
+      // A risen corpse stands where it lies, whatever the caster's range or sight.
+      const found = summonPlacements({start: from, count: wanted, occupied: taken, footprint, allowed: killed ? onScene : allowed,
         adjacent: offset => scene.grid.getAdjacentOffsets(offset)});
       for ( const offset of found ) for ( const cell of footprint(offset) ) taken.add(key(cell));
       return found;
     };
-    // Each clicked point is where one creature appears, or the nearest allowed place to it; the rest go near the caster.
-    const offsets = (options?.summonPoints ?? []).slice(0, count).flatMap(point => place(scene.grid.getOffset(point), 1));
+    // Each clicked point (or corpse) is where one creature appears, or the nearest allowed place to it; the rest go near the caster.
+    const points = killed ? killed.map(token => ({x: token.x, y: token.y})) : (options?.summonPoints ?? []);
+    const offsets = points.slice(0, count).flatMap(point => place(scene.grid.getOffset(point), 1));
     offsets.push(...place(start, count - offsets.length));
     const combat = game.combat ?? null;
     const actionId = (definition as {id?: string} | undefined)?.id ?? null;

@@ -1708,6 +1708,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const usable = activities.length ? activities : (spell ? [{type: "manual", activation: {override: false}}] : []);
   // The tag a stat block attack's own save answers (attackRider), on that attack's Action.
   const riderTag = activities.map(entry => attackRider(document, entry, activities)).find(Boolean)?.tagsAll[0] ?? null;
+  const raised = raisedFromKilled(document, activities, creatures, system);
   for ( const [index, listed] of usable.entries() ) {
     let activity = listed;
     const notes = [...(pool?.notes ?? [])];
@@ -1929,6 +1930,12 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       const named = NARRATIVE_ACTIVITIES.has(activity.name ?? "") || NARRATIVE_USES.has(identifierOf(document));
       if ( narrative ) notes.splice(0, notes.length, ...notes.filter(note => !(named ? /^(?:area|consumption|summon): / : /^area: /).test(note)));
       notes.unshift(`not automated${activity.type === "manual" ? "" : ` (${activity.type}${narrative ? ", narrative" : ""})`}: using it spends its cost; its description says the rest`);
+    }
+    // A creature it kills rising as its user's (raisedFromKilled) is its damaging Action's summon.
+    if ( raised && !folded.has(raised.activity) && definition.damage?.length && !definition.summon ) {
+      definition = {...definition, summon: raised.summon};
+      folded.add(raised.activity);
+      notes.push(...raised.notes);
     }
     // What a summoned creature does at its summoner's cost (dnd5e's "Bonus Action used by summoner"; "As a Bonus Action,
     // you can move the sphere up to 30 feet"): its summoner pays (`controllerCosts`), and moving it is a move of that many
@@ -4402,6 +4409,26 @@ export function withRedirects(creatures, redirects) {
     if ( target && !creatures[id] && !aliases[id] ) aliases[id] = target;
   }
   return {...creatures, ...aliases};
+}
+
+/** "A Humanoid killed by this spell rises ...", "A Humanoid reduced to 0 Hit Points by this damage dies, and a Shadow rises". */
+const KILLED_RISES = /\bAn? (Aberration|Beast|Celestial|Construct|Dragon|Elemental|Fey|Fiend|Giant|Humanoid|Monstrosity|Ooze|Plant|Undead) (?:killed by this\b|reduced to 0 Hit Points by this\b[^.]*\bdies\b)[^.]*\brises\b/iu;
+
+/**
+ * A creature its damage kills rising as its user's (Finger of Death's Raise Zombie, a Shadow Dragon's Shadow Rises): dnd5e's
+ * summon activity with no activation, which its damaging Action takes as `summon: {actorRef, fromKilled: {types}}`. Null
+ * when its text says no such thing or its creature is not converted.
+ */
+function raisedFromKilled(document, activities, creatures, system) {
+  // A link's dots ("@UUID[Compendium.….mmShadow00000000]{Shadow}") would end its sentence: its label.
+  const match = KILLED_RISES.exec(plainText(document).replace(/@UUID\[[^\]]*\]\{([^}]*)\}/gu, "$1"));
+  const activity = match && activities.find(entry => (entry.type === "summon") && ["", "none"].includes(pick(entry, system, "activation").type ?? "")
+    && (entry.profiles ?? []).length === 1);
+  const actorRef = activity ? creatureRef(creatures, activity.profiles[0].uuid) : null;
+  // "reduced to 0 Hit Points by this damage dies": a character it drops is dying, not dead, so none rises from one.
+  return actorRef ? {activity, summon: {actorRef, fromKilled: {types: [match[1].toLowerCase()]}},
+    notes: /\bdies\b/iu.test(match[0]) ? [`summon: "${activity.name}" raises no character: one reduced to 0 Hit Points is dying, not dead as its text says (by hand)`] : []}
+    : null;
 }
 
 /**

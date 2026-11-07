@@ -171,14 +171,18 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
     }
   }
 
-  async function apply(actor: DyingActor, given: DyingConsequence | null) {
-    if ( !given || isDead(actor) ) return;
+  /** True when it killed `actor`: one already dead (a corpse, even one healed since) is never killed again. */
+  async function apply(actor: DyingActor, given: DyingConsequence | null): Promise<boolean> {
+    if ( !given || isDead(actor) ) return false;
     // A creature that can't regain Hit Points (Chill Touch) neither heals nor wakes, and its death saves don't start over.
     const blocked = ((actor as unknown as {system?: {resourceCaps?: {healing?: number}}}).system?.resourceCaps?.healing === 0)
       && Boolean(given.heal || given.wake);
     const {deathSaves: _reset, ...kept} = given;
     const consequence: DyingConsequence = blocked ? {...kept, heal: 0, wake: false} : given;
-    if ( consequence.die ) return die(actor);
+    if ( consequence.die ) {
+      await die(actor);
+      return true;
+    }
     const update: Data = {};
     if ( consequence.deathSaves ) update["system.deathSaves"] = consequence.deathSaves;
     if ( consequence.heal ) update["system.resources.health.value"] = consequence.heal;
@@ -188,6 +192,7 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
     else if ( consequence.deathSaves || consequence.heal || consequence.wake ) await clearStable(actor);
     if ( consequence.unconscious && !hasCondition(actor, "unconscious") ) await actor.toggleCondition("unconscious");
     if ( consequence.wake && hasCondition(actor, "unconscious") ) await actor.toggleCondition("unconscious", {levels: -1});
+    return false;
   }
 
   /**
@@ -232,10 +237,11 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
   /**
    * The health changes `plans` committed on `actor` (a condition's damage at turn start). With `rescue`, damage outside
    * an Action that dropped it to 0 may keep it up first (rescueAtZero); an Action's own damage was checked before
-   * commit, so `afterResolution` rescues only a drop its commit's rebase newly made (`zeroHpUnchecked`).
+   * commit, so `afterResolution` rescues only a drop its commit's rebase newly made (`zeroHpUnchecked`). True when they killed it.
    */
   async function afterPlans(actor: DyingActor | null, plans: readonly Data[] = [], {critical=false, rescue=false}={}) {
-    if ( !actor || !isActiveGM() ) return;
+    if ( !actor || !isActiveGM() ) return false;
+    let killed = false;
     for ( const entry of plans ) {
       const change = ((entry.plan as DurabilityChange | undefined) ?? entry) as DurabilityChange & {type?: string};
       const type = String((entry.plan ? (change.type ?? entry.type) : entry.type) ?? "");
@@ -250,8 +256,9 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
       if ( consequence?.die && !savesForDeath(actor) && regenerationsOf(actor).some(rule => rule.data?.deferDeath) ) {
         consequence = {unconscious: true};
       }
-      await apply(actor, consequence);
+      killed = await apply(actor, consequence) || killed;
     }
+    return killed;
   }
 
   /**
@@ -294,9 +301,13 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
     return kept;
   }
 
-  /** After an Action: each target whose health it changed, a critical hit counting as two failed saves at 0. */
-  async function afterResolution({options, state}: {options?: {targetActors?: unknown}; state?: Data}) {
-    if ( !isActiveGM() ) return;
+  /**
+   * After an Action: each target whose health it changed, a critical hit counting as two failed saves at 0. The uuids
+   * of the creatures it killed (a `summon.fromKilled` Action raises them).
+   */
+  async function afterResolution({options, state}: {options?: {targetActors?: unknown}; state?: Data}): Promise<string[]> {
+    const killed: string[] = [];
+    if ( !isActiveGM() ) return killed;
     await stabilizeTargets({options, state});
     const hits = ((state?.results as Data | undefined)?.attackResolution as {hits?: Array<{outcome?: string; target?: Data}>} | undefined)?.hits ?? [];
     const criticalRefs = new Set(hits.filter(hit => hit.outcome === "criticalHit").flatMap(hit => refsOf(hit.target ?? {})));
@@ -305,9 +316,10 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
       const target = mutationTargetIdentity((entry.target ?? (entry.plan as Data | undefined)?.target ?? {}) as Data);
       const actor = lookupActor(options?.targetActors, target, entry,
         {selectValue: value => (value as {actor?: DyingActor} | null)?.actor ?? value}) as DyingActor | null;
-      await afterPlans(actor, [entry], {critical: refsOf(target).some(ref => criticalRefs.has(ref)),
-        rescue: (entry.plan as Data | undefined)?.zeroHpUnchecked === true});
+      if ( await afterPlans(actor, [entry], {critical: refsOf(target).some(ref => criticalRefs.has(ref)),
+        rescue: (entry.plan as Data | undefined)?.zeroHpUnchecked === true}) && actor ) killed.push(actor.uuid);
     }
+    return killed;
   }
 
   /**

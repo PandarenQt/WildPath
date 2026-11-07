@@ -1458,6 +1458,14 @@
               }
             }
           ],
+          "summon": {
+            "actorRef": "Compendium.wildpath.srd-creatures.Actor.mmZombie00000000",
+            "fromKilled": {
+              "types": [
+                "humanoid"
+              ]
+            }
+          },
           "metadata": {
             "spellLevel": 7
           },
@@ -1495,9 +1503,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "\"Raise Zombie\" is passive or triggered: not automated"
-            ]
+            "notes": []
           }
         }
       }
@@ -2486,7 +2492,6 @@
           "Spellcasting: save: a failure marks its creature (narrative)",
           "Spellcasting: activation: 1 minute is not an action-economy cost",
           "Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest",
-          "Spellcasting: \"Raise Zombie\" is passive or triggered: not automated",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated"
         ]

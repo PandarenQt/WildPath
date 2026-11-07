@@ -33,6 +33,8 @@ test("a summon names exactly one creature source and a count from 1 to 20", () =
   assert.equal(validateActionDefinition(definition({choiceId: "beast"})).ok, true);
   assert.equal(validateActionDefinition(definition({actorRef: "Actor.wolf", choiceId: "beast"})).ok, false);
   assert.equal(validateActionDefinition(definition({actorRef: "Actor.wolf", count: 0})).ok, false);
+  assert.equal(validateActionDefinition(definition({actorRef: "Actor.zombie", fromKilled: {types: ["humanoid"]}})).ok, true);
+  assert.equal(validateActionDefinition(definition({actorRef: "Actor.zombie", fromKilled: {types: []}})).ok, false);
 });
 
 test("summons join a combat right after their caster, and leave it with their Tokens", async () => {
@@ -183,4 +185,46 @@ test("a summoned spirit's damage from its summoning's level and its summoner's m
     {type: "add", terms: [{type: "dice", number: 2, faces: 6}, {type: "constant", value: 3}]}, "4th level, +3: 2d6 + 3");
   const plain = {type: "dice", number: 1, faces: 8};
   assert.equal(withSummonNumbers(plain, {level: 4, mod: 3}), plain, "nothing to write in: the same object");
+});
+
+test("a creature the Action killed rises as its summon in its own space, its caster's, after it in combat (fromKilled)", async () => {
+  const {createFoundrySummons} = await import("../module/adapters/foundry-v14-summons.mjs");
+  const tokens = new Map();
+  const scene = {id: "s", tokens: {[Symbol.iterator]: () => tokens.values(), get: id => tokens.get(id)},
+    grid: {getOffset: ({x, y}) => ({i: Math.floor(y / 100), j: Math.floor(x / 100)}), getAdjacentOffsets: square,
+      getTopLeftPoint: ({i, j}) => ({x: j * 100, y: i * 100})},
+    createEmbeddedDocuments: async (type, data) => data.map((entry, i) => { const token = {...entry, id: `z${tokens.size}-${i}`,
+      parent: scene, actor: {}}; tokens.set(token.id, token); return token; }),
+    deleteEmbeddedDocuments: async () => {}};
+  const cell = token => () => [{i: token.y / 100, j: token.x / 100}];
+  const place = (id, x, y, actor) => { const token = {id, x, y, parent: scene, actor}; token.getOccupiedGridSpaceOffsets = cell(token);
+    tokens.set(id, token); return token; };
+  place("caster", 0, 0, {});
+  const creature = (id, type) => ({uuid: `Scene.s.Token.${id}.Actor.x`, system: {details: {type}}});
+  place("guard", 900, 300, creature("guard", "humanoid"));
+  place("wolf", 500, 500, creature("wolf", "beast"));
+  place("knight", 700, 0, creature("knight", "humanoid"));
+  place("corpse", 300, 300, creature("corpse", "humanoid"));
+  const zombie = {uuid: "Actor.zombie", getTokenDocument: async data => ({toObject: () => ({...data})})};
+  const controlled = [];
+  const created = [];
+  const combat = {id: "c", round: 1, turn: 0, combatants: [{id: "cc", tokenId: "caster", sceneId: "s", initiative: 15}],
+    createEmbeddedDocuments: async (type, data) => created.push(...data)};
+  const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, scenes: [scene], combat},
+    companions: {setControllers: async (actor, options) => controlled.push(options)},
+    fromUuid: uuid => ({"Scene.s.Token.caster": tokens.get("caster"), "Actor.zombie": zombie})[uuid] ?? null});
+  const hit = (tokenId, from) => ({type: "durabilityDamage", target: {tokenId}, plan: {from, to: 0}});
+  // `killed`: the dying adapter's uuids of the creatures this Action killed.
+  const resolve = (mutationPlans, killed) => summons.afterResolution({killed: killed.map(id => tokens.get(id).actor.uuid),
+    options: {actor: {uuid: "Actor.caster"}}, state: {source: {tokenRef: "Scene.s.Token.caster"}, mutationPlans,
+      actionDefinition: {label: "Finger of Death", range: {normal: {value: 60}}, summon: {actorRef: "Actor.zombie", fromKilled: {types: ["humanoid"]}}}}});
+  const risen = await resolve([hit("guard", 40), hit("wolf", 20), hit("knight", 30), hit("corpse", 0)], ["guard", "wolf"]);
+  assert.deepEqual(risen.map(token => [token.x, token.y]), [[900, 300]], "on the Humanoid it killed, out of range and over its corpse");
+  assert.deepEqual(controlled, [{controllers: ["Actor.caster"], kind: "summon"}]);
+  assert.deepEqual(created.map(entry => [entry.tokenId, entry.initiative]), [[risen[0].id, 14.999]], "its turn right after its caster's");
+  assert.ok(tokens.has("guard"), "the corpse stays");
+  assert.deepEqual(await resolve([hit("wolf", 20), hit("knight", 30), hit("corpse", 10)], ["wolf"]), [],
+    "none from a dead Beast, a living Humanoid, or a corpse (healed since) it did not kill");
+  const finished = await resolve([hit("knight", 0)], ["knight"]);
+  assert.deepEqual(finished.map(token => [token.x, token.y]), [[700, 0]], "a dying Humanoid it finished off at 0 rises");
 });

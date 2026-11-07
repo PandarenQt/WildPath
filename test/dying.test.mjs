@@ -68,18 +68,20 @@ test("the active GM applies the dying rules to the creatures an Action changed: 
   const target = {actorRef: "Actor.hero", tokenId: "hero-token"};
   const event = (plan, outcome="hit") => ({options: {targetActors: {"token:hero-token": hero}}, state: {mutationPlans: [{type: "durabilityDamage",
     target, plan}], results: {attackResolution: {hits: [{outcome, target}]}}}});
-  await dying.afterResolution(event(damage(5, 8)));
+  assert.deepEqual(await dying.afterResolution(event(damage(5, 8))), [], "dropped, not killed");
   assert.deepEqual(hero.effects.map(effect => effect.system.type), ["unconscious"]);
   assert.deepEqual(hero.system.deathSaves, {successes: 0, failures: 0}, "falling resets the death saves");
   await dying.afterResolution(event(damage(0, 2), "criticalHit"));
   assert.deepEqual(hero.system.deathSaves, {successes: 0, failures: 2});
-  await dying.afterResolution(event(damage(0, 2)));
+  assert.deepEqual(await dying.afterResolution(event(damage(0, 2))), ["Actor.hero"], "finished off at 0: killed by this Action");
   assert.deepEqual(hero.system.deathSaves, {successes: 0, failures: 3}, "the third failure is death");
   assert.ok(hero.effects.some(effect => effect.system.type === "dead"), "Defeated");
   assert.equal(combatant.defeated, true);
   const calls = hero.calls.length;
-  await dying.afterResolution(event(damage(0, 2)));
+  assert.deepEqual(await dying.afterResolution(event(damage(0, 2))), []);
   assert.equal(hero.calls.length, calls, "the dead are past the dying rules");
+  hero.system.resources.health.value = 10;
+  assert.deepEqual(await dying.afterResolution(event(damage(10, 15))), [], "a corpse healed since is not killed again");
 });
 
 test("Exhaustion's sixth level is death; a lower level is not", async () => {
