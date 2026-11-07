@@ -185,3 +185,30 @@ test("a choice's options group by source: a rune's Invoke and Inscribe Items are
   const source = {a: "cloud", b: "cloud", c: "fire", d: null};
   assert.deepEqual(groupedOptions(["a", "c", "b", "d"], uuid => source[uuid]), ["a,b", "c", "d"]);
 });
+
+test("an ability increase raises the stored score: a Belt's or an Ioun Stone's raise is not written into it", async () => {
+  // Only the globals needed to import the level-up dialog (it imports the real Actor class).
+  globalThis.Actor ??= class {};
+  globalThis.foundry ??= {documents: {Combat: class {}, Combatant: class {}}, data: {fields: {}, ActiveEffectTypeDataModel: class {}}};
+  globalThis.foundry.utils = {escapeHTML: value => String(value), mergeObject: (original, other) => Object.assign(original, other)};
+  const answers = [];
+  globalThis.foundry.applications = {api: {DialogV2: {wait: async () => answers.shift()}}};
+  globalThis.game = {i18n: {localize: key => key, format: key => key}, packs: [], settings: {get: () => false}, items: {fromCompendium: data => data}};
+  globalThis.CONFIG = {WILDPATH: {ABILITIES: {}, SKILLS: {}}};
+  const {levelUp} = await import("../module/applications/level-up.mjs");
+  // Might 14 stored, 21 with a Belt of Giant Strength; Agility 12 stored, 14 with an Ioun Stone; Presence 20.
+  const written = [];
+  const actor = {name: "Hero", items: {filter: () => []}, getActiveTokens: () => [], toObject: () => ({system: {pools: []}}),
+    update: async data => { written.push(data); },
+    system: {abilities: {might: {base: 14, value: 21}, agility: {base: 12, value: 14}, presence: {base: 20, value: 20}},
+      resources: {health: {base: 10, value: 10}}}};
+  const feat = {id: "asi", name: "Ability Score Improvement", type: "feature", update: async () => {},
+    system: {advancement: [{type: "improvement", level: 0, fixed: {agility: 1}, abilities: ["might", "presence"], points: 2, cap: 2}]}};
+  const form = new FormData();
+  form.set("s0.might", "1");
+  form.set("s0.presence", "1");
+  answers.push(form);
+  assert.equal(await levelUp(actor, feat, {level: 0}), true);
+  assert.deepEqual(written, [{"system.abilities.might.value": 15, "system.abilities.agility.value": 13}],
+    "the stored scores raised; Presence stays at its 20 maximum");
+});

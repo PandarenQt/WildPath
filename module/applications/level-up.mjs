@@ -12,6 +12,8 @@ const globals = () => globalThis;
 const localize = (key) => globals().game.i18n.localize(key);
 const format = (key, data) => globals().game.i18n.format(key, data);
 const escape = (text) => globals().foundry.utils.escapeHTML(String(text ?? ""));
+/** Its stored score (`base`), not one raised while something applies (a Belt of Giant Strength, a form): what an increase raises. */
+const storedScore = (ability) => Number(ability?.base ?? ability?.value) || 10;
 /** A size's Token footprint in grid spaces. */
 const TOKEN_SIZES = { tiny: 0.5, small: 1, medium: 1, large: 2, huge: 3, gargantuan: 4 };
 /** The feats an Ability Score Improvement may be instead (2024): Epic Boons from level 19. */
@@ -118,7 +120,7 @@ function stepHtml(step, index, actor, view) {
         case "improvement": {
             const { ABILITIES } = globals().CONFIG.WILDPATH;
             const inputs = (entry.abilities ?? []).map(ability => `<label class="level-up-ability">${escape(localize(ABILITIES[ability]?.label ?? ability))}
-        <span>${actor.system.abilities?.[ability]?.value ?? 10}</span> +
+        <span>${storedScore(actor.system.abilities?.[ability])}</span> +
         <input type="number" name="${name}.${ability}" value="0" min="0" max="${entry.cap ?? 2}" step="1"></label>`).join("");
             const feats = entry.feat ? `<label>${localize("WILDPATH.LEVELUP.Feat")} <select name="${name}.feat"><option value="">${localize("WILDPATH.LEVELUP.NoFeat")}</option>${view.feats.map(feat => `<option value="${escape((feat.uuids ?? [feat.uuid]).join(","))}">${escape(labelOf(feat.uuid, view)
                 .replace(/ \([^)]*\)$/, (suffix) => ((feat.uuids?.length ?? 1) > 1 ? "" : suffix)))}</option>`).join("")}</select></label>` : "";
@@ -297,7 +299,7 @@ async function apply(actor, item, { level, steps, form, first, hitDie, fortitude
     const uuids = [];
     // What each step's Item gives (its picks too), recorded on that Item (`flags.wildpath.training`), not on the creature.
     const traits = new Map();
-    const abilities = Object.fromEntries(Object.entries(actor.system.abilities ?? {}).map(([key, ability]) => [key, { value: Number(ability.value) || 10 }]));
+    const abilities = Object.fromEntries(Object.entries(actor.system.abilities ?? {}).map(([key, ability]) => [key, { value: storedScore(ability) }]));
     let size = null;
     let subclass = null;
     const replaced = [];
@@ -350,7 +352,7 @@ async function apply(actor, item, { level, steps, form, first, hitDie, fortitude
             await owner.update({ "flags.wildpath.training": [...new Set([...known, ...keys])] });
     }
     const updates = { ...Object.fromEntries(Object.entries(abilities)
-            .filter(([key, ability]) => ability.value !== Number(actor.system.abilities?.[key]?.value))
+            .filter(([key, ability]) => ability.value !== storedScore(actor.system.abilities?.[key]))
             .map(([key, ability]) => [`system.abilities.${key}.value`, ability.value])) };
     const footprint = size ? TOKEN_SIZES[size] : undefined;
     if (footprint)
