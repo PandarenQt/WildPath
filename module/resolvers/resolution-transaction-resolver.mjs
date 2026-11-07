@@ -177,6 +177,8 @@ export async function rollbackActorUpdateOperation(operation) {
     actor: operation.actor ?? null,
     actorRef: operation.actorRef ?? null,
     updates: operation.rollbackUpdates,
+    // An undo, not healing: the Actor's can't-regain guards let it through.
+    operation: {wildpath: {rollback: true}},
     metadata: {
       ...(operation.metadata ?? {}),
       rollback: true

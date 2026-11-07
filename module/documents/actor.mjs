@@ -127,21 +127,23 @@ export default class WildPathActor extends Actor {
 
   /**
    * The client making a health change records it in the update's options, which reach every client. A creature that
-   * can't regain Hit Points (`ResourceCap` on `healing` at 0: Chill Touch) keeps them where they are.
+   * can't regain Hit Points (`ResourceCap` on `healing` at 0: Chill Touch) keeps them where they are. A transaction's
+   * rollback (`wildpath.rollback`) takes back its own write, which is no healing or gain, so neither cap holds it.
    */
   async _preUpdate(changes, options, user) {
     const allowed = await super._preUpdate(changes, options, user);
     if ( allowed === false ) return false;
     const health = this.system?.resources?.health;
+    const undo = options?.wildpath?.rollback === true;
     const raised = foundry.utils.getProperty(changes, "system.resources.health.value");
     if ( Number.isFinite(raised) && Number.isFinite(health?.value) && (raised > health.value) && (this.system.resourceCaps?.healing === 0)
-      && !options?.wildpath?.notHealing ) {
+      && !options?.wildpath?.notHealing && !undo ) {
       foundry.utils.setProperty(changes, "system.resources.health.value", health.value);
       ui.notifications?.info(game.i18n.format("WILDPATH.NOTIFY.NoHealing", {name: this.name}));
     }
     // Nor gain Temporary Hit Points (`ResourceCap` on `temporaryHealth` at 0: a swarm).
     const gained = foundry.utils.getProperty(changes, "system.resources.health.temp");
-    if ( Number.isFinite(gained) && (gained > (Number(health?.temp) || 0)) && (this.system.resourceCaps?.temporaryHealth === 0) ) {
+    if ( Number.isFinite(gained) && (gained > (Number(health?.temp) || 0)) && (this.system.resourceCaps?.temporaryHealth === 0) && !undo ) {
       foundry.utils.setProperty(changes, "system.resources.health.temp", Number(health?.temp) || 0);
       ui.notifications?.info(game.i18n.format("WILDPATH.NOTIFY.NoTemporaryHealth", {name: this.name}));
     }

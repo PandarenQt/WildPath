@@ -42,3 +42,47 @@ test("a creature that can't regain Hit Points or gain Temporary Hit Points (a sw
   await chilled._preUpdate(shielded, {}, {});
   assert.equal(shielded.system.resources.health.temp, 5);
 });
+
+/** A creature whose update runs the real guard, then writes what it kept. */
+function updatable(caps, health) {
+  const actor = creature(caps);
+  actor.system.resources.health = {...health};
+  actor.update = async function(updates, operation) {
+    const changes = {};
+    for ( const [key, value] of Object.entries(updates) ) foundry.utils.setProperty(changes, key, value);
+    await this._preUpdate(changes, operation, {});
+    for ( const key of Object.keys(updates) ) foundry.utils.setProperty(this, key, foundry.utils.getProperty(changes, key));
+    return this;
+  };
+  return actor;
+}
+
+/** Its damage committed through the real target commit, then rolled back by a later write that fails. */
+async function damageRolledBack(actor, amount) {
+  const {prepareTargetMutationCommitOperations} = await import("../module/resolvers/target-mutation-commit-resolver.mjs");
+  const {executeResolutionTransaction} = await import("../module/resolvers/resolution-transaction-resolver.mjs");
+  const {createActorDamageMutationPlan} = await import("../module/resolvers/durability-resolver.mjs");
+  const prepared = prepareTargetMutationCommitOperations({authority: true, targetActors: {"actor:victim": actor},
+    snapshotActor: target => structuredClone(target.system),
+    mutationPlans: [{type: "durabilityDamage", targetRef: "actor:victim", target: {id: "victim", actorId: "victim"},
+      plan: createActorDamageMutationPlan(structuredClone(actor.system), {amount})}]});
+  const failing = {id: "source:0:resourcePayment", type: "resourcePayment", commit: async () => false};
+  return executeResolutionTransaction({operations: [...prepared.operations, failing]});
+}
+
+test("a rolled-back damage commit restores Hit Points a creature can't regain: an undo is not healing", async () => {
+  const chilled = updatable({healing: 0}, {value: 10, max: 24, temp: 0});
+  const result = await damageRolledBack(chilled, 6);
+  assert.equal(result.rolledBack, true);
+  assert.equal(chilled.system.resources.health.value, 10);
+  // A swarm's Temporary Hit Points lost to the damage come back too.
+  const swarm = updatable({healing: 0, temporaryHealth: 0}, {value: 10, max: 24, temp: 3});
+  await damageRolledBack(swarm, 5);
+  assert.deepEqual(swarm.system.resources.health, {value: 10, max: 24, temp: 3});
+  assert.deepEqual(told.splice(0), [], "no refusal is announced");
+  // Healing outside a rollback is still refused.
+  const healed = {system: {resources: {health: {value: 20}}}};
+  await chilled._preUpdate(healed, {}, {});
+  assert.equal(healed.system.resources.health.value, 10);
+  told.splice(0);
+});
