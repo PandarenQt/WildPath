@@ -53,7 +53,10 @@
                     "conditionId": "restrained",
                     "saveOutcomePolicy": "failure",
                     "metadata": {
-                      "escapeDC": 10
+                      "escapeDC": 10,
+                      "escapeSkills": [
+                        "athletics"
+                      ]
                     }
                   }
                 ]
@@ -80,7 +83,9 @@
         "subtype": null
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "escape: another creature freeing it is by hand"
+        ]
       }
     }
   }

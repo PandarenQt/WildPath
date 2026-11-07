@@ -7,7 +7,23 @@ import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
 const anchorOf = (flag) => flag.anchorTokenId ?? flag.sourceTokenId;
 export const AREA_EVENTS = Object.freeze({ ENTERED: "area.entered", EXITED: "area.exited", TURN_STARTED: "turn.started",
     TURN_ENDED: "turn.ended" });
-const answers = (flag, event) => flag.persistence.triggers.some(trigger => trigger.on.includes(event));
+/** An effect its trigger gives only while its creature is in the area (`metadata.endsWhen: "leavesArea"`: Web's Restrained). */
+const leavesArea = (effect) => effect.metadata?.endsWhen === "leavesArea";
+const releases = (flag) => flag.persistence.triggers.some(trigger => (trigger.action.effects ?? []).some(leavesArea));
+/** Whether an area answers `event`: a trigger on it, or for leaving, effects that end on leaving (release). */
+const answers = (flag, event) => flag.persistence.triggers.some(trigger => trigger.on.includes(event))
+    || ((event === AREA_EVENTS.EXITED) && releases(flag));
+/**
+ * Its trigger's Action, each effect that ends on leaving naming its Region (`metadata.regionId`), so release finds it.
+ * Not when its creature already has that condition from elsewhere (a Net's Restrained): a condition is one effect, so
+ * leaving the webs must not end the Net's hold too.
+ */
+const stamped = (action, region, actor) => {
+    const heldElsewhere = (effect) => [...(actor.effects ?? [])].some(held => (held.system?.type === effect.conditionId)
+        && (held.flags?.wildpath?.conditionEffect?.metadata?.regionId !== region.id));
+    return (action.effects ?? []).some(leavesArea) ? { ...action, effects: action.effects.map(effect => ((leavesArea(effect) && !heldElsewhere(effect)) ? { ...effect, metadata: { ...effect.metadata, regionId: region.id } } : effect)) }
+        : action;
+};
 const reachFootprint = createReachFootprint;
 const keyOf = fieldKey;
 const toOffset = gridFieldToFoundryOffset;
@@ -281,6 +297,11 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
             await holder.update({ light: lightToken.previous.light ?? { bright: 0, dim: 0, negative: false },
                 "flags.wildpath.sunlight": lightToken.previous.sunlight });
         }
+        // What it held only while in it ends with it (Web's Restrained once the webs are gone).
+        if (region.flags?.wildpath?.area && releases(region.flags.wildpath.area)) {
+            for (const token of region.parent?.tokens ?? [])
+                await release(region, token);
+        }
         const uuid = region.flags?.wildpath?.area?.concentrationEffect;
         if (!uuid)
             return;
@@ -290,7 +311,18 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
     function isActiveGM() {
         return game.users?.activeGM?.id === game.user.id;
     }
+    /** What the area gave `token`'s creature only while in it (stamped with its Region) ends: it left, or the area ended. */
+    async function release(region, token) {
+        const actor = token.actor;
+        const ids = [...(actor?.effects ?? [])].filter(effect => effect.flags?.wildpath?.conditionEffect?.metadata?.regionId === region.id)
+            .map(effect => effect.id);
+        if (ids.length)
+            await actor?.deleteEmbeddedDocuments?.("ActiveEffect", ids);
+        return ids;
+    }
     async function apply(region, flag, token, event) {
+        if (event === AREA_EVENTS.EXITED)
+            await release(region, token);
         // A creature its rules leave untouched by the area's spell (`Unaffected`; its caster's own excepted) is left out.
         const unaffected = (trigger) => (token.actor?.uuid !== flag.sourceActorRef) && !!token.actor?.unaffectingRule?.(trigger.action);
         const triggers = flag.persistence.triggers.filter(trigger => trigger.on.includes(event) && !unaffected(trigger));
@@ -311,7 +343,7 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const results = [];
         for (const trigger of triggers) {
             const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
-                resolutionId: `area:${region.id}:${token.id}:${++sequence}`, definition: trigger.action, label: flag.label,
+                resolutionId: `area:${region.id}:${token.id}:${++sequence}`, definition: stamped(trigger.action, region, token.actor), label: flag.label,
                 actorRef: flag.sourceActorRef, source: flag.sourceTokenId ? { tokenId: flag.sourceTokenId, sceneId: token.parent.id } : {},
                 target: { actorRef: token.actor.uuid, tokenId: token.id, sceneId: token.parent.id } });
             if (state)
@@ -387,6 +419,11 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         for (const token of [...scene.tokens].filter(token => !before.has(token.id) && areaCovers(moved, token))) {
             if (answers(moved, AREA_EVENTS.ENTERED))
                 applied.push(...await apply(region, moved, token, AREA_EVENTS.ENTERED));
+        }
+        // A creature the area moved off is no longer in it: what it held only while in it ends.
+        if (releases(moved)) {
+            for (const token of [...scene.tokens].filter(token => before.has(token.id) && !areaCovers(moved, token)))
+                await release(region, token);
         }
         return applied;
     }

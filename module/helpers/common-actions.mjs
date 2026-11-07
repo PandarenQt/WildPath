@@ -98,13 +98,29 @@ function opportunityDefinition(actor) {
     return { weapon: weapon?.name ?? null, definition: { ...definition, costs: { allOf: [{ capability: "reaction", amount: 1 }] },
             tags: [...new Set([...(definition.tags ?? []), "opportunity"])] } };
 }
-/** What the creature can escape: its Grappled (else Restrained) condition with the highest escape DC, or null. */
+/** Which use gave a condition effect: the same Action's effects from the same source share it (a repeated save, an escape). */
+export function effectGroupKey(effect) {
+    const flag = effect.flags?.wildpath?.conditionEffect;
+    return `${String(flag?.metadata?.actionDefinitionId ?? effect.id)}|${String(flag?.sourceRef ?? "")}`;
+}
+/**
+ * What the creature can escape:its Grappled (else Restrained) condition with the highest escape DC, or null. The
+ * skills it may roll (`metadata.escapeSkills`, Web's Athletics only; else Athletics or Acrobatics), and with
+ * `metadata.escapeEndsAll` ("On a success, the spell ends": Ensnaring Strike) the ids of the other effects the same Action
+ * gave it from the same source (effectGroupKey, as repeatSaveGroups), which a success ends too.
+ */
 function escapable(actor) {
-    const held = [...(actor.effects ?? [])].filter(effect => !effect.disabled)
-        .map(effect => ({ conditionId: effect.system?.type ?? "", dc: Number(effect.flags?.wildpath?.conditionEffect?.metadata?.escapeDC) }))
+    const effects = [...(actor.effects ?? [])].filter(effect => !effect.disabled);
+    const held = effects.map(effect => ({ effect, metadata: effect.flags?.wildpath?.conditionEffect?.metadata ?? {},
+        conditionId: effect.system?.type ?? "", dc: Number(effect.flags?.wildpath?.conditionEffect?.metadata?.escapeDC) }))
         .filter(entry => ["grappled", "restrained"].includes(entry.conditionId) && Number.isFinite(entry.dc))
-        .sort((a, b) => ((a.conditionId === "grappled") ? 0 : 1) - ((b.conditionId === "grappled") ? 0 : 1) || (b.dc - a.dc));
-    return held[0] ?? null;
+        .sort((a, b) => ((a.conditionId === "grappled") ? 0 : 1) - ((b.conditionId === "grappled") ? 0 : 1) || (b.dc - a.dc))[0];
+    if (!held)
+        return null;
+    const skills = (held.metadata.escapeSkills ?? []).filter(skill => typeof skill === "string");
+    return { conditionId: held.conditionId, dc: held.dc, skills: skills.length ? skills : ["athletics", "acrobatics"],
+        endsEffects: (held.metadata.escapeEndsAll === true) ? effects.filter(effect => (effect !== held.effect)
+            && (effectGroupKey(effect) === effectGroupKey(held.effect)) && effect.id).map(effect => effect.id) : [] };
 }
 /** An Action ref naming a common action, `common:<id>`; its id, or null. */
 export function commonActionId(ref) {
@@ -144,14 +160,14 @@ export function commonAction(actor, id, { localize = (key) => key, bonusShove = 
     if (creature.uuid)
         definition.source = { type: "actor", ref: `uuid:${creature.uuid}`, uuid: creature.uuid };
     if (held) {
-        // Whichever of Athletics and Acrobatics is better for it (2024 lets it choose), against that escape DC: one whose total
-        // floor reaches the DC can't fail (Indomitable Might's Athletics), else the larger bonus.
+        // Whichever of its skills is better for it (2024 lets it choose Athletics or Acrobatics), against that escape DC: one
+        // whose total floor reaches the DC can't fail (Indomitable Might's Athletics), else the larger bonus.
         const bonus = (skill) => {
             const statistic = resolveActorCheckStatistic(creature, { skill });
             return (Number(statistic?.totalMinimum) >= held.dc) ? Infinity : (statistic?.totalModifier ?? -Infinity);
         };
-        definition.check = { skill: bonus("acrobatics") > bonus("athletics") ? "acrobatics" : "athletics", dc: { value: held.dc },
-            escapes: held.conditionId };
+        definition.check = { skill: held.skills.reduce((best, skill) => (bonus(skill) > bonus(best) ? skill : best)), dc: { value: held.dc },
+            escapes: held.conditionId, ...(held.endsEffects.length ? { endsEffects: held.endsEffects } : {}) };
         definition.effects[0].conditionId = held.conditionId;
     }
     if (skills.length)

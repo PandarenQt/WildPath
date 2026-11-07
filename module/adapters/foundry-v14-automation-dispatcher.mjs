@@ -1,4 +1,5 @@
 import { actionDefinitionFromAction } from "../helpers/action-definitions.mjs";
+import { effectGroupKey } from "../helpers/common-actions.mjs";
 import { createAutomationEvent, createTriggerDefinition, evaluateTrigger, reactionPolicyOf } from "../helpers/automation-events.mjs";
 import { sunlightContext } from "./foundry-v14-sunlight.mjs";
 import { tokensAround } from "./foundry-v14-auras.mjs";
@@ -73,7 +74,7 @@ export function repeatSaveGroups(effects, eventType) {
         if (effect.disabled || !repeat || (damaged ? (repeat.onDamage !== true) : (repeat.timing !== timing)) || !repeat.ability
             || !Number.isFinite(Number(repeat.dc)))
             continue;
-        const key = `${String(flag?.metadata?.actionDefinitionId ?? effect.id)}|${String(flag?.sourceRef ?? "")}`;
+        const key = effectGroupKey(effect);
         // A save its creature's damage brought is tagged so (`repeat:damaged`: Hideous Laughter's Advantage on it).
         const group = groups.get(key) ?? { key, name: String(effect.name ?? ""), ability: repeat.ability, dc: Number(repeat.dc), effectIds: [],
             against: [], tags: [...(Array.isArray(repeat.tags) ? repeat.tags.filter(tag => typeof tag === "string") : []),

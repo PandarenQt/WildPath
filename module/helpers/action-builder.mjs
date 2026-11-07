@@ -225,8 +225,9 @@ export function definitionToBuilder(definition, { abilities = null } = {}) {
             levels: Math.abs(effect.levels ?? 1),
             // Ends the condition rather than applying it (Lesser Restoration); Exhaustion loses `levels` levels.
             removes: (effect.levels ?? 1) < 0,
-            // What grapples or restrains has an escape DC (the common Escape action rolls against it).
-            escapes: ["grappled", "restrained"].includes(effect.conditionId),
+            // What grapples or restrains has an escape DC (the common Escape action rolls against it). The save's own DC ("save":
+            // Entangle's) has no number to show, so it gets no field (a number input would submit it empty and drop it).
+            escapes: ["grappled", "restrained"].includes(effect.conditionId) && (effect.metadata?.escapeDC !== "save"),
             escapeDC: effect.metadata?.escapeDC ?? null,
             // Its save repeated at the end (or start) of each of its creature's turns, ending it on a success (Hold Person).
             repeatSave: effect.repeatSave ?? "",
@@ -838,7 +839,7 @@ const GAP_SPEC = {
     healing: [{ id: true, expression: formulaSpec, healingType: true }],
     effects: [{ id: true, type: (type) => gapIf(!["condition", "effect"].includes(type)), conditionId: true, levels: true, concentration: true,
             saveOutcomePolicy: (policy) => gapIf(!isFailureOnly(policy)), name: true, slug: true, img: true,
-            duration: { value: true, units: true, expiry: true }, metadata: { escapeDC: true }, repeatSave: true,
+            duration: { value: true, units: true, expiry: true }, metadata: { escapeDC: (dc) => gapIf(dc === "save") }, repeatSave: true,
             ruleElements: (rules, { abilities }) => ruleGaps(rules, { abilities: abilities ?? null }).map(gap => `.${gap}`) }],
     // The spell slot choice is checked whole, below.
     configuration: true

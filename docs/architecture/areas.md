@@ -190,6 +190,13 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   on its way out. It applies before any area the same step enters. Once per turn is shared with the
   area's other triggers, so a creature the area already affected this turn is not affected again on
   leaving.
+  - What a trigger gives only while in the area (`metadata.endsWhen: "leavesArea"`: 2024 Web's Restrained,
+    2026-11-07) carries the Region's id (`metadata.regionId`), stamped as the trigger applies it. Leaving the
+    area deletes those effects first, whatever once per turn says. So does the area moving off the creature (an
+    Action's move or the GM dragging its Region), and the area ending, for every creature on its Scene. An area with
+    such an effect notices exits even with no `area.exited` trigger. It is not stamped when its creature already has
+    that condition from elsewhere (a Net's Restrained): a condition is one effect, so leaving the webs must not free
+    it from the Net.
 - **Auras.** An `emanation` surrounds its caster with no placement clicks, and its Region is attached to
   the caster's Token, so Foundry carries the drawn cells along. Who is inside is recomputed around the
   caster's current footprint. When the caster's step carries the aura over a creature, the aura has

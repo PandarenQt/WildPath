@@ -2419,6 +2419,17 @@ function withRepeatSaves(effects, save, saveResolution, tags=[]) {
 }
 
 /**
+ * A hold escaped against the DC of the save that let it in (`metadata.escapeDC: "save"`: Web's "check against your spell
+ * save DC") keeps the DC that save resolved to, which the common Escape rolls against (common-actions.mts).
+ */
+function withEscapeDCs(effects, save, saveResolution) {
+  const dc = finiteNumber(save?.dc?.value ?? saveResolution?.results?.[0]?.dc?.value);
+  if ( !effects?.conditions?.some(entry => entry?.metadata?.escapeDC === "save") || (dc == null) ) return effects;
+  return {...effects, conditions: effects.conditions.map(entry => ((entry?.metadata?.escapeDC === "save")
+    ? {...entry, metadata: {...entry.metadata, escapeDC: dc}} : entry))};
+}
+
+/**
  * A spell's effects carry the level it was cast at (`metadata.spellLevel`), for what ends spells by level (Dispel
  * Magic): its slot's, else the spell's own.
  */
@@ -2459,8 +2470,9 @@ function createEffectStage() {
       let {actionResult} = planning;
 
       const effectResolution = resolveActionEffects({
-        effects: withResolutionIds(withSpellLevel(withRepeatSaves(input.effects, input.save, state.results?.saveResolution ?? null,
-          state.actionDefinition?.tags), state), state),
+        effects: withResolutionIds(withSpellLevel(withEscapeDCs(withRepeatSaves(input.effects, input.save,
+          state.results?.saveResolution ?? null, state.actionDefinition?.tags), input.save, state.results?.saveResolution ?? null),
+          state), state),
         targetResolution: state.results?.targetResolution ?? null,
         attackResolution: state.results?.attackResolution ?? null,
         saveResolution: state.results?.saveResolution ?? null,

@@ -746,7 +746,13 @@
                 "units": "seconds",
                 "expiry": "turnStart"
               },
-              "concentration": true
+              "concentration": true,
+              "metadata": {
+                "escapeDC": 14,
+                "escapeSkills": [
+                  "athletics"
+                ]
+              }
             }
           ],
           "metadata": {

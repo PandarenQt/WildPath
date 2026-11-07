@@ -199,7 +199,7 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 | Study | The Action, then an Intellect check: Arcana, History, Investigation, Nature or Religion |
 | Influence | The Action, then a check: Deception, Intimidation, Performance, Persuasion or Animal Handling |
 | Utilize | The Action, spent on an object (a lever, a lock); the card says so (2026-10-19) |
-| Escape | Only while Grappled or Restrained with an escape DC: the better of Athletics and Acrobatics against it; a success ends that condition (2026-10-19) |
+| Escape | Only while Grappled or Restrained with an escape DC: the better of Athletics and Acrobatics (or of its `escapeSkills`) against it; a success ends that condition (2026-10-19) |
 | Opportunity Attack | A reaction: the creature's first melee attack Action (else its Unarmed Strike), for its Reaction |
 
 - **Built by the authority.** An intent names one as `actionRef: "common:<id>"`. The authority builds the Action
@@ -224,6 +224,11 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 - **Ending on a save against its source (2026-10-31).** `endsWhen: "savedBySource"` ends an effect once its creature
   saves against an Action of the creature that applied it (`endEffectsWhenSaved`), not one that Action just applied
   (Eldritch Strike's mark). shortcut: any such save, not only the one its rule changed.
+- **Ending on leaving its area (2026-11-07).** A condition or custom effect a lasting area's trigger applies with
+  `metadata.endsWhen: "leavesArea"` lasts only while its creature is in that area (2024 Web: "Restrained ... while in
+  the webs"). The trigger stamps the Region's id on it (`metadata.regionId`), and the area adapter deletes it when its
+  creature leaves the area or the area ends (areas.md "Leaving"). Like `"damaged"`, it sits in `metadata`, so a
+  built-in condition can carry it too. Applied any other way, it is never stamped and never ends this way.
 - Live (two browsers, 14.369):
   - QA Caster's Grapple: the Bandit Captain saved with Agility (+7), not Might.
   - A Huge Hill Giant could not be grappled.
@@ -249,6 +254,17 @@ Not yet: Magic (a spell or magic item's own Action already is one) and Ready (th
 8 + Might modifier + Proficiency Bonus; converted monsters and items store their own (content-packs.md). The bar
 offers Escape only while the creature has one: Grappled before Restrained, then the highest DC. The check uses its
 better skill, and a success ends that condition with a removal row (`levels: -1`).
+- **A hold's own escape (2026-11-07).** Three more optional `metadata` fields, all additive:
+  - `escapeSkills: ["athletics"]`: the only skills Escape may roll, its better one (Web, Entangle, Iron Bands:
+    "a Strength (Athletics) check"). Without it, the better of Athletics and Acrobatics, as before.
+  - `escapeDC: "save"`: the DC of the save that applied it ("against your spell save DC"). The pipeline's effect
+    stage writes the number that save resolved to (`withEscapeDCs`). One never resolved is no escape.
+  - `escapeEndsAll: true` ("On a success, the spell ends": Ensnaring Strike): a successful Escape also ends the
+    creature's other effects from the same Action and source (`effectGroupKey`, as repeatSaveGroups). Escape names their ids in
+    `check.endsEffects`, and the runtime deletes them once its check succeeds (`endEffectsWhenEscaped`).
+  - Not done: another creature freeing the held one (a Net, Ensnaring Strike's "a creature within reach"); the
+    converter notes it by hand. The Action Builder shows none of the three fields yet (a builder gap), and shows no
+    escape DC field for `"save"` (a number field would submit it empty and drop it), so an edit keeps it.
 - Shortcut: two grapples of the same condition are one condition, so escaping either ends both.
 - What a common action applies names its creature as its source (`definition.source`), as an Item's Action names its
   Actor. Before (fixed 2026-10-19), a Grapple's Grappled named `common:grapple`, so its creature had disadvantage

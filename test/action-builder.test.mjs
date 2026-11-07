@@ -347,6 +347,15 @@ test("a Grappled or Restrained row keeps its escape DC (a Tentacle's 14)", () =>
   assert.equal(submit(tentacle, {effects: {0: {escapeDC: null}}}).definition.effects[0].metadata, undefined, "cleared");
 });
 
+test("an escape DC that is the save's own (\"save\": Entangle) has no field, so an edit elsewhere keeps it", () => {
+  const entangle = {schemaVersion: 1, id: "action:entangle", label: "Entangle", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1},
+    effects: [{id: "effect-1", type: "condition", conditionId: "restrained", metadata: {escapeDC: "save"}}]};
+  assert.equal(definitionToBuilder(entangle).effects[0].escapes, false);
+  assert.deepEqual(builderGaps(entangle), ["effects.metadata.escapeDC"]);
+  assert.deepEqual(submit(entangle, {basics: {label: "Vines"}}).definition.effects[0].metadata, {escapeDC: "save"});
+});
+
 test("an effect row's save can be repeated at the end or start of each of its creature's turns (Hold Person)", () => {
   const hold = {schemaVersion: 1, id: "action:hold", label: "Hold", costs: {allOf: [{capability: "action", amount: 1}]},
     targeting: {type: "single", required: true, count: 1}, save: {ability: "wits", dc: {value: 13}},

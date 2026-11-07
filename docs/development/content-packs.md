@@ -594,6 +594,16 @@ equipped. Equipping it (`system.active`) turns its rules on.
   `@skills.ath.passive` (the creature's passive Athletics: 10 + its modifier and proficiency), or an ability's
   8 + proficiency + modifier. Without that activity, "escape DC 13" in its text is used. In the SRD: 38 creatures
   and the Rope of Entanglement. The DCs are dnd5e's data, not checked against the printed stat blocks.
+- **A hold's escape from its text (2026-11-07, `holdMetadata`).** "can take an action to make a [DC N] Strength
+  (Athletics) check [against your spell save DC]", written or inline (`[[/check ... skill=ath dc=@attributes.spell.dc]]`,
+  `[[/skill ath 10]]`), gives the hold its DC (N; the save's number; else `"save"`) and `escapeSkills` (that skill
+  only). "On a success, the spell ends" adds `escapeEndsAll`; "the ... condition while in the webs" adds `endsWhen:
+  "leavesArea"`. A passive check activity at that DC (Iron Bands' Break Check) is that escape, not a note. "or a
+  creature within ..." / "or another creature" is noted ("escape: another creature freeing it is by hand"), and so is
+  a check's outcome that does more ("the item is destroyed", "further attempts ... automatically fail": Iron Bands).
+  Web keeps its "the rest is by hand" note (Lightly Obscured, anchoring, the first time on a turn). SRD: Entangle, Black Tentacles, Ensnaring Strike, Web and its casts (Cloak of Arachnida,
+  Wand of Web, Staff of the Magi, the Drider), Iron Bands, the Net and the Falling Net; the Druid's, Dryad's and
+  Unicorn's Entangle.
 - **Common actions taken by a feature (2026-10-19).** A utility activity named Dash, Disengage, Dodge or Hide (the
   Rogue's Cunning Action, Conjure Woodland Beings' Disengage) is WildPath's own common action at the activity's cost,
   and an effect named Disengaged, Dashing or Dodging with nothing of its own (the Monk's Patient Defense and Step of

@@ -213,6 +213,7 @@ export function registerFoundryV14MultiplayerResolution({
         if ( record.kept && record.flag && record.actorUuid ) await beginPhase(await globalThis.fromUuid?.(record.actorUuid), record, {game});
       }
       await endEffectsWhenChecked(event.options?.actor, event.state?.input?.check ?? null);
+      await endEffectsWhenEscaped(event);
       await recordSlotSpell(event, {game});
       await recordCastLevel(event);
       await recordAttackTurn(event, {game});
@@ -2204,6 +2205,20 @@ export async function endEffectsWhenChecked(actor, check) {
     && (effect.system?.ruleElements ?? []).some(rule => (rule.data?.domains ?? []).some(domain => domains.has(domain))));
   if ( used.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", used.map(effect => effect.id));
   return used.map(effect => effect.id);
+}
+
+/**
+ * A successful Escape from a hold whose end ends its whole spell (`metadata.escapeEndsAll`: Ensnaring Strike's "On a
+ * success, the spell ends") ends the other effects that Action gave its creature too: the ids the common Escape named
+ * (`check.endsEffects`, common-actions.mts) that it still has.
+ */
+export async function endEffectsWhenEscaped({options, state}={}) {
+  const ids = new Set(state?.actionDefinition?.check?.endsEffects ?? []);
+  const actor = options?.actor;
+  if ( !ids.size || (state?.results?.checkResolution?.success !== true) || !actor?.effects ) return [];
+  const ended = [...actor.effects].filter(effect => ids.has(effect.id)).map(effect => effect.id);
+  if ( ended.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", ended);
+  return ended;
 }
 
 /**

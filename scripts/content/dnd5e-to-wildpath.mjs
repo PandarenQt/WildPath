@@ -1770,6 +1770,10 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     // action rolls against with the better of Athletics and Acrobatics: not an Action of its own, whatever its activation
     // (a vehicle's are all Actions). Escaping Manacles or a Net, with no "escape DC", stays its own check.
     if ( (activity.type === "check") && /escape/i.test(activity.name ?? "") && /\bescape DC\b/i.test(plainText(document)) ) continue;
+    // So is a passive check its text frees its creature with (escapeCheckOf: Iron Bands' Break Check, DC 20 Athletics).
+    // One its user takes an action for stays its own (a Portable Hole's way out is no condition's).
+    if ( (activity.type === "check") && !pick(activity, system, "activation").type && (number(activity.check?.dc?.formula) != null)
+      && (escapeCheckOf(document)?.dc === number(activity.check.dc.formula)) ) continue;
     // Brutal Strike's Actions are its own (brutalStrikeActions), not its dnd5e damage activity.
     if ( ["brutal-strike", "improved-brutal-strike", "elemental-affinity", "defensive-tactics"].includes(identifierOf(document)) ) continue;
     // A choice it adds to another feature's Action (Restoring Touch on Lay on Hands) is its flag, not an Action.
@@ -4703,6 +4707,58 @@ function escapeDCOf(document, {creature=null, saveDC=null}={}) {
   return text ? Number(text[1] ?? text[2]) : null;
 }
 
+/**
+ * "can take an action to make a [DC N] Strength (Athletics) check [against your spell save DC]", with the roll written
+ * out or inline ([[/check ability=str skill=ath dc=@attributes.spell.dc]], [[/skill ath 10]]): how a held creature
+ * frees itself (2024 Web, Entangle, Iron Bands, a Net).
+ */
+const ESCAPE_CHECK = /\b(?:can|must) take an action to make an? (?:DC (\d+) )?(?:\w+ \(([\w ]+)\)|\[\[\/(check|skill) ([^\]]+)\]\]) check\b( against (?:your|its) spell save DC)?/iu;
+
+/**
+ * The check its text frees a held creature with (ESCAPE_CHECK): its skill (a WildPath id, or null), its written DC (or
+ * `spell` for its caster's spell save DC), whether a success ends the whole spell ("On a success, the spell ends":
+ * Ensnaring Strike) and whether another creature may make it ("or a creature within 5 feet of it", "freeing itself or
+ * another creature"), and whether its outcome does more ("On a successful check, the item is destroyed", "On a failed
+ * check, any further attempts ... automatically fail": Iron Bands). Null for none.
+ */
+function escapeCheckOf(document) {
+  const text = plainText(document);
+  const check = ESCAPE_CHECK.exec(text);
+  if ( !check ) return null;
+  const inline = check[4] ?? "";
+  const rolled = (check[3]?.toLowerCase() === "skill") ? inline.split(" ") : [];
+  const name = DND_SKILLS[/\bskill=(\w+)/u.exec(inline)?.[1] ?? rolled[0]] ?? check[2];
+  const rest = text.slice(check.index + check[0].length);
+  const sentence = `${text.slice(text.lastIndexOf(".", check.index) + 1, check.index)} ${rest.split(".")[0]}`;
+  return {skill: Object.values(DND_SKILLS).includes(name) ? slugify(name) : null,
+    dc: number(check[1] ?? /\bdc=(\d+)/u.exec(inline)?.[1] ?? rolled[1])
+      ?? ((check[5] || /\bdc=@attributes\.spell\.dc\b/u.test(inline)) ? "spell" : null),
+    endsAll: /^[^.]*\.\s*(?:On a success|If it succeeds), the spell ends\b/iu.test(rest),
+    others: /\b(?:or a creature|creature that can touch|or another creature)\b/iu.test(sentence),
+    aftermath: /\bOn a (?:successful|failed) check, [^.]*\b(?:is destroyed|automatically fail)/iu.test(rest.split(".").slice(0, 3).join("."))};
+}
+
+/**
+ * What a hold an Item grapples or restrains with carries for its creature to end it (the common Escape reads it): its
+ * escape DC (escapeDCOf, else its text's check: N, or its save's DC for "your spell save DC", the number when written,
+ * else `"save"`, the DC its save resolves to when applied); that check's skill, the only one it rolls (`escapeSkills`);
+ * `escapeEndsAll` when a success ends the spell; and `endsWhen: "leavesArea"` for "the ... condition while in the webs"
+ * (its lasting area's: foundry-v14-persistent-areas.mts). Null with no escape. Another creature freeing it is noted.
+ */
+function holdMetadata(document, {creature=null, saveDC=null, save=null, notes=null}={}) {
+  const check = escapeCheckOf(document);
+  const spellDC = (check?.dc === "spell") || /\bescape DC equal to (?:your|its) spell save DC\b/iu.test(plainText(document));
+  const escapeDC = escapeDCOf(document, {creature, saveDC}) ?? ((check?.dc !== "spell") ? check?.dc : null)
+    ?? ((spellDC && save) ? (number(save.dc?.value) ?? "save") : null);
+  if ( escapeDC == null ) return null;
+  const note = "escape: another creature freeing it is by hand";
+  if ( check?.others && notes && !notes.includes(note) ) notes.push(note);
+  const aftermath = "escape: what its check does besides freeing it is by hand";
+  if ( check?.aftermath && notes && !notes.includes(aftermath) ) notes.push(aftermath);
+  return {escapeDC, ...(check?.skill ? {escapeSkills: [check.skill]} : {}), ...(check?.endsAll ? {escapeEndsAll: true} : {}),
+    ...(/\bcondition while in the \w+/iu.test(plainText(document)) ? {endsWhen: "leavesArea"} : {})};
+}
+
 /** Effects named as a common action's own (Step of the Wind's "Disengaged"): that action's effect. */
 const COMMON_EFFECTS = Object.freeze({Disengaged: "disengage", Dashing: "dash", Dodging: "dodge"});
 
@@ -5603,8 +5659,10 @@ function convertActivity({document, activity, system, spell, level, scales, note
   const references = activity.effects?.length ? activity.effects : (effectsByHand(document, activity)
     ? (document.effects ?? []).filter(effect => !effect.transfer).map(effect => ({_id: effect._id})) : toggled);
   const byHand = effectsByHand(document, activity);
-  // A grapple's or restraint's escape DC, from its Escape Check activity or "(escape DC 13)" in the text.
-  const escapeDC = escapeDCOf(document, {creature, saveDC});
+  // A grapple's or restraint's escape (holdMetadata): its DC, from its Escape Check activity, "(escape DC 13)" or the check
+  // its text names, and what else ends it. Null for any other condition.
+  const holding = conditionId => (["grappled", "restrained"].includes(conditionId)
+    ? holdMetadata(document, {creature, saveDC, save: definition.save, notes}) : null);
   // What each of the activity's dnd5e effects became (one can be several conditions), for the choice below.
   const groups = [];
   for ( const reference of references ) {
@@ -5629,10 +5687,10 @@ function convertActivity({document, activity, system, spell, level, scales, note
     // As long as its dnd5e effect says ("until the start of its next turn"); none lasts until it is ended.
     const lasts = effect ? textBoundExpiry(effectDuration(effect.duration), plainText(document)) : null;
     for ( const status of known ) {
-      const escapes = (escapeDC != null) && ["grappled", "restrained"].includes(CONDITION_MAP[status]);
+      const escape = holding(CONDITION_MAP[status]);
       effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId: CONDITION_MAP[status], ...onFailure,
         ...(lasts ? {duration: lasts} : {}),
-        ...(concentration ? {concentration: true} : {}), ...(escapes ? {metadata: {escapeDC}} : {})});
+        ...(concentration ? {concentration: true} : {}), ...(escape ? {metadata: escape} : {})});
     }
     // dnd5e's "suffocation": it can't breathe (`suffocating`: out of breath, it gains Exhaustion; the automation dispatcher).
     if ( statuses.includes("suffocation") ) effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: "Suffocating",
@@ -5874,24 +5932,21 @@ function convertActivity({document, activity, system, spell, level, scales, note
   // An attack with nothing else converted: the conditions its hit gives, from its text (an Apparatus of the Crab's claw).
   if ( definition.attack && !definition.save && !damage.length && !healing.length && !effects.length ) {
     const {conditions, duration: lasts} = failedSaveOutcome(document, {onHit: true});
-    const escapeAt = escapeDCOf(document, {creature, saveDC});
-    for ( const conditionId of conditions ) effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId,
-      ...(lasts ? {duration: lasts} : {}),
-      ...(((escapeAt != null) && ["grappled", "restrained"].includes(conditionId)) ? {metadata: {escapeDC: escapeAt}} : {})});
+    for ( const conditionId of conditions ) {
+      const escape = holding(conditionId);
+      effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId, ...(lasts ? {duration: lasts} : {}),
+        ...(escape ? {metadata: escape} : {})});
+    }
     if ( effects.length ) definition.effects = effects;
   }
   if ( definition.save && !damage.length && !healing.length && !effects.length && !definition.check && !forcedMovement(document, definition) ) {
     const {conditions, levels, duration: lasts} = failedSaveOutcome(document);
-    // "with an escape DC equal to your spell save DC" (Arcane Hand's Grasping Hand): its save's own DC.
-    const escapeAt = conditions.some(conditionId => ["grappled", "restrained"].includes(conditionId)) ? (escapeDCOf(document, {creature, saveDC})
-      ?? (/\bescape DC equal to (?:your|its) spell save DC\b/i.test(plainText(document)) ? number(definition.save.dc?.value) : null)) : null;
     // "a Huge or smaller creature", "succeeds automatically if it is Huge or larger" (a Net): none bigger is affected.
     const maxSize = sizeLimitOf(document);
     for ( const conditionId of conditions ) effects.push({id: `effect-${effects.length + 1}`, type: "condition", conditionId,
       saveOutcomePolicy: "failure", ...(levels?.[conditionId] ? {levels: levels[conditionId]} : {}), ...(lasts ? {duration: lasts} : {}),
       ...(maxSize ? {maxSize} : {}), ...((conditionId !== "exhaustion") ? repeat : {}),
-      ...(concentration ? {concentration: true} : {}),
-      ...(((escapeAt != null) && ["grappled", "restrained"].includes(conditionId)) ? {metadata: {escapeDC: escapeAt}} : {})});
+      ...(concentration ? {concentration: true} : {}), ...(holding(conditionId) ? {metadata: holding(conditionId)} : {})});
     const lasting = conditions.length ? null : lastingDuration(pick(activity, system, "duration"));
     // Its damage at the start of each of its creature's turns while it lasts (a Bearded Devil's infernal wound): the
     // marker's own. A spell restoring its Hit Points, or a creature's Stanch Wound check, ends it by hand (noted); upgrade

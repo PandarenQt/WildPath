@@ -2059,6 +2059,54 @@ test("a creature that steps out of a lasting area exits it, and only an area ans
   assert.equal(targetActor.system.resources.health.value, 20, "leaving it burns (after the cast's own 6)");
 });
 
+test("a hold its area gives only while in it (Web's Restrained: endsWhen leavesArea) ends on leaving, or with the area", async t => {
+  const {scene, targetActor, targetToken, player, areas, intent} = lastingAreaFixture(t, {on: ["area.entered"]});
+  await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
+  const [region] = scene.regions;
+  const flag = region.flags.wildpath.area;
+  flag.persistence.triggers = [{on: ["area.entered"], action: {schemaVersion: 1, id: "action:webs", label: "Webs", costs: {allOf: []},
+    effects: [{id: "stuck", type: "condition", conditionId: "restrained", metadata: {endsWhen: "leavesArea"}}]}}];
+  targetToken.getOccupiedGridSpaceOffsets = position => [position ? scene.grid.getOffset(position) : {i: 1, j: 0}];
+  const step = {previous: {x: 50, y: 0}, position: {x: 500, y: 0}};
+  assert.deepEqual(areas.exited(targetToken, step).map(entry => entry.region.id), [region.id],
+    "an area whose hold ends on leaving notices exits without a trigger of its own");
+  const held = () => [...targetActor.effects].filter(effect => effect.system?.type === "restrained");
+  targetActor.deleteEmbeddedDocuments = async (type, ids) => {
+    assert.equal(type, "ActiveEffect");
+    targetActor.effects = [...targetActor.effects].filter(effect => !ids.includes(effect.id));
+  };
+  await areas.apply(region, flag, targetToken, "area.entered");
+  assert.deepEqual(held().map(effect => effect.flags?.wildpath?.conditionEffect?.metadata?.regionId), [region.id],
+    "the hold names the Region it came from");
+  await areas.apply(region, flag, targetToken, "area.exited");
+  assert.deepEqual(held(), [], "leaving the webs ends it");
+
+  // The webs moved off it (the GM drags the Region) end it as leaving them does.
+  flag.applied = {};
+  await areas.apply(region, flag, targetToken, "area.entered");
+  assert.equal(held().length, 1);
+  const fields = flag.fields;
+  await areas.move({options: {areaMove: {sceneId: scene.id, regionId: region.id, fields: [{x: 9, y: 9}]}}});
+  assert.deepEqual(held(), [], "the area moved off it ends it");
+  await areas.move({options: {areaMove: {sceneId: scene.id, regionId: region.id, fields}}});
+
+  // The area ending ends it too, on whoever it still holds.
+  flag.applied = {};
+  await areas.apply(region, flag, targetToken, "area.entered");
+  assert.equal(held().length, 1);
+  await areas.onRegionDeleted(region);
+  assert.deepEqual(held(), []);
+
+  // A Restrained it already has from elsewhere (a Net) is one effect with the webs': leaving the webs leaves it held.
+  flag.applied = {};
+  await areas.apply(region, flag, targetToken, "area.entered");
+  delete held()[0].flags.wildpath.conditionEffect.metadata.regionId;
+  flag.applied = {};
+  await areas.apply(region, flag, targetToken, "area.entered");
+  await areas.apply(region, flag, targetToken, "area.exited");
+  assert.equal(held().length, 1, "the Net still holds it");
+});
+
 test("an aura whose caster walks away exits the creatures it leaves behind", async t => {
   const {scene, sourceToken, targetToken, player, areas, intent} = lastingAreaFixture(t, {shape: "emanation", on: ["area.exited"]});
   await player.declareActionIntent({...intent, area: {points: []}});

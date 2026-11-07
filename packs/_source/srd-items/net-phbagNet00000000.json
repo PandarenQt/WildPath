@@ -59,7 +59,10 @@
           "saveOutcomePolicy": "failure",
           "maxSize": "large",
           "metadata": {
-            "escapeDC": 10
+            "escapeDC": 10,
+            "escapeSkills": [
+              "athletics"
+            ]
           }
         }
       ],
@@ -82,6 +85,7 @@
       },
       "conversion": {
         "notes": [
+          "escape: another creature freeing it is by hand",
           "save: a failure gives restrained (its text); the rest is by hand"
         ]
       },

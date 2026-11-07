@@ -1715,6 +1715,21 @@ test("a save with nothing else converted: the conditions its text gives on a fai
     + "modifier and Proficiency Bonus) or have the &amp;Reference[Restrained] condition until it escapes. To escape, the target or a creature "
     + "within 5 feet of it must take an action to make a [[/skill ath 10]] check, freeing the Restrained creature on a success.</p>")).items;
   assert.deepEqual(net.system.definition.effects.map(effect => [effect.conditionId, effect.metadata?.escapeDC]), [["restrained", 10]]);
+  assert.ok(net.flags.wildpath.conversion.notes.includes("escape: another creature freeing it is by hand"));
+  // Web: its check against the spell save DC (the DC its save resolves to: "save"), Athletics only, and its hold only while
+  // in the webs; the rest of its text (Lightly Obscured, anchoring) stays noted.
+  const [web] = convertItem(spell("testWebSpell0001", "Web", "<p>It must succeed on a Dexterity saving throw or have the "
+    + "&amp;Reference[restrained] condition while in the webs or until it breaks free. A creature Restrained by the webs can take an action to "
+    + "make a [[/check ability=str skill=ath dc=@attributes.spell.dc]] check against your spell save DC. If it succeeds, it is no longer "
+    + "Restrained.</p>")).items;
+  assert.deepEqual(web.system.definition.effects[0].metadata, {escapeDC: "save", escapeSkills: ["athletics"], endsWhen: "leavesArea"});
+  assert.deepEqual(web.flags.wildpath.conversion.notes, ["save: a failure gives restrained (its text); the rest is by hand"]);
+  // Ensnaring Strike: a success ends the spell (the rest of it on the creature too); another creature's try is by hand.
+  const [snare] = convertItem(spell("testSnareSpell01", "Snare Strike", "<p>On a failed save, the target has the &amp;Reference[restrained "
+    + "apply=false] condition until the spell ends. The target or a creature within reach of it can take an action to make a [[/check "
+    + "ability=str skill=ath dc=@attributes.spell.dc]] check against your spell save DC. On a success, the spell ends.</p>")).items;
+  assert.deepEqual(snare.system.definition.effects[0].metadata, {escapeDC: "save", escapeSkills: ["athletics"], escapeEndsAll: true});
+  assert.ok(snare.flags.wildpath.conversion.notes.includes("escape: another creature freeing it is by hand"));
 
   const [counter] = convertItem(spell("testCounterspel1", "Counterspell", "<p>The creature's spell fails.</p>")).items;
   assert.equal(counter.system.definition.effects, undefined, "instantaneous: nothing to mark");
@@ -2722,6 +2737,13 @@ test("small rules: Alert, Innate Sorcery, Disciplined Survivor, Luck and Powerfu
   assert.deepEqual([terrain("web-phbspl"), terrain("grease-phbspl"), terrain("speak-with-plants-phbspl")],
     [{types: ["web"]}, {types: []}, null]);
   assert.deepEqual(read("entangle-phbspl").system.definition.area.persistence.triggers, [], "Entangle lasts for its terrain alone");
+  // Escapes the text names: Web's hold ends on leaving its webs; Iron Bands' passive Break Check is its Restrained's DC 20.
+  assert.deepEqual(read("web-phbspl").system.definition.area.persistence.triggers[0].action.effects[0].metadata,
+    {escapeDC: "save", escapeSkills: ["athletics"], endsWhen: "leavesArea"});
+  assert.deepEqual(read("entangle-phbspl").system.definition.effects[0].metadata, {escapeDC: "save", escapeSkills: ["athletics"]});
+  assert.deepEqual(read("iron-bands-throw-bands-").system.definition.effects[0].metadata, {escapeDC: 20, escapeSkills: ["athletics"]});
+  assert.deepEqual(read("iron-bands-1j4").flags.wildpath.conversion.notes, ["escape: another creature freeing it is by hand",
+    "escape: what its check does besides freeing it is by hand"], "its item destroyed and its 24-hour lockout are by hand");
   assert.deepEqual(read("freedom-of-movement-phbspl").system.definition.effects[0].ruleElements
     .filter(rule => rule.data.domains?.[0]?.startsWith("terrain")).map(rule => rule.data), [{domains: ["terrain.ignore"],
     modifierType: "untyped", value: 1}], "it ignores all Difficult Terrain");

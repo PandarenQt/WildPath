@@ -96,6 +96,53 @@ test("Escape: only while grappled or restrained with an escape DC, its better of
     "the grappler's escape DC: 8 + Might modifier + Proficiency Bonus");
 });
 
+test("Escape from a hold that names its skills (Web: Athletics only) rolls only those; one that ends its spell names the rest", async () => {
+  const held = (id, type, metadata, sourceRef="uuid:Actor.ranger") => ({id, system: {type},
+    flags: {wildpath: {conditionEffect: {sourceRef, metadata}}}});
+  const creature = effects => ({uuid: "Actor.hero", items: [], effects, system: {abilities: {might: {value: 10}, agility: {value: 18}},
+    skills: {}, details: {level: 1}}});
+  const webbed = commonAction(creature([held("web", "restrained", {escapeDC: 13, escapeSkills: ["athletics"]})]), "escape").system.definition;
+  assert.deepEqual(webbed.check, {skill: "athletics", dc: {value: 13}, escapes: "restrained"}, "Athletics, though Acrobatics is better");
+  assert.equal(commonAction(creature([held("web", "restrained", {escapeDC: "save"})]), "escape"), null,
+    "a DC its save never resolved is no escape");
+
+  const vines = {actionDefinitionId: "action:ensnaring-strike"};
+  const effects = [held("vines", "restrained", {...vines, escapeDC: 14, escapeSkills: ["athletics"], escapeEndsAll: true}),
+    held("thorns", "ensnaring-strike-turn-damage", vines), held("other-cast", "ensnaring-strike-turn-damage", vines, "uuid:Actor.druid"),
+    held("blessed", "blessed", {actionDefinitionId: "action:bless"})];
+  const ensnared = commonAction(creature(effects), "escape").system.definition;
+  assert.deepEqual(ensnared.check.endsEffects, ["thorns"], "only what the same Action from the same caster gave it");
+  assert.equal(validateActionDefinition(ensnared).ok, true);
+
+  const {endEffectsWhenEscaped} = await import("../module/resolvers/foundry-multiplayer-runtime.mjs");
+  const removed = [];
+  const actor = {effects, deleteEmbeddedDocuments: async (type, ids) => removed.push(type, ...ids)};
+  const state = success => ({actionDefinition: ensnared, results: {checkResolution: {success}}});
+  assert.deepEqual(await endEffectsWhenEscaped({options: {actor}, state: state(false)}), [], "a failed check ends nothing");
+  assert.deepEqual(await endEffectsWhenEscaped({options: {actor}, state: state(true)}), ["thorns"]);
+  assert.deepEqual(removed, ["ActiveEffect", "thorns"]);
+});
+
+test("a hold escaped against its save's DC (escapeDC \"save\") keeps the DC that save resolved to", async () => {
+  const {planStagedActionResolution, resumeStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
+  const {RESOLUTION_REQUEST_TYPES} = await import("../module/helpers/resolution-state.mjs");
+  const entangle = {schemaVersion: 1, id: "action:entangle", label: "Entangle", costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1}, save: {ability: "might", dc: {value: 15}},
+    effects: [{id: "effect-1", type: "condition", conditionId: "restrained", saveOutcomePolicy: "failure",
+      metadata: {escapeDC: "save", escapeSkills: ["athletics"]}}]};
+  assert.equal(validateActionDefinition(entangle).ok, true);
+  const plan = planStagedActionResolution({id: "resolution:entangle", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {id: entangle.id, type: "action", name: entangle.label, system: {definition: entangle}}, source: {actorId: "actor-source"},
+    targets: [{id: "orc", actorId: "actor-orc", tokenId: "token-orc", disposition: "enemy"}]});
+  const request = plan.state.pendingRequests[0];
+  const done = resumeStagedActionResolution({state: plan.state, response: {resolutionId: plan.state.id, requestId: request.id,
+    type: RESOLUTION_REQUEST_TYPES.ROLL, value: {requestId: request.payload.rollRequest.id, resolutionId: plan.state.id,
+      type: request.payload.rollRequest.type, natural: 3, total: 3}}});
+  const condition = done.state.mutationPlans.find(entry => entry.type === "conditionEffect");
+  assert.equal(condition?.metadata?.escapeDC, 15);
+  assert.deepEqual(condition?.metadata?.escapeSkills, ["athletics"]);
+});
+
 test("what a common action applies names its creature as the source, so a Grapple's Grappled knows its grappler", async () => {
   const {planConditionEffect} = await import("../module/resolvers/effect-resolver.mjs");
   const {conditionsFrom} = await import("../module/helpers/effect-sources.mjs");

@@ -54,6 +54,14 @@ test("a check whose DC the GM sets is its skill, chosen and checked when used (S
   assert.ok(forge.notes.some(note => note.startsWith("check: ")));
 });
 
+test("a passive check its text frees a held creature with is the hold's escape; one its user takes an action for stays its own", () => {
+  const check = (data) => ({check: {dc: {calculation: "", formula: "15"}, associated: ["ath"], ability: "str"}, ...data});
+  const bands = convertItem(doc("equipment", "Test Bands", "test-bands", {description: {value: "<p>A creature can take an action to make "
+    + "a DC 15 Strength (Athletics) check to break the bands. On a successful check, the item is destroyed.</p>"}, activities: {
+    a: passive("check", check({name: "Break Check"})), b: activity("check", check({_id: "actclimb", name: "Climb Out"}))}}));
+  assert.deepEqual(actions(bands).map(item => item.name), ["Test Bands (Climb Out)"]);
+});
+
 test("a 2014 spell link casts its 2024 SRD spell (a Rod of Alertness's Detect Evil and Good)", () => {
   const detect = doc("spell", "Detect Evil and Good", "detect-evil-and-good", {level: 1, preparation: {mode: "prepared"},
     activities: {a: activity("utility")}});
@@ -303,7 +311,7 @@ test("a failed save's conditions from its text: 'or the target has', its size li
     + "&amp;Reference[Restrained] condition until it escapes. The target succeeds automatically if it is Huge or larger. To escape, the target "
     + "must take an action to make a [[/skill ath 10]] check, freeing the Restrained creature on a success.</p>"}, activities: {a: save("dex", "12")}}));
   assert.deepEqual(actions(net)[0].system.definition.effects[0], {id: "effect-1", type: "condition", conditionId: "restrained",
-    saveOutcomePolicy: "failure", maxSize: "large", metadata: {escapeDC: 10}});
+    saveOutcomePolicy: "failure", maxSize: "large", metadata: {escapeDC: 10, escapeSkills: ["athletics"]}}, "its check is Athletics only");
   // Its own AC and Hit Points (destroying it frees its creature) are by hand.
   assert.deepEqual(net.notes, ["save: a failure gives restrained (its text); the rest is by hand"]);
   const mucus = convertItem(doc("consumable", "Crawler Mucus", "crawler-mucus", {type: {value: "poison"}, description: {value: "<p>A creature must "

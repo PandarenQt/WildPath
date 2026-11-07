@@ -100,7 +100,14 @@
                     "id": "effect-1",
                     "type": "condition",
                     "conditionId": "restrained",
-                    "saveOutcomePolicy": "failure"
+                    "saveOutcomePolicy": "failure",
+                    "metadata": {
+                      "escapeDC": "save",
+                      "escapeSkills": [
+                        "athletics"
+                      ],
+                      "endsWhen": "leavesArea"
+                    }
                   }
                 ]
               }
