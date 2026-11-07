@@ -34,6 +34,8 @@ export const AUTOMATION_EVENT_TYPES = Object.freeze({
   PUSH_APPLIED: "push.applied",
   HEALING_APPLIED: "healing.applied",
   EFFECT_APPLIED: "effect.applied",
+  // An effect deleted for any reason but a rollback or its replacement: its own Triggers run on its creature (Haste's lethargy).
+  EFFECT_ENDED: "effect.ended",
   MOVEMENT_STARTED: "movement.started",
   MOVEMENT_TRANSITION: "movement.transition",
   MOVEMENT_COMPLETED: "movement.completed",

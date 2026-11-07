@@ -28,7 +28,10 @@ export function foundryActorSystemSnapshot(actor) {
         throw new TypeError(`Cannot snapshot Foundry Actor ${actor?.uuid ?? "(unknown)"} system: ${reason}`, { cause: error });
     }
 }
-/** Only canonical resource outputs cross from prepared data; authored fields stay source-based. */
+/**
+ * Only canonical resource outputs cross from prepared data (value, max, and a granted pool's transient `pays` and
+ * `actions`: what else it pays, for which Actions); authored fields stay source-based.
+ */
 function projectEffectiveResources(snapshot, system) {
     if (snapshot.resources === undefined && snapshot.pools === undefined)
         return;
@@ -57,7 +60,13 @@ function projectEffectiveResources(snapshot, system) {
             const pool = requireRecord(entry, "source pool");
             if (typeof pool.id !== "string" || !pool.id)
                 throw new TypeError("Source pool ID is required.");
-            projectResource(pool, effectivePools.get(pool.id), `pools.${pool.id}`);
+            const effective = effectivePools.get(pool.id);
+            projectResource(pool, effective, `pools.${pool.id}`);
+            if (Array.isArray(effective?.pays)) {
+                pool.pays = structuredClone(effective.pays);
+                if (effective.actions)
+                    pool.actions = structuredClone(effective.actions);
+            }
         }
     }
 }

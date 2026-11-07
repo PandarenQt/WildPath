@@ -686,3 +686,12 @@ test("Overchannel (synthetic feat) on a wizard spell: maximum damage; its first 
   assert.deepEqual([plain.metadata.maximized, plain.sourceDamage, plain.costs.allOf.some(cost => cost.capability === "overchannel")],
     [undefined, undefined, false], "not used: no maximum, no backlash, no use spent");
 });
+
+test("a payment sees the tags a Forbid tests an Action by, so a Dash is paid from an extra action given for it (Haste)", () => {
+  const dash = {schemaVersion: 1, id: "common:dash", label: "Dash", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "self"}, range: {type: "self"}};
+  const result = resolveActionConfiguration({definition: dash, actorSystem: actorSystem({resources: {action: {value: 0, max: 1}},
+    pools: [{id: "haste-extra-action", value: 1, max: 1, recovery: "turn", pays: ["action"], actions: {tagsAny: ["id:common:dash"]}}]})});
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.configuration.selectedPaymentPlan.resources.map(entry => entry.resourceId), ["haste-extra-action"]);
+});

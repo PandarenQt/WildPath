@@ -8,6 +8,7 @@ import {
   CONCENTRATION_CHECK_PROMPT_STATES,
   UI_COMMAND_TYPES
 } from "../module/helpers/ui-view-models.mjs";
+import {commonAction} from "../module/helpers/common-actions.mjs";
 
 function actorSystem({action=1, bonus=1, reaction=1}={}) {
   return {
@@ -78,6 +79,18 @@ test("action bar reports unavailable actions without creating a use command", ()
   assert.equal(model.actions[0].state, ACTION_BAR_ENTRY_STATES.UNAVAILABLE);
   assert.equal(model.actions[0].command, null);
   assert.equal(model.summary.unavailableCount, 1);
+});
+
+test("action bar pays as the authority does: a limited extra Action keeps a Dash usable once the Action is spent (Haste)", () => {
+  const system = {...actorSystem({action: 0}), pools: [{id: "haste-extra-action", value: 1, max: 1, recovery: "turn",
+    pays: ["action"], actions: {tagsAny: ["id:common:dash"]}}]};
+  const actor = {id: "actor-a", system, items: []};
+  const model = createActionBarViewModel({actor, actorSystem: system,
+    actions: [commonAction(actor, "dash"), commonAction(actor, "dodge")]});
+  const [dash, dodge] = model.actions;
+  assert.equal(dash.enabled, true, JSON.stringify(dash.payment));
+  assert.deepEqual(dash.payment.options[0].resources.map(entry => entry.resourceId), ["haste-extra-action"]);
+  assert.equal(dodge.enabled, false, "not an Action the extra action may take");
 });
 
 test("action bar can derive action entries from actor item collections", () => {

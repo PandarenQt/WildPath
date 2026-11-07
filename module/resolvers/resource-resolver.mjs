@@ -179,8 +179,18 @@ export function createActorResourceMutationPlan(actorSystem, paymentPlan) {
  * with `refuseWhenFull` makes the plan fail (`RESOURCE_FULL`) while its pool is full; `amountExpression` is its amount
  * worked out for the creature.
  */
-export function withResourceRestores(actorSystem, mutationPlan, restores=[]) {
+export function withResourceRestores(actorSystem, mutationPlan, restores=[], costs=null) {
   if ( !mutationPlan?.ok || !restores.length ) return mutationPlan;
+  // An extra Action given for listed Actions (a pool with `pays`) is one use of the Action: paid from it, the Action
+  // refills no pool its own costs could pay from instead (Extra Attack's, `costs`), so Haste's "one attack only" starts
+  // no sequence. Its other restores (a Flurry of Blows' strikes) are its effect and still happen.
+  const extra = new Set((actorSystem?.pools ?? []).filter(pool => pool.pays?.length).map(pool => pool.id));
+  if ( (mutationPlan.payments ?? []).some(payment => extra.has(payment.resourceId)
+    && ((Number(payment.from) || 0) > (Number(payment.to) || 0))) ) {
+    const own = new Set([...(costs?.allOf ?? []), ...(costs?.anyOf ?? []).flat()].map(cost => cost?.capability));
+    restores = restores.filter(restore => !own.has(restore.resourceId));
+    if ( !restores.length ) return mutationPlan;
+  }
   const updates = {...mutationPlan.updates};
   // Each restore is recorded with what the pool held before, so the transaction can roll it back.
   const payments = (mutationPlan.payments ?? []).map(payment => ({...payment}));

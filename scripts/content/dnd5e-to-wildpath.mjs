@@ -1721,6 +1721,9 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   const riderTag = activities.map(entry => attackRider(document, entry, activities)).find(Boolean)?.tagsAll[0] ?? null;
   const raised = raisedFromKilled(document, activities, creatures, system);
   let carried = carriedRetaliation({document, activities, system, spell, level, scales, saveDC, spellDC, creature, beasts, names});
+  // What its effect gives while it lasts and when it ends (Haste's extra action and lethargy): on the first effect it applies.
+  let ended = effectEndedTrigger({document, activities, system, spell, level, scales, saveDC, spellDC, creature, beasts, names});
+  let extra = extraActionGrant(document);
   for ( const [index, listed] of usable.entries() ) {
     let activity = listed;
     const notes = [...(pool?.notes ?? [])];
@@ -1971,6 +1974,15 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       if ( carried.activity ) folded.add(carried.activity);
       notes.push(...carried.notes);
       carried = null;
+    }
+    const bearers = (ended || extra) ? (definition.effects ?? []).filter(effect => effect.type === "effect") : [];
+    if ( bearers.length ) {
+      const rules = [extra?.rule, ended?.rule].filter(Boolean);
+      definition = {...definition, effects: definition.effects.map(effect => (bearers.includes(effect)
+        ? {...effect, ruleElements: [...(effect.ruleElements ?? []), ...structuredClone(rules)]} : effect))};
+      if ( ended ) folded.add(ended.activity);
+      notes.push(...(extra?.notes ?? []), ...(ended?.notes ?? []));
+      ended = extra = null;
     }
     // What a summoned creature does at its summoner's cost (dnd5e's "Bonus Action used by summoner"; "As a Bonus Action,
     // you can move the sphere up to 30 feet"): its summoner pays (`controllerCosts`), and moving it is a move of that many
@@ -4227,6 +4239,12 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   const name = options.creature ? spellDocument.name : `${document.name}: ${named}`;
   const definition = {...action.system.definition, id: `${base.id}-${slugify(spellDocument.name)}`, label: name,
     tags: [...new Set([...(action.system.definition.tags ?? []), "spell"])], costs};
+  // "without suffering the wave of lethargy that typically occurs when the effect ends" (2024 Potion of Speed): nothing
+  // befalls its creature when its effect ends (effectEndedTrigger).
+  if ( definition.effects && /\bwithout suffering\b[^.]*\bwhen the (?:effect|spell) ends\b/iu.test(plainText(document)) ) {
+    definition.effects = definition.effects.map(effect => ({...effect, ruleElements: (effect.ruleElements ?? [])
+      .filter(rule => !((rule.type === "Trigger") && (rule.data?.event === "effect.ended")))}));
+  }
   // Cast without a slot; its other choices stay (Polymorph's Beast, a damage type, one of its effects). One cast above its
   // own level (a Lich's 5th-level Fireball) keeps the slot choice's scaling at that level, a choice the authority answers.
   const castLevel = Number(activity.spell?.level);
@@ -4562,10 +4580,8 @@ function carriedRetaliation({document, activities, system, spell, level, scales,
     ...(match[2] ? [{atMost: {path: "toSource.{self}.distance", value: Number(match[2])}}] : [])];
   // Several damage types (Flame Eruption's Cold or Fire) are the one its effect's name gives.
   const chosen = (converted.configuration ?? []).some(choice => choice.type === "damage-type");
-  // What a failed save gives the attacker (Holy Aura's Blinded) is no concentration of the creature hit; one whose dnd5e
-  // effect has no duration (the SRD's) lasts as its activity does, to the turn boundary its text names.
-  const lasts = textBoundExpiry(lastingDuration(pick(activity, system, "duration")), text);
-  const effects = (converted.effects ?? []).map(({concentration: _held, ...entry}) => ((entry.duration || !lasts) ? entry : {...entry, duration: lasts}));
+  // What a failed save gives the attacker (Holy Aura's Blinded) is no concentration of the creature hit.
+  const effects = carriedEffects(converted, activity, system, text);
   if ( /\bends early if you have no Temporary Hit Points\b/iu.test(text) ) {
     notes.push(`"${document.name}": ending early when its Temporary Hit Points are gone is by hand`);
   }
@@ -4579,6 +4595,65 @@ function carriedRetaliation({document, activities, system, spell, level, scales,
         ...(damage.length ? {damage: damage.map(component => (word ? {...component, damageType: byWord[word]} : component))} : {}),
         ...(save ? {save} : {}), ...(effects.length ? {effects} : {})}}};
   }};
+}
+
+/**
+ * The effects a passive activity's Action gives when another effect carries it (carriedRetaliation, effectEndedTrigger):
+ * no concentration of their own (the effect carrying them holds it), and one whose dnd5e effect has no duration (the
+ * SRD's) lasts as its activity does, to the turn boundary its text names.
+ */
+function carriedEffects(converted, activity, system, text) {
+  const lasts = textBoundExpiry(lastingDuration(pick(activity, system, "duration")), text);
+  return (converted.effects ?? []).map(({concentration: _held, ...entry}) => ((entry.duration || !lasts) ? entry : {...entry, duration: lasts}));
+}
+
+/**
+ * What befalls the target when its effect ends ("When the spell ends, the target is Incapacitated and has a Speed of 0 until
+ * the end of its next turn": Haste's lethargy): dnd5e's passive activity applying it, as an `effect.ended` Trigger its
+ * effect carries, whose Action the active GM runs on that creature when the effect is deleted (but for a rollback). Null
+ * when its text says no such thing, or no such activity gives an effect.
+ */
+function effectEndedTrigger({document, activities, system, spell, level, scales, saveDC, spellDC, creature, beasts, names}) {
+  const text = plainText(document);
+  if ( !/\bWhen the (?:spell|effect) ends, the target\b/u.test(text) ) return null;
+  const activity = activities.find(entry => ["", "none"].includes(pick(entry, system, "activation").type ?? "") && (entry.effects ?? []).length);
+  if ( !activity ) return null;
+  const notes = [];
+  const converted = convertActivity({document, activity, system, spell, level, scales, notes, pool: null, saveDC, spellDC, creature, beasts,
+    names});
+  const effects = carriedEffects(converted, activity, system, text);
+  if ( !effects.length ) return null;
+  return {activity, notes: notes.filter(note => !note.startsWith("activation:")), rule: {schemaVersion: 1, id: "effect-ended", type: "Trigger",
+    data: {kind: "automation", event: "effect.ended", action: {schemaVersion: 1, id: `action:${slugify(document.name)}-ended`,
+      label: document.name, costs: {allOf: []}, effects}}}};
+}
+
+/** The tags of each action a limited extra action may take (extraActionGrant): the Attack action's attack, Grapple or Shove. */
+const EXTRA_ACTION_TAGS = Object.freeze({Attack: ["attack", "id:common:grapple", "id:common:shove", "id:common:push"],
+  Dash: ["id:common:dash"], Disengage: ["id:common:disengage"], Hide: ["id:common:hide"], Utilize: ["id:common:utilize"],
+  "Use an Object": ["id:common:utilize"]});
+
+/**
+ * "gains an additional action on each of its turns. That action can be used to take only the Attack (one attack only), Dash,
+ * Disengage, Hide, or Utilize action" (2024 Haste): a pool of 1 refilled each turn that pays an Action (or Bonus Action)
+ * for those actions only (GrantResource `pays`, `actions`), never a spell or what always costs a Bonus Action. Using it
+ * refills nothing, so its attack is one attack. An action not in EXTRA_ACTION_TAGS is noted by hand. Null when its text
+ * says no such thing.
+ */
+function extraActionGrant(document) {
+  // "can be used only to take the" (2014) or "can be used to take only the" (2024).
+  const match = /\bgains? an additional (action|Bonus Action) on each of its turns\. That action can be used (?:only )?to take (?:only )?the (.+?) actions?\./u
+    .exec(plainText(document));
+  if ( !match ) return null;
+  const names = match[2].replace(/\([^)]*\)/gu, "").split(/,\s*(?:or\s+)?|\s+or\s+/u).map(name => name.trim()).filter(Boolean);
+  const notes = names.filter(name => !EXTRA_ACTION_TAGS[name]).map(name => `extra action: "${name}" is by hand`);
+  const id = `${identifierOf(document)}-extra-action`;
+  const tagsAny = names.flatMap(name => EXTRA_ACTION_TAGS[name] ?? []);
+  const action = match[1] === "action";
+  // None read: no grant, since an empty list would pay for anything.
+  return {notes, rule: tagsAny.length ? {schemaVersion: 1, id, type: "GrantResource", data: {resourceId: id,
+    label: "WILDPATH.RESOURCES.ExtraAction", maximum: 1, recovery: "turn", pays: [action ? "action" : "bonus-action"],
+    actions: {tagsAny, notTagsAny: ["spell", ...(action ? ["cost:bonus-action"] : [])]}}} : null};
 }
 
 /**

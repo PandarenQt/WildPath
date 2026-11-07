@@ -3584,3 +3584,61 @@ test("SRD gaps closed: Multiattack counts, casts and names; escapes; effects by 
   const web = read("srd-items", "web-phbsplWeb").system.definition.area.persistence.triggers[0].action;
   assert.deepEqual([web.damage, web.effects.map(effect => effect.conditionId)], [undefined, ["restrained"]]);
 });
+
+// A synthetic spell in dnd5e 6.x's shape (2024 Haste): an extra action for listed actions, and what follows when it ends.
+const HASTE_TEXT = "<p>Until the spell ends, the target's Speed is doubled, it gains a +2 bonus to Armor Class, and it gains an additional "
+  + "action on each of its turns. That action can be used to take only the Attack (one attack only), Dash, Disengage, Hide, or Utilize "
+  + "action.</p><p>When the spell ends, the target is Incapacitated and has a Speed of 0 until the end of its next turn.</p>";
+const hasteSpell = () => carrier({id: "testHasteSpell01", name: "Test Haste", level: 3, properties: ["vocal", "concentration"],
+  duration: {value: "1", units: "minute"}, text: HASTE_TEXT,
+  effects: [{_id: "hasted", name: "Hasted", transfer: false, statuses: [], duration: {value: 60, units: "seconds"},
+    system: {changes: [{key: "system.attributes.ac.bonus", value: 2, type: "add"}]}},
+  {_id: "lethargy", name: "Lethargy", transfer: false, statuses: ["incapacitated"], duration: {value: null, units: "seconds"},
+    system: {changes: [{key: "system.attributes.movement.multiplier", value: 0, type: "override"}]}}],
+  activities: {a: activity("utility", {range: {units: "touch", override: false}, effects: [{_id: "hasted"}]}),
+    b: activity("utility", {_id: "actlethargy", name: "Apply Lethargy", activation: {type: "", override: true},
+      duration: {units: "round", value: "1", override: true}, effects: [{_id: "lethargy"}]})}});
+
+test("an extra action for listed actions, and an effect that follows when its effect ends, ride the effect (Haste)", () => {
+  const [cast] = convertItem(hasteSpell()).items;
+  const [hasted] = cast.system.definition.effects;
+  const grant = hasted.ruleElements.find(rule => rule.type === "GrantResource");
+  assert.deepEqual(grant.data, {resourceId: "test-haste-extra-action", label: "WILDPATH.RESOURCES.ExtraAction", maximum: 1,
+    recovery: "turn", pays: ["action"], actions: {tagsAny: ["attack", "id:common:grapple", "id:common:shove", "id:common:push",
+      "id:common:dash", "id:common:disengage", "id:common:hide", "id:common:utilize"], notTagsAny: ["spell", "cost:bonus-action"]}});
+  const ended = hasted.ruleElements.find(rule => rule.type === "Trigger").data;
+  assert.deepEqual([ended.kind, ended.event, ended.action.costs], ["automation", "effect.ended", {allOf: []}]);
+  const turn = {value: 1, units: "rounds", expiry: "turnEnd"};
+  assert.deepEqual(ended.action.effects.map(effect => [effect.conditionId ?? effect.ruleElements[0].data, effect.duration,
+    "concentration" in effect]), [["incapacitated", turn, false], [{resources: ["movement"], maximum: 0}, turn, false]],
+  "Incapacitated and Speed 0 until the end of its next turn, held by no concentration");
+  assert.equal(validateActionDefinition(ended.action).ok, true, JSON.stringify(validateActionDefinition(ended.action).errors));
+  assert.equal(hasted.concentration, true, "Hasted itself is still concentrated on");
+  assert.deepEqual(cast.flags.wildpath.conversion.notes.filter(note => /Apply Lethargy|extra action/.test(note)), [],
+    "the lethargy is no passive ability left by hand");
+});
+
+test("the 2014 wording of the extra action gives the same grant (Haste)", () => {
+  const spell = hasteSpell();
+  spell.system.description.value = HASTE_TEXT.replace("can be used to take only the Attack (one attack only), Dash, Disengage, Hide, or Utilize",
+    "can be used only to take the Attack (one weapon attack only), Dash, Disengage, Hide, or Use an Object");
+  const [cast] = convertItem(spell).items;
+  const grant = cast.system.definition.effects[0].ruleElements.find(rule => rule.type === "GrantResource");
+  assert.deepEqual(grant?.data.actions.tagsAny, ["attack", "id:common:grapple", "id:common:shove", "id:common:push",
+    "id:common:dash", "id:common:disengage", "id:common:hide", "id:common:utilize"]);
+  assert.deepEqual(cast.flags.wildpath.conversion.notes.filter(note => /extra action/.test(note)), []);
+});
+
+test("a potion of the spell without its ending's lethargy gets the extra action but no effect.ended Trigger (Potion of Speed)", () => {
+  const potion = {_id: "testPotionSpeed1", name: "Test Potion of Speed", type: "consumable", effects: [], system: {source: SRD,
+    identifier: "test-potion-of-speed", uses: {max: "1", spent: 0, recovery: []}, description: {value: "<p>When you drink this potion, you "
+      + "gain the effect of the @UUID[Compendium.dnd5e.spells24.Item.testHasteSpell01]{Haste} spell for 1 minute (no Concentration "
+      + "required) without suffering the wave of lethargy that typically occurs when the effect ends.</p>"},
+    activities: {c: activity("cast", {activation: {type: "bonus", override: true}, spell: {uuid: "Compendium.dnd5e.spells24.Item.testHasteSpell01",
+      level: "3", ability: ""}})}}};
+  const cast = convertItem(potion, {spells: {testHasteSpell01: hasteSpell()}}).items.find(item => item.type === "action");
+  const rules = cast.system.definition.effects[0].ruleElements;
+  assert.deepEqual(rules.filter(rule => ["GrantResource", "Trigger"].includes(rule.type)).map(rule => [rule.type, rule.id]),
+    [["GrantResource", "test-haste-extra-action"]], "the spell's grant (the same pool, never stacking), and no lethargy");
+  assert.deepEqual(cast.flags.wildpath.conversion.notes.filter(note => /Apply Lethargy/.test(note)), []);
+});

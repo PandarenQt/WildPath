@@ -94,6 +94,20 @@ test("Foundry Actor snapshot matches prepared custom pools by ID while preservin
   assert.equal(snapshot.pools[0].value, 10);
 });
 
+test("Foundry Actor snapshot carries what a granted pool also pays, and for which Actions (Haste's extra action)", () => {
+  const source = {pools: [{id: "haste-extra-action", value: 1, max: 0, recovery: "turn"}, {id: "ward", value: 1, max: 0}]};
+  const actor = withFoundryActorSystem({uuid: "Actor.extra", system: source});
+  actor.toObject = () => ({system: source});
+  const actions = {tagsAny: ["id:common:dash"]};
+  Object.assign(actor.system.pools[0], {max: 1, pays: ["action"], actions});
+  Object.assign(actor.system.pools[1], {max: 1});
+  const snapshot = foundryActorSystemSnapshot(actor);
+  assert.deepEqual(snapshot.pools[0], {...source.pools[0], max: 1, pays: ["action"], actions});
+  assert.deepEqual(snapshot.pools[1], {...source.pools[1], max: 1}, "a pool that pays only itself gains nothing");
+  assert.notEqual(snapshot.pools[0].actions, actions, "detached from prepared data");
+  assert.equal(isPlainSerializableData(snapshot), true);
+});
+
 test("Foundry Actor snapshot rejects invalid prepared resource outputs without coercion or source fallback", () => {
   for ( const location of ["builtin", "pool"] ) {
     for ( const key of ["value", "max"] ) {

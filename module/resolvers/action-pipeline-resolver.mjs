@@ -87,6 +87,7 @@ import {PACT_SLOT_POOL, pactMagic} from "../helpers/spellcasting.mjs";
 import {createActorHealingMutationPlan} from "./durability-resolver.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {resolveActionTargets} from "./target-resolver.mjs";
+import {actionTags} from "../helpers/rule-elements.mjs";
 import {resolveDamageTargets} from "./damage-resolver.mjs";
 import {resolveAttackTargets} from "./attack-resolver.mjs";
 import {resolveSaveAgainstDC, resolveSaveTargets} from "./save-resolver.mjs";
@@ -852,7 +853,7 @@ function createTargetingStage() {
       const affordable = resolveActorResourcePayment({
         actorSystem: input.actorSystem,
         cost: actionActivationCost(input.action, state.actionDefinition),
-        action: state.actionContext?.action ?? null,
+        action: paymentAction(state, state.actionContext?.action),
         policies: input.policies ?? {},
         selectedPaymentOptionId: input.selectedPaymentOptionId ?? null,
         selectedPaymentPlan: state.configuration?.selectedPaymentPlan ?? input.configuration?.selectedPaymentPlan ?? null
@@ -2834,6 +2835,14 @@ function concentrationRollRequest(state, check, requestId) {
   });
 }
 
+/**
+ * The Action as a payment sees it: with the tags a Forbid tests it by (actionTags), so a limited extra Action's predicate
+ * (GrantResource `actions`: Haste's Dash or one attack) reads them as they are, not only the definition's own.
+ */
+function paymentAction(state, action) {
+  return {...(action ?? {}), tags: actionTags(state.actionDefinition)};
+}
+
 function createPaymentStage() {
   return createResolutionPipelineStage({
     id: ACTION_PIPELINE_STAGE_IDS.PAYMENT,
@@ -2847,7 +2856,7 @@ function createPaymentStage() {
       const payment = resolveActorResourcePayment({
         actorSystem: input.actorSystem,
         cost: actionActivationCost(input.action, state.actionDefinition),
-        action: actionContext.action,
+        action: paymentAction(state, actionContext.action),
         policies: actionContext.policies,
         selectedPaymentOptionId: input.selectedPaymentOptionId ?? null,
         selectedPaymentPlan: state.configuration?.selectedPaymentPlan ?? input.configuration?.selectedPaymentPlan ?? null
@@ -2871,7 +2880,7 @@ function createPaymentStage() {
         controllerPayment = input.controller?.actorSystem ? resolveActorResourcePayment({
           actorSystem: input.controller.actorSystem,
           cost: controllerCost,
-          action: actionContext.action,
+          action: paymentAction(state, actionContext.action),
           policies: actionContext.policies
         }) : {ok: false, code: "CONTROLLER_REQUIRED"};
         if ( !controllerPayment.ok ) {
@@ -2894,7 +2903,8 @@ function createPaymentStage() {
       if ( recall?.kept ) payment.mutationPlan = createActorResourceMutationPlan(input.actorSystem,
         {...payment.paymentPlan, resources: payment.paymentPlan.resources.filter(entry => entry !== recall.slot)});
       // The pools the Action refills (Multiattack) join its payment.
-      payment.mutationPlan = withResourceRestores(input.actorSystem, payment.mutationPlan, state.actionDefinition?.restores ?? []);
+      payment.mutationPlan = withResourceRestores(input.actorSystem, payment.mutationPlan, state.actionDefinition?.restores ?? [],
+        state.actionDefinition?.costs);
       if ( !payment.mutationPlan?.ok ) {
         return failActionPlanningStage({state, input, actionResult, stage: ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT,
           code: ACTION_RESOLVER_CODES.PAYMENT_UNAVAILABLE, reason: payment.mutationPlan?.code ?? "RESOURCE_FULL", data: {payment}});

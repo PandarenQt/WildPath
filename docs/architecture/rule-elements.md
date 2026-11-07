@@ -440,6 +440,15 @@ enabled non-condition effect runs without asking anyone. The general automation 
 happens to that creature:
 
 - `turn.started` and `turn.ended` come from `WildPathCombat`.
+- `effect.ended` comes from `deleteActiveEffect` (active GM): only the ended effect's own `effect.ended`
+  Triggers run (an explicit owners list), with its creature as source and only target. A deletion that is no
+  ending carries the operation flag `{wildpath: {ended: false}}` and runs none: the rollback of the Action that
+  made the effect, and its replacement by another choice of itself (`condition-effect-commit-resolver.mjs`).
+  Every other deletion counts, an expiry, a concentration ending or a GM's by hand alike; code that deletes an
+  effect for bookkeeping must pass the flag. Limit: an Action that removes such an effect through a condition
+  delta and then rolls back restores the effect, but its `effect.ended` Action has already run. Haste's lethargy is one: `{type: "Trigger", data: {event:
+  "effect.ended", action: {..., costs: {allOf: []}, effects: [/* Incapacitated, Speed 0, until the end of its
+  next turn */]}}}` on Hasted.
 - `initiative.rolled` comes from any client's roll, through the Combatant update the GM sees
   (`event.data.initiative`).
 - `rest.completed` comes from `Actor#rest` (`event.data.restType`, `shortRest` or `longRest`).
@@ -872,6 +881,11 @@ table's `playersSeeOdds` house rule says ([ui-ux-layer.md](ui-ux-layer.md)).
 - `emptiesAtTurnStart: true`: the pool empties at the start of each of the creature's turns;
 - `recharge: 5`: at the start of the creature's turn, a spent pool comes back on a d6 of 5 or more. The roll is
   whispered to the GM ("Recharge 5–6: Acid Breath is ready again").
+- `pays: ["action"]` and `actions: <predicate over actionTags>` (2026-11-07): the pool also pays those
+  capabilities, only for the Actions the predicate allows, after the creature's other pools and ahead of its own
+  Action, refilling no pool its Action could pay from instead (a limited extra Action: Haste's; action-economy.md,
+  "Limited extra Actions"). Both are transient on the prepared
+  pool, never stored.
 
 An Action Item's own `GrantResource` now counts too, though its other rules still only describe that Action. It is
 the pool of uses that Action spends: Fire Breath, Second Wind, "3/Day". Before this, those pools were never

@@ -64,6 +64,35 @@ payment capability and also provide a predicate such as `tagsAny: ["weapon-attac
 resolver does not check feature names and does not accept arbitrary JavaScript predicate functions
 as persisted rules data.
 
+**Limited extra Actions from a creature's pools (2026-11-07).** A `GrantResource` with `pays` (capabilities its
+pool pays besides its own id: `"action"`, `"bonus-action"`, any pool id) and `actions` (a predicate over the
+Action's tags, the same vocabulary Forbid and Allow use: `actionTags`, such as `id:common:dash`, `attack`,
+`spell`, `cost:bonus-action`) makes its pool such a resource. Actor preparation copies both onto the pool as
+transient fields (nothing is stored); the authority snapshot carries them; `economyResourcesFromActorResources`
+turns them into the resource's extra `paymentCapabilities` and its `predicate`. Every payment path (Action
+configuration, the pipeline's affordability check and payment stage, and the action bar) gives the predicate
+the Action's `actionTags`. Two fixed semantics:
+
+- **Narrowest first.** A creature's other pools have priority 1 (each pays only itself: Extra Attack's, a
+  Multiattack's attacks), such a pool 5, the built-in Action 10. So a sequence pool the Attack action or a
+  Multiattack filled pays its attack before the extra action, and the extra action pays before the creature's own
+  Action, which stays free for anything else. Choosing otherwise is the payment choice. A fixed order cannot know
+  a plan: attacking before taking the Attack action spends the extra action on that attack.
+- **One use, no refills of its own sequence.** A payment drawn from it skips each `restores` of a pool the
+  Action's own costs could pay from (`withResourceRestores` with the Action's `costs`), so Extra Attack never
+  starts from it: 2024 Haste's "Attack (one attack only)". Its other restores are the Action's effect and still
+  happen (an extra Bonus Action for Flurry of Blows still fills its strikes). Haste's predicate never matches a
+  Multiattack (no `attack` tag). An unrestricted extra Action that takes the whole Attack action (Action Surge)
+  stays on `resources.action.max`.
+
+```js
+{type: "GrantResource", data: {resourceId: "haste-extra-action", label: "WILDPATH.RESOURCES.ExtraAction", maximum: 1,
+  recovery: "turn", pays: ["action"], actions: {tagsAny: ["attack", "id:common:dash", "id:common:disengage",
+  "id:common:hide", "id:common:utilize"], notTagsAny: ["spell", "cost:bonus-action"]}}}
+```
+
+The legacy non-staged `action-resolver.mjs` payment and `WildPathActor#resolveActionPayment` still pass raw tags.
+
 ## Refresh
 
 Refresh policies are semantic identifiers, not Foundry hook names:

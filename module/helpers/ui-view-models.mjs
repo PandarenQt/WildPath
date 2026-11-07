@@ -17,6 +17,7 @@ import {
 import {createCombatTimeline} from "./combat-timeline.mjs";
 import {unpaidRequiredChoice} from "./automation-events.mjs";
 import {actionDefinitionFromItem} from "./action-definitions.mjs";
+import {actionTags} from "./rule-elements.mjs";
 
 export const UI_COMMAND_TYPES = Object.freeze({
   USE_ACTION: "action.use",
@@ -222,16 +223,19 @@ function createActionBarEntry({
     name: action?.name ?? null,
     tags: uniqueStrings(action?.tags ?? action?.system?.tags ?? [])
   };
-  const discovery = resolvePaymentOptions({cost: activationCost, resources, action: actionData, policies});
+  // Its definition as the authority builds it from its Item (a Mystic Arcanum's option, Extra Attack's pool).
+  const definition = action?.system?.definition ? actionDefinitionFromItem(action).definition : (action?.definition ?? null);
+  // Paid as the authority pays it: by the tags a Forbid tests (`attack`, `id:common:dash`), which a limited extra
+  // Action's predicate reads (Haste's Dash once the creature's own Action is spent).
+  const paying = definition ? {...actionData, tags: actionTags(definition)} : actionData;
+  const discovery = resolvePaymentOptions({cost: activationCost, resources, action: paying, policies});
   const defaultPayment = selectDefaultPaymentOption(discovery.options);
   const selected = Boolean((selectedActionRef && selectedActionRef === ref)
     || (selectedActionId != null && String(selectedActionId) === String(actionData.id)));
   // An option of its own paying another way (Quickened Spell: its Action as a Bonus Action) keeps it usable.
   const payable = (discovery.status === "available") || costAlternatives(action, activationCost)
-    .some(alternative => resolvePaymentOptions({cost: alternative, resources, action: actionData, policies}).status === "available");
+    .some(alternative => resolvePaymentOptions({cost: alternative, resources, action: paying, policies}).status === "available");
   // Nor while a required resource choice (its spell slot) can't be paid: no slot left.
-  // Its definition as the authority builds it from its Item (a Mystic Arcanum's option, Extra Attack's pool).
-  const definition = action?.system?.definition ? actionDefinitionFromItem(action).definition : (action?.definition ?? null);
   const unpaid = payable ? unpaidRequiredChoice(definition, resources, policies) : null;
   const enabled = payable && !unpaid;
 

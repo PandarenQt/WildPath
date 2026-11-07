@@ -277,6 +277,9 @@ export function registerFoundryV14MultiplayerResolution({
   const automation = createFoundryAutomationDispatcher({game, coordinator, logger, fromUuid: globalThis.fromUuid ?? null,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});
   if ( globalThis.CONFIG?.queries ) globalThis.CONFIG.queries[AUTOMATION_QUERY] = automation.handleQuery;
+  // An effect that ends runs its own `effect.ended` Triggers (Haste's lethargy); a rollback or replacement is no ending.
+  globalThis.Hooks?.on?.("deleteActiveEffect", (effect, options) => void automation.onEffectDeleted(effect, options)
+    .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.EffectEnded") ?? "EffectEnded"}, error)));
   // Dying and death (2024 death saves): after Actions, at turn start, and when Exhaustion reaches 6.
   const dying = createFoundryDying({game, coordinator, logger,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});

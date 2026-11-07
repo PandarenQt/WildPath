@@ -557,6 +557,17 @@ function grantResourceRuleElement(ruleElement, context) {
   if ( !maximum.ok ) return maximum;
   const current = data.current == null ? maximum : evaluateNumeric(data.current, context);
   if ( !current.ok ) return current;
+  // A limited extra Action (Haste's): `pays`, the capabilities it pays besides its own ("action"), `actions`, a predicate
+  // over the Action's tags (actionTags) it pays only for.
+  const pays = data.pays ?? [];
+  if ( !Array.isArray(pays) || pays.some(entry => (typeof entry !== "string") || !entry) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "GrantResource pays must be an array of capability ids.");
+  }
+  const actions = data.actions ?? null;
+  if ( (actions !== null) && ((typeof actions !== "object") || Array.isArray(actions)
+    || (evaluatePredicate(actions, {tags: []}).code === PREDICATE_CODES.INVALID)) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "GrantResource actions must be a predicate over Action tags.");
+  }
 
   return success({
     resources: [{
@@ -578,6 +589,8 @@ function grantResourceRuleElement(ruleElement, context) {
       // `{longRest: 1d6 + 1}` (a wand's charges at dawn). A full refill is `recovery`.
       ...(data.regain ? {regain: Object.fromEntries(["shortRest", "longRest"].filter(rest => data.regain[rest] != null)
         .map(rest => [rest, clonePlain(data.regain[rest])]))} : {}),
+      ...(pays.length ? {pays: [...pays]} : {}),
+      ...(actions ? {actions: clonePlain(actions)} : {}),
       source: ruleElementSource(ruleElement),
       metadata: contributionMetadata(ruleElement, data.metadata)
     }]

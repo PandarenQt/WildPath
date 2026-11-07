@@ -17,6 +17,31 @@ test("an Action's restores refill the acting creature's pools up to their maximu
   assert.equal(withResourceRestores(actorSystem, paid, []), paid);
 });
 
+test("an attack paid from an extra action given for listed Actions refills nothing: Haste's one attack only", () => {
+  const actorSystem = {resources: {action: {value: 1, max: 1, spent: 0}}, pools: [{id: "extra-attack", value: 0, max: 1},
+    {id: "haste-extra-action", value: 1, max: 1, pays: ["action"], actions: {tagsAny: ["attack"]}}]};
+  const restores = [{resourceId: "extra-attack", amount: 1}];
+  // The attack's costs as withExtraAttacks writes them: its pool, or the Action.
+  const costs = {anyOf: [[{capability: "extra-attack", amount: 1}], [{capability: "action", amount: 1}]]};
+  const hasted = {ok: true, updates: {"system.pools.1.value": 0},
+    payments: [{resourceId: "haste-extra-action", path: "system.pools.1.value", from: 1, to: 0, amount: 1}]};
+  assert.equal(withResourceRestores(actorSystem, hasted, restores, costs), hasted, "Extra Attack's pool stays empty");
+  const acted = {ok: true, updates: {"system.resources.action.spent": 1},
+    payments: [{resourceId: "economy.action", path: "system.resources.action.spent", from: 0, to: 1, amount: 1}]};
+  assert.equal(withResourceRestores(actorSystem, acted, restores, costs).updates["system.pools.0.value"], 1, "the Attack action starts Extra Attack");
+});
+
+test("an Action paid from an extra action still gets the restores that are its effect, not a pool it could pay from", () => {
+  // An extra Bonus Action for Flurry of Blows only: Flurry's strikes are what it does, so they still fill.
+  const actorSystem = {resources: {"bonus-action": {value: 0, max: 1}}, pools: [{id: "flurry-of-blows", value: 0, max: 2},
+    {id: "extra-bonus", value: 1, max: 1, pays: ["bonus-action"], actions: {tagsAny: ["id:flurry"]}}]};
+  const paid = {ok: true, updates: {"system.pools.1.value": 0},
+    payments: [{resourceId: "extra-bonus", path: "system.pools.1.value", from: 1, to: 0, amount: 1}]};
+  const plan = withResourceRestores(actorSystem, paid, [{resourceId: "flurry-of-blows", amount: 2}],
+    {allOf: [{capability: "bonus-action", amount: 1}]});
+  assert.equal(plan.updates["system.pools.0.value"], 2);
+});
+
 test("a restore refused while its pool is full, and one worked out for its creature (Sorcerous Restoration)", () => {
   const actorSystem = {classes: [{id: "sorcerer", level: 7}], pools: [{id: "font-of-magic", value: 1, max: 7}, {id: "dragon-wings", value: 1, max: 1}]};
   const paid = {ok: true, updates: {}, payments: []};

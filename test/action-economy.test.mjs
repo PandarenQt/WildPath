@@ -177,6 +177,40 @@ test("restricted extra Actions use predicates rather than feature-name branches"
   assert.equal(disallowed.code, ECONOMY_AVAILABILITY.RESOURCE_RESTRICTION_FAILED);
 });
 
+test("a granted pool that pays an Action pays only for the Actions its predicate allows, before the Action (Haste)", () => {
+  const actorSystem = action => ({resources: {action: {value: action, max: 1}}, pools: [{id: "haste-extra-action", value: 1, max: 1,
+    recovery: "turn", pays: ["action"], actions: {tagsAny: ["id:common:dash"], notTagsAny: ["spell"]}}]});
+  const pay = (action, tags) => resolvePaymentOptions({resources: economyResourcesFromActorResources(actorSystem(action)),
+    cost: actionCost(ECONOMY_CAPABILITIES.ACTION), action: {tags}});
+  // Its Action spent, a Dash is still paid, from the extra action.
+  const dash = pay(0, ["id:common:dash"]);
+  assert.equal(dash.status, "available");
+  assert.deepEqual(selectDefaultPaymentOption(dash.options).resources.map(entry => entry.resourceId), ["haste-extra-action"]);
+  // Not a spell.
+  const spell = pay(0, ["spell", "id:common:dash"]);
+  assert.equal(spell.status, "unavailable");
+  assert.equal(spell.code, ECONOMY_AVAILABILITY.RESOURCE_RESTRICTION_FAILED);
+  // Narrow first: with its Action unspent too, the extra action pays, and the Action stays free.
+  assert.deepEqual(selectDefaultPaymentOption(pay(1, ["id:common:dash"]).options).resources.map(entry => entry.resourceId),
+    ["haste-extra-action"]);
+  // Anything else still takes the Action.
+  assert.deepEqual(selectDefaultPaymentOption(pay(1, ["id:common:dodge"]).options).resources.map(entry => entry.resourceId),
+    ["economy.action"]);
+});
+
+test("narrowest first: an Extra Attack or Multiattack pool pays before a limited extra Action, which pays before the Action", () => {
+  const pools = [{id: "extra-attack", value: 1, max: 1, recovery: "none"},
+    {id: "haste-extra-action", value: 1, max: 1, recovery: "turn", pays: ["action"], actions: {tagsAny: ["attack"]}}];
+  const cost = {anyOf: [[{capability: "extra-attack", amount: 1}], [{capability: ECONOMY_CAPABILITIES.ACTION, amount: 1}]]};
+  const first = action => selectDefaultPaymentOption(resolvePaymentOptions({cost, action: {tags: ["attack"]},
+    resources: economyResourcesFromActorResources({resources: {action: {value: action, max: 1}}, pools})}).options)
+    .resources.map(entry => entry.resourceId);
+  // The second attack of the Attack action: Extra Attack's pool, so the extra action stays for a Dash.
+  assert.deepEqual(first(0), ["extra-attack"]);
+  // Even with the Action back (Action Surge), the pool the Attack action filled pays first.
+  assert.deepEqual(first(1), ["extra-attack"]);
+});
+
 test("Action Economy uses the shared structured Predicate evaluator", () => {
   const resources = [
     createEconomyResource({

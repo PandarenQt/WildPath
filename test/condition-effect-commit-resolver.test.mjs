@@ -54,7 +54,9 @@ function effectDocument(actor, data) {
       }
       return effect;
     },
-    async delete() {
+    async delete(operation={}) {
+      // What the deleteActiveEffect hook would see: an ending, or not (`{wildpath: {ended: false}}`).
+      actor.deleted = [...(actor.deleted ?? []), [effect.name, operation]];
       actor.effects = actor.effects.filter(candidate => candidate !== effect);
       return true;
     },
@@ -209,6 +211,7 @@ test("an Action's custom effect commits as an ordinary effect with its rules and
 
   await rollbackConditionEffectMutationPlan(actor, mutation, null, committed);
   assert.equal(actor.effects.length, 0, "rolling the first application back removes the effect it created");
+  assert.deepEqual(actor.deleted, [["Blessed", {wildpath: {ended: false}}]], "which is no ending of it");
 });
 
 test("a removal planned without seeing the target (Lesser Restoration's noop plan) ends its condition on the live creature", async () => {
@@ -220,6 +223,7 @@ test("a removal planned without seeing the target (Lesser Restoration's noop pla
   assert.equal((await commitConditionEffectMutationPlan(actor, removal("poisoned", false))).ok, true);
   assert.equal((await commitConditionEffectMutationPlan(actor, removal("exhaustion", true))).ok, true);
   assert.deepEqual(actor.effects.map(effect => [effect.system.type, effect.system.level]), [["exhaustion", 2]], "Poisoned ends; Exhaustion 3 -> 2");
+  assert.deepEqual(actor.deleted, [["Poisoned", {}]], "an ending");
   assert.equal((await commitConditionEffectMutationPlan(actor, removal("blinded", false))).ok, true, "a condition it lacks: nothing to do");
 });
 
@@ -244,6 +248,9 @@ test("another choice of the same custom effect replaces it: Elemental Affinity's
   assert.equal(await rollbackConditionEffectMutationPlan(actor, coldPlan, null, replaced), true);
   assert.deepEqual(actor.effects.map(effect => effect.system.ruleElements[0].data.damageTypes), [["fire"]],
     "rolled back: Fire again, and no Cold beside it");
+  const notEnded = {wildpath: {ended: false}};
+  assert.deepEqual(actor.deleted, [["Elemental Affinity (fire)", notEnded], ["Elemental Affinity (cold)", notEnded]],
+    "neither the replacement nor the rollback is an ending (no effect.ended Triggers run)");
   assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("cold"), existingEffectId: null})).ok, true);
   assert.equal((await commitConditionEffectMutationPlan(actor, {...plan("cold"), existingEffectId: null})).ok, true);
   assert.equal(actor.effects.length, 1, "the same choice again refreshes it");

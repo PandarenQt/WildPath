@@ -1168,6 +1168,24 @@ test("an Action its creature cannot pay for is refused before anything is rolled
   assert.deepEqual(plan.state.pendingRequests, [], "no attack roll was asked for");
 });
 
+test("an extra action given for listed Actions (Haste's) pays them by the tags a Forbid tests them by", () => {
+  const hasted = actorSystem(0, {pools: [{id: "haste-extra-action", value: 1, max: 1, recovery: "turn", pays: ["action"],
+    actions: {tagsAny: ["attack", "id:common:dash"]}}]});
+  const strike = {schemaVersion: 1, id: "action:strike", label: "Strike", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "single", required: true, count: 1}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "blade", expression: {type: "dice", number: 1, faces: 8}, damageType: "slashing", provenance: "weapon-base"}]};
+  const attack = planStagedActionResolution({id: "resolution:hasted-strike", actorSystem: hasted, action: definitionAction(strike),
+    source: {actorId: "actor-source"}, targets: [target("orc")]});
+  assert.notEqual(attack.state.status, RESOLUTION_STATE_STATUS.FAILED, JSON.stringify(attack.state.errors));
+  // The payment stage pays it from the extra action too.
+  const dash = {schemaVersion: 1, id: "common:dash", label: "Dash", costs: {allOf: [{capability: "action", amount: 1}]},
+    targeting: {type: "self"}};
+  const dashed = planStagedActionResolution({id: "resolution:hasted-dash", actorSystem: hasted, action: definitionAction(dash),
+    source: {actorId: "actor-source"}});
+  assert.equal(dashed.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(dashed.state.errors));
+  assert.deepEqual(paidUpdates(dashed.state), {"system.pools.0.value": 0});
+});
+
 test("drop to 0: Relentless Endurance keeps 1 HP for a use; a save keeps it up (or not); radiant bars Undead Fortitude; massive damage kills", () => {
   const blast = (damageType, amount) => ({schemaVersion: 1, id: `action:blast-${damageType}-${amount}`, label: "Blast", costs: {allOf: []},
     targeting: {type: "single", required: true, count: 1},

@@ -757,7 +757,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Handy Haversack | equipment24 | Handy Haversack (gear) | — |
 | Harm | spells24 | Harm (automated) | — |
 | Harpy | actors24 | Harpy (3 items) | — |
-| Haste | spells24 | Haste (Cast) (automated) | "Apply Lethargy" is passive or triggered: not automated |
+| Haste | spells24 | Haste (Cast) (automated) | — |
 | Hat of Disguise | equipment24 | Hat of Disguise (gear), Hat of Disguise: Disguise Self (automated) | effect: "Disguised" marks its creature (narrative) |
 | Hat of Many Spells | equipment24 | Hat of Many Spells (gear), Hat of Many Spells: Enlarge/Reduce (automated), Hat of Many Spells: Faerie Fire (automated), Hat of Many Spells: Fireball (automated), Hat of Many Spells: Invisibility (automated), Hat of Many Spells: Lightning Bolt (automated), Hat of Many Spells: Phantasmal Force (automated), Hat of Many Spells: Polymorph (automated), Hat of Many Spells: Stinking Cloud (automated) | "Unknown Spell Check" is passive or triggered: not automated; effect: "Seeing Illusions" marks its creature only; its rules are by hand; "Phantasm Damage" is passive or triggered: not automated; transform: a Beast the caster chooses; what the creature may do in its form is by hand |
 | Hawk | actors24 | Hawk (2 items) | — |
@@ -1165,7 +1165,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Potion of Mind Reading | equipment24 | Potion of Mind Reading: Detect Thoughts (manual) | cast: its 10 minutes (its text) is by hand; it lasts as the spell does; not automated (utility, narrative): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; save: a failure marks its creature (narrative) |
 | Potion of Poison | equipment24 | Potion of Poison (automated) | — |
 | Potion of Resistance | equipment24 | Potion of Resistance (automated) | — |
-| Potion of Speed | equipment24 | Potion of Speed: Haste (automated) | "Apply Lethargy" is passive or triggered: not automated |
+| Potion of Speed | equipment24 | Potion of Speed: Haste (automated) | — |
 | Potion of Vitality | equipment24 | Potion of Vitality (automated) | effect: "Full of Vitality" marks its creature only; its rules are by hand |
 | Potion of Water Breathing | equipment24 | Potion of Water Breathing (automated) | effect: "Water Breather" marks its creature (narrative) |
 | Potter's Tools | equipment24 | Potter's Tools (gear), Potter's Tools (automated) | — |

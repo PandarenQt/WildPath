@@ -251,6 +251,9 @@ The largest gaps left, all sources:
 - non-slot choices (47), bonus amounts it cannot show (46), damage formulas such as cantrip tables (45);
 - more targets with a higher slot (42), `ArmorClass` rules (41).
 
+The resource row does not edit a limited extra Action's `pays` and `actions` (2026-11-07, Haste's extra action): the
+census counts them as `GrantResource.pays` and `GrantResource.actions`, so such a grant is edited in Advanced only.
+
 Live (two browsers, 14.369), on world copies of SRD Items:
 - Battleaxe's Builder showed martial / battleaxe / Topple and no "Advanced" line. Choosing Vex changed only
   `attack.weapon.mastery`.

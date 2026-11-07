@@ -5,6 +5,12 @@ import {
 import {CONDITION_EFFECT_ACTIONS} from "./effect-resolver.mjs";
 import {collectionContents} from "../helpers/collections.mjs";
 
+/**
+ * A deletion that is no ending of the effect (the rollback of the Action that made it, its replacement by another choice
+ * of itself): the deleteActiveEffect hook sees the flag and runs none of its `effect.ended` Triggers.
+ */
+const NOT_ENDED = Object.freeze({wildpath: {ended: false}});
+
 export const CONDITION_EFFECT_COMMIT_CODES = Object.freeze({
   OK: "OK",
   INVALID_PLAN: "INVALID_PLAN",
@@ -57,13 +63,13 @@ export async function rollbackConditionEffectMutationPlan(actor, plan, _mutation
       // A replacement (another choice of a custom effect: a different id) is removed before the original comes back.
       if ( commitResult.after?.id && (commitResult.after.id !== commitResult.before.id) ) {
         const replacement = findConditionEffect(actor, commitResult.after);
-        if ( replacement ) await deleteConditionEffect(replacement, persistence);
+        if ( replacement ) await deleteConditionEffect(replacement, persistence, NOT_ENDED);
       }
       return await restoreConditionEffectSnapshot(actor, commitResult.before, persistence);
     }
 
     const created = commitResult.after ? findConditionEffect(actor, commitResult.after) : null;
-    if ( created ) await deleteConditionEffect(created, persistence);
+    if ( created ) await deleteConditionEffect(created, persistence, NOT_ENDED);
     return true;
   } catch (_error) {
     return false;
@@ -95,7 +101,7 @@ async function applyBinaryConditionDelta(actor, plan, existingEffect, levels, pe
   if ( existingEffect && plan.definition?.custom && stored && ((stored.name !== plan.definition.name)
     || (JSON.stringify(stored.ruleElements ?? []) !== JSON.stringify(plan.definition.ruleElements ?? []))) ) {
     const replacement = await createConditionEffect(actor, plan, null, persistence);
-    await deleteConditionEffect(existingEffect, persistence);
+    await deleteConditionEffect(existingEffect, persistence, NOT_ENDED);
     return replacement;
   }
   const effect = existingEffect ?? await createConditionEffect(actor, plan, null, persistence);
@@ -178,10 +184,11 @@ async function updateConditionEffect(effect, updates, persistence) {
   return effect;
 }
 
-async function deleteConditionEffect(effect, persistence) {
+async function deleteConditionEffect(effect, persistence, operation={}) {
   const deleted = await persistence.deleteDocument({
     document: effect,
     documentRef: effect.uuid ?? effect.id ?? null,
+    operation,
     metadata: {
       resolver: "ConditionEffectCommitResolver",
       effectId: effect.id ?? null

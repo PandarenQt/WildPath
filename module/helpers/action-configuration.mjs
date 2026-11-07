@@ -10,6 +10,7 @@ import {
   validateActionDefinition
 } from "./action-definitions.mjs";
 import {evaluatePredicate} from "./predicates.mjs";
+import {actionTags} from "./rule-elements.mjs";
 import {evaluateValueExpression} from "./value-expressions.mjs";
 
 export const ACTION_CHOICE_TYPES = Object.freeze({
@@ -1691,7 +1692,8 @@ function actionForPayment(definition) {
     slug: definition.slug,
     type: definition.category,
     name: definition.label,
-    tags: [...(definition.tags ?? [])],
+    // The tags a Forbid tests it by (`id:common:dash`, `attack`), which a limited extra Action's predicate reads too.
+    tags: actionTags(definition),
     metadata: {
       actionDefinitionId: definition.id,
       ...(definition.metadata ?? {})

@@ -83,6 +83,36 @@
                 ],
                 "mode": "advantage"
               }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "haste-extra-action",
+              "type": "GrantResource",
+              "data": {
+                "resourceId": "haste-extra-action",
+                "label": "WILDPATH.RESOURCES.ExtraAction",
+                "maximum": 1,
+                "recovery": "turn",
+                "pays": [
+                  "action"
+                ],
+                "actions": {
+                  "tagsAny": [
+                    "attack",
+                    "id:common:grapple",
+                    "id:common:shove",
+                    "id:common:push",
+                    "id:common:dash",
+                    "id:common:disengage",
+                    "id:common:hide",
+                    "id:common:utilize"
+                  ],
+                  "notTagsAny": [
+                    "spell",
+                    "cost:bonus-action"
+                  ]
+                }
+              }
             }
           ],
           "duration": {
@@ -130,9 +160,7 @@
         "castBy": "Potion of Speed"
       },
       "conversion": {
-        "notes": [
-          "\"Apply Lethargy\" is passive or triggered: not automated"
-        ]
+        "notes": []
       },
       "price": 20000,
       "rarity": "veryRare"

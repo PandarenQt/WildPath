@@ -33,7 +33,10 @@ export function foundryActorSystemSnapshot(actor: ActorSourceDocument): Record<s
   }
 }
 
-/** Only canonical resource outputs cross from prepared data; authored fields stay source-based. */
+/**
+ * Only canonical resource outputs cross from prepared data (value, max, and a granted pool's transient `pays` and
+ * `actions`: what else it pays, for which Actions); authored fields stay source-based.
+ */
 function projectEffectiveResources(snapshot: Record<string, unknown>, system: unknown): void {
   if ( snapshot.resources === undefined && snapshot.pools === undefined ) return;
   const prepared = requireRecord(system, "Actor.system");
@@ -60,7 +63,12 @@ function projectEffectiveResources(snapshot: Record<string, unknown>, system: un
     for ( const entry of snapshot.pools ) {
       const pool = requireRecord(entry, "source pool");
       if ( typeof pool.id !== "string" || !pool.id ) throw new TypeError("Source pool ID is required.");
-      projectResource(pool, effectivePools.get(pool.id), `pools.${pool.id}`);
+      const effective = effectivePools.get(pool.id);
+      projectResource(pool, effective, `pools.${pool.id}`);
+      if ( Array.isArray(effective?.pays) ) {
+        pool.pays = structuredClone(effective.pays);
+        if ( effective.actions ) pool.actions = structuredClone(effective.actions);
+      }
     }
   }
 }

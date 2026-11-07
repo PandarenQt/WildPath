@@ -391,6 +391,19 @@ test("granted resources come from every owner's GrantResource, with level-scaled
   assert.deepEqual(grantedResourcesFromRuleElements([]), []);
 });
 
+test("a GrantResource may pay other capabilities, for the Actions its predicate allows (a limited extra Action)", () => {
+  const grant = data => collectRuleElementContributions({ruleElements: [{schemaVersion: 1, id: "extra", type: "GrantResource",
+    data: {resourceId: "extra", maximum: 1, recovery: "turn", ...data}}]});
+  const [extra] = grant({pays: ["action"], actions: {tagsAny: ["id:common:dash"]}}).contributions.resources;
+  assert.deepEqual([extra.pays, extra.actions], [["action"], {tagsAny: ["id:common:dash"]}]);
+  const [plain] = grant({}).contributions.resources;
+  assert.deepEqual(["pays" in plain, "actions" in plain], [false, false], "a pool that pays only itself says nothing more");
+  assert.equal(grant({pays: "action"}).ok, false, "pays is a list");
+  assert.equal(grant({pays: [""]}).ok, false);
+  assert.equal(grant({pays: ["action"], actions: {unknownKey: true}}).ok, false, "actions is a predicate");
+  assert.equal(grant({pays: ["action"], actions: ["id:common:dash"]}).ok, false);
+});
+
 test("AbilityScore: add up to a maximum, at least, at most, or set; in that order", async () => {
   const {abilityScoreAfter, abilityScoreChangesFromRuleElements} = await import("../module/helpers/rule-elements.mjs");
   const change = (mode, value, maximum) => ({mode, value, maximum});

@@ -79,6 +79,89 @@
                 ],
                 "mode": "advantage"
               }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "haste-extra-action",
+              "type": "GrantResource",
+              "data": {
+                "resourceId": "haste-extra-action",
+                "label": "WILDPATH.RESOURCES.ExtraAction",
+                "maximum": 1,
+                "recovery": "turn",
+                "pays": [
+                  "action"
+                ],
+                "actions": {
+                  "tagsAny": [
+                    "attack",
+                    "id:common:grapple",
+                    "id:common:shove",
+                    "id:common:push",
+                    "id:common:dash",
+                    "id:common:disengage",
+                    "id:common:hide",
+                    "id:common:utilize"
+                  ],
+                  "notTagsAny": [
+                    "spell",
+                    "cost:bonus-action"
+                  ]
+                }
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "effect-ended",
+              "type": "Trigger",
+              "data": {
+                "kind": "automation",
+                "event": "effect.ended",
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:haste-ended",
+                  "label": "Haste",
+                  "costs": {
+                    "allOf": []
+                  },
+                  "effects": [
+                    {
+                      "id": "effect-1",
+                      "type": "condition",
+                      "conditionId": "incapacitated",
+                      "duration": {
+                        "value": 1,
+                        "units": "rounds",
+                        "expiry": "turnEnd"
+                      }
+                    },
+                    {
+                      "id": "effect-2",
+                      "type": "effect",
+                      "name": "Lethargy",
+                      "img": "icons/tools/nautical/anchor-blue.webp",
+                      "ruleElements": [
+                        {
+                          "schemaVersion": 1,
+                          "id": "lethargy-1",
+                          "type": "ResourceCap",
+                          "data": {
+                            "resources": [
+                              "movement"
+                            ],
+                            "maximum": 0
+                          }
+                        }
+                      ],
+                      "duration": {
+                        "value": 1,
+                        "units": "rounds",
+                        "expiry": "turnEnd"
+                      }
+                    }
+                  ]
+                }
+              }
             }
           ],
           "duration": {

@@ -239,3 +239,39 @@ test("atMost: the number at a path is at most a value; missing is not", async ()
   assert.equal(evaluatePredicate(near, {event: {data: {}}}).ok, false);
   assert.equal(evaluatePredicate({atMost: {path: "x"}}, {}).code, "INVALID_PREDICATE");
 });
+
+test("an effect that ends runs only its own effect.ended Triggers, on the active GM, but not when rolled back (Haste)", async () => {
+  const fs = await import("node:fs");
+  const {automationTriggers, createFoundryAutomationDispatcher} = await import("../module/adapters/foundry-v14-automation-dispatcher.mjs");
+  const haste = JSON.parse(fs.readFileSync("packs/_source/srd-items/haste-cast-phbsplHaste00000.json", "utf8"));
+  const hasted = haste.system.definition.effects[0];
+  const effect = id => ({id, type: "effect", name: hasted.name, disabled: false, system: {ruleElements: structuredClone(hasted.ruleElements)}});
+  const ended = effect("hasted-a");
+  const actor = {id: "pc", uuid: "Actor.pc", documentName: "Actor", items: [], effects: [effect("hasted-b")], statuses: new Set(),
+    getActiveTokens: () => [{id: "token-pc", parent: {id: "scene"}}]};
+  ended.parent = actor;
+  const event = {type: "effect.ended"};
+  const [own, ...others] = automationTriggers(actor, event, {}, [ended]);
+  assert.deepEqual([own.id, others.length], ["automation:pc:hasted-a:effect-ended", 0], "never another effect's");
+  assert.deepEqual(own.definition.effects.map(entry => entry.conditionId ?? entry.name), ["incapacitated", "Lethargy"]);
+  assert.equal(automationTriggers(actor, {type: "turn.ended"}, {}, [ended]).length, 0);
+
+  const dispatcher = gm => {
+    const intents = [];
+    const resolveAction = async ({intent, action}) => { intents.push({intent, action}); return {ok: true}; };
+    const coordinator = {resolveAuthorityAction: async ({onComplete}) => { onComplete({state: {status: "completed"}}); return {ok: true}; }};
+    return {intents, automation: createFoundryAutomationDispatcher({game: {user: {id: gm}, users: {activeGM: {id: "gm"}}}, coordinator,
+      resolveAction, logger: {warn() {}}})};
+  };
+  const {intents, automation} = dispatcher("gm");
+  assert.equal((await automation.onEffectDeleted(ended, {})).length, 1);
+  assert.deepEqual([intents[0].action.id, intents[0].intent.actorRef, intents[0].intent.targetRefs],
+    ["action:haste-ended", "Actor.pc", [{actorRef: "Actor.pc", tokenId: "token-pc", sceneId: "scene"}]], "on its creature, as its own Action");
+  assert.deepEqual(await automation.onEffectDeleted(ended, {wildpath: {ended: false}}), [], "a rollback or replacement is no ending");
+  const plain = {...effect("plain"), parent: actor, system: {ruleElements: hasted.ruleElements.filter(rule => rule.type !== "Trigger")}};
+  assert.deepEqual(await automation.onEffectDeleted(plain, {}), [], "an effect with no effect.ended Trigger");
+  assert.equal(intents.length, 1);
+  const player = dispatcher("player");
+  assert.deepEqual(await player.automation.onEffectDeleted(ended, {}), [], "only the active GM runs it");
+  assert.equal(player.intents.length, 0);
+});

@@ -185,7 +185,13 @@ export function economyResourcesFromActorResources(actorSystem) {
       current: pool.value,
       maximum: pool.max,
       unit: ECONOMY_UNITS.POINTS,
-      paymentCapabilities: isPact ? [pool.id, ...Array.from({length: pact.level}, (_, index) => spellSlotPoolId(index + 1))] : [pool.id],
+      paymentCapabilities: isPact ? [pool.id, ...Array.from({length: pact.level}, (_, index) => spellSlotPoolId(index + 1))]
+        : [pool.id, ...(pool.pays ?? [])],
+      // A limited extra Action (GrantResource `pays`, `actions`: Haste's) pays only for the Actions its predicate allows.
+      predicate: pool.actions ?? null,
+      // Narrowest first: a pool paying only itself (Extra Attack's, a Multiattack's attacks) before a limited extra Action
+      // (5), and that before the creature's own Action (10), which pays anything; so neither is spent where a narrower one pays.
+      priority: pool.pays?.length ? 5 : 1,
       refreshPolicies: [mapRecoveryToRefresh(pool.recovery)],
       source: {type: "actorPool", slug: pool.id},
       metadata: isPact ? {label: pool.label, castingLevel: pact.level} : {label: pool.label}

@@ -1,6 +1,6 @@
 import { actionDefinitionFromAction } from "../helpers/action-definitions.mjs";
 import { effectGroupKey } from "../helpers/common-actions.mjs";
-import { createAutomationEvent, createTriggerDefinition, evaluateTrigger, reactionPolicyOf } from "../helpers/automation-events.mjs";
+import { AUTOMATION_EVENT_TYPES, createAutomationEvent, createTriggerDefinition, evaluateTrigger, reactionPolicyOf } from "../helpers/automation-events.mjs";
 import { sunlightContext } from "./foundry-v14-sunlight.mjs";
 import { tokensAround } from "./foundry-v14-auras.mjs";
 import { conditionsFrom, effectsFrom } from "../helpers/effect-sources.mjs";
@@ -26,6 +26,7 @@ const definitionFor = actionDefinitionFromAction;
 const triggerDefinition = createTriggerDefinition;
 const triggerMatches = evaluateTrigger;
 const automationEvent = createAutomationEvent;
+const EFFECT_ENDED = AUTOMATION_EVENT_TYPES.EFFECT_ENDED;
 /**
  * Runs an Action the authority starts itself (a lasting area's effect, an automatic trigger) with one creature as
  * its only target, and waits for it to finish. Saves route to that creature's controller, as for any Action.
@@ -90,14 +91,15 @@ export function repeatSaveGroups(effects, eventType) {
 }
 /**
  * An Actor's automatic triggers that answer `event`: `Trigger` RuleElements of kind `automation` (the default) on
- * its active Items and enabled effects. Condition effects answer through their own lifecycle and are skipped. The
- * Action is the trigger's inline `action`, the Item itself when it is an Action, or the Action Item `actionId` names.
+ * its active Items and enabled effects, or on `owners` alone when given (an effect that just ended: only its own).
+ * Condition effects answer through their own lifecycle and are skipped. The Action is the trigger's inline `action`,
+ * the Item itself when it is an Action, or the Action Item `actionId` names.
  */
-export function automationTriggers(actor, event, context = {}) {
+export function automationTriggers(actor, event, context = {}, owners = null) {
     const items = [...(actor.items ?? [])];
-    const owners = [...items.filter(item => item.system?.active !== false),
+    const answering = owners ?? [...items.filter(item => item.system?.active !== false),
         ...[...(actor.effects ?? [])].filter(effect => !effect.disabled && (effect.type !== "condition"))];
-    return owners.flatMap(owner => (owner.system?.ruleElements ?? []).flatMap(element => {
+    return answering.flatMap(owner => (owner.system?.ruleElements ?? []).flatMap(element => {
         const data = element.data ?? {};
         if ((element.type !== "Trigger") || (element.enabled === false)
             || ((data.kind ?? data.triggerKind ?? "automation") !== "automation"))
@@ -157,7 +159,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
     // A swallower's Hit Points as each creature it swallowed starts its turn (`on: "swallowed"`), by swallower and creature.
     const swallowerHealth = new Map();
     const isActiveGM = () => game.users?.activeGM?.id === game.user.id;
-    async function dispatch(type, { actor, token = null, data = {} }) {
+    async function dispatch(type, { actor, token = null, data = {}, owners = null }) {
         if (!actor || !isActiveGM())
             return [];
         const event = automationEvent({ id: `${type}:${actor.uuid}:${++sequence}`, type, actorId: actor.id,
@@ -166,7 +168,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
         const states = [];
         // Predicates see its conditions too ("unless the azer has the Incapacitated condition").
         const context = { ...sunlightContext(token), conditions: [...(actor.statuses ?? [])] };
-        for (const { id, definition, label, policy, around } of automationTriggers(actor, event, context)) {
+        for (const { id, definition, label, policy, around } of automationTriggers(actor, event, context, owners)) {
             if (["others", "swallowed"].includes(String(around?.on)))
                 continue;
             // A "you can" (Persistent Rage when initiative is rolled): Never skips it, Always uses it, Ask asks its controller.
@@ -321,5 +323,17 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
         }
         return drawn;
     }
-    return { dispatch, report, handleQuery };
+    /**
+     * An effect that ended (deleted, but not as a rollback or a replacement: `{wildpath: {ended: false}}`): its own
+     * `effect.ended` Triggers run as authority Actions on its creature (Haste's lethargy). Only the active GM dispatches.
+     */
+    async function onEffectDeleted(effect, options = {}) {
+        const actor = effect?.parent;
+        if ((options?.wildpath?.ended === false) || (actor?.documentName !== "Actor")
+            || !(effect.system?.ruleElements ?? []).some(rule => (rule.type === "Trigger") && (rule.data?.event === EFFECT_ENDED)))
+            return [];
+        const token = actor.isToken ? (actor.token ?? null) : (actor.getActiveTokens?.(false, true)?.[0] ?? null);
+        return dispatch(EFFECT_ENDED, { actor, token, data: { effectId: effect.id }, owners: [effect] });
+    }
+    return { dispatch, report, handleQuery, onEffectDeleted };
 }

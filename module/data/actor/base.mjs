@@ -331,10 +331,20 @@ export default class WildPathBaseActor extends foundry.abstract.TypeDataModel {
     // pool what its grants give (`GrantResource`).
     const granted = new Map([...this.spellcasting.slots.map((count, index) => [spellSlotPoolId(index + 1), count]),
       [PACT_SLOT_POOL, this.spellcasting.pact?.slots ?? 0], ...Object.entries(this.hitDice ?? {})]);
-    for ( const {id, maximum} of this.parent.getGrantedResources?.() ?? [] ) granted.set(id, (granted.get(id) ?? 0) + maximum);
+    // What else a granted pool pays, and for which Actions (a limited extra Action: Haste's), from its first grant saying so.
+    const pays = new Map();
+    for ( const grant of this.parent.getGrantedResources?.() ?? [] ) {
+      granted.set(grant.id, (granted.get(grant.id) ?? 0) + grant.maximum);
+      if ( grant.pays && !pays.has(grant.id) ) pays.set(grant.id, grant);
+    }
     for ( const pool of this.pools ) {
       pool.modifierBonus = (this.parent.getStatistic?.(`pools.${pool.id}.max`)?.totalModifier ?? 0)
         + (granted.get(pool.id) ?? 0);
+      // Transient, like modifierBonus: recomputed every pass, never stored.
+      delete pool.pays;
+      delete pool.actions;
+      const grant = pays.get(pool.id);
+      if ( grant ) Object.assign(pool, {pays: grant.pays, ...(grant.actions ? {actions: grant.actions} : {})});
     }
   }
 
