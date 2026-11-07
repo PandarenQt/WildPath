@@ -1899,6 +1899,55 @@ test("a feature spending another feature's uses spends that feature's pool (Chan
   }
 });
 
+test("a Tasha's option spending a 2014 class feature's uses spends the 2024 pool (Ki is Monk's Focus)", () => {
+  const spending = target => ({_id: "testLegacyPool01", name: "Option", type: "feat", img: "icons/svg/sun.svg", effects: [],
+    system: {source: SRD, identifier: "option", type: {value: "class"}, uses: {max: "", recovery: []},
+      activities: {a: activity("utility", {activation: {type: "bonus", override: false},
+        consumption: {targets: [{type: "itemUses", value: "1", target: `Compendium.dnd5e.classfeatures.Item.${target}`}]}})}}});
+  for ( const [target, pool] of [["10b6z2W1txNkrGP7", "monk-s-focus"], ["8M7uOPhbTxoxxJSo", "channel-divinity"]] ) {
+    const [item] = convertItem(spending(target), {names: {}}).items;
+    assert.deepEqual(item.system.definition.costs.allOf, [{capability: "bonus-action", amount: 1}, {capability: pool, amount: 1}]);
+    assert.equal(item.flags.wildpath.conversion.notes.some(note => note.startsWith("consumption:")), false);
+  }
+  // Its own uses, which its activity leaves alone, still limit it (Hand of Ultimate Mercy once a long rest; a Rhythm-Maker's
+  // Drum once a dawn, giving back Bardic Inspiration).
+  const limited = (value, target) => {
+    const option = spending(target);
+    option.system.uses = {max: "1", recovery: [{period: "lr", type: "recoverAll"}]};
+    option.system.activities.a.consumption.targets[0].value = value;
+    return convertItem(option, {names: {}}).items.find(item => item.type === "action").system.definition;
+  };
+  assert.deepEqual(limited("1", "10b6z2W1txNkrGP7").costs.allOf.map(cost => cost.capability), ["bonus-action", "monk-s-focus", "option"]);
+  const drum = limited("-1", "hpLNiGq7y67d2EHA");
+  assert.deepEqual([drum.costs.allOf.map(cost => cost.capability), drum.restores.map(entry => entry.resourceId)],
+    [["bonus-action", "option"], ["bardic-inspiration"]]);
+  // More points chosen when used (Bastion of Law's 1 to 5) are by hand, and say so.
+  const bastion = spending("LBKChJY5n02Afhnq");
+  bastion.system.activities.a.consumption = {scaling: {allowed: true, max: "5"},
+    targets: [{...bastion.system.activities.a.consumption.targets[0], scaling: {mode: "amount", formula: ""}}]};
+  assert.deepEqual(convertItem(bastion, {names: {}}).items[0].flags.wildpath.conversion.notes
+    .filter(note => note.startsWith("consumption:")), ["consumption: itemUses 1 spent; more chosen is by hand"]);
+  // A 2014 Seeking Spell's reroll is 2 Sorcery Points, not the 2024 one's 1.
+  const seeking = spending("LBKChJY5n02Afhnq");
+  seeking.system.identifier = "seeking-spell";
+  seeking.system.activities.a.consumption.targets[0].value = "2";
+  assert.deepEqual(convertItem(seeking, {names: {}}).items[0].flags.wildpath.testOffer,
+    {tests: ["attack"], reroll: true, tagsAll: ["spell"], pool: "font-of-magic", amount: 2});
+});
+
+test("a 2014-era enchantment with only a numeric mode (Tasha's Enhanced Weapon) gives its magic bonus", () => {
+  const infusion = {_id: "testEnhancedWea1", name: "Enhanced Weapon", type: "feat", img: "icons/svg/sword.svg",
+    effects: [{_id: "enhancedwpn00001", name: "Enhanced Weapon", type: "enchantment", transfer: false, disabled: false,
+      changes: [{key: "system.magicalBonus", mode: 2, value: "1"}]}],
+    system: {source: SRD, identifier: "enhanced-weapon", type: {value: "class", subtype: "artificerInfusion"}, uses: {max: "", recovery: []},
+      activities: {a: activity("enchant", {activation: {type: "longRest", override: false}, restrictions: {type: "weapon"},
+        effects: [{_id: "enhancedwpn00001"}]})}}};
+  const [item] = convertItem(infusion).items;
+  assert.deepEqual(item.system.definition.enchant.effects[0].ruleElements.map(rule => [rule.type, rule.data.domains, rule.data.value]),
+    [["Modifier", ["attack"], 1], ["Modifier", ["damage"], 1]]);
+  assert.equal(item.flags.wildpath.conversion.notes.some(note => note.startsWith("not automated (enchant)")), false);
+});
+
 test("a concentration spell that sustains nothing converted has its caster concentrate for its duration (Fog Cloud)", () => {
   const fog = {_id: "testFogCloud0001", name: "Fog Cloud", type: "spell", img: "icons/svg/cloud.svg", effects: [],
     system: {source: SRD, identifier: "fog-cloud", level: 1, school: "con", properties: ["vocal", "somatic", "concentration"],

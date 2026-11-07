@@ -1902,7 +1902,7 @@ export function withTestOffers(offer, roller, rollerSystem, game, test, {chooser
     // Only while its creature has a status (Fanatical Focus: raging).
     if ( spec.whileStatus && !roller?.statuses?.has?.(spec.whileStatus) ) continue;
     // A free one (Halfling Luck) names no pool.
-    const payment = spec.pool ? resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: spec.pool, amount: 1}]}})
+    const payment = spec.pool ? resolveActorResourcePayment({actorSystem: rollerSystem, cost: {allOf: [{capability: spec.pool, amount: Number(spec.amount) || 1}]}})
       : {ok: true, mutationPlan: null};
     if ( !payment.ok ) continue;
     // A plain reroll (Disciplined Survivor; Halfling Luck, only on a natural 1: `natural`).
@@ -1967,7 +1967,7 @@ export function withAllyTestOffers(offer, saverToken, definition, game, test, {c
       let system;
       try { system = foundryActorSystemSnapshot(bearer); } catch { continue; }
       // Its pool, and its Reaction too when it names one beside it (`reaction`: Flash of Genius).
-      const payment = resolveActorResourcePayment({actorSystem: system, cost: {allOf: [{capability: spec.pool, amount: 1},
+      const payment = resolveActorResourcePayment({actorSystem: system, cost: {allOf: [{capability: spec.pool, amount: Number(spec.amount) || 1},
         ...((spec.reaction && (spec.pool !== "reaction")) ? [{capability: "reaction", amount: 1}] : [])]}});
       if ( !payment.ok ) continue;
       register(bearer);

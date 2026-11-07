@@ -657,7 +657,8 @@ Live (two browsers, 14.369):
 ## Dice on a failed d20 test (2026-10-20)
 
 A feature flagged `flags.wildpath.testOffer: {pool, faces, tests, refundOnFail?}` adds its die to its creature's own
-offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a use of `pool` (`withTestOffers`):
+offer on a failed test of a listed kind (`check`, `attack`, `save`), paid with a use of `pool` (`withTestOffers`), or
+`amount` uses (2014 Seeking Spell's 2 Sorcery Points; 2026-11-07):
 - **Peerless Skill:** its Bardic Inspiration die (a table by bard level) on a check or attack roll, kept if the roll
   still fails;
 - **Dark One's Own Luck:** a d10 on a check or save, from its own uses.

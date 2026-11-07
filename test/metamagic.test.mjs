@@ -73,6 +73,12 @@ test("Seeking Spell (a test offer): a missed spell attack may be rerolled for 1 
   assert.equal(withTestOffers(null, actor, actor.system, null, "attack", {tags: ["weapon"]}), null, "a spell's attack only");
   assert.equal(withTestOffers(null, sorcerer(["careful"]), sorcerer(["careful"]).system, null, "attack", spellAttack), null);
   assert.equal(withTestOffers(null, actor, sorcerer(["seeking"], {points: 0}).system, null, "attack", spellAttack), null);
+  // A 2014 Seeking Spell's `amount`: 2 points, so not with 1.
+  const legacy = sorcerer(["seeking"], {points: 1});
+  legacy.items[0].flags.wildpath.testOffer.amount = 2;
+  assert.equal(withTestOffers(null, legacy, legacy.system, null, "attack", spellAttack), null, "2 points, with 1 left");
+  legacy.system.pools[0].value = 2;
+  assert.equal(withTestOffers(null, legacy, legacy.system, null, "attack", spellAttack).options.length, 1);
 });
 
 test("Metamagic: Extended doubles to 24 hours at most, with Advantage on Concentration; only for 1 minute or longer", () => {

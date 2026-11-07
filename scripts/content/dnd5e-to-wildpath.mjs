@@ -427,9 +427,11 @@ const SUBTYPE_CLASS = Object.freeze({artificerInfusion: "artificer"});
 function enchantmentRules(effect) {
   const id = slugify(effect.name);
   return effectChanges(effect).flatMap(change => {
+    // dnd5e's 2014-era enchantments (Tasha's infusions) keep only the numeric `mode`.
+    const type = change.type ?? CHANGE_MODES[change.mode];
     // Dice its weapon adds on each hit (Flame Tongue's 2d6 Fire, Frost Brand's 1d6 Cold; a Vicious Weapon's 2d6 of the
     // weapon's type). Only literal dice: True Strike's formula is not a bonus.
-    if ( (change.type === "add") && ["system.damage.parts", "system.damage.base.bonus"].includes(change.key) ) {
+    if ( (type === "add") && ["system.damage.parts", "system.damage.base.bonus"].includes(change.key) ) {
       const [formula, type] = String(change.value ?? "").split(",").map(part => part.trim());
       const extra = /^\d+d\d+$/u.test(formula) ? extraDamageOf(type ? `${formula}[${type}]` : formula) : null;
       return extra ? [{schemaVersion: 1, id: `${id}-damage`, type: "ExtraDamage", data: {domains: ["damage.weapon"], ...extra},
@@ -437,7 +439,7 @@ function enchantmentRules(effect) {
     }
     const value = number(change.value);
     // A magic bonus is added, or raised to (`upgrade`: a +1 Shield, a +2 Weapon).
-    if ( !value || !["add", "upgrade"].includes(change.type) ) return [];
+    if ( !value || !["add", "upgrade"].includes(type) ) return [];
     if ( change.key === "system.magicalBonus" ) return ["attack", "damage"].map(domain => ({schemaVersion: 1, id: `${id}-${domain}`,
       type: "Modifier", data: {domains: [domain], modifierType: "untyped", value}, predicate: {tagsAny: ["weapon:{{host}}"]}}));
     if ( change.key === "system.armor.magicalBonus" ) return [{schemaVersion: 1, id: `${id}-ac`, type: "Modifier",
@@ -1672,11 +1674,13 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     if ( offered ) {
       const faces = offered.reroll ? null : testOfferFaces(activity.roll?.formula, scales);
       const offerPool = offered.pool ?? targetPoolId(activity.consumption?.targets?.[0] ?? {}, pool, names);
+      // What it spends of that pool (2014 Seeking Spell's 2 Sorcery Points; one when unsaid).
+      const offerAmount = number(activity.consumption?.targets?.[0]?.value) ?? 1;
       const bonus = (offered.reroll && activity.roll?.formula) ? formulaExpression(activity.roll.formula, {scales}) : null;
       if ( offered.pool || ((faces || offered.setNatural || offered.reroll) && offerPool) ) {
         const {bonusFormula: _formula, ...row} = offered;
         testOffer = offered.pool ? structuredClone(row)
-          : {...row, pool: offerPool, ...(faces ? {faces} : {}), ...(bonus ? {bonus} : {})};
+          : {...row, pool: offerPool, ...((offerAmount > 1) ? {amount: offerAmount} : {}), ...(faces ? {faces} : {}), ...(bonus ? {bonus} : {})};
         continue;
       }
     }
@@ -3952,6 +3956,20 @@ function missingCasts(document, activities) {
 const LEGACY_SPELLS = Object.freeze({Mzh95utKDPIrjiH8: "phbsplDetectEvil"});
 
 /**
+ * 2014 class features (dnd5e's classfeatures pack) whose uses a Tasha's option spends, as the 2024 feature that is
+ * that pool now (Ki is Monk's Focus).
+ */
+const LEGACY_FEATURES = Object.freeze({"10b6z2W1txNkrGP7": "Monk's Focus", LBKChJY5n02Afhnq: "Font of Magic",
+  "8M7uOPhbTxoxxJSo": "Channel Divinity", YpiLQEKGalROn7iJ: "Channel Divinity", swK0r5TOIxredxWS: "Wild Shape",
+  hpLNiGq7y67d2EHA: "Bardic Inspiration"});
+
+/** The name of the feature a dnd5e consumption target names (`feat:<identifier>` or a uuid), or null. */
+function targetName(target, names) {
+  const id = String(target).split(".").pop();
+  return names[target] ?? names[id] ?? LEGACY_FEATURES[id] ?? null;
+}
+
+/**
  * A cast activity (a monster's Spellcasting, an item's spell) as its spell's Action: the spell converted with the
  * creature's own save DC and casting ability, at the activity's cost and uses, with no spell slot. Null when the
  * spell is not among `spells`, so the activity stays a manual Action.
@@ -4278,6 +4296,7 @@ function summonDefinition({document, activity, system, spell, level, notes, pool
     const spendId = spending ? targetPoolId(spending, pool, names) : null;
     // Spent by the number chosen, not its fixed cost.
     if ( spendId ) definition.costs = {...definition.costs, allOf: (definition.costs?.allOf ?? []).filter(cost => cost.capability !== spendId)};
+    notes.splice(0, notes.length, ...notes.filter(note => !note.endsWith(MORE_BY_HAND)));
     definition.configuration = [...(definition.configuration ?? []), {id: "summon-count", type: "number", label: "Creatures",
       required: true, min: 1, ...(number(scaling.max) ? {max: number(scaling.max)} : {}),
       effects: [{type: "spendAmount", collection: "summon", ...(spendId ? {resourceId: spendId} : {})}]}];
@@ -4732,7 +4751,7 @@ function manualDefinition({document, activity, system, spell, level, notes, pool
 function spentPool(activities, names) {
   const target = activities.flatMap(activity => activity.consumption?.targets ?? [])
     .find(entry => (entry.type === "itemUses") && entry.target)?.target;
-  const name = target ? (names[target] ?? names[String(target).split(".").pop()]) : null;
+  const name = target ? targetName(target, names) : null;
   return name ? {id: slugify(name), notes: [], rule: null} : null;
 }
 
@@ -4975,9 +4994,12 @@ function tradesPools({document, activity, pool, names, scales}) {
  */
 function targetPoolId(target, pool, names) {
   if ( !target.target ) return pool?.id ?? null;
-  const name = names[target.target] ?? names[String(target.target).split(".").pop()];
+  const name = targetName(target.target, names);
   return name ? slugify(name) : (pool?.id ?? null);
 }
+
+/** The end of the note on a spend whose larger amount, chosen when used, nothing spends (consumptionDefinition). */
+const MORE_BY_HAND = "spent; more chosen is by hand";
 
 /**
  * Its consumption targets (dnd5e), on the definition:
@@ -4995,6 +5017,7 @@ function consumptionDefinition(definition, {document, activity, notes, pool, nam
   const restores = [];
   const slotLevels = [];
   const scaled = [];
+  let elsewhere = false;
   const note = target => notes.push(`consumption: ${target.type} ${target.value ?? ""} not converted`.trim());
   // An activity's own uses, else (dnd5e keeps a once-a-day on the item, its activity spending "activityUses": a Dretch's
   // Fetid Cloud) the item's.
@@ -5040,13 +5063,28 @@ function consumptionDefinition(definition, {document, activity, notes, pool, nam
       continue;
     }
     const id = poolOfTarget(target);
+    if ( (target.type === "itemUses") && target.target && id && pool && (id !== pool.id) ) elsewhere = true;
     // A formula given back (Persistent Rage's "-@scale.barbarian.rage"): worked out for its creature when used.
     const expression = ((amount == null) && text.startsWith("-")) ? formulaExpression(text.slice(1), {scales, pool: id}) : null;
     if ( !id || !(amount || expression) ) note(target);
-    else if ( amount > 0 ) definition.costs.allOf.push({capability: id, amount});
+    else if ( amount > 0 ) {
+      definition.costs.allOf.push({capability: id, amount});
+      // More of another feature's pool chosen when used (Bastion of Law's 1 to 5 Sorcery Points): its least is spent, the
+      // rest by hand, unless a number chosen spends it (`spendAmount`: Staff of Striking's dice, a summon's count).
+      // shortcut: its own pool's larger amount (Ioun Stone of Absorption's) is spent at its least without this note; upgrade
+      // with a by-hand census pass over own-pool spends.
+      const more = `consumption: ${target.type} ${text} ${MORE_BY_HAND}`;
+      // Once, though a by-hand Action works its definition out again (convertActivity's fallback).
+      if ( target.target && scaling.allowed && (target.scaling?.mode === "amount") && !notes.includes(more) ) notes.push(more);
+    }
     else restores.push({resourceId: id, amount: expression ? 1 : -amount, ...(expression ? {amountExpression: expression} : {}),
       refuseWhenFull: true});
   }
+  // Its own uses, which no activity of it spends, beside another feature's pool it spends or gives back (Hand of Ultimate
+  // Mercy's once a long rest, for Ki; a Rhythm-Maker's Drum's once a dawn, giving back Bardic Inspiration): one of them too.
+  if ( elsewhere && !Object.values(document.system?.activities ?? {}).some(other => (other?.consumption?.targets ?? [])
+    .some(entry => ((entry.type === "activityUses") || ((entry.type === "itemUses") && (targetPoolId(entry, pool, names) === pool.id)))
+      && !givesBack(entry.value))) ) definition.costs.allOf.push({capability: pool.id, amount: 1});
   const lowest = byLevel ? (number(byLevel.target) || 1) : null;
   const highest = byLevel ? Math.min(number(scaling.max) ?? 9, 9) : 9;
   if ( byLevel && (number(byLevel.value) < 0) ) {
@@ -5059,8 +5097,7 @@ function consumptionDefinition(definition, {document, activity, notes, pool, nam
     for ( let level = lowest; level <= highest; level++ ) {
       const costs = scaled.map(({target, id, text}) => ({target, id, amount: evaluateValueExpression(formulaExpression(
         text.replaceAll("@scaling", String(level - lowest + 1)), {scales}), {}).value}));
-      const label = costs.map(({target, amount}) => `${amount} ${target.target ? (names[target.target] ?? names[String(target.target)
-        .split(".").pop()] ?? "") : document.name}`).join(", ");
+      const label = costs.map(({target, amount}) => `${amount} ${target.target ? (targetName(target.target, names) ?? "") : document.name}`).join(", ");
       options.push({id: `level-${level}`, label: `Level ${level}${label ? ` (${label})` : ""}`, value: level, effects: [
         ...costs.filter(cost => cost.amount > 0).map(cost => ({type: "add-cost", cost: {allOf: [{capability: cost.id, amount: cost.amount}]}})),
         {type: "restore", resourceId: `spell-slot.${level}`, amount: 1}]});
@@ -5460,6 +5497,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
       ? formulaExpression(String(activity.consumption.scaling.max), {scales}) : null;
     const max = number(activity.consumption.scaling.max) ?? (formula ? {type: "max", terms: [{type: "constant", value: 1}, formula]} : null);
     definition.costs = {...definition.costs, allOf: (definition.costs?.allOf ?? []).filter(cost => cost.capability !== spendId)};
+    notes.splice(0, notes.length, ...notes.filter(note => !note.endsWith(MORE_BY_HAND)));
     definition.configuration = [...(definition.configuration ?? []), {id: "spent", type: "number",
       label: (pool?.id === spendId ? pool?.rule?.data?.label : null) ?? document.name, required: true, min: 1, ...(max ? {max} : {}),
       effects: [{type: "spendAmount", resourceId: spendId, componentIds: [spent.id], collection: spent.collection, faces: spent.faces}]}];
