@@ -1011,7 +1011,8 @@ function createRangeStage() {
           input,
           stage: ACTION_RESOLUTION_STAGES.TARGETING,
           code: ACTION_PIPELINE_CODES.RANGE_UNAVAILABLE,
-          reason: "Range validation requires source footprint and grid distance.",
+          // The code as the reason, as for a target with no footprint below: refusalMessage puts it in words.
+          reason: ACTION_PIPELINE_CODES.RANGE_UNAVAILABLE,
           data: {range, spatial: spatialSummary(input)}
         });
       }

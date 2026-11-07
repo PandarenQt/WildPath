@@ -444,6 +444,21 @@ test("ranged strike validates normal, long, and out-of-range bands before damage
   assert.equal(out.code, ACTION_PIPELINE_CODES.TARGET_OUT_OF_RANGE);
 });
 
+test("a ranged strike whose user has no footprint fails with RANGE_UNAVAILABLE as its reason, for refusalMessage to put in words", () => {
+  const fixture = squareAttackFixture({targetOffset: {i: 6, j: 0}});
+  const planned = planStagedActionResolution({
+    id: "resolution:ranged-no-source",
+    actorSystem: actorSystem(),
+    action: actionItem(rangedStrikeDefinition()),
+    source: {actorId: "actor-source", tokenId: "source"},
+    targeting: {required: true, candidates: [fixture.targetFootprint]},
+    context: spatialContext(fixture.adapter, null, [fixture.targetFootprint])
+  });
+  assert.equal(planned.ok, false);
+  assert.equal(planned.code, ACTION_PIPELINE_CODES.RANGE_UNAVAILABLE);
+  assert.equal(planned.state.errors.at(-1).reason, ACTION_PIPELINE_CODES.RANGE_UNAVAILABLE);
+});
+
 test("save-based burst resolves square and hex area candidates through adapter footprints", async () => {
   for ( const topology of [GRID_TOPOLOGIES.SQUARE, GRID_TOPOLOGIES.HEX] ) {
     const fixture = areaFixture(topology);
