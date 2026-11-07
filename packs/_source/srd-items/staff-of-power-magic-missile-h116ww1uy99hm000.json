@@ -43,7 +43,8 @@
         "count": 3,
         "refinementPolicy": {
           "minSelections": 1
-        }
+        },
+        "repeatable": true
       },
       "damage": [
         {

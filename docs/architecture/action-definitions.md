@@ -179,6 +179,23 @@ A required `count` means exactly that many targets, unless `targeting.refinement
 otherwise. dnd5e's "up to three creatures" (Bless) converts as `{type: "multiple", count: 3, refinementPolicy:
 {minSelections: 1}}`: one target is enough, three at most.
 
+## Repeatable targets (2026-11-07)
+
+`targeting.repeatable: true` makes its `count` that many separate hits its user shares among its targets, one creature
+taking several or each its own (Magic Missile's darts: "you can direct them to hit one creature or several"). The
+resolver input's `refinementPolicy.instances` is that count. One creature targeted takes every hit and as many as the
+count take one each without a question; two or more but fewer than the count are asked for their shares (a number per
+creature in the target-refinement prompt, sent as each select decision's `count`), which must each be at least 1 and add
+up to the count. Each target context carries its `instances`, and the damage resolver gives each instance its own damage
+result, so every hit on one creature is its own damage for its Concentration, a save its damage repeats, and its death
+saves. The damage dice are rolled once for the Action and every hit deals that roll, as every target of any Action does.
+A reaction to the damage answers one hit: its reduction (Stone's Endurance) comes off a creature's first damage result and
+its redirect (Protective Bond) moves only that one.
+A repeatable Action may not have an attack roll (its one roll cannot stand for each hit): Scorching Ray's rays and
+Eldritch Blast's beams each roll their own attack and are not converted as repeatable. The converter reads it from "to
+hit one creature or several" on an Action with no attack. Shortcuts: only damage repeats per instance (no SRD repeatable
+Action heals or applies an effect); the Action Builder cannot set it.
+
 ## Common actions (2026-10-14, after Baldur's Gate 3)
 
 Every creature has the 2024 actions anyone can take, with no Items (`module/helpers/common-actions.mts`):

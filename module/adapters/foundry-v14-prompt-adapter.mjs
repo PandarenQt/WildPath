@@ -383,6 +383,19 @@ function renderRollControl(control) {
 }
 
 function renderTargetListControl(control) {
+  // Each target's share of the instances, 0 for none.
+  if ( control.instances != null ) return `
+    <fieldset class="form-group">
+      <legend>${escapeHtml(control.label)}</legend>
+      ${control.options.map(option => `
+        <div class="form-group">
+          <label for="wildpath-share-${escapeHtml(option.id)}">${escapeHtml(option.label)}</label>
+          <input id="wildpath-share-${escapeHtml(option.id)}" name="share:${escapeHtml(option.id)}" type="number" min="0"
+            max="${escapeHtml(control.instances)}" step="1" value="${escapeHtml(option.share ?? 0)}"${option.selectable ? "" : " disabled"}>
+        </div>
+      `).join("")}
+    </fieldset>
+  `;
   const options = control.options.map(option => `
     <label class="checkbox">
       <input type="checkbox" name="targetIds" value="${escapeHtml(option.id)}"${option.selected ? " checked" : ""}${option.selectable ? "" : " disabled"}>
@@ -485,6 +498,15 @@ function targetSelectionValueFromForm(viewModel, response) {
 
 function targetRefinementValueFromForm(viewModel, response) {
   const control = viewModel.controls[0] ?? {};
+  // Shares: each target given any is selected with its count; one given none is deselected.
+  if ( control.instances != null ) {
+    const decisions = control.options.flatMap(option => {
+      const count = Number(formValue(response, `share:${option.id}`) ?? option.share ?? 0) || 0;
+      if ( count > 0 ) return [{operation: "select", targetId: option.id, count}];
+      return option.selected ? [{operation: "deselect", targetId: option.id}] : [];
+    });
+    return {decisions, targeting: {decisions}};
+  }
   const selected = new Set(formValues(response, "targetIds").map(String));
   const decisions = control.options.flatMap(option => {
     const wasSelected = option.selected === true;

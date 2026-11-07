@@ -68,6 +68,7 @@ export function planDamageDurabilityMutations({
   const adjustedDamageResults = [];
   // One working snapshot per creature: a second result on it (damage redirected to it) builds on the first.
   const working = new Map();
+  const spentReductions = new Set();
   for ( const damageResult of damageResolution.results ?? [] ) {
     if ( damageResult.code === DAMAGE_RESOLVER_CODES.TARGET_SKIPPED ) {
       skipped.push(clonePlain(damageResult));
@@ -80,7 +81,8 @@ export function planDamageDurabilityMutations({
       target,
       adjustments,
       adjustmentProfiles,
-      reductionsByTarget
+      reductionsByTarget,
+      spentReductions
     });
     if ( !adjusted.ok ) {
       failures.push({
@@ -219,10 +221,13 @@ function resolveTargetActorSystem(targetSystems, target, damageResult) {
   });
 }
 
-function adjustDamageForTarget({damageResult, target, adjustments, adjustmentProfiles, reductionsByTarget={}}) {
+function adjustDamageForTarget({damageResult, target, adjustments, adjustmentProfiles, reductionsByTarget={}, spentReductions=new Set()}) {
   const targetProfile = resolveTargetLookupValue(adjustmentProfiles, target, damageResult) ?? null;
-  // What a reaction took off this creature's own damage (Stone's Endurance), by its Token.
-  const reductions = resolveTargetLookupValue(reductionsByTarget, target, damageResult) ?? null;
+  // What a reaction took off this creature's own damage (Stone's Endurance), by its Token: one Reaction, one hit, so
+  // only its first damage result (Magic Missile's other darts on it keep their damage).
+  const found = resolveTargetLookupValue(reductionsByTarget, target, damageResult) ?? null;
+  const reductions = (found && !spentReductions.has(found) && ((Number(damageResult.total) || 0) > 0)) ? found : null;
+  if ( reductions ) spentReductions.add(reductions);
   const profile = mergeDamageAdjustmentProfiles(adjustments, targetProfile, ...(reductions ? [{reductions}] : []));
   return adjustDamageResult(damageResult, profile);
 }

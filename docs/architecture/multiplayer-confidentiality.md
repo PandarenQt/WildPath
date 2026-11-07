@@ -161,7 +161,8 @@ companion's controllers that the sender owns ([companions.md](companions.md)).
   metadata limited to `rollKind`/`d20`/`providerId`. Never `dc`, `data`, target defenses, or a
   concentration check request (which carries its DC).
 - `target-selection` / `target-refinement`: candidates projected to ids, names, refs and
-  selectable/eligible flags, plus `targeting.required`, decisions, and the min/max selection limits.
+  selectable/eligible flags, plus `targeting.required`, decisions, and the min/max selection limits;
+  for repeatable targets also `instances`, each candidate's default `share` and each decision's `count`.
 - `reaction-choice`: `{candidates, options}`; the triggering event snapshot is not sent.
 - `action-configuration`: `{requests}`.
 - any other type: nothing.

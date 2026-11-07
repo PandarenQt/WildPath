@@ -559,7 +559,9 @@ function damageComingReactionEvent(state) {
       source: state.actionContext?.source ?? input.source ?? state.source ?? null, targets: input.targets ?? []}
   }), input.durability?.redirectsByTarget, state.results?.attackResolution ?? null);
   const dealt = (damageResolution?.results ?? []).filter(result => result.ok && ((Number(result.total) || 0) > 0));
-  const damaged = dealt.map(result => result.target).filter(Boolean);
+  // Each creature once, however many of its hits (Magic Missile's darts on one creature).
+  const damaged = [...new Map(dealt.map(result => result.target).filter(Boolean)
+    .map(target => [target.tokenId ?? target.actorId ?? target.id, target])).values()];
   if ( !damaged.length ) return null;
   // What a reaction may ask of it: an attack roll's hit (`hit`: Deflect Attacks, Interception), and its damage types
   // (`damage:<type>`: Deflect Attacks' bludgeoning, piercing or slashing).
@@ -876,8 +878,10 @@ function createTargetingStage() {
         // The chooser contributes refinement decisions only. Candidates, targets, and policy remain the
         // authority's own, so refineTargetSet rejects unknown ids, ineligible targets, and bad counts.
         const value = accepted.response.value;
+        // A decision's `count` is its target's share of the Action's instances (Magic Missile's darts).
         const decisions = normalizeArray(value?.decisions ?? value?.targeting?.decisions)
-          .map(decision => ({operation: decision?.operation ?? null, targetId: decision?.targetId ?? null}));
+          .map(decision => ({operation: decision?.operation ?? null, targetId: decision?.targetId ?? null,
+            ...(Number.isFinite(decision?.count) ? {count: decision.count} : {})}));
         input = {...input, targeting: {...(input.targeting ?? {}), decisions}};
         state = updateResolutionState(state, {input});
       }
@@ -3850,17 +3854,20 @@ function withCandidateDurability(options, candidate) {
  * Damage results with each redirected creature's (`redirectsByTarget`, by Token) moved onto the creature taking it
  * instead (`redirectedFrom` keeps who it was for). Its amount stays; that creature's resistances apply when planned, and
  * it makes a concentration check like a target. An attack that became the new creature's with the same roll (Cloud Rune:
- * `sameRollAgainst`, its AC) misses it when that roll is lower: no damage.
+ * `sameRollAgainst`, its AC) misses it when that roll is lower: no damage. One Reaction moves one hit: only the
+ * creature's first damage result moves (Magic Missile's other darts on it stay).
  * shortcut: the attack's other effects (a rider, a condition) stay with the first target; upgrade by retargeting them.
  */
 function redirectedDamage(damageResolution, redirectsByTarget, attackResolution=null) {
   if ( !damageResolution?.ok || !redirectsByTarget || !Object.keys(redirectsByTarget).length ) return damageResolution;
   const rollAgainst = tokenId => normalizeArray(attackResolution?.results ?? attackResolution?.hits)
     .find(entry => String(entry?.target?.tokenId ?? "") === tokenId);
+  const moved = new Set();
   return {...damageResolution, results: normalizeArray(damageResolution.results).map(result => {
     const from = String(result?.target?.tokenId ?? "");
     const redirect = redirectsByTarget[from];
-    if ( !redirect ) return result;
+    if ( !redirect || moved.has(from) ) return result;
+    moved.add(from);
     const {sameRollAgainst, ...to} = redirect;
     const total = Number(rollAgainst(from)?.total ?? rollAgainst(from)?.attackTotal ?? rollAgainst(from)?.roll?.total);
     const missed = Number.isFinite(sameRollAgainst) && Number.isFinite(total) && (total < sameRollAgainst);
@@ -4195,7 +4202,13 @@ function targetingWithDefaultSelection(state, input, targeting) {
     metadata: targeting.metadata ?? {}
   });
   const selected = new Set((preview.selectionRequest?.currentlySelected ?? []).map(String));
-  const mark = candidate => ({...candidate, selected: selected.has(String(candidate.id ?? candidate.targetId))});
+  // Each one's default share of the instances, where the Action has them.
+  const shares = new Map(normalizeArray(preview.targetContexts).filter(context => context.instances != null)
+    .map(context => [String(context.target?.id), context.instances]));
+  const mark = candidate => {
+    const id = String(candidate.id ?? candidate.targetId);
+    return {...candidate, selected: selected.has(id), ...(shares.has(id) ? {share: shares.get(id)} : {})};
+  };
   return {
     ...targeting,
     ...(targeting.candidates ? {candidates: targeting.candidates.map(mark)} : {}),
@@ -4212,6 +4225,9 @@ function needsTargetRefinement(targeting) {
   const min = positiveLimit(policy.minSelections ?? policy.minChoices);
   if ( (policy.defaultSelection ?? TARGET_DEFAULT_SELECTION.ALL) === TARGET_DEFAULT_SELECTION.NONE && min ) return true;
   const max = finiteNumber(policy.maxSelections ?? policy.maxChoices);
+  // Fewer creatures than instances, but more than one: how they share them is its user's to say.
+  const instances = finiteNumber(policy.instances);
+  if ( (instances != null) && (candidates.length > 1) && (candidates.length < instances) ) return true;
   return max != null && candidates.length > max;
 }
 

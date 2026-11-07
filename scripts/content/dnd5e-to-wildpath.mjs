@@ -5766,6 +5766,10 @@ function convertActivity({document, activity, system, spell, level, scales, note
   const aimed = (attack?.type === "melee") ? {...activity, target: {...(activity.target ?? {}), template: {}, override: true}} : activity;
   const {perLevel=0, areaPerLevel=0, areaScaling=null, ...targets} = targetingOf({activity: aimed, system, notes, level, scales});
   Object.assign(definition, targets);
+  // Several hits its user may send at one creature or several (Magic Missile's darts): `repeatable`. Only with no attack
+  // roll, as each of Scorching Ray's rays and Eldritch Blast's beams rolls its own.
+  if ( !attack && (definition.targeting?.type === "multiple") && /\bto hit one creature or several\b/iu.test(plainText(document)) )
+    definition.targeting.repeatable = true;
   if ( areaScaling ) definition.configuration = [...(definition.configuration ?? []), scalingChoice(areaScaling)];
   // A melee attack dnd5e leaves at "self" (a Torch's) is one creature within its reach.
   if ( (attack?.type === "melee") && (definition.targeting?.type === "self") ) Object.assign(definition,

@@ -637,7 +637,9 @@ function targetingFromDefinition(definition, {source, targeting}) {
     ...(count != null ? {
       // "Up to three creatures" sets its own minimum; otherwise a required count is exact.
       minSelections: targetDefinition.refinementPolicy?.minSelections ?? (targetDefinition.required ? count : 0),
-      maxSelections: count
+      maxSelections: count,
+      // Its count is that many separate hits its user shares among its targets (Magic Missile's darts).
+      ...(targetDefinition.repeatable ? {instances: count} : {})
     } : {})
   };
   const eligibilityPolicy = {
@@ -1018,6 +1020,10 @@ function validateTargeting(definition, errors) {
   if ( !targeting ) return;
   if ( targeting.type === ACTION_TARGETING_TYPES.AREA && !definition.area ) {
     errors.push(error(ACTION_DEFINITION_CODES.MISSING_AREA_DEFINITION, "area", "Area targeting requires an AreaDefinition."));
+  }
+  // One attack roll cannot stand for each of several hits (Scorching Ray's rays each roll their own).
+  if ( targeting.repeatable === true && definition.attack ) {
+    errors.push(error(ACTION_DEFINITION_CODES.INVALID_TARGETING, "targeting.repeatable", "Repeatable targets cannot share one attack roll."));
   }
   validateValueExpressionShape(targeting.count, "targeting.count", errors);
   validateValueExpressionShape(targeting.refinementPolicy?.minSelections, "targeting.refinementPolicy.minSelections", errors);
@@ -1409,6 +1415,8 @@ function normalizeTargetingDefinition(targeting) {
     ...(targeting.notHostile === true ? {notHostile: true} : {}),
     // ... nor its source itself (Help aids another creature).
     ...(targeting.notSelf === true ? {notSelf: true} : {}),
+    // Its count may go to one creature more than once, each a separate hit ("direct them to hit one creature or several").
+    ...(targeting.repeatable === true ? {repeatable: true} : {}),
     metadata: clonePlain(targeting.metadata ?? {}) ?? {}
   };
 }

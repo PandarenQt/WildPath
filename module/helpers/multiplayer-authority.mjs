@@ -268,8 +268,8 @@ export function projectRollRequestForChooser(rollRequest) {
   };
 }
 
-const TARGET_CANDIDATE_FLAG_KEYS = Object.freeze(["targetId", "selected", "selectable", "eligible", "disposition", "kind"]);
-const TARGET_POLICY_CHOOSER_KEYS = Object.freeze(["minSelections", "maxSelections", "minChoices", "maxChoices"]);
+const TARGET_CANDIDATE_FLAG_KEYS = Object.freeze(["targetId", "selected", "selectable", "eligible", "disposition", "kind", "share"]);
+const TARGET_POLICY_CHOOSER_KEYS = Object.freeze(["minSelections", "maxSelections", "minChoices", "maxChoices", "instances"]);
 
 function projectTargetCandidateForChooser(candidate) {
   if ( !candidate || typeof candidate !== "object" ) return null;
@@ -303,7 +303,8 @@ export function projectPendingRequestPayloadForChooser(type, payload) {
         targeting: {
           required: targeting.required === true,
           decisions: normalizeArray(targeting.decisions)
-            .map(decision => ({operation: decision?.operation ?? null, targetId: decision?.targetId ?? null})),
+            .map(decision => ({operation: decision?.operation ?? null, targetId: decision?.targetId ?? null,
+              ...(Number.isFinite(decision?.count) ? {count: decision.count} : {})})),
           refinementPolicy: pick(targeting.refinementPolicy ?? {}, TARGET_POLICY_CHOOSER_KEYS)
         }
       };

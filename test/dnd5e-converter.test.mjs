@@ -3744,3 +3744,19 @@ test("a potion of the spell without its ending's lethargy gets the extra action 
     [["GrantResource", "test-haste-extra-action"]], "the spell's grant (the same pool, never stacking), and no lethargy");
   assert.deepEqual(cast.flags.wildpath.conversion.notes.filter(note => /Apply Lethargy/.test(note)), []);
 });
+
+test("darts sent at one creature or several (Magic Missile) are repeatable targets; an attack's rays are not", async () => {
+  const {actionDefinitionToResolverInput} = await import("../module/helpers/action-definitions.mjs");
+  const darts = (type, data) => ({_id: `testDarts${type}0000`.slice(0, 16), name: "Test Darts", type: "spell", effects: [], system: {source: SRD,
+    level: 1, preparation: {mode: "prepared"}, properties: [], activation: {type: "action"}, range: {value: "120", units: "ft"},
+    description: {value: "<p>Each dart strikes a creature of your choice. The darts all strike simultaneously, and you can direct them to hit one creature or several.</p>"},
+    target: {affects: {type: "creature", count: "2 + @item.level"}, template: {}},
+    activities: {a: activity(type, {...data, damage: {parts: [{number: 1, denomination: 4, bonus: "1", types: ["force"], scaling: {mode: ""}}]}})}}});
+  const missile = convertItem(darts("damage", {})).items[0];
+  valid(missile);
+  assert.equal(missile.system.definition.targeting.repeatable, true);
+  assert.deepEqual(actionDefinitionToResolverInput(missile.system.definition).targeting.refinementPolicy,
+    {minSelections: 1, maxSelections: 3, instances: 3}, "three darts its user shares among one to three creatures");
+  const rays = convertItem(darts("attack", {attack: {type: {value: "ranged", classification: "spell"}, ability: "", bonus: ""}})).items[0];
+  assert.equal(rays.system.definition.targeting.repeatable, undefined, "each ray's own attack roll is not one shared roll");
+});

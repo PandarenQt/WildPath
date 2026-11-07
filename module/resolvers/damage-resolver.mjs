@@ -144,23 +144,27 @@ export function resolveDamageTargets({
     };
   }
 
-  const results = contexts.map(targetContext => resolveDamageTarget({
+  // A target given several of the Action's instances (Magic Missile's darts) takes each as its own hit: one result per
+  // instance, so each is its own damage for its concentration, a save its damage repeats, and its death saves.
+  const results = contexts.flatMap(targetContext => Array.from({length: targetContext.instances ?? 1}, () => resolveDamageTarget({
     components: typeof componentsForTarget === "function"
       ? componentsForTarget(targetContext, components)
       : components,
     targetContext,
     context
-  }));
+  })));
   const attempted = results.filter(result => result.code !== DAMAGE_RESOLVER_CODES.TARGET_SKIPPED);
   const failures = attempted.filter(result => !result.ok);
   const skipped = results.filter(result => result.code === DAMAGE_RESOLVER_CODES.TARGET_SKIPPED);
   const code = failures[0]?.code ?? (attempted.length ? DAMAGE_RESOLVER_CODES.OK : DAMAGE_RESOLVER_CODES.NO_DAMAGEABLE_TARGETS);
+  const totals = {};
+  for ( const result of attempted.filter(entry => entry.ok) ) totals[result.target.id] = (totals[result.target.id] ?? 0) + result.total;
 
   return {
     ok: attempted.length > 0 && failures.length === 0,
     code,
     results,
-    totals: Object.fromEntries(attempted.filter(result => result.ok).map(result => [result.target.id, result.total])),
+    totals,
     failures,
     skipped
   };
@@ -280,6 +284,7 @@ function normalizeTargetContext(targetContext={}) {
     excluded: !!targetContext.excluded,
     resolutionState: targetContext.resolutionState ?? "normal",
     overrides: (targetContext.overrides ?? []).map(clonePlain),
+    ...(Number.isInteger(targetContext.instances) && (targetContext.instances > 0) ? {instances: targetContext.instances} : {}),
     results: (targetContext.results ?? []).map(clonePlain)
   };
 }

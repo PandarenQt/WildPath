@@ -283,6 +283,7 @@
       "Choice": "Choice",
       "Targets": "Targets",
       "TargetRefinement": "Keep these targets",
+      "TargetShares": "Share {count} among these targets: at least 1 each, {count} in all (0 leaves one out)",
       "TargetNumber": "Target {number}",
       "Batch": {
         "Title": "Saving throws",

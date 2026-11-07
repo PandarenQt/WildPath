@@ -164,10 +164,15 @@ function targetListControl(payload, requestType) {
   const selected = new Set(normalizeArray(payload.targeting?.decisions)
     .filter(decision => ["select", "include"].includes(decision?.operation))
     .map(decision => String(decision.targetId)));
+  // Instances its user shares among the targets (Magic Missile's darts): a number for each, not a tick.
+  const instances = requestType === RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT
+    ? finiteNumber(payload.targeting?.refinementPolicy?.instances) : null;
   return {
     id: "targets",
     type: PROMPT_CONTROL_TYPES.TARGET_LIST,
-    label: requestType === RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT ? "WILDPATH.PROMPT.TargetRefinement" : "WILDPATH.PROMPT.Targets",
+    label: instances != null ? "WILDPATH.PROMPT.TargetShares"
+      : requestType === RESOLUTION_REQUEST_TYPES.TARGET_REFINEMENT ? "WILDPATH.PROMPT.TargetRefinement" : "WILDPATH.PROMPT.Targets",
+    ...(instances != null ? {labelData: {count: instances}, instances} : {}),
     description: null,
     required: payload.validation?.required === true || payload.targeting?.required === true,
     min: payload.targeting?.refinementPolicy?.minSelections ?? payload.targeting?.refinementPolicy?.minChoices ?? null,
@@ -179,6 +184,7 @@ function targetListControl(payload, requestType) {
       labelData: {number: index + 1},
       value: clonePromptData(candidate.target ?? candidate, "target.value"),
       selected: candidate.selected === true || selected.has(String(candidate.id ?? candidate.targetId ?? "")),
+      ...(instances != null ? {share: finiteNumber(candidate.share) ?? 0} : {}),
       selectable: candidate.selectable !== false && candidate.eligible !== false && candidate.eligibility?.ok !== false,
       eligible: candidate.eligible !== false && candidate.eligibility?.ok !== false,
       metadata: clonePromptData(candidate.metadata ?? {}, "target.metadata") ?? {}

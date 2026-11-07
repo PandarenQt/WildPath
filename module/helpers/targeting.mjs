@@ -285,6 +285,7 @@ export function refineTargetSet({targetSet, policy={}, decisions=[], context={}}
 
   const finalTargets = targetSet.candidates.filter(candidate => selected.has(candidate.id) && !excluded.has(candidate.id))
     .map(cloneCandidate);
+  const shares = instanceShares({finalTargets, decisions, policy, context, validation});
   const excludedTargets = targetSet.candidates.filter(candidate => excluded.has(candidate.id)).map(cloneCandidate);
   const decisionTargetIds = new Set(decisions.map(decision => decision.targetId));
   const unchanged = targetSet.candidates.filter(candidate => {
@@ -306,8 +307,28 @@ export function refineTargetSet({targetSet, policy={}, decisions=[], context={}}
     decisions: decisions.map(clonePlain),
     selectionDecisions: decisions.map(clonePlain),
     validation,
-    targetContexts: buildTargetContexts(targetSet.candidates, selected, excluded, overrides)
+    targetContexts: buildTargetContexts(targetSet.candidates, selected, excluded, overrides, shares)
   };
+}
+
+/**
+ * An Action of `policy.instances` separate hits its user shares among its targets (Magic Missile's darts): each final
+ * target's share, from its select decision's `count`, else spread evenly in order (one target takes them all). Given
+ * counts must each be at least 1 and add up to exactly `instances`. Null when the policy has no instances.
+ */
+function instanceShares({finalTargets, decisions, policy, context, validation}) {
+  if ( policy.instances == null || !finalTargets.length ) return null;
+  const instances = evaluateLimit(policy.instances, context);
+  const counted = new Map(decisions.filter(decision => [TARGET_OPERATIONS.SELECT, TARGET_OPERATIONS.INCLUDE].includes(decision.operation)
+    && (decision.count != null)).map(decision => [decision.targetId, Number(decision.count)]));
+  const shares = new Map(finalTargets.map((candidate, index) => [candidate.id, counted.has(candidate.id) ? counted.get(candidate.id)
+    : Math.floor(instances / finalTargets.length) + ((index < (instances % finalTargets.length)) ? 1 : 0)]));
+  const values = [...shares.values()];
+  if ( counted.size && (values.some(share => !Number.isInteger(share) || (share < 1))
+    || (values.reduce((sum, share) => sum + share, 0) !== instances)) ) {
+    validation.push({code: TARGET_CODES.SELECTION_LIMIT_REACHED, reason: `the shares must add up to ${instances}`});
+  }
+  return shares;
 }
 
 /* -------------------------------------------- */
@@ -447,7 +468,7 @@ function validateSelectionLimits({selected, decisions, policy, context, validati
   }
 }
 
-function buildTargetContexts(candidates, selected, excluded, overrides) {
+function buildTargetContexts(candidates, selected, excluded, overrides, shares=null) {
   return candidates.filter(candidate => selected.has(candidate.id) || excluded.has(candidate.id))
     .map(candidate => ({
       target: cloneCandidate(candidate),
@@ -455,6 +476,7 @@ function buildTargetContexts(candidates, selected, excluded, overrides) {
       excluded: excluded.has(candidate.id),
       resolutionState: excluded.has(candidate.id) ? "excluded" : "normal",
       overrides: (overrides.get(candidate.id) ?? []).map(clonePlain),
+      ...(shares?.has(candidate.id) ? {instances: shares.get(candidate.id)} : {}),
       results: []
     }));
 }
