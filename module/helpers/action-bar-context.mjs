@@ -183,3 +183,15 @@ export function actionBarContext({ actor, conditions = [], odds = {}, common = [
         conditions: activeEffectViews(actor.effects ?? [], conditions)
     };
 }
+/**
+ * Why `action` can't be used now, as its bar button says (its reason's lang key and data); null when it can, or when
+ * the bar does not show it. Item#use asks this before any dialog or canvas pick; the authority still checks at commit.
+ * An Action that is not one of the creature's Items is a common action (Dash, Grapple).
+ */
+export function actionUnavailableReason({ actor, action, controller = null, localize = (key) => key }) {
+    const id = String(action.id ?? "");
+    const owned = [...(actor.items ?? [])].some(item => item.id === id);
+    const context = actionBarContext({ actor, controller, localize, common: owned ? [] : [{ ...action, id }] });
+    const entry = context.groups.flatMap(group => group.actions).find(view => view.id === id);
+    return (entry && !entry.enabled) ? (entry.reason ?? null) : null;
+}

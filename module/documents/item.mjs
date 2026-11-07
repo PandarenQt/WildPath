@@ -14,6 +14,7 @@ import {consumeScrollOf, highestSpellLevel, onSpellList, spellLevelOf} from "../
 import {countedRollTotal} from "../helpers/rolls.mjs";
 import {admitFacility, payFacility} from "../applications/bastions.mjs";
 import {resolveActionConfiguration} from "../helpers/action-configuration.mjs";
+import {actionUnavailableReason} from "../helpers/action-bar-context.mjs";
 
 /** Which of `skills` the creature checks (Search, Study, Influence), each with its bonus; null when closed. */
 async function chooseTestSkill(actor, skills, name) {
@@ -201,6 +202,16 @@ export default class WildPathItem extends Item {
     // An unprepared spell is refused before its slot or area is asked (the authority refuses it too).
     if ( isUnprepared(this) ) {
       globalThis.ui?.notifications?.warn?.(globalThis.game?.i18n?.format?.("WILDPATH.ITEM.NotPrepared", {name: this.name}));
+      return false;
+    }
+    // An Action it can't pay for or its rules forbid is refused before any choice or area is asked, for the reason its
+    // action bar button gives (the authority checks it again when it commits).
+    const controller = controllerRef ? (globalThis.fromUuidSync?.(controllerRef) ?? null) : null;
+    const i18n = globalThis.game?.i18n;
+    const unavailable = actionUnavailableReason({actor: this.actor, action: this, controller, localize: key => i18n?.localize?.(key) ?? key});
+    if ( unavailable ) {
+      globalThis.ui?.notifications?.warn?.(i18n.format("WILDPATH.ITEM.Unavailable", {name: this.name,
+        reason: i18n.format(unavailable.key, {name: unavailable.name, by: unavailable.by ?? ""})}));
       return false;
     }
     const built = buildFoundryActionUseIntent({actor: this.actor, action: this});

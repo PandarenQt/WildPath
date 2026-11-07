@@ -1280,6 +1280,7 @@
       "RuntimeMissing": "WildPath's action runtime isn't running yet; reload the world.",
       "NotPrepared": "{name} is not prepared.",
       "CannotUse": "{name} can't be used right now.",
+      "Unavailable": "{name}: {reason}",
       "Unidentified": "Unidentified item"
     },
     "REACTIONS": {
@@ -1290,7 +1291,7 @@
       "Forbidden": "{name} can't do that: {by}.",
       "Transformed": "A transformed creature can't cast spells.",
       "Gaseous": "{name} is a cloud of mist: it can't attack or cast spells.",
-      "ArmorCasting": "{name} can't cast spells while wearing {armor} without training in it.",
+      "ArmorCasting": "{name} can't cast spells while wearing {by} without training in it.",
       "Quickened": "{name} cast a Quickened spell this turn: no other spell of level 1 or higher.",
       "Mythic": "{name}'s mythic actions are available once its mythic phase begins.",
       "Flee": "{name} was Commanded to flee: only Dash or Disengage.",

@@ -798,8 +798,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // What its rules forbid it (`Forbid`): Spell Taxed, Silenced, and its state's (a transformation's spells, Gaseous Form,
   // Command's Flee, armor it isn't trained with). Its Actions run by the authority (a lasting area it already cast) go on.
   const forbid = authorityAction ? null : actor.forbiddingRule?.(definition) ?? null;
-  if ( forbid ) return refused(forbid.reason ?? "WILDPATH.REFUSAL.Forbidden", {name: actor.name ?? "", by: forbid.name ?? "",
-    armor: forbid.name ?? ""});
+  if ( forbid ) return refused(forbid.reason ?? "WILDPATH.REFUSAL.Forbidden", {name: actor.name ?? "", by: forbid.name ?? ""});
   // 2024: a spell of 1st level or higher is cast only while prepared.
   if ( !authorityAction && isUnprepared(action) ) return refused("WILDPATH.ITEM.NotPrepared", {name: action.name ?? ""});
   // What the Action requires of its creature (`requires`: Steady Aim, not moved this turn); a vehicle's, of the creature

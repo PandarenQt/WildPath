@@ -206,3 +206,15 @@ test("Unaffected: a feature's rule leaves its creature untouched by the spells i
   assert.equal(creature({items: [{...school, system: {...school.system, active: false}}]})
     .unaffectingRule({id: "action:d", tags: ["spell", "school:divination"]}), null, "suppressed: the feature toggled off");
 });
+
+test("a built-in Forbid's reason uses only the data every refusal gives it: {name} the creature, {by} the rule's owner", async () => {
+  const {readFile} = await import("node:fs/promises");
+  const lang = JSON.parse(await readFile(new URL("../lang/en.json", import.meta.url), "utf8"));
+  const source = await readFile(new URL("../module/documents/actor.mjs", import.meta.url), "utf8");
+  const keys = [...source.matchAll(/reason: "WILDPATH\.REFUSAL\.(\w+)"/gu)].map(match => match[1]);
+  assert.ok(keys.includes("ArmorCasting"));
+  for ( const key of keys ) {
+    const placeholders = [...lang.WILDPATH.REFUSAL[key].matchAll(/\{(\w+)\}/gu)].map(match => match[1]);
+    assert.deepEqual(placeholders.filter(name => !["name", "by"].includes(name)), [], key);
+  }
+});

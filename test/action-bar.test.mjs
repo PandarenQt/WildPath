@@ -176,3 +176,44 @@ test("Reckless Attack (SRD) is greyed once its creature has made an attack roll 
     globalThis.game = previous;
   }
 });
+
+test("an Action's unavailability is the reason its bar button gives: spent, forbidden, a common action's, or none", async () => {
+  const {actionUnavailableReason} = await import("../module/helpers/action-bar-context.mjs");
+  const hero = creature();
+  const strike = hero.items[0];
+  assert.equal(actionUnavailableReason({actor: hero, action: strike}), null, "an Action it can pay for is available");
+  assert.equal(actionUnavailableReason({actor: hero, action: {id: "cloak"}}), null, "what the bar does not show is left to the authority");
+  assert.deepEqual(actionUnavailableReason({actor: creature({action: 0}), action: strike}),
+    {key: "WILDPATH.ACTIONBAR.Reason.Spent", name: "WILDPATH.RESOURCES.Action"});
+  const transformed = {...hero, forbiddingRule: () => ({reason: "WILDPATH.REFUSAL.Transformed", name: "Polymorph"})};
+  assert.deepEqual(actionUnavailableReason({actor: transformed, action: strike}),
+    {key: "WILDPATH.REFUSAL.Transformed", name: "Hero", by: "Polymorph"});
+  // A common action is no Item of the creature's: it is checked as the bar's common group checks it.
+  assert.equal(actionUnavailableReason({actor: creature({action: 0}), action: action("common-dash", "action")}).key,
+    "WILDPATH.ACTIONBAR.Reason.Spent");
+});
+
+test("Item#use refuses an Action it can't pay for or is forbidden before any choice or area is asked", async t => {
+  const keys = ["Item", "game", "ui"];
+  const saved = Object.fromEntries(keys.map(key => [key, globalThis[key]]));
+  t.after(() => { for ( const key of keys ) globalThis[key] = saved[key]; });
+  globalThis.Item = class { constructor(data) { Object.assign(this, data); } };
+  const {default: WildPathItem} = await import("../module/documents/item.mjs");
+  const declared = [];
+  const warnings = [];
+  globalThis.game = {wildpath: {executeActionIntent: async intent => { declared.push(intent); return {ok: true}; }},
+    i18n: {localize: key => `<${key}>`, format: (key, data) => `${key}${JSON.stringify(data)}`}};
+  globalThis.ui = {notifications: {warn: message => warnings.push(message)}};
+  const use = async actor => {
+    // It would ask a choice first (a dialog this test has no Foundry for): only the early refusal keeps it from asking.
+    const item = new WildPathItem({...action("Strike", "action"), uuid: "Actor.a.Item.Strike", actor});
+    item.system.definition = {configuration: [{id: "slot", options: [{id: "x"}]}]};
+    actor.items = [item];
+    return item.use();
+  };
+  assert.equal(await use(creature({action: 0})), false);
+  assert.match(warnings.pop(), /^WILDPATH\.ITEM\.Unavailable.*WILDPATH\.ACTIONBAR\.Reason\.Spent.*<WILDPATH\.RESOURCES\.Action>/);
+  assert.equal(await use({...creature(), forbiddingRule: () => ({reason: "WILDPATH.REFUSAL.Transformed", name: "Polymorph"})}), false);
+  assert.match(warnings.pop(), /^WILDPATH\.ITEM\.Unavailable.*WILDPATH\.REFUSAL\.Transformed/);
+  assert.deepEqual(declared, [], "nothing is declared to the authority");
+});
