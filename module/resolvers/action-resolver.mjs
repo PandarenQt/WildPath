@@ -455,7 +455,7 @@ export function planActionResolution({
 
 /* -------------------------------------------- */
 
-export async function commitPlannedActionResult({result, actor, targetActors, authority, persistencePort=null}={}) {
+export async function commitPlannedActionResult({result, actor, targetActors, authority, persistencePort=null, snapshotActor=null}={}) {
   if ( result?.status === ACTION_RESULT_STATUS.FAILED || result?.status === ACTION_RESULT_STATUS.CANCELLED ) {
     return result;
   }
@@ -465,7 +465,8 @@ export async function commitPlannedActionResult({result, actor, targetActors, au
     actor,
     targetActors,
     authority,
-    persistencePort
+    persistencePort,
+    snapshotActor
   });
   if ( !transactionCommit.ok ) {
     return failActionResult(result, {
@@ -476,7 +477,8 @@ export async function commitPlannedActionResult({result, actor, targetActors, au
     });
   }
 
-  const committed = addResolutionStep(result, {
+  // Its target plans as committed (rebased on their creatures' health then), for dying, the chat card and inspection.
+  const committed = addResolutionStep({...result, mutationPlans: transactionCommit.mutationPlans}, {
     stage: ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT,
     status: ACTION_RESULT_STATUS.SUCCEEDED,
     code: ACTION_RESOLVER_CODES.OK,
@@ -497,7 +499,7 @@ export async function commitPlannedActionResult({result, actor, targetActors, au
 
 /* -------------------------------------------- */
 
-export async function executeActionMutationTransaction({result, actor, targetActors, authority, persistencePort=null}={}) {
+export async function executeActionMutationTransaction({result, actor, targetActors, authority, persistencePort=null, snapshotActor=null}={}) {
   const targetMutationPlans = result.mutationPlans.filter(plan => !["resourcePayment", "sourceUpdate"].includes(plan.type));
   const paymentMutationPlans = result.mutationPlans.filter(plan => plan.type === "resourcePayment");
   // Small updates to the acting creature itself (a once-per-turn use), committed with its payment.
@@ -518,6 +520,7 @@ export async function executeActionMutationTransaction({result, actor, targetAct
     targetActors,
     authority,
     persistencePort,
+    snapshotActor,
     metadata: {action: result.context?.action ?? null}
   });
   if ( !targetOperations.ok ) {
@@ -571,9 +574,16 @@ export async function executeActionMutationTransaction({result, actor, targetAct
     metadata: {action: result.context?.action ?? null}
   });
   if ( transaction.ok ) {
+    const committedPlans = new Map(transaction.committed.filter(entry => entry.metadata?.role === "targetMutation")
+      .map(entry => [Number(String(entry.id).split(":")[1]), entry.metadata.mutationPlan]));
     return {
       ok: true,
-      transaction
+      transaction,
+      mutationPlans: result.mutationPlans.map(plan => {
+        const index = targetMutationPlans.indexOf(plan);
+        const committedPlan = (index >= 0) ? committedPlans.get(index) : null;
+        return committedPlan?.plan?.rebased ? committedPlan : plan;
+      })
     };
   }
 

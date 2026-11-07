@@ -227,14 +227,14 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
   /**
    * The health changes `plans` committed on `actor` (a condition's damage at turn start). With `rescue`, damage outside
    * an Action that dropped it to 0 may keep it up first (rescueAtZero); an Action's own damage was checked before
-   * commit, so `afterResolution` never rescues.
+   * commit, so `afterResolution` rescues only a drop its commit's rebase newly made (`zeroHpUnchecked`).
    */
   async function afterPlans(actor: DyingActor | null, plans: readonly Data[] = [], {critical=false, rescue=false}={}) {
     if ( !actor || !isActiveGM() ) return;
     for ( const entry of plans ) {
       const change = ((entry.plan as DurabilityChange | undefined) ?? entry) as DurabilityChange & {type?: string};
       const type = String((entry.plan ? (change.type ?? entry.type) : entry.type) ?? "");
-      if ( rescue && DAMAGE.has(type) && await rescueAtZero(actor, change as DurabilityChange & Data) ) continue;
+      if ( rescue && DAMAGE.has(type) && await rescueAtZero(actor, change as DurabilityChange & Data, critical) ) continue;
       if ( DAMAGE.has(type) ) await recordStoppingDamage(actor, entry);
       if ( DAMAGE.has(type) ) await dispatchDamageTaken(actor, entry);
       let consequence = dyingAfterChange({change: {...change, type}, critical, character: savesForDeath(actor),
@@ -252,7 +252,7 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
    * (Relentless Endurance, Relentless Rage, Undead Fortitude; zeroHpFor) may keep it up. Its use is paid; a save is a
    * save-only authority Action on it, so the dice policy prompts its controller or rolls. True when it stayed up.
    */
-  async function rescueAtZero(actor: DyingActor, change: DurabilityChange & Data): Promise<boolean> {
+  async function rescueAtZero(actor: DyingActor, change: DurabilityChange & Data, critical = false): Promise<boolean> {
     if ( !((Number(change.from) || 0) > 0) || ((Number(change.to) || 0) !== 0)
       || ((Number(change.overflow) || 0) >= (Number(change.max) || 0)) ) return false;
     let system: Data;
@@ -261,7 +261,8 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
     if ( !rule ) return false;
     const metadata = (change.metadata ?? {}) as {damageType?: string; damageResult?: {byDamageType?: Record<string, number>}};
     const byType = metadata.damageResult?.byDamageType ?? {};
-    if ( (rule.notOn ?? []).some((reason: string) => (reason === metadata.damageType) || (Number(byType[reason]) > 0)) ) return false;
+    if ( (rule.notOn ?? []).some((reason: string) => ((reason === "critical") ? critical
+      : ((reason === metadata.damageType) || (Number(byType[reason]) > 0)))) ) return false;
     if ( rule.payment?.plan ) await commitActorResourceMutationPlan(actor, rule.payment.plan);
     let kept = rule.mode !== "save";
     if ( !kept ) {
@@ -297,7 +298,8 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
       const target = mutationTargetIdentity((entry.target ?? (entry.plan as Data | undefined)?.target ?? {}) as Data);
       const actor = lookupActor(options?.targetActors, target, entry,
         {selectValue: value => (value as {actor?: DyingActor} | null)?.actor ?? value}) as DyingActor | null;
-      await afterPlans(actor, [entry], {critical: refsOf(target).some(ref => criticalRefs.has(ref))});
+      await afterPlans(actor, [entry], {critical: refsOf(target).some(ref => criticalRefs.has(ref)),
+        rescue: (entry.plan as Data | undefined)?.zeroHpUnchecked === true});
     }
   }
 

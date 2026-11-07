@@ -1198,8 +1198,8 @@ test("Blessed Healer: healing another creature with a spell heals its caster 2 +
   const definition = count => ({schemaVersion: 1, id: "action:cure", label: "Cure", costs: {allOf: []},
     targeting: (count > 1) ? {type: "multiple", required: true, count} : {type: "single", required: true, count: 1},
     tags: ["spell"], healing: [{id: "cure", healingType: "healing", expression: {type: "constant", value: 4}}]});
-  const caster = {resources: {health: {value: 10, max: 30, temp: 0}}};
-  const run = (targets, allyHealth=3) => planStagedActionResolution({id: `resolution:healer-${targets.length}-${allyHealth}`,
+  const run = (targets, allyHealth=3, casterHealth=10, caster={resources: {health: {value: casterHealth, max: 30, temp: 0}}}) =>
+    planStagedActionResolution({id: `resolution:healer-${targets.length}-${allyHealth}-${casterHealth}`,
     actorSystem: actorSystem(1, caster), action: definitionAction(definition(targets.length)), source: {actorId: "actor-source", tokenId: "token-source"},
     targets, durability: {targetSystems: {"actor:actor-ally": {resources: {health: {value: allyHealth, max: 30}}},
       "actor:actor-source": caster}, onHeal: {name: "Blessed Healer", hitPoints: 5, sourceRef: "Actor.source"}}});
@@ -1211,7 +1211,10 @@ test("Blessed Healer: healing another creature with a spell heals its caster 2 +
   assert.deepEqual(ownPlans(healed).map(entry => [entry.plan.from, entry.plan.to]), [[10, 15]], "2 + level as the runtime gives it");
   assert.deepEqual(ownPlans(run([ally], 30).state), [], "an ally at full Hit Points regained none");
   assert.deepEqual(ownPlans(run([self]).state).map(entry => [entry.plan.from, entry.plan.to]), [[10, 14]], "only itself: no reward");
-  assert.deepEqual(ownPlans(run([self, ally]).state).map(entry => [entry.plan.from, entry.plan.to]), [[10, 19]], "itself and an ally: one plan, 4 + 5");
+  assert.deepEqual(ownPlans(run([self, ally]).state).map(entry => [entry.plan.from, entry.plan.to, entry.plan.amount]), [[10, 19, 9]],
+    "itself and an ally: one plan, 4 + 5 (its amount too, so a commit rebased on other healing keeps the reward)");
+  assert.deepEqual(ownPlans(run([self, ally], 3, 28).state).map(entry => [entry.plan.from, entry.plan.to, entry.plan.amount]), [[28, 30, 9]],
+    "clamped at its maximum, its amount still counts the whole reward, for a commit rebased on damage taken since");
 });
 
 test("Life Bond: a bonded steed regains what its summoner regained from the spell, on top of its own healing; nothing at full", () => {
@@ -1231,6 +1234,8 @@ test("Life Bond: a bonded steed regains what its summoner regained from the spel
   assert.deepEqual(steedPlans(run([target("rider")], 28).state), [[5, 7]], "the 2 its rider regained");
   assert.deepEqual(steedPlans(run([target("rider")], 30).state), [], "a rider at full regained none");
   assert.deepEqual(steedPlans(run([target("rider"), steed], 10).state), [[5, 13]], "healed too: one plan, 4 + 4");
+  assert.equal(run([target("rider"), steed], 10).state.mutationPlans.find(entry => entry.target?.tokenId === "token-steed").plan.amount, 8,
+    "its amount counts the bond's 4");
   // A Blessed Healer healing only itself gains nothing for its steed's Life Bond healing.
   const healer = planStagedActionResolution({id: "resolution:bond-healer", actorSystem: actorSystem(1, {resources: {health: {value: 10, max: 30}}}),
     action: definitionAction(definition(1)), source: {actorId: "actor-rider", tokenId: "token-rider"}, targets: [target("rider")],

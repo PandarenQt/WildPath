@@ -5,7 +5,9 @@ import {
   commitActorDurabilityMutationPlan,
   createActorDamageMutationPlan,
   createActorDurabilityMutationPlan,
-  createActorHealingMutationPlan
+  createActorHealingMutationPlan,
+  rebaseActorDurabilityMutationPlan,
+  revertActorDurabilityMutationPlan
 } from "../module/resolvers/durability-resolver.mjs";
 
 function actorSystem(overrides={}) {
@@ -215,4 +217,110 @@ test("healing in a form whose Hit Points are Temporary Hit Points heals the form
   assert.equal(createActorHealingMutationPlan(wolf(3), {amount: 20}).updates["system.resources.health.temp"], 11, "no more than the form's");
   assert.equal(createActorHealingMutationPlan({resources: {health: {value: 10, max: 20, temp: 3}}}, {amount: 5}).updates["system.resources.health.value"],
     15, "out of a form, healing is as ever");
+});
+
+/* -------------------------------------------- */
+/*  Rebase at commit (two Actions planned from one snapshot)  */
+/* -------------------------------------------- */
+
+const health = (value, max=20, temp=undefined) => ({resources: {health: {value, max, ...(temp === undefined ? {} : {temp})}}, pools: []});
+const hurt = (system, amount) => createActorDamageMutationPlan(system, {amount, metadata: {damageResult: {byDamageType: {fire: amount}}}});
+const fromTo = plan => [plan.from, plan.to, plan.updates];
+
+test("rebase: a plan whose creature is as planned commits unchanged, the same object", () => {
+  const plan = hurt(health(14), 6);
+  assert.equal(rebaseActorDurabilityMutationPlan(health(14), plan), plan);
+  const healing = createActorHealingMutationPlan(health(5), {amount: 3});
+  assert.equal(rebaseActorDurabilityMutationPlan(health(5, 20, 4), healing), healing, "healing ignores Temporary Hit Points it does not set");
+});
+
+test("rebase: damage planned 14 -> 8 lands on the 8 another Action left, keeping its amount and damage types", () => {
+  const plan = hurt(health(14), 6);
+  const rebased = rebaseActorDurabilityMutationPlan(health(8), plan);
+  assert.deepEqual(fromTo(rebased), [8, 2, {"system.resources.health.value": 2}]);
+  assert.equal(rebased.rebased, true);
+  assert.equal(rebased.amount, 6);
+  assert.deepEqual(rebased.metadata.damageResult, {byDamageType: {fire: 6}}, "metadata is not wrapped twice");
+  assert.equal(rebased.zeroHpUnchecked, undefined);
+});
+
+test("rebase: Temporary Hit Points gained since planning absorb first; ones lost since no longer do", () => {
+  const gained = rebaseActorDurabilityMutationPlan(health(14, 20, 4), hurt(health(14), 6));
+  assert.deepEqual(fromTo(gained), [14, 12, {"system.resources.health.value": 12, "system.resources.health.temp": 0}]);
+  assert.deepEqual(gained.temporary, {path: "system.resources.health.temp", from: 4, to: 0});
+  const planned = hurt(health(14, 20, 4), 6);
+  assert.deepEqual(fromTo(planned), [14, 12, {"system.resources.health.value": 12, "system.resources.health.temp": 0}]);
+  const lost = rebaseActorDurabilityMutationPlan(health(14, 20, 0), planned);
+  assert.deepEqual(fromTo(lost), [14, 8, {"system.resources.health.value": 8}], "all 6 reach its Hit Points");
+  assert.equal(lost.temporary, undefined);
+});
+
+test("rebase: a planned drop to 0 that the live health survives is plain damage; a new drop is flagged unless massive", () => {
+  const planned = hurt(health(4), 6);
+  assert.deepEqual([planned.to, planned.overflow], [0, 2]);
+  const survived = rebaseActorDurabilityMutationPlan(health(10), planned);
+  assert.deepEqual(fromTo(survived), [10, 4, {"system.resources.health.value": 4}]);
+  assert.equal(survived.zeroHpUnchecked, undefined);
+  const dropped = rebaseActorDurabilityMutationPlan(health(4), hurt(health(14), 6));
+  assert.deepEqual([dropped.to, dropped.zeroHpUnchecked], [0, true], "planning saw no drop: its rescue is checked after commit");
+  // Planned against 10 Temporary Hit Points that are gone by commit: all 9 reach its 4 Hit Points.
+  const massive = rebaseActorDurabilityMutationPlan(health(4, 4, 0), hurt(health(4, 4, 10), 9));
+  assert.deepEqual([massive.to, massive.overflow, massive.zeroHpUnchecked], [0, 5, undefined], "massive damage kills: no rescue");
+});
+
+test("rebase: a creature kept up at 0 (to raised) stays kept while it still drops, and takes plain damage once it no longer does", () => {
+  const planned = hurt(health(4), 6);
+  const kept = {...planned, to: 1, updates: {"system.resources.health.value": 1}};
+  const still = rebaseActorDurabilityMutationPlan(health(3), kept);
+  assert.deepEqual(fromTo(still), [3, 1, {"system.resources.health.value": 1}]);
+  assert.equal(still.zeroHpUnchecked, undefined);
+  const natural = rebaseActorDurabilityMutationPlan(health(12), kept);
+  assert.deepEqual(fromTo(natural), [12, 6, {"system.resources.health.value": 6}]);
+});
+
+test("rebase: healing redoes its clamp on the live health; Temporary Hit Points take the higher", () => {
+  const plan = createActorHealingMutationPlan(health(2), {amount: 5});
+  assert.deepEqual(fromTo(rebaseActorDurabilityMutationPlan(health(0), plan)), [0, 5, {"system.resources.health.value": 5}]);
+  assert.deepEqual(fromTo(rebaseActorDurabilityMutationPlan(health(9, 10), createActorHealingMutationPlan(health(2, 10), {amount: 5}))),
+    [9, 10, {"system.resources.health.value": 10}]);
+  const temporary = createActorHealingMutationPlan(health(10, 20, 2), {healingResult: {total: 6, byHealingType: {temporary: 6}}});
+  assert.deepEqual(temporary.temporary, {path: "system.resources.health.temp", from: 2, to: 6});
+  const higher = rebaseActorDurabilityMutationPlan(health(10, 20, 8), temporary);
+  assert.equal(higher.updates["system.resources.health.temp"], 8, "8 it has now beats the 6 given");
+  const lower = rebaseActorDurabilityMutationPlan(health(10, 20, 3), temporary);
+  assert.deepEqual([lower.temporary.from, lower.updates["system.resources.health.temp"]], [3, 6]);
+});
+
+test("rebase: a pool's damage writes the pool's index in the live snapshot", () => {
+  const plan = createActorDamageMutationPlan({resources: {}, pools: [{id: "ward", value: 10, max: 10}]}, {amount: 4, resourceId: "ward"});
+  assert.equal(plan.path, "system.pools.0.value");
+  const rebased = rebaseActorDurabilityMutationPlan({resources: {}, pools: [{id: "ki", value: 3, max: 3}, {id: "ward", value: 10, max: 10}]}, plan);
+  assert.deepEqual(fromTo(rebased), [10, 6, {"system.pools.1.value": 6}]);
+});
+
+test("revert: takes back only its own change, so a write after it stays", () => {
+  const committed = hurt(health(14), 6);
+  assert.deepEqual(revertActorDurabilityMutationPlan(health(8), committed), {"system.resources.health.value": 14}, "nothing in between: its from");
+  assert.deepEqual(revertActorDurabilityMutationPlan(health(2), committed), {"system.resources.health.value": 8}, "another 6 since stays");
+  const absorbed = hurt(health(14, 20, 4), 6);
+  assert.deepEqual(revertActorDurabilityMutationPlan(health(12, 20, 0), absorbed),
+    {"system.resources.health.value": 14, "system.resources.health.temp": 4});
+  assert.deepEqual(revertActorDurabilityMutationPlan(health(20, 20), createActorHealingMutationPlan(health(18), {amount: 5})),
+    {"system.resources.health.value": 18});
+});
+
+test("rebase: a 2014 form's healing heals the form on what it has now, up to the form's own", () => {
+  const form = temp => ({...health(30, 30, temp), formHealth: 20});
+  const plan = createActorHealingMutationPlan(form(10), {healingResult: {total: 5, byHealingType: {healing: 5}}});
+  assert.deepEqual([plan.temporary.from, plan.temporary.to], [10, 15]);
+  const hit = rebaseActorDurabilityMutationPlan(form(2), plan);
+  assert.equal(hit.updates["system.resources.health.temp"], 7, "8 damage to the form since stays taken");
+  assert.equal(hit.updates["system.resources.health.value"], undefined, "its own Hit Points untouched");
+  assert.equal(rebaseActorDurabilityMutationPlan(form(18), plan).updates["system.resources.health.temp"], 20, "capped at the form's 20");
+});
+
+test("revert: from what landed, so a heal the creature refused (no healing) takes nothing back", () => {
+  const committed = createActorHealingMutationPlan(health(10), {amount: 5});
+  assert.deepEqual(revertActorDurabilityMutationPlan(health(10), committed, health(10)), {"system.resources.health.value": 10});
+  assert.deepEqual(revertActorDurabilityMutationPlan(health(15), committed, health(15)), {"system.resources.health.value": 10});
 });

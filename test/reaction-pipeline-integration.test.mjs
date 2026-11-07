@@ -29,6 +29,7 @@ import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mj
 import {createTestDocumentPersistenceAdapter} from "../module/adapters/test-persistence-adapter.mjs";
 import {createTestResolutionTransportHub} from "../module/adapters/test-resolution-transport.mjs";
 import {createMultiplayerActionCoordinator} from "../module/resolvers/multiplayer-action-coordinator.mjs";
+import {dyingAfterChange} from "../module/adapters/foundry-v14-dying.mjs";
 import {
   ACTION_PIPELINE_STAGE_IDS,
   completeStagedReactionChildResolution,
@@ -1040,4 +1041,98 @@ test("Cutting Words on an ability check: a successful check is lowered by its di
   assert.equal(resumed.ok, true, resultDiagnostic(resumed));
   assert.deepEqual([resumed.state.results.checkResolution.success, resumed.state.input.check.roll.total], [false, 11],
     "16 less 5 is 11 against DC 13: the escape fails");
+});
+
+/* -------------------------------------------- */
+/*  Damage committed on the creature's health at commit (two Actions, one snapshot)  */
+/* -------------------------------------------- */
+
+const liveSnapshot = actor => structuredClone(actor.system);
+const GM = {isGM: true, userId: "gm-a", activeGMId: "gm-a"};
+
+/** Two creatures' 6-damage Actions on one defender at `hp`, both planned before either commits. */
+function twoStrikes(hp=14) {
+  const defender = actorDocument("defender", {system: actorSystem({hp, maxHp: 20})});
+  const first = actorDocument("first", {system: actorSystem()});
+  const second = actorDocument("second", {system: actorSystem()});
+  const targetActors = targetActorsFor(first, second, defender);
+  const action = actionItem(declaredDamageDefinition({damage: 6}));
+  const plan = attacker => planStagedActionResolution({id: `resolution:strike-${attacker.id}`, actor: attacker, action,
+    source: {actorId: attacker.id, actorRef: attacker.uuid}, targets: [targetRef(defender.id)], durability: true, targetActors});
+  const commit = (attacker, planned, persistencePort=createTestDocumentPersistenceAdapter()) => executeStagedActionResolution({
+    state: planned.state, actor: attacker, action, targetActors, authority: GM, persistencePort,
+    services: {targetActors, snapshotActor: liveSnapshot}});
+  return {defender, first, second, plan, commit};
+}
+
+const damageOf = state => state.mutationPlans.find(entry => entry.type === "durabilityDamage").plan;
+
+test("two Actions' damage planned from one snapshot both land: the second on the 8 the first left", async () => {
+  const {defender, first, second, plan, commit} = twoStrikes(14);
+  const plans = [plan(first), plan(second)];
+  assert.deepEqual(plans.map(planned => [damageOf(planned.state).from, damageOf(planned.state).to]), [[14, 8], [14, 8]]);
+  const one = await commit(first, plans[0]);
+  const two = await commit(second, plans[1]);
+  assert.equal(one.ok && two.ok, true, resultDiagnostic(two));
+  assert.equal(defender.system.resources.health.value, 2);
+  const committed = damageOf(two.state);
+  assert.deepEqual([committed.from, committed.to, committed.rebased], [8, 2, true], "the chat card and dying read what was written");
+  assert.equal(damageOf(one.state).rebased, undefined, "a plan that was not stale commits as planned");
+});
+
+test("healing that lands between plan and commit is kept, and a planned drop to 0 that no longer happens is no drop", async () => {
+  const {defender, first, plan, commit} = twoStrikes(4);
+  const planned = plan(first);
+  assert.equal(damageOf(planned.state).to, 0, "planned on 4 Hit Points");
+  defender.system.resources.health.value = 10;
+  const committed = await commit(first, planned);
+  assert.equal(committed.ok, true, resultDiagnostic(committed));
+  assert.equal(defender.system.resources.health.value, 4);
+  const damage = damageOf(committed.state);
+  assert.deepEqual([damage.from, damage.to, damage.zeroHpUnchecked], [10, 4, undefined]);
+  assert.equal(dyingAfterChange({change: damage}), null, "no false Unconscious");
+});
+
+test("an Action whose payment fails takes back only its own damage; the other Action's stays and nothing is spent", async () => {
+  const {defender, first, second, plan, commit} = twoStrikes(14);
+  const plans = [plan(first), plan(second)];
+  assert.equal((await commit(first, plans[0])).ok, true);
+  const failing = createTestDocumentPersistenceAdapter({failOn: operation => (operation.actorRef === second.uuid)});
+  const failed = await commit(second, plans[1], failing);
+  assert.equal(failed.ok, false);
+  assert.equal(failed.state.results.actionResult.steps.at(-1).data.transaction.rolledBack, true);
+  assert.equal(defender.system.resources.health.value, 8, "the first Action's 6 stays");
+  assert.deepEqual([first.system.resources.action.value, second.system.resources.action.value], [0, 1]);
+});
+
+test("a reaction healing the damaged creature commits first; the Action's damage then lands on the healed Hit Points", async () => {
+  const defender = actorDocument("defender", {system: actorSystem({hp: 14, maxHp: 20})});
+  const attacker = actorDocument("attacker", {system: actorSystem()});
+  const targetActors = targetActorsFor(attacker, defender);
+  const action = actionItem(declaredDamageDefinition({damage: 6}));
+  const mend = {schemaVersion: 1, id: "action:test-mend", label: "Mend", costs: reactionCost(), targeting: {type: "self", required: true},
+    healing: [{id: "mend", healingType: "healing", expression: {type: "constant", value: 5}}]};
+  const trigger = createReactionTrigger({id: "trigger:test-mend", event: AUTOMATION_EVENT_TYPES.DAMAGE_APPLIED,
+    match: {phase: AUTOMATION_EVENT_PHASES.INTERRUPT, targetActorId: defender.id}, actorId: defender.id, actionId: mend.id,
+    actionRef: mend.id, action: mend, chooser: {kind: "specific", userId: "player-b"}});
+  const base = guardServices({defender, targetActors, action: mend});
+  const services = {...base, snapshotActor: liveSnapshot, reactions: {...base.reactions, triggers: [trigger],
+    createChildState: ({candidate, baseChildState}) => createActionResolutionState({...baseChildState, actorSystem: defender.system,
+      action: actionItem(mend), source: candidate.reactor, targets: [targetRef(defender.id)], durability: true})}};
+  const persistencePort = createTestDocumentPersistenceAdapter();
+  const waiting = planStagedActionResolution({id: "resolution:mend", actor: attacker, action, source: {actorId: attacker.id,
+    actorRef: attacker.uuid}, targets: [targetRef(defender.id)], durability: true, targetActors, services});
+  assert.equal(waiting.state.currentStageId, ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_DAMAGE, resultDiagnostic(waiting));
+  const selected = resumeStagedActionResolution({state: waiting.state, response: acceptResponse(waiting.state.pendingRequests[0]), services});
+  const child = await executeGuardChild({parentState: selected.state, defender, targetActors, action: mend, persistencePort});
+  assert.equal(defender.system.resources.health.value, 19, "healed before the damage commits");
+  const resumed = completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services});
+  const committed = await executeStagedActionResolution({state: resumed.state, actor: attacker, action, targetActors, services,
+    authority: GM, persistencePort});
+  assert.equal(committed.ok, true, resultDiagnostic(committed));
+  assert.equal(defender.system.resources.health.value, 13, "6 from the healed 19, not the planned 14 -> 8");
+  assert.deepEqual([damageOf(committed.state).from, damageOf(committed.state).to], [19, 13]);
+  assert.equal(defender.system.resources.reaction.value, 0);
+  assert.equal(persistencePort.operations.filter(operation => (operation.actorRef === defender.uuid)
+    && (operation.updates?.["system.resources.reaction.value"] === 0)).length, 1, "its Reaction is spent once");
 });

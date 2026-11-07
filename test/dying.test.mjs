@@ -227,6 +227,33 @@ test("drop to 0 outside an Action (a condition's damage): Relentless Endurance k
   assert.deepEqual(orc.effects.map(effect => effect.system.type), ["unconscious"], "no use left: it drops");
 });
 
+test("an Action's drop to 0 that only its commit's rebase made (zeroHpUnchecked) gets its rescue; a planned drop does not", async () => {
+  const dying = createFoundryDying({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: []},
+    coordinator: {}, resolveAction: async () => ({ok: false})});
+  const resolved = async (zeroHpUnchecked, {notOn=[], critical=false}={}) => {
+    const orc = creature({type: "npc", health: 0});
+    orc.items = [{name: "Relentless Endurance", system: {active: true, ruleElements: [{type: "Trigger",
+      data: {kind: "zero-hp", event: "health.zero", zeroHp: {mode: "set", hitPoints: 1, pool: "relentless-endurance", notOn}}}]}}];
+    orc.system.pools = [{id: "relentless-endurance", value: 1, max: 1}];
+    orc.toObject = function () { return {system: structuredClone(this.system)}; };
+    const target = {actorRef: "Actor.hero", tokenId: "orc-token"};
+    const results = critical ? {attackResolution: {hits: [{outcome: "criticalHit", target}]}} : {};
+    await dying.afterResolution({options: {targetActors: {"token:orc-token": orc}}, state: {mutationPlans: [{type: "durabilityDamage",
+      target, plan: {...damage(2, 3), ...(zeroHpUnchecked ? {zeroHpUnchecked} : {})}}], results}});
+    return orc;
+  };
+  // A rule a critical hit bars (Undead Fortitude's notOn "critical") keeps it up on a plain hit only.
+  assert.equal((await resolved(true, {notOn: ["critical"]})).system.resources.health.value, 1, "not a critical hit: kept");
+  assert.equal((await resolved(true, {notOn: ["critical"], critical: true})).system.resources.health.value, 0,
+    "a critical hit bars it");
+  const rescued = await resolved(true);
+  assert.equal(rescued.system.resources.health.value, 1, "kept at 1 HP");
+  assert.deepEqual(rescued.effects, []);
+  const planned = await resolved(false);
+  assert.equal(planned.system.resources.health.value, 0, "planning already checked it");
+  assert.ok(planned.effects.some(effect => effect.system.type === "dead"), "an NPC at 0 dies");
+});
+
 test("a creature with a damage.taken trigger (Aversion to Fire) is dispatched what it took, by type; others are not", async () => {
   const dispatched = [];
   const previous = globalThis.game;

@@ -359,7 +359,8 @@ export async function executeStagedActionResolution(options={}) {
     actor: options.actor,
     targetActors: options.targetActors,
     authority: options.authority,
-    persistencePort: options.persistencePort ?? input.persistencePort ?? null
+    persistencePort: options.persistencePort ?? input.persistencePort ?? null,
+    snapshotActor: options.services?.snapshotActor ?? null
   });
 
   const committed = markActionPipelineStage(updateResolutionState(committing, {
@@ -2737,8 +2738,8 @@ function healerReward(input, plans) {
   const mine = plans.find(own);
   if ( mine?.plan?.path ) {
     const to = Math.min(Number(mine.plan.max) || Infinity, (Number(mine.plan.to) || 0) + amount);
-    return {plans: plans.map(entry => ((entry !== mine) ? entry
-      : {...entry, plan: {...entry.plan, to, updates: {...entry.plan.updates, [entry.plan.path]: to}}})), record};
+    return {plans: plans.map(entry => ((entry !== mine) ? entry : {...entry, plan: {...entry.plan, to,
+      amount: entry.plan.amount + amount, updates: {...entry.plan.updates, [entry.plan.path]: to}}})), record};
   }
   const plan = createActorHealingMutationPlan(input.actorSystem ?? {}, {healingResult: {total: amount, byHealingType: {healing: amount}},
     target: input.source});
@@ -2759,7 +2760,8 @@ function lifeBondHealing(input, plans) {
     const own = result.find(entry => sameCreature(entry?.target, bond.target));
     if ( own?.plan?.path ) {
       const to = Math.min(Number(own.plan.max) || Infinity, (Number(own.plan.to) || 0) + amount);
-      return result.map(entry => ((entry !== own) ? entry : {...entry, plan: {...entry.plan, to, updates: {...entry.plan.updates, [entry.plan.path]: to}}}));
+      return result.map(entry => ((entry !== own) ? entry : {...entry, plan: {...entry.plan, to, amount: entry.plan.amount + amount,
+        updates: {...entry.plan.updates, [entry.plan.path]: to}}}));
     }
     const plan = createActorHealingMutationPlan(bond.actorSystem ?? {}, {healingResult: {total: amount, byHealingType: {healing: amount}},
       target: bond.target});

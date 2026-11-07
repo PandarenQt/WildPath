@@ -1,7 +1,11 @@
 import {resolveTargetLookupValue, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
 import {mutationTargetIdentity} from "../helpers/mutation-target.mjs";
-import {createActorUpdateTransactionOperation} from "./resolution-transaction-resolver.mjs";
-import {commitActorDurabilityMutationPlan} from "./durability-resolver.mjs";
+import {createActorUpdateTransactionOperation, rollbackActorUpdateOperation} from "./resolution-transaction-resolver.mjs";
+import {
+  commitActorDurabilityMutationPlan,
+  rebaseActorDurabilityMutationPlan,
+  revertActorDurabilityMutationPlan
+} from "./durability-resolver.mjs";
 import {
   commitConditionEffectMutationPlan,
   rollbackConditionEffectMutationPlan
@@ -24,6 +28,7 @@ export function prepareTargetMutationCommitOperations({
   commitPlan=defaultCommitPlan,
   rollbackPlan=null,
   persistencePort=null,
+  snapshotActor=null,
   metadata={}
 }={}) {
   if ( !mutationPlans.length ) {
@@ -80,14 +85,28 @@ export function prepareTargetMutationCommitOperations({
         mutationPlan: clonePlain(mutationPlan)
       },
       persistencePort,
-      commit: async () => {
-        commitResult = await commitPlan(actor, innerPlan, mutationPlan, {persistencePort});
-        if ( commitResult?.ok === false ) throw new Error(commitResult.reason ?? commitResult.code ?? "Target mutation commit failed.");
-        return commitResult !== false;
-      },
-      ...(rollbackCommitPlan ? {
-        rollback: () => rollbackCommitPlan(actor, innerPlan, mutationPlan, commitResult)
-      } : {})
+      ...(((typeof snapshotActor === "function") && (innerPlan?.type !== "conditionEffect")) ? {
+        commit: async operation => serializeDurability(actor, async () => {
+          const plan = rebaseActorDurabilityMutationPlan(snapshotActor(actor), innerPlan);
+          if ( !await commitActorDurabilityMutationPlan(actor, plan, {persistencePort}) ) throw new Error("Target Actor commit adapter returned false.");
+          operation.updates = clonePlain(plan.updates);
+          operation.metadata.mutationPlan = clonePlain({...mutationPlan, plan});
+          // What landed, for a rollback: the document may have refused part of it (no healing under Chill Touch).
+          commitResult = {ok: true, plan, landed: snapshotActor(actor)};
+          return true;
+        }),
+        rollback: operation => serializeDurability(actor, () => rollbackActorUpdateOperation({...operation,
+          rollbackUpdates: revertActorDurabilityMutationPlan(snapshotActor(actor), commitResult.plan, commitResult.landed)}))
+      } : {
+        commit: async () => {
+          commitResult = await commitPlan(actor, innerPlan, mutationPlan, {persistencePort});
+          if ( commitResult?.ok === false ) throw new Error(commitResult.reason ?? commitResult.code ?? "Target mutation commit failed.");
+          return commitResult !== false;
+        },
+        ...(rollbackCommitPlan ? {
+          rollback: () => rollbackCommitPlan(actor, innerPlan, mutationPlan, commitResult)
+        } : {})
+      })
     }));
   }
 
@@ -186,6 +205,27 @@ export async function commitTargetMutationPlans({
 }
 
 /* -------------------------------------------- */
+
+/** Each creature's durability commits and rollbacks, in order. */
+const durabilityQueues = new Map();
+
+/**
+ * One durability read-then-write at a time per creature, so each one reads what the one before it wrote (as
+ * serializeMovement does for a creature's moves).
+ * shortcut: a sheet edit or another client's write landing between the read and Foundry's server write can still be
+ * overwritten, as Foundry has no conditional update; route those through here too if that shows in play.
+ */
+async function serializeDurability(actor, run) {
+  const key = actor?.uuid ?? actor;
+  const previous = durabilityQueues.get(key) ?? Promise.resolve();
+  const pending = previous.then(run, run);
+  durabilityQueues.set(key, pending);
+  try {
+    return await pending;
+  } finally {
+    if ( durabilityQueues.get(key) === pending ) durabilityQueues.delete(key);
+  }
+}
 
 function resolveTargetActor(targetActors, target, mutationPlan) {
   return resolveTargetLookupValue(targetActors, target, mutationPlan, {
