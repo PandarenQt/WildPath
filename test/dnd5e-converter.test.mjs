@@ -1706,6 +1706,64 @@ test("a save its 2024 text repeats at each of the creature's turns marks the eff
   assert.equal(held("<p>The target repeats the save at the end of each of its turns.</p>"), undefined, "nothing ends on a success");
 });
 
+test("a 2014 spell a document casts or carries is the converted 2024 spell of its name", () => {
+  const repeats = "<p>At the end of each of its turns, the target repeats the save, ending the spell on itself on a success.</p>";
+  const holdMonster = {...hold, _id: "phbsplHoldMonst0", name: "Hold Monster", system: {...hold.system, level: 5, description: {value: repeats}}};
+  const laughter = {...hold, _id: "phbsplTashasHide", name: "Hideous Laughter", system: {...hold.system, level: 1}};
+  const oldLaughter = {...laughter, _id: "tcoeOldLaughter0", name: "Tasha's Hideous Laughter", system: {...laughter.system, source: {rules: "2014"}}};
+  const spells = {phbsplHoldMonst0: holdMonster, phbsplTashasHide: laughter, tcoeOldLaughter0: oldLaughter};
+  const legacy = {license: "", rules: "2014"};
+  const own = {licensed: () => true, spells};
+
+  // A 2014 item's cast link (Compendium.dnd5e.spells): the spell its label names; the SRD's name drops the wizard.
+  const book = {_id: "testDemonomicon1", name: "Test Book", type: "equipment", system: {source: legacy, uses: {max: "5", spent: 0, recovery: []},
+    description: {value: "<p>You can cast @UUID[Compendium.dnd5e.spells.Item.zzzLegacyHold00]{hold monster} or "
+      + "@UUID[Compendium.dnd5e.spells.Item.zzzLegacyLaugh0]{Tasha’s hideous laughter} from it (save DC 20).</p>"},
+    activities: {a: activity("cast", {_id: "a", spell: {uuid: "Compendium.dnd5e.spells.Item.zzzLegacyHold00", level: 5, ability: ""},
+      consumption: {targets: [{type: "itemUses", value: "1"}]}}),
+    b: activity("cast", {_id: "b", spell: {uuid: "Compendium.dnd5e.spells.Item.zzzLegacyLaugh0", level: 1, ability: ""}}),
+    c: activity("cast", {_id: "c", name: "Hold Monster (Fiends Only)", spell: {uuid: "Compendium.dnd5e.spells.Item.zzzLegacyHold00", level: 5,
+      ability: ""}, consumption: {targets: [{type: "itemUses", value: "1"}]}})}}};
+  const cast = convertItem(book, own);
+  assert.deepEqual(cast.items.filter(item => item.type === "action").map(item => item.name), ["Test Book: Hold Monster", "Test Book: Hideous Laughter",
+    "Test Book: Hold Monster (Fiends Only)"], "the 2024 spell, never a 2014 one of that name; a limited cast keeps its activity's name");
+  assert.equal(cast.notes.some(note => /not found among the converted spells/.test(note)), false);
+  assert.equal(cast.notes.includes("cast: \"Hold Monster (Fiends Only)\" is the whole spell; its limit is by hand"), true);
+  const [held] = cast.items.filter(item => item.type === "action");
+  valid(held);
+  assert.equal(held.system.definition.effects[0].repeatSave, "turnEnd");
+  assert.deepEqual(held.system.definition.save.dc, {value: 20}, "the item's own DC its text gives, not its user's");
+
+  // A spell cast as a rest finishes is no Action (free and unlimited as one): it stays by hand.
+  const resting = convertItem({...book, system: {...book.system, activities: {a: {...book.system.activities.a,
+    activation: {type: "longRest", override: true}, consumption: {targets: []}}}}}, own);
+  assert.equal(resting.items.some(item => (item.type === "action") && item.system.definition.effects?.length), false);
+  assert.equal(resting.notes.includes("cast: Hold Monster is cast as a longRest finishes, which is by hand"), true);
+
+  // A 2014 stat block's copy (no activities): the 2024 spell, cast as the copy is (its preparation and uses a day).
+  const copy = (system, name="Hold Monster") => ({_id: "legacyHoldMon001", name, type: "spell", system: {source: legacy, level: 5,
+    actionType: "save", activation: {type: "action", cost: 1}, save: {ability: "wis", scaling: "spell"},
+    description: {value: "<p>Paralyzed for the duration.</p>"}, ...system}});
+  const fiend = items => convertActor({_id: "testFiend0000001", name: "Test Fiend", type: "npc", system: {source: legacy, details: {cr: 10},
+    abilities: {cha: {value: 20}}, attributes: {hp: {max: 100}, movement: {walk: "30"}, spellcasting: "cha"}, traits: {size: "lg"}}, items}, own);
+  const [prepared] = fiend([copy({preparation: {mode: "prepared", prepared: false}, uses: {value: null, max: "", per: null}})]).actor.items;
+  valid(prepared);
+  assert.equal(prepared.name, "Hold Monster");
+  assert.equal(prepared.system.definition.effects[0].repeatSave, "turnEnd");
+  assert.deepEqual(prepared.system.definition.save.dc, {value: 17}, "8 + proficiency 4 + Charisma 5");
+  assert.deepEqual(prepared.system.definition.configuration[0].cost.anyOf[0], [{capability: "spell-slot.5", amount: 1}], "a 5th-level slot or higher");
+
+  const [innate] = fiend([copy({preparation: {mode: "innate"}, uses: {value: 3, max: "3", per: "day"}})]).actor.items;
+  valid(innate);
+  assert.equal(innate.system.definition.configuration, undefined, "no slot");
+  assert.equal(innate.system.definition.costs.allOf.some(cost => cost.capability === "hold-monster"), true, "one of its uses");
+  assert.deepEqual(innate.system.ruleElements[0].data.maximum, {type: "constant", value: 3});
+
+  // A restricted copy names no 2024 spell and stays as it was.
+  const [self] = fiend([copy({preparation: {mode: "innate"}}, "Hold Monster (Self Only)")]).actor.items;
+  assert.deepEqual([self.name, self.system.definition.effects], ["Hold Monster (Self Only)", undefined]);
+});
+
 test("a paladin's auras are auras: Protection to saves, Courage and Devotion to conditions, for allies in range", () => {
   const feature = (id, identifier, name, effects=[]) => ({_id: id, name, type: "feat", img: "icons/svg/aura.svg", effects,
     system: {source: SRD, identifier, type: {value: "class"}, activities: {}}});

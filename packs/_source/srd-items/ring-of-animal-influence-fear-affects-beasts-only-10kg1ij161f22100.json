@@ -1,7 +1,7 @@
 {
   "_id": "10kg1ij161f22100",
   "_key": "!items!10kg1ij161f22100",
-  "name": "Ring of Animal Influence: Fear",
+  "name": "Ring of Animal Influence: Fear (Affects Beasts Only)",
   "type": "action",
   "img": "icons/magic/unholy/silhouette-robe-evil-glow.webp",
   "system": {
@@ -66,7 +66,7 @@
       "metadata": {
         "spellLevel": 3
       },
-      "label": "Ring of Animal Influence: Fear"
+      "label": "Ring of Animal Influence: Fear (Affects Beasts Only)"
     },
     "ruleElements": [
       {
@@ -107,7 +107,9 @@
         "castBy": "Ring of Animal Influence"
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "cast: \"Fear (Affects Beasts Only)\" is the whole spell; its limit is by hand"
+        ]
       },
       "price": 4000,
       "rarity": "rare"

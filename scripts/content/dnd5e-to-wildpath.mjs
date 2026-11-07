@@ -3956,6 +3956,36 @@ function missingCasts(document, activities) {
 const LEGACY_SPELLS = Object.freeze({Mzh95utKDPIrjiH8: "phbsplDetectEvil"});
 
 /**
+ * The 2024 spell among `spells` with `name` (slugified: "protection from evil and good"), or null: what a 2014
+ * document's spell is now (a Tasha's item's cast link, a 2014 stat block's copy), the choice LEGACY_SPELLS takes. The SRD
+ * drops a spell's wizard ("Tasha’s Hideous Laughter" is Hideous Laughter), so a name not found is tried without one.
+ */
+const spellIndexes = new WeakMap();
+function spell2024Named(spells, name) {
+  if ( !spells || !name ) return null;
+  if ( !spellIndexes.has(spells) ) spellIndexes.set(spells, Object.fromEntries(Object.values(spells)
+    .filter(spell => spell.system?.source?.rules === "2024").map(spell => [slugify(spell.name), spell])));
+  const index = spellIndexes.get(spells);
+  return index[slugify(name)] ?? index[slugify(name.replace(/^\S+['’]s\s+/u, ""))] ?? null;
+}
+
+/**
+ * A 2014 stat block's copy of a spell (no activities) as the 2024 spell of its name, cast as the copy is: its name, its
+ * preparation (so a slot, or none at will or innate) and its uses a day, which each slot-spending activity spends.
+ * The copy itself when there is no such 2024 spell; a restricted copy ("Invisibility (Self Only)") names none, so it
+ * stays as it was rather than lose its restriction.
+ */
+function modernSpellCopy(copy, spells) {
+  const spell = ((copy.type === "spell") && !copy.system?.activities) ? spell2024Named(spells, copy.name) : null;
+  if ( !spell ) return copy;
+  const uses = upgradeLegacy(copy).system?.uses ?? {};
+  const activities = Object.fromEntries(Object.entries(spell.system.activities ?? {}).map(([id, activity]) => [id,
+    (uses.max && (activity.consumption?.spellSlot !== false)) ? {...activity, consumption: {...activity.consumption,
+      targets: [...(activity.consumption?.targets ?? []), {type: "itemUses", value: "1"}]}} : activity]));
+  return {...spell, _id: copy._id, name: copy.name, system: {...spell.system, preparation: copy.system.preparation, uses, activities}};
+}
+
+/**
  * 2014 class features (dnd5e's classfeatures pack) whose uses a Tasha's option spends, as the 2024 feature that is
  * that pool now (Ki is Monk's Focus).
  */
@@ -3976,9 +4006,17 @@ function targetName(target, names) {
  */
 function castSpell({document, activity, system, notes, pool: itemPool=null, options}) {
   const linked = String(activity.spell?.uuid ?? "").split(".").pop();
-  const spellDocument = options.spells?.[LEGACY_SPELLS[linked] ?? linked];
+  // A 2014 link (Compendium.dnd5e.spells) is the 2024 spell its label names ("@UUID[...Item.<id>]{sanctuary}").
+  const label = linked && new RegExp(`@UUID\\[[^\\]]*\\.Item\\.${linked}\\]\\{([^}]+)\\}`).exec(String(document.system?.description?.value ?? ""))?.[1];
+  const spellDocument = options.spells?.[LEGACY_SPELLS[linked] ?? linked] ?? spell2024Named(options.spells, label);
   if ( !spellDocument ) {
     notes.push("cast: its spell was not found among the converted spells");
+    return null;
+  }
+  // A spell cast as a rest finishes (Human Molar's Sanctuary) is no Action: as one it would be free and unlimited.
+  const restCast = pick(activity, system, "activation").type;
+  if ( ["shortRest", "longRest"].includes(restCast) ) {
+    notes.push(`cast: ${spellDocument.name} is cast as a ${restCast} finishes, which is by hand`);
     return null;
   }
   const casting = ABILITY_MAP[activity.spell?.ability] ?? options.creature?.castingAbility ?? null;
@@ -3987,7 +4025,9 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
       ?? options.creature.spellDC} : options.creature;
   // A magic item's own save DC ("Wand of Fireballs: DC 15"), else its user's spell save DC.
   const challenge = activity.spell?.challenge;
-  const fixedDC = challenge?.override ? number(challenge.save) : null;
+  // dnd5e leaves some items' DC out of their cast activity (Demonomicon of Iggwilv); its text gives it ("spells (save DC 20)").
+  const fixedDC = challenge?.override ? number(challenge.save)
+    : (options.creature ? null : number(/\(save DC (\d+)\)/i.exec(plainText(document))?.[1]));
   const converted = convertItem(spellDocument, {...options, creature, spellDC: fixedDC, licensed: () => true});
   const action = converted.items?.find(item => item.type === "action");
   if ( !action ) return null;
@@ -4002,8 +4042,13 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   const reacts = (action.system.definition.costs?.allOf ?? []).some(cost => cost.capability === "reaction");
   const costs = reacts ? {...base.costs, allOf: [...(base.costs?.allOf ?? []).filter(cost => !["action", "bonus-action", "reaction"]
     .includes(cost.capability)), {capability: "reaction", amount: 1}]} : base.costs;
-  const definition = {...action.system.definition, id: `${base.id}-${slugify(spellDocument.name)}`,
-    label: options.creature ? spellDocument.name : `${document.name}: ${spellDocument.name}`,
+  // A magic item's is named after the item too ("Wand of Fireballs: Fireball"), and after its activity when that says more of
+  // the spell ("Telekinesis Using Psionic Die"); a limit the name gives ("Plane Shift (to layers of the Abyss only)") is by hand.
+  const own = String(activity.name ?? "");
+  const named = own.toLowerCase().startsWith(spellDocument.name.toLowerCase()) ? own : spellDocument.name;
+  if ( !options.creature && /\(.+\)/.test(named) ) notes.push(`cast: "${named}" is the whole spell; its limit is by hand`);
+  const name = options.creature ? spellDocument.name : `${document.name}: ${named}`;
+  const definition = {...action.system.definition, id: `${base.id}-${slugify(spellDocument.name)}`, label: name,
     tags: [...new Set([...(action.system.definition.tags ?? []), "spell"])], costs};
   // Cast without a slot; its other choices stay (Polymorph's Beast, a damage type, one of its effects). One cast above its
   // own level (a Lich's 5th-level Fireball) keeps the slot choice's scaling at that level, a choice the authority answers.
@@ -4019,8 +4064,6 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   notes.push(...converted.notes.filter(note => !note.startsWith("uses:")));
   const pool = activityPool({document, activity, scales: options.scales, spellName: spellDocument.name});
   const id = stableId(`${document._id}:cast:${activity._id ?? spellDocument._id}`);
-  // A creature's spell keeps its name; a magic item's is named after the item too ("Wand of Fireballs: Fireball").
-  const name = options.creature ? spellDocument.name : `${document.name}: ${spellDocument.name}`;
   // A pool the cast fills (Heroes' Feast's servings) comes with it, and so do the spell's Actions that spend it (Consume Feast).
   const filled = new Set((definition.restores ?? []).map(entry => entry.resourceId));
   const spellPools = (action.system.ruleElements ?? []).filter(rule => (rule.type === "GrantResource") && filled.has(rule.data?.resourceId));
@@ -5738,9 +5781,10 @@ export function convertActor(document, options={}) {
     itemNames: Object.fromEntries((document.items ?? []).map(item => [item._id, item.name]))};
 
   const items = [];
-  for ( const source of document.items ?? [] ) {
+  for ( const own of document.items ?? [] ) {
     // dnd5e's cached copy of a spell a cast activity casts: the cast activity converts it.
-    if ( (source.type === "equipment") || source.flags?.dnd5e?.cachedFor ) continue;
+    if ( (own.type === "equipment") || own.flags?.dnd5e?.cachedFor ) continue;
+    const source = modernSpellCopy(own, spells);
     const fixed = SOURCE_TEXT[`${actorId}/${source._id}`];
     // A part of its licensed stat block that dnd5e leaves without a license of its own (a Deva's Divine Aid) is the stat block's.
     const inherited = (!source.system?.source?.license && (source.system?.source?.rules === "2024") && document.system?.source?.license)

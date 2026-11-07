@@ -1251,7 +1251,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Riding Horse | actors24 | Riding Horse (1 items) | — |
 | Ring | equipment24 | Ring (gear) | — |
 | Ring Mail | equipment24 | Ring Mail (gear) | — |
-| Ring of Animal Influence | equipment24 | Ring of Animal Influence (gear), Ring of Animal Influence: Animal Friendship (automated), Ring of Animal Influence: Fear (automated), Ring of Animal Influence: Speak with Animals (automated) | — |
+| Ring of Animal Influence | equipment24 | Ring of Animal Influence (gear), Ring of Animal Influence: Animal Friendship (automated), Ring of Animal Influence: Fear (Affects Beasts Only) (automated), Ring of Animal Influence: Speak with Animals (automated) | cast: "Fear (Affects Beasts Only)" is the whole spell; its limit is by hand |
 | Ring of Djinni Summoning | equipment24 | Ring of Djinni Summoning (gear), Ring of Djinni Summoning (automated) | — |
 | Ring of Elemental Command | equipment24 | Ring of Elemental Command (gear) | — |
 | Ring of Evasion | equipment24 | Ring of Evasion (gear), Ring of Evasion (manual) | not automated (utility): using it spends its cost; its description says the rest |

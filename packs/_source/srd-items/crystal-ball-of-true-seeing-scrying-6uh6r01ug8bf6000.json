@@ -42,19 +42,8 @@
                 "type": "subtract",
                 "terms": [
                   {
-                    "type": "add",
-                    "terms": [
-                      {
-                        "type": "constant",
-                        "value": 8
-                      },
-                      {
-                        "type": "proficiency-bonus"
-                      },
-                      {
-                        "type": "spellcasting-modifier"
-                      }
-                    ]
+                    "type": "constant",
+                    "value": 17
                   },
                   {
                     "type": "constant",
