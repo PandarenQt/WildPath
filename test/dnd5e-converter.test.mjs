@@ -459,6 +459,15 @@ test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneratio
   assert.ok(!actor.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), "nothing is left as passive text");
 });
 
+test("a creature's notes name each item once, also when the item's own note already starts with its name", () => {
+  const carapace = {_id: "reflectivecarap0", name: "Reflective Carapace", type: "feat",
+    system: {source: SRD, identifier: "reflective-carapace", activities: {}, description: {value: ""}}};
+  const {actor} = convertActor({_id: "testTarrasque001", name: "Test Tarrasque", type: "npc", system: {source: SRD, details: {cr: 30},
+    abilities: {str: {value: 30}}, attributes: {hp: {max: 697}, movement: {walk: "60"}}, traits: {size: "grg"}}, items: [carapace]});
+  assert.deepEqual(actor.flags.wildpath.conversion.notes.filter(note => note.includes("Reflective")),
+    ["Reflective Carapace: reflecting the spell back at its caster on a 6 is by hand"]);
+});
+
 test("summons (G4): its creature, a choice of creatures, for the spell's duration, and what it gains with the spell's level", () => {
   const profile = (id, name="") => ({_id: `p${id}`, uuid: `Compendium.dnd5e.actors24.Actor.${id}`, name, count: "", level: {min: null, max: null}});
   const summoning = (activityData, extra={}) => ({_id: "summonSpell00001", name: "Summon Test", type: "spell", system: {source: SRD, level: 3,

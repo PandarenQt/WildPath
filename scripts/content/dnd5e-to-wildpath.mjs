@@ -5658,6 +5658,9 @@ const SOURCE_TEXT = Object.freeze({
     + "with a use of (A) [[/item Spellcasting]] to cast <em>Guiding Bolt</em> (level 4 version) or (B) [[/item Weakening Breath]].</p>"
 });
 
+/** An item's note on its creature, under the item's name unless the note already starts with it. */
+const itemNote = (name, note) => (note.startsWith(`${name}: `) ? note : `${name}: ${note}`);
+
 /** 2024 proficiency bonus by Challenge Rating. */
 export const proficiencyForChallenge = challenge => Math.max(2, Math.floor((Math.max(Number(challenge) || 0, 1) - 1) / 4) + 2);
 
@@ -5707,10 +5710,10 @@ export function convertActor(document, options={}) {
     const item = fixed ? {...inherited, system: {...inherited.system, description: {...inherited.system?.description, value: fixed}}} : inherited;
     const result = convertItem(item, {scales, pack, saveDC, names, creature, licensed, book, images, spells, creatures, beasts, tables});
     if ( !result.ok ) {
-      notes.push(`${item.name}: ${result.reason}`);
+      notes.push(itemNote(item.name, result.reason));
       continue;
     }
-    notes.push(...result.notes.map(note => `${item.name}: ${note}`));
+    notes.push(...result.notes.map(note => itemNote(item.name, note)));
     for ( const converted of result.items ) {
       // Legendary Actions are paid from the creature's own pool, not a pool per item.
       converted.system.ruleElements = converted.system.ruleElements.filter(rule => rule.type !== "GrantResource" || !converted.system
@@ -5808,10 +5811,10 @@ export function convertVehicle(document, {scales={}, pack=null, names={}, licens
     }
     const result = convertItem(item, {scales, pack, names, licensed, book, images, creature: {name: document.name, itemNames: {}}});
     if ( !result.ok ) {
-      notes.push(`${item.name}: ${result.reason}`);
+      notes.push(itemNote(item.name, result.reason));
       continue;
     }
-    notes.push(...result.notes.map(note => `${item.name}: ${note}`));
+    notes.push(...result.notes.map(note => itemNote(item.name, note)));
     // Its attack bonus is the stat block's own ("+8 to hit"): a vehicle has no ability scores to add.
     const flat = Object.values(item.system?.activities ?? {}).find(activity => (activity?.type === "attack") && activity.attack?.flat);
     for ( const converted of result.items ) {

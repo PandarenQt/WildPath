@@ -1410,7 +1410,9 @@
       "Title": "Craft {name}",
       "Plan": "It takes {days} days of work and {cost} GP of materials.",
       "TooPoor": "{name} can't pay the {cost} GP it takes.",
-      "Done": "{name} crafts {item}: {days} days of work and {cost} GP of materials."
+      "Done": "{name} crafts {item}: {days} days of work and {cost} GP of materials.",
+      "Failed": "{item} couldn't be crafted for {name} (see the console). Its coins were given back.",
+      "FailedUndo": "{item} couldn't be crafted for {name}, and its coins couldn't be given back (see the console). The GM must check them."
     },
     "CHASE": {
       "Title": "Chase",

@@ -1,5 +1,5 @@
 import {BUILD_COST, ENLARGE_COST, bastionGroups, canAddSpecial, coverLosses, defendersLost, recruited, tradeSale} from "../helpers/bastions.mjs";
-import {craftingPlan, spendGold} from "../helpers/crafting.mjs";
+import {craftingPlan, giveItem, spendGold, writeInOrder} from "../helpers/crafting.mjs";
 
 /**
  * Bastions (2024 DMG, 2026-10-22). A character's Bastion is its facilities (Items) and `system.bastion` (its defenders and
@@ -36,37 +36,6 @@ export function bastionTurn(actor) {
   return {special, orders, shut, quiet: special.length > 0 && !orders.length};
 }
 
-/**
- * Related writes made one after another, each `[document, update]` or, last, a function; when one fails, those made are
- * put back (the latest first) and the error rethrown, so an order pays and delivers once. Each order writes what
- * its character gives up (stock, coins, the claim on a craft) before what it gains: a write that can't be put back leaves
- * it short, with the error, never paid twice. shortcut: separate updates, not one; upgrade if Foundry gains multi-document
- * transactions.
- */
-async function writeInOrder(writes) {
-  const undo = [];
-  try {
-    for ( const write of writes ) {
-      if ( typeof write === "function" ) {
-        await write();
-        continue;
-      }
-      const [document, data] = write;
-      const before = structuredClone(Object.fromEntries(Object.keys(data).map(path =>
-        [path, path.split(".").reduce((value, key) => value?.[key], document)])));
-      await document.update(data);
-      undo.unshift(() => document.update(before));
-    }
-  } catch (error) {
-    try {
-      for ( const step of undo ) await step();
-    } catch (failed) {
-      throw new AggregateError([error, failed], "A Bastion write failed and what it had written could not be put back.");
-    }
-    throw error;
-  }
-}
-
 /** What one order yields this turn, as a line for the chat; it applies what it can. */
 export async function carryOut(actor, facility, order) {
   const name = actor.name;
@@ -85,11 +54,7 @@ export async function carryOut(actor, facility, order) {
     if ( !coins ) return format("WILDPATH.BASTION.CraftPoor", {name, item: made.name, cost: plan.cost});
     const {_id, ...data} = made.toObject();
     await writeInOrder([[facility, {"system.current.craft": "", "system.current.progress": 0}], [actor, {"system.currency": coins}],
-      async () => {
-        // Foundry resolves a refused creation (a _preCreate or hook returning false, invalid data) with none made.
-        const created = await actor.createEmbeddedDocuments("Item", [{...data, system: {...data.system, ...("quantity" in (data.system ?? {}) ? {quantity: 1} : {})}}]);
-        if ( !created?.length ) throw new Error(`${made.name} could not be created on ${actor.name}.`);
-      }]);
+      () => giveItem(actor, {...data, system: {...data.system, ...("quantity" in (data.system ?? {}) ? {quantity: 1} : {})}})]);
     return format("WILDPATH.BASTION.Crafted", {name, facility: facility.name, item: made.name, cost: plan.cost});
   }
   // Stocking an Armory: 100 GP plus 100 per Bastion Defender, half with a Smithy; stocked, defenders are harder to kill.

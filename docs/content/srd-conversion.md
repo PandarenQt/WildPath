@@ -1513,7 +1513,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Talisman of Ultimate Evil | equipment24 | Talisman of Ultimate Evil (gear), Talisman of Ultimate Evil (Ultimate End) (automated) | — |
 | Talons | equipment24 | Talons (gear) | "Card Effect" is passive or triggered (narrative): not automated |
 | Tan Bag of Tricks | equipment24 | Tan Bag of Tricks (gear), Tan Bag of Tricks (automated) | — |
-| Tarrasque | actors24 | Tarrasque (13 items) | Reflective Carapace: Reflective Carapace: reflecting the spell back at its caster on a 6 is by hand |
+| Tarrasque | actors24 | Tarrasque (13 items) | Reflective Carapace: reflecting the spell back at its caster on a 6 is by hand |
 | Telekinesis | spells24 | Telekinesis (automated) | save: a failure marks its creature only; what it does is by hand |
 | Telepathic Bond | spells24 | Telepathic Bond (automated) | — |
 | Teleport | spells24 | Teleport (manual) | not automated (teleport, narrative): using it spends its cost; its description says the rest |

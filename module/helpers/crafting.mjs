@@ -39,3 +39,41 @@ export function spendGold(currency={}, gold=0) {
   }
   return {...result, ep: 0};
 }
+
+/**
+ * Related writes made one after another, each `[document, update]` or, last, a function; when one fails, those made are
+ * put back (the latest first) and the error rethrown, so a purchase pays and delivers once. Write what the character
+ * gives up (stock, coins, the claim on a craft) before what it gains: a write that can't be put back leaves it short,
+ * with an AggregateError, never paid twice. shortcut: separate updates, not one; upgrade if Foundry gains multi-document
+ * transactions.
+ */
+export async function writeInOrder(writes) {
+  const undo = [];
+  try {
+    for ( const write of writes ) {
+      if ( typeof write === "function" ) {
+        await write();
+        continue;
+      }
+      const [document, data] = write;
+      const before = structuredClone(Object.fromEntries(Object.keys(data).map(path =>
+        [path, path.split(".").reduce((value, key) => value?.[key], document)])));
+      await document.update(data);
+      undo.unshift(() => document.update(before));
+    }
+  } catch (error) {
+    try {
+      for ( const step of undo ) await step();
+    } catch (failed) {
+      throw new AggregateError([error, failed], "A write failed and what it had written could not be put back.");
+    }
+    throw error;
+  }
+}
+
+/** Gives `actor` the Item `data`, as writeInOrder's last step. */
+export async function giveItem(actor, data) {
+  // Foundry resolves a refused creation (a _preCreate or hook returning false, invalid data) with none made.
+  const created = await actor.createEmbeddedDocuments("Item", [data]);
+  if ( !created?.length ) throw new Error(`${data.name} could not be created on ${actor.name}.`);
+}

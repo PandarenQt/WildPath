@@ -1,6 +1,6 @@
 import {scrollItemData} from "../helpers/spell-scrolls.mjs";
 import {realGapNotes} from "../helpers/conversion-notes.mjs";
-import {craftingPlan, spendGold} from "../helpers/crafting.mjs";
+import {craftingPlan, giveItem, spendGold, writeInOrder} from "../helpers/crafting.mjs";
 import {CUSTOM_EFFECT_DURATION_UNITS, CUSTOM_EFFECT_EXPIRY_EVENTS, validateActionDefinition} from "../helpers/action-definitions.mjs";
 import {summarizeActionDefinition} from "../helpers/action-definition-summary.mjs";
 import {ACTION_TEMPLATES, AREA_SHAPES, addBuilderRow, applyActionTemplate, builderGaps, builderIssues, builderToDefinition,
@@ -340,9 +340,14 @@ export default class WildPathItemSheet extends HandlebarsApplicationMixin(ItemSh
     if ( !actor ) return;
     const coins = spendGold(actor.system.currency ?? {}, plan.cost);
     if ( !coins ) return ui.notifications.warn(game.i18n.format("WILDPATH.CRAFT.TooPoor", {name: actor.name, cost: plan.cost}));
-    await actor.update({"system.currency": coins});
     const {_id, ...data} = this.item.toObject();
-    await actor.createEmbeddedDocuments("Item", [{...data, system: {...data.system, quantity: 1}}]);
+    try {
+      await writeInOrder([[actor, {"system.currency": coins}], () => giveItem(actor, {...data, system: {...data.system, quantity: 1}})]);
+    } catch (error) {
+      console.error(`Wild Path | crafting ${this.item.name} for ${actor.name} failed`, error);
+      return ui.notifications.error(game.i18n.format(error instanceof AggregateError ? "WILDPATH.CRAFT.FailedUndo" : "WILDPATH.CRAFT.Failed",
+        {name: actor.name, item: this.item.name}));
+    }
     await ChatMessage.create({content: game.i18n.format("WILDPATH.CRAFT.Done", {name: actor.name, item: this.item.name, ...plan})});
   }
 
