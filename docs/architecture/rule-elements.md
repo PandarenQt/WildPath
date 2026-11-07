@@ -399,8 +399,12 @@ repeats the save" (Dominate Person). Its stored save carries `onDamage: true`; t
 `damage.taken` to a creature bearing such an effect, and the dispatcher repeats that save then, tagged `repeat:damaged`,
 so a RollMode predicate (`tagsAll: ["repeat:damaged", "spell:hideous-laughter"]`, the second tag one its Action's save
 keeps) can give Advantage on it alone, not on another effect's damage-repeated save (Hideous Laughter's marker effect). The converter also reads the 2014 "can repeat the saving throw at the end of each of its turns" and "the
-target can make another Wisdom saving throw. On a success, the spell ends". The Builder's rows do not edit it. Not yet
-checked in live Foundry.
+target can make another Wisdom saving throw. On a success, the spell ends" (2014 Hideous Laughter's ", and each time it
+takes damage," and "advantage on the saving throw if it's triggered by damage" too); a repeat's roll mode in a case its
+text names ("with disadvantage if the tarrasque is within line of sight") is a by-hand note. Each damage mutation plan
+is one instance of damage: an Action plans one per hit on a creature, all its damage types together, so a creature two
+of one Action's attacks hit (Scorching Ray) repeats the save twice. A condition's damage at turn start (Bleeding) is an
+authority Action (`turnDamage`) and repeats it too. The Builder's rows do not edit it. Not yet checked in live Foundry.
 
 **Automatic triggers.** A `Trigger` of kind `automation` (the default) on a creature's active Item or
 enabled non-condition effect runs without asking anyone. The general automation dispatcher

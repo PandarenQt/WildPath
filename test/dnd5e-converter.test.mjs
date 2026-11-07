@@ -1711,6 +1711,13 @@ test("a save its 2024 text repeats at each of the creature's turns marks the eff
     + " success.</p>"), "turnEnd", "Frightful Presence");
   assert.equal(held("<p>At the end of each of its turns, the target can make another Wisdom saving throw. On a success, the spell ends"
     + " on the target.</p>"), "turnEnd");
+  // A Tarrasque's Frightful Presence: the repeat's Disadvantage in a case its text names is noted, not dropped.
+  const {notes} = convertItem({...hold, _id: "testHoldRepeat02", system: {...hold.system, description: {value: "<p>A creature can repeat"
+    + " the saving throw at the end of each of its turns, with disadvantage if the tarrasque is within line of sight, ending the effect"
+    + " on itself on a success.</p>"}}});
+  assert.deepEqual(notes, ["save: its repeat's Disadvantage if the tarrasque is within line of sight is by hand"]);
+  assert.equal(noteReason(`Frightful Presence: ${notes[0]}`),
+    "save: its repeat's Advantage or Disadvantage in a case its text names (by hand)");
 });
 
 test("a save its text repeats as the creature takes damage (Dominate Person, Hideous Laughter) marks the effects it gives", () => {
@@ -1742,6 +1749,13 @@ test("a save its text repeats as the creature takes damage (Dominate Person, Hid
   assert.deepEqual(laughter.notes, ["effect: its creature can't end Prone on itself, which is by hand"]);
   assert.deepEqual(converted("<p>It can’t end the Prone condition on itself.</p>").notes,
     ["effect: its creature can't end Prone on itself, which is by hand"], "a curly apostrophe (the premium books)");
+  // 2014 Tasha's Hideous Laughter: its turn's repeat and the damage-triggered save's Advantage too.
+  const laughter2014 = converted("<p>At the end of each of its turns, and each time it takes damage, the target can make another Wisdom"
+    + " saving throw. The target has advantage on the saving throw if it's triggered by damage. On a success, the spell ends.</p>");
+  const old = laughter2014.items[0].system.definition.effects;
+  assert.deepEqual(old.map(effect => [effect.repeatSave, effect.repeatOnDamage, effect.ruleElements?.[0]?.id]),
+    [["turnEnd", true, undefined], ["turnEnd", true, "damaged-save-advantage"]]);
+  assert.deepEqual(laughter2014.notes, []);
   assert.equal(converted("<p>Each time it takes damage, it makes another Wisdom saving throw, taking 1d6 on a failure.</p>").items[0]
     .system.definition.effects[0].repeatOnDamage, undefined, "nothing ends on a success");
 });

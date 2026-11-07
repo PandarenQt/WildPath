@@ -37,6 +37,7 @@ const RULES = [
   [/^not automated \((\w+)\)/, match => `used, not automated: ${match[1]} activity`],
   [/save: a failure gives/, () => "save: conditions from its text (the rest by hand)"],
   [/^save: its Advantage if /, () => "save: Advantage in a case its text names (by hand)"],
+  [/^save: its repeat's (?:Dis)?[Aa]dvantage if /, () => "save: its repeat's Advantage or Disadvantage in a case its text names (by hand)"],
   [/^effect: its creature can't end \w+ on itself/, () => "effect: a condition its creature can't end itself (by hand)"],
   [/save: a failure marks its creature \(narrative\)/, () => "narrative save (it tells or hides; nothing to automate)"],
   [/save: a failure marks its creature only/, () => "save: a failure marks its creature (rules by hand)"],

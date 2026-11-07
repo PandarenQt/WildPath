@@ -271,6 +271,8 @@ function componentTags(system) {
  * turns", "the target can make another Wisdom saving throw. On a success, the spell ends") or `turnStart`, and
  * `repeatOnDamage` ("Whenever the target takes damage, it repeats the save": Dominate Person). "repeats the save at ..."
  * is read first, so a text naming another start-of-turn event before it (a Pit Fiend's poison) still reads right.
+ * `qualifier`: a roll mode the repeat has in a case its text names ("with disadvantage if the tarrasque is within line
+ * of sight"), for a by-hand note.
  */
 function repeatSaveFields(document) {
   // An inline save ("another [[/save ability=wis dc=@attributes.spell.dc]] saving throw") is a word, its dots no sentence end.
@@ -279,12 +281,14 @@ function repeatSaveFields(document) {
   const another = String.raw`(?:the target|it) (?:can make|makes) another \w+ saving throw\b[^.]*\.(?: [^.]*\.)? On a success(?:ful save)?, the (?:spell|effect) ends`;
   const found = /repeats? the sav(?:e|ing throw) at the (end|start) of each of its turns[^.]*\b(?:ending|ends?)\b[^.]*on a success/i.exec(text)
     ?? /at the (end|start) of each of its turns,? [^.]*repeats? the save[^.]*\b(?:ending|ends?)\b[^.]*on a success/i.exec(text)
-    ?? new RegExp(String.raw`at the (end|start) of each of its turns(?: and each time it takes damage)?,? ${another}`, "i").exec(text);
+    ?? new RegExp(String.raw`at the (end|start) of each of its turns(?:,? and each time it takes damage)?,? ${another}`, "i").exec(text);
   const onDamage = /\brepeats? the save whenever it takes damage\b[^.]*\bon a success/i.test(text)
     || /\b(?:whenever|each time) (?:the target|it) takes damage, it repeats the save\b[^.]*\bon a success/i.test(text)
     || new RegExp(String.raw`\beach time it takes damage, ${another}`, "i").test(text);
+  const qualifier = found && /\bwith (dis)?advantage if ([^,.]+)/i.exec(found[0]);
   return {...(found ? {repeatSave: found[1].toLowerCase() === "end" ? "turnEnd" : "turnStart"} : {}),
-    ...(onDamage ? {repeatOnDamage: true} : {})};
+    ...(onDamage ? {repeatOnDamage: true} : {}),
+    ...(qualifier ? {qualifier: `${qualifier[1] ? "Disadvantage" : "Advantage"} if ${qualifier[2]}`} : {})};
 }
 
 /**
@@ -5524,16 +5528,19 @@ function convertActivity({document, activity, system, spell, level, scales, note
   }
   // "At the end of each of its turns, the target repeats the save, ending the spell on itself on a success" (Hold
   // Person): each effect a failed save gives is saved against again then, or as its creature takes damage.
-  const repeat = definition.save ? repeatSaveFields(document) : {};
+  const {qualifier, ...repeat} = definition.save ? repeatSaveFields(document) : {};
+  // Rolled without it, the repeat would be too easy, so it is noted (a Tarrasque's Frightful Presence).
+  if ( qualifier ) notes.push(`save: its repeat's ${qualifier} is by hand`);
   for ( const effect of effects ) {
     if ( (effect.saveOutcomePolicy === "failure") && !((effect.levels ?? 1) < 0) ) Object.assign(effect, repeat);
   }
   const repeated = effects.find(effect => effect.repeatOnDamage);
-  const advantageIf = definition.save ? /\bhas Advantage on the save if ([^.]+)\./i.exec(plainText(document))?.[1] : null;
-  // "The target has Advantage on the save if the save is triggered by damage" (Hideous Laughter): a marker its repeated
-  // save ends with the rest, giving Advantage on the save its damage brings (`repeat:damaged`). The repeated save keeps its
-  // spell's tags, so `spell:<identifier>` keeps the Advantage off another spell's damage-repeated save (Dominate Person).
-  if ( repeated && spell && /^the save is triggered by damage$/i.test(advantageIf ?? "") ) {
+  const advantageIf = definition.save ? /\bhas Advantage on the sav(?:e|ing throw) if ([^.]+)\./i.exec(plainText(document))?.[1] : null;
+  // "The target has Advantage on the save if the save is triggered by damage" (Hideous Laughter; 2014 "on the saving throw
+  // if it's triggered by damage"): a marker its repeated save ends with the rest, giving Advantage on the save its damage
+  // brings (`repeat:damaged`). The repeated save keeps its spell's tags, so `spell:<identifier>` keeps the Advantage off
+  // another spell's damage-repeated save (Dominate Person).
+  if ( repeated && spell && /^(?:the save is|it is|it[’']s) triggered by damage$/i.test(advantageIf ?? "") ) {
     effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: document.name, ruleElements: [{schemaVersion: 1,
       id: "damaged-save-advantage", type: "RollMode", data: {domains: ["save"], mode: "advantage"},
       predicate: {tagsAll: ["repeat:damaged", `spell:${identifierOf(document)}`]}}],
