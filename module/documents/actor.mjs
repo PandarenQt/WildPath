@@ -1209,7 +1209,8 @@ const STATUS_FORBIDS = Object.freeze({
 });
 /**
  * 2024 Wild Shape and Polymorph: a transformed creature can't cast spells. Spells it already cast (their lasting areas,
- * which run as authority Actions) go on. A form that keeps spellcasting (Shapechange: `keepsSpellcasting`) lifts it.
+ * which run as authority Actions) go on. A form that keeps spellcasting (Shapechange: `keepsSpellcasting`) lifts it; a
+ * rule its creature keeps can lift it for some spells (`{type: "Allow", data: {lifts: "transformed", actions}}`: Beast Spells).
  */
 const TRANSFORMED = Object.freeze({schemaVersion: 1, id: "transformed", type: "Forbid",
   data: {actions: {tagsAny: ["spell"]}, reason: "WILDPATH.REFUSAL.Transformed"}});

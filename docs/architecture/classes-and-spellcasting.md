@@ -404,7 +404,9 @@ the 1×1 Token.
   next concentration spell (Bless), which also cleared the Temporary Hit Points left. The wand's charge went 7 to 6.
 
 - **Its user's own form, keeping its spellcasting (2026-11-07, 2024 Shapechange).** `keepsSpellcasting: true` is kept on the
-  transformation and lifts the "transformed can't cast spells" refusal. `limits: {challenge: "self"}` refuses, before
+  transformation and lifts the "transformed can't cast spells" refusal. A feature the creature keeps in its form can lift
+  that refusal for some spells instead (an `Allow` rule, rule-elements.md: 2024 Beast Spells, but for costly Material
+  components). `limits: {challenge: "self"}` refuses, before
   anything is paid, a form whose Challenge Rating is above its user's level (else its Challenge Rating). On its user
   (no `targets`), `concentration: true` names the user's Token, so the form ends with that concentration, and
   `duration: {value, units}` without a `class` is a fixed duration (Shapechange's hour). With `temporaryHealth: "form"`

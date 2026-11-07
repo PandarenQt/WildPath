@@ -7,7 +7,24 @@
   "system": {
     "active": true,
     "description": "<p>While using Wild Shape, you can cast spells in Beast form, except for any spell that has a Material component with a cost specified or that consumes its Material component.</p>",
-    "ruleElements": []
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "beast-spells",
+        "type": "Allow",
+        "data": {
+          "lifts": "transformed",
+          "actions": {
+            "tagsAny": [
+              "spell"
+            ],
+            "notTagsAny": [
+              "component:costly-material"
+            ]
+          }
+        }
+      }
+    ]
   },
   "flags": {
     "wildpath": {

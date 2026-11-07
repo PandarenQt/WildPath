@@ -30,7 +30,7 @@ The default registry currently supports these contribution types:
 - `GrantMovement`
 - `RollMode`, `ResourceCap`, `RollOutcome`
 - `ExtraDamage`, `Aura`
-- `Forbid`, `Unaffected`
+- `Forbid`, `Allow`, `Unaffected`
 - `Trigger`
 - `Phase` (read by the zero-HP hook; contributes nothing)
 
@@ -42,7 +42,7 @@ Handlers return contribution bundles only:
 - `movement`
 - `rollModes`, `resourceCaps`, `rollOutcomes`
 - `extraDamage`, `auras`
-- `forbids`
+- `forbids`, `allows`, `unaffected`
 - `conditionImmunities`
 - `triggers`
 
@@ -1075,6 +1075,29 @@ the authority's separate refusals:
 - Authority Actions (a lasting area's turns, which its caster already cast) are not checked.
 - The rule rows have a **Can't use** row: a Forbid of Actions by tag (`{tagsAny: [...]}`, comma-separated). Any other
   predicate (Command's Flee) is Advanced's. An aura's rules can't be one: forbiddingRule reads only a creature's own owners.
+
+## Allow (2026-11-07)
+
+`{type: "Allow", data: {lifts: <a Forbid's id>, actions: <predicate>}}`: while it applies, the Forbid with that id no
+longer bars an Action whose tags match `actions` (the same `actionTags` a Forbid sees). Other Forbids still do, and so
+does the named one for any Action the predicate leaves out. Like Forbid it is read only from its creature's own owners
+(`grantOwners`), never from an aura; `forbiddingRule` gathers the matching Allows of all owners first, then skips a
+Forbid whose id one of them lifts. It shares Forbid's handler (`actionsRuleElement`); `lifts` is required.
+
+The ids to lift are the Forbid rule's own id: the states' `transformed`, `gaseous`, `commanded-flee`, `quickened`,
+`mythic` and `untrained-armor-casting` (actor.mjs), a condition's `condition.<condition>.<rule>`
+(`condition.silenced.verbal`), or a homebrew Forbid's `id`.
+
+| What | Its rule |
+| --- | --- |
+| Beast Spells, 2024 (druid 18) | `{lifts: "transformed", actions: {tagsAny: ["spell"], notTagsAny: ["component:costly-material"]}}` |
+| Beast Spells, 2014 | `{lifts: "transformed", actions: {tagsAny: ["spell"], notTagsAny: ["component:material"]}}`; "druid spells" only is by hand |
+
+- Beast Spells is a druid feature, which a Wild Shape form keeps (`keepItemTypes` defaults to features and gear), so
+  it lifts the transformed Forbid only while its own druid is in a form that keeps it; Polymorph (`keepItemTypes: []`)
+  drops it. The converter writes it from its text (`TRAITS["beast-spells"]`).
+- Shapechange's `keepsSpellcasting: true` on the transformation still drops the transformed Forbid outright, as
+  before; transformations already written with it need nothing new.
 
 ## Unaffected (2026-11-01, plan 7.10)
 

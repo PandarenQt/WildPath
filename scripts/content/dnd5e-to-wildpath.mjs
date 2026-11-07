@@ -3246,6 +3246,16 @@ const TRAITS = Object.freeze({
   "reflective-carapace": (document, {activities}) => ({rules: [{schemaVersion: 1, id: "reflective-carapace", type: "Unaffected",
     data: {actions: {any: [{tagsAny: ["spell:magic-missile"]}, {tagsAll: ["spell", "attack:ranged"]}]}}}],
   consumes: [...activities], notes: ["Reflective Carapace: reflecting the spell back at its caster on a 6 is by hand"]}),
+  // Beast Spells (druid 18): casting in a form it keeps its features in (Wild Shape) lifts the transformed Forbid, but
+  // for a spell with a costly or consumed Material component (2024), or any Material component (2014).
+  "beast-spells": document => {
+    const text = plainText(document);
+    const costly = /\bMaterial component with a cost\b/u.test(text);
+    if ( !costly && !/\bmaterial components\b/iu.test(text) ) return null;
+    return {rules: [{schemaVersion: 1, id: "beast-spells", type: "Allow", data: {lifts: "transformed",
+      actions: {tagsAny: ["spell"], notTagsAny: [costly ? "component:costly-material" : "component:material"]}}}],
+    notes: costly ? [] : ["Beast Spells: only druid spells is by hand"]};
+  },
   // A golem's Immutable Form: "can't shape-shift" (2014: immune to effects that alter its form); no Polymorph takes it.
   "immutable-form": () => ({rules: [{schemaVersion: 1, id: "immutable-form", type: "ConditionImmunity",
     data: {conditions: ["transformed"]}}], notes: []}),

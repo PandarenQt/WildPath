@@ -486,7 +486,7 @@ export function removeRule(rules, index, path = []) {
 }
 /** Handlers that read nothing but their own data, so they can be tried while editing. */
 const CONTEXT_FREE = new Set(["Modifier", "RollMode", "GrantResistance", "GrantImmunity", "GrantVulnerability", "ConditionImmunity",
-    "Reveal", "ExtraDamage", "Aura", "RollOutcome", "Forbid", "Unaffected"]);
+    "Reveal", "ExtraDamage", "Aura", "RollOutcome", "Forbid", "Allow", "Unaffected"]);
 /**
  * What is wrong with a list of RuleElements, one message per rule: its shape, an unknown type, or what the rule's
  * own handler refuses (a Modifier without domains), tried without its predicate.

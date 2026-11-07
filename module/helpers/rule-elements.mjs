@@ -26,6 +26,7 @@ export const RULE_ELEMENT_TYPES = Object.freeze({
   EXTRA_DAMAGE: "ExtraDamage",
   DAMAGE_DIE_MINIMUM: "DamageDieMinimum",
   FORBID: "Forbid",
+  ALLOW: "Allow",
   UNAFFECTED: "Unaffected",
   AURA: "Aura",
   TRIGGER: "Trigger",
@@ -83,6 +84,7 @@ const TYPE_ALIASES = Object.freeze({
   extradamage: RULE_ELEMENT_TYPES.EXTRA_DAMAGE,
   damagedieminimum: RULE_ELEMENT_TYPES.DAMAGE_DIE_MINIMUM,
   forbid: RULE_ELEMENT_TYPES.FORBID,
+  allow: RULE_ELEMENT_TYPES.ALLOW,
   unaffected: RULE_ELEMENT_TYPES.UNAFFECTED,
   aura: RULE_ELEMENT_TYPES.AURA,
   trigger: RULE_ELEMENT_TYPES.TRIGGER,
@@ -129,6 +131,7 @@ export function createDefaultRuleElementRegistry() {
     [RULE_ELEMENT_TYPES.EXTRA_DAMAGE, extraDamageRuleElement],
     [RULE_ELEMENT_TYPES.DAMAGE_DIE_MINIMUM, damageDieMinimumRuleElement],
     [RULE_ELEMENT_TYPES.FORBID, actionsRuleElement("Forbid", "forbids")],
+    [RULE_ELEMENT_TYPES.ALLOW, actionsRuleElement("Allow", "allows", {lifts: true})],
     [RULE_ELEMENT_TYPES.UNAFFECTED, actionsRuleElement("Unaffected", "unaffected")],
     [RULE_ELEMENT_TYPES.AURA, auraRuleElement],
     [RULE_ELEMENT_TYPES.GRANT_RESOURCE, grantResourceRuleElement],
@@ -799,9 +802,11 @@ function damageDieMinimumRuleElement(ruleElement) {
  * `Forbid` (`forbids`), the Actions its creature can't use while it applies: Spell Taxed forbids `{tagsAny: ["spell"]}`,
  * Silenced `{tagsAny: ["component:verbal"]}`, Gaseous Form `{tagsAny: ["spell", "attack"]}`. `Unaffected`
  * (`unaffected`), the Actions that do nothing to its creature (`{tagsAny: ["spell:magic-missile"]}`,
- * `{tagsAll: ["school:divination"]}`): it may still be targeted, and the Action is spent.
+ * `{tagsAll: ["school:divination"]}`): it may still be targeted, and the Action is spent. `Allow` (`allows`, with
+ * `lifts`: a Forbid's id), the Actions a Forbid of that id no longer bars while it applies: Beast Spells lifts
+ * `transformed` for spells without a costly Material component.
  */
-function actionsRuleElement(type, key) {
+function actionsRuleElement(type, key, {lifts=false}={}) {
   return ruleElement => {
     const data = ruleElement.data;
     const actions = data.actions;
@@ -809,7 +814,10 @@ function actionsRuleElement(type, key) {
       || (evaluatePredicate(actions, {tags: []}).code === PREDICATE_CODES.INVALID) ) {
       return handlerFailure(RULE_ELEMENT_CODES.INVALID, `${type} RuleElement requires an actions predicate.`);
     }
-    return success({[key]: [{id: data.id ?? ruleElement.id, actions: clonePlain(actions),
+    if ( lifts && !((typeof data.lifts === "string") && data.lifts) ) {
+      return handlerFailure(RULE_ELEMENT_CODES.INVALID, `${type} RuleElement requires the id of the Forbid it lifts.`);
+    }
+    return success({[key]: [{id: data.id ?? ruleElement.id, actions: clonePlain(actions), ...(lifts ? {lifts: data.lifts} : {}),
       ...(typeof data.reason === "string" ? {reason: data.reason} : {}), label: ruleElement.label ?? null,
       source: ruleElementSource(ruleElement), metadata: contributionMetadata(ruleElement, data.metadata)}]});
   };
@@ -828,23 +836,30 @@ export function actionTags(definition) {
     ...(definition?.costs?.allOf ?? []).flatMap(cost => (cost?.capability ? [`cost:${cost.capability}`] : []))];
 }
 
-/** The first of a creature's owners' rules in `key` whose actions match `definition`, named after its owner. */
-function actionsRule(key, owners, definition, context) {
+/**
+ * The first of a creature's owners' rules in `key` whose actions match `definition`, named after its owner, but for one
+ * whose id a matching rule in `liftedBy` of any of its owners lifts.
+ */
+function actionsRule(key, owners, definition, context, liftedBy=null) {
   const tags = actionTags(definition);
-  for ( const {ruleElements=[], source=null} of owners ) {
-    const rule = collectRuleElementContributions({ruleElements, context, source}).contributions[key]
-      .find(entry => evaluatePredicate(entry.actions, {tags}).ok);
+  const matches = entry => evaluatePredicate(entry.actions, {tags}).ok;
+  const collected = owners.map(({ruleElements=[], source=null}) =>
+    ({source, contributions: collectRuleElementContributions({ruleElements, context, source}).contributions}));
+  const lifted = new Set(liftedBy ? collected.flatMap(({contributions}) => contributions[liftedBy].filter(matches).map(entry => entry.lifts)) : []);
+  for ( const {source, contributions} of collected ) {
+    const rule = contributions[key].find(entry => matches(entry) && !lifted.has(entry.id));
     if ( rule ) return {...rule, name: source?.name ?? rule.label ?? null};
   }
   return null;
 }
 
 /**
- * The first rule (`Forbid`) of a creature's owners that bars an Action with `definition`, or null. It is named after its
- * owner (the "Silenced" effect, the armor): a condition's rules carry ids as labels.
+ * The first rule (`Forbid`) of a creature's owners that bars an Action with `definition`, or null: not one an `Allow`
+ * of its owners lifts for that Action. It is named after its owner (the "Silenced" effect, the armor): a condition's
+ * rules carry ids as labels.
  */
 export function forbiddingRule(owners=[], definition=null, context={}) {
-  return actionsRule("forbids", owners, definition, context);
+  return actionsRule("forbids", owners, definition, context, "allows");
 }
 
 /** The first rule (`Unaffected`) of a creature's owners that leaves it untouched by an Action with `definition`, or null. */
@@ -1118,6 +1133,7 @@ function emptyContributions() {
     extraDamage: [],
     dieMinimums: [],
     forbids: [],
+    allows: [],
     unaffected: [],
     auras: [],
     conditionImmunities: [],
@@ -1149,6 +1165,7 @@ function mergeContributions(target, source={}) {
   target.extraDamage.push(...(source.extraDamage ?? []));
   target.dieMinimums.push(...(source.dieMinimums ?? []));
   target.forbids.push(...(source.forbids ?? []));
+  target.allows.push(...(source.allows ?? []));
   target.unaffected.push(...(source.unaffected ?? []));
   target.auras.push(...(source.auras ?? []));
   target.conditionImmunities.push(...(source.conditionImmunities ?? []));

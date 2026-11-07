@@ -3223,6 +3223,15 @@ test("Unaffected (plan 7.10): a spell is tagged by itself; immunity to named spe
   assert.deepEqual(rules(feat("spell-immunity", "Spell Immunity", "<p>Immune to three spells.</p>")), [], "none linked: by hand");
   assert.deepEqual(rules(feat("telepathic-shroud", "Telepathic Shroud", "<p>Rule text.</p>")).map(rule => [rule.type, rule.data.actions]),
     [["Unaffected", {tagsAll: ["school:divination"]}]]);
+  // Beast Spells: an Allow lifting the transformed Forbid, but for a costly Material component (2024) or any (2014).
+  const beast = text => convertItem(feat("beast-spells", "Beast Spells", `<p>${text}</p>`)).items[0];
+  const costly = beast("Cast in form, except a spell that has a Material component with a cost specified.");
+  assert.deepEqual(costly.system.ruleElements.map(rule => [rule.type, rule.data]),
+    [["Allow", {lifts: "transformed", actions: {tagsAny: ["spell"], notTagsAny: ["component:costly-material"]}}]]);
+  const material = beast("You can't provide material components.");
+  assert.deepEqual(material.system.ruleElements[0].data.actions.notTagsAny, ["component:material"]);
+  assert.ok(material.flags.wildpath.conversion.notes.some(note => /only druid spells/u.test(note)), "the druid-spells limit is noted");
+  assert.deepEqual(beast("Rule text.").system.ruleElements, [], "another wording: by hand");
 });
 
 test("costs dnd5e gives that spend nothing, a potion's single use, an item's pool for its activity, a spell's own pool refilled", () => {

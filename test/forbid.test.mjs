@@ -155,6 +155,28 @@ test("Shapechange's end clears only the Temporary Hit Points its form gave, not 
   }
 });
 
+test("Allow: a kept feature lifts the Forbid it names for the Actions it matches (Beast Spells), and nothing else", () => {
+  const allow = (lifts, actions) => ({schemaVersion: 1, id: "allow", type: "Allow", data: {lifts, actions}});
+  assert.equal(evaluateRuleElement(allow("transformed", {tagsAny: ["spell"]})).ok, true);
+  assert.equal(evaluateRuleElement(allow("", {tagsAny: ["spell"]})).ok, false, "no Forbid named");
+  assert.equal(evaluateRuleElement(allow("transformed", null)).ok, false, "no predicate");
+  const beastSpells = {id: "b", type: "feature", name: "Beast Spells", system: {active: true,
+    ruleElements: [allow("transformed", {tagsAny: ["spell"], notTagsAny: ["component:costly-material"]})]}};
+  const shaped = (statuses=[]) => creature({items: [beastSpells], statuses,
+    effects: [{...effect("Wild Shape", []), id: "form", flags: {wildpath: {transformation: {formRef: "Actor.bear"}}}}]});
+  assert.equal(shaped().forbiddingRule(spell("verbal", "somatic")), null, "it casts in its form");
+  assert.equal(shaped().forbiddingRule(spell("material", "costly-material"))?.reason, "WILDPATH.REFUSAL.Transformed",
+    "not a spell with a costly Material component");
+  assert.equal(shaped(["gaseous"]).forbiddingRule(spell("verbal"))?.reason, "WILDPATH.REFUSAL.Gaseous", "another Forbid still bars it");
+  const silenced = creature({items: [{...beastSpells, system: {...beastSpells.system,
+    ruleElements: [allow("transformed", {tagsAny: ["spell"]})]}}], effects: [effect("Silenced", WILDPATH.CONDITIONS.silenced.ruleElements)]});
+  assert.equal(silenced.forbiddingRule(spell("verbal"))?.name, "Silenced", "an Allow lifts only the Forbid it names");
+  const lifted = creature({items: [{...beastSpells, system: {...beastSpells.system,
+    ruleElements: [allow("condition.silenced.verbal", {tagsAny: ["cantrip"]})]}}], effects: [effect("Silenced", WILDPATH.CONDITIONS.silenced.ruleElements)]});
+  assert.equal(lifted.forbiddingRule({id: "action:c", tags: ["spell", "cantrip", "component:verbal"]}), null, "any named Forbid");
+  assert.ok(lifted.forbiddingRule(spell("verbal")), "only for the Actions it matches");
+});
+
 test("a Quickened spell this combat turn forbids spells of level 1+, not cantrips, until the next turn", () => {
   const previous = globalThis.game;
   globalThis.game = {combat: {started: true, id: "c", round: 1, turn: 0}};
