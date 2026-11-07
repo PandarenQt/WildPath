@@ -48,7 +48,8 @@
             "escapeDC": 20,
             "escapeSkills": [
               "athletics"
-            ]
+            ],
+            "escapeByOthers": true
           }
         }
       ],
@@ -71,7 +72,6 @@
       },
       "conversion": {
         "notes": [
-          "escape: another creature freeing it is by hand",
           "escape: what its check does besides freeing it is by hand"
         ]
       },

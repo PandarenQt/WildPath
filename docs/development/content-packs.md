@@ -599,8 +599,9 @@ equipped. Equipping it (`system.active`) turns its rules on.
   `[[/skill ath 10]]`), gives the hold its DC (N; the save's number; else `"save"`) and `escapeSkills` (that skill
   only). "On a success, the spell ends" adds `escapeEndsAll`; "the ... condition while in the webs" adds `endsWhen:
   "leavesArea"`. A passive check activity at that DC (Iron Bands' Break Check) is that escape, not a note. "or a
-  creature within ..." / "or another creature" is noted ("escape: another creature freeing it is by hand"), and so is
-  a check's outcome that does more ("the item is destroyed", "further attempts ... automatically fail": Iron Bands).
+  creature within ..." / "or another creature" / "a creature that can touch" adds `escapeByOthers` (the common Free).
+  Destroying what holds it ("Destroying the Net ... frees", "until the net is destroyed") is noted ("escape:
+  destroying what holds it is by hand"), and so is a check's outcome that does more ("the item is destroyed", "further attempts ... automatically fail": Iron Bands).
   Web keeps its "the rest is by hand" note (Lightly Obscured, anchoring, the first time on a turn). SRD: Entangle, Black Tentacles, Ensnaring Strike, Web and its casts (Cloak of Arachnida,
   Wand of Web, Staff of the Magi, the Drider), Iron Bands, the Net and the Falling Net; the Druid's, Dryad's and
   Unicorn's Entangle.

@@ -514,7 +514,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Energy Bow | equipment24 | Energy Bow (attack) (automated), Energy Bow (Arrow of Transport) (manual), Energy Bow (Energy Ladder) (manual), Energy Bow (Energy Bow) (automated) | not automated (utility): using it spends its cost; its description says the rest; "Arrow of Restraint" is passive or triggered: not automated; not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Enhance Ability | spells24 | Enhance Ability (automated) | — |
 | Enlarge/Reduce | spells24 | Enlarge/Reduce (automated) | — |
-| Ensnaring Strike | spells24 | Ensnaring Strike (save) (automated) | escape: another creature freeing it is by hand; "Start of Turn Damage": its damage at the start of each turn doesn't grow with a higher spell slot (by hand) |
+| Ensnaring Strike | spells24 | Ensnaring Strike (save) (automated) | "Start of Turn Damage": its damage at the start of each turn doesn't grow with a higher spell slot (by hand) |
 | Entangle | spells24 | Entangle (automated) | — |
 | Entertainer's Pack | equipment24 | Entertainer's Pack (gear) | — |
 | Enthrall | spells24 | Enthrall (automated) | — |
@@ -561,7 +561,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Faithful Hound | spells24 | Faithful Hound (summon) (automated), Faithful Hound (Move Hound) (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Faithful Hound | actors24 | Faithful Hound (2 items) | Bite: "save" is passive or triggered: not automated |
 | Faithful Steed | classes24 | Faithful Steed (feature) | — |
-| Falling Net | equipment24 | Falling Net (gear), Falling Net (Trigger (1-4)) (automated), Falling Net (Trigger (5-10)) (automated), Falling Net (Trigger (11-16)) (automated), Falling Net (Trigger (17-20)) (automated), Falling Net (Escape Check (1-4)) (automated), Falling Net (Escape Check (5-10)) (automated), Falling Net (Escape Check (11-16)) (automated), Falling Net (Escape Check (17-20)) (automated), Falling Net (Set Trap) (automated) | escape: another creature freeing it is by hand; activation: 10 minute is not an action-economy cost |
+| Falling Net | equipment24 | Falling Net (gear), Falling Net (Trigger (1-4)) (automated), Falling Net (Trigger (5-10)) (automated), Falling Net (Trigger (11-16)) (automated), Falling Net (Trigger (17-20)) (automated), Falling Net (Escape Check (1-4)) (automated), Falling Net (Escape Check (5-10)) (automated), Falling Net (Escape Check (11-16)) (automated), Falling Net (Escape Check (17-20)) (automated), Falling Net (Set Trap) (automated) | escape: destroying what holds it is by hand; activation: 10 minute is not an action-economy cost |
 | False Life | spells24 | False Life (automated) | — |
 | Fast Hands | classes24 | Fast Hands (Sleight of Hand) (automated), Fast Hands (Thieves' Tools) (automated), Fast Hands (Use an Object) (manual) | not automated (utility): using it spends its cost; its description says the rest |
 | Fast Movement | classes24 | Fast Movement (feature) | — |
@@ -871,7 +871,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ioun Stone of Reserve | equipment24 | Ioun Stone of Reserve (gear), Ioun Stone of Reserve (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted |
 | Ioun Stone of Strength | equipment24 | Ioun Stone of Strength (gear) | — |
 | Ioun Stone of Sustenance | equipment24 | Ioun Stone of Sustenance (gear) | — |
-| Iron Bands | equipment24 | Iron Bands (gear), Iron Bands (Throw Bands) (automated) | escape: another creature freeing it is by hand; escape: what its check does besides freeing it is by hand |
+| Iron Bands | equipment24 | Iron Bands (gear), Iron Bands (Throw Bands) (automated) | escape: what its check does besides freeing it is by hand |
 | Iron Flask | equipment24 | Iron Flask (gear), Iron Flask (Attempt to Trap Creature) (automated), Iron Flask (Release Creature) (manual), Iron Flask (Add Trapped Creature) (manual) | rolled (save, narrative): who failed is all there is; its description says the rest; not automated (summon, narrative): using it spends its cost; its description says the rest; not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Iron Golem | actors24 | Iron Golem (8 items) | — |
 | Iron Horn of Valhalla | equipment24 | Iron Horn of Valhalla (gear), Iron Horn of Valhalla (automated) | — |
@@ -1037,7 +1037,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Necklace of Fireballs | equipment24 | Necklace of Fireballs (gear), Necklace of Fireballs: Fireball (automated) | "Determine Number of Beads" is passive or triggered (narrative): not automated |
 | Necklace of Prayer Beads | equipment24 | Necklace of Prayer Beads (gear), Necklace of Prayer Beads: Bless (automated), Necklace of Prayer Beads: Cure Wounds (automated), Necklace of Prayer Beads: Greater Restoration (automated), Necklace of Prayer Beads: Shining Smite (automated), Necklace of Prayer Beads: Guardian of Faith (automated), Necklace of Prayer Beads: Wind Walk (automated) | activation: 1 minute is not an action-economy cost |
 | Needles | equipment24 | Needles (gear) | — |
-| Net | equipment24 | Net (gear), Net (automated) | escape: another creature freeing it is by hand; save: a failure gives restrained (its text); the rest is by hand |
+| Net | equipment24 | Net (gear), Net (automated) | escape: destroying what holds it is by hand; save: a failure gives restrained (its text); the rest is by hand |
 | Night Hag | actors24 | Night Hag (18 items) | Coven Magic: not automated (utility, narrative): using it spends its cost; its description says the rest; Coven Magic: activation: 1 minute is not an action-economy cost; Coven Magic: activation: 1 hour is not an action-economy cost; Coven Magic: concentration: its caster concentrates; what it sustains is by hand; Coven Magic: activation: 10 minute is not an action-economy cost; Coven Magic: save: a failure marks its creature (narrative); Coven Magic: "Create Sensor" is passive or triggered (narrative): not automated; Soul Bag: "Soul Bag" is passive or triggered (narrative): not automated; Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: effect: "Fears Manifested" marks its creature only; its rules are by hand; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Shape-Shift: not automated (utility, narrative): using it spends its cost; its description says the rest; Nightmare Haunting: activation: 1 minute is not an action-economy cost |
 | Nightmare | actors24 | Nightmare (6 items) | — |
 | Nine Lives Stealer | equipment24 | Nine Lives Stealer (Life Stealing) (automated) | rolled (save); what it does is by hand; "Nine Lives Stealer" is passive or triggered: not automated |

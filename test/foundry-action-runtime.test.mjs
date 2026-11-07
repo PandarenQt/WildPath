@@ -2971,6 +2971,20 @@ test("a common action is built by the authority from its id: a client names it, 
   assert.equal(planned.state.rollRequests[0].dc.value, 14, "8 + Might +3 + proficiency +3");
   const unknown = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game, intent: intent("common:fireball")});
   assert.equal(unknown.ok, false, "only the system's own common actions exist");
+
+  // Free: built from its first declared target's hold; refused while that creature has no hold another may free it from.
+  assert.equal((await foundryActionIntentToStagedOptions({senderUserId: "player-a", game, intent: intent("common:free")})).ok, false,
+    "no hold to free it from");
+  ogre.effects = [{id: "net", statuses: new Set(["restrained"]), system: {type: "restrained"},
+    flags: {wildpath: {conditionEffect: {metadata: {escapeDC: 10, escapeByOthers: true}}}}}];
+  // Charmed by the netted ogre: freeing it only takes a condition off it, which is not harmful.
+  hero.effects = [{id: "charm", statuses: new Set(["charmed"]), flags: {wildpath: {conditionEffect: {sourceRef: `uuid:${ogre.uuid}`}}}}];
+  const free = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game, intent: intent("common:free")});
+  assert.equal(free.ok, true, free.reason);
+  assert.equal(free.options.action.system.definition.check.dc.value, 10);
+  assert.equal(free.options.targetActors[free.options.targets[0].actorRef], ogre, "endEffectsWhenEscaped's held creature");
+  const shoved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", game, intent: intent("common:shove")});
+  assert.equal(shoved.ok, false, "a Shove of its charmer is still harmful");
 });
 
 test("a reaction's attack rolls with the same advantage as any attack: a Prone attacker within 5 ft is easier to hit", async t => {

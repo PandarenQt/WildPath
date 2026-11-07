@@ -24,6 +24,9 @@ const STRIKE_DC = { valueExpression: { type: "add", terms: [{ type: "constant", 
             { type: "proficiency-bonus" }] } };
 // 2024: the target saves with Might or Agility, its choice: the one it is likelier to pass (`abilities`, the runtime).
 const STRIKE_SAVE = { ability: "might", abilities: ["might", "agility"], dc: STRIKE_DC };
+// 2024 escape: a check against the escape DC of what grapples or restrains a creature; a success ends that condition.
+const ESCAPE = { costs: ACTION, check: { skill: "athletics", dc: { value: 10 } },
+    effects: [{ id: "escaped", type: "condition", conditionId: "grappled", levels: -1, checkOutcomePolicy: "success" }] };
 const strikeSave = (effect) => ({ ...GRAB, save: STRIKE_SAVE,
     effects: [{ id: "on-fail", type: "condition", saveOutcomePolicy: "failure", ...effect }] });
 /** Each common action: its lang key, icon and definition (without id and label, which `commonAction` adds). */
@@ -77,11 +80,11 @@ const COMMON = {
             metadata: { test: { skills: ["arcana", "history", "investigation", "nature", "religion"] } } } },
     influence: { name: "WILDPATH.COMMON.Influence", img: "icons/svg/sound.svg", definition: { costs: ACTION, ...SELF,
             metadata: { test: { skills: ["deception", "intimidation", "performance", "persuasion", "animal-handling"] } } } },
-    // 2024 escape: the creature's Athletics or Acrobatics check against the escape DC of what grapples or restrains it;
-    // a success ends that condition. Offered only while it has one with an escape DC (commonAction).
-    escape: { name: "WILDPATH.COMMON.Escape", img: "icons/svg/net.svg", definition: { costs: ACTION, ...SELF,
-            check: { skill: "athletics", dc: { value: 10 } },
-            effects: [{ id: "escaped", type: "condition", conditionId: "grappled", levels: -1, checkOutcomePolicy: "success" }] } },
+    // The creature's own escape (Athletics or Acrobatics). Offered only while it has a hold with an escape DC (commonAction).
+    escape: { name: "WILDPATH.COMMON.Escape", img: "icons/svg/net.svg", definition: { ...ESCAPE, ...SELF } },
+    // A hold whose text lets another creature free its creature (`escapeByOthers`): the same check, by one within reach.
+    // shortcut: 5 ft, not a longer reach; upgrade when range reads the creature's reach.
+    free: { name: "WILDPATH.COMMON.Free", img: "icons/svg/net.svg", definition: { ...ESCAPE, ...TOUCH } },
     // 2024 Utilize: using an object that takes an action (a lever, a door's lock); the card says it was used.
     utilize: { name: "WILDPATH.COMMON.Utilize", img: "icons/svg/lever.svg", definition: { costs: ACTION, ...SELF } }
 };
@@ -107,13 +110,15 @@ export function effectGroupKey(effect) {
  * What the creature can escape:its Grappled (else Restrained) condition with the highest escape DC, or null. The
  * skills it may roll (`metadata.escapeSkills`, Web's Athletics only; else Athletics or Acrobatics), and with
  * `metadata.escapeEndsAll` ("On a success, the spell ends": Ensnaring Strike) the ids of the other effects the same Action
- * gave it from the same source (effectGroupKey, as repeatSaveGroups), which a success ends too.
+ * gave it from the same source (effectGroupKey, as repeatSaveGroups), which a success ends too. With `byOthers`, only a
+ * hold another creature may free it from (`metadata.escapeByOthers`: a Net's "the target or a creature within 5 feet").
  */
-function escapable(actor) {
+function escapable(actor, { byOthers = false } = {}) {
     const effects = [...(actor.effects ?? [])].filter(effect => !effect.disabled);
     const held = effects.map(effect => ({ effect, metadata: effect.flags?.wildpath?.conditionEffect?.metadata ?? {},
         conditionId: effect.system?.type ?? "", dc: Number(effect.flags?.wildpath?.conditionEffect?.metadata?.escapeDC) }))
         .filter(entry => ["grappled", "restrained"].includes(entry.conditionId) && Number.isFinite(entry.dc))
+        .filter(entry => !byOthers || (entry.metadata.escapeByOthers === true))
         .sort((a, b) => ((a.conditionId === "grappled") ? 0 : 1) - ((b.conditionId === "grappled") ? 0 : 1) || (b.dc - a.dc))[0];
     if (!held)
         return null;
@@ -131,9 +136,9 @@ export function commonActionId(ref) {
  * The common action `id` as an Action Item of `actor`, built fresh: `{id, uuid: "common:<id>", type: "action",
  * name, img, system: {definition}, actor}`. `localize` turns its lang key into its name. Its reaction setting
  * (Always, Ask, Never) is the creature's own, `flags.wildpath.commonPolicies.<id>`. With `bonusShove`, Shove costs a
- * Bonus Action.
+ * Bonus Action. Free needs `target`, the held creature it would free (its first target).
  */
-export function commonAction(actor, id, { localize = (key) => key, bonusShove = false } = {}) {
+export function commonAction(actor, id, { localize = (key) => key, bonusShove = false, target = null } = {}) {
     const creature = (actor ?? {});
     const flags = { wildpath: { reactionPolicy: creature.flags?.wildpath?.commonPolicies?.[id] } };
     if (id === "opportunity") {
@@ -145,8 +150,11 @@ export function commonAction(actor, id, { localize = (key) => key, bonusShove = 
     const entry = COMMON[id];
     if (!entry)
         return null;
-    const held = (id === "escape") ? escapable(creature) : null;
-    if ((id === "escape") && !held)
+    // Free: another creature's hold that allows it (`target`, the creature it would free; never itself, which Escapes).
+    const other = target;
+    const held = (id === "escape") ? escapable(creature)
+        : ((id === "free") && other && (other.uuid !== creature.uuid)) ? escapable(other, { byOthers: true }) : null;
+    if (["escape", "free"].includes(id) && !held)
         return null;
     // Assist: one of its skill proficiencies, chosen when used; none, no Assist.
     const skills = (id === "assist") ? Object.entries(creature.system?.skills ?? {})

@@ -6,11 +6,11 @@ import {actionBarContext} from "../module/helpers/action-bar-context.mjs";
 
 test("every creature's common actions are valid Actions, built fresh from their id", () => {
   assert.deepEqual([...COMMON_ACTION_IDS], ["dash", "disengage", "dodge", "help", "assist", "hide", "grapple", "shove", "push", "unarmed",
-    "search", "study", "influence", "escape", "utilize", "opportunity"]);
+    "search", "study", "influence", "escape", "free", "utilize", "opportunity"]);
   assert.deepEqual(commonAction({uuid: "Actor.hero"}, "search").system.definition.metadata.test.skills,
     ["insight", "medicine", "perception", "survival"], "2024 Search: the Action, then one of these checks");
   const actor = {uuid: "Actor.hero"};
-  for ( const id of COMMON_ACTION_IDS.filter(id => !["escape", "assist"].includes(id)) ) {
+  for ( const id of COMMON_ACTION_IDS.filter(id => !["escape", "free", "assist"].includes(id)) ) {
     const action = commonAction(actor, id, {localize: key => key.split(".").pop()});
     assert.equal(validateActionDefinition(action.system.definition).ok, true, id);
     assert.deepEqual([action.uuid, action.type, action.actor], [`common:${id}`, "action", actor]);
@@ -121,6 +121,57 @@ test("Escape from a hold that names its skills (Web: Athletics only) rolls only 
   assert.deepEqual(await endEffectsWhenEscaped({options: {actor}, state: state(false)}), [], "a failed check ends nothing");
   assert.deepEqual(await endEffectsWhenEscaped({options: {actor}, state: state(true)}), ["thorns"]);
   assert.deepEqual(removed, ["ActiveEffect", "thorns"]);
+
+  // Freed by another (Free): the held creature, the Action's target, loses them, not the creature that freed it.
+  const helper = {uuid: "Actor.helper", effects: [], deleteEmbeddedDocuments: async () => assert.fail("not the helper's")};
+  removed.length = 0;
+  assert.deepEqual(await endEffectsWhenEscaped({options: {actor: helper, targets: [{actorRef: "Actor.held"}],
+    targetActors: {"Actor.held": actor}}, state: state(true)}), ["thorns"]);
+  assert.deepEqual(removed, ["ActiveEffect", "thorns"]);
+});
+
+test("Free: a creature within reach frees another from a hold that allows it, with that hold's check and DC", async () => {
+  const held = (id, type, metadata) => ({id, system: {type}, flags: {wildpath: {conditionEffect: {sourceRef: "uuid:Actor.ranger", metadata}}}});
+  const creature = (uuid, effects=[]) => ({uuid, items: [], effects, system: {abilities: {might: {value: 10}, agility: {value: 18}},
+    skills: {}, details: {level: 1}}});
+  const netted = creature("Actor.held", [held("net", "restrained", {escapeDC: 10, escapeSkills: ["athletics"], escapeByOthers: true})]);
+  const helper = creature("Actor.helper");
+  const free = commonAction(helper, "free", {target: netted});
+  const definition = free.system.definition;
+  assert.equal(validateActionDefinition(definition).ok, true);
+  assert.deepEqual(definition.check, {skill: "athletics", dc: {value: 10}, escapes: "restrained"}, "the hold's skill, though Acrobatics is better");
+  assert.deepEqual([definition.effects[0].conditionId, definition.effects[0].levels, definition.effects[0].checkOutcomePolicy],
+    ["restrained", -1, "success"]);
+  assert.deepEqual([definition.range, definition.targeting], [{type: "reach", distance: {value: 5, unit: "ft"}},
+    {type: "single", required: true, count: 1}]);
+  assert.equal(commonAction(helper, "escape"), null, "the helper itself is not held");
+  // The helper rolls; a success takes the Restrained off its target, the held creature (reach needs a grid: left out here).
+  const {planStagedActionResolution, resumeStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
+  const {RESOLUTION_REQUEST_TYPES} = await import("../module/helpers/resolution-state.mjs");
+  const {range: _range, ...unranged} = definition;
+  const plan = planStagedActionResolution({id: "resolution:free", actorSystem: {resources: {action: {value: 1, max: 1}}, pools: []},
+    action: {...free, system: {definition: unranged}}, source: {actorId: "helper"},
+    targets: [{id: "held", actorId: "held", actorRef: "Actor.held", tokenId: "token-held"}]});
+  const request = plan.state.pendingRequests[0];
+  assert.equal(request.payload.rollRequest.type, "skill-check");
+  const done = resumeStagedActionResolution({state: plan.state, response: {resolutionId: plan.state.id, requestId: request.id,
+    type: RESOLUTION_REQUEST_TYPES.ROLL, value: {requestId: request.payload.rollRequest.id, resolutionId: plan.state.id,
+      type: request.payload.rollRequest.type, natural: 12, total: 12}}});
+  const removal = done.state.mutationPlans.find(entry => entry.type === "conditionEffect");
+  assert.deepEqual([removal?.target?.id, removal?.conditionId, removal?.delta ?? removal?.levels], ["held", "restrained", -1]);
+
+  assert.equal(commonAction(helper, "free"), null, "no target");
+  assert.equal(commonAction(netted, "free", {target: netted}), null, "itself: that is Escape");
+  assert.equal(commonAction(helper, "free", {target: creature("Actor.held", [held("grab", "grappled", {escapeDC: 13})])}), null,
+    "a hold only its creature may escape (a Grapple)");
+  assert.equal(commonAction(helper, "free", {target: creature("Actor.held", [held("vines", "restrained", {escapeDC: "save",
+    escapeByOthers: true})])}), null, "a DC its save never resolved");
+
+  const vines = {actionDefinitionId: "action:ensnaring-strike"};
+  const ensnared = creature("Actor.held", [held("vines", "restrained", {...vines, escapeDC: 14, escapeSkills: ["athletics"],
+    escapeEndsAll: true, escapeByOthers: true}), held("thorns", "ensnaring-strike-turn-damage", vines)]);
+  assert.deepEqual(commonAction(helper, "free", {target: ensnared}).system.definition.check.endsEffects, ["thorns"],
+    "the held creature's effects from that Action");
 });
 
 test("a hold escaped against its save's DC (escapeDC \"save\") keeps the DC that save resolved to", async () => {

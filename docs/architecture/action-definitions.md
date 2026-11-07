@@ -200,6 +200,7 @@ Every creature has the 2024 actions anyone can take, with no Items (`module/help
 | Influence | The Action, then a check: Deception, Intimidation, Performance, Persuasion or Animal Handling |
 | Utilize | The Action, spent on an object (a lever, a lock); the card says so (2026-10-19) |
 | Escape | Only while Grappled or Restrained with an escape DC: the better of Athletics and Acrobatics (or of its `escapeSkills`) against it; a success ends that condition (2026-10-19) |
+| Free | While its user targets a creature within 5 ft whose Grappled or Restrained hold has `escapeByOthers`: that hold's check (its skills, the helper's better one) against its escape DC; a success ends it, and with `escapeEndsAll` the rest of that Action's effects on the held creature (2026-11-07) |
 | Opportunity Attack | A reaction: the creature's first melee attack Action (else its Unarmed Strike), for its Reaction |
 
 - **Built by the authority.** An intent names one as `actionRef: "common:<id>"`. The authority builds the Action
@@ -254,7 +255,7 @@ Not yet: Magic (a spell or magic item's own Action already is one) and Ready (th
 8 + Might modifier + Proficiency Bonus; converted monsters and items store their own (content-packs.md). The bar
 offers Escape only while the creature has one: Grappled before Restrained, then the highest DC. The check uses its
 better skill, and a success ends that condition with a removal row (`levels: -1`).
-- **A hold's own escape (2026-11-07).** Three more optional `metadata` fields, all additive:
+- **A hold's own escape (2026-11-07).** Four more optional `metadata` fields, all additive:
   - `escapeSkills: ["athletics"]`: the only skills Escape may roll, its better one (Web, Entangle, Iron Bands:
     "a Strength (Athletics) check"). Without it, the better of Athletics and Acrobatics, as before.
   - `escapeDC: "save"`: the DC of the save that applied it ("against your spell save DC"). The pipeline's effect
@@ -262,9 +263,17 @@ better skill, and a success ends that condition with a removal row (`levels: -1`
   - `escapeEndsAll: true` ("On a success, the spell ends": Ensnaring Strike): a successful Escape also ends the
     creature's other effects from the same Action and source (`effectGroupKey`, as repeatSaveGroups). Escape names their ids in
     `check.endsEffects`, and the runtime deletes them once its check succeeds (`endEffectsWhenEscaped`).
-  - Not done: another creature freeing the held one (a Net, Ensnaring Strike's "a creature within reach"); the
-    converter notes it by hand. The Action Builder shows none of the three fields yet (a builder gap), and shows no
-    escape DC field for `"save"` (a number field would submit it empty and drop it), so an edit keeps it.
+  - `escapeByOthers: true` ("the target or a creature within 5 feet of it", "freeing itself or another creature":
+    a Net, the Falling Net, Iron Bands, Ensnaring Strike): another creature may make that same check for it. The
+    common **Free** is Escape's definition with a single target within 5 ft instead of itself (`commonAction(actor,
+    "free", {target})`, the user's first target on the bar, the intent's first target on the authority). The helper
+    rolls its better allowed skill against the hold's DC; the removal row and `check.endsEffects` act on the target,
+    and `endEffectsWhenEscaped` deletes them from the Action's target (the creature itself for Escape). Without the
+    field only the held creature may act (Web, Entangle, a Grapple). Shortcut: 5 ft, not a longer helper's reach.
+    A creature Charmed by the held one may still free it: the runtime's Charmed refusal counts a row that only takes
+    a condition off its target (`levels` below 0) as not harmful.
+  - The Action Builder shows none of the four fields yet (a builder gap), and shows no escape DC field for `"save"`
+    (a number field would submit it empty and drop it), so an edit keeps them.
 - Shortcut: two grapples of the same condition are one condition, so escaping either ends both.
 - What a common action applies names its creature as its source (`definition.source`), as an Item's Action names its
   Actor. Before (fixed 2026-10-19), a Grapple's Grappled named `common:grapple`, so its creature had disadvantage

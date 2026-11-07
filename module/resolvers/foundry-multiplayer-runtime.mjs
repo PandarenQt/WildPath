@@ -755,8 +755,11 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
     reason: "The Action sender must own the acting Actor."
   };
 
+  // A common action that acts on another creature (Free) is built from its first declared target.
+  const firstTarget = normalizeArray(intent.targetRefs ?? intent.targets)[0];
   const action = authorityAction
-    ?? await resolveFoundryAction(intent.actionRef ?? intent.actionUuid ?? intent.itemRef ?? intent.itemId, actor, {game});
+    ?? await resolveFoundryAction(intent.actionRef ?? intent.actionUuid ?? intent.itemRef ?? intent.itemId, actor,
+      {game, targetRef: firstTarget ? targetActorRefFromIntent(firstTarget) : null});
   if ( !action ) return {
     ok: false,
     code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
@@ -985,8 +988,10 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   // the other plane: foundryActionArea).
   if ( !authorityAction && (definition?.targeting?.type !== "area")
     && targetEntries.some(({actor: target}) => (target !== actor) && (ethereal(target) !== ethereal(actor))) ) return refused("WILDPATH.REFUSAL.Ethereal");
-  // 2024 Charmed: a charmed creature can't attack its charmer or target it with damage or harmful effects.
-  const harmful = definition && (definition.attack || definition.save || definition.damage.length || definition.effects.length);
+  // 2024 Charmed: a charmed creature can't attack its charmer or target it with damage or harmful effects. A row that
+  // only takes a condition off its target (levels below 0: Free from a Net) helps it, so it is not harmful.
+  const harmful = definition && (definition.attack || definition.save || definition.damage.length
+    || definition.effects.some(effect => !((effect.type === "condition") && (Number(effect.levels) < 0))));
   if ( harmful && !authorityAction && targetEntries.some(({actor: target}) => conditionsFrom(actor, target, game).charmed) ) return refused("WILDPATH.REFUSAL.Charmed");
   // Unlinked Tokens of one base Actor share its id (and `actor:<id>`); such a key would resolve every one of
   // them to whichever was registered last. Drop it so lookups fall through to the Token-specific keys.
@@ -2211,13 +2216,14 @@ export async function endEffectsWhenChecked(actor, check) {
 }
 
 /**
- * A successful Escape from a hold whose end ends its whole spell (`metadata.escapeEndsAll`: Ensnaring Strike's "On a
- * success, the spell ends") ends the other effects that Action gave its creature too: the ids the common Escape named
- * (`check.endsEffects`, common-actions.mts) that it still has.
+ * A successful Escape or Free from a hold whose end ends its whole spell (`metadata.escapeEndsAll`: Ensnaring Strike's
+ * "On a success, the spell ends") ends the other effects that Action gave its creature too: the ids the common action
+ * named (`check.endsEffects`, common-actions.mts) that the held creature still has (the Action's target: itself for
+ * Escape, another for Free).
  */
 export async function endEffectsWhenEscaped({options, state}={}) {
   const ids = new Set(state?.actionDefinition?.check?.endsEffects ?? []);
-  const actor = options?.actor;
+  const actor = options?.targetActors?.[options?.targets?.[0]?.actorRef] ?? options?.actor;
   if ( !ids.size || (state?.results?.checkResolution?.success !== true) || !actor?.effects ) return [];
   const ended = [...actor.effects].filter(effect => ids.has(effect.id)).map(effect => effect.id);
   if ( ended.length ) await actor.deleteEmbeddedDocuments("ActiveEffect", ended);
@@ -2608,12 +2614,15 @@ export async function foundryCanCommitLocallyForMovement({intent=null, completio
   return documentOwnedByUser(resolved.token, user) || documentOwnedByUser(resolved.actor, user);
 }
 
-async function resolveFoundryAction(ref, actor, {game=globalThis.game}={}) {
+async function resolveFoundryAction(ref, actor, {game=globalThis.game, targetRef=null}={}) {
   // A common action (Dash, Shove...) is built here from its id, never taken from the client.
   const common = commonActionId(ref);
   let bonusShove = false;
   try { bonusShove = game?.settings?.get("wildpath", "bonusActionShove") === true; } catch (_error) {}
-  if ( common ) return commonAction(actor, common, {localize: key => game?.i18n?.localize?.(key) ?? key, bonusShove});
+  if ( common ) {
+    const target = targetRef ? await resolveFoundryDocumentRef(targetRef, {game, kind: "actor"}) : null;
+    return commonAction(actor, common, {localize: key => game?.i18n?.localize?.(key) ?? key, bonusShove, target});
+  }
   const value = ref && await resolveFoundryDocumentRef(ref, {game, kind: "item"});
   if ( value ) return value;
   const id = stringOrNull(ref)?.replace(/^Item[.]/, "") ?? null;

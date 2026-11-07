@@ -56,7 +56,8 @@
                       "escapeDC": 10,
                       "escapeSkills": [
                         "athletics"
-                      ]
+                      ],
+                      "escapeByOthers": true
                     }
                   }
                 ]
@@ -84,7 +85,7 @@
       },
       "conversion": {
         "notes": [
-          "escape: another creature freeing it is by hand"
+          "escape: destroying what holds it is by hand"
         ]
       }
     }

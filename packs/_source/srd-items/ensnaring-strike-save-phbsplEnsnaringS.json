@@ -84,7 +84,8 @@
             "escapeSkills": [
               "athletics"
             ],
-            "escapeEndsAll": true
+            "escapeEndsAll": true,
+            "escapeByOthers": true
           }
         },
         {
@@ -251,7 +252,6 @@
       },
       "conversion": {
         "notes": [
-          "escape: another creature freeing it is by hand",
           "\"Start of Turn Damage\": its damage at the start of each turn doesn't grow with a higher spell slot (by hand)"
         ]
       }

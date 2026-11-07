@@ -4889,8 +4889,8 @@ const ESCAPE_CHECK = /\b(?:can|must) take an action to make an? (?:DC (\d+) )?(?
 /**
  * The check its text frees a held creature with (ESCAPE_CHECK): its skill (a WildPath id, or null), its written DC (or
  * `spell` for its caster's spell save DC), whether a success ends the whole spell ("On a success, the spell ends":
- * Ensnaring Strike) and whether another creature may make it ("or a creature within 5 feet of it", "freeing itself or
- * another creature"), and whether its outcome does more ("On a successful check, the item is destroyed", "On a failed
+ * Ensnaring Strike) and whether another creature may make it for the held one ("or a creature within 5 feet of it",
+ * "freeing itself or another creature": the hold's `escapeByOthers`), and whether its outcome does more ("On a successful check, the item is destroyed", "On a failed
  * check, any further attempts ... automatically fail": Iron Bands). Null for none.
  */
 function escapeCheckOf(document) {
@@ -4914,8 +4914,9 @@ function escapeCheckOf(document) {
  * What a hold an Item grapples or restrains with carries for its creature to end it (the common Escape reads it): its
  * escape DC (escapeDCOf, else its text's check: N, or its save's DC for "your spell save DC", the number when written,
  * else `"save"`, the DC its save resolves to when applied); that check's skill, the only one it rolls (`escapeSkills`);
- * `escapeEndsAll` when a success ends the spell; and `endsWhen: "leavesArea"` for "the ... condition while in the webs"
- * (its lasting area's: foundry-v14-persistent-areas.mts). Null with no escape. Another creature freeing it is noted.
+ * `escapeEndsAll` when a success ends the spell; `escapeByOthers` when another creature may make that check for it
+ * (the common Free); and `endsWhen: "leavesArea"` for "the ... condition while in the webs" (its lasting area's:
+ * foundry-v14-persistent-areas.mts). Null with no escape. Destroying what holds it ("Destroying the Net ... frees") is noted.
  */
 function holdMetadata(document, {creature=null, saveDC=null, save=null, notes=null}={}) {
   const check = escapeCheckOf(document);
@@ -4923,11 +4924,14 @@ function holdMetadata(document, {creature=null, saveDC=null, save=null, notes=nu
   const escapeDC = escapeDCOf(document, {creature, saveDC}) ?? ((check?.dc !== "spell") ? check?.dc : null)
     ?? ((spellDC && save) ? (number(save.dc?.value) ?? "save") : null);
   if ( escapeDC == null ) return null;
-  const note = "escape: another creature freeing it is by hand";
-  if ( check?.others && notes && !notes.includes(note) ) notes.push(note);
+  // Damaging what holds it (a Net's AC and Hit Points) is no check: by hand.
+  const destroyed = "escape: destroying what holds it is by hand";
+  if ( /\b(?:destroying|reducing) the \w+\b[^.]*\bfrees\b|\buntil the \w+ is destroyed\b/iu.test(plainText(document)) && notes
+    && !notes.includes(destroyed) ) notes.push(destroyed);
   const aftermath = "escape: what its check does besides freeing it is by hand";
   if ( check?.aftermath && notes && !notes.includes(aftermath) ) notes.push(aftermath);
   return {escapeDC, ...(check?.skill ? {escapeSkills: [check.skill]} : {}), ...(check?.endsAll ? {escapeEndsAll: true} : {}),
+    ...(check?.others ? {escapeByOthers: true} : {}),
     ...(/\bcondition while in the \w+/iu.test(plainText(document)) ? {endsWhen: "leavesArea"} : {})};
 }
 
