@@ -319,3 +319,18 @@ test("each reactor's own effects on the first creature an event names (targetFro
   assert.deepEqual([targetFrom.ranger, targetFrom.caster], [{"hunters-mark": true}, {}], "only its caster's mark is its own");
   assert.deepEqual(services.reactions.context({event: {targets: []}}).targetFrom.ranger, {}, "no creature named: nothing from anyone");
 });
+
+test("the creature type of an event's source (sourceType): Holy Aura's ward answers a Fiend's or an Undead's hit", () => {
+  const ward = {id: "ward", type: "action", system: {active: true, definition: {schemaVersion: 1, id: "action:ward", label: "Ward",
+    costs: {allOf: []}, range: {type: "special"}, targeting: {type: "single", required: true, count: 1}},
+  ruleElements: [{schemaVersion: 1, id: "reaction", type: "Trigger", data: {kind: "reaction", event: "attack.hit",
+    match: {phase: "interrupt", targetTokenId: "{self}"}, triggerPredicate: {oneOf: {path: "sourceType", values: ["fiend", "undead"]}}}}]}};
+  const cleric = token("cleric", 1, [ward]);
+  const fiend = token("fiend", -1);
+  fiend.actor.system = {details: {type: "fiend"}};
+  const services = createFoundryReactionProvider({resolve: () => null})({scene: {grid: {distance: 5}, tokens: [cleric, fiend]}, token: cleric});
+  assert.equal(services.reactions.context({event: {source: {tokenId: "fiend"}, targets: [{tokenId: "cleric"}]}}).sourceType, "fiend");
+  assert.equal(services.reactions.context({event: {source: {tokenId: "cleric"}, targets: [{tokenId: "fiend"}]}}).sourceType, null,
+    "a creature of no type");
+  assert.equal(services.reactions.context({event: {targets: []}}).sourceType, null, "no source");
+});

@@ -1043,10 +1043,20 @@ function upsertReactionResult(current, entry) {
   ];
 }
 
+/**
+ * A response used at once that pays nothing (a stat block attack's save, an effect's retaliation): no Reaction its creature
+ * chooses. It comes after the ones its creatures are asked about (a Shield may turn the hit into a miss first), is never
+ * offered with them, and does not use up its window (action-pipeline-resolver's siblingReoffer).
+ */
+export function automaticReaction(candidate) {
+  return (candidate?.policy === "always") && !(candidate.selectedPaymentOption?.resources ?? []).length;
+}
+
 function nextOfferGroup(candidates) {
   const [first] = candidates;
   if ( !first ) return [];
-  return candidates.filter(candidate => candidate.reactor.actorId === first.reactor.actorId);
+  return candidates.filter(candidate => (candidate.reactor.actorId === first.reactor.actorId)
+    && (automaticReaction(candidate) === automaticReaction(first)));
 }
 
 function mergeCandidates(existing, next) {
@@ -1122,6 +1132,8 @@ function resolveActionDefinition(window, actionDefinitionsById) {
 }
 
 function compareReactionCandidates(a, b, ordering) {
+  const automatic = Number(automaticReaction(a)) - Number(automaticReaction(b));
+  if ( automatic ) return automatic;
   const priority = (a.priority ?? 100) - (b.priority ?? 100);
   if ( priority ) return priority;
   const initiative = initiativeIndex(a.reactor.actorId, ordering) - initiativeIndex(b.reactor.actorId, ordering);

@@ -343,6 +343,34 @@ ordinary Actions (`action.declared`, `attack.hit`, `attack.miss`, `check.succeed
   to the event's source, `toSource.{self}.hostile|distance|sees` (reactions.md).
 - `{self}` in a predicate `path`, or as a whole `match` value, is bound to this reactor's Token id.
 
+**Reactions an effect carries.** A reaction Trigger with an inline `data.action` may sit on an effect's `ruleElements`
+(a custom effect an Action applies). While the effect is on a creature, that creature has the reaction
+(`effectReactionItems`): `save.dc.fromSource` is the DC of the creature that gave the effect, and `"{{level}}"` the
+effect's own level. A melee hit answered at once is the retaliation shape, the same Trigger a stat block's Corrosive
+Form has, here carried by a spell's effect for as long as it lasts (2026-11-07):
+
+```js
+{type: "Trigger", id: "retaliation", data: {kind: "reaction", event: "attack.hit", policy: "always",
+  match: {phase: "interrupt", targetTokenId: "{self}", tagsAny: ["melee"]},
+  triggerPredicate: {atMost: {path: "toSource.{self}.distance", value: 5}},   // "within 5 feet of you" (optional)
+  // or {oneOf: {path: "sourceType", values: ["fiend", "undead"]}}: the attacker's creature type
+  action: {schemaVersion: 1, id: "action:fire-shield-retaliation", label: "Fire Shield", tags: ["magical"],
+    costs: {allOf: []}, range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+    damage: [{id: "damage-1", expression: {type: "dice", number: 2, faces: 8}, damageType: "fire"}]}}}
+```
+
+Its Action targets the attacker. Instead of damage it may carry a `save` (with `fromSource`) and the `effects` a failure
+gives. Damage that grows with the slot is a `table` keyed on `{type: "constant", value: "{{spell-slot}}"}` with the
+spell's own amount as its `default`; the casting Action's spell-slot choice binds the token (`bindChoice`) when the
+effect is applied. The converter writes this from a spell whose text says "a creature (within 5 feet of you) hits you
+with a melee attack" or "a Fiend or an Undead hits an affected creature with a melee attack": dnd5e's passive damage
+or save activity (else the damage its text rolls) goes on each effect its use applies. A damage of several types is the
+type its text gives each effect by name ("2d8 Fire damage from a warm shield": Warm Shield). A self spell with no effect
+gets one for its duration to carry it (Armor of Agathys). SRD: Fire Shield's two shields and Holy Aura's Holy Protection,
+which also takes "other creatures have Disadvantage on attack rolls against them" as an `attacked` Disadvantage RollMode.
+By hand: Armor of Agathys ending early when its Temporary Hit Points are gone (noted), Holy Aura's Emanation following
+its caster (the effect is given when cast), and Fire Shield's light. Not yet checked in live Foundry.
+
 An opportunity attack is authored as:
 
 ```js

@@ -94,6 +94,7 @@ import {CONCENTRATION_OUTCOMES, planConcentrationChecks, resolveConcentrationChe
 import {planEffectLifecycle} from "./effect-lifecycle-resolver.mjs";
 import {
   REACTION_WINDOW_TIMINGS,
+  automaticReaction,
   completeReactionChildResolution,
   planReactionWindow,
   createReactionWindowStage
@@ -439,20 +440,23 @@ export function completeStagedReactionChildResolution({
   };
 }
 
-/** Each reaction window's pipeline stage, by its timing. */
+/** Each reaction window's pipeline stage, and the event it answers, by its timing. */
 const REACTION_STAGE_BY_TIMING = Object.freeze({
-  [REACTION_WINDOW_TIMINGS.AFTER_ACTION_DECLARED]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ACTION_DECLARED,
-  [REACTION_WINDOW_TIMINGS.AFTER_OUTCOME]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ATTACK_OUTCOME,
-  [REACTION_WINDOW_TIMINGS.AFTER_CHECK_OUTCOME]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_CHECK_OUTCOME,
-  [REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE]: ACTION_PIPELINE_STAGE_IDS.REACTION_BEFORE_DAMAGE,
-  [REACTION_WINDOW_TIMINGS.AFTER_DAMAGE]: ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_DAMAGE,
-  [REACTION_WINDOW_TIMINGS.BEFORE_PUSH]: ACTION_PIPELINE_STAGE_IDS.REACTION_BEFORE_PUSH
+  [REACTION_WINDOW_TIMINGS.AFTER_ACTION_DECLARED]: [ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ACTION_DECLARED, actionDeclaredReactionEvent],
+  [REACTION_WINDOW_TIMINGS.AFTER_OUTCOME]: [ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ATTACK_OUTCOME, attackOutcomeReactionEvent],
+  [REACTION_WINDOW_TIMINGS.AFTER_CHECK_OUTCOME]: [ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_CHECK_OUTCOME, checkSucceededReactionEvent],
+  [REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE]: [ACTION_PIPELINE_STAGE_IDS.REACTION_BEFORE_DAMAGE, damageComingReactionEvent],
+  [REACTION_WINDOW_TIMINGS.AFTER_DAMAGE]: [ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_DAMAGE, damageTakenReactionEvent],
+  [REACTION_WINDOW_TIMINGS.BEFORE_PUSH]: [ACTION_PIPELINE_STAGE_IDS.REACTION_BEFORE_PUSH, pushComingReactionEvent]
 });
 
 /**
  * Once a reaction resolves, its window offers again the options of the same reactor that share its once-key, while
  * that key's `uses` in this window allow (`payload.once.uses`: Improved Cunning Strike's two effects, Improved Brutal
- * Strike's two blows at level 17). Its stage runs again for the answer. Null when nothing is offered again.
+ * Strike's two blows at level 17), and every response not yet used that is answered at once at no cost
+ * (automaticReaction: an attack's own save, an effect's retaliation), while what the window answers still holds (a Shield
+ * that turned the hit into a miss ends it). Its stage runs again for the answer, asking no one for an automatic one. Null
+ * when nothing is offered again.
  */
 function siblingReoffer(state, window, services) {
   const candidates = window.candidates ?? [];
@@ -461,17 +465,21 @@ function siblingReoffer(state, window, services) {
     const key = candidate.payload?.once?.key;
     if ( key ) used.set(key, (used.get(key) ?? 0) + 1);
   }
-  const siblings = candidates.filter(candidate => !window.handledCandidateIds.includes(candidate.id) && used.has(candidate.payload?.once?.key)
-    && (used.get(candidate.payload.once.key) < (Number(candidate.payload.once.uses) || 1)));
-  const stageId = REACTION_STAGE_BY_TIMING[window.timing];
+  const siblings = candidates.filter(candidate => !window.handledCandidateIds.includes(candidate.id) && (automaticReaction(candidate)
+    || (used.has(candidate.payload?.once?.key) && (used.get(candidate.payload.once.key) < (Number(candidate.payload.once.uses) || 1)))));
+  const [stageId, select] = REACTION_STAGE_BY_TIMING[window.timing] ?? [];
   if ( !siblings.length || !stageId ) return null;
-  const discovery = actionReactionDiscoveryOptions({state, services, event: window.event, timing: window.timing});
+  const event = select(state);
+  if ( !event || (event.id !== window.event?.id) ) return null;
+  const discovery = actionReactionDiscoveryOptions({state, services, event, timing: window.timing});
   if ( !discovery ) return null;
-  const planned = planReactionWindow({parentState: state, windowId: window.id, event: window.event, timing: window.timing, stageId,
+  const planned = planReactionWindow({parentState: state, windowId: window.id, event, timing: window.timing, stageId,
     ...discovery, handledCandidateIds: candidates.filter(candidate => !siblings.includes(candidate)).map(candidate => candidate.id)});
   if ( !planned.waiting ) return null;
-  return updateResolutionState(planned.state, {currentStageId: stageId,
+  const rerun = updateResolutionState(planned.state, {currentStageId: stageId,
     completedStageIds: planned.state.completedStageIds.filter(id => id !== stageId)});
+  return automaticReaction(planned.offeredCandidates[0])
+    ? updateResolutionState(rerun, {status: RESOLUTION_STATE_STATUS.RUNNING, pendingRequests: []}) : rerun;
 }
 
 /* -------------------------------------------- */

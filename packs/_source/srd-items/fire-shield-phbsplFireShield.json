@@ -48,6 +48,60 @@
                   "cold"
                 ]
               }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "retaliation",
+              "type": "Trigger",
+              "data": {
+                "kind": "reaction",
+                "event": "attack.hit",
+                "match": {
+                  "phase": "interrupt",
+                  "targetTokenId": "{self}",
+                  "tagsAny": [
+                    "melee"
+                  ]
+                },
+                "policy": "always",
+                "triggerPredicate": {
+                  "atMost": {
+                    "path": "toSource.{self}.distance",
+                    "value": 5
+                  }
+                },
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:fire-shield-retaliation",
+                  "label": "Fire Shield",
+                  "tags": [
+                    "magical"
+                  ],
+                  "costs": {
+                    "allOf": []
+                  },
+                  "range": {
+                    "type": "special"
+                  },
+                  "targeting": {
+                    "type": "single",
+                    "required": true,
+                    "count": 1
+                  },
+                  "damage": [
+                    {
+                      "id": "damage-1",
+                      "expression": {
+                        "type": "dice",
+                        "number": 2,
+                        "faces": 8
+                      },
+                      "damageType": "fire",
+                      "provenance": "spell-base"
+                    }
+                  ]
+                }
+              }
             }
           ],
           "duration": {
@@ -70,6 +124,60 @@
                 "damageTypes": [
                   "fire"
                 ]
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "retaliation",
+              "type": "Trigger",
+              "data": {
+                "kind": "reaction",
+                "event": "attack.hit",
+                "match": {
+                  "phase": "interrupt",
+                  "targetTokenId": "{self}",
+                  "tagsAny": [
+                    "melee"
+                  ]
+                },
+                "policy": "always",
+                "triggerPredicate": {
+                  "atMost": {
+                    "path": "toSource.{self}.distance",
+                    "value": 5
+                  }
+                },
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:fire-shield-retaliation",
+                  "label": "Fire Shield",
+                  "tags": [
+                    "magical"
+                  ],
+                  "costs": {
+                    "allOf": []
+                  },
+                  "range": {
+                    "type": "special"
+                  },
+                  "targeting": {
+                    "type": "single",
+                    "required": true,
+                    "count": 1
+                  },
+                  "damage": [
+                    {
+                      "id": "damage-1",
+                      "expression": {
+                        "type": "dice",
+                        "number": 2,
+                        "faces": 8
+                      },
+                      "damageType": "cold",
+                      "provenance": "spell-base"
+                    }
+                  ]
+                }
               }
             }
           ],

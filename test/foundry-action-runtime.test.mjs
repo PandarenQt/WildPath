@@ -1603,6 +1603,49 @@ test("two options sharing a once-key with uses 2 (Improved Cunning Strike) are b
   assert.equal(targetActor.system.resources.health.value, 30 - 6 - 2 - 3);
 });
 
+for ( const decision of ["use", "decline"] ) test(`an effect's retaliation and the attacker's own save, both used at once at no cost, wait for the target's asked reaction (${decision}) and both resolve`, async t => {
+  const free = (id, damageType, value) => ({schemaVersion: 1, id: `action:${id}`, label: id, costs: {allOf: []}, range: {type: "special"},
+    targeting: {type: "single", required: true, count: 1},
+    damage: [{id, expression: {type: "constant", value}, damageType, provenance: "spell-base"}]});
+  const {sourceActor, targetActor, gm, player, offers, intent} = counterattackFixture(t, {decision});
+  // Fire Shield's shape: a Trigger with its own Action on the target's effect, used at once (`policy: "always"`).
+  targetActor.effects = [{id: "warm-shield", name: "Warm Shield", disabled: false, flags: {}, system: {ruleElements: [{schemaVersion: 1,
+    id: "retaliation", type: "Trigger", data: {kind: "reaction", event: "attack.hit", policy: "always",
+      match: {phase: "interrupt", targetTokenId: "{self}", tagsAny: ["melee"]}, action: free("flame", "fire", 4)}}]}}];
+  // A Ghoul's Claw save's shape: its own hit, used at once.
+  const claw = {id: "claw", type: "action", name: "Claw", flags: {wildpath: {reactionPolicy: "always"}}, system: {active: true,
+    definition: free("claw", "poison", 2), ruleElements: [{schemaVersion: 1, id: "claw", type: "Trigger", data: {kind: "reaction",
+      event: "attack.hit", match: {phase: "interrupt", sourceTokenId: "{self}"}}}]}};
+  sourceActor.items = new (class extends Map { [Symbol.iterator]() { return this.values(); } })([...sourceActor.items.entries(), ["claw", claw]]);
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.deepEqual(offers.map(offer => offer.payload.candidates.map(candidate => candidate.actionId)), [["action:counterattack"]],
+    "only the Counterattack is asked about, first");
+  assert.equal(sourceActor.system.resources.health.value, 20 - 4 - (decision === "use" ? 3 : 0), "the flame burns the attacker");
+  assert.equal(targetActor.system.resources.health.value, 30 - 6 - 2, "the attack and its claw's own damage land");
+});
+
+test("an effect's retaliation is not used when an asked reaction turned the hit into a miss (Cutting Words)", async t => {
+  const fs = await import("node:fs");
+  const words = JSON.parse(fs.readFileSync("packs/_source/srd-items/cutting-words-phbbrdCuttingWor.json", "utf8"));
+  const {sourceActor, targetActor, holder, gm, player, offers, intent} = counterattackFixture(t, {reactor: "bystander",
+    holderItems: [{id: words._id, type: "action", name: words.name, system: words.system}], gmQueue: [{total: 10}]});
+  holder.system.classes = [{id: "bard", level: 10}];
+  holder.system.pools = [{id: "bardic-inspiration", value: 2, max: 2}];
+  targetActor.effects = [{id: "warm-shield", name: "Warm Shield", disabled: false, flags: {}, system: {ruleElements: [{schemaVersion: 1,
+    id: "retaliation", type: "Trigger", data: {kind: "reaction", event: "attack.hit", policy: "always",
+      match: {phase: "interrupt", targetTokenId: "{self}"}, action: {schemaVersion: 1, id: "action:flame", label: "Flame",
+        costs: {allOf: []}, range: {type: "special"}, targeting: {type: "single", required: true, count: 1},
+        damage: [{id: "flame", expression: {type: "constant", value: 4}, damageType: "fire", provenance: "spell-base"}]}}}]}}];
+  const declared = await player.declareActionIntent(intent);
+  const record = gm.getRecord(declared.resolutionId);
+  assert.equal(record.state.status, RESOLUTION_STATE_STATUS.COMPLETED, JSON.stringify(record.state.errors).slice(0, 1500));
+  assert.equal(offers.length, 1, "the bard is asked first");
+  assert.equal(record.state.results.attackResolution.hits.length, 0, "the hit became a miss");
+  assert.equal(sourceActor.system.resources.health.value, 20, "so the flame does not burn the attacker");
+});
+
 test("on a critical hit, its own reaction without damage (Trip) still resolves", async t => {
   const trip = {id: "trip", type: "action", name: "Trip", system: {active: true,
     definition: {schemaVersion: 1, id: "action:trip", label: "Trip", costs: {allOf: []}, range: {type: "special"},

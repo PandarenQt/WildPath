@@ -212,6 +212,15 @@ const DEFLECTION = Object.freeze({dice: {type: "dice", number: 1, faces: 10}, bo
  */
 const RETALIATION_TEXT = /\b(?:a|any) creature that (?:touches [^.]{0,60}? or )?hits (?:it|the [^.,]{1,40}?|[^.,]{1,40}?) with a melee attack\b[^.]*\btakes\b/iu;
 const RETALIATION = Object.freeze({event: "attack.hit", match: {phase: "interrupt", targetTokenId: "{self}", tagsAny: ["melee"]}});
+/** Its answering Action: no cost, at the attacker. */
+const RETALIATION_ACTION = Object.freeze({costs: {allOf: []}, range: {type: "special"}, targeting: {type: "single", required: true, count: 1}});
+/**
+ * The same hit answered by an effect on the creature hit, while it lasts (carriedRetaliation): 2024 Fire Shield's "whenever
+ * a creature within 5 feet of you hits you with a melee attack roll", Armor of Agathys' "If a creature hits you with a melee
+ * attack roll", Holy Aura's "when a Fiend or an Undead hits an affected creature with a melee attack roll". Its attacker's
+ * creature types (1) and distance in feet (2) are the Trigger's predicate.
+ */
+const CARRIED_RETALIATION_TEXT = /\b(?:[Aa] creature|[Aa]n? ([A-Z][a-z]+(?:,? or an? [A-Z][a-z]+)*))(?: within (\d+) feet(?: of you)?)? hits (?:you|an affected creature) with a melee attack\b/u;
 
 /**
  * Reactions by their 2024 trigger, as a reaction Trigger on their Action: Shield and a Parry when an attack on their
@@ -1711,6 +1720,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
   // The tag a stat block attack's own save answers (attackRider), on that attack's Action.
   const riderTag = activities.map(entry => attackRider(document, entry, activities)).find(Boolean)?.tagsAll[0] ?? null;
   const raised = raisedFromKilled(document, activities, creatures, system);
+  let carried = carriedRetaliation({document, activities, system, spell, level, scales, saveDC, spellDC, creature, beasts, names});
   for ( const [index, listed] of usable.entries() ) {
     let activity = listed;
     const notes = [...(pool?.notes ?? [])];
@@ -1945,6 +1955,23 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       folded.add(raised.activity);
       notes.push(...raised.notes);
     }
+    // A melee hit on the creature its effects are on answered by them (carriedRetaliation): each effect's reaction. A self
+    // spell with none (Armor of Agathys) gives its caster one for its duration to carry it.
+    const carrierLasts = (carried && spell && (definition.targeting?.type === "self") && !definition.effects?.length)
+      ? lastingDuration(system.duration) : null;
+    if ( carrierLasts && carried.ruleFor({name: document.name}) ) definition = {...definition, effects: [{id: "effect-1", type: "effect",
+      name: document.name, img, duration: carrierLasts, ruleElements: [],
+      ...((system.properties ?? []).includes("concentration") ? {concentration: true} : {})}]};
+    const carrying = carried ? (definition.effects ?? []).filter(effect => (effect.type === "effect") && carried.ruleFor(effect)) : [];
+    if ( carrying.length ) {
+      definition = {...definition, effects: definition.effects.map(effect => (carrying.includes(effect)
+        ? {...effect, ruleElements: [...(effect.ruleElements ?? []), carried.ruleFor(effect)]} : effect)),
+      ...(carried.bindsSlot ? {configuration: (definition.configuration ?? []).map(choice => ((choice.id === "spell-slot")
+        ? {...choice, effects: [...(choice.effects ?? []), {type: "bindChoice"}]} : choice))} : {})};
+      if ( carried.activity ) folded.add(carried.activity);
+      notes.push(...carried.notes);
+      carried = null;
+    }
     // What a summoned creature does at its summoner's cost (dnd5e's "Bonus Action used by summoner"; "As a Bonus Action,
     // you can move the sphere up to 30 feet"): its summoner pays (`controllerCosts`), and moving it is a move of that many
     // feet more this turn (an Arcane Eye's Move). shortcut: the move is its Dash (a Speed's worth), or that many feet added
@@ -2099,7 +2126,7 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
     const title = common => ` (${common.charAt(0).toUpperCase()}${common.slice(1)})`;
     // A reaction its 2024 text triggers (Shield, Parry, Counterspell): a Trigger on its Action, which the engine offers.
     const reaction = (activation === "reaction") ? REACTIONS[identifierOf(document)] : (retaliates ? RETALIATION : null);
-    if ( retaliates ) definition = {...definition, costs: {allOf: []}, range: {type: "special"}, targeting: {type: "single", required: true, count: 1}};
+    if ( retaliates ) definition = {...definition, ...structuredClone(RETALIATION_ACTION)};
     // Its failed save cancels the spell it answers: that is what it does.
     if ( reaction?.counters ) {
       definition = {...definition, counters: true};
@@ -4485,6 +4512,76 @@ function raisedFromKilled(document, activities, creatures, system) {
 }
 
 /**
+ * What a melee hit on the creature its effect is on costs the attacker (CARRIED_RETALIATION_TEXT): dnd5e's damage or save
+ * activity with no activation (Armor of Agathys' Frost Damage, Holy Aura's Fiend/Undead Save), else the damage its text
+ * rolls (the SRD's Fire Shield has no such activity), as an Action its effect carries in a reaction Trigger (`data.action`,
+ * effectReactionItems), used at once. `ruleFor(effect)` is that Trigger for one of the effects its use applies: a damage of
+ * several types is the one its text gives that effect by a word of its name ("2d8 Fire damage from a warm shield": Warm
+ * Shield), none when it gives none. Its save is at the DC of the creature that gave the effect (`fromSource`); more damage
+ * from a higher slot is a table on the slot chosen (`{{spell-slot}}`, which `bindsSlot` asks its spell-slot choice to fill).
+ * Null when its text says no such thing, or neither damage nor a save converts.
+ */
+function carriedRetaliation({document, activities, system, spell, level, scales, saveDC, spellDC, creature, beasts, names}) {
+  const passive = activities.find(entry => ["damage", "save"].includes(entry.type)
+    && ["", "none", "special"].includes(pick(entry, system, "activation").type ?? ""));
+  const text = plainText(document);
+  const match = CARRIED_RETALIATION_TEXT.exec(passive?.activation?.condition ?? "") ?? CARRIED_RETALIATION_TEXT.exec(text);
+  if ( !match ) return null;
+  // "The attacker takes [[/damage 2d8 type=fire]] damage from a warm shield or [[/damage 2d8 type=cold]] damage from a chill shield."
+  const rolled = [...text.matchAll(/\[\[\/damage (\d+)d(\d+) type=(\w+)\]\](?: damage from an? (\w+))?/gu)];
+  const byWord = Object.fromEntries(rolled.filter(entry => entry[4]).map(entry => [entry[4].toLowerCase(), entry[3]]));
+  const activity = passive ?? ((rolled.length && rolled.every(entry => (entry[1] === rolled[0][1]) && (entry[2] === rolled[0][2])))
+    ? {_id: "retaliation", type: "damage", activation: {type: "", override: true}, range: {units: "any", override: true},
+      target: {affects: {type: "creature", count: "1"}, template: {}, override: true}, effects: [], consumption: {targets: []},
+      damage: {parts: [{number: Number(rolled[0][1]), denomination: Number(rolled[0][2]), bonus: "", types: [...new Set(rolled.map(entry => entry[3]))]}]}}
+    : null);
+  const notes = [];
+  const converted = activity ? convertActivity({document, activity, system, spell, level, scales, notes, pool: null, saveDC, spellDC, creature,
+    beasts, names}) : null;
+  if ( !converted?.damage?.length && !converted?.save ) return null;
+  // Answering the hit is its activation (dnd5e's "special").
+  notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("activation:")));
+  // A higher slot's more damage: dice (scaleDice) or a flat amount ("increase by 5 for each spell slot level above 1").
+  const slotRows = at => Object.fromEntries(Array.from({length: 10 - level}, (_, offset) => [level + offset, at(offset)]));
+  let bindsSlot = false;
+  const damage = (converted.damage ?? []).map(({scaleDice, ...component}) => {
+    const flat = number(activity.damage?.parts?.[Number(component.id.split("-").pop()) - 1]?.scaling?.formula);
+    const expression = component.expression;
+    const grows = (spell && level) ? ((scaleDice && (expression.type === "dice") && (expression.faces === scaleDice.faces))
+      ? offset => ({...expression, number: expression.number + (scaleDice.number * offset)})
+      : ((!scaleDice && flat && (expression.type === "constant")) ? offset => expression.value + (flat * offset) : null)) : null;
+    if ( scaleDice && !grows ) notes.push(`"${document.name}": the damage its effect deals doesn't grow with a higher spell slot (by hand)`);
+    if ( grows ) bindsSlot = true;
+    return grows ? {...component, expression: {type: "table", key: {type: "constant", value: "{{spell-slot}}"}, rows: slotRows(grows),
+      default: expression}} : component;
+  });
+  const dc = converted.save?.dc;
+  const save = converted.save ? {...converted.save, dc: dc.valueExpression ? {...dc, fromSource: true} : dc} : null;
+  const types = match[1] ? match[1].split(/,? or an? /u).map(type => type.toLowerCase()) : [];
+  const predicates = [...(types.length ? [{oneOf: {path: "sourceType", values: types}}] : []),
+    ...(match[2] ? [{atMost: {path: "toSource.{self}.distance", value: Number(match[2])}}] : [])];
+  // Several damage types (Flame Eruption's Cold or Fire) are the one its effect's name gives.
+  const chosen = (converted.configuration ?? []).some(choice => choice.type === "damage-type");
+  // What a failed save gives the attacker (Holy Aura's Blinded) is no concentration of the creature hit; one whose dnd5e
+  // effect has no duration (the SRD's) lasts as its activity does, to the turn boundary its text names.
+  const lasts = textBoundExpiry(lastingDuration(pick(activity, system, "duration")), text);
+  const effects = (converted.effects ?? []).map(({concentration: _held, ...entry}) => ((entry.duration || !lasts) ? entry : {...entry, duration: lasts}));
+  if ( /\bends early if you have no Temporary Hit Points\b/iu.test(text) ) {
+    notes.push(`"${document.name}": ending early when its Temporary Hit Points are gone is by hand`);
+  }
+  return {activity: passive, notes, bindsSlot, ruleFor: effect => {
+    const word = Object.keys(byWord).find(each => String(effect.name ?? "").toLowerCase().split(/\W+/u).includes(each));
+    if ( chosen && !word ) return null;
+    return {schemaVersion: 1, id: "retaliation", type: "Trigger", data: {kind: "reaction", ...structuredClone(RETALIATION), policy: "always",
+      ...(predicates.length ? {triggerPredicate: (predicates.length > 1) ? {all: predicates} : predicates[0]} : {}),
+      action: {schemaVersion: 1, id: `action:${slugify(document.name)}-retaliation`, label: document.name, ...(spell ? {tags: ["magical"]} : {}),
+        ...structuredClone(RETALIATION_ACTION),
+        ...(damage.length ? {damage: damage.map(component => (word ? {...component, damageType: byWord[word]} : component))} : {}),
+        ...(save ? {save} : {}), ...(effects.length ? {effects} : {})}}};
+  }};
+}
+
+/**
  * A summon activity (G4) as an Action whose creatures appear where its caster chooses, for the spell's duration (in
  * rounds) or while it concentrates: its creature, or a choice of its creatures, from `creatures` (dnd5e Actor id to
  * WildPath uuid). Null when it chooses by Challenge Rating, or names a creature not converted.
@@ -5734,6 +5831,12 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const marked = statuses.includes("marked") && !byHand?.slug;
     if ( marked ) rules.push({schemaVersion: 1, id: "marked", type: "RollMode", data: {domains: ["attacked"], mode: "advantage"}});
     const nextAttack = marked && /\bnext attack roll[^.]*against/i.test(plainText(document));
+    // Holy Aura: "other creatures have Disadvantage on attack rolls against them", unless its rules already set attacks on it.
+    // A ward it gives, not what a failed save puts on someone (its Fiend/Undead Save's Blinded).
+    if ( effect && !definition.save && /\bother creatures have Disadvantage on attack rolls against them\b/u.test(plainText(document))
+      && !rules.some(rule => (rule.type === "RollMode") && rule.data?.domains?.includes("attacked")) ) {
+      rules.push(rollModeRule("attacked-disadvantage", ["attacked"], "disadvantage"));
+    }
     if ( rules.length || named?.slug || named?.restsLeft || byHand?.slug ) {
       // "before the end of your next turn": a round, from its caster's turn (V14 starts it on the source's Combatant).
       const untilNextTurnEnd = nextAttack && /before the end of your next turn/i.test(plainText(document))

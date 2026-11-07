@@ -1629,6 +1629,82 @@ test("what hitting a creature with a melee attack costs the attacker answers tha
   assert.equal(form.flags.wildpath.reactionPolicy, "always");
 });
 
+// Synthetic spells in dnd5e 6.x's shape whose effect answers a melee hit on its creature (carriedRetaliation).
+const carrier = ({id, name, level=4, text, activities, effects=[], properties=["vocal"], duration={value: "10", units: "minute"}}) => ({_id: id,
+  name, type: "spell", img: "systems/dnd5e/icons/spell.webp", effects, system: {source: SRD, identifier: name.toLowerCase().replace(/ /g, "-"),
+    level, preparation: {mode: "prepared"}, properties, activation: {type: "action"}, duration, range: {units: "self"},
+    target: {affects: {}, template: {}}, description: {value: text}, activities}});
+const shieldEffect = (id, name, resists) => ({_id: id, name, transfer: false, statuses: [], duration: {value: 600, units: "seconds"},
+  system: {changes: [{key: "system.traits.dr.value", value: resists, type: "add"}]}});
+const retaliationOf = effect => effect.ruleElements.find(rule => rule.id === "retaliation")?.data;
+
+test("an effect answers a melee hit within 5 feet with the damage its text rolls for it (Fire Shield, no activity)", () => {
+  const [spell] = convertItem(carrier({id: "testFireShield01", name: "Fire Shield", effects: [shieldEffect("w", "Warm Shield", "cold"),
+    shieldEffect("c", "Chill Shield", "fire")], text: "<p>In addition, whenever a creature within 5 feet of you hits you with a melee attack "
+      + "roll, the shield erupts with flame. The attacker takes [[/damage 2d8 type=fire]] damage from a warm shield or [[/damage 2d8 type=cold]] "
+      + "damage from a chill shield.</p>", activities: {a: activity("utility", {range: {units: "self", override: false},
+      target: {affects: {}, template: {}, override: false}, effects: [{_id: "w"}, {_id: "c"}]})}})).items;
+  const [warm, chill] = spell.system.definition.effects.map(retaliationOf);
+  assert.deepEqual([warm.event, warm.match, warm.policy, warm.triggerPredicate], ["attack.hit",
+    {phase: "interrupt", targetTokenId: "{self}", tagsAny: ["melee"]}, "always", {atMost: {path: "toSource.{self}.distance", value: 5}}]);
+  assert.deepEqual([warm.action.damage[0].expression, warm.action.damage[0].damageType, chill.action.damage[0].damageType],
+    [{type: "dice", number: 2, faces: 8}, "fire", "cold"], "each shield's own type, by its name");
+  assert.deepEqual([warm.action.costs, warm.action.targeting, warm.action.tags], [{allOf: []}, {type: "single", required: true, count: 1},
+    ["magical"]], "free, on the attacker; magical, but no spell to counter");
+  assert.equal(validateActionDefinition(warm.action).ok, true, JSON.stringify(validateActionDefinition(warm.action).errors));
+});
+
+test("a self spell's passive damage rides an effect for its duration, growing with the slot chosen (Armor of Agathys)", async () => {
+  const [cast] = convertItem(carrier({id: "testAgathys00001", name: "Armor of Agathys", level: 1, duration: {value: "1", units: "hour"},
+    text: "<p>You gain 5 Temporary Hit Points. If a creature hits you with a melee attack roll before the spell ends, the creature takes 5 Cold "
+      + "damage. The spell ends early if you have no Temporary Hit Points.</p>", activities: {
+      a: activity("heal", {name: "Cast", range: {units: "self", override: false}, target: {affects: {}, template: {}, override: false},
+        healing: {bonus: "5", types: ["temphp"], scaling: {mode: "whole", formula: "5"}}}),
+      b: activity("damage", {_id: "actfrost", name: "Frost Damage", sort: 1, activation: {type: "", override: true,
+        condition: "when a creature hits you with a melee attack"}, damage: {parts: [{number: null, denomination: "", bonus: "5", types: ["cold"],
+        scaling: {mode: "whole", formula: "5"}}]}})}})).items;
+  const [effect] = cast.system.definition.effects;
+  assert.deepEqual([effect.name, effect.duration], ["Armor of Agathys", {value: 1, units: "hours"}]);
+  const {action, triggerPredicate} = retaliationOf(effect);
+  assert.equal(triggerPredicate, undefined, "any melee hit");
+  assert.deepEqual([action.damage[0].expression.key, action.damage[0].expression.rows[1], action.damage[0].expression.rows[3],
+    action.damage[0].expression.default], [{type: "constant", value: "{{spell-slot}}"}, 5, 15, {type: "constant", value: 5}]);
+  assert.deepEqual(cast.system.definition.configuration.find(choice => choice.id === "spell-slot").effects.at(-1), {type: "bindChoice"});
+  assert.deepEqual(cast.flags.wildpath.conversion.notes, ["\"Armor of Agathys\": ending early when its Temporary Hit Points are gone is by hand"],
+    "its Frost Damage is its effect's now; the early end is by hand");
+  assert.equal(cast.system.ruleElements.length, 0, "no Action of its own answering hits without the spell");
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const resolved = resolveActionConfiguration({definition: cast.system.definition, actorSystem: {resources: {action: {value: 1, max: 1}, bonus: {value: 1, max: 1}},
+    pools: [{id: "spell-slot.3", value: 1, max: 1}]}, choices: {"spell-slot": {resourceId: "spell-slot.3"}}});
+  assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+  const bound = retaliationOf(resolved.configuration.effectiveDefinition.effects[0]).action.damage[0].expression;
+  assert.deepEqual(valueExpressions.selectTableRows(bound), {type: "constant", value: 15}, "a 3rd-level slot: 15 Cold damage");
+  assert.deepEqual(valueExpressions.selectTableRows(action.damage[0].expression), {type: "constant", value: 5}, "no slot bound: its base");
+});
+
+test("an affected creature's effect has a Fiend or Undead hitting it save at its caster's DC, and attacks on it Disadvantage (Holy Aura)", () => {
+  const [aura] = convertItem(carrier({id: "testHolyAura0001", name: "Holy Aura", level: 8, properties: ["vocal", "concentration"],
+    duration: {value: "1", units: "minute"}, effects: [{_id: "h", name: "Holy Protection", transfer: false, statuses: [],
+      duration: {value: 60, units: "seconds"}, system: {changes: [{key: "system.abilities.str.save.roll.mode", value: 1, type: "add"}]}},
+    {_id: "b", name: "Blinded", transfer: false, statuses: ["blinded"], duration: {value: null, units: "seconds"}}],
+    text: "<p>While in the aura, creatures of your choice have Advantage on all saving throws, and other creatures have Disadvantage on attack "
+      + "rolls against them. In addition, when a Fiend or an Undead hits an affected creature with a melee attack roll, the attacker must "
+      + "succeed on a Constitution saving throw or have the &amp;Reference[Blinded apply=false] condition until the end of its next turn.</p>",
+    activities: {a: activity("utility", {range: {units: "self", override: false}, target: {template: {type: "radius", size: "30"}, affects: {},
+      override: false}, effects: [{_id: "h"}]}), b: activity("save", {_id: "actsave", name: "Fiend/Undead Save", sort: 1,
+      activation: {type: "", override: true}, duration: {units: "round", value: "1", override: true}, effects: [{_id: "b"}],
+      save: {ability: ["con"], dc: {calculation: "spellcasting", formula: ""}}, damage: {parts: [], onSave: "half"}})}})).items;
+  const [effect] = aura.system.definition.effects;
+  assert.ok(effect.ruleElements.some(rule => (rule.type === "RollMode") && (rule.data.domains[0] === "attacked")
+    && (rule.data.mode === "disadvantage")), "other creatures' attacks on it");
+  const {triggerPredicate, action} = retaliationOf(effect);
+  assert.deepEqual(triggerPredicate, {oneOf: {path: "sourceType", values: ["fiend", "undead"]}});
+  assert.deepEqual([action.save.ability, action.save.dc.fromSource], ["fortitude", true], "its caster's spell save DC");
+  assert.deepEqual(action.effects, [{id: "effect-1", type: "condition", conditionId: "blinded", saveOutcomePolicy: "failure",
+    duration: {value: 1, units: "rounds", expiry: "turnEnd"}}], "Blinded to the end of its next turn, on no one's concentration");
+  assert.equal(aura.flags.wildpath.conversion.notes.some(note => /passive or triggered/.test(note)), false);
+});
+
 test("a passive aura of Advantage is an Aura of RollModes on its allies (Aura of Authority)", () => {
   const [warlord] = convertItem({_id: "testAuthority001", name: "Aura of Authority", type: "feat", effects: [], system: {source: SRD,
     description: {value: "<p>While in a [[lookup @target.template.size activity=x]]-foot Emanation originating from the [[lookup @name "

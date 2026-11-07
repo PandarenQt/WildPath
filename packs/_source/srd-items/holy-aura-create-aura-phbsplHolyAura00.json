@@ -111,6 +111,96 @@
                 ],
                 "mode": "advantage"
               }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "attacked-disadvantage",
+              "type": "RollMode",
+              "data": {
+                "domains": [
+                  "attacked"
+                ],
+                "mode": "disadvantage"
+              }
+            },
+            {
+              "schemaVersion": 1,
+              "id": "retaliation",
+              "type": "Trigger",
+              "data": {
+                "kind": "reaction",
+                "event": "attack.hit",
+                "match": {
+                  "phase": "interrupt",
+                  "targetTokenId": "{self}",
+                  "tagsAny": [
+                    "melee"
+                  ]
+                },
+                "policy": "always",
+                "triggerPredicate": {
+                  "oneOf": {
+                    "path": "sourceType",
+                    "values": [
+                      "fiend",
+                      "undead"
+                    ]
+                  }
+                },
+                "action": {
+                  "schemaVersion": 1,
+                  "id": "action:holy-aura-retaliation",
+                  "label": "Holy Aura",
+                  "tags": [
+                    "magical"
+                  ],
+                  "costs": {
+                    "allOf": []
+                  },
+                  "range": {
+                    "type": "special"
+                  },
+                  "targeting": {
+                    "type": "single",
+                    "required": true,
+                    "count": 1
+                  },
+                  "save": {
+                    "ability": "fortitude",
+                    "dc": {
+                      "valueExpression": {
+                        "type": "add",
+                        "terms": [
+                          {
+                            "type": "constant",
+                            "value": 8
+                          },
+                          {
+                            "type": "proficiency-bonus"
+                          },
+                          {
+                            "type": "spellcasting-modifier"
+                          }
+                        ]
+                      },
+                      "fromSource": true
+                    }
+                  },
+                  "effects": [
+                    {
+                      "id": "effect-1",
+                      "type": "condition",
+                      "conditionId": "blinded",
+                      "saveOutcomePolicy": "failure",
+                      "duration": {
+                        "value": 1,
+                        "units": "rounds",
+                        "expiry": "turnEnd"
+                      }
+                    }
+                  ]
+                }
+              }
             }
           ],
           "duration": {

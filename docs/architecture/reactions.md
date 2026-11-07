@@ -89,6 +89,14 @@ nothing. After Disengage, leaving provoked nothing.
   its own request, so no one is prompted. This also applies after an earlier reactor declines;
 - `never`: the production reaction provider leaves it out, so its creature does not even watch movement for it.
 
+**Answered at once at no cost (2026-11-07).** An `always` reaction that pays nothing (`automaticReaction`: a stat
+block attack's own save such as a Ghoul's Claw, a retaliation such as Fire Shield's or a Black Pudding's) is no
+Reaction its creature chooses. It is ordered after every reaction that is asked about and never offered in the
+same group as one, so a Shield or Cutting Words may turn the hit into a miss first. Once any reaction of the
+window resolves, the window still runs every such response not yet used (`siblingReoffer`), its stage answering
+them with no prompt, while the event it answers is unchanged: a hit made a miss ends it. Each other asked
+reaction still ends the window as before.
+
 Players switch it from the action bar. The authority reads it from the Item when it gathers reactions.
 
 The request payload is presentation-safe. It includes candidate summaries, cost/payment metadata,
@@ -399,6 +407,10 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
   an attack hits, its damage lands on the attacker, even when the hit itself does nothing (the pudding is immune to
   Slashing). shortcut: "while within 5 feet" is not measured, and touching it is the GM's. Live (14.369): each
   Longsword hit on a Black Pudding cost the attacking Token 4 Acid.
+- **What hitting the creature an effect is on costs the attacker (2026-11-07):** the same Trigger and Action, carried by a
+  spell's effect for as long as it lasts (rule-elements.md, *Reactions an effect carries*): Fire Shield's Warm and Chill
+  Shield (2d8 Fire or Cold on a melee hit from within 5 feet), Holy Aura's Holy Protection (a Fiend or Undead hitting
+  saves or is Blinded). Not yet checked in live Foundry.
 - **A stat block attack's save (2026-10-24):** a 2024 attack whose hit "is subjected to the following effect" or "must
   make the following saving throw" (a Ghoul's Claw, a Cockatrice's Petrifying Bite) keeps that save in an activity with
   no activation. It is an Action with no cost and a reaction Trigger on `attack.hit` by its own creature, matching the
@@ -565,7 +577,8 @@ next turn. A second hit in the same turn was not offered it, and with no Focus P
 
   - **Creature types (2026-10-21).** An NPC carries its creature type (`details.type`, `details.subtype`, converted from
     dnd5e; a custom one is its label), a character `humanoid`. A reaction's predicates see the first target's
-    (`targetType`), as an attack's do (`attack.targetType`). Divine Smite's Undead or Fiend version is offered only on
+    (`targetType`), as an attack's do (`attack.targetType`), and the event source's (`sourceType`: Holy Aura's Fiend or
+    Undead attacker). Divine Smite's Undead or Fiend version is offered only on
     such a creature, the plain one only on any other: live, on a Zombie only the first, on a Bandit Captain only the
     second. World migration 4 gives an NPC converted earlier the type of its compendium creature.
 

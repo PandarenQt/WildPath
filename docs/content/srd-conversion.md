@@ -792,7 +792,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Hobgoblin Warrior | actors24 | Hobgoblin Warrior (4 items) | — |
 | Hold Monster | spells24 | Hold Monster (automated) | — |
 | Hold Person | spells24 | Hold Person (automated) | — |
-| Holy Aura | spells24 | Holy Aura (Create Aura) (automated) | "Fiend/Undead Save" is passive or triggered: not automated |
+| Holy Aura | spells24 | Holy Aura (Create Aura) (automated) | — |
 | Holy Avenger | equipment24 | Holy Avenger (automated) | — |
 | Holy Nimbus | classes24 | Holy Nimbus (Holy Nimbus) (automated), Holy Nimbus (Regain Use) (automated) | — |
 | Holy Symbol (Varies) | equipment24 | Holy Symbol (Varies) (gear) | — |
