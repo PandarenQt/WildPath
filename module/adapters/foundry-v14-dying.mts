@@ -1,6 +1,6 @@
 import {mutationTargetIdentity} from "../helpers/mutation-target.mjs";
 import {resolveTargetLookupValue, targetLookupRefs} from "../helpers/target-actor-refs.mjs";
-import {runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
+import {runAuthorityAction, worldCreatures} from "./foundry-v14-automation-dispatcher.mjs";
 import {zeroHpFor, beginPhase} from "./foundry-v14-zero-hp.mjs";
 import {foundryActorSystemSnapshot} from "./foundry-v14-actor-system-adapter.mjs";
 import {commitActorResourceMutationPlan} from "../resolvers/resource-resolver.mjs";
@@ -129,7 +129,7 @@ async function rollStableHours() {
 export function createFoundryDying({game, coordinator, resolveAction, logger=globalThis.console, rollHours=rollStableHours}: {
   game: {user: {id: string}; users?: {activeGM?: {id: string} | null}; combats?: Iterable<{combatants: Iterable<Combatant>}>;
     i18n?: {localize(key: string): string}; time?: {worldTime?: number}; actors?: Iterable<DyingActor>;
-    scenes?: Iterable<{tokens: Iterable<{actorLink?: boolean; actor?: DyingActor | null}>}>};
+    scenes?: Iterable<{tokens?: Iterable<{actor?: DyingActor | null}>}>};
   coordinator: {resolveAuthorityAction(options: Data): Promise<{ok: boolean; state?: {status?: string}}>};
   resolveAction(options: Data): Promise<Data & {ok: boolean; reason?: string}>;
   logger?: {warn(...args: unknown[]): void};
@@ -393,11 +393,7 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
   /** World time moved on (the active GM): every stable creature that has waited long enough regains 1 health. */
   async function onWorldTime(now=worldTime()) {
     if ( !isActiveGM() ) return;
-    const actors = new Set<DyingActor>([...(game.actors ?? [])]);
-    for ( const scene of game.scenes ?? [] ) {
-      for ( const token of scene.tokens ) if ( !token.actorLink && token.actor ) actors.add(token.actor);
-    }
-    for ( const actor of actors ) if ( actor.flags?.wildpath?.stableSince ) await recoverIfDue(actor, now);
+    for ( const actor of worldCreatures(game) ) if ( actor.flags?.wildpath?.stableSince ) await recoverIfDue(actor, now);
   }
 
   /** Exhaustion's sixth level is death. */

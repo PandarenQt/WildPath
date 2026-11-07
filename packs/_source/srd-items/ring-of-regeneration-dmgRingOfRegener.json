@@ -10,7 +10,73 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "interval-heal",
+        "type": "Trigger",
+        "data": {
+          "event": "time.elapsed",
+          "every": {
+            "value": 10,
+            "units": "minutes"
+          },
+          "predicate": {
+            "all": [
+              {
+                "equals": {
+                  "path": "damaged",
+                  "value": true
+                }
+              },
+              {
+                "not": {
+                  "equals": {
+                    "path": "actor.system.resources.health.value",
+                    "value": 0
+                  }
+                }
+              },
+              {
+                "not": {
+                  "equals": {
+                    "path": "owner.system.attunement",
+                    "value": "required"
+                  }
+                }
+              }
+            ]
+          },
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-ring-of-regeneration",
+            "tags": [
+              "magical"
+            ],
+            "costs": {
+              "allOf": []
+            },
+            "range": {
+              "type": "self"
+            },
+            "targeting": {
+              "type": "self"
+            },
+            "healing": [
+              {
+                "id": "healing-1",
+                "expression": {
+                  "type": "dice",
+                  "number": 1,
+                  "faces": 6
+                },
+                "healingType": "healing"
+              }
+            ]
+          }
+        }
+      }
+    ],
     "attunement": "required",
     "armor": "",
     "price": 40000,
@@ -31,7 +97,7 @@
       },
       "conversion": {
         "notes": [
-          "\"heal\" is passive or triggered: not automated"
+          "interval: what else its description says is by hand"
         ]
       }
     }

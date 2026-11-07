@@ -295,6 +295,27 @@ test("an effect with its own changes becomes a custom effect with the rules they
     {minSelections: 1, maxSelections: 3}, "up to three creatures: one is enough");
 });
 
+test("healing every so often as time passes (Ring of Regeneration) becomes a time.elapsed Trigger", () => {
+  const ring = (condition, description, attunement="required", healing={number: 1, denomination: "6", bonus: "", types: ["healing"],
+    custom: {enabled: false}}) => convertItem({_id: "testRegenRing001", name: "Test Ring", type: "equipment", system: {source: SRD,
+    type: {value: "ring"}, attunement, description: {value: description}, activities: {a: activity("heal", {name: "",
+      activation: {type: "special", condition}, healing})}}}).items;
+  const [gear] = ring("Every 10 minutes", "<p>While wearing this ring, you regain 1d6 Hit Points every 10 minutes if you have at least 1 Hit "
+    + "Point. If you lose a body part, the ring causes the missing part to regrow.</p>");
+  const [rule] = gear.system.ruleElements;
+  assert.deepEqual([rule.type, rule.data.event, rule.data.every, rule.data.predicate], ["Trigger", "time.elapsed", {value: 10, units: "minutes"},
+    {all: [{equals: {path: "damaged", value: true}}, {not: {equals: {path: "actor.system.resources.health.value", value: 0}}},
+      {not: {equals: {path: "owner.system.attunement", value: "required"}}}]}], "while missing Hit Points, at 1 at least, attuned");
+  assert.deepEqual([rule.data.action.healing.length, rule.data.action.costs, rule.data.action.targeting], [1, {allOf: []}, {type: "self"}]);
+  assert.deepEqual(gear.flags.wildpath.conversion.notes, ["interval: what else its description says is by hand"], "the lost body part");
+  const [stone] = ring("once per hour if you have at least 1 Hit Point", "<p>Toss it.</p><p>You regain 15 Hit Points at the end of each hour.</p>",
+    "", {number: null, denomination: "", bonus: "15", types: ["healing"], custom: {enabled: false}});
+  assert.deepEqual([stone.system.ruleElements[0].data.every, stone.system.ruleElements[0].data.predicate.all.length,
+    stone.flags.wildpath.conversion.notes], [{value: 1, units: "hours"}, 2, []], "no attunement: missing Hit Points, at 1 at least");
+  const plain = ring("", "<p>You regain 1d6 Hit Points.</p>");
+  assert.ok(!plain.some(item => item.system.ruleElements?.some(entry => entry.data?.event === "time.elapsed")), "no interval words: as before");
+});
+
 test("common monster traits (G5): Magic Resistance, Pack Tactics and Regeneration become their rules", async () => {
   const trait = (id, name, activities={}, description="") => ({_id: `${id.replace(/-/g, "").slice(0, 12)}0000`, name, type: "feat",
     system: {source: SRD, identifier: id, activities, description: {value: description}}});

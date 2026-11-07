@@ -1319,7 +1319,8 @@
         "Ammunition": "Ammunition",
         "Contagion": "Contagion",
         "Carry": "carrying a creature",
-        "EffectEnded": "an effect ending"
+        "EffectEnded": "an effect ending",
+        "Interval": "a trigger as time passes"
       },
       "FormMissing": "WildPath: the form this Action names can't be found, so nothing was transformed.",
       "FormTooStrong": "{form} is beyond {name}'s Challenge Rating or level, so it wasn't transformed.",

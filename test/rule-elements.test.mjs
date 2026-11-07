@@ -154,6 +154,14 @@ test("invalid RuleElement predicates and payloads fail with structured diagnosti
   assert.match(invalidSchemaVersion.reason, /schemaVersion/);
 });
 
+test("a time.elapsed Trigger needs its interval", () => {
+  const interval = every => evaluateRuleElement({id: "regrow", type: "Trigger", data: {event: "time.elapsed", ...(every ? {every} : {})}});
+  assert.match(interval(null).reason, /needs every/);
+  assert.equal(interval({value: 0, units: "minutes"}).ok, false, "no length");
+  assert.equal(interval({value: 10, units: "fortnights"}).ok, false, "no unit it knows");
+  assert.equal(interval({value: 10, units: "minutes"}).ok, true);
+});
+
 test("RuleElement validation rejects non-plain objects before lossy JSON cloning", () => {
   const withMap = validateRuleElementDefinition({
     id: "map-payload",

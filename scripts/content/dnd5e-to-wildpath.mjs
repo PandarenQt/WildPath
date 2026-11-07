@@ -1827,6 +1827,14 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         initiativeRules.push(recharge);
         continue;
       }
+      // Healing as world time passes (Ring of Regeneration's "every 10 minutes"): a time.elapsed Trigger.
+      const interval = intervalTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature,
+        beasts});
+      if ( interval ) {
+        initiativeRules.push(interval);
+        allNotes.push(...notes);
+        continue;
+      }
       // A swallower's regurgitating save (a Purple Worm's): the dispatcher's, after a turn that cost it enough.
       const regurgitation = regurgitateTrigger({document, activity, system, spell, level, scales, pool, names, saveDC, spellDC, creature,
         beasts});
@@ -3571,7 +3579,7 @@ const TRAITS = Object.freeze({
     const stopping = text.split(/(?<=\.)\s+/).find(sentence => /\btakes\b/i.test(sentence) && /function/i.test(sentence)) ?? "";
     const stoppedBy = DAMAGE_TYPES.filter(type => new RegExp(`\\b${type}\\b`, "i").test(stopping));
     const predicates = [
-      ...(/at least 1 hit point/i.test(text) ? [{not: {equals: {path: "actor.system.resources.health.value", value: 0}}}] : []),
+      ...(/at least 1 hit point/i.test(text) ? [AT_LEAST_ONE_HIT_POINT] : []),
       // A Vampire's: "if it ... isn't in sunlight".
       ...(/isn't in sunlight|isn’t in sunlight/i.test(text) ? [{not: IN_SUNLIGHT}] : []),
       ...stoppedBy.map(type => ({not: {equals: {path: `actor.flags.wildpath.damageTaken.${type}`, value: true}}}))];
@@ -3929,6 +3937,8 @@ function textDC(document, dc) {
 
 /** The creature stands in sunlight: its Scene is tagged sunlit, or a light tagged as sunlight reaches it. */
 const IN_SUNLIGHT = Object.freeze({equals: {path: "inSunlight", value: true}});
+// "if you have at least 1 Hit Point" (Regeneration, a Ring of Regeneration).
+const AT_LEAST_ONE_HIT_POINT = Object.freeze({not: {equals: {path: "actor.system.resources.health.value", value: 0}}});
 
 /** Disadvantage in sunlight on the rolls its text names, and its damage there at the start of its turn. */
 function sunlightTrait(document, {activities, ...options}) {
@@ -5471,6 +5481,29 @@ function restTrigger(document, activity) {
     predicate: {equals: {path: "event.data.restType", value: "shortRest"}},
     action: {schemaVersion: 1, id: "action:srd-tireless-decrease-exhaustion", label: "Tireless", costs: {allOf: []}, range: {type: "self"},
       targeting: {type: "self"}, effects: [{id: "effect-1", type: "condition", conditionId: "exhaustion", levels: -1}]}}};
+}
+
+/**
+ * Healing its creature regains as world time passes (Ring of Regeneration: "you regain 1d6 Hit Points every 10 minutes if
+ * you have at least 1 Hit Point"; Ioun Stone of Regeneration: "once per hour"), as an automatic Trigger on `time.elapsed`
+ * with `every` its interval. It runs while its creature is missing Hit Points, has at least 1 when its text says so, and
+ * holds the item attuned when it needs attunement. Null for any other activity.
+ */
+function intervalTrigger({document, activity, system, spell, level, scales, notes, pool, names, saveDC, spellDC, creature, beasts}) {
+  const text = `${activity?.activation?.condition ?? ""} ${plainText(document)}`;
+  const match = (activity?.type === "heal") && text.match(/\b(?:every|each|per)\s+(?:(\d+)\s+)?(minute|hour|day)s?\b/iu);
+  if ( !match ) return null;
+  const heal = convertActivity({document, activity, system, spell, level, scales, notes: [], pool, saveDC, spellDC, creature, beasts, names});
+  if ( !heal?.healing?.length ) return null;
+  const predicates = [{equals: {path: "damaged", value: true}}, ...(/at least 1 hit point/iu.test(text) ? [AT_LEAST_ONE_HIT_POINT] : []),
+    ...((document.system?.attunement === "required") ? [{not: {equals: {path: "owner.system.attunement", value: "required"}}}] : [])];
+  // Its rule is one paragraph; another sentence there (the Ring's lost body part regrowing) is by hand.
+  const paragraph = String(document.system?.description?.value ?? "").split(/<\/p>/iu).map(part => part.replace(/<[^>]+>/g, " ").trim())
+    .find(part => /\b(?:every|each|per)\s+(?:\d+\s+)?(?:minute|hour|day)s?\b/iu.test(part)) ?? "";
+  if ( paragraph.split(/(?<=\.)\s+/u).filter(Boolean).length > 1 ) notes.push("interval: what else its description says is by hand");
+  return {schemaVersion: 1, id: `interval-${slugify(activity.name || "heal")}`, type: "Trigger", data: {event: "time.elapsed",
+    every: {value: Number(match[1] ?? 1), units: `${match[2].toLowerCase()}s`}, predicate: {all: predicates},
+    action: {...heal, costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"}}}};
 }
 
 /**

@@ -452,6 +452,20 @@ happens to that creature:
 - `initiative.rolled` comes from any client's roll, through the Combatant update the GM sees
   (`event.data.initiative`).
 - `rest.completed` comes from `Actor#rest` (`event.data.restType`, `shortRest` or `longRest`).
+- `time.elapsed` (2026-11-07) comes from the `updateWorldTime` hook (active GM, `event.data.seconds` its dt), for
+  each creature with its Token (`worldCreatures`: every Token's creature and every world Actor whose prototype is
+  linked; a template whose Tokens are unlinked counts nothing, as its Tokens would inherit it), one time change
+  after another. Its Trigger names its interval, `data.every: {value, units}` (seconds, rounds, minutes, hours or
+  days; validation refuses one without), and runs once per interval covered. What is left over is kept on the Item
+  or effect that carries it, `flags.wildpath.elapsed.<rule id>` (seconds; an id-less rule is `Trigger:<index>`, and
+  a dot in the id is written `-`), written before any run, so a failed or repeated run never runs twice. One time
+  change runs it at most 24 times (that many chat cards); the rest of a larger jump is dropped, so an 8-hour jump
+  heals a 10-minute interval for 4 hours only. Time counts only while its owner counts (gear equipped) and its
+  predicate holds, checked again before each run once any Action of that time change has run on the creature.
+  With `around` it acts on the creatures around its creature's Token. V14 moves no world time in combat by default and WildPath's rests count their
+  hours apart, so only the GM advancing time runs it. Ring of Regeneration: `{type: "Trigger", data: {event:
+  "time.elapsed", every: {value: 10, units: "minutes"}, predicate: {all: [{equals: {path: "damaged", value: true}},
+  /* at least 1 Hit Point, attuned */]}, action: {..., healing: [/* 1d6 */]}}}`.
 
 The Action is the trigger's inline `data.action`, the Item itself when it is an Action, or the Action Item
 named by `data.actionId`. It resolves as an authority Action with the creature as source and only target,
@@ -470,8 +484,10 @@ the GM with the V14 user query `wildpath.automationEvent`. Foundry's server name
 only `rest.completed`, only for an Actor that sender owns, and takes only the rest type from the data. A
 rest on the GM's own client runs before `rest()` returns.
 
-A trigger's predicate also sees its creature as `actor`. Regeneration is a `turn.started` trigger whose inline
-Action heals its creature. Its predicate holds only what its own text says:
+A trigger's predicate also sees its creature as `actor`, the Item or effect carrying it as `owner` (a ring that
+works only attuned: `{not: {equals: {path: "owner.system.attunement", value: "required"}}}`; an automatic trigger
+does not otherwise wait for attunement), and `damaged`, whether its creature is missing Hit Points. Regeneration
+is a `turn.started` trigger whose inline Action heals its creature. Its predicate holds only what its own text says:
 - "if it has at least 1 Hit Point": `{not: {equals: {path: "actor.system.resources.health.value", value: 0}}}`;
 - "if the troll takes Acid or Fire damage, this trait doesn't function on its next turn": `data.stoppedBy:
   ["acid", "fire"]` and `{not: {equals: {path: "actor.flags.wildpath.damageTaken.fire", value: true}}}` per type. The

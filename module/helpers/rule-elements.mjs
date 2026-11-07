@@ -1,4 +1,5 @@
-import {createTriggerDefinition} from "./automation-events.mjs";
+import {AUTOMATION_EVENT_TYPES, createTriggerDefinition} from "./automation-events.mjs";
+import {durationSeconds} from "./metamagic.mjs";
 import {createMovementCapability} from "./movement.mjs";
 import {PREDICATE_CODES, evaluatePredicate} from "./predicates.mjs";
 import {evaluateValueExpression} from "./value-expressions.mjs";
@@ -1057,6 +1058,9 @@ function triggerRuleElement(ruleElement) {
   const match = data.match ?? {};
   if ( !event && !match.type ) {
     return handlerFailure(RULE_ELEMENT_CODES.INVALID, "Trigger RuleElement requires an event type.");
+  }
+  if ( (event === AUTOMATION_EVENT_TYPES.TIME_ELAPSED) && !(durationSeconds(data.every) > 0) ) {
+    return handlerFailure(RULE_ELEMENT_CODES.INVALID, "A time.elapsed Trigger needs every: {value, units}.");
   }
   // A shared-healing Trigger (Life Bond) is shared from its creature's summoner; no other source exists yet.
   if ( ((data.kind ?? data.triggerKind) === "shared-healing") && (data.from != null) && (data.from !== "summoner") ) {

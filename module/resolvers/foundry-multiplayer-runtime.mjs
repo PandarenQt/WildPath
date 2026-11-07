@@ -280,6 +280,9 @@ export function registerFoundryV14MultiplayerResolution({
   // An effect that ends runs its own `effect.ended` Triggers (Haste's lethargy); a rollback or replacement is no ending.
   globalThis.Hooks?.on?.("deleteActiveEffect", (effect, options) => void automation.onEffectDeleted(effect, options)
     .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.EffectEnded") ?? "EffectEnded"}, error)));
+  // World time the GM moves on runs the `time.elapsed` Triggers it covered (Ring of Regeneration), on the active GM.
+  globalThis.Hooks?.on?.("updateWorldTime", (worldTime, dt) => void automation.onWorldTime(dt)
+    .catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Interval") ?? "Interval"}, error)));
   // Dying and death (2024 death saves): after Actions, at turn start, and when Exhaustion reaches 6.
   const dying = createFoundryDying({game, coordinator, logger,
     resolveAction: options => foundryActionIntentToStagedOptions({...options, game, persistencePort})});

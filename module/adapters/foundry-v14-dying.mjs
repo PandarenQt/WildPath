@@ -1,6 +1,6 @@
 import { mutationTargetIdentity } from "../helpers/mutation-target.mjs";
 import { resolveTargetLookupValue, targetLookupRefs } from "../helpers/target-actor-refs.mjs";
-import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
+import { runAuthorityAction, worldCreatures } from "./foundry-v14-automation-dispatcher.mjs";
 import { zeroHpFor, beginPhase } from "./foundry-v14-zero-hp.mjs";
 import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
 import { commitActorResourceMutationPlan } from "../resolvers/resource-resolver.mjs";
@@ -372,13 +372,7 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
     async function onWorldTime(now = worldTime()) {
         if (!isActiveGM())
             return;
-        const actors = new Set([...(game.actors ?? [])]);
-        for (const scene of game.scenes ?? []) {
-            for (const token of scene.tokens)
-                if (!token.actorLink && token.actor)
-                    actors.add(token.actor);
-        }
-        for (const actor of actors)
+        for (const actor of worldCreatures(game))
             if (actor.flags?.wildpath?.stableSince)
                 await recoverIfDue(actor, now);
     }

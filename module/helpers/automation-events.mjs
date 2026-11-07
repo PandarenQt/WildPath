@@ -47,7 +47,9 @@ export const AUTOMATION_EVENT_TYPES = Object.freeze({
   TURN_ENDED: "turn.ended",
   ROUND_STARTED: "round.started",
   ROUND_ENDED: "round.ended",
-  REST_COMPLETED: "rest.completed"
+  REST_COMPLETED: "rest.completed",
+  // World time the GM moved on: a Trigger with `every: {value, units}` runs once per interval it covered (Ring of Regeneration).
+  TIME_ELAPSED: "time.elapsed"
 });
 
 export const AUTOMATION_TRIGGER_KINDS = Object.freeze({

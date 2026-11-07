@@ -10,7 +10,72 @@
     "quantity": 1,
     "weight": 0,
     "slot": "",
-    "ruleElements": [],
+    "ruleElements": [
+      {
+        "schemaVersion": 1,
+        "id": "interval-regeneration",
+        "type": "Trigger",
+        "data": {
+          "event": "time.elapsed",
+          "every": {
+            "value": 1,
+            "units": "hours"
+          },
+          "predicate": {
+            "all": [
+              {
+                "equals": {
+                  "path": "damaged",
+                  "value": true
+                }
+              },
+              {
+                "not": {
+                  "equals": {
+                    "path": "actor.system.resources.health.value",
+                    "value": 0
+                  }
+                }
+              },
+              {
+                "not": {
+                  "equals": {
+                    "path": "owner.system.attunement",
+                    "value": "required"
+                  }
+                }
+              }
+            ]
+          },
+          "action": {
+            "schemaVersion": 1,
+            "id": "action:srd-ioun-stone-of-regeneration-regeneration",
+            "tags": [
+              "magical"
+            ],
+            "costs": {
+              "allOf": []
+            },
+            "range": {
+              "type": "self"
+            },
+            "targeting": {
+              "type": "self"
+            },
+            "healing": [
+              {
+                "id": "healing-1",
+                "expression": {
+                  "type": "constant",
+                  "value": 15
+                },
+                "healingType": "healing"
+              }
+            ]
+          }
+        }
+      }
+    ],
     "attunement": "required",
     "armor": "",
     "price": 200000,
@@ -30,9 +95,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Regeneration\" is passive or triggered: not automated"
-        ]
+        "notes": []
       }
     }
   }

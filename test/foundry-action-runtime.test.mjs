@@ -22,7 +22,7 @@ import {createTestRollProvider} from "../module/resolvers/roll-provider-resolver
 import {createTestPromptAdapter} from "../module/adapters/test-prompt-adapter.mjs";
 import {createFoundryReactionProvider} from "../module/adapters/foundry-v14-reaction-provider.mjs";
 import {areaCovers, areaExpired, createFoundryPersistentAreas} from "../module/adapters/foundry-v14-persistent-areas.mjs";
-import {createFoundryAutomationDispatcher} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
+import {automationTriggers, createFoundryAutomationDispatcher} from "../module/adapters/foundry-v14-automation-dispatcher.mjs";
 import {inspectResolution} from "../module/helpers/resolution-inspection.mjs";
 import {validateActionDefinition} from "../module/helpers/action-definitions.mjs";
 import {convertItem} from "../scripts/content/dnd5e-to-wildpath.mjs";
@@ -2203,6 +2203,130 @@ test("an automatic trigger's predicate sees its creature: Regeneration needs at 
   assert.deepEqual(await automation.dispatch("turn.started", {actor: targetActor, token: targetToken}), [], "at 0 Hit Points");
   targetActor.system.resources.health.value = 10;
   assert.equal((await automation.dispatch("turn.started", {actor: targetActor, token: targetToken})).length, 1);
+});
+
+/** An Item whose time.elapsed Trigger runs `action` every 10 minutes, keeping what its update writes (its carry). */
+const intervalFeature = (data={}) => {
+  const feature = {...triggerFeature("ring", {event: "time.elapsed", every: {value: 10, units: "minutes"}, ...data}), flags: {}};
+  feature.update = async changes => {
+    // Written only after a round trip, as the server's update is.
+    await Promise.resolve();
+    for ( const [path, value] of Object.entries(changes) ) {
+      const keys = path.split(".");
+      const last = keys.pop();
+      keys.reduce((node, key) => (node[key] ??= {}), feature)[last] = value;
+    }
+  };
+  return feature;
+};
+
+test("a time.elapsed Trigger runs once per interval the world time covered, counting on from what was left over", async t => {
+  const {targetActor, automation} = lastingAreaFixture(t);
+  const ring = intervalFeature();
+  targetActor.items = [ring];
+  const elapse = seconds => automation.dispatch("time.elapsed", {actor: targetActor, data: {seconds}});
+  assert.deepEqual(await elapse(300), [], "half an interval runs nothing");
+  assert.equal(ring.flags.wildpath.elapsed.trigger, 300, "and is kept on its Item");
+  assert.equal((await elapse(300)).length, 1, "the other half completes one");
+  assert.equal(ring.flags.wildpath.elapsed.trigger, 0);
+  assert.equal((await elapse(3600)).length, 6, "an hour is six");
+  assert.equal(targetActor.system.resources.health.value, 2);
+  assert.deepEqual(await elapse(-3600), [], "time turned back counts nothing");
+  assert.equal(ring.flags.wildpath.elapsed.trigger, 0);
+
+  targetActor.system.resources.health = {value: 1000, max: 1000};
+  assert.equal((await elapse((10 * 86400) + 123)).length, 24, "ten days run a day of hourly intervals at most");
+  assert.equal(ring.flags.wildpath.elapsed.trigger, 123, "the rest of the jump is dropped");
+});
+
+test("a time.elapsed Trigger stops as soon as its predicate no longer holds: healing stops once its creature is full", async t => {
+  const {targetActor, automation} = lastingAreaFixture(t);
+  const elapse = () => automation.dispatch("time.elapsed", {actor: targetActor, data: {seconds: 3600}});
+  targetActor.items = [intervalFeature({predicate: {atLeast: {path: "actor.system.resources.health.value", value: 20}}})];
+  assert.equal((await elapse()).length, 3, "30, 26 and 22 Hit Points; not 18");
+  const MEND = {schemaVersion: 1, id: "action:mend", label: "Mend", costs: {allOf: []},
+    healing: [{id: "fixed", expression: {type: "constant", value: 4}}]};
+  targetActor.items = [intervalFeature({action: MEND, predicate: {equals: {path: "damaged", value: true}}})];
+  targetActor.system.resources.health = {value: 25, max: 30};
+  assert.equal((await elapse()).length, 2, "25 to 29 to 30, then full");
+  assert.equal(targetActor.system.resources.health.value, 30);
+  const unattuned = {...intervalFeature({predicate: {not: {equals: {path: "owner.system.attunement", value: "required"}}}})};
+  unattuned.system.attunement = "required";
+  targetActor.system.resources.health.value = 20;
+  targetActor.items = [unattuned];
+  assert.deepEqual(await elapse(), [], "an Item not yet attuned");
+  assert.equal(unattuned.flags.wildpath, undefined, "counts no time");
+});
+
+test("world time moving on runs each creature's intervals on the active GM only, one time change after another", async t => {
+  const {targetActor, game, automation} = lastingAreaFixture(t);
+  game.actors[Symbol.iterator] = function* () { yield* this.values(); };
+  const ring = intervalFeature();
+  targetActor.items = [ring];
+  const gm = game.users.activeGM;
+  game.users.activeGM = game.users.get("player-a");
+  await automation.onWorldTime(600);
+  game.users.activeGM = gm;
+  await automation.onWorldTime(0);
+  assert.equal(targetActor.system.resources.health.value, 30, "another client, or no time, runs nothing");
+  assert.equal(ring.flags.wildpath, undefined);
+  void automation.onWorldTime(300);
+  await automation.onWorldTime(300);
+  assert.equal(targetActor.system.resources.health.value, 26, "two quick changes count on from each other: one interval");
+  assert.equal(ring.flags.wildpath.elapsed.trigger, 0);
+
+  game.scenes[Symbol.iterator] = () => { throw new Error("broken scene"); };
+  await assert.rejects(automation.onWorldTime(600), /broken scene/);
+  await assert.doesNotReject(automation.onWorldTime(-600), "time turned back does not report the earlier failure again");
+});
+
+test("world time passes for each Token's creature, with its Token, and not for a template whose Tokens are unlinked", async t => {
+  const {sourceActor, targetActor, targetBase, game, automation} = lastingAreaFixture(t);
+  game.actors[Symbol.iterator] = function* () { yield* this.values(); };
+  targetBase.prototypeToken = {actorLink: false};
+  targetBase.items = [intervalFeature()];
+  // A burning aura on the source's own Token: it reaches the target beside it only through that Token.
+  sourceActor.items = [intervalFeature({around: {radius: 5}})];
+  await automation.onWorldTime(600);
+  assert.equal(targetActor.system.resources.health.value, 26, "the aura around the source's Token burned the target");
+  assert.equal(targetBase.system.resources.health.value, 99, "the template counted nothing");
+  assert.equal(targetBase.items[0].flags.wildpath, undefined);
+});
+
+test("a time.elapsed Trigger after another interval's Actions counts only while its predicate still holds", async t => {
+  const {targetActor, automation} = lastingAreaFixture(t);
+  const MEND = {schemaVersion: 1, id: "action:mend", label: "Mend", costs: {allOf: []},
+    healing: [{id: "fixed", expression: {type: "constant", value: 4}}]};
+  const whileDamaged = every => ({...intervalFeature({action: MEND, every, predicate: {equals: {path: "damaged", value: true}}}),
+    id: `mend-${every.units}`});
+  const hourly = whileDamaged({value: 1, units: "hours"});
+  targetActor.items = [whileDamaged({value: 10, units: "minutes"}), hourly];
+  targetActor.system.resources.health = {value: 26, max: 30};
+  const states = await automation.dispatch("time.elapsed", {actor: targetActor, data: {seconds: 3600}});
+  assert.equal(states.length, 1, "the first heals it full; the hourly one finds it full and does not run");
+  assert.equal(hourly.flags.wildpath, undefined, "nor counts the time");
+});
+
+test("time.elapsed Triggers without an id, or with a dotted one, each keep their own carry", async t => {
+  const {targetActor, automation} = lastingAreaFixture(t);
+  const item = intervalFeature();
+  const rule = item.system.ruleElements[0];
+  item.system.ruleElements = [{type: "Trigger", data: rule.data},
+    {type: "Trigger", data: {...rule.data, every: {value: 1, units: "hours"}}}, {...rule, id: "regen.v2"}];
+  targetActor.items = [item];
+  const elapse = seconds => automation.dispatch("time.elapsed", {actor: targetActor, data: {seconds}});
+  assert.deepEqual(await elapse(300), []);
+  assert.deepEqual(item.flags.wildpath.elapsed, {"Trigger:0": 300, "Trigger:1": 300, "regen-v2": 300});
+  assert.equal((await elapse(300)).length, 2, "the two 10-minute intervals run once each");
+  assert.deepEqual(item.flags.wildpath.elapsed, {"Trigger:0": 0, "Trigger:1": 600, "regen-v2": 0});
+});
+
+test("every automatic trigger's predicate sees whether its creature is missing Hit Points, an aura's bearer too", () => {
+  const actor = {id: "bearer", uuid: "Actor.bearer", system: {resources: {health: {value: 5, max: 10}}},
+    items: [triggerFeature("wounded", {event: "turn.started", predicate: {equals: {path: "damaged", value: true}}})]};
+  assert.equal(automationTriggers(actor, {type: "turn.started"}, {}).length, 1);
+  actor.system.resources.health.value = 10;
+  assert.equal(automationTriggers(actor, {type: "turn.started"}, {}).length, 0);
 });
 
 test("a rest a Player reports is dispatched only for an Actor that Player owns, with only the rest type taken", async t => {

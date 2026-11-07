@@ -5,14 +5,20 @@ import {AUTOMATION_EVENT_TYPES, createAutomationEvent, createTriggerDefinition, 
 import {sunlightContext} from "./foundry-v14-sunlight.mjs";
 import {tokensAround} from "./foundry-v14-auras.mjs";
 import {conditionsFrom, effectsFrom} from "../helpers/effect-sources.mjs";
+import {durationSeconds} from "../helpers/metamagic.mjs";
 
 type Data = Record<string, unknown>;
 interface RuleElement {id?: string; type?: string; enabled?: boolean; data?: Data}
 interface Owner {id: string; type?: string; name?: string; disabled?: boolean;
-  system?: {active?: boolean; ruleElements?: readonly RuleElement[]; definition?: {id?: string}}}
+  system?: {active?: boolean; ruleElements?: readonly RuleElement[]; definition?: {id?: string}};
+  flags?: {wildpath?: {elapsed?: Record<string, number>}}; update?(data: Data): Promise<unknown>}
 interface AutomationActor {id: string; uuid: string; items?: Iterable<Owner>; effects?: Iterable<Owner>;
   testUserPermission?(user: unknown, level: string): boolean}
 interface AutomationToken {id: string; parent?: {id: string} | null}
+type PlacedActor = AutomationActor & {isToken?: boolean; token?: AutomationToken | null;
+  getActiveTokens?(linked?: boolean, document?: boolean): AutomationToken[]};
+/** A creature's Token: an unlinked one's own, else its first on the viewed Scene. */
+const tokenOf = (actor: PlacedActor) => actor.isToken ? (actor.token ?? null) : (actor.getActiveTokens?.(false, true)?.[0] ?? null);
 interface QueryUser {id: string; query?(name: string, data: Data, options: {timeout: number}): Promise<unknown>}
 interface Coordinator {resolveAuthorityAction(options: Data): Promise<{ok: boolean; duplicate?: boolean; state?: {status?: string}}>}
 type ResolveAction = (options: Data) => Promise<Data & {ok: boolean; reason?: string}>;
@@ -49,7 +55,22 @@ const definitionFor = actionDefinitionFromAction as (item: Owner) => {ok: boolea
 const triggerDefinition = createTriggerDefinition as (options: Data) => Data;
 const triggerMatches = evaluateTrigger as (trigger: Data, event: Data, context?: Data) => {ok: boolean};
 const automationEvent = createAutomationEvent as unknown as (options: Data) => Data;
-const EFFECT_ENDED = (AUTOMATION_EVENT_TYPES as {EFFECT_ENDED: string}).EFFECT_ENDED;
+const {EFFECT_ENDED, TIME_ELAPSED} = AUTOMATION_EVENT_TYPES as {EFFECT_ENDED: string; TIME_ELAPSED: string};
+// One time change runs an interval at most 24 times (that many chat cards); the rest of a larger jump is dropped.
+const MAX_INTERVAL_RUNS = 24;
+
+/**
+ * The creatures world time passes for: every Token's creature (an unlinked Token's own synthetic Actor, a linked one's
+ * world Actor) and every world Actor whose prototype is linked. A world Actor with an unlinked prototype is a template;
+ * only its Tokens are in play, and they would inherit what it counted.
+ */
+export function worldCreatures<A extends object>(game: {actors?: Iterable<A>;
+  scenes?: Iterable<{tokens?: Iterable<{actor?: A | null}>}>}): A[] {
+  const creatures = new Set([...(game.actors ?? [])].filter(actor =>
+    (actor as {prototypeToken?: {actorLink?: boolean}}).prototypeToken?.actorLink !== false));
+  for ( const scene of game.scenes ?? [] ) for ( const token of scene.tokens ?? [] ) if ( token.actor ) creatures.add(token.actor);
+  return [...creatures];
+}
 
 /**
  * Runs an Action the authority starts itself (a lasting area's effect, an automatic trigger) with one creature as
@@ -131,24 +152,33 @@ export function automationTriggers(actor: AutomationActor, event: Data, context:
   const items = [...(actor.items ?? [])];
   const answering = owners ?? [...items.filter(item => item.system?.active !== false),
     ...[...(actor.effects ?? [])].filter(effect => !effect.disabled && (effect.type !== "condition"))];
-  return answering.flatMap(owner => (owner.system?.ruleElements ?? []).flatMap(element => {
+  const health = (actor as {system?: {resources?: {health?: {value?: number; max?: number}}}}).system?.resources?.health;
+  const damaged = Number(health?.value) < Number(health?.max);
+  return answering.flatMap(owner => (owner.system?.ruleElements ?? []).flatMap((element, index) => {
     const data = element.data ?? {};
     if ( (element.type !== "Trigger") || (element.enabled === false)
       || ((data.kind ?? data.triggerKind ?? "automation") !== "automation") ) return [];
     const type = data.event ?? data.eventType ?? (data.match as Data | undefined)?.type;
     if ( !type ) return [];
-    const trigger = triggerDefinition({id: `automation:${actor.id}:${owner.id}:${element.id ?? "trigger"}`, event: type,
+    // An id-less rule is told apart by its place, as normalizeRuleElementDefinition names it.
+    const elementId = String(element.id ?? `Trigger:${index}`);
+    const trigger = triggerDefinition({id: `automation:${actor.id}:${owner.id}:${elementId}`, event: type,
       match: data.match ?? {}, predicate: data.triggerPredicate ?? data.eventPredicate ?? data.predicate ?? null});
-    // Predicates also see the creature (`actor.system.resources.health.value`: Regeneration needs 1 Hit Point) and
-    // whether it stands in sunlight (`inSunlight`: a Vampire's).
-    if ( !triggerMatches(trigger, event, {actor, ...context}).ok ) return [];
+    // Predicates also see the creature (`actor.system.resources.health.value`: Regeneration needs 1 Hit Point), the Item
+    // or effect carrying the Trigger (`owner.system.attunement`: a ring that works only attuned), whether its creature
+    // is missing Hit Points (`damaged`: an interval's healing stops once it is full) and whether it stands in sunlight
+    // (`inSunlight`: a Vampire's).
+    if ( !triggerMatches(trigger, event, {actor, owner, damaged, ...context}).ok ) return [];
     const actionItem = owner.type === "action" ? owner
       : items.find(entry => (entry.type === "action") && (entry.system?.definition?.id === data.actionId));
     const definition = (data.action as Data | undefined) ?? (actionItem ? definitionFor(actionItem).definition : null);
     // Its Item's reaction setting (Always, Never, Ask) answers a "you can" (`use`) choice. `around` (`{radius, affects}`):
     // it acts on each creature in its creature's Emanation instead of on its creature.
+    // `every` (`{value, units}`): a `time.elapsed` Trigger's interval, in seconds, its carry kept under `carryKey` (no
+    // dots: a flag path would nest at them).
     return definition ? [{id: String(trigger.id), definition, label: owner.name ?? String(definition.label ?? ""),
-      policy: (reactionPolicyOf as (item: unknown) => string)(owner), around: (data.around as Around | undefined) ?? null}] : [];
+      policy: (reactionPolicyOf as (item: unknown) => string)(owner), around: (data.around as Around | undefined) ?? null,
+      owner, carryKey: elementId.replaceAll(".", "-"), every: durationSeconds(data.every as Data | undefined)}] : [];
   }));
 }
 
@@ -191,7 +221,8 @@ export async function breatheAgain(effect: SuffocatingEffect) {
  */
 export function createFoundryAutomationDispatcher({game, coordinator, resolveAction, logger=globalThis.console,
   fromUuid=null}: {
-  game: {user: {id: string}; users?: {activeGM?: QueryUser | null}};
+  game: {user: {id: string}; users?: {activeGM?: QueryUser | null}; actors?: Iterable<PlacedActor>;
+    scenes?: Iterable<{tokens?: Iterable<{actor?: PlacedActor | null}>}>};
   coordinator: Coordinator; resolveAction: ResolveAction; logger?: Logger;
   fromUuid?: ((uuid: string) => Promise<unknown> | unknown) | null;
 }) {
@@ -208,8 +239,11 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     const self = {actorRef: actor.uuid, ...(token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {})};
     const states = [];
     // Predicates see its conditions too ("unless the azer has the Incapacitated condition").
-    const context = {...sunlightContext(token as never), conditions: [...((actor as {statuses?: Iterable<string>}).statuses ?? [])]};
-    for ( const {id, definition, label, policy, around} of automationTriggers(actor, event, context, owners) ) {
+    const contextOf = () => ({...sunlightContext(token as never), conditions: [...((actor as {statuses?: Iterable<string>}).statuses ?? [])]});
+    // Whether a trigger's predicate still holds on the creature as the Actions run so far left it.
+    const stillHolds = (id: string) => automationTriggers(actor, event, contextOf(), owners).some(entry => entry.id === id);
+    const eventSequence = sequence;
+    for ( const {id, definition, label, policy, around, owner, carryKey, every} of automationTriggers(actor, event, contextOf(), owners) ) {
       if ( ["others", "swallowed"].includes(String(around?.on)) ) continue;
       // A "you can" (Persistent Rage when initiative is rolled): Never skips it, Always uses it, Ask asks its controller.
       const optional = ((definition.configuration ?? []) as Data[]).some(choice => choice.id === "use");
@@ -219,11 +253,25 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
         : tokensAround(token as never, around as never) as Placed[]).filter(other => !immuneTo(other.actor as never, definition.id))
         .map(other => ({actorRef: other.actor?.uuid ?? null, tokenId: other.id, sceneId: token?.parent?.id})) : [self];
       if ( !targets.length ) continue;
-      const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
-        resolutionId: `${id}:${sequence}`, definition, label, actorRef: actor.uuid,
-        source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, targets: targets as Data[],
-        ...((optional && (policy === "always")) ? {configuration: {choices: {use: "use"}}} : {})});
-      if ( state ) states.push(state);
+      let runs = 1;
+      if ( type === TIME_ELAPSED ) {
+        // Once per interval the time covered, counting on from what earlier time changes left over (its owner's
+        // `flags.wildpath.elapsed`). The rest is written before any run, so a failed or repeated run never runs twice.
+        // An earlier interval's Actions may have changed the creature (healed it full): time counts only while it holds.
+        if ( !(every > 0) || (states.length && !stillHolds(id)) ) continue;
+        const carried = (Number(owner.flags?.wildpath?.elapsed?.[carryKey]) || 0) + Math.max(0, Number(data.seconds) || 0);
+        runs = Math.min(Math.floor(carried / every), MAX_INTERVAL_RUNS);
+        await owner.update?.({[`flags.wildpath.elapsed.${carryKey}`]: carried % every});
+      }
+      for ( let run = 0; run < runs; run++ ) {
+        // Each further run only while its predicate still holds on the creature as the last one left it.
+        if ( run && !stillHolds(id) ) break;
+        const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
+          resolutionId: run ? `${id}:${eventSequence}:${run}` : `${id}:${eventSequence}`, definition, label, actorRef: actor.uuid,
+          source: token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {}, targets: targets as Data[],
+          ...((optional && (policy === "always")) ? {configuration: {choices: {use: "use"}}} : {})});
+        if ( state ) states.push(state);
+      }
     }
     // Others' auras around it (a Pit Fiend's Fear Aura: "any enemy that starts its turn in the aura").
     const placed = token as Placed | null;
@@ -354,13 +402,26 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
    * `effect.ended` Triggers run as authority Actions on its creature (Haste's lethargy). Only the active GM dispatches.
    */
   async function onEffectDeleted(effect: Owner & {parent?: unknown}, options: {wildpath?: {ended?: boolean}} = {}) {
-    const actor = effect?.parent as (AutomationActor & {documentName?: string; isToken?: boolean; token?: AutomationToken | null;
-      getActiveTokens?(linked?: boolean, document?: boolean): AutomationToken[]}) | null;
+    const actor = effect?.parent as (PlacedActor & {documentName?: string}) | null;
     if ( (options?.wildpath?.ended === false) || (actor?.documentName !== "Actor")
       || !(effect.system?.ruleElements ?? []).some(rule => (rule.type === "Trigger") && (rule.data?.event === EFFECT_ENDED)) ) return [];
-    const token = actor.isToken ? (actor.token ?? null) : (actor.getActiveTokens?.(false, true)?.[0] ?? null);
-    return dispatch(EFFECT_ENDED, {actor, token, data: {effectId: effect.id}, owners: [effect]});
+    return dispatch(EFFECT_ENDED, {actor, token: tokenOf(actor), data: {effectId: effect.id}, owners: [effect]});
   }
 
-  return {dispatch, report, handleQuery, onEffectDeleted};
+  /**
+   * World time moved on by `seconds` (the updateWorldTime hook's dt): each creature's `time.elapsed` Triggers, with its
+   * Token (an interval with `around` acts on those around it). Active GM only; one time change at a time, so two never
+   * count the same carry.
+   */
+  let worldTimeQueue: Promise<unknown> = Promise.resolve();
+  function onWorldTime(seconds: number) {
+    // Nothing to run: not the queue, which may still hold an earlier change's failure.
+    if ( !isActiveGM() || !(seconds > 0) ) return Promise.resolve();
+    worldTimeQueue = worldTimeQueue.catch(() => {}).then(async () => {
+      for ( const actor of worldCreatures(game) ) await dispatch(TIME_ELAPSED, {actor, token: tokenOf(actor), data: {seconds}});
+    });
+    return worldTimeQueue;
+  }
+
+  return {dispatch, report, handleQuery, onEffectDeleted, onWorldTime};
 }

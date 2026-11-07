@@ -867,7 +867,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ioun Stone of Leadership | equipment24 | Ioun Stone of Leadership (gear) | — |
 | Ioun Stone of Mastery | equipment24 | Ioun Stone of Mastery (gear) | — |
 | Ioun Stone of Protection | equipment24 | Ioun Stone of Protection (gear) | — |
-| Ioun Stone of Regeneration | equipment24 | Ioun Stone of Regeneration (gear) | "Regeneration" is passive or triggered: not automated |
+| Ioun Stone of Regeneration | equipment24 | Ioun Stone of Regeneration (gear) | — |
 | Ioun Stone of Reserve | equipment24 | Ioun Stone of Reserve (gear), Ioun Stone of Reserve (manual) | not automated (utility): using it spends its cost; its description says the rest; consumption: itemUses -1 not converted |
 | Ioun Stone of Strength | equipment24 | Ioun Stone of Strength (gear) | — |
 | Ioun Stone of Sustenance | equipment24 | Ioun Stone of Sustenance (gear) | — |
@@ -1261,7 +1261,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Ring of Jumping | equipment24 | Ring of Jumping (gear), Ring of Jumping: Jump (automated) | effect: "Jump" marks its creature (narrative) |
 | Ring of Mind Shielding | equipment24 | Ring of Mind Shielding (gear) | — |
 | Ring of Protection | equipment24 | Ring of Protection (gear) | — |
-| Ring of Regeneration | equipment24 | Ring of Regeneration (gear) | "heal" is passive or triggered: not automated |
+| Ring of Regeneration | equipment24 | Ring of Regeneration (gear) | interval: what else its description says is by hand |
 | Ring of Resistance | equipment24 | Ring of Resistance (gear), Ring of Resistance (automated) | — |
 | Ring of Shooting Stars | equipment24 | Ring of Shooting Stars (gear), Ring of Shooting Stars: Faerie Fire (automated), Ring of Shooting Stars (Create Lightning Spheres) (manual), Ring of Shooting Stars (Shooting Stars) (automated) | not automated (utility, narrative): using it spends its cost; its description says the rest; "Lightning Sphere Save" is passive or triggered: not automated |
 | Ring of Spell Storing | equipment24 | Ring of Spell Storing (gear) | — |

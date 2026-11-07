@@ -1,4 +1,5 @@
 import {CONTAGIONS, fightContagion} from "../helpers/contagions.mjs";
+import {worldCreatures} from "./foundry-v14-automation-dispatcher.mjs";
 
 /**
  * Contagions on Foundry (helpers/contagions.mjs), run by the active GM: an infection's incubation when it is caught, its
@@ -56,9 +57,7 @@ export function createFoundryContagions({game, logger=globalThis.console, roll=a
   /** As the world's time passes, the symptoms of every contagion whose incubation is over start. */
   async function onWorldTime() {
     if ( !isActiveGM() ) return;
-    const actors = [...(game.actors ?? []), ...[...(game.scenes ?? [])].flatMap(scene => [...(scene.tokens ?? [])]
-      .filter(token => !token.actorLink).map(token => token.actor))].filter(Boolean);
-    for ( const actor of actors ) for ( const effect of [...(actor.effects ?? [])] ) {
+    for ( const actor of worldCreatures(game) ) for ( const effect of [...(actor.effects ?? [])] ) {
       const state = effect.flags?.wildpath?.contagion;
       if ( contagionOf(effect) && state && !state.started && (Number(state.onsetAt) <= now()) ) {
         try { await start(effect); } catch (error) { logger.warn("Wild Path | A contagion's symptoms failed to start", error); }

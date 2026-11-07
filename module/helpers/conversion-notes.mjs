@@ -42,6 +42,7 @@ const RULES = [
   [/^effect: its creature can't end \w+ on itself/, () => "effect: a condition its creature can't end itself (by hand)"],
   [/escape: destroying what holds it/, () => "escape: destroying what holds it (by hand)"],
   [/escape: what its check does besides freeing it/, () => "escape: what its check does besides freeing (by hand)"],
+  [/^interval: what else its description says/, () => "interval: what else its text says (by hand)"],
   [/save: a failure marks its creature \(narrative\)/, () => "narrative save (it tells or hides; nothing to automate)"],
   [/save: a failure marks its creature only/, () => "save: a failure marks its creature (rules by hand)"],
   [/^rolled \(\w+, narrative\)/, () => "narrative save (it tells or hides; nothing to automate)"],
