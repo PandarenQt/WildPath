@@ -4,7 +4,7 @@ import {existsSync, mkdtempSync, readFileSync, rmSync} from "node:fs";
 import {tmpdir} from "node:os";
 import {join} from "node:path";
 import {insideRepository, writeLocalModule} from "../scripts/content/local-module.mjs";
-import {dirname} from "node:path";
+import {basename, dirname, sep} from "node:path";
 import {fileURLToPath} from "node:url";
 
 test("a local module is written outside the repository, swapped in on a rebuild, and not at all with an invalid Action", async () => {
@@ -31,7 +31,7 @@ const repository = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 test("a local book package is never written inside this repository, however the path is given", () => {
   assert.equal(insideRepository(join(repository, "modules", "wildpath-dnd-players-handbook")), true);
-  assert.equal(insideRepository(join(repository, "..", "Other", "..", "WildPath-x", "..", "WildPath", "x")), true, "through a sibling folder");
+  assert.equal(insideRepository([repository, "..", "Other", "..", `${basename(repository)}-x`, "..", basename(repository), "x"].join(sep)), true, "through a sibling folder"); // a raw string: join() would collapse the ".." before the helper sees them
   assert.equal(insideRepository(repository), true);
   assert.equal(insideRepository(join(tmpdir(), "FoundryVTT", "Data", "modules", "wildpath-x")), false);
   assert.equal(insideRepository(`${repository}-other`), false, "a folder whose name only starts the same");
