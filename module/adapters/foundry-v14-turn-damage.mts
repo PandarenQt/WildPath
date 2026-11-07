@@ -1,4 +1,5 @@
 import {runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
+import {creatureToken} from "./foundry-v14-creature-tokens.mjs";
 
 /**
  * A condition's damage at the start of its creature's turn (Bleeding, Envenomed) as an authority Action on that
@@ -9,8 +10,9 @@ import {runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
 type Data = Record<string, unknown>;
 interface TurnDamageToken {id: string; parent?: {id: string} | null}
 interface TurnDamageActor {uuid: string; isToken?: boolean; token?: TurnDamageToken | null;
-  getActiveTokens?(linked?: boolean, document?: boolean): TurnDamageToken[]}
-interface TurnDamageGame {user?: {id?: string | null} | null; i18n?: {localize?(key: string): string}}
+  getDependentTokens?(options: {linked?: boolean; concreteOnly?: boolean}): TurnDamageToken[]}
+interface TurnDamageGame {user?: {id?: string | null} | null; i18n?: {localize?(key: string): string};
+  combats?: Iterable<{started?: boolean; combatants?: Iterable<{tokenId?: string | null; sceneId?: string | null}>}>}
 
 const run = runAuthorityAction as unknown as (options: Data) => Promise<unknown>;
 
@@ -19,14 +21,13 @@ export function createFoundryTurnDamage({game, coordinator, resolveAction, logge
   let sequence = 0;
   /**
    * `amount` damage of `damageType` to `actor` (its condition's, `label`), resolved by the authority: on its Token in
-   * the combat (`token`), else its own or one on the viewed Scene. Without any, it still resolves on the creature
+   * the combat (`token`), else one of its own on any Scene (creatureToken). Without any, it still resolves on the creature
    * (resistances, rescue and dying; no reactions, which need a position). False only when there is no damage.
    */
   async function apply(actor: TurnDamageActor, {amount, expression = null, damageType = null, label = null, token: given = null}: {amount: number;
     expression?: Data | null; damageType?: string | null; label?: string | null; token?: TurnDamageToken | null}): Promise<boolean> {
     if ( !(Number(amount) > 0) ) return false;
-    const token = [given, actor.isToken ? actor.token : null, actor.getActiveTokens?.(false, true)?.[0]]
-      .find(candidate => candidate?.parent) ?? null;
+    const token = [given, creatureToken(actor, game)].find(candidate => candidate?.parent) ?? null;
     const name = label ? (game.i18n?.localize?.(label) ?? label) : (game.i18n?.localize?.("WILDPATH.CONDITIONS.TurnDamage") ?? "Condition damage");
     const at = token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {};
     await run({coordinator, resolveAction, logger, senderUserId: String(game.user?.id), label: name,

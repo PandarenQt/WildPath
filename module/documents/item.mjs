@@ -306,6 +306,8 @@ export default class WildPathItem extends Item {
         count: Math.max(1, Math.min(Number(summon.count) || 1, 20))});
       if ( !placed ) return false;
       built.intent.summon = placed;
+      // Placed around this Token, so it is the Action's source too: the authority does not resolve it from another.
+      built.intent.source = {tokenId: summoner.id, tokenRef: summoner.uuid, sceneId: summoner.parent?.id ?? null};
     }
     const declared = await runtime.executeActionIntent(built.intent);
     if ( !declared.ok ) {

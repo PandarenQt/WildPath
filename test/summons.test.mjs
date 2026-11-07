@@ -37,11 +37,11 @@ test("a summon names exactly one creature source and a count from 1 to 20", () =
   assert.equal(validateActionDefinition(definition({actorRef: "Actor.zombie", fromKilled: {types: []}})).ok, false);
 });
 
-test("summons join a combat right after their caster, and leave it with their Tokens", async () => {
+test("summons join their caster's combat right after it, though the tracker shows another, and leave it with their Tokens", async () => {
   const {createFoundrySummons} = await import("../module/adapters/foundry-v14-summons.mjs");
   const calls = [];
   const combatants = [{id: "cc", tokenId: "caster", sceneId: "s", initiative: 12}];
-  const combat = {id: "c", round: 1, turn: 0, combatants,
+  const combat = {id: "c", round: 1, turn: 0, started: true, combatants,
     createEmbeddedDocuments: async (type, data) => { calls.push(["create", type, data]); combatants.push(...data.map((entry, i) => ({id: `w${i}`, ...entry}))); },
     deleteEmbeddedDocuments: async (type, ids) => calls.push(["delete", type, ids])};
   const tokens = new Map();
@@ -52,15 +52,26 @@ test("summons join a combat right after their caster, and leave it with their To
   const casterToken = {id: "caster", x: 0, y: 0, parent: scene, getOccupiedGridSpaceOffsets: () => [{i: 0, j: 0}]};
   tokens.set("caster", casterToken);
   const wolf = {uuid: "Actor.wolf", getTokenDocument: async data => ({toObject: () => ({...data})})};
-  const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combat, scenes: [scene]},
+  // The GM's tracker (`game.combat`) shows a fight on another Scene.
+  const elsewhere = {id: "e", round: 4, turn: 2, started: true, combatants: [{id: "x", tokenId: "other", sceneId: "s2"}],
+    createEmbeddedDocuments: async () => calls.push(["create elsewhere"])};
+  const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combat: elsewhere,
+    combats: [elsewhere, combat], scenes: [scene]},
     companions: {setControllers: async () => {}}, fromUuid: uuid => ({"Scene.s.Token.caster": casterToken, "Actor.wolf": wolf})[uuid] ?? null});
   await summons.afterResolution({options: {actor: {uuid: "Actor.caster"}}, state: {source: {tokenRef: "Scene.s.Token.caster"},
     actionDefinition: {summon: {actorRef: "Actor.wolf", count: 2, rounds: 1}}}});
   const joined = calls.find(call => call[0] === "create")[2];
   assert.deepEqual(joined.map(entry => [entry.tokenId, entry.initiative]), [["t0", 11.999], ["t1", 11.998]]);
+  assert.deepEqual(tokens.get("t0").flags.wildpath.summon.createdAt, {combatId: "c", round: 1, turn: 0}, "its rounds count in its caster's combat");
   await summons.onTurnStart({id: "c", round: 2, turn: 0});
   assert.deepEqual(calls.filter(call => call[0] === "delete").map(call => call.slice(1)),
     [["Combatant", ["w0", "w1"]], ["Token", ["t0", "t1"]]], "combatants go before their Tokens");
+  // An encounter set up but not begun yet: they still join at the caster's Initiative.
+  calls.length = 0;
+  combat.started = false;
+  await summons.afterResolution({options: {actor: {uuid: "Actor.caster"}}, state: {source: {tokenRef: "Scene.s.Token.caster"},
+    actionDefinition: {summon: {actorRef: "Actor.wolf", count: 1, rounds: 1}}}});
+  assert.deepEqual(calls.find(call => call[0] === "create")?.[2].map(entry => entry.initiative), [11.999]);
 });
 
 test("a Large summon needs its whole footprint free, summons never overlap each other, and an unseen place is skipped", () => {
@@ -208,9 +219,9 @@ test("a creature the Action killed rises as its summon in its own space, its cas
   const zombie = {uuid: "Actor.zombie", getTokenDocument: async data => ({toObject: () => ({...data})})};
   const controlled = [];
   const created = [];
-  const combat = {id: "c", round: 1, turn: 0, combatants: [{id: "cc", tokenId: "caster", sceneId: "s", initiative: 15}],
+  const combat = {id: "c", round: 1, turn: 0, started: true, combatants: [{id: "cc", tokenId: "caster", sceneId: "s", initiative: 15}],
     createEmbeddedDocuments: async (type, data) => created.push(...data)};
-  const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, scenes: [scene], combat},
+  const summons = createFoundrySummons({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, scenes: [scene], combats: [combat]},
     companions: {setControllers: async (actor, options) => controlled.push(options)},
     fromUuid: uuid => ({"Scene.s.Token.caster": tokens.get("caster"), "Actor.zombie": zombie})[uuid] ?? null});
   const hit = (tokenId, from) => ({type: "durabilityDamage", target: {tokenId}, plan: {from, to: 0}});

@@ -4,6 +4,7 @@ import {runAuthorityAction, worldCreatures} from "./foundry-v14-automation-dispa
 import {zeroHpFor, beginPhase} from "./foundry-v14-zero-hp.mjs";
 import {foundryActorSystemSnapshot} from "./foundry-v14-actor-system-adapter.mjs";
 import {commitActorResourceMutationPlan} from "../resolvers/resource-resolver.mjs";
+import {creatureToken} from "./foundry-v14-creature-tokens.mjs";
 
 /**
  * Dying and death (maintainer decision, 2026-10-14: the 2024 rules, with Pathfinder 2e's conventions where they
@@ -89,9 +90,10 @@ export function deathSaveResult({natural, total, deathSaves=RESET}: {natural: nu
 interface RegenerationRule {type?: string; enabled?: boolean; data?: {stoppedBy?: string[]; deferDeath?: boolean}}
 interface RepeatingEffect {disabled?: boolean; flags?: {wildpath?: {conditionEffect?: {metadata?: {repeatSave?: {onDamage?: boolean}}}}}}
 
+interface DyingToken {id: string; parent?: {id: string} | null}
 interface DyingActor {
-  uuid: string; id: string; type?: string; name?: string; hasPlayerOwner?: boolean; isToken?: boolean; token?: unknown;
-  getActiveTokens?(linked?: boolean, document?: boolean): unknown[];
+  uuid: string; id: string; type?: string; name?: string; hasPlayerOwner?: boolean; isToken?: boolean; token?: DyingToken | null;
+  getDependentTokens?(options: {linked?: boolean; concreteOnly?: boolean}): DyingToken[];
   flags?: {wildpath?: {stableSince?: StableSince; damageTaken?: Record<string, boolean>}};
   items?: Iterable<{system?: {active?: boolean; ruleElements?: RegenerationRule[]}}>;
   setFlag(scope: string, key: string, value: unknown): Promise<unknown>;
@@ -103,7 +105,7 @@ interface DyingActor {
   toggleCondition(type: string, options?: {levels?: number}): Promise<unknown>;
   toggleStatusEffect(id: string, options?: Data): Promise<unknown>;
 }
-interface Combatant {actor?: DyingActor | null; token?: {id: string; parent?: {id: string} | null} | null; defeated?: boolean;
+interface Combatant {actor?: DyingActor | null; token?: DyingToken | null; tokenId?: string | null; sceneId?: string | null; defeated?: boolean;
   update(data: Data): Promise<unknown>}
 
 /**
@@ -127,7 +129,7 @@ async function rollStableHours() {
 }
 
 export function createFoundryDying({game, coordinator, resolveAction, logger=globalThis.console, rollHours=rollStableHours}: {
-  game: {user: {id: string}; users?: {activeGM?: {id: string} | null}; combats?: Iterable<{combatants: Iterable<Combatant>}>;
+  game: {user: {id: string}; users?: {activeGM?: {id: string} | null}; combats?: Iterable<{started?: boolean; combatants: Iterable<Combatant>}>;
     i18n?: {localize(key: string): string}; time?: {worldTime?: number}; actors?: Iterable<DyingActor>;
     scenes?: Iterable<{tokens?: Iterable<{actor?: DyingActor | null}>}>};
   coordinator: {resolveAuthorityAction(options: Data): Promise<{ok: boolean; state?: {status?: string}}>};
@@ -162,7 +164,7 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
       }
     }
     // What it does as it dies (a mephit's Death Burst): its automatic triggers on `creature.died`.
-    const token = actor.isToken ? actor.token : (actor.getActiveTokens?.(false, true)?.[0] ?? null);
+    const token = creatureToken(actor, game);
     try {
       await (globalThis as {game?: {wildpath?: {automation?: {dispatch?(type: string, data: Data): Promise<unknown>}}}}).game?.wildpath
         ?.automation?.dispatch?.("creature.died", {actor, token});
@@ -225,7 +227,7 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
       ?.metadata?.damageResult?.byDamageType) ?? {};
     const types = Object.entries(taken).filter(([, amount]) => Number(amount) > 0).map(([type]) => type);
     if ( !types.length ) return;
-    const token = actor.isToken ? actor.token : (actor.getActiveTokens?.(false, true)?.[0] ?? null);
+    const token = creatureToken(actor, game);
     try {
       await (globalThis as {game?: {wildpath?: {automation?: {dispatch?(type: string, data: Data): Promise<unknown>}}}}).game?.wildpath
         ?.automation?.dispatch?.("damage.taken", {actor, token, data: {damageTaken: Object.fromEntries(types.map(type => [type, true]))}});
@@ -281,9 +283,7 @@ export function createFoundryDying({game, coordinator, resolveAction, logger=glo
     let kept = rule.mode !== "save";
     if ( !kept ) {
       const dc = rule.dc ?? ((Number(rule.dcPlusDamage) || 0) + (Number(change.amount) || 0));
-      const self = actor as unknown as {isToken?: boolean; token?: {id: string; parent?: {id: string}} | null;
-        getActiveTokens?: (linked?: boolean, document?: boolean) => Array<{id: string; parent?: {id: string}}>};
-      const token = self.isToken ? (self.token ?? null) : (self.getActiveTokens?.(false, true)?.[0] ?? null);
+      const token = creatureToken(actor, game);
       const where = token?.parent ? {tokenId: token.id, sceneId: token.parent.id} : {};
       const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
         resolutionId: `zero-hp:${actor.uuid}:${++sequence}`, label: String(rule.name ?? ""), actorRef: actor.uuid, source: where,

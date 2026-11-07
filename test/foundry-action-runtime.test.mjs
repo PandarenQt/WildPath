@@ -169,7 +169,7 @@ function fakeActor(id, {system, size=CREATURE_SIZES.MEDIUM, statistics={}, owner
         .find(Boolean) ?? null;
     },
     getActiveTokens(linked, document) {
-      return this.tokens;
+      return linked ? this.tokens.filter(token => token.actorLink !== false) : this.tokens;
     },
     forbiddingRule: WildPathActor.prototype.forbiddingRule,
     unaffectingRule: WildPathActor.prototype.unaffectingRule,
@@ -311,6 +311,32 @@ test("buildFoundryActionUseIntent rejects when no actor or action is supplied", 
   const built = buildFoundryActionUseIntent({actor: null, action: null});
   assert.equal(built.ok, false);
   assert.equal(built.code, MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED);
+});
+
+test("a linked Actor's Action names its Token on its user's canvas, so the authority viewing another Scene still finds it", async () => {
+  const scene = fakeScene(new FakeSquareGrid(), {id: "scene-player"});
+  const sourceActor = fakeActor("linked-hero", {system: actorSystem()});
+  const targetActor = fakeActor("linked-ogre", {system: targetActorSystem(30, 30)});
+  const sourceToken = fakeTokenDocument({id: "hero", actor: sourceActor, scene, offset: {i: 0, j: 0}});
+  const targetToken = fakeTokenDocument({id: "ogre", actor: targetActor, scene, offset: {i: 1, j: 0}});
+  scene.tokens = [sourceToken, targetToken];
+  const action = actionItem(meleeStrikeDefinition(), sourceActor);
+  // The player's canvas shows the hero's Scene.
+  sourceActor.tokens = [sourceToken];
+  const built = buildFoundryActionUseIntent({actor: sourceActor, action, game: {user: {targets: new Set([{document: targetToken}])}}});
+  assert.deepEqual(built.intent.source, {tokenId: "hero", tokenRef: sourceToken.uuid, sceneId: "scene-player"});
+  // The GM's canvas shows another Scene: getActiveTokens finds none of the hero's there.
+  sourceActor.tokens = [];
+  const resolved = await foundryActionIntentToStagedOptions({senderUserId: "player-a", intent: built.intent,
+    game: fakeGame({actors: [sourceActor, targetActor], scenes: [scene]}), persistencePort: createTestDocumentPersistenceAdapter()});
+  assert.equal(resolved.ok, true, resolved.reason);
+  assert.equal(resolved.options.context.spatial?.sourceFootprint?.fields.length, 1, "measured from the hero's own Token");
+  // Several of its Tokens on the user's canvas: none is guessed, and the authority asks for one as before.
+  sourceActor.tokens = [sourceToken, fakeTokenDocument({id: "hero-2", actor: sourceActor, scene, offset: {i: 3, j: 0}})];
+  assert.equal(buildFoundryActionUseIntent({actor: sourceActor, action, game: {}}).intent.source.tokenId, null);
+  // An unlinked Token of the same base Actor is a separate creature, never its source.
+  sourceActor.tokens = [Object.assign(fakeTokenDocument({id: "copy", actor: sourceActor, scene, offset: {i: 3, j: 0}}), {actorLink: false})];
+  assert.equal(buildFoundryActionUseIntent({actor: sourceActor, action, game: {}}).intent.source.tokenId, null);
 });
 
 /* -------------------------------------------- */
@@ -2384,12 +2410,16 @@ test("a lasting area runs out after its rounds, at the turn it was created on", 
   assert.equal(areaExpired(flag, null), false);
 });
 
-test("an expired area is gone before anyone starts a turn in it", async t => {
+test("an expired area is gone before anyone starts a turn in it, its rounds counted in its caster's combat", async t => {
   const {scene, targetActor, targetToken, game, player, areas, intent} = lastingAreaFixture(t, {rounds: 1});
+  const fight = {id: "fight", round: 1, turn: 0, started: true, combatants: [{tokenId: "source-token", sceneId: scene.id}]};
+  // The GM's tracker (`game.combat`) shows a fight elsewhere, which never reaches round 2.
+  game.combats = [game.combat, fight];
   await player.declareActionIntent({...intent, area: {points: [{x: 125, y: 25}]}});
   assert.equal(scene.regions.length, 1);
-  game.combat.round = 2;
-  await areas.onTurn("turn.started", {combatant: {token: targetToken}});
+  assert.equal(scene.regions[0].flags.wildpath.area.createdAt.combatId, "fight");
+  fight.round = 2;
+  await areas.onTurn("turn.started", {combatant: {token: targetToken, combat: fight}});
   assert.equal(scene.regions.length, 0);
   assert.equal(targetActor.system.resources.health.value, 24, "only the cast itself hit");
 });

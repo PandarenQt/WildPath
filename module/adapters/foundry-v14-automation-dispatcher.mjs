@@ -5,8 +5,7 @@ import { sunlightContext } from "./foundry-v14-sunlight.mjs";
 import { tokensAround } from "./foundry-v14-auras.mjs";
 import { conditionsFrom, effectsFrom } from "../helpers/effect-sources.mjs";
 import { durationSeconds } from "../helpers/metamagic.mjs";
-/** A creature's Token: an unlinked one's own, else its first on the viewed Scene. */
-const tokenOf = (actor) => actor.isToken ? (actor.token ?? null) : (actor.getActiveTokens?.(false, true)?.[0] ?? null);
+import { creatureToken } from "./foundry-v14-creature-tokens.mjs";
 /**
  * The creatures a creature has swallowed (a Purple Worm's Swallow): on its scene, those with Total Cover it gave them,
  * as only a swallow does.
@@ -378,7 +377,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
         if ((options?.wildpath?.ended === false) || (actor?.documentName !== "Actor")
             || !(effect.system?.ruleElements ?? []).some(rule => (rule.type === "Trigger") && (rule.data?.event === EFFECT_ENDED)))
             return [];
-        return dispatch(EFFECT_ENDED, { actor, token: tokenOf(actor), data: { effectId: effect.id }, owners: [effect] });
+        return dispatch(EFFECT_ENDED, { actor, token: creatureToken(actor), data: { effectId: effect.id }, owners: [effect] });
     }
     /**
      * World time moved on by `seconds` (the updateWorldTime hook's dt): each creature's `time.elapsed` Triggers, with its
@@ -392,7 +391,7 @@ export function createFoundryAutomationDispatcher({ game, coordinator, resolveAc
             return Promise.resolve();
         worldTimeQueue = worldTimeQueue.catch(() => { }).then(async () => {
             for (const actor of worldCreatures(game))
-                await dispatch(TIME_ELAPSED, { actor, token: tokenOf(actor), data: { seconds } });
+                await dispatch(TIME_ELAPSED, { actor, token: creatureToken(actor), data: { seconds } });
         });
         return worldTimeQueue;
     }

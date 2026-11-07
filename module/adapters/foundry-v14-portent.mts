@@ -10,6 +10,7 @@
  */
 
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
+import {combatantOf, combatOf} from "./foundry-v14-creature-tokens.mjs";
 import {combatTurnKey} from "../helpers/combat.mjs";
 import {reactionPolicyOf} from "../helpers/automation-events.mjs";
 import {relationsToSource} from "./foundry-v14-reaction-provider.mjs";
@@ -155,7 +156,8 @@ async function applyToCard({messageId, holderUuid, slot}: Data, user: Data, game
   await message.update({"flags.wildpath.portentUsed": true, ...(message.flags?.wildpath?.rollTest ? {"flags.wildpath.rollTest.rerolled": true} : {})});
   await spendPortent(holder, die.slot, game);
   if ( message.flags?.core?.initiativeRoll ) {
-    const combatant = game.combat?.combatants?.find((entry: Data) => entry.tokenId === rollerToken?.id);
+    // Its Combatant in its own combat, started or not (initiative comes first), not the one the GM's tracker shows.
+    const combatant = combatantOf(rollerToken, combatOf(rollerToken, game)) as Data | null;
     if ( combatant ) await combatant.update({initiative: total});
   }
   const {ChatMessage} = globalThis as unknown as Data;

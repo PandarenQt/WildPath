@@ -13,13 +13,15 @@ function recorder() {
 test("condition damage resolves on the combat's Token, or on the creature alone when it has none on a Scene", async () => {
   const {intents, turnDamage} = recorder();
   const elsewhere = {id: "token-b", parent: {id: "scene-b"}};
-  const actor = {uuid: "Actor.pc", getActiveTokens: () => [{id: "token-a", parent: {id: "scene-a"}}]};
+  const actor = {uuid: "Actor.pc", getActiveTokens: () => [], getDependentTokens: () => [{id: "token-a", parent: {id: "scene-a"}}]};
   assert.equal(await turnDamage.apply(actor, {amount: 4, damageType: "necrotic", token: elsewhere}), true);
   assert.deepEqual([intents[0].source, intents[0].targetRefs[0]], [{tokenId: "token-b", sceneId: "scene-b"},
     {actorRef: "Actor.pc", tokenId: "token-b", sceneId: "scene-b"}], "the combat's Token, though another Scene is viewed");
-  assert.equal(await turnDamage.apply({uuid: "Actor.lone", getActiveTokens: () => []}, {amount: 4}), true);
+  assert.equal(await turnDamage.apply({uuid: "Actor.lone", getDependentTokens: () => []}, {amount: 4}), true);
   assert.deepEqual([intents[1].source, intents[1].targetRefs[0]], [{}, {actorRef: "Actor.lone"}],
     "no Token: it still resolves, on the creature (resistances, rescue, dying)");
   assert.equal(await turnDamage.apply(actor, {amount: 0}), false, "no damage, nothing to resolve");
-  assert.equal(intents.length, 2);
+  await turnDamage.apply(actor, {amount: 4});
+  assert.deepEqual(intents[2].source, {tokenId: "token-a", sceneId: "scene-a"}, "its own Token, on a Scene the GM is not viewing");
+  assert.equal(intents.length, 3);
 });

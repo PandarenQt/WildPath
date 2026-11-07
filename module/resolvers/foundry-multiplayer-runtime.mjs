@@ -3,6 +3,7 @@ import {movementMessage, refusalMessage} from "../helpers/refusal-messages.mjs";
 export {refusalMessage};
 import {createFoundryEnchantments} from "../adapters/foundry-v14-enchantments.mjs";
 import {controllerAuthority, portentOffer} from "../adapters/foundry-v14-portent.mjs";
+import {combatOf} from "../adapters/foundry-v14-creature-tokens.mjs";
 import {enchantedObjectsWithin} from "../adapters/foundry-v14-enchantments.mjs";
 import {WILDPATH} from "../config.mjs";
 import {actionTags, rollModesFromRuleElements} from "../helpers/rule-elements.mjs";
@@ -631,7 +632,9 @@ export function buildFoundryActionUseIntent({actor=null, action=null, game=globa
     code: MULTIPLAYER_AUTHORITY_CODES.ACTION_INTENT_REJECTED,
     reason: "An Actor and an Action Item are required to build an Action intent."
   };
-  const sourceToken = actor.token ?? null;
+  // A linked Actor's Token on this client's canvas, the Scene its user acts on: the authority may view another.
+  const onCanvas = actor.token ? [] : activeFoundryTokensForActor(actor, {linked: true});
+  const sourceToken = actor.token ?? ((onCanvas.length === 1) ? onCanvas[0] : null);
   return {
     ok: true,
     intent: {
@@ -2083,11 +2086,8 @@ function saveContext(definition, ability, token=null, {saver=null, source=null, 
   // (`save.against`), so "Advantage on saves to avoid or end the Poisoned condition" is a RollMode on that tag.
   const against = [...new Set([...(definition?.effects ?? []).map(effect => effect?.conditionId),
     ...(definition?.save?.against ?? [])].filter(Boolean))].map(condition => `against:${condition}`);
-  const tokenId = token?.document?.id ?? token?.id;
-  const sceneId = token?.document?.parent?.id ?? token?.parent?.id;
   // Any started combat holding its Token, not the viewed one (`game.combat`): the authority may view another Scene.
-  const fighting = Boolean(tokenId && hostileTo(sourceToken, token) && [...(game?.combats ?? [])].some(combat => combat?.started
-    && [...(combat.combatants ?? [])].some(entry => (entry.tokenId === tokenId) && (entry.sceneId === sceneId))));
+  const fighting = Boolean(hostileTo(sourceToken, token) && combatOf(token?.document ?? token, game)?.started);
   return {context: {save: {ability, fighting, fromSource: (saver && source) ? conditionsFrom(saver, source, game) : {}},
     tags: [...tags, ...(tags.includes("spell") && !tags.includes("magical") ? ["magical"] : []), ...against],
     ...sunlightContext(token), ...fearContext(token)}};
@@ -2582,10 +2582,11 @@ function tokenBelongsToActor(token, actor) {
   return (tokenActorId != null) && (tokenActorId === actor.id);
 }
 
-function activeFoundryTokensForActor(actor) {
+/** `linked`: only Tokens linked to `actor`; an unlinked one is a separate creature. */
+function activeFoundryTokensForActor(actor, {linked=false}={}) {
   if ( typeof actor.getActiveTokens !== "function" ) return [];
   try {
-    const tokens = actor.getActiveTokens(false, true);
+    const tokens = actor.getActiveTokens(linked, true);
     return Array.isArray(tokens) ? tokens.filter(Boolean) : collectionContents(tokens);
   } catch {
     return [];

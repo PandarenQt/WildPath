@@ -248,7 +248,7 @@ test("an effect that ends runs only its own effect.ended Triggers, on the active
   const effect = id => ({id, type: "effect", name: hasted.name, disabled: false, system: {ruleElements: structuredClone(hasted.ruleElements)}});
   const ended = effect("hasted-a");
   const actor = {id: "pc", uuid: "Actor.pc", documentName: "Actor", items: [], effects: [effect("hasted-b")], statuses: new Set(),
-    getActiveTokens: () => [{id: "token-pc", parent: {id: "scene"}}]};
+    getActiveTokens: () => [], getDependentTokens: () => [{id: "token-pc", parent: {id: "scene"}}]};
   ended.parent = actor;
   const event = {type: "effect.ended"};
   const [own, ...others] = automationTriggers(actor, event, {}, [ended]);
@@ -266,7 +266,7 @@ test("an effect that ends runs only its own effect.ended Triggers, on the active
   const {intents, automation} = dispatcher("gm");
   assert.equal((await automation.onEffectDeleted(ended, {})).length, 1);
   assert.deepEqual([intents[0].action.id, intents[0].intent.actorRef, intents[0].intent.targetRefs],
-    ["action:haste-ended", "Actor.pc", [{actorRef: "Actor.pc", tokenId: "token-pc", sceneId: "scene"}]], "on its creature, as its own Action");
+    ["action:haste-ended", "Actor.pc", [{actorRef: "Actor.pc", tokenId: "token-pc", sceneId: "scene"}]], "on its creature, as its own Action, on a Scene the GM is not viewing");
   assert.deepEqual(await automation.onEffectDeleted(ended, {wildpath: {ended: false}}), [], "a rollback or replacement is no ending");
   const plain = {...effect("plain"), parent: actor, system: {ruleElements: hasted.ruleElements.filter(rule => rule.type !== "Trigger")}};
   assert.deepEqual(await automation.onEffectDeleted(plain, {}), [], "an effect with no effect.ended Trigger");

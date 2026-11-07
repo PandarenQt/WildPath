@@ -9,6 +9,7 @@
  * - A sheet roll's or initiative's card: a Portent button for the Diviner's owner; the active GM applies it.
  */
 import { evaluateValueExpression } from "../helpers/value-expressions.mjs";
+import { combatantOf, combatOf } from "./foundry-v14-creature-tokens.mjs";
 import { combatTurnKey } from "../helpers/combat.mjs";
 import { reactionPolicyOf } from "../helpers/automation-events.mjs";
 import { relationsToSource } from "./foundry-v14-reaction-provider.mjs";
@@ -153,7 +154,8 @@ async function applyToCard({ messageId, holderUuid, slot }, user, game, fromUuid
     await message.update({ "flags.wildpath.portentUsed": true, ...(message.flags?.wildpath?.rollTest ? { "flags.wildpath.rollTest.rerolled": true } : {}) });
     await spendPortent(holder, die.slot, game);
     if (message.flags?.core?.initiativeRoll) {
-        const combatant = game.combat?.combatants?.find((entry) => entry.tokenId === rollerToken?.id);
+        // Its Combatant in its own combat, started or not (initiative comes first), not the one the GM's tracker shows.
+        const combatant = combatantOf(rollerToken, combatOf(rollerToken, game));
         if (combatant)
             await combatant.update({ initiative: total });
     }

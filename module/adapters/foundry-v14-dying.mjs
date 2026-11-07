@@ -4,6 +4,7 @@ import { runAuthorityAction, worldCreatures } from "./foundry-v14-automation-dis
 import { zeroHpFor, beginPhase } from "./foundry-v14-zero-hp.mjs";
 import { foundryActorSystemSnapshot } from "./foundry-v14-actor-system-adapter.mjs";
 import { commitActorResourceMutationPlan } from "../resolvers/resource-resolver.mjs";
+import { creatureToken } from "./foundry-v14-creature-tokens.mjs";
 export const DEATH_SAVE_DC = 10;
 const RESET = Object.freeze({ successes: 0, failures: 0 });
 const STABLE = Object.freeze({ successes: 3, failures: 0 });
@@ -113,7 +114,7 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
             }
         }
         // What it does as it dies (a mephit's Death Burst): its automatic triggers on `creature.died`.
-        const token = actor.isToken ? actor.token : (actor.getActiveTokens?.(false, true)?.[0] ?? null);
+        const token = creatureToken(actor, game);
         try {
             await globalThis.game?.wildpath
                 ?.automation?.dispatch?.("creature.died", { actor, token });
@@ -185,7 +186,7 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
         const types = Object.entries(taken).filter(([, amount]) => Number(amount) > 0).map(([type]) => type);
         if (!types.length)
             return;
-        const token = actor.isToken ? actor.token : (actor.getActiveTokens?.(false, true)?.[0] ?? null);
+        const token = creatureToken(actor, game);
         try {
             await globalThis.game?.wildpath
                 ?.automation?.dispatch?.("damage.taken", { actor, token, data: { damageTaken: Object.fromEntries(types.map(type => [type, true])) } });
@@ -253,8 +254,7 @@ export function createFoundryDying({ game, coordinator, resolveAction, logger = 
         let kept = rule.mode !== "save";
         if (!kept) {
             const dc = rule.dc ?? ((Number(rule.dcPlusDamage) || 0) + (Number(change.amount) || 0));
-            const self = actor;
-            const token = self.isToken ? (self.token ?? null) : (self.getActiveTokens?.(false, true)?.[0] ?? null);
+            const token = creatureToken(actor, game);
             const where = token?.parent ? { tokenId: token.id, sceneId: token.parent.id } : {};
             const state = await runAuthorityAction({ coordinator, resolveAction, logger, senderUserId: game.user.id,
                 resolutionId: `zero-hp:${actor.uuid}:${++sequence}`, label: String(rule.name ?? ""), actorRef: actor.uuid, source: where,

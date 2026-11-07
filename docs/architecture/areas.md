@@ -209,7 +209,9 @@ area: {shape: "radial", size: {value: 10, unit: "ft"},
   the band. Several areas can share a field, for example one on the ground and one in the air, and each
   one acts independently.
 - **Duration.** It is counted in rounds. An area runs out N rounds after the turn it was created on, and
-  is deleted at that turn's start, before anyone in it is affected. Rounds pass only in its own combat.
+  is deleted at that turn's start, before anyone in it is affected. Rounds pass only in its own combat: the one
+  holding its caster's Combatant (a started one first), whatever combat the GM's tracker shows; a caster that is
+  no Combatant takes the tracker's.
 - **Concentration.** A `concentration: true` area puts a "Concentrating: …" marker on its caster. The
   marker names the caster as its concentration source, so the existing concentration checks see the
   caster concentrating. A broken check ends every concentration area that caster sustains. The Region and

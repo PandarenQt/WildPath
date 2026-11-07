@@ -1,4 +1,5 @@
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
+import { creatureTokens } from "./foundry-v14-creature-tokens.mjs";
 /** Conditions that make a flying creature fall: Prone, and those that take its Speed to 0. */
 export const FALLING_CONDITIONS = Object.freeze(["prone", "grappled", "restrained", "paralyzed", "petrified", "stunned", "unconscious"]);
 /** How a fall from `height` feet hurts: `{dice}` d6s (one per full 10 feet, 20 at most). */
@@ -15,7 +16,7 @@ export function createFoundryFalling({ game, coordinator, resolveAction, logger 
         const actor = effect.parent;
         if (!actor?.uuid)
             return [];
-        const tokens = actor.isToken ? [actor.token].filter(Boolean) : (actor.getActiveTokens?.(false, true) ?? []);
+        const tokens = creatureTokens(actor);
         const fallen = [];
         for (const token of tokens)
             if (await fall(actor, token))

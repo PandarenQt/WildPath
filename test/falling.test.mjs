@@ -38,6 +38,11 @@ test("a creature in the air that gets Prone, or loses its Speed, falls unless it
   const blessed = token(30);
   await falling.onEffectCreated({parent: actor(blessed), statuses: new Set(["blessed"])});
   assert.deepEqual(blessed.updates, [], "other effects do nothing");
+  // A linked creature whose Token is on a Scene the GM's canvas does not show still falls.
+  const away = token(20);
+  await falling.onEffectCreated({parent: {uuid: "Actor.bat", getActiveTokens: () => [], getDependentTokens: () => [away],
+    getGrantedMovement: () => []}, statuses: new Set(["prone"])});
+  assert.deepEqual(away.updates[0]?.data, {elevation: 0}, "on its own Scene");
 });
 
 test("a fly Speed that can hover says so (GrantMovement hover)", async () => {

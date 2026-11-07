@@ -1,4 +1,5 @@
 import {runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
+import {creatureTokens} from "./foundry-v14-creature-tokens.mjs";
 
 /**
  * Falling (2024, G6): a creature above the floor of its Level that gets Prone, or a condition that takes its Speed to
@@ -14,7 +15,7 @@ interface FallToken {
 }
 interface FallActor {
   uuid: string; isToken?: boolean; token?: FallToken | null;
-  getActiveTokens?(linked?: boolean, document?: boolean): FallToken[];
+  getDependentTokens?(options: {linked?: boolean; concreteOnly?: boolean}): FallToken[];
   getGrantedMovement?(): Array<{hover?: boolean}>;
 }
 
@@ -38,7 +39,7 @@ export function createFoundryFalling({game, coordinator, resolveAction, logger=c
     if ( !isActiveGM() || ![...(effect.statuses ?? [])].some(status => FALLING_CONDITIONS.includes(status)) ) return [];
     const actor = effect.parent as FallActor | null;
     if ( !actor?.uuid ) return [];
-    const tokens = actor.isToken ? [actor.token].filter(Boolean) as FallToken[] : (actor.getActiveTokens?.(false, true) ?? []);
+    const tokens = creatureTokens(actor);
     const fallen = [];
     for ( const token of tokens ) if ( await fall(actor, token) ) fallen.push(token);
     return fallen;

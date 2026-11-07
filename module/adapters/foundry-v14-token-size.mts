@@ -4,6 +4,8 @@
  * their own size, kept in `flags.wildpath.ownSize`, when those end.
  */
 
+import {creatureTokens} from "./foundry-v14-creature-tokens.mjs";
+
 interface SizedToken {
   id: string; width: number; height: number; flags?: {wildpath?: {ownSize?: {width: number; height: number} | null}};
   update(data: Record<string, unknown>, operation?: Record<string, unknown>): Promise<unknown>;
@@ -11,7 +13,7 @@ interface SizedToken {
 interface SizedActor {
   isToken?: boolean; token?: SizedToken | null; items?: Iterable<{type?: string; system?: {size?: string}}>;
   getStatistic?(domain: string[]): {totalModifier?: number} | null;
-  getActiveTokens?(linked?: boolean, document?: boolean): SizedToken[];
+  getDependentTokens?(options: {linked?: boolean; concreteOnly?: boolean}): SizedToken[];
 }
 
 const SIZES = ["tiny", "small", "medium", "large", "huge", "gargantuan"];
@@ -36,7 +38,7 @@ export function createFoundryTokenSize({game}: {game: {users?: {activeGM?: {id?:
     if ( !isActiveGM() || !actor?.getStatistic ) return;
     const steps = Math.trunc(Number(actor.getStatistic(["size"])?.totalModifier) || 0);
     const species = [...(actor.items ?? [])].find(item => item.type === "species")?.system?.size ?? null;
-    const tokens = actor.isToken ? [actor.token].filter(Boolean) as SizedToken[] : (actor.getActiveTokens?.(false, true) ?? []);
+    const tokens = creatureTokens(actor);
     for ( const token of tokens ) {
       const own = token.flags?.wildpath?.ownSize ?? {width: token.width, height: token.height};
       const squares = steps ? resizedSquares(Math.max(own.width, own.height), steps, species) : null;

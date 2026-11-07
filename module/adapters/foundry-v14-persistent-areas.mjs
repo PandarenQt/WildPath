@@ -3,6 +3,7 @@ import { createReachFootprint, fieldKey, footprintDistance } from "../helpers/gr
 import { AREA_SHAPES } from "../helpers/tactical-areas.mjs";
 import { runAuthorityAction } from "./foundry-v14-automation-dispatcher.mjs";
 import { difficultTerrainBehavior } from "./foundry-v14-terrain.mjs";
+import { combatOf } from "./foundry-v14-creature-tokens.mjs";
 /** The Token an attached area surrounds and follows: the object it was cast on, else its caster. */
 const anchorOf = (flag) => flag.anchorTokenId ?? flag.sourceTokenId;
 export const AREA_EVENTS = Object.freeze({ ENTERED: "area.entered", EXITED: "area.exited", TURN_STARTED: "turn.started",
@@ -184,7 +185,10 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const token = game.scenes?.get(placement.sceneId)?.tokens.get(placement.sourceTokenId) ?? null;
         if (!token)
             return null;
-        const data = persistentAreaRegionData({ placement, sourceToken: token, combat: game.combat ?? null, color: game.user.color });
+        // Its caster's combat, not the one the GM's tracker shows: its rounds pass there (onTurn).
+        // shortcut: a caster that is no Combatant counts rounds in the tracker's combat; upgrade with the turn-clock question.
+        const data = persistentAreaRegionData({ placement, sourceToken: token, combat: combatOf(token, game) ?? game.combat ?? null,
+            color: game.user.color });
         const flag = data.flags.wildpath.area;
         const persistence = (placement.definition.area?.persistence ?? {});
         // A spell's, so Dispel Magic can end it: the level it was cast at, else its own.
@@ -359,7 +363,8 @@ export function createFoundryPersistentAreas({ game, coordinator, resolveAction,
         const applied = [];
         for (const { region, flag } of sceneAreas(token.parent)) {
             // An area whose rounds have run out is gone before anyone starts a turn in it.
-            if ((event === AREA_EVENTS.TURN_STARTED) && areaExpired(flag, game.combat)) {
+            // The turn's own combat, not the one the GM's tracker shows.
+            if ((event === AREA_EVENTS.TURN_STARTED) && areaExpired(flag, combatant?.combat)) {
                 await region.delete();
                 continue;
             }

@@ -6,6 +6,7 @@ import {sunlightContext} from "./foundry-v14-sunlight.mjs";
 import {tokensAround} from "./foundry-v14-auras.mjs";
 import {conditionsFrom, effectsFrom} from "../helpers/effect-sources.mjs";
 import {durationSeconds} from "../helpers/metamagic.mjs";
+import {creatureToken} from "./foundry-v14-creature-tokens.mjs";
 
 type Data = Record<string, unknown>;
 interface RuleElement {id?: string; type?: string; enabled?: boolean; data?: Data}
@@ -16,9 +17,7 @@ interface AutomationActor {id: string; uuid: string; items?: Iterable<Owner>; ef
   testUserPermission?(user: unknown, level: string): boolean}
 interface AutomationToken {id: string; parent?: {id: string} | null}
 type PlacedActor = AutomationActor & {isToken?: boolean; token?: AutomationToken | null;
-  getActiveTokens?(linked?: boolean, document?: boolean): AutomationToken[]};
-/** A creature's Token: an unlinked one's own, else its first on the viewed Scene. */
-const tokenOf = (actor: PlacedActor) => actor.isToken ? (actor.token ?? null) : (actor.getActiveTokens?.(false, true)?.[0] ?? null);
+  getDependentTokens?(options: {linked?: boolean; concreteOnly?: boolean}): AutomationToken[]};
 interface QueryUser {id: string; query?(name: string, data: Data, options: {timeout: number}): Promise<unknown>}
 interface Coordinator {resolveAuthorityAction(options: Data): Promise<{ok: boolean; duplicate?: boolean; state?: {status?: string}}>}
 type ResolveAction = (options: Data) => Promise<Data & {ok: boolean; reason?: string}>;
@@ -405,7 +404,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     const actor = effect?.parent as (PlacedActor & {documentName?: string}) | null;
     if ( (options?.wildpath?.ended === false) || (actor?.documentName !== "Actor")
       || !(effect.system?.ruleElements ?? []).some(rule => (rule.type === "Trigger") && (rule.data?.event === EFFECT_ENDED)) ) return [];
-    return dispatch(EFFECT_ENDED, {actor, token: tokenOf(actor), data: {effectId: effect.id}, owners: [effect]});
+    return dispatch(EFFECT_ENDED, {actor, token: creatureToken(actor), data: {effectId: effect.id}, owners: [effect]});
   }
 
   /**
@@ -418,7 +417,7 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
     // Nothing to run: not the queue, which may still hold an earlier change's failure.
     if ( !isActiveGM() || !(seconds > 0) ) return Promise.resolve();
     worldTimeQueue = worldTimeQueue.catch(() => {}).then(async () => {
-      for ( const actor of worldCreatures(game) ) await dispatch(TIME_ELAPSED, {actor, token: tokenOf(actor), data: {seconds}});
+      for ( const actor of worldCreatures(game) ) await dispatch(TIME_ELAPSED, {actor, token: creatureToken(actor), data: {seconds}});
     });
     return worldTimeQueue;
   }

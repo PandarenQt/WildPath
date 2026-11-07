@@ -4,6 +4,7 @@ import { createReachFootprint, footprintDistance } from "../helpers/grid-footpri
 import { WILDPATH } from "../config.mjs";
 import { areaCovers } from "./foundry-v14-persistent-areas.mjs";
 import { bestAuraCopies } from "../helpers/rule-elements.mjs";
+import { creatureTokens } from "./foundry-v14-creature-tokens.mjs";
 const reachFootprint = createReachFootprint;
 /** Whether an aura of `affects` from `bearer` reaches the creature standing at `token`, by their dispositions. */
 function affectsToken(affects, bearer, token) {
@@ -101,8 +102,7 @@ export function tokensAround(bearer, { radius, affects = "others" }) {
 export function createFoundryAuras() {
     /** Rule owners (`{ruleElements, source}`) the auras around `actor`'s Tokens grant it. */
     function ownersFor(actor) {
-        const tokens = actor.isToken ? [actor.token].filter(Boolean)
-            : (actor.getDependentTokens?.({ linked: true }) ?? actor.getActiveTokens?.(false, true) ?? []);
+        const tokens = creatureTokens(actor);
         const owners = [];
         for (const token of tokens) {
             const scene = token.parent;

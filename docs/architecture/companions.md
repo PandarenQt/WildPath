@@ -103,7 +103,8 @@ An ActionDefinition's `summon` brings creatures when the Action completes:
 - **The level it was summoned at** is `flags.wildpath.summonLevel` on each summoned creature, which its own rules may
   read (a spirit's Multiattack: half of it). Live (GM): a 9th-level wizard's Summon Dragon at 5th level brought a
   Draconic Spirit with 50 Hit Points, AC 19 and a Multiattack of 2 attacks and its Breath Weapon.
-- **Combat (2024).** If the caster is in the current combat, its summons join it. They share its Initiative and
+- **Combat (2024).** If the caster is a Combatant, its summons join its combat (a started one first, else one not
+  yet begun), whatever combat the GM's tracker shows, and their rounds count there. They share its Initiative and
   take their turns right after the caster's, at its Initiative less a thousandth for each one. A creature tied
   with the caster but sorted after it still goes before the summons.
 

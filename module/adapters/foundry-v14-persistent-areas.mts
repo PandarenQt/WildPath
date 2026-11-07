@@ -4,6 +4,7 @@ import {createReachFootprint, fieldKey, footprintDistance} from "../helpers/grid
 import {AREA_SHAPES} from "../helpers/tactical-areas.mjs";
 import {runAuthorityAction} from "./foundry-v14-automation-dispatcher.mjs";
 import {difficultTerrainBehavior} from "./foundry-v14-terrain.mjs";
+import {combatOf} from "./foundry-v14-creature-tokens.mjs";
 
 type Data = Record<string, unknown>;
 interface Field {[key: string]: unknown}
@@ -35,7 +36,8 @@ export interface AreaScene {
   levels?: {get(id: string): Level | undefined};
   createEmbeddedDocuments(type: string, data: Data[]): Promise<unknown[]>;
 }
-interface Combat {id: string; round: number; turn: number | null; scene?: AreaScene | null}
+interface Combat {id: string; round: number; turn: number | null; scene?: AreaScene | null; started?: boolean;
+  combatants?: Iterable<{tokenId?: string | null; sceneId?: string | null}>}
 interface Trigger {on: string[]; action: Data}
 export interface AreaFlag {
   schemaVersion: 1;
@@ -251,7 +253,7 @@ export function turnKey(combat: Combat | null | undefined) {
  * any Action). Once per turn by default: the area remembers whom it affected in the current combat turn.
  */
 export function createFoundryPersistentAreas({game, coordinator, resolveAction, logger=globalThis.console, fromUuid=null}: {
-  game: {user: {id: string; color?: unknown}; combat?: Combat | null;
+  game: {user: {id: string; color?: unknown}; combat?: Combat | null; combats?: Iterable<Combat>;
     scenes?: {get(id: string): AreaScene | undefined} & Iterable<AreaScene>;
     i18n?: {format(key: string, data: Data): string}; users?: {activeGM?: {id: string} | null}};
   fromUuid?: ((uuid: string) => unknown) | null;
@@ -270,7 +272,10 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
     if ( !placement ) return null;
     const token = game.scenes?.get(placement.sceneId)?.tokens.get(placement.sourceTokenId) ?? null;
     if ( !token ) return null;
-    const data = persistentAreaRegionData({placement, sourceToken: token, combat: game.combat ?? null, color: game.user.color});
+    // Its caster's combat, not the one the GM's tracker shows: its rounds pass there (onTurn).
+    // shortcut: a caster that is no Combatant counts rounds in the tracker's combat; upgrade with the turn-clock question.
+    const data = persistentAreaRegionData({placement, sourceToken: token, combat: combatOf(token, game) ?? game.combat ?? null,
+      color: game.user.color});
     const flag = data.flags.wildpath.area;
     const persistence = ((placement.definition.area as Data | undefined)?.persistence ?? {}) as {onObject?: string};
     // A spell's, so Dispel Magic can end it: the level it was cast at, else its own.
@@ -425,13 +430,14 @@ export function createFoundryPersistentAreas({game, coordinator, resolveAction, 
   }
 
   /** A combatant's turn starts or ends: every area it stands in answers that event. */
-  async function onTurn(event: string, {combatant}: {combatant: {token?: AreaToken | null} | null}) {
+  async function onTurn(event: string, {combatant}: {combatant: {token?: AreaToken | null; combat?: Combat | null} | null}) {
     const token = combatant?.token ?? null;
     if ( !token?.parent?.regions ) return [];
     const applied = [];
     for ( const {region, flag} of sceneAreas(token.parent) ) {
       // An area whose rounds have run out is gone before anyone starts a turn in it.
-      if ( (event === AREA_EVENTS.TURN_STARTED) && areaExpired(flag, game.combat) ) {
+      // The turn's own combat, not the one the GM's tracker shows.
+      if ( (event === AREA_EVENTS.TURN_STARTED) && areaExpired(flag, combatant?.combat) ) {
         await region.delete();
         continue;
       }

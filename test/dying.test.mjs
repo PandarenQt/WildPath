@@ -259,15 +259,19 @@ test("an Action's drop to 0 that only its commit's rebase made (zeroHpUnchecked)
 test("a creature with a damage.taken trigger (Aversion to Fire) is dispatched what it took, by type; others are not", async () => {
   const dispatched = [];
   const previous = globalThis.game;
-  globalThis.game = {wildpath: {automation: {dispatch: async (type, data) => dispatched.push([type, data.data])}}};
+  const tokens = [];
+  globalThis.game = {wildpath: {automation: {dispatch: async (type, data) => { dispatched.push([type, data.data]); tokens.push(data.token); }}}};
   try {
     const dying = createFoundryDying({game: {user: {id: "gm"}, users: {activeGM: {id: "gm"}}, combats: []}, coordinator: {},
       resolveAction: async () => ({ok: false})});
     const hit = byDamageType => ({type: "durabilityDamage", plan: {...damage(90, 9, 93), metadata: {damageResult: {byDamageType}}}});
     const golem = creature({type: "npc", health: 90});
     golem.items = [{system: {active: true, ruleElements: [{type: "Trigger", data: {event: "damage.taken"}}]}}];
+    const vault = {id: "golem-token", parent: {id: "vault"}};
+    Object.assign(golem, {getActiveTokens: () => [], getDependentTokens: () => [vault]});
     await dying.afterPlans(golem, [hit({fire: 6, slashing: 3, cold: 0})]);
     assert.deepEqual(dispatched, [["damage.taken", {damageTaken: {fire: true, slashing: true}}]]);
+    assert.equal(tokens[0], vault, "at its own Token, on a Scene the GM is not viewing");
     const ogre = creature({type: "npc", health: 90});
     ogre.items = [];
     await dying.afterPlans(ogre, [hit({fire: 6})]);

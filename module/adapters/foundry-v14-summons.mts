@@ -3,6 +3,7 @@ import {gmNotice} from "../helpers/gm-notice.mjs";
 import {foundryPointInRange} from "./foundry-v14-area-placement.mjs";
 import {evaluateValueExpression} from "../helpers/value-expressions.mjs";
 import {resolveActorAttackStatistic} from "../helpers/combat-statistics.mjs";
+import {combatantOf, combatOf} from "./foundry-v14-creature-tokens.mjs";
 
 /**
  * Summoning from an Action (M5, companions.md): when an Action with `summon` completes, the active GM places
@@ -42,7 +43,7 @@ interface SummonFlag {casterUuid: string; kind: string; rounds: number | null; c
   actionId?: string | null; at?: number; endsWithSummoner?: boolean}
 interface Combatant {id: string; tokenId?: string | null; sceneId?: string | null; initiative?: number | null}
 interface Combat {
-  id: string; round: number; turn: number | null;
+  id: string; round: number; turn: number | null; started?: boolean;
   combatants?: Iterable<Combatant>;
   createEmbeddedDocuments?(type: string, data: Data[]): Promise<unknown>;
   deleteEmbeddedDocuments?(type: string, ids: string[]): Promise<unknown>;
@@ -184,7 +185,7 @@ export function summonExpired(flag: SummonFlag | undefined, combat: Combat | nul
 }
 
 export function createFoundrySummons({game, companions, fromUuid, logger=globalThis.console}: {
-  game: {user: {id: string}; users?: {activeGM?: {id: string} | null}; combat?: Combat | null;
+  game: {user: {id: string}; users?: {activeGM?: {id: string} | null}; combat?: Combat | null; combats?: Iterable<Combat>;
     scenes?: Iterable<SummonScene>; actors?: Iterable<SummonActor & {flags?: {wildpath?: {summonSource?: string}}}>;
     i18n?: {format(key: string, data: Data): string}};
   companions: {setControllers(companion: unknown, options: {controllers: string[]; kind?: string}): Promise<unknown>};
@@ -193,12 +194,13 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
 }) {
   const isActiveGM = () => game.users?.activeGM?.id === game.user.id;
 
-  /** Summons leave the Scene, and the combat with them. */
+  /** Summons leave the Scene, and every combat with them. */
   async function dismiss(scene: SummonScene, tokenIds: string[]) {
-    const combat = game.combat;
-    const combatantIds = [...(combat?.combatants ?? [])].filter(combatant => (combatant.sceneId === scene.id)
-      && tokenIds.includes(combatant.tokenId ?? "")).map(combatant => combatant.id);
-    if ( combatantIds.length ) await combat?.deleteEmbeddedDocuments?.("Combatant", combatantIds);
+    for ( const combat of game.combats ?? [] ) {
+      const combatantIds = [...(combat.combatants ?? [])].filter(combatant => (combatant.sceneId === scene.id)
+        && tokenIds.includes(combatant.tokenId ?? "")).map(combatant => combatant.id);
+      if ( combatantIds.length ) await combat.deleteEmbeddedDocuments?.("Combatant", combatantIds);
+    }
     await scene.deleteEmbeddedDocuments("Token", tokenIds);
   }
 
@@ -294,7 +296,9 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     const points = killed ? killed.map(token => ({x: token.x, y: token.y})) : (options?.summonPoints ?? []);
     const offsets = points.slice(0, count).flatMap(point => place(scene.grid.getOffset(point), 1));
     offsets.push(...place(start, count - offsets.length));
-    const combat = game.combat ?? null;
+    // Its caster's combat, not the one the GM's tracker shows: its rounds pass, and the summons join, there.
+    // shortcut: a caster that is no Combatant counts rounds in the tracker's combat; upgrade with the turn-clock question.
+    const combat = combatOf(casterToken, game) ?? game.combat ?? null;
     const actionId = (definition as {id?: string} | undefined)?.id ?? null;
     const summon: SummonFlag = {casterUuid: caster.uuid, kind: "summon", rounds: Number(spec.rounds) || null,
       createdAt: combat ? {combatId: combat.id, round: combat.round, turn: combat.turn} : null, actionId, at: Date.now(),
@@ -334,7 +338,7 @@ export function createFoundrySummons({game, companions, fromUuid, logger=globalT
     }
     // 2024: in combat a summon shares its caster's Initiative and takes its turn right after the caster's.
     // shortcut: a creature tied with the caster but sorted after it still goes before the summons; fine for whole-number initiative.
-    const casterCombatant = [...(combat?.combatants ?? [])].find(entry => (entry.tokenId === casterToken.id) && (entry.sceneId === scene.id));
+    const casterCombatant = combatantOf(casterToken, combat);
     if ( casterCombatant ) await combat?.createEmbeddedDocuments?.("Combatant", tokens.map((token, index) => ({tokenId: token.id,
       sceneId: scene.id, actorId: token.actorId ?? null, hidden: token.hidden ?? false,
       initiative: typeof casterCombatant.initiative === "number" ? casterCombatant.initiative - ((index + 1) / 1000) : null})));
