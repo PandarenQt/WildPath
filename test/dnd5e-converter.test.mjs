@@ -1490,6 +1490,122 @@ test("what a creature does around itself at a turn boundary is an automatic Eman
   assert.deepEqual(hag.system.ruleElements[0].data.around, {radius: 30, affects: "others", on: "others"});
 });
 
+test("a summoned spirit's turn aura and death burst in the books' wording (Whispering Aura, Stony Lethargy, Death Throes)", () => {
+  const passive = (id, name, text, data, effects=[]) => ({_id: id, name, type: "feat", effects, system: {source: SRD,
+    description: {value: text}, activities: {a: activity("save", {activation: {type: "", override: false}, range: {units: "ft", value: "5",
+      override: false}, target: {template: {type: ""}, affects: {type: "creature"}, override: false},
+      save: {ability: ["wis"], dc: {calculation: "spellcasting", formula: ""}}, damage: {parts: []}, ...data})}}});
+  const psychic = {damage: {onSave: "none", parts: [{number: 2, denomination: 6, types: ["psychic"], bonus: ""}]}};
+  const ruleOf = document => convertItem(document).items[0].system.ruleElements?.[0];
+  // A curly apostrophe, its size as "within 5 feet of the spirit", "if it doesn't have the Incapacitated condition".
+  const whisper = ruleOf(passive("testWhisperAura1", "Whispering Aura", "<p>At the start of each of the spirit’s turns, the spirit emits "
+    + "psionic energy if it doesn’t have the Incapacitated condition.</p><p>Wisdom Saving Throw: DC equals your spell save DC, each creature "
+    + "(other than you) within 5 feet of the spirit. Failure: 2d6 Psychic damage.</p>", psychic));
+  assert.deepEqual([whisper.data.event, whisper.data.around, whisper.data.predicate], ["turn.started", {radius: 5, affects: "others"},
+    {missingCondition: "incapacitated"}]);
+  // 2014: "provided that the aberration isn't incapacitated" (a dnd5e reference), its size in a lookup's place.
+  const tasha = ruleOf(passive("testWhisperAura2", "Whispering Aura", "<p>At the start of each of the aberration’s turns, each creature "
+    + "within 5 feet of the [[lookup @name lowercase]] must succeed on a Wisdom saving throw against your spell save DC or take 2d6 psychic "
+    + "damage, provided that the aberration isn’t &amp;Reference[incapacitated].</p>", {...psychic, range: {units: "", override: false}}));
+  assert.deepEqual([tasha.data.around, tasha.data.predicate], [{radius: 5, affects: "others"}, {missingCondition: "incapacitated"}]);
+  // Not one bitten enemy (a Faithful Hound's): no Emanation.
+  assert.equal(ruleOf(passive("testHoundBite001", "Bite", "<p>At the start of each of your turns, the hound attempts to bite one enemy "
+    + "within 5 feet of it. That enemy must succeed on a Dexterity saving throw or take 4d8 Force damage.</p>", psychic)), undefined);
+
+  // "When a creature starts its turn within 10 feet of the spirit, the spirit can target it": its enemies, as their turns start.
+  // Its effect's words give what its changes don't: no Opportunity Attacks (2024), no Reaction (2014).
+  const slowed = description => ({_id: "lethargic", name: "Stony Lethargy", description, statuses: [],
+    duration: {value: 1, units: "rounds", expiry: "turnStart"},
+    system: {changes: [{key: "system.attributes.movement.walk", value: 0.5, type: "multiply"}]}});
+  const stony = ruleOf(passive("testStonyLethar1", "Stony Lethargy", "<p>When a creature starts its turn within 10 feet of the spirit, the "
+    + "spirit can target it with magical energy if the spirit can see it.</p><p>Wisdom Saving Throw: DC equals your spell save DC, the "
+    + "target. Failure: Until the start of its next turn, the target can’t make Opportunity Attacks, and its Speed is halved.</p>",
+  {range: {units: "ft", value: "10", override: false}, effects: [{_id: "lethargic", onSave: false}]},
+  [slowed("<p>Until the start of its next turn, the target can’t make Opportunity Attacks, and its Speed is halved.</p>")]));
+  assert.deepEqual([stony.data.event, stony.data.around], ["turn.started", {radius: 10, affects: "enemies", on: "others"}]);
+  const [lethargy] = stony.data.action.effects;
+  assert.deepEqual([lethargy.slug, lethargy.ruleElements.map(rule => rule.data.domains ?? rule.data.resources)],
+    ["no-opportunity-attacks", [["speed.walk.multiplier"]]], "the halved Speed its changes give, not twice");
+  const old = ruleOf(passive("testStonyLethar2", "Stony Lethargy", "<p>When a creature the [[lookup @name lowercase]] can see starts its "
+    + "turn within 10 feet of the [[lookup @name lowercase]], the [[lookup @name lowercase]] can force it to make a Wisdom saving throw "
+    + "against your spell save DC. On a failed save, the target can’t use reactions and its speed is halved until the start of its next "
+    + "turn.</p>", {effects: [{_id: "lethargic", onSave: false}]},
+  [slowed("<p>Until the start of your next turn, you cannot use reactions and your speed is halved.</p>")]));
+  assert.deepEqual([old.data.around, old.data.action.effects[0].ruleElements.map(rule => rule.data.domains ?? rule.data.resources)],
+    [{radius: 10, affects: "enemies", on: "others"}, [["speed.walk.multiplier"], ["reaction"]]]);
+  // A bare marker takes all of it from the failure's words.
+  const bare = ruleOf(passive("testStonyLethar3", "Stony Lethargy", "<p>When a creature starts its turn within 10 feet of the spirit, the "
+    + "spirit can target it.</p><p>Wisdom Saving Throw: DC 13, the target. Failure: Until the start of its next turn, the target can't make "
+    + "Opportunity Attacks, and its Speed is halved.</p>", {effects: [{_id: "lethargic", onSave: false}]},
+  [{...slowed(""), system: {changes: []}}]));
+  assert.deepEqual([bare.data.action.effects[0].slug, bare.data.action.effects[0].ruleElements.map(rule => rule.data.domains)],
+    ["no-opportunity-attacks", [["speed.multiplier"]]]);
+
+  // "When the spirit drops to 0 Hit Points or the spell ends, the spirit explodes": as it dies.
+  const throes = ruleOf(passive("testDeathThroes1", "Death Throes", "<p>When the spirit drops to 0 Hit Points or the spell ends, the spirit "
+    + "explodes.</p><p>Dexterity Saving Throw: DC equals your spell save DC, each creature in a 10-foot Emanation originating from the "
+    + "spirit. Failure: 2d10 plus this spell’s level Fire damage. Success: Half damage.</p>", {range: {units: "self", override: false},
+    target: {template: {type: "radius", size: "10"}, affects: {type: "creature"}, override: false},
+    save: {ability: ["dex"], dc: {calculation: "spellcasting", formula: ""}},
+    damage: {onSave: "half", parts: [{number: 2, denomination: 10, types: ["fire"], bonus: ""}]}}));
+  assert.deepEqual([throes.data.event, throes.data.around], ["creature.died", {radius: 10, affects: "others"}]);
+
+  // What the Trigger does not check stays a note; "can target it" asks its controller (`use`).
+  const notesOf = document => convertItem(document).items[0].flags.wildpath.conversion.notes;
+  assert.deepEqual(notesOf(passive("testWhisperAura1", "Whispering Aura", "<p>At the start of each of the spirit’s turns, the spirit emits "
+    + "psionic energy.</p><p>Wisdom Saving Throw: each creature (other than you) within 5 feet of the spirit. Failure: 2d6 Psychic damage.</p>",
+  psychic)), ['trigger: "(other than you)" is by hand']);
+  assert.deepEqual(stony.data.action.configuration.map(choice => [choice.id, choice.options.map(option => option.value)]),
+    [["use", ["use", "decline"]]]);
+  assert.equal(throes.data.action.configuration, undefined, "Death Throes is no choice");
+  const heard = ruleOf(passive("testWhisperAura3", "Whispering Aura", "<p>At the start of each of the spirit’s turns, each creature within 5 "
+    + "feet of the spirit that can hear it must succeed on a Wisdom saving throw or take 2d6 Psychic damage.</p>", psychic));
+  assert.deepEqual([heard.data.event, heard.data.action.configuration], ["turn.started", undefined], "its own turn's \"can\" is no choice");
+});
+
+test("an effect's words: legacy durations and saves, linked rules, a condition's while, and what another effect already gives", () => {
+  const own = {licensed: () => true, book: "A 2014 book"};
+  // Tasha's: its effect's duration as `{rounds: 1}`, ended by its text; what its words don't read is noted.
+  const whip = convertItem({_id: "legacyMindWhip01", name: "Mind Whip", type: "spell", system: {source: {license: "", rules: "2014"}, level: 2,
+    actionType: "save", activation: {type: "action", cost: 1}, range: {value: 90, units: "ft"}, target: {value: 1, type: "creature"},
+    save: {ability: "int", scaling: "spell"}, damage: {parts: [["3d6", "psychic"]]}, preparation: {mode: "prepared"},
+    description: {value: "<p>On a failed save, the target takes 3d6 psychic damage, and it can’t take a reaction until the end of its next turn. "
+      + "On a successful save, the target takes half as much damage.</p>"}},
+  effects: [{_id: "whipped", name: "Mind Whipped", changes: [], duration: {rounds: 1, turns: null, seconds: null},
+    description: "<p>The impacted creature can’t take a reaction until the end of its next turn. Moreover, it must choose whether it gets "
+      + "a move, an action, or a bonus action.</p>"}]}, own).items[0];
+  const [whipped] = whip.system.definition.effects;
+  assert.deepEqual([whipped.ruleElements.map(rule => rule.id), whipped.duration], [["no-reaction"], {value: 1, units: "rounds", expiry: "turnEnd"}]);
+  assert.ok(whip.flags.wildpath.conversion.notes.includes('effect: "Mind Whipped" takes no-reaction from its words; anything else they say is by hand'));
+  assert.deepEqual(whip.system.definition.damage[0].saveOutcomePolicy, {success: "half", failure: "full"});
+  // A legacy save whose text never says "half": nothing on a success.
+  const star = convertItem({_id: "legacyStarSpawn1", name: "Whispering Aura", type: "feat", system: {source: {license: "", rules: "2014"},
+    actionType: "save", activation: {type: "action", cost: 1}, save: {ability: "wis", scaling: "flat", dc: 13}, damage: {parts: [["2d6", "psychic"]]},
+    description: {value: "<p>Each creature within 5 feet must succeed on a Wisdom saving throw or take 2d6 psychic damage.</p>"}}}, own).items[0];
+  assert.deepEqual(star.system.definition.damage[0].saveOutcomePolicy, {success: "none", failure: "full"});
+
+  const ray = (name, effects, text="") => convertItem({_id: "testWordRay00001", name, type: "feat", effects, system: {source: SRD,
+    description: {value: text}, activities: {a: activity("save", {activation: {type: "action", override: false},
+      range: {units: "ft", value: "60", override: false}, target: {affects: {type: "creature", count: "1"}, override: false},
+      save: {ability: ["dex"], dc: {calculation: "", formula: "13"}}, damage: {parts: []},
+      effects: effects.map(effect => ({_id: effect._id, onSave: false}))})}}}).items[0].system.definition.effects;
+  const halved = {key: "system.attributes.movement.walk", value: 0.5, type: "multiply"};
+  // The 2024 books link the rule ("&Reference[Reaction]{Reactions}"); a copy saying the same again adds nothing (not quarter Speed).
+  const slowing = ray("Slowing Ray", [
+    {_id: "slowRay000000001", name: "Half Speed/No Reactions", system: {changes: [halved]}, duration: {value: 1, units: "turns"},
+      description: "<p>The target’s Speed is halved, and the target can’t take &amp;Reference[Reaction]{Reactions}.</p>"},
+    {_id: "slowRay000000002", name: "Half Speed/No Reactions (Copy)", system: {changes: [{key: "system.traits.movement.multiplier",
+      value: 0.5, type: "multiply"}]}, duration: {value: 1, units: "turns"}, description: "<p>The target’s Speed is halved.</p>"}]);
+  assert.deepEqual(slowing.map(effect => effect.ruleElements.map(rule => rule.data.domains ?? rule.data.resources)),
+    [[["speed.walk.multiplier"], ["reaction"]]]);
+  // "While Poisoned, ... can't take Reactions" (a Dretch's Fetid Cloud): only while it has the condition.
+  const fetid = ray("Fetid Cloud", [{_id: "fetidCloud000001", name: "Poisoned", statuses: ["poisoned"], system: {changes: []},
+    duration: {value: 1, units: "turns"}}], "<p>Failure: The target has the Poisoned condition until the end of its next turn. While "
+    + "Poisoned, the creature can’t take Reactions.</p>");
+  assert.deepEqual(fetid.map(effect => effect.conditionId ?? effect.ruleElements.map(rule => rule.predicate)),
+    ["poisoned", [{hasCondition: "poisoned"}]]);
+});
+
 test("an area whose size grows with the spell's level scales with its slot (Confusion)", () => {
   const [confusion] = convertItem({_id: "testConfusion001", name: "Confusion", type: "spell", effects: [], system: {source: SRD, level: 4,
     preparation: {mode: "prepared"}, properties: ["concentration"], activation: {type: "action"}, range: {value: "90", units: "ft"},

@@ -457,6 +457,17 @@
                     "modifierType": "untyped",
                     "value": 0.5
                   }
+                },
+                {
+                  "schemaVersion": 1,
+                  "id": "no-reaction",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "reaction"
+                    ],
+                    "maximum": 0
+                  }
                 }
               ],
               "duration": {

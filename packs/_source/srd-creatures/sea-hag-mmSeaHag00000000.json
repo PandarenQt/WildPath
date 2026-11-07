@@ -818,7 +818,9 @@
             "subtype": null
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "trigger: \"can see\" is by hand"
+            ]
           }
         }
       }
@@ -1129,6 +1131,7 @@
           "Coven Magic: activation: 10 minute is not an action-economy cost",
           "Coven Magic: save: a failure marks its creature (narrative)",
           "Coven Magic: \"Create Sensor\" is passive or triggered (narrative): not automated",
+          "Vile Appearance: trigger: \"can see\" is by hand",
           "Illusory Appearance: effect: \"Disguised\" marks its creature (narrative)"
         ]
       }

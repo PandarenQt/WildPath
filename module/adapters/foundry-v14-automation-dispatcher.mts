@@ -237,12 +237,15 @@ export function createFoundryAutomationDispatcher({game, coordinator, resolveAct
         }
       }
       const theirs = {...sunlightContext(bearer as never), conditions: [...(bearer.actor.statuses ?? [])]};
-      for ( const {id, definition, label, around} of automationTriggers(bearer.actor, event, theirs) ) {
-        if ( (around?.on !== "others") || immuneTo(actor, definition.id)
+      for ( const {id, definition, label, policy, around} of automationTriggers(bearer.actor, event, theirs) ) {
+        // Its "can" (Stony Lethargy: "the spirit can target it") as its own triggers' "you can": Never, Always or Ask.
+        const optional = ((definition.configuration ?? []) as Data[]).some(choice => choice.id === "use");
+        if ( (around?.on !== "others") || (optional && (policy === "never")) || immuneTo(actor, definition.id)
           || !tokensAround(bearer as never, around as never).some(other => other.id === placed?.id) ) continue;
         const state = await runAuthorityAction({coordinator, resolveAction, logger, senderUserId: game.user.id,
           resolutionId: `${id}:${sequence}:${bearer.id}:${placed?.id}`, definition, label, actorRef: bearer.actor.uuid,
-          source: {tokenId: bearer.id, sceneId: placed?.parent?.id}, target: self});
+          source: {tokenId: bearer.id, sceneId: placed?.parent?.id}, target: self,
+          ...((optional && (policy === "always")) ? {configuration: {choices: {use: "use"}}} : {})});
         if ( state ) states.push(state);
       }
     }

@@ -2089,6 +2089,21 @@ test("an Item's automatic trigger runs its Action on its owner through the autho
   assert.equal(targetActor.system.resources.health.value, 26);
 });
 
+test("another creature's aura its creature may use on one starting its turn there follows its Item's Never or Always", async t => {
+  const {sourceActor, targetActor, targetToken, automation} = lastingAreaFixture(t);
+  // "the spirit can target it" (Stony Lethargy): a `use` choice, as a creature's own "you can".
+  const use = {id: "use", type: "option", label: "Use", required: true, defaultValue: "use",
+    options: [{id: "use", label: "Use it", value: "use"}, {id: "decline", label: "Not now", value: "decline"}], effects: [{type: "decline"}]};
+  const aura = policy => ({...triggerFeature("lethargy", {event: "turn.started", around: {radius: 5, affects: "others", on: "others"},
+    action: {...BURNING, configuration: [use]}}), flags: {wildpath: {reactionPolicy: policy}}});
+  sourceActor.items = [aura("never")];
+  assert.deepEqual(await automation.dispatch("turn.started", {actor: targetActor, token: targetToken}), []);
+  assert.equal(targetActor.system.resources.health.value, 30, "Never lets it be");
+  sourceActor.items = [aura("always")];
+  await automation.dispatch("turn.started", {actor: targetActor, token: targetToken});
+  assert.equal(targetActor.system.resources.health.value, 26, "Always uses it");
+});
+
 test("an automatic trigger's predicate sees its creature: Regeneration needs at least 1 Hit Point", async t => {
   const {targetActor, targetToken, automation} = lastingAreaFixture(t);
   targetActor.items = [triggerFeature("regeneration", {event: "turn.started",

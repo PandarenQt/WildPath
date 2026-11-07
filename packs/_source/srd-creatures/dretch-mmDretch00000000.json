@@ -188,6 +188,34 @@
                 "units": "turns",
                 "expiry": "turnEnd"
               }
+            },
+            {
+              "id": "effect-2",
+              "type": "effect",
+              "name": "Poisoned",
+              "img": "systems/dnd5e/icons/svg/statuses/poisoned.svg",
+              "ruleElements": [
+                {
+                  "schemaVersion": 1,
+                  "id": "no-reaction",
+                  "type": "ResourceCap",
+                  "data": {
+                    "resources": [
+                      "reaction"
+                    ],
+                    "maximum": 0
+                  },
+                  "predicate": {
+                    "hasCondition": "poisoned"
+                  }
+                }
+              ],
+              "duration": {
+                "value": 1,
+                "units": "turns",
+                "expiry": "turnEnd"
+              },
+              "saveOutcomePolicy": "failure"
             }
           ],
           "label": "Fetid Cloud"

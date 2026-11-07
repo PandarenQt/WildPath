@@ -1601,7 +1601,8 @@ const TEMPLATE_TYPES = new Set(["sphere", "cone", "line", "cube", "cylinder", "r
 /**
  * An item in dnd5e's older data (before activities, dnd5e 3.x and earlier, as 2014 modules store it) in the shape the
  * converter reads: one activity from its action type, damage parts from their formulas, uses, Recharge, the template,
- * and concentration from its components. A save's damage is halved on a success, as dnd5e's own migration assumes.
+ * and concentration from its components. A save's damage is halved on a success, as dnd5e's own migration assumes,
+ * unless its text never says "half" ("must succeed on a Wisdom saving throw ... or take 2d6 psychic damage").
  */
 export function upgradeLegacy(document) {
   const system = document.system ?? {};
@@ -1643,7 +1644,8 @@ export function upgradeLegacy(document) {
     ...(type === "attack" ? {attack: {type: {value: attackType, classification}, ability: system.ability || "",
       bonus: system.attack?.bonus ?? system.attackBonus ?? ""}} : {}),
     damage: {includeBase, parts: type === "heal" ? [] : parts,
-      onSave: type === "save" ? (((document.type === "spell") && !Number(system.level)) ? "none" : "half") : undefined},
+      onSave: type === "save" ? ((((document.type === "spell") && !Number(system.level))
+        || (plainText(document).trim() && !/\bhalf\b/iu.test(plainText(document)))) ? "none" : "half") : undefined},
     ...(type === "heal" ? {healing: parts[0] ?? null} : {}),
     ...(type === "save" ? {save: {ability: save.ability ? [save.ability] : [], dc: {calculation: save.scaling === "spell" ? "spellcasting"
       : (save.scaling === "flat" ? "" : (save.scaling ?? "")), formula: String(save.dc ?? "")}}} : {}),
@@ -1826,6 +1828,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
         beasts});
       if ( turnArea ) {
         initiativeRules.push(turnArea);
+        // What it leaves by hand ("(other than you)", "or the spell ends").
+        allNotes.push(...notes);
         continue;
       }
       // A mark's bonus damage (Hunter's Mark's, Hex's, Favored Enemy's) is its effect's own rule.
@@ -2890,10 +2894,45 @@ export function healingBlockedWhile(text) {
     .map(match => CONDITION_MAP[(match[1] ?? (match[2] === "poison" ? "poisoned" : match[2])).toLowerCase()]).filter(Boolean))];
 }
 
-/** The rules an effect with none of its own takes from its item's text (Antitoxin's Advantage on saves against Poisoned). */
-function textEffect(document) {
-  const rules = savesAgainstRules(plainText(document), identifierOf(document));
-  return rules.length ? {ruleElements: rules} : null;
+/**
+ * What an effect's words say it does that its changes may not (Stony Lethargy: "the target can't make Opportunity
+ * Attacks, and its Speed is halved"; 2014: "can't use reactions"): the engine's `no-opportunity-attacks` slug, a 0.5
+ * `speed.multiplier` and no Reaction. Read from the effect's own description, else from its item's failed save
+ * ("Failure: ...", "On a failed save, ..."). A rule of a kind `given` already holds (its own changes', or an earlier
+ * effect's of the same Action: the Beholder's Slowing Ray and its copy) is left out, so Speed is not halved twice.
+ * shortcut: any Speed Modifier given stands for "Speed is halved"; upgrade if one ever adds rather than halves.
+ */
+function effectTextRules(document, effect, given=[]) {
+  const own = String(effect?.description ?? "").replace(/<[^>]+>/gu, " ");
+  // The 2024 books link their rules ("can't take &Reference[Reaction]{Reactions}").
+  const words = (own.trim() ? own : (/\b(?:Failure:|On a failed save\b)(.*?)(?:\bSuccess:|$)/su.exec(plainText(document))?.[1] ?? ""))
+    .replace(/&(?:amp;)?Reference\[(\w+)[^\]]*\](?:\{[^}]*\})?/gu, "$1");
+  const sentences = words.split(/(?<=\.)\s+/u);
+  // "While Poisoned, the creature ... can't take Reactions" (a Dretch's Fetid Cloud): only while it has that condition,
+  // so a creature immune to it, or cured of it, keeps its Reactions.
+  const rule = (pattern, made) => {
+    const sentence = sentences.find(part => pattern.test(part));
+    const conditionId = sentence ? CONDITION_MAP[/^\s*While (\w+),/u.exec(sentence)?.[1]?.toLowerCase()] : null;
+    return sentence ? [{schemaVersion: 1, ...made, ...(conditionId ? {predicate: {hasCondition: conditionId}} : {})}] : [];
+  };
+  const kinds = entry => (entry.data?.domains ?? entry.data?.resources ?? []).map(key => `${entry.type}:${String(key).split(".")[0]}`);
+  const held = new Set(given.flatMap(kinds));
+  const read = [...rule(/\bSpeed is halved\b/iu, {id: "speed-halved", type: "Modifier", data: {domains: ["speed.multiplier"], modifierType: "untyped", value: 0.5}}),
+    ...rule(/\bcan(?:not|[’']t) (?:use|take) (?:a )?reactions?\b/iu, {id: "no-reaction", type: "ResourceCap",
+      data: {resources: ["reaction"], maximum: 0}})];
+  const ruleElements = read.filter(made => !kinds(made).some(kind => held.has(kind)));
+  // `repeats`: some of what it says is already given.
+  return {slug: /\bcan(?:not|[’']t) make Opportunity ?Attacks\b/iu.test(words) ? "no-opportunity-attacks" : null, ruleElements,
+    repeats: ruleElements.length < read.length};
+}
+
+/**
+ * The rules an effect with none of its own takes from its item's text (Antitoxin's Advantage on saves against Poisoned)
+ * and from its own words (`told`: effectTextRules).
+ */
+function textEffect(document, told) {
+  const rules = [...savesAgainstRules(plainText(document), identifierOf(document)), ...told.ruleElements];
+  return (rules.length || told.slug) ? {...(told.slug ? {slug: told.slug} : {}), ruleElements: rules} : null;
 }
 
 function emptyPassiveRules(document, notes=[]) {
@@ -5064,23 +5103,26 @@ function initiativeTrigger({document, activity, system, spell, level, scales, no
   notes.push(...own);
   const predicate = {all: [{any: definition.restores.map(entry => ({poolBelowMax: entry.resourceId}))},
     ...(definition.costs?.allOf ?? []).map(cost => ({not: {poolEmpty: cost.capability}}))]};
-  // "You can": its creature is asked (its reaction policy may say Always or Never), and may let it be.
-  const use = {id: "use", type: "option", label: activity.name || document.name, required: true, defaultValue: "use",
-    options: [{id: "use", label: "Use it", value: "use"}, {id: "decline", label: "Not now", value: "decline"}],
-    effects: [{type: "decline"}]};
   return {schemaVersion: 1, id: `initiative-${slugify(activity.name || "recharge")}`, type: "Trigger", data: {kind: "automation",
     event: "initiative.rolled", predicate, action: {...definition, label: activity.name || document.name, range: {type: "self"},
-      targeting: {type: "self"}, configuration: [...(definition.configuration ?? []), use]}}};
+      targeting: {type: "self"}, configuration: [...(definition.configuration ?? []), useChoice(activity.name || document.name)]}}};
 }
+
+/** "You can": its creature is asked (its Item's reaction policy may say Always or Never), and may let it be. */
+const useChoice = label => ({id: "use", type: "option", label, required: true, defaultValue: "use",
+  options: [{id: "use", label: "Use it", value: "use"}, {id: "decline", label: "Not now", value: "decline"}],
+  effects: [{type: "decline"}]});
 
 /**
  * A save or damage its creature deals around itself when its own turn starts or ends (2024 Azer Sentinel's Fire Aura:
  * "At the end of each of the azer's turns, each creature of the azer's choice in a 5-foot Emanation originating from the
  * azer takes 5 (1d10) Fire damage unless the azer has the Incapacitated condition"), as an automatic Trigger whose
  * Action reaches each creature in that Emanation (`around`): only its enemies when it chooses ("of its choice").
- * Or one as it dies (a mephit's Death Burst: "explodes when it dies"; `creature.died`).
+ * Or one as it dies (a mephit's Death Burst: "explodes when it dies"; a 2024 spirit's Death Throes: "When the spirit
+ * drops to 0 Hit Points"; `creature.died`).
  * Or one that reaches a creature whose own turn starts or ends in its Emanation (a Pit Fiend's Fear Aura: "any enemy
- * that starts its turn in the aura"; `around.on: "others"`). A success that makes it immune for 24 hours marks it so
+ * that starts its turn in the aura"; Stony Lethargy: "When a creature starts its turn within 10 feet of the spirit, the
+ * spirit can target it"; `around.on: "others"`). A success that makes it immune for 24 hours marks it so
  * (`metadata.immuneTo`). Not one that works only somewhere ("While underwater", an Aboleth's Mucus Cloud), nor a
  * target's next turn.
  */
@@ -5090,11 +5132,14 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
   // Its 2024 stat block's lookups ("any [[lookup @target.affects.type]] that starts its turn within [[lookup
   // @target.template.size]] feet") read as words, so their dots end no sentence.
   const raw = `${plainText(document)} ${activity.target?.affects?.special ?? ""} ${activity.activation?.condition ?? ""}`;
-  const text = raw.replace(/\[\[lookup [^\]]*\]\](?:\{[^}]*\})?/gu, "it");
-  const others = /\b(?:any|each) ([^.]{1,80}?) that (starts|ends) its turn (?:in|within)\b/iu.exec(text);
+  // The books' curly apostrophe ("the spirit’s turns") reads as a straight one.
+  const text = raw.replace(/\[\[lookup [^\]]*\]\](?:\{[^}]*\})?/gu, "it").replace(/’/gu, "'");
+  // Or "When a creature starts its turn within 10 feet of the spirit, the spirit can target it" (Stony Lethargy).
+  const whenOthers = /\bWhen an? ([^.]{1,80}?) (starts|ends) its turn within \d+ feet\b/iu.exec(text);
+  const others = /\b(?:any|each) ([^.]{1,80}?) that (starts|ends) its turn (?:in|within)\b/iu.exec(text) ?? whenOthers;
   const own = others ? null : /\b(?:at|by) the (start|end) of (?:each of )?(?:its|their|your|the (?!target)[^.,]{1,60}?'s) turns?\b/iu.exec(text);
-  // Or as it dies ("The mephit explodes when it dies": a Death Burst).
-  const dies = !others && !own && /\bwhen (?:it|the [^.,]{1,60}?) dies\b/iu.test(text);
+  // Or as it dies ("The mephit explodes when it dies": a Death Burst; "When the spirit drops to 0 Hit Points": Death Throes).
+  const dies = !others && !own && /\bwhen (?:it|the [^.,]{1,60}?) (?:dies|drops to 0 hit points)\b/iu.test(text);
   const when = others ? others[2].replace(/s$/u, "") : own?.[1];
   if ( (!when && !dies) || /\bnext\b/iu.test(own?.[0] ?? "") || /^\s*While\b/u.test(text) ) return null;
   // What a swallowing creature does to those inside it ("takes 17 (5d6) Acid damage at the start of each of the purple
@@ -5102,32 +5147,45 @@ function turnAreaTrigger({document, activity, system, spell, level, scales, note
   const swallowed = own && /\bthe (?!target)[^.,]{1,60}?'s turns?\b/iu.test(own[0]) && (activity.type === "damage")
     && /\bswallowed\b/iu.test(`${activity.name ?? ""} ${activity.target?.affects?.special ?? ""}`);
   const template = activity.target?.template ?? {};
-  // Its template's, its text's ("a 10-foot Emanation", "ends its turn within 5 feet of the sphere"), or its range's
+  // Its template's, its text's ("a 10-foot Emanation", "ends its turn within 5 feet of the sphere", "each creature (other
+  // than you) within 5 feet of the spirit": not "one enemy within 5 feet of it", a Faithful Hound's bite), or its range's
   // ("within [[lookup @range.value]] feet": a Sea Hag's Vile Appearance).
   const size = ["radius", "emanation", "sphere"].includes(template.type) ? Number(template.size)
     : (Number(/\b(\d+)-foot(?:-radius)? Emanation\b/iu.exec(text)?.[1])
-      || Number(/\bthat (?:starts|ends) its turn within (\d+) feet\b/iu.exec(text)?.[1])
+      || Number(/\b(?:starts|ends) its turn within (\d+) feet\b/iu.exec(text)?.[1])
+      || Number(/\b(?:each|any) creature\b[^.]{0,30}?\bwithin (\d+) feet of (?:it|itself|the [^.,]{1,40}?)\b/iu.exec(text)?.[1])
       || (/\bwithin \[\[lookup @range\.value\b/u.test(raw) ? Number(pick(activity, system, "range").value) : 0));
   if ( !(size > 0) && !swallowed ) return null;
   const its = [];
   const definition = convertActivity({document, activity, system, spell, level, scales, notes: its, pool, saveDC, spellDC, creature, beasts,
     names});
   if ( !definition || !(definition.damage?.length || definition.effects?.length) ) return null;
-  notes.push(...its.filter(note => !note.startsWith("area")));
+  // Its area is the Emanation, and as a Trigger it costs nothing.
+  notes.push(...its.filter(note => !note.startsWith("area") && !note.startsWith("activation:")));
   const immunity = definition.save ? /\bSuccess:[^.]*\bimmune to (?:this|the|its)\b[^.]*\bfor (\d+|an?|one) (hour|minute|day)s?\b/iu.exec(text) : null;
   const immune = immunity ? [{id: `effect-${(definition.effects?.length ?? 0) + 1}`, type: "effect", name: `${document.name}: immune`,
     ruleElements: [], duration: {value: (Number(immunity[1]) || 1) * ({day: 24}[immunity[2].toLowerCase()] ?? 1),
       units: immunity[2].toLowerCase() === "minute" ? "minutes" : "hours"},
     saveOutcomePolicy: "success", metadata: {immuneTo: definition.id}}] : [];
-  const enemies = others ? (/\benem(?:y|ies)\b/iu.test(others[1]) || (activity.target?.affects?.type === "enemy"))
+  // "the spirit can target it" (not "can see it") is its choice: asked of its controller each time (its Item's reaction
+  // policy may say Always or Never), and only of its enemies.
+  const chooses = Boolean(whenOthers) && (others === whenOthers) &&/\bcan (?!see\b)\w/iu.test(text);
+  const enemies = others ? (/\benem(?:y|ies)\b/iu.test(others[1]) || (activity.target?.affects?.type === "enemy") || chooses)
     : /\bof (?:its|their|your|the [^.,]{1,60}?'s) choice\b/iu.test(text);
-  // "unless the azer has the Incapacitated condition", "while it doesn't have the Incapacitated condition".
-  const predicate = /\b(?:unless (?:the|it|its) [^.]{0,60}?|while (?:it|the [^.]{0,60}?) (?:doesn't|does not) have the )Incapacitated\b/iu.test(text)
+  // What it says of whom or when that the Trigger does not check.
+  for ( const qualifier of [/\(other than you\)/iu, /\bcan see(?: it\b)?/iu, /\bor the spell ends\b/iu] ) {
+    const said = qualifier.exec(text)?.[0];
+    if ( said ) notes.push(`trigger: "${said}" is by hand`);
+  }
+  // "unless the azer has the Incapacitated condition", "while (if) it doesn't have the Incapacitated condition",
+  // "provided that the aberration isn't &Reference[incapacitated]".
+  const predicate = /\b(?:unless (?:the|it|its) [^.]{0,60}?|(?:while|if) (?:it|the [^.]{0,60}?) (?:doesn't|does not) have the |provided (?:that )?[^.]{0,60}?(?:isn't|is not) (?:&(?:amp;)?Reference\[)?)Incapacitated\b/iu.test(text)
     ? {missingCondition: "incapacitated"} : null;
   return {schemaVersion: 1, id: `turn-${slugify(activity.name || document.name)}`, type: "Trigger", data: {kind: "automation",
     event: dies ? "creature.died" : (when.toLowerCase() === "start" ? "turn.started" : "turn.ended"), ...(predicate ? {predicate} : {}),
     around: swallowed ? {swallowed: true} : {radius: size, affects: enemies ? "enemies" : "others", ...(others ? {on: "others"} : {})},
     action: {schemaVersion: 1, id: definition.id, label: document.name, costs: {allOf: []}, ...(definition.tags ? {tags: definition.tags} : {}),
+      ...(chooses ? {configuration: [useChoice(document.name)]} : {}),
       ...(definition.save ? {save: definition.save} : {}), ...(definition.damage?.length ? {damage: definition.damage} : {}),
       ...((definition.effects?.length || immune.length) ? {effects: [...(definition.effects ?? []), ...immune]} : {})}}};
 }
@@ -5593,10 +5651,21 @@ function convertActivity({document, activity, system, spell, level, scales, note
     // Its changes, else the rules its name gives when none of them converts (Barkskin's `ac.min`: an AC floor).
     const changeNotes = [];
     const converted = hand?.ruleElements ?? (effect ? effectRules(effect, changeNotes, {scales, text: plainText(document)}) : []);
+    // What its words say that its changes, and this Action's earlier effects, don't (Stony Lethargy's "can't make
+    // Opportunity Attacks"; 2014 Stony Lethargy's no Reaction beside its halved Speed).
+    const told = effectTextRules(document, effect, [...converted, ...effects.flatMap(entry => entry.ruleElements ?? [])]);
     const named = (!hand && !converted.length && effect) ? ((effect.name === "Lingering Acid") ? lingeringAcid(document)
-      : (EFFECTS_BY_NAME[effect.name] ?? textEffect(document))) : null;
+      : (EFFECTS_BY_NAME[effect.name] ?? textEffect(document, told))) : null;
+    // One whose words only repeat what this Action's earlier effects give (the Beholder's Slowing Ray's copy) adds nothing.
+    if ( !hand && !named && !converted.length && !known.length && told.repeats && !told.ruleElements.length && !told.slug ) continue;
     if ( !named ) notes.push(...changeNotes);
-    const rules = [...(named?.ruleElements ?? converted), ...(byHand?.extraRules ?? []),
+    // A marker with no condition of its own read from its words alone (Mind Whip's no Reaction) keeps its by-hand note
+    // for what else they say ("it must choose whether it gets a move, an action, or a bonus action").
+    const read = [...told.ruleElements.map(rule => rule.id), ...(told.slug ? [told.slug] : [])];
+    if ( named && !known.length && !EFFECTS_BY_NAME[effect.name] && (effect.name !== "Lingering Acid") && read.length ) {
+      notes.push(`effect: "${effect.name}" takes ${read.join(", ")} from its words; anything else they say is by hand`);
+    }
+    const rules = [...(named?.ruleElements ?? [...converted, ...(hand ? [] : told.ruleElements)]), ...(byHand?.extraRules ?? []),
       ...structuredClone(EFFECT_REACTIONS[`${identifierOf(document)}/${effect?.name}`] ?? []),
       // Each check's roll mode on that ability's saves as well, while `savesToo` holds (Eldritch Hex on Hex).
       ...(byHand?.savesToo ? converted.filter(rule => (rule.type === "RollMode") && rule.data.domains.some(domain => domain.startsWith("check.")))
@@ -5614,7 +5683,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
       // One a rest ends by name (Spell Taxed: "until you finish a Long Rest") has no time limit besides.
       const duration = named?.restsLeft ? null : ((hand ?? named)?.duration ?? textBoundExpiry(effectDuration(effect.duration), plainText(document)) ?? untilNextTurnEnd);
       const onUser = (hand ?? named)?.appliesTo === "source";
-      const slug = byHand?.slug ?? named?.slug ?? (gaseous ? "gaseous" : null);
+      const slug = byHand?.slug ?? named?.slug ?? (gaseous ? "gaseous" : null) ?? (hand ? null : told.slug);
       // As many Long Rests as it lasts: Raise Dead's "Resurrection Sickness (Day 3)" (each rest lifts 1 of its -4).
       const restsLeft = (hand ?? named)?.restsLeft ?? (Number(/\(Day (\d+)\)$/u.exec(effect.name ?? "")?.[1]) || null);
       effects.push({id: `effect-${effects.length + 1}`, type: "effect", name: effect.name, ...(slug ? {slug} : {}),
@@ -6647,8 +6716,13 @@ export function textBoundExpiry(duration, text) {
   return {...duration, expiry: ends.has("end") ? "turnEnd" : "turnStart"};
 }
 
-/** An effect's dnd5e duration as a WildPath custom effect's V14 duration, or null when it has none. */
+/**
+ * An effect's dnd5e duration as a WildPath custom effect's V14 duration, or null when it has none. Older modules' data
+ * (Tasha's) keeps it as `{rounds, turns, seconds}`.
+ */
 function effectDuration(duration) {
+  const legacy = ["rounds", "turns", "seconds"].find(units => Number(duration?.[units]) > 0);
+  if ( (duration?.value == null) && legacy ) return {value: Number(duration[legacy]), units: legacy};
   const value = Number(duration?.value);
   if ( !(value > 0) || !DURATION_UNITS.has(duration.units) ) return null;
   return {value, units: duration.units, ...(EXPIRY_EVENTS.has(duration.expiry) ? {expiry: duration.expiry} : {})};

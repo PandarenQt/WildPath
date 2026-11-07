@@ -458,6 +458,25 @@ test). `affects` is `others` (everyone else) or `enemies` (the opposite disposit
   (a Pit Fiend's Fear Aura: "any enemy that starts its turn in the aura"; a Ghast's Stench). The converter reads a 2024
   stat block's lookups as words, and its distance from "within N feet" or the activity's range (2026-10-23: a Sea Hag's
   Vile Appearance, 30 feet). shortcut: "Beast or Humanoid" and "can see its true form" are not checked.
+- The converter's readings (2026-11-07) also take the books' curly apostrophe ("the spirit’s turns"), a size given as
+  "each creature ... within 5 feet of the spirit" (not "one enemy within 5 feet of it"), "When a creature starts its
+  turn within 10 feet of the spirit, the spirit can target it" (`on: "others"`, its enemies), "drops to 0 Hit Points"
+  as dying (Death Throes), and "provided that the aberration isn't incapacitated" as the Incapacitated predicate: the
+  summoned spirits' Whispering Aura, Stony Lethargy and Death Throes, a Brazen Gorgon's Flame Aura, a Manes Vaporspawn's
+  Sickening Vapors. Its "can" is a `use` choice in the Action's configuration, as a creature's own "you can": the
+  dispatcher answers it from the bearer Item's reaction policy (Never skips it, Always uses it, Ask asks its
+  controller), for an `on: "others"` aura as for its own triggers. What the Trigger does not check ("(other than you)",
+  "can see it", Death Throes' "or the spell ends") is a conversion note; its "plus this spell's level" is the summon's
+  `saveDamage` bonus (Summon Fiend's).
+- What a failed save's effect says beyond its dnd5e changes is read from its words (`effectTextRules`: the effect's
+  description, else the item's "Failure:" or "On a failed save" text, its `&Reference[...]` links read as words): "can't
+  make Opportunity Attacks" is the `no-opportunity-attacks` slug, "Speed is halved" a 0.5 `speed.multiplier` Modifier,
+  "can't take Reactions" a reaction ResourceCap. In a sentence "While Poisoned, ..." (a Dretch's Fetid Cloud) its rule
+  holds only while its creature has that condition (`predicate: {hasCondition}`). One of a kind its changes or an
+  earlier effect of the same Action already give is left out (Stony Lethargy's halved Speed; a Beholder's Slowing Ray
+  and its copy), and an effect read from its words alone notes that anything else they say is by hand (Mind Whip).
+  Older modules' data (Tasha's) gives its duration as `{rounds, turns, seconds}`, which is read too, and a legacy
+  save's damage is halved on a success only when its text says "half".
 - With `swallowed: true` (2026-10-22), it runs on each creature its creature has swallowed: one with Total Cover that its
   creature gave it (`conditionsFrom`), once per creature (2024 Purple Worm: "takes 17 (5d6) Acid damage at the start of
   each of the purple worm's turns"; the converter reads dnd5e's "Damage: Swallowed" activity). That Total Cover is
