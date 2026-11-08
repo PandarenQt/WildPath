@@ -30,12 +30,6 @@
           }
         ]
       },
-      "concentration": {
-        "duration": {
-          "value": 1,
-          "units": "minutes"
-        }
-      },
       "metadata": {
         "spellLevel": 2
       },
@@ -76,7 +70,6 @@
         "notes": [
           "cast: its 10 minutes (its text) is by hand; it lasts as the spell does",
           "not automated (utility, narrative): using it spends its cost; its description says the rest",
-          "concentration: its caster concentrates; what it sustains is by hand",
           "save: a failure marks its creature (narrative)"
         ]
       },

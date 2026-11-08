@@ -4251,8 +4251,8 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
   const spends = charge?.[1] ?? (used ? "1" : null);
   const paying = spends ? {...activity, consumption: {...activity.consumption, targets: [{type: "itemUses", value: spends}]}} : activity;
   // "duplicating the effect of the Grease spell in that area for 8 hours": a length its text gives other than the spell's is by hand.
-  const lasts = new RegExp(`\\b${spellDocument.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\}? spell\\b[^.]*?\\bfor (\\d+) (minute|hour)s?\\b`, "i")
-    .exec(plainText(document));
+  const spellName = spellDocument.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const lasts = new RegExp(`\\b${spellName}\\}? spell\\b[^.]*?\\bfor (\\d+) (minute|hour)s?\\b`, "i").exec(plainText(document));
   const spellRounds = (Number(spellDocument.system?.duration?.value) || 0) * (ROUNDS[spellDocument.system?.duration?.units] ?? 0);
   if ( lasts && (Number(lasts[1]) * ROUNDS[lasts[2].toLowerCase()] !== spellRounds) ) {
     notes.push(`cast: its ${lasts[1]} ${lasts[2].toLowerCase()}${(lasts[1] === "1") ? "" : "s"} (its text) is by hand; it lasts as the spell does`);
@@ -4276,6 +4276,18 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
     definition.effects = definition.effects.map(effect => ({...effect, ruleElements: (effect.ruleElements ?? [])
       .filter(rule => !((rule.type === "Trigger") && (rule.data?.event === "effect.ended")))}));
   }
+  // "the Haste spell for 1 minute (no Concentration required)" (2024 potions): nothing of this cast is concentrated on.
+  const unheld = !options.creature
+    && new RegExp(`\\b${spellName}\\}? spell\\b[^.]*\\(no Concentration required\\)`, "i").test(plainText(document));
+  if ( unheld ) {
+    delete definition.concentration;
+    if ( definition.effects ) definition.effects = definition.effects.map(({concentration: _held, ...effect}) => effect);
+    for ( const key of ["summon", "transform"] ) if ( definition[key] ) {
+      definition[key] = {...definition[key]};
+      delete definition[key].concentration;
+    }
+    if ( definition.area?.persistence ) definition.area = {...definition.area, persistence: {...definition.area.persistence, concentration: false}};
+  }
   // Cast without a slot; its other choices stay (Polymorph's Beast, a damage type, one of its effects). One cast above its
   // own level (a Lich's 5th-level Fireball) keeps the slot choice's scaling at that level, a choice the authority answers.
   const castLevel = Number(activity.spell?.level);
@@ -4295,7 +4307,7 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
     notes.push(`cast: "${options.creature ? `${named} (${limit})` : named}" is the whole spell; its limit is by hand`);
   }
   if ( definition.attack && casting ) definition.attack = {...definition.attack, ability: casting};
-  notes.push(...converted.notes.filter(note => !note.startsWith("uses:")));
+  notes.push(...converted.notes.filter(note => !note.startsWith("uses:") && !(unheld && note.startsWith("concentration:"))));
   const pool = activityPool({document, activity, scales: options.scales, spellName: spellDocument.name});
   const id = stableId(`${document._id}:cast:${activity._id ?? spellDocument._id}`);
   // A pool the cast fills (Heroes' Feast's servings) comes with it, and so do the spell's Actions that spend it (Consume Feast).

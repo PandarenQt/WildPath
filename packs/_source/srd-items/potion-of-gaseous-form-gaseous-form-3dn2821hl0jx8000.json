@@ -120,8 +120,7 @@
             "value": 3600,
             "units": "seconds",
             "expiry": "turnStart"
-          },
-          "concentration": true
+          }
         }
       ],
       "metadata": {

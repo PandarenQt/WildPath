@@ -149,8 +149,7 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "saveOutcomePolicy": "failure",
-          "concentration": true
+          "saveOutcomePolicy": "failure"
         },
         {
           "id": "effect-2",
@@ -242,8 +241,7 @@
             "units": "seconds",
             "expiry": "turnStart"
           },
-          "saveOutcomePolicy": "failure",
-          "concentration": true
+          "saveOutcomePolicy": "failure"
         }
       ],
       "configuration": [

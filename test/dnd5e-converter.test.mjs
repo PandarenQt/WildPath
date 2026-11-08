@@ -3731,10 +3731,10 @@ test("the 2014 wording of the extra action gives the same grant (Haste)", () => 
   assert.deepEqual(cast.flags.wildpath.conversion.notes.filter(note => /extra action/.test(note)), []);
 });
 
-test("a potion of the spell without its ending's lethargy gets the extra action but no effect.ended Trigger (Potion of Speed)", () => {
+test("a potion of the spell without its ending's lethargy or Concentration gets the extra action, no effect.ended Trigger and no concentration (Potion of Speed)", () => {
   const potion = {_id: "testPotionSpeed1", name: "Test Potion of Speed", type: "consumable", effects: [], system: {source: SRD,
     identifier: "test-potion-of-speed", uses: {max: "1", spent: 0, recovery: []}, description: {value: "<p>When you drink this potion, you "
-      + "gain the effect of the @UUID[Compendium.dnd5e.spells24.Item.testHasteSpell01]{Haste} spell for 1 minute (no Concentration "
+      + "gain the effect of the @UUID[Compendium.dnd5e.spells24.Item.testHasteSpell01]{Test Haste} spell for 1 minute (no Concentration "
       + "required) without suffering the wave of lethargy that typically occurs when the effect ends.</p>"},
     activities: {c: activity("cast", {activation: {type: "bonus", override: true}, spell: {uuid: "Compendium.dnd5e.spells24.Item.testHasteSpell01",
       level: "3", ability: ""}})}}};
@@ -3743,6 +3743,10 @@ test("a potion of the spell without its ending's lethargy gets the extra action 
   assert.deepEqual(rules.filter(rule => ["GrantResource", "Trigger"].includes(rule.type)).map(rule => [rule.type, rule.id]),
     [["GrantResource", "test-haste-extra-action"]], "the spell's grant (the same pool, never stacking), and no lethargy");
   assert.deepEqual(cast.flags.wildpath.conversion.notes.filter(note => /Apply Lethargy/.test(note)), []);
+  assert.deepEqual(cast.system.definition.effects.map(effect => effect.concentration), [undefined], "its drinker does not concentrate on it");
+  potion.system.description.value = potion.system.description.value.replace(" (no Concentration required)", "");
+  const held = convertItem(potion, {spells: {testHasteSpell01: hasteSpell()}}).items.find(item => item.type === "action");
+  assert.deepEqual(held.system.definition.effects.map(effect => effect.concentration), [true], "without the clause it is the spell's concentration");
 });
 
 test("darts sent at one creature or several (Magic Missile) are repeatable targets; an attack's rays are not", async () => {

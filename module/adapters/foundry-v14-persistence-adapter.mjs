@@ -10,16 +10,19 @@ export const FOUNDRY_PERSISTENCE_CODES = Object.freeze({
 /**
  * V14 ArrayFields persist only as whole values: an element path such as `system.pools.1.value` is dropped
  * without error. Fold element paths into one write of the Document's detached source array, as
- * WildPathActor's own pool writes do.
+ * WildPathActor's own pool writes do. With `planned` (the source the indices were read against), an element
+ * with an id is found by that id, so a write still reaches its element after another write moved it.
  */
-export function foldArrayElementUpdates(document, updates) {
+export function foldArrayElementUpdates(document, updates, planned=null) {
   let source = null;
   const folded = {};
   for ( const [path, value] of Object.entries(updates ?? {}) ) {
-    const match = /^(.+?)\.(\d+)\.(.+)$/u.exec(path);
+    const match = ELEMENT_PATH.exec(path);
     if ( match ) source ??= document?.toObject?.(true) ?? null;
     const array = match ? valueAtPath(source, match[1]) : null;
-    const element = Array.isArray(array) ? array[Number(match[2])] : null;
+    const id = match ? valueAtPath(planned, match[1])?.[Number(match[2])]?.id : undefined;
+    const element = !Array.isArray(array) ? null
+      : (id === undefined) ? array[Number(match[2])] : array.find(entry => entry?.id === id);
     if ( !element || (typeof element !== "object") ) {
       folded[path] = value;
       continue;
@@ -29,6 +32,8 @@ export function foldArrayElementUpdates(document, updates) {
   }
   return folded;
 }
+
+const ELEMENT_PATH = /^(.+?)\.(\d+)\.(.+)$/u;
 
 function valueAtPath(object, path) {
   return path.split(".").reduce((value, key) => value?.[key], object);
@@ -67,7 +72,11 @@ export function createFoundryV14DocumentPersistenceAdapter({
         metadata
       });
 
-      const result = await document.update(foldArrayElementUpdates(document, clonePlain(updates)), clonePlain(operation) ?? {});
+      // An Actor's record sync (a pool the effect this commit just created grants) may still be landing: fold onto the
+      // pools it stores, or this write puts back the array it replaced. Its indices still name what they were read against.
+      const planned = Object.keys(updates).some(path => ELEMENT_PATH.test(path)) ? (document.toObject?.(true) ?? null) : null;
+      if ( planned ) await document.recordsSettled?.();
+      const result = await document.update(foldArrayElementUpdates(document, clonePlain(updates), planned), clonePlain(operation) ?? {});
       return persistenceSuccess(FOUNDRY_PERSISTENCE_CODES.OK, {
         actorRef: actorRef ?? documentRef(document),
         updates,

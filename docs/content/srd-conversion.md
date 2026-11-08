@@ -1162,7 +1162,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Potion of Invisibility | equipment24 | Potion of Invisibility (automated) | — |
 | Potion of Invulnerability | equipment24 | Potion of Invulnerability (automated) | — |
 | Potion of Longevity | equipment24 | Potion of Longevity (manual) | not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Potion of Mind Reading | equipment24 | Potion of Mind Reading: Detect Thoughts (manual) | cast: its 10 minutes (its text) is by hand; it lasts as the spell does; not automated (utility, narrative): using it spends its cost; its description says the rest; concentration: its caster concentrates; what it sustains is by hand; save: a failure marks its creature (narrative) |
+| Potion of Mind Reading | equipment24 | Potion of Mind Reading: Detect Thoughts (manual) | cast: its 10 minutes (its text) is by hand; it lasts as the spell does; not automated (utility, narrative): using it spends its cost; its description says the rest; save: a failure marks its creature (narrative) |
 | Potion of Poison | equipment24 | Potion of Poison (automated) | — |
 | Potion of Resistance | equipment24 | Potion of Resistance (automated) | — |
 | Potion of Speed | equipment24 | Potion of Speed: Haste (automated) | — |

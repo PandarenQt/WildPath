@@ -34,7 +34,6 @@
         "actorRef": "Compendium.wildpath.srd-creatures.Actor.phbInvisibleSens",
         "count": 1,
         "rounds": 100,
-        "concentration": true,
         "spellLevel": 3
       },
       "metadata": {

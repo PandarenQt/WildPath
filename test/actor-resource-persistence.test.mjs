@@ -193,6 +193,10 @@ test("the Foundry persistence adapter folds pool element paths into one whole-ar
   assert.equal(source.system.pools[1].value, 1, "the Document's own source is not mutated");
   assert.deepEqual(foldArrayElementUpdates(actor, {"system.pools.7.value": 0}), {"system.pools.7.value": 0},
     "a path to a missing element is left for Foundry to reject or ignore");
+  const planned = {system: {pools: [{id: "pruned"}, {id: "spell-slot.1"}, {id: "spell-slot.2"}]}};
+  assert.deepEqual(foldArrayElementUpdates(actor, {"system.pools.2.value": 0}, planned),
+    {"system.pools": [{id: "spell-slot.1", base: 1, value: 1}, {id: "spell-slot.2", base: 1, value: 0}]},
+    "a pool pruned since the indices were read moves the next one down; the write still reaches its own by id");
 });
 
 test("2024 long rest: all health back, but only for a creature with at least 1 health when it starts", async () => {
@@ -250,5 +254,47 @@ test("a partial refill on a rest: one use back on a short rest, a wand's rolled 
     assert.equal(wind.source.system.pools[2].value, 4, "Second Wind: one use back on a short rest");
   } finally {
     delete globalThis.Roll; delete globalThis.ChatMessage; delete globalThis.game;
+  }
+});
+
+test("an Action whose effect grants a pool and whose payment is on the same creature keeps both pools (Potion of Speed)", async () => {
+  const {executeResolutionTransaction, createActorUpdateTransactionOperation} = await import("../module/resolvers/resolution-transaction-resolver.mjs");
+  const source = {system: {pools: [{id: "potion-uses", label: "Uses", base: 1, bonus: 0, max: 1, value: 1, recovery: "none"}]}};
+  const granted = [];
+  // A round trip: each write lands a tick after it is sent, in the order sent, as the server answers.
+  const roundTrip = () => new Promise(resolve => setTimeout(resolve, 0));
+  const actor = Object.assign(new WildPathActor(), {
+    id: "drinker", uuid: "Actor.drinker", items: [],
+    getGrantedResources: () => granted,
+    toObject: () => structuredClone(source),
+    async update(updates) {
+      await roundTrip();
+      Object.assign(source.system, {pools: structuredClone(updates["system.pools"] ?? source.system.pools)});
+      return this;
+    },
+    async createEmbeddedDocuments(name, documents) {
+      await roundTrip();
+      granted.push({id: "haste-extra-action", label: "Hasted", maximum: 1, recovery: "turn"});
+      // Foundry calls this before the create resolves; it starts the record sync without waiting for it.
+      this._onCreateDescendantDocuments(this, "effects", documents, documents, {}, "user");
+      return documents;
+    }
+  });
+  Object.getPrototypeOf(WildPathActor.prototype)._onCreateDescendantDocuments ??= () => {};
+  globalThis.game = {user: {id: "user"}};
+  try {
+    const persistencePort = createFoundryV14DocumentPersistenceAdapter();
+    const transaction = await executeResolutionTransaction({persistencePort, operations: [
+      {id: "target:0", commit: async () => (await persistencePort.createEmbeddedDocuments({actor, embeddedName: "ActiveEffect",
+        documents: [{name: "Hasted"}]})).ok},
+      createActorUpdateTransactionOperation({id: "source:0:resourcePayment", actor, persistencePort,
+        updates: {"system.pools.0.value": 0}, rollbackUpdates: {"system.pools.0.value": 1}})
+    ]});
+    assert.equal(transaction.ok, true);
+    await actor.recordsSettled();
+    assert.deepEqual(source.system.pools.map(pool => [pool.id, pool.value]), [["potion-uses", 0], ["haste-extra-action", 1]],
+      "the payment's write starts from the pools the effect's record sync stored");
+  } finally {
+    delete globalThis.game;
   }
 });
