@@ -47,6 +47,20 @@ export default class WildPathCombatant extends FoundryCombatantDocument {
       formula: this._getInitiativeFormula(), ...test}), {title});
   }
 
+  /**
+   * An initiative set where there was none counts as rolled (`initiative.rolled`, foundry-multiplayer-runtime): every
+   * client's update hook sees the operation's `wildpath.initiativeRolled[id]`, so a later edit, re-sort or Portent's
+   * replacement is not taken for a roll. Keyed by id: one operation's options are shared by every Combatant it updates.
+   * @override
+   */
+  async _preUpdate(changes, options, user) {
+    const allowed = await super._preUpdate(changes, options, user);
+    if ( (allowed !== false) && !Number.isFinite(this.initiative) && Number.isFinite(changes?.initiative) ) {
+      ((options.wildpath ??= {}).initiativeRolled ??= {})[this.id] = true;
+    }
+    return allowed;
+  }
+
   /** @override Foundry's roll, by the dice policy; closed unrolled, its initiative stays as it was. */
   async rollInitiative(formula) {
     const shown = await this.rollInitiativeDice(formula);

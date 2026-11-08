@@ -6,7 +6,7 @@ import {diceTerms, rollFromTerms} from "./fixtures/foundry-dice-terms.mjs";
 // into the roll prompt, digital dice rolled by Foundry. Only the globals needed to import the real Actor class.
 globalThis.Actor = class {};
 globalThis.foundry = {
-  documents: {Combat: class {}, Combatant: class { _getInitiativeFormula() { return "1d20"; } }},
+  documents: {Combat: class {}, Combatant: class { _getInitiativeFormula() { return "1d20"; } async _preUpdate() {} }},
   data: {fields: {}, ActiveEffectTypeDataModel: class {}},
   utils: {isEmpty: value => Object.keys(value).length === 0, randomID: () => "abc", escapeHTML: value => value,
     mergeObject: (original, other) => Object.assign(original, other)},
@@ -174,6 +174,18 @@ test("Portent's foretelling rolls with physical dice: each d20 typed on its own,
   const rolled = creature({items: [feature]});
   await rollPortentDice(rolled, digital.game);
   assert.deepEqual(rolled.updates[0]["flags.wildpath.portent"], {1: 20, 2: 20, 3: 0}, "digital dice roll each d20");
+});
+
+test("Initiative set where there was none counts as rolled; a later change does not", async () => {
+  const fighter = (id, initiative) => Object.assign(Object.create(WildPathCombatant.prototype), {id, initiative});
+  const options = {};
+  await fighter("ada", null)._preUpdate({initiative: 15}, options);
+  await fighter("bo", null)._preUpdate({initiative: 9}, options);
+  assert.deepEqual(options.wildpath.initiativeRolled, {ada: true, bo: true}, "one batch, each Combatant by id");
+  const edited = {};
+  await fighter("ada", 15)._preUpdate({initiative: 17}, edited);
+  await fighter("bo", null)._preUpdate({hidden: true}, edited);
+  assert.deepEqual(edited, {}, "a GM's edit or Portent's replacement, and an update without initiative, are no roll");
 });
 
 test("Initiative with physical dice: the roller types the d20 and its modifier is added; a closed prompt stops the rest", async () => {

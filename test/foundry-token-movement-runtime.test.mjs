@@ -3549,6 +3549,31 @@ test("Foundry runtime publishes informational AutomationEvents through the gener
   }
 });
 
+test("initiative.rolled runs only for an initiative set where there was none, not a later change", async () => {
+  const fixture = createMovementRuntimeFixture();
+  const game = fixture.gmGame;
+  game.socket = {on() {}, emit() {}};
+  const previousHooks = globalThis.Hooks;
+  const handlers = {};
+  globalThis.Hooks = {callAll() { return false; }, on(name, fn) { (handlers[name] ??= []).push(fn); }};
+  try {
+    assert.equal(registerFoundryV14MultiplayerResolution({game}).ok, true);
+    // The dispatcher reads a creature's Items for its Triggers once per event it runs.
+    let dispatched = 0;
+    const actor = {id: "ana", uuid: "Actor.ana", statuses: new Set(), effects: [], get items() { dispatched += 1; return []; }};
+    const combatant = {id: "c1", actor, token: null};
+    const update = (options) => handlers.updateCombatant.forEach(fn => fn(combatant, {initiative: 14}, options));
+    update({});
+    update({wildpath: {initiativeRolled: {other: true}}});
+    assert.equal(dispatched, 0, "a GM's edit, a re-sort or Portent's replacement refills nothing");
+    update({wildpath: {initiativeRolled: {c1: true}}});
+    assert.equal(dispatched, 1, "its first initiative is rolled");
+  } finally {
+    if ( previousHooks === undefined ) delete globalThis.Hooks;
+    else globalThis.Hooks = previousHooks;
+  }
+});
+
 for ( const handoff of [false, true] ) {
   test(`approval owner cannot author events after its GM authority is ${handoff ? "replaced" : "unavailable"}`, async () => {
     const fixture = createMovementRuntimeFixture();

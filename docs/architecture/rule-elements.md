@@ -450,7 +450,8 @@ happens to that creature:
   "effect.ended", action: {..., costs: {allOf: []}, effects: [/* Incapacitated, Speed 0, until the end of its
   next turn */]}}}` on Hasted.
 - `initiative.rolled` comes from any client's roll, through the Combatant update the GM sees
-  (`event.data.initiative`).
+  (`event.data.initiative`): only an initiative set where it had none (`Combatant#_preUpdate` marks it), so a GM's
+  later edit, a re-sort or Portent's replacement refills nothing. A tracker Reroll of a set initiative is no new roll.
 - `rest.completed` comes from `Actor#rest` (`event.data.restType`, `shortRest` or `longRest`).
 - `time.elapsed` (2026-11-07) comes from the `updateWorldTime` hook (active GM, `event.data.seconds` its dt), for
   each creature with its Token (`worldCreatures`: every Token's creature and every world Actor whose prototype is

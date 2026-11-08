@@ -345,7 +345,7 @@ export function registerFoundryV14MultiplayerResolution({
   // Item enchantments (infusions): the active GM puts an Action's effect on the Item it picked.
   const enchantments = createFoundryEnchantments({game, logger});
   // Whoever rolls, every client sees the Combatant update; the active GM dispatches it.
-  globalThis.Hooks?.on?.("updateCombatant", (combatant, changed) => {
+  globalThis.Hooks?.on?.("updateCombatant", (combatant, changed, options) => {
     if ( !Number.isFinite(changed?.initiative) ) return;
     // Its initiative rolled, Surprised has done its part (2024: Disadvantage on that roll); the active GM ends it.
     // (2014: it lasts through its first turn instead: documents/combat.mjs.)
@@ -353,6 +353,8 @@ export function registerFoundryV14MultiplayerResolution({
       && (game.settings?.get?.("wildpath", "rulesVersion") !== "2014");
     if ( surprised ) void combatant.actor.toggleCondition?.("surprised", {levels: -1})
       .catch?.(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Initiative") ?? "Initiative"}, error));
+    // Only an initiative set where there was none (Combatant#_preUpdate): a GM's later edit or a Portent refills nothing.
+    if ( !options?.wildpath?.initiativeRolled?.[combatant.id] ) return;
     void automation.dispatch("initiative.rolled", {actor: combatant.actor, token: combatant.token,
       data: {initiative: changed.initiative}}).catch(error => gmNotice("WILDPATH.NOTICE.StepFailed", {step: game.i18n?.localize?.("WILDPATH.NOTICE.Step.Initiative") ?? "Initiative"}, error));
   });
