@@ -307,4 +307,4 @@ against the 2024 wording ("Resistance and then Vulnerability are applied after a
   and update the test that pins the combined factor. No data change.
 - Done meanwhile: nothing; the combined per-component factor stays.
 - Recommendation: yes. A creature with both to the same type is rare, but two parts of one type in a hit are common
-  (Flame Tongue, Searing Smite), and each odd part loses a point today.
+  (a Flame Tongue hit with Searing Smite: 2d6 + 1d6 Fire), and each odd part loses a point today.
