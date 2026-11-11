@@ -219,6 +219,15 @@ test("ActionDefinition adapts target count ValueExpressions and target Predicate
   assert.deepEqual(resolverInput.targeting.eligibilityPolicy.predicate, {tagsAny: ["ally"]});
 });
 
+test("a target count that is a table is its row for the creature (Eldritch Blast's beams by character level)", () => {
+  const beams = {...meleeFixture(), id: "action:beams", targeting: {type: "multiple", required: true, repeatable: true,
+    count: {type: "table", key: {type: "character-level"}, rows: {1: 1, 5: 2, 11: 3, 17: 4}}, refinementPolicy: {minSelections: 1}}};
+  assert.equal(validateActionDefinition(beams).ok, true, JSON.stringify(validateActionDefinition(beams).errors));
+  const at = level => actionDefinitionToResolverInput(beams, {actorSystem: {details: {level}}}).targeting.refinementPolicy;
+  assert.deepEqual(at(5), {minSelections: 1, maxSelections: 2, instances: 2}, "two beams at level 5");
+  assert.deepEqual([at(1).instances, at(16).instances, at(17).instances], [1, 3, 4]);
+});
+
 test("ActionDefinition keeps healing separate from damage", () => {
   const definition = {
     schemaVersion: 1,

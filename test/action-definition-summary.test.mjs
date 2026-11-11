@@ -17,6 +17,9 @@ test("the item sheet summarizes what a definition does, one line per part", () =
     [{capability: "spell-slot.2", amount: 1}]]}, summon: {actorRef: "Actor.wolf", count: 2, concentration: true}}, localize), [
     ["Cost", "1 spell-slot.1 or 1 spell-slot.2"], ["Summon", "Actor.wolf ×2, concentration"]]);
   assert.deepEqual(summarizeActionDefinition(null), []);
+  // A count that grows (Eldritch Blast's beams by level, a table) is named as damage's expressions are, not "[object Object]".
+  const blast = JSON.parse(readFileSync("packs/_source/srd-items/eldritch-blast-phbsplEldritchBl.json", "utf8")).system.definition;
+  assert.equal(new Map(summarizeActionDefinition(blast, localize)).get("Targets"), "multiple (table)");
 });
 
 test("the summary's labels and a free cost are lang keys the sheet localizes", () => {

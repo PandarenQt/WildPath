@@ -55,6 +55,12 @@ test("an Action's push moves the creatures it hit or that failed their saves, as
   await wallPush.afterResolution({state: {source: {tokenRef: "caster"}, actionDefinition: {attack: {type: "melee"}, push: {distance: 10}},
     results: {attackResolution: {hits: [{target: {tokenId: "target"}}]}}}});
   assert.deepEqual(walled.tokens.get("target").updates[0].data, {x: 1200, y: 1000}, "a wall stops it");
+  // Repelling Blast: each beam that hits pushes its creature (one hit result per beam).
+  const beams = scene([["caster", 1000, 1000], ["target", 1100, 1000]]);
+  await createFoundryForcedMovement({game, fromUuid: () => beams.tokens.get("caster")}).afterResolution({state: {source: {tokenRef: "caster"},
+    actionDefinition: {attack: {type: "ranged"}, push: {distance: 10}}, results: {attackResolution: {hits: [{target: {tokenId: "target"}},
+      {target: {tokenId: "target"}}]}}}});
+  assert.deepEqual(beams.tokens.get("target").updates.map(update => update.data), [{x: 1300, y: 1000}, {x: 1500, y: 1000}], "10 feet a beam");
   assert.deepEqual(await createFoundryForcedMovement({game: {user: {id: "player"}, users: {activeGM: {id: "gm"}}},
     fromUuid: () => walled.tokens.get("caster")}).afterResolution({state}), [], "only the active GM moves them");
 });

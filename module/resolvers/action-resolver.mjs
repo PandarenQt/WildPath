@@ -1153,7 +1153,8 @@ function conditionEffectTargetsForRequest({request, targetResolution, attackReso
     return {
       ok: true,
       code: ACTION_RESOLVER_CODES.OK,
-      entries: attackResolution.hits.map(hit => ({
+      // A creature several of its rays hit takes its effects once: only damage repeats per hit.
+      entries: firstHitOnEachCreature(attackResolution.hits).map(hit => ({
         target: hit.target,
         targetContext: hit.targetContext ?? {target: hit.target, selected: true},
         saveResult: null
@@ -1293,7 +1294,8 @@ function componentsForTargetFromDamage({damage, saveResolution}) {
   const saved = componentsForTargetFromSaveOutcomePolicy({damage, saveResolution});
   return (targetContext, components) => {
     const refs = targetLookupRefs(targetContext.target ?? targetContext);
-    const own = components.filter(component => !Array.isArray(component.metadata?.targetRefs)
+    // A further hit of a repeatable attack deals its own roll (Scorching Ray's second ray: `damage.byInstance`).
+    const own = (damage.byInstance?.[targetContext.instance]?.components ?? components).filter(component => !Array.isArray(component.metadata?.targetRefs)
       || component.metadata.targetRefs.some(ref => refs.includes(ref)));
     return saved ? saved(targetContext, own) : own;
   };
@@ -1397,6 +1399,17 @@ function roundDamageAmount(value, rounding) {
     case "floor":
     default: return Math.floor(value);
   }
+}
+
+/** Its hits, only the first on each creature (several of Scorching Ray's rays on one). */
+function firstHitOnEachCreature(hits) {
+  const seen = new Set();
+  return hits.filter(hit => {
+    const key = hit.target?.tokenId ?? hit.target?.actorId ?? hit.target?.id;
+    if ( seen.has(key) ) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function damageTargetContextsFromAttack(attackResolution) {

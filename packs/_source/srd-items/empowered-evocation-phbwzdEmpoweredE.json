@@ -25,6 +25,9 @@
           "valueExpression": {
             "type": "ability-modifier",
             "ability": "intellect"
+          },
+          "metadata": {
+            "oneRoll": true
           }
         }
       }

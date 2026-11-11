@@ -22,7 +22,9 @@ export function summarizeActionDefinition(definition, localize = key => key) {
         ["WILDPATH.BUILDER.Section.costs", costText(d.costs) ?? localize("WILDPATH.BUILDER.Costs.Free")],
         ["WILDPATH.BUILDER.Summary.ControllerCost", costText(d.controllerCosts)],
         ["WILDPATH.BUILDER.Section.targets", d.targeting?.type
-                ? `${d.targeting.type}${d.targeting.count ? ` (${d.targeting.count})` : ""}` : null],
+                // A count that grows (Eldritch Blast's beams by level) is named as its formula or type, as damage is.
+                ? `${d.targeting.type}${d.targeting.count ? ` (${(typeof d.targeting.count === "number") ? d.targeting.count
+                    : amountText(d.targeting.count)})` : ""}` : null],
         ["WILDPATH.BUILDER.Section.range", d.range?.type ? `${d.range.type} ${d.range.distance?.value ?? d.range.normal?.value ?? ""}${d.range.long?.value ? `/${d.range.long.value}` : ""} ft` : null],
         ["WILDPATH.BUILDER.Section.area", d.area?.shape
                 ? `${d.area.shape} ${d.area.size?.value ?? "?"} ft${d.area.persistence ? ", lasting" : ""}` : null],

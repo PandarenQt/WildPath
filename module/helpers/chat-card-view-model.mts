@@ -126,7 +126,9 @@ export function createResolutionCardViewModel(result: PublicResolutionResult,
     // A target the Action did nothing to is no longer among its targets, but is still named.
     targets: [...(result.targets ?? []), ...(result.outcomes?.unaffected ?? [])
       .filter(spared => !(result.targets ?? []).some(target => sameTarget(spared, target)))].map(target => {
-      const attackEntry = attack.find(entry => sameTarget(entry.target, target));
+      // Several attacks at one creature (Scorching Ray's rays): its best, so a creature any of them hit shows the hit.
+      const attackEntry = attack.filter(entry => sameTarget(entry.target, target))
+        .reduce<ContestEntry | undefined>((best, entry) => ((!best || (attackRank(entry) > attackRank(best))) ? entry : best), undefined);
       const saveEntry = save.find(entry => sameTarget(entry.target, target));
       const kept = (result.outcomes?.zeroHp ?? []).find(entry => sameTarget(entry.target, target));
       const checks = (result.outcomes?.concentration ?? []).filter(entry => sameTarget(entry.target, target));
@@ -185,6 +187,8 @@ function attackOutcome(entry: ContestEntry): CardOutcome {
   if ( !entry.hit ) return {label: CHAT_OUTCOME_KEYS.miss, tone: "failure"};
   return {label: entry.critical ? CHAT_OUTCOME_KEYS.critical : CHAT_OUTCOME_KEYS.hit, tone: "success"};
 }
+
+const attackRank = (entry: ContestEntry) => (entry.hit ? (entry.critical ? 3 : 2) : (entry.decoy ? 1 : 0));
 
 function saveOutcome(entry: ContestEntry): CardOutcome {
   if ( entry.success && entry.succeededInstead ) return {label: CHAT_OUTCOME_KEYS.legendaryResistance, tone: "success"};

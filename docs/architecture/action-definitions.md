@@ -191,12 +191,50 @@ result, so every hit on one creature is its own damage for its Concentration, a 
 saves. The damage dice are rolled once for the Action and every hit deals that roll, as every target of any Action does.
 A reaction to the damage answers one hit: its reduction (Stone's Endurance) comes off a creature's first damage result and
 its redirect (Protective Bond) moves only that one.
-A repeatable Action may not have an attack roll (its one roll cannot stand for each hit): Scorching Ray's rays and
-Eldritch Blast's beams each roll their own attack and are not converted as repeatable: Scorching Ray keeps one ray, and
-its more rays per slot level are by hand and noted (`upcast:`). Magic Missile's more darts per level raise the count
-(`scaleTargets`), and so its instances; no die is added to a dart. The converter reads it from "to
-hit one creature or several" on an Action with no attack. Shortcuts: only damage repeats per instance (no SRD repeatable
-Action heals or applies an effect); the Action Builder cannot set it.
+Magic Missile's more darts per level raise the count (`scaleTargets`), and so its instances; no die is added to a dart.
+
+**With an attack (2026-11-12).** A repeatable Action with an attack (Scorching Ray's rays, Eldritch Blast's beams) makes
+one attack per instance, each judged on its own and damaged on its own. The attack roll stage asks for every instance's
+roll at once (`attack-roll` for the first, `attack-roll:<n>` for the others) into the transient `attack.rolls`, in
+instance order (the selected target contexts in order, each repeated its share); `attack.roll` stays the first. Each
+rolls with its own creature's roll-mode sources, which the runtime gives by Token for a repeatable attack
+(`attack.rollModeSourcesByTarget`: `[{mode, once?}]`). A source an attack uses up (`once`: its effect's `endsWhen`) counts
+on one roll only: the creature's own that ends when it attacks (Sap, `attacks`) on the Action's first roll, and one its
+target has that ends when attacked (Guiding Bolt's Advantage, Help's, a Vex: `attacked...`) on the first roll at that
+target. A reaction rider's roll mode (Brutal Strike) replaces them all. The outcome stage expands each context
+into one context per instance (`instance`, its own `roll`) for the attack resolver, so each hit, miss and critical hit is
+its own result. The first hit's damage is the Action's ordinary damage roll; each further hit rolls its own
+(`damage-roll:hit-<n>`) with its own critical hit, kept in the transient `damage.byInstance` by instance, which the
+damage resolver deals to that hit. Each further roll is the definition's damage unrolled: the creature's damage modifier
+is on every roll (Agonizing Blast, once per beam) but the part of it a Modifier gives to one damage roll only
+(`metadata.oneRoll`, the runtime's transient `damage.modifierOneRoll`: Empowered Evocation, Elemental Affinity), and a
+once-a-turn extra (Sneak Attack) and a reaction rider's added damage are only on the first. An Action of one instance (Eldritch Blast below level 5) keeps the single-roll path. Everything keyed
+by creature (forced outcomes, bonuses, the defense Shield raises) applies to each instance at that creature: Shield,
+lasting to its caster's next turn, judges every ray again. An event about the attack, its damage or its push names each
+creature once; its data and the push stay per hit, so Repelling Blast pushes once per beam that hits. Effects an attack
+applies on a hit are applied once per creature. Nothing is persisted: `attack.rolls`, `damage.byInstance` and the expanded
+contexts live in the resolution state. The chat card shows each creature's best outcome (a hit after a miss is a hit).
+A redirect that keeps the attack's roll (Cloud Rune) moves its creature's first hit and compares that hit's roll.
+
+A `count` may be a `table` ValueExpression (the cantrip-scaling shape): it is the creature's row before targeting, as a
+cantrip's dice are (Eldritch Blast: `{type: "table", key: {type: "character-level"}, rows: {1: 1, 5: 2, 11: 3, 17: 4}}`).
+
+The converter reads repeatable from "to hit one creature or several", "at one target within range or at several" or "at
+the same target or at different ones". Its count is dnd5e's inline total in the description
+(`[[@item.level + 1]]{Total Rays}`) when it has one: a count growing with the spell's level becomes a count and a
+`scaleTargets` per level (Scorching Ray: 3, one more per slot level; a dragon casting its level 3 version gets 4 through
+its fixed cast level), and one reading the character's level becomes a table on that level, a row where its value
+changes (Eldritch Blast).
+
+Shortcuts: Portent and Heroic Inspiration offer only the first instance's attack roll; Empowered Spell and a damage-die
+reroll (Piercer) reroll only the first hit's damage; a reaction's attack penalty (Cutting Words) lowers the instance its
+event showed first; Mirror Image's decoy is keyed by creature, so it turns every hit on that creature into a decoy;
+Repelling Blast is taken once per Action, for every beam that hits; Undead Fortitude and the dying adapter read "any
+critical hit on this creature", not the hit that dealt the damage; a creature's attack bonus an attack uses up (Sundering
+Blow's +5) is on every ray at it; the chat card names one outcome per creature, not one per ray; targets are shared
+before any roll; a count expression other than a
+table (Abjure Foes' `max(1, Presence)`) still reaches refinement unevaluated; the share prompt does not check the total as
+it is typed; the Action Builder cannot set `repeatable` and shows a table count read-only.
 
 ## Common actions (2026-10-14, after Baldur's Gate 3)
 

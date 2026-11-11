@@ -91,6 +91,10 @@ Refinement decisions are explicit operations:
 This distinction matters because a creature can remain inside an AoE footprint while receiving
 special resolution handling. Protective mechanics should not always be modeled as target removal.
 
+A definition's `targeting.count` may be a `table` ValueExpression (Eldritch Blast's beams by character level): the
+ActionDefinition adapter turns it into the creature's row before refinement, so `maxSelections` and a repeatable
+Action's `instances` are numbers.
+
 ## Selection Policies
 
 Selection policies describe:

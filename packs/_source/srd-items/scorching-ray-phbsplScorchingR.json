@@ -40,9 +40,13 @@
         }
       },
       "targeting": {
-        "type": "single",
+        "type": "multiple",
         "required": true,
-        "count": 1
+        "count": 3,
+        "refinementPolicy": {
+          "minSelections": 1
+        },
+        "repeatable": true
       },
       "damage": [
         {
@@ -124,7 +128,14 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleTargets",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 2,
+              "perLevel": 1
+            }
+          ]
         }
       ],
       "metadata": {
@@ -153,9 +164,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "upcast: the more targets its text gives for each slot level above its own are by hand"
-        ]
+        "notes": []
       }
     }
   }

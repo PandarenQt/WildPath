@@ -336,8 +336,12 @@ test("spell riders (SRD): Potent Spellcasting on a cantrip, Empowered Evocation,
   assert.equal(actionCombatStatistics(potent, fireBolt).damage?.modifierTotal, 3, "Wisdom 16 on a cantrip");
   assert.equal(actionCombatStatistics(potent, fireball).damage, null, "not on Fireball");
   assert.equal(actionCombatStatistics(caster(pack("empowered-evocation").system.ruleElements), fireball).damage?.modifierTotal, 4);
+  // "one damage roll of that spell": all of it on one roll (`modifierOneRoll`), not each of Scorching Ray's rays.
+  assert.equal(actionCombatStatistics(caster(pack("empowered-evocation").system.ruleElements), fireball).damage?.modifierOneRoll, 4);
+  assert.equal(actionCombatStatistics(potent, fireBolt).damage?.modifierOneRoll, undefined, "Potent Spellcasting is on each roll");
   const fire = pack("elemental-affinity-choose").system.definition.effects.find(effect => effect.id === "fire").ruleElements;
   assert.equal(actionCombatStatistics(caster(fire), fireball).damage?.modifierTotal, 2, "Charisma 14 on fire");
+  assert.equal(actionCombatStatistics(caster(fire), fireball).damage?.modifierOneRoll, 2);
   assert.equal(actionCombatStatistics(caster(fire), pack("lightning-bolt-").system.definition).damage, null);
   const life = caster(pack("disciple-of-life").system.ruleElements);
   const cure = pack("cure-wounds-").system.definition;

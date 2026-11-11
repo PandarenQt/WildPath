@@ -41,9 +41,24 @@
         }
       },
       "targeting": {
-        "type": "single",
+        "type": "multiple",
         "required": true,
-        "count": 1
+        "count": {
+          "type": "table",
+          "key": {
+            "type": "character-level"
+          },
+          "rows": {
+            "1": 1,
+            "5": 2,
+            "11": 3,
+            "17": 4
+          }
+        },
+        "refinementPolicy": {
+          "minSelections": 1
+        },
+        "repeatable": true
       },
       "damage": [
         {

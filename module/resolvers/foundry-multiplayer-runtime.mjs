@@ -1038,6 +1038,12 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
   if ( definition?.targeting?.notSelf && targetEntries.some(entry => entry.actor === actor) ) return refused("WILDPATH.COMMON.NotSelf");
   const attackRollModeSourceList = definition?.attack ? foundryAttackRollModeSources({actor, action, definition, targetEntries, spatial, game, sourceToken}) : null;
   const attackRollMode = attackRollModeSourceList ? combineRollModes(attackRollModeSourceList) : null;
+  // Each target's own sources, for an Action whose hits each roll their own attack (Scorching Ray's rays), marking those an
+  // attack uses up (attackSpentSource) so only one ray has them.
+  const attackRollModeSourcesByTarget = (definition?.attack && definition.targeting?.repeatable)
+    ? Object.fromEntries(targetEntries.map((entry, index) => [targets[index].tokenId ?? targets[index].id,
+      foundryAttackRollModeSources({actor, action, definition, targetEntries: [entry], spatial, game, sourceToken})
+        .map(source => ({mode: source?.mode ?? source, ...attackSpentSource(source, actor, entry.actor)}))])) : null;
   const attackOutcomes = definition?.attack ? foundryAttackOutcomes({definition, targets, targetEntries, spatial, game, sourceToken}) : null;
   const attackBonuses = definition?.attack ? foundryAttackBonuses({targets, targetEntries, game, sourceToken}) : null;
   // Extra damage that depends on this attack (Sneak Attack: Advantage, or an ally beside the target) sees it. A target's
@@ -1150,6 +1156,7 @@ export async function foundryActionIntentToStagedOptions({intent={}, senderUserI
       ...(healingStatistic ? {healing: healingStatistic} : {}),
       ...((statistics.attack || attackRollMode) ? {attack: {...(statistics.attack ?? {}),
         ...(attackRollMode ? {rollMode: attackRollMode, rollModeSources: attackRollModeSourceList} : {}),
+        ...(attackRollModeSourcesByTarget ? {rollModeSourcesByTarget: attackRollModeSourcesByTarget} : {}),
         ...(ownInspiration ? {inspiration: ownInspiration} : {}),
         ...(ownPortent ? {portent: ownPortent} : {}),
         ...(attackOutcomes ? {outcomesByTarget: attackOutcomes} : {}),
@@ -1699,6 +1706,21 @@ function foundryAttackRollModeSources({actor, action, definition, targetEntries,
   // Its rules see the Action's tags (Innate Sorcery: Advantage on spell attacks).
   return attackRollModeSources(actor, target?.actor, {type, item: action, ability: attackAbility(actor, definition.attack),
     context: {...attackContext(type, spatial, target, game, sourceToken, actor), tags: definition.tags ?? []}});
+}
+
+/**
+ * `{once: <endsWhen>}` when a roll-mode source comes from an effect an attack ends (endEffectsWhenAttacked): the attacker's
+ * own that ends when it attacks (Sap: `attacks`), or one its target has that ends when attacked (Guiding Bolt: `attacked`,
+ * Help, a Vex); else nothing.
+ */
+function attackSpentSource(source, attacker, target) {
+  const parent = source?.source?.parent;
+  if ( parent?.type !== "effect" ) return {};
+  const endsWhen = holder => [...(holder?.effects ?? [])].find(effect => effect.id === parent.id)
+    ?.flags?.wildpath?.conditionEffect?.definition?.endsWhen ?? "";
+  if ( endsWhen(attacker) === "attacks" ) return {once: "attacks"};
+  const ends = endsWhen(target);
+  return ends.startsWith("attacked") ? {once: ends} : {};
 }
 
 /**

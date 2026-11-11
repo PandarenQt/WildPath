@@ -33,6 +33,8 @@ resource payment planning.
 
 - consumes selected `TargetResolver` target contexts or plain targets
 - resolves each selected target against its own defense
+- judges a context with its own `roll` on that roll instead of the shared one, and keeps its `instance`: one of several
+  attacks, each with its own roll (a repeatable Action's rays, action-definitions.md "Repeatable targets")
 - records excluded/unselected targets as skipped audit entries
 - preserves partial failures when one target is missing a defense
 

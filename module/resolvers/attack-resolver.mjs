@@ -157,8 +157,10 @@ export function resolveAttackTargets({
 
 /* -------------------------------------------- */
 
-function resolveAttackTarget({roll, targetContext, defense, defenseKey, policy, context}) {
+function resolveAttackTarget({roll: shared, targetContext, defense, defenseKey, policy, context}) {
   const normalizedContext = normalizeTargetContext(targetContext);
+  // One of several attacks, each with its own roll (Scorching Ray's rays: `targetContext.roll`).
+  const roll = normalizedContext.roll ?? shared;
   if ( !normalizedContext.selected || normalizedContext.excluded || normalizedContext.resolutionState === "excluded" ) {
     return {
       ok: true,
@@ -284,7 +286,9 @@ function normalizeTargetContext(targetContext={}) {
     overrides: (targetContext.overrides ?? []).map(clonePlain),
     results: (targetContext.results ?? []).map(clonePlain),
     defense: targetContext.defense ? clonePlain(targetContext.defense) : null,
-    defenses: clonePlain(targetContext.defenses ?? null)
+    defenses: clonePlain(targetContext.defenses ?? null),
+    ...(Number.isInteger(targetContext.instance) ? {instance: targetContext.instance} : {}),
+    ...(targetContext.roll != null ? {roll: clonePlain(targetContext.roll)} : {})
   };
 }
 

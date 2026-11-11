@@ -1047,10 +1047,13 @@ function monkWeaponRules(scales) {
 const SCHOOLS = Object.freeze({abj: "abjuration", con: "conjuration", div: "divination", enc: "enchantment", evo: "evocation",
   ill: "illusion", nec: "necromancy", trs: "transmutation"});
 
-/** An ability modifier added to spell damage under `predicate` (Potent Spellcasting, Empowered Evocation), once a roll. */
-function spellDamageBonus(activities, ability, predicate) {
+/**
+ * An ability modifier added to spell damage under `predicate` (Potent Spellcasting, Empowered Evocation), once a roll;
+ * `oneRoll`, to only one damage roll of the spell ("one damage roll of that spell": not each of Scorching Ray's rays).
+ */
+function spellDamageBonus(activities, ability, predicate, {oneRoll=false}={}) {
   return {rules: [{schemaVersion: 1, id: `spell-damage-${ability}`, type: "Modifier", predicate, data: {domains: ["damage.spell"],
-    modifierType: "untyped", valueExpression: {type: "ability-modifier", ability}}}],
+    modifierType: "untyped", valueExpression: {type: "ability-modifier", ability}, ...(oneRoll ? {metadata: {oneRoll: true}} : {})}}],
   consumes: activities.filter(entry => entry.type === "damage"), notes: []};
 }
 
@@ -1066,7 +1069,9 @@ function elementalAffinityAction(document, img, source) {
   const name = `${document.name} (Choose)`;
   const effect = type => ({id: type, type: "effect", name: `${document.name} (${title(type)})`, slug: "elemental-affinity", img,
     ruleElements: [{schemaVersion: 1, id: `affinity-${type}`, type: "Modifier", predicate: {tagsAll: [`damage:${type}`]},
-      data: {domains: ["damage.spell"], modifierType: "untyped", valueExpression: {type: "ability-modifier", ability: "presence"}}},
+      // "one damage roll of that spell"
+      data: {domains: ["damage.spell"], modifierType: "untyped", valueExpression: {type: "ability-modifier", ability: "presence"},
+        metadata: {oneRoll: true}}},
     {schemaVersion: 1, id: `affinity-${type}-resistance`, type: "GrantResistance", data: {damageTypes: [type]}}]});
   return {_id: id, _key: `!items!${id}`, name, type: "action", img, system: {active: true, description: "", definition: {schemaVersion: 1,
     id: "action:srd-elemental-affinity", label: name, costs: {allOf: []}, range: {type: "self"}, targeting: {type: "self"},
@@ -1587,10 +1592,28 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
   // Else its text's ("You can target one additional creature for each spell slot level above 1": Jump).
   const perLevel = fromCount || (level ? textTargetsPerLevel(plainText({system})) : 0);
   if ( affects.count && (count == null) ) notes.push(`targets: count "${affects.count}" not converted`);
-  if ( count && (typeof count === "object") ) return {targeting: {type: "multiple", required: true, count, ...UP_TO}};
+  // One growing with its character's level (Eldritch Blast's beams): a table by level, as a cantrip's dice are.
+  const byLevel = (count && (typeof count === "object") && /@details\.level\b/u.test(String(affects.count))) ? levelTable(count) : null;
+  if ( count && (typeof count === "object") ) return {targeting: {type: "multiple", required: true, count: byLevel ?? count, ...UP_TO}};
   if ( (count > 1) || perLevel ) return {targeting: {type: (count > 1) ? "multiple" : "single", required: true, count: Math.max(count, 1),
     ...((count > 1) ? UP_TO : {})}, perLevel};
   return {targeting: {type: "single", required: true, count: 1}};
+}
+
+/**
+ * An expression of its character's level as a table on that level, a row wherever its value changes (Eldritch Blast's
+ * "floor((level + 1) / 6) + 1": 1, 2 at 5, 3 at 11, 4 at 17). Null when it can't be worked out at every level.
+ */
+function levelTable(expression) {
+  const rows = {};
+  let last = null;
+  for ( let characterLevel = 1; characterLevel <= 20; characterLevel++ ) {
+    const value = evaluateValueExpression(expression, {characterLevel});
+    if ( !value.ok ) return null;
+    if ( value.value !== last ) rows[characterLevel] = value.value;
+    last = value.value;
+  }
+  return {type: "table", key: {type: "character-level"}, rows};
 }
 
 /** The more creatures a spell's text lets it target per slot level above its own, or 0. */
@@ -1607,6 +1630,12 @@ const MORE_PER_SLOT = /\b(?:one|two|three|\d+) (?:additional|more) (?:creature|t
 
 /** A roll table its text links or embeds: the SRD's (`dnd5e.tables24`) or a book's (`dnd-players-handbook.tables`), by id. */
 const TABLE_LINK = /@(?:UUID|Embed)\[Compendium\.[\w-]+\.tables(?:24)?\.RollTable\.(\w+)/u;
+
+/** Hits its user may share among creatures, one or several ("direct them to hit one creature or several"). */
+const REPEATED_HITS = /\b(?:to hit one creature or several|at one target within range or at several|at the same target or at different ones)\b/iu;
+
+/** dnd5e's inline count of them in its description ("[[@item.level + 1]]{Total Rays}"): its formula. */
+const INLINE_TOTAL = /\[\[([^\]]+)\]\]\{Total\b/u;
 
 /** dnd5e's target types that are another creature, not its own (`self`) nor a space or an object. */
 const CREATURE_TARGETS = new Set(["creature", "enemy", "ally", "creatureOrObject"]);
@@ -3502,7 +3531,8 @@ const TRAITS = Object.freeze({
       valueExpression: {type: "multiply", terms: [{type: "constant", value: 30}, {type: "class-level", class: "warlock"}]}}}],
   consumes: activities.filter(entry => entry.type === "enchant"), notes: []}),
   // 2024 Empowered Evocation: its Intelligence modifier on one damage roll of an evocation spell.
-  "empowered-evocation": (document, {activities}) => spellDamageBonus(activities, "intellect", {tagsAll: ["school:evocation"]}),
+  "empowered-evocation": (document, {activities}) => spellDamageBonus(activities, "intellect", {tagsAll: ["school:evocation"]},
+    {oneRoll: true}),
   // 2024 Disciple of Life: a spell cast with a slot heals 2 + the slot's level more.
   "disciple-of-life": (document, {activities}) => ({rules: [{schemaVersion: 1, id: "disciple-of-life", type: "Modifier",
     predicate: {oneOf: {path: "castLevel", values: [1, 2, 3, 4, 5, 6, 7, 8, 9]}}, data: {domains: ["healing.spell"], modifierType: "untyped",
@@ -5785,16 +5815,20 @@ function convertActivity({document, activity, system, spell, level, scales, note
   const range = rangeOf({activity, system, document, attack});
   if ( range ) definition.range = range;
   // A melee attack hits one creature: a template on it is something else's (a Torch's 40-foot light).
-  const aimed = (attack?.type === "melee") ? {...activity, target: {...(activity.target ?? {}), template: {}, override: true}} : activity;
+  const melee = (attack?.type === "melee") ? {...activity, target: {...(activity.target ?? {}), template: {}, override: true}} : activity;
+  // Several hits its user may send at one creature or several, each its own hit (Magic Missile's darts) or its own attack
+  // roll (Scorching Ray's rays, Eldritch Blast's beams): `repeatable`. How many is its text's inline total when dnd5e gives
+  // one ("[[@item.level + 1]]{Total Rays}"), as its target count holds none (Scorching Ray) or one (Eldritch Blast).
+  const repeats = REPEATED_HITS.test(plainText(document));
+  const total = repeats ? INLINE_TOTAL.exec(String(document.system?.description?.value ?? ""))?.[1] : null;
+  const aimed = total ? {...melee, target: {...pick(melee, system, "target"), affects: {...(pick(melee, system, "target").affects ?? {}),
+    count: total}, override: true}} : melee;
   const {perLevel=0, areaPerLevel=0, areaScaling=null, ...targets} = targetingOf({activity: aimed, system, notes, level, scales});
   Object.assign(definition, targets);
   if ( spell && level && !perLevel && MORE_PER_SLOT.test(plainText(document)) ) {
     notes.push("upcast: the more targets its text gives for each slot level above its own are by hand");
   }
-  // Several hits its user may send at one creature or several (Magic Missile's darts): `repeatable`. Only with no attack
-  // roll, as each of Scorching Ray's rays and Eldritch Blast's beams rolls its own.
-  if ( !attack && (definition.targeting?.type === "multiple") && /\bto hit one creature or several\b/iu.test(plainText(document)) )
-    definition.targeting.repeatable = true;
+  if ( repeats && (definition.targeting?.type === "multiple") ) definition.targeting.repeatable = true;
   if ( areaScaling ) definition.configuration = [...(definition.configuration ?? []), scalingChoice(areaScaling)];
   // A melee attack dnd5e leaves at "self" (a Torch's) is one creature within its reach.
   if ( (attack?.type === "melee") && (definition.targeting?.type === "self") ) Object.assign(definition,

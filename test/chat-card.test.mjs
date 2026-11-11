@@ -73,6 +73,16 @@ test("a target the Action did nothing to (Unaffected) is still named on its card
   assert.equal(JSON.stringify(view).includes(SECRET), false);
 });
 
+test("several attacks at one creature (Scorching Ray's rays) show its best: a hit after a miss is a hit", () => {
+  const card = results => createResolutionCardViewModel(projectResolutionResultForDisclosure({
+    resolutionId: "resolution:rays", status: "completed", initiatorUserId: "player-a",
+    targets: [{id: "goblin", actorRef: "Actor.goblin", name: "Goblin"}], outcomes: {attack: {results: results.map(([hit, critical]) =>
+      ({target: {actorRef: "Actor.goblin"}, hit, critical}))}}}, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE)).targets[0].attack;
+  assert.deepEqual(card([[false, false], [true, false], [true, false]]), {label: CHAT_OUTCOME_KEYS.hit, tone: "success"});
+  assert.deepEqual(card([[true, false], [true, true], [false, false]]), {label: CHAT_OUTCOME_KEYS.critical, tone: "success"});
+  assert.deepEqual(card([[false, false], [false, false]]), {label: CHAT_OUTCOME_KEYS.miss, tone: "failure"});
+});
+
 test("rolls entered by hand show what they are, the authority's formula and the validated total", async () => {
   const result = projectResolutionResultForDisclosure({
     resolutionId: "resolution:physical", status: "completed", initiatorUserId: "player-a",

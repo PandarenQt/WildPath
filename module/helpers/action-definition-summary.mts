@@ -25,7 +25,7 @@ export function summarizeActionDefinition(definition: Data | null | undefined,
   localize: (key: string) => string = key => key): Array<[string, string]> {
   if ( !definition ) return [];
   const d = definition as {costs?: Parameters<typeof costText>[0]; controllerCosts?: Parameters<typeof costText>[0];
-    targeting?: {type?: string; count?: number}; range?: {type?: string; distance?: {value?: number}; normal?: {value?: number};
+    targeting?: {type?: string; count?: number | DiceLike}; range?: {type?: string; distance?: {value?: number}; normal?: {value?: number};
       long?: {value?: number}}; area?: {shape?: string; size?: {value?: number}; persistence?: unknown};
     attack?: {type?: string; defenseKey?: string; properties?: string[]; proficient?: boolean}; save?: {ability?: string; dc?: {value?: number}};
     check?: {ability?: string; skill?: string; dc?: {value?: number}};
@@ -37,7 +37,9 @@ export function summarizeActionDefinition(definition: Data | null | undefined,
     ["WILDPATH.BUILDER.Section.costs", costText(d.costs) ?? localize("WILDPATH.BUILDER.Costs.Free")],
     ["WILDPATH.BUILDER.Summary.ControllerCost", costText(d.controllerCosts)],
     ["WILDPATH.BUILDER.Section.targets", d.targeting?.type
-      ? `${d.targeting.type}${d.targeting.count ? ` (${d.targeting.count})` : ""}` : null],
+      // A count that grows (Eldritch Blast's beams by level) is named as its formula or type, as damage is.
+      ? `${d.targeting.type}${d.targeting.count ? ` (${(typeof d.targeting.count === "number") ? d.targeting.count
+        : amountText(d.targeting.count)})` : ""}` : null],
     ["WILDPATH.BUILDER.Section.range", d.range?.type ? `${d.range.type} ${d.range.distance?.value ?? d.range.normal?.value ?? ""}${
       d.range.long?.value ? `/${d.range.long.value}` : ""} ft` : null],
     ["WILDPATH.BUILDER.Section.area", d.area?.shape

@@ -285,6 +285,8 @@ function normalizeTargetContext(targetContext={}) {
     resolutionState: targetContext.resolutionState ?? "normal",
     overrides: (targetContext.overrides ?? []).map(clonePlain),
     ...(Number.isInteger(targetContext.instances) && (targetContext.instances > 0) ? {instances: targetContext.instances} : {}),
+    // Which of them it is, when each was its own attack (Scorching Ray's rays): its own damage roll (`damage.byInstance`).
+    ...(Number.isInteger(targetContext.instance) ? {instance: targetContext.instance} : {}),
     results: (targetContext.results ?? []).map(clonePlain)
   };
 }

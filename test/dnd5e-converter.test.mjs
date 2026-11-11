@@ -3873,18 +3873,35 @@ test("a higher slot grows each spell as its text says, read from dnd5e's scaling
   assert.ok(notes(odd).includes("upcast: damage 1 grows by \"1d4\" a slot level (by hand)"), "dice of two sizes");
 });
 
-test("darts sent at one creature or several (Magic Missile) are repeatable targets; an attack's rays are not", async () => {
+test("hits sent at one creature or several are repeatable targets: darts (Magic Missile), and rays and beams that each attack", async () => {
   const {actionDefinitionToResolverInput} = await import("../module/helpers/action-definitions.mjs");
-  const darts = (type, data) => ({_id: `testDarts${type}0000`.slice(0, 16), name: "Test Darts", type: "spell", effects: [], system: {source: SRD,
-    level: 1, preparation: {mode: "prepared"}, properties: [], activation: {type: "action"}, range: {value: "120", units: "ft"},
-    description: {value: "<p>Each dart strikes a creature of your choice. The darts all strike simultaneously, and you can direct them to hit one creature or several.</p>"},
-    target: {affects: {type: "creature", count: "2 + @item.level"}, template: {}},
+  const darts = (type, data, {level=1, text="Each dart strikes a creature of your choice. The darts all strike simultaneously, and you can "
+    + "direct them to hit one creature or several.", count="2 + @item.level"}={}) => ({_id: `testDarts${type}${level}0000`.slice(0, 16),
+    name: "Test Darts", type: "spell", effects: [], system: {source: SRD,
+    level, preparation: {mode: "prepared"}, properties: [], activation: {type: "action"}, range: {value: "120", units: "ft"},
+    description: {value: `<p>${text}</p>`}, target: {affects: {type: "creature", count}, template: {}},
     activities: {a: activity(type, {...data, damage: {parts: [{number: 1, denomination: 4, bonus: "1", types: ["force"], scaling: {mode: ""}}]}})}}});
   const missile = convertItem(darts("damage", {})).items[0];
   valid(missile);
   assert.equal(missile.system.definition.targeting.repeatable, true);
   assert.deepEqual(actionDefinitionToResolverInput(missile.system.definition).targeting.refinementPolicy,
     {minSelections: 1, maxSelections: 3, instances: 3}, "three darts its user shares among one to three creatures");
-  const rays = convertItem(darts("attack", {attack: {type: {value: "ranged", classification: "spell"}, ability: "", bonus: ""}})).items[0];
-  assert.equal(rays.system.definition.targeting.repeatable, undefined, "each ray's own attack roll is not one shared roll");
+  // Scorching Ray: dnd5e gives no count, only its text's inline total; each ray is its own attack, one more per slot level.
+  const attack = {attack: {type: {value: "ranged", classification: "spell"}, ability: "", bonus: ""}};
+  const rays = convertItem(darts("attack", attack, {level: 2, count: "", text: "You hurl three fiery rays. You can hurl them at one target "
+    + "within range or at several. Make a ranged spell attack for each ray.</p><p>[[@item.level + 1]]{Total Rays}"})).items[0];
+  valid(rays);
+  assert.deepEqual(rays.system.definition.targeting, {type: "multiple", required: true, count: 3, refinementPolicy: {minSelections: 1},
+    repeatable: true});
+  assert.deepEqual(rays.system.definition.configuration.find(choice => choice.id === "spell-slot").effects,
+    [{type: "scaleTargets", levelChoiceId: "spell-slot", baseLevel: 2, perLevel: 1}]);
+  assert.equal(rays.flags.wildpath.conversion.notes.some(note => note.startsWith("upcast:")), false, "its rays are no longer by hand");
+  // Eldritch Blast: dnd5e's count is 1; its inline total grows with character level, a table as a cantrip's dice are.
+  const beams = convertItem(darts("attack", attack, {level: 0, count: "1", text: "You can direct the beams at the same target or at "
+    + "different ones. Make a separate attack roll for each beam.</p><p>[[(floor((@details.level+1)/6)+1)]]{Total Beams}"})).items[0];
+  valid(beams);
+  assert.deepEqual(beams.system.definition.targeting.count, {type: "table", key: {type: "character-level"}, rows: {1: 1, 5: 2, 11: 3, 17: 4}});
+  assert.equal(beams.system.definition.targeting.repeatable, true);
+  assert.equal(actionDefinitionToResolverInput(beams.system.definition, {actorSystem: {details: {level: 11}}}).targeting.refinementPolicy
+    .instances, 3, "three beams at character level 11");
 });

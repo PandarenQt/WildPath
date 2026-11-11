@@ -236,9 +236,14 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
   const components = definition?.damage ?? [];
   const weapon = !statistic?.spell && Number.isFinite(statistic?.abilityModifier)
     && components.some(component => component.provenance === "weapon-base");
-  const bonus = components.length
-    ? (resolveActorDamageStatistic(actor, attackDefinition, {item, tags: [...tags, statistic?.ability].filter(Boolean)})?.totalModifier ?? 0) : 0;
+  const damageStatistic = components.length
+    ? resolveActorDamageStatistic(actor, attackDefinition, {item, tags: [...tags, statistic?.ability].filter(Boolean)}) : null;
+  const bonus = damageStatistic?.totalModifier ?? 0;
   const modifierTotal = (weapon ? statistic.abilityModifier : 0) + bonus;
+  // Its part only one damage roll of the Action gets (a Modifier's `metadata.oneRoll`: Empowered Evocation), not each of
+  // several hits' (Scorching Ray's rays).
+  const modifierOneRoll = normalizeArray(damageStatistic?.trace?.applied).filter(entry => entry?.metadata?.oneRoll === true)
+    .reduce((sum, entry) => sum + (Number(entry.value) || 0), 0);
   // Extra damage rules ("+1d6 fire on a melee hit"), less any once-per-turn rule already used this turn.
   // Its tags include the weapon's properties (`finesse`), so a predicate can ask for them.
   const extraTags = [attackDefinition?.type, ...tags, statistic?.ability, ...(attackDefinition?.properties ?? [])].filter(Boolean);
@@ -305,7 +310,7 @@ export function actionCombatStatistics(actor, definition, {item=null, turn=null,
     defenseKey: attackDefinition ? (attackDefinition.defenseKey ?? "ac") : null,
     damage: (components.length && (weapon || bonus || extraComponents.length || replaced || dieMinimums.length || bestOfTwo
       || criticalDice.length || rerollDice.length))
-      ? {modifierTotal, ...(extraComponents.length ? {extraComponents} : {}), ...(replaced ? {baseExpression: replaced} : {}),
+      ? {modifierTotal, ...(modifierOneRoll ? {modifierOneRoll} : {}), ...(extraComponents.length ? {extraComponents} : {}), ...(replaced ? {baseExpression: replaced} : {}),
         ...(dieMinimums.length ? {dieMinimums} : {}), ...(bestOfTwo ? {bestOfTwo} : {}), ...(criticalDice.length ? {criticalDice} : {}),
         ...(rerollDice.length ? {rerollDice} : {})} : null,
     ...(healing ? {healing: {modifierTotal: healing}} : {}),

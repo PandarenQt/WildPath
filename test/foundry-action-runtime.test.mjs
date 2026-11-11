@@ -478,6 +478,24 @@ test("2024 advantage: an attack on a Prone creature within 5 ft has advantage, c
     "a Prone creature farther than 5 ft is harder to hit");
 });
 
+test("rays (repeatable attacks): each creature's roll-mode sources by its Token, one an attack uses up marked so one ray has it", async () => {
+  // Guiding Bolt's Advantage on the next attack against its creature (an effect that ends when it is attacked).
+  const guided = target => {
+    target.effects = [{id: "guided", name: "Guided", flags: {wildpath: {conditionEffect: {definition: {endsWhen: "attacked"}}}}}];
+    target.getRollModes = domains => (domains.includes("attacked")
+      ? [{id: "guided", mode: "advantage", source: {type: "ruleElement", parent: {type: "effect", id: "guided"}}}] : []);
+  };
+  const rays = {...meleeStrikeDefinition(), id: "action:runtime-rays", targeting: {type: "multiple", required: true, count: 3,
+    repeatable: true, refinementPolicy: {minSelections: 1}}};
+  const planned = await plannedWithConditions(rays, {prepareTarget: guided});
+  assert.deepEqual(planned.state.input.attack.rollModeSourcesByTarget, {enemy: [{mode: "advantage", once: "attacked"}]});
+  assert.deepEqual(planned.state.pendingRequests.map(entry => entry.payload.rollRequest.rollMode), ["advantage", "normal", "normal"],
+    "the first ray at it has the Advantage, the other two not");
+  // An attack with one roll needs none (its `rollMode` is the creature's).
+  const single = await plannedWithConditions(meleeStrikeDefinition(), {prepareTarget: guided});
+  assert.equal(single.state.input.attack.rollModeSourcesByTarget, undefined);
+});
+
 const fortitudeBlast = ability => ({schemaVersion: 1, id: `action:runtime-${ability}-blast`, label: "Blast", costs: {allOf: []},
   targeting: {type: "single", required: true, count: 1}, range: {type: "reach", distance: {value: 5, unit: "ft"}},
   save: {ability, dc: {value: 13}},

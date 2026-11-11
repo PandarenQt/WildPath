@@ -606,7 +606,7 @@ export function actionDefinitionToResolverInput(definition, {
       ...normalized.policies,
       ...policies
     },
-    targeting: targetingFromDefinition(normalized, {source, targeting}),
+    targeting: targetingFromDefinition(normalized, {source, targeting, evaluationContext}),
     attack: resolverRequestFromAttackDefinition(normalized.attack, attack),
     save: resolverRequestFromSaveDefinition(normalized.save, save, evaluationContext),
     check: normalized.check ? mergeResolverRequest({ability: normalized.check.ability ?? null, skill: normalized.check.skill ?? null,
@@ -627,18 +627,22 @@ export function actionDefinitionToResolverInput(definition, {
 
 /* -------------------------------------------- */
 
-function targetingFromDefinition(definition, {source, targeting}) {
+function targetingFromDefinition(definition, {source, targeting, evaluationContext}) {
   const targetDefinition = definition.targeting;
   if ( !targetDefinition ) return targeting ?? null;
 
-  const count = targetDefinition.count;
+  // A count that grows with its creature (Eldritch Blast's beams by character level) is its row for this creature, as a
+  // cantrip's dice are.
+  const rowed = (targetDefinition.count?.type === "table") ? selectTableRows(targetDefinition.count, evaluationContext) : null;
+  const count = (rowed?.type === "constant") ? Number(rowed.value) : targetDefinition.count;
   const refinementPolicy = {
     ...(targetDefinition.refinementPolicy ?? {}),
     ...(count != null ? {
       // "Up to three creatures" sets its own minimum; otherwise a required count is exact.
       minSelections: targetDefinition.refinementPolicy?.minSelections ?? (targetDefinition.required ? count : 0),
       maxSelections: count,
-      // Its count is that many separate hits its user shares among its targets (Magic Missile's darts).
+      // Its count is that many separate hits its user shares among its targets (Magic Missile's darts), each its own attack
+      // when it has one (Scorching Ray's rays).
       ...(targetDefinition.repeatable ? {instances: count} : {})
     } : {})
   };
@@ -1020,10 +1024,6 @@ function validateTargeting(definition, errors) {
   if ( !targeting ) return;
   if ( targeting.type === ACTION_TARGETING_TYPES.AREA && !definition.area ) {
     errors.push(error(ACTION_DEFINITION_CODES.MISSING_AREA_DEFINITION, "area", "Area targeting requires an AreaDefinition."));
-  }
-  // One attack roll cannot stand for each of several hits (Scorching Ray's rays each roll their own).
-  if ( targeting.repeatable === true && definition.attack ) {
-    errors.push(error(ACTION_DEFINITION_CODES.INVALID_TARGETING, "targeting.repeatable", "Repeatable targets cannot share one attack roll."));
   }
   validateValueExpressionShape(targeting.count, "targeting.count", errors);
   validateValueExpressionShape(targeting.refinementPolicy?.minSelections, "targeting.refinementPolicy.minSelections", errors);
@@ -1415,7 +1415,8 @@ function normalizeTargetingDefinition(targeting) {
     ...(targeting.notHostile === true ? {notHostile: true} : {}),
     // ... nor its source itself (Help aids another creature).
     ...(targeting.notSelf === true ? {notSelf: true} : {}),
-    // Its count may go to one creature more than once, each a separate hit ("direct them to hit one creature or several").
+    // Its count may go to one creature more than once, each a separate hit ("direct them to hit one creature or several"),
+    // with its own attack roll when it has an attack ("Make a separate attack roll for each beam").
     ...(targeting.repeatable === true ? {repeatable: true} : {}),
     metadata: clonePlain(targeting.metadata ?? {}) ?? {}
   };

@@ -532,9 +532,11 @@ Its creature's rules read these tags:
 - **Improved Blessed Strikes** (cleric 14) with Potent Spellcasting: after a cantrip's damage, Temporary Hit Points of
   twice its Wisdom modifier to itself or a creature within 60 ft, picked as it is used (reactions.md, "A reaction's
   target chosen as it is used").
-- **Empowered Evocation:** Intelligence on `damage.spell` for `school:evocation`, once a roll.
+- **Empowered Evocation:** Intelligence on `damage.spell` for `school:evocation`, on one damage roll of the spell
+  (`metadata.oneRoll`: the first hit's of Scorching Ray's rays, action-definitions.md "Repeatable targets").
 - **Elemental Affinity:** an Action, used once, chooses Acid, Cold, Fire, Lightning or Poison. That type is a lasting
-  effect: Resistance to it, and Charisma on `damage.spell` for `damage:<type>`. shortcut: the choice is not tied to the
+  effect: Resistance to it, and Charisma on `damage.spell` for `damage:<type>`, on one damage roll (`metadata.oneRoll`).
+  shortcut: the choice is not tied to the
   Draconic ancestry.
 - **Disciple of Life:** 2 + the slot's level on `healing.spell`, only when a slot was spent (rule-elements.md, "Healing
   and context"). shortcut: Blessed Healer's self-heal is by hand.

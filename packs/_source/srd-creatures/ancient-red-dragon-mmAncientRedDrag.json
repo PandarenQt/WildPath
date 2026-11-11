@@ -842,9 +842,13 @@
             }
           },
           "targeting": {
-            "type": "single",
+            "type": "multiple",
             "required": true,
-            "count": 1
+            "count": 3,
+            "refinementPolicy": {
+              "minSelections": 1
+            },
+            "repeatable": true
           },
           "damage": [
             {
@@ -856,6 +860,33 @@
               },
               "damageType": "fire",
               "provenance": "spell-base"
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-3",
+                  "label": "3",
+                  "value": 3,
+                  "metadata": {
+                    "castingLevel": 3
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "metadata": {
@@ -880,9 +911,7 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": [
-              "upcast: the more targets its text gives for each slot level above its own are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1555,9 +1584,13 @@
             }
           },
           "targeting": {
-            "type": "single",
+            "type": "multiple",
             "required": true,
-            "count": 1
+            "count": 3,
+            "refinementPolicy": {
+              "minSelections": 1
+            },
+            "repeatable": true
           },
           "damage": [
             {
@@ -1569,6 +1602,33 @@
               },
               "damageType": "fire",
               "provenance": "spell-base"
+            }
+          ],
+          "configuration": [
+            {
+              "id": "spell-slot",
+              "type": "option",
+              "label": "WILDPATH.PROMPT.CastLevel",
+              "required": true,
+              "fromCast": true,
+              "options": [
+                {
+                  "id": "level-3",
+                  "label": "3",
+                  "value": 3,
+                  "metadata": {
+                    "castingLevel": 3
+                  }
+                }
+              ],
+              "effects": [
+                {
+                  "type": "scaleTargets",
+                  "levelChoiceId": "spell-slot",
+                  "baseLevel": 2,
+                  "perLevel": 1
+                }
+              ]
             }
           ],
           "metadata": {
@@ -1593,9 +1653,7 @@
             "castBy": "Fiery Rays"
           },
           "conversion": {
-            "notes": [
-              "upcast: the more targets its text gives for each slot level above its own are by hand"
-            ]
+            "notes": []
           }
         }
       }
@@ -1814,11 +1872,9 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
-          "Spellcasting: upcast: the more targets its text gives for each slot level above its own are by hand",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: save: a failure marks its creature (narrative)",
-          "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated",
-          "Fiery Rays: upcast: the more targets its text gives for each slot level above its own are by hand"
+          "Spellcasting: \"Create Sensor\" is passive or triggered (narrative): not automated"
         ]
       }
     }

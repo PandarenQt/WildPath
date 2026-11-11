@@ -45,6 +45,9 @@
                 "valueExpression": {
                   "type": "ability-modifier",
                   "ability": "presence"
+                },
+                "metadata": {
+                  "oneRoll": true
                 }
               }
             },
@@ -84,6 +87,9 @@
                 "valueExpression": {
                   "type": "ability-modifier",
                   "ability": "presence"
+                },
+                "metadata": {
+                  "oneRoll": true
                 }
               }
             },
@@ -123,6 +129,9 @@
                 "valueExpression": {
                   "type": "ability-modifier",
                   "ability": "presence"
+                },
+                "metadata": {
+                  "oneRoll": true
                 }
               }
             },
@@ -162,6 +171,9 @@
                 "valueExpression": {
                   "type": "ability-modifier",
                   "ability": "presence"
+                },
+                "metadata": {
+                  "oneRoll": true
                 }
               }
             },
@@ -201,6 +213,9 @@
                 "valueExpression": {
                   "type": "ability-modifier",
                   "ability": "presence"
+                },
+                "metadata": {
+                  "oneRoll": true
                 }
               }
             },

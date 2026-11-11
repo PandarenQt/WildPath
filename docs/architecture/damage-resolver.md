@@ -44,6 +44,9 @@ present on the damage components that this resolver totals.
 - consumes selected target contexts or plain targets
 - resolves the same component set for each selected target
 - can accept target-specific prepared components for upstream policies such as save-for-half damage
+- gives a context several `instances` one result each (Magic Missile's darts), and a context with an `instance` (a
+  repeatable attack's hit) the components rolled for that hit: `ActionResolver` picks `damage.byInstance[instance]`
+  when it has one, else the Action's own roll
 - records excluded/unselected targets as skipped audit entries
 - does not mutate target contexts or damage components
 

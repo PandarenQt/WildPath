@@ -559,9 +559,7 @@ function damageComingReactionEvent(state) {
       source: state.actionContext?.source ?? input.source ?? state.source ?? null, targets: input.targets ?? []}
   }), input.durability?.redirectsByTarget, state.results?.attackResolution ?? null);
   const dealt = (damageResolution?.results ?? []).filter(result => result.ok && ((Number(result.total) || 0) > 0));
-  // Each creature once, however many of its hits (Magic Missile's darts on one creature).
-  const damaged = [...new Map(dealt.map(result => result.target).filter(Boolean)
-    .map(target => [target.tokenId ?? target.actorId ?? target.id, target])).values()];
+  const damaged = eachCreatureOnce(dealt.map(result => result.target));
   if ( !damaged.length ) return null;
   // What a reaction may ask of it: an attack roll's hit (`hit`: Deflect Attacks, Interception), and its damage types
   // (`damage:<type>`: Deflect Attacks' bludgeoning, piercing or slashing).
@@ -582,6 +580,11 @@ function damageComingReactionEvent(state) {
       timing: REACTION_WINDOW_TIMINGS.BEFORE_DAMAGE
     }
   });
+}
+
+/** Each creature once, however many of the Action's hits are on it (Magic Missile's darts, Scorching Ray's rays). */
+function eachCreatureOnce(targets) {
+  return [...new Map(targets.filter(Boolean).map(target => [target.tokenId ?? target.actorId ?? target.id, target])).values()];
 }
 
 function createBeforePushReactionStage() {
@@ -607,7 +610,7 @@ function pushComingReactionEvent(state) {
   const candidates = pushedTargets(state, state.actionDefinition ?? {})
     .filter(target => target && !(source?.tokenId && (target.tokenId === source.tokenId)));
   const sizes = targetRelations(input, candidates).relations ?? {};
-  const pushed = candidates.filter(target => pushable(sizes[target.tokenId ?? target.id]?.size, spec.maxSize));
+  const pushed = eachCreatureOnce(candidates.filter(target => pushable(sizes[target.tokenId ?? target.id]?.size, spec.maxSize)));
   if ( !pushed.length ) return null;
   return createAutomationEvent({
     id: `event:${state.id}:push-coming`,
@@ -1199,6 +1202,9 @@ function createAttackRollStage() {
     id: ACTION_PIPELINE_STAGE_IDS.ATTACK_ROLL,
     run(state) {
       const input = preparedResolverInput(state);
+      // Several hits that each roll their own attack (Scorching Ray's rays at one creature or several).
+      const instances = input.attack ? attackInstances(state) : [];
+      if ( instances.length ) return requestInstanceAttacks(state, input, instances);
       const requestId = requestIdFor(state, "attack-roll");
       const accepted = getResolutionResponse(state, {
         requestId,
@@ -1266,33 +1272,138 @@ function createAttackRollStage() {
         state: updateResolutionState(state, {
           rollRequests: appendRollRequest(state.rollRequests, rollRequest)
         }),
-        request: createResolutionRequest({
-          id: rollRequest.id,
-          resolutionId: state.id,
-          stageId: ACTION_PIPELINE_STAGE_IDS.ATTACK_ROLL,
-          type: RESOLUTION_REQUEST_TYPES.ROLL,
-          expectedResponseType: "roll-result",
-          chooser: rollRequest.chooser,
-          authority: rollRequest.authority,
-          validation: {
-            rollRequestId: rollRequest.id,
-            semanticType: rollRequest.type,
-            requireNatural: rollRequest.expected.requireNatural,
-            formula: rollFormulaForRequest(rollRequest).formula ?? null
-          },
-          payload: {
-            actionDefinitionId: state.actionDefinition?.id ?? null,
-            rollKind: "attack",
-            rollRequest,
-            attack: input.attack,
-            targets: input.targets ?? [],
-            targeting: input.targeting ?? null
-          }
-        }),
+        request: attackRollResolutionRequest(state, input, rollRequest, input.targets ?? []),
         reason: "Attack roll result is required before action resolution can continue."
       });
     }
   });
+}
+
+/** The request for an attack roll against `targets`. */
+function attackRollResolutionRequest(state, input, rollRequest, targets) {
+  return createResolutionRequest({
+    id: rollRequest.id,
+    resolutionId: state.id,
+    stageId: ACTION_PIPELINE_STAGE_IDS.ATTACK_ROLL,
+    type: RESOLUTION_REQUEST_TYPES.ROLL,
+    expectedResponseType: "roll-result",
+    chooser: rollRequest.chooser,
+    authority: rollRequest.authority,
+    validation: {
+      rollRequestId: rollRequest.id,
+      semanticType: rollRequest.type,
+      requireNatural: rollRequest.expected.requireNatural,
+      formula: rollFormulaForRequest(rollRequest).formula ?? null
+    },
+    payload: {
+      actionDefinitionId: state.actionDefinition?.id ?? null,
+      rollKind: "attack",
+      rollRequest,
+      attack: input.attack,
+      targets,
+      targeting: input.targeting ?? null
+    }
+  });
+}
+
+/**
+ * A repeatable Action's hits (`targeting.repeatable`) that each roll their own attack, in order: each selected target
+ * repeated its share (`instances`) times, as `{context, target, instance}`. Empty unless there are more than one, so a
+ * single attack (Eldritch Blast's one beam) keeps its one roll.
+ */
+function attackInstances(state) {
+  const contexts = normalizeArray(state.results?.targetResolution?.targetContexts).filter(attackInstanceContext);
+  if ( !contexts.some(context => Number.isInteger(context.instances)) ) return [];
+  const each = contexts.flatMap(context => Array.from({length: context.instances ?? 1}, () => context));
+  return (each.length > 1) ? each.map((context, instance) => ({context, target: context.target ?? context, instance})) : [];
+}
+
+function attackInstanceContext(context) {
+  return (context?.selected !== false) && !context?.excluded && (context?.resolutionState !== "excluded");
+}
+
+/**
+ * Its target contexts with each hit its own context (`instance`, and its own `roll`), when it has a roll per hit
+ * (`attack.rolls`, in instance order); a context it skips stays one. The attack resolver judges each on its own roll.
+ */
+function attackInstanceContexts(contexts, rolls) {
+  if ( !rolls ) return contexts;
+  let next = 0;
+  return normalizeArray(contexts).flatMap(context => {
+    if ( !attackInstanceContext(context) ) return [context];
+    const {instances, ...own} = context;
+    return Array.from({length: instances ?? 1}, () => ({...own, instance: next, roll: rolls[next++]}));
+  });
+}
+
+/** Its attack with hit `index`'s roll replaced: `roll` is the first's, `rolls` each one's when it has several. */
+function withAttackRoll(attack, index, roll) {
+  return {...attack, ...(index === 0 ? {roll} : {}),
+    ...(attack.rolls ? {rolls: attack.rolls.map((each, i) => (i === index ? roll : each))} : {})};
+}
+
+/**
+ * Each hit rolls its own attack (Scorching Ray's rays), against its own target with its own roll mode (instanceRollMode),
+ * all asked for at once as several targets' saves are. The first keeps the single attack's id (`attack-roll`), the others are
+ * `attack-roll:<n>`. `attack.rolls` holds them in instance order and `attack.roll` the first, which Portent, Heroic
+ * Inspiration, events and a reaction's penalty read.
+ */
+function requestInstanceAttacks(state, input, instances) {
+  let current = state;
+  const rolls = instances.map(({instance}) => input.attack.rolls?.[instance] ?? null);
+  const waiting = [];
+  const attacked = new Set();
+  for ( const {target, instance} of instances ) {
+    const key = rollModeTargetKey(target);
+    const first = !attacked.has(key);
+    attacked.add(key);
+    if ( hasRollTotal(rolls[instance]) ) continue;
+    const suffix = instance ? `attack-roll:${instance + 1}` : "attack-roll";
+    const requestId = requestIdFor(current, suffix);
+    const accepted = getResolutionResponse(current, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
+    const mode = instanceRollMode(input.attack, key, {instance, first});
+    const build = () => attackRollRequestForState(current, input, {suffix, target, mode});
+    const rollRequest = accepted ? rollRequestFromAcceptedResponse(accepted, build) : build();
+    if ( !accepted ) {
+      current = updateResolutionState(current, {rollRequests: appendRollRequest(current.rollRequests, rollRequest)});
+      waiting.push(attackRollResolutionRequest(current, input, rollRequest, [target]));
+      continue;
+    }
+    const normalized = normalizeRollResponseValue(accepted.response.value, {request: rollRequest,
+      completedRequestIds: completedRollRequestIds(current)});
+    if ( !normalized.ok ) return failResolutionStage({
+      state: current,
+      code: normalized.code,
+      reason: normalized.reason,
+      errors: [{code: normalized.code, reason: normalized.reason, requestId, validation: normalized.validation}],
+      data: {requestId, rollRequest, validation: normalized.validation}
+    });
+    rolls[instance] = rollResultToResolverRoll(normalized.result);
+    current = updateResolutionState(current, {
+      rollRequests: appendRollRequest(current.rollRequests, rollRequest),
+      rollResults: [...current.rollResults, {requestId: accepted.request.id, type: "attack-roll", semanticType: normalized.result.type,
+        rollRequest, rollResult: normalized.result, roll: rolls[instance], instance}]
+    });
+  }
+  const next = updateResolutionState(current, {input: {...input, attack: {...input.attack, rolls, roll: rolls[0]}}});
+  if ( waiting.length ) return waitResolutionStage({
+    state: next,
+    requests: waiting,
+    reason: "Attack roll results are required before action resolution can continue."
+  });
+  return continueResolutionStage({state: next, data: {attackRollCount: rolls.length}});
+}
+
+/**
+ * One hit's roll mode from its creature's sources (`attack.rollModeSourcesByTarget`, from the runtime), or null without
+ * them. A source an attack uses up (`once`: its effect's `endsWhen`) counts only on the attack that uses it: the Action's
+ * first for one of its own (`attacks`: Sap), the first at its creature for one that creature has (`attacked...`: Guiding
+ * Bolt's Advantage, Help's).
+ */
+function instanceRollMode(attack, key, {instance, first}) {
+  const sources = attack?.rollModeSourcesByTarget?.[key];
+  if ( !sources ) return null;
+  return combineRollModes(sources.filter(source => !source?.once || ((source.once === "attacks") ? (instance === 0) : first)));
 }
 
 function createAttackOutcomeStage() {
@@ -1314,10 +1425,12 @@ function createAttackOutcomeStage() {
       });
       input = {...input, attack};
 
+      // `roll` is the first hit's when each hit rolls its own (`attack.rolls`): Portent and Heroic Inspiration replace it.
       const resolveAttack = roll => resolveAttackTargets({
         roll,
-        targetContexts: withAttackBonuses(withOutcomeOverrides(attack.targetContexts ?? state.results?.targetResolution?.targetContexts ?? [],
-          attack.outcomesByTarget), attack.bonusByTarget),
+        targetContexts: attackInstanceContexts(withAttackBonuses(withOutcomeOverrides(attack.targetContexts
+          ?? state.results?.targetResolution?.targetContexts ?? [], attack.outcomesByTarget), attack.bonusByTarget),
+        attack.rolls && [roll, ...attack.rolls.slice(1)]),
         targets: attack.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
         defense: attack.defense ?? null,
         defenseKey: attack.defenseKey ?? "ac",
@@ -1334,7 +1447,7 @@ function createAttackOutcomeStage() {
         stageId: ACTION_PIPELINE_STAGE_IDS.ATTACK_OUTCOME, rollKind: "attack", targets: input.targets ?? []}) : {};
       if ( portent.wait || portent.fail ) return portent.wait ?? portent.fail;
       if ( portent.roll ) {
-        input = {...input, attack: {...attack, roll: portent.roll}};
+        input = {...input, attack: withAttackRoll(attack, 0, portent.roll)};
         attackResolution = resolveAttack(portent.roll);
       }
       // Heroic Inspiration may reroll it (a miss of a player's character, or a monster's attack by the GM's choice).
@@ -1343,7 +1456,7 @@ function createAttackOutcomeStage() {
         makeRollRequest: (suffix, bonus=0, rollMode=null) => attackRollRequestForState(state, input, {suffix, bonus, rollMode})}) : {};
       if ( reroll.wait || reroll.fail ) return reroll.wait ?? reroll.fail;
       if ( reroll.roll ) {
-        input = withoutSpentEffect({...input, attack: {...attack, roll: reroll.roll}}, reroll.payment);
+        input = withoutSpentEffect({...input, attack: withAttackRoll(attack, 0, reroll.roll)}, reroll.payment);
         attackResolution = resolveAttack(reroll.roll);
       }
       if ( !attackResolution.ok ) {
@@ -2088,6 +2201,10 @@ function createComponentRollStage({id, kind, rollType, request}) {
       if ( empowered?.wait || empowered?.fail ) return empowered.wait ?? empowered.fail;
       if ( empowered?.values ) ({values, state: current} = empowered);
       if ( kind === "damage" ) values = lessPenaltyDamage(values);
+      // Each further hit of a repeatable attack rolls its own damage (Scorching Ray's second and third rays).
+      const more = (kind === "damage") ? instanceHitRolls(current, input, values, {id, rollType}) : null;
+      if ( more?.stop ) return more.stop;
+      if ( more ) ({values, state: current} = more);
       // Then the damage it deals its own source (Overchannel's backlash), each part its own roll.
       // Its rolled damage kept, so waiting on these doesn't roll it again.
       const own = (kind === "damage") ? sourceDamageRolls(current, {...input, damage: values}, id) : null;
@@ -2109,10 +2226,55 @@ function sourceDamageRolls(state, input, id) {
 }
 
 /**
+ * Each further hit of a repeatable attack (instanceHits after the first: Scorching Ray's second and third rays) rolls its
+ * own damage, with its own critical hit, kept by instance in `damage.byInstance`; the first hit's is the Action's own
+ * roll. Each is its definition's damage unrolled: a once-a-turn extra (Sneak Attack) and a rider's added damage stay on the
+ * first, and the creature's damage modifier (Agonizing Blast) is on each but its one-roll part (Empowered Evocation:
+ * `modifierOneRoll`). `{values, state}`, or `{stop}` while one rolls.
+ * shortcut: Empowered Spell and a damage-die reroll (Piercer) reroll only the first hit's; upgrade if one should reach each.
+ */
+function instanceHitRolls(state, input, values, {id, rollType}) {
+  const further = instanceHits(state).slice(1);
+  if ( !further.length ) return null;
+  let current = state;
+  let byInstance = {...(values.byInstance ?? {})};
+  for ( const hit of further ) {
+    const instance = hit.targetContext.instance;
+    const rolled = rollEachComponent(current, input, {id, kind: "damage", rollType, request: `damage-roll:hit-${instance + 1}`, hit,
+      values: byInstance[instance] ?? withFixedModifier(unrolledDamage(state)),
+      store: own => ({damage: {...values, byInstance: {...byInstance, [instance]: own}}})});
+    if ( rolled.stop ) return rolled;
+    byInstance = {...byInstance, [instance]: lessPenaltyDamage(rolled.values)};
+    current = rolled.state;
+  }
+  return {values: {...values, byInstance}, state: current};
+}
+
+/** Its hits that each rolled their own attack (`targetContext.instance`), in order; empty for a single attack roll. */
+function instanceHits(state) {
+  return normalizeArray(state.results?.attackResolution?.hits).filter(hit => Number.isInteger(hit?.targetContext?.instance));
+}
+
+/**
+ * Its damage as its definition gives it, not yet rolled: the runtime's damage without its rolled components, with its
+ * extras but a once-a-turn one (which only one hit deals). Its keys are left out, not set to undefined: a runtime
+ * `components` key, even undefined, stands in for the definition's.
+ */
+function unrolledDamage(state) {
+  const {components: _rolled, byInstance: _byInstance, modifierApplied: _applied, modifierOneRoll=0, ...damage} = state.input?.damage ?? {};
+  const extraComponents = normalizeArray(damage.extraComponents).filter(component => !component?.once);
+  // Less the bonus only one damage roll of the Action gets (`modifierOneRoll`: Empowered Evocation), which the first hit has.
+  const modifier = modifierOneRoll ? {modifierTotal: (Number(damage.modifierTotal) || 0) - (Number(modifierOneRoll) || 0)} : {};
+  return preparedResolverInput(updateResolutionState(state, {input: {...state.input,
+    damage: {...damage, extraComponents, ...modifier}}})).damage;
+}
+
+/**
  * Each component without an amount rolled, one request at a time. Damage the Action maximizes (`metadata.maximized`:
  * Overchannel) is not rolled: each of its dice is at its highest. `{values, state}` once all have one, else `{stop}`.
+ * `hit`: the hit it is the damage of (its critical, its target); `store(values)`: what to keep of it while it waits.
  */
-function rollEachComponent(state, input, {id, kind, rollType, request, values}) {
+function rollEachComponent(state, input, {id, kind, rollType, request, values, hit=null, store=null}) {
   let current = state;
   const definition = state.configuration?.effectiveDefinition ?? state.actionDefinition;
   const maximized = (kind === "damage") && (definition?.metadata?.maximized === true);
@@ -2121,12 +2283,12 @@ function rollEachComponent(state, input, {id, kind, rollType, request, values}) 
     const index = components.findIndex(component => component?.amount == null);
     if ( index < 0 ) return {values, state: current};
     const requestId = requestIdFor(current, index ? `${request}:${index}` : request);
-    const build = () => componentRollRequestForState(current, input, {kind, rollType, requestId, index, values});
+    const build = () => componentRollRequestForState(current, input, {kind, rollType, requestId, index, values, hit});
     const accepted = getResolutionResponse(current, {requestId, type: RESOLUTION_REQUEST_TYPES.ROLL});
     if ( !accepted && !maximized ) {
       const rollRequest = build();
       return {stop: waitResolutionStage({
-        state: updateResolutionState(current, {input: {...input, [kind]: values},
+        state: updateResolutionState(current, {input: {...input, ...(store ? store(values) : {[kind]: values})},
           rollRequests: appendRollRequest(current.rollRequests, rollRequest)}),
         request: createResolutionRequest({
           id: rollRequest.id,
@@ -3261,14 +3423,15 @@ function attackResolvedAsOnlyMisses(state) {
   return !!attackResolution && !attackResolution.hits?.length && !!attackResolution.misses?.length;
 }
 
-function componentRollRequestForState(state, input, {kind, rollType, requestId, index, values}) {
+function componentRollRequestForState(state, input, {kind, rollType, requestId, index, values, hit=null}) {
   const component = values.components[index];
   // 2024: a critical hit rolls the attack's damage dice twice (flat modifiers once).
   // A reaction's damage added to its creature's own critical hit (2014 Divine Smite) is marked `damage.critical`.
   // A penalty's dice (Reduce's 1d4 less) are not the attack's damage dice, so they are rolled once.
-  const hits = state.results?.attackResolution?.hits ?? [];
+  // With a roll per hit (Scorching Ray's rays), each hit's damage is critical on its own: the Action's own roll is the first's.
+  const hits = hit ? [hit] : (instanceHits(state).length ? instanceHits(state).slice(0, 1) : (state.results?.attackResolution?.hits ?? []));
   const critical = (kind === "damage") && !component.metadata?.subtract
-    && ((hits.length && hits.every(hit => hit.outcome === "criticalHit")) || (input.damage?.critical === true));
+    && ((hits.length && hits.every(entry => entry.outcome === "criticalHit")) || (input.damage?.critical === true));
   // ... and a rule's extra dice on top (Piercer: `metadata.criticalDice`).
   const more = critical ? (Number(component.metadata?.criticalDice) || 0) : 0;
   const rolled = !critical ? component : {...component,
@@ -3286,7 +3449,7 @@ function componentRollRequestForState(state, input, {kind, rollType, requestId, 
     definition: {modifierTotal: modifier},
     visibility: values.visibility ?? input.context?.messageMode,
     source: state.source ?? input.source ?? null,
-    target: firstRollTarget(input),
+    target: hit?.target ?? firstRollTarget(input),
     chooser: values.chooser ?? ROLL_AUTHORITY.SOURCE_CONTROLLER,
     authority: values.authority ?? {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
     metadata: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: kind, componentId: component.id ?? null}
@@ -3340,7 +3503,9 @@ function withFixedModifier(damage) {
 function withCriticalDice(state, input, damage) {
   const hits = state.results?.attackResolution?.hits ?? [];
   const critical = hits.filter(hit => hit.outcome === "criticalHit");
-  if ( !critical.length || (critical.length === hits.length) || (input.damage?.critical === true) || damage?.criticalSplit ) return damage;
+  // A roll per hit (Scorching Ray) already makes each hit's own damage critical.
+  if ( !critical.length || (critical.length === hits.length) || (input.damage?.critical === true) || damage?.criticalSplit
+    || instanceHits(state).length ) return damage;
   // Only the refs no other hit creature shares: unlinked copies of one Actor share its id, not their Token's.
   const others = new Set(hits.filter(hit => hit.outcome !== "criticalHit").flatMap(hit => targetLookupRefs(hit.target)));
   const extras = normalizeArray(damage?.components).flatMap(component => {
@@ -3552,7 +3717,7 @@ function attackOutcomeReactionEvent(state) {
     type: hits.length ? AUTOMATION_EVENT_TYPES.ATTACK_HIT : AUTOMATION_EVENT_TYPES.ATTACK_MISS,
     phase: AUTOMATION_EVENT_PHASES.INTERRUPT,
     source: state.actionContext?.source ?? input.source ?? state.source ?? null,
-    targets: attackResults.map(result => result.target).filter(Boolean),
+    targets: eachCreatureOnce(attackResults.map(result => result.target)),
     // Its kind ("melee", "ranged") too, so a reaction can answer one kind (a Parry, a melee attack), and its statistic
     // ("weapon", "spell": Divine Strike answers a weapon's hit).
     // Its extra damage's rules too (`extra:sneak-attack`: Cunning Strike), and a rider's tags (`brutal-strike`).
@@ -3568,7 +3733,7 @@ function attackOutcomeReactionEvent(state) {
       attackTotal: first?.roll?.total ?? null,
       defense: first?.defense ?? null,
       defenseValue: first?.defense?.value ?? null,
-      ...targetRelations(input, attackResults.map(result => result.target).filter(Boolean)),
+      ...targetRelations(input, eachCreatureOnce(attackResults.map(result => result.target))),
       timing: REACTION_WINDOW_TIMINGS.AFTER_OUTCOME
     }
   });
@@ -3615,9 +3780,12 @@ function reevaluateParentAfterReaction({parentState, childState, window, service
     && state.input?.check?.roll ) return recheckAfterPenalty(state, penalty, {window, childState});
   const decoy = directive?.data?.missChance;
   if ( (directive?.type === "augment") && Number.isFinite(penalty) && penalty && state.input?.attack?.roll ) {
-    const roll = state.input.attack.roll;
-    state = updateResolutionState(state, {input: {...state.input, attack: {...state.input.attack, roll: {...roll,
-      total: (Number(roll.total) || 0) - penalty, modifiers: [...(roll.modifiers ?? []), {id: "attack-penalty", value: -penalty}]}}}});
+    // Of several hits each with its own roll (Scorching Ray's rays), the one its event showed first.
+    const shown = state.results?.attackResolution;
+    const index = Number((shown?.hits?.[0] ?? shown?.misses?.[0])?.targetContext?.instance) || 0;
+    const roll = state.input.attack.rolls?.[index] ?? state.input.attack.roll;
+    state = updateResolutionState(state, {input: {...state.input, attack: withAttackRoll(state.input.attack, index, {...roll,
+      total: (Number(roll.total) || 0) - penalty, modifiers: [...(roll.modifiers ?? []), {id: "attack-penalty", value: -penalty}]})}});
   } else if ( (directive?.type === "augment") && decoy?.missed && decoy.targetKey && state.input?.attack ) {
     // Mirror Image: its creature's hit lands on a duplicate, so the attack is judged again with that hit a miss.
     state = updateResolutionState(state, {input: {...state.input, attack: {...state.input.attack,
@@ -3643,9 +3811,9 @@ function reevaluateParentAfterReaction({parentState, childState, window, service
   const before = state.results.attackResolution;
   const after = resolveAttackTargets({
     roll: attack.roll,
-    // The same per-target overrides as the first resolution (critical-on-hit, high ground).
-    targetContexts: withAttackBonuses(withOutcomeOverrides(attack.targetContexts ?? state.results?.targetResolution?.targetContexts ?? [],
-      attack.outcomesByTarget), attack.bonusByTarget),
+    // The same per-target overrides as the first resolution (critical-on-hit, high ground), and each hit's own roll.
+    targetContexts: attackInstanceContexts(withAttackBonuses(withOutcomeOverrides(attack.targetContexts
+      ?? state.results?.targetResolution?.targetContexts ?? [], attack.outcomesByTarget), attack.bonusByTarget), attack.rolls),
     targets: attack.targets ?? (state.results?.targetResolution ? [] : actionContext.targets),
     defense: attack.defense ?? null,
     defenseKey: attack.defenseKey ?? "ac",
@@ -3834,7 +4002,9 @@ function riderPatch(state, rider, {window, childState}) {
       // Cutting Words on a damage roll: that much comes off the roll, before any target's share of it is worked out.
       ...((Number(rider.damagePenalty) > 0) && damage.components ? {damage: {...damage,
         components: lessRolledDamage(damage.components, rider.damagePenalty)}} : {}),
-      ...((rider.rollMode && input.attack) ? {attack: {...input.attack, rollMode: rider.rollMode, rollModeSources: [rider.rollMode]}} : {}),
+      // ... each hit's own sources too (Scorching Ray's rays: `rollModeSourcesByTarget`).
+      ...((rider.rollMode && input.attack) ? {attack: {...Object.fromEntries(Object.entries(input.attack)
+        .filter(([key]) => key !== "rollModeSourcesByTarget")), rollMode: rider.rollMode, rollModeSources: [rider.rollMode]}} : {}),
       ...(rider.tags?.length ? {riderTags: uniqueStrings([...(input.riderTags ?? []), ...rider.tags])} : {}),
       ...(rider.push ? {riderPush: clonePlain(rider.push)} : {}),
       // Dwarven Plate: that many feet off the push on its own creature (adapters/foundry-v14-forced-movement).
@@ -3904,7 +4074,8 @@ function withCandidateDurability(options, candidate) {
  */
 function redirectedDamage(damageResolution, redirectsByTarget, attackResolution=null) {
   if ( !damageResolution?.ok || !redirectsByTarget || !Object.keys(redirectsByTarget).length ) return damageResolution;
-  const rollAgainst = tokenId => normalizeArray(attackResolution?.results ?? attackResolution?.hits)
+  // The roll of the hit it moves, its creature's first (a ray before it may have missed).
+  const rollAgainst = tokenId => normalizeArray(attackResolution?.hits ?? attackResolution?.results)
     .find(entry => String(entry?.target?.tokenId ?? "") === tokenId);
   const moved = new Set();
   return {...damageResolution, results: normalizeArray(damageResolution.results).map(result => {
@@ -4307,7 +4478,7 @@ function withRerollBonus(known, bonus) {
   return bonus ? {known: known.known, value: (Number(known.value) || 0) + bonus} : known;
 }
 
-function attackRollRequestForState(state, input, {suffix="attack-roll", bonus: rerollBonus=0, rollMode=null}={}) {
+function attackRollRequestForState(state, input, {suffix="attack-roll", bonus: rerollBonus=0, rollMode=null, target=null, mode=null}={}) {
   const attack = input.attack ?? {};
   const modifier = withRerollBonus(rollModifierInfo(attack, ["attackBonus", "modifierTotal", "totalModifier", "modifier", "bonus"]), rerollBonus);
   const bonus = bonusDiceRequest(attack.dice, modifier);
@@ -4317,10 +4488,11 @@ function attackRollRequestForState(state, input, {suffix="attack-roll", bonus: r
     type: ROLL_TYPES.ATTACK,
     modifier: modifier.value,
     formula: attack.formula ?? attack.rollFormula ?? null,
-    rollMode: rerollMode(attack, attack.rollMode ?? attack.advantageState ?? attack.roll?.mode, rollMode),
+    // One of several attacks (Scorching Ray's rays) rolls with its own mode (instanceRollMode).
+    rollMode: rerollMode(attack, mode ?? attack.rollMode ?? attack.advantageState ?? attack.roll?.mode, rollMode),
     visibility: attack.visibility ?? input.context?.messageMode,
     source: state.source ?? input.source ?? null,
-    target: firstRollTarget(input),
+    target: target ?? firstRollTarget(input),
     chooser: attack.chooser ?? ROLL_AUTHORITY.SOURCE_CONTROLLER,
     authority: attack.authority ?? {kind: ROLL_AUTHORITY.SOURCE_CONTROLLER},
     modifiers: (attack.modifiers && !rerollBonus) ? attack.modifiers : (modifier.known ? [{id: "attack-modifier", value: modifier.value}] : []),

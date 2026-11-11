@@ -1106,9 +1106,13 @@
             }
           },
           "targeting": {
-            "type": "single",
+            "type": "multiple",
             "required": true,
-            "count": 1
+            "count": 3,
+            "refinementPolicy": {
+              "minSelections": 1
+            },
+            "repeatable": true
           },
           "damage": [
             {
@@ -1322,9 +1326,13 @@
             }
           },
           "targeting": {
-            "type": "single",
+            "type": "multiple",
             "required": true,
-            "count": 1
+            "count": 3,
+            "refinementPolicy": {
+              "minSelections": 1
+            },
+            "repeatable": true
           },
           "damage": [
             {

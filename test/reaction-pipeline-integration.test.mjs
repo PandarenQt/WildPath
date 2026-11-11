@@ -1043,6 +1043,103 @@ test("Cutting Words on an ability check: a successful check is lowered by its di
     "16 less 5 is 11 against DC 13: the escape fails");
 });
 
+/** Scorching Ray's shape at the fixture's defender: three rays, each its own attack roll (`targeting.repeatable`). */
+function raysAt(fixture, id, totals, services) {
+  const rays = {...parentStrikeDefinition(), id: "action:test-rays", label: "Rays", tags: ["spell"],
+    targeting: {type: "multiple", required: true, count: 3, repeatable: true, refinementPolicy: {minSelections: 1}},
+    attack: {type: "ranged", statistic: "spell", defenseKey: "ac"}};
+  let state = planStagedActionResolution({id, actor: fixture.attacker, action: actionItem(rays), source: {actorId: fixture.attacker.id,
+    actorRef: fixture.attacker.uuid}, targets: [fixture.target], attack: {modifierTotal: 0, defenseKey: "ac"}, durability: true,
+    targetActors: fixture.targetActors, services}).state;
+  for ( const [index, total] of totals.entries() ) {
+    const request = state.pendingRequests.find(entry => entry.id === `request:${id}:attack-roll${index ? `:${index + 1}` : ""}`);
+    const roll = request.payload.rollRequest;
+    state = resumeStagedActionResolution({state, services, response: {resolutionId: id, requestId: request.id, type: RESOLUTION_REQUEST_TYPES.ROLL,
+      value: {requestId: roll.id, resolutionId: id, type: roll.type, natural: total, total}}}).state;
+  }
+  return state;
+}
+
+const rayOutcomes = state => state.results.attackResolution.results.map(result => [result.targetContext.instance, result.outcome]);
+
+test("Shield against three rays: its raised AC judges every ray at its creature again", async () => {
+  const fixture = attackFixture();
+  const guardAction = reactiveGuardDefinition();
+  const services = guardServices({defender: fixture.defender, targetActors: fixture.targetActors, action: guardAction});
+  const waiting = raysAt(fixture, "resolution:rays-shield", [18, 17, 10], services);
+  assert.equal(waiting.currentStageId, ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ATTACK_OUTCOME, resultDiagnostic({state: waiting}));
+  assert.deepEqual(rayOutcomes(waiting), [[0, "hit"], [1, "hit"], [2, "miss"]], "18 and 17 hit AC 16, 10 misses");
+  assert.deepEqual(waiting.pendingRequests[0].payload.event.targets.map(target => target.id), ["defender"], "asked once for both hits");
+  const selected = resumeStagedActionResolution({state: waiting, response: acceptResponse(waiting.pendingRequests[0]), services});
+  const child = await executeGuardChild({parentState: selected.state, defender: fixture.defender, targetActors: fixture.targetActors,
+    action: guardAction, persistencePort: fixture.persistencePort});
+  const resumed = completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services});
+  assert.equal(resumed.ok, true, resultDiagnostic(resumed));
+  assert.deepEqual(rayOutcomes(resumed.state), [[0, "miss"], [1, "miss"], [2, "miss"]], "AC 21 turns both hits into misses");
+});
+
+test("Cutting Words against three rays: its penalty lowers the ray its event showed first, and only that one", async () => {
+  const fixture = attackFixture();
+  const bard = actorDocument("bard", {system: actorSystem({action: 1, reaction: 1, hp: 20, ac: 12})});
+  const targetActors = {...fixture.targetActors, ...targetActorsFor(bard)};
+  const words = {schemaVersion: 1, id: "action:test-cutting-words", label: "Cutting Words", costs: reactionCost(),
+    targeting: {type: "single", required: true, count: 1}, rider: {attackPenalty: {dice: {type: "constant", value: 5}}}};
+  const trigger = createReactionTrigger({id: "trigger:test-cutting-words", event: AUTOMATION_EVENT_TYPES.ATTACK_HIT,
+    match: {phase: AUTOMATION_EVENT_PHASES.INTERRUPT}, actorId: bard.id, actionId: words.id, actionRef: words.id, action: words,
+    chooser: {kind: "specific", userId: "player-b"}});
+  const services = {targetActors, reactions: {triggers: [trigger], resourcesByActor: {[bard.id]: reactionResourcesFor(bard)},
+    controllerUserIdsByActor: {[bard.id]: ["player-b"]}, actorDocumentsByActor: {[bard.id]: bard}, actorSystemsByActor: {[bard.id]: bard.system},
+    createChildState: ({parentState, candidate, baseChildState}) => createActionResolutionState({...baseChildState,
+      actorSystem: bard.system, action: actionItem(candidate.actionDefinition), source: candidate.reactor,
+      targets: [targetRef(fixture.attacker.id)], metadata: {...baseChildState.metadata, parentResolutionId: parentState.id}})}};
+  // The first ray misses; the event shows the hits, the second ray first.
+  const waiting = raysAt({...fixture, targetActors}, "resolution:rays-words", [10, 18, 17], services);
+  assert.deepEqual(rayOutcomes(waiting), [[0, "miss"], [1, "hit"], [2, "hit"]], resultDiagnostic({state: waiting}));
+  const selected = resumeStagedActionResolution({state: waiting, response: acceptResponse(waiting.pendingRequests[0]), services});
+  const child = await executeStagedActionResolution({state: selected.state.metadata.activeChildResolution, actor: bard,
+    action: actionItem(words), targetActors, authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"},
+    persistencePort: createTestDocumentPersistenceAdapter()});
+  assert.equal(child.state.status, RESOLUTION_STATE_STATUS.COMPLETED, resultDiagnostic(child));
+  const resumed = completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services});
+  assert.equal(resumed.ok, true, resultDiagnostic(resumed));
+  assert.deepEqual(rayOutcomes(resumed.state), [[0, "miss"], [1, "miss"], [2, "hit"]], "18 less 5 is 13: only the second ray misses now");
+  assert.deepEqual(resumed.state.input.attack.rolls.map(roll => roll.total), [10, 13, 17]);
+  assert.equal(resumed.state.input.attack.roll.total, 10, "the first ray's roll is unchanged");
+});
+
+test("a rider's roll mode (Brutal Strike giving up Advantage) replaces each ray's own mode too", async () => {
+  const fixture = attackFixture();
+  const bard = actorDocument("bard", {system: actorSystem({action: 1, reaction: 1, hp: 20, ac: 12})});
+  const targetActors = {...fixture.targetActors, ...targetActorsFor(bard)};
+  const forgo = {schemaVersion: 1, id: "action:test-forgo", label: "Forgo", costs: reactionCost(),
+    targeting: {type: "single", required: true, count: 1}, rider: {rollMode: "normal"}};
+  const trigger = createReactionTrigger({id: "trigger:test-forgo", event: AUTOMATION_EVENT_TYPES.ACTION_DECLARED,
+    match: {phase: AUTOMATION_EVENT_PHASES.INTERRUPT}, actorId: bard.id, actionId: forgo.id, actionRef: forgo.id, action: forgo,
+    chooser: {kind: "specific", userId: "player-b"}});
+  const services = {targetActors, reactions: {triggers: [trigger], resourcesByActor: {[bard.id]: reactionResourcesFor(bard)},
+    controllerUserIdsByActor: {[bard.id]: ["player-b"]}, actorDocumentsByActor: {[bard.id]: bard}, actorSystemsByActor: {[bard.id]: bard.system},
+    createChildState: ({parentState, candidate, baseChildState}) => createActionResolutionState({...baseChildState,
+      actorSystem: bard.system, action: actionItem(candidate.actionDefinition), source: candidate.reactor,
+      targets: [targetRef(fixture.attacker.id)], metadata: {...baseChildState.metadata, parentResolutionId: parentState.id}})}};
+  const rays = {...parentStrikeDefinition(), id: "action:test-rays", label: "Rays", tags: ["spell"],
+    targeting: {type: "multiple", required: true, count: 3, repeatable: true, refinementPolicy: {minSelections: 1}},
+    attack: {type: "ranged", statistic: "spell", defenseKey: "ac"}};
+  const id = "resolution:rays-forgo";
+  const waiting = planStagedActionResolution({id, actor: fixture.attacker, action: actionItem(rays), source: {actorId: fixture.attacker.id,
+    actorRef: fixture.attacker.uuid}, targets: [fixture.target], durability: true, targetActors, services,
+    attack: {modifierTotal: 0, defenseKey: "ac", rollMode: "advantage", rollModeSourcesByTarget: {defender: [{mode: "advantage"}]}}}).state;
+  assert.equal(waiting.currentStageId, ACTION_PIPELINE_STAGE_IDS.REACTION_AFTER_ACTION_DECLARED, resultDiagnostic({state: waiting}));
+  const selected = resumeStagedActionResolution({state: waiting, response: acceptResponse(waiting.pendingRequests[0]), services});
+  const child = await executeStagedActionResolution({state: selected.state.metadata.activeChildResolution, actor: bard,
+    action: actionItem(forgo), targetActors, authority: {isGM: true, userId: "gm-a", activeGMId: "gm-a"},
+    persistencePort: createTestDocumentPersistenceAdapter()});
+  assert.equal(child.state.status, RESOLUTION_STATE_STATUS.COMPLETED, resultDiagnostic(child));
+  const resumed = completeStagedReactionChildResolution({parentState: selected.state, childState: child.state, services});
+  assert.equal(resumed.ok, true, resultDiagnostic(resumed));
+  const rolling = planStagedActionResolution({state: resumed.state, services}).state;
+  assert.deepEqual(rolling.pendingRequests.map(entry => entry.payload.rollRequest?.rollMode), ["normal", "normal", "normal"]);
+});
+
 /* -------------------------------------------- */
 /*  Damage committed on the creature's health at commit (two Actions, one snapshot)  */
 /* -------------------------------------------- */
