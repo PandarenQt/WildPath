@@ -1,11 +1,13 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
+import {diceTerms, rollFromTerms} from "./fixtures/foundry-dice-terms.mjs";
 
 // Only the globals needed to import the real Actor class; no Foundry schema emulation.
 globalThis.Actor = class {};
 globalThis.foundry = {
   data: {fields: {}, ActiveEffectTypeDataModel: class {}},
-  utils: {isEmpty: value => Object.keys(value).length === 0, randomID: () => "abc"}
+  utils: {isEmpty: value => Object.keys(value).length === 0, randomID: () => "abc"},
+  dice: {terms: diceTerms}
 };
 Math.clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const {default: WildPathActor} = await import("../module/documents/actor.mjs");
@@ -26,6 +28,7 @@ function sheetGame({policy, typed=[]}) {
   globalThis.ChatMessage = {getSpeaker: () => ({})};
   globalThis.Roll = class Roll {
     static fromData(data) { return Object.assign(new Roll(data.formula), data); }
+    static fromTerms(terms) { return rollFromTerms(Roll, terms); }
     constructor(formula) { this.formula = formula; }
     async evaluate() {
       const typed = Number(this.formula);
@@ -35,7 +38,7 @@ function sheetGame({policy, typed=[]}) {
       return this;
     }
     toJSON() { return {formula: this.formula, total: this.total, evaluated: true, dice: this.dice}; }
-    async toMessage(data) { posted.push({formula: this.formula, total: this.total, ...data}); }
+    async toMessage(data) { posted.push({formula: this.formula, total: this.total, dice: this.dice, ...data}); }
   };
   const providers = [createFoundryDigitalRollProvider(), createPhysicalDiceProvider()];
   globalThis.game = {i18n: {localize: key => key, format: key => key}, wildpath: {requestRoll: (rollRequest, {title}={}) => {
@@ -61,7 +64,8 @@ test("a sheet roll with physical dice gives the typed natural d20 in a RollResul
   assert.equal(result.total, 1 + 3, "the d20 plus the Fortitude save modifier");
   assert.equal(result.provenance.type, "physical");
   assert.equal(physical.asked[0].type, "saving-throw");
-  assert.equal(physical.posted[0].formula, "4", "the typed roll's card shows its total");
+  assert.deepEqual([physical.posted[0].formula, physical.posted[0].total, physical.posted[0].dice?.[0]?.results],
+    ["1d20 + 3", 4, [{result: 1, active: true}]], "the typed roll's card shows its entered d20 and its modifier");
   assert.equal(physical.posted[0].flags.wildpath.rollTest.save, "fortitude");
 
   const {posted} = sheetGame({policy: "digital"});
@@ -69,6 +73,20 @@ test("a sheet roll with physical dice gives the typed natural d20 in a RollResul
   assert.deepEqual([digital.natural, digital.total, digital.provenance.type], [20, 23, "foundry-digital"],
     "the digital provider gives the same RollResult shape");
   assert.deepEqual([posted[0].formula, posted[0].total], ["1d20 + 3", 23], "its card shows the dice as rolled");
+});
+
+test("a typed d20 under a floor (Reliable Talent) shows as a digital one does, so a Portent replaces it to the same total", async () => {
+  const {createD20RollRequest} = await import("../module/helpers/rolls.mjs");
+  const {requestShownRoll} = await import("../module/adapters/foundry-digital-roll-provider.mjs");
+  const {replacedTotal} = await import("../module/adapters/foundry-v14-portent.mjs");
+  sheetGame({policy: "physical", typed: [{natural: 3}]});
+  const request = createD20RollRequest({id: "sheet:floor", resolutionId: "sheet", type: "skill-check", modifier: 5,
+    expected: {naturalMinimum: 10}});
+  const {result, roll} = await requestShownRoll(request);
+  assert.equal(result.total, 15, "the 3 counts as 10, plus 5");
+  assert.deepEqual([roll.formula, roll.total, roll.dice[0].results], ["1d20min10 + 5", 15,
+    [{result: 3, active: true, count: 10, rerolled: true}]], "the die as rolled, counted as its floor, as Foundry's min leaves it");
+  assert.equal(replacedTotal(roll, 2), 2 + 5, "the Portent die in the counted 10's place, as on a digital 1d20min10 + 5");
 });
 
 test("a sheet roll's floor (Indomitable Might) is on its RollResult; closing the prompt rolls nothing", async () => {

@@ -12,6 +12,8 @@ export const CHAT_OUTCOME_KEYS = Object.freeze({
     saveFailure: "WILDPATH.CHAT.Outcome.SaveFailure",
     legendaryResistance: "WILDPATH.CHAT.Outcome.LegendaryResistance",
     staysUp: "WILDPATH.CHAT.Outcome.StaysUp",
+    concentrationKept: "WILDPATH.CHAT.Outcome.ConcentrationKept",
+    concentrationLost: "WILDPATH.CHAT.Outcome.ConcentrationLost",
     half: "WILDPATH.COVER.half",
     threeQuarters: "WILDPATH.COVER.threeQuarters",
     immune: "WILDPATH.CHAT.Outcome.Immune",
@@ -33,6 +35,7 @@ export function createResolutionCardViewModel(result, { conditionNames = {} } = 
             const attackEntry = attack.find(entry => sameTarget(entry.target, target));
             const saveEntry = save.find(entry => sameTarget(entry.target, target));
             const kept = (result.outcomes?.zeroHp ?? []).find(entry => sameTarget(entry.target, target));
+            const checks = (result.outcomes?.concentration ?? []).filter(entry => sameTarget(entry.target, target));
             const covered = (result.outcomes?.cover ?? []).find(entry => sameTarget(entry.target, target));
             const coverKey = covered?.degree ? CHAT_OUTCOME_KEYS[covered.degree] : null;
             const effects = (result.outcomes?.effects ?? []).filter(entry => sameTarget(entry.target, target)).flatMap(entry => {
@@ -46,6 +49,8 @@ export function createResolutionCardViewModel(result, { conditionNames = {} } = 
                 attack: attackEntry ? attackOutcome(attackEntry) : null,
                 save: saveEntry ? saveOutcome(saveEntry) : null,
                 ...(kept ? { staysUp: { label: CHAT_OUTCOME_KEYS.staysUp, name: textOrNull(kept.name) ?? "" } } : {}),
+                ...(checks.length ? { concentration: checks.every(entry => entry.kept === true)
+                        ? { label: CHAT_OUTCOME_KEYS.concentrationKept, tone: "success" } : { label: CHAT_OUTCOME_KEYS.concentrationLost, tone: "failure" } } : {}),
                 ...(coverKey ? { cover: { label: coverKey } } : {}),
                 ...((result.outcomes?.unaffected ?? []).some(spared => sameTarget(spared, target))
                     ? { unaffected: { label: CHAT_OUTCOME_KEYS.unaffected } } : {}),
@@ -55,7 +60,7 @@ export function createResolutionCardViewModel(result, { conditionNames = {} } = 
         rolls: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.foundryRoll] : [])),
         rollLabels: (result.rolls ?? []).flatMap(roll => (roll.foundryRoll ? [roll.label ?? null] : [])),
         enteredRolls: (result.rolls ?? []).flatMap(roll => (!roll.foundryRoll && Number.isFinite(roll.total)
-            ? [{ formula: textOrNull(roll.formula), total: roll.total }] : []))
+            ? [{ formula: textOrNull(roll.formula), total: roll.total, label: roll.label ?? null }] : []))
     };
 }
 /**

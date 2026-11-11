@@ -8,6 +8,7 @@
   {{{rollHtml}}}
   {{#each enteredRolls}}
   <div class="dice-roll">
+    {{#if flavor}}<div class="dice-flavor">{{flavor}}</div>{{/if}}
     <div class="dice-result">
       {{#if formula}}<div class="dice-formula">{{formula}}</div>{{/if}}
       <h4 class="dice-total">{{total}}</h4>
@@ -24,6 +25,7 @@
         {{#if attack}}<span class="outcome {{attack.tone}}">{{localize attack.label}}</span>{{/if}}
         {{#if save}}<span class="outcome {{save.tone}}">{{localize save.label}}</span>{{/if}}
         {{#if staysUp}}<span class="outcome success">{{localize staysUp.label name=staysUp.name}}</span>{{/if}}
+        {{#if concentration}}<span class="outcome {{concentration.tone}}">{{localize concentration.label}}</span>{{/if}}
         {{#if cover}}<span class="outcome cover">{{localize cover.label}}</span>{{/if}}
         {{#if unaffected}}<span class="outcome unaffected">{{localize unaffected.label}}</span>{{/if}}
         {{#each effects}}<span class="outcome effect{{#if removed}} removed{{/if}}">{{#if removed}}−{{else}}+{{/if}} {{localize label}}</span>{{/each}}

@@ -326,7 +326,8 @@ export function collectReactionWindows({
 }
 
 /**
- * The payment of an Action's first required resource choice that `resources` can't pay (no slot left), else null.
+ * The payment of an Action's first required resource choice that `resources` can't pay (no slot left), with the choice's
+ * label (`choiceLabel`), else null.
  * Only an active choice counts (one switched on by another choice, or by a predicate, is the user's to make).
  */
 export function unpaidRequiredChoice(definition, resources, policies={}) {
@@ -335,7 +336,7 @@ export function unpaidRequiredChoice(definition, resources, policies={}) {
   if ( !discovery.ok ) return null;
   const request = discovery.requests.find(entry => (entry.type === "resource") && entry.required
     && (entry.payment?.status !== "available"));
-  return request ? clonePlain(request.payment) : null;
+  return request ? {...clonePlain(request.payment), choiceLabel: request.label ?? null} : null;
 }
 
 /* -------------------------------------------- */

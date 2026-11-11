@@ -268,7 +268,9 @@ function createActionBarEntry({
       code: discovery.code,
       defaultOptionId: defaultPayment?.id ?? null,
       options: discovery.options.map(summarizePaymentOption),
-      failures: [...discovery.failures, ...(unpaid?.failures ?? [])].map(summarizePaymentFailure)
+      failures: [...discovery.failures, ...(unpaid?.failures ?? [])].map(summarizePaymentFailure),
+      // The required choice nothing can pay (Fireball's "Spell slot"), for a refusal to name.
+      unpaidChoice: unpaid?.choiceLabel ?? null
     },
     command: enabled ? {
       type: UI_COMMAND_TYPES.USE_ACTION,

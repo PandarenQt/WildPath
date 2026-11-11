@@ -18,7 +18,7 @@ type Data = Record<string, unknown>;
 interface ResourceView {id: string; category: string; label: string; current: number; maximum: number; depleted: boolean;
   capped: boolean}
 interface ActionView {id: string | null; ref: string; label: string; img: string | null; enabled: boolean; group: string;
-  disabledCode: string | null; payment?: {failures?: Array<{resourceId?: string | null; code?: string | null}>}}
+  disabledCode: string | null; payment?: {failures?: Array<{resourceId?: string | null; code?: string | null}>; unpaidChoice?: string | null}}
 interface GroupView {id: string; label: string; actions: string[]}
 interface BarView {actorName: string | null; resources: ResourceView[]; actions: ActionView[]; groups: GroupView[]}
 interface ConditionDefinition {id: string; name: string; img: string; stacking?: boolean}
@@ -167,7 +167,11 @@ export function actionBarContext({actor, conditions=[], odds={}, common=[], loca
     const failures: Data[] = [...(action.payment?.failures ?? []), ...controllerShort(action)];
     const spent = [...new Set(failures.filter(failure => failure.code === "INSUFFICIENT_RESOURCE")
       .map(failure => resourceLabels.get(String(failure.resourceId)) ?? localize(ECONOMY_LABELS[String(failure.resourceId)] ?? String(failure.resourceId))))];
-    return spent.length ? {key: "WILDPATH.ACTIONBAR.Reason.Spent", name: spent.join(", ")} : {key: "WILDPATH.ACTIONBAR.Unavailable", name: ""};
+    if ( spent.length ) return {key: "WILDPATH.ACTIONBAR.Reason.Spent", name: spent.join(", ")};
+    // Nothing it has can pay it (no spell slot of any level): the choice it can't pay by name (a lang key from the Action
+    // Builder, or its own words), else its cost.
+    if ( action.payment?.unpaidChoice ) return {key: "WILDPATH.ACTIONBAR.Reason.NoResource", name: localize(action.payment.unpaidChoice)};
+    return failures.length ? {key: "WILDPATH.ACTIONBAR.Reason.CantPay", name: ""} : {key: "WILDPATH.ACTIONBAR.Unavailable", name: ""};
   };
   const rawDefinition = (action: ActionView) => (items.get(action.id ?? "") as {system?: {definition?: Data}} | undefined)?.system?.definition;
   // Spells go by level and magic items' Actions together (Baldur's Gate 3); reactions stay with reactions.

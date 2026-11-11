@@ -140,7 +140,13 @@ export function actionBarContext({ actor, conditions = [], odds = {}, common = [
         const failures = [...(action.payment?.failures ?? []), ...controllerShort(action)];
         const spent = [...new Set(failures.filter(failure => failure.code === "INSUFFICIENT_RESOURCE")
                 .map(failure => resourceLabels.get(String(failure.resourceId)) ?? localize(ECONOMY_LABELS[String(failure.resourceId)] ?? String(failure.resourceId))))];
-        return spent.length ? { key: "WILDPATH.ACTIONBAR.Reason.Spent", name: spent.join(", ") } : { key: "WILDPATH.ACTIONBAR.Unavailable", name: "" };
+        if (spent.length)
+            return { key: "WILDPATH.ACTIONBAR.Reason.Spent", name: spent.join(", ") };
+        // Nothing it has can pay it (no spell slot of any level): the choice it can't pay by name (a lang key from the Action
+        // Builder, or its own words), else its cost.
+        if (action.payment?.unpaidChoice)
+            return { key: "WILDPATH.ACTIONBAR.Reason.NoResource", name: localize(action.payment.unpaidChoice) };
+        return failures.length ? { key: "WILDPATH.ACTIONBAR.Reason.CantPay", name: "" } : { key: "WILDPATH.ACTIONBAR.Unavailable", name: "" };
     };
     const rawDefinition = (action) => items.get(action.id ?? "")?.system?.definition;
     // Spells go by level and magic items' Actions together (Baldur's Gate 3); reactions stay with reactions.

@@ -7,6 +7,7 @@ import {
   normalizeDisclosure
 } from "./multiplayer-disclosure.mjs";
 import {collectionContents} from "./collections.mjs";
+import {CONCENTRATION_OUTCOMES} from "../resolvers/concentration-resolver.mjs";
 
 export const MULTIPLAYER_PROTOCOL_VERSION = 1;
 
@@ -411,6 +412,8 @@ export function sanitizeResolutionResultForTransport({state=null, result=null, a
       payment: current.results?.paymentResolution?.paymentPlan ?? null,
       ...(current.results?.movementOutcome ? {movement: current.results.movementOutcome} : {}),
       ...(current.results?.zeroHp?.length ? {zeroHp: current.results.zeroHp} : {}),
+      ...(current.results?.concentrationResolution?.checks?.decisions?.length
+        ? {concentration: current.results.concentrationResolution.checks.decisions} : {}),
       ...(current.input?.context?.cover?.length ? {cover: current.input.context.cover} : {}),
       ...(current.input?.context?.unaffected?.length ? {unaffected: current.input.context.unaffected} : {})
     },
@@ -443,11 +446,12 @@ const FOOTPRINT_KEYS = Object.freeze(["type", "topology", "size", "anchor", "fie
 
 /**
  * What a roll is, for its line on the card, from the authority's own request: `{key}` (an attack, a save, a check,
- * healing), or for damage `{key, damageType}`; a penalty die (Reduce: `metadata.subtract`) is less damage; another names
- * its own (`metadata.labelKey`: Boon of Spell Recall's d4). Null for one the card names no other way (Empowered Spell's
- * rerolled dice).
+ * healing), or for damage `{key, damageType}`; a penalty die (Reduce: `metadata.subtract`) is less damage. A request that
+ * names its own comes first (`metadata.labelKey`: Boon of Spell Recall's d4, a concentration check rolled as a save). Null
+ * for one the card names no other way (Empowered Spell's rerolled dice).
  */
 function rollLabel(request) {
+  if ( typeof request?.metadata?.labelKey === "string" ) return {key: request.metadata.labelKey};
   const component = request?.definition?.components?.[0] ?? null;
   const damageType = (typeof component?.damageType === "string") ? component.damageType : null;
   switch ( request?.type ) {
@@ -458,7 +462,7 @@ function rollLabel(request) {
       : {key: "WILDPATH.CHAT.Roll.Damage", ...(damageType ? {damageType} : {})};
     case ROLL_TYPES.HEALING: return {key: "WILDPATH.CHAT.Roll.Healing"};
     case ROLL_TYPES.CONCENTRATION: return {key: "WILDPATH.CHAT.Roll.Concentration"};
-    default: return (typeof request?.metadata?.labelKey === "string") ? {key: request.metadata.labelKey} : null;
+    default: return null;
   }
 }
 
@@ -528,6 +532,9 @@ function projectPublicResolutionResult(data) {
       ...(normalizeArray(data.outcomes?.zeroHp).some(entry => entry?.kept === true) ? {zeroHp: normalizeArray(data.outcomes.zeroHp)
         .filter(entry => (entry?.kept === true) && entry.target)
         .map(entry => ({target: projectEntityRefForDisclosure(entry.target), name: stringOrNull(entry.name), kept: true}))} : {}),
+      // Whose concentration a check kept or ended, as its effects staying or ending show anyway: never its DC or roll.
+      ...(publicConcentrationOutcomes(data.outcomes?.concentration).length
+        ? {concentration: publicConcentrationOutcomes(data.outcomes.concentration)} : {}),
       // Each target's cover, as everyone at the table can see it.
       ...(normalizeArray(data.outcomes?.cover).length ? {cover: normalizeArray(data.outcomes.cover).filter(entry => entry?.target)
         .map(entry => ({target: projectEntityRefForDisclosure(entry.target), degree: stringOrNull(entry.degree)}))} : {}),
@@ -552,6 +559,14 @@ function projectPublicResolutionResult(data) {
         foundryRoll: (countedRollTotal(entry.rollResult) === (entry.rollResult?.total ?? null)) ? publicFoundryRoll(entry.rollResult) : null
       }))
   }, "resolutionResult.broadcast");
+}
+
+/** A concentration check's decisions as the card shows them: who checked and whether it kept its concentration. */
+function publicConcentrationOutcomes(decisions) {
+  return normalizeArray(decisions).filter(decision => decision?.checkRequest?.target
+    && [CONCENTRATION_OUTCOMES.BROKEN, CONCENTRATION_OUTCOMES.MAINTAINED].includes(decision.outcome))
+    .map(decision => ({target: projectEntityRefForDisclosure(decision.checkRequest.target),
+      kept: decision.outcome === CONCENTRATION_OUTCOMES.MAINTAINED}));
 }
 
 /** An effect resolution's condition plans as the card shows them: who, which, and whether it ended. */

@@ -93,7 +93,8 @@ export function createFoundryDigitalRollProvider({
 /**
  * A roll outside an Action (a sheet roll, a rest's Hit Dice, level-up Hit Points, ability scores, Recharge, Portent): one
  * RollRequest answered by the dice policy as an Action's rolls are (`game.wildpath.requestRoll`), with a Foundry Roll to
- * show in chat: digital dice as rolled, typed (physical) dice as their total. `{result, roll}`, or null when not rolled.
+ * show in chat: digital dice as rolled, typed (physical) dice as their entered die and modifier, or their total when no die
+ * was entered. `{result, roll}`, or null when not rolled.
  * @param {object} request
  * @param {{title?: string|null, game?: object}} [options]
  */
@@ -101,7 +102,26 @@ export async function requestShownRoll(request, {title=null, game=globalThis.gam
   const result = await game.wildpath.requestRoll(request, {title});
   if ( !result ) return null;
   const Roll = resolveRollClass({RollClass: null, context: {}});
-  return {result, roll: result.raw?.foundryRoll ? Roll.fromData(result.raw.foundryRoll) : await new Roll(String(result.total)).evaluate()};
+  if ( result.raw?.foundryRoll ) return {result, roll: Roll.fromData(result.raw.foundryRoll)};
+  return {result, roll: enteredRoll(Roll, request, result) ?? await new Roll(String(result.total)).evaluate()};
+}
+
+/**
+ * Typed dice as a Foundry Roll: the entered natural as its die and the rest of the total as one modifier ("1d20 + 5"), so
+ * the card shows the die (its natural 20) and a later Portent can replace it. Null when no natural die was entered.
+ * A floor on the die (Reliable Talent's 10) is shown as Foundry's `min` modifier leaves a digital die: the natural as
+ * rolled, counted as the floor, so the die's total (and a Portent replacing it) is the same for typed and digital dice.
+ */
+function enteredRoll(Roll, request, result) {
+  const faces = Number(request?.expected?.primaryDieFaces);
+  if ( !(faces > 0) || !Number.isInteger(result.natural) || !Number.isFinite(result.total) ) return null;
+  const {Die, OperatorTerm, NumericTerm} = globalThis.foundry.dice.terms;
+  const floor = Math.trunc(Number(request.expected.naturalMinimum)) || 0;
+  const counted = Math.max(result.natural, floor);
+  const rest = result.total - counted;
+  return Roll.fromTerms([new Die({number: 1, faces, modifiers: (floor > 1) ? [`min${floor}`] : [],
+    results: [{result: result.natural, active: true, ...((counted > result.natural) ? {count: counted, rerolled: true} : {})}]}),
+    ...(rest ? [new OperatorTerm({operator: rest < 0 ? "-" : "+"}), new NumericTerm({number: Math.abs(rest)}).evaluate()] : [])]);
 }
 
 /**

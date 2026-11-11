@@ -73,14 +73,21 @@ test("a target the Action did nothing to (Unaffected) is still named on its card
   assert.equal(JSON.stringify(view).includes(SECRET), false);
 });
 
-test("rolls entered by hand show the authority's formula and the validated total", () => {
-  const view = createResolutionCardViewModel(projectResolutionResultForDisclosure({
+test("rolls entered by hand show what they are, the authority's formula and the validated total", async () => {
+  const result = projectResolutionResultForDisclosure({
     resolutionId: "resolution:physical", status: "completed", initiatorUserId: "player-a",
-    rolls: [{requestId: "a", type: "attack-roll", visibility: "public", formula: "1d20 + 4",
-      rollResult: {natural: 15, total: 19, formula: "1d20 + 4 (natural 20!)"}}]
-  }, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE));
+    rolls: [{requestId: "a", type: "saving-throw", visibility: "public", formula: "1d20 + 4",
+      label: {key: "WILDPATH.CHAT.Roll.Concentration"}, rollResult: {natural: 15, total: 19, formula: "1d20 + 4 (natural 20!)"}}]
+  }, DISCLOSURE_CLASSIFICATIONS.BROADCAST_SAFE);
+  const view = createResolutionCardViewModel(result);
   assert.deepEqual(view.rolls, []);
-  assert.deepEqual(view.enteredRolls, [{formula: "1d20 + 4", total: 19}], "never the roller's own formula text");
+  assert.deepEqual(view.enteredRolls, [{formula: "1d20 + 4", total: 19, label: {key: "WILDPATH.CHAT.Roll.Concentration"}}],
+    "never the roller's own formula text");
+  const foundry = fakeFoundry();
+  await createFoundryV14ChatCardAdapter(foundry)({resolutionId: "resolution:physical", initiatorUserId: "player-a",
+    messageMode: "public", actor: {id: "hero"}, action: {id: "strike"}, result});
+  assert.deepEqual(JSON.parse(foundry.created[0].content).data.enteredRolls.map(entry => entry.flavor), ["Concentration"],
+    "its line is named as a Foundry roll's is (a concentration save typed by hand)");
 });
 
 test("chat visibility follows the initiator's message mode, never the authority's", () => {

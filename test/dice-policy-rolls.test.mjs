@@ -1,5 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
+import {diceTerms, rollFromTerms} from "./fixtures/foundry-dice-terms.mjs";
 
 // Rolls outside an Action (Hit Dice, Recharge, Portent) answered by the dice policy, as an Action's are: physical dice typed
 // into the roll prompt, digital dice rolled by Foundry. Only the globals needed to import the real Actor class.
@@ -8,7 +9,8 @@ globalThis.foundry = {
   documents: {Combat: class {}, Combatant: class { _getInitiativeFormula() { return "1d20"; } }},
   data: {fields: {}, ActiveEffectTypeDataModel: class {}},
   utils: {isEmpty: value => Object.keys(value).length === 0, randomID: () => "abc", escapeHTML: value => value,
-    mergeObject: (original, other) => Object.assign(original, other)}
+    mergeObject: (original, other) => Object.assign(original, other)},
+  dice: {terms: diceTerms}
 };
 Math.clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 const {default: WildPathActor} = await import("../module/documents/actor.mjs");
@@ -32,6 +34,7 @@ function table({policy, typed=[], rulesVersion="2024"}) {
   globalThis.ChatMessage = {getSpeaker: () => ({}), create: async (data, options) => { created.push({data, options}); }};
   globalThis.Roll = class Roll {
     static fromData(data) { return Object.assign(new Roll(data.formula), data); }
+    static fromTerms(terms) { return rollFromTerms(Roll, terms); }
     constructor(formula) { this.formula = formula; }
     async evaluate() {
       this.total = Number.isFinite(Number(this.formula)) ? Number(this.formula) : simpleFormulaBounds(this.formula).max;
@@ -186,7 +189,7 @@ test("Initiative with physical dice: the roller types the d20 and its modifier i
   await combat.rollInitiative(["ada", "bo"]);
   assert.deepEqual(asked.map(request => [request.type, request.formula]), [["initiative", "1d20 + 3"], ["initiative", "1d20"]]);
   assert.deepEqual(written, [["Combatant", [{_id: "ada", initiative: 15}], {turnEvents: false}]], "Bo's closed prompt rolls nothing");
-  assert.equal(posted[0].formula, "15", "the typed roll's card shows its total");
+  assert.deepEqual([posted[0].formula, posted[0].total], ["1d20 + 3", 15], "the typed roll's card shows its entered d20 and modifier");
   assert.deepEqual(created[0].data.map(message => message.flags), [{core: {initiativeRoll: true}}], "a Portent may replace its d20");
 
   // Digital dice roll it; a closed prompt on one Combatant's own roll leaves its initiative.

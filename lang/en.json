@@ -128,7 +128,7 @@
         "TypedDamage": "{type} damage",
         "LessDamage": "Less damage",
         "Healing": "Healing",
-        "Concentration": "Concentration",
+        "Concentration": "Concentration save",
         "SlotKept": "Spell Recall: slot kept",
         "SlotSpent": "Spell Recall: slot spent"
       },
@@ -141,6 +141,8 @@
         "SaveFailure": "Failed save",
         "LegendaryResistance": "Legendary Resistance",
         "StaysUp": "{name}: stays up",
+        "ConcentrationKept": "Concentration kept",
+        "ConcentrationLost": "Concentration lost",
         "Immune": "Immune",
         "Unaffected": "Unaffected",
         "CheckSuccess": "Check succeeded",
@@ -601,6 +603,8 @@
       "Capped": "Lowered by a condition, effect or carried load",
       "Reason": {
         "Spent": "no {name} left",
+        "NoResource": "no {name} to spend",
+        "CantPay": "nothing to pay its cost with",
         "ItemNotReady": "{name} must be equipped, and attuned if it needs it",
         "Requires": "can't be used now"
       },

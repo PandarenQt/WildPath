@@ -2841,7 +2841,9 @@ function concentrationRollRequest(state, check, requestId) {
     chooser: ROLL_AUTHORITY.TARGET_CONTROLLER,
     authority: {kind: ROLL_AUTHORITY.TARGET_CONTROLLER},
     expected: {validateTotalFromNatural: bonus != null, modifierTotal: bonus},
-    metadata: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: "concentration", ability: check.ability}
+    // Rolled as a save (its save modes apply), named on the card as what it is.
+    metadata: {actionDefinitionId: state.actionDefinition?.id ?? null, rollKind: "concentration", ability: check.ability,
+      labelKey: "WILDPATH.CHAT.Roll.Concentration"}
   });
 }
 

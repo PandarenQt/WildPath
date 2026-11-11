@@ -1,6 +1,7 @@
 import {test} from "node:test";
 import {readFileSync} from "node:fs";
-import {sanitizeResolutionResultForTransport} from "../module/helpers/multiplayer-authority.mjs";
+import {projectResolutionResultForDisclosure, sanitizeResolutionResultForTransport} from "../module/helpers/multiplayer-authority.mjs";
+import {createResolutionCardViewModel} from "../module/helpers/chat-card-view-model.mjs";
 import assert from "node:assert/strict";
 import {ECONOMY_CAPABILITIES} from "../module/helpers/action-economy.mjs";
 import {ACTION_CHOICE_TYPES} from "../module/helpers/action-configuration.mjs";
@@ -648,6 +649,16 @@ test("a concentrating creature that is damaged checks to keep it, and a failure 
   const kept = answer(plan("resolution:concentration-kept").state, 19);
   assert.equal(kept.state.mutationPlans.filter(entry => entry.type === "conditionEffect").length, 0);
   assert.equal(kept.state.results.concentrationResolution.checks.maintained.length, 1);
+
+  // Its card names the roll a concentration save and says whether the caster kept its concentration, never the DC.
+  const card = state => createResolutionCardViewModel(projectResolutionResultForDisclosure(
+    sanitizeResolutionResultForTransport({state}), "broadcast-safe"));
+  const rollLabel = state => sanitizeResolutionResultForTransport({state}).rolls.find(roll => roll.requestId === request.id)?.label;
+  assert.deepEqual(rollLabel(broken.state), {key: "WILDPATH.CHAT.Roll.Concentration"});
+  assert.deepEqual(card(broken.state).targets[0].concentration, {label: "WILDPATH.CHAT.Outcome.ConcentrationLost", tone: "failure"});
+  assert.deepEqual(card(kept.state).targets[0].concentration, {label: "WILDPATH.CHAT.Outcome.ConcentrationKept", tone: "success"});
+  assert.doesNotMatch(JSON.stringify(projectResolutionResultForDisclosure(sanitizeResolutionResultForTransport({state: broken.state}),
+    "broadcast-safe").outcomes.concentration), /dc|total/u);
 });
 
 test("ActionPipeline preserves transaction rollback when commit fails after target mutation", async () => {

@@ -193,6 +193,28 @@ test("an Action's unavailability is the reason its bar button gives: spent, forb
     "WILDPATH.ACTIONBAR.Reason.Spent");
 });
 
+test("an Action nothing on its creature can pay says so: the choice it lacks by name (no spell slot of any level), else its cost", async () => {
+  const {readdirSync, readFileSync} = await import("node:fs");
+  const {actionUnavailableReason} = await import("../module/helpers/action-bar-context.mjs");
+  const fireball = {...JSON.parse(readFileSync(`packs/_source/srd-items/${readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith("fireball-phb"))}`, "utf8")), id: "fireball"};
+  const caster = pools => ({name: "Fighter", items: [fireball], effects: [], system: {resources: {action: {value: 1, max: 1},
+    bonus: {value: 1, max: 1}, reaction: {value: 1, max: 1}, movement: {value: 30, max: 30}}, pools}});
+  assert.deepEqual(actionUnavailableReason({actor: caster([]), action: fireball}),
+    {key: "WILDPATH.ACTIONBAR.Reason.NoResource", name: "Spell slot"}, "no spell slot of any level");
+  const built = {...fireball, id: "built", system: {...fireball.system, definition: {...fireball.system.definition,
+    configuration: fireball.system.definition.configuration.map(choice => ((choice.type === "resource")
+      ? {...choice, label: "WILDPATH.BUILDER.SpellSlot"} : choice))}}};
+  assert.deepEqual(actionUnavailableReason({actor: {...caster([]), items: [built]}, action: built, localize: key => ({"WILDPATH.BUILDER.SpellSlot": "Spell slot"})[key] ?? key}),
+    {key: "WILDPATH.ACTIONBAR.Reason.NoResource", name: "Spell slot"}, "an Action Builder spell's choice label is a lang key, given in words");
+  assert.deepEqual(actionUnavailableReason({actor: caster([{id: "spell-slot.3", label: "3rd-level slot", value: 0, max: 1}]),
+    action: fireball}), {key: "WILDPATH.ACTIONBAR.Reason.Spent", name: "3rd-level slot"}, "a slot it has but spent says so first");
+  const surge = {...action("Surge", "action"), system: {getActivationCost: () => ({allOf: [{capability: "action", amount: 1},
+    {capability: "focus-point", amount: 1}]})}};
+  assert.deepEqual(actionUnavailableReason({actor: {...creature(), items: [surge]}, action: surge}),
+    {key: "WILDPATH.ACTIONBAR.Reason.CantPay", name: ""}, "a cost no resource of its own pays");
+});
+
 test("Item#use refuses an Action it can't pay for or is forbidden before any choice or area is asked", async t => {
   const keys = ["Item", "game", "ui"];
   const saved = Object.fromEntries(keys.map(key => [key, globalThis[key]]));
