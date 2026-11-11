@@ -15,12 +15,16 @@ import {
   AUTOMATION_EVENT_TYPES
 } from "../helpers/automation-events.mjs";
 import {
-  resolveActorResourcePayment
+  rebaseActorResourceMutationPlan,
+  resolveActorResourcePayment,
+  revertActorResourceMutationPlan
 } from "./resource-resolver.mjs";
-import {prepareTargetMutationCommitOperations} from "./target-mutation-commit-resolver.mjs";
+import {prepareTargetMutationCommitOperations, serializeActorWrite} from "./target-mutation-commit-resolver.mjs";
 import {
+  commitActorUpdateOperation,
   createActorUpdateTransactionOperation,
-  executeResolutionTransaction
+  executeResolutionTransaction,
+  rollbackActorUpdateOperation
 } from "./resolution-transaction-resolver.mjs";
 import {resolveAttackTargets} from "./attack-resolver.mjs";
 import {
@@ -556,7 +560,8 @@ export async function executeActionMutationTransaction({result, actor, targetAct
       role: "sourcePayment",
       action: result.context?.action ?? null,
       mutationPlan
-    }
+    },
+    ...((typeof snapshotActor === "function") ? livePaymentCommit(payers[index], snapshotActor) : {})
   }));
   const updateOperations = sourceUpdatePlans.map((mutationPlan, index) => createActorUpdateTransactionOperation({
     id: `source:${index}:sourceUpdate`,
@@ -595,6 +600,28 @@ export async function executeActionMutationTransaction({result, actor, targetAct
     code: sourcePaymentFailed ? ACTION_RESOLVER_CODES.RESOURCE_COMMIT_FAILED : ACTION_RESOLVER_CODES.MUTATION_COMMIT_FAILED,
     reason: transaction.code,
     data: {transaction}
+  };
+}
+
+/**
+ * A payment planned when the Action began, spent from what its payer holds at commit (another Action's payment or a
+ * refill may have landed while it waited on its rolls), one read-then-write at a time per creature; a rollback gives
+ * back only its own spend. Refused (the transaction fails) when what is left no longer pays.
+ */
+function livePaymentCommit(payer, snapshotActor) {
+  let committed = null;
+  return {
+    commit: operation => serializeActorWrite(payer, async () => {
+      const plan = rebaseActorResourceMutationPlan(snapshotActor(payer), operation.mutationPlan);
+      if ( !plan?.ok ) throw new Error(plan?.reason ?? plan?.code ?? "Payment no longer available.");
+      operation.updates = {...plan.updates};
+      operation.metadata.mutationPlan = {...operation.metadata.mutationPlan, plan};
+      const ok = await commitActorUpdateOperation(operation);
+      committed = plan;
+      return ok;
+    }),
+    rollback: operation => serializeActorWrite(payer, () => rollbackActorUpdateOperation({...operation,
+      rollbackUpdates: revertActorResourceMutationPlan(snapshotActor(payer), committed)}))
   };
 }
 

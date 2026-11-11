@@ -3870,6 +3870,18 @@ test("an Action that damages its own creature and starts a concentration gives t
   };
   const starting = await state({...meleeStrikeDefinition(), ...backlash, concentration: {}});
   assert.equal(starting?.concentrating, true, "its check keeps the concentration this Action starts");
+  const policy = async () => {
+    const f = syntheticRuntimeFixture(t, {...meleeStrikeDefinition(), ...backlash, concentration: {}});
+    return (await foundryActionIntentToStagedOptions({intent: f.intent, senderUserId: "player-a", game: f.game})).options.concentration.policy;
+  };
+  assert.equal((await policy()).maximumDC, 30, "2024: its DC is at most 30");
+  const modern = {...WILDPATH.CONCENTRATION};
+  Object.assign(WILDPATH.CONCENTRATION, WILDPATH.CONCENTRATION_2014);
+  try {
+    assert.equal((await policy()).maximumDC, null, "2014: no cap");
+  } finally {
+    Object.assign(WILDPATH.CONCENTRATION, modern);
+  }
   assert.equal(await state({...meleeStrikeDefinition(), ...backlash}), null, "none without a concentration");
   assert.equal(await state({...meleeStrikeDefinition(), concentration: {}}), null, "none without damage to itself");
 });

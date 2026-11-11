@@ -5,7 +5,9 @@ import {
   RESOURCE_RESOLUTION_CODES,
   commitActorResourceMutationPlan,
   createActorResourceMutationPlan,
-  resolveActorResourcePayment
+  rebaseActorResourceMutationPlan,
+  resolveActorResourcePayment,
+  withResourceRestores
 } from "../module/resolvers/resource-resolver.mjs";
 
 function actorSystem(overrides={}) {
@@ -154,4 +156,23 @@ test("commit adapter calls Actor.update with the planned updates", async () => {
 
   assert.equal(await commitActorResourceMutationPlan(actor, result.mutationPlan), true);
   assert.deepEqual(calls, [{"system.resources.reaction.value": 0}]);
+});
+
+test("a payment rebased at commit finds a restored counted resource by its actor id and refuses a use with no room left", () => {
+  // Pounce: a legendary action that gives back movement, by the actor resource id "movement".
+  const dragon = actorSystem({resources: {movement: {value: 40, max: 40, spent: 30}}, pools: [{id: "legendary-action", value: 3, max: 3}]});
+  const paid = createActorResourceMutationPlan(dragon, {resources: [{resourceId: "legendary-action", amount: 1}]});
+  const pounce = withResourceRestores(dragon, paid, [{resourceId: "movement", amount: 20}]);
+  assert.equal(rebaseActorResourceMutationPlan(dragon, pounce), pounce, "nothing changed: the same plan");
+  const moved = rebaseActorResourceMutationPlan({...dragon, resources: {...dragon.resources, movement: {value: 40, max: 40, spent: 35}}}, pounce);
+  assert.equal(moved.ok, true, moved.reason);
+  assert.deepEqual(moved.updates, {"system.pools.0.value": 2, "system.resources.movement.spent": 15}, "35 spent by now, less its 20");
+
+  // Regain Use: a Pact Magic slot for a use, refused once another Action has given the use back.
+  const warlock = actorSystem({pools: [{id: "spell-slot.pact", value: 2, max: 2}, {id: "hurl", value: 0, max: 1}]});
+  const regain = withResourceRestores(warlock, createActorResourceMutationPlan(warlock, {resources: [{resourceId: "spell-slot.pact", amount: 1}]}),
+    [{resourceId: "hurl", amount: 1, refuseWhenFull: true}]);
+  assert.equal(regain.ok, true);
+  const full = rebaseActorResourceMutationPlan({...warlock, pools: [{id: "spell-slot.pact", value: 1, max: 2}, {id: "hurl", value: 1, max: 1}]}, regain);
+  assert.deepEqual([full.ok, full.code], [false, "RESOURCE_FULL"]);
 });

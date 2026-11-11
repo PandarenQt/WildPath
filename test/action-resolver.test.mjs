@@ -837,6 +837,50 @@ test("two payments from one pool, both planned before the Action, spend one afte
   assert.deepEqual(calls.map(call => call["system.pools.0.value"]), [1, 0], "Quickened's 2, then Seeking's 1, of 3");
 });
 
+test("a payment planned when the Action began is spent from what the pool holds at commit, or refused when it no longer pays", async () => {
+  const {executeActionMutationTransaction} = await import("../module/resolvers/action-resolver.mjs");
+  // A sorcerer whose writes land a tick after they are sent, as Foundry's round trip does.
+  const sorcerer = (points, {failing=false}={}) => {
+    const actor = {id: "sorc", uuid: "Actor.sorc", name: "Sorc", type: "character", writes: [],
+      system: {...actorSystem(1), pools: [{id: "font-of-magic", value: points, max: 5}]},
+      async update(updates) {
+        await new Promise(resolve => setImmediate(resolve));
+        if ( failing ) throw new Error("refused");
+        actor.writes.push(updates);
+        for ( const [path, value] of Object.entries(updates) ) actor.system.pools[Number(path.split(".")[2])].value = value;
+        return true;
+      }};
+    return actor;
+  };
+  const snapshotActor = actor => structuredClone(actor.system);
+  // Planned from 3 points, as the Action began.
+  const spend = (amount, extra={}) => ({type: "resourcePayment", resolver: "ResourceResolver", ...extra, plan: {ok: true,
+    updates: {"system.pools.0.value": 3 - amount}, payments: [{resourceId: "font-of-magic", path: "system.pools.0.value", from: 3, to: 3 - amount, amount}]}});
+  const commit = (actor, plans, targetActors={}) => executeActionMutationTransaction({result: {mutationPlans: plans, context: {}}, actor,
+    targetActors, snapshotActor});
+
+  const spent = sorcerer(2);
+  assert.equal((await commit(spent, [spend(2)])).ok, true);
+  assert.equal(spent.system.pools[0].value, 0, "another Action spent 1 meanwhile: 2 - 2, not the planned 3 - 2");
+
+  const short = sorcerer(1);
+  const refused = await commit(short, [spend(2)]);
+  assert.equal(refused.ok, false);
+  assert.deepEqual([refused.stage, refused.code], [ACTION_RESOLUTION_STAGES.RESOURCE_PAYMENT, "RESOURCE_COMMIT_FAILED"]);
+  assert.deepEqual(short.writes, [], "1 point can't pay 2: nothing is written");
+
+  const racing = sorcerer(3);
+  const both = await Promise.all([commit(racing, [spend(1)]), commit(racing, [spend(1)])]);
+  assert.equal(both.every(result => result.ok), true);
+  assert.equal(racing.system.pools[0].value, 1, "two Actions planned from 3 points each spend 1");
+
+  const undone = sorcerer(2);
+  const controller = sorcerer(3, {failing: true});
+  const rolledBack = await commit(undone, [spend(2), spend(1, {payerRef: "Actor.ctrl"})], {"Actor.ctrl": controller});
+  assert.equal(rolledBack.ok, false);
+  assert.equal(undone.system.pools[0].value, 2, "its own 2 given back, to what it held at commit, not the planned 3");
+});
+
 test("ActionResolver execution commits payment after an attack miss", async () => {
   const calls = [];
   const actor = {

@@ -31,7 +31,7 @@ adjusted damage result
 - uses final damage taken after resistance, reduction, and absorption
 - requires supplied concentration state snapshots or target-system concentration state
 - computes the default concentration DC as `max(10, floor(damageTaken / 2))`
-- supports custom minimum DC, damage divisor, rounding, minimum damage, save key, and ability
+- supports custom minimum DC, maximum DC, damage divisor, rounding, minimum damage, save key, and ability
 - returns check request data without rolling or mutating documents
 
 `resolveConcentrationDecisions()`:
@@ -65,7 +65,8 @@ The action pipeline's `action.concentration` stage (after effects, before paymen
 on every damaging Action:
 
 - `planConcentrationChecks()` runs over the stage's adjusted damage. The DC is `max(10, floor(damage/2))`
-  and the save is WildPath's Fortitude.
+  and the save is WildPath's Fortitude. The ruleset's policy (`WILDPATH.CONCENTRATION`) caps it at 30 (2024);
+  2014 worlds (`WILDPATH.CONCENTRATION_2014`) have no cap.
 - Each check is a save rolled by the damaged creature's controller, one request after another
   (`concentration:1`, …). The DC stays on the authority; the roller sees a plain save. The roll adds the
   creature's Fortitude save bonus: its Fortitude modifier plus Modifiers on `save.fortitude` and `save`. The

@@ -436,6 +436,13 @@ WILDPATH.CONDITIONS_2014 = {
     ruleElements: [cap("surprised.no-first-turn", ["movement", "action", "bonus", "reaction"])]}
 };
 
+/**
+ * The Concentration save's DC policy beyond ConcentrationResolver's default (10 or half the damage taken): 2024 caps it
+ * at 30, 2014 does not. The 2014 values replace these for worlds playing by the 2014 rules (the `rulesVersion` setting).
+ */
+WILDPATH.CONCENTRATION = {maximumDC: 30};
+WILDPATH.CONCENTRATION_2014 = {maximumDC: null};
+
 /* -------------------------------------------- */
 /*  Action Costs                                 */
 /* -------------------------------------------- */

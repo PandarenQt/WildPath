@@ -223,12 +223,78 @@ export function withResourceRestores(actorSystem, mutationPlan, restores=[], cos
     const paid = payments.find(payment => payment.path === path);
     if ( paid ) paid.to = updates[path];
     else payments.push({resourceId, actorResourceId: resourceId, path, from: Number(pool.value ?? 0) || 0, to: updates[path], amount: 0});
-    restored.push({resourceId, path, from, to: updates[path], amount});
+    restored.push({resourceId, path, from, to: updates[path], amount, ...(refuseWhenFull ? {refuseWhenFull} : {})});
   }
   return {...mutationPlan, updates, payments, restores: restored};
 }
 
 /* -------------------------------------------- */
+
+/**
+ * A payment's mutation plan redone on its payer's resources as they are now (`liveSystem`), for a commit after another
+ * write landed on them since the Action began (another Action's payment, a refill): each resource keeps its own change
+ * (`to - from`), a restore up to its maximum, and a spend that what is left can no longer pay fails
+ * (`INSUFFICIENT_RESOURCE`). The same plan when nothing changed.
+ * shortcut: counted movement is not checked against Speed again; do so if a move between plan and commit shows in play.
+ */
+export function rebaseActorResourceMutationPlan(liveSystem, plan) {
+  if ( !plan?.ok || !plan.payments?.length ) return plan;
+  // Each planned path: where it is now (a pool found by its id), and how far it moved since planning.
+  const moved = new Map();
+  for ( const payment of plan.payments ) {
+    if ( moved.has(payment.path) || !Object.hasOwn(plan.updates ?? {}, payment.path) ) continue;
+    // A restore of a counted built-in resource names it by its actor id (Pounce's "movement"), a spend by its economy id.
+    const ref = resolveActorResourceRef(liveSystem, payment.resourceId)
+      ?? resolveActorResourceRef(liveSystem, ACTOR_RESOURCE_TO_ECONOMY_ID[payment.resourceId]);
+    if ( !ref ) return {...plan, ok: false, code: RESOURCE_RESOLUTION_CODES.RESOURCE_NOT_FOUND,
+      reason: `Actor resource not found for ${payment.resourceId}`};
+    const live = ref.counted ? (Number(ref.spent) || 0) : ref.current;
+    const max = ref.counted ? Infinity : Number(valueAtPath(liveSystem, ref.path.replace(/\.value$/u, ".max")));
+    moved.set(payment.path, {path: ref.path, counted: !!ref.counted, live, offset: live - (Number(payment.from) || 0),
+      max: Number.isFinite(max) ? Math.max(max, live) : Infinity});
+  }
+  // A use given back only while there is room (Regain Use): another Action may have filled its pool meanwhile.
+  const full = (plan.restores ?? []).find(restore => restore.refuseWhenFull && moved.has(restore.path)
+    && (moved.get(restore.path).live >= moved.get(restore.path).max));
+  if ( full ) return {...plan, ok: false, code: "RESOURCE_FULL", reason: `${full.resourceId} is full`};
+  if ( [...moved].every(([path, entry]) => !entry.offset && (entry.path === path)) ) return plan;
+  // Its own change on what is there now: movement spent never below 0, a pool never refilled above its maximum.
+  const shifted = (entry, value) => (entry.counted ? Math.max(value + entry.offset, 0) : Math.min(value + entry.offset, entry.max));
+  const updates = {};
+  for ( const [path, value] of Object.entries(plan.updates ?? {}) ) {
+    const entry = moved.get(path);
+    if ( !entry ) {
+      updates[path] = value;
+      continue;
+    }
+    const to = shifted(entry, value);
+    if ( to < 0 ) return {...plan, ok: false, code: RESOURCE_RESOLUTION_CODES.INSUFFICIENT_RESOURCE,
+      reason: `${path} has ${entry.live} but needs ${entry.live - to}`};
+    updates[entry.path] = to;
+  }
+  const payments = plan.payments.map(payment => {
+    const entry = moved.get(payment.path);
+    return entry ? {...payment, path: entry.path, from: payment.from + entry.offset, to: shifted(entry, payment.to)} : payment;
+  });
+  return {...plan, updates, payments, rebased: true};
+}
+
+/** The updates that take back what a committed payment plan changed, from its payer's resources as they are now. */
+export function revertActorResourceMutationPlan(liveSystem, committed) {
+  const updates = {};
+  for ( const [path, to] of Object.entries(committed?.updates ?? {}) ) {
+    const payment = (committed.payments ?? []).find(entry => entry.path === path);
+    if ( !payment ) continue;
+    const live = Number(valueAtPath(liveSystem, path));
+    updates[path] = Math.max((Number.isFinite(live) ? live : to) - (to - payment.from), 0);
+  }
+  return updates;
+}
+
+/** What `system.<path>` holds in an Actor system snapshot. */
+function valueAtPath(system, path) {
+  return String(path).replace(/^system\./u, "").split(".").reduce((node, key) => node?.[key], system);
+}
 
 export async function commitActorResourceMutationPlan(actor, mutationPlan, {persistencePort=null}={}) {
   if ( !mutationPlan?.ok ) return false;

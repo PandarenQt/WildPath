@@ -148,7 +148,10 @@ Each damage or healing component without a fixed amount is its own roll request:
   (`rolledBonus` in `action-definitions.mjs`).
 - **The creature's damage modifier** (`damage.modifierTotal`) goes on one component, the first weapon component
   or else the first. If that component has a fixed amount, the modifier is added to the amount once instead.
-- **Criticals.** A critical hit doubles each component's dice and none of the flat parts.
+- **Criticals.** A critical hit doubles each component's dice and none of the flat parts. It doubles them for the
+  creature it hit only: when only some of an Action's hits are critical (one target Paralyzed within 5 ft), the shared
+  roll is not doubled and each component's dice are rolled once more as extra damage kept for those creatures
+  (`metadata.targetRefs`: only the refs no other hit creature shares, so unlinked copies of one Actor stay apart).
 - **Misses.** When every attack misses, nothing rolls.
 
 Before this, a second rolled component failed with `MISSING_AMOUNT`, a bonus written into a damage formula was

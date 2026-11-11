@@ -147,7 +147,10 @@ Hooks.once("init", () => {
     default: "2024",
     requiresReload: true
   });
-  if ( game.settings.get("wildpath", "rulesVersion") === "2014" ) Object.assign(WILDPATH.CONDITIONS, WILDPATH.CONDITIONS_2014);
+  if ( game.settings.get("wildpath", "rulesVersion") === "2014" ) {
+    Object.assign(WILDPATH.CONDITIONS, WILDPATH.CONDITIONS_2014);
+    Object.assign(WILDPATH.CONCENTRATION, WILDPATH.CONCENTRATION_2014);
+  }
 
   // Populate CONFIG.statusEffects from our condition config so conditions are togglable
   // from the Token HUD like any other Foundry status.

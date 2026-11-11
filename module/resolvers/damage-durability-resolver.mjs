@@ -197,7 +197,7 @@ function normalizeConcentrationPlanningOptions(concentration) {
   if ( !concentration ) return null;
   if ( typeof concentration !== "object" ) return null;
 
-  const policyKeys = ["minimumDC", "baseDC", "damageDivisor", "halfDamageDivisor", "rounding", "minimumDamage", "damageAmountPath", "saveKey", "ability"];
+  const policyKeys = ["minimumDC", "maximumDC", "baseDC", "damageDivisor", "halfDamageDivisor", "rounding", "minimumDamage", "damageAmountPath", "saveKey", "ability"];
   const hasExplicitShape = Object.hasOwn(concentration, "states")
     || Object.hasOwn(concentration, "concentrationStates")
     || Object.hasOwn(concentration, "policy");

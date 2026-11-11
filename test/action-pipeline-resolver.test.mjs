@@ -847,6 +847,43 @@ test("each damage component is its own roll: a Flaming Longsword rolls 1d8 + 3 a
   assert.equal(answer(crit.next, {total: 7}).formula, "2d6");
 });
 
+test("a critical hit forced on one of several targets doubles the dice for that target only", () => {
+  const definition = {schemaVersion: 1, id: "action:sweep", label: "Sweep", costs: {allOf: []},
+    targeting: {type: "multiple", required: true, count: 2}, attack: {type: "melee", statistic: "weapon", defenseKey: "ac"},
+    damage: [{id: "blade", expression: {type: "add", terms: [{type: "dice", number: 1, faces: 8}, {type: "constant", value: 1}]},
+      damageType: "slashing", provenance: "weapon-base"}]};
+  const strike = (id, outcomesByTarget, ids=["orc", "goblin"], extra={}) => planStagedActionResolution({id, actorSystem: actorSystem(1), action: definitionAction(definition),
+    source: {actorId: "actor-source"}, damage: {modifierTotal: 3}, attack: {outcomesByTarget},
+    targeting: {required: true, candidates: ids.map(id => ({id, target: target(id, {defenses: {ac: {value: 10}}, ...extra}),
+      actor: {id: extra.actorId ?? `actor-${id}`}, disposition: "enemy", kind: "creature"}))}});
+  const answer = (result, value) => {
+    const request = result.state.pendingRequests[0];
+    return {formula: rollFormulaForRequest(request.payload.rollRequest).formula,
+      next: resumeStagedActionResolution({state: result.state, response: {resolutionId: result.state.id, requestId: request.id,
+        type: RESOLUTION_REQUEST_TYPES.ROLL, value}})};
+  };
+  const totals = state => Object.fromEntries(state.results.damageResolution.results.map(entry => [entry.target.id, entry.total]));
+  let step = answer(strike("resolution:sweep-paralyzed", {"token-orc": "critical-on-hit"}), {total: 17, die: 12});
+  step = answer(step.next, {total: 9});
+  assert.equal(step.formula, "1d8 + 4", "the goblin's hit is no critical, so the shared roll is not doubled");
+  step = answer(step.next, {total: 5});
+  assert.equal(step.formula, "1d8", "the orc's critical rolls the dice again, without the flat parts");
+  assert.equal(step.next.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(step.next.state.errors));
+  assert.deepEqual(totals(step.next.state), {orc: 14, goblin: 9});
+
+  let both = answer(strike("resolution:sweep-both", {"token-orc": "critical-on-hit", "token-goblin": "critical-on-hit"}), {total: 17, die: 12});
+  both = answer(both.next, {total: 15});
+  assert.equal(both.formula, "2d8 + 4", "every hit a critical: one doubled roll, as before");
+  assert.deepEqual(totals(both.next.state), {orc: 15, goblin: 15});
+
+  // Two unlinked Tokens of one goblin Actor share its id: the critical is keyed by Token.
+  let twins = answer(strike("resolution:sweep-twins", {"token-a": "critical-on-hit"}, ["a", "b"], {actorId: "actor-goblin"}), {total: 17, die: 12});
+  twins = answer(twins.next, {total: 9});
+  twins = answer(twins.next, {total: 5});
+  assert.equal(twins.next.state.status, RESOLUTION_STATE_STATUS.READY_TO_COMMIT, JSON.stringify(twins.next.state.errors));
+  assert.deepEqual(totals(twins.next.state), {a: 14, b: 9}, "goblin B, not critically hit, takes the shared roll alone");
+});
+
 test("a rolled formula's flat part rolls with its dice, and healing dice are rolled too", () => {
   const rolled = (definition, extra={}) => planStagedActionResolution({id: `resolution:${definition.id}`,
     actorSystem: {...actorSystem(1), abilities: {wits: {value: 14}}}, action: definitionAction(definition),

@@ -781,14 +781,16 @@ function createConcentrationCheckRequest({index, target, state, damageResult, da
 }
 
 function concentrationDCForDamage(damageTaken, policy) {
-  const damageDC = roundConcentrationDC(damageTaken / policy.damageDivisor, policy.rounding);
-  return Math.max(policy.minimumDC, damageDC);
+  const damageDC = Math.max(policy.minimumDC, roundConcentrationDC(damageTaken / policy.damageDivisor, policy.rounding));
+  return (policy.maximumDC == null) ? damageDC : Math.min(damageDC, policy.maximumDC);
 }
 
 function normalizeConcentrationCheckPolicy(policy={}) {
   const data = policy && typeof policy === "object" ? policy : {};
   return {
     minimumDC: Math.max(Math.floor(finiteNumber(data.minimumDC ?? data.baseDC) ?? 10), 0),
+    // None by default; the ruleset's (WILDPATH.CONCENTRATION: 2024's 30) comes with the runtime's policy.
+    maximumDC: finiteNumber(data.maximumDC),
     damageDivisor: Math.max(finiteNumber(data.damageDivisor ?? data.halfDamageDivisor) ?? 2, 1),
     rounding: data.rounding ?? "floor",
     minimumDamage: Math.max(finiteNumber(data.minimumDamage) ?? 1, 0),

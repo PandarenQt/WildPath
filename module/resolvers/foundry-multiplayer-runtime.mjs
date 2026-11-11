@@ -2432,8 +2432,9 @@ function foundryConcentrationContext({targetEntries=[], game=globalThis.game, sc
     }
   }
   if ( !Object.keys(states).length ) return null;
-  // WildPath's concentration save is Fortitude; the DC policy is ConcentrationResolver's default.
-  return {input: {states, dependents, policy: {ability: "fortitude", saveKey: "concentration"}}, holders: [...usedHolders]};
+  // WildPath's concentration save is Fortitude; the DC policy is ConcentrationResolver's default, with the ruleset's cap.
+  return {input: {states, dependents, policy: {ability: "fortitude", saveKey: "concentration", ...WILDPATH.CONCENTRATION}},
+    holders: [...usedHolders]};
 }
 
 /**

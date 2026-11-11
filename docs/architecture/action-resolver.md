@@ -147,6 +147,9 @@ successfully.
 - commits them and source resource-payment operations through a single `ResolutionTransaction`
 - rolls back already-committed target/source updates in reverse order when a later Actor update
   fails
+- with a `snapshotActor` (the Foundry runtime's), spends each payment from what its payer holds at commit
+  (`rebaseActorResourceMutationPlan`: each resource keeps its own change, one write at a time per creature), refuses
+  it when what is left no longer pays, and a rollback gives back only its own spend, as durability commits do
 - records the payment-committed event and final complete step
 - is the commit step of the staged pipeline
 

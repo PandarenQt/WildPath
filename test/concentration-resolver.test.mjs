@@ -158,6 +158,14 @@ test("ConcentrationResolver supports custom DC policies", () => {
   assert.equal(result.checkRequests[0].ability, "wis");
 });
 
+test("ConcentrationResolver caps the DC at a policy's maximumDC (2024's 30), and leaves it uncapped without one (2014)", () => {
+  const dc = policy => planConcentrationChecks({damageResults: [{ok: true, code: "OK", target: {id: "caster", actorId: "actor-caster"},
+    total: 100, components: [{amount: 100}]}], concentrationStates: true, policy}).checkRequests[0].dc;
+  assert.equal(dc({maximumDC: 30}), 30, "100 damage: half is 50, capped at 30");
+  assert.equal(dc({maximumDC: null}), 50);
+  assert.equal(dc({}), 50, "no cap by default");
+});
+
 test("ConcentrationResolver can read concentration state from target system snapshots", () => {
   const result = planConcentrationChecks({
     damageResults: [{

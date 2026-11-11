@@ -86,7 +86,7 @@ export function prepareTargetMutationCommitOperations({
       },
       persistencePort,
       ...(((typeof snapshotActor === "function") && (innerPlan?.type !== "conditionEffect")) ? {
-        commit: async operation => serializeDurability(actor, async () => {
+        commit: async operation => serializeActorWrite(actor, async () => {
           const plan = rebaseActorDurabilityMutationPlan(snapshotActor(actor), innerPlan);
           if ( !await commitActorDurabilityMutationPlan(actor, plan, {persistencePort}) ) throw new Error("Target Actor commit adapter returned false.");
           operation.updates = clonePlain(plan.updates);
@@ -95,7 +95,7 @@ export function prepareTargetMutationCommitOperations({
           commitResult = {ok: true, plan, landed: snapshotActor(actor)};
           return true;
         }),
-        rollback: operation => serializeDurability(actor, () => rollbackActorUpdateOperation({...operation,
+        rollback: operation => serializeActorWrite(actor, () => rollbackActorUpdateOperation({...operation,
           rollbackUpdates: revertActorDurabilityMutationPlan(snapshotActor(actor), commitResult.plan, commitResult.landed)}))
       } : {
         commit: async () => {
@@ -206,24 +206,24 @@ export async function commitTargetMutationPlans({
 
 /* -------------------------------------------- */
 
-/** Each creature's durability commits and rollbacks, in order. */
-const durabilityQueues = new Map();
+/** Each creature's durability and payment commits and rollbacks, in order. */
+const actorWriteQueues = new Map();
 
 /**
- * One durability read-then-write at a time per creature, so each one reads what the one before it wrote (as
+ * One durability or payment read-then-write at a time per creature, so each one reads what the one before it wrote (as
  * serializeMovement does for a creature's moves).
  * shortcut: a sheet edit or another client's write landing between the read and Foundry's server write can still be
  * overwritten, as Foundry has no conditional update; route those through here too if that shows in play.
  */
-async function serializeDurability(actor, run) {
+export async function serializeActorWrite(actor, run) {
   const key = actor?.uuid ?? actor;
-  const previous = durabilityQueues.get(key) ?? Promise.resolve();
+  const previous = actorWriteQueues.get(key) ?? Promise.resolve();
   const pending = previous.then(run, run);
-  durabilityQueues.set(key, pending);
+  actorWriteQueues.set(key, pending);
   try {
     return await pending;
   } finally {
-    if ( durabilityQueues.get(key) === pending ) durabilityQueues.delete(key);
+    if ( actorWriteQueues.get(key) === pending ) actorWriteQueues.delete(key);
   }
 }
 

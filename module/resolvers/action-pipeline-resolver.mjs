@@ -2078,7 +2078,9 @@ function createComponentRollStage({id, kind, rollType, request}) {
         return continueResolutionStage({state: updateResolutionState(own?.state ?? state, {input: {...input,
           ...(own ? {sourceDamage: own.values} : {})}})});
       }
-      const rolled = rollEachComponent(state, input, {id, kind, rollType, request, values: withFixedModifier(input[kind])});
+      const fixed = withFixedModifier(input[kind]);
+      const rolled = rollEachComponent(state, input, {id, kind, rollType, request,
+        values: (kind === "damage") ? withCriticalDice(state, input, fixed) : fixed});
       if ( rolled.stop ) return rolled.stop;
       let {values, state: current} = rolled;
       // Empowered Spell, Piercer's Puncture: its lowest damage dice are rolled again, once all are rolled.
@@ -3264,8 +3266,9 @@ function componentRollRequestForState(state, input, {kind, rollType, requestId, 
   // 2024: a critical hit rolls the attack's damage dice twice (flat modifiers once).
   // A reaction's damage added to its creature's own critical hit (2014 Divine Smite) is marked `damage.critical`.
   // A penalty's dice (Reduce's 1d4 less) are not the attack's damage dice, so they are rolled once.
+  const hits = state.results?.attackResolution?.hits ?? [];
   const critical = (kind === "damage") && !component.metadata?.subtract
-    && ((state.results?.attackResolution?.hits ?? []).some(hit => hit.outcome === "criticalHit") || (input.damage?.critical === true));
+    && ((hits.length && hits.every(hit => hit.outcome === "criticalHit")) || (input.damage?.critical === true));
   // ... and a rule's extra dice on top (Piercer: `metadata.criticalDice`).
   const more = critical ? (Number(component.metadata?.criticalDice) || 0) : 0;
   const rolled = !critical ? component : {...component,
@@ -3325,6 +3328,45 @@ function withFixedModifier(damage) {
   if ( !Number.isFinite(bonus) || !bonus || (component?.amount == null) || damage.modifierApplied ) return damage;
   const components = damage.components.map((entry, i) => (i === index ? {...entry, amount: Math.max((Number(entry.amount) || 0) + bonus, 0)} : entry));
   return {...damage, components, modifierApplied: true};
+}
+
+/**
+ * A critical hit doubles the dice for the creature it hit only. With every hit one, the shared roll is doubled
+ * (componentRollRequestForState); with only some, each unrolled component's dice (and a rule's extra critical dice) are
+ * rolled once more as their own component, kept for the creatures critically hit (`metadata.targetRefs`), so the others
+ * take the shared roll alone. They are extra damage (`extraComponents`), so the input rebuilt from the definition after each
+ * roll keeps them, and are added once (`criticalSplit`).
+ */
+function withCriticalDice(state, input, damage) {
+  const hits = state.results?.attackResolution?.hits ?? [];
+  const critical = hits.filter(hit => hit.outcome === "criticalHit");
+  if ( !critical.length || (critical.length === hits.length) || (input.damage?.critical === true) || damage?.criticalSplit ) return damage;
+  // Only the refs no other hit creature shares: unlinked copies of one Actor share its id, not their Token's.
+  const others = new Set(hits.filter(hit => hit.outcome !== "criticalHit").flatMap(hit => targetLookupRefs(hit.target)));
+  const extras = normalizeArray(damage?.components).flatMap(component => {
+    if ( (component?.amount != null) || component?.metadata?.subtract ) return [];
+    // Its own creatures only (Hunter's Mark on one of them), as the damage resolver keeps it.
+    const own = Array.isArray(component.metadata?.targetRefs) ? component.metadata.targetRefs : null;
+    const refs = critical.map(hit => targetLookupRefs(hit.target)).filter(hitRefs => !own || hitRefs.some(ref => own.includes(ref)))
+      .flat().filter(ref => !others.has(ref));
+    const dice = diceTermsOf(component.expression);
+    if ( !refs.length || (!component.dice && !dice.length) ) return [];
+    const more = Number(component.metadata?.criticalDice) || 0;
+    const {expression: _expression, bonus: _bonus, ...rest} = component;
+    return [{...rest, id: `${component.id ?? "damage"}:critical`,
+      ...(component.dice ? {dice: {...component.dice, number: (Number(component.dice.number) || 1) + more}}
+        : {expression: withMoreDice({type: "add", terms: dice}, more)}),
+      metadata: {...(component.metadata ?? {}), targetRefs: refs}}];
+  });
+  return {...damage, components: [...normalizeArray(damage?.components), ...extras],
+    extraComponents: [...normalizeArray(damage?.extraComponents), ...extras], criticalSplit: true};
+}
+
+/** A ValueExpression's dice terms, wherever they are nested, without its flat parts. */
+function diceTermsOf(expression) {
+  if ( !expression || (typeof expression !== "object") ) return [];
+  if ( expression.type === "dice" ) return [expression];
+  return Object.values(expression).flatMap(diceTermsOf);
 }
 
 /** A ValueExpression with every dice term's count doubled, wherever it is nested. */
