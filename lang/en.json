@@ -362,7 +362,35 @@
       "Open": "Open the Rules Inspector",
       "Unavailable": "This resolution's details aren't on this client any more: the world was reloaded since, or it is too old. Its chat card still shows what happened.",
       "AgainstAC": "{total} vs AC {defense}",
-      "AgainstDC": "vs DC {dc}"
+      "AgainstDC": "vs DC {dc}",
+      "Kind": {
+        "AddedDie": "Added die",
+        "Added": "Number added",
+        "ForcedHit": "Miss made a hit",
+        "SetNatural": "d20 replaced",
+        "Empowered": "Empowered Spell reroll"
+      },
+      "Mode": {
+        "normal": "Normal",
+        "advantage": "Advantage",
+        "disadvantage": "Disadvantage"
+      },
+      "Method": {
+        "digital": "Digital",
+        "natural": "Die typed in",
+        "total": "Total typed in",
+        "structured": "Dice typed in"
+      },
+      "Outcome": {
+        "hit": "Hit",
+        "criticalHit": "Critical hit",
+        "miss": "Miss",
+        "criticalMiss": "Critical miss",
+        "success": "Success",
+        "criticalSuccess": "Critical success",
+        "failure": "Failure",
+        "criticalFailure": "Critical failure"
+      }
     },
     "CAROUSEL": {
       "Round": "Round {round}",
@@ -431,7 +459,22 @@
       "careful": "Careful Spell: which creatures succeed on their saves?",
       "Choice": "Metamagic",
       "None": "None",
-      "empowered": "Empowered Spell"
+      "empowered": "Empowered Spell",
+      "Cost": "{name} ({cost} points)",
+      "CostOne": "{name} (1 point)",
+      "Transmuted": "Transmuted Spell: {type} ({cost} points)",
+      "TransmutedOne": "Transmuted Spell: {type} (1 point)",
+      "EmpoweredOne": "Empowered Spell: reroll 1 damage die (1 point)",
+      "EmpoweredMany": "Empowered Spell: reroll up to {count} damage dice (1 point)",
+      "Name": {
+        "quickened": "Quickened Spell",
+        "twinned": "Twinned Spell",
+        "distant": "Distant Spell",
+        "extended": "Extended Spell",
+        "heightened": "Heightened Spell",
+        "careful": "Careful Spell",
+        "subtle": "Subtle Spell"
+      }
     },
     "REDIRECT": {
       "Title": "Who takes the damage",
@@ -602,11 +645,11 @@
       "Unavailable": "Not available now",
       "Capped": "Lowered by a condition, effect or carried load",
       "Reason": {
-        "Spent": "no {name} left",
-        "NoResource": "no {name} to spend",
-        "CantPay": "nothing to pay its cost with",
+        "Spent": "No {name} left",
+        "NoResource": "No {name} to spend",
+        "CantPay": "Nothing to pay its cost with",
         "ItemNotReady": "{name} must be equipped, and attuned if it needs it",
-        "Requires": "can't be used now"
+        "Requires": "Can't be used now"
       },
       "Group": {
         "action": "Actions",

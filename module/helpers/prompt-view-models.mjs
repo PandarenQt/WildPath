@@ -110,6 +110,7 @@ function choiceOptions(options) {
   return normalizeArray(options).map((option, index) => ({
     id: String(option?.id ?? option?.value ?? `option:${index}`),
     label: stringOrDefault(option?.label ?? option?.name ?? option?.value, labelFromId(option?.id ?? `option:${index}`)),
+    ...(option?.labelData ? {labelData: clonePromptData(option.labelData, "option.labelData")} : {}),
     value: clonePromptData(option?.value ?? option?.id ?? null, "option.value"),
     source: clonePromptData(option?.source ?? null, "option.source"),
     paymentOptionId: option?.paymentOptionId ?? null,

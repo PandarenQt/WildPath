@@ -3,6 +3,7 @@
  * that can see them. Health changes come from the Actor update itself (`floatHealthChange`); an Action's outcomes
  * (Miss, Critical hit, Saved) come from its chat card's `flags.wildpath.floating`, on clients that can see the card.
  */
+import { damageTypeLabel } from "../helpers/damage-type-label.mjs";
 const globals = globalThis;
 /** Colours by kind: damage, healing, a miss (and Immune), a critical hit and a saved roll. */
 const FILLS = { damage: 0xdd3333, healing: 0x33cc66, miss: 0xdddddd, critical: 0xffcc33, saved: 0x66aaff };
@@ -34,7 +35,7 @@ export function floatHealthChange(actor, change, damageTypes = []) {
         return;
     if (change > 0)
         return floatText(actor, `+${change}`, "healing");
-    const types = damageTypes.map(type => globals.game.i18n.localize(`WILDPATH.DAMAGE.${type.charAt(0).toUpperCase()}${type.slice(1)}`));
+    const types = damageTypes.map(type => damageTypeLabel(type, globals.game.i18n));
     floatText(actor, [`−${Math.abs(change)}`, types.join(", ")].filter(Boolean).join(" "), "damage", DAMAGE_FILLS[damageTypes[0] ?? ""] ?? null);
 }
 /** Each Action card's floating outcomes, on the clients that may see the card (never a blind roll's). */

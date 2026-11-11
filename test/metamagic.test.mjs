@@ -111,6 +111,34 @@ test("Metamagic: what its rules forbid (a level 1+ spell after a Quickened one) 
   assert.deepEqual(action("ball").reason, {key: "WILDPATH.REFUSAL.Quickened", name: "Sorcerer", by: "quickened"});
 });
 
+test("Metamagic's and a damage-type choice's options reach the dialog through lang/en.json, a damage type localized inside", async () => {
+  const {promptActionConfiguration} = await import("../module/adapters/foundry-v14-prompt-adapter.mjs");
+  const lang = JSON.parse(fs.readFileSync("lang/en.json", "utf8"));
+  // Upper case marks text that came from the lang file; a hard-coded English label would stay as written.
+  const lookup = key => key.split(".").reduce((node, part) => node?.[part], lang)?.toUpperCase?.() ?? key;
+  const previous = globalThis.game;
+  globalThis.game = {i18n: {has: key => typeof lookup(key) === "string" && lookup(key) !== key, localize: lookup, format: (key, data) => lookup(key).replace(/\{(\w+)\}/gu, (_, name) => String(data[name.toLowerCase()]))}};
+  try {
+    let shown = "";
+    const DialogV2 = {input: async options => { shown += options.content; return null; }};
+    const actor = sorcerer(["quickened", "transmuted", "empowered"]);
+    await promptActionConfiguration({definition: withMetamagic(spell("fire-bolt"), actor), actorSystem: actor.system, DialogV2});
+    for ( const text of ["QUICKENED SPELL (2 POINTS)", "TRANSMUTED SPELL: ACID (1 POINT)", "EMPOWERED SPELL: REROLL 1 DAMAGE DIE (1 POINT)", ">NO<"] ) {
+      assert.ok(shown.includes(text), text);
+    }
+    const breath = {schemaVersion: 1, id: "action:breath", label: "Breath", costs: {allOf: [{capability: "action", amount: 1}]},
+      targeting: {type: "area"}, area: {shape: "cone", size: {value: 15, unit: "ft"}}, save: {ability: "agility", dc: {value: 13}},
+      damage: [{id: "damage-1", damageType: "acid", expression: {type: "dice", number: 2, faces: 6}}], configuration: [{id: "type", type: "damage-type", label: "Type",
+        required: true, allowedDamageTypes: ["acid", "eldritch-fire"], effects: [{type: "replaceDamageType", componentIds: ["damage-1"], damageTypeChoiceId: "type"}]}]};
+    await promptActionConfiguration({definition: breath, actorSystem: actor.system, DialogV2});
+    assert.ok(shown.includes(">ACID<"), "a damage type by its lang key");
+    assert.ok(shown.includes(">Eldritch Fire<"), "a homebrew type with no key by its id");
+    assert.equal(shown.includes("WILDPATH."), false, "no raw key");
+  } finally {
+    globalThis.game = previous;
+  }
+});
+
 test("Empowered Spell: a choice beside the other option; its lowest damage die below average is rolled again", async () => {
   const {planStagedActionResolution, resumeStagedActionResolution} = await import("../module/resolvers/action-pipeline-resolver.mjs");
   const actor = sorcerer(["quickened", "empowered"]);

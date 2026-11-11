@@ -1,4 +1,5 @@
 import { CHAT_OUTCOME_KEYS, chatVisibilityForMode, createResolutionCardViewModel } from "../helpers/chat-card-view-model.mjs";
+import { damageTypeLabel } from "../helpers/damage-type-label.mjs";
 export const RESOLUTION_CARD_TEMPLATE = "systems/wildpath/templates/chat/resolution-card.hbs";
 /** A roll's label in words ("Fire damage", "Less damage", "Attack"), or undefined (Foundry then shows none). */
 function rollFlavor(label, i18n) {
@@ -6,8 +7,7 @@ function rollFlavor(label, i18n) {
         return undefined;
     if (!label.damageType)
         return i18n.localize(label.key);
-    const type = i18n.localize(`WILDPATH.DAMAGE.${label.damageType.charAt(0).toUpperCase()}${label.damageType.slice(1)}`);
-    return i18n.format("WILDPATH.CHAT.Roll.TypedDamage", { type });
+    return i18n.format("WILDPATH.CHAT.Roll.TypedDamage", { type: damageTypeLabel(label.damageType, i18n) });
 }
 /**
  * Posts one chat card per completed Action, from the authority's client. The content comes only from

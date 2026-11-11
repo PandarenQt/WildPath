@@ -12,15 +12,15 @@
  *   no damage on a success. Both are asked when the save is rolled (action-pipeline-resolver.mjs).
  */
 
+import {damageTypeKey} from "./damage-type-label.mjs";
 import {evaluateValueExpression} from "./value-expressions.mjs";
 
 type Data = Record<string, any>;
-type Option = {id: string; value: string; label: string; cost: number; effects: Data[]};
+type Option = {id: string; value: string; label: string; labelData: Data; cost: number; effects: Data[]};
 
 export const METAMAGIC_POOL = "font-of-magic";
 const SIX_TYPES = Object.freeze(["acid", "cold", "fire", "lightning", "poison", "thunder"]);
 const COSTS: Record<string, number> = Object.freeze({quickened: 2, heightened: 2});
-const BY_HAND = Object.freeze([] as string[]);
 const SECONDS: Record<string, number> = Object.freeze({seconds: 1, second: 1, rounds: 6, round: 6, turns: 6, minutes: 60, minute: 60, hours: 3600, hour: 3600,
   days: 86400, day: 86400});
 
@@ -63,17 +63,17 @@ function empoweredChoice(raw: Data, actor: Data | null | undefined): Data | null
     terms: [{type: "constant", value: 1}, {type: "ability-modifier", ability: "presence"}]}, {actor, actorSystem: actor?.system});
   const most = Math.max(1, Math.trunc(Number(count.value) || 1));
   return {id: "empowered", type: "select-one", label: "WILDPATH.METAMAGIC.empowered", required: true, defaultValue: "no",
-    options: [{id: "no", label: "No", value: "no"}, {id: "empowered", value: "empowered",
-      label: `Empowered Spell: reroll up to ${most} damage ${most === 1 ? "die" : "dice"} (1 point)`,
+    options: [{id: "no", label: "WILDPATH.PROMPT.No", value: "no"}, {id: "empowered", value: "empowered",
+      label: most === 1 ? "WILDPATH.METAMAGIC.EmpoweredOne" : "WILDPATH.METAMAGIC.EmpoweredMany", labelData: {count: most},
       effects: [{type: "add-cost", cost: {allOf: [{capability: METAMAGIC_POOL, amount: 1}]}}, {type: "empower-damage", count: most}]}]};
 }
 
 /** One option's choices for this spell (Transmuted: one per damage type), none when it does not apply. */
 function metamagicOptions(option: string, raw: Data, actor: Data | null | undefined): Option[] {
   const cost = COSTS[option] ?? 1;
-  const name = `${option.charAt(0).toUpperCase()}${option.slice(1)} Spell`;
-  const label = (text: string) => `${text} (${cost} ${cost === 1 ? "point" : "points"})`;
-  const one = (effects: Data[]): Option[] => [{id: option, value: option, label: label(BY_HAND.includes(option) ? `${name}, by hand` : name), cost, effects}];
+  // A lang key and its data; a data value that is a key (its name, a damage type) is localized too (prompt adapter).
+  const label = (key: string, data: Data) => ({label: `WILDPATH.METAMAGIC.${key}${cost === 1 ? "One" : ""}`, labelData: {cost, ...data}});
+  const one = (effects: Data[]): Option[] => [{id: option, value: option, ...label("Cost", {name: `WILDPATH.METAMAGIC.Name.${option}`}), cost, effects}];
   switch ( option ) {
     case "quickened": {
       const combat = (globalThis as Data).game?.combat;
@@ -94,7 +94,8 @@ function metamagicOptions(option: string, raw: Data, actor: Data | null | undefi
       const ids = components.map((component: Data) => component.id);
       const from = new Set(components.map((component: Data) => component.damageType));
       return SIX_TYPES.filter(type => !from.has(type)).map(type => ({id: `transmuted-${type}`, value: `transmuted-${type}`,
-        label: label(`${name}: ${type}`), cost, effects: [{type: "replace-damage-type", damageType: type, componentIds: ids}]}));
+        ...label("Transmuted", {type: damageTypeKey(type)}), cost,
+        effects: [{type: "replace-damage-type", damageType: type, componentIds: ids}]}));
     }
     case "distant": {
       const range = raw.range;

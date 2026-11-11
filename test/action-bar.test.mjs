@@ -144,6 +144,12 @@ test("spells go by level with a button per slot they can use; magic items' Actio
   assert.deepEqual(groups[1].actions[0].slots.map(slot => [slot.level, slot.choiceId]), [[3, "spell-slot"], [5, "spell-slot"]],
     "a spent 4th-level slot has no button");
   assert.equal(groups[0].actions[0].slots, undefined, "a cantrip spends no slot");
+  // Slot buttons only while the spell's own button is usable: none for a forbidden spell or an unequipped item's.
+  wand.system.active = false;
+  actor.forbiddingRule = () => ({name: "Silenced", reason: "WILDPATH.REFUSAL.Forbidden"});
+  const barred = actionBarContext({actor}).groups.flatMap(group => group.actions);
+  assert.deepEqual(barred.filter(action => action.id !== "bolt").map(action => [action.id, action.enabled, action.slots]),
+    [["fireball", false, undefined], ["wand-fireball", false, undefined]]);
 });
 
 test("Steady Aim (SRD) is greyed once its creature has moved this turn (`requires`)", async () => {

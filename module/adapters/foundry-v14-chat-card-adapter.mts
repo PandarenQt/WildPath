@@ -5,6 +5,7 @@ import {
   type PublicResolutionResult,
   type RollLabel
 } from "../helpers/chat-card-view-model.mjs";
+import {damageTypeLabel} from "../helpers/damage-type-label.mjs";
 
 export const RESOLUTION_CARD_TEMPLATE = "systems/wildpath/templates/chat/resolution-card.hbs";
 
@@ -26,15 +27,14 @@ type RenderTemplate = (path: string, data: object) => Promise<string>;
 
 interface GameLike {
   readonly users?: Iterable<{readonly id?: string | null; readonly isGM?: boolean}> | null;
-  readonly i18n?: {localize(key: string): string; format(key: string, data: Record<string, string>): string} | null;
+  readonly i18n?: {has(key: string): boolean; localize(key: string): string; format(key: string, data: Record<string, string>): string} | null;
 }
 
 /** A roll's label in words ("Fire damage", "Less damage", "Attack"), or undefined (Foundry then shows none). */
 function rollFlavor(label: RollLabel | null | undefined, i18n: GameLike["i18n"]) {
   if ( !label || !i18n ) return undefined;
   if ( !label.damageType ) return i18n.localize(label.key);
-  const type = i18n.localize(`WILDPATH.DAMAGE.${label.damageType.charAt(0).toUpperCase()}${label.damageType.slice(1)}`);
-  return i18n.format("WILDPATH.CHAT.Roll.TypedDamage", {type});
+  return i18n.format("WILDPATH.CHAT.Roll.TypedDamage", {type: damageTypeLabel(label.damageType, i18n)});
 }
 
 /** What the action coordinator passes to its `publishResult` port. */

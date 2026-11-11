@@ -100,7 +100,8 @@ export default class WildPathActorSheet extends HandlebarsApplicationMixin(Actor
       resourceLabels: CONFIG.WILDPATH.RESOURCES,
       conditionDefinitions: Object.values(CONFIG.WILDPATH.CONDITIONS),
       effectiveAc: resolveActorDefense(this.actor, "ac")?.value ?? null,
-      proficiency: actorProficiencyBonus(this.actor)
+      proficiency: actorProficiencyBonus(this.actor),
+      localize: key => game.i18n.localize(key)
     });
     context.sheet = sheet;
     Object.assign(context, sheet);

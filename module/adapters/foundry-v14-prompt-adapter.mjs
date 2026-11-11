@@ -1,5 +1,6 @@
 import {ACTION_CHOICE_TYPES, createResolvedActionPreview, discoverActionConfigurationChoices} from "../helpers/action-configuration.mjs";
 import {RESOLUTION_REQUEST_TYPES} from "../helpers/resolution-state.mjs";
+import {damageTypeLabel} from "../helpers/damage-type-label.mjs";
 import {formatFormula} from "../helpers/formula.mjs";
 import {selectTableRows} from "../helpers/value-expressions.mjs";
 import {reactionChoiceValueFromForm} from "./foundry-v14-reaction-choice-adapter.mjs";
@@ -263,17 +264,24 @@ export function renderConfigurationPreview({definition, actorSystem, choices}) {
  */
 function localizeViewModel(viewModel) {
   const text = entry => ({...entry, label: localize(entry.label, entry.labelData)});
+  const i18n = globalThis.game?.i18n;
+  // A damage type is named by its value, from lang/en.json or (a homebrew type) its id.
+  const option = control => entry => ((control.type === PROMPT_CONTROL_TYPES.DAMAGE_TYPE) && i18n
+    ? {...entry, label: damageTypeLabel(String(entry.value), i18n)} : text(entry));
   return {
     ...viewModel,
     title: localize(viewModel.title, viewModel.titleData),
-    controls: viewModel.controls.map(control => ({...text(control), options: (control.options ?? []).map(text)}))
+    controls: viewModel.controls.map(control => ({...text(control), options: (control.options ?? []).map(option(control))}))
   };
 }
 
 function localize(key, data=null) {
   const i18n = globalThis.game?.i18n;
   if ( typeof key !== "string" || !i18n ) return key;
-  return data ? i18n.format(key, data) : i18n.localize(key);
+  // A data value that is itself a system key (a Metamagic option's name, a damage type) is localized first.
+  const own = value => ((typeof value === "string") && value.startsWith("WILDPATH.") ? i18n.localize(value) : value);
+  return data ? i18n.format(key, Object.fromEntries(Object.entries(data).map(([name, value]) => [name, own(value)])))
+    : i18n.localize(key);
 }
 
 function renderPromptContent(viewModel) {

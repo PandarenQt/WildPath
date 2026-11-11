@@ -4,6 +4,8 @@
  * (Miss, Critical hit, Saved) come from its chat card's `flags.wildpath.floating`, on clients that can see the card.
  */
 
+import {damageTypeLabel} from "../helpers/damage-type-label.mjs";
+
 interface TokenObject {center: {x: number; y: number}; h: number; visible: boolean; document: {isSecret?: boolean}}
 /** An Actor (each of its Tokens) or a TokenDocument (its own Token): what a card names its targets by. */
 interface FloatingActor {getActiveTokens?(linked?: boolean): TokenObject[]; object?: TokenObject | null}
@@ -11,7 +13,7 @@ interface FloatingMessage {visible?: boolean; blind?: boolean; flags?: {wildpath
 interface Globals {
   canvas?: {ready?: boolean; interface?: {createScrollingText(origin: {x: number; y: number}, text: string, options: object): Promise<void>}};
   CONST: {TEXT_ANCHOR_POINTS: {CENTER: number; TOP: number; BOTTOM: number}};
-  game: {user?: {isGM?: boolean}; i18n: {localize(key: string): string}};
+  game: {user?: {isGM?: boolean}; i18n: {has(key: string): boolean; localize(key: string): string}};
   fromUuidSync(uuid: string): unknown;
   Hooks: {on(name: string, callback: (...args: unknown[]) => unknown): number};
 }
@@ -45,7 +47,7 @@ export function floatText(actor: FloatingActor | null | undefined, text: string,
 export function floatHealthChange(actor: FloatingActor, change: number, damageTypes: readonly string[] = []) {
   if ( !Number.isFinite(change) || !change ) return;
   if ( change > 0 ) return floatText(actor, `+${change}`, "healing");
-  const types = damageTypes.map(type => globals.game.i18n.localize(`WILDPATH.DAMAGE.${type.charAt(0).toUpperCase()}${type.slice(1)}`));
+  const types = damageTypes.map(type => damageTypeLabel(type, globals.game.i18n));
   floatText(actor, [`−${Math.abs(change)}`, types.join(", ")].filter(Boolean).join(" "), "damage", DAMAGE_FILLS[damageTypes[0] ?? ""] ?? null);
 }
 

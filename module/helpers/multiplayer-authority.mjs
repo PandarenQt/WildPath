@@ -450,7 +450,7 @@ const FOOTPRINT_KEYS = Object.freeze(["type", "topology", "size", "anchor", "fie
  * names its own comes first (`metadata.labelKey`: Boon of Spell Recall's d4, a concentration check rolled as a save). Null
  * for one the card names no other way (Empowered Spell's rerolled dice).
  */
-function rollLabel(request) {
+export function rollLabel(request) {
   if ( typeof request?.metadata?.labelKey === "string" ) return {key: request.metadata.labelKey};
   const component = request?.definition?.components?.[0] ?? null;
   const damageType = (typeof component?.damageType === "string") ? component.damageType : null;

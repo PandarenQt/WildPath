@@ -1,4 +1,5 @@
-import {createActionBarViewModel} from "./ui-view-models.mjs";
+import {ACTION_BAR_ENTRY_STATES, createActionBarViewModel} from "./ui-view-models.mjs";
+import {actionBarContext} from "./action-bar-context.mjs";
 import {actorRef, itemRef, normalizeEntityRef, uuidRef} from "./entity-refs.mjs";
 
 export const CHARACTER_SHEET_SECTIONS = Object.freeze([
@@ -24,7 +25,8 @@ export function createActorSheetViewModel({
   resourceLabels={},
   conditionDefinitions=[],
   effectiveAc=null,
-  proficiency=null
+  proficiency=null,
+  localize=key => key
 }={}) {
   const actorSystem = system ?? actor.system ?? {};
   const actorModel = normalizeActor(actor);
@@ -38,9 +40,12 @@ export function createActorSheetViewModel({
     actions: groupedItems.action
   });
   const actionById = new Map(actionBar.actions.map(entry => [entry.id, entry]));
+  // The in-play bar's verdict on each Action it shows (a spent slot, Forbid, requires, its item unequipped), so the
+  // sheet and the bar agree; it reads the creature's own Items.
+  const barViews = new Map(actionBarContext({actor, localize}).groups.flatMap(group => group.actions).map(view => [view.id, view]));
   const actionItems = groupedItems.action.map(item => ({
     ...item,
-    availability: summarizeActionAvailability(actionById.get(item.id))
+    availability: summarizeActionAvailability(actionById.get(item.id), barViews.get(item.id))
   }));
 
   const summary = {
@@ -236,8 +241,13 @@ function groupItems(items) {
   return grouped;
 }
 
-function summarizeActionAvailability(action) {
+function summarizeActionAvailability(action, barView) {
   if ( !action ) return null;
+  // As the bar says, with its reason's data; an Action not on the bar (an unprepared spell) goes by its payment alone.
+  if ( barView ) return {enabled: barView.enabled, state: barView.enabled ? action.state : ACTION_BAR_ENTRY_STATES.UNAVAILABLE,
+    code: barView.disabledCode, defaultPaymentOptionId: action.payment?.defaultOptionId ?? null,
+    reason: barView.reason?.key ?? "WILDPATH.SHEET.Availability.Ready",
+    reasonData: barView.reason ? {name: barView.reason.name, by: barView.reason.by} : null};
   return {
     enabled: action.enabled,
     state: action.state,

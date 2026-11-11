@@ -117,7 +117,7 @@ function fakeFoundry() {
     },
     renderTemplate: async (path, data) => JSON.stringify({path, data}),
     game: {users: [{id: "gm-a", isGM: true}, {id: "player-a", isGM: false}],
-      i18n: {localize: key => key.split(".").at(-1), format: (key, data) => `${data.type} damage`}}
+      i18n: {has: () => true, localize: key => key.split(".").at(-1), format: (key, data) => `${data.type} damage`}}
   };
 }
 
@@ -201,14 +201,16 @@ test("damage floats with its types, in the colour of the first", async () => {
   const floats = [];
   globalThis.canvas = {ready: true, interface: {createScrollingText: async (origin, text, options) => { floats.push({text, fill: options.fill}); }}};
   globalThis.CONST = {TEXT_ANCHOR_POINTS: {CENTER: 0, TOP: 1, BOTTOM: 2}};
-  globalThis.game = {i18n: {localize: key => key.split(".").pop()}, user: {isGM: true}};
+  globalThis.game = {i18n: {has: key => key !== "WILDPATH.DAMAGE.Eldritch-fire", localize: key => key.split(".").pop()}, user: {isGM: true}};
   try {
     const {floatHealthChange} = await import("../module/applications/floating-text.mjs");
     const actor = {getActiveTokens: () => [{center: {x: 0, y: 0}, h: 100, visible: true, document: {}}]};
     floatHealthChange(actor, -8, ["fire"]);
     floatHealthChange(actor, -12, ["slashing", "fire"]);
     floatHealthChange(actor, 3);
-    assert.deepEqual(floats, [{text: "−8 Fire", fill: 0xff7722}, {text: "−12 Slashing, Fire", fill: 0xdd3333}, {text: "+3", fill: 0x33cc66}]);
+    floatHealthChange(actor, -2, ["eldritch-fire"]);
+    assert.deepEqual(floats, [{text: "−8 Fire", fill: 0xff7722}, {text: "−12 Slashing, Fire", fill: 0xdd3333}, {text: "+3", fill: 0x33cc66},
+      {text: "−2 Eldritch Fire", fill: 0xdd3333}], "a homebrew type with no lang key by its id");
   } finally {
     delete globalThis.canvas; delete globalThis.CONST; delete globalThis.game;
   }

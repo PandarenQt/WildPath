@@ -1,3 +1,5 @@
+import {damageTypeKey} from "./damage-type-label.mjs";
+import {rollLabel} from "./multiplayer-authority.mjs";
 import {countedRollTotal, rollFormulaForRequest} from "./rolls.mjs";
 
 /**
@@ -27,6 +29,27 @@ interface ResolutionRecord {resolutionId?: string; initiatorUserId?: string; sta
 const formulaOf = rollFormulaForRequest as unknown as (request: Data) => {formula?: string | null};
 const refsOf = (target: Named | undefined) => [target?.id, target?.uuid, target?.actorRef, target?.actorId, target?.tokenId].filter(Boolean);
 const DURABILITY = new Set(["durabilityDamage", "durabilityHealing", "durabilityAbsorption"]);
+// The engine values with words in lang/en.json (WILDPATH.INSPECTOR.<group>.<value>); any other shows as it is.
+const WORDS = {
+  Mode: ["normal", "advantage", "disadvantage"],
+  Method: ["digital", "natural", "total", "structured"],
+  Outcome: ["hit", "criticalHit", "miss", "criticalMiss", "success", "criticalSuccess", "failure", "criticalFailure"]
+};
+const words = (group: keyof typeof WORDS, value: string | null | undefined) => (value && WORDS[group].includes(value) ? `WILDPATH.INSPECTOR.${group}.${value}`
+  : value ?? null);
+// A roll the chat card names no way (rollLabel is null) by the pipeline's kind suffix: a die added to a d20 test (Bardic
+// Inspiration), a number added (Flash of Genius), a miss made a hit (Peerless Aim), a d20 set (Stroke of Luck, Portent),
+// Empowered Spell's reroll.
+const KIND_SUFFIXES: Array<[string, string]> = [["-added-die", "AddedDie"], ["-added", "Added"], ["-forced-hit", "ForcedHit"], ["-set-natural", "SetNatural"],
+  ["-empowered", "Empowered"]];
+/** A roll's kind in words: the chat card's (`rollLabel`, typed damage with its type's key), else by its suffix, else as it is. */
+function kindWords(request: Data | undefined, kind: string) {
+  const label = (rollLabel as (request: unknown) => {key: string; damageType?: string} | null)(request);
+  if ( label?.damageType ) return {kindLabel: "WILDPATH.CHAT.Roll.TypedDamage", kindType: damageTypeKey(label.damageType)};
+  if ( label ) return {kindLabel: label.key};
+  const suffix = KIND_SUFFIXES.find(([end]) => kind.endsWith(end));
+  return {kindLabel: suffix ? `WILDPATH.INSPECTOR.Kind.${suffix[1]}` : kind};
+}
 
 export function inspectResolution(record: ResolutionRecord) {
   const state = record.state ?? {};
@@ -42,21 +65,29 @@ export function inspectResolution(record: ResolutionRecord) {
     status: state.status ?? null,
     initiatorUserId: record.initiatorUserId ?? null,
     stages: [...(state.completedStageIds ?? [])],
-    rolls: (state.rollResults ?? []).map(entry => ({
-      kind: String(entry.rollRequest?.metadata?.rollKind ?? entry.semanticType ?? entry.type ?? ""),
-      formula: entry.rollRequest ? formulaOf(entry.rollRequest).formula ?? null : null,
-      mode: entry.rollRequest?.rollMode ?? "normal",
-      natural: entry.rollResult?.natural ?? entry.rollResult?.die ?? null,
-      // As it counted: at least its floor (Indomitable Might).
-      total: countedRollTotal(entry.rollResult),
-      method: entry.rollResult?.provenance?.method ?? null
-    })),
+    rolls: (state.rollResults ?? []).map(entry => {
+      const kind = String(entry.rollRequest?.metadata?.rollKind ?? entry.semanticType ?? entry.type ?? "");
+      const mode = entry.rollRequest?.rollMode ?? "normal";
+      const method = entry.rollResult?.provenance?.method ?? null;
+      return {
+        kind, ...kindWords(entry.rollRequest, kind),
+        formula: entry.rollRequest ? formulaOf(entry.rollRequest).formula ?? null : null,
+        // An entry with no request (a d20 set, a number added) is no roll, so it has no mode.
+        mode, modeLabel: entry.rollRequest ? words("Mode", mode) : null,
+        natural: entry.rollResult?.natural ?? entry.rollResult?.die ?? null,
+        // As it counted: at least its floor (Indomitable Might).
+        total: countedRollTotal(entry.rollResult),
+        method, methodLabel: words("Method", method)
+      };
+    }),
     attacks: (state.results?.attackResolution?.results ?? []).filter(result => result.outcome).map(result => ({
-      target: nameOf(result.target), total: result.roll?.total ?? null, defense: result.defense?.value ?? null, outcome: result.outcome
+      target: nameOf(result.target), total: result.roll?.total ?? null, defense: result.defense?.value ?? null, outcome: result.outcome,
+      outcomeLabel: words("Outcome", result.outcome)
     })),
     saves: (state.results?.saveResolution?.results ?? []).filter(result => result.outcome).map(result => ({
       // The total it was judged at (its floor counted), else its roll's.
       target: nameOf(result.target), total: result.total ?? result.roll?.total ?? null, dc: result.dc?.value ?? null, outcome: result.outcome,
+      outcomeLabel: words("Outcome", result.outcome),
       automatic: result.automatic === true
     })),
     changes: (state.mutationPlans ?? []).filter(plan => DURABILITY.has(String(plan.type))).map(plan => ({

@@ -434,6 +434,8 @@ function normalizeChoiceOptions(options) {
     return {
       id: stringOrDefault(option.id ?? option.value ?? option.slug, `option:${index}`),
       label: stringOrDefault(option.label ?? option.name ?? option.value, labelFromId(option.id ?? option.slug ?? `option:${index}`)),
+      // A lang-key label's data (Metamagic's cost).
+      ...(option.labelData ? {labelData: clonePlain(option.labelData)} : {}),
       value: clonePlain(option.value ?? option.id ?? option.slug),
       source: clonePlain(option.source ?? null),
       metadata: clonePlain(option.metadata ?? {}) ?? {},
@@ -542,6 +544,7 @@ function createChoiceRequest({
   if ( choiceDefinition.type === ACTION_CHOICE_TYPES.DAMAGE_TYPE ) {
     const options = choiceDefinition.allowedDamageTypes.map(damageType => ({
       id: damageType,
+      // Its words come from lang/en.json in the dialog (damageTypeLabel); this is the plain fallback.
       label: labelFromId(damageType),
       value: damageType,
       source: clonePlain(choiceDefinition.source),

@@ -117,3 +117,24 @@ test("gear rows show equipped, quantity and weight; the header shows the effecti
   assert.deepEqual([createActorSheetViewModel({actor: {system: {defenses: {ac: {value: 11}}}}}).header.ac], [11],
     "without an effective AC the stored one shows");
 });
+
+test("an Action row is ready only when the action bar's button is: a spent slot, an unequipped item and a Forbid say why", async () => {
+  const {readdirSync, readFileSync} = await import("node:fs");
+  const fireball = {...JSON.parse(readFileSync(`packs/_source/srd-items/${readdirSync("packs/_source/srd-items")
+    .find(file => file.startsWith("fireball-phb"))}`, "utf8")), id: "fireball"};
+  const wand = {id: "wand", type: "gear", name: "Wand", system: {active: false}};
+  const zap = {id: "zap", type: "action", name: "Zap", flags: {wildpath: {grantedBy: "wand"}},
+    system: {definition: {schemaVersion: 1, id: "action:zap", label: "Zap", costs: {allOf: [{capability: "action", amount: 1}]}}}};
+  const actor = {id: "mage", name: "Mage", items: [fireball, wand, zap], effects: [], system: {...system(),
+    pools: [{id: "spell-slot.3", label: "3rd-level slot", value: 0, max: 1}]}};
+  const rows = () => Object.fromEntries(createActorSheetViewModel({actor}).actionItems
+    .map(item => [item.id, [item.availability.enabled, item.availability.reason, item.availability.reasonData?.name ?? null]]));
+  assert.deepEqual(rows(), {fireball: [false, "WILDPATH.ACTIONBAR.Reason.Spent", "3rd-level slot"],
+    zap: [false, "WILDPATH.ACTIONBAR.Reason.ItemNotReady", "Wand"]});
+  actor.system.pools[0].value = 1;
+  wand.system.active = true;
+  assert.deepEqual(rows(), {fireball: [true, "WILDPATH.SHEET.Availability.Ready", null], zap: [true, "WILDPATH.SHEET.Availability.Ready", null]});
+  actor.forbiddingRule = definition => (definition?.tags?.includes("spell") ? {name: "Silenced", reason: "WILDPATH.REFUSAL.Forbidden"} : null);
+  const silenced = createActorSheetViewModel({actor}).actionItems.find(item => item.id === "fireball").availability;
+  assert.deepEqual([silenced.enabled, silenced.reason, silenced.reasonData], [false, "WILDPATH.REFUSAL.Forbidden", {name: "Mage", by: "Silenced"}]);
+});

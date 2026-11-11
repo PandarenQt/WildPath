@@ -158,17 +158,20 @@ export function actionBarContext({ actor, conditions = [], odds = {}, common = [
         const level = spellLevel(rawDefinition(action));
         return level === null ? groupId : `spell-${level}`;
     };
-    const view = (groupId) => (action) => ({ id: action.id, label: action.label,
-        img: action.img ?? "icons/svg/sword.svg", enabled: action.enabled && ready(action),
-        disabledCode: itemReady(action) ? (requiresMet(action) ? (action.disabledCode ?? controllerShort(action)[0]?.code ?? null)
-            : "REQUIRES_NOT_MET") : "ITEM_NOT_READY",
-        ...((action.enabled && ready(action)) ? {} : { reason: reason(action) }),
-        odds: oddsView(odds[action.id ?? ""] ?? []),
-        // A spell whose only choice is its slot: one button per slot level it can use now.
-        ...(((spellLevel(rawDefinition(action)) ?? 0) > 0) && action.enabled ? { slots: slotButtons(items.get(action.id ?? ""), actor.system) } : {}),
-        // A reaction's Always / Ask / Never setting (a common reaction's is on its own Action).
-        ...(action.group === "reaction" ? { policy: { id: policyOf(items.get(action.id) ?? commonById.get(action.id ?? "")),
-                ...POLICY_VIEWS[policyOf(items.get(action.id) ?? commonById.get(action.id ?? ""))] } } : {}) });
+    const view = (groupId) => (action) => {
+        const enabled = action.enabled && ready(action);
+        return { id: action.id, label: action.label,
+            img: action.img ?? "icons/svg/sword.svg", enabled,
+            disabledCode: itemReady(action) ? (requiresMet(action) ? (action.disabledCode ?? controllerShort(action)[0]?.code ?? null)
+                : "REQUIRES_NOT_MET") : "ITEM_NOT_READY",
+            ...(enabled ? {} : { reason: reason(action) }),
+            odds: oddsView(odds[action.id ?? ""] ?? []),
+            // A spell whose only choice is its slot, while usable: one button per slot level it can use now.
+            ...(((spellLevel(rawDefinition(action)) ?? 0) > 0) && enabled ? { slots: slotButtons(items.get(action.id ?? ""), actor.system) } : {}),
+            // A reaction's Always / Ask / Never setting (a common reaction's is on its own Action).
+            ...(action.group === "reaction" ? { policy: { id: policyOf(items.get(action.id) ?? commonById.get(action.id ?? "")),
+                    ...POLICY_VIEWS[policyOf(items.get(action.id) ?? commonById.get(action.id ?? ""))] } } : {}) };
+    };
     // The actions every creature has come last, in their own group (Baldur's Gate 3's common actions).
     const commonActions = common.length ? viewModel({ actor, actions: common }).actions : [];
     return {

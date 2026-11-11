@@ -3,7 +3,7 @@
   <h4>{{localize "WILDPATH.INSPECTOR.Rolls"}}</h4>
   <table><tbody>
     {{#each selected.rolls as |roll|}}
-      <tr><td>{{roll.kind}}</td><td>{{roll.formula}}</td><td>{{roll.mode}}</td><td>{{roll.natural}} → {{roll.total}}</td><td>{{roll.method}}</td></tr>
+      <tr><td>{{#if roll.kindType}}{{localize roll.kindLabel type=(localize roll.kindType)}}{{else if roll.kindLabel}}{{localize roll.kindLabel}}{{/if}}</td><td>{{roll.formula}}</td><td>{{#if roll.modeLabel}}{{localize roll.modeLabel}}{{/if}}</td><td>{{roll.natural}} → {{roll.total}}</td><td>{{#if roll.methodLabel}}{{localize roll.methodLabel}}{{/if}}</td></tr>
     {{/each}}
   </tbody></table>
 {{/if}}
@@ -11,7 +11,7 @@
   <h4>{{localize "WILDPATH.INSPECTOR.Attacks"}}</h4>
   <table><tbody>
     {{#each selected.attacks as |attack|}}
-      <tr><td>{{attack.target}}</td><td>{{localize "WILDPATH.INSPECTOR.AgainstAC" total=attack.total defense=attack.defense}}</td><td>{{attack.outcome}}</td></tr>
+      <tr><td>{{attack.target}}</td><td>{{localize "WILDPATH.INSPECTOR.AgainstAC" total=attack.total defense=attack.defense}}</td><td>{{localize attack.outcomeLabel}}</td></tr>
     {{/each}}
   </tbody></table>
 {{/if}}
@@ -19,7 +19,7 @@
   <h4>{{localize "WILDPATH.INSPECTOR.Saves"}}</h4>
   <table><tbody>
     {{#each selected.saves as |save|}}
-      <tr><td>{{save.target}}</td><td>{{#if save.automatic}}{{localize "WILDPATH.INSPECTOR.Automatic"}}{{else}}{{save.total}}{{/if}} {{localize "WILDPATH.INSPECTOR.AgainstDC" dc=save.dc}}</td><td>{{save.outcome}}</td></tr>
+      <tr><td>{{save.target}}</td><td>{{#if save.automatic}}{{localize "WILDPATH.INSPECTOR.Automatic"}}{{else}}{{save.total}}{{/if}} {{localize "WILDPATH.INSPECTOR.AgainstDC" dc=save.dc}}</td><td>{{localize save.outcomeLabel}}</td></tr>
     {{/each}}
   </tbody></table>
 {{/if}}
