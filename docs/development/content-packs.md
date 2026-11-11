@@ -82,6 +82,17 @@ itself is `dnd5e-to-wildpath.mjs`.
   - Cantrips are tables of dice on character level, which the engine resolves before rolling.
   - A higher slot adds damage and healing dice, targets and area size (`scaleDamage`, `scaleHealing`, `scaleTargets`,
     `scaleArea`).
+  - A part's slot scaling is read as dnd5e's `DamageData#scaledFormula` does (`slotScaling`, 2026-11-08). Only mode
+    `whole` grows; `""` is none, though dnd5e stores `number: 1` on every part. `number` more dice of the first die
+    (a missing key is 1, `null` none); a constant `formula` is a flat `bonus` per level (False Life's 5, Heal's 10), a
+    lone `NdM` formula is dice. Mode `half`, or any other formula, is noted `upcast: ... (by hand)`. Older data's
+    "level" scaling formula is read the same way. Damage an effect carries (a retaliation, a start-of-turn Trigger:
+    Armor of Agathys, Ensnaring Strike), which `scaleDamage` can't reach, grows as a table on the slot chosen
+    (`slotGrowth`, bound by the spell-slot choice's `bindChoice`).
+  - More targets per level come from the count formula (`2 + @item.level`), else from the text ("You can target one
+    additional creature for each spell slot level above 1": Jump). More rays, darts or willing creatures the text
+    gives that no count holds (Scorching Ray, Etherealness) are noted `upcast:` as by hand. A spell an item or
+    creature casts at its own level drops those notes.
 - **Older dnd5e data.** `upgradeLegacy` reads items stored before activities (dnd5e 3.x and earlier, as 2014
   modules are), so 2014 content converts like the rest. A save's damage is halved on a success there, as dnd5e's
   own migration assumes.

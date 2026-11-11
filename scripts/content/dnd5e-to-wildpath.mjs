@@ -1582,14 +1582,28 @@ function targetingOf({activity, system, notes, level=0, scales={}}) {
     return value?.ok ? value.value : (expression ?? null);
   };
   const count = number(affects.count) ?? (affects.count ? at(level) : null);
-  const perLevel = (typeof count === "number") && String(affects.count).includes("@item.level") && (typeof at(level + 1) === "number")
+  const fromCount = (typeof count === "number") && String(affects.count).includes("@item.level") && (typeof at(level + 1) === "number")
     ? at(level + 1) - count : 0;
+  // Else its text's ("You can target one additional creature for each spell slot level above 1": Jump).
+  const perLevel = fromCount || (level ? textTargetsPerLevel(plainText({system})) : 0);
   if ( affects.count && (count == null) ) notes.push(`targets: count "${affects.count}" not converted`);
   if ( count && (typeof count === "object") ) return {targeting: {type: "multiple", required: true, count, ...UP_TO}};
   if ( (count > 1) || perLevel ) return {targeting: {type: (count > 1) ? "multiple" : "single", required: true, count: Math.max(count, 1),
     ...((count > 1) ? UP_TO : {})}, perLevel};
   return {targeting: {type: "single", required: true, count: 1}};
 }
+
+/** The more creatures a spell's text lets it target per slot level above its own, or 0. */
+function textTargetsPerLevel(text) {
+  const word = /\byou can (?:target|affect) (one|two|three|\d+) additional (?:creature|target|Beast|Humanoid)s?\b[^.]*\bslot level above\b/i.exec(text)?.[1];
+  return word ? (COUNTS[word.toLowerCase()] ?? Number(word)) : 0;
+}
+
+/**
+ * More targets, rays or darts its text gives per slot level that no count holds (Scorching Ray's rays, Etherealness'
+ * willing creatures): noted as by hand.
+ */
+const MORE_PER_SLOT = /\b(?:one|two|three|\d+) (?:additional|more) (?:creature|target|ray|dart|bolt|beam|Beast|Humanoid)s?\b[^.]*\bslot level above\b|\bup to \w+ willing creatures\b[^.]*\bslot level above\b/i;
 
 /** A roll table its text links or embeds: the SRD's (`dnd5e.tables24`) or a book's (`dnd-players-handbook.tables`), by id. */
 const TABLE_LINK = /@(?:UUID|Embed)\[Compendium\.[\w-]+\.tables(?:24)?\.RollTable\.(\w+)/u;
@@ -1636,9 +1650,10 @@ export function upgradeLegacy(document) {
     includeBase = true;
   }
   const scaling = system.scaling ?? {};
-  const levelDice = /^(\d+)d(\d+)$/.exec(scaling.formula ?? "");
   if ( parts[0] && (scaling.mode === "cantrip") ) parts[0].scaling = {mode: "whole"};
-  if ( parts[0] && (scaling.mode === "level") && levelDice ) parts[0].scaling = {mode: "whole", number: Number(levelDice[1]), faces: Number(levelDice[2])};
+  // Its formula added per level ("1d6", 2014 False Life's "5"), as slotScaling reads it.
+  if ( parts[0] && (scaling.mode === "level") && String(scaling.formula ?? "").trim() ) parts[0].scaling = {mode: "whole", number: null,
+    formula: String(scaling.formula)};
   const target = system.target ?? {};
   s.target = TEMPLATE_TYPES.has(target.type) ? {template: {type: target.type, size: String(target.value ?? ""), width: target.width, units: target.units},
     affects: {type: "creature"}} : {template: {}, affects: {type: target.type ?? "", count: target.value ? String(target.value) : ""}};
@@ -1975,10 +1990,8 @@ export function convertItem(document, {scales={}, pack=null, saveDC=null, spellD
       ...((system.properties ?? []).includes("concentration") ? {concentration: true} : {})}]};
     const carrying = carried ? (definition.effects ?? []).filter(effect => (effect.type === "effect") && carried.ruleFor(effect)) : [];
     if ( carrying.length ) {
-      definition = {...definition, effects: definition.effects.map(effect => (carrying.includes(effect)
-        ? {...effect, ruleElements: [...(effect.ruleElements ?? []), carried.ruleFor(effect)]} : effect)),
-      ...(carried.bindsSlot ? {configuration: (definition.configuration ?? []).map(choice => ((choice.id === "spell-slot")
-        ? {...choice, effects: [...(choice.effects ?? []), {type: "bindChoice"}]} : choice))} : {})};
+      definition = bindSlot({...definition, effects: definition.effects.map(effect => (carrying.includes(effect)
+        ? {...effect, ruleElements: [...(effect.ruleElements ?? []), carried.ruleFor(effect)]} : effect))});
       if ( carried.activity ) folded.add(carried.activity);
       notes.push(...carried.notes);
       carried = null;
@@ -3916,12 +3929,12 @@ function turnStartDamage(document, activity) {
 /**
  * Its turn-start damage as an effect beside the save's first condition (`effects`, as converted): while the creature has
  * that condition, the damage at the start of each of its turns (an automation Trigger, as Lingering Acid's), lasting as
- * long and applied on the same outcome.
+ * long and applied on the same outcome. `slotted`: its Action has a spell-slot choice, whose slot its damage grows with.
  */
-function turnStartDamageEffects(document, effects, {spell, scales, notes}) {
+function turnStartDamageEffects(document, effects, {spell, scales, notes, slotted}) {
   const carrier = effects.find(effect => effect.type === "condition");
   if ( !carrier ) return [];
-  return turnStartDamageRules(document, {spell, scales, notes, predicate: {hasCondition: carrier.conditionId}}).map((rule, index) => ({
+  return turnStartDamageRules(document, {spell, scales, notes, slotted, predicate: {hasCondition: carrier.conditionId}}).map((rule, index) => ({
     id: `effect-${effects.length + index + 1}`, type: "effect", name: `${document.name} (start of turn)`, slug: rule.id,
     img: "icons/svg/poison.svg", ...(carrier.saveOutcomePolicy ? {saveOutcomePolicy: carrier.saveOutcomePolicy} : {}),
     ...(carrier.duration ? {duration: structuredClone(carrier.duration)} : {}), ruleElements: [rule]}));
@@ -3930,19 +3943,21 @@ function turnStartDamageEffects(document, effects, {spell, scales, notes}) {
 /**
  * Its damage at the start of each of its creature's turns (turnStartDamage) as automation Triggers, while `predicate`
  * holds (its condition), else while the effect carrying them lasts. Damage of no type ("loses 5 (1d10) Hit Points") is
- * untyped.
+ * untyped. With `slotted` (a spell-slot choice), damage that grows with a higher slot is a table on it (slotGrowth:
+ * Ensnaring Strike's 1d6 more per level).
  */
-function turnStartDamageRules(document, {spell, scales, notes, predicate=null}) {
+function turnStartDamageRules(document, {spell, scales, notes, slotted=false, predicate=null}) {
   return Object.values(document.system?.activities ?? {}).filter(activity => turnStartDamage(document, activity)).map((activity, index) => {
-    const damage = (activity.damage?.parts ?? []).map((part, at) => ({id: `turn-${at + 1}`,
-      expression: partExpression(part, {spell, ability: null, scales, notes, label: activity.name ?? "damage"}),
-      ...(part.types?.length === 1 ? {damageType: part.types[0]} : (part.types?.length ? {} : {damageType: "untyped"})), provenance: "additional"}))
-      .filter(component => component.expression);
+    let byHand = false;
+    const damage = (activity.damage?.parts ?? []).map((part, at) => {
+      const expression = partExpression(part, {spell, ability: null, scales, notes, label: activity.name ?? "damage"});
+      const grown = expression ? slotGrowth(expression, part, {spell, level: document.system?.level}) : null;
+      if ( grown && !(slotted && grown.expression) ) byHand = true;
+      return {id: `turn-${at + 1}`, expression: (slotted && grown?.expression) || expression,
+        ...(part.types?.length === 1 ? {damageType: part.types[0]} : (part.types?.length ? {} : {damageType: "untyped"})), provenance: "additional"};
+    }).filter(component => component.expression);
     if ( !damage.length ) return null;
-    // A spell slot's scaling (scaleDamage) reaches its Action's own damage, not a Trigger's in its effect (Ensnaring Strike).
-    if ( spell && (activity.damage?.parts ?? []).some(part => part.scaling?.number || part.scaling?.formula) ) {
-      notes.push(`"${activity.name ?? "damage"}": its damage at the start of each turn doesn't grow with a higher spell slot (by hand)`);
-    }
+    if ( byHand ) notes.push(`"${activity.name ?? "damage"}": its damage at the start of each turn doesn't grow with a higher spell slot (by hand)`);
     const slug = `${slugify(document.name)}-turn-damage${index ? `-${index + 1}` : ""}`;
     return {schemaVersion: 1, id: slug, type: "Trigger", data: {kind: "automation", event: "turn.started", ...(predicate ? {predicate} : {}),
       action: {schemaVersion: 1, id: `action:${slug}`, label: document.name, costs: {allOf: []}, damage}}};
@@ -4307,7 +4322,9 @@ function castSpell({document, activity, system, notes, pool: itemPool=null, opti
     notes.push(`cast: "${options.creature ? `${named} (${limit})` : named}" is the whole spell; its limit is by hand`);
   }
   if ( definition.attack && casting ) definition.attack = {...definition.attack, ability: casting};
-  notes.push(...converted.notes.filter(note => !note.startsWith("uses:") && !(unheld && note.startsWith("concentration:"))));
+  // Cast at its own level, nothing is upcast by hand.
+  const above = castLevel > (Number(spellDocument.system?.level) || 0);
+  notes.push(...converted.notes.filter(note => !note.startsWith("uses:") && !(unheld && note.startsWith("concentration:")) && (above || !note.startsWith("upcast:"))));
   const pool = activityPool({document, activity, scales: options.scales, spellName: spellDocument.name});
   const id = stableId(`${document._id}:cast:${activity._id ?? spellDocument._id}`);
   // A pool the cast fills (Heroes' Feast's servings) comes with it, and so do the spell's Actions that spend it (Consume Feast).
@@ -4579,7 +4596,7 @@ function raisedFromKilled(document, activities, creatures, system) {
  * effectReactionItems), used at once. `ruleFor(effect)` is that Trigger for one of the effects its use applies: a damage of
  * several types is the one its text gives that effect by a word of its name ("2d8 Fire damage from a warm shield": Warm
  * Shield), none when it gives none. Its save is at the DC of the creature that gave the effect (`fromSource`); more damage
- * from a higher slot is a table on the slot chosen (`{{spell-slot}}`, which `bindsSlot` asks its spell-slot choice to fill).
+ * from a higher slot is a table on the slot chosen (slotGrowth, which bindSlot has its spell-slot choice fill).
  * Null when its text says no such thing, or neither damage nor a save converts.
  */
 function carriedRetaliation({document, activities, system, spell, level, scales, saveDC, spellDC, creature, beasts, names}) {
@@ -4602,19 +4619,11 @@ function carriedRetaliation({document, activities, system, spell, level, scales,
   if ( !converted?.damage?.length && !converted?.save ) return null;
   // Answering the hit is its activation (dnd5e's "special").
   notes.splice(0, notes.length, ...notes.filter(note => !note.startsWith("activation:")));
-  // A higher slot's more damage: dice (scaleDice) or a flat amount ("increase by 5 for each spell slot level above 1").
-  const slotRows = at => Object.fromEntries(Array.from({length: 10 - level}, (_, offset) => [level + offset, at(offset)]));
-  let bindsSlot = false;
-  const damage = (converted.damage ?? []).map(({scaleDice, ...component}) => {
-    const flat = number(activity.damage?.parts?.[Number(component.id.split("-").pop()) - 1]?.scaling?.formula);
-    const expression = component.expression;
-    const grows = (spell && level) ? ((scaleDice && (expression.type === "dice") && (expression.faces === scaleDice.faces))
-      ? offset => ({...expression, number: expression.number + (scaleDice.number * offset)})
-      : ((!scaleDice && flat && (expression.type === "constant")) ? offset => expression.value + (flat * offset) : null)) : null;
-    if ( scaleDice && !grows ) notes.push(`"${document.name}": the damage its effect deals doesn't grow with a higher spell slot (by hand)`);
-    if ( grows ) bindsSlot = true;
-    return grows ? {...component, expression: {type: "table", key: {type: "constant", value: "{{spell-slot}}"}, rows: slotRows(grows),
-      default: expression}} : component;
+  // A higher slot's more damage (slotGrowth): dice or a flat amount ("increase by 5 for each spell slot level above 1").
+  const damage = (converted.damage ?? []).map(component => {
+    const grown = slotGrowth(component.expression, activity.damage?.parts?.[Number(component.id.split("-").pop()) - 1], {spell, level});
+    if ( grown?.byHand ) notes.push(`"${document.name}": the damage its effect deals doesn't grow with a higher spell slot (by hand)`);
+    return grown?.expression ? {...component, expression: grown.expression} : component;
   });
   const dc = converted.save?.dc;
   const save = converted.save ? {...converted.save, dc: dc.valueExpression ? {...dc, fromSource: true} : dc} : null;
@@ -4628,7 +4637,7 @@ function carriedRetaliation({document, activities, system, spell, level, scales,
   if ( /\bends early if you have no Temporary Hit Points\b/iu.test(text) ) {
     notes.push(`"${document.name}": ending early when its Temporary Hit Points are gone is by hand`);
   }
-  return {activity: passive, notes, bindsSlot, ruleFor: effect => {
+  return {activity: passive, notes, ruleFor: effect => {
     const word = Object.keys(byWord).find(each => String(effect.name ?? "").toLowerCase().split(/\W+/u).includes(each));
     if ( chosen && !word ) return null;
     return {schemaVersion: 1, id: "retaliation", type: "Trigger", data: {kind: "reaction", ...structuredClone(RETALIATION), policy: "always",
@@ -5716,8 +5725,9 @@ function slotConfiguration(level, damage, {healing=[], perLevel=0, areaPerLevel=
 
 /** What a higher level adds to a spell's dice and targets, read from the level its choice `choiceId` names. */
 function levelScaling(choiceId, level, damage, {healing=[], perLevel=0, areaPerLevel=0}={}) {
-  const scale = (type, components) => components.filter(component => component.scaleDice).map(component => ({type, levelChoiceId: choiceId,
-    baseLevel: level, componentIds: [component.id], dice: component.scaleDice}));
+  const scale = (type, components) => components.filter(component => component.scaleDice || component.scaleBonus).map(component => ({type,
+    levelChoiceId: choiceId, baseLevel: level, componentIds: [component.id], ...(component.scaleDice ? {dice: component.scaleDice} : {}),
+    ...(component.scaleBonus ? {bonus: component.scaleBonus} : {})}));
   return [...scale("scaleDamage", damage), ...scale("scaleHealing", healing),
     ...(perLevel ? [{type: "scaleTargets", levelChoiceId: choiceId, baseLevel: level, perLevel}] : []),
     ...(areaPerLevel ? [{type: "scaleArea", levelChoiceId: choiceId, baseLevel: level, perLevel: areaPerLevel}] : [])];
@@ -5778,6 +5788,9 @@ function convertActivity({document, activity, system, spell, level, scales, note
   const aimed = (attack?.type === "melee") ? {...activity, target: {...(activity.target ?? {}), template: {}, override: true}} : activity;
   const {perLevel=0, areaPerLevel=0, areaScaling=null, ...targets} = targetingOf({activity: aimed, system, notes, level, scales});
   Object.assign(definition, targets);
+  if ( spell && level && !perLevel && MORE_PER_SLOT.test(plainText(document)) ) {
+    notes.push("upcast: the more targets its text gives for each slot level above its own are by hand");
+  }
   // Several hits its user may send at one creature or several (Magic Missile's darts): `repeatable`. Only with no attack
   // roll, as each of Scorching Ray's rays and Eldritch Blast's beams rolls its own.
   if ( !attack && (definition.targeting?.type === "multiple") && /\bto hit one creature or several\b/iu.test(plainText(document)) )
@@ -5866,10 +5879,11 @@ function convertActivity({document, activity, system, spell, level, scales, note
       allowedDamageTypes: types, effects: [{type: "replaceDamageType", componentIds: [`damage-${index + 1}`],
         damageTypeChoiceId: `damage-type-${index + 1}`}]});
     else if ( (part.types ?? []).length > 1 ) notes.push(`damage ${index + 1}: a choice of ${part.types.join("/")} uses ${part.types[0]}`);
-    const scale = scaledDice(part, {spell, level});
+    const scale = slotScaling(part, {spell, level});
+    if ( scale?.byHand ) notes.push(`upcast: damage ${index + 1} ${scale.byHand} (by hand)`);
     const cantrip = spell && !level && (part.scaling?.mode === "whole");
     damage.push({id: `damage-${index + 1}`, expression: cantrip ? cantripTable(expression) : expression, damageType: part.types?.[0] ?? "untyped",
-      provenance: spell ? "spell-base" : "additional", ...(scale ? {scaleDice: scale} : {})});
+      provenance: spell ? "spell-base" : "additional", ...(scale?.dice ? {scaleDice: scale.dice} : {}), ...(scale?.bonus ? {scaleBonus: scale.bonus} : {})});
   }
   const onSave = activity.damage?.onSave;
   if ( definition.save && damage.length && (onSave === "half" || onSave === "none") ) {
@@ -5890,10 +5904,12 @@ function convertActivity({document, activity, system, spell, level, scales, note
     const faces = perUse(activity.healing)?.[1];
     if ( faces ) spent = {id: "healing-1", faces: Number(faces), collection: "healing"};
     const expression = faces ? dice(1, Number(faces)) : partExpression(activity.healing, {spell, ability: null, scales, notes, label: "healing"});
-    const scale = scaledDice(activity.healing, {spell, level});
+    const scale = slotScaling(activity.healing, {spell, level});
+    if ( scale?.byHand ) notes.push(`upcast: healing ${scale.byHand} (by hand)`);
     // Temporary Hit Points (False Life, Inspiring Leader) are their own healing type.
     const healingType = (activity.healing.types ?? []).includes("temphp") ? "temporary" : "healing";
-    if ( expression ) healing.push({id: "healing-1", expression, healingType, ...(scale ? {scaleDice: scale} : {})});
+    if ( expression ) healing.push({id: "healing-1", expression, healingType, ...(scale?.dice ? {scaleDice: scale.dice} : {}),
+      ...(scale?.bonus ? {scaleBonus: scale.bonus} : {})});
   }
 
   const effects = [];
@@ -6046,8 +6062,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
     }
   }
 
-  if ( damage.length ) definition.damage = damage.map(({scaleDice: _scale, ...component}) => component);
-  if ( healing.length ) definition.healing = healing.map(({scaleDice: _scale, ...component}) => component);
+  if ( damage.length ) definition.damage = damage.map(({scaleDice: _scale, scaleBonus: _bonus, ...component}) => component);
+  if ( healing.length ) definition.healing = healing.map(({scaleDice: _scale, scaleBonus: _bonus, ...component}) => component);
   // 2024 Mirror Image: dnd5e's "Duplicate" effects (each adds 1 to a `mirrorImages` flag) are one effect with a level for
   // each duplicate, whose reaction rolls a d6 per duplicate left when its creature is hit.
   const duplicates = (document.effects ?? []).filter(effect => effectChanges(effect).some(change => /\.mirrorImages$/u.test(String(change.key))));
@@ -6149,7 +6165,8 @@ function convertActivity({document, activity, system, spell, level, scales, note
   }
   // Its damage at the start of each of the target's turns while the condition this save gives lasts (a Pit Fiend's Bite,
   // a Vrock's Spores, an Invisible Stalker's Vortex, a Water Elemental's Whelm): an effect beside that condition's.
-  if ( activity.type === "save" ) effects.push(...turnStartDamageEffects(document, effects, {spell, scales, notes}));
+  const slotted = (definition.configuration ?? []).some(choice => choice.id === "spell-slot");
+  if ( activity.type === "save" ) effects.push(...turnStartDamageEffects(document, effects, {spell, scales, notes, slotted}));
   // "While Poisoned, the target can't regain Hit Points" (a Bone Devil's Sting; "Until this poison ends": a Bearded
   // Devil's Beard; "While cursed": a Mummy's Rotting Fist): beside the effect bringing that condition, one capping its
   // healing at 0 for as long as it has the condition (Lesser Restoration ending it ends the cap too).
@@ -6205,7 +6222,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
     // Its damage at the start of each of its creature's turns while it lasts (a Bearded Devil's infernal wound): the
     // marker's own. A spell restoring its Hit Points, or a creature's Stanch Wound check, ends it by hand (noted); upgrade
     // with an `endsWhen` for healing.
-    const wound = (lasting && (activity.type === "save")) ? turnStartDamageRules(document, {spell, scales, notes}) : [];
+    const wound = (lasting && (activity.type === "save")) ? turnStartDamageRules(document, {spell, scales, notes, slotted}) : [];
     if ( lasting || (!conditions.length && concentration) ) effects.push({id: "effect-1", type: "effect", name: document.name,
       ...(document.img ? {img: document.img} : {}), ruleElements: wound, ...(lasting ? {duration: lasting} : {}), saveOutcomePolicy: "failure",
       ...(concentration ? {concentration: true} : {})});
@@ -6223,7 +6240,7 @@ function convertActivity({document, activity, system, spell, level, scales, note
   }
   // A follow-up (Flame Blade's attack, Heat Metal's reheat) goes on with its spell's concentration; it sustains nothing.
   if ( concentration && !effects.length && (activity.consumption?.spellSlot !== false) ) notes.push("concentration: nothing it sustains was converted");
-  if ( damage.length || healing.length || effects.length || definition.check || definition.metadata?.test ) return definition;
+  if ( damage.length || healing.length || effects.length || definition.check || definition.metadata?.test ) return bindSlot(definition);
   // An attack or save with nothing converted on it still rolls (Command, Counterspell, a Net): the card shows who
   // saved or was hit, and the description says what follows.
   if ( definition.save || definition.attack ) {
@@ -6268,13 +6285,54 @@ function judgedCheck(check) {
   return skills.length ? {skills} : null;
 }
 
-/** A damage or healing part's dice per spell level above its own, or null (a cantrip grows by character level instead). */
-function scaledDice(part, {spell, level}) {
-  if ( !spell || !level || !part?.scaling ) return null;
-  if ( (part.scaling.mode !== "whole") && !number(part.scaling.number) ) return null;
-  const count = number(part.scaling.number) ?? 1;
-  const faces = number(part.scaling.faces) ?? number(part.denomination);
-  return faces ? {number: count, faces} : null;
+/**
+ * What a damage or healing part adds per slot level above its own, as dnd5e's DamageData#scaledFormula reads it: null,
+ * `{dice?, bonus?}`, or `{byHand: reason}`. Only mode "whole" grows ("" is none, though dnd5e stores `number: 1` on every
+ * part); its `number` more dice of its first die (a missing key is 1, null none), and its `formula` added per level (a
+ * constant is `bonus`). A cantrip (no level) grows by character level instead.
+ */
+function slotScaling(part, {spell, level}) {
+  const scaling = part?.scaling;
+  if ( !spell || !level || !scaling ) return null;
+  if ( scaling.mode === "half" ) return {byHand: "grows every other slot level"};
+  if ( scaling.mode !== "whole" ) return null;
+  const lead = part.custom?.enabled ? /^\s*(\d+)d(\d+)/.exec(part.custom.formula ?? "") : null;
+  const faces = number(scaling.faces) ?? (lead ? Number(lead[2]) : (part.custom?.enabled ? null : number(part.denomination)));
+  const count = ("number" in scaling) ? (number(scaling.number) ?? 0) : 1;
+  const formula = String(scaling.formula ?? "").trim();
+  const rolled = /^(\d+)d(\d+)$/.exec(formula);
+  const diced = Boolean(count && faces);
+  if ( formula && (number(formula) == null) && !(rolled && !diced) ) return {byHand: `grows by "${formula}" a slot level`};
+  const dice = diced ? {number: count, faces} : (rolled ? {number: Number(rolled[1]), faces: Number(rolled[2])} : null);
+  const bonus = number(formula);
+  return (dice || bonus) ? {...(dice ? {dice} : {}), ...(bonus ? {bonus} : {})} : null;
+}
+
+const SLOT_TOKEN = "{{spell-slot}}";
+
+/**
+ * `expression`, converted from dnd5e's `part`, growing as the part does with a higher slot (slotScaling) where an effect
+ * carries it and scaleDamage can't reach (a retaliation's, a start-of-turn Trigger's): `{expression}`, a table on the slot
+ * chosen (SLOT_TOKEN, which bindSlot has its spell-slot choice fill) with a row per slot from `level`. `{byHand: true}`
+ * when it grows in a way no such table gives, null when it doesn't grow.
+ */
+function slotGrowth(expression, part, {spell, level}) {
+  const scale = slotScaling(part, {spell, level});
+  if ( !scale ) return null;
+  const {dice, bonus} = scale;
+  const grows = (dice && !bonus && (expression.type === "dice") && (expression.faces === dice.faces))
+    ? offset => ({...expression, number: expression.number + (dice.number * offset)})
+    : ((!dice && bonus && (expression.type === "constant")) ? offset => expression.value + (bonus * offset) : null);
+  return grows ? {expression: {type: "table", key: {type: "constant", value: SLOT_TOKEN}, default: expression,
+    rows: Object.fromEntries(Array.from({length: 10 - level}, (_, offset) => [level + offset, grows(offset)]))}} : {byHand: true};
+}
+
+/** `definition` with its spell-slot choice filling the slot chosen into its effects (bindChoice) once one reads it (slotGrowth). */
+function bindSlot(definition) {
+  if ( !definition.configuration || !JSON.stringify(definition.effects ?? []).includes(SLOT_TOKEN) ) return definition;
+  return {...definition, configuration: definition.configuration.map(choice => (((choice.id === "spell-slot")
+    && !(choice.effects ?? []).some(effect => effect.type === "bindChoice"))
+    ? {...choice, effects: [...(choice.effects ?? []), {type: "bindChoice"}]} : choice))};
 }
 
 /** `<class>.<scale>` → `{level: value}` rows from dnd5e class documents' ScaleValue advancements. */

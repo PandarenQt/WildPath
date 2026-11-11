@@ -217,7 +217,8 @@ export function definitionToBuilder(definition: Data | null | undefined, {abilit
     push: {distance: d.push?.distance ?? null, toward: d.push?.toward === true, maxSize: d.push?.maxSize ?? "",
       onSuccess: d.push?.on === "success"},
     slot: {level: slot ? Math.min(...slot.levels) : "", upcast: upcast ?? ""},
-    upcastReadOnly: Boolean(slot?.scale) && ((upcast === null) || !slot!.scale.dice),
+    // A flat amount per level (`bonus`) has no field: shown read-only.
+    upcastReadOnly: Boolean(slot?.scale) && ((upcast === null) || !slot!.scale.dice || (slot!.scale.bonus != null)),
     damage: damage.map(component => {
       const formula = formatFormula(component.expression);
       return {id: component.id ?? "", formula: formula ?? "", formulaReadOnly: formula === null,
@@ -838,7 +839,7 @@ export function builderGaps(definition: Data | null | undefined, options: Builde
     for ( const effect of (slot.entry.effects ?? []) as Data[] ) if ( effect !== slot.scale ) gaps.add(`configuration.${effect?.type}`);
     const scale = slot.scale;
     const first = [damage[0]?.id].filter(Boolean).join();
-    if ( scale && (!scale.dice || (scale.perLevel != null) || ((scale.componentIds ?? []).join() !== first)) ) gaps.add("configuration.upcast");
+    if ( scale && (!scale.dice || (scale.perLevel != null) || (scale.bonus != null) || ((scale.componentIds ?? []).join() !== first)) ) gaps.add("configuration.upcast");
   }
   return [...gaps].sort();
 }

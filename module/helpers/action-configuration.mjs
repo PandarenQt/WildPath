@@ -1235,7 +1235,10 @@ function applyScaleDamageEffect({definition, effect, selection, selectionsById, 
     number: Math.max(levels * diceNumber, 0),
     faces: diceFaces
   };
-  if ( levels <= 0 || addedDice.number <= 0 || !addedDice.faces ) {
+  // A flat amount per level (Heal's "increases by 10 for each spell slot level above 6"), with dice or alone.
+  const addedBonus = levels * (finiteNumber(effect.bonus) ?? 0);
+  const diced = (addedDice.number > 0) && Boolean(addedDice.faces);
+  if ( levels <= 0 || (!diced && !addedBonus) ) {
     return {
       ok: true,
       trace: [appliedTrace(selection, "damage-scaling-noop", {selectedLevel, baseLevel})],
@@ -1249,7 +1252,8 @@ function applyScaleDamageEffect({definition, effect, selection, selectionsById, 
   const trace = [];
   for ( const component of matches ) {
     const before = clonePlain(component.expression);
-    component.expression = addDiceToExpression(component.expression, addedDice);
+    const grown = diced ? addDiceToExpression(component.expression, addedDice) : clonePlain(component.expression);
+    component.expression = addedBonus ? addConstantToExpression(grown, addedBonus) : grown;
     component.metadata = {
       ...(component.metadata ?? {}),
       configurationChanges: [
@@ -1262,7 +1266,8 @@ function applyScaleDamageEffect({definition, effect, selection, selectionsById, 
           after: clonePlain(component.expression),
           selectedLevel,
           baseLevel,
-          addedDice
+          addedDice,
+          ...(addedBonus ? {addedBonus} : {})
         }
       ]
     };
@@ -1354,6 +1359,13 @@ function addDiceToExpression(expression, addedDice) {
     type: "add",
     terms: [clonePlain(expression), addition]
   };
+}
+
+/** `expression` plus a flat `value`: folded into a constant (Heal's 70 becomes 90), else added as a term. */
+function addConstantToExpression(expression, value) {
+  if ( !expression ) return {type: "constant", value};
+  if ( (expression.type === "constant") && (finiteNumber(expression.value) != null) ) return {...clonePlain(expression), value: finiteNumber(expression.value) + value};
+  return {type: "add", terms: [clonePlain(expression), {type: "constant", value}]};
 }
 
 function requirementsFromPaymentPlan(paymentPlan) {

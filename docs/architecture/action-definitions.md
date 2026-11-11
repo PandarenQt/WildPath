@@ -192,7 +192,9 @@ saves. The damage dice are rolled once for the Action and every hit deals that r
 A reaction to the damage answers one hit: its reduction (Stone's Endurance) comes off a creature's first damage result and
 its redirect (Protective Bond) moves only that one.
 A repeatable Action may not have an attack roll (its one roll cannot stand for each hit): Scorching Ray's rays and
-Eldritch Blast's beams each roll their own attack and are not converted as repeatable. The converter reads it from "to
+Eldritch Blast's beams each roll their own attack and are not converted as repeatable: Scorching Ray keeps one ray, and
+its more rays per slot level are by hand and noted (`upcast:`). Magic Missile's more darts per level raise the count
+(`scaleTargets`), and so its instances; no die is added to a dart. The converter reads it from "to
 hit one creature or several" on an Action with no attack. Shortcuts: only damage repeats per instance (no SRD repeatable
 Action heals or applies an effect); the Action Builder cannot set it.
 

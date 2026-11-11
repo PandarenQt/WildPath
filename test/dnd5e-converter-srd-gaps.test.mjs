@@ -419,7 +419,7 @@ test("a summoned creature's move its summoner pays for (an Arcane Eye's Move); a
   assert.deepEqual(realGapNotes(notes), ["Infernal Glaive: save: what ends its wound early (its text) is by hand"]);
 });
 
-test("a spell's damage at the start of each turn notes that a higher slot doesn't grow it (Ensnaring Strike)", () => {
+test("a spell's damage at the start of each turn grows with a higher slot, as a table its slot choice binds (Ensnaring Strike)", () => {
   const strike = convertItem(doc("spell", "Ensnaring Strike", "ensnaring-strike", {level: 1, preparation: {mode: "prepared"},
     description: {value: "<p>The target has the &amp;Reference[Restrained] condition until the spell ends. While Restrained, the target takes "
       + "1d6 Piercing damage at the start of each of its turns.</p>"}, activities: {
@@ -427,8 +427,12 @@ test("a spell's damage at the start of each turn notes that a higher slot doesn'
       b: passive("damage", {_id: "actturn", name: "Start of Turn Damage", damage: {parts: [{number: 1, denomination: 6, types: ["piercing"],
         scaling: {mode: "whole", number: 1}}]}})}}, [{_id: "held", name: "Restrained", statuses: ["restrained"]}]));
   const turn = actions(strike)[0].system.definition.effects.find(effect => effect.ruleElements?.[0]?.type === "Trigger");
-  assert.equal(turn.ruleElements[0].data.action.damage[0].expression.faces, 6);
-  assert.deepEqual(realGapNotes(strike.notes), ["\"Start of Turn Damage\": its damage at the start of each turn doesn't grow with a higher spell slot (by hand)"]);
+  const {key, rows} = turn.ruleElements[0].data.action.damage[0].expression;
+  assert.deepEqual([key, rows[1], rows[2]], [{type: "constant", value: "{{spell-slot}}"}, {type: "dice", number: 1, faces: 6},
+    {type: "dice", number: 2, faces: 6}]);
+  assert.deepEqual(actions(strike)[0].system.definition.configuration.find(choice => choice.id === "spell-slot").effects.at(-1),
+    {type: "bindChoice"});
+  assert.deepEqual(realGapNotes(strike.notes), []);
 });
 
 test("an item's summon adds its wielder's ability (a Dancing Sword's Strength) to its attacks' damage", () => {

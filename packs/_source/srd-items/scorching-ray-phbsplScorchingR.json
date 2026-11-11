@@ -153,7 +153,9 @@
         "subtype": null
       },
       "conversion": {
-        "notes": []
+        "notes": [
+          "upcast: the more targets its text gives for each slot level above its own are by hand"
+        ]
       }
     }
   }

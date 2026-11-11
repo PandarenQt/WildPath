@@ -135,10 +135,7 @@
               "componentIds": [
                 "healing-1"
               ],
-              "dice": {
-                "number": 1,
-                "faces": 4
-              }
+              "bonus": 5
             }
           ]
         }

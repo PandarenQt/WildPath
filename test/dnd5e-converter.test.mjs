@@ -253,6 +253,12 @@ test("older dnd5e data (2014 modules, before activities) converts like the curre
     scaling: {mode: "level", formula: "1d8"}, damage: {parts: [["1d8 + @mod", "healing"]]}}}, own);
   assert.deepEqual(cure.items[0].system.definition.configuration[0].effects[0], {type: "scaleHealing", levelChoiceId: "spell-slot", baseLevel: 1,
     componentIds: ["healing-1"], dice: {number: 1, faces: 8}});
+  // A constant formula is a flat amount per level (2014 False Life's "5").
+  const life = convertItem({_id: "legacyLife000001", name: "Life", type: "spell", system: {...legacy, level: 1, actionType: "heal",
+    activation: {type: "action", cost: 1}, range: {units: "self"}, target: {type: "self"}, preparation: {mode: "prepared"},
+    scaling: {mode: "level", formula: "5"}, damage: {parts: [["1d4 + 4", "temphp"]]}}}, own);
+  assert.deepEqual(life.items[0].system.definition.configuration[0].effects[0], {type: "scaleHealing", levelChoiceId: "spell-slot", baseLevel: 1,
+    componentIds: ["healing-1"], bonus: 5});
   // A stat block's legacy Magic Weapon enchants a weapon, as the 2024 spell does.
   const weaponSpell = upgradeLegacy({_id: "legacyMagicWeap1", name: "Magic Weapon", type: "spell", system: {...legacy, identifier: "magic-weapon",
     level: 2, actionType: "util", activation: {type: "bonus", cost: 1}, range: {units: "touch"}, target: {value: 1, type: "object"}}});
@@ -1701,6 +1707,35 @@ test("a self spell's passive damage rides an effect for its duration, growing wi
   const bound = retaliationOf(resolved.configuration.effectiveDefinition.effects[0]).action.damage[0].expression;
   assert.deepEqual(valueExpressions.selectTableRows(bound), {type: "constant", value: 15}, "a 3rd-level slot: 15 Cold damage");
   assert.deepEqual(valueExpressions.selectTableRows(action.damage[0].expression), {type: "constant", value: 5}, "no slot bound: its base");
+});
+
+test("damage at the start of each turn an effect carries grows with the slot chosen (Ensnaring Strike)", async () => {
+  const piercing = {number: 1, denomination: "6", bonus: "", types: ["piercing"], custom: {enabled: false, formula: ""},
+    scaling: {mode: "whole", number: 1, formula: ""}};
+  const [snare] = convertItem({_id: "testSnareGrows01", name: "Snare Grows", type: "spell", img: "spell.webp",
+    effects: [{_id: "ensnared", name: "Ensnared", transfer: false, statuses: ["restrained"], duration: {value: 60, units: "seconds"}}],
+    system: {source: SRD, level: 1, preparation: {mode: "prepared"}, properties: ["vocal", "concentration"], activation: {type: "bonus"},
+      duration: {value: "1", units: "minute"}, range: {units: "self"}, target: {affects: {}, template: {}},
+      description: {value: "<p>On a failed save, the target has the Restrained condition until the spell ends. While Restrained, the target "
+        + "takes 1d6 Piercing damage at the start of each of its turns.</p>"},
+      activities: {a: activity("save", {save: {ability: "str", dc: {calculation: "spellcasting", formula: ""}}, effects: [{_id: "ensnared"}],
+        damage: {onSave: "half", parts: [piercing]}}),
+      b: activity("damage", {_id: "actturn", name: "Start of Turn Damage", sort: 1, activation: {type: "", override: true, condition: ""},
+        damage: {parts: [piercing]}})}}}).items;
+  const definition = snare.system.definition;
+  const turn = definition.effects.find(effect => effect.slug === "snare-grows-turn-damage").ruleElements[0].data.action.damage[0];
+  assert.deepEqual([turn.expression.key, turn.expression.rows[1], turn.expression.rows[3], turn.expression.default],
+    [{type: "constant", value: "{{spell-slot}}"}, {type: "dice", number: 1, faces: 6}, {type: "dice", number: 3, faces: 6},
+      {type: "dice", number: 1, faces: 6}]);
+  assert.deepEqual(definition.configuration.find(choice => choice.id === "spell-slot").effects.at(-1), {type: "bindChoice"});
+  assert.equal(snare.flags.wildpath.conversion.notes.some(note => /doesn't grow with a higher spell slot/u.test(note)), false);
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const resolved = resolveActionConfiguration({definition, actorSystem: {resources: {action: {value: 1, max: 1}, bonus: {value: 1, max: 1}},
+    pools: [{id: "spell-slot.3", value: 1, max: 1}]}, choices: {"spell-slot": {resourceId: "spell-slot.3"}}});
+  assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+  const bound = resolved.configuration.effectiveDefinition.effects.find(effect => effect.slug === "snare-grows-turn-damage")
+    .ruleElements[0].data.action.damage[0].expression;
+  assert.deepEqual(valueExpressions.selectTableRows(bound), {type: "dice", number: 3, faces: 6}, "a 3rd-level slot: 3d6 each turn");
 });
 
 test("an affected creature's effect has a Fiend or Undead hitting it save at its caster's DC, and attacks on it Disadvantage (Holy Aura)", () => {
@@ -3747,6 +3782,95 @@ test("a potion of the spell without its ending's lethargy or Concentration gets 
   potion.system.description.value = potion.system.description.value.replace(" (no Concentration required)", "");
   const held = convertItem(potion, {spells: {testHasteSpell01: hasteSpell()}}).items.find(item => item.type === "action");
   assert.deepEqual(held.system.definition.effects.map(effect => effect.concentration), [true], "without the clause it is the spell's concentration");
+});
+
+test("a higher slot grows each spell as its text says, read from dnd5e's scaling modes", async () => {
+  const {resolveActionConfiguration} = await import("../module/helpers/action-configuration.mjs");
+  const {actionDefinitionToResolverInput} = await import("../module/helpers/action-definitions.mjs");
+  // Real dnd5e shapes: every part stores `number: 1`; only mode "whole" grows.
+  const spell = ({name, level, type="save", text="", count="1", parts=[], healing=null, data={}, effects=[]}) => convertItem({_id: `testUp${name}`.padEnd(16, "0").slice(0, 16),
+    name, type: "spell", effects, system: {source: SRD, level, preparation: {mode: "prepared"}, properties: [], activation: {type: "action"},
+      range: {value: "60", units: "ft"}, description: {value: `<p>${text}</p>`}, target: {affects: {type: "creature", count}, template: {}},
+      activities: {a: activity(type, {...(type === "save" ? {save: {ability: "dex", dc: {calculation: "spellcasting", formula: ""}}} : {}),
+        ...data, ...(parts.length ? {damage: {parts}} : {}), ...(healing ? {healing} : {})})}}});
+  const part = (number, denomination, scaling, bonus="") => ({number, denomination, bonus, types: ["fire"], scaling});
+  const at = (item, slot) => {
+    const resolved = resolveActionConfiguration({definition: item.system.definition, actorSystem: {resources: {action: {value: 1, max: 1}},
+      pools: [{id: `spell-slot.${slot}`, value: 1, max: 1}]}, choices: {"spell-slot": {resourceId: `spell-slot.${slot}`}}});
+    assert.equal(resolved.ok, true, JSON.stringify(resolved.errors));
+    return resolved.configuration.effectiveDefinition;
+  };
+  const slotEffects = item => item.system.definition.configuration.find(choice => choice.id === "spell-slot").effects;
+  const notes = item => item.flags.wildpath.conversion.notes;
+
+  // Magic Missile: more darts only; each dart stays 1d4 + 1.
+  const [missile] = spell({name: "Missile", level: 1, type: "damage", count: "2 + @item.level",
+    text: "Each dart strikes a creature of your choice. The darts all strike simultaneously, and you can direct them to hit one creature or several.",
+    parts: [part(1, 4, {mode: "", number: 1, formula: ""}, "1")]}).items;
+  assert.deepEqual(slotEffects(missile).map(effect => effect.type), ["scaleTargets"]);
+  const missile3 = at(missile, 3);
+  assert.equal(missile3.targeting.count, 5);
+  assert.equal(actionDefinitionToResolverInput(missile3).targeting.refinementPolicy.instances, 5, "five darts at slot 3");
+  assert.deepEqual(missile3.damage[0].expression, missile.system.definition.damage[0].expression, "no die added to a dart");
+
+  // Fireball: 1d6 a level.
+  const [fireball] = spell({name: "Fireball", level: 3, parts: [part(8, 6, {mode: "whole", number: 1, formula: ""})]}).items;
+  assert.deepEqual(at(fireball, 5).damage[0].expression, {type: "dice", number: 10, faces: 6});
+
+  // Cure Wounds: 2d8 a level, its modifier kept.
+  const [cure] = spell({name: "Cure", level: 1, type: "heal", healing: {number: 2, denomination: 8, bonus: "@mod", types: ["healing"],
+    scaling: {mode: "whole", number: 2, formula: ""}}}).items;
+  assert.deepEqual(at(cure, 3).healing[0].expression, {type: "add", terms: [cure.system.definition.healing[0].expression,
+    {type: "dice", number: 4, faces: 8}]}, "6d8 + its modifier at slot 3");
+
+  // Heal: 10 a level, folded into its 70.
+  const [heal] = spell({name: "Heal", level: 6, type: "heal", healing: {number: null, denomination: null, bonus: "70", types: ["healing"],
+    scaling: {mode: "whole", number: null, formula: "10"}}}).items;
+  assert.deepEqual(slotEffects(heal), [{type: "scaleHealing", levelChoiceId: "spell-slot", baseLevel: 6, componentIds: ["healing-1"], bonus: 10}]);
+  assert.deepEqual(at(heal, 8).healing[0].expression, {type: "constant", value: 90});
+
+  // False Life: 5 a level, no die (dnd5e's `number: null`).
+  const [life] = spell({name: "Life", level: 1, type: "heal", healing: {number: 2, denomination: 4, bonus: "4", types: ["temphp"],
+    scaling: {mode: "whole", number: null, formula: "5"}}}).items;
+  const life3 = at(life, 3).healing[0].expression;
+  assert.deepEqual([life3.type, life3.terms[1]], ["add", {type: "constant", value: 10}]);
+  assert.deepEqual(life3.terms[0], life.system.definition.healing[0].expression, "its 2d4 + 4 unchanged");
+
+  // Ice Storm: only the part dnd5e scales grows.
+  const [storm] = spell({name: "Storm", level: 4, parts: [part(2, 10, {mode: "whole", number: 1, formula: ""}), part(4, 6, {mode: "", number: 1})]}).items;
+  assert.deepEqual(slotEffects(storm), [{type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 4, componentIds: ["damage-1"],
+    dice: {number: 1, faces: 10}}]);
+
+  // Heroes' Feast-style: `number: 1` with no mode is no growth.
+  const [feast] = spell({name: "Feast", level: 6, type: "heal", healing: {number: 2, denomination: 10, bonus: "", types: ["healing"],
+    scaling: {number: 1}}}).items;
+  assert.deepEqual(slotEffects(feast), []);
+
+  // Scorching Ray: rays its count doesn't hold are by hand, and noted.
+  const [rays] = spell({name: "Rays", level: 2, type: "attack", count: "", text: "You create one additional ray for each spell slot level above 2.",
+    data: {attack: {type: {value: "ranged", classification: "spell"}, ability: "", bonus: ""}}, parts: [part(2, 6, {mode: "", number: 1})]}).items;
+  assert.deepEqual(slotEffects(rays), []);
+  assert.ok(notes(rays).includes("upcast: the more targets its text gives for each slot level above its own are by hand"));
+  // Etherealness: "up to three willing creatures ... for each slot level above", noted too.
+  const [ether] = spell({name: "Ether", level: 7, type: "utility", count: "", text: "You can target up to three willing creatures (including "
+    + "you) for each spell slot level above 7.", data: {effects: [{_id: "e"}]},
+    effects: [{_id: "e", name: "Ethereal", transfer: false, statuses: [], system: {changes: []}}]}).items;
+  assert.ok(notes(ether).includes("upcast: the more targets its text gives for each slot level above its own are by hand"));
+
+  // Jump: the more creatures its text gives, though its count is "1".
+  const [jump] = spell({name: "Jump", level: 1, type: "utility", count: "1",
+    text: "You can target one additional creature for each spell slot level above 1.", data: {effects: [{_id: "j"}]},
+    effects: [{_id: "j", name: "Jumping", transfer: false, statuses: [], system: {changes: []}}]}).items;
+  assert.deepEqual(slotEffects(jump), [{type: "scaleTargets", levelChoiceId: "spell-slot", baseLevel: 1, perLevel: 1}]);
+  assert.equal(at(jump, 3).targeting.count, 3);
+  assert.equal(notes(jump).some(note => note.startsWith("upcast:")), false);
+
+  // A part growing every other level, or by a formula it can't read: noted, not guessed.
+  const [half] = spell({name: "Half", level: 2, parts: [part(3, 6, {mode: "half", number: 1})]}).items;
+  assert.deepEqual(slotEffects(half), []);
+  assert.ok(notes(half).includes("upcast: damage 1 grows every other slot level (by hand)"));
+  const [odd] = spell({name: "Odd", level: 2, parts: [part(3, 6, {mode: "whole", number: 1, formula: "1d4"})]}).items;
+  assert.ok(notes(odd).includes("upcast: damage 1 grows by \"1d4\" a slot level (by hand)"), "dice of two sizes");
 });
 
 test("darts sent at one creature or several (Magic Missile) are repeatable targets; an attack's rays are not", async () => {

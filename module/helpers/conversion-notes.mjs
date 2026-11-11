@@ -8,6 +8,7 @@ const RULES = [
   [/^Multiattack: not automated/, () => "Multiattack"],
   [/^Multiattack: any of its attacks/, () => "shortcut: Multiattack's named attacks not enforced"],
   [/^Multiattack: its other parts/, () => "Multiattack: a replacement or an ability it uses (by hand)"],
+  [/^upcast: /, () => "upcast by hand"],
   [/effect: (\w+) is not a WildPath condition/, match => `condition: ${match[1]}`],
   [/effect: ".*" marks its creature \(narrative\)/, () => "narrative marker (a reminder, nothing to automate)"],
   [/effect: ".*" marks its creature only/, () => "effect marker only (its rules by hand)"],

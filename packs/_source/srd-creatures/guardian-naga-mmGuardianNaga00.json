@@ -946,39 +946,6 @@
               }
             }
           ],
-          "configuration": [
-            {
-              "id": "spell-slot",
-              "type": "option",
-              "label": "WILDPATH.PROMPT.CastLevel",
-              "required": true,
-              "fromCast": true,
-              "options": [
-                {
-                  "id": "level-6",
-                  "label": "6",
-                  "value": 6,
-                  "metadata": {
-                    "castingLevel": 6
-                  }
-                }
-              ],
-              "effects": [
-                {
-                  "type": "scaleDamage",
-                  "levelChoiceId": "spell-slot",
-                  "baseLevel": 5,
-                  "componentIds": [
-                    "damage-1"
-                  ],
-                  "dice": {
-                    "number": 1,
-                    "faces": 10
-                  }
-                }
-              ]
-            }
-          ],
           "metadata": {
             "spellLevel": 5
           },

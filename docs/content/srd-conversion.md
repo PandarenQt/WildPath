@@ -56,12 +56,12 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Amulet of the Planes | equipment24 | Amulet of the Planes (gear), Amulet of the Planes (automated) | — |
 | Ancient Black Dragon | actors24 | Ancient Black Dragon (15 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: activation: 1 minute is not an action-economy cost; Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Ancient Blue Dragon | actors24 | Ancient Blue Dragon (14 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated; Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest |
-| Ancient Brass Dragon | actors24 | Ancient Brass Dragon (17 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative) |
+| Ancient Brass Dragon | actors24 | Ancient Brass Dragon (17 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: upcast: the more targets its text gives for each slot level above its own are by hand; Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative); Blazing Light: upcast: the more targets its text gives for each slot level above its own are by hand |
 | Ancient Bronze Dragon | actors24 | Ancient Bronze Dragon (19 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated; Spellcasting: effect: "Water Breathing" marks its creature (narrative) |
 | Ancient Copper Dragon | actors24 | Ancient Copper Dragon (16 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: effect: "Spiked" marks its creature (narrative); Mind Jolt: effect: "Spiked" marks its creature (narrative) |
 | Ancient Gold Dragon | actors24 | Ancient Gold Dragon (16 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Cannot Lie" marks its creature (narrative) |
 | Ancient Green Dragon | actors24 | Ancient Green Dragon (13 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: effect: "Spiked" marks its creature (narrative); Spellcasting: activation: 1 minute is not an action-economy cost; Mind Invasion: effect: "Spiked" marks its creature (narrative) |
-| Ancient Red Dragon | actors24 | Ancient Red Dragon (13 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated |
+| Ancient Red Dragon | actors24 | Ancient Red Dragon (13 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: upcast: the more targets its text gives for each slot level above its own are by hand; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: save: a failure marks its creature (narrative); Spellcasting: "Create Sensor" is passive or triggered (narrative): not automated; Fiery Rays: upcast: the more targets its text gives for each slot level above its own are by hand |
 | Ancient Silver Dragon | actors24 | Ancient Silver Dragon (17 items) | Spellcasting: effect: "Detect Magic" marks its creature (narrative); Spellcasting: not automated (cast): using it spends its cost; its description says the rest; Spellcasting: cast: its spell was not found among the converted spells; Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest; Spellcasting: activation: 10 minute is not an action-economy cost; Spellcasting: concentration: its caster concentrates; what it sustains is by hand; Spellcasting: not automated (teleport, narrative): using it spends its cost; its description says the rest; Spellcasting: effect: "Cannot Lie" marks its creature (narrative) |
 | Ancient White Dragon | actors24 | Ancient White Dragon (9 items) | — |
 | Animal Friendship | spells24 | Animal Friendship (automated) | — |
@@ -514,7 +514,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Energy Bow | equipment24 | Energy Bow (attack) (automated), Energy Bow (Arrow of Transport) (manual), Energy Bow (Energy Ladder) (manual), Energy Bow (Energy Bow) (automated) | not automated (utility): using it spends its cost; its description says the rest; "Arrow of Restraint" is passive or triggered: not automated; not automated (utility, narrative): using it spends its cost; its description says the rest |
 | Enhance Ability | spells24 | Enhance Ability (automated) | — |
 | Enlarge/Reduce | spells24 | Enlarge/Reduce (automated) | — |
-| Ensnaring Strike | spells24 | Ensnaring Strike (save) (automated) | "Start of Turn Damage": its damage at the start of each turn doesn't grow with a higher spell slot (by hand) |
+| Ensnaring Strike | spells24 | Ensnaring Strike (save) (automated) | — |
 | Entangle | spells24 | Entangle (automated) | — |
 | Entertainer's Pack | equipment24 | Entertainer's Pack (gear) | — |
 | Enthrall | spells24 | Enthrall (automated) | — |
@@ -532,7 +532,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Epic Boon | classes24 | Epic Boon (feature) | — |
 | Erinyes | actors24 | Erinyes (9 items) | Magic Rope: "Magic Rope" is passive or triggered (narrative): not automated |
 | Essence of Ether | equipment24 | Essence of Ether (automated) | — |
-| Etherealness | spells24 | Etherealness (automated) | — |
+| Etherealness | spells24 | Etherealness (automated) | upcast: the more targets its text gives for each slot level above its own are by hand |
 | Ettercap | actors24 | Ettercap (8 items) | Reel: not automated (utility): using it spends its cost; its description says the rest |
 | Ettin | actors24 | Ettin (5 items) | — |
 | Euryale | equipment24 | Euryale (gear), Euryale (automated) | — |
@@ -1323,7 +1323,7 @@ available at https://creativecommons.org/licenses/by/4.0/legalcode.
 | Scholar's Pack | equipment24 | Scholar's Pack (gear) | — |
 | Scimitar | equipment24 | Scimitar (automated) | — |
 | Scimitar of Speed | equipment24 | Scimitar of Speed (automated), Scimitar of Speed (Bonus Action) (automated) | — |
-| Scorching Ray | spells24 | Scorching Ray (automated) | — |
+| Scorching Ray | spells24 | Scorching Ray (automated) | upcast: the more targets its text gives for each slot level above its own are by hand |
 | Scorpion | actors24 | Scorpion (2 items) | — |
 | Scout | actors24 | Scout (3 items) | — |
 | Scroll | equipment24 | Scroll (gear) | — |

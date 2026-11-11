@@ -362,7 +362,9 @@ Form has, here carried by a spell's effect for as long as it lasts (2026-11-07):
 Its Action targets the attacker. Instead of damage it may carry a `save` (with `fromSource`) and the `effects` a failure
 gives. Damage that grows with the slot is a `table` keyed on `{type: "constant", value: "{{spell-slot}}"}` with the
 spell's own amount as its `default`; the casting Action's spell-slot choice binds the token (`bindChoice`) when the
-effect is applied. The converter writes this from a spell whose text says "a creature (within 5 feet of you) hits you
+effect is applied. The same table carries a start-of-turn Trigger's growing damage in an effect (Ensnaring Strike's
+1d6 more per slot level); the converter's `slotGrowth` writes both, and `bindSlot` adds the `bindChoice` to any spell
+whose effects read the token. The converter writes this from a spell whose text says "a creature (within 5 feet of you) hits you
 with a melee attack" or "a Fiend or an Undead hits an affected creature with a melee attack": dnd5e's passive damage
 or save activity (else the damage its text rolls) goes on each effect its use applies. A damage of several types is the
 type its text gives each effect by name ("2d8 Fire damage from a warm shield": Warm Shield). A self spell with no effect

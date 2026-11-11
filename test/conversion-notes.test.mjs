@@ -9,3 +9,10 @@ test("conversion notes: real gaps are kept, informational ones (narrative, long 
   assert.equal(noteReason(notes[0]), "Multiattack");
   assert.deepEqual(realGapNotes(undefined), []);
 });
+
+test("conversion notes: an upcast its data can't express is one real gap, whatever part it names", () => {
+  const notes = ["upcast: damage 1 grows every other slot level (by hand)", "Scorching Ray: upcast: the more targets its text gives for each slot level above its own are by hand",
+    "upcast: healing grows by \"1d4 + 1\" a slot level (by hand)"];
+  assert.deepEqual(notes.map(noteReason), ["upcast by hand", "upcast by hand", "upcast by hand"]);
+  assert.deepEqual(realGapNotes(notes), notes);
+});

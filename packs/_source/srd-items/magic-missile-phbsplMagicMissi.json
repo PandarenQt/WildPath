@@ -140,18 +140,6 @@
           },
           "effects": [
             {
-              "type": "scaleDamage",
-              "levelChoiceId": "spell-slot",
-              "baseLevel": 1,
-              "componentIds": [
-                "damage-1"
-              ],
-              "dice": {
-                "number": 1,
-                "faces": 4
-              }
-            },
-            {
               "type": "scaleTargets",
               "levelChoiceId": "spell-slot",
               "baseLevel": 1,

@@ -368,6 +368,29 @@ test("a higher slot can add healing dice and targets, as it adds damage dice", (
   assert.equal(base.configuration.effectiveDefinition.targeting.count, 1, "the spell's own level adds nothing");
 });
 
+test("a higher slot can add a flat amount per level, alone or beside dice", () => {
+  const slot = {id: "spell-slot", type: ACTION_CHOICE_TYPES.RESOURCE, required: true,
+    cost: {anyOf: [[{capability: "spell-slot.3", amount: 1}], [{capability: "spell-slot.5", amount: 1}]]},
+    levelByResourceId: {"spell-slot.3": 3, "spell-slot.5": 5}};
+  const definition = {schemaVersion: 1, id: "action:flat", tags: ["spell"], costs: {allOf: []},
+    targeting: {type: "single", required: true, count: 1},
+    healing: [{id: "heal", expression: {type: "constant", value: 70}, healingType: "healing"}],
+    damage: [{id: "hurt", expression: {type: "dice", number: 2, faces: 6}, damageType: "fire"}],
+    configuration: [{...slot, effects: [
+      {type: "scaleHealing", levelChoiceId: "spell-slot", baseLevel: 3, componentIds: ["heal"], bonus: 10},
+      {type: "scaleDamage", levelChoiceId: "spell-slot", baseLevel: 3, componentIds: ["hurt"], dice: {number: 1, faces: 6}, bonus: 2}]}]};
+  const at = resourceId => resolveActionConfiguration({definition, actorSystem: actorSystem(), choices: {"spell-slot": {resourceId}}});
+  const higher = at("spell-slot.5");
+  assert.equal(higher.ok, true, JSON.stringify(higher.errors));
+  assert.deepEqual(higher.configuration.effectiveDefinition.healing[0].expression, {type: "constant", value: 90}, "70 + 10 a level");
+  assert.deepEqual(higher.configuration.effectiveDefinition.damage[0].expression, {type: "add", terms: [{type: "dice", number: 4, faces: 6},
+    {type: "constant", value: 4}]}, "1d6 + 2 a level");
+  assert.equal(higher.configuration.effectiveDefinition.healing[0].metadata.configurationChanges[0].addedBonus, 20);
+  const base = at("spell-slot.3");
+  assert.deepEqual([base.configuration.effectiveDefinition.healing[0].expression, base.configuration.effectiveDefinition.damage[0].expression],
+    [{type: "constant", value: 70}, {type: "dice", number: 2, faces: 6}], "its own level adds nothing");
+});
+
 test("a lasting area's repeat grows with the slot too: Moonbeam at 3rd level repeats 3d10", () => {
   const damage = [{id: "damage-1", expression: {type: "dice", number: 2, faces: 10}, damageType: "radiant"}];
   const definition = {schemaVersion: 1, id: "action:moonbeam", tags: ["spell"], costs: {allOf: []},

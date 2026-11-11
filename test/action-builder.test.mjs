@@ -183,6 +183,16 @@ test("a spell slot level and its upcast dice scale the first damage row through 
   assert.deepEqual(definitionToBuilder(scaling).slot, {level: 1, upcast: "1d6"});
 });
 
+test("an upcast that adds a flat amount per level has no field: read-only, a gap, and kept on submit", () => {
+  const stored = packDefinitions.find(([file]) => file === "venom-burst.json")[1];
+  const built = submit(stored, {slot: {level: 3, upcast: "1d6"}}).definition;
+  const flat = {...built, configuration: [{...built.configuration[0], effects: [{...built.configuration[0].effects[0], bonus: 2}]}]};
+  assert.equal(definitionToBuilder(flat).upcastReadOnly, true);
+  assert.ok(builderGaps(flat).includes("configuration.upcast"));
+  assert.deepEqual(submit(flat, {slot: {upcast: "2d6"}}).definition.configuration[0].effects, flat.configuration[0].effects, "its bonus kept");
+  assert.equal(builderGaps(built).includes("configuration.upcast"), false, "dice alone stay the Builder's");
+});
+
 test("the Proficient checkbox adds or removes the attack's proficiency; attack templates start proficient", () => {
   const melee = applyActionTemplate({}, "melee", {fallbackId: "action:melee"});
   assert.equal(melee.attack.proficient, true);

@@ -122,9 +122,63 @@
                     {
                       "id": "turn-1",
                       "expression": {
-                        "type": "dice",
-                        "number": 1,
-                        "faces": 6
+                        "type": "table",
+                        "key": {
+                          "type": "constant",
+                          "value": "{{spell-slot}}"
+                        },
+                        "default": {
+                          "type": "dice",
+                          "number": 1,
+                          "faces": 6
+                        },
+                        "rows": {
+                          "1": {
+                            "type": "dice",
+                            "number": 1,
+                            "faces": 6
+                          },
+                          "2": {
+                            "type": "dice",
+                            "number": 2,
+                            "faces": 6
+                          },
+                          "3": {
+                            "type": "dice",
+                            "number": 3,
+                            "faces": 6
+                          },
+                          "4": {
+                            "type": "dice",
+                            "number": 4,
+                            "faces": 6
+                          },
+                          "5": {
+                            "type": "dice",
+                            "number": 5,
+                            "faces": 6
+                          },
+                          "6": {
+                            "type": "dice",
+                            "number": 6,
+                            "faces": 6
+                          },
+                          "7": {
+                            "type": "dice",
+                            "number": 7,
+                            "faces": 6
+                          },
+                          "8": {
+                            "type": "dice",
+                            "number": 8,
+                            "faces": 6
+                          },
+                          "9": {
+                            "type": "dice",
+                            "number": 9,
+                            "faces": 6
+                          }
+                        }
                       },
                       "damageType": "piercing",
                       "provenance": "additional"
@@ -223,6 +277,9 @@
                 "number": 1,
                 "faces": 6
               }
+            },
+            {
+              "type": "bindChoice"
             }
           ]
         }
@@ -251,9 +308,7 @@
         "subtype": null
       },
       "conversion": {
-        "notes": [
-          "\"Start of Turn Damage\": its damage at the start of each turn doesn't grow with a higher spell slot (by hand)"
-        ]
+        "notes": []
       }
     }
   }

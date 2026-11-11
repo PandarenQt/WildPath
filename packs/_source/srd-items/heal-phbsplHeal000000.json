@@ -107,7 +107,17 @@
             "spell-slot.8": 8,
             "spell-slot.9": 9
           },
-          "effects": []
+          "effects": [
+            {
+              "type": "scaleHealing",
+              "levelChoiceId": "spell-slot",
+              "baseLevel": 6,
+              "componentIds": [
+                "healing-1"
+              ],
+              "bonus": 10
+            }
+          ]
         }
       ],
       "metadata": {

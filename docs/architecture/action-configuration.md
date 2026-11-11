@@ -120,7 +120,13 @@ resolution transaction concern.
 
 Scaling is declarative and applied to a cloned effective definition. The initial generic effect is
 `scaleDamage`, which can increase selected damage components by a dice increment per selected
-level above a base level.
+level above a base level. `scaleHealing` does the same for healing components.
+
+Shape: `{type, levelChoiceId, baseLevel, componentIds, dice?: {number, faces}, bonus?: number}`. `dice` are
+added per level above the base; `bonus` (2026-11-08, optional, absent is 0) is a flat amount added per level,
+alone (Heal: "increases by 10 for each spell slot level above 6", 70 becomes 90 at 8th) or beside dice. A
+constant folds into the component's constant; anything else gains an added constant term. The Action Builder
+shows a scale with `bonus` read-only (a gap).
 
 Example:
 

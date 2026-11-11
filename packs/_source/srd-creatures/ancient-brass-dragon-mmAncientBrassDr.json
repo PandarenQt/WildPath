@@ -832,7 +832,9 @@
             "castBy": "Spellcasting"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "upcast: the more targets its text gives for each slot level above its own are by hand"
+            ]
           }
         }
       }
@@ -1736,7 +1738,9 @@
             "castBy": "Blazing Light"
           },
           "conversion": {
-            "notes": []
+            "notes": [
+              "upcast: the more targets its text gives for each slot level above its own are by hand"
+            ]
           }
         }
       }
@@ -2108,10 +2112,12 @@
       "conversion": {
         "notes": [
           "Spellcasting: effect: \"Detect Magic\" marks its creature (narrative)",
+          "Spellcasting: upcast: the more targets its text gives for each slot level above its own are by hand",
           "Spellcasting: not automated (utility, narrative): using it spends its cost; its description says the rest",
           "Spellcasting: activation: 10 minute is not an action-economy cost",
           "Spellcasting: concentration: its caster concentrates; what it sustains is by hand",
-          "Spellcasting: save: a failure marks its creature (narrative)"
+          "Spellcasting: save: a failure marks its creature (narrative)",
+          "Blazing Light: upcast: the more targets its text gives for each slot level above its own are by hand"
         ]
       }
     }
