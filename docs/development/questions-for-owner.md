@@ -292,3 +292,19 @@ condition") and `areas.md` (`heldElsewhere`) document the one-effect model as a 
   `heldElsewhere` and the two shortcut notes go. Additive fields only, no migration.
 - Done meanwhile: nothing; the newer source's flags win. A plan that names its effect by id now finds that one first.
 - Recommendation: yes; (1) only the hold rolled against, (2) every effect of that condition, (3) once, (4) add beside it.
+
+### Q20. Resistance and Vulnerability together, and rounding per hit part (2026-11-12)
+`applyTypedAdjustmentsToComponent` in `damage-adjustment-resolver.mjs` multiplies each damage component by one combined
+factor (the strongest Resistance times the strongest Vulnerability) and rounds once, per component. Two consequences
+against the 2024 wording ("Resistance and then Vulnerability are applied after all other modifiers"; halved, round down):
+- With both, 5 Fire becomes 5 (5 x 0.5 x 2), not 4 (halve and round down to 2, then double).
+- Two components of one type in one hit (a weapon's Fire plus a rider's Fire, 3 + 3, with Resistance) give 1 + 1 = 2,
+  not 3 (half of 6 rounded down).
+
+- Question: apply Resistance, round, then Vulnerability, over the total of each damage type in a hit, as the 2024 text
+  reads? The 2014 rule ordered them the same way, so this does not depend on the ruleset.
+- Cost if yes: group components by type before adjusting, keep each component's share for the chat card's breakdown,
+  and update the test that pins the combined factor. No data change.
+- Done meanwhile: nothing; the combined per-component factor stays.
+- Recommendation: yes. A creature with both to the same type is rare, but two parts of one type in a hit are common
+  (Flame Tongue, Searing Smite), and each odd part loses a point today.
